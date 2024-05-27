@@ -10,7 +10,7 @@ import type { BpmnTaskType } from '../types/BpmnTaskType';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { getMockBpmnElementForTask, mockBpmnDetails } from '../../test/mocks/bpmnDetailsMock';
 import { mockModelerRef } from '../../test/mocks/bpmnModelerMock';
-import { AddProcessTaskManager, RemoveProcessTaskManager } from '../classes/ProcessTaskManager';
+import { AddProcessTaskManager, RemoveProcessTaskManager } from '../utils/ProcessTaskManager';
 
 const layoutSetId = 'someLayoutSetId';
 const layoutSetsMock: LayoutSets = {

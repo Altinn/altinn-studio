@@ -16,6 +16,10 @@ export class AddProcessTaskManager {
     private readonly currentPolicy: Policy,
   ) {}
 
+  /**
+   * Handles the task add event and delegates the handling to the specific task type
+   * @param taskEvent
+   */
   public handleTaskAdd(taskEvent: TaskEvent): void {
     if (this.bpmnDetails.taskType === 'data') {
       this.handleDataTaskAdd();
@@ -30,10 +34,19 @@ export class AddProcessTaskManager {
     }
   }
 
+  /**
+   * Adds a layout set to the added data task
+   * @private
+   */
   private handleDataTaskAdd(): void {
     this.addLayoutSet(this.createLayoutSetConfig());
   }
 
+  /**
+   * Adds a dataType, default Policy and layout set to the added payment task
+   * @param taskEvent
+   * @private
+   */
   private handlePaymentTaskAdd(taskEvent: TaskEvent): void {
     this.addLayoutSet(this.createLayoutSetConfig());
 
@@ -57,6 +70,11 @@ export class AddProcessTaskManager {
     });
   }
 
+  /**
+   * Adds a dataType and layout set to the added signing task
+   * @param taskEvent
+   * @private
+   */
   private handleSigningTaskAdd(taskEvent: TaskEvent): void {
     this.addLayoutSet(this.createLayoutSetConfig());
 
@@ -70,6 +88,11 @@ export class AddProcessTaskManager {
     });
   }
 
+  /**
+   * Creates the layout set config for the task
+   * @returns {{layoutSetIdToUpdate: string, layoutSetConfig: LayoutSetConfig}}
+   * @private
+   */
   private createLayoutSetConfig(): {
     layoutSetIdToUpdate: string;
     layoutSetConfig: LayoutSetConfig;

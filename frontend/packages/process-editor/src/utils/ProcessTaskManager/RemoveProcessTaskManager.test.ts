@@ -3,7 +3,7 @@ import { type LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { type BpmnTaskType } from '../../types/BpmnTaskType';
 import { type BpmnDetails } from '../../types/BpmnDetails';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
-import { type TaskEvent } from '../../classes/ProcessTaskManager/types';
+import { type TaskEvent } from '../ProcessTaskManager/types';
 import { type Policy } from '../../utils/policy/types';
 
 describe('RemoveProcessTaskManager', () => {

@@ -1,6 +1,6 @@
 import { AddProcessTaskManager } from './AddProcessTaskManager';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
-import { type TaskEvent } from '../../classes/ProcessTaskManager/types';
+import { type TaskEvent } from '../ProcessTaskManager/types';
 import { type BpmnDetails } from '../../types/BpmnDetails';
 import { type Policy } from '../../utils/policy/types';
 import { type BpmnTaskType } from '../../types/BpmnTaskType';

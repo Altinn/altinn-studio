@@ -20,6 +20,10 @@ export class RemoveProcessTaskManager {
     private readonly currentPolicy: Policy,
   ) {}
 
+  /**
+   * Handles the task remove event and delegates the handling to the specific task type
+   * @param taskEvent
+   */
   public handleTaskRemove(taskEvent: TaskEvent): void {
     if (this.bpmnDetails.type === BpmnTypeEnum.Task) {
       this.handleDataTaskRemove();
@@ -34,6 +38,10 @@ export class RemoveProcessTaskManager {
     }
   }
 
+  /**
+   * Deletes the layout set from the deleted data task
+   * @private
+   */
   private handleDataTaskRemove(): void {
     const layoutSetId = getLayoutSetIdFromTaskId(this.bpmnDetails, this.layoutSets);
 
@@ -44,6 +52,11 @@ export class RemoveProcessTaskManager {
     }
   }
 
+  /**
+   * Deletes the dataType, Policy and layout set from the deleted payment task
+   * @param taskEvent
+   * @private
+   */
   private handlePaymentTaskRemove(taskEvent: TaskEvent): void {
     const dataTypeId = getDataTypeIdFromBusinessObject(
       this.bpmnDetails.taskType,
@@ -62,8 +75,20 @@ export class RemoveProcessTaskManager {
       dataTypeId,
       policy: updatedPolicy,
     });
+
+    const layoutSetId = getLayoutSetIdFromTaskId(this.bpmnDetails, this.layoutSets);
+    if (layoutSetId) {
+      this.deleteLayoutSet({
+        layoutSetIdToUpdate: layoutSetId,
+      });
+    }
   }
 
+  /**
+   * Deletes the dataType from the deleted signing task
+   * @param taskEvent
+   * @private
+   */
   private handleSigningTaskRemove(taskEvent: TaskEvent): void {
     const dataTypeId = getDataTypeIdFromBusinessObject(
       this.bpmnDetails.taskType,
