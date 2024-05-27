@@ -16,10 +16,11 @@ import {
   mockSubjectTitle2,
   mockSubjectTitle3,
 } from '../../../test/mocks/policySubjectMocks';
-import { PolicyEditorContext, PolicyEditorContextProps } from '../../contexts/PolicyEditorContext';
+import {
+  PolicyEditorContext,
+  type PolicyEditorContextProps,
+} from '../../contexts/PolicyEditorContext';
 import { mockPolicyEditorContextValue } from '../../../test/mocks/policyEditorContextMock';
-
-// const mockUsageType: PolicyEditorUsage = 'app';
 
 const mockActionOption1: string = textMock(`policy_editor.action_${mockActionId1}`);
 const mockActionOption2: string = textMock(`policy_editor.action_${mockActionId2}`);
