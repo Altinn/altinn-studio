@@ -12,7 +12,6 @@ import { ActionAndSubjectListItem } from './ActionAndSubjectListItem';
 import { ResourceNarrowingList } from './ResourceNarrowingList';
 import { ExpandablePolicyElement } from './ExpandablePolicyElement';
 import type {
-  PolicyAction,
   PolicyRuleCard,
   PolicyRuleResource,
   PolicySubject,
@@ -27,7 +26,9 @@ import {
 } from '../../utils/ExpandablePolicyCardUtils';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
+import { usePolicyEditorContext } from '@altinn/policy-editor/contexts/PolicyEditorContext';
 
+// MOVE TO UTILS
 const wellKnownActionsIds: string[] = [
   'complete',
   'confirm',
@@ -40,9 +41,6 @@ const wellKnownActionsIds: string[] = [
 
 export type ExpandablePolicyCardProps = {
   policyRule: PolicyRuleCard;
-  actions: PolicyAction[];
-  subjects: PolicySubject[];
-  rules: PolicyRuleCard[];
   setPolicyRules: React.Dispatch<React.SetStateAction<PolicyRuleCard[]>>;
   resourceId: string;
   resourceType: string;
@@ -53,31 +51,8 @@ export type ExpandablePolicyCardProps = {
   usageType: PolicyEditorUsage;
 };
 
-/**
- * @component
- *    Component that displays a card where a user can view and update a policy rule
- *    for a resource.
- *
- * @property {PolicyRuleCard}[policyRule] - The rule to display in the card
- * @property {PolicyAction[]}[actions] - The possible actions to select from
- * @property {PolicySubject[]}[subjects] - The possible subjects to select from
- * @property {PolicyRuleCard[]}[rules] - The list of all the rules
- * @property {React.Dispatch<React.SetStateAction<PolicyRuleCard[]>>}[setPolicyRules] - useState function to update the list of rules
- * @property {string}[resourceId] - The ID of the resource
- * @property {string}[resourceType] - The type of the resource
- * @property {function}[handleCloneRule] - Function to be executed when clicking clone rule
- * @property {function}[handleDeleteRule] - Function to be executed when clicking delete rule
- * @property {boolean}[showErrors] - Flag to decide if errors should be shown or not
- * @property {function}[savePolicy] - Function to save the policy
- * @property {PolicyEditorUsage}[usageType] - The usage type of the policy editor
- *
- * @returns {React.ReactNode} - The rendered component
- */
 export const ExpandablePolicyCard = ({
   policyRule,
-  actions,
-  subjects,
-  rules,
   setPolicyRules,
   resourceId,
   resourceType,
@@ -88,6 +63,9 @@ export const ExpandablePolicyCard = ({
   usageType,
 }: ExpandablePolicyCardProps): React.ReactNode => {
   const { t } = useTranslation();
+
+  // FIX BELOW
+  const { policyRules: rules, actions, subjects } = usePolicyEditorContext();
 
   const uniqueId = useId();
 
