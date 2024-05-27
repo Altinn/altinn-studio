@@ -50,7 +50,7 @@ class BpmnModelerMockImpl {
   }
 }
 
-jest.mock('../classes/ProcessTaskManager');
+jest.mock('../utils/ProcessTaskManager');
 
 jest.mock('../utils/hookUtils', () => ({
   getBpmnEditorDetailsFromBusinessObject: jest.fn().mockReturnValue({}),
