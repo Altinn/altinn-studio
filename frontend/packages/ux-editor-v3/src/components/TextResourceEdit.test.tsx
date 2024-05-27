@@ -10,15 +10,14 @@ import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithMockStore, renderWithMockStore, textLanguagesMock } from '../testing/mocks';
 import { appDataMock, textResourcesMock } from '../testing/stateMocks';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
-import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { appContextMock } from '../testing/appContextMock';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const legendText = 'Rediger tekst';
 const descriptionText = 'Tekstens ID: {{id}}';
 const nbText = 'Bokmål';

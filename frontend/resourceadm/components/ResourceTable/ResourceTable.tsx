@@ -1,11 +1,11 @@
 import React, { useMemo } from 'react';
-import cn from 'classnames';
 import classes from './ResourceTable.module.css';
-import { PencilIcon } from '@studio/icons';
+import { PencilIcon, FileImportIcon } from '@studio/icons';
 import { Tag } from '@digdir/design-system-react';
+import { StudioSpinner } from '@studio/components';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
-import type { GridRenderCellParams, GridRowParams } from '@mui/x-data-grid';
+import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { DataGrid, GridActionsCellItem, GridOverlay } from '@mui/x-data-grid';
 
 export type ResourceTableProps = {
@@ -19,7 +19,17 @@ export type ResourceTableProps = {
    * @returns void
    */
   onClickEditResource: (id: string) => void;
-  onToggleFavourite?: (id: string) => void;
+  /**
+   * Function to be executed when clicking the import resource button
+   * @param id the id of the resource
+   * @param id all environments the resource with given id exists in
+   * @returns void
+   */
+  onClickImportResource?: (id: string, availableEnvs: string[]) => void;
+  /**
+   * Id of the resource being imported. Only one resource can be imported at the same time
+   */
+  importResourceId?: string;
 };
 
 /**
@@ -34,6 +44,8 @@ export type ResourceTableProps = {
 export const ResourceTable = ({
   list,
   onClickEditResource,
+  onClickImportResource,
+  importResourceId,
 }: ResourceTableProps): React.JSX.Element => {
   const { t, i18n } = useTranslation();
 
@@ -65,7 +77,7 @@ export const ResourceTable = ({
     },
   };
 
-  const columns = [
+  const columns: GridColDef[] = [
     {
       field: 'title',
       headerName: t('resourceadm.dashboard_table_header_name'),
@@ -79,7 +91,7 @@ export const ResourceTable = ({
     {
       field: 'createdBy',
       headerName: t('resourceadm.dashboard_table_header_createdby'),
-      width: 180,
+      width: 160,
     },
     {
       field: 'lastChanged',
@@ -87,46 +99,80 @@ export const ResourceTable = ({
       width: 120,
       type: 'date',
       valueFormatter: ({ value }) =>
-        new Date(value).toLocaleDateString('nb-NO', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-        }),
+        value
+          ? new Date(value).toLocaleDateString('nb-NO', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+            })
+          : '',
     },
     {
-      field: 'hasPolicy',
-      headerName: t('resourceadm.dashboard_table_header_policy_rules'),
+      field: 'environments',
+      sortable: false,
+      headerName: t('resourceadm.dashboard_table_header_environment'),
       flex: 1,
       renderCell: (params: GridRenderCellParams) => {
         return (
-          <Tag color={params.row.hasPolicy ? 'info' : 'danger'} size='small'>
-            {params.row.hasPolicy
-              ? t('resourceadm.dashboard_table_row_has_policy')
-              : t('resourceadm.dashboard_table_row_missing_policy')}
-          </Tag>
+          <div className={classes.tagContainer}>
+            {params.row.environments.map((env: string) => {
+              let tagText = env.toUpperCase();
+              if (env === 'prod') {
+                tagText = t('resourceadm.dashboard_table_row_in_prod');
+              } else if (env === 'gitea') {
+                tagText = t('resourceadm.dashboard_table_row_in_gitea');
+              }
+              return (
+                <Tag key={env} color='info' size='small'>
+                  {tagText}
+                </Tag>
+              );
+            })}
+          </div>
         );
       },
     },
     {
       field: 'links',
-      width: 50,
-      renderHeader: (): null => null,
-      type: 'actions',
-      getActions: (params: GridRowParams) => {
-        return [
-          <GridActionsCellItem
-            icon={
-              <PencilIcon
-                title={t('resourceadm.dashboard_table_row_edit')}
-                className={cn(classes.editLink)}
-              />
-            }
-            label={t('resourceadm.dashboard_table_row_edit')}
-            key={`dashboard.edit_resource${params.row.identifier}`}
-            onClick={() => onClickEditResource(params.row.identifier)}
-            showInMenu={false}
-          />,
-        ];
+      headerName: '',
+      sortable: false,
+      width: 62,
+      renderCell: (params) => {
+        const existsInGitea = params.row.environments.some((env: string) => env === 'gitea');
+        if (existsInGitea) {
+          return (
+            <GridActionsCellItem
+              icon={
+                <PencilIcon
+                  title={t('resourceadm.dashboard_table_row_edit')}
+                  className={classes.editLink}
+                />
+              }
+              label={t('resourceadm.dashboard_table_row_edit')}
+              key={`dashboard.edit_resource${params.row.identifier}`}
+              onClick={() => onClickEditResource(params.row.identifier)}
+            />
+          );
+        } else if (!!onClickImportResource && importResourceId === params.row.identifier) {
+          return <StudioSpinner spinnerTitle={t('resourceadm.dashboard_table_row_importing')} />;
+        } else if (!!onClickImportResource) {
+          return (
+            <GridActionsCellItem
+              icon={
+                <FileImportIcon
+                  title={t('resourceadm.dashboard_table_row_import')}
+                  className={classes.editLink}
+                />
+              }
+              disabled={!!importResourceId}
+              label={t('resourceadm.dashboard_table_row_import')}
+              key={`dashboard.import_resource${params.row.identifier}`}
+              onClick={() => onClickImportResource(params.row.identifier, params.row.environments)}
+            />
+          );
+        } else {
+          return null;
+        }
       },
     },
   ];
@@ -135,6 +181,7 @@ export const ResourceTable = ({
     <DataGrid
       autoHeight
       rows={listData}
+      rowHeight={58}
       getRowId={(row) => row.identifier}
       disableRowSelectionOnClick
       disableColumnMenu

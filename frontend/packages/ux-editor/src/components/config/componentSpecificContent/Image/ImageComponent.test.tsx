@@ -7,7 +7,7 @@ import { ImageComponent } from './ImageComponent';
 import { renderHookWithProviders, renderWithProviders } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
+import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import type { FormImageComponent } from '../../../../types/FormComponent';
 
 const user = userEvent.setup();

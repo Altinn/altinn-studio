@@ -7,19 +7,18 @@ import { renderWithProviders } from '../../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ITextResources } from 'app-shared/types/global';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormItemContext } from '../../FormItemContext';
 import type { IInternalLayout } from '../../../types/global';
 import type { FormComponent } from '../../../types/FormComponent';
 import type { FormContainer } from '../../../types/FormContainer';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const textResources: ITextResources = {
   [DEFAULT_LANGUAGE]: [],
 };

@@ -24,7 +24,7 @@ export class StudioModeler {
 
   private element: Element;
 
-  constructor(element: Element) {
+  constructor(element?: Element) {
     this.element = element;
   }
 
@@ -42,5 +42,9 @@ export class StudioModeler {
 
   public updateElementProperties<T>(properties: T): void {
     this.modeling.updateProperties(this.getElement(), { ...properties });
+  }
+
+  public getAllTasksByType(elementType: string): Element[] {
+    return this.elementRegistry.filter((element) => element.type === elementType);
   }
 }

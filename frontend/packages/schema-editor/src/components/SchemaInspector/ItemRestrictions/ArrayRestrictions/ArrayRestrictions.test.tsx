@@ -4,7 +4,7 @@ import type { RestrictionItemProps } from '../ItemRestrictions';
 import { ArrayRestrictions } from './ArrayRestrictions';
 import { ArrRestrictionKey } from '@altinn/schema-model';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 // Test data:
 const onChangeRestrictionValueMock = jest.fn();

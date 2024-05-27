@@ -4,16 +4,14 @@ import {
   type SelectAllowedPartyTypesProps,
 } from './SelectAllowedPartyTypes';
 import { mockAppMetadata } from '../../../../mocks/applicationMetadataMock';
-import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { render as rtlRender, screen, waitFor } from '@testing-library/react';
 import type { QueryClient } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-
-const org = 'org';
-const app = 'app';
+import { app, org } from '@studio/testing/testids';
 
 const defaultProps: SelectAllowedPartyTypesProps = {
   org,

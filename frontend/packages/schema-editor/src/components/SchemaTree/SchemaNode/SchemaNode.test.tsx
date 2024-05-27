@@ -18,7 +18,7 @@ import {
 } from '../../../../test/mocks/uiSchemaMock';
 import React from 'react';
 import { screen } from '@testing-library/react';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { getSavedModel } from '../../../../test/test-utils';
 
 const user = userEvent.setup();

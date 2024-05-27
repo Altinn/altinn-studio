@@ -6,11 +6,10 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { jsonSchemaMock } from '../../test/jsonSchemaMock';
 import { waitFor } from '@testing-library/react';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
 const modelPath = 'modelPath';
-const org = 'org';
-const app = 'app';
 
 describe('useSchemaMutation', () => {
   it('Returns correct state and calls saveDatamodel with the correct parameters', async () => {

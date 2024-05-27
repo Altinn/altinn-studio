@@ -172,7 +172,16 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 foreach (string environment in _resourceRegistrySettings.Keys)
                 {
-                    List<ServiceResource> environmentResources = await _resourceRegistry.GetResourceList(environment, false);
+                    string cacheKey = $"resourcelist_${environment}";
+                    if (!_memoryCache.TryGetValue(cacheKey, out List<ServiceResource> environmentResources))
+                    {
+                        environmentResources = await _resourceRegistry.GetResourceList(environment, false);
+                        var cacheEntryOptions = new MemoryCacheEntryOptions()
+                            .SetPriority(CacheItemPriority.High)
+                            .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
+                        _memoryCache.Set(cacheKey, environmentResources, cacheEntryOptions);
+                    }
+
                     IEnumerable<ServiceResource> environmentResourcesForOrg = environmentResources.Where(x =>
                         x.HasCompetentAuthority?.Orgcode != null &&
                         x.HasCompetentAuthority.Orgcode.Equals(org, StringComparison.OrdinalIgnoreCase)
@@ -531,7 +540,9 @@ namespace Altinn.Studio.Designer.Controllers
             if (repository == $"{org}-resources")
             {
                 string xacmlPolicyPath = _repository.GetPolicyPath(org, repository, id);
-                return await _repository.PublishResource(org, repository, id, env, xacmlPolicyPath);
+                ActionResult publishResult = await _repository.PublishResource(org, repository, id, env, xacmlPolicyPath);
+                _memoryCache.Remove($"resourcelist_${env}");
+                return publishResult;
             }
             else
             {

@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { CardButtonProps } from './CardButton';
 import { CardButton } from './CardButton';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 const mockButtonText = textMock('policy_editor.card_button_text');

@@ -1,3 +1,7 @@
+.wrapper {
+  width: 100%;
+}
+
 .studioNativeSelectDescription {
   margin-bottom: var(--fds-spacing-2);
 }

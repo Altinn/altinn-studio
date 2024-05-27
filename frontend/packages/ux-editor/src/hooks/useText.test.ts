@@ -1,6 +1,6 @@
 import { renderHookWithProviders } from '../testing/mocks';
 import { useText } from './useText';
-import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 
 // Test data:
 const text = 'Lorem ipsum';

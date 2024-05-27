@@ -4,7 +4,7 @@ import type { ItemFieldsTabProps } from './ItemFieldsTab';
 import { ItemFieldsTab } from './ItemFieldsTab';
 import type { FieldNode, UiSchemaNodes } from '@altinn/schema-model';
 import { FieldType, ObjectKind, SchemaModel, validateTestUiSchema } from '@altinn/schema-model';
-import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
+import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import type { RenderWithProvidersData } from '../../../../test/renderWithProviders';
 import { renderWithProviders } from '../../../../test/renderWithProviders';
 import userEvent from '@testing-library/user-event';

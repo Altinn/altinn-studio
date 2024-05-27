@@ -1,7 +1,7 @@
 import React from 'react';
 import { ConfigPanel } from './ConfigPanel';
 import { render, screen } from '@testing-library/react';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { BpmnContextProps } from '../../contexts/BpmnContext';
 import { BpmnContext } from '../../contexts/BpmnContext';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
@@ -74,10 +74,6 @@ describe('ConfigPanel', () => {
     },
     {
       task: BpmnTypeEnum.StartEvent,
-      expectedText: 'process_editor.configuration_panel_element_not_supported_message',
-    },
-    {
-      task: BpmnTypeEnum.EndEvent,
       expectedText: 'process_editor.configuration_panel_element_not_supported_message',
     },
   ])('should display correct message based on selected bpmn type', ({ task, expectedText }) => {
