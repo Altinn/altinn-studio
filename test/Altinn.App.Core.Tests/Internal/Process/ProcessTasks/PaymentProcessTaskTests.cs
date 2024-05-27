@@ -56,7 +56,7 @@ public class PaymentProcessTaskTests
 
             // Assert
             _paymentServiceMock.Verify(x =>
-                x.CancelAndDeleteAnyExistingPayment(instance, altinnTaskExtension.PaymentConfiguration)
+                x.CancelAndDeleteAnyExistingPayment(instance, altinnTaskExtension.PaymentConfiguration.Validate())
             );
         }
 
@@ -74,7 +74,7 @@ public class PaymentProcessTaskTests
             _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
 
             _paymentServiceMock
-                .Setup(x => x.IsPaymentCompleted(It.IsAny<Instance>(), It.IsAny<AltinnPaymentConfiguration>()))
+                .Setup(x => x.IsPaymentCompleted(It.IsAny<Instance>(), It.IsAny<ValidAltinnPaymentConfiguration>()))
                 .ReturnsAsync(true);
 
             // Act
@@ -108,7 +108,7 @@ public class PaymentProcessTaskTests
             _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
 
             _paymentServiceMock
-                .Setup(x => x.IsPaymentCompleted(It.IsAny<Instance>(), It.IsAny<AltinnPaymentConfiguration>()))
+                .Setup(x => x.IsPaymentCompleted(It.IsAny<Instance>(), It.IsAny<ValidAltinnPaymentConfiguration>()))
                 .ReturnsAsync(false);
 
             // Act and assert
@@ -147,7 +147,7 @@ public class PaymentProcessTaskTests
 
             // Assert
             _paymentServiceMock.Verify(x =>
-                x.CancelAndDeleteAnyExistingPayment(instance, altinnTaskExtension.PaymentConfiguration)
+                x.CancelAndDeleteAnyExistingPayment(instance, altinnTaskExtension.PaymentConfiguration.Validate())
             );
         }
 
@@ -193,7 +193,7 @@ public class PaymentProcessTaskTests
                 );
 
             _paymentServiceMock
-                .Setup(ps => ps.IsPaymentCompleted(It.IsAny<Instance>(), It.IsAny<AltinnPaymentConfiguration>()))
+                .Setup(ps => ps.IsPaymentCompleted(It.IsAny<Instance>(), It.IsAny<ValidAltinnPaymentConfiguration>()))
                 .ReturnsAsync(true);
 
             using var memoryStream = new MemoryStream();

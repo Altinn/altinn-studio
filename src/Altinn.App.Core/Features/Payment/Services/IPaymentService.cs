@@ -7,14 +7,14 @@ namespace Altinn.App.Core.Features.Payment.Services
     /// <summary>
     /// Service for handling payment.
     /// </summary>
-    public interface IPaymentService
+    internal interface IPaymentService
     {
         /// <summary>
         /// Start payment for an instance. Will clean up any existing non-completed payment before starting a new payment.
         /// </summary>
         Task<(PaymentInformation paymentInformation, bool alreadyPaid)> StartPayment(
             Instance instance,
-            AltinnPaymentConfiguration paymentConfiguration,
+            ValidAltinnPaymentConfiguration paymentConfiguration,
             string? language
         );
 
@@ -23,18 +23,18 @@ namespace Altinn.App.Core.Features.Payment.Services
         /// </summary>
         Task<PaymentInformation> CheckAndStorePaymentStatus(
             Instance instance,
-            AltinnPaymentConfiguration paymentConfiguration,
+            ValidAltinnPaymentConfiguration paymentConfiguration,
             string? language
         );
 
         /// <summary>
         /// Check our internal state to see if payment is complete.
         /// </summary>
-        Task<bool> IsPaymentCompleted(Instance instance, AltinnPaymentConfiguration paymentConfiguration);
+        Task<bool> IsPaymentCompleted(Instance instance, ValidAltinnPaymentConfiguration paymentConfiguration);
 
         /// <summary>
         /// Cancel payment with payment processor and delete internal payment information.
         /// </summary>
-        Task CancelAndDeleteAnyExistingPayment(Instance instance, AltinnPaymentConfiguration paymentConfiguration);
+        Task CancelAndDeleteAnyExistingPayment(Instance instance, ValidAltinnPaymentConfiguration paymentConfiguration);
     }
 }

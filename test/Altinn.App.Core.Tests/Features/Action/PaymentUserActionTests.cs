@@ -55,7 +55,7 @@ public class PaymentUserActionTests
 
         _paymentServiceMock
             .Setup(x =>
-                x.StartPayment(It.IsAny<Instance>(), It.IsAny<AltinnPaymentConfiguration>(), It.IsAny<string>())
+                x.StartPayment(It.IsAny<Instance>(), It.IsAny<ValidAltinnPaymentConfiguration>(), It.IsAny<string>())
             )
             .ReturnsAsync((paymentInformation, false));
 
@@ -94,7 +94,7 @@ public class PaymentUserActionTests
 
         _paymentServiceMock
             .Setup(x =>
-                x.StartPayment(It.IsAny<Instance>(), It.IsAny<AltinnPaymentConfiguration>(), It.IsAny<string>())
+                x.StartPayment(It.IsAny<Instance>(), It.IsAny<ValidAltinnPaymentConfiguration>(), It.IsAny<string>())
             )
             .ReturnsAsync((paymentInformation, false));
 
@@ -131,7 +131,7 @@ public class PaymentUserActionTests
 
         _paymentServiceMock
             .Setup(x =>
-                x.StartPayment(It.IsAny<Instance>(), It.IsAny<AltinnPaymentConfiguration>(), It.IsAny<string>())
+                x.StartPayment(It.IsAny<Instance>(), It.IsAny<ValidAltinnPaymentConfiguration>(), It.IsAny<string>())
             )
             .ReturnsAsync((paymentInformation, true));
 

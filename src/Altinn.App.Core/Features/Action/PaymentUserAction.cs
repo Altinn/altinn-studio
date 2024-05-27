@@ -68,7 +68,7 @@ namespace Altinn.App.Core.Features.Action
 
             (PaymentInformation paymentInformation, bool alreadyPaid) = await _paymentService.StartPayment(
                 context.Instance,
-                paymentConfiguration,
+                paymentConfiguration.Validate(),
                 context.Language
             );
 

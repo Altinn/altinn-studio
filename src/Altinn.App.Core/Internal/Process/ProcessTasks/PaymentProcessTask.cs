@@ -44,7 +44,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks
         public async Task Start(string taskId, Instance instance)
         {
             AltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId);
-            await _paymentService.CancelAndDeleteAnyExistingPayment(instance, paymentConfiguration);
+            await _paymentService.CancelAndDeleteAnyExistingPayment(instance, paymentConfiguration.Validate());
         }
 
         /// <inheritdoc/>
@@ -52,17 +52,16 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks
         {
             AltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId);
 
-            if (!await _paymentService.IsPaymentCompleted(instance, paymentConfiguration))
+            if (!await _paymentService.IsPaymentCompleted(instance, paymentConfiguration.Validate()))
                 throw new PaymentException("The payment is not completed.");
 
             Stream pdfStream = await _pdfService.GeneratePdf(instance, taskId, CancellationToken.None);
 
-            // ! TODO: restructure code to avoid assertion. Codepaths above have already validated this field
-            var paymentDataType = paymentConfiguration.PaymentDataType!;
+            var validatedPaymentConfiguration = paymentConfiguration.Validate();
 
             await _dataClient.InsertBinaryData(
                 instance.Id,
-                paymentDataType,
+                validatedPaymentConfiguration.PaymentDataType,
                 PdfContentType,
                 ReceiptFileName,
                 pdfStream,
@@ -74,7 +73,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks
         public async Task Abandon(string taskId, Instance instance)
         {
             AltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId);
-            await _paymentService.CancelAndDeleteAnyExistingPayment(instance, paymentConfiguration);
+            await _paymentService.CancelAndDeleteAnyExistingPayment(instance, paymentConfiguration.Validate());
         }
 
         private AltinnPaymentConfiguration GetAltinnPaymentConfiguration(string taskId)
@@ -90,12 +89,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks
                 );
             }
 
-            if (string.IsNullOrWhiteSpace(paymentConfiguration.PaymentDataType))
-            {
-                throw new ApplicationConfigException(
-                    "PaymentDataType is missing in the payment process task configuration."
-                );
-            }
+            _ = paymentConfiguration.Validate();
 
             return paymentConfiguration;
         }

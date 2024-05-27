@@ -29,15 +29,15 @@ public class PaymentController : ControllerBase
     /// Initializes a new instance of the <see cref="PaymentController"/> class.
     /// </summary>
     public PaymentController(
+        IServiceProvider serviceProvider,
         IInstanceClient instanceClient,
         IProcessReader processReader,
-        IPaymentService paymentService,
         IOrderDetailsCalculator? orderDetailsCalculator = null
     )
     {
         _instanceClient = instanceClient;
         _processReader = processReader;
-        _paymentService = paymentService;
+        _paymentService = serviceProvider.GetRequiredService<IPaymentService>();
         _orderDetailsCalculator = orderDetailsCalculator;
     }
 
@@ -71,9 +71,11 @@ public class PaymentController : ControllerBase
             throw new PaymentException("Payment configuration not found in AltinnTaskExtension");
         }
 
+        var validPaymentConfiguration = paymentConfiguration.Validate();
+
         PaymentInformation paymentInformation = await _paymentService.CheckAndStorePaymentStatus(
             instance,
-            paymentConfiguration,
+            validPaymentConfiguration,
             language
         );
 

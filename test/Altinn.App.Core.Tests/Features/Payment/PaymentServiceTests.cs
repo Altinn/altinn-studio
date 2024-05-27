@@ -10,7 +10,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Features.Payment;
 
@@ -37,7 +36,7 @@ public class PaymentServiceTests
     {
         Instance instance = CreateInstance();
         OrderDetails orderDetails = CreateOrderDetails();
-        AltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
+        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
         PaymentInformation paymentInformation = CreatePaymentInformation();
         PaymentDetails paymentDetails =
             paymentInformation.PaymentDetails ?? throw new NullReferenceException("PaymentDetails should not be null");
@@ -88,7 +87,7 @@ public class PaymentServiceTests
     {
         Instance instance = CreateInstance();
         OrderDetails orderDetails = CreateOrderDetails();
-        AltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
+        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
         const string language = "nb";
 
         _paymentProcessor.Setup(pp => pp.PaymentProcessorId).Returns(orderDetails.PaymentProcessorId);
@@ -124,7 +123,7 @@ public class PaymentServiceTests
     public async Task StartPayment_ThrowsException_WhenOrderDetailsCannotBeRetrieved()
     {
         Instance instance = CreateInstance();
-        AltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
+        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
         const string language = "nb";
 
         _dataService
@@ -148,7 +147,7 @@ public class PaymentServiceTests
     {
         Instance instance = CreateInstance();
         OrderDetails orderDetails = CreateOrderDetails();
-        AltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
+        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
         const string language = "nb";
 
         _dataService
@@ -170,7 +169,7 @@ public class PaymentServiceTests
     {
         Instance instance = CreateInstance();
         OrderDetails orderDetails = CreateOrderDetails();
-        AltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
+        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
         PaymentInformation paymentInformation = CreatePaymentInformation();
         PaymentDetails paymentDetails =
             paymentInformation.PaymentDetails ?? throw new NullReferenceException("PaymentDetails should not be null");
@@ -197,7 +196,7 @@ public class PaymentServiceTests
     {
         Instance instance = CreateInstance();
         OrderDetails orderDetails = CreateOrderDetails();
-        AltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
+        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
         const string language = "nb";
 
         _orderDetailsCalculator.Setup(p => p.CalculateOrderDetails(instance, language)).ReturnsAsync(orderDetails);
@@ -225,7 +224,7 @@ public class PaymentServiceTests
     {
         Instance instance = CreateInstance();
         OrderDetails orderDetails = CreateOrderDetails();
-        AltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
+        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
         PaymentInformation paymentInformation = CreatePaymentInformation();
         const string language = "nb";
 
@@ -259,7 +258,7 @@ public class PaymentServiceTests
     {
         Instance instance = CreateInstance();
         OrderDetails orderDetails = CreateOrderDetails();
-        AltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
+        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
         PaymentInformation paymentInformation = CreatePaymentInformation();
         const string language = "nb";
 
@@ -313,7 +312,7 @@ public class PaymentServiceTests
     {
         // Arrange
         Instance instance = CreateInstance();
-        AltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
+        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
         OrderDetails orderDetails = CreateOrderDetails();
         PaymentInformation paymentInformation = CreatePaymentInformation();
         PaymentDetails paymentDetails =
@@ -365,7 +364,7 @@ public class PaymentServiceTests
         // Arrange
         Instance instance = CreateInstance();
         OrderDetails orderDetails = CreateOrderDetails();
-        AltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
+        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
         PaymentInformation paymentInformation = CreatePaymentInformation();
         PaymentDetails paymentDetails =
             paymentInformation.PaymentDetails ?? throw new NullReferenceException("PaymentDetails should not be null");
@@ -403,7 +402,7 @@ public class PaymentServiceTests
     {
         // Arrange
         Instance instance = CreateInstance();
-        AltinnPaymentConfiguration paymentConfiguration = new() { PaymentDataType = "paymentDataType" };
+        ValidAltinnPaymentConfiguration paymentConfiguration = new() { PaymentDataType = "paymentDataType" };
 
         IPaymentProcessor[] paymentProcessors = []; //No payment processor added.
         var paymentService = new PaymentService(paymentProcessors, _dataService.Object, _logger.Object);
@@ -430,7 +429,7 @@ public class PaymentServiceTests
 
         // Act
         Func<Task> act = async () =>
-            await paymentService.CheckAndStorePaymentStatus(instance, paymentConfiguration, "en");
+            await paymentService.CheckAndStorePaymentStatus(instance, paymentConfiguration.Validate(), "en");
 
         // Assert
         await act.Should()
@@ -445,7 +444,7 @@ public class PaymentServiceTests
     {
         // Arrange
         Instance instance = CreateInstance();
-        AltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
+        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
 
         string paymentDataType =
             paymentConfiguration.PaymentDataType
@@ -467,7 +466,7 @@ public class PaymentServiceTests
     {
         // Arrange
         Instance instance = CreateInstance();
-        AltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
+        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
         PaymentInformation paymentInformation = CreatePaymentInformation();
         paymentInformation.Status = PaymentStatus.Paid;
 
@@ -491,7 +490,7 @@ public class PaymentServiceTests
     {
         // Arrange
         Instance instance = CreateInstance();
-        AltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
+        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
         PaymentInformation paymentInformation = CreatePaymentInformation();
 
         string paymentDataType =
@@ -559,8 +558,8 @@ public class PaymentServiceTests
         };
     }
 
-    private static AltinnPaymentConfiguration CreatePaymentConfiguration()
+    private static ValidAltinnPaymentConfiguration CreatePaymentConfiguration()
     {
-        return new AltinnPaymentConfiguration { PaymentDataType = "paymentInformation" };
+        return new AltinnPaymentConfiguration { PaymentDataType = "paymentInformation" }.Validate();
     }
 }
