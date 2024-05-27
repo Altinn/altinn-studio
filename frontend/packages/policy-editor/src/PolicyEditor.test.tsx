@@ -72,32 +72,7 @@ describe('PolicyEditor', () => {
     expect(mockOnSave).toHaveBeenCalledTimes(1);
   });
 
-  it('displays the rules when there are more than 0 rules', async () => {
-    const user = userEvent.setup();
-    renderPolicyEditor();
-
-    const aLabelFromPolicyCard = screen.getAllByText(
-      textMock('policy_editor.rule_card_sub_resource_title'),
-    );
-
-    await user.tab();
-
-    expect(aLabelFromPolicyCard.length).toEqual(mockPolicy.rules.length);
-  });
-
-  it('displays no rules when the policy has no rules', async () => {
-    const user = userEvent.setup();
-    renderPolicyEditor({ policy: { ...mockPolicy, rules: [] } });
-
-    const aLabelFromPolicyCard = screen.queryAllByText(
-      textMock('policy_editor.rule_card_sub_resource_title'),
-    );
-
-    await user.tab();
-
-    expect(aLabelFromPolicyCard.length).toEqual(0);
-  });
-
+  // MOVE TO ADD
   it('increases the rule list length when add rule button is clicked', async () => {
     const user = userEvent.setup();
     renderPolicyEditor();
@@ -128,29 +103,6 @@ describe('PolicyEditor', () => {
     await user.click(addButton);
 
     expect(mockOnSave).toHaveBeenCalledTimes(1);
-  });
-
-  it('hides verification modal when initially rendering the page, and opens it on click', async () => {
-    const user = userEvent.setup();
-    renderPolicyEditor();
-
-    const modalTitle = screen.queryByRole('heading', {
-      name: textMock('policy_editor.verification_modal_heading'),
-      level: 1,
-    });
-    expect(modalTitle).not.toBeInTheDocument();
-
-    const [moreButton] = screen.getAllByRole('button', { name: textMock('policy_editor.more') });
-    await user.click(moreButton);
-
-    const deleteButton = screen.getByRole('menuitem', { name: textMock('general.delete') });
-    await user.click(deleteButton);
-
-    const modalTitleAfter = screen.getByRole('heading', {
-      name: textMock('policy_editor.verification_modal_heading'),
-      level: 1,
-    });
-    expect(modalTitleAfter).toBeInTheDocument();
   });
 });
 

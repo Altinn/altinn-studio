@@ -10,15 +10,19 @@ import {
   mockActionId3,
   mockActionId4,
   mockActions,
+} from '../../../test/mocks/policyActionMocks';
+import {
   mockPolicyRuleCard1,
   mockPolicyRuleCard2,
   mockPolicyRuleCards,
   mockRuleId1,
+} from '../../../test/mocks/policyRuleMocks';
+import {
   mockSubjects,
   mockSubjectId1,
   mockSubjectId2,
   mockSubjectId3,
-} from '../../data-mocks';
+} from '../../../test/mocks/policySubjectMocks';
 
 describe('ExpandablePolicyCardUtils', () => {
   describe('getUpdatedRules', () => {

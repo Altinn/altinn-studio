@@ -5,26 +5,21 @@ import type {
   Policy,
   PolicyRule,
   PolicyRuleCard,
-  PolicyRuleResource,
   PolicySubject,
   RequiredAuthLevel,
   PolicyEditorUsage,
 } from './types';
 import {
   mapPolicyRulesBackendObjectToPolicyRuleCard,
-  emptyPolicyRule,
   mapPolicyRuleToPolicyRuleBackendObject,
-  createNewPolicyResource,
 } from './utils';
 import classes from './PolicyEditor.module.css';
-import { CardButton } from './components/CardButton';
+import { AddPolicyRuleButton } from './components/AddPolicyRuleButton';
 import { PolicyEditorAlert } from './components/PolicyEditorAlert';
 import { useTranslation } from 'react-i18next';
 import { SecurityLevelSelect } from './components/SecurityLevelSelect';
-import { ObjectUtils } from '@studio/pure-functions';
 import { PolicyEditorContextProvider } from './contexts/PolicyEditorContext';
 import { PolicyCardRules } from './components/PolicyCardRules';
-import { ExpandablePolicyCard } from './components/ExpandablePolicyCard';
 
 export type PolicyEditorProps = {
   policy: Policy;
@@ -55,70 +50,6 @@ export const PolicyEditor = ({
 
   const [showErrorsOnAllRulesAboveNew, setShowErrorsOnAllRulesAboveNew] = useState(false);
 
-  // FIX LOGIC
-  const displayRules = policyRules.map((pr, i) => {
-    return (
-      <div className={classes.space} key={pr.ruleId}>
-        <ExpandablePolicyCard
-          policyRule={pr}
-          setPolicyRules={setPolicyRules}
-          resourceId={resourceId ?? ''}
-          handleCloneRule={() => handleCloneRule(i)}
-          handleDeleteRule={() => handleDeleteRule(pr.ruleId)}
-          showErrors={
-            showAllErrors || (showErrorsOnAllRulesAboveNew && policyRules.length - 1 !== i)
-          }
-          savePolicy={(rules: PolicyRuleCard[]) => handleSavePolicy(rules)}
-        />
-      </div>
-    );
-  });
-
-  const handleCloneRule = (index: number) => {
-    const newRuleId: string = getNewRuleId(policyRules);
-
-    const ruleToDuplicate: PolicyRuleCard = {
-      ...policyRules[index],
-      ruleId: newRuleId,
-    };
-    const deepCopiedRuleToDuplicate: PolicyRuleCard = ObjectUtils.deepCopy(ruleToDuplicate);
-
-    const updatedRules = [...policyRules, deepCopiedRuleToDuplicate];
-    setPolicyRules(updatedRules);
-    handleSavePolicy(updatedRules);
-  };
-
-  const handleAddCardClick = () => {
-    setShowErrorsOnAllRulesAboveNew(true);
-
-    const newResource: PolicyRuleResource[][] = [
-      createNewPolicyResource(usageType, resourceType, resourceId),
-    ];
-    const newRuleId: string = getNewRuleId(policyRules);
-
-    const newRule: PolicyRuleCard = {
-      ...emptyPolicyRule,
-      ruleId: newRuleId,
-      resources: newResource,
-    };
-
-    const updatedRules: PolicyRuleCard[] = [...policyRules, ...[newRule]];
-
-    setPolicyRules(updatedRules);
-    handleSavePolicy(updatedRules);
-  };
-
-  const handleDeleteRule = (ruleIdToDelete: string) => {
-    if (confirm(t('policy_editor.verification_modal_text'))) {
-      const updatedRules = [...policyRules];
-      const indexToRemove = updatedRules.findIndex((a) => a.ruleId === ruleIdToDelete);
-      updatedRules.splice(indexToRemove, 1);
-      setPolicyRules(updatedRules);
-
-      handleSavePolicy(updatedRules);
-    }
-  };
-
   const handleSavePolicy = (rules: PolicyRuleCard[]) => {
     const policyEditorRules: PolicyRule[] = rules.map((pr) =>
       mapPolicyRuleToPolicyRuleBackendObject(
@@ -137,11 +68,14 @@ export const PolicyEditor = ({
   return (
     <PolicyEditorContextProvider
       policyRules={policyRules}
+      setPolicyRules={setPolicyRules}
       actions={actions}
       subjects={subjects}
       usageType={usageType}
       resourceType={resourceType}
       showAllErrors={showAllErrors}
+      resourceId={resourceId ?? ''}
+      savePolicy={handleSavePolicy}
     >
       <div>
         <SecurityLevelSelect
@@ -154,13 +88,9 @@ export const PolicyEditor = ({
         <div className={classes.alertWrapper}>
           <PolicyEditorAlert />
         </div>
-        {displayRules}
         <PolicyCardRules showErrorsOnAllRulesAboveNew={showErrorsOnAllRulesAboveNew} />
         <div className={classes.addCardButtonWrapper}>
-          <CardButton
-            buttonText={t('policy_editor.card_button_text')}
-            onClick={handleAddCardClick}
-          />
+          <AddPolicyRuleButton onClick={() => setShowErrorsOnAllRulesAboveNew(true)} />
         </div>
       </div>
     </PolicyEditorContextProvider>
@@ -171,9 +101,4 @@ export const PolicyEditor = ({
 // TODO - Find out how this should be set. Issue: #10880
 const getResourceType = (usageType: PolicyEditorUsage): string => {
   return usageType === 'app' ? 'urn:altinn' : 'urn:altinn:resource';
-};
-
-const getNewRuleId = (rules: PolicyRuleCard[]): string => {
-  const lastId: number = Number(rules[rules.length - 1].ruleId) + 1;
-  return String(lastId);
 };

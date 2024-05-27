@@ -4,39 +4,41 @@ import userEvent from '@testing-library/user-event';
 import type { ResourceNarrowingListProps } from './ResourceNarrowingList';
 import { ResourceNarrowingList } from './ResourceNarrowingList';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { PolicyRuleResource, PolicyEditorUsage } from '../../../types';
+import type { PolicyRuleResource } from '../../../types';
+import {
+  PolicyEditorContext,
+  type PolicyEditorContextProps,
+} from '../../../contexts/PolicyEditorContext';
+import { mockPolicyEditorContextValue } from '../../../../test/mocks/policyEditorContextMock';
 
 const mockResource1: PolicyRuleResource = { type: 'type1', id: 'id1' };
 const mockResource2: PolicyRuleResource = { type: 'type2', id: 'id2' };
 const mockResources: PolicyRuleResource[] = [mockResource1, mockResource2];
 
-const mockUsageType: PolicyEditorUsage = 'app';
-
 const mockNewText: string = 'test';
+
+const mockHandleInputChange = jest.fn();
+const mockHandleRemoveResource = jest.fn();
+const mockHandleClickAddResource = jest.fn();
+const mockHandleRemoveElement = jest.fn();
+const mockHandleCloneElement = jest.fn();
+const mockOnBlur = jest.fn();
+
+const defaultProps: ResourceNarrowingListProps = {
+  resources: mockResources,
+  handleInputChange: mockHandleInputChange,
+  handleRemoveResource: mockHandleRemoveResource,
+  handleClickAddResource: mockHandleClickAddResource,
+  handleRemoveElement: mockHandleRemoveElement,
+  handleCloneElement: mockHandleCloneElement,
+  onBlur: mockOnBlur,
+};
 
 describe('ResourceNarrowingList', () => {
   afterEach(jest.clearAllMocks);
 
-  const mockHandleInputChange = jest.fn();
-  const mockHandleRemoveResource = jest.fn();
-  const mockHandleClickAddResource = jest.fn();
-  const mockHandleRemoveElement = jest.fn();
-  const mockHandleCloneElement = jest.fn();
-  const mockOnBlur = jest.fn();
-
-  const defaultProps: ResourceNarrowingListProps = {
-    resources: mockResources,
-    handleInputChange: mockHandleInputChange,
-    handleRemoveResource: mockHandleRemoveResource,
-    handleClickAddResource: mockHandleClickAddResource,
-    handleRemoveElement: mockHandleRemoveElement,
-    handleCloneElement: mockHandleCloneElement,
-    onBlur: mockOnBlur,
-    usageType: mockUsageType,
-  };
-
   it('renders the list of resources', () => {
-    render(<ResourceNarrowingList {...defaultProps} />);
+    renderResourceNarrowingList();
 
     const removeButtons = screen.getAllByRole('button', {
       name: textMock('policy_editor.narrowing_list_field_delete'),
@@ -56,7 +58,7 @@ describe('ResourceNarrowingList', () => {
   });
 
   it('does not show the delete button for the first resource when "usageType" is resource', () => {
-    render(<ResourceNarrowingList {...defaultProps} usageType='resource' />);
+    renderResourceNarrowingList({ usageType: 'resource' });
 
     const removeButtons = screen.getAllByRole('button', {
       name: textMock('policy_editor.narrowing_list_field_delete'),
@@ -67,7 +69,7 @@ describe('ResourceNarrowingList', () => {
 
   it('calls "handleInputChange" when id or type is edited', async () => {
     const user = userEvent.setup();
-    render(<ResourceNarrowingList {...defaultProps} />);
+    renderResourceNarrowingList();
 
     const [idInput] = screen.getAllByLabelText(textMock('policy_editor.narrowing_list_field_id'));
     await user.type(idInput, mockNewText);
@@ -84,7 +86,7 @@ describe('ResourceNarrowingList', () => {
 
   it('calls "handleRemoveResource" when remove resource button is clicked', async () => {
     const user = userEvent.setup();
-    render(<ResourceNarrowingList {...defaultProps} />);
+    renderResourceNarrowingList();
 
     const [deleteResourceButton] = screen.getAllByRole('button', {
       name: textMock('policy_editor.narrowing_list_field_delete'),
@@ -97,7 +99,7 @@ describe('ResourceNarrowingList', () => {
 
   it('calls "handleClickAddResource" when add button is clicked', async () => {
     const user = userEvent.setup();
-    render(<ResourceNarrowingList {...defaultProps} />);
+    renderResourceNarrowingList();
 
     const addResourceButton = screen.getByRole('button', {
       name: textMock('policy_editor.narrowing_list_add_button'),
@@ -110,7 +112,7 @@ describe('ResourceNarrowingList', () => {
 
   it('calls "handleRemoveElement" when remove element button is clicked', async () => {
     const user = userEvent.setup();
-    render(<ResourceNarrowingList {...defaultProps} />);
+    renderResourceNarrowingList();
 
     const [moreButton] = screen.getAllByRole('button', {
       name: textMock('policy_editor.more'),
@@ -127,7 +129,7 @@ describe('ResourceNarrowingList', () => {
 
   it('calls "handleCloneElement" when clone element button is clicked', async () => {
     const user = userEvent.setup();
-    render(<ResourceNarrowingList {...defaultProps} />);
+    renderResourceNarrowingList();
 
     const [moreButton] = screen.getAllByRole('button', {
       name: textMock('policy_editor.more'),
@@ -144,7 +146,7 @@ describe('ResourceNarrowingList', () => {
 
   it('calls "onBlur" when a textfield is left', async () => {
     const user = userEvent.setup();
-    render(<ResourceNarrowingList {...defaultProps} />);
+    renderResourceNarrowingList();
 
     const [typeInput] = screen.getAllByLabelText(
       textMock('policy_editor.narrowing_list_field_type'),
@@ -155,3 +157,15 @@ describe('ResourceNarrowingList', () => {
     expect(mockOnBlur).toHaveBeenCalledTimes(1);
   });
 });
+
+const renderResourceNarrowingList = (
+  policyEditorContextProps: Partial<PolicyEditorContextProps> = {},
+) => {
+  return render(
+    <PolicyEditorContext.Provider
+      value={{ ...mockPolicyEditorContextValue, ...policyEditorContextProps }}
+    >
+      <ResourceNarrowingList {...defaultProps} />
+    </PolicyEditorContext.Provider>,
+  );
+};

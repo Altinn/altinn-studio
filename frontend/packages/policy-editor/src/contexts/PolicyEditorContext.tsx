@@ -3,11 +3,14 @@ import type { PolicyAction, PolicyEditorUsage, PolicyRuleCard, PolicySubject } f
 
 export type PolicyEditorContextProps = {
   policyRules: PolicyRuleCard[];
+  setPolicyRules: React.Dispatch<React.SetStateAction<PolicyRuleCard[]>>;
   actions: PolicyAction[];
   subjects: PolicySubject[];
   usageType: PolicyEditorUsage;
   resourceType: string;
+  resourceId: string;
   showAllErrors: boolean;
+  savePolicy: (rules: PolicyRuleCard[]) => void;
 };
 
 export const PolicyEditorContext = createContext<Partial<PolicyEditorContextProps>>(undefined);

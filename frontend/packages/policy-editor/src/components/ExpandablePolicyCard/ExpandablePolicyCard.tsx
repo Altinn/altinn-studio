@@ -36,32 +36,29 @@ const wellKnownActionsIds: string[] = [
 
 export type ExpandablePolicyCardProps = {
   policyRule: PolicyRuleCard;
-  setPolicyRules: React.Dispatch<React.SetStateAction<PolicyRuleCard[]>>;
-  resourceId: string;
   handleCloneRule: () => void;
   handleDeleteRule: () => void;
   showErrors: boolean;
-  savePolicy: (rules: PolicyRuleCard[]) => void;
 };
 
 export const ExpandablePolicyCard = ({
   policyRule,
-  setPolicyRules,
-  resourceId,
   handleCloneRule,
   handleDeleteRule,
   showErrors,
-  savePolicy,
 }: ExpandablePolicyCardProps): React.ReactNode => {
   const { t } = useTranslation();
 
   // FIX BELOW
   const {
     policyRules: rules,
+    setPolicyRules,
     actions,
     subjects,
     usageType,
     resourceType,
+    resourceId,
+    savePolicy,
   } = usePolicyEditorContext();
 
   const uniqueId = useId();
