@@ -68,7 +68,7 @@ test('That it is possible to navigate from overview to the data model page and b
   const dataModelPage = new DataModelPage(page, { app: testAppName });
   const header = new Header(page, { app: testAppName });
 
-  await header.clickOnNavigateToPageInTopMenuHeader('data-model');
+  await header.clickOnNavigateToPageInTopMenuHeader('data_model');
   await dataModelPage.verifyDataModelPage();
 
   await header.clickOnNavigateToPageInTopMenuHeader('about');
@@ -98,7 +98,7 @@ test('That it is possible to navigate from overview to the process editor page a
   const processEditorPage = new ProcessEditorPage(page, { app: testAppName });
   const header = new Header(page, { app: testAppName });
 
-  await header.clickOnNavigateToPageInTopMenuHeader('process-editor');
+  await header.clickOnNavigateToPageInTopMenuHeader('process_editor');
   await processEditorPage.verifyProcessEditorPage();
 
   await header.clickOnNavigateToPageInTopMenuHeader('about');
@@ -129,7 +129,7 @@ test('That it is possible to navigate from overview to the preview page and back
   await header.clickOnNavigateToPageInTopMenuHeader('preview');
   await previewPage.verifyPreviewPage();
 
-  await header.clickOnNavigateToPageInTopMenuHeader('preview-back-to-editing');
+  await header.clickOnNavigateToPageInTopMenuHeader('preview_back_to_editing');
   await uiEditor.verifyUiEditorPage(null);
 });
 

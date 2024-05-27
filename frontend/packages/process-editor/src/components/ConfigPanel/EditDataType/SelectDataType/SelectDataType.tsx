@@ -29,7 +29,7 @@ export const SelectDataType = ({
     if (newDataModelId !== existingDataType) {
       const dataTypeChange: DataTypeChange = {
         newDataType: newDataModelId,
-        connectedTaskId: connectedTaskId,
+        connectedTaskId,
       };
       mutateDataType(dataTypeChange);
     }

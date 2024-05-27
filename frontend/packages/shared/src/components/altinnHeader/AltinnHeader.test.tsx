@@ -11,10 +11,9 @@ import type { AltinnButtonActionItem } from './types';
 import { app, org } from '@studio/testing/testids';
 
 const mockTo: string = '/test';
-const mockButtonTitle: string = 'title';
+const mockMenuKey: TopBarMenu = TopBarMenu.About;
 const mockAction: AltinnButtonActionItem = {
-  menuKey: 'menu-1',
-  title: mockButtonTitle,
+  menuKey: mockMenuKey,
   to: mockTo,
 };
 
@@ -49,7 +48,7 @@ describe('AltinnHeader', () => {
         },
       ],
     });
-    expect(screen.getByRole('link', { name: textMock('top_menu.data-model') })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: textMock(TopBarMenu.DataModel) })).toBeInTheDocument();
     expect(screen.queryByText(textMock('about'))).not.toBeInTheDocument();
   });
 
@@ -57,7 +56,7 @@ describe('AltinnHeader', () => {
     render({
       buttonActions: [mockAction],
     });
-    expect(screen.getByRole('link', { name: textMock(mockButtonTitle) })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: textMock(mockMenuKey) })).toBeInTheDocument();
     expect(screen.getAllByRole('button').length).toEqual(1); // Profile Menu
   });
 
@@ -89,7 +88,7 @@ describe('AltinnHeader', () => {
       repoOwnerIsOrg: true,
       buttonActions: [mockAction],
     });
-    expect(screen.getByRole('link', { name: textMock(mockButtonTitle) })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: textMock(mockMenuKey) })).toBeInTheDocument();
   });
 
   it('should not render Deploy header button when repo is owned by a private person', () => {

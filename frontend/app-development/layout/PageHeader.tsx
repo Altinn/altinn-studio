@@ -40,20 +40,17 @@ export const buttonActions = (
 ): AltinnButtonActionItem[] => {
   const packagesRouter = new PackagesRouter({ org, app });
 
-  const actions: AltinnButtonActionItem[] = [
+  return [
     {
-      title: 'top_menu.preview',
       menuKey: TopBarMenu.Preview,
       to: `${packagesRouter.getPackageNavigationUrl('preview')}${selectedFormLayoutName ? `?layout=${selectedFormLayoutName}` : ''}`,
       isInverted: true,
     },
     {
-      title: 'top_menu.deploy',
       menuKey: TopBarMenu.Deploy,
       to: packagesRouter.getPackageNavigationUrl('editorPublish'),
     },
   ];
-  return actions;
 };
 
 type PageHeaderProps = {

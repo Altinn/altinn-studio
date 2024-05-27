@@ -6,9 +6,9 @@ import type { StorageState } from '../../types/StorageState';
 import { Header } from '../../components/Header';
 import { UiEditorPage } from '../../pages/UiEditorPage';
 import { SettingsModal } from '../../components/SettingsModal';
-import type { SettingsModalTab } from '../../components/SettingsModal';
 import { PolicyEditor } from '../../components/PolicyEditor';
 import { Gitea } from 'testing/playwright/helpers/Gitea';
+import type { SettingsModalTab } from 'app-development/types/SettingsModalTab';
 
 // Before the tests starts, we need to create the data model app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
@@ -120,7 +120,7 @@ test('That it is possible to change tab to "Access control" tab', async ({ page,
   await settingsModal.verifyThatTabIsVisible('policy');
   await settingsModal.verifyThatTabIsHidden('access_control');
 
-  await settingsModal.navigateToTab('accessControl');
+  await settingsModal.navigateToTab('access_control');
 
   await settingsModal.verifyThatTabIsHidden('policy');
   await settingsModal.verifyThatTabIsVisible('access_control');

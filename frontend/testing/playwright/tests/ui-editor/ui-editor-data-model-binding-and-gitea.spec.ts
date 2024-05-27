@@ -71,12 +71,12 @@ test('That it is possible to add a data model binding, and that the files are up
 
   await uiEditorPage.verifyUiEditorPage(pageName);
 
-  await header.clickOnNavigateToPageInTopMenuHeader('data-model');
+  await header.clickOnNavigateToPageInTopMenuHeader('data_model');
   await dataModelPage.verifyDataModelPage();
 
   // Add data model
   await dataModelPage.clickOnCreateNewDataModelButton();
-  const dataModelName: string = 'test-data-model';
+  const dataModelName: string = 'testDataModel';
   await dataModelPage.typeDataModelName(dataModelName);
   await dataModelPage.clickOnCreateModelButton();
   await dataModelPage.waitForDataModelToAppear(dataModelName);

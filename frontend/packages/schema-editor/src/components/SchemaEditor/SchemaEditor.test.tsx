@@ -231,7 +231,7 @@ describe('SchemaEditor', () => {
     const setSelectedTypePointer = jest.fn();
     const setSelectedNodePointer = jest.fn();
     const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchemaTypePanel));
-    const dataModelName = 'TestDataModelName';
+    const dataModelName = 'TestDataModel';
 
     renderEditor({
       appContextProps: {

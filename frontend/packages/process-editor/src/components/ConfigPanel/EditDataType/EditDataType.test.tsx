@@ -65,10 +65,10 @@ describe('EditDataType', () => {
     await user.click(combobox);
     expect(combobox).not.toHaveValue();
 
-    const noAvailablemodelsOption = screen.getByText(
+    const noAvailableModelsOption = screen.getByText(
       textMock('process_editor.configuration_panel_no_data_model_to_select'),
     );
-    expect(noAvailablemodelsOption).toBeInTheDocument();
+    expect(noAvailableModelsOption).toBeInTheDocument();
   });
 
   it('should display description to select data type and show all available data types including existing as options', async () => {

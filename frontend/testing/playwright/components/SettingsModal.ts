@@ -1,9 +1,7 @@
+import type { SettingsModalTab } from 'app-development/types/SettingsModalTab';
 import { BasePage } from '../helpers/BasePage';
 import type { Environment } from '../helpers/StudioEnvironment';
 import type { Page } from '@playwright/test';
-
-export type SettingsModalTab = 'about' | 'accessControl' | 'policy' | 'setup';
-type SettingsModalTabHeading = 'about' | 'access_control' | 'policy' | 'setup';
 
 export class SettingsModal extends BasePage {
   constructor(page: Page, environment?: Environment) {
@@ -40,7 +38,7 @@ export class SettingsModal extends BasePage {
       .click();
   }
 
-  public async verifyThatTabIsVisible(tabHeading: SettingsModalTabHeading): Promise<void> {
+  public async verifyThatTabIsVisible(tabHeading: SettingsModalTab): Promise<void> {
     await this.page
       .getByRole('heading', {
         name: this.textMock(`settings_modal.${tabHeading}_tab_heading`),
@@ -49,7 +47,7 @@ export class SettingsModal extends BasePage {
       .isVisible();
   }
 
-  public async verifyThatTabIsHidden(tabHeading: SettingsModalTabHeading): Promise<void> {
+  public async verifyThatTabIsHidden(tabHeading: SettingsModalTab): Promise<void> {
     await this.page
       .getByRole('heading', {
         name: this.textMock(`settings_modal.${tabHeading}_tab_heading`),

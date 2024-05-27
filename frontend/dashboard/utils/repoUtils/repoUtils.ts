@@ -27,10 +27,10 @@ const appsTranslationMap: TranslationMap = {
   named_org: 'dashboard.org_apps',
 };
 const dataModelsTranslationMap: TranslationMap = {
-  all: 'dashboard.all_dataModels',
-  self: 'dashboard.my_dataModels',
-  org: 'dashboard.dataModels',
-  named_org: 'dashboard.org_dataModels',
+  all: 'dashboard.all_data_models',
+  self: 'dashboard.my_data_models',
+  org: 'dashboard.data_models',
+  named_org: 'dashboard.org_data_models',
 };
 const resourcesTranslationMap: TranslationMap = {
   all: 'dashboard.all_resources',

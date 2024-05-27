@@ -120,7 +120,7 @@ test('Allows to upload and then delete an XSD file', async ({ page, testAppName 
   await dataModelPage.waitForDataModelToBeUploaded();
   await dataModelPage.waitForDataModelToAppear(dataModelName);
   const dataModelComboboxValue = await dataModelPage.getDataModelOptionValue(dataModelName);
-  expect(dataModelComboboxValue).toMatch(/\/testdatamodel.schema.json$/);
+  expect(dataModelComboboxValue).toMatch(/\/testDataModel.schema.json$/);
 
   await dataModelPage.checkThatDataModelOptionExists(dataModelName);
   await dataModelPage.clickOnDeleteDataModelButton();

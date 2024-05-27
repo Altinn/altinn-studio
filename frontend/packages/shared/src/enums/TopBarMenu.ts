@@ -1,11 +1,12 @@
 export enum TopBarMenu {
   About = 'top_menu.about',
+  Access = 'access_control',
   Create = 'top_menu.create',
-  DataModel = 'top_menu.data-model',
+  DataModel = 'top_menu.data_model',
   Text = 'top_menu.texts',
   Preview = 'top_menu.preview',
+  PreviewBackToEditing = 'top_menu.preview_back_to_editing',
   Deploy = 'top_menu.deploy',
-  Access = 'top_menu.access-control',
-  ProcessEditor = 'top_menu.process-editor',
+  ProcessEditor = 'top_menu.process_editor',
   None = '',
 }
