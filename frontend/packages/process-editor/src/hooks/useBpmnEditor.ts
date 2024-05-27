@@ -36,7 +36,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
     currentPolicy,
   } = useBpmnApiContext();
 
-  // Needs to update the layoutSetsRef.current when layoutSets changes to avoid stale in the event listeners
+  // Needs to update the layoutSetsRef.current when layoutSets changes to avoid staled data in the event listeners
   const layoutSetsRef = useRef(layoutSets);
   useEffect(() => {
     layoutSetsRef.current = layoutSets;
