@@ -36,6 +36,12 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
     currentPolicy,
   } = useBpmnApiContext();
 
+  // Needs to update the layoutSetsRef.current when layoutSets changes to avoid stale in the event listeners
+  const layoutSetsRef = useRef(layoutSets);
+  useEffect(() => {
+    layoutSetsRef.current = layoutSets;
+  }, [layoutSets]);
+
   const handleCommandStackChanged = async () => {
     saveBpmn(await getUpdatedXml(), metaDataFormRef.current || null);
     resetForm();
@@ -61,7 +67,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
     const removeProcessTaskManager = new RemoveProcessTaskManager(
       org,
       app,
-      layoutSets,
+      layoutSetsRef.current,
       deleteLayoutSet,
       deleteDataTypeFromAppMetadata,
       bpmnDetails,
