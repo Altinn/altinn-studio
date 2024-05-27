@@ -1,4 +1,4 @@
-import type { PolicyRule, PolicyRuleCard } from '../types';
+import type { PolicyRule, PolicyRuleCard } from '../../src/types';
 import { mockAction1, mockAction2, mockAction4 } from './policyActionMocks';
 import { mockPolicyResources, mockPolicyRuleResources } from './policySubResourceMocks';
 import {

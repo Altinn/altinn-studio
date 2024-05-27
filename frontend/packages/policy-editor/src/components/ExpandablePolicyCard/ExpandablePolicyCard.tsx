@@ -11,12 +11,7 @@ import classes from './ExpandablePolicyCard.module.css';
 import { ActionAndSubjectListItem } from './ActionAndSubjectListItem';
 import { ResourceNarrowingList } from './ResourceNarrowingList';
 import { ExpandablePolicyElement } from './ExpandablePolicyElement';
-import type {
-  PolicyRuleCard,
-  PolicyRuleResource,
-  PolicySubject,
-  PolicyEditorUsage,
-} from '../../types';
+import type { PolicyRuleCard, PolicyRuleResource, PolicySubject } from '../../types';
 import { createNewPolicyResource, findSubjectByPolicyRuleSubject } from '../../utils';
 import {
   getActionOptions,
@@ -26,7 +21,7 @@ import {
 } from '../../utils/ExpandablePolicyCardUtils';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
-import { usePolicyEditorContext } from '@altinn/policy-editor/contexts/PolicyEditorContext';
+import { usePolicyEditorContext } from '../../contexts/PolicyEditorContext';
 
 // MOVE TO UTILS
 const wellKnownActionsIds: string[] = [
@@ -43,29 +38,31 @@ export type ExpandablePolicyCardProps = {
   policyRule: PolicyRuleCard;
   setPolicyRules: React.Dispatch<React.SetStateAction<PolicyRuleCard[]>>;
   resourceId: string;
-  resourceType: string;
   handleCloneRule: () => void;
   handleDeleteRule: () => void;
   showErrors: boolean;
   savePolicy: (rules: PolicyRuleCard[]) => void;
-  usageType: PolicyEditorUsage;
 };
 
 export const ExpandablePolicyCard = ({
   policyRule,
   setPolicyRules,
   resourceId,
-  resourceType,
   handleCloneRule,
   handleDeleteRule,
   showErrors,
   savePolicy,
-  usageType,
 }: ExpandablePolicyCardProps): React.ReactNode => {
   const { t } = useTranslation();
 
   // FIX BELOW
-  const { policyRules: rules, actions, subjects } = usePolicyEditorContext();
+  const {
+    policyRules: rules,
+    actions,
+    subjects,
+    usageType,
+    resourceType,
+  } = usePolicyEditorContext();
 
   const uniqueId = useId();
 
@@ -75,14 +72,6 @@ export const ExpandablePolicyCard = ({
   const [subjectOptions, setSubjectOptions] = useState(getSubjectOptions(subjects, policyRule));
   const [actionOptions, setActionOptions] = useState(getActionOptions(actions, policyRule));
 
-  /**
-   * Handles the changes in the input fields inside the resource blocks
-   *
-   * @param index the index of the element in the resource block
-   * @param field the type of textfield to update
-   * @param value the value types in the textfield
-   * @param ruleIndex the index of the rule
-   */
   const handleInputChange = (
     index: number,
     field: 'id' | 'type',
@@ -103,10 +92,6 @@ export const ExpandablePolicyCard = ({
     setPolicyRules(updatedRules);
   };
 
-  /**
-   * Adds a resource block to the list of resources. The first element in the
-   * resource block is set to the resource's ID and type.
-   */
   const handleClickAddResource = () => {
     const newResource: PolicyRuleResource[] = createNewPolicyResource(
       usageType,
@@ -125,10 +110,6 @@ export const ExpandablePolicyCard = ({
     setHasResourceError(false);
   };
 
-  /**
-   * Displays a list of resource blocks, which each contains a list of the resources
-   * and the list narrowing down the elements.
-   */
   const displayResources = policyRule.resources.map((r, i) => {
     return (
       <ResourceNarrowingList
@@ -144,14 +125,10 @@ export const ExpandablePolicyCard = ({
         handleCloneElement={() => handleCloneResourceGroup(i)}
         handleRemoveElement={() => handleDeleteResourceGroup(i)}
         onBlur={() => savePolicy(rules)}
-        usageType={usageType}
       />
     );
   });
 
-  /**
-   * Handles the addition of more resources
-   */
   const handleClickAddResourceNarrowing = (resourceIndex: number) => {
     const newResource: PolicyRuleResource = {
       type: '',
@@ -169,9 +146,6 @@ export const ExpandablePolicyCard = ({
     savePolicy(updatedRules);
   };
 
-  /**
-   * Handles the removal of the narrowed resources
-   */
   const handleRemoveNarrowingResource = (index: number, ruleIndex: number) => {
     const updatedResources = [...policyRule.resources];
     updatedResources[ruleIndex].splice(index, 1);
@@ -201,11 +175,9 @@ export const ExpandablePolicyCard = ({
   });
 
   const handleRemoveAction = (index: number, actionTitle: string) => {
-    // Remove from selected list
     const updatedActions = [...policyRule.actions];
     updatedActions.splice(index, 1);
 
-    // Add to options list
     setActionOptions([...actionOptions, { value: actionTitle, label: actionTitle }]);
 
     const updatedRules = getUpdatedRules(
@@ -218,9 +190,6 @@ export const ExpandablePolicyCard = ({
     setHasRightsErrors(updatedActions.length === 0);
   };
 
-  /**
-   * Displays the selected subjects
-   */
   const displaySubjects = policyRule.subject.map((s, i) => {
     const subject: PolicySubject = findSubjectByPolicyRuleSubject(subjects, s);
     return (
@@ -232,15 +201,10 @@ export const ExpandablePolicyCard = ({
     );
   });
 
-  /**
-   * Handles the removal of subjects
-   */
   const handleRemoveSubject = (index: number, subject: PolicySubject): void => {
-    // Remove from selected list
     const updatedSubjects = [...policyRule.subject];
     updatedSubjects.splice(index, 1);
 
-    // Add to options list
     setSubjectOptions((prevSubjectOptions) => [
       ...prevSubjectOptions,
       {
@@ -314,23 +278,16 @@ export const ExpandablePolicyCard = ({
     setHasRightsErrors(false);
   };
 
-  /**
-   * Updates the description of the rule
-   */
   const handleChangeDescription = (description: string) => {
     const updatedRules = getUpdatedRules({ ...policyRule, description }, policyRule.ruleId, rules);
     setPolicyRules(updatedRules);
   };
 
-  /**
-   * Duplicates a resource group and all the content in it.
-   *
-   * @param resourceIndex the index of the resource group to duplicate
-   */
   const handleCloneResourceGroup = (resourceIndex: number) => {
     const resourceGroupToDuplicate: PolicyRuleResource[] = policyRule.resources[resourceIndex];
 
     // Create a deep copy of the object so the objects don't share same object reference
+    // TODO - Replace with deepCopy
     const deepCopiedResourceGroupToDuplicate: PolicyRuleResource[] = JSON.parse(
       JSON.stringify(resourceGroupToDuplicate),
     );
@@ -345,11 +302,6 @@ export const ExpandablePolicyCard = ({
     savePolicy(updatedRules);
   };
 
-  /**
-   * Removes a resource group and all the content in it.
-   *
-   * @param resourceIndex the index of the resource group to remove
-   */
   const handleDeleteResourceGroup = (resourceIndex: number) => {
     const updatedResources = [...policyRule.resources];
     updatedResources.splice(resourceIndex, 1);
@@ -363,11 +315,7 @@ export const ExpandablePolicyCard = ({
     setHasResourceError(updatedResources.length === 0);
   };
 
-  /**
-   * Displays the given text in a warning card
-   *
-   * @param text the text to display
-   */
+  // TODO - FIX
   const displayWarningCard = (text: string) => {
     return (
       <ErrorMessage asChild size='small'>
@@ -376,16 +324,10 @@ export const ExpandablePolicyCard = ({
     );
   };
 
-  /**
-   * Gets if there is an error in the rule card
-   */
   const getHasRuleError = () => {
     return hasResourceError || hasRightsError || hasSubjectsError;
   };
 
-  /**
-   * Gets the correct text to display for a rule with missing values
-   */
   const getRuleErrorText = (): string => {
     const arr: string[] = [];
     if (hasResourceError) arr.push(t('policy_editor.policy_rule_missing_sub_resource'));

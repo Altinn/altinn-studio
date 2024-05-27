@@ -4,70 +4,20 @@ import { PolicyResourceFields } from './PolicyResourceFields';
 import { ExpandablePolicyElement } from '../ExpandablePolicyElement';
 import { StudioButton } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
-import type { PolicyEditorUsage, PolicyRuleResource } from '../../../types';
+import type { PolicyRuleResource } from '../../../types';
 import { useTranslation } from 'react-i18next';
+import { usePolicyEditorContext } from '../../../contexts/PolicyEditorContext';
 
 export type ResourceNarrowingListProps = {
-  /**
-   * The list of policy resources to display
-   */
   resources: PolicyRuleResource[];
-  /**
-   * Function to update the values when the text fields changes value
-   * @param i the index position
-   * @param field if it is the id or the type field
-   * @param s the string in the field
-   * @returns void
-   */
   handleInputChange: (i: number, field: 'id' | 'type', s: string) => void;
-  /**
-   * Function that removes a resource from the list
-   * @param index the index position to remove
-   * @returns void
-   */
   handleRemoveResource: (index: number) => void;
-  /**
-   * Function that adds a resource to the list
-   * @returns void
-   */
   handleClickAddResource: () => void;
-  /**
-   * Function to be executed when the element is to be removed
-   * @returns void
-   */
   handleRemoveElement: () => void;
-  /**
-   * Function to be executed when the element is duplicated
-   * @returns void
-   */
   handleCloneElement: () => void;
-  /**
-   * Function to be executed on blur
-   * @returns
-   */
   onBlur: () => void;
-  /**
-   * The usage type of the policy editor
-   */
-  usageType: PolicyEditorUsage;
 };
 
-/**
- * @component
- *    Displays the narrowing list of the resources. The component is expandable, and
- *    has a button to add elements to the list.
- *
- * @property {PolicyRuleResource[]}[resources] - The list of policy resources to display
- * @property {function}[handleInputChange] - Function to update the values when the text fields changes value
- * @property {function}[handleRemoveResource] - Function that removes a resource from the list
- * @property {function}[handleClickAddResource] - Function that adds a resource to the list
- * @property {function}[handleRemoveElement] - Function to be executed when the element is to be removed
- * @property {function}[handleCloneElement] - Function to be executed when the element is cloned
- * @property {function}[onBlur] - Function to be executed on blur
- * @property {PolicyEditorUsage}[usageType] - The usage type of the policy editor
- *
- * @returns {React.ReactNode} - The rendered component
- */
 export const ResourceNarrowingList = ({
   resources,
   handleInputChange,
@@ -76,8 +26,8 @@ export const ResourceNarrowingList = ({
   handleRemoveElement,
   handleCloneElement,
   onBlur,
-  usageType,
 }: ResourceNarrowingListProps): React.ReactNode => {
+  const { usageType } = usePolicyEditorContext();
   const { t } = useTranslation();
 
   /**

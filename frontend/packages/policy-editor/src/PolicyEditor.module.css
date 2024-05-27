@@ -3,11 +3,6 @@
   max-width: 650px;
 }
 
-.alert {
-  display: flex;
-  align-items: center;
-}
-
 .addCardButtonWrapper {
   margin-block: 20px;
   width: 595px;

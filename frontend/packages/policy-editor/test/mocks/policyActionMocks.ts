@@ -1,4 +1,4 @@
-import type { PolicyAction } from '../types';
+import type { PolicyAction } from '../../src/types';
 
 export const mockActionId1: string = 'read';
 export const mockActionId2: string = 'write';

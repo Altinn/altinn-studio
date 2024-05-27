@@ -1,4 +1,4 @@
-import type { PolicyRuleResource } from '../types';
+import type { PolicyRuleResource } from '../../src/types';
 
 export const mockResourecId1: string = 'resource-1';
 export const mockResourecId2: string = '1.2';

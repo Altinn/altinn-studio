@@ -1,12 +1,14 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { PolicyEditorProps } from './PolicyEditor';
-import { PolicyEditor } from './PolicyEditor';
+import { PolicyEditor, type PolicyEditorProps } from './PolicyEditor';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { Policy, RequiredAuthLevel, PolicyEditorUsage } from './types';
-import { mockActions, mockPolicyRules, mockResourecId1, mockSubjects } from './data-mocks';
 import { authlevelOptions } from './components/SecurityLevelSelect/SecurityLevelSelect';
+import { mockActions } from '../test/mocks/policyActionMocks';
+import { mockSubjects } from '../test/mocks/policySubjectMocks';
+import { mockPolicyRules } from '../test/mocks/policyRuleMocks';
+import { mockResourecId1 } from '../test/mocks/policySubResourceMocks';
 
 const mockRequiredAuthLevel: RequiredAuthLevel = '3';
 const mockRequiredAuthLevelLabel: string = textMock(authlevelOptions[3].label);
@@ -33,40 +35,6 @@ describe('PolicyEditor', () => {
     showAllErrors: false,
     usageType: mockUsageType,
   };
-
-  it('displays the alert title for app when usagetype is app', async () => {
-    const user = userEvent.setup();
-    render(<PolicyEditor {...defaultProps} />);
-
-    const alertTextApp = screen.getByText(
-      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_app') }),
-    );
-    const alertTextResource = screen.queryByText(
-      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_resource') }),
-    );
-
-    await user.tab();
-
-    expect(alertTextApp).toBeInTheDocument();
-    expect(alertTextResource).not.toBeInTheDocument();
-  });
-
-  it('displays the alert title for resource when usagetype is not app', async () => {
-    const user = userEvent.setup();
-    render(<PolicyEditor {...defaultProps} usageType='resource' />);
-
-    const alertTextApp = screen.queryByText(
-      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_app') }),
-    );
-    const alertTextResource = screen.getByText(
-      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_resource') }),
-    );
-
-    await user.tab();
-
-    expect(alertTextApp).not.toBeInTheDocument();
-    expect(alertTextResource).toBeInTheDocument();
-  });
 
   it('changes the auth level when the user selects a different auth level', async () => {
     const user = userEvent.setup();

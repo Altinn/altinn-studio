@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
+import { Heading } from '@digdir/design-system-react';
 import type {
   PolicyAction,
   Policy,
@@ -20,6 +20,7 @@ import classes from './PolicyEditor.module.css';
 import { VerificationModal } from './components/VerificationModal';
 import { ExpandablePolicyCard } from './components/ExpandablePolicyCard';
 import { CardButton } from './components/CardButton';
+import { PolicyEditorAlert } from './components/PolicyEditorAlert';
 import { ObjectUtils } from '@studio/pure-functions';
 import { useTranslation } from 'react-i18next';
 import { SecurityLevelSelect } from './components/SecurityLevelSelect';
@@ -30,7 +31,7 @@ export type PolicyEditorProps = {
   actions: PolicyAction[];
   subjects: PolicySubject[];
   resourceId?: string;
-  onSave: (policy: Policy) => void;
+  onSave: (policy: Policy) => void; // MAYBE MOVE TO CONTEXT
   showAllErrors: boolean;
   usageType: PolicyEditorUsage;
 };
@@ -46,9 +47,7 @@ export const PolicyEditor = ({
 }: PolicyEditorProps): React.ReactNode => {
   const { t } = useTranslation();
 
-  // MOVE TO CONTEXT?
-  // TODO - Find out how this should be set. Issue: #10880
-  const resourceType = usageType === 'app' ? 'urn:altinn' : 'urn:altinn:resource';
+  const resourceType = getResourceType(usageType);
 
   const [policyRules, setPolicyRules] = useState<PolicyRuleCard[]>(
     mapPolicyRulesBackendObjectToPolicyRuleCard(policy?.rules ?? []),
@@ -60,9 +59,11 @@ export const PolicyEditor = ({
   const [verificationModalOpen, setVerificationModalOpen] = useState(false);
 
   // To keep track of which rule to delete
+  // TODO - FIX LOGIC TO DELETE RULE
   const [ruleIdToDelete, setRuleIdToDelete] = useState('0');
   const [showErrorsOnAllRulesAboveNew, setShowErrorsOnAllRulesAboveNew] = useState(false);
 
+  // CAN THIS BE ITS OWN COMPONENT??
   const displayRules = policyRules.map((pr, i) => {
     return (
       <div className={classes.space} key={pr.ruleId}>
@@ -70,7 +71,6 @@ export const PolicyEditor = ({
           policyRule={pr}
           setPolicyRules={setPolicyRules}
           resourceId={resourceId ?? ''}
-          resourceType={resourceType}
           handleCloneRule={() => handleCloneRule(i)}
           handleDeleteRule={() => {
             setVerificationModalOpen(true);
@@ -80,12 +80,12 @@ export const PolicyEditor = ({
             showAllErrors || (showErrorsOnAllRulesAboveNew && policyRules.length - 1 !== i)
           }
           savePolicy={(rules: PolicyRuleCard[]) => handleSavePolicy(rules)}
-          usageType={usageType}
         />
       </div>
     );
   });
 
+  // FIX LOGIC
   const getRuleId = () => {
     const idTaken: boolean = policyRules.map((p) => p.ruleId).includes(lastRuleId.toString());
 
@@ -153,7 +153,13 @@ export const PolicyEditor = ({
   };
 
   return (
-    <PolicyEditorContextProvider policyRules={policyRules} actions={actions} subjects={subjects}>
+    <PolicyEditorContextProvider
+      policyRules={policyRules}
+      actions={actions}
+      subjects={subjects}
+      usageType={usageType}
+      resourceType={resourceType}
+    >
       <div>
         <SecurityLevelSelect
           requiredAuthenticationLevelEndUser={policy.requiredAuthenticationLevelEndUser}
@@ -163,16 +169,7 @@ export const PolicyEditor = ({
           {t('policy_editor.rules')}
         </Heading>
         <div className={classes.alertWrapper}>
-          <Alert severity='info' className={classes.alert}>
-            <Paragraph size='small'>
-              {t('policy_editor.alert', {
-                usageType:
-                  usageType === 'app'
-                    ? t('policy_editor.alert_app')
-                    : t('policy_editor.alert_resource'),
-              })}
-            </Paragraph>
-          </Alert>
+          <PolicyEditorAlert />
         </div>
         {displayRules}
         <div className={classes.addCardButtonWrapper}>
@@ -181,7 +178,7 @@ export const PolicyEditor = ({
             onClick={handleAddCardClick}
           />
         </div>
-        <VerificationModal
+        <VerificationModal // - REPLACE WITG ALERT
           isOpen={verificationModalOpen}
           onClose={() => setVerificationModalOpen(false)}
           text={t('policy_editor.verification_modal_text')}
@@ -192,4 +189,10 @@ export const PolicyEditor = ({
       </div>
     </PolicyEditorContextProvider>
   );
+};
+
+// TODO - MOVE BELOW TO SOMEWHERE
+// TODO - Find out how this should be set. Issue: #10880
+const getResourceType = (usageType: PolicyEditorUsage): string => {
+  return usageType === 'app' ? 'urn:altinn' : 'urn:altinn:resource';
 };

@@ -1,4 +1,4 @@
-import type { PolicySubject } from '../types';
+import type { PolicySubject } from '../../src/types';
 
 export const mockSubjectId1: string = 's1';
 export const mockSubjectId2: string = 's2';
