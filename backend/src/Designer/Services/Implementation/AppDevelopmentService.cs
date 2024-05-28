@@ -213,7 +213,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return modelMetadata;
         }
 
-        private async Task<string> GetModelName(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName,  CancellationToken cancellationToken = default)
+        private async Task<string> GetModelName(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(layoutSetName))
             {
