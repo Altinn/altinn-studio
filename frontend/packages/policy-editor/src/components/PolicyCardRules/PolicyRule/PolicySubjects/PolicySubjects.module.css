@@ -1,6 +1,6 @@
 .label {
-  margin-top: 30px;
-  margin-bottom: 5px;
+  margin-top: var(--fds-spacing-7);
+  margin-bottom: var(--fds-spacing-1);
 }
 
 .chipWrapper {
@@ -9,15 +9,15 @@
 }
 
 .dropdownWrapper {
-  margin-bottom: 10px;
+  margin-bottom: var(--fds-spacing-3);
 }
 
 .inputParagraph {
-  margin-bottom: 5px;
+  margin-bottom: var(--fds-spacing-1);
 }
 
 .chip {
   margin: 0;
-  margin-right: 5px;
-  margin-top: 5px;
+  margin-right: var(--fds-spacing-1);
+  margin-top: var(--fds-spacing-1);
 }

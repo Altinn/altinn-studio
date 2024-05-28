@@ -3,5 +3,5 @@
 }
 
 .icon {
-  font-size: 1.3rem;
+  font-size: var(--fds-sizing-5);
 }

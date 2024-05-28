@@ -3,10 +3,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px;
+  padding: var(--fds-spacing-5);
   margin: 0;
   background-color: var(--fds-semantic-surface-neutral-default);
-  border-radius: 12px;
+  border-radius: var(--fds-sizing-3);
   border: solid 1px var(--fds-semantic-border-divider-default);
   cursor: pointer;
 }

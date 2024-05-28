@@ -1,5 +1,4 @@
 import React, { useState, useId } from 'react';
-import classes from './PolicyRule.module.css';
 import { ExpandablePolicyElement } from './ExpandablePolicyElement';
 import type { PolicyRuleCard, PolicyError } from '../../../types';
 import { getPolicyRuleIdString } from '../../../utils/PolicyRuleUtils';
@@ -73,7 +72,7 @@ export const PolicyRule = ({
       policyError={policyError}
       setPolicyError={setPolicyError}
     >
-      <div className={classes.cardWrapper}>
+      <div>
         <ExpandablePolicyElement
           title={`${t('policy_editor.rule')} ${getPolicyRuleIdString(policyRule)}`}
           isCard

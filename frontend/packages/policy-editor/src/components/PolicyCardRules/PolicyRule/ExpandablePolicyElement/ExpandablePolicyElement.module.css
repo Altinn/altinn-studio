@@ -15,11 +15,11 @@
 }
 
 .cardWrapper {
-  border-radius: 12px;
+  border-radius: var(--fds-sizing-3);
 }
 
 .elementWrapper {
-  border-radius: 5px;
+  border-radius: var(--fds-sizing-1);
   background-color: var(--fds-semantic-background-subtle);
 }
 
@@ -36,11 +36,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding-right: 15px;
+  padding-right: var(--fds-spacing-4);
 }
 
 .topWrapperCard {
-  border-radius: 10px;
+  border-radius: var(--fds-sizing-3);
 }
 
 .topWrapperCardOpen {
@@ -49,7 +49,7 @@
 }
 
 .topWrapperElement {
-  border-radius: 4px;
+  border-radius: var(--fds-sizing-1);
 }
 
 .topWrapperElementOpen {
@@ -58,7 +58,7 @@
 }
 
 .topWrapperError {
-  border-radius: 10px;
+  border-radius: var(--fds-sizing-3);
   background-color: var(--fds-semantic-surface-danger-subtle);
 }
 
@@ -75,8 +75,8 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  padding: 20px;
-  padding-right: 5px;
+  padding: var(--fds-spacing-5);
+  padding-right: var(--fds-spacing-1);
   margin: 0;
 }
 
@@ -88,9 +88,9 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  padding-block: 10px;
-  padding-left: 20px;
-  padding-right: 5px;
+  padding-block: var(--fds-spacing-3);
+  padding-left: var(--fds-spacing-5);
+  padding-right: var(--fds-spacing-1);
   margin: 0;
 }
 
@@ -100,11 +100,11 @@
 }
 
 .cardBottomWrapper {
-  padding-inline: 20px;
-  padding-bottom: 20px;
+  padding-inline: var(--fds-spacing-5);
+  padding-bottom: var(--fds-spacing-5);
 }
 
 .elementBottomWrapper {
-  padding-inline: 20px;
-  padding-bottom: 10px;
+  padding-inline: var(--fds-spacing-5);
+  padding-bottom: var(--fds-spacing-3);
 }

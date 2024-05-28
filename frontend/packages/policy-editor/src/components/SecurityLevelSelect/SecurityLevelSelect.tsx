@@ -43,14 +43,14 @@ export const SecurityLevelSelect = ({
   }, [t]);
 
   return (
-    <div className={classes.securityLevelContainer}>
+    <div>
       <Heading level={2} size='xxsmall' spacing>
         {t('policy_editor.security_level_label')}
       </Heading>
       <Paragraph className={classes.paragraph} size='small'>
         {t('policy_editor.security_level_description')}
       </Paragraph>
-      <div className={classes.selectAuthLevel}>
+      <div>
         <div className={classes.labelAndHelpTextWrapper}>
           {/* This is added because the 'label' in the Select component is not bold */}
           <Label size='small' htmlFor={SELECT_AUTH_LEVEL_ID}>

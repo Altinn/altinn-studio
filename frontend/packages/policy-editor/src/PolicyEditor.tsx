@@ -81,7 +81,7 @@ export const PolicyEditor = ({
       resourceId={resourceId ?? ''}
       savePolicy={handleSavePolicy}
     >
-      <div>
+      <div className={classes.policyEditor}>
         <SecurityLevelSelect
           requiredAuthenticationLevelEndUser={policy.requiredAuthenticationLevelEndUser}
           onSave={handleSavePolicyAuthLevel}

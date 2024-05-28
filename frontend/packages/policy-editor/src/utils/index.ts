@@ -239,6 +239,6 @@ export const findSubjectByPolicyRuleSubject = (
 };
 
 export const getNewRuleId = (rules: PolicyRuleCard[]): string => {
-  const lastId: number = Number(rules[rules.length - 1].ruleId) + 1;
+  const lastId: number = Number(rules[rules.length - 1]?.ruleId ?? 0) + 1;
   return String(lastId);
 };
