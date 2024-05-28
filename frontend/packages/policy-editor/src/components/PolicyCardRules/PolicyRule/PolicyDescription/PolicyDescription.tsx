@@ -6,7 +6,7 @@ import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
 import { Textarea } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 
-export const PolicyDescription = () => {
+export const PolicyDescription = (): React.ReactElement => {
   const { t } = useTranslation();
   const { policyRules, setPolicyRules, savePolicy } = usePolicyEditorContext();
   const { policyRule, uniqueId } = usePolicyRuleContext();
