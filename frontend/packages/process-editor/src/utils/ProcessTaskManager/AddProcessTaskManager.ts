@@ -45,7 +45,7 @@ export class AddProcessTaskManager {
   }
 
   /**
-   * Adds a dataType, default Policy and layout set to the added payment task
+   * Adds a dataType and layoutSet to the added payment task
    * @param taskEvent
    * @private
    */

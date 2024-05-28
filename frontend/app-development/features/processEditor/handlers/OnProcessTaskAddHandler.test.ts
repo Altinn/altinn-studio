@@ -1,4 +1,4 @@
-import { Policy } from 'app-shared/types/Policy';
+import type { Policy } from 'app-shared/types/Policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
 import type { TaskEvent } from '@altinn/process-editor/utils/ProcessTaskManager';
 import { OnProcessTaskAddHandler } from './OnProcessTaskAddHandler';
