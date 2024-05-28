@@ -1,5 +1,6 @@
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
+using Altinn.App.Api.Tests;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Api.Tests.Mocks.Authentication;
@@ -36,10 +37,13 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(
     }
 );
 
+ApiTestBase.ConfigureFakeLogging(builder.Logging);
+
 builder.Configuration.AddJsonFile(
     Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributer-restriction", "appsettings.json")
 );
 builder.Configuration.GetSection("MetricsSettings:Enabled").Value = "false";
+builder.Configuration.GetSection("AppSettings:UseOpenTelemetry").Value = "true";
 
 ConfigureServices(builder.Services, builder.Configuration);
 ConfigureMockServices(builder.Services, builder.Configuration);

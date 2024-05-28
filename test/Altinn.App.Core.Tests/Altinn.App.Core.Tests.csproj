@@ -60,6 +60,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Altinn.App.Core\Altinn.App.Core.csproj" />
+    <ProjectReference Include="..\Altinn.App.Common.Tests\Altinn.App.Common.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

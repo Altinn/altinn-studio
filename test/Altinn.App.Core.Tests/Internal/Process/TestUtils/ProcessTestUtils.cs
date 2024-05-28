@@ -1,6 +1,5 @@
-using Altinn.App.Core.Features;
+using Altinn.App.Common.Tests;
 using Altinn.App.Core.Internal.Process;
-using Altinn.App.Core.Tests.Mocks;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.Process.TestUtils;

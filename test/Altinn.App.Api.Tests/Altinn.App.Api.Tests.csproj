@@ -28,6 +28,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\Altinn.App.Api\Altinn.App.Api.csproj" />
+		<ProjectReference Include="..\Altinn.App.Common.Tests\Altinn.App.Common.Tests.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

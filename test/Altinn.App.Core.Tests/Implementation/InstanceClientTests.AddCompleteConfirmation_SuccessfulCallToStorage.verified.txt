@@ -7,7 +7,7 @@
           instance.guid: Guid_1
         },
         {
-          instance.owner_party_id: 1337
+          instance.owner.party.id: 1337
         }
       ],
       IdFormat: W3C

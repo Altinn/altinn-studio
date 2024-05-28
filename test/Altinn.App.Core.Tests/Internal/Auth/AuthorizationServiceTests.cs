@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Altinn.App.Common.Tests;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Internal.Auth;
@@ -6,7 +7,6 @@ using Altinn.App.Core.Internal.Process.Authorization;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
-using Altinn.App.Core.Tests.Mocks;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;

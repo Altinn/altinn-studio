@@ -7,10 +7,7 @@ using Microsoft.AspNetCore.Http.Features;
 
 namespace Altinn.App.Api.Infrastructure.Middleware;
 
-/// <summary>
-/// Middleware for adding telemetry to the request.
-/// </summary>
-public class TelemetryEnrichingMiddleware
+internal sealed class TelemetryEnrichingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<TelemetryEnrichingMiddleware> _logger;
@@ -42,6 +39,10 @@ public class TelemetryEnrichingMiddleware
                 }
             },
             {
+                AltinnCoreClaimTypes.AuthenticateMethod,
+                static (claim, activity) => activity.SetAuthenticationMethod(claim.Value)
+            },
+            {
                 AltinnCoreClaimTypes.AuthenticationLevel,
                 static (claim, activity) =>
                 {
@@ -50,7 +51,9 @@ public class TelemetryEnrichingMiddleware
                         activity.SetAuthenticationLevel(result);
                     }
                 }
-            }
+            },
+            { AltinnCoreClaimTypes.Org, static (claim, activity) => activity.SetOrganisationName(claim.Value) },
+            { AltinnCoreClaimTypes.OrgNumber, static (claim, activity) => activity.SetOrganisationNumber(claim.Value) },
         };
 
         ClaimActions = actions.ToFrozenDictionary();
@@ -73,8 +76,8 @@ public class TelemetryEnrichingMiddleware
     /// <param name="context">The HTTP context.</param>
     public async Task InvokeAsync(HttpContext context)
     {
-        var trace = context.Features.Get<IHttpActivityFeature>();
-        if (trace is null)
+        var activity = context.Features.Get<IHttpActivityFeature>()?.Activity;
+        if (activity is null)
         {
             await _next(context);
             return;
@@ -82,8 +85,6 @@ public class TelemetryEnrichingMiddleware
 
         try
         {
-            var activity = trace.Activity;
-
             foreach (var claim in context.User.Claims)
             {
                 if (ClaimActions.TryGetValue(claim.Type, out var action))

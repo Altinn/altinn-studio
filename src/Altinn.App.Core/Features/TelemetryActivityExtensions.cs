@@ -56,6 +56,21 @@ public static class TelemetryActivityExtensions
     }
 
     /// <summary>
+    /// Sets the user authentication method as a tag/attribute on the activity/span
+    /// </summary>
+    /// <param name="activity">Activity</param>
+    /// <param name="authenticationMethod">Authentication method</param>
+    /// <returns>Activity</returns>
+    public static Activity SetAuthenticationMethod(this Activity activity, string? authenticationMethod)
+    {
+        if (!string.IsNullOrWhiteSpace(authenticationMethod))
+        {
+            activity.SetTag(Labels.UserAuthenticationMethod, authenticationMethod);
+        }
+        return activity;
+    }
+
+    /// <summary>
     /// Sets the user authentication level as a tag/attribute on the activity/span
     /// </summary>
     /// <param name="activity">Activity</param>
@@ -217,7 +232,23 @@ public static class TelemetryActivityExtensions
     }
 
     /// <summary>
-    /// Sets the Process Task ID as a tag/attribute on the activity/span
+    /// Sets the Organisation name as a tag/attribute on the activity/span
+    /// </summary>
+    /// <param name="activity">Activity</param>
+    /// <param name="organisationName">Organisation name</param>
+    /// <returns>Activity</returns>
+    public static Activity SetOrganisationName(this Activity activity, string? organisationName)
+    {
+        if (!string.IsNullOrWhiteSpace(organisationName))
+        {
+            activity.SetTag(Labels.OrganisationName, organisationName);
+        }
+
+        return activity;
+    }
+
+    /// <summary>
+    /// Sets the Organisation number as a tag/attribute on the activity/span
     /// </summary>
     /// <param name="activity">Activity</param>
     /// <param name="organisationNumber">Organisation number</param>

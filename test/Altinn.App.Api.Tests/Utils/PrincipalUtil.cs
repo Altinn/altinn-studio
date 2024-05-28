@@ -23,13 +23,15 @@ namespace Altinn.App.Api.Tests.Utils
             );
             if (userId > 0)
             {
-                claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userId.ToString()!, ClaimValueTypes.String, issuer));
+                claims.Add(
+                    new Claim(AltinnCoreClaimTypes.UserId, userId.Value.ToString(), ClaimValueTypes.String, issuer)
+                );
             }
 
             if (partyId > 0)
             {
                 claims.Add(
-                    new Claim(AltinnCoreClaimTypes.PartyID, userId.ToString()!, ClaimValueTypes.Integer32, issuer)
+                    new Claim(AltinnCoreClaimTypes.PartyID, partyId.Value.ToString(), ClaimValueTypes.Integer32, issuer)
                 );
             }
 

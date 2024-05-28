@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -12,6 +13,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
+using OpenTelemetry;
+using OpenTelemetry.Context.Propagation;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests;
@@ -27,9 +30,12 @@ public class ApiTestBase
     protected readonly ITestOutputHelper _outputHelper;
     private readonly WebApplicationFactory<Program> _factory;
 
+    protected IServiceProvider Services { get; private set; }
+
     public ApiTestBase(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
     {
         _factory = factory;
+        Services = _factory.Services;
         _outputHelper = outputHelper;
     }
 
@@ -45,38 +51,71 @@ public class ApiTestBase
     /// Gets a client that adds appsettings from the specified org/app
     /// test application under TestData/Apps to the service collection.
     /// </summary>
-    public HttpClient GetRootedClient(string org, string app)
+    public HttpClient GetRootedClient(string org, string app, bool includeTraceContext = false)
     {
         string appRootPath = TestData.GetApplicationDirectory(org, app);
         string appSettingsPath = Path.Join(appRootPath, "appsettings.json");
 
-        var client = _factory
-            .WithWebHostBuilder(builder =>
-            {
-                var configuration = new ConfigurationBuilder().AddJsonFile(appSettingsPath).Build();
+        var factory = _factory.WithWebHostBuilder(builder =>
+        {
+            var configuration = new ConfigurationBuilder().AddJsonFile(appSettingsPath).Build();
 
-                configuration.GetSection("AppSettings:AppBasePath").Value = appRootPath;
-                IConfigurationSection appSettingSection = configuration.GetSection("AppSettings");
+            configuration.GetSection("AppSettings:AppBasePath").Value = appRootPath;
+            IConfigurationSection appSettingSection = configuration.GetSection("AppSettings");
 
-                builder.ConfigureLogging(ConfigureFakeLogging);
+            builder.ConfigureLogging(logging => ConfigureFakeLogging(logging, _outputHelper));
 
-                builder.ConfigureServices(services => services.Configure<AppSettings>(appSettingSection));
-                builder.ConfigureTestServices(services => OverrideServicesForAllTests(services));
-                builder.ConfigureTestServices(OverrideServicesForThisTest);
-                builder.ConfigureTestServices(ConfigureFakeHttpClientHandler);
-            })
-            .CreateClient(new WebApplicationFactoryClientOptions() { AllowAutoRedirect = false });
+            builder.ConfigureServices(services => services.Configure<AppSettings>(appSettingSection));
+            builder.ConfigureTestServices(services => OverrideServicesForAllTests(services));
+            builder.ConfigureTestServices(OverrideServicesForThisTest);
+            builder.ConfigureTestServices(ConfigureFakeHttpClientHandler);
+        });
+        Services = factory.Services;
+
+        var client = includeTraceContext
+            ? factory.CreateDefaultClient(new DiagnosticHandler())
+            : factory.CreateClient(new WebApplicationFactoryClientOptions() { AllowAutoRedirect = false });
 
         return client;
     }
 
-    private void ConfigureFakeLogging(ILoggingBuilder builder)
+    private sealed class DiagnosticHandler : DelegatingHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken
+        )
+        {
+            var activity = Activity.Current;
+            var propagator = Propagators.DefaultTextMapPropagator;
+            if (activity is not null)
+            {
+                propagator.Inject(
+                    new PropagationContext(activity.Context, Baggage.Current),
+                    request.Headers,
+                    (c, k, v) => c.TryAddWithoutValidation(k, v)
+                );
+            }
+            return base.SendAsync(request, cancellationToken);
+        }
+    }
+
+    public static void ConfigureFakeLogging(ILoggingBuilder builder, ITestOutputHelper? outputHelper = null)
     {
         builder
             .ClearProviders()
             .AddFakeLogging(options =>
             {
-                options.OutputSink = (message) => _outputHelper.WriteLine(message);
+                options.OutputSink = message => outputHelper?.WriteLine(message);
+                if (outputHelper is null)
+                {
+                    options.FilteredLevels = new HashSet<LogLevel>
+                    {
+                        LogLevel.Warning,
+                        LogLevel.Error,
+                        LogLevel.Critical
+                    };
+                }
                 options.OutputFormatter = log =>
                     $"""
                     [{ShortLogLevel(log.Level)}] {log.Category}:

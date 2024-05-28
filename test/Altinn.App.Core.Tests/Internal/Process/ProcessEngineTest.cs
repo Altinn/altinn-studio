@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Altinn.App.Common.Tests;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
@@ -8,7 +9,6 @@ using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.UserAction;
-using Altinn.App.Core.Tests.Mocks;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Enums;

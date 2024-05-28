@@ -215,5 +215,11 @@ namespace Altinn.App.Core.Configuration
         /// Enable the functionality to run expression validation in backend
         /// </summary>
         public bool ExpressionValidation { get; set; } = false;
+
+        /// <summary>
+        /// Enables OpenTelemetry as a substitute for Application Insights SDK
+        /// Improves instrumentation throughout the Altinn app libraries.
+        /// </summary>
+        public bool UseOpenTelemetry { get; set; }
     }
 }

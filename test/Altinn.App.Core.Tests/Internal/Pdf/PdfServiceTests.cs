@@ -1,13 +1,12 @@
 using System.Net;
+using Altinn.App.Common.Tests;
 using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Infrastructure.Clients.Pdf;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Profile;
-using Altinn.App.Core.Tests.Mocks;
 using Altinn.App.PlatformServices.Tests.Helpers;
 using Altinn.App.PlatformServices.Tests.Mocks;
 using Altinn.Platform.Storage.Interface.Models;
@@ -15,7 +14,6 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Moq;
-using Xunit;
 
 namespace Altinn.App.PlatformServices.Tests.Internal.Pdf
 {

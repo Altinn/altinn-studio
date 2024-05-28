@@ -117,7 +117,7 @@ public sealed partial class Telemetry : IDisposable
         /// <summary>
         /// Label for the party ID of the instance owner.
         /// </summary>
-        public static readonly string InstanceOwnerPartyId = "instance.owner_party_id";
+        public static readonly string InstanceOwnerPartyId = "instance.owner.party.id";
 
         /// <summary>
         /// Label for the guid that identifies the instance.
@@ -147,12 +147,22 @@ public sealed partial class Telemetry : IDisposable
         /// <summary>
         /// Label for the ID of the party.
         /// </summary>
-        public const string UserPartyId = "user.party_id";
+        public const string UserPartyId = "user.party.id";
+
+        /// <summary>
+        /// Label for the authentication method of the user.
+        /// </summary>
+        public const string UserAuthenticationMethod = "user.authentication.method";
 
         /// <summary>
         /// Label for the authentication level of the user.
         /// </summary>
-        public const string UserAuthenticationLevel = "user.authentication_level";
+        public const string UserAuthenticationLevel = "user.authentication.level";
+
+        /// <summary>
+        /// Label for the organisation name.
+        /// </summary>
+        public const string OrganisationName = "organisation.name";
 
         /// <summary>
         /// Label for the organisation number.
@@ -166,7 +176,7 @@ public sealed partial class Telemetry : IDisposable
         internal const string Type = "type";
         internal const string AuthorizationAction = "authorization.action";
         internal const string AuthorizerAction = "authorization.authorizer.action";
-        internal const string AuthorizerTaskId = "authorization.authorizer.task_id";
+        internal const string AuthorizerTaskId = "authorization.authorizer.task.id";
         internal const string ValidatorType = "validator.type";
         internal const string ValidatorSource = "validator.source";
     }

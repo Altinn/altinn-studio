@@ -1,11 +1,11 @@
 #nullable disable
 using System.Net;
 using System.Text;
+using Altinn.App.Common.Tests;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Models;
-using Altinn.App.Core.Tests.Mocks;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;

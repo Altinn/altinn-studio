@@ -1,0 +1,48 @@
+﻿{
+  Activities: [
+    {
+      ActivityName: GET {org}/{app}/api/v1/applicationmetadata,
+      Tags: [
+        {
+          server.address: localhost
+        },
+        {
+          http.request.method: GET
+        },
+        {
+          url.scheme: http
+        },
+        {
+          url.path: /tdd/contributer-restriction/api/v1/applicationmetadata
+        },
+        {
+          network.protocol.version: 1.1
+        },
+        {
+          user.id: 10
+        },
+        {
+          user.party.id: Scrubbed
+        },
+        {
+          user.name: User10
+        },
+        {
+          user.authentication.method: Mock
+        },
+        {
+          user.authentication.level: 4
+        },
+        {
+          http.route: {org}/{app}/api/v1/applicationmetadata
+        },
+        {
+          http.response.status_code: 200
+        }
+      ],
+      IdFormat: W3C,
+      Kind: Server
+    }
+  ],
+  Metrics: []
+}

@@ -1,13 +1,12 @@
 #nullable disable
 using System.Net;
 using System.Text.Json;
+using Altinn.App.Common.Tests;
 using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Events;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
-using Altinn.App.Core.Tests.Mocks;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;

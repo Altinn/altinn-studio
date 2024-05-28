@@ -1,9 +1,9 @@
 #nullable disable
 using System.Security.Claims;
 using System.Text.Json;
+using Altinn.App.Common.Tests;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Infrastructure.Clients.Authorization;
-using Altinn.App.Core.Tests.Mocks;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Interface.Models;

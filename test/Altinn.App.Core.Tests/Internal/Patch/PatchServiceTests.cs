@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Altinn.App.Common.Tests;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
@@ -7,7 +8,6 @@ using Altinn.App.Core.Internal.Patch;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
-using Altinn.App.Core.Tests.Mocks;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Json.Patch;

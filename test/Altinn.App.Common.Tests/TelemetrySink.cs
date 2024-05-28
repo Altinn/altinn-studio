@@ -7,46 +7,87 @@ using Altinn.App.Core.Models;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using static Altinn.App.Core.Tests.Mocks.TelemetrySink;
+using static Altinn.App.Common.Tests.TelemetrySink;
 
-namespace Altinn.App.Core.Tests.Mocks;
+namespace Altinn.App.Common.Tests;
 
-internal sealed record TelemetrySink : IDisposable
+public static class TelemetryDI
 {
-    internal bool IsDisposed { get; private set; }
+    public static IServiceCollection AddTelemetrySink(
+        this IServiceCollection services,
+        string org = "ttd",
+        string name = "test",
+        string version = "v1",
+        Func<IServiceProvider, ActivitySource, bool>? shouldAlsoListenToActivities = null,
+        Func<IServiceProvider, Meter, bool>? shouldAlsoListenToMetrics = null
+    )
+    {
+        var telemetryRegistration = services.FirstOrDefault(s => s.ServiceType == typeof(Telemetry));
+        if (telemetryRegistration is not null)
+            services.Remove(telemetryRegistration);
 
-    internal static ConcurrentDictionary<Scope, byte> Scopes { get; } = [];
+        services.AddSingleton(sp => new TelemetrySink(
+            sp,
+            org,
+            name,
+            version,
+            telemetry: null,
+            shouldAlsoListenToActivities,
+            shouldAlsoListenToMetrics
+        ));
+        services.AddSingleton<Telemetry>(sp => sp.GetRequiredService<TelemetrySink>().Object);
 
-    internal Telemetry Object { get; }
+        return services;
+    }
+}
 
-    internal ActivityListener ActivityListener { get; }
+public sealed record TelemetrySink : IDisposable
+{
+    public bool IsDisposed { get; private set; }
 
-    internal MeterListener MeterListener { get; }
+    public static ConcurrentDictionary<Scope, byte> Scopes { get; } = [];
+
+    public Telemetry Object { get; }
+
+    public ActivityListener ActivityListener { get; }
+
+    public MeterListener MeterListener { get; }
 
     private readonly ConcurrentBag<Activity> _activities = [];
     private readonly ConcurrentDictionary<string, IReadOnlyList<MetricMeasurement>> _metricValues = [];
 
-    internal readonly record struct MetricMeasurement(long Value, IReadOnlyDictionary<string, object?> Tags);
+    public readonly record struct MetricMeasurement(long Value, IReadOnlyDictionary<string, object?> Tags);
 
-    internal IEnumerable<Activity> CapturedActivities => _activities;
+    public IEnumerable<Activity> CapturedActivities => _activities;
 
-    internal IReadOnlyDictionary<string, IReadOnlyList<MetricMeasurement>> CapturedMetrics => _metricValues;
+    public IReadOnlyDictionary<string, IReadOnlyList<MetricMeasurement>> CapturedMetrics => _metricValues;
 
-    internal TelemetrySnapshot GetSnapshot() => new(CapturedActivities, CapturedMetrics);
+    public TelemetrySnapshot GetSnapshot() => new(CapturedActivities, CapturedMetrics);
 
-    internal TelemetrySink(string org = "ttd", string name = "test", string version = "v1")
+    public TelemetrySnapshot GetSnapshot(Activity activity) =>
+        new([activity], new Dictionary<string, IReadOnlyList<MetricMeasurement>>());
+
+    public TelemetrySink(
+        IServiceProvider? serviceProvider = null,
+        string org = "ttd",
+        string name = "test",
+        string version = "v1",
+        Telemetry? telemetry = null,
+        Func<IServiceProvider, ActivitySource, bool>? shouldAlsoListenToActivities = null,
+        Func<IServiceProvider, Meter, bool>? shouldAlsoListenToMetrics = null
+    )
     {
         var appId = new AppIdentifier(org, name);
         var options = new AppSettings { AppVersion = version, };
 
-        Object = new Telemetry(appId, Options.Create(options));
+        Object = telemetry ?? new Telemetry(appId, Options.Create(options));
 
         ActivityListener = new ActivityListener()
         {
             ShouldListenTo = (activitySource) =>
             {
                 var sameSource = ReferenceEquals(activitySource, Object.ActivitySource);
-                return sameSource;
+                return sameSource || (shouldAlsoListenToActivities?.Invoke(serviceProvider!, activitySource) ?? false);
             },
             Sample = (ref ActivityCreationOptions<ActivityContext> options) =>
                 ActivitySamplingResult.AllDataAndRecorded,
@@ -62,7 +103,13 @@ internal sealed record TelemetrySink : IDisposable
             InstrumentPublished = (instrument, listener) =>
             {
                 var sameSource = ReferenceEquals(instrument.Meter, Object.Meter);
-                if (!sameSource)
+                if (
+                    !sameSource
+                    && (
+                        shouldAlsoListenToMetrics is null
+                        || !shouldAlsoListenToMetrics(serviceProvider!, instrument.Meter)
+                    )
+                )
                 {
                     return;
                 }
@@ -108,14 +155,14 @@ internal sealed record TelemetrySink : IDisposable
         }
     }
 
-    internal sealed class Scope : IDisposable
+    public sealed class Scope : IDisposable
     {
-        public bool IsDisposed { get; internal set; }
+        public bool IsDisposed { get; set; }
 
         public void Dispose() => Scopes.TryRemove(this, out _).Should().BeTrue();
     }
 
-    internal static Scope CreateScope()
+    public static Scope CreateScope()
     {
         var scope = new Scope();
         Scopes.TryAdd(scope, default).Should().BeTrue();
@@ -123,7 +170,7 @@ internal sealed record TelemetrySink : IDisposable
     }
 }
 
-internal class TelemetrySnapshot(
+public class TelemetrySnapshot(
     IEnumerable<Activity>? activities,
     IReadOnlyDictionary<string, IReadOnlyList<MetricMeasurement>>? metrics
 )
@@ -141,48 +188,4 @@ internal class TelemetrySnapshot(
     public readonly IEnumerable<KeyValuePair<string, IReadOnlyList<MetricMeasurement>>>? Metrics = metrics
         ?.Select(m => new KeyValuePair<string, IReadOnlyList<MetricMeasurement>>(m.Key, m.Value))
         .Where(x => x.Value.Count != 0);
-}
-
-internal static class TelemetryDI
-{
-    internal static IServiceCollection AddTelemetrySink(this IServiceCollection services)
-    {
-        services.AddSingleton(_ => new TelemetrySink());
-        services.AddSingleton<Telemetry>(sp => sp.GetRequiredService<TelemetrySink>().Object);
-        return services;
-    }
-}
-
-public class TelemetryDITests
-{
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void TelemetryFake_Is_Disposed(bool materialize)
-    {
-        using var scope = TelemetrySink.CreateScope();
-        scope.IsDisposed.Should().BeFalse();
-
-        var services = new ServiceCollection();
-        services.AddTelemetrySink();
-        var sp = services.BuildServiceProvider(
-            new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true, }
-        );
-
-        if (materialize)
-        {
-            var fake = sp.GetRequiredService<TelemetrySink>();
-            fake.IsDisposed.Should().BeFalse();
-            scope.IsDisposed.Should().BeFalse();
-            sp.Dispose();
-            fake.IsDisposed.Should().BeTrue();
-            scope.IsDisposed.Should().BeTrue();
-        }
-        else
-        {
-            scope.IsDisposed.Should().BeFalse();
-            sp.Dispose();
-            scope.IsDisposed.Should().BeFalse();
-        }
-    }
 }

@@ -17,7 +17,7 @@ using Newtonsoft.Json;
 
 namespace Altinn.App.Api.Tests.Mocks
 {
-    public class PepWithPDPAuthorizationMockSI : Common.PEP.Interfaces.IPDP
+    public class PepWithPDPAuthorizationMockSI : Altinn.Common.PEP.Interfaces.IPDP
     {
         private readonly IInstanceClient _instanceClient;
 
