@@ -61,7 +61,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaResourceAccessListPermission)]
         [Route("designer/api/{org}/resources/accesslist/")]
-        public async Task<ActionResult<PagedAccessListResponse>> GetAccessLists(string org, string env, int page)
+        public async Task<ActionResult<PagedAccessListResponse>> GetAccessLists(string org, string env, string page)
         {
             return await _resourceRegistry.GetAccessLists(org, env, page);
         }
@@ -72,6 +72,14 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult<AccessList>> GetAccessList(string org, string identifier, string env)
         {
             return await _resourceRegistry.GetAccessList(org, identifier, env);
+        }
+
+        [HttpGet]
+        [Authorize(Policy = AltinnPolicy.MustHaveGiteaResourceAccessListPermission)]
+        [Route("designer/api/{org}/resources/accesslist/{identifier}/members")]
+        public async Task<ActionResult<PagedAccessListMembersResponse>> GetAccessListMembers(string org, string identifier, string env, string page)
+        {
+            return await _resourceRegistry.GetAccessListMembers(org, identifier, env, page);
         }
 
         [HttpDelete]
@@ -93,26 +101,26 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpPost]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaResourceAccessListPermission)]
-        [Route("designer/api/{org}/resources/accesslist/{identifier}/members/{memberOrgNr}")]
-        public async Task<ActionResult> AddAccessListMember(string org, string identifier, string memberOrgNr, string env)
+        [Route("designer/api/{org}/resources/accesslist/{identifier}/members/")]
+        public async Task<ActionResult> AddAccessListMembers(string org, string identifier, string env, [FromBody] AccessListOrganizationNumbers members)
         {
-            HttpStatusCode statusCode = await _resourceRegistry.AddAccessListMember(org, identifier, memberOrgNr, env);
-            return new StatusCodeResult(((int)statusCode));
+            ActionResult result = await _resourceRegistry.AddAccessListMembers(org, identifier, members, env);
+            return result;
         }
 
         [HttpDelete]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaResourceAccessListPermission)]
-        [Route("designer/api/{org}/resources/accesslist/{identifier}/members/{memberOrgNr}")]
-        public async Task<ActionResult> RemoveAccessListMember(string org, string identifier, string memberOrgNr, string env)
+        [Route("designer/api/{org}/resources/accesslist/{identifier}/members/")]
+        public async Task<ActionResult> RemoveAccessListMember(string org, string identifier, string env, [FromBody] AccessListOrganizationNumbers members)
         {
-            HttpStatusCode statusCode = await _resourceRegistry.RemoveAccessListMember(org, identifier, memberOrgNr, env);
-            return new StatusCodeResult(((int)statusCode));
+            ActionResult result = await _resourceRegistry.RemoveAccessListMembers(org, identifier, members, env);
+            return result;
         }
 
         [HttpGet]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaResourceAccessListPermission)]
         [Route("designer/api/{org}/resources/{id}/accesslists/")]
-        public async Task<ActionResult<PagedAccessListResponse>> GetResourceAccessLists(string org, string id, string env, int page)
+        public async Task<ActionResult<PagedAccessListResponse>> GetResourceAccessLists(string org, string id, string env, string page)
         {
             return await _resourceRegistry.GetResourceAccessLists(org, id, env, page);
         }
@@ -172,7 +180,16 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 foreach (string environment in _resourceRegistrySettings.Keys)
                 {
-                    List<ServiceResource> environmentResources = await _resourceRegistry.GetResourceList(environment, false);
+                    string cacheKey = $"resourcelist_${environment}";
+                    if (!_memoryCache.TryGetValue(cacheKey, out List<ServiceResource> environmentResources))
+                    {
+                        environmentResources = await _resourceRegistry.GetResourceList(environment, false);
+                        var cacheEntryOptions = new MemoryCacheEntryOptions()
+                            .SetPriority(CacheItemPriority.High)
+                            .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
+                        _memoryCache.Set(cacheKey, environmentResources, cacheEntryOptions);
+                    }
+
                     IEnumerable<ServiceResource> environmentResourcesForOrg = environmentResources.Where(x =>
                         x.HasCompetentAuthority?.Orgcode != null &&
                         x.HasCompetentAuthority.Orgcode.Equals(org, StringComparison.OrdinalIgnoreCase)
@@ -531,7 +548,9 @@ namespace Altinn.Studio.Designer.Controllers
             if (repository == $"{org}-resources")
             {
                 string xacmlPolicyPath = _repository.GetPolicyPath(org, repository, id);
-                return await _repository.PublishResource(org, repository, id, env, xacmlPolicyPath);
+                ActionResult publishResult = await _repository.PublishResource(org, repository, id, env, xacmlPolicyPath);
+                _memoryCache.Remove($"resourcelist_${env}");
+                return publishResult;
             }
             else
             {

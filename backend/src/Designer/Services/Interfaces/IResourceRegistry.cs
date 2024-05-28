@@ -72,13 +72,23 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<AccessList> GetAccessList(string org, string identifier, string env);
 
         /// <summary>
+        /// Get members of an access list for an organization in a given environment
+        /// </summary>
+        /// <param name="org">Current organization</param>
+        /// <param name="identifier">Access list identifier</param>
+        /// <param name="env">Chosen environment</param>
+        /// <param name="page">Full page url, if requesting any other page than the first page</param>
+        /// <returns>The access list, if it exists in the given environment for the given organization. Access list members are returned</returns>
+        Task<PagedAccessListMembersResponse> GetAccessListMembers(string org, string identifier, string env, string page);
+
+        /// <summary>
         /// Gets all access lists for an organization in a given environment
         /// </summary>
         /// <param name="org">Current organization</param>
         /// <param name="env">Chosen environment</param>
-        /// <param name="page">Page number, if requesting any other page than the first page</param>
+        /// <param name="page">Full page url, if requesting any other page than the first page</param>
         /// <returns>A paginated response of access lists in the given environment for the given organization. Members of access lists are not returned</returns>
-        Task<PagedAccessListResponse> GetAccessLists(string org, string env, int? page);
+        Task<PagedAccessListResponse> GetAccessLists(string org, string env, string page);
 
         /// <summary>
         /// Gets all access lists connected to a given resource for an organization in a given environment
@@ -86,9 +96,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Current organization</param>
         /// <param name="resourceId">Chosen resource</param>
         /// <param name="env">Chosen environment</param>
-        /// <param name="page">Page number, if requesting any other page than the first page</param>
+        /// <param name="page">Full page url, if requesting any other page than the first page</param>
         /// <returns>A paginated response of access lists the given resource in the given environment for the given organization is connected to. Members of access lists are not returned</returns>
-        Task<PagedAccessListResponse> GetResourceAccessLists(string org, string resourceId, string env, int? page);
+        Task<PagedAccessListResponse> GetResourceAccessLists(string org, string resourceId, string env, string page);
 
         /// <summary>
         /// Delete an access list for an organization in a given environment
@@ -114,20 +124,20 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Current organization</param>
         /// <param name="identifier">Access list identifier</param>
-        /// <param name="memberOrgnr">9-digit organization number of party to add to list</param>
+        /// <param name="members">Object with list of 9-digit organization number of party to add to list</param>
         /// <param name="env">Chosen environment</param>
         /// <returns>HTTP status code of the operation. 200 OK if add was successful</returns>
-        Task<HttpStatusCode> AddAccessListMember(string org, string identifier, string memberOrgnr, string env);
+        Task<ActionResult> AddAccessListMembers(string org, string identifier, AccessListOrganizationNumbers members, string env);
 
         /// <summary>
         /// Remove a party as access list member
         /// </summary>
         /// <param name="org">Current organization</param>
         /// <param name="identifier">Access list identifier</param>
-        /// <param name="memberOrgnr">9-digit organization number of party to remove from the list</param>
+        /// <param name="members">Object with list of 9-digit organization number of party to remove from the list</param>
         /// <param name="env">Chosen environment</param>
         /// <returns>HTTP status code of the operation. 204 No content if remove was successful</returns>
-        Task<HttpStatusCode> RemoveAccessListMember(string org, string identifier, string memberOrgnr, string env);
+        Task<ActionResult> RemoveAccessListMembers(string org, string identifier, AccessListOrganizationNumbers members, string env);
 
         /// <summary>
         /// Connect a resource to a given access list
