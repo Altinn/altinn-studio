@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from 'react';
-import type { PolicyRuleCard, PolicyError } from '../types';
+import type { PolicyRuleCard, PolicyError } from '../../types';
 
 export type PolicyRuleContextProps = {
   policyRule: PolicyRuleCard;
