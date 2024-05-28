@@ -23,7 +23,6 @@ import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 import { usePolicyEditorContext } from '../../contexts/PolicyEditorContext';
 
-// MOVE TO UTILS
 const wellKnownActionsIds: string[] = [
   'complete',
   'confirm',

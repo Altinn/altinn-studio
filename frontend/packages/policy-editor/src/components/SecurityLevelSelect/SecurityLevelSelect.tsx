@@ -29,15 +29,6 @@ export type SecurityLevelSelectProps = {
   onSave: (authLevel: RequiredAuthLevel) => void;
 };
 
-/**
- * @component
- *    Displays the security level area in the policy editor
- *
- * @property {RequiredAuthLevel}[requiredAuthenticationLevelEndUser] - The required auth level in the policy
- * @property {function}[onSave] - Function to be executed when saving the policy
- *
- * @returns {ReactNode} - The rendered component
- */
 export const SecurityLevelSelect = ({
   requiredAuthenticationLevelEndUser,
   onSave,

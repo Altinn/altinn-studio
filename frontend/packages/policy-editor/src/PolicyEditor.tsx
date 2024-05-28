@@ -65,6 +65,10 @@ export const PolicyEditor = ({
     onSave({ ...policy, requiredAuthenticationLevelEndUser: authLevel });
   };
 
+  const handleClickAddButton = () => {
+    setShowErrorsOnAllRulesAboveNew(true);
+  };
+
   return (
     <PolicyEditorContextProvider
       policyRules={policyRules}
@@ -90,14 +94,13 @@ export const PolicyEditor = ({
         </div>
         <PolicyCardRules showErrorsOnAllRulesAboveNew={showErrorsOnAllRulesAboveNew} />
         <div className={classes.addCardButtonWrapper}>
-          <AddPolicyRuleButton onClick={() => setShowErrorsOnAllRulesAboveNew(true)} />
+          <AddPolicyRuleButton onClick={handleClickAddButton} />
         </div>
       </div>
     </PolicyEditorContextProvider>
   );
 };
 
-// TODO - MOVE BELOW TO SOMEWHERE
 // TODO - Find out how this should be set. Issue: #10880
 const getResourceType = (usageType: PolicyEditorUsage): string => {
   return usageType === 'app' ? 'urn:altinn' : 'urn:altinn:resource';
