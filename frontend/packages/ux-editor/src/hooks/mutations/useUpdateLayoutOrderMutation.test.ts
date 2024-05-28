@@ -4,7 +4,8 @@ import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuer
 import { waitFor } from '@testing-library/react';
 import type { UpdateLayoutOrderMutationArgs } from './useUpdateLayoutOrderMutation';
 import { useUpdateLayoutOrderMutation } from './useUpdateLayoutOrderMutation';
-import { layout1NameMock, layout2NameMock, layoutSet1NameMock } from '../../testing/layoutMock';
+import { layout1NameMock, layout2NameMock } from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 
 // Test data:

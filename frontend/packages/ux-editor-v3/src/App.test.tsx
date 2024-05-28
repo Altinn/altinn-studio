@@ -8,7 +8,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { appStateMock } from './testing/stateMocks';
 import type { AppContextProps } from './AppContext';
 import ruleHandlerMock from './testing/ruleHandlerMock';
-import { layoutSetsMock } from './testing/layoutMock';
+import { layoutSetsMock } from './testing/layoutSetsMock';
 
 const { selectedLayoutSet } = appStateMock.formDesigner.layout;
 
