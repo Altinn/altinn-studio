@@ -29,4 +29,20 @@ describe('DefaultPaymentPolicyBuilder', () => {
     const policy = paymentPolicyBuilder.getDefaultPaymentPolicy(testInData.taskId);
     expect(policy).toEqual(expectedOutputData);
   });
+
+  it('should give the correct ruleId based on org, app and taskId as input parameters', () => {
+    const testInData = {
+      org: 'testOrg',
+      app: 'testApp',
+      taskId: 'testTaskId',
+    };
+
+    const expectedOutputData =
+      'urn:altinn:resource:app_testOrg_testApp:policyid:1:ruleid:testTaskId';
+
+    const paymentPolicyBuilder = new PaymentPolicyBuilder(testInData.org, testInData.app);
+    const ruleId = paymentPolicyBuilder.getPolicyRuleId(testInData.taskId);
+
+    expect(ruleId).toEqual(expectedOutputData);
+  });
 });

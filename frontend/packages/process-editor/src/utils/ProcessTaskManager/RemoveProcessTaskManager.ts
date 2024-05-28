@@ -6,8 +6,8 @@ import {
   getDataTypeIdFromBusinessObject,
   getLayoutSetIdFromTaskId,
 } from '../../utils/hookUtils/hookUtils';
-import { type Policy } from '../../utils/policy/types';
 import { PaymentPolicyBuilder } from '../../utils/policy';
+import { Policy } from 'app-shared/types/Policy';
 
 export class RemoveProcessTaskManager {
   constructor(

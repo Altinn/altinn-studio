@@ -2,7 +2,7 @@ import type { LayoutSets, LayoutSetConfig } from 'app-shared/types/api/LayoutSet
 import React, { createContext, useContext } from 'react';
 import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 import type { DataTypeChange } from 'app-shared/types/api/DataTypeChange';
-import type { Policy } from '../utils/policy/types';
+import { Policy } from 'app-shared/types/Policy';
 
 type QueryOptions = {
   onSuccess: () => void;
@@ -19,11 +19,11 @@ export type BpmnApiContextProps = {
     options?: QueryOptions,
   ) => void;
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
-  mutateApplicationPolicy: (policy: Policy) => void;
+  mutateApplicationPolicy: (policy: Policy, options?: QueryOptions) => void;
   mutateLayoutSetId: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
   mutateDataType: (dataTypeChange: DataTypeChange, options?: QueryOptions) => void;
-  addDataTypeToAppMetadata: (data: { dataTypeId: string; policy?: Policy }) => void;
-  deleteDataTypeFromAppMetadata: (data: { dataTypeId: string; policy?: Policy }) => void;
+  addDataTypeToAppMetadata: (data: { dataTypeId: string }) => void;
+  deleteDataTypeFromAppMetadata: (data: { dataTypeId: string }) => void;
 
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
   openPolicyEditor: () => void;

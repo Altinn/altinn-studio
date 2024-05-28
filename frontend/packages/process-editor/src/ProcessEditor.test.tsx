@@ -24,8 +24,11 @@ const defaultProps: ProcessEditorProps = {
   mutateDataType: jest.fn(),
   addDataTypeToAppMetadata: jest.fn(),
   deleteDataTypeFromAppMetadata: jest.fn(),
+  mutateApplicationPolicy: jest.fn(),
   openPolicyEditor: jest.fn(),
   currentPolicy: {
+    requiredAuthenticationLevelOrg: '3',
+    requiredAuthenticationLevelEndUser: '3',
     rules: [],
   },
 };

@@ -25,7 +25,6 @@ import { SyncSuccessQueriesInvalidator } from 'app-shared/queryInvalidator/SyncS
 import { useQueryClient } from '@tanstack/react-query';
 import { useSettingsModalContext } from '../../contexts/SettingsModalContext';
 import { useAppPolicyQuery } from '../../hooks/queries';
-import { type Policy } from '@altinn/process-editor/utils/policy/types';
 
 enum SyncClientsName {
   FileSyncSuccess = 'FileSyncSuccess',
@@ -117,7 +116,7 @@ export const ProcessEditor = (): React.ReactElement => {
   return (
     <ProcessEditorImpl
       availableDataModelIds={availableDataModelIds}
-      currentPolicy={currentPolicy as Policy}
+      currentPolicy={currentPolicy}
       layoutSets={layoutSets}
       pendingApiOperations={pendingApiOperations}
       existingCustomReceiptLayoutSetId={existingCustomReceiptId}

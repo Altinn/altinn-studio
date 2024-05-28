@@ -2,8 +2,8 @@ import { AddProcessTaskManager } from './AddProcessTaskManager';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 import { type TaskEvent } from '../ProcessTaskManager/types';
 import { type BpmnDetails } from '../../types/BpmnDetails';
-import { type Policy } from '../../utils/policy/types';
 import { type BpmnTaskType } from '../../types/BpmnTaskType';
+import { Policy } from 'app-shared/types/Policy';
 
 describe('AddProcessTaskManager', () => {
   const org = 'testOrg';
@@ -37,7 +37,11 @@ describe('AddProcessTaskManager', () => {
 
   const createAddProcessTaskManager = (
     bpmnDetails: BpmnDetails,
-    currentPolicy: Policy = { rules: [] },
+    currentPolicy: Policy = {
+      requiredAuthenticationLevelEndUser: '3',
+      requiredAuthenticationLevelOrg: '3',
+      rules: [],
+    },
   ) =>
     new AddProcessTaskManager(
       org,
@@ -82,6 +86,8 @@ describe('AddProcessTaskManager', () => {
     });
 
     expect(mutateApplicationPolicy).toHaveBeenCalledWith({
+      requiredAuthenticationLevelEndUser: '3',
+      requiredAuthenticationLevelOrg: '3',
       rules: [
         {
           ruleId: 'urn:altinn:resource:app_testOrg_testApp:policyid:1:ruleid:testId',

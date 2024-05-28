@@ -62,7 +62,6 @@ import type { Repository } from 'app-shared/types/Repository';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import type { AddLayoutSetResponse } from 'app-shared/types/api/AddLayoutSetResponse';
 import type { DataTypeChange } from 'app-shared/types/api/DataTypeChange';
-import type { Policy as ApplicationPolicy } from '@altinn/process-editor/utils/policy/types';
 
 const headers = {
   Accept: 'application/json',
@@ -128,11 +127,8 @@ export const updateResource = (org: string, repo: string, payload: Resource) => 
 
 // ProcessEditor
 
-export const addDataTypeToAppMetadata = (org: string, app: string, dataTypeId: string, applicationPolicy: ApplicationPolicy) => post(processEditorDataTypePath(org, app, dataTypeId), applicationPolicy);
-export const deleteDataTypeFromAppMetadata = (org: string, app: string, dataTypeId: string, applicationPolicy: ApplicationPolicy) =>
-  del(processEditorDataTypePath(org, app, dataTypeId), {
-    data: applicationPolicy,
-  });
+export const addDataTypeToAppMetadata = (org: string, app: string, dataTypeId: string) => post(processEditorDataTypePath(org, app, dataTypeId));
+export const deleteDataTypeFromAppMetadata = (org: string, app: string, dataTypeId: string) => del(processEditorDataTypePath(org, app, dataTypeId));
 
 export const updateBpmnXml = (org: string, app: string, form: any) =>
   put(processEditorPathPut(org, app), form, {

@@ -4,7 +4,7 @@ import { type BpmnTaskType } from '../../types/BpmnTaskType';
 import { type BpmnDetails } from '../../types/BpmnDetails';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 import { type TaskEvent } from '../ProcessTaskManager/types';
-import { type Policy } from '../../utils/policy/types';
+import { Policy } from 'app-shared/types/Policy';
 
 describe('RemoveProcessTaskManager', () => {
   beforeEach(() => {
@@ -35,7 +35,9 @@ describe('RemoveProcessTaskManager', () => {
 
     const deleteLayoutSet = jest.fn();
     const bpmnDetails = createBpmnDetails('testTask', 'testTask', 'data');
-    const currentPolicy = {
+    const currentPolicy: Policy = {
+      requiredAuthenticationLevelOrg: '3',
+      requiredAuthenticationLevelEndUser: '3',
       rules: [],
     };
 
@@ -64,6 +66,8 @@ describe('RemoveProcessTaskManager', () => {
     const deleteDataTypeFromAppMetadata = jest.fn();
     const bpmnDetails = createBpmnDetails('testTask', 'testTask', 'payment');
     const currentPolicy: Policy = {
+      requiredAuthenticationLevelOrg: '3',
+      requiredAuthenticationLevelEndUser: '3',
       rules: [
         {
           ruleId: 'alreadyExistingRule',
@@ -113,6 +117,8 @@ describe('RemoveProcessTaskManager', () => {
     const deleteDataTypeFromAppMetadata = jest.fn();
     const bpmnDetails = createBpmnDetails('testTask', 'testTask', 'signing');
     const currentPolicy: Policy = {
+      requiredAuthenticationLevelOrg: '3',
+      requiredAuthenticationLevelEndUser: '3',
       rules: [],
     };
 
