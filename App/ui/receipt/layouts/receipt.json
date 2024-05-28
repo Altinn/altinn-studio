@@ -1,0 +1,42 @@
+{
+  "$schema": "http://localhost:3000/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "test",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Datamodell 1"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell1",
+            "property": "tekstfelt"
+          }
+        },
+        "renderAsSummary": true
+      },
+      {
+        "id": "test2",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Datamodell 2"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell2",
+            "property": "tekstfelt"
+          }
+        },
+        "renderAsSummary": true
+      },
+      {
+        "id": "tekst",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Takk for din innsending ;)"
+        }
+      }
+    ]
+  }
+}

@@ -5,6 +5,11 @@
       "id": "form",
       "dataType": "modell1",
       "tasks": ["Task_1"]
+    },
+    {
+      "id": "receipt",
+      "dataType": "modell1",
+      "tasks": ["CustomReceipt"]
     }
   ],
   "uiSettings": {}
