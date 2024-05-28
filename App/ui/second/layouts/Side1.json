@@ -1,0 +1,224 @@
+{
+  "$schema": "http://localhost:3000/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "Input-ERdCEy",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Side1.Input-ERdCEy.title"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "tekstfelt"
+        },
+        "required": true
+      },
+      {
+        "id": "RepeatingGroup-6svZ9g",
+        "type": "RepeatingGroup",
+        "textResourceBindings": {
+          "title": "Side1.RepeatingGroup-6svZ9g.title"
+        },
+        "dataModelBindings": {
+          "group": "kontaktinfo"
+        },
+        "maxCount": 99999,
+        "children": ["Input-FNCGd0", "Input-GhRioy"]
+      },
+      {
+        "id": "Input-FNCGd0",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Side1.Input-FNCGd0.title"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "kontaktinfo.epost"
+        }
+      },
+      {
+        "id": "Input-GhRioy",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Side1.Input-GhRioy.title"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "kontaktinfo.mobilnummer"
+        }
+      },
+      {
+        "id": "Header-tNYPtf",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Side1.Header-tNYPtf.title"
+        },
+        "size": "L"
+      },
+      {
+        "id": "Input-zRQ9nX",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Side1.Input-zRQ9nX.title"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell1",
+            "property": "tekstfelt"
+          }
+        },
+        "renderAsSummary": true
+      },
+      {
+        "id": "Input-EVYFwx",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Side1.Input-EVYFwx.title"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell2",
+            "property": "tekstfelt"
+          }
+        },
+        "renderAsSummary": true
+      },
+      {
+        "id": "RadioButtons-t8YpJA",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Side1.RadioButtons-t8YpJA.title"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell2",
+            "property": "sektor"
+          }
+        },
+        "options": [
+          {
+            "label": "Privat",
+            "value": "private"
+          },
+          {
+            "label": "Offentlig sektor",
+            "value": "public"
+          }
+        ],
+        "renderAsSummary": true
+      },
+      {
+        "id": "Checkboxes-dxp6Rr",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "Side1.Checkboxes-dxp6Rr.title"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell1",
+            "property": "bransje"
+          }
+        },
+        "optionsId": "industry",
+        "queryParameters": {
+          "sector": ["dataModel", "sektor", "modell2"]
+        },
+        "renderAsSummary": true
+      },
+      {
+        "id": "RepeatingGroup-ptGWlM",
+        "type": "RepeatingGroup",
+        "textResourceBindings": {
+          "title": "Side1.RepeatingGroup-ptGWlM.title"
+        },
+        "dataModelBindings": {
+          "group": {
+            "dataType": "modell2",
+            "property": "personer"
+          }
+        },
+        "children": [
+          "person-fornavn",
+          "person-etternavn",
+          "person-alder",
+          "person-fodselsdato"
+        ],
+        "renderAsSummary": true
+      },
+      {
+        "id": "person-fornavn",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Fornavn"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell2",
+            "property": "personer.fornavn"
+          }
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "person-etternavn",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Etternavn"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell2",
+            "property": "personer.etternavn"
+          }
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "person-fodselsdato",
+        "type": "Datepicker",
+        "textResourceBindings": {
+          "title": "Fødselsdato"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell2",
+            "property": "personer.fødselsdato"
+          }
+        },
+        "timeStamp": false,
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "person-alder",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Alder"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell2",
+            "property": "personer.alder"
+          }
+        },
+        "readOnly": true,
+        "formatting": {
+          "unit": "year"
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "Button-Sjnxbg",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Side1.Button-Sjnxbg.title"
+        }
+      }
+    ]
+  }
+}

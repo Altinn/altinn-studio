@@ -4,24 +4,19 @@
     {
       "id": "form",
       "dataType": "modell1",
-      "tasks": [
-        "Task_1"
-      ]
+      "tasks": ["Task_1"]
+    },
+    {
+      "id": "second",
+      "dataType": "modell3",
+      "tasks": ["Task_2"]
     },
     {
       "id": "receipt",
       "dataType": "modell1",
-      "tasks": [
-        "CustomReceipt"
-      ]
-    },
-    {
-      "id": "Activity_14g4s0x",
-      "dataType": "modell3",
-      "tasks": [
-        "Task_2"
-      ]
+      "tasks": ["CustomReceipt"]
     }
   ],
   "uiSettings": {}
 }
+
