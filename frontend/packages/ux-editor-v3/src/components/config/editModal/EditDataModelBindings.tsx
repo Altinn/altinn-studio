@@ -30,7 +30,7 @@ export const EditDataModelBindings = ({
 }: EditDataModelBindingsProps) => {
   const { org, app } = useStudioUrlParams();
   const { selectedLayoutSet } = useAppContext();
-  const { data } = useDatamodelMetadataQuery(org, app, selectedLayoutSet);
+  const { data } = useDatamodelMetadataQuery(org, app, selectedLayoutSet, undefined);
   const t = useText();
 
   const handleDataModelChange = (selectedDataModelElement: string, key = 'simpleBinding') => {

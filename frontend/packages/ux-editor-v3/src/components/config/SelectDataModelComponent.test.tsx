@@ -9,7 +9,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 import userEvent from '@testing-library/user-event';
 import type { DatamodelMetadataResponse } from 'app-shared/types/api';
-import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutMock';
+import { dataModelNameMock, layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 
 const getDatamodelMetadata = () =>
@@ -55,13 +55,14 @@ const getDatamodelMetadata = () =>
 const user = userEvent.setup();
 
 const waitForData = async () => {
-  const datamodelMetadatResult = renderHookWithMockStore(
+  const datamodelMetadataResult = renderHookWithMockStore(
     {},
     {
       getDatamodelMetadata,
     },
-  )(() => useDatamodelMetadataQuery(org, app, layoutSet1NameMock)).renderHookResult.result;
-  await waitFor(() => expect(datamodelMetadatResult.current.isSuccess).toBe(true));
+  )(() => useDatamodelMetadataQuery(org, app, layoutSet1NameMock, dataModelNameMock))
+    .renderHookResult.result;
+  await waitFor(() => expect(datamodelMetadataResult.current.isSuccess).toBe(true));
 };
 
 const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn() } = {}) => {
