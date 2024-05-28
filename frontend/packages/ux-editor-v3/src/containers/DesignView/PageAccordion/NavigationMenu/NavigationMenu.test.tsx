@@ -13,7 +13,7 @@ import {
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
 import { app, org } from '@studio/testing/testids';
 import { layout1NameMock, layout2NameMock } from '@altinn/ux-editor-v3/testing/layoutMock';
-import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 
 const mockPageName1: string = layout1NameMock;
 const mockSelectedLayoutSet = layoutSet1NameMock;

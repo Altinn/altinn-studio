@@ -7,7 +7,7 @@ import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { HiddenExpressionOnLayout } from './HiddenExpressionOnLayout';
 import type { IFormLayouts } from '../../../types/global';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { BooleanExpression } from '@studio/components';
 import { GeneralRelationOperator } from '@studio/components';

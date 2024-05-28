@@ -10,7 +10,7 @@ import {
   layout1NameMock,
   layoutMock,
 } from '@altinn/ux-editor/testing/layoutMock';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { IFormLayouts } from '../../../../types/global';

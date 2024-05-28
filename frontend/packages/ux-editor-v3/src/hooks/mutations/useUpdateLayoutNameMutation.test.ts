@@ -6,7 +6,7 @@ import { waitFor } from '@testing-library/react';
 import type { UpdateLayoutNameMutationArgs } from './useUpdateLayoutNameMutation';
 import { useUpdateLayoutNameMutation } from './useUpdateLayoutNameMutation';
 import { layout1NameMock } from '@altinn/ux-editor-v3/testing/layoutMock';
-import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 
 // Test data:

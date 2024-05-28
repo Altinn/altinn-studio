@@ -9,7 +9,7 @@ import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { IFormLayouts } from '../../../../types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 
 const layoutSetName = layoutSet1NameMock;

@@ -7,7 +7,7 @@ import { waitFor } from '@testing-library/react';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { externalLayoutsMock } from '@altinn/ux-editor-v3/testing/layoutMock';
-import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import { app, org } from '@studio/testing/testids';

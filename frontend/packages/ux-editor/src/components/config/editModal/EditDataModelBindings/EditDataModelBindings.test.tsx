@@ -11,7 +11,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { componentMocks } from '../../../../testing/componentMocks';
 import type { FormItem } from '../../../../types/FormItem';
 import { app, org } from '@studio/testing/testids';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
 const dataModelName = undefined;
 

@@ -13,7 +13,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../types/FormItem';
 import { componentMocks } from '../../testing/componentMocks';
 import { component3IdMock, component3Mock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();

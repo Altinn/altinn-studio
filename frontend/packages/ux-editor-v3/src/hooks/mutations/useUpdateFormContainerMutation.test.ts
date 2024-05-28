@@ -12,7 +12,7 @@ import {
   layout1Mock,
   layout1NameMock,
 } from '@altinn/ux-editor-v3/testing/layoutMock';
-import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';

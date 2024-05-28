@@ -4,7 +4,7 @@ import { parsableLogicalExpression } from '../../../testing/expressionMocks';
 import { renderWithProviders } from '../../../testing/mocks';
 import type { IFormLayouts } from '../../../types/global';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import type { ExpressionContentProps } from './ExpressionContent';
 import { ExpressionContent } from './ExpressionContent';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

@@ -8,7 +8,7 @@ import {
   layoutSet1NameMock,
   layoutSet2NameMock,
   layoutSetsMock,
-} from '../../testing/layoutSetMock';
+} from '../../testing/layoutSetsMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { appContextMock } from '../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';

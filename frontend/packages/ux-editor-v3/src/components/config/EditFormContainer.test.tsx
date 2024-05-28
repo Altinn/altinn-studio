@@ -16,7 +16,7 @@ import {
   externalLayoutsMock,
   layoutMock,
 } from '@altinn/ux-editor-v3/testing/layoutMock';
-import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api';
 import type { ILayoutSettings } from 'app-shared/types/global';

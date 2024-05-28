@@ -13,7 +13,7 @@ import { formItemContextProviderMock } from '../../../../../testing/formItemCont
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
 import { layout1NameMock } from '@altinn/ux-editor/testing/layoutMock';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
 const mockHandleDiscard = jest.fn();
 

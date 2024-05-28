@@ -7,7 +7,7 @@ import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { AppContextProps } from './AppContext';
 import ruleHandlerMock from './testing/ruleHandlerMock';
-import { layoutSetsMock } from './testing/layoutSetMock';
+import { layoutSetsMock } from './testing/layoutSetsMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const mockQueries: Partial<ServicesContextProps> = {

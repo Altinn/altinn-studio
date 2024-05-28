@@ -3,7 +3,7 @@ import { renderHookWithProviders } from '../../testing/mocks';
 import { useRuleConfigMutation } from './useRuleConfigMutation';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import { app, org } from '@studio/testing/testids';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
 // Test data:
 const selectedLayoutSet = layoutSet1NameMock;

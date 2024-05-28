@@ -16,7 +16,7 @@ import {
   layout1NameMock,
   layout2NameMock,
 } from '@altinn/ux-editor/testing/layoutMock';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { appContextMock } from '../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';

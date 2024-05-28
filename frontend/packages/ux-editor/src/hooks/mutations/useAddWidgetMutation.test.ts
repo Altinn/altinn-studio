@@ -9,7 +9,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import type { ITextResource } from 'app-shared/types/global';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { app, org } from '@studio/testing/testids';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
 // Test data:
 const selectedLayoutSet = layoutSet1NameMock;

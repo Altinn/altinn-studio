@@ -9,7 +9,7 @@ import { DEFAULT_LANGUAGE, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/const
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { IFormLayouts } from '../../../types/global';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 
 // Test data

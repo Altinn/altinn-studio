@@ -16,7 +16,7 @@ import {
   layoutMock,
 } from '../testing/layoutMock';
 import { app, org } from '@studio/testing/testids';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
 const layoutName = layout1NameMock;
 const layoutSetName = layoutSet1NameMock;

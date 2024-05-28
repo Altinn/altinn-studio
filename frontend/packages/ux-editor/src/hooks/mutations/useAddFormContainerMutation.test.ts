@@ -7,7 +7,7 @@ import { useAddFormContainerMutation } from './useAddFormContainerMutation';
 import type { FormContainer } from '../../types/FormContainer';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { layout1NameMock } from '@altinn/ux-editor/testing/layoutMock';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 
 // Test data:

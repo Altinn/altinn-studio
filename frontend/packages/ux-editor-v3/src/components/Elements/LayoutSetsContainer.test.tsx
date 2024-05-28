@@ -8,7 +8,7 @@ import {
   layoutSet1NameMock,
   layoutSet2NameMock,
   layoutSetsMock,
-} from '@altinn/ux-editor-v3/testing/layoutSetMock';
+} from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import type { AppContextProps } from '../../AppContext';
 import { appStateMock } from '../../testing/stateMocks';
 import { QueryKey } from 'app-shared/types/QueryKey';

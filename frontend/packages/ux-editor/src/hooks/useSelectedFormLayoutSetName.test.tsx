@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import { useSelectedFormLayoutSetName } from './';
-import { layoutSet1NameMock, layoutSetsMock } from '../testing/layoutSetMock';
+import { layoutSet1NameMock, layoutSetsMock } from '../testing/layoutSetsMock';
 import { renderHook, waitFor } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';

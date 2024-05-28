@@ -10,7 +10,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useWidgetsQuery } from '../hooks/queries/useWidgetsQuery';
 import ruleHandlerMock from '../testing/ruleHandlerMock';
 import { app, org } from '@studio/testing/testids';
-import { layoutSet1NameMock } from '../testing/layoutSetMock';
+import { layoutSet1NameMock } from '../testing/layoutSetsMock';
 
 const render = () => {
   const queries = {

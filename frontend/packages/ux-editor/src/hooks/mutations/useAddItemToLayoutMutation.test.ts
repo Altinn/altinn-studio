@@ -11,7 +11,7 @@ import {
   layoutSet1NameMock,
   layoutSet2NameMock,
   layoutSetsMock,
-} from '@altinn/ux-editor/testing/layoutSetMock';
+} from '@altinn/ux-editor/testing/layoutSetsMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { app, org } from '@studio/testing/testids';
