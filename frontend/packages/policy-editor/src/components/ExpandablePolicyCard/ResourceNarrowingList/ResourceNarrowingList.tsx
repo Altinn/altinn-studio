@@ -30,9 +30,6 @@ export const ResourceNarrowingList = ({
   const { usageType } = usePolicyEditorContext();
   const { t } = useTranslation();
 
-  /**
-   * Displays the list of resources
-   */
   const displayResources = resources.map((r, i) => {
     return (
       <PolicyResourceFields
@@ -48,9 +45,6 @@ export const ResourceNarrowingList = ({
     );
   });
 
-  /**
-   * Creates a name for the resourcegroup based on the id of the resource
-   */
   const getResourceName = (): string => {
     return resources.map((r) => r.id).join(' - ');
   };

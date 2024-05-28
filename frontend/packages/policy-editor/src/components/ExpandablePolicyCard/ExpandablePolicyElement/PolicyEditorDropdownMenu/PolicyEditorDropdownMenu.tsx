@@ -14,19 +14,6 @@ export type PolicyEditorDropdownMenuProps = {
   isError?: boolean;
 };
 
-/**
- * @component
- *    Dropdown menu component that displays a clone and a delete button
- *
- * @property {boolean}[isOpen] - Boolean for if the menu is open or not
- * @property {function}[handleClickMoreIcon] - Function to be executed when the menu icon is clicked
- * @property {function}[handleCloseMenu] - Function to be executed when closing the menu
- * @property {function}[handleClone] - Function to handle the click of the clone button
- * @property {function}[handleDelete] - Function to handle the click of the delete button
- * @property {boolean}[isError] - Optional flag for if there is an error or not
- *
- * @returns {React.ReactNode} - The rendered component
- */
 export const PolicyEditorDropdownMenu = ({
   isOpen,
   handleClickMoreIcon,

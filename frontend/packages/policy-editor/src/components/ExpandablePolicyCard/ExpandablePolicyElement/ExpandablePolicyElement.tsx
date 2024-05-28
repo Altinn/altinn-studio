@@ -15,31 +15,6 @@ export type ExpandablePolicyElementProps = {
   hasError?: boolean;
 };
 
-/**
- * @component
- *    Displays a wrapper component that can be expanded and collapsed. The wrapper
- *    component is wrapped around the content that can be collapsed.
- *
- * @example
- *    <ExpandablePolicyElement
- *      title='Some title'
- *      isCard
- *      handleCloneElement={handleCloneRule}
- *      handleRemoveElement={handleDeleteRule}
- *      hasError={showErrors && getHasRuleError()}
- *    >
- *      <div>...</div>
- *    </ExpandablePolicyElement>
- *
- * @property {string}[title] - The title to display on the element.
- * @property {ReactNode}[children] - The React childrens to display inside it.
- * @property {boolean}[isCard] - Optional flag for if the component is a card or an element
- * @property {function}[handleRemoveElement] - Function to be executed when the element is to be removed
- * @property {function}[handleCloneElement] - Function to be executed when the element is cloned
- * @property {boolean}[hasError] - Optional flag for if the component has error
- *
- * @returns {React.ReactNode} - The rendered component
- */
 export const ExpandablePolicyElement = ({
   title,
   children,
