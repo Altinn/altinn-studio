@@ -32,14 +32,7 @@ describe('AddProcessTaskManager', () => {
     jest.resetAllMocks();
   });
 
-  const createAddProcessTaskManager = (
-    bpmnDetails: BpmnDetails,
-    currentPolicy: Policy = {
-      requiredAuthenticationLevelEndUser: '3',
-      requiredAuthenticationLevelOrg: '3',
-      rules: [],
-    },
-  ) =>
+  const createAddProcessTaskManager = (bpmnDetails: BpmnDetails) =>
     new AddProcessTaskManager(
       addLayoutSet,
       addDataTypeToAppMetadata,

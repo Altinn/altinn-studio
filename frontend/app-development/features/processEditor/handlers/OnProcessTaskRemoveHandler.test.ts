@@ -1,6 +1,6 @@
 import { Policy } from 'app-shared/types/Policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
-import { TaskEvent } from '@altinn/process-editor/utils/ProcessTaskManager';
+import type { TaskEvent } from '@altinn/process-editor/utils/ProcessTaskManager';
 import { OnProcessTaskRemoveHandler } from './OnProcessTaskRemoveHandler';
 
 describe('OnProcessTaskRemoveHandler', () => {

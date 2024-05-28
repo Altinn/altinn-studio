@@ -1,4 +1,4 @@
-import { TaskEvent } from '@altinn/process-editor/utils/ProcessTaskManager';
+import type { TaskEvent } from '@altinn/process-editor/utils/ProcessTaskManager';
 
 export type OnProcessTaskEvent = {
   taskEvent?: TaskEvent;

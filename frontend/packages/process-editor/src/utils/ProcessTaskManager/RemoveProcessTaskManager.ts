@@ -1,11 +1,11 @@
 import { type BpmnApiContextProps } from '../../contexts/BpmnApiContext';
 import { type BpmnDetails } from '../../types/BpmnDetails';
 import { type TaskEvent } from './types';
-import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 import {
   getDataTypeIdFromBusinessObject,
   getLayoutSetIdFromTaskId,
 } from '../../utils/hookUtils/hookUtils';
+
 export class RemoveProcessTaskManager {
   constructor(
     private readonly layoutSets: BpmnApiContextProps['layoutSets'],
@@ -20,7 +20,7 @@ export class RemoveProcessTaskManager {
    * @param taskEvent
    */
   public handleTaskRemove(taskEvent: TaskEvent): void {
-    if (this.bpmnDetails.type === BpmnTypeEnum.Task) {
+    if (this.bpmnDetails.taskType === 'data') {
       this.handleDataTaskRemove();
     }
 
