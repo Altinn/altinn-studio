@@ -128,7 +128,7 @@ export const updateResource = (org: string, repo: string, payload: Resource) => 
 // ProcessEditor
 
 export const addDataTypeToAppMetadata = (org: string, app: string, dataTypeId: string, taskId: string) => post(processEditorDataTypePath(org, app, dataTypeId, taskId));
-export const deleteDataTypeFromAppMetadata = (org: string, app: string, dataTypeId: string, taskId: string) => del(processEditorDataTypePath(org, app, dataTypeId, taskId));
+export const deleteDataTypeFromAppMetadata = (org: string, app: string, dataTypeId: string) => del(processEditorDataTypePath(org, app, dataTypeId));
 export const updateBpmnXml = (org: string, app: string, form: any) =>
   put(processEditorPathPut(org, app), form, {
     headers: {

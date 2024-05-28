@@ -52,6 +52,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
       );
       addDataTypeToAppMetadata({
         dataTypeId,
+        taskId: bpmnDetails.id,
       });
     }
     handleSetBpmnDetails(e);
