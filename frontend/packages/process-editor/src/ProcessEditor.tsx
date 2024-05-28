@@ -16,39 +16,39 @@ import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 export type ProcessEditorProps = {
   appLibVersion: string;
   bpmnXml: string | undefined | null;
-  currentPolicy: BpmnApiContextProps['currentPolicy'];
   availableDataModelIds: BpmnApiContextProps['availableDataModelIds'];
   layoutSets: BpmnApiContextProps['layoutSets'];
   pendingApiOperations: boolean;
   existingCustomReceiptLayoutSetId: BpmnApiContextProps['existingCustomReceiptLayoutSetId'];
   addLayoutSet: BpmnApiContextProps['addLayoutSet'];
   deleteLayoutSet: BpmnApiContextProps['deleteLayoutSet'];
-  mutateApplicationPolicy: BpmnApiContextProps['mutateApplicationPolicy'];
   mutateLayoutSetId: BpmnApiContextProps['mutateLayoutSetId'];
   mutateDataType: BpmnApiContextProps['mutateDataType'];
   addDataTypeToAppMetadata: BpmnApiContextProps['addDataTypeToAppMetadata'];
   deleteDataTypeFromAppMetadata: BpmnApiContextProps['deleteDataTypeFromAppMetadata'];
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
   openPolicyEditor: BpmnApiContextProps['openPolicyEditor'];
+  onProcessTaskAdd: BpmnApiContextProps['onProcessTaskAdd'];
+  onProcessTaskRemove: BpmnApiContextProps['onProcessTaskRemove'];
 };
 
 export const ProcessEditor = ({
   appLibVersion,
   bpmnXml,
-  currentPolicy,
   availableDataModelIds,
   layoutSets,
   pendingApiOperations,
   existingCustomReceiptLayoutSetId,
   addLayoutSet,
   deleteLayoutSet,
-  mutateApplicationPolicy,
   mutateLayoutSetId,
   mutateDataType,
   addDataTypeToAppMetadata,
   deleteDataTypeFromAppMetadata,
   saveBpmn,
   openPolicyEditor,
+  onProcessTaskAdd,
+  onProcessTaskRemove,
 }: ProcessEditorProps): JSX.Element => {
   const { t } = useTranslation();
 
@@ -64,19 +64,19 @@ export const ProcessEditor = ({
     <BpmnContextProvider bpmnXml={bpmnXml} appLibVersion={appLibVersion}>
       <BpmnApiContextProvider
         availableDataModelIds={availableDataModelIds}
-        currentPolicy={currentPolicy}
         layoutSets={layoutSets}
         pendingApiOperations={pendingApiOperations}
         existingCustomReceiptLayoutSetId={existingCustomReceiptLayoutSetId}
         addLayoutSet={addLayoutSet}
         deleteLayoutSet={deleteLayoutSet}
-        mutateApplicationPolicy={mutateApplicationPolicy}
         mutateLayoutSetId={mutateLayoutSetId}
         mutateDataType={mutateDataType}
         addDataTypeToAppMetadata={addDataTypeToAppMetadata}
         deleteDataTypeFromAppMetadata={deleteDataTypeFromAppMetadata}
         saveBpmn={saveBpmn}
         openPolicyEditor={openPolicyEditor}
+        onProcessTaskAdd={onProcessTaskAdd}
+        onProcessTaskRemove={onProcessTaskRemove}
       >
         <BpmnConfigPanelFormContextProvider>
           <BpmnCanvas />

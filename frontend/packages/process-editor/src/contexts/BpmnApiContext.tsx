@@ -2,7 +2,7 @@ import type { LayoutSets, LayoutSetConfig } from 'app-shared/types/api/LayoutSet
 import React, { createContext, useContext } from 'react';
 import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 import type { DataTypeChange } from 'app-shared/types/api/DataTypeChange';
-import type { Policy } from 'app-shared/types/Policy';
+import type { OnProcessTaskEvent } from '../types/OnProcessTask';
 
 type QueryOptions = {
   onSuccess: () => void;
@@ -10,7 +10,6 @@ type QueryOptions = {
 
 export type BpmnApiContextProps = {
   availableDataModelIds: string[];
-  currentPolicy: Policy;
   layoutSets: LayoutSets;
   pendingApiOperations: boolean;
   existingCustomReceiptLayoutSetId: string | undefined;
@@ -19,7 +18,6 @@ export type BpmnApiContextProps = {
     options?: QueryOptions,
   ) => void;
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
-  mutateApplicationPolicy: (policy: Policy, options?: QueryOptions) => void;
   mutateLayoutSetId: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
   mutateDataType: (dataTypeChange: DataTypeChange, options?: QueryOptions) => void;
   addDataTypeToAppMetadata: (data: { dataTypeId: string }) => void;
@@ -27,6 +25,8 @@ export type BpmnApiContextProps = {
 
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
   openPolicyEditor: () => void;
+  onProcessTaskAdd: (taskMetadata: OnProcessTaskEvent) => void;
+  onProcessTaskRemove: (taskMetadata: OnProcessTaskEvent) => void;
 };
 
 export const BpmnApiContext = createContext<Partial<BpmnApiContextProps>>(undefined);
@@ -38,30 +38,28 @@ export type BpmnApiContextProviderProps = {
 export const BpmnApiContextProvider = ({
   children,
   availableDataModelIds,
-  currentPolicy,
   layoutSets,
   pendingApiOperations,
   existingCustomReceiptLayoutSetId,
   addLayoutSet,
   deleteLayoutSet,
-  mutateApplicationPolicy,
   mutateLayoutSetId,
   mutateDataType,
   addDataTypeToAppMetadata,
   deleteDataTypeFromAppMetadata,
   saveBpmn,
   openPolicyEditor,
+  onProcessTaskRemove,
+  onProcessTaskAdd,
 }: Partial<BpmnApiContextProviderProps>) => {
   return (
     <BpmnApiContext.Provider
       value={{
         availableDataModelIds,
-        currentPolicy,
         layoutSets,
         pendingApiOperations,
         existingCustomReceiptLayoutSetId,
         addLayoutSet,
-        mutateApplicationPolicy,
         deleteLayoutSet,
         mutateLayoutSetId,
         mutateDataType,
@@ -69,6 +67,8 @@ export const BpmnApiContextProvider = ({
         deleteDataTypeFromAppMetadata,
         saveBpmn,
         openPolicyEditor,
+        onProcessTaskRemove,
+        onProcessTaskAdd,
       }}
     >
       {children}

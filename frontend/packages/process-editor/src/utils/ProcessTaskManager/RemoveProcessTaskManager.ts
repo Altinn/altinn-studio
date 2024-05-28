@@ -6,19 +6,13 @@ import {
   getDataTypeIdFromBusinessObject,
   getLayoutSetIdFromTaskId,
 } from '../../utils/hookUtils/hookUtils';
-import { PaymentPolicyBuilder } from '../../utils/policy';
-import { type Policy } from 'app-shared/types/Policy';
-
 export class RemoveProcessTaskManager {
   constructor(
-    private readonly org: string,
-    private readonly app: string,
     private readonly layoutSets: BpmnApiContextProps['layoutSets'],
     private readonly deleteLayoutSet: BpmnApiContextProps['deleteLayoutSet'],
     private readonly deleteDataTypeFromAppMetadata: BpmnApiContextProps['deleteDataTypeFromAppMetadata'],
-    private readonly mutateApplicationPolicy: BpmnApiContextProps['mutateApplicationPolicy'],
     private readonly bpmnDetails: BpmnDetails,
-    private readonly currentPolicy: Policy,
+    private readonly onProcessTaskRemove: BpmnApiContextProps['onProcessTaskRemove'],
   ) {}
 
   /**
@@ -37,6 +31,12 @@ export class RemoveProcessTaskManager {
     if (this.bpmnDetails.taskType === 'signing') {
       this.handleSigningTaskRemove(taskEvent);
     }
+
+    // Informs the consumer of this package that a task has been removed with the taskEvent and taskType
+    this.onProcessTaskRemove({
+      taskEvent,
+      taskType: this.bpmnDetails.taskType,
+    });
   }
 
   /**
@@ -54,7 +54,7 @@ export class RemoveProcessTaskManager {
   }
 
   /**
-   * Deletes the dataType, Policy and layout set from the deleted payment task
+   * Deletes the dataType and layout set from the deleted payment task
    * @param taskEvent
    * @private
    */
@@ -68,17 +68,6 @@ export class RemoveProcessTaskManager {
     this.deleteDataTypeFromAppMetadata({
       dataTypeId,
     });
-
-    // Delete Payment Policy
-    const paymentPolicyBuilder = new PaymentPolicyBuilder(this.org, this.app);
-    const currentPaymentRuleId = paymentPolicyBuilder.getPolicyRuleId(this.bpmnDetails.id);
-
-    const updatedPolicy: Policy = {
-      ...this.currentPolicy,
-      rules: this.currentPolicy.rules.filter((rule) => rule.ruleId !== currentPaymentRuleId),
-    };
-
-    this.mutateApplicationPolicy(updatedPolicy);
 
     // Delete layout set
     const layoutSetId = getLayoutSetIdFromTaskId(this.bpmnDetails, this.layoutSets);

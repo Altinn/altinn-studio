@@ -2,6 +2,7 @@ import { type BpmnBusinessObjectEditor } from '../../types/BpmnBusinessObjectEdi
 
 export type TaskEvent = Event & {
   element: {
+    id: string;
     businessObject: BpmnBusinessObjectEditor;
   };
 };

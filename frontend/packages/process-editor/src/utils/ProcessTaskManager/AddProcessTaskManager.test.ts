@@ -6,9 +6,6 @@ import { type BpmnTaskType } from '../../types/BpmnTaskType';
 import type { Policy } from 'app-shared/types/Policy';
 
 describe('AddProcessTaskManager', () => {
-  const org = 'testOrg';
-  const app = 'testApp';
-
   const createBpmnDetails = (id: string, name: string, taskType: BpmnTaskType): BpmnDetails => ({
     id,
     name,
@@ -29,7 +26,7 @@ describe('AddProcessTaskManager', () => {
 
   const addLayoutSet = jest.fn();
   const addDataTypeToAppMetadata = jest.fn();
-  const mutateApplicationPolicy = jest.fn();
+  const onProcessTaskAdd = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -44,13 +41,10 @@ describe('AddProcessTaskManager', () => {
     },
   ) =>
     new AddProcessTaskManager(
-      org,
-      app,
       addLayoutSet,
       addDataTypeToAppMetadata,
-      mutateApplicationPolicy,
       bpmnDetails,
-      currentPolicy,
+      onProcessTaskAdd,
     );
 
   it('should add layoutSet when data-task is added', () => {
@@ -65,7 +59,7 @@ describe('AddProcessTaskManager', () => {
     });
   });
 
-  it('should add data-type and add default payment policy when PaymentTask is added', () => {
+  it('should add layoutSet and dataType when PaymentTask is added', () => {
     const bpmnDetails = createBpmnDetails('testId', 'paymentTask', 'payment');
     const addProcessTaskManager = createAddProcessTaskManager(bpmnDetails);
 
@@ -83,23 +77,6 @@ describe('AddProcessTaskManager', () => {
 
     expect(addDataTypeToAppMetadata).toHaveBeenCalledWith({
       dataTypeId: 'paymentInformation',
-    });
-
-    expect(mutateApplicationPolicy).toHaveBeenCalledWith({
-      requiredAuthenticationLevelEndUser: '3',
-      requiredAuthenticationLevelOrg: '3',
-      rules: [
-        {
-          ruleId: 'urn:altinn:resource:app_testOrg_testApp:policyid:1:ruleid:testId',
-          description:
-            'Rule that defines that user with specified role(s) can pay, reject and confirm for testOrg/testApp when it is in payment task',
-          subject: [],
-          actions: ['read', 'pay', 'confirm', 'reject'],
-          resources: [
-            ['urn:altinn:org:testOrg', 'urn:altinn:app:testApp', 'urn:altinn:task:testId'],
-          ],
-        },
-      ],
     });
   });
 
@@ -121,6 +98,23 @@ describe('AddProcessTaskManager', () => {
 
     expect(addDataTypeToAppMetadata).toHaveBeenCalledWith({
       dataTypeId: 'signingInformation',
+    });
+  });
+
+  it('should inform the consumer of the package that a task has been added with the taskEvent and taskType', () => {
+    const bpmnDetails = createBpmnDetails('testId', 'signingTask', 'signing');
+    const addProcessTaskManager = createAddProcessTaskManager(bpmnDetails);
+
+    const taskEvent = createTaskEvent('signing', {
+      taskType: 'signing',
+      signatureConfig: { signatureDataType: 'signingInformation' },
+    });
+
+    addProcessTaskManager.handleTaskAdd(taskEvent);
+
+    expect(onProcessTaskAdd).toHaveBeenCalledWith({
+      taskEvent,
+      taskType: 'signing',
     });
   });
 });

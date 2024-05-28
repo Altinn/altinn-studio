@@ -4,7 +4,6 @@ import { type BpmnTaskType } from '../../types/BpmnTaskType';
 import { type BpmnDetails } from '../../types/BpmnDetails';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 import { type TaskEvent } from '../ProcessTaskManager/types';
-import { type Policy } from 'app-shared/types/Policy';
 
 describe('RemoveProcessTaskManager', () => {
   beforeEach(() => {
@@ -22,90 +21,30 @@ describe('RemoveProcessTaskManager', () => {
       element: {
         businessObject: {
           id: 'testEventId',
-          $type: BpmnTypeEnum.Task,
+          $type: taskType,
           extensionElements: extensionConfig ? { values: [extensionConfig] } : undefined,
         },
       },
     }) as TaskEvent;
 
-  it('should remove layoutSet when the Task is deleted', () => {
+  it('should remove layoutSet when data-task is deleted', () => {
     const layoutSets: LayoutSets = {
       sets: [{ id: 'testLayoutSetId', dataType: 'data', tasks: ['testTask'] }],
     };
 
     const deleteLayoutSet = jest.fn();
     const bpmnDetails = createBpmnDetails('testTask', 'testTask', 'data');
-    const currentPolicy: Policy = {
-      requiredAuthenticationLevelOrg: '3',
-      requiredAuthenticationLevelEndUser: '3',
-      rules: [],
-    };
 
     const removeProcessTaskManager = new RemoveProcessTaskManager(
-      'org',
-      'app',
       layoutSets,
       deleteLayoutSet,
       jest.fn(),
-      jest.fn(),
       bpmnDetails,
-      currentPolicy,
+      jest.fn(),
     );
 
     removeProcessTaskManager.handleTaskRemove({} as TaskEvent);
     expect(deleteLayoutSet).toHaveBeenCalledWith({ layoutSetIdToUpdate: 'testLayoutSetId' });
-  });
-
-  it('should remove payment policy when the payment Task is deleted', () => {
-    const layoutSets: LayoutSets = {
-      sets: [{ id: 'testLayoutSetId', dataType: 'payment', tasks: ['testTask'] }],
-    };
-
-    const deleteLayoutSet = jest.fn();
-    const mutateApplicationPolicy = jest.fn();
-    const deleteDataTypeFromAppMetadata = jest.fn();
-    const bpmnDetails = createBpmnDetails('testTask', 'testTask', 'payment');
-    const currentPolicy: Policy = {
-      requiredAuthenticationLevelOrg: '3',
-      requiredAuthenticationLevelEndUser: '3',
-      rules: [
-        {
-          ruleId: 'alreadyExistingRule',
-          description: 'testDescription',
-          subject: ['testSubject'],
-          actions: ['pay'],
-          resources: [['testResource']],
-        },
-      ],
-    };
-
-    const removeProcessTaskManager = new RemoveProcessTaskManager(
-      'org',
-      'app',
-      layoutSets,
-      deleteLayoutSet,
-      deleteDataTypeFromAppMetadata,
-      mutateApplicationPolicy,
-      bpmnDetails,
-      currentPolicy,
-    );
-
-    removeProcessTaskManager.handleTaskRemove(createTaskEvent('payment'));
-    expect(deleteDataTypeFromAppMetadata).toHaveBeenCalledWith({
-      dataTypeId: undefined,
-    });
-
-    expect(mutateApplicationPolicy).toHaveBeenCalledWith({
-      rules: [
-        {
-          actions: ['pay'],
-          description: 'testDescription',
-          resources: [['testResource']],
-          ruleId: 'alreadyExistingRule',
-          subject: ['testSubject'],
-        },
-      ],
-    });
   });
 
   it('should remove datatype from app metadata when the signing Task is deleted', () => {
@@ -116,24 +55,63 @@ describe('RemoveProcessTaskManager', () => {
     const deleteLayoutSet = jest.fn();
     const deleteDataTypeFromAppMetadata = jest.fn();
     const bpmnDetails = createBpmnDetails('testTask', 'testTask', 'signing');
-    const currentPolicy: Policy = {
-      requiredAuthenticationLevelOrg: '3',
-      requiredAuthenticationLevelEndUser: '3',
-      rules: [],
-    };
 
     const removeProcessTaskManager = new RemoveProcessTaskManager(
-      'org',
-      'app',
       layoutSets,
       deleteLayoutSet,
       deleteDataTypeFromAppMetadata,
-      jest.fn(),
       bpmnDetails,
-      currentPolicy,
+      jest.fn(),
     );
 
     removeProcessTaskManager.handleTaskRemove(createTaskEvent('signing'));
     expect(deleteDataTypeFromAppMetadata).toHaveBeenCalled();
+  });
+
+  it('should remove datatype and layoutSet when the payment Task is deleted', () => {
+    const layoutSets: LayoutSets = {
+      sets: [{ id: 'testLayoutSetId', dataType: 'payment', tasks: ['testTask'] }],
+    };
+
+    const deleteLayoutSet = jest.fn();
+    const deleteDataTypeFromAppMetadata = jest.fn();
+    const bpmnDetails = createBpmnDetails('testTask', 'testTask', 'payment');
+
+    const removeProcessTaskManager = new RemoveProcessTaskManager(
+      layoutSets,
+      deleteLayoutSet,
+      deleteDataTypeFromAppMetadata,
+      bpmnDetails,
+      jest.fn(),
+    );
+
+    removeProcessTaskManager.handleTaskRemove(createTaskEvent('payment'));
+    expect(deleteDataTypeFromAppMetadata).toHaveBeenCalled();
+    expect(deleteLayoutSet).toHaveBeenCalledWith({ layoutSetIdToUpdate: 'testLayoutSetId' });
+  });
+
+  it('should inform the consumer of the package that a task has been removed with the taskEvent and taskType', () => {
+    const layoutSets: LayoutSets = {
+      sets: [{ id: 'testLayoutSetId', dataType: 'payment', tasks: ['testTask'] }],
+    };
+
+    const deleteLayoutSet = jest.fn();
+    const deleteDataTypeFromAppMetadata = jest.fn();
+    const onProcessTaskRemove = jest.fn();
+    const bpmnDetails = createBpmnDetails('testTask', 'testTask', 'payment');
+
+    const removeProcessTaskManager = new RemoveProcessTaskManager(
+      layoutSets,
+      deleteLayoutSet,
+      deleteDataTypeFromAppMetadata,
+      bpmnDetails,
+      onProcessTaskRemove,
+    );
+
+    removeProcessTaskManager.handleTaskRemove(createTaskEvent('payment'));
+    expect(onProcessTaskRemove).toHaveBeenCalledWith({
+      taskEvent: createTaskEvent('payment'),
+      taskType: 'payment',
+    });
   });
 });

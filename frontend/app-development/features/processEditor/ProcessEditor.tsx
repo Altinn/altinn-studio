@@ -25,6 +25,9 @@ import { SyncSuccessQueriesInvalidator } from 'app-shared/queryInvalidator/SyncS
 import { useQueryClient } from '@tanstack/react-query';
 import { useSettingsModalContext } from '../../contexts/SettingsModalContext';
 import { useAppPolicyQuery } from '../../hooks/queries';
+import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
+import { OnProcessTaskAddHandler } from './handlers/OnProcessTaskAddHandler';
+import { OnProcessTaskRemoveHandler } from './handlers/OnProcessTaskRemoveHandler';
 
 enum SyncClientsName {
   FileSyncSuccess = 'FileSyncSuccess',
@@ -108,6 +111,26 @@ export const ProcessEditor = (): React.ReactElement => {
     );
   };
 
+  const onProcessTaskAdd = (taskMetadata: OnProcessTaskEvent): void => {
+    const onProcessTaskAddHandler = new OnProcessTaskAddHandler(
+      org,
+      app,
+      currentPolicy,
+      mutateApplicationPolicy,
+    );
+    onProcessTaskAddHandler.handleOnProcessTaskAdd(taskMetadata);
+  };
+
+  const onProcessTaskRemove = (taskMetadata: OnProcessTaskEvent): void => {
+    const onProcessTaskRemoveHandler = new OnProcessTaskRemoveHandler(
+      org,
+      app,
+      currentPolicy,
+      mutateApplicationPolicy,
+    );
+    onProcessTaskRemoveHandler.handleOnProcessTaskRemove(taskMetadata);
+  };
+
   if (appLibDataLoading) {
     return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} showSpinnerTitle />;
   }
@@ -116,7 +139,6 @@ export const ProcessEditor = (): React.ReactElement => {
   return (
     <ProcessEditorImpl
       availableDataModelIds={availableDataModelIds}
-      currentPolicy={currentPolicy}
       layoutSets={layoutSets}
       pendingApiOperations={pendingApiOperations}
       existingCustomReceiptLayoutSetId={existingCustomReceiptId}
@@ -125,7 +147,6 @@ export const ProcessEditor = (): React.ReactElement => {
       mutateLayoutSetId={mutateLayoutSetId}
       appLibVersion={appLibData.backendVersion}
       bpmnXml={hasBpmnQueryError ? null : bpmnXml}
-      mutateApplicationPolicy={mutateApplicationPolicy}
       mutateDataType={mutateDataType}
       addDataTypeToAppMetadata={addDataTypeToAppMetadata}
       deleteDataTypeFromAppMetadata={deleteDataTypeFromAppMetadata}
@@ -134,6 +155,8 @@ export const ProcessEditor = (): React.ReactElement => {
         setSettingsModalSelectedTab('policy');
         setSettingsModalOpen(true);
       }}
+      onProcessTaskAdd={onProcessTaskAdd}
+      onProcessTaskRemove={onProcessTaskRemove}
     />
   );
 };

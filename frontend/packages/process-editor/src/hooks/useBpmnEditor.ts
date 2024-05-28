@@ -10,7 +10,6 @@ import {
   RemoveProcessTaskManager,
   type TaskEvent,
 } from '../utils/ProcessTaskManager';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 
 // Wrapper around bpmn-js to Reactify it
 
@@ -24,17 +23,16 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const { metaDataFormRef, resetForm } = useBpmnConfigPanelFormContext();
   const { getModeler, destroyModeler } = useBpmnModeler();
-  const { org, app } = useStudioUrlParams();
 
   const {
     addLayoutSet,
     deleteLayoutSet,
     addDataTypeToAppMetadata,
     deleteDataTypeFromAppMetadata,
-    mutateApplicationPolicy,
     saveBpmn,
     layoutSets,
-    currentPolicy,
+    onProcessTaskAdd,
+    onProcessTaskRemove,
   } = useBpmnApiContext();
 
   // Needs to update the layoutSetsRef.current when layoutSets changes to avoid staled data in the event listeners
@@ -51,13 +49,10 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   const handleShapeAdd = (taskEvent: TaskEvent): void => {
     const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(taskEvent?.element?.businessObject);
     const addProcessTaskManager = new AddProcessTaskManager(
-      org,
-      app,
       addLayoutSet,
       addDataTypeToAppMetadata,
-      mutateApplicationPolicy,
       bpmnDetails,
-      currentPolicy,
+      onProcessTaskAdd,
     );
 
     addProcessTaskManager.handleTaskAdd(taskEvent);
@@ -67,14 +62,11 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   const handleShapeRemove = (taskEvent: TaskEvent): void => {
     const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(taskEvent?.element?.businessObject);
     const removeProcessTaskManager = new RemoveProcessTaskManager(
-      org,
-      app,
       layoutSetsRef.current,
       deleteLayoutSet,
       deleteDataTypeFromAppMetadata,
-      mutateApplicationPolicy,
       bpmnDetails,
-      currentPolicy,
+      onProcessTaskRemove,
     );
 
     removeProcessTaskManager.handleTaskRemove(taskEvent);

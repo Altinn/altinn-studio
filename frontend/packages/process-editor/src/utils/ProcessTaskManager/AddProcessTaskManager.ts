@@ -1,20 +1,15 @@
 import { type LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { getDataTypeIdFromBusinessObject } from '../../utils/hookUtils/hookUtils';
-import { PaymentPolicyBuilder } from '../../utils/policy';
 import { type BpmnApiContextProps } from '../../contexts/BpmnApiContext';
 import { type BpmnDetails } from '../../types/BpmnDetails';
 import { type TaskEvent } from './types';
-import { type Policy } from 'app-shared/types/Policy';
 
 export class AddProcessTaskManager {
   constructor(
-    private readonly org: string,
-    private readonly app: string,
     private readonly addLayoutSet: BpmnApiContextProps['addLayoutSet'],
     private readonly addDataTypeToAppMetadata: BpmnApiContextProps['addDataTypeToAppMetadata'],
-    private readonly mutateApplicationPolicy: BpmnApiContextProps['mutateApplicationPolicy'],
     private readonly bpmnDetails: BpmnDetails,
-    private readonly currentPolicy: Policy,
+    private readonly onProcessTaskAdd: BpmnApiContextProps['onProcessTaskAdd'],
   ) {}
 
   /**
@@ -33,6 +28,12 @@ export class AddProcessTaskManager {
     if (this.bpmnDetails.taskType === 'signing') {
       this.handleSigningTaskAdd(taskEvent);
     }
+
+    // Informs the consumer of this package that a task has been removed with the taskEvent and taskType
+    this.onProcessTaskAdd({
+      taskEvent,
+      taskType: this.bpmnDetails.taskType,
+    });
   }
 
   /**
@@ -61,18 +62,6 @@ export class AddProcessTaskManager {
     this.addDataTypeToAppMetadata({
       dataTypeId,
     });
-
-    // Add default payment policy
-    const paymentPolicyBuilder = new PaymentPolicyBuilder(this.org, this.app);
-    const defaultPaymentPolicy = paymentPolicyBuilder.getDefaultPaymentPolicy(this.bpmnDetails.id);
-
-    // Need to merge the default payment policy with the current policy, since backend does not support partial updates.
-    const updatedPolicy: Policy = {
-      ...this.currentPolicy,
-      rules: [...this.currentPolicy.rules, ...defaultPaymentPolicy.rules],
-    };
-
-    this.mutateApplicationPolicy(updatedPolicy);
   }
 
   /**
