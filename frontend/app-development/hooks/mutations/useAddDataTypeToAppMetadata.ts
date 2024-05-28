@@ -5,7 +5,7 @@ export const useAddDataTypeToAppMetadata = (org: string, app: string) => {
   const { addDataTypeToAppMetadata } = useServicesContext();
 
   return useMutation({
-    mutationFn: ({ dataTypeId }: { dataTypeId: string }) =>
-      addDataTypeToAppMetadata(org, app, dataTypeId),
+    mutationFn: ({ dataTypeId, taskId }: { dataTypeId: string; taskId: string }) =>
+      addDataTypeToAppMetadata(org, app, dataTypeId, taskId),
   });
 };

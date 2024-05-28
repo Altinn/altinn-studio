@@ -46,9 +46,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <param name="dataTypeId">Id for the added data type</param>
+        /// <param name="taskId">Id for the task of the data type</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         Task AddDataTypeToApplicationMetadataAsync(AltinnRepoEditingContext altinnRepoEditingContext,
-            string dataTypeId, CancellationToken cancellationToken = default);
+            string dataTypeId, string taskId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Deletes a simple dataType from applicationMetadata.
