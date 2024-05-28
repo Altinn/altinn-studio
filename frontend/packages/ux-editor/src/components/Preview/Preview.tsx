@@ -4,6 +4,7 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { useAppContext, useSelectedTaskId } from '../../hooks';
+import { useChecksum } from '../../hooks/useChecksum.ts';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/design-system-react';
 import { StudioButton, StudioCenter } from '@studio/components';
@@ -65,6 +66,7 @@ const PreviewFrame = () => {
   const { t } = useTranslation();
 
   const { shouldReloadPreview, previewHasLoaded } = useAppContext();
+  const checksum = useChecksum(shouldReloadPreview);
 
   useEffect(() => {
     return () => {
@@ -72,27 +74,18 @@ const PreviewFrame = () => {
     };
   }, [previewIframeRef]);
 
-  const [iframeKey, setIframeKey] = useState<number>(0);
-
-  useEffect(() => {
-    if (shouldReloadPreview) {
-      // By incrementing the key by one, we force the preview to reload
-      setIframeKey((v) => v + 1);
-      previewHasLoaded();
-    }
-  }, [shouldReloadPreview, previewHasLoaded]);
-
   return (
     <div className={classes.root}>
       <ViewToggler onChange={setViewportToSimulate} />
       <div className={classes.previewArea}>
         <div className={classes.iframeContainer}>
           <iframe
-            key={iframeKey}
+            key={checksum}
             ref={previewIframeRef}
             className={cn(classes.iframe, classes[viewportToSimulate])}
             title={t('ux_editor.preview')}
             src={previewPage(org, app, selectedFormLayoutSetName, taskId, selectedFormLayoutName)}
+            onLoad={previewHasLoaded}
           />
         </div>
         <PreviewLimitationsInfo />
