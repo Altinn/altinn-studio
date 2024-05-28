@@ -3,7 +3,6 @@ import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 import { type TaskEvent } from '../ProcessTaskManager/types';
 import { type BpmnDetails } from '../../types/BpmnDetails';
 import { type BpmnTaskType } from '../../types/BpmnTaskType';
-import type { Policy } from 'app-shared/types/Policy';
 
 describe('AddProcessTaskManager', () => {
   const createBpmnDetails = (id: string, name: string, taskType: BpmnTaskType): BpmnDetails => ({

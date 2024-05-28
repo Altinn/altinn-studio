@@ -10,6 +10,10 @@ export class OnProcessTaskAddHandler {
     private readonly mutateApplicationPolicy: (policy: Policy) => void,
   ) {}
 
+  /**
+   * This handler is responsible to react on task add event, to mutate files that are related to the task, but not a part of process-editor domain.
+   * @param taskMetadata
+   */
   public handleOnProcessTaskAdd(taskMetadata: OnProcessTaskEvent): void {
     if (taskMetadata.taskType === 'payment') {
       this.handlePaymentTaskAdd(taskMetadata);

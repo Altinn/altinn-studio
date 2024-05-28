@@ -10,6 +10,10 @@ export class OnProcessTaskRemoveHandler {
     private readonly mutateApplicationPolicy: (policy: Policy) => void,
   ) {}
 
+  /**
+   * This handler is responsible to react on task remove event, to mutate files that are related to the task, but not a part of process-editor domain.
+   * @param taskMetadata
+   */
   public handleOnProcessTaskRemove(taskMetadata: OnProcessTaskEvent): void {
     if (taskMetadata.taskType === 'payment') {
       this.handlePaymentTaskRemove(taskMetadata);
