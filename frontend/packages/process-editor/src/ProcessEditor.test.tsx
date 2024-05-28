@@ -22,7 +22,7 @@ const defaultProps: ProcessEditorProps = {
   existingCustomReceiptLayoutSetId: undefined,
   addLayoutSet: jest.fn(),
   deleteLayoutSet: jest.fn(),
-  mutateLayoutSetId: jest.fn(), 
+  mutateLayoutSetId: jest.fn(),
   mutateDataTypes: jest.fn(),
   openPolicyEditor: jest.fn(),
   onProcessTaskRemove: jest.fn(),

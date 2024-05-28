@@ -5,8 +5,8 @@ import userEvent from '@testing-library/user-event';
 import type { BpmnApiContextProps } from '../../../../contexts/BpmnApiContext';
 import { BpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { BpmnContext } from '../../../../contexts/BpmnContext';
-import type { SelectDataTypeProps } from './SelectDataType';
-import { SelectDataType } from './SelectDataType';
+import type { SelectDataTypesProps } from './SelectDataTypes';
+import { SelectDataTypes } from './SelectDataTypes';
 import { BpmnConfigPanelFormContextProvider } from '../../../../contexts/BpmnConfigPanelContext';
 import {
   mockBpmnApiContextValue,
@@ -16,14 +16,14 @@ import {
 const connectedTaskId = mockBpmnApiContextValue.layoutSets.sets[0].tasks[0];
 const mockOnClose = jest.fn();
 
-const defaultSelectDataTypeProps: SelectDataTypeProps = {
+const defaultSelectDataTypeProps: SelectDataTypesProps = {
   connectedTaskId,
   dataModelIds: [],
   existingDataType: undefined,
   onClose: mockOnClose,
 };
 
-describe('SelectDataType', () => {
+describe('SelectDataTypes', () => {
   afterEach(jest.clearAllMocks);
 
   it('should call updateDataTypes with new data type when new option is clicked', async () => {
@@ -49,7 +49,7 @@ describe('SelectDataType', () => {
       newDataTypes: [dataTypeToConnect],
     });
   });
-  
+
   it('should add existing data type to combobox options', async () => {
     const user = userEvent.setup();
     const existingDataType = 'dataModel0';
@@ -136,14 +136,14 @@ describe('SelectDataType', () => {
 });
 
 const renderSelectDataTypes = (
-  props: Partial<SelectDataTypeProps> = {},
+  props: Partial<SelectDataTypesProps> = {},
   bpmnApiContextProps: Partial<BpmnApiContextProps> = {},
 ) => {
   return render(
     <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
       <BpmnContext.Provider value={{ ...mockBpmnContextValue }}>
         <BpmnConfigPanelFormContextProvider>
-          <SelectDataType {...defaultSelectDataTypeProps} {...props} />
+          <SelectDataTypes {...defaultSelectDataTypeProps} {...props} />
         </BpmnConfigPanelFormContextProvider>
       </BpmnContext.Provider>
     </BpmnApiContext.Provider>,

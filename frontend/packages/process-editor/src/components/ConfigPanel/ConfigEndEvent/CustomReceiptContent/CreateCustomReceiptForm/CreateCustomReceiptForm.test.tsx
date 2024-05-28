@@ -73,7 +73,7 @@ describe('CreateCustomReceiptForm', () => {
         },
       ),
     );
-    
+
     expect(mockOnCloseForm).toHaveBeenCalled();
   });
 

@@ -4,7 +4,7 @@ using MediatR;
 
 namespace Altinn.Studio.Designer.Events;
 
-public class ProcessDataTypeChangedEvent : INotification
+public class ProcessDataTypesChangedEvent : INotification
 {
     public List<string> NewDataTypes { get; set; }
     public string ConnectedTaskId { get; set; }

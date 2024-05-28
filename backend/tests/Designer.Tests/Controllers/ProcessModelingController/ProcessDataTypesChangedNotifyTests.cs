@@ -14,17 +14,17 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController;
 
-public class ProcessDataTypeChangedNotifyTests : DisagnerEndpointsTestsBase<ProcessDataTypeChangedNotifyTests>, IClassFixture<WebApplicationFactory<Program>>
+public class ProcessDataTypesChangedNotifyTests : DisagnerEndpointsTestsBase<ProcessDataTypesChangedNotifyTests>, IClassFixture<WebApplicationFactory<Program>>
 {
-    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/process-modelling/data-type";
+    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/process-modelling/data-types";
 
-    public ProcessDataTypeChangedNotifyTests(WebApplicationFactory<Program> factory) : base(factory)
+    public ProcessDataTypesChangedNotifyTests(WebApplicationFactory<Program> factory) : base(factory)
     {
     }
 
     [Theory]
     [MemberData(nameof(ProcessDataTypeChangedNotifyTestData))]
-    public async Task ProcessDataTypeChangedNotify_ShouldReturnOk(string org, string app, string developer, DataTypeChange metadata)
+    public async Task ProcessDataTypesChangedNotify_ShouldReturnOk(string org, string app, string developer, DataTypesChange metadata)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -48,7 +48,7 @@ public class ProcessDataTypeChangedNotifyTests : DisagnerEndpointsTestsBase<Proc
             "ttd",
             "empty-app",
             "testUser",
-            new DataTypeChange { NewDataType = "model", ConnectedTaskId = "Task_1" }
+            new DataTypesChange { NewDataTypes = ["model"], ConnectedTaskId = "Task_1" }
         ];
     }
 }

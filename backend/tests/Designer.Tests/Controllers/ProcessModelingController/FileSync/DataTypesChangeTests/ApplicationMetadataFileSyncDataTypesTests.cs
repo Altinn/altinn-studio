@@ -14,19 +14,19 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
 
-namespace Designer.Tests.Controllers.ProcessModelingController.FileSync.DataTypeChangeTests;
+namespace Designer.Tests.Controllers.ProcessModelingController.FileSync.DataTypesChangeTests;
 
-public class ApplicationMetadataFileSyncDataTypeTests : DisagnerEndpointsTestsBase<ProcessDataTypeChangedNotifyTests>, IClassFixture<WebApplicationFactory<Program>>
+public class ApplicationMetadataFileSyncDataTypesTests : DisagnerEndpointsTestsBase<ProcessDataTypesChangedNotifyTests>, IClassFixture<WebApplicationFactory<Program>>
 {
-    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/process-modelling/data-type";
+    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/process-modelling/data-types";
 
-    public ApplicationMetadataFileSyncDataTypeTests(WebApplicationFactory<Program> factory) : base(factory)
+    public ApplicationMetadataFileSyncDataTypesTests(WebApplicationFactory<Program> factory) : base(factory)
     {
     }
 
     [Theory]
     [MemberData(nameof(ProcessDataTypeChangedNotifyTestData))]
-    public async Task ProcessDataTypeChangedNotify_TaskIsDisConnectedFromDataType_ShouldSyncApplicationMetadata(string org, string app, string developer, string applicationMetadataPath, DataTypeChange dataTypeChange)
+    public async Task ProcessDataTypesChangedNotify_TaskIsDisConnectedFromDataType_ShouldSyncApplicationMetadata(string org, string app, string developer, string applicationMetadataPath, DataTypesChange dataTypesChange)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -34,7 +34,7 @@ public class ApplicationMetadataFileSyncDataTypeTests : DisagnerEndpointsTestsBa
 
         string url = VersionPrefix(org, targetRepository);
 
-        string dataTypeChangeString = JsonSerializer.Serialize(dataTypeChange,
+        string dataTypeChangeString = JsonSerializer.Serialize(dataTypesChange,
             new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
@@ -48,29 +48,29 @@ public class ApplicationMetadataFileSyncDataTypeTests : DisagnerEndpointsTestsBa
 
         ApplicationMetadata applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataFromRepo, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
-        applicationMetadata.DataTypes.Should().NotContain(dataType => dataType.AppLogic != null && dataType.TaskId == dataTypeChange.ConnectedTaskId); // No data type connected to Task_1
+        applicationMetadata.DataTypes.Should().NotContain(dataType => dataType.AppLogic != null && dataType.TaskId == dataTypesChange.ConnectedTaskId); // No data type connected to Task_1
     }
 
     [Theory]
     [MemberData(nameof(ProcessDataTypeChangedNotifyTestData))]
-    public async Task ProcessDataTypeChangedNotify_NewDataTypeForTask5IsMessage_ShouldSyncApplicationMetadata(
-        string org, string app, string developer, string applicationMetadataPath, DataTypeChange dataTypeChange)
+    public async Task ProcessDataTypesChangedNotify_NewDataTypeForTask5IsMessage_ShouldSyncApplicationMetadata(
+        string org, string app, string developer, string applicationMetadataPath, DataTypesChange dataTypesChange)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
         await AddFileToRepo(applicationMetadataPath, "App/config/applicationmetadata.json");
         string dataTypeToConnect = "message";
         string task = "Task_5";
-        dataTypeChange.NewDataType = dataTypeToConnect;
-        dataTypeChange.ConnectedTaskId = task;
+        dataTypesChange.NewDataTypes = [dataTypeToConnect];
+        dataTypesChange.ConnectedTaskId = task;
 
         string url = VersionPrefix(org, targetRepository);
 
-        string dataTypeChangeString = JsonSerializer.Serialize(dataTypeChange,
+        string dataTypesChangeString = JsonSerializer.Serialize(dataTypesChange,
             new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
         {
-            Content = new StringContent(dataTypeChangeString, Encoding.UTF8, "application/json")
+            Content = new StringContent(dataTypesChangeString, Encoding.UTF8, "application/json")
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         response.StatusCode.Should().Be(HttpStatusCode.Accepted);
@@ -84,24 +84,25 @@ public class ApplicationMetadataFileSyncDataTypeTests : DisagnerEndpointsTestsBa
 
     [Theory]
     [MemberData(nameof(ProcessDataTypeChangedNotifyTestData))]
-    public async Task ProcessDataTypeChangedNotify_NewDataTypeForCustomReceipt_ShouldNotSyncApplicationMetadata(
-        string org, string app, string developer, string applicationMetadataPath, DataTypeChange dataTypeChange)
+    public async Task ProcessDataTypesChangedNotify_NewDataTypesForTask5IsMessageAndLikert_ShouldSyncApplicationMetadataBoth(
+        string org, string app, string developer, string applicationMetadataPath, DataTypesChange dataTypesChange)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
         await AddFileToRepo(applicationMetadataPath, "App/config/applicationmetadata.json");
-        string dataTypeToConnect = "message";
-        string task = "CustomReceipt";
-        dataTypeChange.NewDataType = dataTypeToConnect;
-        dataTypeChange.ConnectedTaskId = task;
+        string dataTypeToConnect1 = "message";
+        string dataTypeToConnect2 = "likert";
+        string task = "Task_5";
+        dataTypesChange.NewDataTypes = [dataTypeToConnect1, dataTypeToConnect2];
+        dataTypesChange.ConnectedTaskId = task;
 
         string url = VersionPrefix(org, targetRepository);
 
-        string dataTypeChangeString = JsonSerializer.Serialize(dataTypeChange,
+        string dataTypesChangeString = JsonSerializer.Serialize(dataTypesChange,
             new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
         {
-            Content = new StringContent(dataTypeChangeString, Encoding.UTF8, "application/json")
+            Content = new StringContent(dataTypesChangeString, Encoding.UTF8, "application/json")
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         response.StatusCode.Should().Be(HttpStatusCode.Accepted);
@@ -109,7 +110,38 @@ public class ApplicationMetadataFileSyncDataTypeTests : DisagnerEndpointsTestsBa
         string applicationMetadataFromRepo = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
 
         ApplicationMetadata applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataFromRepo, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        applicationMetadata.DataTypes.FindAll(type => type.TaskId == task).Count.Should().Be(2); // Original connected data type 'datalist' should be disconnected
+        applicationMetadata.DataTypes.Find(type => type.Id == dataTypeToConnect1).TaskId.Should().Be(task); // Data type 'message' is now connected to Task_5
+        applicationMetadata.DataTypes.Find(type => type.Id == dataTypeToConnect2).TaskId.Should().Be(task); // Data type 'likert' is now connected to Task_5
+    }
 
+    [Theory]
+    [MemberData(nameof(ProcessDataTypeChangedNotifyTestData))]
+    public async Task ProcessDataTypeChangedNotify_NewDataTypeForCustomReceipt_ShouldNotSyncApplicationMetadata(
+        string org, string app, string developer, string applicationMetadataPath, DataTypesChange dataTypesChange)
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
+        await AddFileToRepo(applicationMetadataPath, "App/config/applicationmetadata.json");
+        string dataTypeToConnect = "message";
+        string task = "CustomReceipt";
+        dataTypesChange.NewDataTypes = [dataTypeToConnect];
+        dataTypesChange.ConnectedTaskId = task;
+
+        string url = VersionPrefix(org, targetRepository);
+
+        string dataTypesChangeString = JsonSerializer.Serialize(dataTypesChange,
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
+        {
+            Content = new StringContent(dataTypesChangeString, Encoding.UTF8, "application/json")
+        };
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+        response.StatusCode.Should().Be(HttpStatusCode.Accepted);
+
+        string applicationMetadataFromRepo = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
+
+        ApplicationMetadata applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataFromRepo, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         applicationMetadata.DataTypes.Find(type => type.Id == dataTypeToConnect).TaskId.Should().NotBe(task); // CustomReceipt has not been added to the dataType
     }
 
@@ -121,7 +153,7 @@ public class ApplicationMetadataFileSyncDataTypeTests : DisagnerEndpointsTestsBa
             "empty-app",
             "testUser",
             "App/config/applicationmetadata.json",
-            new DataTypeChange { NewDataType = null, ConnectedTaskId = "Task_1" }
+            new DataTypesChange { NewDataTypes = [], ConnectedTaskId = "Task_1" }
         ];
     }
 

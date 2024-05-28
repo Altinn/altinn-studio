@@ -114,12 +114,12 @@ namespace Altinn.Studio.Designer.Controllers
 
             if (dataTypesChange is not null)
             {
-                    await _mediator.Publish(new ProcessDataTypeChangedEvent
-                    {
-                        NewDataTypes = dataTypesChange.NewDataTypes,
-                        ConnectedTaskId = dataTypesChange.ConnectedTaskId,
-                        EditingContext = editingContext
-                    }, cancellationToken);
+                await _mediator.Publish(new ProcessDataTypesChangedEvent
+                {
+                    NewDataTypes = dataTypesChange.NewDataTypes,
+                    ConnectedTaskId = dataTypesChange.ConnectedTaskId,
+                    EditingContext = editingContext
+                }, cancellationToken);
             }
 
             return Accepted();

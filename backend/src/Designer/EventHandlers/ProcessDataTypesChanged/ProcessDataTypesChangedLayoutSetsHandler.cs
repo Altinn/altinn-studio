@@ -9,19 +9,19 @@ using MediatR;
 
 namespace Altinn.Studio.Designer.EventHandlers.ProcessDataTypeChanged;
 
-public class ProcessDataTypeChangedLayoutSetsHandler : INotificationHandler<ProcessDataTypeChangedEvent>
+public class ProcessDataTypesChangedLayoutSetsHandler : INotificationHandler<ProcessDataTypesChangedEvent>
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
 
-    public ProcessDataTypeChangedLayoutSetsHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+    public ProcessDataTypesChangedLayoutSetsHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
         IFileSyncHandlerExecutor fileSyncHandlerExecutor)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
     }
 
-    public async Task Handle(ProcessDataTypeChangedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(ProcessDataTypesChangedEvent notification, CancellationToken cancellationToken)
     {
         await _fileSyncHandlerExecutor.ExecuteWithExceptionHandling(
             notification.EditingContext,

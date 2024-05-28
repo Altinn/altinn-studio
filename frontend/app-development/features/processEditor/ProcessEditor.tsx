@@ -17,7 +17,7 @@ import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceipt
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useDeleteLayoutSetMutation } from '../../hooks/mutations/useDeleteLayoutSetMutation';
 import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
-import { useUpdateProcessDataTypeMutation } from '../../hooks/mutations/useUpdateProcessDataTypeMutation';
+import { useUpdateProcessDataTypesMutation } from '../../hooks/mutations/useUpdateProcessDataTypesMutation';
 import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 import { useAddDataTypeToAppMetadata } from '../../hooks/mutations/useAddDataTypeToAppMetadata';
 import { useDeleteDataTypeFromAppMetadata } from '../../hooks/mutations/useDeleteDataTypeFromAppMetadata';
@@ -56,7 +56,7 @@ export const ProcessEditor = (): React.ReactElement => {
     app,
   );
   const { mutate: mutateDataTypes, isPending: updateDataTypePending } =
-    useUpdateProcessDataTypeMutation(org, app);
+    useUpdateProcessDataTypesMutation(org, app);
 
   const existingCustomReceiptId: string | undefined = useCustomReceiptLayoutSetName(org, app);
 

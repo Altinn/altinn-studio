@@ -9,19 +9,19 @@ using MediatR;
 
 namespace Altinn.Studio.Designer.EventHandlers.ProcessDataTypeChanged;
 
-public class ProcessDataTypeChangedApplicationMetadataHandler : INotificationHandler<ProcessDataTypeChangedEvent>
+public class ProcessDataTypesChangedApplicationMetadataHandler : INotificationHandler<ProcessDataTypesChangedEvent>
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
 
-    public ProcessDataTypeChangedApplicationMetadataHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+    public ProcessDataTypesChangedApplicationMetadataHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
         IFileSyncHandlerExecutor fileSyncHandlerExecutor)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
     }
 
-    public async Task Handle(ProcessDataTypeChangedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(ProcessDataTypesChangedEvent notification, CancellationToken cancellationToken)
     {
         await _fileSyncHandlerExecutor.ExecuteWithExceptionHandling(
             notification.EditingContext,
@@ -34,7 +34,7 @@ public class ProcessDataTypeChangedApplicationMetadataHandler : INotificationHan
                     notification.EditingContext.Developer);
 
                 var applicationMetadata = await repository.GetApplicationMetadata(cancellationToken);
-                
+
                 if (notification.ConnectedTaskId != Constants.General.CustomReceiptId && TryChangeDataTypes(applicationMetadata, notification.NewDataTypes, notification.ConnectedTaskId))
                 {
                     await repository.SaveApplicationMetadata(applicationMetadata);
@@ -53,25 +53,19 @@ public class ProcessDataTypeChangedApplicationMetadataHandler : INotificationHan
 
 
         var dataTypesToDisconnect = applicationMetadata.DataTypes.FindAll(dataType => dataType.TaskId == connectedTaskId);
-        if (dataTypesToDisconnect.Count != 0)
+        foreach (var dataTypeToDisconnect in dataTypesToDisconnect)
         {
-            foreach (var dataTypeToDisconnect in dataTypesToDisconnect)
-            {
-                dataTypeToDisconnect.TaskId = null;
-                hasChanges = true;
-            }
+            dataTypeToDisconnect.TaskId = null;
+            hasChanges = true;
         }
-        if (newDataTypes.Count != 0)
+        foreach (string newDataType in newDataTypes)
         {
-            foreach (string newDataType in newDataTypes)
+            var dataTypeToUpdate = applicationMetadata.DataTypes.Find(dataType => dataType.Id == newDataType);
+            // Only update taskId on appMetaData dataType if the new connected dataType for the layout set exists in appMetaData
+            if (dataTypeToUpdate is not null)
             {
-                var dataTypeToUpdate = applicationMetadata.DataTypes.Find(dataType => dataType.Id == newDataType);
-                // Only update taskId on appMetaData dataType if the new connected dataType for the layout set exists in appMetaData
-                if (dataTypeToUpdate is not null)
-                {
-                    dataTypeToUpdate.TaskId = connectedTaskId;
-                    hasChanges = true;
-                }
+                dataTypeToUpdate.TaskId = connectedTaskId;
+                hasChanges = true;
             }
         }
 
