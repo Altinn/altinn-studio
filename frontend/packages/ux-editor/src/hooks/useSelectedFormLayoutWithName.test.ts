@@ -1,12 +1,8 @@
 import { useSelectedFormLayoutWithName } from './';
 import { renderHookWithProviders } from '../testing/mocks';
 import { useFormLayoutsQuery } from './queries/useFormLayoutsQuery';
-import {
-  externalLayoutsMock,
-  layoutMock,
-  layout1NameMock,
-  layoutSet1NameMock,
-} from '../testing/layoutMock';
+import { externalLayoutsMock, layoutMock, layout1NameMock } from '../testing/layoutMock';
+import { layoutSet1NameMock } from '../testing/layoutSetMock';
 import { waitFor } from '@testing-library/react';
 import { app, org } from '@studio/testing/testids';
 

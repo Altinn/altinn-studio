@@ -3,7 +3,7 @@ import { formLayoutSettingsMock, renderHookWithMockStore } from '../../testing/m
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { waitFor } from '@testing-library/react';
 import { app, org } from '@studio/testing/testids';
-import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetMock';
 
 // Test data:
 const selectedLayoutSet = layoutSet1NameMock;

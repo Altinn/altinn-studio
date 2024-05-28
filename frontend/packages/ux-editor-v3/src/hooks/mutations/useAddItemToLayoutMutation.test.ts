@@ -8,12 +8,12 @@ import { useAddItemToLayoutMutation } from './useAddItemToLayoutMutation';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
 import type { IAppState } from '../../types/global';
+import { externalLayoutsMock } from '@altinn/ux-editor-v3/testing/layoutMock';
 import {
-  externalLayoutsMock,
   layoutSet1NameMock,
   layoutSet2NameMock,
   layoutSetsMock,
-} from '../../testing/layoutMock';
+} from '@altinn/ux-editor-v3/testing/layoutSetMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { app, org } from '@studio/testing/testids';

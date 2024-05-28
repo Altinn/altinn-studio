@@ -11,7 +11,8 @@ import {
   renderHookWithMockStore,
   renderWithMockStore,
 } from '../../../testing/mocks';
-import { layout1NameMock, layout2NameMock, layoutSet1NameMock } from '../../../testing/layoutMock';
+import { layout1NameMock, layout2NameMock } from '@altinn/ux-editor-v3/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetMock';
 import { app, org } from '@studio/testing/testids';
 
 const mockPageName1: string = layout1NameMock;

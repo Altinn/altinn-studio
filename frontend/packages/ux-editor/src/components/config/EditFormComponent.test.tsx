@@ -9,7 +9,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 import type { DatamodelMetadataResponse } from 'app-shared/types/api';
 import { componentMocks } from '../../testing/componentMocks';
-import { dataModelNameMock, layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutMock';
+import { dataModelNameMock, layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetMock';
 import { app, org } from '@studio/testing/testids';
 
 // Test data:

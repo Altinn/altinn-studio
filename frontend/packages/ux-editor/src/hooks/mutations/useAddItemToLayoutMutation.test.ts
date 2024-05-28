@@ -6,12 +6,12 @@ import type { AddFormItemMutationArgs } from './useAddItemToLayoutMutation';
 import { useAddItemToLayoutMutation } from './useAddItemToLayoutMutation';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
+import { externalLayoutsMock } from '@altinn/ux-editor/testing/layoutMock';
 import {
-  externalLayoutsMock,
   layoutSet1NameMock,
   layoutSet2NameMock,
   layoutSetsMock,
-} from '../../testing/layoutMock';
+} from '@altinn/ux-editor/testing/layoutSetMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { app, org } from '@studio/testing/testids';

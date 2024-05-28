@@ -9,8 +9,8 @@ import {
   container2IdMock,
   layout1NameMock,
   layoutMock,
-  layoutSet1NameMock,
-} from '../../../../testing/layoutMock';
+} from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { IFormLayouts } from '../../../../types/global';

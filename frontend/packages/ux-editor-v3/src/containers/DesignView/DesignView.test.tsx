@@ -15,8 +15,8 @@ import {
   externalLayoutsMock,
   layout1NameMock,
   layout2NameMock,
-  layoutSet1NameMock,
-} from '../../testing/layoutMock';
+} from '@altinn/ux-editor-v3/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetMock';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { app, org } from '@studio/testing/testids';
 

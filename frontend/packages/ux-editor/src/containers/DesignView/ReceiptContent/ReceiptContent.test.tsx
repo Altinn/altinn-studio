@@ -10,8 +10,8 @@ import {
   component2Mock,
   layout1NameMock,
   layout2NameMock,
-  layoutSet1NameMock,
-} from '../../../testing/layoutMock';
+} from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetMock';
 import type { IInternalLayout } from '../../../types/global';
 import {
   formLayoutSettingsMock,

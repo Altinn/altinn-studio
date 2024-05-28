@@ -4,7 +4,11 @@ import userEvent from '@testing-library/user-event';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithMockStore } from '../../testing/mocks';
-import { layoutSet1NameMock, layoutSet2NameMock, layoutSetsMock } from '../../testing/layoutMock';
+import {
+  layoutSet1NameMock,
+  layoutSet2NameMock,
+  layoutSetsMock,
+} from '@altinn/ux-editor-v3/testing/layoutSetMock';
 import type { AppContextProps } from '../../AppContext';
 import { appStateMock } from '../../testing/stateMocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
