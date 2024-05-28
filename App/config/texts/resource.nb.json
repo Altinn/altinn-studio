@@ -1,7 +1,50 @@
 {
-  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/text-resources/text-resources.schema.v1.json",
   "language": "nb",
   "resources": [
+    {
+      "id": "Side1.Checkboxes-dxp6Rr.title",
+      "value": "Bransje"
+    },
+    {
+      "id": "Side1.RadioButtons-t8YpJA.title",
+      "value": "Sektor"
+    },
+    {
+      "id": "Side1.RepeatingGroup-ptGWlM.title",
+      "value": "Personer"
+    },
+    {
+      "id": "Side1.Input-EVYFwx.title",
+      "value": "Tekstfelt 2"
+    },
+    {
+      "id": "Side1.Input-zRQ9nX.title",
+      "value": "Tekstfelt 1"
+    },
+    {
+      "id": "Side1.Button-Sjnxbg.title",
+      "value": "Send inn"
+    },
+    {
+      "id": "Side1.Header-tNYPtf.title",
+      "value": "Fra forrige steg"
+    },
+    {
+      "id": "Side1.Input-GhRioy.title",
+      "value": "Mobilnummer"
+    },
+    {
+      "id": "Side1.Input-FNCGd0.title",
+      "value": "E-post"
+    },
+    {
+      "id": "Side1.RepeatingGroup-6svZ9g.title",
+      "value": "Kontaktinfo"
+    },
+    {
+      "id": "Side1.Input-ERdCEy.title",
+      "value": "Tekstfelt 3"
+    },
     {
       "id": "Side2.Address-xdZ7PE.title",
       "value": "Adresse"
