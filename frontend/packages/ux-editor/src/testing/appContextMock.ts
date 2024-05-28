@@ -1,6 +1,6 @@
 import type { AppContextProps } from '../AppContext';
 import type { RefObject } from 'react';
-import { layoutSet1NameMock } from './layoutSetMock';
+import { layoutSet1NameMock } from './layoutSetsMock';
 import { layout1NameMock } from './layoutMock';
 
 const previewIframeRefMock: RefObject<HTMLIFrameElement> = {
