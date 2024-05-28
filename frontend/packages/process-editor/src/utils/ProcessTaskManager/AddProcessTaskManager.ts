@@ -29,7 +29,7 @@ export class AddProcessTaskManager {
       this.handleSigningTaskAdd(taskEvent);
     }
 
-    // Informs the consumer of this package that a task has been removed with the taskEvent and taskType
+    // Informs the consumer of this package that a task has been added with the taskEvent and taskType
     this.onProcessTaskAdd({
       taskEvent,
       taskType: this.bpmnDetails.taskType,
