@@ -11,6 +11,7 @@ export type StudioTableLocalPaginationProps = {
   emptyTableMessage?: string;
   isSortable?: boolean;
   pagination?: {
+    pageSize: number;
     pageSizeOptions: number[];
     pageSizeLabel: string;
     nextButtonText: string;

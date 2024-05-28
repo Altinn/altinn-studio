@@ -16,6 +16,7 @@ type UseRepoSearchResult = {
   setSortModel: (selectedSortModel: GridSortModel) => void;
   setPageNumber: (pageNumber: number) => void;
   setPageSize: (pageSize: DATAGRID_PAGE_SIZE_TYPE) => void;
+  handleSorting: (columnKey: string) => void;
 };
 
 type UseReposSearchProps = {

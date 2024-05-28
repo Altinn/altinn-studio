@@ -1,27 +1,14 @@
-import React, { useMemo, useRef, useState } from 'react';
-import type {
-  GridActionsColDef,
-  GridPaginationModel,
-  GridRowParams,
-  GridSortModel,
-} from '@mui/x-data-grid';
-import { GridActionsCellItem } from '@mui/x-data-grid';
-import cn from 'classnames';
+import React from 'react';
+import type { GridSortModel } from '@mui/x-data-grid';
 import type { RepositoryWithStarred } from 'dashboard/utils/repoUtils/repoUtils';
-import { MakeCopyModal } from '../MakeCopyModal';
-import { getRepoEditUrl } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
 import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import { DATAGRID_DEFAULT_PAGE_SIZE, DATAGRID_PAGE_SIZE_OPTIONS } from '../../constants';
-import classes from './RepoList.module.css';
-import type { User } from 'app-shared/types/Repository';
-import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from '../../hooks/mutations';
-import { PencilIcon, FilesIcon, ExternalLinkIcon, StarIcon, StarFillIcon } from '@studio/icons';
 import { StudioTableLocalPagination, StudioTableRemotePagination } from '@studio/components';
 import { ActionLinks } from './ActionLinks';
 import { FavoriteButton } from './FavoriteButton';
 
-export interface IRepoListProps {
+export interface RepoListProps {
   isLoading: boolean;
   repos?: RepositoryWithStarred[];
   isServerSort?: boolean;
@@ -34,6 +21,7 @@ export interface IRepoListProps {
   pageSizeOptions?: Array<number>;
   sortModel?: GridSortModel;
   disableVirtualization?: boolean;
+  handleSorting?: (columnKey: string) => void;
 }
 
 const defaultArray: RepositoryWithStarred[] = [];
@@ -49,11 +37,7 @@ export const RepoList = ({
   onPageSizeChange,
   pageSizeOptions = DATAGRID_PAGE_SIZE_OPTIONS,
   handleSorting,
-}: IRepoListProps) => {
-  const [paginationModel, setPaginationModel] = React.useState<GridPaginationModel>({
-    pageSize,
-    page: 0,
-  });
+}: RepoListProps) => {
   const { t } = useTranslation();
 
   const studioColumns = [
@@ -132,6 +116,7 @@ export const RepoList = ({
           size='small'
           emptyTableMessage={t('dashboard.no_repos_result')}
           pagination={{
+            pageSize: DATAGRID_PAGE_SIZE_OPTIONS[0],
             pageSizeOptions: DATAGRID_PAGE_SIZE_OPTIONS,
             pageSizeLabel: t('dashboard.rows_per_page'),
             nextButtonText: t('ux_editor.modal_properties_button_type_next'),
