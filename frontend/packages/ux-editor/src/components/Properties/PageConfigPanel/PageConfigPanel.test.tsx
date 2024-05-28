@@ -8,12 +8,14 @@ import type { ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { IFormLayouts } from '../../../types/global';
-import { layout1NameMock, layoutMock, layoutSet1NameMock } from '../../../testing/layoutMock';
+import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 
 // Test data
 const layoutSet = layoutSet1NameMock;
 const duplicatedLayout = 'duplicatedLayout';
+const dataModelName = undefined;
 
 const defaultTexts: ITextResources = {
   [DEFAULT_LANGUAGE]: [
@@ -93,7 +95,10 @@ const renderPageConfigPanel = (
 ) => {
   queryClientMock.setQueryData([QueryKey.TextResources, org, app], textResources);
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet], layouts);
-  queryClientMock.setQueryData([QueryKey.DatamodelMetadata, org, app, layoutSet], []);
+  queryClientMock.setQueryData(
+    [QueryKey.DatamodelMetadata, org, app, layoutSet, dataModelName],
+    [],
+  );
 
   return renderWithProviders(<PageConfigPanel />, {
     appContextProps: { selectedFormLayoutName: selectedLayoutName },

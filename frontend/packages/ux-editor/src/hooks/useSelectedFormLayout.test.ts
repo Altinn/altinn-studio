@@ -1,9 +1,10 @@
 import { useSelectedFormLayout } from './';
 import { renderHookWithProviders } from '../testing/mocks';
 import { useFormLayoutsQuery } from './queries/useFormLayoutsQuery';
-import { externalLayoutsMock, layoutMock, layoutSet1NameMock } from '../testing/layoutMock';
+import { externalLayoutsMock, layoutMock } from '../testing/layoutMock';
 import { waitFor } from '@testing-library/react';
 import { app, org } from '@studio/testing/testids';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
 // Test data:
 const selectedLayoutSet = layoutSet1NameMock;
