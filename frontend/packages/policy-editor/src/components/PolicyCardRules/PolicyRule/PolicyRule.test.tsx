@@ -12,20 +12,16 @@ import {
 } from '../../../contexts/PolicyEditorContext';
 import { mockPolicyEditorContextValue } from '../../../../test/mocks/policyEditorContextMock';
 
-const mockHandleCloneRule = jest.fn();
-const mockHandleDeleteRule = jest.fn();
-
 const defaultProps: PolicyRuleProps = {
   policyRule: mockPolicyRuleCard1,
-  handleCloneRule: mockHandleCloneRule,
-  handleDeleteRule: mockHandleDeleteRule,
   showErrors: false,
+  ruleIndex: 0,
 };
 
 describe('PolicyRule', () => {
   afterEach(jest.clearAllMocks);
 
-  it('calls "handleCloneRule" when the clone button is clicked', async () => {
+  it('calls "setPolicyRules" and "savePolicy" when the clone button is clicked', async () => {
     const user = userEvent.setup();
     renderPolicyRule();
 
@@ -37,12 +33,14 @@ describe('PolicyRule', () => {
     });
     await user.click(cloneButton);
 
-    expect(mockHandleCloneRule).toHaveBeenCalledTimes(1);
+    expect(mockPolicyEditorContextValue.setPolicyRules).toHaveBeenCalledTimes(1);
+    expect(mockPolicyEditorContextValue.savePolicy).toHaveBeenCalledTimes(1);
   });
 
-  it('calls "handleDeleteRule" when the delete button is clicked', async () => {
+  it('calls "setPolicyRules" and "savePolicy" when the delete button is clicked', async () => {
     const user = userEvent.setup();
     renderPolicyRule();
+    jest.spyOn(window, 'confirm').mockImplementation(() => true);
 
     const [moreButton] = screen.getAllByRole('button', { name: textMock('policy_editor.more') });
     await user.click(moreButton);
@@ -50,7 +48,8 @@ describe('PolicyRule', () => {
     const [deleteButton] = screen.getAllByRole('menuitem', { name: textMock('general.delete') });
     await user.click(deleteButton);
 
-    expect(mockHandleDeleteRule).toHaveBeenCalledTimes(1);
+    expect(mockPolicyEditorContextValue.setPolicyRules).toHaveBeenCalledTimes(1);
+    expect(mockPolicyEditorContextValue.savePolicy).toHaveBeenCalledTimes(1);
   });
 
   it('calls "savePolicy" when input fields are blurred', async () => {

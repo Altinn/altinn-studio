@@ -10,21 +10,23 @@ import { PolicyActions } from './PolicyActions';
 import { PolicySubjects } from './PolicySubjects';
 import { PolicyDescription } from './PolicyDescription';
 import { PolicyRuleErrorMessage } from './PolicyRuleErrorMessage';
+import { getNewRuleId } from '../../../utils';
+import { usePolicyEditorContext } from '../../../contexts/PolicyEditorContext';
+import { ObjectUtils } from '@studio/pure-functions';
 
 export type PolicyRuleProps = {
   policyRule: PolicyRuleCard;
-  handleCloneRule: () => void;
-  handleDeleteRule: () => void;
   showErrors: boolean;
+  ruleIndex: number;
 };
 
 export const PolicyRule = ({
   policyRule,
-  handleCloneRule,
-  handleDeleteRule,
   showErrors,
+  ruleIndex,
 }: PolicyRuleProps): React.ReactNode => {
   const { t } = useTranslation();
+  const { policyRules, setPolicyRules, savePolicy } = usePolicyEditorContext();
 
   const uniqueId = useId();
 
@@ -37,6 +39,30 @@ export const PolicyRule = ({
 
   const getHasRuleError = () => {
     return resourceError || actionsError || subjectsError;
+  };
+
+  const handleCloneRule = () => {
+    const newRuleId: string = getNewRuleId(policyRules);
+
+    const ruleToDuplicate: PolicyRuleCard = {
+      ...policyRules[ruleIndex],
+      ruleId: newRuleId,
+    };
+    const deepCopiedRuleToDuplicate: PolicyRuleCard = ObjectUtils.deepCopy(ruleToDuplicate);
+
+    const updatedRules = [...policyRules, deepCopiedRuleToDuplicate];
+    setPolicyRules(updatedRules);
+    savePolicy(updatedRules);
+  };
+
+  const handleDeleteRule = () => {
+    if (confirm(t('policy_editor.verification_modal_text'))) {
+      const updatedRules = [...policyRules];
+      const indexToRemove = updatedRules.findIndex((a) => a.ruleId === policyRule.ruleId);
+      updatedRules.splice(indexToRemove, 1);
+      setPolicyRules(updatedRules);
+      savePolicy(updatedRules);
+    }
   };
 
   return (
