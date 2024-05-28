@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { AxiosError } from 'axios';
-import { Policy, RequiredAuthLevel } from 'app-shared/types/Policy';
+import type { Policy, RequiredAuthLevel } from 'app-shared/types/Policy';
 
 const DEFAULT_AUTH_LEVEL: RequiredAuthLevel = '3';
 

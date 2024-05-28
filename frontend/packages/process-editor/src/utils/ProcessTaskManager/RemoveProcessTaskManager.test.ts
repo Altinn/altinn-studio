@@ -4,7 +4,7 @@ import { type BpmnTaskType } from '../../types/BpmnTaskType';
 import { type BpmnDetails } from '../../types/BpmnDetails';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 import { type TaskEvent } from '../ProcessTaskManager/types';
-import { Policy } from 'app-shared/types/Policy';
+import { type Policy } from 'app-shared/types/Policy';
 
 describe('RemoveProcessTaskManager', () => {
   beforeEach(() => {

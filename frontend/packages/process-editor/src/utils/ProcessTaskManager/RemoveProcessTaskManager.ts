@@ -7,7 +7,7 @@ import {
   getLayoutSetIdFromTaskId,
 } from '../../utils/hookUtils/hookUtils';
 import { PaymentPolicyBuilder } from '../../utils/policy';
-import { Policy } from 'app-shared/types/Policy';
+import { type Policy } from 'app-shared/types/Policy';
 
 export class RemoveProcessTaskManager {
   constructor(

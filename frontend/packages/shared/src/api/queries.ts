@@ -73,7 +73,7 @@ import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import type { NewsList } from 'app-shared/types/api/NewsList';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
-import { Policy } from 'app-shared/types/Policy';
+import type { Policy } from 'app-shared/types/Policy';
 
 export const getAppMetadataModelIds = (org: string, app: string, onlyUnReferenced: boolean) => get<string[]>(appMetadataModelIdsPath(org, app, onlyUnReferenced));
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));

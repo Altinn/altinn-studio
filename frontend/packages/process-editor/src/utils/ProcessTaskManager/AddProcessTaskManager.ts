@@ -4,7 +4,7 @@ import { PaymentPolicyBuilder } from '../../utils/policy';
 import { type BpmnApiContextProps } from '../../contexts/BpmnApiContext';
 import { type BpmnDetails } from '../../types/BpmnDetails';
 import { type TaskEvent } from './types';
-import { Policy } from 'app-shared/types/Policy';
+import { type Policy } from 'app-shared/types/Policy';
 
 export class AddProcessTaskManager {
   constructor(
