@@ -191,11 +191,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<ModelMetadata> GetModelMetadata(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName, string dataModelName, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
             string modelPath;
             ModelMetadata modelMetadata;
 
-            // Get model metadata based on dataModelName if it is provided
             if (dataModelName is not null)
             {
                 modelPath = $"App/models/{dataModelName}.schema.json";
@@ -203,8 +201,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return modelMetadata;
             }
 
-            // Get model metadata based on layoutSetName
-            string modelName = await GetModelNameFromLayoutSet(altinnRepoEditingContext, layoutSetName, cancellationToken);
+            string modelName = await GetModelName(altinnRepoEditingContext, layoutSetName, cancellationToken);
 
             if (string.IsNullOrEmpty(modelName))
             {
@@ -216,17 +213,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return modelMetadata;
         }
 
-        private async Task<string> GetModelNameFromLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName,  CancellationToken cancellationToken = default)
+        private async Task<string> GetModelName(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName,  CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(layoutSetName))
             {
-                return string.Empty;
+                // Fallback to first model in app metadata if no layout set is provided
+                AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+                ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
+                return applicationMetadata.DataTypes.FirstOrDefault(data => data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef) && !string.IsNullOrEmpty(data.TaskId))?.Id ?? string.Empty;
             }
 
             LayoutSets layoutSets = await GetLayoutSets(altinnRepoEditingContext, cancellationToken);
-            var layoutSetSearchResult = layoutSets.Sets.Find(set => set.Id == layoutSetName);
+            var foundLayoutSet = layoutSets.Sets.Find(set => set.Id == layoutSetName);
 
-            return layoutSetSearchResult.DataType;
+            return foundLayoutSet.DataType;
         }
 
         private IEnumerable<string> GetAppMetadataModelIds(ApplicationMetadata applicationMetadata, bool onlyUnReferenced)
