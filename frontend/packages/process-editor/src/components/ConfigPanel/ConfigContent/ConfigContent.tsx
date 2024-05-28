@@ -11,6 +11,7 @@ import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { Accordion } from '@digdir/design-system-react';
 import { EditActions } from './EditActions';
 import { EditPolicy } from './EditPolicy';
+import { EditDataType2 } from './EditDataType2/EditDataType2';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -42,6 +43,7 @@ export const ConfigContent = (): React.ReactElement => {
         value={bpmnDetails.name}
       />
       {taskHasConnectedLayoutSet && <EditDataType />}
+      {bpmnDetails.taskType === 'signing' && <EditDataType2 />}
       <div>
         <Accordion color='neutral'>
           <Accordion.Item>
