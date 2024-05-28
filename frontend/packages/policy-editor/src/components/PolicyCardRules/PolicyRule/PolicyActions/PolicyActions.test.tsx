@@ -91,7 +91,7 @@ describe('PolicyActions', () => {
     expect(screen.getByRole('option', { name: mockActionOption1 })).toBeInTheDocument();
   });
 
-  it('calls the "setPolicyRules", "savePolicy", and "setHasActionsError" function when the chip is clicked', async () => {
+  it('calls the "setPolicyRules", "savePolicy", and "setPolicyError" function when the chip is clicked', async () => {
     const user = userEvent.setup();
     renderPolicyActions();
 
@@ -100,7 +100,7 @@ describe('PolicyActions', () => {
 
     expect(mockPolicyEditorContextValue.setPolicyRules).toHaveBeenCalledTimes(1);
     expect(mockPolicyEditorContextValue.savePolicy).toHaveBeenCalledTimes(1);
-    expect(mockPolicyRuleContextValue.setHasActionsError).toHaveBeenCalledTimes(1);
+    expect(mockPolicyRuleContextValue.setPolicyError).toHaveBeenCalledTimes(1);
   });
 });
 

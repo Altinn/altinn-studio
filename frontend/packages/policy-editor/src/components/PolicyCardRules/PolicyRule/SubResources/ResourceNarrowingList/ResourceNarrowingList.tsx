@@ -21,7 +21,7 @@ export const ResourceNarrowingList = ({
   resourceIndex,
 }: ResourceNarrowingListProps): React.ReactNode => {
   const { usageType, setPolicyRules, policyRules, savePolicy } = usePolicyEditorContext();
-  const { policyRule, setHasResourceError } = usePolicyRuleContext();
+  const { policyRule, setPolicyError, policyError } = usePolicyRuleContext();
 
   const { t } = useTranslation();
 
@@ -35,7 +35,7 @@ export const ResourceNarrowingList = ({
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
-    setHasResourceError(updatedResources.length === 0);
+    setPolicyError({ ...policyError, resourceError: updatedResources.length === 0 });
   };
 
   const handleCloneResourceGroup = () => {

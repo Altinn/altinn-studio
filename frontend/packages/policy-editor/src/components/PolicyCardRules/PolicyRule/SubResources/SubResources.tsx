@@ -22,8 +22,7 @@ export const SubResources = (): React.ReactElement => {
     savePolicy,
   } = usePolicyEditorContext();
 
-  const { policyRule, setHasResourceError, hasResourceError, showAllErrors } =
-    usePolicyRuleContext();
+  const { policyRule, setPolicyError, policyError, showAllErrors } = usePolicyRuleContext();
 
   const handleClickAddResource = () => {
     const newResource: PolicyRuleResource[] = createNewPolicyResource(
@@ -40,7 +39,7 @@ export const SubResources = (): React.ReactElement => {
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
-    setHasResourceError(false);
+    setPolicyError({ ...policyError, resourceError: false });
   };
 
   const displayResources = policyRule.resources.map((r, i) => {
@@ -67,7 +66,7 @@ export const SubResources = (): React.ReactElement => {
           {t('policy_editor.rule_card_sub_resource_button')}
         </StudioButton>
       </div>
-      {showAllErrors && hasResourceError && (
+      {showAllErrors && policyError.resourceError && (
         <ErrorMessage size='small'>{t('policy_editor.rule_card_sub_resource_error')}</ErrorMessage>
       )}
     </>

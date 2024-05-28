@@ -2,7 +2,7 @@ import React, { useState, useId } from 'react';
 import { ErrorMessage, Textarea } from '@digdir/design-system-react';
 import classes from './PolicyRule.module.css';
 import { ExpandablePolicyElement } from './ExpandablePolicyElement';
-import type { PolicyRuleCard } from '../../../types';
+import type { PolicyRuleCard, PolicyError } from '../../../types';
 import { getPolicyRuleIdString, getUpdatedRules } from '../../../utils/PolicyRuleUtils';
 import { useTranslation } from 'react-i18next';
 import { usePolicyEditorContext } from '../../../contexts/PolicyEditorContext';
@@ -25,16 +25,16 @@ export const PolicyRule = ({
   showErrors,
 }: PolicyRuleProps): React.ReactNode => {
   const { t } = useTranslation();
-
-  // FIX BELOW
   const { policyRules, setPolicyRules, savePolicy } = usePolicyEditorContext();
 
   const uniqueId = useId();
 
-  const [hasResourceError, setHasResourceError] = useState(policyRule.resources.length === 0);
-
-  const [hasActionsError, setHasActionsError] = useState(policyRule.actions.length === 0);
-  const [hasSubjectsError, setHasSubjectsError] = useState(policyRule.subject.length === 0);
+  const [policyError, setPolicyError] = useState<PolicyError>({
+    resourceError: policyRule.resources.length === 0,
+    actionsError: policyRule.actions.length === 0,
+    subjectsError: policyRule.subject.length === 0,
+  });
+  const { resourceError, actionsError, subjectsError } = policyError;
 
   const handleChangeDescription = (description: string) => {
     const updatedRules = getUpdatedRules(
@@ -45,20 +45,15 @@ export const PolicyRule = ({
     setPolicyRules(updatedRules);
   };
 
-  // TODO - FIX
-  const displayError = (text: string) => {
-    return <ErrorMessage size='small'>{text}</ErrorMessage>;
-  };
-
   const getHasRuleError = () => {
-    return hasResourceError || hasActionsError || hasSubjectsError;
+    return resourceError || actionsError || subjectsError;
   };
 
   const getRuleErrorText = (): string => {
     const arr: string[] = [];
-    if (hasResourceError) arr.push(t('policy_editor.policy_rule_missing_sub_resource'));
-    if (hasActionsError) arr.push(t('policy_editor.policy_rule_missing_actions'));
-    if (hasSubjectsError) arr.push(t('policy_editor.policy_rule_missing_subjects'));
+    if (resourceError) arr.push(t('policy_editor.policy_rule_missing_sub_resource'));
+    if (actionsError) arr.push(t('policy_editor.policy_rule_missing_actions'));
+    if (subjectsError) arr.push(t('policy_editor.policy_rule_missing_subjects'));
 
     if (arr.length === 1) {
       return t('policy_editor.policy_rule_missing_1', {
@@ -88,13 +83,9 @@ export const PolicyRule = ({
     <PolicyRuleContextProvider
       policyRule={policyRule}
       showAllErrors={showErrors}
-      hasResourceError={hasResourceError}
-      setHasResourceError={setHasResourceError}
-      hasActionsError={hasActionsError}
-      setHasActionsError={setHasActionsError}
       uniqueId={uniqueId}
-      hasSubjectsError={hasSubjectsError}
-      setHasSubjectsError={setHasSubjectsError}
+      policyError={policyError}
+      setPolicyError={setPolicyError}
     >
       <div className={classes.cardWrapper}>
         <ExpandablePolicyElement
@@ -121,7 +112,7 @@ export const PolicyRule = ({
             />
           </div>
         </ExpandablePolicyElement>
-        {showErrors && displayError(getRuleErrorText())}
+        {showErrors && <ErrorMessage size='small'>{getRuleErrorText()}</ErrorMessage>}
       </div>
     </PolicyRuleContextProvider>
   );

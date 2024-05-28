@@ -1,14 +1,17 @@
 import { type PolicyRuleContextProps } from '../../src/contexts/PolicyRuleContext';
 import { mockPolicyRuleCard1 } from './policyRuleMocks';
+import { type PolicyError } from '../../src/types';
+
+const policyError: PolicyError = {
+  resourceError: false,
+  subjectsError: false,
+  actionsError: false,
+};
 
 export const mockPolicyRuleContextValue: PolicyRuleContextProps = {
   policyRule: mockPolicyRuleCard1,
   showAllErrors: false,
   uniqueId: 'id',
-  hasResourceError: false,
-  setHasResourceError: jest.fn(),
-  hasActionsError: false,
-  setHasActionsError: jest.fn(),
-  hasSubjectsError: false,
-  setHasSubjectsError: jest.fn(),
+  policyError,
+  setPolicyError: jest.fn(),
 };

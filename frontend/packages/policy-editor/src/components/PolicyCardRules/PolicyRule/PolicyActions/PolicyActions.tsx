@@ -19,7 +19,7 @@ const wellKnownActionsIds: string[] = [
 export const PolicyActions = (): React.ReactElement => {
   const { t } = useTranslation();
   const { policyRules: rules, setPolicyRules, actions, savePolicy } = usePolicyEditorContext();
-  const { policyRule, uniqueId, showAllErrors, hasActionsError, setHasActionsError } =
+  const { policyRule, uniqueId, showAllErrors, policyError, setPolicyError } =
     usePolicyRuleContext();
 
   const [actionOptions, setActionOptions] = useState(getActionOptions(actions, policyRule));
@@ -43,7 +43,7 @@ export const PolicyActions = (): React.ReactElement => {
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
-    setHasActionsError(updatedActions.length === 0);
+    setPolicyError({ ...policyError, actionsError: updatedActions.length === 0 });
   };
 
   const handleClickActionInList = (clickedOption: string) => {
@@ -60,7 +60,7 @@ export const PolicyActions = (): React.ReactElement => {
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
-    setHasActionsError(false);
+    setPolicyError({ ...policyError, actionsError: false });
   };
 
   const displayActions = policyRule.actions.map((actionId, i) => {
@@ -95,12 +95,12 @@ export const PolicyActions = (): React.ReactElement => {
           }))}
           onChange={(value: string) => value !== null && handleClickActionInList(value)}
           disabled={actionOptions.length === 0}
-          error={showAllErrors && hasActionsError}
+          error={showAllErrors && policyError.actionsError}
           inputId={`selectAction-${uniqueId}`}
         />
       </div>
       <div className={classes.chipWrapper}>{displayActions}</div>
-      {showAllErrors && hasActionsError && (
+      {showAllErrors && policyError.actionsError && (
         <ErrorMessage size='small'>{t('policy_editor.rule_card_actions_error')}</ErrorMessage>
       )}
     </>

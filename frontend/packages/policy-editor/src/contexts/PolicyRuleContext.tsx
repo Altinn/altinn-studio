@@ -1,20 +1,12 @@
 import React, { createContext, useContext } from 'react';
-import type { PolicyRuleCard } from '../types';
+import type { PolicyRuleCard, PolicyError } from '../types';
 
 export type PolicyRuleContextProps = {
   policyRule: PolicyRuleCard;
   showAllErrors: boolean;
   uniqueId: string;
-
-  // Maybe make in to one
-  hasResourceError: boolean;
-  setHasResourceError: React.Dispatch<React.SetStateAction<boolean>>;
-
-  hasActionsError: boolean;
-  setHasActionsError: React.Dispatch<React.SetStateAction<boolean>>;
-
-  hasSubjectsError: boolean;
-  setHasSubjectsError: React.Dispatch<React.SetStateAction<boolean>>;
+  policyError: PolicyError;
+  setPolicyError: React.Dispatch<React.SetStateAction<PolicyError>>;
 };
 
 export const PolicyRuleContext = createContext<Partial<PolicyRuleContextProps>>(undefined);

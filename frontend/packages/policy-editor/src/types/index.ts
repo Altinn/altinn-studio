@@ -41,3 +41,9 @@ export interface Policy {
 }
 
 export type PolicyEditorUsage = 'app' | 'resource';
+
+export type PolicyError = {
+  resourceError: boolean;
+  actionsError: boolean;
+  subjectsError: boolean;
+};

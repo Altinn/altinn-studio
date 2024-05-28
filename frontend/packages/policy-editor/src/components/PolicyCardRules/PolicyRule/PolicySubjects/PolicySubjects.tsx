@@ -11,7 +11,7 @@ import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 export const PolicySubjects = (): React.ReactElement => {
   const { t } = useTranslation();
   const { policyRules, subjects, setPolicyRules, savePolicy } = usePolicyEditorContext();
-  const { policyRule, uniqueId, showAllErrors, hasSubjectsError, setHasSubjectsError } =
+  const { policyRule, uniqueId, showAllErrors, policyError, setPolicyError } =
     usePolicyRuleContext();
 
   const [subjectOptions, setSubjectOptions] = useState(getSubjectOptions(subjects, policyRule));
@@ -36,7 +36,7 @@ export const PolicySubjects = (): React.ReactElement => {
 
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
-    setHasSubjectsError(updatedSubjects.length === 0);
+    setPolicyError({ ...policyError, subjectsError: updatedSubjects.length === 0 });
   };
 
   const handleClickSubjectInList = (clickedOption: string) => {
@@ -54,7 +54,7 @@ export const PolicySubjects = (): React.ReactElement => {
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
-    setHasSubjectsError(false);
+    setPolicyError({ ...policyError, subjectsError: false });
   };
 
   const displaySubjects = policyRule.subject.map((s, i) => {
@@ -87,12 +87,12 @@ export const PolicySubjects = (): React.ReactElement => {
           options={subjectOptions}
           onChange={(value: string) => value !== null && handleClickSubjectInList(value)}
           disabled={subjectOptions.length === 0}
-          error={showAllErrors && hasSubjectsError}
+          error={showAllErrors && policyError.subjectsError}
           inputId={`selectSubject-${uniqueId}`}
         />
       </div>
       <div className={classes.chipWrapper}>{displaySubjects}</div>
-      {showAllErrors && hasSubjectsError && (
+      {showAllErrors && policyError.subjectsError && (
         <ErrorMessage size='small'>{t('policy_editor.rule_card_subjects_error')}</ErrorMessage>
       )}
     </>

@@ -132,7 +132,6 @@ describe('ResourceNarrowingList', () => {
     await user.type(typeInput, mockNewText);
     await user.tab();
     expect(mockPolicyEditorContextValue.savePolicy).toHaveBeenCalledTimes(1);
-    // TODO - add with
   });
 });
 
