@@ -24,7 +24,7 @@ import {
   mockSubjectId3,
 } from '../../../test/mocks/policySubjectMocks';
 
-describe('ExpandablePolicyCardUtils', () => {
+describe('PolicyRuleUtils', () => {
   describe('getUpdatedRules', () => {
     it('should update a rule in the list', () => {
       const updatedRule = { ...mockPolicyRuleCard1, description: 'Updated Rule' };

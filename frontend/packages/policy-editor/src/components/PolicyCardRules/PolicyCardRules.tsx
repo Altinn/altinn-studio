@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './PolicyCardRules.module.css';
 import { usePolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import { ObjectUtils } from '@studio/pure-functions';
-import { ExpandablePolicyCard } from '../ExpandablePolicyCard';
+import { PolicyRule } from './PolicyRule';
 import type { PolicyRuleCard } from '../../types';
 import { getNewRuleId } from '../../utils';
 import { useTranslation } from 'react-i18next';
@@ -45,7 +45,7 @@ export const PolicyCardRules = ({
   return policyRules.map((pr, i) => {
     return (
       <div className={classes.space} key={pr.ruleId}>
-        <ExpandablePolicyCard
+        <PolicyRule
           policyRule={pr}
           handleCloneRule={() => handleCloneRule(i)}
           handleDeleteRule={() => handleDeleteRule(pr.ruleId)}

@@ -4,31 +4,26 @@ import userEvent from '@testing-library/user-event';
 import type { PolicyResourceFieldsProps } from './PolicyResourceFields';
 import { PolicyResourceFields } from './PolicyResourceFields';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { PolicyEditorContext } from '../../../../../../contexts/PolicyEditorContext';
+import { PolicyRuleContext } from '../../../../../../contexts/PolicyRuleContext';
+import { mockPolicyEditorContextValue } from '../../../../../../../test/mocks/policyEditorContextMock';
+import { mockPolicyRuleContextValue } from '../../../../../../../test/mocks/policyRuleContextMock';
+import { mockResource11 } from '../../../../../../../test/mocks/policySubResourceMocks';
 
-const mockValueId: string = 'Test123';
-const mockValueType: string = '123Test';
 const mockValudNewText = '45';
+
+const defaultProps: PolicyResourceFieldsProps = {
+  resource: mockResource11,
+  canEditTypeAndId: true,
+  resourceIndex: 0,
+  resourceNarrowingIndex: 0,
+};
 
 describe('PolicyResourceFields', () => {
   afterEach(jest.clearAllMocks);
 
-  const mockOnRemove = jest.fn();
-  const mockOnChangeId = jest.fn();
-  const mockOnChangeType = jest.fn();
-  const mockOnBlur = jest.fn();
-
-  const defaultProps: PolicyResourceFieldsProps = {
-    canEditTypeAndId: true,
-    onRemove: mockOnRemove,
-    valueId: mockValueId,
-    onChangeId: mockOnChangeId,
-    valueType: mockValueType,
-    onChangeType: mockOnChangeType,
-    onBlur: mockOnBlur,
-  };
-
   it('sets text fields to readonly when "canEditTypeAndId" is false', () => {
-    render(<PolicyResourceFields {...defaultProps} canEditTypeAndId={false} />);
+    renderPolicyResourceFields({ canEditTypeAndId: false });
 
     const idInput = screen.getByLabelText(textMock('policy_editor.narrowing_list_field_id'));
     expect(idInput).toHaveAttribute('readonly');
@@ -38,7 +33,7 @@ describe('PolicyResourceFields', () => {
   });
 
   it('sets text fields to not be readonly when "canEditTypeAndId" is true', () => {
-    render(<PolicyResourceFields {...defaultProps} />);
+    renderPolicyResourceFields();
 
     const idInput = screen.getByLabelText(textMock('policy_editor.narrowing_list_field_id'));
     expect(idInput).not.toHaveAttribute('readonly');
@@ -47,41 +42,45 @@ describe('PolicyResourceFields', () => {
     expect(typeInput).not.toHaveAttribute('readonly');
   });
 
-  it('calls "onChangeId" when id input values change', async () => {
+  it('calls "setPolicyRules" when id input values change', async () => {
     const user = userEvent.setup();
-    render(<PolicyResourceFields {...defaultProps} />);
+    renderPolicyResourceFields();
 
     const idInput = screen.getByLabelText(textMock('policy_editor.narrowing_list_field_id'));
 
     await user.type(idInput, mockValudNewText);
 
-    expect(mockOnChangeId).toHaveBeenCalledTimes(mockValudNewText.length);
+    expect(mockPolicyEditorContextValue.setPolicyRules).toHaveBeenCalledTimes(
+      mockValudNewText.length,
+    );
   });
 
-  it('calls "onChangeType" when type input values change', async () => {
+  it('calls "setPolicyRules" when type input values change', async () => {
     const user = userEvent.setup();
-    render(<PolicyResourceFields {...defaultProps} />);
+    renderPolicyResourceFields();
 
     const typeInput = screen.getByLabelText(textMock('policy_editor.narrowing_list_field_type'));
 
     await user.type(typeInput, mockValudNewText);
 
-    expect(mockOnChangeType).toHaveBeenCalledTimes(mockValudNewText.length);
+    expect(mockPolicyEditorContextValue.setPolicyRules).toHaveBeenCalledTimes(
+      mockValudNewText.length,
+    );
   });
 
-  it('calls "onBlur" when input fields lose focus', async () => {
+  it('calls "savePolicy" when input fields lose focus', async () => {
     const user = userEvent.setup();
-    render(<PolicyResourceFields {...defaultProps} />);
+    renderPolicyResourceFields();
 
     const typeInput = screen.getByLabelText(textMock('policy_editor.narrowing_list_field_type'));
 
     await user.type(typeInput, mockValudNewText);
     await user.tab();
-    expect(mockOnBlur).toHaveBeenCalledTimes(1);
+    expect(mockPolicyEditorContextValue.savePolicy).toHaveBeenCalledTimes(1);
   });
 
   it('hides the delete button when "canEditTypeAndId" is false', () => {
-    render(<PolicyResourceFields {...defaultProps} canEditTypeAndId={false} />);
+    renderPolicyResourceFields({ canEditTypeAndId: false });
 
     const deleteButton = screen.queryByRole('button', {
       name: textMock('policy_editor.narrowing_list_field_delete'),
@@ -90,9 +89,9 @@ describe('PolicyResourceFields', () => {
     expect(deleteButton).not.toBeInTheDocument();
   });
 
-  it('calls "onRemove" when delete button is clicked', async () => {
+  it('calls "setPolicyRules" and "savePolicy" when delete button is clicked', async () => {
     const user = userEvent.setup();
-    render(<PolicyResourceFields {...defaultProps} />);
+    renderPolicyResourceFields();
 
     const deleteButton = screen.getByRole('button', {
       name: textMock('policy_editor.narrowing_list_field_delete'),
@@ -102,6 +101,19 @@ describe('PolicyResourceFields', () => {
 
     await user.click(deleteButton);
 
-    expect(mockOnRemove).toHaveBeenCalledTimes(1);
+    expect(mockPolicyEditorContextValue.setPolicyRules).toHaveBeenCalledTimes(1);
+    expect(mockPolicyEditorContextValue.savePolicy).toHaveBeenCalledTimes(1);
   });
 });
+
+const renderPolicyResourceFields = (
+  policyResourceFieldsProps: Partial<PolicyResourceFieldsProps> = {},
+) => {
+  return render(
+    <PolicyEditorContext.Provider value={mockPolicyEditorContextValue}>
+      <PolicyRuleContext.Provider value={mockPolicyRuleContextValue}>
+        <PolicyResourceFields {...defaultProps} {...policyResourceFieldsProps} />
+      </PolicyRuleContext.Provider>
+    </PolicyEditorContext.Provider>,
+  );
+};

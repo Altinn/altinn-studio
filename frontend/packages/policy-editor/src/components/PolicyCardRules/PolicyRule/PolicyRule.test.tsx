@@ -1,26 +1,25 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { ExpandablePolicyCardProps } from './ExpandablePolicyCard';
-import { ExpandablePolicyCard } from './ExpandablePolicyCard';
+import { PolicyRule, type PolicyRuleProps } from './PolicyRule';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import {
   mockActionId1,
   mockActionId2,
   mockActionId3,
   mockActionId4,
-} from '../../../test/mocks/policyActionMocks';
-import { mockPolicyRuleCard1 } from '../../../test/mocks/policyRuleMocks';
+} from '../../../../test/mocks/policyActionMocks';
+import { mockPolicyRuleCard1 } from '../../../../test/mocks/policyRuleMocks';
 import {
   mockSubjectTitle1,
   mockSubjectTitle2,
   mockSubjectTitle3,
-} from '../../../test/mocks/policySubjectMocks';
+} from '../../../../test/mocks/policySubjectMocks';
 import {
   PolicyEditorContext,
   type PolicyEditorContextProps,
-} from '../../contexts/PolicyEditorContext';
-import { mockPolicyEditorContextValue } from '../../../test/mocks/policyEditorContextMock';
+} from '../../../contexts/PolicyEditorContext';
+import { mockPolicyEditorContextValue } from '../../../../test/mocks/policyEditorContextMock';
 
 const mockActionOption1: string = textMock(`policy_editor.action_${mockActionId1}`);
 const mockActionOption2: string = textMock(`policy_editor.action_${mockActionId2}`);
@@ -30,19 +29,19 @@ const mockActionOption4: string = mockActionId4;
 const mockHandleCloneRule = jest.fn();
 const mockHandleDeleteRule = jest.fn();
 
-const defaultProps: ExpandablePolicyCardProps = {
+const defaultProps: PolicyRuleProps = {
   policyRule: mockPolicyRuleCard1,
   handleCloneRule: mockHandleCloneRule,
   handleDeleteRule: mockHandleDeleteRule,
   showErrors: false,
 };
 
-describe('ExpandablePolicyCard', () => {
+describe('PolicyRule', () => {
   afterEach(jest.clearAllMocks);
 
   it('calls "handleCloneRule" when the clone button is clicked', async () => {
     const user = userEvent.setup();
-    renderExpandablePolicyCard();
+    renderPolicyRule();
 
     const [moreButton] = screen.getAllByRole('button', { name: textMock('policy_editor.more') });
     await user.click(moreButton);
@@ -57,7 +56,7 @@ describe('ExpandablePolicyCard', () => {
 
   it('calls "handleDeleteRule" when the delete button is clicked', async () => {
     const user = userEvent.setup();
-    renderExpandablePolicyCard();
+    renderPolicyRule();
 
     const [moreButton] = screen.getAllByRole('button', { name: textMock('policy_editor.more') });
     await user.click(moreButton);
@@ -68,31 +67,9 @@ describe('ExpandablePolicyCard', () => {
     expect(mockHandleDeleteRule).toHaveBeenCalledTimes(1);
   });
 
-  it('calls "setPolicyRules" when sub-resource fields are edited', async () => {
-    const user = userEvent.setup();
-
-    const mockSetPolicyRules = jest.fn();
-    renderExpandablePolicyCard({ setPolicyRules: mockSetPolicyRules });
-
-    const [typeInput] = screen.getAllByLabelText(
-      textMock('policy_editor.narrowing_list_field_type'),
-    );
-    const [idInput] = screen.getAllByLabelText(textMock('policy_editor.narrowing_list_field_id'));
-
-    const newWord: string = 'test';
-
-    await user.type(typeInput, newWord);
-    expect(mockSetPolicyRules).toHaveBeenCalledTimes(newWord.length);
-
-    mockSetPolicyRules.mockClear();
-
-    await user.type(idInput, newWord);
-    expect(mockSetPolicyRules).toHaveBeenCalledTimes(newWord.length);
-  });
-
   it('displays the selected actions as Chips', async () => {
     const user = userEvent.setup();
-    renderExpandablePolicyCard();
+    renderPolicyRule();
 
     const selectedAction1 = screen.getByLabelText(
       `${textMock('general.delete')} ${mockActionOption1}`,
@@ -141,7 +118,7 @@ describe('ExpandablePolicyCard', () => {
 
   it('calls "setPolicyRules" when subjects are edited', async () => {
     const user = userEvent.setup();
-    renderExpandablePolicyCard();
+    renderPolicyRule();
 
     const selectedSubject1 = screen.getByLabelText(
       `${textMock('general.delete')} ${mockSubjectTitle1}`,
@@ -185,7 +162,7 @@ describe('ExpandablePolicyCard', () => {
 
   it('should append subject to selectable subject options list when selected subject is removed', async () => {
     const user = userEvent.setup();
-    renderExpandablePolicyCard();
+    renderPolicyRule();
 
     const [subjectSelect] = screen.getAllByLabelText(
       textMock('policy_editor.rule_card_subjects_title'),
@@ -205,7 +182,7 @@ describe('ExpandablePolicyCard', () => {
 
   it('calls "setPolicyRules" when description field is edited', async () => {
     const user = userEvent.setup();
-    renderExpandablePolicyCard();
+    renderPolicyRule();
 
     const [descriptionField] = screen.getAllByLabelText(
       textMock('policy_editor.rule_card_description_title'),
@@ -218,7 +195,7 @@ describe('ExpandablePolicyCard', () => {
 
   it('calls "savePolicy" when input fields are blurred', async () => {
     const user = userEvent.setup();
-    renderExpandablePolicyCard();
+    renderPolicyRule();
 
     const [typeInput] = screen.getAllByLabelText(
       textMock('policy_editor.narrowing_list_field_type'),
@@ -259,14 +236,12 @@ describe('ExpandablePolicyCard', () => {
   });
 });
 
-const renderExpandablePolicyCard = (
-  policyEditorContextProps: Partial<PolicyEditorContextProps> = {},
-) => {
+const renderPolicyRule = (policyEditorContextProps: Partial<PolicyEditorContextProps> = {}) => {
   return render(
     <PolicyEditorContext.Provider
       value={{ ...mockPolicyEditorContextValue, ...policyEditorContextProps }}
     >
-      <ExpandablePolicyCard {...defaultProps} />
+      <PolicyRule {...defaultProps} />
     </PolicyEditorContext.Provider>,
   );
 };

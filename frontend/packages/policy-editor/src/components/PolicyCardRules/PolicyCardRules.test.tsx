@@ -13,7 +13,7 @@ const defaultProps: PolicyCardRulesProps = {
   showErrorsOnAllRulesAboveNew: false,
 };
 
-describe('PolicyEditor', () => {
+describe('PolicyCardRule', () => {
   afterEach(jest.clearAllMocks);
 
   it('displays the rules when there are more than 0 rules', async () => {

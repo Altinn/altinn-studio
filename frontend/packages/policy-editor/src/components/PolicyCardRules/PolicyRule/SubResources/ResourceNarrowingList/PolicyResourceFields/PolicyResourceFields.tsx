@@ -4,27 +4,58 @@ import { Textfield } from '@digdir/design-system-react';
 import { MultiplyIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
+import { usePolicyEditorContext } from '../../../../../../contexts/PolicyEditorContext';
+import { usePolicyRuleContext } from '../../../../../../contexts/PolicyRuleContext';
+import { getUpdatedRules } from '../../../../../../utils/PolicyRuleUtils';
+import { type PolicyRuleResource } from '../../../../../../types';
 
 export type PolicyResourceFieldsProps = {
+  resource: PolicyRuleResource;
   canEditTypeAndId: boolean;
-  onRemove: () => void;
-  valueId: string;
-  onChangeId: (s: string) => void;
-  valueType: string;
-  onChangeType: (s: string) => void;
-  onBlur: () => void;
+  resourceIndex: number;
+  resourceNarrowingIndex: number;
 };
 
 export const PolicyResourceFields = ({
+  resource,
   canEditTypeAndId,
-  onRemove,
-  valueId,
-  valueType,
-  onChangeId,
-  onChangeType,
-  onBlur,
+  resourceIndex,
+  resourceNarrowingIndex,
 }: PolicyResourceFieldsProps): React.ReactNode => {
   const { t } = useTranslation();
+  const { savePolicy, setPolicyRules, policyRules } = usePolicyEditorContext();
+  const { policyRule } = usePolicyRuleContext();
+
+  const handleInputChange = (field: 'id' | 'type', value: string) => {
+    const updatedResources = [...policyRule.resources];
+    updatedResources[resourceIndex][resourceNarrowingIndex] = {
+      ...updatedResources[resourceIndex][resourceNarrowingIndex],
+      [field]: value,
+    };
+
+    const updatedRules = getUpdatedRules(
+      { ...policyRule, resources: updatedResources },
+      policyRule.ruleId,
+      policyRules,
+    );
+    setPolicyRules(updatedRules);
+  };
+
+  const handleBlur = () => {
+    savePolicy(policyRules);
+  };
+
+  const handleRemoveNarrowingResource = () => {
+    const updatedResources = [...policyRule.resources];
+    updatedResources[resourceIndex].splice(resourceNarrowingIndex, 1);
+    const updatedRules = getUpdatedRules(
+      { ...policyRule, resources: updatedResources },
+      policyRule.ruleId,
+      policyRules,
+    );
+    setPolicyRules(updatedRules);
+    savePolicy(updatedRules);
+  };
 
   return (
     <div className={classes.wrapper}>
@@ -36,11 +67,11 @@ export const PolicyResourceFields = ({
             </StudioLabelAsParagraph>
           )}
           <Textfield
-            value={valueType}
+            value={resource.type}
             size='small'
-            onChange={(e) => onChangeType(e.target.value)}
+            onChange={(e) => handleInputChange('type', e.target.value)}
             readOnly={!canEditTypeAndId}
-            onBlur={onBlur}
+            onBlur={handleBlur}
             aria-label={t('policy_editor.narrowing_list_field_type')}
           />
         </div>
@@ -51,11 +82,11 @@ export const PolicyResourceFields = ({
             </StudioLabelAsParagraph>
           )}
           <Textfield
-            value={valueId}
+            value={resource.id}
             size='small'
-            onChange={(e) => onChangeId(e.target.value)}
+            onChange={(e) => handleInputChange('id', e.target.value)}
             readOnly={!canEditTypeAndId}
-            onBlur={onBlur}
+            onBlur={handleBlur}
             aria-label={t('policy_editor.narrowing_list_field_id')}
           />
         </div>
@@ -67,7 +98,7 @@ export const PolicyResourceFields = ({
             color='danger'
             hidden={!canEditTypeAndId}
             icon={<MultiplyIcon />}
-            onClick={onRemove}
+            onClick={handleRemoveNarrowingResource}
             size='small'
             title={t('policy_editor.narrowing_list_field_delete')}
             variant='tertiary'

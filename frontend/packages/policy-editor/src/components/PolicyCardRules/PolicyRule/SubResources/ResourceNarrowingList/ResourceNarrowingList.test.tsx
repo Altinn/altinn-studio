@@ -4,12 +4,14 @@ import userEvent from '@testing-library/user-event';
 import type { ResourceNarrowingListProps } from './ResourceNarrowingList';
 import { ResourceNarrowingList } from './ResourceNarrowingList';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { PolicyRuleResource } from '../../../types';
+import type { PolicyRuleResource } from '../../../../../types';
 import {
   PolicyEditorContext,
   type PolicyEditorContextProps,
-} from '../../../contexts/PolicyEditorContext';
-import { mockPolicyEditorContextValue } from '../../../../test/mocks/policyEditorContextMock';
+} from '../../../../../contexts/PolicyEditorContext';
+import { PolicyRuleContext } from '../../../../../contexts/PolicyRuleContext';
+import { mockPolicyEditorContextValue } from '../../../../../../test/mocks/policyEditorContextMock';
+import { mockPolicyRuleContextValue } from '../../../../../../test/mocks/policyRuleContextMock';
 
 const mockResource1: PolicyRuleResource = { type: 'type1', id: 'id1' };
 const mockResource2: PolicyRuleResource = { type: 'type2', id: 'id2' };
@@ -17,21 +19,9 @@ const mockResources: PolicyRuleResource[] = [mockResource1, mockResource2];
 
 const mockNewText: string = 'test';
 
-const mockHandleInputChange = jest.fn();
-const mockHandleRemoveResource = jest.fn();
-const mockHandleClickAddResource = jest.fn();
-const mockHandleRemoveElement = jest.fn();
-const mockHandleCloneElement = jest.fn();
-const mockOnBlur = jest.fn();
-
 const defaultProps: ResourceNarrowingListProps = {
   resources: mockResources,
-  handleInputChange: mockHandleInputChange,
-  handleRemoveResource: mockHandleRemoveResource,
-  handleClickAddResource: mockHandleClickAddResource,
-  handleRemoveElement: mockHandleRemoveElement,
-  handleCloneElement: mockHandleCloneElement,
-  onBlur: mockOnBlur,
+  resourceIndex: 0,
 };
 
 describe('ResourceNarrowingList', () => {
@@ -67,24 +57,7 @@ describe('ResourceNarrowingList', () => {
     expect(removeButtons).toHaveLength(numItems - 1); // Minus first element which is readonly
   });
 
-  it('calls "handleInputChange" when id or type is edited', async () => {
-    const user = userEvent.setup();
-    renderResourceNarrowingList();
-
-    const [idInput] = screen.getAllByLabelText(textMock('policy_editor.narrowing_list_field_id'));
-    await user.type(idInput, mockNewText);
-    expect(mockHandleInputChange).toHaveBeenCalledTimes(mockNewText.length);
-
-    mockHandleInputChange.mockClear();
-
-    const [typeInput] = screen.getAllByLabelText(
-      textMock('policy_editor.narrowing_list_field_type'),
-    );
-    await user.type(typeInput, mockNewText);
-    expect(mockHandleInputChange).toHaveBeenCalledTimes(mockNewText.length);
-  });
-
-  it('calls "handleRemoveResource" when remove resource button is clicked', async () => {
+  it('calls "setPolicyRules" and "savePolicy" when remove resource button is clicked', async () => {
     const user = userEvent.setup();
     renderResourceNarrowingList();
 
@@ -94,10 +67,11 @@ describe('ResourceNarrowingList', () => {
 
     await user.click(deleteResourceButton);
 
-    expect(mockHandleRemoveResource).toHaveBeenCalledTimes(1);
+    expect(mockPolicyEditorContextValue.setPolicyRules).toHaveBeenCalledTimes(1);
+    expect(mockPolicyEditorContextValue.savePolicy).toHaveBeenCalledTimes(1);
   });
 
-  it('calls "handleClickAddResource" when add button is clicked', async () => {
+  it('calls "setPolicyRules" and "savePolicy" when add button is clicked', async () => {
     const user = userEvent.setup();
     renderResourceNarrowingList();
 
@@ -107,10 +81,11 @@ describe('ResourceNarrowingList', () => {
 
     await user.click(addResourceButton);
 
-    expect(mockHandleClickAddResource).toHaveBeenCalledTimes(1);
+    expect(mockPolicyEditorContextValue.setPolicyRules).toHaveBeenCalledTimes(1);
+    expect(mockPolicyEditorContextValue.savePolicy).toHaveBeenCalledTimes(1);
   });
 
-  it('calls "handleRemoveElement" when remove element button is clicked', async () => {
+  it('calls "setPolicyRules" and "savePolicy" when remove element button is clicked', async () => {
     const user = userEvent.setup();
     renderResourceNarrowingList();
 
@@ -124,10 +99,11 @@ describe('ResourceNarrowingList', () => {
     });
     await user.click(deleteElementButton);
 
-    expect(mockHandleRemoveElement).toHaveBeenCalledTimes(1);
+    expect(mockPolicyEditorContextValue.setPolicyRules).toHaveBeenCalledTimes(1);
+    expect(mockPolicyEditorContextValue.savePolicy).toHaveBeenCalledTimes(1);
   });
 
-  it('calls "handleCloneElement" when clone element button is clicked', async () => {
+  it('calls "setPolicyRules" and "savePolicy" when clone element button is clicked', async () => {
     const user = userEvent.setup();
     renderResourceNarrowingList();
 
@@ -141,10 +117,11 @@ describe('ResourceNarrowingList', () => {
     });
     await user.click(cloneElementButton);
 
-    expect(mockHandleCloneElement).toHaveBeenCalledTimes(1);
+    expect(mockPolicyEditorContextValue.setPolicyRules).toHaveBeenCalledTimes(1);
+    expect(mockPolicyEditorContextValue.savePolicy).toHaveBeenCalledTimes(1);
   });
 
-  it('calls "onBlur" when a textfield is left', async () => {
+  it('calls "savePolicy" when a textfield is left', async () => {
     const user = userEvent.setup();
     renderResourceNarrowingList();
 
@@ -154,7 +131,8 @@ describe('ResourceNarrowingList', () => {
 
     await user.type(typeInput, mockNewText);
     await user.tab();
-    expect(mockOnBlur).toHaveBeenCalledTimes(1);
+    expect(mockPolicyEditorContextValue.savePolicy).toHaveBeenCalledTimes(1);
+    // TODO - add with
   });
 });
 
@@ -165,7 +143,9 @@ const renderResourceNarrowingList = (
     <PolicyEditorContext.Provider
       value={{ ...mockPolicyEditorContextValue, ...policyEditorContextProps }}
     >
-      <ResourceNarrowingList {...defaultProps} />
+      <PolicyRuleContext.Provider value={mockPolicyRuleContextValue}>
+        <ResourceNarrowingList {...defaultProps} />
+      </PolicyRuleContext.Provider>
     </PolicyEditorContext.Provider>,
   );
 };
