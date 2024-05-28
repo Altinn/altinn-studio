@@ -28,6 +28,8 @@ export type ProcessEditorProps = {
   deleteDataTypeFromAppMetadata: BpmnApiContextProps['deleteDataTypeFromAppMetadata'];
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
   openPolicyEditor: BpmnApiContextProps['openPolicyEditor'];
+  onProcessTaskAdd: BpmnApiContextProps['onProcessTaskAdd'];
+  onProcessTaskRemove: BpmnApiContextProps['onProcessTaskRemove'];
 };
 
 export const ProcessEditor = ({
@@ -45,6 +47,8 @@ export const ProcessEditor = ({
   deleteDataTypeFromAppMetadata,
   saveBpmn,
   openPolicyEditor,
+  onProcessTaskAdd,
+  onProcessTaskRemove,
 }: ProcessEditorProps): JSX.Element => {
   const { t } = useTranslation();
 
@@ -71,6 +75,8 @@ export const ProcessEditor = ({
         deleteDataTypeFromAppMetadata={deleteDataTypeFromAppMetadata}
         saveBpmn={saveBpmn}
         openPolicyEditor={openPolicyEditor}
+        onProcessTaskAdd={onProcessTaskAdd}
+        onProcessTaskRemove={onProcessTaskRemove}
       >
         <BpmnConfigPanelFormContextProvider>
           <BpmnCanvas />
