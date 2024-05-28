@@ -7,7 +7,7 @@ import { NavigationMenu } from './NavigationMenu';
 import { pageAccordionContentId } from '@studio/testing/testids';
 import { TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../hooks';
 import { StudioButton } from '@studio/components';
 import { useDeleteLayoutMutation } from '../../../hooks/mutations/useDeleteLayoutMutation';
@@ -43,7 +43,7 @@ export const PageAccordion = ({
   isValid,
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
 
   const { mutate: deleteLayout, isPending } = useDeleteLayoutMutation(

@@ -8,7 +8,7 @@ import { ArrowCirclepathIcon, EyeIcon, LinkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import type { AppPreviewSubMenuProps } from '../AppPreviewSubMenu';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
@@ -43,7 +43,7 @@ export const SubPreviewMenuLeftContent = ({
   handleChangeLayoutSet,
 }: AppPreviewSubMenuProps) => {
   const { t } = useTranslation();
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
   return (

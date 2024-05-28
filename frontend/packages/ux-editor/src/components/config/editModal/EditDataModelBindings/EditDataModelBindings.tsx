@@ -7,7 +7,7 @@ import {
 import { ComponentType } from 'app-shared/types/ComponentType';
 import React, { useEffect, useState } from 'react';
 import { useDatamodelMetadataQuery } from '../../../../hooks/queries/useDatamodelMetadataQuery';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import classes from './EditDataModelBindings.module.css';
 import { useTranslation } from 'react-i18next';
 import { UndefinedBinding } from './UndefinedBinding';
@@ -33,7 +33,7 @@ export const EditDataModelBindings = <T extends ComponentType>({
   renderOptions,
   helpText,
 }: EditDataModelBindingsProps<T>) => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
   const { data } = useDatamodelMetadataQuery(org, app, selectedFormLayoutSetName, undefined);
   const { t } = useTranslation();

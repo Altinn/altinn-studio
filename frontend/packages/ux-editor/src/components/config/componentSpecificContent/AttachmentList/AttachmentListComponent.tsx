@@ -1,7 +1,7 @@
 import React from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { useAppMetadataQuery } from 'app-development/hooks/queries';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useAppContext } from '../../../../hooks/useAppContext';
 import type { ComponentType } from 'app-shared/types/ComponentType';
@@ -20,7 +20,7 @@ export const AttachmentListComponent = ({
   handleComponentChange,
 }: IGenericEditComponent<ComponentType.AttachmentList>) => {
   const { t } = useTranslation();
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
   const { data: appMetadata, isPending: appMetadataPending } = useAppMetadataQuery(org, app);
   const { selectedFormLayoutSetName } = useAppContext();

@@ -7,11 +7,11 @@ import { StudioButton, StudioSpinner } from '@studio/components';
 
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { FormField } from '../../FormField';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export function EditCodeList({ component, handleComponentChange }: IGenericEditComponent) {
   const { t } = useTranslation();
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
 
   const { data: optionListIds, isPending, isError, error } = useOptionListIdsQuery(org, app);
   const [useCustomCodeList, setUseCustomCodeList] = useState<boolean>(optionListIds?.length === 0);

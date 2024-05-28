@@ -14,7 +14,7 @@ import type {
 } from 'app-shared/types/DatamodelMetadata';
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { mergeJsonAndXsdData } from 'app-development/utils/metadataUtils';
 import { extractFilename, removeSchemaExtension } from 'app-shared/utils/filenameUtils';
 export interface SelectedSchemaEditorProps {
@@ -58,7 +58,7 @@ interface SchemaEditorWithDebounceProps {
 }
 
 const SchemaEditorWithDebounce = ({ jsonSchema, modelPath }: SchemaEditorWithDebounceProps) => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { mutate } = useSchemaMutation();
   const queryClient = useQueryClient();
   const [model, setModel] = useState<JsonSchema>(jsonSchema);

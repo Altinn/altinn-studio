@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { useText } from '../../../hooks';
 import { SelectDataModelComponent } from '../SelectDataModelComponent';
 import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { LinkIcon } from '@studio/icons';
 import { StudioButton } from '@studio/components';
 import classes from './EditDataModelBindings.module.css';
@@ -28,7 +28,7 @@ export const EditDataModelBindings = ({
   renderOptions,
   helpText,
 }: EditDataModelBindingsProps) => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { selectedLayoutSet } = useAppContext();
   const { data } = useDatamodelMetadataQuery(org, app, selectedLayoutSet, undefined);
   const t = useText();

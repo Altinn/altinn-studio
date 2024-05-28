@@ -2,11 +2,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export const useSchemaMutation = () => {
   const queryClient = useQueryClient();
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { saveDatamodel } = useServicesContext();
   return useMutation({
     mutationFn: async (args: { modelPath: string; model: JsonSchema }) => {
