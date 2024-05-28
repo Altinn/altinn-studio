@@ -53,7 +53,7 @@ export const EditBinding = ({
           variant='secondary'
         />
         <StudioDeleteButton
-          confirmMessage={t('right_menu.dataModelBindings_delete_confirm')}
+          confirmMessage={t('right_menu.data_model_bindings_delete_confirm')}
           onDelete={onDelete}
           size='small'
           title={t('general.delete')}

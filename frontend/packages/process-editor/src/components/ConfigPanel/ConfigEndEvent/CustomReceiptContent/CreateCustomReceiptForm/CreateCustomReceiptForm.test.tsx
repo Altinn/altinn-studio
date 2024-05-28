@@ -112,7 +112,7 @@ describe('CreateCustomReceiptForm', () => {
     expect(layoutIdError).toBeInTheDocument();
 
     const dataModelIdError = screen.queryByText(
-      textMock('process_editor.configuration_panel_custom_receipt_create_datamodel_error'),
+      textMock('process_editor.configuration_panel_custom_receipt_create_data_model_error'),
     );
     expect(dataModelIdError).not.toBeInTheDocument();
     expect(mockOnCloseForm).toHaveBeenCalledTimes(0);

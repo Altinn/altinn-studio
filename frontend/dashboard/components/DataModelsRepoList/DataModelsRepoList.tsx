@@ -29,7 +29,7 @@ export const DataModelsReposList = ({ user, organizations }: DataModelsReposList
 
   const { data: repos, isPending: isPendingOrgRepos } = useSearchReposQuery({
     uid: uid as number,
-    keyword: '-dataModels',
+    keyword: '-datamodels',
     page: 0,
   });
 

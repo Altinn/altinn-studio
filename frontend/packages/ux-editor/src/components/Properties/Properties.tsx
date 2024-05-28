@@ -51,7 +51,7 @@ export const Properties = () => {
             </Accordion.Item>
             <Accordion.Item open={openList.includes('dataModel')}>
               <Accordion.Header onHeaderClick={() => toggleOpen('dataModel')}>
-                {t('right_menu.dataModelBindings')}
+                {t('right_menu.data_model_bindings')}
               </Accordion.Header>
               <Accordion.Content className={classes.dataModelBindings}>
                 <DataModelBindings />

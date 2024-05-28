@@ -1,6 +1,5 @@
 export enum TopBarMenu {
   About = 'top_menu.about',
-  Access = 'access_control',
   Create = 'top_menu.create',
   DataModel = 'top_menu.data_model',
   Text = 'top_menu.texts',

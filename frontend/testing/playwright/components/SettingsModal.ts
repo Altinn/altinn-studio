@@ -1,7 +1,8 @@
-import type { SettingsModalTab } from 'app-development/types/SettingsModalTab';
 import { BasePage } from '../helpers/BasePage';
 import type { Environment } from '../helpers/StudioEnvironment';
 import type { Page } from '@playwright/test';
+
+export type SettingsModalTab = 'about' | 'access_control' | 'policy' | 'setup';
 
 export class SettingsModal extends BasePage {
   constructor(page: Page, environment?: Environment) {

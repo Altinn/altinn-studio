@@ -1,5 +1,4 @@
-﻿import { RoutePaths } from 'app-development/enums/RoutePaths';
-import type { Environment } from './StudioEnvironment';
+﻿import type { Environment } from './StudioEnvironment';
 import { StudioEnvironment } from './StudioEnvironment';
 
 type SupportedRoutes =
@@ -21,14 +20,14 @@ const routerRoutes: RouterRoutes = {
   altinnLoginPage: '/',
   dashboard: '/dashboard',
   dashboardCreateApp: '/dashboard/self/new',
-  deploy: `/editor/{{org}}/{{app}}/${RoutePaths.Deploy}`,
-  editorOverview: `/editor/{{org}}/{{app}}/${RoutePaths.Overview}`,
-  editorDataModel: `/editor/{{org}}/{{app}}/${RoutePaths.DataModel}`,
-  editorProcess: `/editor/{{org}}/{{app}}/${RoutePaths.ProcessEditor}`,
-  editorText: `/editor/{{org}}/{{app}}/${RoutePaths.Text}`,
-  editorUi: `/editor/{{org}}/{{app}}/${RoutePaths.UIEditor}`,
-  gitea: `/repos/{{org}}/{{app}}`,
-  preview: `/preview/{{org}}/{{app}}`,
+  deploy: '/editor/{{org}}/{{app}}/deploy',
+  editorOverview: '/editor/{{org}}/{{app}}/overview',
+  editorDataModel: '/editor/{{org}}/{{app}}/data-model',
+  editorProcess: '/editor/{{org}}/{{app}}/process-editor',
+  editorText: '/editor/{{org}}/{{app}}/text-editor',
+  editorUi: '/editor/{{org}}/{{app}}/ui-editor',
+  gitea: '/repos/{{org}}/{{app}}',
+  preview: '/preview/{{org}}/{{app}}',
 };
 
 export class RouterRoute extends StudioEnvironment {

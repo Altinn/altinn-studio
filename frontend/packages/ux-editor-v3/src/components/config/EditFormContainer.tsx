@@ -46,7 +46,7 @@ export const EditFormContainer = ({
 
   const { selectedLayoutSet } = useAppContext();
   const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
-  const { data: dataModel } = useDataModelMetadataQuery(org, app, selectedLayoutSet, undefined;
+  const { data: dataModel } = useDataModelMetadataQuery(org, app, selectedLayoutSet, undefined);
   const { components, containers } = useSelectedFormLayout();
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
     textResourcesByLanguageSelector(DEFAULT_LANGUAGE),

@@ -29,7 +29,7 @@ describe('urlUtils', () => {
         repo: 'org-name-data-models-not',
       });
 
-      expect(result).not.toContain('#/datamodelling/');
+      expect(result).not.toContain('#/datamodel/');
       expect(result).toContain(APP_DEVELOPMENT_BASENAME);
     });
   });

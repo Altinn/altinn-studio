@@ -38,7 +38,7 @@ export function App() {
     });
 
     if (dataModelFetchedError) {
-      return createErrorMessage(t('general.dataModel'));
+      return createErrorMessage(t('general.data_model'));
     }
     if (widgetFetchedError) {
       return createErrorMessage(t('general.widget'));

@@ -264,7 +264,7 @@ describe('EditDataModelBindings', () => {
     });
 
     const editButton = screen.getByRole('button', {
-      name: textMock('right_menu.dataModelBindings_edit', {
+      name: textMock('right_menu.data_model_bindings_edit', {
         binding: textMock('ux_editor.component_title.Input'),
       }),
     });
@@ -291,7 +291,7 @@ describe('EditDataModelBindings', () => {
     });
 
     const editIcon = screen.getByRole('button', {
-      name: textMock('right_menu.dataModelBindings_edit', {
+      name: textMock('right_menu.data_model_bindings_edit', {
         binding: textMock('ux_editor.component_title.Input'),
       }),
     });
