@@ -47,7 +47,7 @@ describe('RemoveProcessTaskManager', () => {
     expect(deleteLayoutSet).toHaveBeenCalledWith({ layoutSetIdToUpdate: 'testLayoutSetId' });
   });
 
-  it('should remove datatype from app metadata when the signing Task is deleted', () => {
+  it('should remove datatype from app metadata and delete layoutSet when the signing Task is deleted', () => {
     const layoutSets: LayoutSets = {
       sets: [{ id: 'testLayoutSetId', dataType: 'signing', tasks: ['testTask'] }],
     };
@@ -66,6 +66,7 @@ describe('RemoveProcessTaskManager', () => {
 
     removeProcessTaskManager.handleTaskRemove(createTaskEvent('signing'));
     expect(deleteDataTypeFromAppMetadata).toHaveBeenCalled();
+    expect(deleteLayoutSet).toHaveBeenCalledWith({ layoutSetIdToUpdate: 'testLayoutSetId' });
   });
 
   it('should remove datatype and layoutSet when the payment Task is deleted', () => {

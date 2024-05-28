@@ -32,7 +32,7 @@ export class RemoveProcessTaskManager {
       this.handleSigningTaskRemove(taskEvent);
     }
 
-    // Informs the consumer of this package that a task has been removed with the taskEvent and taskType
+    // Informs the consumer of this package that a task with the provided taskEvent and taskType has been removed
     this.onProcessTaskRemove({
       taskEvent,
       taskType: this.bpmnDetails.taskType,
@@ -92,5 +92,13 @@ export class RemoveProcessTaskManager {
     this.deleteDataTypeFromAppMetadata({
       dataTypeId,
     });
+
+    // Delete layout set
+    const layoutSetId = getLayoutSetIdFromTaskId(this.bpmnDetails, this.layoutSets);
+    if (layoutSetId) {
+      this.deleteLayoutSet({
+        layoutSetIdToUpdate: layoutSetId,
+      });
+    }
   }
 }

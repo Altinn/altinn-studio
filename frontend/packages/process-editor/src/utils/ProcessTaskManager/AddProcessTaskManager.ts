@@ -29,7 +29,7 @@ export class AddProcessTaskManager {
       this.handleSigningTaskAdd(taskEvent);
     }
 
-    // Informs the consumer of this package that a task has been added with the taskEvent and taskType
+    // Informs the consumer of this package that a task with the given taskEvent and taskType has been added
     this.onProcessTaskAdd({
       taskEvent,
       taskType: this.bpmnDetails.taskType,
@@ -70,8 +70,6 @@ export class AddProcessTaskManager {
    * @private
    */
   private handleSigningTaskAdd(taskEvent: TaskEvent): void {
-    this.addLayoutSet(this.createLayoutSetConfig());
-
     const dataTypeId = getDataTypeIdFromBusinessObject(
       this.bpmnDetails.taskType,
       taskEvent.element.businessObject,
