@@ -6,12 +6,8 @@ import {
 } from './useFormLayoutsSelector';
 import { renderHookWithMockStore } from '../testing/mocks';
 import { useFormLayoutsQuery } from './queries/useFormLayoutsQuery';
-import {
-  externalLayoutsMock,
-  layoutMock,
-  layout1NameMock,
-  layoutSet1NameMock,
-} from '../testing/layoutMock';
+import { externalLayoutsMock, layoutMock, layout1NameMock } from '../testing/layoutMock';
+import { layoutSet1NameMock } from '../testing/layoutSetsMock';
 import { waitFor } from '@testing-library/react';
 import { convertExternalLayoutsToInternalFormat } from '../utils/formLayoutsUtils';
 import type { IFormLayouts, IInternalLayout, IInternalLayoutWithName } from '../types/global';

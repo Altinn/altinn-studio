@@ -9,7 +9,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 import type { DatamodelMetadataResponse } from 'app-shared/types/api';
 import { componentMocks } from '../../testing/componentMocks';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutMock';
+import { dataModelNameMock, layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 
 // Test data:
@@ -100,7 +100,7 @@ const waitForData = async () => {
   const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
   const dataModelMetadataResult = renderHookWithProviders(
-    () => useDatamodelMetadataQuery(org, app, layoutSet1NameMock),
+    () => useDatamodelMetadataQuery(org, app, layoutSet1NameMock, dataModelNameMock),
     { queries: { getDatamodelMetadata } },
   ).result;
   await waitFor(() => expect(dataModelMetadataResult.current.isSuccess).toBe(true));
