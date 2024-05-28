@@ -101,7 +101,7 @@
     "mini-css-extract-plugin": "2.9.0",
     "postcss-modules": "^6.0.0",
     "prettier": "3.2.5",
-    "react-refresh": "0.14.0",
+    "react-refresh": "0.14.2",
     "resize-observer-polyfill": "1.5.1",
     "source-map-loader": "5.0.0",
     "style-loader": "3.3.4",
