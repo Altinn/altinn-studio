@@ -60,18 +60,22 @@ export const RepoList = ({
     {
       accessor: 'favoriteIcon',
       value: '',
+      width: '42px',
     },
     {
       accessor: 'name',
       value: t('dashboard.name'),
+      width: '20%',
     },
     {
       accessor: 'createdBy',
       value: t('dashboard.created_by'),
+      width: '20%',
     },
     {
       accessor: 'lastUpdated',
       value: t('dashboard.last_modified'),
+      width: '15%',
     },
     {
       accessor: 'description',
@@ -80,6 +84,7 @@ export const RepoList = ({
     {
       accessor: 'actionIcons',
       value: '',
+      width: '155px',
     },
   ];
 
@@ -118,7 +123,6 @@ export const RepoList = ({
             emptyTableMessage={t('dashboard.no_repos_result')}
             pagination={paginationProps}
             onSortClick={handleSorting}
-            isLoading={isLoading}
           />
         </>
       ) : (
@@ -134,7 +138,6 @@ export const RepoList = ({
             previousButtonText: t('ux_editor.modal_properties_button_type_back'),
             itemLabel: (num: number) => `${t('general.page')} ${num}`,
           }}
-          isLoading={isLoading}
         />
       )}
     </div>
