@@ -1,0 +1,23 @@
+.label {
+  margin-top: 30px;
+  margin-bottom: 5px;
+}
+
+.chipWrapper {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.dropdownWrapper {
+  margin-bottom: 10px;
+}
+
+.inputParagraph {
+  margin-bottom: 5px;
+}
+
+.chip {
+  margin: 0;
+  margin-right: 5px;
+  margin-top: 5px;
+}

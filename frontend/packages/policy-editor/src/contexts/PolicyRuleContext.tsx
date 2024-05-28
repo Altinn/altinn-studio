@@ -4,10 +4,17 @@ import type { PolicyRuleCard } from '../types';
 export type PolicyRuleContextProps = {
   policyRule: PolicyRuleCard;
   showAllErrors: boolean;
+  uniqueId: string;
 
   // Maybe make in to one
   hasResourceError: boolean;
   setHasResourceError: React.Dispatch<React.SetStateAction<boolean>>;
+
+  hasActionsError: boolean;
+  setHasActionsError: React.Dispatch<React.SetStateAction<boolean>>;
+
+  hasSubjectsError: boolean;
+  setHasSubjectsError: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export const PolicyRuleContext = createContext<Partial<PolicyRuleContextProps>>(undefined);
