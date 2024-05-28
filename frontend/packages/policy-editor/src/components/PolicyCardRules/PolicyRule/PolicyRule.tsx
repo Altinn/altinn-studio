@@ -1,15 +1,15 @@
 import React, { useState, useId } from 'react';
-import { ErrorMessage, Textarea } from '@digdir/design-system-react';
+import { ErrorMessage } from '@digdir/design-system-react';
 import classes from './PolicyRule.module.css';
 import { ExpandablePolicyElement } from './ExpandablePolicyElement';
 import type { PolicyRuleCard, PolicyError } from '../../../types';
-import { getPolicyRuleIdString, getUpdatedRules } from '../../../utils/PolicyRuleUtils';
+import { getPolicyRuleIdString } from '../../../utils/PolicyRuleUtils';
 import { useTranslation } from 'react-i18next';
-import { usePolicyEditorContext } from '../../../contexts/PolicyEditorContext';
 import { SubResources } from './SubResources';
 import { PolicyRuleContextProvider } from '../../../contexts/PolicyRuleContext';
 import { PolicyActions } from './PolicyActions';
 import { PolicySubjects } from './PolicySubjects';
+import { PolicyDescription } from './PolicyDescription';
 
 export type PolicyRuleProps = {
   policyRule: PolicyRuleCard;
@@ -25,7 +25,6 @@ export const PolicyRule = ({
   showErrors,
 }: PolicyRuleProps): React.ReactNode => {
   const { t } = useTranslation();
-  const { policyRules, setPolicyRules, savePolicy } = usePolicyEditorContext();
 
   const uniqueId = useId();
 
@@ -35,15 +34,6 @@ export const PolicyRule = ({
     subjectsError: policyRule.subject.length === 0,
   });
   const { resourceError, actionsError, subjectsError } = policyError;
-
-  const handleChangeDescription = (description: string) => {
-    const updatedRules = getUpdatedRules(
-      { ...policyRule, description },
-      policyRule.ruleId,
-      policyRules,
-    );
-    setPolicyRules(updatedRules);
-  };
 
   const getHasRuleError = () => {
     return resourceError || actionsError || subjectsError;
@@ -98,19 +88,7 @@ export const PolicyRule = ({
           <SubResources />
           <PolicyActions />
           <PolicySubjects />
-
-          <div className={classes.textAreaWrapper}>
-            <Textarea
-              label={t('policy_editor.rule_card_description_title')}
-              size='small'
-              value={policyRule.description}
-              onChange={(e) => handleChangeDescription(e.currentTarget.value)}
-              rows={5}
-              onBlur={() => savePolicy(policyRules)}
-              id={`description-${uniqueId}`}
-              className={classes.descriptionInput}
-            />
-          </div>
+          <PolicyDescription />
         </ExpandablePolicyElement>
         {showErrors && <ErrorMessage size='small'>{getRuleErrorText()}</ErrorMessage>}
       </div>

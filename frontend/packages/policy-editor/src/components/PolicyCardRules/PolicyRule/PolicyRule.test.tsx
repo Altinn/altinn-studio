@@ -53,19 +53,6 @@ describe('PolicyRule', () => {
     expect(mockHandleDeleteRule).toHaveBeenCalledTimes(1);
   });
 
-  it('calls "setPolicyRules" when description field is edited', async () => {
-    const user = userEvent.setup();
-    renderPolicyRule();
-
-    const [descriptionField] = screen.getAllByLabelText(
-      textMock('policy_editor.rule_card_description_title'),
-    );
-    expect(descriptionField).toHaveValue(mockPolicyRuleCard1.description);
-    await user.type(descriptionField, '1');
-
-    expect(mockPolicyEditorContextValue.setPolicyRules).toHaveBeenCalledTimes(1);
-  });
-
   it('calls "savePolicy" when input fields are blurred', async () => {
     const user = userEvent.setup();
     renderPolicyRule();

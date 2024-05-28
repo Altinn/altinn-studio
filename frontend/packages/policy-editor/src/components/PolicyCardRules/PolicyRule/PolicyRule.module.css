@@ -8,10 +8,6 @@
   flex-wrap: wrap;
 }
 
-.textAreaWrapper {
-  margin-top: 10px;
-}
-
 .label {
   margin-top: 30px;
   margin-bottom: 5px;
@@ -27,8 +23,4 @@
 
 .inputParagraph {
   margin-bottom: 5px;
-}
-
-.descriptionInput {
-  margin-top: 30px;
 }
