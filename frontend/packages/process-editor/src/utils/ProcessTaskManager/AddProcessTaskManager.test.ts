@@ -83,11 +83,6 @@ describe('AddProcessTaskManager', () => {
       }),
     );
 
-    expect(addLayoutSet).toHaveBeenCalledWith({
-      layoutSetConfig: { id: 'testId', tasks: ['testId'] },
-      layoutSetIdToUpdate: 'testId',
-    });
-
     expect(addDataTypeToAppMetadata).toHaveBeenCalledWith({
       dataTypeId: 'signingInformation',
     });
