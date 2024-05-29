@@ -4,12 +4,12 @@ import { LandingPagePanel } from './LandingPagePanel';
 import React, { useState } from 'react';
 import type { MetadataOption } from '../../../types/MetadataOption';
 import { SelectedSchemaEditor } from './SelectedSchemaEditor';
-import type { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
+import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { SchemaGenerationErrorsPanel } from './SchemaGenerationErrorsPanel';
 
 export interface SchemaEditorWithToolbarProps {
   createPathOption?: boolean;
-  dataModels: DatamodelMetadata[];
+  dataModels: DataModelMetadata[];
 }
 
 export const SchemaEditorWithToolbar = ({

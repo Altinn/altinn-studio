@@ -12,12 +12,8 @@ import { componentSchemaMocks } from '../../testing/componentSchemaMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../types/FormItem';
 import { componentMocks } from '../../testing/componentMocks';
-import {
-  component3IdMock,
-  component3Mock,
-  layoutMock,
-  layoutSet1NameMock,
-} from '../../testing/layoutMock';
+import { component3IdMock, component3Mock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
@@ -28,10 +24,10 @@ describe('DataModelBindings', () => {
   it('renders EditDataModelBindings component when schema is present', () => {
     render({});
 
-    const datamodelButton = screen.getByRole('button', {
+    const dataModelButton = screen.getByRole('button', {
       name: textMock(`ux_editor.component_title.Input`),
     });
-    expect(datamodelButton).toBeInTheDocument();
+    expect(dataModelButton).toBeInTheDocument();
   });
 
   it('does not render EditDataModelBindings component when schema.properties is undefined', () => {
@@ -89,10 +85,10 @@ describe('DataModelBindings', () => {
         },
       });
 
-      const datamodelButton = screen.getByRole('button', {
+      const dataModelButton = screen.getByRole('button', {
         name: textMock(`ux_editor.modal_properties_data_model_label.${prop}`),
       });
-      expect(datamodelButton).toBeInTheDocument();
+      expect(dataModelButton).toBeInTheDocument();
     },
   );
 
@@ -113,17 +109,17 @@ describe('DataModelBindings', () => {
     });
 
     ['address', 'careOf'].forEach((prop) => {
-      const datamodelButton = screen.getByText(
+      const dataModelButton = screen.getByText(
         textMock(`ux_editor.modal_properties_data_model_label.${prop}`),
       );
-      expect(datamodelButton).toBeInTheDocument();
+      expect(dataModelButton).toBeInTheDocument();
     });
 
     ['zipCode', 'postPlace', 'houseNumber'].forEach((prop) => {
-      const datamodelButton = screen.getByRole('button', {
+      const dataModelButton = screen.getByRole('button', {
         name: textMock(`ux_editor.modal_properties_data_model_label.${prop}`),
       });
-      expect(datamodelButton).toBeInTheDocument();
+      expect(dataModelButton).toBeInTheDocument();
     });
   });
 

@@ -9,9 +9,9 @@ import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { useOnUnmount } from 'app-shared/hooks/useOnUnmount';
 import type {
-  DatamodelMetadataJson,
-  DatamodelMetadataXsd,
-} from 'app-shared/types/DatamodelMetadata';
+  DataModelMetadataJson,
+  DataModelMetadataXsd,
+} from 'app-shared/types/DataModelMetadata';
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
@@ -83,18 +83,18 @@ const SchemaEditorWithDebounce = ({ jsonSchema, modelPath }: SchemaEditorWithDeb
   );
 
   const doesModelExist = useCallback(() => {
-    const jsonModels: DatamodelMetadataJson[] = queryClient.getQueryData([
-      QueryKey.DatamodelsJson,
+    const jsonModels: DataModelMetadataJson[] = queryClient.getQueryData([
+      QueryKey.DataModelsJson,
       org,
       app,
     ]);
-    const xsdModels: DatamodelMetadataXsd[] = queryClient.getQueryData([
-      QueryKey.DatamodelsXsd,
+    const xsdModels: DataModelMetadataXsd[] = queryClient.getQueryData([
+      QueryKey.DataModelsXsd,
       org,
       app,
     ]);
     const metadataList = mergeJsonAndXsdData(jsonModels, xsdModels);
-    return metadataList.some((datamodel) => datamodel.repositoryRelativeUrl === modelPath);
+    return metadataList.some((dataModel) => dataModel.repositoryRelativeUrl === modelPath);
   }, [queryClient, org, app, modelPath]);
 
   useOnUnmount(() => {

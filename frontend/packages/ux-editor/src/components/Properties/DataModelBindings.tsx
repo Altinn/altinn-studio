@@ -85,7 +85,7 @@ export const DataModelBindings = (): React.JSX.Element => {
             return (
               <div
                 className={classes.dataModelBindings}
-                key={`${formItem.id}-datamodel-${propertyKey}`}
+                key={`${formItem.id}-data-model-${propertyKey}`}
               >
                 <EditDataModelBindings
                   component={formItem}

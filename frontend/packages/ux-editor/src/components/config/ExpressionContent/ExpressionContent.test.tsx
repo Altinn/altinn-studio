@@ -3,7 +3,8 @@ import { screen } from '@testing-library/react';
 import { parsableLogicalExpression } from '../../../testing/expressionMocks';
 import { renderWithProviders } from '../../../testing/mocks';
 import type { IFormLayouts } from '../../../types/global';
-import { layout1NameMock, layoutMock, layoutSet1NameMock } from '../../../testing/layoutMock';
+import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import type { ExpressionContentProps } from './ExpressionContent';
 import { ExpressionContent } from './ExpressionContent';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -19,6 +20,7 @@ const layoutSetName = layoutSet1NameMock;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };
+const dataModelName = undefined;
 const heading = 'Test';
 const defaultProps: ExpressionContentProps = {
   expression: null,
@@ -69,7 +71,10 @@ const renderExpressionContent = (props: Partial<ExpressionContentProps> = {}) =>
 
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
-  queryClient.setQueryData([QueryKey.DatamodelMetadata, org, app, layoutSetName], []);
+  queryClient.setQueryData(
+    [QueryKey.DataModelMetadata, org, app, layoutSetName, dataModelName],
+    [],
+  );
 
   return renderWithProviders(<ExpressionContent {...defaultProps} {...props} />, {
     appContextProps,

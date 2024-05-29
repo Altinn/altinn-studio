@@ -1,6 +1,6 @@
-import type { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
+import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 
 export type MetadataOption = {
   label: string;
-  value: DatamodelMetadata;
+  value: DataModelMetadata;
 };

@@ -4,7 +4,7 @@ import '../../styles/index.css';
 import { EditGroupDataModelBindings } from './group/EditGroupDataModelBindings';
 import { getTextResource } from '../../utils/language';
 import { idExists } from '../../utils/formLayoutUtils';
-import type { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
+import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
 import {
   Alert,
   Switch,
@@ -15,7 +15,7 @@ import {
 } from '@digdir/design-system-react';
 import classes from './EditFormContainer.module.css';
 import { TextResource } from '../TextResource';
-import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
+import { useDataModelMetadataQuery } from '../../hooks/queries/useDataModelMetadataQuery';
 import { useText, useSelectedFormLayout, useTextResourcesSelector } from '../../hooks';
 
 import { textResourcesByLanguageSelector } from '../../selectors/textResourceSelectors';
@@ -46,7 +46,7 @@ export const EditFormContainer = ({
 
   const { selectedLayoutSet } = useAppContext();
   const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
-  const { data: dataModel } = useDatamodelMetadataQuery(org, app, selectedLayoutSet);
+  const { data: dataModel } = useDataModelMetadataQuery(org, app, selectedLayoutSet, undefined);
   const { components, containers } = useSelectedFormLayout();
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
     textResourcesByLanguageSelector(DEFAULT_LANGUAGE),
@@ -67,7 +67,7 @@ export const EditFormContainer = ({
         dataModelBindings: { group: undefined },
       });
     } else {
-      // we are disabling the repeating feature, remove datamodelbinding
+      // we are disabling the repeating feature, remove data model binding
       handleContainerUpdate({
         ...container,
         dataModelBindings: { group: undefined },
@@ -114,7 +114,7 @@ export const EditFormContainer = ({
   };
 
   const getMaxOccursForGroupFromDataModel = (dataBindingName: string): number => {
-    const element: DatamodelFieldElement = dataModel.find((e: DatamodelFieldElement) => {
+    const element: DataModelFieldElement = dataModel.find((e: DataModelFieldElement) => {
       return e.dataBindingName === dataBindingName;
     });
     return element?.maxOccurs;

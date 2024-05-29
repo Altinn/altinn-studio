@@ -61,7 +61,7 @@ describe('SettingsModal', () => {
       screen.getByRole('tab', { name: textMock('settings_modal.left_nav_tab_policy') }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('tab', { name: textMock('settings_modal.left_nav_tab_accessControl') }),
+      screen.getByRole('tab', { name: textMock('settings_modal.left_nav_tab_access_control') }),
     ).toBeInTheDocument();
   });
 
@@ -144,7 +144,7 @@ describe('SettingsModal', () => {
     expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
 
     const accessControlTab = screen.getByRole('tab', {
-      name: textMock('settings_modal.left_nav_tab_accessControl'),
+      name: textMock('settings_modal.left_nav_tab_access_control'),
     });
     await user.click(accessControlTab);
 

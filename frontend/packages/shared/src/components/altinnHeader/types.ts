@@ -1,8 +1,9 @@
+import type { TopBarMenu } from 'app-shared/enums/TopBarMenu';
+
 export type AltinnHeaderVariant = 'regular' | 'preview';
 
 export interface AltinnButtonActionItem {
-  title: string;
-  menuKey: string;
+  menuKey: TopBarMenu;
   to: string;
   isInverted?: boolean;
 }
