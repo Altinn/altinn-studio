@@ -152,3 +152,4 @@ export const processEditorWebSocketHub = () => '/sync-hub';
 export const processEditorPathPut = (org, app) => `${basePath}/${org}/${app}/process-modelling/process-definition-latest`;
 export const processEditorDataTypeChangePath = (org, app) => `${basePath}/${org}/${app}/process-modelling/data-type`;
 export const processEditorDataTypePath = (org, app, dataTypeId) => `${basePath}/${org}/${app}/process-modelling/data-type/${dataTypeId}`;
+export const processTaskTypePath = (org, app, taskId) => `${basePath}/${org}/${app}/process-modelling/task-type/${taskId}`; // Get

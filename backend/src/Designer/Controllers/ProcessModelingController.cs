@@ -164,5 +164,13 @@ namespace Altinn.Studio.Designer.Controllers
             await _processModelingService.DeleteDataTypeFromApplicationMetadataAsync(editingContext, dataTypeId, cancellationToken);
             return Ok();
         }
+
+        [HttpGet("task-type/{taskId}")]
+        public string GetTaskTypeFromProcessDefinition(string org, string repo, string taskId)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
+            return _processModelingService.GetTaskTypeFromProcessDefinition(editingContext, taskId);
+        }
     }
 }

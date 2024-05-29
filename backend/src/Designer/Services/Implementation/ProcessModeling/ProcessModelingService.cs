@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
@@ -80,6 +82,15 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
             ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
             applicationMetadata.DataTypes.RemoveAll(dataType => dataType.Id == dataTypeId);
             await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
+        }
+
+        public string GetTaskTypeFromProcessDefinition(AltinnRepoEditingContext altinnRepoEditingContext, string taskId)
+        {
+            Stream processDefinitionStream = GetProcessDefinitionStream(altinnRepoEditingContext);
+            XmlSerializer serializer = new XmlSerializer(typeof(Definitions));
+            Definitions? definitions = (Definitions?)serializer.Deserialize(processDefinitionStream);
+            ProcessTask? task = definitions?.Process.Tasks.FirstOrDefault(task => task.Id == taskId);
+            return task?.ExtensionElements?.TaskExtension?.TaskType ?? string.Empty;
         }
 
         private IEnumerable<string> EnumerateTemplateResources(SemanticVersion version)

@@ -9,16 +9,26 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import classes from './Elements.module.css';
 
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
+import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQuery';
 
 export const Elements = () => {
   const { org, app } = useStudioUrlParams();
   const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
+  const { data: processTaskType } = useProcessTaskTypeQuery(org, app, selectedFormLayoutSetName);
   const existingCustomReceiptName: string | undefined = useCustomReceiptLayoutSetName(org, app);
 
   const hideComponents =
     selectedFormLayoutName === 'default' || selectedFormLayoutName === undefined;
 
   const t = useText();
+
+  const shouldShowConfPageToolbar = () => {
+    return existingCustomReceiptName === selectedFormLayoutSetName || processTaskType === 'payment';
+  };
+
+  const confPageToolbarMode = () => {
+    return existingCustomReceiptName === selectedFormLayoutSetName ? 'receipt' : 'payment';
+  };
 
   return (
     <div className={classes.root}>
@@ -30,8 +40,8 @@ export const Elements = () => {
         <Paragraph className={classes.noPageSelected} size='small'>
           {t('left_menu.no_components_selected')}
         </Paragraph>
-      ) : existingCustomReceiptName === selectedFormLayoutSetName ? (
-        <ConfPageToolbar />
+      ) : shouldShowConfPageToolbar() ? (
+        <ConfPageToolbar confPageType={confPageToolbarMode()} />
       ) : (
         <DefaultToolbar />
       )}

@@ -1,7 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Altinn.Studio.Designer.Factories;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Designer.Tests.Utils;
 using FluentAssertions;
 using Moq;
 using NuGet.Versioning;
@@ -12,6 +16,14 @@ namespace Designer.Tests.Services
 {
     public class ProcessModelingServiceTests : FluentTestsBase<ProcessModelingServiceTests>
     {
+        private readonly AltinnGitRepositoryFactory _altinnGitRepositoryFactory;
+        public string CreatedTestRepoPath { get; set; }
+
+        public ProcessModelingServiceTests()
+        {
+            _altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+        }
+
         [Theory]
         [MemberData(nameof(TemplatesTestData))]
         public void GetProcessDefinitionTemplates_GivenVersion_ReturnsListOfTemplates(string versionString, params string[] expectedTemplates)
@@ -28,6 +40,23 @@ namespace Designer.Tests.Services
             {
                 result.Should().Contain(expectedTemplate);
             }
+        }
+
+        [Theory]
+        [InlineData("ttd", "app-with-process", "testUser")]
+        public async Task GetTaskTypeFromProcessDefinition_GivenProcessDefinition_ReturnsTaskType(string org, string app, string developer)
+        {
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+
+            CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
+
+            IProcessModelingService processModelingService = new ProcessModelingService(_altinnGitRepositoryFactory);
+
+            // Act
+            string taskType = processModelingService.GetTaskTypeFromProcessDefinition(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer), "Task_1");
+
+            // Assert
+            taskType.Should().Be("data");
         }
 
         public static IEnumerable<object[]> TemplatesTestData => new List<object[]>
