@@ -37,11 +37,13 @@ export const SelectDataType = ({
   };
 
   return (
-    <div className={classes.dataTypeSelect}>
+    <div className={classes.dataTypeSelectAndButtons}>
       <Combobox
         label={t('process_editor.configuration_panel_set_data_model')}
         value={currentValue}
         description={t('process_editor.configuration_panel_data_model_selection_description')}
+        size='small'
+        className={classes.dataTypeSelect}
       >
         <Combobox.Empty>
           {t('process_editor.configuration_panel_no_data_model_to_select')}
