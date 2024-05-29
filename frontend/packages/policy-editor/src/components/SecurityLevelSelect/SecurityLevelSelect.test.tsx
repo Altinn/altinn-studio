@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import type { SecurityLevelSelectProps } from './SecurityLevelSelect';
 import { SecurityLevelSelect, authlevelOptions } from './SecurityLevelSelect';
 import type { RequiredAuthLevel } from '../../types';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const mockInitialAuthLevelValue: RequiredAuthLevel = '0';
 const mockInitialAuthLevelLabel: string = textMock(authlevelOptions[0].label);

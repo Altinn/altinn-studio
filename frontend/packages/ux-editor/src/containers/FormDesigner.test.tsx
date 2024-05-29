@@ -6,7 +6,7 @@ import {
   renderWithProviders,
 } from '../testing/mocks';
 import { FormDesigner } from './FormDesigner';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useWidgetsQuery } from '../hooks/queries/useWidgetsQuery';
 import ruleHandlerMock from '../testing/ruleHandlerMock';
 import type { ITextResources } from 'app-shared/types/global';
@@ -18,14 +18,13 @@ import { externalLayoutsMock, layout1NameMock } from '../testing/layoutMock';
 import { FormItemContext } from './FormItemContext';
 import { formItemContextProviderMock } from '../testing/formItemContextMocks';
 import { appContextMock } from '../testing/appContextMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-
 const defaultTexts: ITextResources = {
   [DEFAULT_LANGUAGE]: [],
 };
+const dataModelName = undefined;
 
 const render = () => {
   const queryClient = createQueryClientMock();
@@ -37,7 +36,10 @@ const render = () => {
     getRuleModel: jest.fn().mockImplementation(() => Promise.resolve<string>(ruleHandlerMock)),
     getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve<string>('test')),
   };
-  queryClient.setQueryData([QueryKey.DatamodelMetadata, org, app, 'test-layout-set'], []);
+  queryClient.setQueryData(
+    [QueryKey.DatamodelMetadata, org, app, 'test-layout-set', dataModelName],
+    [],
+  );
   queryClient.setQueryData([QueryKey.TextResources, org, app], defaultTexts);
   return renderWithProviders(
     <FormItemContext.Provider

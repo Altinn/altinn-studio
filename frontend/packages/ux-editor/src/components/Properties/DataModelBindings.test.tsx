@@ -5,14 +5,16 @@ import { DataModelBindings } from './DataModelBindings';
 import { FormItemContext } from '../../containers/FormItemContext';
 import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
 import { renderWithProviders } from '../../testing/mocks';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { componentSchemaMocks } from '../../testing/componentSchemaMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../types/FormItem';
 import { componentMocks } from '../../testing/componentMocks';
-import { component3IdMock, component3Mock, layoutMock } from '../../testing/layoutMock';
+import { component3IdMock, component3Mock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
@@ -256,7 +258,7 @@ const render = async ({
   props?: Partial<FormItemContext>;
   editId?: string;
 }) => {
-  queryClientMock.setQueryData([QueryKey.FormLayouts, 'org', 'app', 'test-layout-set'], {
+  queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet1NameMock], {
     default: layoutMock,
   });
   queryClientMock.setQueryData(

@@ -4,20 +4,23 @@ import userEvent from '@testing-library/user-event';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithMockStore } from '../../testing/mocks';
-import { layoutSetsMock } from '../../testing/layoutMock';
+import {
+  layoutSet1NameMock,
+  layoutSet2NameMock,
+  layoutSetsMock,
+} from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import type { AppContextProps } from '../../AppContext';
 import { appStateMock } from '../../testing/stateMocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { app, org } from '@studio/testing/testids';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: jest.fn(),
 }));
 // Test data
-const org = 'org';
-const app = 'app';
-const layoutSetName1 = layoutSetsMock.sets[0].id;
-const layoutSetName2 = layoutSetsMock.sets[1].id;
+const layoutSetName1 = layoutSet1NameMock;
+const layoutSetName2 = layoutSet2NameMock;
 const { selectedLayoutSet } = appStateMock.formDesigner.layout;
 const setSelectedLayoutSetMock = jest.fn();
 

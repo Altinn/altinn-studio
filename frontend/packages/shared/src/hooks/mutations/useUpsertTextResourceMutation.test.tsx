@@ -5,10 +5,9 @@ import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useU
 import { renderHook } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { ServicesContextProvider } from '../../contexts/ServicesContext';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const language = 'nb';
 const textId = 'testid';
 const translation = 'testvalue';

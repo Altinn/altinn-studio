@@ -7,15 +7,15 @@ import {
 import { renderHookWithMockStore } from '../testing/mocks';
 import { useFormLayoutsQuery } from './queries/useFormLayoutsQuery';
 import { externalLayoutsMock, layoutMock, layout1NameMock } from '../testing/layoutMock';
+import { layoutSet1NameMock } from '../testing/layoutSetsMock';
 import { waitFor } from '@testing-library/react';
 import { convertExternalLayoutsToInternalFormat } from '../utils/formLayoutsUtils';
 import type { IFormLayouts, IInternalLayout, IInternalLayoutWithName } from '../types/global';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const selectedLayoutName = 'Side1';
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutName = layout1NameMock;
+const selectedLayoutSet = layoutSet1NameMock;
 
 const render = async (callback: () => IFormLayouts | IInternalLayout | IInternalLayoutWithName) => {
   const getFormLayoutsV3 = jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock));

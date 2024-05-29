@@ -5,10 +5,12 @@ import { renderWithMockStore, renderHookWithMockStore } from '../../testing/mock
 import { appDataMock, textResourcesMock } from '../../testing/stateMocks';
 import type { IAppDataState } from '../../features/appData/appDataReducers';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
 import userEvent from '@testing-library/user-event';
 import type { DatamodelMetadataResponse } from 'app-shared/types/api';
+import { dataModelNameMock, layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
+import { app, org } from '@studio/testing/testids';
 
 const getDatamodelMetadata = () =>
   Promise.resolve<DatamodelMetadataResponse>({
@@ -53,14 +55,14 @@ const getDatamodelMetadata = () =>
 const user = userEvent.setup();
 
 const waitForData = async () => {
-  const datamodelMetadatResult = renderHookWithMockStore(
+  const datamodelMetadataResult = renderHookWithMockStore(
     {},
     {
       getDatamodelMetadata,
     },
-  )(() => useDatamodelMetadataQuery('test-org', 'test-app', 'test-layout-set')).renderHookResult
-    .result;
-  await waitFor(() => expect(datamodelMetadatResult.current.isSuccess).toBe(true));
+  )(() => useDatamodelMetadataQuery(org, app, layoutSet1NameMock, dataModelNameMock))
+    .renderHookResult.result;
+  await waitFor(() => expect(datamodelMetadataResult.current.isSuccess).toBe(true));
 };
 
 const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn() } = {}) => {

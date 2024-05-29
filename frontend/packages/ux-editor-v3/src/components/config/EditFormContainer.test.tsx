@@ -11,19 +11,23 @@ import {
   renderWithMockStore,
 } from '../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
-import { container1IdMock, externalLayoutsMock, layoutMock } from '../../testing/layoutMock';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import {
+  container1IdMock,
+  externalLayoutsMock,
+  layoutMock,
+} from '@altinn/ux-editor-v3/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import type { FormContainer } from '../../types/FormContainer';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 const accordionContainer: FormContainer = {
   id: 'accordionContainerId',
   itemType: 'CONTAINER',

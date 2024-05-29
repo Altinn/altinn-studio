@@ -8,12 +8,13 @@ export const useDatamodelMetadataQuery = (
   org: string,
   app: string,
   layoutSetName: string,
+  dataModelName: string,
 ): UseQueryResult<DatamodelFieldElement[]> => {
   const { getDatamodelMetadata } = useServicesContext();
   return useQuery<DatamodelFieldElement[]>({
-    queryKey: [QueryKey.DatamodelMetadata, org, app, layoutSetName],
+    queryKey: [QueryKey.DatamodelMetadata, org, app, layoutSetName, dataModelName],
     queryFn: () =>
-      getDatamodelMetadata(org, app, layoutSetName).then((res) => {
+      getDatamodelMetadata(org, app, layoutSetName, dataModelName).then((res) => {
         const dataModelFields: DatamodelFieldElement[] = [];
 
         // Hack because we don't know if the response is upper or lower cased. Should be reverted once

@@ -4,17 +4,21 @@ import { formLayoutSettingsMock, renderWithProviders } from '../../../testing/mo
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { EditPageId } from './EditPageId';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { appContextMock } from '../../../testing/appContextMock';
-import { externalLayoutsMock } from '../../../testing/layoutMock';
+import {
+  externalLayoutsMock,
+  layout1NameMock,
+  layout2NameMock,
+} from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data
-const app = 'app';
-const org = 'org';
-const selectedLayout = 'layoutPageName';
-const layoutSetName = 'test-layout-set';
+const selectedLayout = layout2NameMock;
+const layoutSetName = layoutSet1NameMock;
 
 describe('EditPageId', () => {
   it('renders given page ID', () => {
@@ -75,7 +79,7 @@ describe('EditPageId', () => {
 
   it('renders error message if page ID exist in layout settings order', async () => {
     const user = userEvent.setup();
-    const existingPageName = formLayoutSettingsMock.pages.order[0];
+    const existingPageName = layout1NameMock;
     renderEditPageId();
     const notUniqueErrorMessage = screen.queryByText(textMock('ux_editor.pages_error_unique'));
     expect(notUniqueErrorMessage).not.toBeInTheDocument();

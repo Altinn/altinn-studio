@@ -6,18 +6,17 @@ import type { TextResourceProps } from './TextResource';
 import { TextResource } from './TextResource';
 import { renderWithProviders } from '../../testing/mocks';
 import { screen } from '@testing-library/react';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { appContextMock } from '../../testing/appContextMock';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const handleIdChange = jest.fn();
 const handleRemoveTextResource = jest.fn();
 const defaultProps: TextResourceProps = { handleIdChange, handleRemoveTextResource };

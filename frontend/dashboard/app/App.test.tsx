@@ -3,7 +3,7 @@ import { render, screen, waitForElementToBeRemoved } from '@testing-library/reac
 import { MockServicesContextWrapper } from '../dashboardTestUtils';
 
 import { App } from './App';
-import { textMock } from '../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 const renderWithMockServices = (services: Partial<ServicesContextProps> = {}) => {

@@ -2,53 +2,55 @@ import type { LayoutSets, LayoutSetConfig } from 'app-shared/types/api/LayoutSet
 import React, { createContext, useContext } from 'react';
 import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 import type { DataTypeChange } from 'app-shared/types/api/DataTypeChange';
+import type { OnProcessTaskEvent } from '../types/OnProcessTask';
+
+type QueryOptions = {
+  onSuccess: () => void;
+};
 
 export type BpmnApiContextProps = {
   availableDataModelIds: string[];
   layoutSets: LayoutSets;
   pendingApiOperations: boolean;
-  existingCustomReceiptLayoutSetName: string | undefined;
-  addLayoutSet: (data: { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig }) => void;
+  existingCustomReceiptLayoutSetId: string | undefined;
+  addLayoutSet: (
+    data: { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig },
+    options?: QueryOptions,
+  ) => void;
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
-  mutateLayoutSet: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
-  mutateDataType: (dataTypeId: DataTypeChange) => void;
+  mutateLayoutSetId: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
+  mutateDataType: (dataTypeChange: DataTypeChange, options?: QueryOptions) => void;
   addDataTypeToAppMetadata: (data: { dataTypeId: string }) => void;
   deleteDataTypeFromAppMetadata: (data: { dataTypeId: string }) => void;
+
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
   openPolicyEditor: () => void;
+  onProcessTaskAdd: (taskMetadata: OnProcessTaskEvent) => void;
+  onProcessTaskRemove: (taskMetadata: OnProcessTaskEvent) => void;
 };
 
 export const BpmnApiContext = createContext<Partial<BpmnApiContextProps>>(undefined);
 
 export type BpmnApiContextProviderProps = {
   children: React.ReactNode;
-  availableDataModelIds: string[];
-  layoutSets: LayoutSets;
-  pendingApiOperations: boolean;
-  existingCustomReceiptLayoutSetName: string | undefined;
-  addLayoutSet: (data: { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig }) => void;
-  deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
-  mutateLayoutSet: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
-  mutateDataType: (data: DataTypeChange) => void;
-  addDataTypeToAppMetadata: (data: { dataTypeId: string }) => void;
-  deleteDataTypeFromAppMetadata: (data: { dataTypeId: string }) => void;
-  saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
-  openPolicyEditor: () => void;
-};
+} & BpmnApiContextProps;
+
 export const BpmnApiContextProvider = ({
   children,
   availableDataModelIds,
   layoutSets,
   pendingApiOperations,
-  existingCustomReceiptLayoutSetName,
+  existingCustomReceiptLayoutSetId,
   addLayoutSet,
   deleteLayoutSet,
-  mutateLayoutSet,
+  mutateLayoutSetId,
   mutateDataType,
   addDataTypeToAppMetadata,
   deleteDataTypeFromAppMetadata,
   saveBpmn,
   openPolicyEditor,
+  onProcessTaskRemove,
+  onProcessTaskAdd,
 }: Partial<BpmnApiContextProviderProps>) => {
   return (
     <BpmnApiContext.Provider
@@ -56,15 +58,17 @@ export const BpmnApiContextProvider = ({
         availableDataModelIds,
         layoutSets,
         pendingApiOperations,
-        existingCustomReceiptLayoutSetName,
+        existingCustomReceiptLayoutSetId,
         addLayoutSet,
         deleteLayoutSet,
-        mutateLayoutSet,
+        mutateLayoutSetId,
         mutateDataType,
         addDataTypeToAppMetadata,
         deleteDataTypeFromAppMetadata,
         saveBpmn,
         openPolicyEditor,
+        onProcessTaskRemove,
+        onProcessTaskAdd,
       }}
     >
       {children}

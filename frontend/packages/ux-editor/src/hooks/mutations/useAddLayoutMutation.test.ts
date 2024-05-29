@@ -6,15 +6,15 @@ import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { externalLayoutsMock } from '../../testing/layoutMock';
+import { externalLayoutsMock } from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import type { FormLayoutsResponse } from 'app-shared/types/api';
 import type { ILayoutSettings } from 'app-shared/types/global';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const layoutName = 'layoutName';
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 const defaultArgs: AddLayoutMutationArgs = { layoutName };
 
 describe('useAddLayoutMutation', () => {

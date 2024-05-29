@@ -1,0 +1,4 @@
+.goToCreatePageWrapper {
+  margin-inline: var(--custom-receipt-spacing);
+  margin-block: var(--fds-spacing-5);
+}

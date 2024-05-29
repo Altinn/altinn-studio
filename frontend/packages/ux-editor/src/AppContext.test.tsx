@@ -10,11 +10,12 @@ import { MemoryRouter } from 'react-router-dom';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useAppContext } from './hooks';
 import type { QueryClient } from '@tanstack/react-query';
+import { layout1NameMock } from './testing/layoutMock';
+import { layoutSet1NameMock } from './testing/layoutSetsMock';
+import { app, org } from '@studio/testing/testids';
 
-const org = 'org';
-const app = 'app';
-const mockSelectedFormLayoutSetName = 'test-layout-set';
-const mockSelectedFormLayoutName = 'Side1';
+const mockSelectedFormLayoutSetName = layoutSet1NameMock;
+const mockSelectedFormLayoutName = layout1NameMock;
 
 const TestComponent = ({
   queryClient,

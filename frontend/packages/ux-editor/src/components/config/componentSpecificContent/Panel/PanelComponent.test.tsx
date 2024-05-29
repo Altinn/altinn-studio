@@ -12,13 +12,13 @@ import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQ
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
+import { app, org } from '@studio/testing/testids';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 
 const component: FormComponent<ComponentType.Panel> = {
   id: '',

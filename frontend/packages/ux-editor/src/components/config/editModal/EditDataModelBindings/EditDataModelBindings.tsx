@@ -35,7 +35,7 @@ export const EditDataModelBindings = <T extends ComponentType>({
 }: EditDataModelBindingsProps<T>) => {
   const { org, app } = useStudioUrlParams();
   const { selectedFormLayoutSetName } = useAppContext();
-  const { data } = useDatamodelMetadataQuery(org, app, selectedFormLayoutSetName);
+  const { data } = useDatamodelMetadataQuery(org, app, selectedFormLayoutSetName, undefined);
   const { t } = useTranslation();
   const [dataModelSelectVisible, setDataModelSelectVisible] = useState(false);
 

@@ -20,7 +20,7 @@ import nb from '../../language/src/nb.json';
 import en from '../../language/src/en.json';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
-import * as testids from '../../testing/testids';
+import { appContentWrapperId } from '@studio/testing/testids';
 
 const TEN_MINUTES_IN_MILLISECONDS = 600000;
 
@@ -45,7 +45,7 @@ export function App() {
 
   const repositoryType = getRepositoryType(org, app);
   const { t } = useTranslation();
-  const { refetch } = useRepoStatusQuery(org, app);
+  const { refetch: reFetchRepoStatus } = useRepoStatusQuery(org, app);
   const remainingSessionMinutes = useAppSelector(
     (state) => state.userState.session.remainingMinutes,
   );
@@ -94,7 +94,7 @@ export function App() {
     };
     const windowEventReceived = async (event: any) => {
       if (event.data === postMessages.forceRepoStatusCheck) {
-        await refetch();
+        await reFetchRepoStatus();
       }
     };
     const keepAliveSessionState = () => {
@@ -115,7 +115,7 @@ export function App() {
       window.removeEventListener('message', windowEventReceived);
       setEventListeners(false);
     };
-  }, [app, dispatch, lastKeepAliveTimestamp, org, refetch, remainingSessionMinutes]);
+  }, [app, dispatch, lastKeepAliveTimestamp, org, reFetchRepoStatus, remainingSessionMinutes]);
 
   const handleSessionExpiresClose = useCallback(
     (action: string) => {
@@ -146,7 +146,7 @@ export function App() {
         <h2>{t('session.expires')}</h2>
         <p style={{ marginTop: '1.6rem' }}>{t('session.inactive')}</p>
       </AltinnPopoverSimple>
-      <div data-testid={testids.appContentWrapper}>
+      <div data-testid={appContentWrapperId}>
         <Outlet />
       </div>
     </div>

@@ -11,13 +11,13 @@ import {
   externalLayoutsMock,
   layout1NameMock,
   layoutMock,
-} from '../../testing/layoutMock';
+} from '@altinn/ux-editor-v3/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 
 describe('useUpdateFormComponentOrderMutation', () => {
   afterEach(jest.clearAllMocks);

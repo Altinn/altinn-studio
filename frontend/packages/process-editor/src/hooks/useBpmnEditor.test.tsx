@@ -10,6 +10,7 @@ import type { BpmnTaskType } from '../types/BpmnTaskType';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { getMockBpmnElementForTask, mockBpmnDetails } from '../../test/mocks/bpmnDetailsMock';
 import { mockModelerRef } from '../../test/mocks/bpmnModelerMock';
+import { AddProcessTaskManager, RemoveProcessTaskManager } from '../utils/ProcessTaskManager';
 
 const layoutSetId = 'someLayoutSetId';
 const layoutSetsMock: LayoutSets = {
@@ -35,17 +36,21 @@ class BpmnModelerMockImpl {
       on: this.on,
     };
   }
+
   on(eventName: string, listener: (event: any) => void) {
     if (eventName === this._currentEventName) {
       listener({ element: getMockBpmnElementForTask(this._currentTaskType) });
     }
   }
+
   get(elementName: string) {
     if (elementName === 'eventBus') {
       return this.eventBus;
     }
   }
 }
+
+jest.mock('../utils/ProcessTaskManager');
 
 jest.mock('../utils/hookUtils', () => ({
   getBpmnEditorDetailsFromBusinessObject: jest.fn().mockReturnValue({}),
@@ -67,18 +72,20 @@ jest.mock('../contexts/BpmnContext', () => ({
   })),
 }));
 
+jest.mock('./useBpmnModeler', () => ({
+  useBpmnModeler: jest.fn().mockReturnValue({}),
+}));
+
 const setBpmnDetailsMock = jest.fn();
 const overrideUseBpmnContext = () => {
   (useBpmnContext as jest.Mock).mockReturnValue({
     getUpdatedXml: jest.fn(),
-    modelerRef: mockModelerRef,
+    modelerRef: {
+      ...mockModelerRef,
+    },
     setBpmnDetails: setBpmnDetailsMock,
   });
 };
-
-jest.mock('./useBpmnModeler', () => ({
-  useBpmnModeler: jest.fn().mockReturnValue({}),
-}));
 
 const overrideUseBpmnModeler = (currentEventName: string, currentTaskType: BpmnTaskType) => {
   (useBpmnModeler as jest.Mock).mockReturnValue({
@@ -94,10 +101,10 @@ const overrideGetBpmnEditorDetailsFromBusinessObject = (bpmnDetails: BpmnDetails
 const wrapper = ({ children }) => (
   <BpmnContextProvider appLibVersion={'8.0.0'}>
     <BpmnApiContextProvider
-      addLayoutSet={addLayoutSetMock}
-      deleteLayoutSet={deleteLayoutSetMock}
-      deleteDataTypeFromAppMetadata={deleteDataTypeFromAppMetadataMock}
-      addDataTypeToAppMetadata={addDataTypeToAppMetadataMock}
+      addLayoutSet={jest.fn()}
+      deleteLayoutSet={jest.fn()}
+      deleteDataTypeFromAppMetadata={jest.fn()}
+      addDataTypeToAppMetadata={jest.fn()}
       saveBpmn={saveBpmnMock}
       layoutSets={layoutSetsMock}
     >
@@ -107,10 +114,6 @@ const wrapper = ({ children }) => (
 );
 
 const saveBpmnMock = jest.fn();
-const addLayoutSetMock = jest.fn();
-const deleteLayoutSetMock = jest.fn();
-const deleteDataTypeFromAppMetadataMock = jest.fn();
-const addDataTypeToAppMetadataMock = jest.fn();
 
 describe('useBpmnEditor', () => {
   afterEach(() => {
@@ -124,194 +127,26 @@ describe('useBpmnEditor', () => {
     await waitFor(() => expect(saveBpmnMock).toHaveBeenCalledTimes(1));
   });
 
-  it('should call saveBpmn when "shape.add" event is triggered on modelerInstance and taskType is data', () => {
-    const currentEventName = 'shape.add';
-    renderUseBpmnEditor(true, currentEventName);
+  it('should handle "shape.add" event', async () => {
+    renderUseBpmnEditor(false, 'shape.add');
 
-    expect(addLayoutSetMock).toHaveBeenCalledTimes(1);
-    expect(addLayoutSetMock).toHaveBeenCalledWith({
-      layoutSetIdToUpdate: mockBpmnDetails.id,
-      layoutSetConfig: { id: mockBpmnDetails.id, tasks: [mockBpmnDetails.id] },
-    });
-    expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1);
-    expect(setBpmnDetailsMock).toHaveBeenCalledWith(mockBpmnDetails);
+    const handleTaskAddMock = jest.fn();
+    (AddProcessTaskManager as jest.Mock).mockImplementation(() => ({
+      handleTaskAdd: () => handleTaskAddMock(),
+    }));
+
+    await waitFor(() => expect(handleTaskAddMock).toHaveBeenCalledTimes(1));
   });
 
-  it.each(['data', 'payment'])(
-    'should call addLayoutSet when "shape.add" event is triggered on modelerInstance when taskType is %s',
-    (taskType: BpmnTaskType) => {
-      const mockBpmnDetailsAutomaticLayoutSet: BpmnDetails = {
-        ...mockBpmnDetails,
-        taskType,
-        element: getMockBpmnElementForTask(taskType),
-      };
-      const currentEventName = 'shape.add';
-      renderUseBpmnEditor(true, currentEventName, taskType, mockBpmnDetailsAutomaticLayoutSet);
+  it('should handle "shape.remove" event', async () => {
+    renderUseBpmnEditor(false, 'shape.remove');
 
-      expect(addLayoutSetMock).toHaveBeenCalledTimes(1);
-      expect(addLayoutSetMock).toHaveBeenCalledWith({
-        layoutSetIdToUpdate: mockBpmnDetailsAutomaticLayoutSet.id,
-        layoutSetConfig: {
-          id: mockBpmnDetailsAutomaticLayoutSet.id,
-          tasks: [mockBpmnDetailsAutomaticLayoutSet.id],
-        },
-      });
-      expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1);
-      expect(setBpmnDetailsMock).toHaveBeenCalledWith(mockBpmnDetailsAutomaticLayoutSet);
-    },
-  );
+    const handleTaskRemoveMock = jest.fn();
+    (RemoveProcessTaskManager as jest.Mock).mockImplementation(() => ({
+      handleTaskRemove: () => handleTaskRemoveMock(),
+    }));
 
-  it.each(['confirmation', 'signing', 'feedback', 'endEvent'])(
-    'should not call addLayoutSet when "shape.add" event is triggered on modelerInstance when taskType is %s',
-    (taskType: BpmnTaskType) => {
-      const mockBpmnDetailsNotData: BpmnDetails = {
-        ...mockBpmnDetails,
-        taskType,
-        element: getMockBpmnElementForTask(taskType),
-      };
-      const currentEventName = 'shape.add';
-      renderUseBpmnEditor(true, currentEventName, taskType, mockBpmnDetailsNotData);
-
-      expect(addLayoutSetMock).not.toHaveBeenCalled();
-      expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1);
-      expect(setBpmnDetailsMock).toHaveBeenCalledWith(mockBpmnDetailsNotData);
-    },
-  );
-
-  it.each(['data', 'confirmation', 'signing', 'payment', 'feedback', 'endEvent'])(
-    'should call deleteLayoutSet when "shape.remove" event is triggered on modelerInstance and the task has a connected layout set for taskType %s',
-    (taskType: BpmnTaskType) => {
-      const mockBpmnDetailsWithConnectedLayoutSet: BpmnDetails = {
-        ...mockBpmnDetails,
-        taskType,
-        element: getMockBpmnElementForTask(taskType),
-      };
-      const currentEventName = 'shape.remove';
-      renderUseBpmnEditor(true, currentEventName, taskType, mockBpmnDetailsWithConnectedLayoutSet);
-
-      expect(deleteLayoutSetMock).toHaveBeenCalledTimes(1);
-      expect(deleteLayoutSetMock).toHaveBeenCalledWith({ layoutSetIdToUpdate: layoutSetId });
-      expect(setBpmnDetailsMock).toHaveBeenCalled();
-      expect(setBpmnDetailsMock).toHaveBeenCalledWith(null);
-    },
-  );
-
-  it.each(['data', 'confirmation', 'feedback', 'endEvent'])(
-    'should not call addDataTypeToApplicationMetadata when "shape.add" event is triggered on modelerInstance and taskType is %s',
-    (taskType: BpmnTaskType) => {
-      const mockBpmnDetailsNotPayOrSign: BpmnDetails = {
-        ...mockBpmnDetails,
-        taskType,
-        element: getMockBpmnElementForTask(taskType),
-      };
-      const currentEventName = 'shape.add';
-      renderUseBpmnEditor(true, currentEventName, taskType, mockBpmnDetailsNotPayOrSign);
-
-      expect(addDataTypeToAppMetadataMock).not.toHaveBeenCalled();
-      expect(setBpmnDetailsMock).toHaveBeenCalled();
-    },
-  );
-
-  it('should call addDataTypeToApplicationMetadata when "shape.add" event is triggered on modelerInstance and taskType is signing', () => {
-    const taskType: BpmnTaskType = 'signing';
-    const mockBpmnDetailsSigningTask: BpmnDetails = {
-      ...mockBpmnDetails,
-      taskType,
-      element: getMockBpmnElementForTask(taskType),
-    };
-    const currentEventName = 'shape.add';
-    renderUseBpmnEditor(true, currentEventName, taskType, mockBpmnDetailsSigningTask);
-
-    expect(addDataTypeToAppMetadataMock).toHaveBeenCalledTimes(1);
-    expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
-      dataTypeId: 'signatureInformation-1234',
-    });
-    expect(setBpmnDetailsMock).toHaveBeenCalled();
-  });
-
-  it('should call addDataTypeToApplicationMetadata when "shape.add" event is triggered on modelerInstance and taskType is payment', () => {
-    const taskType: BpmnTaskType = 'payment';
-    const mockBpmnDetailsPaymentTask: BpmnDetails = {
-      ...mockBpmnDetails,
-      taskType,
-      element: getMockBpmnElementForTask(taskType),
-    };
-    const currentEventName = 'shape.add';
-    renderUseBpmnEditor(true, currentEventName, taskType, mockBpmnDetailsPaymentTask);
-
-    expect(addDataTypeToAppMetadataMock).toHaveBeenCalledTimes(1);
-    expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
-      dataTypeId: 'paymentInformation-1234',
-    });
-    expect(setBpmnDetailsMock).toHaveBeenCalled();
-  });
-
-  it.each(['data', 'confirmation', 'feedback', 'endEvent'])(
-    'should not call deleteDataTypeFromAppMetadata when "shape.remove" event is triggered on modelerInstance and taskType is %s',
-    (taskType: BpmnTaskType) => {
-      const mockBpmnDetailsNotPayOrSign: BpmnDetails = {
-        ...mockBpmnDetails,
-        taskType,
-        element: getMockBpmnElementForTask(taskType),
-      };
-      const currentEventName = 'shape.remove';
-      renderUseBpmnEditor(true, currentEventName, taskType, mockBpmnDetailsNotPayOrSign);
-
-      expect(deleteDataTypeFromAppMetadataMock).not.toHaveBeenCalled();
-      expect(setBpmnDetailsMock).toHaveBeenCalled();
-    },
-  );
-
-  it('should call deleteDataTypeFromAppMetadata when "shape.remove" event is triggered on modelerInstance and taskType is signing', () => {
-    const taskType: BpmnTaskType = 'signing';
-    const mockBpmnDetailsSigningTask: BpmnDetails = {
-      ...mockBpmnDetails,
-      taskType,
-      element: getMockBpmnElementForTask(taskType),
-    };
-    const currentEventName = 'shape.remove';
-    renderUseBpmnEditor(true, currentEventName, taskType, mockBpmnDetailsSigningTask);
-
-    expect(deleteDataTypeFromAppMetadataMock).toHaveBeenCalledTimes(1);
-    expect(deleteDataTypeFromAppMetadataMock).toHaveBeenCalledWith({
-      dataTypeId: 'signatureInformation-1234',
-    });
-    expect(setBpmnDetailsMock).toHaveBeenCalled();
-  });
-
-  it('should call deleteDataTypeFromAppMetadataMock when "shape.remove" event is triggered on modelerInstance and taskType is payment', () => {
-    const taskType: BpmnTaskType = 'payment';
-    const mockBpmnDetailsPaymentTask: BpmnDetails = {
-      ...mockBpmnDetails,
-      taskType,
-      element: getMockBpmnElementForTask(taskType),
-    };
-    const currentEventName = 'shape.remove';
-    renderUseBpmnEditor(true, currentEventName, taskType, mockBpmnDetailsPaymentTask);
-
-    expect(deleteDataTypeFromAppMetadataMock).toHaveBeenCalledTimes(1);
-    expect(deleteDataTypeFromAppMetadataMock).toHaveBeenCalledWith({
-      dataTypeId: 'paymentInformation-1234',
-    });
-    expect(setBpmnDetailsMock).toHaveBeenCalled();
-  });
-
-  it('should not call deleteLayoutSet when "shape.remove" event is triggered on modelerInstance and deleted task has no layoutSet', () => {
-    const mockBpmnDetailsWithoutConnectedLayoutSet: BpmnDetails = {
-      ...mockBpmnDetails,
-      id: 'TaskIdNotPresetInLayoutSets',
-    };
-    const currentEventName = 'shape.remove';
-    renderUseBpmnEditor(
-      true,
-      currentEventName,
-      mockBpmnDetailsWithoutConnectedLayoutSet.taskType,
-      mockBpmnDetailsWithoutConnectedLayoutSet,
-    );
-
-    expect(deleteLayoutSetMock).not.toHaveBeenCalled();
-    expect(setBpmnDetailsMock).toHaveBeenCalled();
-    expect(setBpmnDetailsMock).toHaveBeenCalledWith(null);
+    await waitFor(() => expect(handleTaskRemoveMock).toHaveBeenCalledTimes(1));
   });
 
   it('should call setBpmnDetails when "element.click" event is triggered on eventBus', () => {
@@ -332,5 +167,5 @@ const renderUseBpmnEditor = (
   overrideBpmnContext && overrideUseBpmnContext();
   overrideGetBpmnEditorDetailsFromBusinessObject(bpmnDetails);
   overrideUseBpmnModeler(currentEventName, currentTaskType);
-  renderHook(() => useBpmnEditor(), { wrapper });
+  return renderHook(() => useBpmnEditor(), { wrapper });
 };

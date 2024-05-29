@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { MapComponent } from './MapComponent';
 import { renderWithProviders, renderHookWithProviders } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
-import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
+import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import type { IGenericEditComponent } from '../../componentConfig';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 

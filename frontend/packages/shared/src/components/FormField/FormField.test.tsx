@@ -4,7 +4,7 @@ import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FormField } from './FormField';
 import type { FormFieldProps } from './FormField';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 

@@ -271,15 +271,17 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="layoutSetName">Name of current layoutSet in ux-editor that edited layout belongs to</param>
+        /// <param name="dataModelName">Name of data model to fetch</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The model as JSON</returns>
         [HttpGet]
         [UseSystemTextJson]
         [Route("model-metadata")]
-        public async Task<IActionResult> GetModelMetadata(string org, string app, [FromQuery] string layoutSetName, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetModelMetadata(string org, string app, [FromQuery] string layoutSetName, [FromQuery] string dataModelName, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            ModelMetadata modelMetadata = await _appDevelopmentService.GetModelMetadata(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), layoutSetName, cancellationToken);
+            ModelMetadata modelMetadata = await _appDevelopmentService.GetModelMetadata(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), layoutSetName, dataModelName, cancellationToken);
+
             return Ok(modelMetadata);
         }
 

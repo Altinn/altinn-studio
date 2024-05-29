@@ -19,15 +19,17 @@ export type ProcessEditorProps = {
   availableDataModelIds: BpmnApiContextProps['availableDataModelIds'];
   layoutSets: BpmnApiContextProps['layoutSets'];
   pendingApiOperations: boolean;
-  existingCustomReceiptLayoutSetName: BpmnApiContextProps['existingCustomReceiptLayoutSetName'];
+  existingCustomReceiptLayoutSetId: BpmnApiContextProps['existingCustomReceiptLayoutSetId'];
   addLayoutSet: BpmnApiContextProps['addLayoutSet'];
   deleteLayoutSet: BpmnApiContextProps['deleteLayoutSet'];
-  mutateLayoutSet: BpmnApiContextProps['mutateLayoutSet'];
+  mutateLayoutSetId: BpmnApiContextProps['mutateLayoutSetId'];
   mutateDataType: BpmnApiContextProps['mutateDataType'];
   addDataTypeToAppMetadata: BpmnApiContextProps['addDataTypeToAppMetadata'];
   deleteDataTypeFromAppMetadata: BpmnApiContextProps['deleteDataTypeFromAppMetadata'];
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
   openPolicyEditor: BpmnApiContextProps['openPolicyEditor'];
+  onProcessTaskAdd: BpmnApiContextProps['onProcessTaskAdd'];
+  onProcessTaskRemove: BpmnApiContextProps['onProcessTaskRemove'];
 };
 
 export const ProcessEditor = ({
@@ -36,15 +38,17 @@ export const ProcessEditor = ({
   availableDataModelIds,
   layoutSets,
   pendingApiOperations,
-  existingCustomReceiptLayoutSetName,
+  existingCustomReceiptLayoutSetId,
   addLayoutSet,
   deleteLayoutSet,
-  mutateLayoutSet,
+  mutateLayoutSetId,
   mutateDataType,
   addDataTypeToAppMetadata,
   deleteDataTypeFromAppMetadata,
   saveBpmn,
   openPolicyEditor,
+  onProcessTaskAdd,
+  onProcessTaskRemove,
 }: ProcessEditorProps): JSX.Element => {
   const { t } = useTranslation();
 
@@ -62,15 +66,17 @@ export const ProcessEditor = ({
         availableDataModelIds={availableDataModelIds}
         layoutSets={layoutSets}
         pendingApiOperations={pendingApiOperations}
-        existingCustomReceiptLayoutSetName={existingCustomReceiptLayoutSetName}
+        existingCustomReceiptLayoutSetId={existingCustomReceiptLayoutSetId}
         addLayoutSet={addLayoutSet}
         deleteLayoutSet={deleteLayoutSet}
-        mutateLayoutSet={mutateLayoutSet}
+        mutateLayoutSetId={mutateLayoutSetId}
         mutateDataType={mutateDataType}
         addDataTypeToAppMetadata={addDataTypeToAppMetadata}
         deleteDataTypeFromAppMetadata={deleteDataTypeFromAppMetadata}
         saveBpmn={saveBpmn}
         openPolicyEditor={openPolicyEditor}
+        onProcessTaskAdd={onProcessTaskAdd}
+        onProcessTaskRemove={onProcessTaskRemove}
       >
         <BpmnConfigPanelFormContextProvider>
           <BpmnCanvas />

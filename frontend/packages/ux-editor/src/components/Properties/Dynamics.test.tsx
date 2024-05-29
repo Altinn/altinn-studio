@@ -5,7 +5,7 @@ import { FormItemContext } from '../../containers/FormItemContext';
 import { renderWithProviders } from '../../testing/mocks';
 import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
 import { Dynamics } from './Dynamics';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { WindowWithRuleModel } from '../../hooks/queries/useRuleModelQuery';
 import type { FormComponent } from '../../types/FormComponent';
 

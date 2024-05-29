@@ -4,29 +4,21 @@ import { screen, waitFor } from '@testing-library/react';
 import type { PageAccordionProps } from './PageAccordion';
 import { PageAccordion } from './PageAccordion';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import {
   formLayoutSettingsMock,
   renderHookWithProviders,
   renderWithProviders,
 } from '../../../testing/mocks';
-import { layout1NameMock } from '../../../testing/layoutMock';
+import { layout1NameMock } from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { appContextMock } from '../../../testing/appContextMock';
+import { app, org } from '@studio/testing/testids';
 
-const mockOrg = 'org';
-const mockApp = 'app';
 const mockPageName1: string = layout1NameMock;
-const mockSelectedLayoutSet = 'test-layout-set';
-
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({
-    org: mockOrg,
-    app: mockApp,
-  }),
-}));
+const mockSelectedLayoutSet = layoutSet1NameMock;
 
 jest.mock('../../../hooks/mutations/useDeleteLayoutMutation', () => ({
   __esModule: true,
@@ -90,8 +82,8 @@ describe('PageAccordion', () => {
 
     expect(queriesMock.deleteFormLayout).toHaveBeenCalledTimes(1);
     expect(queriesMock.deleteFormLayout).toHaveBeenCalledWith(
-      mockOrg,
-      mockApp,
+      org,
+      app,
       mockPageName1,
       mockSelectedLayoutSet,
     );
@@ -135,7 +127,7 @@ const waitForData = async () => {
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
   const settingsResult = renderHookWithProviders(
-    () => useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet),
+    () => useFormLayoutSettingsQuery(org, app, mockSelectedLayoutSet),
     { queries: { getFormLayoutSettings } },
   ).result;
 
