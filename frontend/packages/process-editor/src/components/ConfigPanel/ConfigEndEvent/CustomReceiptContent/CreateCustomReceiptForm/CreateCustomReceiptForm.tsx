@@ -9,6 +9,10 @@ import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import { type LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { SelectCustomReceiptDataModelId } from './SelectCustomReceiptDataModelId';
 import { getLayoutSetIdValidationErrorKey } from 'app-shared/utils/layoutSetsUtils';
+import {
+  getDataTypeFromLayoutSetsWithExistingId,
+  getDataModelOptions,
+} from '../../../../../utils/configPanelUtils';
 
 export type CreateCustomReceiptFormProps = {
   onCloseForm: () => void;
@@ -18,8 +22,20 @@ export const CreateCustomReceiptForm = ({
   onCloseForm,
 }: CreateCustomReceiptFormProps): React.ReactElement => {
   const { t } = useTranslation();
-  const { layoutSets, existingCustomReceiptLayoutSetId, addLayoutSet, mutateDataType } =
-    useBpmnApiContext();
+  const {
+    availableDataModelIds,
+    layoutSets,
+    existingCustomReceiptLayoutSetId,
+    addLayoutSet,
+    mutateDataType,
+  } = useBpmnApiContext();
+
+  const existingDataModelId: string = getDataTypeFromLayoutSetsWithExistingId(
+    layoutSets,
+    existingCustomReceiptLayoutSetId,
+  );
+  const dataModelOptions = getDataModelOptions(availableDataModelIds, existingDataModelId);
+  const availableDataModelIdsEmpty: boolean = dataModelOptions.length === 0;
 
   const [layoutSetError, setLayoutSetError] = useState<string>(null);
   const [dataModelError, setDataModelError] = useState<string>(null);
@@ -103,7 +119,12 @@ export const CreateCustomReceiptForm = ({
         onChange={() => setDataModelError(null)}
       />
       <div className={classes.buttonWrapper}>
-        <StudioButton size='small' type='submit' variant='primary'>
+        <StudioButton
+          disabled={availableDataModelIdsEmpty}
+          size='small'
+          type='submit'
+          variant='primary'
+        >
           {t('process_editor.configuration_panel_custom_receipt_create_button')}
         </StudioButton>
         <StudioButton size='small' onClick={onCloseForm} variant='secondary'>
