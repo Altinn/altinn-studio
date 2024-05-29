@@ -8,7 +8,7 @@ import type { SimpleSubexpressionValue } from '../../../../types/SimpleSubexpres
 import {
   componentIds,
   dataLookupOptions,
-  datamodelPointers,
+  dataModelPointers,
 } from '../../../../test-data/dataLookupOptions';
 import { texts } from '../../../../test-data/texts';
 import userEvent from '@testing-library/user-event';
@@ -97,51 +97,51 @@ describe('SubexpressionValueSelector', () => {
     });
   });
 
-  describe('When the value is a datamodel field reference', () => {
-    const datamodelValue: SimpleSubexpressionValue<SimpleSubexpressionValueType.Datamodel> = {
-      type: SimpleSubexpressionValueType.Datamodel,
-      path: datamodelPointers[0],
+  describe('When the value is a data model field reference', () => {
+    const dataModelValue: SimpleSubexpressionValue<SimpleSubexpressionValueType.DataModel> = {
+      type: SimpleSubexpressionValueType.DataModel,
+      path: dataModelPointers[0],
     };
 
     it('Displays the path in readonly mode', () => {
-      renderSubexpressionValueSelector({ value: datamodelValue, isInEditMode: false });
-      screen.getByText(datamodelValue.path);
+      renderSubexpressionValueSelector({ value: dataModelValue, isInEditMode: false });
+      screen.getByText(dataModelValue.path);
     });
 
-    it('Renders with the given datamodel path value in edit mode', () => {
-      renderSubexpressionValueSelector({ value: datamodelValue, isInEditMode: true });
-      const select = screen.getByRole('combobox', { name: texts.datamodelPath });
-      expect(select).toHaveValue(datamodelValue.path);
+    it('Renders with the given data model path value in edit mode', () => {
+      renderSubexpressionValueSelector({ value: dataModelValue, isInEditMode: true });
+      const select = screen.getByRole('combobox', { name: texts.dataModelPath });
+      expect(select).toHaveValue(dataModelValue.path);
     });
 
-    it('Renders with an empty combobox in edit mode when the datamodel path is an empty string', () => {
+    it('Renders with an empty combobox in edit mode when the data model path is an empty string', () => {
       renderSubexpressionValueSelector({
-        value: { ...datamodelValue, path: '' },
+        value: { ...dataModelValue, path: '' },
         isInEditMode: true,
       });
-      const select = screen.getByRole('combobox', { name: texts.datamodelPath });
+      const select = screen.getByRole('combobox', { name: texts.dataModelPath });
       expect(select).toHaveValue('');
     });
 
     it('Lets the user edit the value in edit mode', async () => {
       const user = userEvent.setup();
       const onChange = jest.fn();
-      renderSubexpressionValueSelector({ value: datamodelValue, isInEditMode: true, onChange });
-      const newPointer = datamodelPointers[1];
-      await user.click(screen.getByRole('combobox', { name: texts.datamodelPath }));
+      renderSubexpressionValueSelector({ value: dataModelValue, isInEditMode: true, onChange });
+      const newPointer = dataModelPointers[1];
+      await user.click(screen.getByRole('combobox', { name: texts.dataModelPath }));
       await user.click(screen.getByRole('option', { name: newPointer }));
       await waitForElementToBeRemoved(screen.queryByRole('listbox')); // Needs to wait here because the Combobox component's change function is asynchronous
-      expect(onChange).toHaveBeenCalledWith({ ...datamodelValue, path: newPointer });
+      expect(onChange).toHaveBeenCalledWith({ ...dataModelValue, path: newPointer });
     });
 
     it('Displays an error and does not call the onChange function when the user enters an invalid value', async () => {
       const user = userEvent.setup();
       const onChange = jest.fn();
-      renderSubexpressionValueSelector({ value: datamodelValue, isInEditMode: true, onChange });
-      const input = () => screen.getByRole('combobox', { name: texts.datamodelPath });
+      renderSubexpressionValueSelector({ value: dataModelValue, isInEditMode: true, onChange });
+      const input = () => screen.getByRole('combobox', { name: texts.dataModelPath });
       await user.type(input(), '{backspace}');
       await user.click(document.body);
-      screen.getByText(texts.errorMessages[ExpressionErrorKey.InvalidDatamodelPath]);
+      screen.getByText(texts.errorMessages[ExpressionErrorKey.InvalidDataModelPath]);
     });
   });
 

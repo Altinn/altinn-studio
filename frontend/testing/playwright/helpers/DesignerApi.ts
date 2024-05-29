@@ -17,7 +17,7 @@ export class DesignerApi extends StudioEnvironment {
     const response = await request.post(
       `/designer/api/repos/create-app?org=${org}&repository=${this.app}&datamodellingPreference=1`,
       {
-        // The following header is needed to be able to do API requestes
+        // The following header is needed to be able to do API requests
         headers: {
           'X-Xsrf-Token': xsrfToken,
         },

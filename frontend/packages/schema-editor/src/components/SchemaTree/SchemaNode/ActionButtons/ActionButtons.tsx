@@ -53,8 +53,8 @@ const useDeleteNode = (pointer: string, savableModel: SavableSchemaModel) => {
 
   return useCallback(() => {
     const confirmMessage = savableModel.areDefinitionParentsInUse(pointer)
-      ? t('schema_editor.datamodel_definition_field_deletion_text')
-      : t('schema_editor.datamodel_field_deletion_text');
+      ? t('schema_editor.data_model_definition_field_deletion_text')
+      : t('schema_editor.data_model_field_deletion_text');
     if (confirm(confirmMessage)) {
       setSelectedNodePointer(null);
       savableModel.deleteNode(pointer);

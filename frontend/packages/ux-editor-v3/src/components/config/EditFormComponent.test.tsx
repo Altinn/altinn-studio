@@ -7,8 +7,8 @@ import { renderHookWithMockStore, renderWithMockStore } from '../../testing/mock
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
-import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
-import type { DatamodelMetadataResponse } from 'app-shared/types/api';
+import { useDataModelMetadataQuery } from '../../hooks/queries/useDataModelMetadataQuery';
+import type { DataModelMetadataResponse } from 'app-shared/types/api';
 import { dataModelNameMock, layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 
@@ -39,8 +39,8 @@ jest.mock('./componentSpecificContent/Image/ImageComponent', () => ({
   ImageComponent: () => <div data-testid={imageSpecificContentId} />,
 }));
 
-const getDatamodelMetadata = () =>
-  Promise.resolve<DatamodelMetadataResponse>({
+const getDataModelMetadata = () =>
+  Promise.resolve<DataModelMetadataResponse>({
     elements: {
       testModel: {
         id: 'testModel',
@@ -225,8 +225,8 @@ const waitForData = async () => {
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
   const dataModelMetadataResult = renderHookWithMockStore(
     {},
-    { getDatamodelMetadata },
-  )(() => useDatamodelMetadataQuery(org, app, layoutSet1NameMock, dataModelNameMock))
+    { getDataModelMetadata },
+  )(() => useDataModelMetadataQuery(org, app, layoutSet1NameMock, dataModelNameMock))
     .renderHookResult.result;
   await waitFor(() => expect(dataModelMetadataResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
@@ -260,7 +260,7 @@ const render = async ({
 
   renderWithMockStore(
     {},
-    { getDatamodelMetadata },
+    { getDataModelMetadata },
   )(
     <EditFormComponent
       editFormId={''}

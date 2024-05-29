@@ -3,10 +3,10 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { isXsdFile } from 'app-shared/utils/filenameUtils';
-import type { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
+import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 
-export const useDeleteDatamodelMutation = () => {
-  const { deleteDatamodel } = useServicesContext();
+export const useDeleteDataModelMutation = () => {
+  const { deleteDataModel } = useServicesContext();
   const { org, app } = useStudioUrlParams();
   const queryClient = useQueryClient();
   return useMutation({
@@ -16,13 +16,13 @@ export const useDeleteDatamodelMutation = () => {
         : modelPath;
       const xsdPath = isXsdFile(modelPath) ? modelPath : modelPath.replace('.schema.json', '.xsd');
       queryClient.setQueryData(
-        [QueryKey.DatamodelsJson, org, app],
-        (oldData: DatamodelMetadata[]) => removeDatamodelFromList(oldData, jsonSchemaPath),
+        [QueryKey.DataModelsJson, org, app],
+        (oldData: DataModelMetadata[]) => removeDataModelFromList(oldData, jsonSchemaPath),
       );
-      queryClient.setQueryData([QueryKey.DatamodelsXsd, org, app], (oldData: DatamodelMetadata[]) =>
-        removeDatamodelFromList(oldData, xsdPath),
+      queryClient.setQueryData([QueryKey.DataModelsXsd, org, app], (oldData: DataModelMetadata[]) =>
+        removeDataModelFromList(oldData, xsdPath),
       );
-      await deleteDatamodel(org, app, modelPath);
+      await deleteDataModel(org, app, modelPath);
       return { jsonSchemaPath, xsdPath };
     },
     onSuccess: ({ jsonSchemaPath, xsdPath }) => {
@@ -37,8 +37,8 @@ export const useDeleteDatamodelMutation = () => {
   });
 };
 
-export const removeDatamodelFromList = (
-  datamodels: DatamodelMetadata[],
+export const removeDataModelFromList = (
+  dataModels: DataModelMetadata[],
   relativeUrl: string,
-): DatamodelMetadata[] =>
-  datamodels.filter((datamodel) => datamodel.repositoryRelativeUrl !== relativeUrl);
+): DataModelMetadata[] =>
+  dataModels.filter((dataModel) => dataModel.repositoryRelativeUrl !== relativeUrl);

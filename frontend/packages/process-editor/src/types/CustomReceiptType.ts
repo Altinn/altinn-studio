@@ -1,4 +1,4 @@
 export type CustomReceiptType = {
   layoutSetId: string;
-  datamodelId: string;
+  dataModelId: string;
 };

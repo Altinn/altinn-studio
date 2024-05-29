@@ -18,10 +18,10 @@ export const topBarMenuItem: TopBarMenuItem[] = [
     repositoryTypes: [RepositoryType.App],
   },
   {
-    key: TopBarMenu.Datamodel,
-    link: RoutePaths.Datamodel,
+    key: TopBarMenu.DataModel,
+    link: RoutePaths.DataModel,
     icon: DatabaseIcon,
-    repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
+    repositoryTypes: [RepositoryType.App, RepositoryType.DataModels],
   },
   {
     key: TopBarMenu.Text,
@@ -42,7 +42,7 @@ export const getFilteredTopBarMenu = (repositoryType: RepositoryType): TopBarMen
   return topBarMenuItem
     .filter((menuItem) => menuItem.repositoryTypes.includes(repositoryType))
     .filter(filterRoutesByFeatureFlag)
-    .filter(filterRoutesByDatamodel);
+    .filter(filterRoutesByDataModel);
 };
 
 const filterRoutesByFeatureFlag = (menuItem: TopBarMenuItem): boolean => {
@@ -52,9 +52,9 @@ const filterRoutesByFeatureFlag = (menuItem: TopBarMenuItem): boolean => {
   return menuItem.featureFlagName && shouldDisplayFeature(menuItem.featureFlagName);
 };
 
-const filterRoutesByDatamodel = (menuItem: TopBarMenuItem) => {
-  if (menuItem.repositoryTypes.includes(RepositoryType.Datamodels)) {
-    return menuItem.key === TopBarMenu.Datamodel;
+const filterRoutesByDataModel = (menuItem: TopBarMenuItem) => {
+  if (menuItem.repositoryTypes.includes(RepositoryType.DataModels)) {
+    return menuItem.key === TopBarMenu.DataModel;
   }
   return true;
 };

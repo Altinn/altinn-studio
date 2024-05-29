@@ -54,7 +54,7 @@ export const SettingsModal = ({
   const aboutTabId: SettingsModalTab = 'about';
   const setupTabId: SettingsModalTab = 'setup';
   const policyTabId: SettingsModalTab = 'policy';
-  const accessControlTabId: SettingsModalTab = 'accessControl';
+  const accessControlTabId: SettingsModalTab = 'access_control';
 
   /**
    * The tabs to display in the navigation bar
@@ -109,7 +109,7 @@ export const SettingsModal = ({
       case 'policy': {
         return <PolicyTab org={org} app={app} />;
       }
-      case 'accessControl': {
+      case 'access_control': {
         return <AccessControlTab org={org} app={app} />;
       }
     }
@@ -131,11 +131,7 @@ export const SettingsModal = ({
     >
       <div className={classes.modalContent}>
         <div className={classes.leftNavWrapper}>
-          <LeftNavigationBar
-            tabs={leftNavigationTabs}
-            className={classes.leftNavigationBar}
-            selectedTab={currentTab}
-          />
+          <LeftNavigationBar tabs={leftNavigationTabs} selectedTab={currentTab} />
         </div>
         <div className={classes.contentWrapper}>{displayTabs()}</div>
       </div>

@@ -3,7 +3,7 @@
   flex: var(--properties-width-fraction);
 }
 
-.datamodelBindings {
+.dataModelBindings {
   padding: var(--fds-spacing-5) 0;
 }
 

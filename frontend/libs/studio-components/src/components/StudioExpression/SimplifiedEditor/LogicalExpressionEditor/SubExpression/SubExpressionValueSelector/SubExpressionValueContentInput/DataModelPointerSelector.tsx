@@ -6,10 +6,10 @@ import { DataLookupFuncName } from '../../../../../enums/DataLookupFuncName';
 import { Combobox } from '@digdir/design-system-react';
 import type { Props } from './Props';
 
-export const DatamodelPointerSelector = ({
+export const DataModelPointerSelector = ({
   value,
   onChange,
-}: Props<SimpleSubexpressionValueType.Datamodel>) => {
+}: Props<SimpleSubexpressionValueType.DataModel>) => {
   const { dataLookupOptions, texts } = useStudioExpressionContext();
   const [errorKey, setErrorKey] = useState<ExpressionErrorKey | null>(null);
   const [pathValue, setPathValue] = useState<string>(value.path);
@@ -23,14 +23,14 @@ export const DatamodelPointerSelector = ({
       setErrorKey(null);
     } else {
       setPathValue('');
-      setErrorKey(ExpressionErrorKey.InvalidDatamodelPath);
+      setErrorKey(ExpressionErrorKey.InvalidDataModelPath);
     }
   };
 
   return (
     <Combobox
       error={texts.errorMessages[errorKey]}
-      label={texts.datamodelPath}
+      label={texts.dataModelPath}
       onValueChange={handleChange}
       size='small'
       value={pathValue ? [pathValue] : []}
