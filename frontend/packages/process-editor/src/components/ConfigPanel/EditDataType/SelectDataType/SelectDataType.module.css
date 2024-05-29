@@ -5,6 +5,10 @@
 }
 
 .dataTypeSelect {
+  flex: 1;
+}
+
+.dataTypeSelectAndButtons {
   display: flex;
   flex-direction: row;
   align-items: flex-end;

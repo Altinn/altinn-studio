@@ -7,7 +7,7 @@ import { StudioDisplayTile, StudioSectionHeader } from '@studio/components';
 import {
   getConfigTitleKey,
   getConfigTitleHelpTextKey,
-  getDatamodelOptions,
+  getDataModelOptions,
 } from '../../../utils/configPanelUtils';
 import { ConfigIcon } from './ConfigIcon';
 import { EditDataType } from '../EditDataType';
@@ -28,7 +28,7 @@ export const ConfigContent = (): React.ReactElement => {
   const layoutSet = layoutSets?.sets.find((set) => set.tasks.includes(bpmnDetails.id));
   const existingDataTypeForTask = layoutSet?.dataType;
 
-  const datamodelIds = getDatamodelOptions(availableDataModelIds, existingDataTypeForTask);
+  const dataModelIds = getDataModelOptions(availableDataModelIds, existingDataTypeForTask);
 
   const taskHasConnectedLayoutSet = layoutSets?.sets?.some((set) => set.tasks[0] == bpmnDetails.id);
 
@@ -54,7 +54,7 @@ export const ConfigContent = (): React.ReactElement => {
       {taskHasConnectedLayoutSet && (
         <EditDataType
           connectedTaskId={layoutSet.tasks[0]}
-          datamodelIds={datamodelIds}
+          dataModelIds={dataModelIds}
           existingDataTypeForTask={existingDataTypeForTask}
         />
       )}

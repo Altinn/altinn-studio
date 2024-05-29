@@ -13,7 +13,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 const mockAuthorName: string = 'Mock Mockesen';
 
 const defaultProps: CreatedForProps = {
-  repositoryType: RepositoryType.Datamodels,
+  repositoryType: RepositoryType.DataModels,
   repository: mockRepository1,
   authorName: mockAuthorName,
 };

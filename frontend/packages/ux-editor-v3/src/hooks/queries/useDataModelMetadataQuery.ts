@@ -1,21 +1,21 @@
 import { useQuery } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
-import type { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
+import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
-export const useDatamodelMetadataQuery = (
+export const useDataModelMetadataQuery = (
   org: string,
   app: string,
   layoutSetName: string,
   dataModelName: string,
-): UseQueryResult<DatamodelFieldElement[]> => {
-  const { getDatamodelMetadata } = useServicesContext();
-  return useQuery<DatamodelFieldElement[]>({
-    queryKey: [QueryKey.DatamodelMetadata, org, app, layoutSetName, dataModelName],
+): UseQueryResult<DataModelFieldElement[]> => {
+  const { getDataModelMetadata } = useServicesContext();
+  return useQuery<DataModelFieldElement[]>({
+    queryKey: [QueryKey.DataModelMetadata, org, app, layoutSetName, dataModelName],
     queryFn: () =>
-      getDatamodelMetadata(org, app, layoutSetName, dataModelName).then((res) => {
-        const dataModelFields: DatamodelFieldElement[] = [];
+      getDataModelMetadata(org, app, layoutSetName, dataModelName).then((res) => {
+        const dataModelFields: DataModelFieldElement[] = [];
         Object.keys(res.elements).forEach((dataModelField) => {
           if (dataModelField) {
             dataModelFields.push(res.elements[dataModelField]);

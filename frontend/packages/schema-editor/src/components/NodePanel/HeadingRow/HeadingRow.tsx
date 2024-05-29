@@ -33,11 +33,11 @@ export interface HeadingRowProps {
 export const HeadingRow = ({ pointer }: HeadingRowProps) => {
   const { setSelectedNodePointer, selectedNodePointer, name, schemaModel } =
     useSchemaEditorAppContext();
-  const isDatamodelRoot = !pointer;
-  const nodeRootPointer = isDatamodelRoot ? ROOT_POINTER : pointer;
+  const isDataModelRoot = !pointer;
+  const nodeRootPointer = isDataModelRoot ? ROOT_POINTER : pointer;
   const node = schemaModel.getNode(nodeRootPointer);
   const selectNodeRoot = () => setSelectedNodePointer(nodeRootPointer);
-  const title = isDatamodelRoot ? name : extractNameFromPointer(pointer);
+  const title = isDataModelRoot ? name : extractNameFromPointer(pointer);
   const isValidParent = isNodeValidParent(node);
   const isSelected = selectedNodePointer === nodeRootPointer;
 
@@ -56,7 +56,7 @@ export const HeadingRow = ({ pointer }: HeadingRowProps) => {
         </StudioButton>
       </Heading>
       {isValidParent && <AddNodeMenu pointer={pointer} />}
-      {!isDatamodelRoot && <DeleteButton pointer={pointer} />}
+      {!isDataModelRoot && <DeleteButton pointer={pointer} />}
     </div>
   );
 };

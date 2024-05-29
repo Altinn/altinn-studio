@@ -1,6 +1,6 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithMockStore } from '../../test/mocks';
-import { useUploadDatamodelMutation } from './useUploadDatamodelMutation';
+import { useUploadDataModelMutation } from './useUploadDataModelMutation';
 import { waitFor } from '@testing-library/react';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -15,21 +15,21 @@ const renderHook = async ({
 }: {
   queryClient?: QueryClient;
 } = {}) => {
-  const uploadDatamodelResult = renderHookWithMockStore(
+  const uploadDataModelResult = renderHookWithMockStore(
     {},
     {},
     queryClient,
-  )(() => useUploadDatamodelMutation()).renderHookResult.result;
-  await waitFor(() => uploadDatamodelResult.current.mutate(file));
-  expect(uploadDatamodelResult.current.isSuccess).toBe(true);
+  )(() => useUploadDataModelMutation()).renderHookResult.result;
+  await waitFor(() => uploadDataModelResult.current.mutate(file));
+  expect(uploadDataModelResult.current.isSuccess).toBe(true);
 };
 
-describe('useUploadDatamodelMutation', () => {
-  it('calls uploadDatamodel with correct arguments and payload', async () => {
+describe('useUploadDataModelMutation', () => {
+  it('calls uploadDataModel with correct arguments and payload', async () => {
     await renderHook();
 
-    expect(queriesMock.uploadDatamodel).toHaveBeenCalledTimes(1);
-    expect(queriesMock.uploadDatamodel).toHaveBeenCalledWith(org, app, file);
+    expect(queriesMock.uploadDataModel).toHaveBeenCalledTimes(1);
+    expect(queriesMock.uploadDataModel).toHaveBeenCalledWith(org, app, file);
   });
 
   it('invalidates metadata queries when upload is successful', async () => {
@@ -38,12 +38,15 @@ describe('useUploadDatamodelMutation', () => {
 
     await renderHook({ queryClient });
 
-    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(2);
+    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(3);
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({
-      queryKey: [QueryKey.DatamodelsJson, org, app],
+      queryKey: [QueryKey.DataModelsJson, org, app],
     });
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({
-      queryKey: [QueryKey.DatamodelsXsd, org, app],
+      queryKey: [QueryKey.DataModelsXsd, org, app],
+    });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [QueryKey.AppMetadataModelIds, org, app],
     });
   });
 });

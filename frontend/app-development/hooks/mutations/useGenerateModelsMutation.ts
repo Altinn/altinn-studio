@@ -18,8 +18,8 @@ export const useGenerateModelsMutation = (
     mutationFn: (payload: JsonSchema) => generateModels(org, app, modelPath, payload),
     onSuccess: () =>
       Promise.all([
-        queryClient.invalidateQueries({ queryKey: [QueryKey.DatamodelsJson, org, app] }),
-        queryClient.invalidateQueries({ queryKey: [QueryKey.DatamodelsXsd, org, app] }),
+        queryClient.invalidateQueries({ queryKey: [QueryKey.DataModelsJson, org, app] }),
+        queryClient.invalidateQueries({ queryKey: [QueryKey.DataModelsXsd, org, app] }),
       ]),
     meta,
   });

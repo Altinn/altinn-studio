@@ -7,15 +7,15 @@ import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 export const useSchemaMutation = () => {
   const queryClient = useQueryClient();
   const { org, app } = useStudioUrlParams();
-  const { saveDatamodel } = useServicesContext();
+  const { saveDataModel } = useServicesContext();
   return useMutation({
     mutationFn: async (args: { modelPath: string; model: JsonSchema }) => {
       const { modelPath, model } = args;
       queryClient.setQueryData([QueryKey.JsonSchema, org, app, modelPath], () => model);
-      await saveDatamodel(org, app, modelPath, model);
+      await saveDataModel(org, app, modelPath, model);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QueryKey.DatamodelsMetadata, org, app] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.DataModelsMetadata, org, app] });
     },
   });
 };

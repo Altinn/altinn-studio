@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { getStoragePath } = require('../utils');
 /**
- * Returns all datamodels
+ * Returns all data models
  */
 module.exports = (req, res) => {
   const directory = getStoragePath('.');

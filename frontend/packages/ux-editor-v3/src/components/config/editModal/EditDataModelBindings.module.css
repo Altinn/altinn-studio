@@ -1,4 +1,4 @@
-.datamodelLink {
+.dataModelLink {
   display: flex;
   align-items: center;
 }
@@ -11,7 +11,7 @@
   width: 100%;
 }
 
-.linkedDatamodelContainer {
+.linkedDataModelContainer {
   margin-top: 25px;
   display: flex;
   align-items: center;
@@ -19,7 +19,7 @@
   padding-block: 0.75rem;
 }
 
-.linkedDatamodelIcon {
+.linkedDataModelIcon {
   height: var(--fds-sizing-4);
   width: var(--fds-sizing-4);
 }
