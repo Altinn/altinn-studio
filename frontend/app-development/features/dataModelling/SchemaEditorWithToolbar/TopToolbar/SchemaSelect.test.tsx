@@ -6,19 +6,19 @@ import {
   jsonMetadata1Mock,
   jsonMetadata2Mock,
 } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
-import type { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
+import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { convertMetadataToOption } from '../../../../utils/metadataUtils';
 import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();
 
 // Test data:
-const metadata: DatamodelMetadata[] = [jsonMetadata1Mock, jsonMetadata2Mock];
+const metadata: DataModelMetadata[] = [jsonMetadata1Mock, jsonMetadata2Mock];
 const jsonOption1 = convertMetadataToOption(jsonMetadata1Mock);
 const jsonOption2 = convertMetadataToOption(jsonMetadata2Mock);
 const setSelectedOption = jest.fn();
 const defaultProps: ISchemaSelectProps = {
-  datamodels: metadata,
+  dataModels: metadata,
   disabled: false,
   selectedOption: jsonOption1,
   setSelectedOption,
@@ -28,7 +28,7 @@ describe('SchemaSelect', () => {
   afterEach(jest.clearAllMocks);
 
   it('Renders empty select when there are no provided options', () => {
-    render({ datamodels: [] });
+    render({ dataModels: [] });
     expect(screen.getByRole('combobox')).toBeEmptyDOMElement();
   });
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { RepositoryType } from 'app-shared/types/global';
 import type { TFunction } from 'i18next';
-import { LegacyToggleButtonGroup, LegacySelect } from '@digdir/design-system-react';
+import { LegacySelect, LegacyToggleButtonGroup } from '@digdir/design-system-react';
 import type { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import classes from '../AppPreviewSubMenu.module.css';
 import { ArrowCirclepathIcon, EyeIcon, LinkIcon } from '@studio/icons';
@@ -105,12 +105,10 @@ export const appPreviewButtonActions = (
   const packagesRouter = new PackagesRouter({ org, app });
   const queryParams = `?layout=${window.localStorage.getItem(instanceId)}`;
 
-  const action: AltinnButtonActionItem[] = [
+  return [
     {
-      title: 'top_menu.preview_back_to_editing',
-      menuKey: TopBarMenu.Preview,
+      menuKey: TopBarMenu.PreviewBackToEditing,
       to: `${packagesRouter.getPackageNavigationUrl('editorUiEditor')}${queryParams}`,
     },
   ];
-  return action;
 };

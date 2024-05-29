@@ -1,10 +1,10 @@
 import type { IGenericEditComponent } from '../componentConfig';
-import { getMinOccursFromDataModel, getXsdDataTypeFromDataModel } from '../../../utils/datamodel';
+import { getMinOccursFromDataModel, getXsdDataTypeFromDataModel } from '../../../utils/dataModel';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import React, { useEffect, useState } from 'react';
 import { useText } from '../../../hooks';
 import { SelectDataModelComponent } from '../SelectDataModelComponent';
-import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
+import { useDataModelMetadataQuery } from '../../../hooks/queries/useDataModelMetadataQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { LinkIcon } from '@studio/icons';
 import { StudioButton } from '@studio/components';
@@ -30,7 +30,7 @@ export const EditDataModelBindings = ({
 }: EditDataModelBindingsProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { selectedLayoutSet } = useAppContext();
-  const { data } = useDatamodelMetadataQuery(org, app, selectedLayoutSet, undefined);
+  const { data } = useDataModelMetadataQuery(org, app, selectedLayoutSet, undefined);
   const t = useText();
 
   const handleDataModelChange = (selectedDataModelElement: string, key = 'simpleBinding') => {
@@ -69,7 +69,7 @@ export const EditDataModelBindings = ({
           size='medium'
           fullWidth
         >
-          <div className={classes.datamodelLink}>
+          <div className={classes.dataModelLink}>
             <LinkIcon className={classes.linkIcon} />
             {t('ux_editor.modal_properties_data_model_link')}
           </div>
@@ -126,8 +126,8 @@ export const EditDataModelBindings = ({
 
 const SelectedOption = ({ selectedOption }: { selectedOption: string }) => {
   return (
-    <div className={classes.linkedDatamodelContainer}>
-      <LinkIcon className={classes.linkedDatamodelIcon} />
+    <div className={classes.linkedDataModelContainer}>
+      <LinkIcon className={classes.linkedDataModelIcon} />
       {selectedOption}
     </div>
   );

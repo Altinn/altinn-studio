@@ -7,8 +7,8 @@ import {
 } from '@digdir/design-system-react';
 import type { SubExpression } from '../../../../../../types/Expressions';
 import { DataSource } from '../../../../../../types/Expressions';
-import type { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
-import { useDatamodelMetadataQuery } from '../../../../../../hooks/queries/useDatamodelMetadataQuery';
+import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
+import { useDataModelMetadataQuery } from '../../../../../../hooks/queries/useDataModelMetadataQuery';
 import { useFormLayoutsQuery } from '../../../../../../hooks/queries/useFormLayoutsQuery';
 import {
   getComponentIds,
@@ -34,11 +34,11 @@ export const DataSourceValue = ({
   const { org, app } = useStudioEnvironmentParams();
   const { selectedLayoutSet } = useAppContext();
   // TODO: Show spinner when isLoading
-  const datamodelQuery = useDatamodelMetadataQuery(org, app, selectedLayoutSet, undefined);
+  const dataModelQuery = useDataModelMetadataQuery(org, app, selectedLayoutSet, undefined);
   const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedLayoutSet);
   const t = useText();
 
-  const dataModelElementsData = datamodelQuery?.data ?? [];
+  const dataModelElementsData = dataModelQuery?.data ?? [];
   const currentValue = isComparableValue ? subExpression.comparableValue : subExpression.value;
   const selectedValueForDisplayIfBoolean = currentValue ? 'true' : 'false';
 
@@ -47,7 +47,7 @@ export const DataSourceValue = ({
       case DataSource.Component:
         return getComponentIds(formLayoutsData);
       case DataSource.DataModel:
-        return getDataModelElementNames(dataModelElementsData as DatamodelFieldElement[]);
+        return getDataModelElementNames(dataModelElementsData as DataModelFieldElement[]);
       case DataSource.InstanceContext:
         return ['instanceOwnerPartyId', 'instanceId', 'appId'].map((dsv: string) => ({
           label: dsv,

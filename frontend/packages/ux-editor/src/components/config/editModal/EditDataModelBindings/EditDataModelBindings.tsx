@@ -3,10 +3,10 @@ import {
   getMaxOccursFromDataModel,
   getMinOccursFromDataModel,
   getXsdDataTypeFromDataModel,
-} from '../../../../utils/datamodel';
+} from '../../../../utils/dataModel';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import React, { useEffect, useState } from 'react';
-import { useDatamodelMetadataQuery } from '../../../../hooks/queries/useDatamodelMetadataQuery';
+import { useDataModelMetadataQuery } from '../../../../hooks/queries/useDataModelMetadataQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import classes from './EditDataModelBindings.module.css';
 import { useTranslation } from 'react-i18next';
@@ -35,7 +35,7 @@ export const EditDataModelBindings = <T extends ComponentType>({
 }: EditDataModelBindingsProps<T>) => {
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
-  const { data } = useDatamodelMetadataQuery(org, app, selectedFormLayoutSetName, undefined);
+  const { data } = useDataModelMetadataQuery(org, app, selectedFormLayoutSetName, undefined);
   const { t } = useTranslation();
   const [dataModelSelectVisible, setDataModelSelectVisible] = useState(false);
 

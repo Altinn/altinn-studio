@@ -6,7 +6,7 @@ import { Textfield } from '@digdir/design-system-react';
 import { StudioButton } from '@studio/components';
 import { XMarkIcon } from '@studio/icons';
 import { CenterContainer } from '../../components/CenterContainer';
-import { DatamodelsReposList } from '../../components/DataModelsRepoList';
+import { DataModelsReposList } from '../../components/DataModelsRepoList';
 import { OrgReposList } from '../../components/OrgRepoList';
 import { SearchResultReposList } from '../../components/SearchResultReposList';
 import { FavoriteReposList } from '../../components/FavoriteReposList';
@@ -117,13 +117,13 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
               <ErrorBoundary
                 fallback={
                   <SafeErrorView
-                    heading={t('dashboard.all_datamodels')}
-                    title={t('dashboard.view_datamodels_error_title')}
+                    heading={t('dashboard.all_data_models')}
+                    title={t('dashboard.view_data_models_error_title')}
                     message={t('dashboard.view_table_error_message')}
                   />
                 }
               >
-                <DatamodelsReposList user={user} organizations={organizations} />
+                <DataModelsReposList user={user} organizations={organizations} />
               </ErrorBoundary>
               {shouldDisplayResources && (
                 <ErrorBoundary

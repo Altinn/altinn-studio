@@ -1,10 +1,10 @@
-import type { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
+import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
 
 /* UTIL METHODS FOR HANDLING DATA MODEL */
 export function filterDataModelForIntellisense(
-  dataModelElements: DatamodelFieldElement[],
+  dataModelElements: DataModelFieldElement[],
   filterText: string,
-): DatamodelFieldElement[] {
+): DataModelFieldElement[] {
   if (!dataModelElements) {
     return [];
   }
@@ -21,7 +21,7 @@ export function filterDataModelForIntellisense(
 
   if (currentElement) {
     return dataModelElements.filter(
-      (element: DatamodelFieldElement) =>
+      (element: DataModelFieldElement) =>
         (element.type === 'Field' || element.type === 'Group') &&
         element.parentElement &&
         element.parentElement.toLowerCase() === parentElement &&
@@ -30,7 +30,7 @@ export function filterDataModelForIntellisense(
   }
 
   return dataModelElements.filter(
-    (element: DatamodelFieldElement) =>
+    (element: DataModelFieldElement) =>
       (element.type === 'Field' || element.type === 'Group') &&
       element.parentElement &&
       element.parentElement.toLowerCase() === parentElement,
@@ -39,19 +39,19 @@ export function filterDataModelForIntellisense(
 
 export const getMinOccursFromDataModel = (
   dataBindingName: string,
-  dataModel: DatamodelFieldElement[],
+  dataModel: DataModelFieldElement[],
 ): number => {
-  const element: DatamodelFieldElement = dataModel.find(
-    (e: DatamodelFieldElement) => e.dataBindingName === dataBindingName,
+  const element: DataModelFieldElement = dataModel.find(
+    (e: DataModelFieldElement) => e.dataBindingName === dataBindingName,
   );
   return element?.minOccurs;
 };
 
 export const getXsdDataTypeFromDataModel = (
   dataBindingName: string,
-  dataModel: DatamodelFieldElement[],
+  dataModel: DataModelFieldElement[],
 ): string => {
-  const element: DatamodelFieldElement = dataModel.find((e: DatamodelFieldElement) => {
+  const element: DataModelFieldElement = dataModel.find((e: DataModelFieldElement) => {
     return e.dataBindingName === dataBindingName;
   });
 

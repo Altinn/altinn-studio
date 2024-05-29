@@ -13,12 +13,12 @@ export const useSchemaQuery = (
   modelPath: string,
 ): UseQueryResult<JsonSchema | null, AxiosError<ApiError, any>> => {
   const { org, app } = useStudioEnvironmentParams();
-  const { getDatamodel, addXsdFromRepo } = useServicesContext();
+  const { getDataModel, addXsdFromRepo } = useServicesContext();
   return useQuery<JsonSchema | null, AxiosError<ApiError, any>>({
     queryKey: [QueryKey.JsonSchema, org, app, modelPath],
     queryFn: async (): Promise<JsonSchema> =>
       isXsdFile(modelPath)
         ? addXsdFromRepo(org, app, StringUtils.removeStart(modelPath, '/'))
-        : getDatamodel(org, app, modelPath),
+        : getDataModel(org, app, modelPath),
   });
 };

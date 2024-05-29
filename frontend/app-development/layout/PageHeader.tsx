@@ -26,7 +26,7 @@ export const subMenuContent = ({ org, app, hasRepoError }: SubMenuContentProps) 
       app={app}
       hasCloneModal
       leftComponent={
-        repositoryType !== RepositoryType.Datamodels && <SettingsModalButton org={org} app={app} />
+        repositoryType !== RepositoryType.DataModels && <SettingsModalButton org={org} app={app} />
       }
       hasRepoError={hasRepoError}
     />
@@ -40,20 +40,17 @@ export const buttonActions = (
 ): AltinnButtonActionItem[] => {
   const packagesRouter = new PackagesRouter({ org, app });
 
-  const actions: AltinnButtonActionItem[] = [
+  return [
     {
-      title: 'top_menu.preview',
       menuKey: TopBarMenu.Preview,
       to: `${packagesRouter.getPackageNavigationUrl('preview')}${selectedFormLayoutName ? `?layout=${selectedFormLayoutName}` : ''}`,
       isInverted: true,
     },
     {
-      title: 'top_menu.deploy',
       menuKey: TopBarMenu.Deploy,
       to: packagesRouter.getPackageNavigationUrl('editorPublish'),
     },
   ];
-  return actions;
 };
 
 type PageHeaderProps = {

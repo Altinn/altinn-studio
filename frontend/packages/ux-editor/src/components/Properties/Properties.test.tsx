@@ -68,7 +68,7 @@ describe('Properties', () => {
       const user = userEvent.setup();
       renderProperties();
       const button = screen.queryByRole('button', {
-        name: textMock('right_menu.dataModelBindings'),
+        name: textMock('right_menu.data_model_bindings'),
       });
       await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'true');
@@ -138,7 +138,7 @@ describe('Properties', () => {
       const textAccordion = screen.getByRole('button', { name: textMock('right_menu.text') });
       expect(textAccordion).toHaveAttribute('aria-expanded', 'false');
       const dataModelBindingsAccordion = screen.getByRole('button', {
-        name: textMock('right_menu.dataModelBindings'),
+        name: textMock('right_menu.data_model_bindings'),
       });
       expect(dataModelBindingsAccordion).toHaveAttribute('aria-expanded', 'false');
       const contentAccordion = screen.getByRole('button', { name: textMock('right_menu.content') });
@@ -218,7 +218,7 @@ describe('Properties', () => {
     editFormComponentSpy.mockReturnValue(<input data-testid={editFormComponentTestId}></input>);
     renderProperties();
     expect(screen.getByText(textMock('right_menu.text'))).toBeInTheDocument();
-    expect(screen.getByText(textMock('right_menu.dataModelBindings'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('right_menu.data_model_bindings'))).toBeInTheDocument();
     expect(screen.getByText(textMock('right_menu.content'))).toBeInTheDocument();
     expect(screen.getByText(textMock('right_menu.dynamics'))).toBeInTheDocument();
     expect(screen.getByText(textMock('right_menu.calculations'))).toBeInTheDocument();

@@ -33,12 +33,12 @@ const layoutSetIdTextKeys: Record<string, string> = {
   [existingLayoutSetName]: 'process_editor.configuration_panel_layout_set_id_not_unique',
 };
 
-const mockAvailableDatamodelIds: string[] = [mockBpmnApiContextValue.layoutSets.sets[1].dataType];
+const mockAvailableDataModelIds: string[] = [mockBpmnApiContextValue.layoutSets.sets[1].dataType];
 
 const defaultBpmnContextProps: BpmnApiContextProps = {
   ...mockBpmnApiContextValue,
   existingCustomReceiptLayoutSetId: existingCustomReceiptLayoutSetId,
-  availableDataModelIds: mockAvailableDatamodelIds,
+  availableDataModelIds: mockAvailableDataModelIds,
 };
 
 describe('CustomReceipt', () => {
@@ -69,22 +69,22 @@ describe('CustomReceipt', () => {
     });
   });
 
-  it('calls "mutateDataType" when the datamodel id is changed', async () => {
+  it('calls "mutateDataType" when the data model id is changed', async () => {
     const user = userEvent.setup();
     renderCustomReceipt();
 
     const propertyButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_set_datamodel'),
+      name: textMock('process_editor.configuration_panel_set_data_model'),
     });
     await user.click(propertyButton);
 
-    const select = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_set_datamodel'),
-    );
-    await user.click(select);
-    const newOption: string = mockAvailableDatamodelIds[0];
+    const combobox = screen.getByRole('combobox', {
+      name: textMock('process_editor.configuration_panel_set_data_model'),
+    });
+    await user.click(combobox);
+    const newOption: string = mockAvailableDataModelIds[0];
     const option = screen.getByRole('option', { name: newOption });
-    await user.selectOptions(select, option);
+    await user.click(option);
 
     expect(mockBpmnApiContextValue.mutateDataType).toHaveBeenCalledTimes(1);
     expect(mockBpmnApiContextValue.mutateDataType).toHaveBeenCalledWith({

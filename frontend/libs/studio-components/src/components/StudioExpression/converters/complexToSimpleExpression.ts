@@ -80,7 +80,7 @@ const dataLookupFuncToSimpleFormat = ([source, key]: DataLookupFunc): SimpleSube
     case DataLookupFuncName.Component:
       return { type: SimpleSubexpressionValueType.Component, id: key };
     case DataLookupFuncName.DataModel:
-      return { type: SimpleSubexpressionValueType.Datamodel, path: key };
+      return { type: SimpleSubexpressionValueType.DataModel, path: key };
   }
 };
 

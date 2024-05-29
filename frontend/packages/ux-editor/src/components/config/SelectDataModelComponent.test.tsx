@@ -5,7 +5,7 @@ import { SelectDataModelComponent } from './SelectDataModelComponent';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { getDataModelFieldsFilter } from '../../utils/datamodel';
+import { getDataModelFieldsFilter } from '../../utils/dataModel';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
@@ -13,7 +13,7 @@ import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
 const dataModelName = undefined;
 
-const datamodelMetadataMock = [
+const dataModelMetadataMock = [
   {
     id: 'testModel',
     type: 'ComplexType',
@@ -65,13 +65,13 @@ const datamodelMetadataMock = [
 const user = userEvent.setup();
 
 const render = async ({
-  dataModelMetadata = datamodelMetadataMock,
+  dataModelMetadata = dataModelMetadataMock,
   componentType = ComponentType.Input,
   label = undefined,
   handleComponentChange = jest.fn(),
 } = {}) => {
   queryClientMock.setQueryData(
-    [QueryKey.DatamodelMetadata, org, app, layoutSet1NameMock, dataModelName],
+    [QueryKey.DataModelMetadata, org, app, layoutSet1NameMock, dataModelName],
     dataModelMetadata,
   );
   renderWithProviders(

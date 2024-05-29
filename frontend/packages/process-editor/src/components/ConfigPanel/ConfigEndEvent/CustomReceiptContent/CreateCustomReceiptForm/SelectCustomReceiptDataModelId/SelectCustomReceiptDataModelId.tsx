@@ -4,50 +4,50 @@ import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '../../../../../../contexts/BpmnApiContext';
 import {
   getDataTypeFromLayoutSetsWithExistingId,
-  getDatamodelOptions,
+  getDataModelOptions,
 } from '../../../../../../utils/configPanelUtils';
 
-export type SelectCustomReceiptDatamodelIdProps = {
+export type SelectCustomReceiptDataModelIdProps = {
   error: string;
   onChange: () => void;
 };
 
-export const SelectCustomReceiptDatamodelId = ({
+export const SelectCustomReceiptDataModelId = ({
   error,
   onChange,
-}: SelectCustomReceiptDatamodelIdProps): React.ReactElement => {
+}: SelectCustomReceiptDataModelIdProps): React.ReactElement => {
   const { t } = useTranslation();
   const { layoutSets, existingCustomReceiptLayoutSetId, availableDataModelIds } =
     useBpmnApiContext();
 
-  const existingDatamodelId: string = getDataTypeFromLayoutSetsWithExistingId(
+  const existingDataModelId: string = getDataTypeFromLayoutSetsWithExistingId(
     layoutSets,
     existingCustomReceiptLayoutSetId,
   );
 
-  const datamodelOptions = getDatamodelOptions(availableDataModelIds, existingDatamodelId);
+  const dataModelOptions = getDataModelOptions(availableDataModelIds, existingDataModelId);
 
-  const availableDatamodelIdsEmpty: boolean = datamodelOptions.length === 0;
+  const availableDataModelIdsEmpty: boolean = dataModelOptions.length === 0;
 
   return (
     <StudioNativeSelect
-      label={t('process_editor.configuration_panel_custom_receipt_select_datamodel_label')}
+      label={t('process_editor.configuration_panel_custom_receipt_select_data_model_label')}
       size='small'
       description={
-        availableDatamodelIdsEmpty &&
-        t('process_editor.configuration_panel_custom_receipt_select_datamodel_description')
+        availableDataModelIdsEmpty &&
+        t('process_editor.configuration_panel_custom_receipt_select_data_model_description')
       }
-      name='customReceiptDatamodel'
+      name='customReceiptDataModel'
       id='customReceiptDataModelSelect'
-      disabled={availableDatamodelIdsEmpty}
-      defaultValue={existingDatamodelId ?? 'noModelKey'}
+      disabled={availableDataModelIdsEmpty}
+      defaultValue={existingDataModelId ?? 'noModelKey'}
       error={error}
       onChange={onChange}
     >
       <option disabled={true} value='noModelKey'>
-        {t('process_editor.configuration_panel_select_datamodel')}
+        {t('process_editor.configuration_panel_select_data_model')}
       </option>
-      {datamodelOptions.map((id: string) => (
+      {dataModelOptions.map((id: string) => (
         <option key={id} value={id}>
           {id}
         </option>
