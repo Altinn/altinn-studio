@@ -3,11 +3,11 @@ import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { LinkIcon } from '@studio/icons';
-import { SelectDataType2 } from './SelectDataType2';
-import classes from './EditDataType2.module.css';
+import { SelectDataTypesToSign } from './SelectDataTypesToSign';
+import classes from './EditDataTypesToSign.module.css';
 import { getExistingDataTypes } from './DataTypesToSignUtils';
 
-export const EditDataType2 = () => {
+export const EditDataTypesToSign = () => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
   const [dataModelSelectVisible, setDataModelSelectVisible] = useState(false);
@@ -18,33 +18,35 @@ export const EditDataType2 = () => {
 
   const existingDataTypes = getExistingDataTypes(bpmnDetails);
 
+  const definedValueWithLinkIcon = (
+    <>
+      {existingDataTypes?.map((dataType) => (
+        <div key={dataType} className={classes.dataType}>
+          <LinkIcon /> {dataType}
+        </div>
+      ))}
+    </>
+  );
+
   return (
     <>
       {!existingDataTypes.length && !dataModelSelectVisible ? (
         <StudioProperty.Button
           onClick={() => setDataModelSelectVisible(true)}
-          property={t('process_editor.configuration_panel_set_datatypes_link')}
+          property={t('process_editor.configuration_panel_set_data_types_to_sign_link')}
           size='small'
           icon={<LinkIcon />}
           className={classes.datamodelUndefined}
         />
       ) : dataModelSelectVisible ? (
-        <SelectDataType2 onClose={() => setDataModelSelectVisible(false)} />
+        <SelectDataTypesToSign onClose={() => setDataModelSelectVisible(false)} />
       ) : (
         <StudioProperty.Button
-          aria-label={t('process_editor.configuration_panel_set_datatypes')}
+          aria-label={t('process_editor.configuration_panel_set_data_types_to_sign')}
           onClick={() => setDataModelSelectVisible(true)}
-          property={t('process_editor.configuration_panel_set_datatypes')}
-          title={t('process_editor.configuration_panel_set_datatypes')}
-          value={
-            <span className={classes.dataTypes}>
-              {existingDataTypes?.map((dataType) => (
-                <div key={dataType} className={classes.dataType}>
-                  {dataType}
-                </div>
-              ))}
-            </span>
-          }
+          property={t('process_editor.configuration_panel_set_data_types_to_sign')}
+          title={t('process_editor.configuration_panel_set_data_types_to_sign')}
+          value={definedValueWithLinkIcon}
           className={classes.datamodelDefined}
         />
       )}

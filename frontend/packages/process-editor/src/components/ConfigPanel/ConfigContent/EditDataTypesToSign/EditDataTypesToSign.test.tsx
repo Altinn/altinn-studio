@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import type { BpmnApiContextProps } from '../../../../contexts/BpmnApiContext';
 import { BpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { BpmnContext } from '../../../../contexts/BpmnContext';
-import { EditDataType2 } from './EditDataType2';
+import { EditDataTypesToSign } from './EditDataTypesToSign';
 import { BpmnConfigPanelFormContextProvider } from '../../../../contexts/BpmnConfigPanelContext';
 import {
   mockBpmnApiContextValue,
@@ -125,7 +125,7 @@ const renderEditDataType = (bpmnApiContextProps: Partial<BpmnApiContextProps> = 
     <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
       <BpmnContext.Provider value={{ ...mockBpmnContextValue }}>
         <BpmnConfigPanelFormContextProvider>
-          <EditDataType2 />
+          <EditDataTypesToSign />
         </BpmnConfigPanelFormContextProvider>
       </BpmnContext.Provider>
     </BpmnApiContext.Provider>,

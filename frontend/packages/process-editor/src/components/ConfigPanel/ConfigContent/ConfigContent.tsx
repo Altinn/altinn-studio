@@ -15,7 +15,7 @@ import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { Accordion } from '@digdir/design-system-react';
 import { EditActions } from './EditActions';
 import { EditPolicy } from './EditPolicy';
-import { EditDataType2 } from './EditDataType2/EditDataType2';
+import { EditDataTypesToSign } from './EditDataTypesToSign/EditDataTypesToSign';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -58,7 +58,7 @@ export const ConfigContent = (): React.ReactElement => {
           existingDataTypeForTask={existingDataTypeForTask}
         />
       )}
-      {bpmnDetails.taskType === 'signing' && <EditDataType2 />}
+      {bpmnDetails.taskType === 'signing' && <EditDataTypesToSign />}
       <Accordion color='neutral'>
         <Accordion.Item>
           <Accordion.Header>

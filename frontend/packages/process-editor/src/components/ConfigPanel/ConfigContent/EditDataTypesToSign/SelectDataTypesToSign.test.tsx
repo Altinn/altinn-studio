@@ -9,8 +9,8 @@ import { BpmnContext } from '../../../../contexts/BpmnContext';
 import type { BpmnDetails } from '../../../../types/BpmnDetails';
 import { BpmnTypeEnum } from '../../../../enum/BpmnTypeEnum';
 import type Modeler from 'bpmn-js/lib/Modeler';
-import type { SelectDataType2Props } from './SelectDataType2';
-import { SelectDataType2 } from './SelectDataType2';
+import type { SelectDataTypesToSignProps } from './SelectDataTypesToSign';
+import { SelectDataTypesToSign } from './SelectDataTypesToSign';
 import { BpmnConfigPanelFormContextProvider } from '../../../../contexts/BpmnConfigPanelContext';
 
 const mockTaskId: string = 'testId';
@@ -35,7 +35,7 @@ const mockBpmnContextValue: Partial<BpmnContextProps> = {
   modelerRef: modelerRefMock,
 };
 
-const defaultSelectDataTypeProps: SelectDataType2Props = {
+const defaultSelectDataTypeProps: SelectDataTypesToSignProps = {
   connectedTaskId: mockTaskId,
   dataModelIds: [],
   existingDataType: undefined,
@@ -143,14 +143,14 @@ describe('SelectDataType', () => {
 });
 
 const renderEditDataType = (
-  props: Partial<SelectDataType2Props> = {},
+  props: Partial<SelectDataTypeToSignProps> = {},
   bpmnApiContextProps: Partial<BpmnApiContextProps> = {},
 ) => {
   return render(
     <BpmnApiContext.Provider value={{ ...bpmnApiContextProps }}>
       <BpmnContext.Provider value={{ ...mockBpmnContextValue }}>
         <BpmnConfigPanelFormContextProvider>
-          <SelectDataType2 {...defaultSelectDataTypeProps} {...props} />
+          <SelectDataTypeToSign {...defaultSelectDataTypeProps} {...props} />
         </BpmnConfigPanelFormContextProvider>
       </BpmnContext.Provider>
     </BpmnApiContext.Provider>,

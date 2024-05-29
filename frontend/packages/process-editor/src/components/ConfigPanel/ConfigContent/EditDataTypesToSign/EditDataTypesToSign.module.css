@@ -1,0 +1,10 @@
+.datamodelUndefined,
+.datamodelDefined {
+  padding: var(--fds-spacing-3) var(--fds-spacing-3);
+}
+
+.dataType {
+  align-items: center;
+  display: flex;
+  gap: var(--fds-spacing-1);
+}

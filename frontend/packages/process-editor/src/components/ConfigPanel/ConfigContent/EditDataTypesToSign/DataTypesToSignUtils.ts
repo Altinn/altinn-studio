@@ -9,20 +9,28 @@ export const updateDataTypes = (
   bpmnDetails: BpmnDetails,
   updatedDataTypes: string[],
 ) => {
-  const dataTypesToSign: ModdleElement =
+  const dataTypesToSignElement: ModdleElement =
     bpmnDetails.element.businessObject.extensionElements.values[0].signatureConfig?.dataTypesToSign;
 
-  dataTypesToSign.dataTypes = updatedDataTypes.map((dataType) =>
+  dataTypesToSignElement.dataTypes = updatedDataTypes.map((dataType) =>
     bpmnFactory.create('altinn:DataType', {
       dataType,
     }),
   );
 
+  updateDataTypesToSign(modeling, bpmnDetails, dataTypesToSignElement);
+};
+
+const updateDataTypesToSign = (
+  modeling: Modeling,
+  bpmnDetails: BpmnDetails,
+  dataTypesToSignElement: ModdleElement,
+) => {
   modeling.updateModdleProperties(
     bpmnDetails.element,
     bpmnDetails.element.businessObject.extensionElements.values[0].signatureConfig,
     {
-      dataTypesToSign,
+      dataTypesToSign: dataTypesToSignElement,
     },
   );
 };
