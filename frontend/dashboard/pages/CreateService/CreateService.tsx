@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { Organization } from 'app-shared/types/Organization';
 import type { User } from 'app-shared/types/Repository';
 import { useAddRepoMutation } from '../../hooks/mutations/useAddRepoMutation';
-import { DatamodelFormat } from 'app-shared/types/DatamodelFormat';
+import { DataModelFormat } from 'app-shared/types/DataModelFormat';
 import type { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { NewApplicationForm } from '../../components/NewApplicationForm';
@@ -24,7 +24,7 @@ type CreateServiceProps = {
   organizations: Organization[];
 };
 export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.Element => {
-  const dataModellingPreference: DatamodelFormat.XSD = DatamodelFormat.XSD;
+  const dataModellingPreference: DataModelFormat.XSD = DataModelFormat.XSD;
 
   const { t } = useTranslation();
 
@@ -53,7 +53,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
       {
         org,
         repository: repoName,
-        datamodellingPreference: dataModellingPreference,
+        dataModellingPreference: dataModellingPreference,
       },
       {
         onSuccess: (): void => {

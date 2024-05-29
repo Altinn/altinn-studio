@@ -38,7 +38,7 @@ describe('complexToSimpleExpression', () => {
       subexpressions: [
         {
           relationalOperator: operator,
-          firstOperand: { type: SimpleSubexpressionValueType.Datamodel, path: 'test' },
+          firstOperand: { type: SimpleSubexpressionValueType.DataModel, path: 'test' },
           secondOperand: { type: SimpleSubexpressionValueType.Number, value: 1 },
         },
       ],
@@ -54,7 +54,7 @@ describe('complexToSimpleExpression', () => {
         {
           relationalOperator: operator,
           firstOperand: { type: SimpleSubexpressionValueType.Number, value: 1 },
-          secondOperand: { type: SimpleSubexpressionValueType.Datamodel, path: 'test' },
+          secondOperand: { type: SimpleSubexpressionValueType.DataModel, path: 'test' },
         },
       ],
     };
@@ -66,13 +66,13 @@ describe('complexToSimpleExpression', () => {
     expectedOutput: SimpleSubexpressionValue;
   };
   const expressionValueTestData: Record<string, ValueTestDataItem> = {
-    'component loookup': {
+    'component lookup': {
       input: [DataLookupFuncName.Component, 'someid'],
       expectedOutput: { type: SimpleSubexpressionValueType.Component, id: 'someid' },
     },
-    'datamodel lookup': {
+    'data model lookup': {
       input: [DataLookupFuncName.DataModel, '#/test'],
-      expectedOutput: { type: SimpleSubexpressionValueType.Datamodel, path: '#/test' },
+      expectedOutput: { type: SimpleSubexpressionValueType.DataModel, path: '#/test' },
     },
     'instance context lookup': {
       input: [KeyLookupFuncName.InstanceContext, InstanceContext.InstanceId],
@@ -135,7 +135,7 @@ describe('complexToSimpleExpression', () => {
         subexpressions: [
           {
             relationalOperator: GeneralRelationOperator.Equals,
-            firstOperand: { type: SimpleSubexpressionValueType.Datamodel, path: '#/test' },
+            firstOperand: { type: SimpleSubexpressionValueType.DataModel, path: '#/test' },
             secondOperand: { type: SimpleSubexpressionValueType.Boolean, value: true },
           },
           {

@@ -25,7 +25,7 @@ export const GenerateModelsButton = ({
   const handleGenerateButtonClick = () => {
     mutate(data, {
       onSuccess: () => {
-        toast.success(t('schema_editor.datamodel_generation_success_message'));
+        toast.success(t('schema_editor.data_model_generation_success_message'));
         onSetSchemaGenerationErrorMessages([]);
       },
       onError: (error) => {

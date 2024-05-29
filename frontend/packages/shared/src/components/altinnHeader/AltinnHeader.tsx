@@ -65,7 +65,7 @@ export const AltinnHeader = ({
               {buttonActions.map((action) =>
                 !repoOwnerIsOrg && action.menuKey === TopBarMenu.Deploy
                   ? null
-                  : repositoryType !== RepositoryType.Datamodels && (
+                  : repositoryType !== RepositoryType.DataModels && (
                       <AltinnHeaderButton key={action.menuKey} action={action} />
                     ),
               )}

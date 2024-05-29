@@ -28,7 +28,7 @@ const savingText = 'Saving';
 const texts = {
   'general.error_message': generalErrorMessage,
   'general.close': closeText,
-  'schema_editor.datamodel_generation_success_message': dataModelGenerationSuccessMessage,
+  'schema_editor.data_model_generation_success_message': dataModelGenerationSuccessMessage,
   'general.saving': savingText,
   'schema_editor.edit_mode': editText,
   'schema_editor.generate_model_files': generateText,

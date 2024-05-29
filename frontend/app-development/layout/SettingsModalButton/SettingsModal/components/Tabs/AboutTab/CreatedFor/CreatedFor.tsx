@@ -36,7 +36,7 @@ export const CreatedFor = ({
     <div className={classes.wrapper}>
       <StudioLabelAsParagraph size='small' spacing className={classes.label}>
         {t(
-          repositoryType === RepositoryType.Datamodels
+          repositoryType === RepositoryType.DataModels
             ? 'settings_modal.about_tab_created_for_repo'
             : 'settings_modal.about_tab_created_for_service',
         )}

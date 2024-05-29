@@ -4,10 +4,10 @@ const bodyParser = require('body-parser');
 const { ensureStorageDir, fixtureRoute } = require('./utils');
 
 const {
-  datamodelPath,
+  dataModelPath,
   userCurrentPath,
-  datamodelsPath,
-  createDatamodelPath,
+  dataModelsPath,
+  createDataModelPath,
   remainingSessionTimePath,
   branchStatusPath,
   repoStatusPath,
@@ -25,12 +25,12 @@ module.exports = (middlewares, devServer) => {
   ensureStorageDir();
   app.use(bodyParser.json());
 
-  app.delete(datamodelPath(':org', ':app'), require('./routes/del-datamodel'));
+  app.delete(dataModelPath(':org', ':app'), require('./routes/del-datamodel'));
   app.get('/', require('./routes/root-redirect'));
   app.get('/editor/:owner/:repo', require('./routes/get-index-html'));
   //prettier-ignore
-  app.get(datamodelPath(':org', ':app', '/App/models/:filename'), require('./routes/get-datamodel'));
-  app.get(datamodelsPath(':org', ':app'), require('./routes/get-datamodels'));
+  app.get(dataModelPath(':org', ':app', '/App/models/:filename'), require('./routes/get-datamodel'));
+  app.get(dataModelsPath(':org', ':app'), require('./routes/get-datamodels'));
   //prettier-ignore
   app.get(frontendLangPath(':locale'), (req, res) => res.json(require(`../../../language/src/${req.params.locale}.json`)));
   app.get(remainingSessionTimePath(), (req, res) => res.send('9999'));
@@ -41,8 +41,8 @@ module.exports = (middlewares, devServer) => {
   //prettier-ignore
   app.get(serviceNamePath(':org', ':app'), (req, res) => res.send(req.params.repo.toUpperCase()));
   app.get(userCurrentPath(), require('./routes/user-current'));
-  app.post(createDatamodelPath(':org', ':app'), require('./routes/create-model'));
-  app.put(datamodelsPath(':org', ':app'), require('./routes/put-datamodel'));
+  app.post(createDataModelPath(':org', ':app'), require('./routes/create-model'));
+  app.put(dataModelsPath(':org', ':app'), require('./routes/put-datamodel'));
 
   app.get('/designer/api/:org/:app/preview-status', require('./routes/preview-get'));
 

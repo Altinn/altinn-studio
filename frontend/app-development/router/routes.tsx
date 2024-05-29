@@ -59,7 +59,7 @@ export const routerRoutes: RouterRoute[] = [
     subapp: Overview,
   },
   {
-    path: RoutePaths.Datamodel,
+    path: RoutePaths.DataModel,
     subapp: DataModellingContainer,
   },
   {

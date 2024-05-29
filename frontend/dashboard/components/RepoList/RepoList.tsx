@@ -188,9 +188,9 @@ export const RepoList = ({
         getActions: (params: GridRowParams) => {
           const repoFullName = params.row.full_name as string;
           const [org, repo] = repoFullName.split('/');
-          const isDatamodelling = repoFullName.endsWith('-datamodels');
+          const isDataModelling = repoFullName.endsWith('-datamodels');
           const editUrl = getRepoEditUrl({ org, repo });
-          const editTextKey = isDatamodelling ? 'dashboard.edit_datamodels' : 'dashboard.edit_app';
+          const editTextKey = isDataModelling ? 'dashboard.edit_data_models' : 'dashboard.edit_app';
 
           return [
             <GridActionsCellItem
