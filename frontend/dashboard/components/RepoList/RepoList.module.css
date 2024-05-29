@@ -22,6 +22,7 @@
   font-size: 2rem;
   margin-bottom: var(--fds-spacing-1);
   margin-right: 0.4rem;
+  color: #57823d;
 }
 
 .actionLink:hover {

@@ -24,10 +24,8 @@ export interface RepoListProps {
   handleSorting?: (columnKey: string) => void;
 }
 
-const defaultArray: RepositoryWithStarred[] = [];
-
 export const RepoList = ({
-  repos = defaultArray,
+  repos = [],
   isLoading,
   pageSize = DATAGRID_DEFAULT_PAGE_SIZE,
   pageNumber,
@@ -40,7 +38,7 @@ export const RepoList = ({
 }: RepoListProps) => {
   const { t } = useTranslation();
 
-  const studioColumns = [
+  const columns = [
     {
       accessor: 'favoriteIcon',
       value: '',
@@ -72,7 +70,7 @@ export const RepoList = ({
     },
   ];
 
-  const studioRows = repos.map((repo) => ({
+  const rows = repos.map((repo) => ({
     id: repo.id,
     favoriteIcon: <FavoriteButton repo={repo} />,
     name: repo.name,
@@ -101,8 +99,8 @@ export const RepoList = ({
         <>
           {/*Remember to fix bug on page out of range*/}
           <StudioTableRemotePagination
-            columns={studioColumns}
-            rows={studioRows}
+            columns={columns}
+            rows={rows}
             size='small'
             emptyTableMessage={t('dashboard.no_repos_result')}
             pagination={paginationProps}
@@ -111,8 +109,8 @@ export const RepoList = ({
         </>
       ) : (
         <StudioTableLocalPagination
-          columns={studioColumns}
-          rows={studioRows}
+          columns={columns}
+          rows={rows}
           size='small'
           emptyTableMessage={t('dashboard.no_repos_result')}
           pagination={{
