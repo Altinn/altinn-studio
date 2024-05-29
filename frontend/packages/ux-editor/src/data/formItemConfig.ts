@@ -35,6 +35,7 @@ import {
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import { LayoutItemType } from '../types/global';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export type FormItemConfig<T extends ComponentType = ComponentType> = {
   name: T;
@@ -382,6 +383,12 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {},
     icon: WalletIcon,
   },
+  [ComponentType.PaymentDetails]: {
+    name: ComponentType.PaymentDetails,
+    itemType: LayoutItemType.Component,
+    defaultProperties: {},
+    icon: WalletIcon,
+  },
   [ComponentType.PrintButton]: {
     name: ComponentType.PrintButton,
     itemType: LayoutItemType.Component,
@@ -446,6 +453,8 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.List],
   formItemConfigs[ComponentType.Custom],
   formItemConfigs[ComponentType.RepeatingGroup],
+  shouldDisplayFeature('displayPaymentTaskProcessEditor') &&
+    formItemConfigs[ComponentType.PaymentDetails],
 ];
 
 export const schemaComponents: FormItemConfigs[ComponentType][] = [
