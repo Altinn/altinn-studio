@@ -5,7 +5,7 @@ import { useAddDataTypeToAppMetadata } from './useAddDataTypeToAppMetadata';
 import { app, org } from '@studio/testing/testids';
 
 const dataTypeId = 'paymentInformation-1234';
-const taskId = 'task-1234';
+const taskId = 'task_1';
 
 describe('useAddDataTypeToAppMetadata', () => {
   it('Calls addDataTypeToAppMetadata with correct arguments and payload', async () => {
