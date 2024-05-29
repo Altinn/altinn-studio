@@ -16,8 +16,8 @@ export const SubexpressionValueReadonly = ({
   value,
 }: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType>) => {
   switch (value.type) {
-    case SimpleSubexpressionValueType.Datamodel:
-      return <DatamodelLookupValue value={value} />;
+    case SimpleSubexpressionValueType.DataModel:
+      return <DataModelLookupValue value={value} />;
     case SimpleSubexpressionValueType.Component:
       return <ComponentLookupValue value={value} />;
     case SimpleSubexpressionValueType.GatewayAction:
@@ -37,13 +37,13 @@ export const SubexpressionValueReadonly = ({
   }
 };
 
-const DatamodelLookupValue = ({
+const DataModelLookupValue = ({
   value,
-}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.Datamodel>) => {
+}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.DataModel>) => {
   const { texts } = useStudioExpressionContext();
   return (
     <Binding
-      name={texts.readonlyDatamodelPath}
+      name={texts.readonlyDataModelPath}
       binding={<StudioCodeFragment>{value.path}</StudioCodeFragment>}
     />
   );

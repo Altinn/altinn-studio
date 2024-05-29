@@ -8,12 +8,12 @@ export const layoutSetsMock: LayoutSets = {
   sets: [
     {
       id: layoutSet1NameMock,
-      dataType: 'datamodel',
+      dataType: 'data-model',
       tasks: ['Task_1'],
     },
     {
       id: layoutSet2NameMock,
-      dataType: 'datamodel-2',
+      dataType: 'data-model-2',
       tasks: ['Task_2'],
     },
   ],

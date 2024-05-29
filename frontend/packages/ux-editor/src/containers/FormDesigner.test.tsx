@@ -37,7 +37,7 @@ const render = () => {
     getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve<string>('test')),
   };
   queryClient.setQueryData(
-    [QueryKey.DatamodelMetadata, org, app, 'test-layout-set', dataModelName],
+    [QueryKey.DataModelMetadata, org, app, 'test-layout-set', dataModelName],
     [],
   );
   queryClient.setQueryData([QueryKey.TextResources, org, app], defaultTexts);

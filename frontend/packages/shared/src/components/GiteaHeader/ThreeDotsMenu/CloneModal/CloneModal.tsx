@@ -1,12 +1,12 @@
 import React from 'react';
 import { Popover } from '@mui/material';
-import { datamodelUploadPagePath, repositoryGitPath } from 'app-shared/api/paths';
+import { dataModelUploadPagePath, repositoryGitPath } from 'app-shared/api/paths';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { SimpleContainer } from 'app-shared/primitives';
 import classes from './CloneModal.module.css';
 import { LegacyTextField } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
-import { useDatamodelsXsdQuery } from 'app-shared/hooks/queries';
+import { useDataModelsXsdQuery } from 'app-shared/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { InformationSquareFillIcon } from '@studio/icons';
 import { StudioButton } from '@studio/components';
@@ -21,7 +21,7 @@ export const CloneModal = (props: ICloneModalProps) => {
   const gitUrl = window.location.origin.toString() + repositoryGitPath(org, app);
   const copyGitUrl = () => navigator.clipboard.writeText(gitUrl);
   const canCopy = document.queryCommandSupported ? document.queryCommandSupported('copy') : false;
-  const { data: dataModel = [] } = useDatamodelsXsdQuery(org, app);
+  const { data: dataModel = [] } = useDataModelsXsdQuery(org, app);
   const { t } = useTranslation();
   const open = Boolean(props.anchorEl);
   return (
@@ -46,7 +46,7 @@ export const CloneModal = (props: ICloneModalProps) => {
               {t('sync_header.data_model_missing')}
             </div>
             <div className={classes.blackText}>{t('sync_header.data_model_missing_helper')}</div>
-            <a href={datamodelUploadPagePath(org, app)}>
+            <a href={dataModelUploadPagePath(org, app)}>
               {t('sync_header.data_model_missing_link')}
             </a>
           </>

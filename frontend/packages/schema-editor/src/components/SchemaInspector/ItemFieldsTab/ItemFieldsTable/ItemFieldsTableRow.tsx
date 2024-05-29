@@ -103,7 +103,7 @@ export const ItemFieldsTableRow = ({
         <StudioCenter>
           <AltinnConfirmDialog
             open={isConfirmDeleteDialogOpen}
-            confirmText={t('schema_editor.datamodel_field_deletion_confirm')}
+            confirmText={t('schema_editor.data_model_field_deletion_confirm')}
             onConfirm={deleteHandler}
             onClose={() => setIsConfirmDeleteDialogOpen(false)}
             trigger={
@@ -117,8 +117,8 @@ export const ItemFieldsTableRow = ({
               />
             }
           >
-            <p>{t('schema_editor.datamodel_field_deletion_text')}</p>
-            <p>{t('schema_editor.datamodel_field_deletion_info')}</p>
+            <p>{t('schema_editor.data_model_field_deletion_text')}</p>
+            <p>{t('schema_editor.data_model_field_deletion_info')}</p>
           </AltinnConfirmDialog>
         </StudioCenter>
       </td>

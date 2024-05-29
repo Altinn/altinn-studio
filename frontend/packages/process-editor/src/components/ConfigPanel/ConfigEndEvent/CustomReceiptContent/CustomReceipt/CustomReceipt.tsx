@@ -6,7 +6,7 @@ import { Paragraph } from '@digdir/design-system-react';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import {
   getDataTypeFromLayoutSetsWithExistingId,
-  getDatamodelOptions,
+  getDataModelOptions,
 } from '../../../../../utils/configPanelUtils';
 import { RedirectToCreatePageButton } from '../RedirectToCreatePageButton';
 import { useTranslation } from 'react-i18next';
@@ -24,7 +24,7 @@ export const CustomReceipt = (): React.ReactElement => {
     mutateLayoutSetId,
   } = useBpmnApiContext();
 
-  const existingDatamodelId: string = getDataTypeFromLayoutSetsWithExistingId(
+  const existingDataModelId: string = getDataTypeFromLayoutSetsWithExistingId(
     layoutSets,
     existingCustomReceiptLayoutSetId,
   );
@@ -44,7 +44,7 @@ export const CustomReceipt = (): React.ReactElement => {
     });
   };
 
-  const datamodelOptions = getDatamodelOptions(availableDataModelIds, existingDatamodelId);
+  const dataModelOptions = getDataModelOptions(availableDataModelIds, existingDataModelId);
 
   const handleValidation = (newLayoutSetId: string): string => {
     const validationResult = getLayoutSetIdValidationErrorKey(
@@ -83,8 +83,8 @@ export const CustomReceipt = (): React.ReactElement => {
         />
         <EditDataType
           connectedTaskId={PROTECTED_TASK_NAME_CUSTOM_RECEIPT}
-          datamodelIds={datamodelOptions}
-          existingDataTypeForTask={existingDatamodelId}
+          dataModelIds={dataModelOptions}
+          existingDataTypeForTask={existingDataModelId}
           hideDeleteButton
         />
       </div>

@@ -62,11 +62,11 @@ export const getDataTypeFromLayoutSetsWithExistingId = (
 };
 
 /**
- * Gets the datamodel id options based on the available ids and the existing id
+ * Gets the data model id options based on the available ids and the existing id
  * @param availableIds the list of available ids
  * @param existingId the existing id
- * @returns a list datamodel options
+ * @returns a list data model options
  */
-export const getDatamodelOptions = (availableIds: string[], existingId: string): string[] => {
+export const getDataModelOptions = (availableIds: string[], existingId: string): string[] => {
   return existingId ? [...availableIds, existingId] : availableIds;
 };

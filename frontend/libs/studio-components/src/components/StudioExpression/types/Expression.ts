@@ -53,7 +53,7 @@ type StrictStringExpression =
   | string
   | [string]
   | FuncComponent
-  | FuncDatamodel
+  | FuncDataModel
   | FuncGatewayAction
   | FuncGatewayActionContext
   | FuncDisplayValue
@@ -106,7 +106,7 @@ export type LogicalTupleFunc<O extends LogicalTupleOperator = LogicalTupleOperat
 }[O];
 
 type FuncComponent = DataLookupFunc<DataLookupFuncName.Component>;
-type FuncDatamodel = DataLookupFunc<DataLookupFuncName.DataModel>;
+type FuncDataModel = DataLookupFunc<DataLookupFuncName.DataModel>;
 type FuncGatewayAction = DataLookupFunc<DataLookupFuncName.GatewayAction>;
 type FuncDisplayValue = ['displayValue', StringExpression];
 type FuncInstanceContext = KeyLookupFunc<KeyLookupFuncName.InstanceContext>;

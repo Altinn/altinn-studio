@@ -13,7 +13,7 @@ const xsdModelPathWithSlash = '/' + xsdModelPath;
 describe('useSchemaQuery', () => {
   afterEach(jest.clearAllMocks);
 
-  it('Calls getDatamodel with correct arguments when Json Schema', async () => {
+  it('Calls getDataModel with correct arguments when Json Schema', async () => {
     const {
       renderHookResult: { result },
     } = renderHookWithMockStore(
@@ -22,8 +22,8 @@ describe('useSchemaQuery', () => {
       createQueryClientMock(),
     )(() => useSchemaQuery(jsonModelPathWithSlash));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(queriesMock.getDatamodel).toHaveBeenCalledTimes(1);
-    expect(queriesMock.getDatamodel).toHaveBeenCalledWith(org, app, jsonModelPathWithSlash);
+    expect(queriesMock.getDataModel).toHaveBeenCalledTimes(1);
+    expect(queriesMock.getDataModel).toHaveBeenCalledWith(org, app, jsonModelPathWithSlash);
     expect(queriesMock.addXsdFromRepo).not.toHaveBeenCalled();
   });
 
@@ -38,6 +38,6 @@ describe('useSchemaQuery', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(queriesMock.addXsdFromRepo).toHaveBeenCalledTimes(1);
     expect(queriesMock.addXsdFromRepo).toHaveBeenCalledWith(org, app, xsdModelPath);
-    expect(queriesMock.getDatamodel).not.toHaveBeenCalled();
+    expect(queriesMock.getDataModel).not.toHaveBeenCalled();
   });
 });

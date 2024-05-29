@@ -33,10 +33,10 @@ describe('findSubexpressionErrors', () => {
     expect(result).toEqual([ExpressionErrorKey.NumericRelationOperatorWithWrongType]);
   });
 
-  it('Returns an error key when the subexpression has an empty datamodel path in the first value', () => {
+  it('Returns an error key when the subexpression has an empty data model path in the first value', () => {
     const subexpression: SimpleSubexpression = {
       relationalOperator: GeneralRelationOperator.Equals,
-      firstOperand: { type: SimpleSubexpressionValueType.Datamodel, path: '' },
+      firstOperand: { type: SimpleSubexpressionValueType.DataModel, path: '' },
       secondOperand: { type: SimpleSubexpressionValueType.Number, value: 2 },
     };
     const result = findSubexpressionErrors(subexpression, dataLookupOptions);
@@ -57,7 +57,7 @@ describe('findSubexpressionErrors', () => {
     const subexpression: SimpleSubexpression = {
       relationalOperator: GeneralRelationOperator.Equals,
       firstOperand: { type: SimpleSubexpressionValueType.Number, value: 1 },
-      secondOperand: { type: SimpleSubexpressionValueType.Datamodel, path: '' },
+      secondOperand: { type: SimpleSubexpressionValueType.DataModel, path: '' },
     };
     const result = findSubexpressionErrors(subexpression, dataLookupOptions);
     expect(result).toEqual([ExpressionErrorKey.InvalidSecondOperand]);
@@ -67,7 +67,7 @@ describe('findSubexpressionErrors', () => {
     const subexpression: SimpleSubexpression = {
       relationalOperator: GeneralRelationOperator.Equals,
       firstOperand: { type: SimpleSubexpressionValueType.Component, id: '' },
-      secondOperand: { type: SimpleSubexpressionValueType.Datamodel, path: '' },
+      secondOperand: { type: SimpleSubexpressionValueType.DataModel, path: '' },
     };
     const result = findSubexpressionErrors(subexpression, dataLookupOptions);
     expect(result).toEqual([

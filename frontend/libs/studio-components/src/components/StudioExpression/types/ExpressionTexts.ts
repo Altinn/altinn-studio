@@ -14,7 +14,7 @@ export type ExpressionTexts = {
   changeToSimplifiedWarning: string;
   componentId: string;
   confirmDeleteSubexpression: string;
-  datamodelPath: string;
+  dataModelPath: string;
   delete: string;
   disabledLogicalOperator: string;
   edit: string;
@@ -36,7 +36,7 @@ export type ExpressionTexts = {
   numberValidationError: string;
   or: string;
   readonlyComponentId: string;
-  readonlyDatamodelPath: string;
+  readonlyDataModelPath: string;
   readonlyGatewayActionContext: string;
   readonlyInstanceContext: string;
   relationalOperator: string;

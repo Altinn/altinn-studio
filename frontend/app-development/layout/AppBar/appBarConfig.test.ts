@@ -12,17 +12,17 @@ describe('getTopBarMenu', () => {
     expect(getFilteredTopBarMenu(RepositoryType.App)).toHaveLength(menuLength);
   });
 
-  it('Should only return the datamodel menu item when the provided repo type is "Datamodels"', () => {
+  it('Should only return the data model menu item when the provided repo type is "DataModels"', () => {
     const expected: TopBarMenuItem[] = [
       {
-        key: TopBarMenu.Datamodel,
-        link: RoutePaths.Datamodel,
+        key: TopBarMenu.DataModel,
+        link: RoutePaths.DataModel,
         icon: DatabaseIcon,
-        repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
+        repositoryTypes: [RepositoryType.App, RepositoryType.DataModels],
       },
     ];
 
-    expect(getFilteredTopBarMenu(RepositoryType.Datamodels)).toEqual(expected);
+    expect(getFilteredTopBarMenu(RepositoryType.DataModels)).toEqual(expected);
   });
 
   it('should return empty list when provided repo type is "Unknown"', () => {

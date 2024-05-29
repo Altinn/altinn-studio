@@ -7,9 +7,9 @@ import { EditDataModelBindings } from './EditDataModelBindings';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import userEvent from '@testing-library/user-event';
-import type { DatamodelMetadataResponse } from 'app-shared/types/api';
+import type { DataModelMetadataResponse } from 'app-shared/types/api';
 
-const datamodelMetadata: DatamodelMetadataResponse = {
+const dataModelMetadata: DataModelMetadataResponse = {
   elements: {
     testModel: {
       id: 'testModel',
@@ -48,7 +48,7 @@ const datamodelMetadata: DatamodelMetadataResponse = {
   },
 };
 
-const getDatamodelMetadata = () => Promise.resolve(datamodelMetadata);
+const getDataModelMetadata = () => Promise.resolve(dataModelMetadata);
 
 const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn() } = {}) => {
   const appData: IAppDataState = {
@@ -60,7 +60,7 @@ const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn(
 
   return renderWithMockStore(
     { appData },
-    { getDatamodelMetadata },
+    { getDataModelMetadata },
   )(
     <EditDataModelBindings
       handleComponentChange={handleComponentChange}
@@ -74,7 +74,7 @@ const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn(
         itemType: 'COMPONENT',
       }}
       renderOptions={{
-        uniqueKey: 'someComponentId-datamodel-select',
+        uniqueKey: 'someComponentId-data-model-select',
         key: 'simpleBinding',
       }}
     />,
@@ -195,10 +195,10 @@ describe('EditDataModelBindings', () => {
       dataModelBindings: { simpleBinding: dataModelBindingKey },
     });
 
-    const datamodelText = screen.getByText(dataModelBindingKey);
-    expect(datamodelText).toBeInTheDocument();
+    const dataModelText = screen.getByText(dataModelBindingKey);
+    expect(dataModelText).toBeInTheDocument();
 
-    await user.hover(datamodelText);
+    await user.hover(dataModelText);
 
     const editIcon = screen.getByRole('button', { name: textMock('general.edit') });
     fireEvent.click(editIcon);
@@ -224,10 +224,10 @@ describe('EditDataModelBindings', () => {
       dataModelBindings: { simpleBinding: dataModelBindingKey },
     });
 
-    const datamodelText = screen.getByText(dataModelBindingKey);
-    expect(datamodelText).toBeInTheDocument();
+    const dataModelText = screen.getByText(dataModelBindingKey);
+    expect(dataModelText).toBeInTheDocument();
 
-    user.hover(datamodelText);
+    user.hover(dataModelText);
 
     const editIcon = await screen.findByRole('button', { name: textMock('general.edit') });
     expect(editIcon).toBeInTheDocument();

@@ -12,31 +12,31 @@ import {
   metadataItemExists,
 } from './metadataUtils';
 import {
-  datamodel1NameMock,
-  datamodel2NameMock,
+  dataModel1NameMock,
+  dataModel2NameMock,
   jsonMetadata1Mock,
   jsonMetadata2Mock,
   xsdMetadata1Mock,
   xsdMetadata2Mock,
 } from '../../packages/schema-editor/test/mocks/metadataMocks';
-import type { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
+import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import type { MetadataOption } from '../types/MetadataOption';
 
 // Test data:
 const jsonMetadataOption1: MetadataOption = {
-  label: datamodel1NameMock,
+  label: dataModel1NameMock,
   value: jsonMetadata1Mock,
 };
 const jsonMetadataOption2: MetadataOption = {
-  label: datamodel1NameMock,
+  label: dataModel1NameMock,
   value: jsonMetadata2Mock,
 };
 const xsdMetadataOption1: MetadataOption = {
-  label: `${datamodel1NameMock} (XSD)`,
+  label: `${dataModel1NameMock} (XSD)`,
   value: xsdMetadata1Mock,
 };
 const xsdMetadataOption2: MetadataOption = {
-  label: `${datamodel1NameMock} (XSD)`,
+  label: `${dataModel1NameMock} (XSD)`,
   value: xsdMetadata2Mock,
 };
 
@@ -60,18 +60,18 @@ describe('metadataUtils', () => {
   });
 
   describe('convertMetadataToOption', () => {
-    it('Converts a Json metadata item to an MetadataOption object with the datamodel name as the label', () => {
+    it('Converts a Json metadata item to an MetadataOption object with the data model name as the label', () => {
       const result = convertMetadataToOption(jsonMetadata1Mock);
       expect(result).toEqual({
-        label: datamodel1NameMock,
+        label: dataModel1NameMock,
         value: jsonMetadata1Mock,
       });
     });
 
-    it('Converts an Xsd metadata item to an MetadataOption object with the datamodel name suffixed with " (XSD)" as the label', () => {
+    it('Converts an Xsd metadata item to an MetadataOption object with the data model name suffixed with " (XSD)" as the label', () => {
       const result = convertMetadataToOption(xsdMetadata1Mock);
       expect(result).toEqual({
-        label: `${datamodel1NameMock} (XSD)`,
+        label: `${dataModel1NameMock} (XSD)`,
         value: xsdMetadata1Mock,
       });
     });
@@ -82,11 +82,11 @@ describe('metadataUtils', () => {
       const result = convertMetadataListToOptions([xsdMetadata1Mock, jsonMetadata2Mock]);
       expect(result).toEqual([
         {
-          label: `${datamodel1NameMock} (XSD)`,
+          label: `${dataModel1NameMock} (XSD)`,
           value: xsdMetadata1Mock,
         },
         {
-          label: datamodel2NameMock,
+          label: dataModel2NameMock,
           value: jsonMetadata2Mock,
         },
       ]);
@@ -134,7 +134,7 @@ describe('metadataUtils', () => {
           label: 'JSONSchema',
           options: [
             {
-              label: datamodel2NameMock,
+              label: dataModel2NameMock,
               value: jsonMetadata2Mock,
             },
           ],
@@ -143,7 +143,7 @@ describe('metadataUtils', () => {
           label: 'XSD',
           options: [
             {
-              label: `${datamodel1NameMock} (XSD)`,
+              label: `${dataModel1NameMock} (XSD)`,
               value: xsdMetadata1Mock,
             },
           ],
@@ -154,14 +154,14 @@ describe('metadataUtils', () => {
 
   describe('extractModelNamesFromMetadataList', () => {
     it('Extracts the model names from a list of metadata items', () => {
-      const items: DatamodelMetadata[] = [
+      const items: DataModelMetadata[] = [
         jsonMetadata1Mock,
         jsonMetadata2Mock,
         xsdMetadata1Mock,
         xsdMetadata2Mock,
       ];
       const result = extractModelNamesFromMetadataList(items);
-      expect(result).toEqual([datamodel1NameMock, datamodel2NameMock]);
+      expect(result).toEqual([dataModel1NameMock, dataModel2NameMock]);
     });
   });
 

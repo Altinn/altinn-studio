@@ -22,7 +22,7 @@ export interface IComponentsSettings {
 
 export enum RepositoryType {
   App = 'App',
-  Datamodels = 'Datamodels',
+  DataModels = 'DataModels',
   Unknown = 'Unknown',
 }
 
