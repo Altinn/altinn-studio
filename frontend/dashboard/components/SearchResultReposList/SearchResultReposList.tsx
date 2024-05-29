@@ -20,6 +20,7 @@ export const SearchResultReposList = ({ searchValue }: SearchResultReposList) =>
     setPageNumber,
     setSortModel,
     setPageSize,
+    onSortClick,
   } = useReposSearch({ keyword: searchValue });
 
   const reposWithStarred = useAugmentReposWithStarred({
@@ -41,6 +42,7 @@ export const SearchResultReposList = ({ searchValue }: SearchResultReposList) =>
         onSortModelChange={setSortModel}
         sortModel={sortModel}
         pageSize={pageSize}
+        onSortClick={onSortClick}
       />
     </div>
   );

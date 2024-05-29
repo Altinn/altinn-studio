@@ -8,7 +8,7 @@ export type StudioTableLocalPaginationProps = {
   columns: Record<'accessor' | 'value', string>[];
   rows: Rows;
   size?: 'small' | 'medium' | 'large';
-  emptyTableMessage?: string;
+  emptyTableMessage?: React.ReactNode;
   isSortable?: boolean;
   pagination?: {
     pageSize: number;

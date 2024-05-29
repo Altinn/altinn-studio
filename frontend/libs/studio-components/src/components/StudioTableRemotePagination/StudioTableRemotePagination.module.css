@@ -7,7 +7,7 @@
 }
 
 .emptyTableMessage {
-  padding: var(--fds-spacing-3);
+  padding: var(--fds-spacing-4);
   text-align: center;
 }
 

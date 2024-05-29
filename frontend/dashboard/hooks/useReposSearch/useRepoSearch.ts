@@ -5,7 +5,6 @@ import type { SearchRepositoryResponse } from 'app-shared/types/api/SearchReposi
 import { useSearchParamsState } from 'app-shared/hooks/useSearchParamsState';
 import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import { DATAGRID_PAGE_SIZE_OPTIONS, DATAGRID_DEFAULT_PAGE_SIZE } from '../../constants';
-// import { useTableSorting } from '../../../libs/studio-components/src/hooks/useTableSorting';
 
 type UseRepoSearchResult = {
   searchResults: SearchRepositoryResponse | undefined;
@@ -16,7 +15,7 @@ type UseRepoSearchResult = {
   setSortModel: (selectedSortModel: GridSortModel) => void;
   setPageNumber: (pageNumber: number) => void;
   setPageSize: (pageSize: DATAGRID_PAGE_SIZE_TYPE) => void;
-  handleSorting: (columnKey: string) => void;
+  onSortClick: (columnKey: string) => void;
 };
 
 type UseReposSearchProps = {
@@ -41,29 +40,30 @@ export const useReposSearch = ({
     },
   );
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'alpha', sort: 'asc' }]);
-
-  const [sortColumn, setSortColumn] = useState('alpha');
+  const [selectedColumn, setSelectedColumn] = useState('alpha');
   const [sortDirection, setSortDirection] = useState('asc');
 
   const toggleSortDirection = () => {
     setSortDirection((prevDirection) => (prevDirection === 'asc' ? 'desc' : 'asc'));
   };
 
-  const handleSorting = (columnKey: string) => {
-    if (sortColumn === columnKey) {
+  const onSortClick = (columnKey: string) => {
+    if (selectedColumn === columnKey) {
       toggleSortDirection();
     } else {
-      setSortColumn(columnKey);
+      setSelectedColumn(columnKey);
       setSortDirection('asc');
     }
   };
+
+  console.log(selectedColumn);
 
   const filter = {
     uid,
     keyword,
     limit: pageSize,
     page: pageNumber,
-    sortby: sortColumn,
+    sortby: selectedColumn,
     order: sortDirection,
   };
 
@@ -83,6 +83,6 @@ export const useReposSearch = ({
     setPageNumber,
     setSortModel,
     setPageSize,
-    handleSorting,
+    onSortClick,
   };
 };

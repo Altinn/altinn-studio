@@ -37,7 +37,7 @@ export type StudioTableRemotePaginationProps = {
   columns: Columns;
   rows: Rows;
   size?: 'small' | 'medium' | 'large';
-  emptyTableMessage?: string;
+  emptyTableMessage?: React.ReactNode;
   onSortClick?: (columnKey: string) => void;
   pagination?: PaginationProps;
 };
@@ -50,9 +50,6 @@ export const StudioTableRemotePagination = forwardRef<
     { columns, rows, size = 'medium', emptyTableMessage, onSortClick, pagination },
     ref,
   ): React.ReactElement => {
-    const isTableSortable = onSortClick && rows.length > 0;
-    const isPaginationActive = pagination && rows.length > 0;
-
     const {
       currentPage,
       totalPages,
@@ -65,6 +62,9 @@ export const StudioTableRemotePagination = forwardRef<
       previousButtonText,
       itemLabel,
     } = pagination || {};
+
+    const isTableSortable = onSortClick && rows.length > 0;
+    const isPaginationActive = pagination && rows.length > 0;
 
     const labelId = useId();
     const labelSize = resizeLabelMap[size];

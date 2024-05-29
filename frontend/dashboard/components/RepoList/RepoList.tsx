@@ -4,7 +4,11 @@ import type { RepositoryWithStarred } from 'dashboard/utils/repoUtils/repoUtils'
 import { useTranslation } from 'react-i18next';
 import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import { DATAGRID_DEFAULT_PAGE_SIZE, DATAGRID_PAGE_SIZE_OPTIONS } from '../../constants';
-import { StudioTableLocalPagination, StudioTableRemotePagination } from '@studio/components';
+import {
+  StudioSpinner,
+  StudioTableLocalPagination,
+  StudioTableRemotePagination,
+} from '@studio/components';
 import { ActionLinks } from './ActionLinks';
 import { FavoriteButton } from './FavoriteButton';
 import classes from './RepoList.module.css';
@@ -22,7 +26,7 @@ export interface RepoListProps {
   pageSizeOptions?: Array<number>;
   sortModel?: GridSortModel;
   disableVirtualization?: boolean;
-  handleSorting?: (columnKey: string) => void;
+  onSortClick?: (columnKey: string) => void;
 }
 
 export const RepoList = ({
@@ -35,7 +39,7 @@ export const RepoList = ({
   onPageChange,
   onPageSizeChange,
   pageSizeOptions = DATAGRID_PAGE_SIZE_OPTIONS,
-  handleSorting,
+  onSortClick,
 }: RepoListProps) => {
   const { t } = useTranslation();
 
@@ -60,7 +64,7 @@ export const RepoList = ({
       headerCellClass: classes.createdByHeaderCell,
     },
     {
-      accessor: 'lastUpdated',
+      accessor: 'updated',
       value: t('dashboard.last_modified'),
       sortable: true,
       headerCellClass: classes.lastUpdatedHeaderCell,
@@ -78,15 +82,28 @@ export const RepoList = ({
     },
   ];
 
+  // Gitea API does not support sorting by createdBy or description
+  const nonSortableAccessors = ['createdBy', 'description'];
+  const remotePaginationColumns = columns.map((column) => ({
+    ...column,
+    sortable: nonSortableAccessors.includes(column.accessor) ? false : column.sortable,
+  }));
+
   const rows = repos.map((repo) => ({
     id: repo.id,
     favoriteIcon: <FavoriteButton repo={repo} />,
     name: repo.name,
     createdBy: repo.owner.full_name || repo.owner.login,
-    lastUpdated: new Date(repo.updated_at).toLocaleDateString('nb', { dateStyle: 'short' }),
+    updated: new Date(repo.updated_at).toLocaleDateString('nb', { dateStyle: 'short' }),
     description: repo.description,
     actionIcons: <ActionLinks repo={repo} />,
   }));
+
+  const emptyTableMessage = isLoading ? (
+    <StudioSpinner spinnerTitle={t('general.loading')} />
+  ) : (
+    t('dashboard.no_repos_result')
+  );
 
   const paginationProps = {
     currentPage: pageNumber + 1,
@@ -105,14 +122,13 @@ export const RepoList = ({
     <div>
       {isServerSort ? (
         <>
-          {/*Remember to fix bug on page out of range*/}
           <StudioTableRemotePagination
-            columns={columns}
+            columns={remotePaginationColumns}
             rows={rows}
             size='small'
-            emptyTableMessage={t('dashboard.no_repos_result')}
+            emptyTableMessage={emptyTableMessage}
             pagination={paginationProps}
-            onSortClick={handleSorting}
+            onSortClick={onSortClick}
           />
         </>
       ) : (
