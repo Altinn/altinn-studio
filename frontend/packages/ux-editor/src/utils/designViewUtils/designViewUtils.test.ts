@@ -59,6 +59,15 @@ describe('designViewUtils', () => {
       expect(nameErrorkey).toEqual('ux_editor.pages_error_format');
     });
 
+    it('returns formate error when name contains period (.)', () => {
+      const nameErrorkey = getPageNameErrorKey(
+        mockNewNameCandidateIllegal,
+        mockOldName,
+        mockLayoutOrder,
+      );
+      expect(nameErrorkey).toEqual('ux_editor.pages_error_format');
+    });
+
     it('returns null when oldname and new name is the same', () => {
       const nameError = getPageNameErrorKey(mockOldName, mockOldName, mockLayoutOrder);
       expect(nameError).toEqual(null);
