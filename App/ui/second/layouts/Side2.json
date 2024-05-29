@@ -1,0 +1,22 @@
+{
+  "$schema": "http://localhost:3000/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "tekst",
+        "type": "Header",
+        "size": "h2",
+        "textResourceBindings": {
+          "title": "Tittel"
+        }
+      },
+      {
+        "id": "nav",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "back": "Tilbake"
+        }
+      }
+    ]
+  }
+}

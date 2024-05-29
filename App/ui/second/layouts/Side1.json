@@ -54,7 +54,7 @@
         "size": "L"
       },
       {
-        "id": "Input-zRQ9nX",
+        "id": "text1",
         "type": "Input",
         "textResourceBindings": {
           "title": "Side1.Input-zRQ9nX.title"
@@ -68,7 +68,7 @@
         "renderAsSummary": true
       },
       {
-        "id": "Input-EVYFwx",
+        "id": "text2",
         "type": "Input",
         "textResourceBindings": {
           "title": "Side1.Input-EVYFwx.title"
@@ -82,7 +82,7 @@
         "renderAsSummary": true
       },
       {
-        "id": "RadioButtons-t8YpJA",
+        "id": "sector",
         "type": "RadioButtons",
         "textResourceBindings": {
           "title": "Side1.RadioButtons-t8YpJA.title"
@@ -106,7 +106,7 @@
         "renderAsSummary": true
       },
       {
-        "id": "Checkboxes-dxp6Rr",
+        "id": "industry",
         "type": "Checkboxes",
         "textResourceBindings": {
           "title": "Side1.Checkboxes-dxp6Rr.title"
@@ -124,7 +124,7 @@
         "renderAsSummary": true
       },
       {
-        "id": "RepeatingGroup-ptGWlM",
+        "id": "persons",
         "type": "RepeatingGroup",
         "textResourceBindings": {
           "title": "Side1.RepeatingGroup-ptGWlM.title"
@@ -213,7 +213,17 @@
         }
       },
       {
-        "id": "Button-Sjnxbg",
+        "id": "btngroup",
+        "type": "ButtonGroup",
+        "children": ["submit", "nav"]
+      },
+      {
+        "id": "nav",
+        "type": "NavigationButtons",
+        "textResourceBindings": { "next": "Neste" }
+      },
+      {
+        "id": "submit",
         "type": "Button",
         "textResourceBindings": {
           "title": "Side1.Button-Sjnxbg.title"

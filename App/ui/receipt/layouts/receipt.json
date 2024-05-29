@@ -3,7 +3,7 @@
   "data": {
     "layout": [
       {
-        "id": "test",
+        "id": "text1",
         "type": "Input",
         "textResourceBindings": {
           "title": "Datamodell 1"
@@ -17,7 +17,7 @@
         "renderAsSummary": true
       },
       {
-        "id": "test2",
+        "id": "text2",
         "type": "Input",
         "textResourceBindings": {
           "title": "Datamodell 2"
@@ -25,6 +25,20 @@
         "dataModelBindings": {
           "simpleBinding": {
             "dataType": "modell2",
+            "property": "tekstfelt"
+          }
+        },
+        "renderAsSummary": true
+      },
+      {
+        "id": "text3",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Datamodell 3"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell3",
             "property": "tekstfelt"
           }
         },
