@@ -1,7 +1,7 @@
 import type { ChangeEvent } from 'react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { StudioCodeFragment, StudioTextarea } from '@studio/components';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import type { ITextResources } from 'app-shared/types/global';
@@ -22,7 +22,7 @@ const getTextResourceValue = (textResources: ITextResources, id: string) =>
   findTextResource(textResources, id)?.value || '';
 
 export const TextResourceValueEditor = ({ textResourceId }: TextResourceValueEditorProps) => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
   const { mutate } = useUpsertTextResourceMutation(org, app);
   const value = getTextResourceValue(textResources, textResourceId);

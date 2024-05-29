@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppReleasesQuery } from 'app-development/hooks/queries';
 import { BuildResult } from 'app-shared/types/Build';
 import { DateUtils } from '@studio/pure-functions';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export interface DeployDropdownProps {
   appDeployedVersion: string;
@@ -27,7 +27,7 @@ export const DeployDropdown = ({
   startDeploy,
   isPending,
 }: DeployDropdownProps) => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const [isConfirmDeployDialogOpen, setIsConfirmDeployDialogOpen] = useState<boolean>();
   const { t } = useTranslation();
 
