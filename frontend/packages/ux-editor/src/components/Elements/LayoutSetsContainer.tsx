@@ -1,12 +1,12 @@
 import React from 'react';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { NativeSelect } from '@digdir/design-system-react';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useText, useAppContext } from '../../hooks';
 import classes from './LayoutSetsContainer.module.css';
 
 export function LayoutSetsContainer() {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const layoutSetsQuery = useLayoutSetsQuery(org, app);
   const layoutSetNames = layoutSetsQuery.data?.sets?.map((set) => set.id);
   const t = useText();

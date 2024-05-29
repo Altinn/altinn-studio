@@ -16,7 +16,7 @@ export function InlineObject({ item }: IInlineObjectProps) {
         {JSON.stringify(item, null, '    ')}
       </pre>
       <div id='information-paper' className={classes.informationPaper}>
-        {t('combination_inline_object_disclaimer')}
+        {t('schema_editor.combination_inline_object_disclaimer')}
       </div>
     </div>
   );

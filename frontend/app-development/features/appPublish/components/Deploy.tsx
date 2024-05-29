@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { DeployDropdown } from './DeployDropdown';
 import { useCreateDeploymentMutation } from '../../../hooks/mutations';
 import { Trans, useTranslation } from 'react-i18next';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { toast } from 'react-toastify';
 import { Alert, Link } from '@digdir/design-system-react';
 import { useDeployPermissionsQuery } from 'app-development/hooks/queries';
@@ -28,7 +28,7 @@ export const Deploy = ({
   const [selectedImageTag, setSelectedImageTag] = useState(null);
   const { t } = useTranslation();
 
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const {
     data: permissions,
     isPending: permissionsIsPending,

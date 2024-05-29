@@ -5,13 +5,13 @@ import { setupStore } from './store';
 import './styles/index.css';
 import { AppContext } from './AppContext';
 import { useReactiveLocalStorage } from 'app-shared/hooks/useReactiveLocalStorage';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 const store = setupStore();
 
 export const SubApp = () => {
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
-  const { app } = useStudioUrlParams();
+  const { app } = useStudioEnvironmentParams();
   const [selectedLayoutSet, setSelectedLayoutSet, removeSelectedLayoutSet] =
     useReactiveLocalStorage('layoutSet/' + app, null);
 
