@@ -9,7 +9,7 @@ import {
   useTextResourcesSelector,
   useAppContext,
 } from '../../../../hooks';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
 import type { ITextResource } from 'app-shared/types/global';
 import { textResourcesByLanguageSelector } from '../../../../selectors/textResourceSelectors';
@@ -23,7 +23,7 @@ export const RepeatingGroupComponent = ({
 }: IEditFormComponentProps<ComponentType.RepeatingGroup>) => {
   const t = useText();
 
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
 
   const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
   const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);

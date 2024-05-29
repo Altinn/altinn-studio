@@ -6,12 +6,12 @@ import { versionNameValid } from './utils';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { useCreateReleaseMutation } from '../../../hooks/mutations';
 import { useTranslation } from 'react-i18next';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { FormField } from 'app-shared/components/FormField';
 import { StudioButton } from '@studio/components';
 
 export function CreateRelease() {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const [tagName, setTagName] = useState<string>('');
   const [body, setBody] = useState<string>('');
   const { data: releases = [] } = useAppReleasesQuery(org, app);

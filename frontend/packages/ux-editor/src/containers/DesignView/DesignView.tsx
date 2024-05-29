@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Accordion } from '@digdir/design-system-react';
 import type { IFormLayouts } from '../../types/global';
 import type { FormLayoutPage } from '../../types/FormLayoutPage';
@@ -33,7 +33,7 @@ const mapFormLayoutsToFormLayoutPages = (formLayouts: IFormLayouts): FormLayoutP
  * @returns {ReactNode} - The rendered component
  */
 export const DesignView = (): ReactNode => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const {
     selectedFormLayoutSetName,
     selectedFormLayoutName,
