@@ -7,6 +7,7 @@ import { DATAGRID_DEFAULT_PAGE_SIZE, DATAGRID_PAGE_SIZE_OPTIONS } from '../../co
 import { StudioTableLocalPagination, StudioTableRemotePagination } from '@studio/components';
 import { ActionLinks } from './ActionLinks';
 import { FavoriteButton } from './FavoriteButton';
+import classes from './RepoList.module.css';
 
 export interface RepoListProps {
   isLoading: boolean;
@@ -43,25 +44,26 @@ export const RepoList = ({
       accessor: 'favoriteIcon',
       value: '',
       sortable: false,
-      width: '42px',
+      headerCellClass: classes.favoriteIconHeaderCell,
+      bodyCellsClass: classes.favoriteIconBodyCells,
     },
     {
       accessor: 'name',
       value: t('dashboard.name'),
       sortable: true,
-      width: '20%',
+      headerCellClass: classes.nameHeaderCell,
     },
     {
       accessor: 'createdBy',
       value: t('dashboard.created_by'),
       sortable: true,
-      width: '20%',
+      headerCellClass: classes.createdByHeaderCell,
     },
     {
       accessor: 'lastUpdated',
       value: t('dashboard.last_modified'),
       sortable: true,
-      width: '15%',
+      headerCellClass: classes.lastUpdatedHeaderCell,
     },
     {
       accessor: 'description',
@@ -72,7 +74,7 @@ export const RepoList = ({
       accessor: 'actionIcons',
       value: '',
       sortable: false,
-      width: '155px',
+      headerCellClass: classes.actionIconsHeaderCell,
     },
   ];
 

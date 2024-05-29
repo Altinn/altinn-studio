@@ -1,3 +1,23 @@
+.favoriteIconHeaderCell {
+  width: 42px;
+}
+
+.nameHeaderCell {
+  width: 20%;
+}
+
+.createdByHeaderCell {
+  width: 20%;
+}
+
+.lastUpdatedHeaderCell {
+  width: 15%;
+}
+
+.actionIconsHeaderCell {
+  width: 155px;
+}
+
 .actionLinks {
   display: flex;
   justify-content: flex-end;

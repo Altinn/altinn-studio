@@ -14,8 +14,10 @@ export type Columns = {
   accessor: string;
   value: string;
   sortable?: boolean;
-  width?: string;
+  headerCellClass?: string;
+  bodyCellsClass?: string;
 }[];
+
 export type Rows = (Record<string, React.ReactNode> & Record<'id', string | number>)[];
 
 export type PaginationProps = {
@@ -72,12 +74,12 @@ export const StudioTableRemotePagination = forwardRef<
         <Table size={size} className={classes.table} ref={ref}>
           <Table.Head>
             <Table.Row>
-              {columns.map(({ accessor, value, sortable, width }) => (
+              {columns.map(({ accessor, value, sortable, headerCellClass }) => (
                 <Table.HeaderCell
                   key={accessor}
                   sortable={isTableSortable && sortable}
                   onSortClick={() => onSortClick(accessor)}
-                  style={{ width: width || 'auto' }}
+                  className={headerCellClass}
                 >
                   {value}
                 </Table.HeaderCell>
@@ -87,8 +89,10 @@ export const StudioTableRemotePagination = forwardRef<
           <Table.Body>
             {rows.map((row) => (
               <Table.Row key={String(row.id)}>
-                {columns.map(({ accessor }) => (
-                  <Table.Cell key={accessor}>{row[accessor]}</Table.Cell>
+                {columns.map(({ accessor, bodyCellsClass }) => (
+                  <Table.Cell key={accessor} className={bodyCellsClass}>
+                    {row[accessor]}
+                  </Table.Cell>
                 ))}
               </Table.Row>
             ))}
