@@ -10,7 +10,7 @@ export type SimpleSubexpressionValue<
 
 type ValueDetails<T extends SimpleSubexpressionValueType> = {
   [SimpleSubexpressionValueType.Component]: { id: string };
-  [SimpleSubexpressionValueType.Datamodel]: { path: string };
+  [SimpleSubexpressionValueType.DataModel]: { path: string };
   [SimpleSubexpressionValueType.GatewayAction]: { value: string };
   [SimpleSubexpressionValueType.GatewayActionContext]: { key: GatewayActionContext };
   [SimpleSubexpressionValueType.InstanceContext]: { key: InstanceContext };

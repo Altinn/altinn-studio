@@ -4,15 +4,15 @@ import type { Environment } from '../helpers/StudioEnvironment';
 import type { Page } from '@playwright/test';
 import { expect } from '@playwright/test';
 
-type TopMenuNames =
+type TopMenuName =
   | 'about'
   | 'create'
   | 'dashboard'
-  | 'datamodel'
+  | 'data_model'
   | 'deploy'
   | 'preview'
   | 'preview_back_to_editing'
-  | 'process-editor'
+  | 'process_editor'
   | 'texts';
 
 export class Header extends BasePage {
@@ -20,7 +20,7 @@ export class Header extends BasePage {
     super(page, environment);
   }
 
-  public async clickOnNavigateToPageInTopMenuHeader(menuName: TopMenuNames): Promise<void> {
+  public async clickOnNavigateToPageInTopMenuHeader(menuName: TopMenuName): Promise<void> {
     await this.page
       .getByRole('link', { name: this.textMock(`top_menu.${menuName}`), exact: true })
       .first()

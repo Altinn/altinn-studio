@@ -1,4 +1,4 @@
-export interface DatamodelFieldElement {
+export interface DataModelFieldElement {
   choices?: any;
   customProperties?: any;
   dataBindingName: string;

@@ -43,7 +43,7 @@ export class UiEditorPage extends BasePage {
 
   public async clickOnComponentDataModelBindingConfigAccordion(): Promise<void> {
     await this.page
-      .getByRole('button', { name: this.textMock('right_menu.dataModelBindings') })
+      .getByRole('button', { name: this.textMock('right_menu.data_model_bindings') })
       .click();
   }
 

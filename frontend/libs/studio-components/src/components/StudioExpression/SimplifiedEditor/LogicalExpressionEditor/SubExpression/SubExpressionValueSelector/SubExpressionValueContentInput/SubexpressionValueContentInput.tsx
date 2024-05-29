@@ -1,7 +1,7 @@
 import { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSubexpressionValueType';
 import React from 'react';
 import type { Props } from './Props';
-import { DatamodelPointerSelector } from './DatamodelPointerSelector';
+import { DataModelPointerSelector } from './DataModelPointerSelector';
 import { ComponentIdSelector } from './ComponentIdSelector';
 import { InstanceContextKeySelector } from './InstanceContextKeySelector';
 import { StringInput } from './StringInput';
@@ -14,8 +14,8 @@ export const SubexpressionValueContentInput = ({
   value,
 }: Props<SimpleSubexpressionValueType>) => {
   switch (value.type) {
-    case SimpleSubexpressionValueType.Datamodel:
-      return <DatamodelPointerSelector onChange={onChange} value={value} />;
+    case SimpleSubexpressionValueType.DataModel:
+      return <DataModelPointerSelector onChange={onChange} value={value} />;
     case SimpleSubexpressionValueType.Component:
       return <ComponentIdSelector onChange={onChange} value={value} />;
     case SimpleSubexpressionValueType.InstanceContext:

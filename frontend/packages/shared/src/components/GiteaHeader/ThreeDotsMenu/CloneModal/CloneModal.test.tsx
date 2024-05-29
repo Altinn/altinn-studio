@@ -16,7 +16,7 @@ const render = (props: Partial<ICloneModalProps> = {}) => {
     ...props,
   };
   const queries: Partial<ServicesContextProps> = {
-    getDatamodelsXsd: async () => [],
+    getDataModelsXsd: async () => [],
   };
   return rtlRender(
     <ServicesContextProvider {...queries}>

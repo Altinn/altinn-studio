@@ -96,7 +96,7 @@ const renderPageConfigPanel = (
   queryClientMock.setQueryData([QueryKey.TextResources, org, app], textResources);
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet], layouts);
   queryClientMock.setQueryData(
-    [QueryKey.DatamodelMetadata, org, app, layoutSet, dataModelName],
+    [QueryKey.DataModelMetadata, org, app, layoutSet, dataModelName],
     [],
   );
 

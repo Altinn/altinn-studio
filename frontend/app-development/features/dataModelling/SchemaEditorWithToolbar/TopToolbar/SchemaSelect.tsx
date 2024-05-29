@@ -7,27 +7,27 @@ import {
 import type { MetadataOption } from '../../../../types/MetadataOption';
 import { NativeSelect } from '@digdir/design-system-react';
 import classes from './SchemaSelect.module.css';
-import type { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
+import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { useTranslation } from 'react-i18next';
 
 export interface ISchemaSelectProps {
-  datamodels: DatamodelMetadata[];
+  dataModels: DataModelMetadata[];
   disabled: boolean;
   selectedOption: MetadataOption | null;
   setSelectedOption: (option: MetadataOption) => void;
 }
 
 export const SchemaSelect = ({
-  datamodels,
+  dataModels,
   disabled,
   selectedOption,
   setSelectedOption,
 }: ISchemaSelectProps) => {
   const { t } = useTranslation();
-  const options = convertMetadataListToOptions(datamodels);
+  const options = convertMetadataListToOptions(dataModels);
   const optionGroups = groupMetadataOptions(options);
-  const handleChange = (repositoyUrl: string) =>
-    setSelectedOption(findMetadataOptionByRelativeUrl(options, repositoyUrl));
+  const handleChange = (repositoryUrl: string) =>
+    setSelectedOption(findMetadataOptionByRelativeUrl(options, repositoryUrl));
 
   return (
     <NativeSelect

@@ -12,15 +12,15 @@ import { app, org } from '@studio/testing/testids';
 const modelPath = 'modelPath';
 
 describe('useSchemaMutation', () => {
-  it('Returns correct state and calls saveDatamodel with the correct parameters', async () => {
-    const saveDatamodel = jest.fn();
+  it('Returns correct state and calls saveDataModel with the correct parameters', async () => {
+    const saveDataModel = jest.fn();
     const {
       renderHookResult: { result },
-    } = render({ saveDatamodel });
+    } = render({ saveDataModel });
     result.current.mutate({ modelPath, model: jsonSchemaMock });
     await waitFor(() => result.current.isPending);
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
-    expect(saveDatamodel).toHaveBeenCalledWith(org, app, modelPath, jsonSchemaMock);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
+    expect(saveDataModel).toHaveBeenCalledWith(org, app, modelPath, jsonSchemaMock);
     await waitFor(() => result.current.isSuccess);
   });
 

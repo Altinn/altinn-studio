@@ -60,7 +60,7 @@ const subexpressionValueToComplex = (
   switch (subexpression.type) {
     case SimpleSubexpressionValueType.Component:
       return [DataLookupFuncName.Component, subexpression.id];
-    case SimpleSubexpressionValueType.Datamodel:
+    case SimpleSubexpressionValueType.DataModel:
       return [DataLookupFuncName.DataModel, subexpression.path];
     case SimpleSubexpressionValueType.InstanceContext:
       return [KeyLookupFuncName.InstanceContext, subexpression.key];

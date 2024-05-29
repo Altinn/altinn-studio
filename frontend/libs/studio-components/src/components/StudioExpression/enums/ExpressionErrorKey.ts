@@ -1,7 +1,7 @@
 export enum ExpressionErrorKey {
   ComponentIDNoLongerExists = 'componentIDNoLongerExists',
   InvalidComponentId = 'invalidComponentId',
-  InvalidDatamodelPath = 'invalidDatamodelPath',
+  InvalidDataModelPath = 'invalidDataModelPath',
   InvalidFirstOperand = 'invalidFirstOperand',
   InvalidSecondOperand = 'invalidSecondOperand',
   NumericRelationOperatorWithWrongType = 'numericRelationOperatorWithWrongType',

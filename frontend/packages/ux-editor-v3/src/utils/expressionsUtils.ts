@@ -12,7 +12,7 @@ import {
   Operator,
 } from '../types/Expressions';
 import { ObjectUtils } from '@studio/pure-functions';
-import type { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
+import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
 import type { IFormLayouts } from '../types/global';
 import { LayoutItemType } from '../types/global';
 import type { FormComponent } from '../types/FormComponent';
@@ -441,7 +441,7 @@ export const getNonOverlappingElementsFromTwoLists = (list1: any[], list2: any[]
 
 // TODO: Make sure all data model fields are included - what if there are multiple data models? . Issue #10855
 export const getDataModelElementNames = (
-  dataModelElements: DatamodelFieldElement[],
+  dataModelElements: DataModelFieldElement[],
 ): LegacySingleSelectOption[] => {
   return dataModelElements
     .filter((element) => element.dataBindingName)

@@ -8,7 +8,7 @@ import {
 import { component1Mock } from './layoutMock';
 
 export const componentId = component1Mock.id;
-export const datamodelField = 'some-data-model-field';
+export const dataModelField = 'some-data-model-field';
 export const stringValue = 'some-string-value';
 export const numberValue = 1024;
 export const nullValue = null;
@@ -59,10 +59,10 @@ export const parsableExternalExpression: any = [
   'and',
   ['equals', stringValue, nullValue],
   ['equals', numberValue, booleanValue],
-  ['not', [DataSource.Component, componentId], [DataSource.DataModel, datamodelField]],
+  ['not', [DataSource.Component, componentId], [DataSource.DataModel, dataModelField]],
 ];
-export const unParsableComplexExpression = '["equals, [datamodel, test, true]';
-export const parsableComplexExpression = '["equals", ["datamodel", "test"], true]';
+export const unParsableComplexExpression = '["equals, [dataModel, test, true]';
+export const parsableComplexExpression = '["equals", ["dataModel", "test"], true]';
 export const parsableNotStudioFriendlyComplexExpression: any = ['dataModel', 'some-field'];
 export const parsableNotStudioFriendlyLongComplexExpression: any = [
   'and',

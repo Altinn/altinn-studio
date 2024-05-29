@@ -72,7 +72,7 @@ const renderExpressionContent = (props: Partial<ExpressionContentProps> = {}) =>
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
   queryClient.setQueryData(
-    [QueryKey.DatamodelMetadata, org, app, layoutSetName, dataModelName],
+    [QueryKey.DataModelMetadata, org, app, layoutSetName, dataModelName],
     [],
   );
 

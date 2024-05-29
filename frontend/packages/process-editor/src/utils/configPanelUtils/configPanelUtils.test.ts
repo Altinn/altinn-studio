@@ -2,7 +2,7 @@ import {
   getConfigTitleHelpTextKey,
   getConfigTitleKey,
   getDataTypeFromLayoutSetsWithExistingId,
-  getDatamodelOptions,
+  getDataModelOptions,
 } from './configPanelUtils';
 
 describe('configPanelUtils', () => {
@@ -63,27 +63,27 @@ describe('configPanelUtils', () => {
       ],
     };
 
-    it('returns existing datamodel id when layout set id matches', () => {
-      const existingDatamodelId = getDataTypeFromLayoutSetsWithExistingId(layoutSets, layoutSetId1);
-      expect(existingDatamodelId).toBe(layoutSetDataType1);
+    it('returns existing data model id when layout set id matches', () => {
+      const existingDataModelId = getDataTypeFromLayoutSetsWithExistingId(layoutSets, layoutSetId1);
+      expect(existingDataModelId).toBe(layoutSetDataType1);
     });
 
     it('returns undefined when layout set id does not match', () => {
       const existingCustomReceiptLayoutSetId = 'nonExistentLayoutSet';
-      const existingDatamodelId = getDataTypeFromLayoutSetsWithExistingId(
+      const existingDataModelId = getDataTypeFromLayoutSetsWithExistingId(
         layoutSets,
         existingCustomReceiptLayoutSetId,
       );
-      expect(existingDatamodelId).toBeUndefined();
+      expect(existingDataModelId).toBeUndefined();
     });
   });
 
-  describe('getDatamodelOptions', () => {
+  describe('getDataModelOptions', () => {
     it('should return availableIds with existingId appended when existingId is provided', () => {
       const availableIds = ['id1', 'id2', 'id3'];
       const existingId = 'existingId';
 
-      const result = getDatamodelOptions(availableIds, existingId);
+      const result = getDataModelOptions(availableIds, existingId);
 
       expect(result).toEqual([...availableIds, existingId]);
     });
@@ -92,7 +92,7 @@ describe('configPanelUtils', () => {
       const availableIds = ['id1', 'id2', 'id3'];
       const existingId = '';
 
-      const result = getDatamodelOptions(availableIds, existingId);
+      const result = getDataModelOptions(availableIds, existingId);
 
       expect(result).toEqual(availableIds);
     });

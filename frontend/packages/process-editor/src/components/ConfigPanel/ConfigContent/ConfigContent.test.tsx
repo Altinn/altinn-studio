@@ -82,7 +82,7 @@ describe('ConfigContent', () => {
       );
       expect(
         screen.queryByRole('button', {
-          name: textMock('process_editor.configuration_panel_set_datamodel_link'),
+          name: textMock('process_editor.configuration_panel_set_data_model_link'),
         }),
       ).not.toBeInTheDocument();
     },
@@ -92,7 +92,7 @@ describe('ConfigContent', () => {
     renderConfigContent();
     expect(
       screen.queryByRole('button', {
-        name: textMock('process_editor.configuration_panel_set_datamodel_link'),
+        name: textMock('process_editor.configuration_panel_set_data_model_link'),
       }),
     ).not.toBeInTheDocument();
   });
@@ -115,7 +115,7 @@ describe('ConfigContent', () => {
     renderConfigContent();
     expect(
       screen.getByRole('button', {
-        name: textMock('process_editor.configuration_panel_set_datamodel'),
+        name: textMock('process_editor.configuration_panel_set_data_model'),
       }),
     ).toBeInTheDocument();
     expect(screen.getByText(connectedDataType)).toBeInTheDocument();

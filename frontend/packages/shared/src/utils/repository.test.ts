@@ -15,7 +15,7 @@ describe('getRepositoryType', () => {
     expect(getRepositoryType(org, `test-${org}-datamodels`)).toBe(RepositoryType.App);
   });
 
-  it('should return "Datamodels" when repository name matches "<org>-datamodels" exactly', () => {
-    expect(getRepositoryType(org, `${org}-datamodels`)).toBe(RepositoryType.Datamodels);
+  it('should return "DataModels" when repository name matches "<org>-datamodels" exactly', () => {
+    expect(getRepositoryType(org, `${org}-datamodels`)).toBe(RepositoryType.DataModels);
   });
 });

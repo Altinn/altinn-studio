@@ -5,17 +5,17 @@ import { XSDUpload } from './XSDUpload';
 import { SchemaSelect } from './SchemaSelect';
 import { DeleteWrapper } from './DeleteWrapper';
 import { computeSelectedOption } from '../../../../utils/metadataUtils';
-import type { CreateDatamodelMutationArgs } from '../../../../hooks/mutations/useCreateDatamodelMutation';
-import { useCreateDatamodelMutation } from '../../../../hooks/mutations';
+import type { CreateDataModelMutationArgs } from '../../../../hooks/mutations/useCreateDataModelMutation';
+import { useCreateDataModelMutation } from '../../../../hooks/mutations';
 import type { MetadataOption } from '../../../../types/MetadataOption';
 import { GenerateModelsButton } from './GenerateModelsButton';
 import { usePrevious } from '@studio/components';
-import type { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
+import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 
 export interface TopToolbarProps {
   createNewOpen: boolean;
   createPathOption?: boolean;
-  dataModels: DatamodelMetadata[];
+  dataModels: DataModelMetadata[];
   selectedOption?: MetadataOption;
   setCreateNewOpen: (open: boolean) => void;
   setSelectedOption: (option?: MetadataOption) => void;
@@ -33,15 +33,15 @@ export function TopToolbar({
 }: TopToolbarProps) {
   const modelPath = selectedOption?.value.repositoryRelativeUrl;
 
-  const { mutate: createDatamodel } = useCreateDatamodelMutation();
+  const { mutate: createDataModel } = useCreateDataModelMutation();
   const prevDataModels = usePrevious(dataModels);
 
   useEffect(() => {
     setSelectedOption(computeSelectedOption(selectedOption, dataModels, prevDataModels));
   }, [selectedOption, dataModels, prevDataModels, setSelectedOption]);
 
-  const handleCreateSchema = (model: CreateDatamodelMutationArgs) => {
-    createDatamodel(model);
+  const handleCreateSchema = (model: CreateDataModelMutationArgs) => {
+    createDataModel(model);
     setCreateNewOpen(false);
   };
 
@@ -57,7 +57,7 @@ export function TopToolbar({
       />
       <XSDUpload disabled={false} />
       <SchemaSelect
-        datamodels={dataModels}
+        dataModels={dataModels}
         disabled={false}
         selectedOption={selectedOption}
         setSelectedOption={setSelectedOption}
