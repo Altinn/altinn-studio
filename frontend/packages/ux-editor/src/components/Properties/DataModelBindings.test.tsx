@@ -15,9 +15,9 @@ import { componentMocks } from '../../testing/componentMocks';
 import { component3IdMock, component3Mock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
-import type { DatamodelMetadataResponse } from 'app-shared/types/api';
+import type { DataModelMetadataResponse } from 'app-shared/types/api';
 
-const datamodelMetadata: DatamodelMetadataResponse = {
+const dataModelMetadata: DataModelMetadataResponse = {
   elements: {
     testModel: {
       id: 'testModel',
@@ -39,7 +39,7 @@ const datamodelMetadata: DatamodelMetadataResponse = {
   },
 };
 
-const getDatamodelMetadata = () => Promise.resolve(datamodelMetadata);
+const getDataModelMetadata = () => Promise.resolve(dataModelMetadata);
 
 describe('DataModelBindings', () => {
   afterEach(jest.clearAllMocks);
@@ -277,10 +277,10 @@ describe('DataModelBindings', () => {
 
     render();
 
-    const datamodelButton = screen.getByRole('button', {
+    const dataModelButton = screen.getByRole('button', {
       name: textMock(`ux_editor.component_title.Input`),
     });
-    await user.click(datamodelButton);
+    await user.click(dataModelButton);
     const option = screen.getByText('testModel');
     await user.click(option);
     expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalledTimes(1);
@@ -318,7 +318,7 @@ const render = async ({
       appContextProps: {
         selectedFormLayoutName: 'default',
       },
-      queries: { getDatamodelMetadata },
+      queries: { getDataModelMetadata },
     },
   );
 };
