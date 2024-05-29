@@ -14,7 +14,7 @@ import { StudioPageSpinner } from '@studio/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { HandleAdd, HandleMove } from 'app-shared/types/dndTypes';
 import type { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { generateComponentId } from '../utils/generateId';
@@ -43,7 +43,7 @@ export const FormDesigner = ({
   selectedLayoutSet,
 }: FormDesignerProps): JSX.Element => {
   const dispatch = useDispatch();
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { data: instanceId } = useInstanceIdQuery(org, app);
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(
     org,

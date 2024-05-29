@@ -7,7 +7,7 @@ import classes from './CloneModal.module.css';
 import { LegacyTextField } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { useDataModelsXsdQuery } from 'app-shared/hooks/queries';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { InformationSquareFillIcon } from '@studio/icons';
 import { StudioButton } from '@studio/components';
 
@@ -17,7 +17,7 @@ export interface ICloneModalProps {
 }
 
 export const CloneModal = (props: ICloneModalProps) => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const gitUrl = window.location.origin.toString() + repositoryGitPath(org, app);
   const copyGitUrl = () => navigator.clipboard.writeText(gitUrl);
   const canCopy = document.queryCommandSupported ? document.queryCommandSupported('copy') : false;

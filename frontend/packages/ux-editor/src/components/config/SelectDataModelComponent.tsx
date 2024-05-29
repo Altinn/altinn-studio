@@ -3,7 +3,7 @@ import { LegacySelect } from '@digdir/design-system-react';
 import { useDataModelMetadataQuery } from '../../hooks/queries/useDataModelMetadataQuery';
 import { FormField } from '../FormField';
 import type { Option } from '@altinn/text-editor/types';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
 import { useAppContext } from '../../hooks';
 
@@ -31,7 +31,7 @@ export const SelectDataModelComponent = ({
   helpText,
   propertyPath,
 }: ISelectDataModelProps) => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
   const { data } = useDataModelMetadataQuery(org, app, selectedFormLayoutSetName, undefined);
   const [dataModelElementNames, setDataModelElementNames] = React.useState<Option[]>([]);
