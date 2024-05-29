@@ -42,30 +42,36 @@ export const RepoList = ({
     {
       accessor: 'favoriteIcon',
       value: '',
+      sortable: false,
       width: '42px',
     },
     {
       accessor: 'name',
       value: t('dashboard.name'),
+      sortable: true,
       width: '20%',
     },
     {
       accessor: 'createdBy',
       value: t('dashboard.created_by'),
+      sortable: true,
       width: '20%',
     },
     {
       accessor: 'lastUpdated',
       value: t('dashboard.last_modified'),
+      sortable: true,
       width: '15%',
     },
     {
       accessor: 'description',
       value: t('dashboard.description'),
+      sortable: true,
     },
     {
       accessor: 'actionIcons',
       value: '',
+      sortable: false,
       width: '155px',
     },
   ];

@@ -13,6 +13,7 @@ export const resizeLabelMap: Record<tableSize, labelSize> = {
 export type Columns = {
   accessor: string;
   value: string;
+  sortable?: boolean;
   width?: string;
 }[];
 export type Rows = (Record<string, React.ReactNode> & Record<'id', string | number>)[];
@@ -47,7 +48,7 @@ export const StudioTableRemotePagination = forwardRef<
     { columns, rows, size = 'medium', emptyTableMessage, onSortClick, pagination },
     ref,
   ): React.ReactElement => {
-    const isSortable = onSortClick && rows.length > 0;
+    const isTableSortable = onSortClick && rows.length > 0;
     const isPaginationActive = pagination && rows.length > 0;
 
     const {
@@ -71,10 +72,10 @@ export const StudioTableRemotePagination = forwardRef<
         <Table size={size} className={classes.table} ref={ref}>
           <Table.Head>
             <Table.Row>
-              {columns.map(({ accessor, value, width }) => (
+              {columns.map(({ accessor, value, sortable, width }) => (
                 <Table.HeaderCell
                   key={accessor}
-                  sortable={isSortable && !!value}
+                  sortable={isTableSortable && sortable}
                   onSortClick={() => onSortClick(accessor)}
                   style={{ width: width || 'auto' }}
                 >

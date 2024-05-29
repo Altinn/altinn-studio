@@ -23,7 +23,7 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const copyModalAnchorRef = useRef(null);
 
-  const handleOpenCopyModal = (repoFullName) => {
+  const handleOpenCopyModal = (repoFullName: string) => {
     setModalOpen(true);
     setCopyCurrentRepoName(repoFullName);
   };
@@ -60,7 +60,7 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
       <DropdownMenu size={'small'}>
         <DropdownMenu.Trigger variant={'tertiary'} asChild>
           <Button onClick={(e) => e.stopPropagation()} variant={'tertiary'} icon>
-            <MenuElipsisVerticalIcon className={classes.dropdownIcon} />
+            <MenuElipsisVerticalIcon />
           </Button>
         </DropdownMenu.Trigger>
         <DropdownMenu.Content>
