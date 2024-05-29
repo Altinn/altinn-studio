@@ -39,8 +39,9 @@
   margin-bottom: var(--fds-spacing-2);
 }
 
-.textCell {
-  height: 47px;
+.orgNrCell {
+  padding-top: var(--fds-spacing-4);
+  padding-bottom: var(--fds-spacing-4);
 }
 
 .smallColumn {

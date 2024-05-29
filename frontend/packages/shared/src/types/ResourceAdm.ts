@@ -172,3 +172,11 @@ export interface JsonPatch {
   path: string;
   value?: string | number;
 }
+
+export interface ResourceError {
+  response?: {
+    status: number;
+    data?: any;
+  };
+  message?: string;
+}

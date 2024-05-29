@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import type { AxiosError } from 'axios';
 import { Checkbox, Heading, Link as DigdirLink, Button } from '@digdir/design-system-react';
 import classes from './ResourceAccessLists.module.css';
 import { StudioSpinner, StudioButton } from '@studio/components';
@@ -11,7 +10,7 @@ import { useAddResourceAccessListMutation } from '../../hooks/mutations/useAddRe
 import { useRemoveResourceAccessListMutation } from '../../hooks/mutations/useRemoveResourceAccessListMutation';
 import { getResourcePageURL } from '../../utils/urlUtils';
 import { NewAccessListModal } from '../NewAccessListModal';
-import type { Resource } from 'app-shared/types/ResourceAdm';
+import type { Resource, ResourceError } from 'app-shared/types/ResourceAdm';
 import { useUrlParams } from '../../hooks/useSelectedContext';
 import type { EnvId } from '../../utils/resourceUtils';
 import { AccessListErrorMessage } from '../AccessListErrorMessage';
@@ -77,7 +76,7 @@ export const ResourceAccessLists = ({
   }
 
   if (accessListsError) {
-    return <AccessListErrorMessage error={accessListsError as AxiosError} env={env} />;
+    return <AccessListErrorMessage error={accessListsError as ResourceError} env={env} />;
   }
 
   return (

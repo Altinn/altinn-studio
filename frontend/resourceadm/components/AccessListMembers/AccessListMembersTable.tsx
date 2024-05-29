@@ -83,10 +83,13 @@ export const AccessListMembersTable = ({
         {listItems.map((item) => {
           return (
             <Table.Row key={item.orgNr}>
-              <Table.Cell aria-label={stringNumberToAriaLabel(item.orgNr)}>{item.orgNr}</Table.Cell>
-              <Table.Cell className={classes.textCell}>
-                {item.orgName || t('resourceadm.listadmin_empty_name')}
+              <Table.Cell
+                aria-label={stringNumberToAriaLabel(item.orgNr)}
+                className={classes.orgNrCell}
+              >
+                {item.orgNr}
               </Table.Cell>
+              <Table.Cell>{item.orgName || t('resourceadm.listadmin_empty_name')}</Table.Cell>
               <Table.Cell>
                 {item.isSubParty
                   ? t('resourceadm.listadmin_sub_party')

@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import { Textfield, Modal, Heading, Link as DigdirLink, Button } from '@digdir/design-system-react';
+import { Textfield, Modal, Heading, Link as DigdirLink } from '@digdir/design-system-react';
 import classes from './AccessListDetail.module.css';
 import type { AccessList } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from '../FieldWrapper';
@@ -129,7 +129,7 @@ export const AccessListDetail = ({
           members={membersData.pages}
           loadMoreButton={
             hasNextPage && (
-              <Button
+              <StudioButton
                 disabled={isFetchingNextPage}
                 size='small'
                 variant='tertiary'
@@ -138,7 +138,7 @@ export const AccessListDetail = ({
                 {t('resourceadm.listadmin_load_more', {
                   unit: t('resourceadm.listadmin_member_unit'),
                 })}
-              </Button>
+              </StudioButton>
             )
           }
         />

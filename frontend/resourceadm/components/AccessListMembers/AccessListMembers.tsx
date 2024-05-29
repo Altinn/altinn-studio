@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Textfield, Radio } from '@digdir/design-system-react';
-import type { AxiosError } from 'axios';
 import classes from './AccessListMembers.module.css';
-import type { AccessList, AccessListMember } from 'app-shared/types/ResourceAdm';
+import type { AccessList, AccessListMember, ResourceError } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from '../FieldWrapper';
 import { useRemoveAccessListMemberMutation } from '../../hooks/mutations/useRemoveAccessListMemberMutation';
 import { useAddAccessListMemberMutation } from '../../hooks/mutations/useAddAccessListMemberMutation';
@@ -11,11 +10,11 @@ import { useDebounce } from 'react-use';
 import { usePartiesRegistryQuery } from '../../hooks/queries/usePartiesRegistryQuery';
 import { useSubPartiesRegistryQuery } from '../../hooks/queries/useSubPartiesRegistryQuery';
 import { getPartiesQueryUrl } from '../../utils/urlUtils';
-import { StudioSpinner, StudioButton } from '@studio/components';
+import { StudioButton } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
 import { AccessListMembersPaging } from './AccessListMembersPaging';
 import { AccessListMembersTable } from './AccessListMembersTable';
-import { isOrgNrString } from 'resourceadm/utils/stringUtils';
+import { isOrgNrString } from '../../utils/stringUtils';
 
 const PARTY_SEARCH_TYPE = 'PARTY';
 const SUBPARTY_SEARCH_TYPE = 'SUBPARTY';
@@ -54,17 +53,18 @@ export const AccessListMembers = ({
   const { mutate: addListMember, isPending: isAddingNewListMember } =
     useAddAccessListMemberMutation(org, list.identifier, env);
 
-  const { data: partiesSearchData, isLoading: isLoadingParties } = usePartiesRegistryQuery(
-    !isSubPartySearch ? searchUrl : '',
-  );
-  const { data: subPartiesSearchData, isLoading: isLoadingSubParties } = useSubPartiesRegistryQuery(
+  const { data: partiesSearchData } = usePartiesRegistryQuery(!isSubPartySearch ? searchUrl : '');
+  const { data: subPartiesSearchData } = useSubPartiesRegistryQuery(
     isSubPartySearch ? searchUrl : '',
   );
 
   const handleAddMember = (memberToAdd: AccessListMember): void => {
     addListMember([memberToAdd.orgNr], {
-      onError: (error: AxiosError) => {
-        if ((error.response.data as { code: string }).code === INVALID_ORG_ERROR_CODE) {
+      onError: (error: Error) => {
+        if (
+          ((error as ResourceError).response?.data as { code: string }).code ===
+          INVALID_ORG_ERROR_CODE
+        ) {
           setInvalidOrgnrs((old) => [...old, memberToAdd.orgNr]);
         }
       },
@@ -158,14 +158,6 @@ export const AccessListMembers = ({
             isAdd
             onButtonClick={handleAddMember}
           />
-          {(isLoadingParties || isLoadingSubParties) && (
-            <div className={classes.spinnerContainer}>
-              <StudioSpinner
-                showSpinnerTitle={false}
-                spinnerTitle={t('resourceadm.loading_parties')}
-              />
-            </div>
-          )}
           <AccessListMembersPaging resultData={resultData} setSearchUrl={setSearchUrl} />
         </>
       )}
