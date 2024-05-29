@@ -41,8 +41,6 @@ describe('PolicyCardRule', () => {
 
     expect(subResourceLabel.length).toEqual(0);
   });
-  // TODO - tests for clone and delete
-  // onSave called, and that the size changes
 });
 
 const renderPolicyCardRules = (

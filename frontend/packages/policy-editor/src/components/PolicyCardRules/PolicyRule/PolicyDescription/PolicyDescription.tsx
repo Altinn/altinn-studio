@@ -3,15 +3,16 @@ import classes from './PolicyDescription.module.css';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
-import { Textarea } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
+import { StudioTextarea } from '@studio/components';
 
 export const PolicyDescription = (): React.ReactElement => {
   const { t } = useTranslation();
   const { policyRules, setPolicyRules, savePolicy } = usePolicyEditorContext();
   const { policyRule, uniqueId } = usePolicyRuleContext();
 
-  const handleChangeDescription = (description: string) => {
+  const handleChangeDescription = (event: React.FormEvent<HTMLTextAreaElement>) => {
+    const description: string = event.currentTarget.value;
     const updatedRules = getUpdatedRules(
       { ...policyRule, description },
       policyRule.ruleId,
@@ -22,11 +23,11 @@ export const PolicyDescription = (): React.ReactElement => {
 
   return (
     <div className={classes.textAreaWrapper}>
-      <Textarea
+      <StudioTextarea
         label={t('policy_editor.rule_card_description_title')}
         size='small'
         value={policyRule.description}
-        onChange={(e) => handleChangeDescription(e.currentTarget.value)}
+        onChange={handleChangeDescription}
         rows={5}
         onBlur={() => savePolicy(policyRules)}
         id={`description-${uniqueId}`}

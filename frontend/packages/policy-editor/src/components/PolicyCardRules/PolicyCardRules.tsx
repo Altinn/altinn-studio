@@ -2,6 +2,7 @@ import React from 'react';
 import classes from './PolicyCardRules.module.css';
 import { usePolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import { PolicyRule } from './PolicyRule';
+import { type PolicyRuleCard } from '../../types';
 
 export type PolicyCardRulesProps = {
   showErrorsOnAllRulesAboveNew: boolean;
@@ -12,16 +13,13 @@ export const PolicyCardRules = ({
 }: PolicyCardRulesProps): React.ReactElement[] => {
   const { policyRules, showAllErrors } = usePolicyEditorContext();
 
-  return policyRules.map((pr, i) => {
+  const showErrors = (index: number): boolean =>
+    showAllErrors || (showErrorsOnAllRulesAboveNew && policyRules.length - 1 !== index);
+
+  return policyRules.map((policyRuleCard: PolicyRuleCard, index: number) => {
     return (
-      <div className={classes.space} key={pr.ruleId}>
-        <PolicyRule
-          policyRule={pr}
-          showErrors={
-            showAllErrors || (showErrorsOnAllRulesAboveNew && policyRules.length - 1 !== i)
-          }
-          ruleIndex={i}
-        />
+      <div className={classes.space} key={policyRuleCard.ruleId}>
+        <PolicyRule policyRule={policyRuleCard} showErrors={showErrors(index)} ruleIndex={index} />
       </div>
     );
   });

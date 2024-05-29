@@ -1,9 +1,8 @@
 import React from 'react';
 import classes from './PolicyResourceFields.module.css';
-import { Textfield } from '@digdir/design-system-react';
 import { MultiplyIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
+import { StudioButton, StudioLabelAsParagraph, StudioTextfield } from '@studio/components';
 import { usePolicyEditorContext } from '../../../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../../../contexts/PolicyRuleContext';
 import { getUpdatedRules } from '../../../../../../utils/PolicyRuleUtils';
@@ -66,10 +65,12 @@ export const PolicyResourceFields = ({
               Type
             </StudioLabelAsParagraph>
           )}
-          <Textfield
+          <StudioTextfield
             value={resource.type}
             size='small'
-            onChange={(e) => handleInputChange('type', e.target.value)}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+              handleInputChange('type', event.target.value)
+            }
             readOnly={!canEditTypeAndId}
             onBlur={handleBlur}
             aria-label={t('policy_editor.narrowing_list_field_type')}
@@ -81,10 +82,12 @@ export const PolicyResourceFields = ({
               Id
             </StudioLabelAsParagraph>
           )}
-          <Textfield
+          <StudioTextfield
             value={resource.id}
             size='small'
-            onChange={(e) => handleInputChange('id', e.target.value)}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+              handleInputChange('id', event.target.value)
+            }
             readOnly={!canEditTypeAndId}
             onBlur={handleBlur}
             aria-label={t('policy_editor.narrowing_list_field_id')}

@@ -72,7 +72,6 @@ describe('PolicyEditor', () => {
     expect(mockOnSave).toHaveBeenCalledTimes(1);
   });
 
-  // MOVE TO ADD
   it('increases the rule list length when add rule button is clicked', async () => {
     const user = userEvent.setup();
     renderPolicyEditor();
@@ -90,19 +89,6 @@ describe('PolicyEditor', () => {
     );
 
     expect(aLabelFromPolicyCard.length).toEqual(originalLength + 1);
-  });
-
-  it('calls "onSave" when a new rule is added', async () => {
-    const user = userEvent.setup();
-    renderPolicyEditor();
-
-    const addButton = screen.getByRole('button', {
-      name: textMock('policy_editor.card_button_text'),
-    });
-
-    await user.click(addButton);
-
-    expect(mockOnSave).toHaveBeenCalledTimes(1);
   });
 });
 

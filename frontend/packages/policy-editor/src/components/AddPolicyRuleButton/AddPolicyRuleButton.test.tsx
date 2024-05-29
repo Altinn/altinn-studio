@@ -12,6 +12,8 @@ const defaultProps: AddPolicyRuleButtonProps = {
 };
 
 describe('AddPolicyRuleButton', () => {
+  afterEach(jest.clearAllMocks);
+
   it('calls the onClick function when clicked', async () => {
     const user = userEvent.setup();
     renderAddPolicyRuleButton();
@@ -23,11 +25,24 @@ describe('AddPolicyRuleButton', () => {
 
     expect(mockOnClick).toHaveBeenCalledTimes(1);
   });
+
+  it('calls "savePolicy" when a new rule is added', async () => {
+    const user = userEvent.setup();
+    renderAddPolicyRuleButton();
+
+    const addButton = screen.getByRole('button', {
+      name: textMock('policy_editor.card_button_text'),
+    });
+
+    await user.click(addButton);
+
+    expect(mockPolicyEditorContextValue.savePolicy).toHaveBeenCalledTimes(1);
+  });
 });
 
 const renderAddPolicyRuleButton = () => {
   return render(
-    <PolicyEditorContext.Provider value={{ ...mockPolicyEditorContextValue }}>
+    <PolicyEditorContext.Provider value={mockPolicyEditorContextValue}>
       <AddPolicyRuleButton {...defaultProps} />
     </PolicyEditorContext.Provider>,
   );
