@@ -28,13 +28,7 @@ export const ResourceNarrowingList = ({
   const handleDeleteResourceGroup = () => {
     const updatedResources = [...policyRule.resources];
     updatedResources.splice(resourceIndex, 1);
-    const updatedRules = getUpdatedRules(
-      { ...policyRule, resources: updatedResources },
-      policyRule.ruleId,
-      policyRules,
-    );
-    setPolicyRules(updatedRules);
-    savePolicy(updatedRules);
+    updatePolicyStates(updatedResources);
     setPolicyError({ ...policyError, resourceError: updatedResources.length === 0 });
   };
 
@@ -44,13 +38,7 @@ export const ResourceNarrowingList = ({
       ObjectUtils.deepCopy(resourceGroupToDuplicate);
 
     const updatedResources = [...policyRule.resources, deepCopiedResourceGroupToDuplicate];
-    const updatedRules = getUpdatedRules(
-      { ...policyRule, resources: updatedResources },
-      policyRule.ruleId,
-      policyRules,
-    );
-    setPolicyRules(updatedRules);
-    savePolicy(updatedRules);
+    updatePolicyStates(updatedResources);
   };
 
   const handleClickAddResourceNarrowing = () => {
@@ -60,7 +48,10 @@ export const ResourceNarrowingList = ({
     };
     const updatedResources = [...policyRule.resources];
     updatedResources[resourceIndex].push(newResource);
+    updatePolicyStates(updatedResources);
+  };
 
+  const updatePolicyStates = (updatedResources: PolicyRuleResource[][]) => {
     const updatedRules = getUpdatedRules(
       { ...policyRule, resources: updatedResources },
       policyRule.ruleId,

@@ -33,8 +33,6 @@ describe('SubResources', () => {
     await user.type(idInput, newWord);
     expect(mockSetPolicyRules).toHaveBeenCalledTimes(newWord.length);
   });
-
-  // TODO - Test for adding
 });
 
 const renderSubResources = (policyEditorContextProps: Partial<PolicyEditorContextProps> = {}) => {
