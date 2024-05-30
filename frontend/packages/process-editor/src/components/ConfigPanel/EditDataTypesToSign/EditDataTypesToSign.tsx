@@ -31,7 +31,6 @@ export const EditDataTypesToSign = () => {
         <SelectDataTypesToSign onClose={() => setDataTypesToSignSelectVisible(false)} />
       ) : (
         <StudioProperty.Button
-          aria-label={t('process_editor.configuration_panel_set_data_types_to_sign')}
           onClick={() => setDataTypesToSignSelectVisible(true)}
           property={t('process_editor.configuration_panel_set_data_types_to_sign')}
           title={t('process_editor.configuration_panel_set_data_types_to_sign')}

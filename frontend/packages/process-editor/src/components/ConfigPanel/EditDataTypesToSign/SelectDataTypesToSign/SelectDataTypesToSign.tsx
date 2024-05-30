@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { Combobox } from '@digdir/design-system-react';
 import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,7 @@ import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { useBpmnApiContext } from '@altinn/process-editor/contexts/BpmnApiContext';
+import { useDebounce } from 'app-shared/hooks/useDebounce';
 
 export interface SelectDataTypesToSignProps {
   onClose: () => void;
@@ -22,21 +23,13 @@ export const SelectDataTypesToSign = ({ onClose }: SelectDataTypesToSignProps) =
   const modeling: Modeling = modelerInstance.get('modeling');
   const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
   const [value, setValue] = useState<string[]>(() => getSelectedDataTypes(bpmnDetails));
+  const { debounce } = useDebounce({ debounceTimeInMs: AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS });
 
   const { t } = useTranslation();
 
-  const autoSaveTimeoutRef = useRef(undefined);
-
-  const debounceSave = (dataTypes: string[]) => {
-    clearTimeout(autoSaveTimeoutRef.current);
-    setTimeout(() => {
-      updateDataTypes(bpmnFactory, modeling, bpmnDetails, dataTypes);
-    }, AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
-  };
-
   const handleValueChange = (dataTypes: string[]) => {
     setValue(dataTypes);
-    debounceSave(dataTypes);
+    debounce(() => updateDataTypes(bpmnFactory, modeling, bpmnDetails, dataTypes));
   };
 
   return (
