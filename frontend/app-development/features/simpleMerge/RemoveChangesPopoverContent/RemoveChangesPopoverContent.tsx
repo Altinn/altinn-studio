@@ -9,19 +9,17 @@ import { useResetRepositoryMutation } from '../../../hooks/mutations/useResetRep
 import { toast } from 'react-toastify';
 
 export type RemoveChangesPopoverContentProps = {
-  repositoryName: string;
   onClose: () => void;
 };
 
 export const RemoveChangesPopoverContent = ({
-  repositoryName,
   onClose,
-}: RemoveChangesPopoverContentProps) => {
+}: RemoveChangesPopoverContentProps): React.ReactElement => {
   const { t } = useTranslation();
-  const { org } = useStudioEnvironmentParams();
+  const { org, app } = useStudioEnvironmentParams();
 
   const queryClient = useQueryClient();
-  const repoResetMutation = useResetRepositoryMutation(org, repositoryName);
+  const repoResetMutation = useResetRepositoryMutation(org, app);
 
   const [canDelete, setCanDelete] = useState<boolean>(false);
 
@@ -49,7 +47,7 @@ export const RemoveChangesPopoverContent = ({
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const name: string = event.target.value;
-    setCanDelete(name === repositoryName);
+    setCanDelete(name === app);
   };
 
   return (
@@ -60,7 +58,7 @@ export const RemoveChangesPopoverContent = ({
       <Paragraph size='small' spacing>
         <Trans
           i18nKey={'overview.reset_repo_confirm_info'}
-          values={{ repositoryName }}
+          values={{ repositoryName: app }}
           components={{ bold: <strong /> }}
         />
       </Paragraph>
