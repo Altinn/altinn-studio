@@ -6162,7 +6162,7 @@ __metadata:
     eslint-plugin-simple-import-sort: "npm:12.1.0"
     eslint-plugin-sonarjs: "npm:0.25.1"
     eslint-plugin-testing-library: "npm:6.2.2"
-    eslint-plugin-unused-imports: "npm:^3.0.0"
+    eslint-plugin-unused-imports: "npm:^4.0.0"
     fast-array-diff: "npm:^1.1.0"
     fast-json-patch: "npm:^3.1.1"
     fork-ts-checker-notifier-webpack-plugin: "npm:9.0.0"
@@ -9714,18 +9714,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-unused-imports@npm:^3.0.0":
-  version: 3.2.0
-  resolution: "eslint-plugin-unused-imports@npm:3.2.0"
+"eslint-plugin-unused-imports@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "eslint-plugin-unused-imports@npm:4.0.0"
   dependencies:
     eslint-rule-composer: "npm:^0.3.0"
   peerDependencies:
-    "@typescript-eslint/eslint-plugin": 6 - 7
-    eslint: 8
+    "@typescript-eslint/eslint-plugin": 8
+    eslint: 9
   peerDependenciesMeta:
     "@typescript-eslint/eslint-plugin":
       optional: true
-  checksum: 10c0/70c93efaa4dccd1172db3858b27968184c97cb8b7ffb2d9e6ffb09d9509863c70651b533b48eec4d10bc7f633d7f50fd190fdd5b36e8cac2c4efd5cecb5d5d98
+  checksum: 10c0/0ed81fc64279d01d2e207fdb7a4482af127a37c4889fcbdf4237664567ecce0f0b9bfaec90f2041b876a2a50f7ab321ff91bb5afdebe718a0dd0b120f587fd74
   languageName: node
   linkType: hard
 
