@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using JetBrains.Annotations;
 
+namespace Altinn.Studio.Designer.Models;
 public class FooterFile
 {
     [JsonPropertyName("$schema")]
@@ -13,19 +15,22 @@ public class FooterFile
 public class FooterLayout
 {
     [JsonPropertyName("type")]
-    public string Type { get; set; }
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public ComponentType Type { get; set; }
 
     [JsonPropertyName("title")]
     public string Title { get; set; }
 
     [JsonPropertyName("target")]
+    [CanBeNull]
     public string Target { get; set; }
 
     [JsonPropertyName("icon")]
-    public string Icon { get; set; }
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public IconType? Icon { get; set; }
 }
 
-public enum FooterComponentType
+public enum ComponentType
 {
     Email,
     Link,
@@ -38,41 +43,4 @@ public enum IconType
     Information,
     Email,
     Phone
-}
-
-// Specific component classes
-public class EmailComponent : FooterFile
-{
-    [JsonPropertyName("target")]
-    public string Target { get; set; }
-
-    [JsonPropertyName("title")]
-    public string Title { get; set; }
-}
-
-public class LinkComponent : FooterFile
-{
-    [JsonPropertyName("target")]
-    public string Target { get; set; }
-
-    [JsonPropertyName("title")]
-    public string Title { get; set; }
-
-    [JsonPropertyName("icon")]
-    public IconType? Icon { get; set; }
-}
-
-public class PhoneComponent : FooterFile
-{
-    [JsonPropertyName("target")]
-    public string Target { get; set; }
-
-    [JsonPropertyName("title")]
-    public string Title { get; set; }
-}
-
-public class TextComponent : FooterFile
-{
-    [JsonPropertyName("title")]
-    public string Title { get; set; }
 }
