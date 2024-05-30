@@ -25,7 +25,7 @@ import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors'
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { FormField } from '../FormField';
 import type { FormContainer } from '../../types/FormContainer';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../hooks/useAppContext';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 
@@ -42,7 +42,7 @@ export const EditFormContainer = ({
 }: IEditFormContainerProps) => {
   const t = useText();
 
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
 
   const { selectedLayoutSet } = useAppContext();
   const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);

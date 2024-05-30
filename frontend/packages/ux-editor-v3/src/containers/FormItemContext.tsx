@@ -16,7 +16,7 @@ import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateForm
 import { selectedLayoutNameSelector } from '../selectors/formLayoutSelectors';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { LayoutItemType } from '../types/global';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../hooks/useAppContext';
 
 export type FormItemContext = {
@@ -55,7 +55,7 @@ export const FormItemContextProvider = ({
   children,
 }: FormItemContextProviderProps): JSX.Element => {
   const dispatch = useDispatch();
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { selectedLayoutSet } = useAppContext();
   const selectedLayoutName = useSelector(selectedLayoutNameSelector);
   const prevSelectedLayoutSetNameRef = useRef(selectedLayoutSet);

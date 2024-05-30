@@ -1,4 +1,4 @@
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useEffect, useState } from 'react';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
@@ -9,7 +9,7 @@ export type UseSelectedFormLayoutSetNameResult = {
 };
 
 export const useSelectedFormLayoutSetName = (): UseSelectedFormLayoutSetNameResult => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
   const storageKey: string = 'selectedFormLayoutSetName';

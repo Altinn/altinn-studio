@@ -15,14 +15,37 @@ import { componentMocks } from '../../testing/componentMocks';
 import { component3IdMock, component3Mock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
+import type { DataModelMetadataResponse } from 'app-shared/types/api';
 
-const user = userEvent.setup();
+const dataModelMetadata: DataModelMetadataResponse = {
+  elements: {
+    testModel: {
+      id: 'testModel',
+      type: 'ComplexType',
+      dataBindingName: 'testModel',
+      displayString: 'testModel',
+      isReadOnly: false,
+      isTagContent: false,
+      jsonSchemaPointer: '#/definitions/testModel',
+      maxOccurs: 1,
+      minOccurs: 1,
+      name: 'testModel',
+      parentElement: null,
+      restrictions: [],
+      texts: [],
+      xmlSchemaXPath: '/testModel',
+      xPath: '/testModel',
+    },
+  },
+};
+
+const getDataModelMetadata = () => Promise.resolve(dataModelMetadata);
 
 describe('DataModelBindings', () => {
   afterEach(jest.clearAllMocks);
 
   it('renders EditDataModelBindings component when schema is present', () => {
-    render({});
+    render();
 
     const dataModelButton = screen.getByRole('button', {
       name: textMock(`ux_editor.component_title.Input`),
@@ -186,6 +209,7 @@ describe('DataModelBindings', () => {
   });
 
   it('should toggle multiple attachment switch when clicked', async () => {
+    const user = userEvent.setup();
     render({
       props: {
         formItem: componentMocks[ComponentType.FileUpload],
@@ -202,6 +226,7 @@ describe('DataModelBindings', () => {
   });
 
   it('toggling ON multiple attachment switch should call handleUpdate with expected values', async () => {
+    const user = userEvent.setup();
     const handleUpdate = jest.fn();
     render({
       props: {
@@ -223,6 +248,7 @@ describe('DataModelBindings', () => {
   });
 
   it('toggling OFF multiple attachment switch should call handleUpdate with expected values', async () => {
+    const user = userEvent.setup();
     const handleUpdate = jest.fn();
     render({
       props: {
@@ -245,6 +271,21 @@ describe('DataModelBindings', () => {
       dataModelBindings: { list: undefined, simpleBinding: '' },
     });
   });
+
+  it('checks that handleComponentChange is called', async () => {
+    const user = userEvent.setup();
+
+    render();
+
+    const dataModelButton = screen.getByRole('button', {
+      name: textMock(`ux_editor.component_title.Input`),
+    });
+    await user.click(dataModelButton);
+    const option = screen.getByText('testModel');
+    await user.click(option);
+    expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalledTimes(1);
+    expect(formItemContextProviderMock.debounceSave).toHaveBeenCalledTimes(1);
+  });
 });
 
 const defaultProps = {
@@ -256,8 +297,7 @@ const render = async ({
   props = defaultProps,
 }: {
   props?: Partial<FormItemContext>;
-  editId?: string;
-}) => {
+} = {}) => {
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet1NameMock], {
     default: layoutMock,
   });
@@ -278,6 +318,7 @@ const render = async ({
       appContextProps: {
         selectedFormLayoutName: 'default',
       },
+      queries: { getDataModelMetadata },
     },
   );
 };
