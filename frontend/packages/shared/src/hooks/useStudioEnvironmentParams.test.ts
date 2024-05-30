@@ -1,10 +1,10 @@
 import { app, org } from '@studio/testing/testids';
 import { renderHook } from '@testing-library/react';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
-describe('useStudioUrlParams', () => {
+describe('useStudioEnvironmentParams', () => {
   it('Returns the org and app names from the URL', () => {
-    const { result } = renderHook(() => useStudioUrlParams());
+    const { result } = renderHook(() => useStudioEnvironmentParams());
     expect(result.current).toEqual({ org, app });
   });
 });

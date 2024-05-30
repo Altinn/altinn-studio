@@ -43,7 +43,9 @@ describe('ItemPropertiesTab', () => {
     renderWithProviders({
       appContextProps: { schemaModel: SchemaModel.fromArray(uiSchemaNodes) },
     })(<ItemPropertiesTab selectedItem={uiSchemaNodes[2]} />);
-    expect(screen.getByText(textMock('combination_inline_object_disclaimer'))).toBeDefined();
+    expect(
+      screen.getByText(textMock('schema_editor.combination_inline_object_disclaimer')),
+    ).toBeDefined();
   });
 
   it('Renders a name field when a field node is selected', async () => {

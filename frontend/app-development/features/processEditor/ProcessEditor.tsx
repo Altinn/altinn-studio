@@ -2,7 +2,7 @@ import React from 'react';
 import { ProcessEditor as ProcessEditorImpl } from '@altinn/process-editor';
 import { useAppPolicyMutation, useBpmnMutation } from '../../hooks/mutations';
 import { useBpmnQuery } from '../../hooks/queries/useBpmnQuery';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { toast } from 'react-toastify';
 import { StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
@@ -36,7 +36,7 @@ enum SyncClientsName {
 
 export const ProcessEditor = (): React.ReactElement => {
   const { t } = useTranslation();
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const queryClient = useQueryClient();
   const { data: currentPolicy, isPending: isPendingCurrentPolicy } = useAppPolicyQuery(org, app);
   const { mutate: mutateApplicationPolicy } = useAppPolicyMutation(org, app);
