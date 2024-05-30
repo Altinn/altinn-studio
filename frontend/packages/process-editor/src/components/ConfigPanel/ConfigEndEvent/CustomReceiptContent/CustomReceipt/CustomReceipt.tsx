@@ -4,10 +4,7 @@ import { StudioDeleteButton, StudioToggleableTextfield } from '@studio/component
 import { KeyVerticalIcon } from '@studio/icons';
 import { Paragraph } from '@digdir/design-system-react';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
-import {
-  getDataTypeFromLayoutSetsWithExistingId,
-  getDataModelOptions,
-} from '../../../../../utils/configPanelUtils';
+import { getDataTypeFromLayoutSetsWithExistingId } from '../../../../../utils/configPanelUtils';
 import { RedirectToCreatePageButton } from '../RedirectToCreatePageButton';
 import { useTranslation } from 'react-i18next';
 import { EditDataType } from '../../../EditDataType';
@@ -18,7 +15,7 @@ export const CustomReceipt = (): React.ReactElement => {
   const { t } = useTranslation();
   const {
     layoutSets,
-    availableDataModelIds,
+    allDataModelIds,
     existingCustomReceiptLayoutSetId,
     deleteLayoutSet,
     mutateLayoutSetId,
@@ -43,8 +40,6 @@ export const CustomReceipt = (): React.ReactElement => {
       newLayoutSetId,
     });
   };
-
-  const dataModelOptions = getDataModelOptions(availableDataModelIds, existingDataModelId);
 
   const handleValidation = (newLayoutSetId: string): string => {
     const validationResult = getLayoutSetIdValidationErrorKey(
@@ -84,7 +79,7 @@ export const CustomReceipt = (): React.ReactElement => {
         />
         <EditDataType
           connectedTaskId={PROTECTED_TASK_NAME_CUSTOM_RECEIPT}
-          dataModelIds={dataModelOptions}
+          dataModelIds={allDataModelIds}
           existingDataTypeForTask={existingDataModelId}
           hideDeleteButton
         />

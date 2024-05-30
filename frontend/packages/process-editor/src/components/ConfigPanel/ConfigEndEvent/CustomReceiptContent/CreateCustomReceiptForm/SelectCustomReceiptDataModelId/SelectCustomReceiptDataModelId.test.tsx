@@ -19,7 +19,7 @@ import {
 
 const mockError: string = 'Error';
 const mockOnChange = jest.fn();
-const mockAvailableDataModelIds: string[] = ['model1', 'model2'];
+const mockAllDataModelIds: string[] = ['model1', 'model2'];
 
 const defaultProps: SelectCustomReceiptDataModelIdProps = {
   error: mockError,
@@ -32,7 +32,7 @@ describe('SelectCustomReceiptDataModelId', () => {
   it('calls onChange function when an option is selected', async () => {
     const user = userEvent.setup();
     renderSelectCustomReceiptDataModelId({
-      availableDataModelIds: mockAvailableDataModelIds,
+      allDataModelIds: mockAllDataModelIds,
     });
 
     const selectElement = screen.getByLabelText(
@@ -40,7 +40,7 @@ describe('SelectCustomReceiptDataModelId', () => {
     );
     await user.click(selectElement);
 
-    const optionElement = screen.getByRole('option', { name: mockAvailableDataModelIds[0] });
+    const optionElement = screen.getByRole('option', { name: mockAllDataModelIds[0] });
     await user.selectOptions(selectElement, optionElement);
 
     expect(mockOnChange).toHaveBeenCalledTimes(1);
@@ -57,7 +57,7 @@ describe('SelectCustomReceiptDataModelId', () => {
 
   it('hides the description when there are available data model ids', () => {
     renderSelectCustomReceiptDataModelId({
-      availableDataModelIds: mockAvailableDataModelIds,
+      allDataModelIds: mockAllDataModelIds,
     });
 
     const description = screen.queryByText(

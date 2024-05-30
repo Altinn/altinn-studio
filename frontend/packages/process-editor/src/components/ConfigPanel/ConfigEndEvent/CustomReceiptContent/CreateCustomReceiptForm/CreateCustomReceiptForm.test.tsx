@@ -20,7 +20,7 @@ const mockAddLayoutSet = jest.fn().mockImplementation(queryOptionMock);
 const mockMutateDataType = jest.fn().mockImplementation(queryOptionMock);
 
 const mockOnCloseForm = jest.fn();
-const mockAvailableDataModelIds: string[] = ['model1', 'model2'];
+const mockAllDataModelIds: string[] = ['model1', 'model2'];
 
 const defaultProps: CreateCustomReceiptFormProps = {
   onCloseForm: mockOnCloseForm,
@@ -28,7 +28,7 @@ const defaultProps: CreateCustomReceiptFormProps = {
 
 const defaultBpmnApiContextProps: BpmnApiContextProps = {
   ...mockBpmnApiContextValue,
-  availableDataModelIds: mockAvailableDataModelIds,
+  allDataModelIds: mockAllDataModelIds,
   addLayoutSet: mockAddLayoutSet,
   mutateDataType: mockMutateDataType,
 };
@@ -51,7 +51,7 @@ describe('CreateCustomReceiptForm', () => {
     );
     await user.click(selectElement);
 
-    const optionElement = screen.getByRole('option', { name: mockAvailableDataModelIds[0] });
+    const optionElement = screen.getByRole('option', { name: mockAllDataModelIds[0] });
     await user.selectOptions(selectElement, optionElement);
 
     const createButton = screen.getByRole('button', {
@@ -80,7 +80,7 @@ describe('CreateCustomReceiptForm', () => {
       expect(mockMutateDataType).toHaveBeenCalledWith(
         {
           connectedTaskId: PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
-          newDataType: mockAvailableDataModelIds[0],
+          newDataType: mockAllDataModelIds[0],
         },
         {
           onSuccess: expect.any(Function),
@@ -100,7 +100,7 @@ describe('CreateCustomReceiptForm', () => {
     );
     await user.click(selectElement);
 
-    const optionElement = screen.getByRole('option', { name: mockAvailableDataModelIds[0] });
+    const optionElement = screen.getByRole('option', { name: mockAllDataModelIds[0] });
     await user.selectOptions(selectElement, optionElement);
 
     const createButton = screen.getByRole('button', {
@@ -190,17 +190,14 @@ describe('CreateCustomReceiptForm', () => {
 
   it('displays error when there are no value present for data model id', async () => {
     const user = userEvent.setup();
-    renderCreateCustomReceiptForm({ bpmnApiContextProps: mockBpmnApiContextValue });
+    renderCreateCustomReceiptForm({
+      bpmnApiContextProps: { allDataModelIds: mockAllDataModelIds },
+    });
 
     const layoutSetInput = screen.getByLabelText(
       textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
     );
     await user.type(layoutSetInput, 'newLayoutSetId');
-
-    const selectElement = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_custom_receipt_select_data_model_label'),
-    );
-    await user.click(selectElement);
 
     const createButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_custom_receipt_create_button'),
