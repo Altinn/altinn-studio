@@ -89,9 +89,9 @@ export const DataModelBindings = (): React.JSX.Element => {
               >
                 <EditDataModelBindings
                   component={formItem}
-                  handleComponentChange={async (updatedComponent) => {
+                  handleComponentChange={async (updatedComponent, mutateOptions) => {
                     handleUpdate(updatedComponent);
-                    debounceSave(formItemId, updatedComponent);
+                    debounceSave(formItemId, updatedComponent, mutateOptions);
                   }}
                   editFormId={formItemId}
                   helpText={dataModelBindingsProperties[propertyKey]?.description}
