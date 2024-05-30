@@ -47,7 +47,7 @@ paths:
               $ref: '#/components/schemas/UserActionRequest'
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             text/plain:
               schema:
@@ -79,7 +79,7 @@ paths:
         '409':
           description: Conflict
         '500':
-          description: Server Error
+          description: Internal Server Error
         '401':
           description: Unauthorized
   '/{org}/{app}/api/v1/applicationlanguages':
@@ -99,7 +99,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             text/plain:
               schema:
@@ -150,7 +150,7 @@ paths:
             default: true
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             text/plain:
               schema:
@@ -178,7 +178,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             text/plain:
               schema:
@@ -212,7 +212,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             text/plain:
               schema:
@@ -246,7 +246,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/api/Authentication/keepAlive':
     get:
       tags:
@@ -264,7 +264,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/api/Authentication/invalidatecookie':
     put:
       tags:
@@ -282,7 +282,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/api/authorization/parties/current':
     get:
       tags:
@@ -305,7 +305,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data':
     post:
       tags:
@@ -400,7 +400,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
     put:
       tags:
         - Data
@@ -457,7 +457,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/DataElement'
         '200':
-          description: Success
+          description: OK
           content:
             text/plain:
               schema:
@@ -517,7 +517,7 @@ paths:
               $ref: '#/components/schemas/DataPatchRequest'
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             text/plain:
               schema:
@@ -547,7 +547,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
         '422':
-          description: Client Error
+          description: Unprocessable Content
           content:
             text/plain:
               schema:
@@ -598,7 +598,7 @@ paths:
             format: uuid
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/api/datalists/{id}':
     get:
       tags:
@@ -631,7 +631,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/datalists/{id}':
     get:
       tags:
@@ -676,7 +676,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
         '404':
           description: Not Found
           content:
@@ -730,7 +730,7 @@ paths:
             format: uuid
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             application/json:
               schema:
@@ -852,11 +852,11 @@ paths:
               $ref: '#/components/schemas/CloudEvent'
       responses:
         '200':
-          description: Success
+          description: OK
         '425':
           description: Client Error
         '500':
-          description: Server Error
+          description: Internal Server Error
         '401':
           description: Unauthorized
   '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/filescanresult':
@@ -888,7 +888,7 @@ paths:
             format: uuid
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             text/plain:
               schema:
@@ -938,7 +938,7 @@ paths:
             type: boolean
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}':
     get:
       tags:
@@ -968,7 +968,7 @@ paths:
             format: uuid
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             application/json:
               schema:
@@ -1011,7 +1011,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             application/json:
               schema:
@@ -1117,7 +1117,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             application/json:
               schema:
@@ -1171,7 +1171,7 @@ paths:
               $ref: '#/components/schemas/Substatus'
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             application/json:
               schema:
@@ -1205,7 +1205,7 @@ paths:
             format: int32
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             application/json:
               schema:
@@ -1244,7 +1244,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/options/{optionsId}':
     get:
       tags:
@@ -1289,7 +1289,7 @@ paths:
               type: string
       responses:
         '200':
-          description: Success
+          description: OK
         '404':
           description: Not Found
           content:
@@ -1363,7 +1363,7 @@ paths:
             schema: { }
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             text/plain:
               schema:
@@ -1413,7 +1413,7 @@ paths:
             default: false
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/api/v1/parties/validateInstantiation':
     post:
       tags:
@@ -1436,7 +1436,7 @@ paths:
             format: int32
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/api/v1/parties/{partyId}':
     put:
       tags:
@@ -1460,7 +1460,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/payment':
     get:
       tags:
@@ -1494,7 +1494,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             text/plain:
               schema:
@@ -1562,7 +1562,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             text/plain:
               schema:
@@ -1632,7 +1632,7 @@ paths:
             format: uuid
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process':
     get:
       tags:
@@ -1662,7 +1662,7 @@ paths:
             format: uuid
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             text/plain:
               schema:
@@ -1724,7 +1724,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             text/plain:
               schema:
@@ -1800,7 +1800,7 @@ paths:
             format: uuid
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             text/plain:
               schema:
@@ -1902,7 +1902,7 @@ paths:
               $ref: '#/components/schemas/ProcessNext'
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             text/plain:
               schema:
@@ -1982,7 +1982,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             text/plain:
               schema:
@@ -2058,7 +2058,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/api/v1/profile/user':
     get:
       tags:
@@ -2076,7 +2076,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/api/v1/redirect':
     get:
       tags:
@@ -2099,7 +2099,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             text/plain:
               schema:
@@ -2156,7 +2156,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/api/layouts':
     get:
       tags:
@@ -2174,7 +2174,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/api/layouts/{id}':
     get:
       tags:
@@ -2197,7 +2197,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/api/layoutsettings':
     get:
       tags:
@@ -2215,7 +2215,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/api/layoutsettings/{id}':
     get:
       tags:
@@ -2238,7 +2238,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/api/layoutsets':
     get:
       tags:
@@ -2256,7 +2256,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/api/rulehandler/{id}':
     get:
       tags:
@@ -2279,7 +2279,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/api/ruleconfiguration/{id}':
     get:
       tags:
@@ -2302,7 +2302,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/api/v1/footer':
     get:
       tags:
@@ -2320,7 +2320,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/api/validationconfig/{id}':
     get:
       tags:
@@ -2343,7 +2343,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/v1/data':
     get:
       tags:
@@ -2373,7 +2373,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             text/plain:
               schema:
@@ -2418,7 +2418,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             text/plain:
               schema:
@@ -2460,7 +2460,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             text/plain:
               schema:
@@ -2501,7 +2501,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             text/plain:
               schema:
@@ -2561,7 +2561,7 @@ paths:
             schema: { }
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             text/plain:
               schema:
@@ -2611,7 +2611,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
           content:
             text/plain:
               schema:
@@ -2661,7 +2661,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
   '/{org}/{app}/instances/{instanceOwnerId}/{instanceId}/data/{dataGuid}/validate':
     get:
       tags:
@@ -2701,7 +2701,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Success
+          description: OK
 components:
   schemas:
     ActionError:
@@ -3201,6 +3201,9 @@ components:
           nullable: true
       additionalProperties: false
     DataPatchRequest:
+      required:
+        - ignoredValidators
+        - patch
       type: object
       properties:
         patch:
@@ -3212,6 +3215,9 @@ components:
           nullable: true
       additionalProperties: false
     DataPatchResponse:
+      required:
+        - newDataModel
+        - validationIssues
       type: object
       properties:
         validationIssues:
@@ -3590,6 +3596,11 @@ components:
         - test
       type: string
     OrderDetails:
+      required:
+        - currency
+        - orderLines
+        - paymentProcessorId
+        - receiver
       type: object
       properties:
         paymentProcessorId:
@@ -3703,6 +3714,8 @@ components:
         - Company
       type: string
     PaymentDetails:
+      required:
+        - paymentId
       type: object
       properties:
         paymentId:
@@ -3731,6 +3744,10 @@ components:
           $ref: '#/components/schemas/CardDetails'
       additionalProperties: false
     PaymentInformation:
+      required:
+        - orderDetails
+        - status
+        - taskId
       type: object
       properties:
         taskId:
@@ -3744,6 +3761,11 @@ components:
           $ref: '#/components/schemas/PaymentDetails'
       additionalProperties: false
     PaymentOrderLine:
+      required:
+        - id
+        - name
+        - priceExVat
+        - vatPercent
       type: object
       properties:
         id:
@@ -4020,6 +4042,8 @@ components:
           nullable: true
       additionalProperties: false
     UserAction:
+      required:
+        - id
       type: object
       properties:
         id:
@@ -4080,6 +4104,8 @@ components:
           nullable: true
       additionalProperties: false
     ValidationIssue:
+      required:
+        - severity
       type: object
       properties:
         severity:
