@@ -27,14 +27,14 @@ partial class Telemetry
 
     internal Activity? StartDataPatchActivity(Instance instance)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.Patch");
+        var activity = ActivitySource.StartActivity($"{Prefix}.Patch");
         activity?.SetInstanceId(instance);
         return activity;
     }
 
     internal static class Data
     {
-        internal const string _prefix = "Data";
+        internal const string Prefix = "Data";
         internal static readonly string MetricNameDataPatched = Metrics.CreateLibName("data_patched");
 
         [EnumExtensions]

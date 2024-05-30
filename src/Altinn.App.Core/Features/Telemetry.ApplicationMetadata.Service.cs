@@ -5,62 +5,62 @@ namespace Altinn.App.Core.Features;
 
 partial class Telemetry
 {
-    internal Activity? StartGetTextActivity() => ActivitySource.StartActivity($"{_prefix}.GetText");
+    internal Activity? StartGetTextActivity() => ActivitySource.StartActivity($"{Prefix}.GetText");
 
-    internal Activity? StartGetApplicationActivity() => ActivitySource.StartActivity($"{_prefix}.GetApplication");
+    internal Activity? StartGetApplicationActivity() => ActivitySource.StartActivity($"{Prefix}.GetApplication");
 
     internal Activity? StartGetModelJsonSchemaActivity() =>
-        ActivitySource.StartActivity($"{_prefix}.GetModelJsonSchema");
+        ActivitySource.StartActivity($"{Prefix}.GetModelJsonSchema");
 
-    internal Activity? StartGetPrefillJsonActivity() => ActivitySource.StartActivity($"{_prefix}.GetPrefillJson");
+    internal Activity? StartGetPrefillJsonActivity() => ActivitySource.StartActivity($"{Prefix}.GetPrefillJson");
 
-    internal Activity? StartGetLayoutsActivity() => ActivitySource.StartActivity($"{_prefix}.GetLayouts");
+    internal Activity? StartGetLayoutsActivity() => ActivitySource.StartActivity($"{Prefix}.GetLayouts");
 
-    internal Activity? StartGetLayoutSetActivity() => ActivitySource.StartActivity($"{_prefix}.GetLayoutSet");
+    internal Activity? StartGetLayoutSetActivity() => ActivitySource.StartActivity($"{Prefix}.GetLayoutSet");
 
-    internal Activity? StartGetLayoutSetsActivity() => ActivitySource.StartActivity($"{_prefix}.GetLayoutSets");
+    internal Activity? StartGetLayoutSetsActivity() => ActivitySource.StartActivity($"{Prefix}.GetLayoutSets");
 
-    internal Activity? StartGetLayoutsForSetActivity() => ActivitySource.StartActivity($"{_prefix}.GetLayoutsForSet");
+    internal Activity? StartGetLayoutsForSetActivity() => ActivitySource.StartActivity($"{Prefix}.GetLayoutsForSet");
 
     internal Activity? StartGetLayoutSetsForTaskActivity() =>
-        ActivitySource.StartActivity($"{_prefix}.GetLayoutSetsForTask");
+        ActivitySource.StartActivity($"{Prefix}.GetLayoutSetsForTask");
 
-    internal Activity? StartGetLayoutSettingsActivity() => ActivitySource.StartActivity($"{_prefix}.GetLayoutSettings");
+    internal Activity? StartGetLayoutSettingsActivity() => ActivitySource.StartActivity($"{Prefix}.GetLayoutSettings");
 
     internal Activity? StartGetLayoutSettingsStringActivity() =>
-        ActivitySource.StartActivity($"{_prefix}.GetLayoutSettingsString");
+        ActivitySource.StartActivity($"{Prefix}.GetLayoutSettingsString");
 
     internal Activity? StartGetLayoutSettingsForSetActivity() =>
-        ActivitySource.StartActivity($"{_prefix}.GetLayoutSettingsForSet");
+        ActivitySource.StartActivity($"{Prefix}.GetLayoutSettingsForSet");
 
     internal Activity? StartGetLayoutSettingsStringForSetActivity() =>
-        ActivitySource.StartActivity($"{_prefix}.GetLayoutSettingsStringForSet");
+        ActivitySource.StartActivity($"{Prefix}.GetLayoutSettingsStringForSet");
 
-    internal Activity? StartGetTextsActivity() => ActivitySource.StartActivity($"{_prefix}.GetTexts");
+    internal Activity? StartGetTextsActivity() => ActivitySource.StartActivity($"{Prefix}.GetTexts");
 
     internal Activity? StartGetRuleConfigurationForSetActivity() =>
-        ActivitySource.StartActivity($"{_prefix}.GetRuleConfigurationForSet");
+        ActivitySource.StartActivity($"{Prefix}.GetRuleConfigurationForSet");
 
     internal Activity? StartGetRuleHandlerForSetActivity() =>
-        ActivitySource.StartActivity($"{_prefix}.GetRuleHandlerForSet");
+        ActivitySource.StartActivity($"{Prefix}.GetRuleHandlerForSet");
 
-    internal Activity? StartGetFooterActivity() => ActivitySource.StartActivity($"{_prefix}.GetFooter");
+    internal Activity? StartGetFooterActivity() => ActivitySource.StartActivity($"{Prefix}.GetFooter");
 
     internal Activity? StartGetValidationConfigurationActivity() =>
-        ActivitySource.StartActivity($"{_prefix}.GetValidationConfiguration");
+        ActivitySource.StartActivity($"{Prefix}.GetValidationConfiguration");
 
-    internal Activity? StartGetLayoutModelActivity() => ActivitySource.StartActivity($"{_prefix}.GetLayoutModel");
+    internal Activity? StartGetLayoutModelActivity() => ActivitySource.StartActivity($"{Prefix}.GetLayoutModel");
 
-    internal Activity? StartGetClassRefActivity() => ActivitySource.StartActivity($"{_prefix}.GetClassRef");
+    internal Activity? StartGetClassRefActivity() => ActivitySource.StartActivity($"{Prefix}.GetClassRef");
 
     internal Activity? StartClientGetApplicationXACMLPolicyActivity() =>
-        ActivitySource.StartActivity($"{_prefix}.GetXACMLPolicy");
+        ActivitySource.StartActivity($"{Prefix}.GetXACMLPolicy");
 
     internal Activity? StartClientGetApplicationBPMNProcessActivity() =>
-        ActivitySource.StartActivity($"{_prefix}.GetBPMNProcess");
+        ActivitySource.StartActivity($"{Prefix}.GetBPMNProcess");
 
     internal static class ApplicationMetadataService
     {
-        internal const string _prefix = "ApplicationMetadata.Service";
+        internal const string Prefix = "ApplicationMetadata.Service";
     }
 }

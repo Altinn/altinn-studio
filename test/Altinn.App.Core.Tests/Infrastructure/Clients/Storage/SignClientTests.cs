@@ -10,7 +10,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
 using Moq;
-using Xunit;
 using Signee = Altinn.App.Core.Internal.Sign.Signee;
 
 namespace Altinn.App.Core.Tests.Infrastructure.Clients.Storage;

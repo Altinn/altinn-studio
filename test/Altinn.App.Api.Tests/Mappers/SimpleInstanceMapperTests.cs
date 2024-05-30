@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
 using Altinn.App.Api.Mappers;
 using Altinn.App.Api.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Xunit;
 
 namespace Altinn.App.Api.Tests.Mappers;
 

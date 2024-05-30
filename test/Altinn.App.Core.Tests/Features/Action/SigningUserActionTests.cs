@@ -15,7 +15,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
-using Xunit;
 using Signee = Altinn.App.Core.Internal.Sign.Signee;
 
 namespace Altinn.App.Core.Tests.Features.Action;

@@ -1,29 +1,28 @@
 using Altinn.Platform.Storage.Interface.Models;
 
-namespace Altinn.App.Core.Interface
+namespace Altinn.App.Core.Interface;
+
+/// <summary>
+/// Interface for handling instance event related operations
+/// </summary>
+[Obsolete(message: "Use Altinn.App.Core.Internal.Instances.IInstanceEventClient instead", error: true)]
+public interface IInstanceEvent
 {
     /// <summary>
-    /// Interface for handling instance event related operations
+    /// Stores the instance event
     /// </summary>
-    [Obsolete(message: "Use Altinn.App.Core.Internal.Instances.IInstanceEventClient instead", error: true)]
-    public interface IInstanceEvent
-    {
-        /// <summary>
-        /// Stores the instance event
-        /// </summary>
-        Task<string> SaveInstanceEvent(object dataToSerialize, string org, string app);
+    Task<string> SaveInstanceEvent(object dataToSerialize, string org, string app);
 
-        /// <summary>
-        /// Gets the instance events related to the instance matching the instance id.
-        /// </summary>
-        Task<List<InstanceEvent>> GetInstanceEvents(
-            string instanceId,
-            string instanceOwnerPartyId,
-            string org,
-            string app,
-            string[] eventTypes,
-            string from,
-            string to
-        );
-    }
+    /// <summary>
+    /// Gets the instance events related to the instance matching the instance id.
+    /// </summary>
+    Task<List<InstanceEvent>> GetInstanceEvents(
+        string instanceId,
+        string instanceOwnerPartyId,
+        string org,
+        string app,
+        string[] eventTypes,
+        string from,
+        string to
+    );
 }

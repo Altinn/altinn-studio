@@ -9,7 +9,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using Xunit;
 
 namespace Altinn.App.Api.Tests.Controllers;
 

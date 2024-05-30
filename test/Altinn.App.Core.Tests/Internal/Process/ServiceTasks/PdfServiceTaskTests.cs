@@ -5,7 +5,6 @@ using Altinn.App.Core.Internal.Process.ServiceTasks;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Moq;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Internal.Process.ServiceTasks;
 

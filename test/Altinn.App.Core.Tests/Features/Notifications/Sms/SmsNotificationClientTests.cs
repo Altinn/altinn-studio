@@ -20,7 +20,6 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
 using Xunit;
-using static Altinn.App.Core.Features.Telemetry;
 
 public class SmsNotificationClientTests
 {

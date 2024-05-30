@@ -1,14 +1,9 @@
-using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 using Altinn.App.Api.Infrastructure.Middleware;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Hosting;
-using Moq;
-using Xunit;
 
 namespace Altinn.App.Api.Tests.Middleware;
 

@@ -2,28 +2,27 @@ using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 
-namespace Altinn.App.Core.Extensions
+namespace Altinn.App.Core.Extensions;
+
+/// <summary>
+/// Extension methods for <see cref="HttpContext"/>
+/// </summary>
+public static class HttpContextExtensions
 {
     /// <summary>
-    /// Extension methods for <see cref="HttpContext"/>
+    /// Reads the request body and returns it as a <see cref="StreamContent"/>
     /// </summary>
-    public static class HttpContextExtensions
+    public static StreamContent CreateContentStream(this HttpRequest request)
     {
-        /// <summary>
-        /// Reads the request body and returns it as a <see cref="StreamContent"/>
-        /// </summary>
-        public static StreamContent CreateContentStream(this HttpRequest request)
+        StreamContent content = new StreamContent(request.Body);
+        ArgumentNullException.ThrowIfNull(request.ContentType);
+        content.Headers.ContentType = MediaTypeHeaderValue.Parse(request.ContentType);
+
+        if (request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues))
         {
-            StreamContent content = new StreamContent(request.Body);
-            ArgumentNullException.ThrowIfNull(request.ContentType);
-            content.Headers.ContentType = MediaTypeHeaderValue.Parse(request.ContentType);
-
-            if (request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues))
-            {
-                content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse(headerValues.ToString());
-            }
-
-            return content;
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse(headerValues.ToString());
         }
+
+        return content;
     }
 }

@@ -1,20 +1,18 @@
-using System.Xml.Serialization;
 using Altinn.App.Core.Internal.Process.Elements.Base;
 
-namespace Altinn.App.Core.Internal.Process.Elements
+namespace Altinn.App.Core.Internal.Process.Elements;
+
+/// <summary>
+/// Class representing the start event of a process
+/// </summary>
+public class StartEvent : ProcessElement
 {
     /// <summary>
-    /// Class representing the start event of a process
+    /// String representation of process element type
     /// </summary>
-    public class StartEvent : ProcessElement
+    /// <returns>StartEvent</returns>
+    public override string ElementType()
     {
-        /// <summary>
-        /// String representation of process element type
-        /// </summary>
-        /// <returns>StartEvent</returns>
-        public override string ElementType()
-        {
-            return "StartEvent";
-        }
+        return "StartEvent";
     }
 }

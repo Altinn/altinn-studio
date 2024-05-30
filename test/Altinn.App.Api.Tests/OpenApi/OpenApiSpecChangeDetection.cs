@@ -1,7 +1,6 @@
 using System.Net.Http.Headers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.OpenApi;

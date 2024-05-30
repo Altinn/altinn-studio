@@ -4,7 +4,6 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Altinn.App.Core.Helpers.Extensions;
 using FluentAssertions;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Helpers;
 

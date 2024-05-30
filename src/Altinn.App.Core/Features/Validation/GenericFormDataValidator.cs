@@ -25,7 +25,7 @@ public abstract class GenericFormDataValidator<TModel> : IFormDataValidator
     public string DataType { get; private init; }
 
     // ReSharper disable once StaticMemberInGenericType
-    private static readonly AsyncLocal<List<ValidationIssue>> ValidationIssues = new();
+    private static readonly AsyncLocal<List<ValidationIssue>> _validationIssues = new();
 
     /// <summary>
     /// Default implementation that respects the runFor prefixes.
@@ -67,7 +67,7 @@ public abstract class GenericFormDataValidator<TModel> : IFormDataValidator
         List<string>? customTextParams = null
     )
     {
-        Debug.Assert(ValidationIssues.Value is not null);
+        Debug.Assert(_validationIssues.Value is not null);
         AddValidationIssue(
             new ValidationIssue
             {
@@ -86,8 +86,8 @@ public abstract class GenericFormDataValidator<TModel> : IFormDataValidator
     /// </summary>
     protected void AddValidationIssue(ValidationIssue issue)
     {
-        Debug.Assert(ValidationIssues.Value is not null);
-        ValidationIssues.Value.Add(issue);
+        Debug.Assert(_validationIssues.Value is not null);
+        _validationIssues.Value.Add(issue);
     }
 
     /// <summary>
@@ -106,9 +106,9 @@ public abstract class GenericFormDataValidator<TModel> : IFormDataValidator
             throw new ArgumentException($"Data is not of type {typeof(TModel)}");
         }
 
-        ValidationIssues.Value = new List<ValidationIssue>();
+        _validationIssues.Value = new List<ValidationIssue>();
         await ValidateFormData(instance, dataElement, model, language);
-        return ValidationIssues.Value;
+        return _validationIssues.Value;
     }
 
     /// <summary>

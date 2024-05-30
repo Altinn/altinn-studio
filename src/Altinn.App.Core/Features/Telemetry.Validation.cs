@@ -12,7 +12,7 @@ partial class Telemetry
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(taskId);
 
-        var activity = ActivitySource.StartActivity($"{_prefix}.ValidateInstanceAtTask");
+        var activity = ActivitySource.StartActivity($"{Prefix}.ValidateInstanceAtTask");
         activity?.SetTaskId(taskId);
         activity?.SetInstanceId(instance);
         return activity;
@@ -20,7 +20,7 @@ partial class Telemetry
 
     internal Activity? StartRunTaskValidatorActivity(ITaskValidator validator)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.RunTaskValidator");
+        var activity = ActivitySource.StartActivity($"{Prefix}.RunTaskValidator");
 
         activity?.SetTag(InternalLabels.ValidatorType, validator.GetType().Name);
         activity?.SetTag(InternalLabels.ValidatorSource, validator.ValidationSource);
@@ -30,7 +30,7 @@ partial class Telemetry
 
     internal Activity? StartValidateDataElementActivity(Instance instance, DataElement dataElement)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.ValidateDataElement");
+        var activity = ActivitySource.StartActivity($"{Prefix}.ValidateDataElement");
         activity?.SetInstanceId(instance);
         activity?.SetDataElementId(dataElement);
         return activity;
@@ -38,7 +38,7 @@ partial class Telemetry
 
     internal Activity? StartRunDataElementValidatorActivity(IDataElementValidator validator)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.RunDataElementValidator");
+        var activity = ActivitySource.StartActivity($"{Prefix}.RunDataElementValidator");
 
         activity?.SetTag(InternalLabels.ValidatorType, validator.GetType().Name);
         activity?.SetTag(InternalLabels.ValidatorSource, validator.ValidationSource);
@@ -48,7 +48,7 @@ partial class Telemetry
 
     internal Activity? StartValidateFormDataActivity(Instance instance, DataElement dataElement)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.ValidateFormData");
+        var activity = ActivitySource.StartActivity($"{Prefix}.ValidateFormData");
 
         activity?.SetInstanceId(instance);
         activity?.SetDataElementId(dataElement);
@@ -57,7 +57,7 @@ partial class Telemetry
 
     internal Activity? StartRunFormDataValidatorActivity(IFormDataValidator validator)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.RunFormDataValidator");
+        var activity = ActivitySource.StartActivity($"{Prefix}.RunFormDataValidator");
 
         activity?.SetTag(InternalLabels.ValidatorType, validator.GetType().Name);
         activity?.SetTag(InternalLabels.ValidatorSource, validator.ValidationSource);
@@ -67,6 +67,6 @@ partial class Telemetry
 
     internal static class Validation
     {
-        internal const string _prefix = "Validation";
+        internal const string Prefix = "Validation";
     }
 }

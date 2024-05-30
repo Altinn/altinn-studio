@@ -1,5 +1,3 @@
-using Altinn.App.Core.Models;
-
 namespace Altinn.App.Core.Internal.Sign;
 
 /// <summary>

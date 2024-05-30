@@ -22,7 +22,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using Xunit;
 using IProcessEngine = Altinn.App.Core.Internal.Process.IProcessEngine;
 
 namespace Altinn.App.Api.Tests.Controllers;

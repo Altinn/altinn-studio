@@ -6,7 +6,6 @@ using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Moq;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Features.Validators.Default;
 

@@ -4,12 +4,12 @@ namespace Altinn.App.Core.Helpers.Extensions;
 
 internal static class Utf8JsonReaderExtensions
 {
-    private static readonly JsonWriterOptions OPTIONS = new() { Indented = true, };
+    private static readonly JsonWriterOptions _options = new() { Indented = true, };
 
     internal static string SkipReturnString(this ref Utf8JsonReader reader)
     {
         using var stream = new System.IO.MemoryStream();
-        using var writer = new Utf8JsonWriter(stream, OPTIONS);
+        using var writer = new Utf8JsonWriter(stream, _options);
         Copy(ref reader, writer);
         writer.Flush();
 

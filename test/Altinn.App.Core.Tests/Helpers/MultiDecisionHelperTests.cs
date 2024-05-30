@@ -4,7 +4,6 @@ using Altinn.App.Core.Helpers;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Core.Tests.Helpers;

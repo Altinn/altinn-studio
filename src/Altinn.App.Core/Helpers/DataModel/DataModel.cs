@@ -119,7 +119,7 @@ public class DataModel : IDataModelAccessor
         return currentKey + "." + key;
     }
 
-    private static readonly Regex RowIndexRegex = new Regex(
+    private static readonly Regex _rowIndexRegex = new Regex(
         @"^([^[\]]+(\[(\d+)])?)+$",
         RegexOptions.None,
         TimeSpan.FromSeconds(1)
@@ -130,7 +130,7 @@ public class DataModel : IDataModelAccessor
     /// </summary>
     public static int[]? GetRowIndices(string key)
     {
-        var match = RowIndexRegex.Match(key);
+        var match = _rowIndexRegex.Match(key);
         var rowIndices = match.Groups[3].Captures.Select(c => c.Value).Select(int.Parse).ToArray();
         return rowIndices.Length == 0 ? null : rowIndices;
     }
@@ -211,7 +211,7 @@ public class DataModel : IDataModelAccessor
         return null;
     }
 
-    private static readonly Regex KeyPartRegex = new Regex(@"^([^\s\[\]\.]+)\[(\d+)\]?$");
+    private static readonly Regex _keyPartRegex = new Regex(@"^([^\s\[\]\.]+)\[(\d+)\]?$");
 
     internal static (string key, int? index) ParseKeyPart(string keypart)
     {
@@ -223,7 +223,7 @@ public class DataModel : IDataModelAccessor
         {
             return (keypart, null);
         }
-        var match = KeyPartRegex.Match(keypart);
+        var match = _keyPartRegex.Match(keypart);
         return (match.Groups[1].Value, int.Parse(match.Groups[2].Value));
     }
 

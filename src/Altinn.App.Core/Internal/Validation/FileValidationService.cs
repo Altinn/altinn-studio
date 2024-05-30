@@ -4,54 +4,53 @@ using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 
-namespace Altinn.App.Core.Internal.Validation
+namespace Altinn.App.Core.Internal.Validation;
+
+/// <summary>
+/// Validates files according to the registered IFileValidation interfaces
+/// </summary>
+public class FileValidationService : IFileValidationService
 {
+    private readonly IFileValidatorFactory _fileValidatorFactory;
+    private readonly Telemetry? _telemetry;
+
     /// <summary>
-    /// Validates files according to the registered IFileValidation interfaces
+    /// Initializes a new instance of the <see cref="FileValidationService"/> class.
     /// </summary>
-    public class FileValidationService : IFileValidationService
+    public FileValidationService(IFileValidatorFactory fileValidatorFactory, Telemetry? telemetry = null)
     {
-        private readonly IFileValidatorFactory _fileValidatorFactory;
-        private readonly Telemetry? _telemetry;
+        _fileValidatorFactory = fileValidatorFactory;
+        _telemetry = telemetry;
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="FileValidationService"/> class.
-        /// </summary>
-        public FileValidationService(IFileValidatorFactory fileValidatorFactory, Telemetry? telemetry = null)
+    /// <summary>
+    /// Runs all registered validators on the specified <see cref="DataType"/>
+    /// </summary>
+    public async Task<(bool Success, List<ValidationIssue> Errors)> Validate(
+        DataType dataType,
+        IEnumerable<FileAnalysisResult> fileAnalysisResults
+    )
+    {
+        using var activity = _telemetry?.StartFileValidateActivity();
+        List<ValidationIssue> allErrors = new();
+        bool allSuccess = true;
+
+        List<IFileValidator> fileValidators = _fileValidatorFactory
+            .GetFileValidators(dataType.EnabledFileValidators)
+            .ToList();
+        foreach (IFileValidator fileValidator in fileValidators)
         {
-            _fileValidatorFactory = fileValidatorFactory;
-            _telemetry = telemetry;
-        }
-
-        /// <summary>
-        /// Runs all registered validators on the specified <see cref="DataType"/>
-        /// </summary>
-        public async Task<(bool Success, List<ValidationIssue> Errors)> Validate(
-            DataType dataType,
-            IEnumerable<FileAnalysisResult> fileAnalysisResults
-        )
-        {
-            using var activity = _telemetry?.StartFileValidateActivity();
-            List<ValidationIssue> allErrors = new();
-            bool allSuccess = true;
-
-            List<IFileValidator> fileValidators = _fileValidatorFactory
-                .GetFileValidators(dataType.EnabledFileValidators)
-                .ToList();
-            foreach (IFileValidator fileValidator in fileValidators)
+            (bool success, IEnumerable<ValidationIssue> errors) = await fileValidator.Validate(
+                dataType,
+                fileAnalysisResults
+            );
+            if (!success)
             {
-                (bool success, IEnumerable<ValidationIssue> errors) = await fileValidator.Validate(
-                    dataType,
-                    fileAnalysisResults
-                );
-                if (!success)
-                {
-                    allSuccess = false;
-                    allErrors.AddRange(errors);
-                }
+                allSuccess = false;
+                allErrors.AddRange(errors);
             }
-
-            return (allSuccess, allErrors);
         }
+
+        return (allSuccess, allErrors);
     }
 }

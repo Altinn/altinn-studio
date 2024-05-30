@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace Altinn.App.Api.Tests.TestStubs;
 
 public class SwaggerIncludeXmlCommentsTestDouble

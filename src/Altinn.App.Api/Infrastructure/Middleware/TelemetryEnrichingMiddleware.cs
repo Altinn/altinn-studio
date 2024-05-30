@@ -11,7 +11,7 @@ internal sealed class TelemetryEnrichingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<TelemetryEnrichingMiddleware> _logger;
-    private static readonly FrozenDictionary<string, Action<Claim, Activity>> ClaimActions;
+    private static readonly FrozenDictionary<string, Action<Claim, Activity>> _claimActions;
 
     static TelemetryEnrichingMiddleware()
     {
@@ -56,7 +56,7 @@ internal sealed class TelemetryEnrichingMiddleware
             { AltinnCoreClaimTypes.OrgNumber, static (claim, activity) => activity.SetOrganisationNumber(claim.Value) },
         };
 
-        ClaimActions = actions.ToFrozenDictionary();
+        _claimActions = actions.ToFrozenDictionary();
     }
 
     /// <summary>
@@ -87,7 +87,7 @@ internal sealed class TelemetryEnrichingMiddleware
         {
             foreach (var claim in context.User.Claims)
             {
-                if (ClaimActions.TryGetValue(claim.Type, out var action))
+                if (_claimActions.TryGetValue(claim.Type, out var action))
                 {
                     action(claim, activity);
                 }

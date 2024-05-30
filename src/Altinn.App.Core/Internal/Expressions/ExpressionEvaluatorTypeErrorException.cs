@@ -1,5 +1,3 @@
-using System.Runtime.Serialization;
-
 namespace Altinn.App.Core.Internal.Expressions;
 
 /// <summary>

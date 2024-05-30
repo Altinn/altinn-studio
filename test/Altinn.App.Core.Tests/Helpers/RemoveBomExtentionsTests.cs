@@ -1,7 +1,6 @@
 #nullable disable
 using Altinn.App.Core.Helpers;
 using FluentAssertions;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Helpers;
 

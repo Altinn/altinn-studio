@@ -1,28 +1,27 @@
-namespace Altinn.App.Core.Constants
+namespace Altinn.App.Core.Constants;
+
+/// <summary>
+/// Constands related to authorization.
+/// </summary>
+public static class AuthzConstants
 {
     /// <summary>
-    /// Constands related to authorization.
+    /// Policy tag for reading an instance.
     /// </summary>
-    public static class AuthzConstants
-    {
-        /// <summary>
-        /// Policy tag for reading an instance.
-        /// </summary>
-        public const string POLICY_INSTANCE_WRITE = "InstanceWrite";
+    public const string POLICY_INSTANCE_WRITE = "InstanceWrite";
 
-        /// <summary>
-        /// Policy tag for writing on instance.
-        /// </summary>
-        public const string POLICY_INSTANCE_READ = "InstanceRead";
+    /// <summary>
+    /// Policy tag for writing on instance.
+    /// </summary>
+    public const string POLICY_INSTANCE_READ = "InstanceRead";
 
-        /// <summary>
-        /// Policy tag for writing on instance.
-        /// </summary>
-        public const string POLICY_INSTANCE_DELETE = "InstanceDelete";
+    /// <summary>
+    /// Policy tag for writing on instance.
+    /// </summary>
+    public const string POLICY_INSTANCE_DELETE = "InstanceDelete";
 
-        /// <summary>
-        /// Policy tag for authorizing client scope.
-        /// </summary>
-        public const string POLICY_INSTANCE_COMPLETE = "InstanceComplete";
-    }
+    /// <summary>
+    /// Policy tag for authorizing client scope.
+    /// </summary>
+    public const string POLICY_INSTANCE_COMPLETE = "InstanceComplete";
 }

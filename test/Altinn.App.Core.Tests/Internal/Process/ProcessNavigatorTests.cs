@@ -8,7 +8,6 @@ using Altinn.App.PlatformServices.Tests.Internal.Process.StubGatewayFilters;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Internal.Process;
 

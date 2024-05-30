@@ -14,7 +14,6 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using Xunit;
 
 namespace Altinn.App.Api.Tests.EFormidling;
 

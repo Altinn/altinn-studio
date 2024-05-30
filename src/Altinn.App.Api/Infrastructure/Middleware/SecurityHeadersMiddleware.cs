@@ -1,42 +1,41 @@
 #nullable disable
 
-namespace Altinn.App.Api.Infrastructure.Middleware
+namespace Altinn.App.Api.Infrastructure.Middleware;
+
+/// <summary>
+/// Middleware for sending security headers in response.
+///
+/// The following headers will be set:
+/// X-Frame-Options
+/// X-Content-Type-Options
+/// X-XSS-Protection
+/// Referer-Policy
+/// </summary>
+public class SecurityHeadersMiddleware
 {
+    private readonly RequestDelegate _next;
+
     /// <summary>
-    /// Middleware for sending security headers in response.
-    ///
-    /// The following headers will be set:
-    /// X-Frame-Options
-    /// X-Content-Type-Options
-    /// X-XSS-Protection
-    /// Referer-Policy
+    /// Default constructor for ASPNET Core Middleware.
     /// </summary>
-    public class SecurityHeadersMiddleware
+    /// <param name="next">The next middleware</param>
+    public SecurityHeadersMiddleware(RequestDelegate next)
     {
-        private readonly RequestDelegate _next;
+        _next = next;
+    }
 
-        /// <summary>
-        /// Default constructor for ASPNET Core Middleware.
-        /// </summary>
-        /// <param name="next">The next middleware</param>
-        public SecurityHeadersMiddleware(RequestDelegate next)
-        {
-            _next = next;
-        }
+    /// <summary>
+    /// Executes the middleware. Expects the next middleware to be executed.
+    /// </summary>
+    /// <param name="context">The current HttpContext</param>
+    /// <returns></returns>
+    public Task Invoke(HttpContext context)
+    {
+        context.Response.Headers.Append("X-Frame-Options", "deny");
+        context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+        context.Response.Headers.Append("X-XSS-Protection", "0");
+        context.Response.Headers.Append("Referer-Policy", "no-referer");
 
-        /// <summary>
-        /// Executes the middleware. Expects the next middleware to be executed.
-        /// </summary>
-        /// <param name="context">The current HttpContext</param>
-        /// <returns></returns>
-        public Task Invoke(HttpContext context)
-        {
-            context.Response.Headers.Append("X-Frame-Options", "deny");
-            context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
-            context.Response.Headers.Append("X-XSS-Protection", "0");
-            context.Response.Headers.Append("Referer-Policy", "no-referer");
-
-            return _next(context);
-        }
+        return _next(context);
     }
 }

@@ -1,12 +1,8 @@
-using System.Collections.Generic;
-using System.Configuration;
 using Altinn.App.Api.Helpers.RequestHandling;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Xunit;
 
 namespace Altinn.App.Api.Tests.Helpers.RequestHandling;
 

@@ -2,7 +2,6 @@ using System.Text.Json;
 using Altinn.App.Core.Helpers;
 using Altinn.App.PlatformServices.Tests.Helpers;
 using FluentAssertions;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Helpers;
 

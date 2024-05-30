@@ -6,7 +6,6 @@ using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Tests.Helpers;
 using FluentAssertions;
 using Newtonsoft.Json;
-using Xunit;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Altinn.App.Core.Tests.LayoutExpressions.CSharpTests;

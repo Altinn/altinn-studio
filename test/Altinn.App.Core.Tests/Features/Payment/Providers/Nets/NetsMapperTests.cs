@@ -2,7 +2,6 @@
 using Altinn.App.Core.Features.Payment.Processors.Nets;
 using Altinn.App.Core.Features.Payment.Processors.Nets.Models;
 using FluentAssertions;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Features.Payment.Providers.Nets;
 

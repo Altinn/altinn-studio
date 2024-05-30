@@ -1,8 +1,6 @@
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models.Validation;
-using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Core.Features.Validation.Default;
 

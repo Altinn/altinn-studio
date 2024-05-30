@@ -1,8 +1,6 @@
-using System;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Api.Tests.TestStubs;
 using FluentAssertions;
-using Xunit;
 
 namespace Altinn.App.Api.Tests.Helpers;
 

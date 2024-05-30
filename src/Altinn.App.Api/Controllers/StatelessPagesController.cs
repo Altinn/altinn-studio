@@ -7,64 +7,63 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
-namespace Altinn.App.Api.Controllers
+namespace Altinn.App.Api.Controllers;
+
+/// <summary>
+/// Handles page related operations
+/// </summary>
+[ApiController]
+[Route("{org}/{app}/v1/pages")]
+[AllowAnonymous]
+[Obsolete("IPageOrder does not work with frontend version 4")]
+public class StatelessPagesController : ControllerBase
 {
+    private readonly IAppModel _appModel;
+    private readonly IAppResources _resources;
+    private readonly IPageOrder _pageOrder;
+
     /// <summary>
-    /// Handles page related operations
+    /// Initializes a new instance of the <see cref="PagesController"/> class.
     /// </summary>
-    [ApiController]
-    [Route("{org}/{app}/v1/pages")]
-    [AllowAnonymous]
-    [Obsolete("IPageOrder does not work with frontend version 4")]
-    public class StatelessPagesController : ControllerBase
+    /// <param name="appModel">The current appmodel implementation for getting the model Type</param>
+    /// <param name="resources">The app resource service</param>
+    /// <param name="pageOrder">The page order service</param>
+    public StatelessPagesController(IAppModel appModel, IAppResources resources, IPageOrder pageOrder)
     {
-        private readonly IAppModel _appModel;
-        private readonly IAppResources _resources;
-        private readonly IPageOrder _pageOrder;
+        _appModel = appModel;
+        _resources = resources;
+        _pageOrder = pageOrder;
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PagesController"/> class.
-        /// </summary>
-        /// <param name="appModel">The current appmodel implementation for getting the model Type</param>
-        /// <param name="resources">The app resource service</param>
-        /// <param name="pageOrder">The page order service</param>
-        public StatelessPagesController(IAppModel appModel, IAppResources resources, IPageOrder pageOrder)
+    /// <summary>
+    /// Get the page order based on the current state of the instance
+    /// </summary>
+    /// <returns>The pages sorted in the correct order</returns>
+    [HttpPost("order")]
+    public async Task<ActionResult<List<string>>> GetPageOrder(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromQuery] string layoutSetId,
+        [FromQuery] string currentPage,
+        [FromQuery] string dataTypeId,
+        [FromBody] dynamic formData
+    )
+    {
+        if (string.IsNullOrEmpty(dataTypeId))
         {
-            _appModel = appModel;
-            _resources = resources;
-            _pageOrder = pageOrder;
+            return BadRequest($"Query parameter `{nameof(dataTypeId)}` must be defined");
         }
 
-        /// <summary>
-        /// Get the page order based on the current state of the instance
-        /// </summary>
-        /// <returns>The pages sorted in the correct order</returns>
-        [HttpPost("order")]
-        public async Task<ActionResult<List<string>>> GetPageOrder(
-            [FromRoute] string org,
-            [FromRoute] string app,
-            [FromQuery] string layoutSetId,
-            [FromQuery] string currentPage,
-            [FromQuery] string dataTypeId,
-            [FromBody] dynamic formData
-        )
-        {
-            if (string.IsNullOrEmpty(dataTypeId))
-            {
-                return BadRequest($"Query parameter `{nameof(dataTypeId)}` must be defined");
-            }
+        string classRef = _resources.GetClassRefForLogicDataType(dataTypeId);
 
-            string classRef = _resources.GetClassRefForLogicDataType(dataTypeId);
-
-            object data = JsonConvert.DeserializeObject(formData.ToString(), _appModel.GetModelType(classRef));
-            return await _pageOrder.GetPageOrder(
-                new AppIdentifier(org, app),
-                InstanceIdentifier.NoInstance,
-                layoutSetId,
-                currentPage,
-                dataTypeId,
-                data
-            );
-        }
+        object data = JsonConvert.DeserializeObject(formData.ToString(), _appModel.GetModelType(classRef));
+        return await _pageOrder.GetPageOrder(
+            new AppIdentifier(org, app),
+            InstanceIdentifier.NoInstance,
+            layoutSetId,
+            currentPage,
+            dataTypeId,
+            data
+        );
     }
 }

@@ -2,7 +2,6 @@
 using Altinn.App.Core.Extensions;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Extensions;
 

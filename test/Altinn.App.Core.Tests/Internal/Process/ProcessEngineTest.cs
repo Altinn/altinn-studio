@@ -17,7 +17,6 @@ using AltinnCore.Authentication.Constants;
 using FluentAssertions;
 using Moq;
 using Newtonsoft.Json;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Internal.Process;
 

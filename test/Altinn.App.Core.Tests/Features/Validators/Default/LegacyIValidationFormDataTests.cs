@@ -9,148 +9,146 @@ using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Moq;
-using Xunit;
 
-namespace Altinn.App.Core.Tests.Features.Validators.Default
+namespace Altinn.App.Core.Tests.Features.Validators.Default;
+
+public class LegacyIValidationFormDataTests
 {
-    public class LegacyIValidationFormDataTests
+    private readonly LegacyIInstanceValidatorFormDataValidator _validator;
+    private readonly Mock<IInstanceValidator> _instanceValidator = new();
+
+    public LegacyIValidationFormDataTests()
     {
-        private readonly LegacyIInstanceValidatorFormDataValidator _validator;
-        private readonly Mock<IInstanceValidator> _instanceValidator = new();
+        var generalSettings = new GeneralSettings();
+        _validator = new LegacyIInstanceValidatorFormDataValidator(
+            Microsoft.Extensions.Options.Options.Create(generalSettings),
+            _instanceValidator.Object
+        );
+    }
 
-        public LegacyIValidationFormDataTests()
-        {
-            var generalSettings = new GeneralSettings();
-            _validator = new LegacyIInstanceValidatorFormDataValidator(
-                Microsoft.Extensions.Options.Options.Create(generalSettings),
-                _instanceValidator.Object
+    [Fact]
+    public async Task ValidateFormData_NoErrors()
+    {
+        // Arrange
+        var data = new object();
+
+        var validator = new LegacyIInstanceValidatorFormDataValidator(
+            Microsoft.Extensions.Options.Options.Create(new GeneralSettings()),
+            null
+        );
+        validator.HasRelevantChanges(data, data).Should().BeFalse();
+
+        // Act
+        var result = await validator.ValidateFormData(new Instance(), new DataElement(), data, null);
+
+        // Assert
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task ValidateFormData_WithErrors()
+    {
+        // Arrange
+        var data = new object();
+
+        _instanceValidator
+            .Setup(iv => iv.ValidateData(It.IsAny<object>(), It.IsAny<ModelStateDictionary>()))
+            .Callback(
+                (object _, ModelStateDictionary modelState) =>
+                {
+                    modelState.AddModelError("test", "test");
+                    modelState.AddModelError("ddd", "*FIXED*test");
+                }
             );
-        }
 
-        [Fact]
-        public async Task ValidateFormData_NoErrors()
-        {
-            // Arrange
-            var data = new object();
+        // Act
+        var result = await _validator.ValidateFormData(new Instance(), new DataElement(), data, null);
 
-            var validator = new LegacyIInstanceValidatorFormDataValidator(
-                Microsoft.Extensions.Options.Options.Create(new GeneralSettings()),
-                null
+        // Assert
+        result
+            .Should()
+            .BeEquivalentTo(
+                JsonSerializer.Deserialize<List<ValidationIssue>>(
+                    """
+                    [
+                        {
+                            "severity": 4,
+                            "instanceId": null,
+                            "dataElementId": null,
+                            "field": "ddd",
+                            "code": "test",
+                            "description": "test",
+                            "source": "Custom",
+                            "customTextKey": null
+                        },
+                        {
+                            "severity": 1,
+                            "instanceId": null,
+                            "dataElementId": null,
+                            "field": "test",
+                            "code": "test",
+                            "description": "test",
+                            "source": "Custom",
+                            "customTextKey": null
+                        }
+                    ]
+                    """
+                )
             );
-            validator.HasRelevantChanges(data, data).Should().BeFalse();
+    }
 
-            // Act
-            var result = await validator.ValidateFormData(new Instance(), new DataElement(), data, null);
+    private class TestModel
+    {
+        [JsonPropertyName("test")]
+        public string Test { get; set; }
 
-            // Assert
-            Assert.Empty(result);
-        }
+        public int IntegerWithout { get; set; }
 
-        [Fact]
-        public async Task ValidateFormData_WithErrors()
-        {
-            // Arrange
-            var data = new object();
+        [JsonPropertyName("child")]
+        public TestModel Child { get; set; }
 
-            _instanceValidator
-                .Setup(iv => iv.ValidateData(It.IsAny<object>(), It.IsAny<ModelStateDictionary>()))
-                .Callback(
-                    (object _, ModelStateDictionary modelState) =>
-                    {
-                        modelState.AddModelError("test", "test");
-                        modelState.AddModelError("ddd", "*FIXED*test");
-                    }
-                );
+        [JsonPropertyName("children")]
+        public List<TestModel> TestList { get; set; }
+    }
 
-            // Act
-            var result = await _validator.ValidateFormData(new Instance(), new DataElement(), data, null);
+    [Theory]
+    [InlineData("test", "test", "test with small case")]
+    [InlineData("Test", "test", "test with capital case gets rewritten")]
+    [InlineData("NotModelMatch", "NotModelMatch", "Error that does not mach model is kept as is")]
+    [InlineData(
+        "Child.TestList[2].child",
+        "child.children[2].child",
+        "TestList is renamed to children because of JsonPropertyName"
+    )]
+    [InlineData("test.children.child", "test.children.child", "valid JsonPropertyName based path is kept as is")]
+    public async Task ValidateErrorAndMappingWithCustomModel(string errorKey, string field, string errorMessage)
+    {
+        // Arrange
+        var data = new TestModel();
 
-            // Assert
-            result
-                .Should()
-                .BeEquivalentTo(
-                    JsonSerializer.Deserialize<List<ValidationIssue>>(
-                        """
-                        [
-                            {
-                                "severity": 4,
-                                "instanceId": null,
-                                "dataElementId": null,
-                                "field": "ddd",
-                                "code": "test",
-                                "description": "test",
-                                "source": "Custom",
-                                "customTextKey": null
-                            },
-                            {
-                                "severity": 1,
-                                "instanceId": null,
-                                "dataElementId": null,
-                                "field": "test",
-                                "code": "test",
-                                "description": "test",
-                                "source": "Custom",
-                                "customTextKey": null
-                            }
-                        ]
-                        """
-                    )
-                );
-        }
+        _instanceValidator
+            .Setup(iv => iv.ValidateData(It.IsAny<object>(), It.IsAny<ModelStateDictionary>()))
+            .Callback(
+                (object _, ModelStateDictionary modelState) =>
+                {
+                    modelState.AddModelError(errorKey, errorMessage);
+                    modelState.AddModelError(errorKey, "*FIXED*" + errorMessage + " Fixed");
+                }
+            );
 
-        private class TestModel
-        {
-            [JsonPropertyName("test")]
-            public string Test { get; set; }
+        // Act
+        var result = await _validator.ValidateFormData(new Instance(), new DataElement(), data, null);
 
-            public int IntegerWithout { get; set; }
+        // Assert
+        result.Should().HaveCount(2);
+        var errorIssue = result.Should().ContainSingle(i => i.Severity == ValidationIssueSeverity.Error).Which;
+        errorIssue.Field.Should().Be(field);
+        errorIssue.Severity.Should().Be(ValidationIssueSeverity.Error);
+        errorIssue.Description.Should().Be(errorMessage);
 
-            [JsonPropertyName("child")]
-            public TestModel Child { get; set; }
-
-            [JsonPropertyName("children")]
-            public List<TestModel> TestList { get; set; }
-        }
-
-        [Theory]
-        [InlineData("test", "test", "test with small case")]
-        [InlineData("Test", "test", "test with capital case gets rewritten")]
-        [InlineData("NotModelMatch", "NotModelMatch", "Error that does not mach model is kept as is")]
-        [InlineData(
-            "Child.TestList[2].child",
-            "child.children[2].child",
-            "TestList is renamed to children because of JsonPropertyName"
-        )]
-        [InlineData("test.children.child", "test.children.child", "valid JsonPropertyName based path is kept as is")]
-        public async Task ValidateErrorAndMappingWithCustomModel(string errorKey, string field, string errorMessage)
-        {
-            // Arrange
-            var data = new TestModel();
-
-            _instanceValidator
-                .Setup(iv => iv.ValidateData(It.IsAny<object>(), It.IsAny<ModelStateDictionary>()))
-                .Callback(
-                    (object _, ModelStateDictionary modelState) =>
-                    {
-                        modelState.AddModelError(errorKey, errorMessage);
-                        modelState.AddModelError(errorKey, "*FIXED*" + errorMessage + " Fixed");
-                    }
-                );
-
-            // Act
-            var result = await _validator.ValidateFormData(new Instance(), new DataElement(), data, null);
-
-            // Assert
-            result.Should().HaveCount(2);
-            var errorIssue = result.Should().ContainSingle(i => i.Severity == ValidationIssueSeverity.Error).Which;
-            errorIssue.Field.Should().Be(field);
-            errorIssue.Severity.Should().Be(ValidationIssueSeverity.Error);
-            errorIssue.Description.Should().Be(errorMessage);
-
-            var fixedIssue = result.Should().ContainSingle(i => i.Severity == ValidationIssueSeverity.Fixed).Which;
-            fixedIssue.Field.Should().Be(field);
-            fixedIssue.Severity.Should().Be(ValidationIssueSeverity.Fixed);
-            fixedIssue.Description.Should().Be(errorMessage + " Fixed");
-        }
+        var fixedIssue = result.Should().ContainSingle(i => i.Severity == ValidationIssueSeverity.Fixed).Which;
+        fixedIssue.Field.Should().Be(field);
+        fixedIssue.Severity.Should().Be(ValidationIssueSeverity.Fixed);
+        fixedIssue.Description.Should().Be(errorMessage + " Fixed");
     }
 }

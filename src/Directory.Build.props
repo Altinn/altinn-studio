@@ -1,19 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <Import Project="../Directory.Build.props" />
+
   <ItemGroup>
     <PackageReference Include="MinVer" Version="5.0.0" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="All" />
     <PackageReference Include="Nullable.Extended.Analyzer" Version="1.15.6169">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
+    <None Include="../../README.md" Link="README.md" Pack="true" PackagePath="/" />
+    <None Include="../../LICENSE" Pack="true" PackagePath="/" />
   </ItemGroup>
+
   <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
     <RepoRoot>$([System.IO.Directory]::GetParent($(MSBuildThisFileDirectory)).Parent.FullName)</RepoRoot>
     <MinVerDefaultPreReleaseIdentifiers>preview.0</MinVerDefaultPreReleaseIdentifiers>
     <MinVerTagPrefix>v</MinVerTagPrefix>
+
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageReleaseNotes>https://github.com/Altinn/app-lib-dotnet/releases</PackageReleaseNotes>
+    <Authors>Altinn Platform Contributors</Authors>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/Altinn/app-lib-dotnet</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <Target Name="AssemblyVersionTarget" AfterTargets="MinVer" Condition="'$(MinVerVersion)'!='' AND '$(BuildNumber)' != ''">
@@ -23,13 +42,6 @@
       <AssemblyVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(BuildNumber)</AssemblyVersion>
     </PropertyGroup>
   </Target>
-
-  <PropertyGroup Label="SourceLink">
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-  </PropertyGroup>
 
   <ItemGroup Condition="'$(Deterministic)'=='true'">
     <SourceRoot Include="$(MSBuildThisFileDirectory)/" />

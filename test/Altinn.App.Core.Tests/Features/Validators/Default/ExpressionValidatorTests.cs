@@ -5,7 +5,6 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Validation.Default;
-using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models;
@@ -18,7 +17,6 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using Xunit;
 using Xunit.Sdk;
 
 namespace Altinn.App.Core.Tests.Features.Validators.Default;

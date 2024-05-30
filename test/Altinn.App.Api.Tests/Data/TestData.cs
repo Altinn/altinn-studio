@@ -1,7 +1,5 @@
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 

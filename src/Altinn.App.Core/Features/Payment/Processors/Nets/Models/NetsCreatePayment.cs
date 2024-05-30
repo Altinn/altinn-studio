@@ -1,5 +1,3 @@
-using Altinn.App.Core.Features.Payment.Models;
-
 namespace Altinn.App.Core.Features.Payment.Processors.Nets.Models;
 
 /// <summary>

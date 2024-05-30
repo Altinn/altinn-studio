@@ -1,18 +1,17 @@
-namespace Altinn.App.Core.Models
+namespace Altinn.App.Core.Models;
+
+/// <summary>
+/// Pages
+/// </summary>
+public class Pages
 {
     /// <summary>
-    /// Pages
+    /// Order
     /// </summary>
-    public class Pages
-    {
-        /// <summary>
-        /// Order
-        /// </summary>
-        public List<string>? Order { get; set; }
+    public List<string>? Order { get; set; }
 
-        /// <summary>
-        /// Exclude from pdf
-        /// </summary>
-        public List<string>? ExcludeFromPdf { get; set; }
-    }
+    /// <summary>
+    /// Exclude from pdf
+    /// </summary>
+    public List<string>? ExcludeFromPdf { get; set; }
 }

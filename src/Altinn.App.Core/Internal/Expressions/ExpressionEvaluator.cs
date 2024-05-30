@@ -306,7 +306,7 @@ public static class ExpressionEvaluator
                     "1" => true,
                     "0" => false,
                     _
-                        => parseNumber(s, throwException: false) switch
+                        => ParseNumber(s, throwException: false) switch
                         {
                             1 => true,
                             0 => false,
@@ -385,7 +385,7 @@ public static class ExpressionEvaluator
                 => throw new ExpressionEvaluatorTypeErrorException(
                     $"Expected number, got value {(ab ? "true" : "false")}"
                 ),
-            string s => parseNumber(s),
+            string s => ParseNumber(s),
             IConvertible c => Convert.ToDouble(c),
             _ => null
         };
@@ -413,11 +413,11 @@ public static class ExpressionEvaluator
         );
     }
 
-    private static readonly Regex numberRegex = new Regex(@"^-?\d+(\.\d+)?$");
+    private static readonly Regex _numberRegex = new Regex(@"^-?\d+(\.\d+)?$");
 
-    private static double? parseNumber(string s, bool throwException = true)
+    private static double? ParseNumber(string s, bool throwException = true)
     {
-        if (numberRegex.IsMatch(s) && double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var d))
+        if (_numberRegex.IsMatch(s) && double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var d))
         {
             return d;
         }

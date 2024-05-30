@@ -4,7 +4,6 @@ using Altinn.App.Core.Internal.Process.Authorization;
 using Altinn.App.Core.Tests.Internal.Process.Action.TestData;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Internal.Process.Action;
 

@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Reflection;
 using System.Xml.Serialization;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Altinn.App.Core.Helpers;
 

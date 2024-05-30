@@ -11,7 +11,6 @@ using Altinn.App.Core.Models.UserAction;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;

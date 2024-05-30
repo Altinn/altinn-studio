@@ -4,7 +4,6 @@ using Altinn.App.Core.Models;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Features.Options;
 

@@ -1,7 +1,5 @@
 using System.Security.Claims;
-using System.Text;
 using Altinn.App.Core.Features.Action;
-using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
@@ -13,7 +11,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.Constants;
 using FluentAssertions;
 using Moq;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Features.Action;
 

@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Features.Validators.Default;
 

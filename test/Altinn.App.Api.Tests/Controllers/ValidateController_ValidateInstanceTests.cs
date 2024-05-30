@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;

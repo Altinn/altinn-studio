@@ -1,6 +1,5 @@
 using Altinn.App.Core.Models.Result;
 using FluentAssertions;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Models.Result;
 

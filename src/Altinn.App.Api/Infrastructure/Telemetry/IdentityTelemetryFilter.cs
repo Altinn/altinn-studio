@@ -4,61 +4,59 @@ using Altinn.App.Core.Extensions;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.AspNetCore.Http;
 
-namespace Altinn.App.Api.Infrastructure.Telemetry
+namespace Altinn.App.Api.Infrastructure.Telemetry;
+
+/// <summary>
+/// Filter to enrich request telemetry with identity information
+/// </summary>
+[ExcludeFromCodeCoverage]
+public class IdentityTelemetryFilter : ITelemetryProcessor
 {
+    private ITelemetryProcessor _next { get; set; }
+
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
     /// <summary>
-    /// Filter to enrich request telemetry with identity information
+    /// Initializes a new instance of the <see cref="IdentityTelemetryFilter"/> class.
     /// </summary>
-    [ExcludeFromCodeCoverage]
-    public class IdentityTelemetryFilter : ITelemetryProcessor
+    public IdentityTelemetryFilter(ITelemetryProcessor next, IHttpContextAccessor httpContextAccessor)
     {
-        private ITelemetryProcessor Next { get; set; }
+        _next = next;
+        _httpContextAccessor = httpContextAccessor;
+    }
 
-        private readonly IHttpContextAccessor _httpContextAccessor;
+    /// <inheritdoc/>
+    public void Process(ITelemetry item)
+    {
+        RequestTelemetry request = item as RequestTelemetry;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="IdentityTelemetryFilter"/> class.
-        /// </summary>
-        public IdentityTelemetryFilter(ITelemetryProcessor next, IHttpContextAccessor httpContextAccessor)
+        if (request != null)
         {
-            Next = next;
-            _httpContextAccessor = httpContextAccessor;
-        }
+            HttpContext ctx = _httpContextAccessor.HttpContext;
 
-        /// <inheritdoc/>
-        public void Process(ITelemetry item)
-        {
-            RequestTelemetry request = item as RequestTelemetry;
-
-            if (request != null)
+            if (ctx?.User != null)
             {
-                HttpContext ctx = _httpContextAccessor.HttpContext;
+                int? orgNumber = ctx.User.GetOrgNumber();
+                int? userId = ctx.User.GetUserIdAsInt();
+                int? partyId = ctx.User.GetPartyIdAsInt();
+                int authLevel = ctx.User.GetAuthenticationLevel();
 
-                if (ctx?.User != null)
+                request.Properties.Add("partyId", partyId.ToString());
+                request.Properties.Add("authLevel", authLevel.ToString());
+
+                if (userId != null)
                 {
-                    int? orgNumber = ctx.User.GetOrgNumber();
-                    int? userId = ctx.User.GetUserIdAsInt();
-                    int? partyId = ctx.User.GetPartyIdAsInt();
-                    int authLevel = ctx.User.GetAuthenticationLevel();
+                    request.Properties.Add("userId", userId.ToString());
+                }
 
-                    request.Properties.Add("partyId", partyId.ToString());
-                    request.Properties.Add("authLevel", authLevel.ToString());
-
-                    if (userId != null)
-                    {
-                        request.Properties.Add("userId", userId.ToString());
-                    }
-
-                    if (orgNumber != null)
-                    {
-                        request.Properties.Add("orgNumber", orgNumber.ToString());
-                    }
+                if (orgNumber != null)
+                {
+                    request.Properties.Add("orgNumber", orgNumber.ToString());
                 }
             }
-
-            Next.Process(item);
         }
+
+        _next.Process(item);
     }
 }

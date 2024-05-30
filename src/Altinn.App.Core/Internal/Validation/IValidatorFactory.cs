@@ -1,6 +1,4 @@
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Validation;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Core.Internal.Validation;
 

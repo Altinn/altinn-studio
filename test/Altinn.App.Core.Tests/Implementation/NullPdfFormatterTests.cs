@@ -3,7 +3,6 @@ using Altinn.App.Core.Features.Pdf;
 using Altinn.App.Core.Models;
 using Altinn.App.PlatformServices.Tests.Implementation.TestResources;
 using FluentAssertions;
-using Xunit;
 
 namespace Altinn.App.PlatformServices.Tests.Implementation;
 

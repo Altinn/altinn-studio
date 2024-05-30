@@ -11,7 +11,6 @@ using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Moq;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Internal.Auth;
 

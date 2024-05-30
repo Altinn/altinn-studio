@@ -19,7 +19,7 @@ namespace Altinn.App.Core.Models.Layout;
 /// </remarks>
 public class PageComponentConverter : JsonConverter<PageComponent>
 {
-    private static readonly AsyncLocal<string?> PageName = new();
+    private static readonly AsyncLocal<string?> _pageName = new();
 
     /// <summary>
     /// Store pageName to be used for deserialization
@@ -32,15 +32,15 @@ public class PageComponentConverter : JsonConverter<PageComponent>
     /// </remarks>
     public static void SetAsyncLocalPageName(string pageName)
     {
-        PageName.Value = pageName;
+        _pageName.Value = pageName;
     }
 
     /// <inheritdoc />
     public override PageComponent? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         // Try to get pagename from metadata in this.AddPageName
-        var pageName = PageName.Value ?? "UnknownPageName";
-        PageName.Value = null;
+        var pageName = _pageName.Value ?? "UnknownPageName";
+        _pageName.Value = null;
 
         return ReadNotNull(ref reader, pageName, options);
     }
@@ -151,7 +151,7 @@ public class PageComponentConverter : JsonConverter<PageComponent>
             throw new JsonException("Missing property \"layout\" on layout page");
         }
 
-        var layout = processLayout(componentListFlat, componentLookup, childToGroupMapping);
+        var layout = ProcessLayout(componentListFlat, componentLookup, childToGroupMapping);
 
         return new PageComponent(pageName, layout, componentLookup, hidden, required, readOnly, additionalProperties);
     }
@@ -186,7 +186,7 @@ public class PageComponentConverter : JsonConverter<PageComponent>
         return (componentListFlat, componentLookup, childToGroupMapping);
     }
 
-    private static List<BaseComponent> processLayout(
+    private static List<BaseComponent> ProcessLayout(
         List<BaseComponent> componentListFlat,
         Dictionary<string, BaseComponent> componentLookup,
         Dictionary<string, GroupComponent> childToGroupMapping
@@ -218,7 +218,7 @@ public class PageComponentConverter : JsonConverter<PageComponent>
         componentLookup[component.Id] = component;
     }
 
-    private static readonly Regex MultiPageIndexRegex = new Regex(
+    private static readonly Regex _multiPageIndexRegex = new Regex(
         @"^(\d+:)?([^\s:]+)$",
         RegexOptions.None,
         TimeSpan.FromSeconds(1)
@@ -226,7 +226,7 @@ public class PageComponentConverter : JsonConverter<PageComponent>
 
     private static string GetIdWithoutMultiPageIndex(string id)
     {
-        var match = MultiPageIndexRegex.Match(id);
+        var match = _multiPageIndexRegex.Match(id);
         return match.Groups[2].Value;
     }
 

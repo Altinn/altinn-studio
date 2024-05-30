@@ -1,8 +1,3 @@
-using System.Linq;
-using System.Reflection;
-using System.Text.Json;
-using System.Text.RegularExpressions;
-
 namespace Altinn.App.Core.Helpers;
 
 /// <summary>

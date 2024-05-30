@@ -2,7 +2,6 @@ using System.Reflection;
 using System.Text.Json;
 using Altinn.App.Core.Models.Layout.Components;
 using FluentAssertions;
-using Xunit;
 using Xunit.Sdk;
 
 namespace Altinn.App.Core.Tests.Models;

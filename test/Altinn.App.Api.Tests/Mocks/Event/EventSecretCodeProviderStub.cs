@@ -1,13 +1,11 @@
-using System.Threading.Tasks;
 using Altinn.App.Core.Internal.Events;
 
-namespace Altinn.App.Api.Tests.Mocks.Event
+namespace Altinn.App.Api.Tests.Mocks.Event;
+
+public class EventSecretCodeProviderStub : IEventSecretCodeProvider
 {
-    public class EventSecretCodeProviderStub : IEventSecretCodeProvider
+    public Task<string> GetSecretCode()
     {
-        public Task<string> GetSecretCode()
-        {
-            return Task.FromResult("42");
-        }
+        return Task.FromResult("42");
     }
 }

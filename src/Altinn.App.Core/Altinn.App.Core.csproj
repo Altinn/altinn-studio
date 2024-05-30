@@ -1,8 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <PackageTags>Altinn;Studio;App;Core</PackageTags>
+    <Description>
+      This class library holds all the core features used by a standard Altinn 3 App.
+    </Description>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

@@ -1,4 +1,3 @@
-using Altinn.App.Core.Features.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 

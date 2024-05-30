@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Altinn.App.Core.Models.Expressions;
 
 namespace Altinn.App.Core.Models.Layout.Components;

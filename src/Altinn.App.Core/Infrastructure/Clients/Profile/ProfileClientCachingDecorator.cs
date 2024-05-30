@@ -4,54 +4,53 @@ using Altinn.Platform.Profile.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
-namespace Altinn.App.Core.Infrastructure.Clients.Profile
+namespace Altinn.App.Core.Infrastructure.Clients.Profile;
+
+/// <summary>.
+/// Decorates an implementation of IProfileClient by caching the party object.
+/// If available, object is retrieved from cache without calling the service
+/// </summary>
+public class ProfileClientCachingDecorator : IProfileClient
 {
-    /// <summary>.
-    /// Decorates an implementation of IProfileClient by caching the party object.
-    /// If available, object is retrieved from cache without calling the service
+    private readonly IProfileClient _decoratedService;
+    private readonly IMemoryCache _memoryCache;
+    private readonly MemoryCacheEntryOptions _cacheOptions;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ProfileClientCachingDecorator"/> class.
     /// </summary>
-    public class ProfileClientCachingDecorator : IProfileClient
+    public ProfileClientCachingDecorator(
+        IProfileClient decoratedService,
+        IMemoryCache memoryCache,
+        IOptions<CacheSettings> _settings
+    )
     {
-        private readonly IProfileClient _decoratedService;
-        private readonly IMemoryCache _memoryCache;
-        private readonly MemoryCacheEntryOptions _cacheOptions;
+        _decoratedService = decoratedService;
+        _memoryCache = memoryCache;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ProfileClientCachingDecorator"/> class.
-        /// </summary>
-        public ProfileClientCachingDecorator(
-            IProfileClient decoratedService,
-            IMemoryCache memoryCache,
-            IOptions<CacheSettings> _settings
-        )
+        _cacheOptions = new()
         {
-            _decoratedService = decoratedService;
-            _memoryCache = memoryCache;
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(_settings.Value.ProfileCacheLifetimeSeconds)
+        };
+    }
 
-            _cacheOptions = new()
-            {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(_settings.Value.ProfileCacheLifetimeSeconds)
-            };
-        }
+    /// <inheritdoc/>
+    public async Task<UserProfile?> GetUserProfile(int userId)
+    {
+        string uniqueCacheKey = "User_UserId_" + userId;
 
-        /// <inheritdoc/>
-        public async Task<UserProfile?> GetUserProfile(int userId)
+        if (_memoryCache.TryGetValue(uniqueCacheKey, out UserProfile? user))
         {
-            string uniqueCacheKey = "User_UserId_" + userId;
-
-            if (_memoryCache.TryGetValue(uniqueCacheKey, out UserProfile? user))
-            {
-                return user;
-            }
-
-            user = await _decoratedService.GetUserProfile(userId);
-
-            if (user != null)
-            {
-                _memoryCache.Set(uniqueCacheKey, user, _cacheOptions);
-            }
-
             return user;
         }
+
+        user = await _decoratedService.GetUserProfile(userId);
+
+        if (user != null)
+        {
+            _memoryCache.Set(uniqueCacheKey, user, _cacheOptions);
+        }
+
+        return user;
     }
 }

@@ -3,7 +3,6 @@ using Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Moq;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Internal.Process.EventHandlers.ProcessTask;
 

@@ -3,7 +3,6 @@ using System.Text.Json;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Tests.Helpers;
 using FluentAssertions;
-using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 

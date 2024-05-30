@@ -1,5 +1,3 @@
-using System.Runtime.Serialization;
-
 namespace Altinn.App.Core.Helpers.DataModel;
 
 /// <summary>

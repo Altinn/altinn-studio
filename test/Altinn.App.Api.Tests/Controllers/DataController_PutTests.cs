@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Headers;
-using System.Text.Json;
 using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
 using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Features;
@@ -9,7 +8,6 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;

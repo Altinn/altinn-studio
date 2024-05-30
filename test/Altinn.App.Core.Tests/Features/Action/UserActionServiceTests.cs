@@ -2,7 +2,6 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Models.UserAction;
 using FluentAssertions;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Features.Action;
 

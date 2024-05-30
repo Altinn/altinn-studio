@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http.Json;
-using System.Reflection;
 using System.Text.Json;
 
 namespace Altinn.App.Core.Features.Payment.Processors.Nets.Models;
@@ -9,7 +8,7 @@ namespace Altinn.App.Core.Features.Payment.Processors.Nets.Models;
 internal class HttpApiResult<T>
 {
     // ReSharper disable once StaticMemberInGenericType
-    private static readonly JsonSerializerOptions JSON_OPTIONS = new JsonSerializerOptions
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true,
@@ -45,7 +44,7 @@ internal class HttpApiResult<T>
                 {
                     Status = response.StatusCode,
                     Result =
-                        await response.Content.ReadFromJsonAsync<T>(JSON_OPTIONS)
+                        await response.Content.ReadFromJsonAsync<T>(_jsonSerializerOptions)
                         ?? throw new JsonException("Could not deserialize response"),
                 };
             }

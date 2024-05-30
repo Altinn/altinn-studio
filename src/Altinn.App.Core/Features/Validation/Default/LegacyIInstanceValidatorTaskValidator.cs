@@ -5,7 +5,6 @@ using Altinn.App.Core.Features.Validation.Helpers;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Features.Validation.Default;

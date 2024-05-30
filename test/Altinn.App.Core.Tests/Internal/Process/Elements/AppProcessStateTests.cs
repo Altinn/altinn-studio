@@ -2,7 +2,6 @@
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Internal.Process.Elements;
 

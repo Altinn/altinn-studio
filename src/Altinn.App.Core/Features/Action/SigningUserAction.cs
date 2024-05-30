@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;

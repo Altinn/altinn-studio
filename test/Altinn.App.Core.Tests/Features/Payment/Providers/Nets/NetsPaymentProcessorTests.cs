@@ -1,6 +1,4 @@
-using System.Diagnostics;
 using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Features.Payment;
 using Altinn.App.Core.Features.Payment.Exceptions;
 using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Features.Payment.Processors.Nets;
@@ -9,7 +7,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
 using Moq;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Features.Payment.Providers.Nets;
 

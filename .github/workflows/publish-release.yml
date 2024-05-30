@@ -27,11 +27,10 @@ jobs:
           dotnet build --configuration Release --no-restore -p:Deterministic=true -p:BuildNumber=${{ github.run_number }}
       - name: Pack
         run: |
-          dotnet pack AppLibDotnet.sln --configuration Release --no-restore --no-build -p:BuildNumber=${{ github.run_number }} -p:Deterministic=true
+          dotnet pack AppLibDotnet.sln --configuration Release --no-restore --no-build -p:Deterministic=true -p:BuildNumber=${{ github.run_number }}
       - name: Versions
         run: |
           dotnet --version
       - name: Publish
         run: |
           dotnet nuget push src/**/bin/Release/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
-            

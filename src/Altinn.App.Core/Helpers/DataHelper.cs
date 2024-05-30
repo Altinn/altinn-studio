@@ -1,186 +1,185 @@
 using System.Reflection;
 using Altinn.Platform.Storage.Interface.Models;
 
-namespace Altinn.App.Core.Helpers
+namespace Altinn.App.Core.Helpers;
+
+/// <summary>
+/// Helper class for handling data
+/// </summary>
+public static class DataHelper
 {
     /// <summary>
-    /// Helper class for handling data
+    /// Identifies updated data values texts by extracting data fields from data object and comparing to dictionary of current values.
     /// </summary>
-    public static class DataHelper
+    /// <param name="dataFields">The data fields to monitor</param>
+    /// <param name="currentDataValues">The current dictionary of data values </param>
+    /// <param name="dataType">The type of the updated data objects</param>
+    /// <param name="updatedData">The updated data object</param>
+    /// <returns>A dictionary with the new or changed data values</returns>
+    public static Dictionary<string, string?> GetUpdatedDataValues(
+        List<DataField>? dataFields,
+        Dictionary<string, string?> currentDataValues,
+        string dataType,
+        object updatedData
+    )
     {
-        /// <summary>
-        /// Identifies updated data values texts by extracting data fields from data object and comparing to dictionary of current values.
-        /// </summary>
-        /// <param name="dataFields">The data fields to monitor</param>
-        /// <param name="currentDataValues">The current dictionary of data values </param>
-        /// <param name="dataType">The type of the updated data objects</param>
-        /// <param name="updatedData">The updated data object</param>
-        /// <returns>A dictionary with the new or changed data values</returns>
-        public static Dictionary<string, string?> GetUpdatedDataValues(
-            List<DataField>? dataFields,
-            Dictionary<string, string?> currentDataValues,
-            string dataType,
-            object updatedData
-        )
+        Dictionary<string, string?> dataFieldValues = GetDataFieldValues(dataFields, dataType, updatedData);
+        return CompareDictionaries(currentDataValues, dataFieldValues);
+    }
+
+    /// <summary>
+    /// Re-sets the listed data fields to their default value in the data object.
+    /// </summary>
+    /// <param name="dataFields">The data fields to monitor</param>
+    /// <param name="data">The data object</param>
+    public static void ResetDataFields(List<string> dataFields, object data)
+    {
+        foreach (string dataField in dataFields)
         {
-            Dictionary<string, string?> dataFieldValues = GetDataFieldValues(dataFields, dataType, updatedData);
-            return CompareDictionaries(currentDataValues, dataFieldValues);
+            string fixedPath = dataField.Replace("-", string.Empty);
+            string[] keys = fixedPath.Split(".");
+            ResetDataField(keys, data);
+        }
+    }
+
+    private static void ResetDataField(string[] keys, object data, int index = 0)
+    {
+        string key = keys[index];
+        Type current = data.GetType();
+        bool isLastKey = (keys.Length - 1) == index;
+
+        PropertyInfo? property = current.GetProperty(
+            key,
+            BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance
+        );
+
+        if (property == null)
+        {
+            return;
         }
 
-        /// <summary>
-        /// Re-sets the listed data fields to their default value in the data object.
-        /// </summary>
-        /// <param name="dataFields">The data fields to monitor</param>
-        /// <param name="data">The data object</param>
-        public static void ResetDataFields(List<string> dataFields, object data)
+        object? propertyValue = property.GetValue(data, null);
+
+        if (propertyValue == null)
         {
-            foreach (string dataField in dataFields)
-            {
-                string fixedPath = dataField.Replace("-", string.Empty);
-                string[] keys = fixedPath.Split(".");
-                ResetDataField(keys, data);
-            }
+            return;
         }
 
-        private static void ResetDataField(string[] keys, object data, int index = 0)
+        if (isLastKey)
         {
-            string key = keys[index];
-            Type current = data.GetType();
-            bool isLastKey = (keys.Length - 1) == index;
-
-            PropertyInfo? property = current.GetProperty(
-                key,
-                BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance
-            );
-
-            if (property == null)
-            {
-                return;
-            }
-
-            object? propertyValue = property.GetValue(data, null);
-
-            if (propertyValue == null)
-            {
-                return;
-            }
-
-            if (isLastKey)
-            {
-                object? defaultValue = property.PropertyType.IsValueType
-                    ? Activator.CreateInstance(property.PropertyType)
-                    : null;
-                property.SetValue(data, defaultValue);
-                return;
-            }
-
-            ResetDataField(keys, propertyValue, index + 1);
+            object? defaultValue = property.PropertyType.IsValueType
+                ? Activator.CreateInstance(property.PropertyType)
+                : null;
+            property.SetValue(data, defaultValue);
+            return;
         }
 
-        /// <summary>
-        /// Retrieves data values from a data object based on a list of data fields.
-        /// </summary>
-        private static Dictionary<string, string?> GetDataFieldValues(
-            List<DataField>? dataFields,
-            string dataType,
-            object data
-        )
+        ResetDataField(keys, propertyValue, index + 1);
+    }
+
+    /// <summary>
+    /// Retrieves data values from a data object based on a list of data fields.
+    /// </summary>
+    private static Dictionary<string, string?> GetDataFieldValues(
+        List<DataField>? dataFields,
+        string dataType,
+        object data
+    )
+    {
+        Dictionary<string, string?> dataFieldValues = new Dictionary<string, string?>();
+
+        if (dataFields == null || !dataFields.Any(pf => pf.DataTypeId == dataType))
         {
-            Dictionary<string, string?> dataFieldValues = new Dictionary<string, string?>();
-
-            if (dataFields == null || !dataFields.Any(pf => pf.DataTypeId == dataType))
-            {
-                return dataFieldValues;
-            }
-
-            foreach (DataField field in dataFields)
-            {
-                if (dataType != field.DataTypeId)
-                {
-                    break;
-                }
-
-                string fixedPath = field.Path.Replace("-", string.Empty);
-                string[] keys = fixedPath.Split(".");
-
-                string? value = GetValueFromDatamodel(keys, data);
-                dataFieldValues.Add(field.Id, value);
-            }
-
             return dataFieldValues;
         }
 
-        /// <summary>
-        /// Compares entries in the new dictionary with the original dictionary.
-        /// </summary>
-        /// <param name="originalDictionary">The original dictionary</param>
-        /// <param name="newDictionary">The updated dictionary</param>
-        /// <returns>A dictionary containing changed and new entries not represented in the original dictionary.</returns>
-        private static Dictionary<string, string?> CompareDictionaries(
-            Dictionary<string, string?>? originalDictionary,
-            Dictionary<string, string?> newDictionary
-        )
+        foreach (DataField field in dataFields)
         {
-            Dictionary<string, string?> updatedValues = new Dictionary<string, string?>();
-
-            if (originalDictionary == null)
+            if (dataType != field.DataTypeId)
             {
-                return newDictionary;
+                break;
             }
 
-            foreach (KeyValuePair<string, string?> entry in newDictionary)
-            {
-                string key = entry.Key;
-                string? value = entry.Value;
+            string fixedPath = field.Path.Replace("-", string.Empty);
+            string[] keys = fixedPath.Split(".");
 
-                if (originalDictionary.TryGetValue(key, out string? originalValue) && originalValue != value)
-                {
-                    updatedValues.Add(key, value);
-                }
-                else if (!originalDictionary.ContainsKey(key))
-                {
-                    updatedValues.Add(key, value);
-                }
-            }
-
-            return updatedValues;
+            string? value = GetValueFromDatamodel(keys, data);
+            dataFieldValues.Add(field.Id, value);
         }
 
-        private static string? GetValueFromDatamodel(string[] keys, object data, int index = 0)
+        return dataFieldValues;
+    }
+
+    /// <summary>
+    /// Compares entries in the new dictionary with the original dictionary.
+    /// </summary>
+    /// <param name="originalDictionary">The original dictionary</param>
+    /// <param name="newDictionary">The updated dictionary</param>
+    /// <returns>A dictionary containing changed and new entries not represented in the original dictionary.</returns>
+    private static Dictionary<string, string?> CompareDictionaries(
+        Dictionary<string, string?>? originalDictionary,
+        Dictionary<string, string?> newDictionary
+    )
+    {
+        Dictionary<string, string?> updatedValues = new Dictionary<string, string?>();
+
+        if (originalDictionary == null)
         {
-            string key = keys[index];
-            bool isLastKey = (keys.Length - 1) == index;
-            Type current = data.GetType();
+            return newDictionary;
+        }
 
-            PropertyInfo? property = current.GetProperty(
-                key,
-                BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance
-            );
+        foreach (KeyValuePair<string, string?> entry in newDictionary)
+        {
+            string key = entry.Key;
+            string? value = entry.Value;
 
-            if (property == null)
+            if (originalDictionary.TryGetValue(key, out string? originalValue) && originalValue != value)
             {
-                string errorMessage =
-                    $"Could not find the field {string.Join(".", keys)}, property {key} is not defined in the data model.";
-                throw new IndexOutOfRangeException(errorMessage);
+                updatedValues.Add(key, value);
+            }
+            else if (!originalDictionary.ContainsKey(key))
+            {
+                updatedValues.Add(key, value);
+            }
+        }
+
+        return updatedValues;
+    }
+
+    private static string? GetValueFromDatamodel(string[] keys, object data, int index = 0)
+    {
+        string key = keys[index];
+        bool isLastKey = (keys.Length - 1) == index;
+        Type current = data.GetType();
+
+        PropertyInfo? property = current.GetProperty(
+            key,
+            BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance
+        );
+
+        if (property == null)
+        {
+            string errorMessage =
+                $"Could not find the field {string.Join(".", keys)}, property {key} is not defined in the data model.";
+            throw new IndexOutOfRangeException(errorMessage);
+        }
+        else
+        {
+            object? propertyValue = property.GetValue(data, null);
+            if (isLastKey)
+            {
+                return propertyValue == null ? null : propertyValue.ToString();
             }
             else
             {
-                object? propertyValue = property.GetValue(data, null);
-                if (isLastKey)
+                // no need to look further down, it is not defined yet.
+                if (propertyValue == null)
                 {
-                    return propertyValue == null ? null : propertyValue.ToString();
+                    return null;
                 }
-                else
-                {
-                    // no need to look further down, it is not defined yet.
-                    if (propertyValue == null)
-                    {
-                        return null;
-                    }
 
-                    // recurivly assign values
-                    return GetValueFromDatamodel(keys, propertyValue, index + 1);
-                }
+                // recurivly assign values
+                return GetValueFromDatamodel(keys, propertyValue, index + 1);
             }
         }
     }

@@ -13,7 +13,6 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
-using Xunit;
 
 namespace Altinn.App.Api.Tests;
 

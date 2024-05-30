@@ -5,9 +5,7 @@ using Altinn.App.Core.Internal.Maskinporten;
 using Altinn.App.Core.Internal.Secrets;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using Moq;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Internal.Maskinporten;
 

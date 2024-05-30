@@ -1,51 +1,51 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
-		<Nullable>enable</Nullable>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<IsPackable>false</IsPackable>
-	</PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="FluentAssertions" Version="6.12.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.4" />
-		<PackageReference Include="Microsoft.AspNetCore.TestHost" Version="8.0.4" />
-		<PackageReference Include="Microsoft.Extensions.Diagnostics.Testing" Version="8.4.0" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
-		<PackageReference Include="Moq" Version="4.20.70" />
-		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
-		<PackageReference Include="xunit" Version="2.8.0" />
-		<PackageReference Include="xunit.runner.visualstudio" Version="2.8.0">
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-			<PrivateAssets>all</PrivateAssets>
-		</PackageReference>
-		<PackageReference Include="coverlet.collector" Version="6.0.2">
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-			<PrivateAssets>all</PrivateAssets>
-		</PackageReference>
-	</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FluentAssertions" Version="6.12.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="8.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.Testing" Version="8.4.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageReference Include="Moq" Version="4.20.70" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    <PackageReference Include="xunit" Version="2.8.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector" Version="6.0.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\..\src\Altinn.App.Api\Altinn.App.Api.csproj" />
-		<ProjectReference Include="..\Altinn.App.Common.Tests\Altinn.App.Common.Tests.csproj" />
-	</ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Altinn.App.Api\Altinn.App.Api.csproj" />
+    <ProjectReference Include="..\Altinn.App.Common.Tests\Altinn.App.Common.Tests.csproj" />
+  </ItemGroup>
 
-	<ItemGroup>
-		<None Include="TestResources/**">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<LinkBase>/</LinkBase>
-			<Link>/%(RecursiveDir)%(Filename)%(Extension)</Link>
-		</None>
-	</ItemGroup>
+  <ItemGroup>
+    <None Include="TestResources/**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <LinkBase>/</LinkBase>
+      <Link>/%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </None>
+  </ItemGroup>
 
-	<ItemGroup>
-		<None Update="jwtselfsignedcert.pfx">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="JWTValidationCert.cer">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Include="C:\dev\nugets\app-lib-dotnet\test\Altinn.App.Api.Tests\.editorconfig" />
-	</ItemGroup>
+  <ItemGroup>
+    <None Update="jwtselfsignedcert.pfx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="JWTValidationCert.cer">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="C:\dev\nugets\app-lib-dotnet\test\Altinn.App.Api.Tests\.editorconfig" />
+  </ItemGroup>
 </Project>

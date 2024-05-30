@@ -3,7 +3,6 @@ using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Tests.Implementation.TestData.AppDataModel;
-using Xunit;
 
 namespace Altinn.App.PlatformServices.Tests.Helpers;
 

@@ -10,14 +10,14 @@ partial class Telemetry
 {
     internal Activity? StartGetPartyListActivity(int userId)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.GetPartyList");
+        var activity = ActivitySource.StartActivity($"{Prefix}.GetPartyList");
         activity?.SetUserId(userId);
         return activity;
     }
 
     internal Activity? StartValidateSelectedPartyActivity(int userId, int partyId)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.ValidateSelectedParty");
+        var activity = ActivitySource.StartActivity($"{Prefix}.ValidateSelectedParty");
         activity?.SetUserId(userId);
         activity?.SetInstanceOwnerPartyId(partyId);
         return activity;
@@ -29,7 +29,7 @@ partial class Telemetry
         string? taskId = null
     )
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.AuthorizeAction");
+        var activity = ActivitySource.StartActivity($"{Prefix}.AuthorizeAction");
 
         activity?.SetInstanceId(instanceIdentifier.InstanceGuid);
         activity?.SetInstanceOwnerPartyId(instanceIdentifier.InstanceOwnerPartyId);
@@ -43,7 +43,7 @@ partial class Telemetry
         List<AltinnAction> actions
     )
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.AuthorizeActions");
+        var activity = ActivitySource.StartActivity($"{Prefix}.AuthorizeActions");
         if (activity is not null)
         {
             activity.SetInstanceId(instance);
@@ -67,7 +67,7 @@ partial class Telemetry
         string action
     )
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.IsAuthorizerForTaskAndAction");
+        var activity = ActivitySource.StartActivity($"{Prefix}.IsAuthorizerForTaskAndAction");
         if (activity is not null)
         {
             activity.SetTaskId(taskId);
@@ -82,6 +82,6 @@ partial class Telemetry
 
     internal static class AuthorizationService
     {
-        internal const string _prefix = "Authorization.Service";
+        internal const string Prefix = "Authorization.Service";
     }
 }

@@ -35,28 +35,28 @@ partial class Telemetry
 
     internal Activity? StartProcessStartActivity(Instance instance)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.Start");
+        var activity = ActivitySource.StartActivity($"{Prefix}.Start");
         activity?.SetInstanceId(instance);
         return activity;
     }
 
     internal Activity? StartProcessNextActivity(Instance instance)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.Next");
+        var activity = ActivitySource.StartActivity($"{Prefix}.Next");
         activity?.SetInstanceId(instance);
         return activity;
     }
 
     internal Activity? StartProcessEndActivity(Instance instance)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.End");
+        var activity = ActivitySource.StartActivity($"{Prefix}.End");
         activity?.SetInstanceId(instance);
         return activity;
     }
 
     internal static class Processes
     {
-        internal const string _prefix = "Process";
+        internal const string Prefix = "Process";
 
         internal static readonly string MetricNameProcessesStarted = Metrics.CreateLibName("processes_started");
         internal static readonly string MetricNameProcessesEnded = Metrics.CreateLibName("processes_ended");

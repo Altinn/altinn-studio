@@ -8,14 +8,14 @@ partial class Telemetry
 {
     internal Activity? StartInsertFormDataActivity(Instance? instance)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.InsertFormData");
+        var activity = ActivitySource.StartActivity($"{Prefix}.InsertFormData");
         activity?.SetInstanceId(instance);
         return activity;
     }
 
     internal Activity? StartInsertFormDataActivity(Guid? instanceId, int? partyId)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.InsertFormData");
+        var activity = ActivitySource.StartActivity($"{Prefix}.InsertFormData");
         activity?.SetInstanceId(instanceId);
         activity?.SetInstanceOwnerPartyId(partyId);
         return activity;
@@ -23,7 +23,7 @@ partial class Telemetry
 
     internal Activity? StartUpdateDataActivity(Guid? instanceId, int? partyId)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.UpdateData");
+        var activity = ActivitySource.StartActivity($"{Prefix}.UpdateData");
         activity?.SetInstanceId(instanceId);
         activity?.SetInstanceOwnerPartyId(partyId);
         return activity;
@@ -31,7 +31,7 @@ partial class Telemetry
 
     internal Activity? StartGetBinaryDataActivity(Guid? instanceId, int? partyId)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.GetBinaryData");
+        var activity = ActivitySource.StartActivity($"{Prefix}.GetBinaryData");
         activity?.SetInstanceId(instanceId);
         activity?.SetInstanceOwnerPartyId(partyId);
         return activity;
@@ -39,7 +39,7 @@ partial class Telemetry
 
     internal Activity? StartGetBinaryDataListActivity(Guid? instanceId, int? partyId)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.GetBinaryDataList");
+        var activity = ActivitySource.StartActivity($"{Prefix}.GetBinaryDataList");
         activity?.SetInstanceId(instanceId);
         activity?.SetInstanceOwnerPartyId(partyId);
         return activity;
@@ -47,7 +47,7 @@ partial class Telemetry
 
     internal Activity? StartDeleteBinaryDataActivity(Guid? instanceId, int? partyId)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.DeleteBinaryData");
+        var activity = ActivitySource.StartActivity($"{Prefix}.DeleteBinaryData");
         activity?.SetInstanceId(instanceId);
         activity?.SetInstanceOwnerPartyId(partyId);
         return activity;
@@ -55,7 +55,7 @@ partial class Telemetry
 
     internal Activity? StartInsertBinaryDataActivity(Guid? instanceId, int? partyId)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.InsertBinaryData");
+        var activity = ActivitySource.StartActivity($"{Prefix}.InsertBinaryData");
         activity?.SetInstanceId(instanceId);
         activity?.SetInstanceOwnerPartyId(partyId);
         return activity;
@@ -63,14 +63,14 @@ partial class Telemetry
 
     internal Activity? StartInsertBinaryDataActivity(string? instanceId)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.InsertBinaryData");
+        var activity = ActivitySource.StartActivity($"{Prefix}.InsertBinaryData");
         activity?.SetInstanceId(instanceId);
         return activity;
     }
 
     internal Activity? StartUpdateBinaryDataActivity(Guid? instanceId, int? partyId)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.UpdateBinaryData");
+        var activity = ActivitySource.StartActivity($"{Prefix}.UpdateBinaryData");
         activity?.SetInstanceId(instanceId);
         activity?.SetInstanceOwnerPartyId(partyId);
         return activity;
@@ -78,21 +78,21 @@ partial class Telemetry
 
     internal Activity? StartUpdateBinaryDataActivity(string? instanceId)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.UpdateBinaryData");
+        var activity = ActivitySource.StartActivity($"{Prefix}.UpdateBinaryData");
         activity?.SetInstanceId(instanceId);
         return activity;
     }
 
     internal Activity? StartUpdateDataActivity(Instance? instance)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.UpdateData");
+        var activity = ActivitySource.StartActivity($"{Prefix}.UpdateData");
         activity?.SetInstanceId(instance);
         return activity;
     }
 
     internal Activity? StartDeleteDataActivity(Guid? instanceId, int? partyId)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.DeleteData");
+        var activity = ActivitySource.StartActivity($"{Prefix}.DeleteData");
         activity?.SetInstanceId(instanceId);
         activity?.SetInstanceOwnerPartyId(partyId);
         return activity;
@@ -100,7 +100,7 @@ partial class Telemetry
 
     internal Activity? StartGetFormDataActivity(Guid? instanceId, int? partyId)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.GetFormData");
+        var activity = ActivitySource.StartActivity($"{Prefix}.GetFormData");
         activity?.SetInstanceId(instanceId);
         activity?.SetInstanceOwnerPartyId(partyId);
         return activity;
@@ -108,7 +108,7 @@ partial class Telemetry
 
     internal Activity? StartLockDataElementActivity(string? instanceId, Guid? dataGuid)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.LockDataElement");
+        var activity = ActivitySource.StartActivity($"{Prefix}.LockDataElement");
         activity?.SetInstanceId(instanceId);
         activity?.SetDataElementId(dataGuid);
         return activity;
@@ -116,7 +116,7 @@ partial class Telemetry
 
     internal Activity? StartUnlockDataElementActivity(string? instanceId, Guid? dataGuid)
     {
-        var activity = ActivitySource.StartActivity($"{_prefix}.UnlockDataElement");
+        var activity = ActivitySource.StartActivity($"{Prefix}.UnlockDataElement");
         activity?.SetInstanceId(instanceId);
         activity?.SetDataElementId(dataGuid);
         return activity;
@@ -124,6 +124,6 @@ partial class Telemetry
 
     internal static class DataClient
     {
-        internal const string _prefix = "DataClient";
+        internal const string Prefix = "DataClient";
     }
 }

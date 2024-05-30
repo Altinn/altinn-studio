@@ -2,7 +2,6 @@ namespace Altinn.App.Api.Tests.Utils;
 
 using System.Text;
 using System.Text.Json;
-using System.Text.Unicode;
 
 public static class JsonUtils
 {

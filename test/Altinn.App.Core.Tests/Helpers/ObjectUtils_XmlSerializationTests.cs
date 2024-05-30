@@ -9,7 +9,6 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 using Xunit.Abstractions;
 
 // ReSharper disable InconsistentNaming

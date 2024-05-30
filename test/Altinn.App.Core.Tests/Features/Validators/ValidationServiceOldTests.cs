@@ -14,7 +14,6 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Features.Validators;
 

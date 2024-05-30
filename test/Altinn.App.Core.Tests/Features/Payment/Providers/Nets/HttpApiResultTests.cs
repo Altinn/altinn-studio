@@ -1,6 +1,5 @@
 using System.Net;
 using Altinn.App.Core.Features.Payment.Processors.Nets.Models;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Features.Payment.Providers.Nets;
 

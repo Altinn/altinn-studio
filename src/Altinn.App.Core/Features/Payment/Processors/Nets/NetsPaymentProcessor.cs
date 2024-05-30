@@ -1,4 +1,3 @@
-using System.Web;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Payment.Exceptions;
 using Altinn.App.Core.Features.Payment.Models;

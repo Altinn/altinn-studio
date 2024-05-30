@@ -1,51 +1,50 @@
 using System.Net;
 
-namespace Altinn.App.PlatformServices.Tests.Mocks
+namespace Altinn.App.PlatformServices.Tests.Mocks;
+
+public class RequestInterceptor : DelegatingHandler
 {
-    public class RequestInterceptor : DelegatingHandler
+    private HttpRequestMessage? _request;
+
+    private readonly HttpResponseMessage _response;
+
+    public RequestInterceptor(HttpStatusCode responseCode, Stream responseContent)
     {
-        private HttpRequestMessage? _request;
+        StreamContent streamContent = new StreamContent(responseContent);
+        _response = new HttpResponseMessage(responseCode) { Content = streamContent };
+    }
 
-        private readonly HttpResponseMessage _response;
+    protected override Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken
+    )
+    {
+        _request = request;
+        return Task.FromResult(_response);
+    }
 
-        public RequestInterceptor(HttpStatusCode responseCode, Stream responseContent)
+    /// <summary>
+    /// Ensures that the request body is serialized.
+    /// </summary>
+    /// <returns>A stringified version of the request body.</returns>
+    public async Task<string> GetRequestContentAsStringAsync()
+    {
+        if (_request is null)
         {
-            StreamContent streamContent = new StreamContent(responseContent);
-            _response = new HttpResponseMessage(responseCode) { Content = streamContent };
+            throw new RequestInterceptorException("No request has been captured.");
         }
 
-        protected override Task<HttpResponseMessage> SendAsync(
-            HttpRequestMessage request,
-            CancellationToken cancellationToken
-        )
+        if (_request.Method != HttpMethod.Post)
         {
-            _request = request;
-            return Task.FromResult(_response);
+            throw new RequestInterceptorException("Only POST requests are assumed to have request body");
         }
 
-        /// <summary>
-        /// Ensures that the request body is serialized.
-        /// </summary>
-        /// <returns>A stringified version of the request body.</returns>
-        public async Task<string> GetRequestContentAsStringAsync()
-        {
-            if (_request is null)
-            {
-                throw new RequestInterceptorException("No request has been captured.");
-            }
+        return await _request.Content!.ReadAsStringAsync();
+    }
 
-            if (_request.Method != HttpMethod.Post)
-            {
-                throw new RequestInterceptorException("Only POST requests are assumed to have request body");
-            }
-
-            return await _request.Content!.ReadAsStringAsync();
-        }
-
-        internal class RequestInterceptorException : Exception
-        {
-            internal RequestInterceptorException(string? message)
-                : base(message) { }
-        }
+    internal class RequestInterceptorException : Exception
+    {
+        internal RequestInterceptorException(string? message)
+            : base(message) { }
     }
 }

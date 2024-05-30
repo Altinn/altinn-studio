@@ -2,55 +2,54 @@ using Altinn.App.Core.Internal.App;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Altinn.App.Api.Controllers
+namespace Altinn.App.Api.Controllers;
+
+/// <summary>
+/// Represents the Text resources API giving access to texts in different languages.
+/// </summary>
+[Route("{org}/{app}/api/v1/texts/{language}")]
+public class TextsController : ControllerBase
 {
+    private readonly IAppResources _appResources;
+
     /// <summary>
-    /// Represents the Text resources API giving access to texts in different languages.
+    /// Initializes a new instance of the <see cref="TextsController"/> class.
     /// </summary>
-    [Route("{org}/{app}/api/v1/texts/{language}")]
-    public class TextsController : ControllerBase
+    /// <param name="appResources">A service with access to text resources.</param>
+    public TextsController(IAppResources appResources)
     {
-        private readonly IAppResources _appResources;
+        _appResources = appResources;
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TextsController"/> class.
-        /// </summary>
-        /// <param name="appResources">A service with access to text resources.</param>
-        public TextsController(IAppResources appResources)
+    /// <summary>
+    /// Method to retrieve text resources
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="language">The text language to use.</param>
+    /// <returns>The text resource file content or 404</returns>
+    [HttpGet]
+    public async Task<ActionResult<TextResource>> Get(string org, string app, [FromRoute] string language)
+    {
+        if (!string.IsNullOrEmpty(language) && language.Length != 2)
         {
-            _appResources = appResources;
+            return BadRequest(
+                $"Provided language {language} is invalid. Language code should consists of two characters."
+            );
         }
 
-        /// <summary>
-        /// Method to retrieve text resources
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="language">The text language to use.</param>
-        /// <returns>The text resource file content or 404</returns>
-        [HttpGet]
-        public async Task<ActionResult<TextResource>> Get(string org, string app, [FromRoute] string language)
+        TextResource? textResource = await _appResources.GetTexts(org, app, language);
+
+        if (textResource == null && language != "nb")
         {
-            if (!string.IsNullOrEmpty(language) && language.Length != 2)
-            {
-                return BadRequest(
-                    $"Provided language {language} is invalid. Language code should consists of two characters."
-                );
-            }
-
-            TextResource? textResource = await _appResources.GetTexts(org, app, language);
-
-            if (textResource == null && language != "nb")
-            {
-                textResource = await _appResources.GetTexts(org, app, "nb");
-            }
-
-            if (textResource == null)
-            {
-                return NotFound();
-            }
-
-            return textResource;
+            textResource = await _appResources.GetTexts(org, app, "nb");
         }
+
+        if (textResource == null)
+        {
+            return NotFound();
+        }
+
+        return textResource;
     }
 }

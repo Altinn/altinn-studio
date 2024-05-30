@@ -1,13 +1,12 @@
-namespace Altinn.App.Core.Models
+namespace Altinn.App.Core.Models;
+
+/// <summary>
+/// UI Components
+/// </summary>
+public class Components
 {
     /// <summary>
-    /// UI Components
+    /// Exclude from pdf
     /// </summary>
-    public class Components
-    {
-        /// <summary>
-        /// Exclude from pdf
-        /// </summary>
-        public List<string>? ExcludeFromPdf { get; set; }
-    }
+    public List<string>? ExcludeFromPdf { get; set; }
 }

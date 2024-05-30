@@ -1,14 +1,13 @@
-namespace Altinn.App.Core.Internal.Auth
+namespace Altinn.App.Core.Internal.Auth;
+
+/// <summary>
+/// Authentication interface.
+/// </summary>
+public interface IAuthenticationClient
 {
     /// <summary>
-    /// Authentication interface.
+    /// Refreshes the AltinnStudioRuntime JwtToken.
     /// </summary>
-    public interface IAuthenticationClient
-    {
-        /// <summary>
-        /// Refreshes the AltinnStudioRuntime JwtToken.
-        /// </summary>
-        /// <returns>Response message from Altinn Platform with refreshed token.</returns>
-        Task<string> RefreshToken();
-    }
+    /// <returns>Response message from Altinn Platform with refreshed token.</returns>
+    Task<string> RefreshToken();
 }

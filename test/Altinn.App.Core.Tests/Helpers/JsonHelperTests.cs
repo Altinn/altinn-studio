@@ -5,7 +5,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Helpers;
 

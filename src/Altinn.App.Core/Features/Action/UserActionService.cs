@@ -1,5 +1,3 @@
-using Altinn.App.Core.Internal;
-
 namespace Altinn.App.Core.Features.Action;
 
 /// <summary>

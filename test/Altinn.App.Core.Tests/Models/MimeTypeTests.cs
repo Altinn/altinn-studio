@@ -2,7 +2,6 @@
 using Altinn.App.Core.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Primitives;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Models;
 

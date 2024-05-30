@@ -2,26 +2,16 @@
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Features.Payment.Services;
-using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
-using Altinn.App.Core.Internal.Profile;
-using Altinn.App.Core.Internal.Sign;
-using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.UserAction;
 using Altinn.App.Core.Tests.Internal.Process.TestUtils;
-using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Json.Patch;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
-using Xunit;
-using Signee = Altinn.App.Core.Internal.Sign.Signee;
 
 namespace Altinn.App.Core.Tests.Features.Action;
 

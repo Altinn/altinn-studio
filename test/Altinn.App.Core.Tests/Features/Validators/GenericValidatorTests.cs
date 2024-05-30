@@ -3,7 +3,6 @@ using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Features.Validators;
 
