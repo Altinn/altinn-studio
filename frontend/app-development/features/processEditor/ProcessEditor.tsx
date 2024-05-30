@@ -140,7 +140,7 @@ export const ProcessEditor = (): React.ReactElement => {
   // TODO: Handle error will be handled better after issue #10735 is resolved
   return (
     <ProcessEditorImpl
-      availableDataTypeIds={appMetadata.dataTypes.map((dataType) => dataType.id)}
+      availableDataTypeIds={appMetadata?.dataTypes?.map((dataType) => dataType.id)}
       availableDataModelIds={availableDataModelIds}
       layoutSets={layoutSets}
       pendingApiOperations={pendingApiOperations}
