@@ -1,17 +1,17 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import type { BpmnApiContextProps } from '../../../../contexts/BpmnApiContext';
-import { BpmnApiContext } from '../../../../contexts/BpmnApiContext';
-import type { BpmnContextProps } from '../../../../contexts/BpmnContext';
-import { BpmnContext } from '../../../../contexts/BpmnContext';
-import type { BpmnDetails } from '../../../../types/BpmnDetails';
-import { BpmnTypeEnum } from '../../../../enum/BpmnTypeEnum';
+import type { BpmnApiContextProps } from '../../../contexts/BpmnApiContext';
+import { BpmnApiContext } from '../../../contexts/BpmnApiContext';
+import type { BpmnContextProps } from '../../../contexts/BpmnContext';
+import { BpmnContext } from '../../../contexts/BpmnContext';
+import type { BpmnDetails } from '../../../types/BpmnDetails';
+import { BpmnTypeEnum } from '../../../enum/BpmnTypeEnum';
 import type Modeler from 'bpmn-js/lib/Modeler';
 import type { SelectDataTypesToSignProps } from './SelectDataTypesToSign';
 import { SelectDataTypesToSign } from './SelectDataTypesToSign';
-import { BpmnConfigPanelFormContextProvider } from '../../../../contexts/BpmnConfigPanelContext';
+import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
 
 const mockTaskId: string = 'testId';
 const mockName: string = 'testName';
@@ -143,14 +143,14 @@ describe('SelectDataType', () => {
 });
 
 const renderEditDataType = (
-  props: Partial<SelectDataTypeToSignProps> = {},
+  props: Partial<SelectDataTypesToSignProps> = {},
   bpmnApiContextProps: Partial<BpmnApiContextProps> = {},
 ) => {
   return render(
     <BpmnApiContext.Provider value={{ ...bpmnApiContextProps }}>
       <BpmnContext.Provider value={{ ...mockBpmnContextValue }}>
         <BpmnConfigPanelFormContextProvider>
-          <SelectDataTypeToSign {...defaultSelectDataTypeProps} {...props} />
+          <SelectDataTypesToSign {...defaultSelectDataTypeProps} {...props} />
         </BpmnConfigPanelFormContextProvider>
       </BpmnContext.Provider>
     </BpmnApiContext.Provider>,

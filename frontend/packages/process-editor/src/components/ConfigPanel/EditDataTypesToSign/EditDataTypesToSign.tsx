@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useBpmnContext } from '../../../../contexts/BpmnContext';
+import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { LinkIcon } from '@studio/icons';
@@ -10,10 +10,10 @@ import { getExistingDataTypes } from './DataTypesToSignUtils';
 export const EditDataTypesToSign = () => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
-  const [dataModelSelectVisible, setDataModelSelectVisible] = useState(false);
+  const [dataTypesToSignSelectVisible, setDataTypesToSignSelectVisible] = useState(false);
 
   useEffect(() => {
-    setDataModelSelectVisible(false);
+    setDataTypesToSignSelectVisible(false);
   }, [bpmnDetails]);
 
   const existingDataTypes = getExistingDataTypes(bpmnDetails);
@@ -30,24 +30,22 @@ export const EditDataTypesToSign = () => {
 
   return (
     <>
-      {!existingDataTypes.length && !dataModelSelectVisible ? (
+      {!existingDataTypes.length && !dataTypesToSignSelectVisible ? (
         <StudioProperty.Button
-          onClick={() => setDataModelSelectVisible(true)}
+          onClick={() => setDataTypesToSignSelectVisible(true)}
           property={t('process_editor.configuration_panel_set_data_types_to_sign_link')}
           size='small'
           icon={<LinkIcon />}
-          className={classes.datamodelUndefined}
         />
-      ) : dataModelSelectVisible ? (
-        <SelectDataTypesToSign onClose={() => setDataModelSelectVisible(false)} />
+      ) : dataTypesToSignSelectVisible ? (
+        <SelectDataTypesToSign onClose={() => setDataTypesToSignSelectVisible(false)} />
       ) : (
         <StudioProperty.Button
           aria-label={t('process_editor.configuration_panel_set_data_types_to_sign')}
-          onClick={() => setDataModelSelectVisible(true)}
+          onClick={() => setDataTypesToSignSelectVisible(true)}
           property={t('process_editor.configuration_panel_set_data_types_to_sign')}
           title={t('process_editor.configuration_panel_set_data_types_to_sign')}
           value={definedValueWithLinkIcon}
-          className={classes.datamodelDefined}
         />
       )}
     </>

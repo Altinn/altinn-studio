@@ -7,7 +7,7 @@ import classes from './SelectDataTypesToSign.module.css';
 import { useAppMetadataQuery } from 'app-development/hooks/queries';
 import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useBpmnContext } from '@altinn/process-editor/contexts/BpmnContext';
-import { updateDataTypes, getExistingDataTypes } from './DataTypesToSignUtils';
+import { updateDataTypes, getExistingDataTypes } from '../DataTypesToSignUtils';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';

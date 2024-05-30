@@ -1,7 +1,7 @@
 import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
-import type { BpmnDetails } from '../../../../types/BpmnDetails';
+import type { BpmnDetails } from '../../../types/BpmnDetails';
 
 export const updateDataTypes = (
   bpmnFactory: BpmnFactory,
@@ -35,10 +35,10 @@ const updateDataTypesToSign = (
   );
 };
 
-export const getExistingDataTypes = (bpmnDetails: BpmnDetails) => {
+export const getExistingDataTypes = (bpmnDetails: BpmnDetails): string[] => {
   return (
     bpmnDetails.element.businessObject.extensionElements.values[0].signatureConfig?.dataTypesToSign?.dataTypes?.map(
-      (element) => element.dataType,
+      (element: ModdleElement) => element.dataType,
     ) || []
   );
 };
