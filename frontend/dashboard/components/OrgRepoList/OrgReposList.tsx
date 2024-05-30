@@ -49,7 +49,7 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
         isLoading={isLoadingSearchResults || areStarredReposPending}
         onPageSizeChange={setPageSize}
         isServerSort={true}
-        rowCount={searchResults?.totalCount ?? 0}
+        totalRows={searchResults?.totalCount ?? 0}
         onPageChange={setPageNumber}
         onSortModelChange={setSortModel}
         sortModel={sortModel}

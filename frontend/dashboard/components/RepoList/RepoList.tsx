@@ -19,7 +19,7 @@ export interface RepoListProps {
   isServerSort?: boolean;
   pageSize?: DATAGRID_PAGE_SIZE_TYPE;
   pageNumber: number;
-  rowCount: number;
+  totalRows: number;
   onPageChange?: (page: number) => void;
   onSortModelChange?: (newSortModel: GridSortModel) => void;
   onPageSizeChange?: (newPageSize: DATAGRID_PAGE_SIZE_TYPE) => void;
@@ -35,7 +35,7 @@ export const RepoList = ({
   pageSize = DATAGRID_DEFAULT_PAGE_SIZE,
   pageNumber,
   isServerSort = false,
-  rowCount,
+  totalRows,
   onPageChange,
   onPageSizeChange,
   pageSizeOptions = DATAGRID_PAGE_SIZE_OPTIONS,
@@ -49,7 +49,6 @@ export const RepoList = ({
       value: '',
       sortable: false,
       headerCellClass: classes.favoriteIconHeaderCell,
-      bodyCellsClass: classes.favoriteIconBodyCells,
     },
     {
       accessor: 'name',
@@ -99,15 +98,16 @@ export const RepoList = ({
     actionIcons: <ActionLinks repo={repo} />,
   }));
 
-  const emptyTableMessage = isLoading ? (
+  const remoteEmptyTableMessage = isLoading ? (
     <StudioSpinner spinnerTitle={t('general.loading')} />
   ) : (
     t('dashboard.no_repos_result')
   );
 
-  const paginationProps = {
+  const remotePaginationProps = {
     currentPage: pageNumber + 1,
-    totalPages: Math.ceil(rowCount / pageSize),
+    totalRows,
+    totalPages: Math.ceil(totalRows / pageSize),
     pageSize,
     pageSizeOptions,
     pageSizeLabel: t('dashboard.rows_per_page'),
@@ -118,6 +118,12 @@ export const RepoList = ({
     itemLabel: (num: number) => `${t('general.page')} ${num}`,
   };
 
+  const localPaginationProps = {
+    ...remotePaginationProps,
+    // pageSize: DATAGRID_PAGE_SIZE_OPTIONS[0],
+    pageSizeOptions: DATAGRID_PAGE_SIZE_OPTIONS,
+  };
+
   return (
     <div>
       {isServerSort ? (
@@ -126,8 +132,8 @@ export const RepoList = ({
             columns={remotePaginationColumns}
             rows={rows}
             size='small'
-            emptyTableMessage={emptyTableMessage}
-            pagination={paginationProps}
+            emptyTableMessage={remoteEmptyTableMessage}
+            pagination={remotePaginationProps}
             onSortClick={onSortClick}
           />
         </>
@@ -137,14 +143,7 @@ export const RepoList = ({
           rows={rows}
           size='small'
           emptyTableMessage={t('dashboard.no_repos_result')}
-          pagination={{
-            pageSize: DATAGRID_PAGE_SIZE_OPTIONS[0],
-            pageSizeOptions: DATAGRID_PAGE_SIZE_OPTIONS,
-            pageSizeLabel: t('dashboard.rows_per_page'),
-            nextButtonText: t('ux_editor.modal_properties_button_type_next'),
-            previousButtonText: t('ux_editor.modal_properties_button_type_back'),
-            itemLabel: (num: number) => `${t('general.page')} ${num}`,
-          }}
+          pagination={localPaginationProps}
         />
       )}
     </div>

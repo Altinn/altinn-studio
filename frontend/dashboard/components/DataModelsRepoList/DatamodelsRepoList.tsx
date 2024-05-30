@@ -50,7 +50,7 @@ export const DatamodelsReposList = ({ user, organizations }: DataModelsReposList
       <RepoList
         repos={reposWithStarred}
         isLoading={isPendingOrgRepos || areStarredReposPending}
-        rowCount={2}
+        totalRows={2}
         pageSizeOptions={[DATAGRID_DEFAULT_PAGE_SIZE]}
         pageNumber={1}
       />

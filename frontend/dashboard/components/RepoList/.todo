@@ -7,3 +7,4 @@ DONE Add isLoading state to the local table
 6. Fix possible bug where number of items in the table is max 50. Not sure if this applies to the new table -- https://github.com/Altinn/altinn-studio/issues/12749
 DONE Fix sorting for search result table
 8. Remove pagination dropdown when number of rows is less than smallest page size
+9. Add links to edit app and view repo

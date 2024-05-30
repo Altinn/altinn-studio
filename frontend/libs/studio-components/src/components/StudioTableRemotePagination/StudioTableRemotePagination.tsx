@@ -23,6 +23,7 @@ export type Rows = (Record<string, React.ReactNode> & Record<'id', string | numb
 export type PaginationProps = {
   currentPage: number;
   totalPages: number;
+  totalRows: number;
   pageSize: number;
   pageSizeOptions: number[];
   pageSizeLabel: string;
@@ -53,6 +54,7 @@ export const StudioTableRemotePagination = forwardRef<
     const {
       currentPage,
       totalPages,
+      totalRows,
       pageSize,
       pageSizeOptions,
       pageSizeLabel,
@@ -67,7 +69,7 @@ export const StudioTableRemotePagination = forwardRef<
     const isPaginationActive = pagination && rows.length > 0;
 
     const labelId = useId();
-    const labelSize = resizeLabelMap[size];
+    // const labelSize = resizeLabelMap[size];
 
     return (
       <div className={classes.componentContainer}>
@@ -105,11 +107,15 @@ export const StudioTableRemotePagination = forwardRef<
         )}
         {isPaginationActive && (
           <div className={classes.paginationContainer}>
-            <div className={classes.selectorContainer}>
+            <div className={classes.selectContainer}>
+              <Label htmlFor={labelId} size={size} className={classes.selectLabel}>
+                {pageSizeLabel}
+              </Label>
               <NativeSelect
                 id={labelId}
-                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
                 size={size}
+                className={classes.select}
+                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
               >
                 {pageSizeOptions.map((pageSizeOption) => (
                   <option
@@ -121,9 +127,9 @@ export const StudioTableRemotePagination = forwardRef<
                   </option>
                 ))}
               </NativeSelect>
-              <Label htmlFor={labelId} size={labelSize} className={classes.label}>
-                {pageSizeLabel}
-              </Label>
+              <Paragraph size={size} className={classes.pageInfo}>
+                Viser rad 1-5 av {totalRows}
+              </Paragraph>
             </div>
             {totalPages > 1 && (
               <Pagination

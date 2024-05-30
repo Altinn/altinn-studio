@@ -36,7 +36,7 @@ export const SearchResultReposList = ({ searchValue }: SearchResultReposList) =>
         isLoading={isLoadingSearchResults || areStarredReposPending}
         onPageSizeChange={setPageSize}
         isServerSort={true}
-        rowCount={searchResults?.totalCount}
+        totalRows={searchResults?.totalCount}
         pageNumber={pageNumber}
         onPageChange={setPageNumber}
         onSortModelChange={setSortModel}

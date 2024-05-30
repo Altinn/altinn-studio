@@ -55,6 +55,7 @@ export const StudioTableLocalPagination = forwardRef<
       ...pagination,
       currentPage,
       totalPages,
+      totalRows: rows.length,
       onPageChange: setCurrentPage,
       onPageSizeChange: setPageSize,
     };

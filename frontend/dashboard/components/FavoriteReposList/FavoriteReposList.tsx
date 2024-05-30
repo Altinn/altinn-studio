@@ -18,7 +18,7 @@ export const FavoriteReposList = () => {
         pageNumber={1}
         repos={userStarredRepos}
         isLoading={areUserStarredReposPending}
-        rowCount={userStarredRepos?.length ?? 0}
+        totalRows={userStarredRepos?.length ?? 0}
         pageSizeOptions={[DATAGRID_DEFAULT_PAGE_SIZE]}
       />
     </div>
