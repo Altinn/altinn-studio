@@ -1,0 +1,96 @@
+import React, { useState } from 'react';
+import classes from './RemoveChangesPopoverContent.module.css';
+import { Heading, Paragraph } from '@digdir/design-system-react';
+import { StudioTextfield, StudioButton, StudioSpinner } from '@studio/components';
+import { useTranslation, Trans } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useResetRepositoryMutation } from '../../../hooks/mutations/useResetRepositoryMutation';
+import { toast } from 'react-toastify';
+
+export type RemoveChangesPopoverContentProps = {
+  repositoryName: string;
+  onClose: () => void;
+};
+
+export const RemoveChangesPopoverContent = ({
+  repositoryName,
+  onClose,
+}: RemoveChangesPopoverContentProps) => {
+  const { t } = useTranslation();
+  const { org } = useStudioEnvironmentParams();
+
+  const queryClient = useQueryClient();
+  const repoResetMutation = useResetRepositoryMutation(org, repositoryName);
+
+  const [canDelete, setCanDelete] = useState<boolean>(false);
+
+  const handleOnKeypressEnter = (event: any) => {
+    if (event.key === 'Enter' && canDelete) {
+      onResetWrapper();
+    }
+  };
+
+  const onResetWrapper = () => {
+    setCanDelete(false);
+    repoResetMutation.mutate(undefined, {
+      onSuccess: () => {
+        toast.success(t('overview.reset_repo_completed'));
+        queryClient.removeQueries();
+        onCloseWrapper();
+      },
+    });
+  };
+
+  const onCloseWrapper = () => {
+    repoResetMutation.reset();
+    onClose();
+  };
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const name: string = event.target.value;
+    setCanDelete(name === repositoryName);
+  };
+
+  return (
+    <div className={classes.wrapper}>
+      <Heading level={2} size='small' spacing>
+        {t('overview.reset_repo_confirm_heading')}
+      </Heading>
+      <Paragraph size='small' spacing>
+        <Trans
+          i18nKey={'overview.reset_repo_confirm_info'}
+          values={{ repositoryName }}
+          components={{ bold: <strong /> }}
+        />
+      </Paragraph>
+      <StudioTextfield
+        label={t('overview.reset_repo_confirm_repo_name')}
+        onChange={handleChange}
+        autoFocus
+        onKeyUp={handleOnKeypressEnter}
+        size='small'
+      />
+      {repoResetMutation.isPending && (
+        <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.reset_repo_loading')} />
+      )}
+      {!repoResetMutation.isPending && (
+        <div className={classes.buttonContainer}>
+          <StudioButton
+            color='danger'
+            disabled={!canDelete}
+            id='confirm-reset-repo-button'
+            onClick={onResetWrapper}
+            variant='secondary'
+            size='small'
+          >
+            {t('overview.reset_repo_button')}
+          </StudioButton>
+          <StudioButton color='second' onClick={onCloseWrapper} variant='secondary' size='small'>
+            {t('general.cancel')}
+          </StudioButton>
+        </div>
+      )}
+    </div>
+  );
+};

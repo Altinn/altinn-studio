@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import classes from './RepoModal.module.css';
 import { StudioButton, StudioSpinner } from '@studio/components';
 import { Textfield } from '@digdir/design-system-react';
-import { Popover } from '@mui/material';
+// import { Popover } from '@mui/material';
 import { useTranslation, Trans } from 'react-i18next';
 import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
-import { resetRepoContainerId } from '@studio/testing/testids';
+// import { resetRepoContainerId } from '@studio/testing/testids';
 import { toast } from 'react-toastify';
 
 import { useQueryClient } from '@tanstack/react-query';
@@ -58,7 +58,47 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
   };
   const { t } = useTranslation();
   return (
-    <div data-testid={resetRepoContainerId}>
+    // <div data-testid={resetRepoContainerId}>
+    <div className={classes.modalContainer}>
+      <h2>{t('overview.reset_repo_confirm_heading')}</h2>
+      <div>
+        <Trans
+          i18nKey={'overview.reset_repo_confirm_info'}
+          values={{ repositoryName: props.repositoryName }}
+          components={{ bold: <strong /> }}
+        />
+      </div>
+      <label htmlFor='delete-repo-name'>
+        <div>{t('overview.reset_repo_confirm_repo_name')}</div>
+      </label>
+      <Textfield
+        id='delete-repo-name'
+        onChange={onDeleteRepoNameChange}
+        autoFocus
+        onKeyUp={handleOnKeypressEnter}
+      />
+      {repoResetMutation.isPending && (
+        <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.reset_repo_loading')} />
+      )}
+      {!repoResetMutation.isPending && (
+        <div className={classes.buttonContainer}>
+          <StudioButton
+            color='danger'
+            disabled={!canDelete}
+            id='confirm-reset-repo-button'
+            onClick={onResetWrapper}
+            variant='secondary'
+            size='small'
+          >
+            {t('overview.reset_repo_button')}
+          </StudioButton>
+          <StudioButton color='second' onClick={onCloseWrapper} variant='secondary' size='small'>
+            {t('general.cancel')}
+          </StudioButton>
+        </div>
+      )}
+    </div>
+    /*
       <Popover
         open={props.open}
         anchorEl={props.anchorRef.current}
@@ -120,6 +160,6 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
           )}
         </div>
       </Popover>
-    </div>
+    </div>*/
   );
 }

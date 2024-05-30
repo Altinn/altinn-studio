@@ -3,28 +3,35 @@ import classes from './MergeConflictWarning.module.css';
 import { Download } from '@navikt/ds-icons';
 import { ButtonContainer } from 'app-shared/primitives';
 import { DownloadRepoModal } from './DownloadRepoModal';
-import { ResetRepoModal } from './ResetRepoModal';
 import { useTranslation } from 'react-i18next';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioPopover } from '@studio/components';
+import { RemoveChangesPopoverContent } from './RemoveChangesPopoverContent';
+import { Heading, Paragraph } from '@digdir/design-system-react';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
-interface MergeConflictWarningProps {
-  org: string;
-  app: string;
-}
+export const MergeConflictWarning = () => {
+  const { org, app } = useStudioEnvironmentParams();
+  const { t } = useTranslation();
 
-export const MergeConflictWarning = ({ org, app }: MergeConflictWarningProps) => {
   const [resetRepoModalOpen, setResetRepoModalOpen] = useState<boolean>(false);
   const [downloadModalOpen, setDownloadModalOpen] = useState<boolean>(false);
-  const { t } = useTranslation();
-  const toggleDownloadModal = () => setDownloadModalOpen(!downloadModalOpen);
-  const toggleResetModal = () => setResetRepoModalOpen(!resetRepoModalOpen);
+
   const downloadModalAnchor = useRef<HTMLButtonElement>();
-  const resetRepoModalAnchor = useRef<HTMLButtonElement>();
+
+  const toggleDownloadModal = () => setDownloadModalOpen((currentValue: boolean) => !currentValue);
+  const toggleResetModal = () => setResetRepoModalOpen((currentValue: boolean) => !currentValue);
+
   return (
     <div className={classes.container} role='dialog'>
-      <h1>{t('merge_conflict.headline')}</h1>
-      <p>{t('merge_conflict.body1')} </p>
-      <p>{t('merge_conflict.body2')}</p>
+      <Heading level={1} spacing size='large'>
+        {t('merge_conflict.headline')}
+      </Heading>
+      <Paragraph size='small' spacing>
+        {t('merge_conflict.body1')}{' '}
+      </Paragraph>
+      <Paragraph size='small' spacing>
+        {t('merge_conflict.body2')}
+      </Paragraph>
       <StudioButton
         variant='tertiary'
         icon={<Download />}
@@ -43,16 +50,14 @@ export const MergeConflictWarning = ({ org, app }: MergeConflictWarningProps) =>
         app={app}
       />
       <ButtonContainer className={classes.buttonContainer}>
-        <StudioButton ref={resetRepoModalAnchor} onClick={toggleResetModal} size='small'>
-          {t('merge_conflict.remove_my_changes')}
-        </StudioButton>
-        <ResetRepoModal
-          anchorRef={resetRepoModalAnchor}
-          onClose={toggleResetModal}
-          open={resetRepoModalOpen}
-          repositoryName={app}
-          org={org}
-        />
+        <StudioPopover open={true /*resetRepoModalOpen*/} onClose={toggleResetModal}>
+          <StudioPopover.Trigger onClick={toggleResetModal} size='small'>
+            {t('merge_conflict.remove_my_changes')}
+          </StudioPopover.Trigger>
+          <StudioPopover.Content>
+            <RemoveChangesPopoverContent repositoryName={app} onClose={toggleResetModal} />
+          </StudioPopover.Content>
+        </StudioPopover>
       </ButtonContainer>
     </div>
   );
