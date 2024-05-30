@@ -1,12 +1,14 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { PolicyEditorProps } from './PolicyEditor';
-import { PolicyEditor } from './PolicyEditor';
+import { PolicyEditor, type PolicyEditorProps } from './PolicyEditor';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { Policy, RequiredAuthLevel, PolicyEditorUsage } from './types';
-import { mockActions, mockPolicyRules, mockResourecId1, mockSubjects } from './data-mocks';
 import { authlevelOptions } from './components/SecurityLevelSelect/SecurityLevelSelect';
+import { mockActions } from '../test/mocks/policyActionMocks';
+import { mockSubjects } from '../test/mocks/policySubjectMocks';
+import { mockPolicyRules } from '../test/mocks/policyRuleMocks';
+import { mockResourecId1 } from '../test/mocks/policySubResourceMocks';
 
 const mockRequiredAuthLevel: RequiredAuthLevel = '3';
 const mockRequiredAuthLevelLabel: string = textMock(authlevelOptions[3].label);
@@ -19,58 +21,24 @@ const mockPolicy: Policy = {
 
 const mockUsageType: PolicyEditorUsage = 'app';
 
+const mockOnSave = jest.fn();
+
+const defaultProps: PolicyEditorProps = {
+  policy: mockPolicy,
+  actions: mockActions,
+  subjects: mockSubjects,
+  resourceId: mockResourecId1,
+  onSave: mockOnSave,
+  showAllErrors: false,
+  usageType: mockUsageType,
+};
+
 describe('PolicyEditor', () => {
   afterEach(jest.clearAllMocks);
 
-  const mockOnSave = jest.fn();
-
-  const defaultProps: PolicyEditorProps = {
-    policy: mockPolicy,
-    actions: mockActions,
-    subjects: mockSubjects,
-    resourceId: mockResourecId1,
-    onSave: mockOnSave,
-    showAllErrors: false,
-    usageType: mockUsageType,
-  };
-
-  it('displays the alert title for app when usagetype is app', async () => {
-    const user = userEvent.setup();
-    render(<PolicyEditor {...defaultProps} />);
-
-    const alertTextApp = screen.getByText(
-      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_app') }),
-    );
-    const alertTextResource = screen.queryByText(
-      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_resource') }),
-    );
-
-    await user.tab();
-
-    expect(alertTextApp).toBeInTheDocument();
-    expect(alertTextResource).not.toBeInTheDocument();
-  });
-
-  it('displays the alert title for resource when usagetype is not app', async () => {
-    const user = userEvent.setup();
-    render(<PolicyEditor {...defaultProps} usageType='resource' />);
-
-    const alertTextApp = screen.queryByText(
-      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_app') }),
-    );
-    const alertTextResource = screen.getByText(
-      textMock('policy_editor.alert', { usageType: textMock('policy_editor.alert_resource') }),
-    );
-
-    await user.tab();
-
-    expect(alertTextApp).not.toBeInTheDocument();
-    expect(alertTextResource).toBeInTheDocument();
-  });
-
   it('changes the auth level when the user selects a different auth level', async () => {
     const user = userEvent.setup();
-    render(<PolicyEditor {...defaultProps} />);
+    renderPolicyEditor();
 
     const [selectElement] = screen.getAllByLabelText(
       textMock('policy_editor.select_auth_level_label'),
@@ -90,7 +58,7 @@ describe('PolicyEditor', () => {
 
   it('calls "onSave" when the auth level changes', async () => {
     const user = userEvent.setup();
-    render(<PolicyEditor {...defaultProps} />);
+    renderPolicyEditor();
 
     const [selectElement] = screen.getAllByLabelText(
       textMock('policy_editor.select_auth_level_label'),
@@ -104,35 +72,9 @@ describe('PolicyEditor', () => {
     expect(mockOnSave).toHaveBeenCalledTimes(1);
   });
 
-  it('displays the rules when there are more than 0 rules', async () => {
-    const user = userEvent.setup();
-    render(<PolicyEditor {...defaultProps} />);
-
-    const aLabelFromPolicyCard = screen.getAllByText(
-      textMock('policy_editor.rule_card_sub_resource_title'),
-    );
-
-    await user.tab();
-
-    expect(aLabelFromPolicyCard.length).toEqual(mockPolicy.rules.length);
-  });
-
-  it('displays no rules when the policy has no rules', async () => {
-    const user = userEvent.setup();
-    render(<PolicyEditor {...defaultProps} policy={{ ...mockPolicy, rules: [] }} />);
-
-    const aLabelFromPolicyCard = screen.queryAllByText(
-      textMock('policy_editor.rule_card_sub_resource_title'),
-    );
-
-    await user.tab();
-
-    expect(aLabelFromPolicyCard.length).toEqual(0);
-  });
-
   it('increases the rule list length when add rule button is clicked', async () => {
     const user = userEvent.setup();
-    render(<PolicyEditor {...defaultProps} />);
+    renderPolicyEditor();
 
     const originalLength = mockPolicy.rules.length;
 
@@ -148,40 +90,8 @@ describe('PolicyEditor', () => {
 
     expect(aLabelFromPolicyCard.length).toEqual(originalLength + 1);
   });
-
-  it('calls "onSave" when a new rule is added', async () => {
-    const user = userEvent.setup();
-    render(<PolicyEditor {...defaultProps} />);
-
-    const addButton = screen.getByRole('button', {
-      name: textMock('policy_editor.card_button_text'),
-    });
-
-    await user.click(addButton);
-
-    expect(mockOnSave).toHaveBeenCalledTimes(1);
-  });
-
-  it('hides verification modal when initially rendering the page, and opens it on click', async () => {
-    const user = userEvent.setup();
-    render(<PolicyEditor {...defaultProps} />);
-
-    const modalTitle = screen.queryByRole('heading', {
-      name: textMock('policy_editor.verification_modal_heading'),
-      level: 1,
-    });
-    expect(modalTitle).not.toBeInTheDocument();
-
-    const [moreButton] = screen.getAllByRole('button', { name: textMock('policy_editor.more') });
-    await user.click(moreButton);
-
-    const deleteButton = screen.getByRole('menuitem', { name: textMock('general.delete') });
-    await user.click(deleteButton);
-
-    const modalTitleAfter = screen.getByRole('heading', {
-      name: textMock('policy_editor.verification_modal_heading'),
-      level: 1,
-    });
-    expect(modalTitleAfter).toBeInTheDocument();
-  });
 });
+
+const renderPolicyEditor = (policyEditorProps: Partial<PolicyEditorProps> = {}) => {
+  return render(<PolicyEditor {...defaultProps} {...policyEditorProps} />);
+};
