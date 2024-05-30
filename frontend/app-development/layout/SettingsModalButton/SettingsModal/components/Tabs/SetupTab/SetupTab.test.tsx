@@ -1,6 +1,5 @@
 import React from 'react';
 import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
-import type { SetupTabProps } from './SetupTab';
 import { SetupTab } from './SetupTab';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -10,16 +9,16 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { mockAppMetadata } from '../../../mocks/applicationMetadataMock';
-
-const mockOrg: string = 'testOrg';
-const mockApp: string = 'testApp';
+import { app, org } from '@studio/testing/testids';
 
 const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 
-const defaultProps: SetupTabProps = {
-  org: mockOrg,
-  app: mockApp,
-};
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => {
+    return { org, app };
+  },
+}));
 
 describe('SetupTab Component', () => {
   afterEach(() => {
@@ -70,7 +69,6 @@ describe('SetupTab Component', () => {
 
 const render = (
   queries: Partial<ServicesContextProps> = {},
-  props: Partial<SetupTabProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
   const allQueries: ServicesContextProps = {
@@ -81,7 +79,7 @@ const render = (
   return rtlRender(
     <MemoryRouter>
       <ServicesContextProvider {...allQueries} client={queryClient}>
-        <SetupTab {...defaultProps} {...props} />
+        <SetupTab />
       </ServicesContextProvider>
     </MemoryRouter>,
   );
