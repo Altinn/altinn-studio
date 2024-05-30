@@ -173,10 +173,9 @@ export interface JsonPatch {
   value?: string | number;
 }
 
-export interface ResourceError {
+export interface ResourceError extends Error {
   response?: {
     status: number;
     data?: any;
   };
-  message?: string;
 }
