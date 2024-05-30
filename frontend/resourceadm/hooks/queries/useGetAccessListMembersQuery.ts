@@ -2,30 +2,29 @@ import type { InfiniteData, UseInfiniteQueryResult } from '@tanstack/react-query
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { AccessList } from 'app-shared/types/ResourceAdm';
+import type { AccessListMember } from 'app-shared/types/ResourceAdm';
 
 /**
- * Query to get all access lists connected to a resource
+ * Query to get paginated members of access list
  *
  * @param org the organisation of the user
  * @param resourceId the identifier of the resource
  * @param env the chosen environment
  *
- * @returns UseQueryResult with a list of access lists
+ * @returns UseInfiniteQueryResult with a list of access lists members
  */
-export const useGetResourceAccessListsQuery = (
+export const useGetAccessListMembersQuery = (
   org: string,
-  resourceId: string,
+  accessListId: string,
   env: string,
-): UseInfiniteQueryResult<InfiniteData<AccessList, string>> => {
-  const { getResourceAccessLists } = useServicesContext();
-
+): UseInfiniteQueryResult<InfiniteData<AccessListMember, string>> => {
+  const { getAccessListMembers } = useServicesContext();
   return useInfiniteQuery({
-    queryKey: [QueryKey.ResourceAccessLists, env, resourceId],
-    queryFn: ({ pageParam }) => getResourceAccessLists(org, resourceId, env, pageParam),
+    queryKey: [QueryKey.AccessListMembers, env, accessListId],
+    queryFn: ({ pageParam }) => getAccessListMembers(org, accessListId, env, pageParam),
     initialPageParam: '',
     getNextPageParam: (lastPage) => lastPage.nextPage,
-    enabled: !!org && !!env && !!resourceId,
+    enabled: !!org && !!env && !!accessListId,
     select: (data) => ({
       ...data,
       pages: data.pages.flatMap((page) => page.data),

@@ -1,5 +1,4 @@
 import React from 'react';
-// import classes from './StudioPopover.module.css';
 import {
   type PopoverProps,
   Popover,
@@ -15,7 +14,9 @@ const StudioPopoverContent = ({ ...rest }: PopoverContentProps): React.ReactElem
   return <Popover.Content {...rest} />;
 };
 
-const StudioPopoverRoot = ({ ...rest }: PopoverProps): React.ReactElement => {
+export type StudioPopoverProps = PopoverProps;
+
+const StudioPopoverRoot = ({ ...rest }: StudioPopoverProps): React.ReactElement => {
   return <Popover {...rest} />;
 };
 
