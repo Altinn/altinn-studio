@@ -6,19 +6,16 @@ import { useTranslation } from 'react-i18next';
 import { getPartyTypesAllowedOptions } from '../../../../utils/tabUtils/accessControlTabUtils';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
 import { AccessControlWarningModal } from '../AccessControWarningModal';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export interface SelectAllowedPartyTypesProps {
-  org: string;
-  app: string;
   appMetadata: ApplicationMetadata;
 }
 
-export const SelectAllowedPartyTypes = ({
-  org,
-  app,
-  appMetadata,
-}: SelectAllowedPartyTypesProps) => {
+export const SelectAllowedPartyTypes = ({ appMetadata }: SelectAllowedPartyTypesProps) => {
   const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+
   const modalRef = useRef<HTMLDialogElement>(null);
 
   const partyTypesAllowed = appMetadata.partyTypesAllowed;
