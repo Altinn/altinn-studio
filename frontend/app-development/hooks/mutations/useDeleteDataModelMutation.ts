@@ -1,13 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { isXsdFile } from 'app-shared/utils/filenameUtils';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 
 export const useDeleteDataModelMutation = () => {
   const { deleteDataModel } = useServicesContext();
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (modelPath: string) => {

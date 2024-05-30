@@ -5,7 +5,7 @@ import {
   useEnvironmentsQuery,
   useOrgListQuery,
 } from 'app-development/hooks/queries';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Alert } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { DeploymentStatusList } from './DeploymentStatusList';
@@ -16,7 +16,7 @@ import type { Environment } from 'app-shared/types/Environment';
 type DeploymentContainerProps = Pick<HTMLAttributes<HTMLDivElement>, 'className'>;
 
 export const DeploymentContainer = ({ className }: DeploymentContainerProps) => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
 
   const {

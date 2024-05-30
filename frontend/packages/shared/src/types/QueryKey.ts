@@ -58,6 +58,7 @@ export enum QueryKey {
   ImportAltinn2Resource = 'ImportAltinn2Resource',
   AccessLists = 'AccessLists',
   AccessList = 'AccessList',
+  AccessListMembers = 'AccessListMembers',
   ResourceAccessLists = 'ResourceAccessLists',
   PartiesRegistrySearch = 'PartiesRegistrySearch',
   SubPartiesRegistrySearch = 'SubPartiesRegistrySearch',

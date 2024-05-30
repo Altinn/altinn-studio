@@ -8,7 +8,7 @@ import { StudioSpinner } from '@studio/components';
 import type { Build } from 'app-shared/types/Build';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import type { AppRelease } from 'app-shared/types/AppRelease';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 interface IReleaseComponent {
   release: AppRelease;
@@ -50,7 +50,7 @@ export function Release(props: IReleaseComponent) {
     }
     return release.body;
   }
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   return (
     <div className={classes.releaseWrapper}>
       <div className={classes.releaseRow}>

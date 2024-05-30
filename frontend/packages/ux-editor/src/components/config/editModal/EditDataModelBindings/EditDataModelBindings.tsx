@@ -7,7 +7,7 @@ import {
 import { ComponentType } from 'app-shared/types/ComponentType';
 import React, { useEffect, useState } from 'react';
 import { useDataModelMetadataQuery } from '../../../../hooks/queries/useDataModelMetadataQuery';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import classes from './EditDataModelBindings.module.css';
 import { useTranslation } from 'react-i18next';
 import { UndefinedBinding } from './UndefinedBinding';
@@ -33,8 +33,8 @@ export const EditDataModelBindings = <T extends ComponentType>({
   renderOptions,
   helpText,
 }: EditDataModelBindingsProps<T>) => {
-  const { org, app } = useStudioUrlParams();
-  const { selectedFormLayoutSetName } = useAppContext();
+  const { org, app } = useStudioEnvironmentParams();
+  const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
   const { data } = useDataModelMetadataQuery(org, app, selectedFormLayoutSetName, undefined);
   const { t } = useTranslation();
   const [dataModelSelectVisible, setDataModelSelectVisible] = useState(false);
@@ -47,22 +47,29 @@ export const EditDataModelBindings = <T extends ComponentType>({
   const bindingKey = key || 'simpleBinding';
 
   const handleBindingChange = (selectedDataModelElement: string) => {
-    handleComponentChange({
-      ...component,
-      dataModelBindings: {
-        ...component.dataModelBindings,
-        [bindingKey]: selectedDataModelElement,
+    handleComponentChange(
+      {
+        ...component,
+        dataModelBindings: {
+          ...component.dataModelBindings,
+          [bindingKey]: selectedDataModelElement,
+        },
+        required: getMinOccursFromDataModel(selectedDataModelElement, data) > 0 || undefined,
+        timeStamp:
+          component.type === ComponentType.Datepicker
+            ? getXsdDataTypeFromDataModel(selectedDataModelElement, data) === 'DateTime'
+            : undefined,
+        maxCount:
+          component.type === ComponentType.RepeatingGroup
+            ? getMaxOccursFromDataModel(selectedDataModelElement, data)
+            : undefined,
+      } as FormItem<T>,
+      {
+        onSuccess: async () => {
+          await refetchLayouts(selectedFormLayoutSetName, true);
+        },
       },
-      required: getMinOccursFromDataModel(selectedDataModelElement, data) > 0 || undefined,
-      timeStamp:
-        component.type === ComponentType.Datepicker
-          ? getXsdDataTypeFromDataModel(selectedDataModelElement, data) === 'DateTime'
-          : undefined,
-      maxCount:
-        component.type === ComponentType.RepeatingGroup
-          ? getMaxOccursFromDataModel(selectedDataModelElement, data)
-          : undefined,
-    } as FormItem<T>);
+    );
   };
 
   const handleDelete = () => {

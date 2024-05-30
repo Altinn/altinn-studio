@@ -5,14 +5,14 @@ import { Heading, Paragraph } from '@digdir/design-system-react';
 import { useText, useAppContext } from '../../hooks';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
 
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import classes from './Elements.module.css';
 
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQuery';
 
 export const Elements = () => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
   const { data: processTaskType } = useProcessTaskTypeQuery(org, app, selectedFormLayoutSetName);
   const existingCustomReceiptName: string | undefined = useCustomReceiptLayoutSetName(org, app);

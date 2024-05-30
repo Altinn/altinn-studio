@@ -1,5 +1,5 @@
 import React from 'react';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { Environment } from 'app-shared/types/Environment';
 import { DeploymentStatus } from './DeploymentStatus';
 import classes from './DeploymentStatusList.module.css';
@@ -20,7 +20,7 @@ export const DeploymentStatusList = ({
   kubernetesDeploymentList,
   pipelineDeploymentList,
 }: DeploymentStatusListProps) => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
 
   return (
     <div className={classes.container}>
