@@ -16,6 +16,7 @@ import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
 export type ProcessEditorProps = {
   appLibVersion: string;
   bpmnXml: string | undefined | null;
+  availableDataTypeIds: BpmnApiContextProps['availableDataTypeIds'];
   availableDataModelIds: BpmnApiContextProps['availableDataModelIds'];
   layoutSets: BpmnApiContextProps['layoutSets'];
   pendingApiOperations: boolean;
@@ -35,6 +36,7 @@ export type ProcessEditorProps = {
 export const ProcessEditor = ({
   appLibVersion,
   bpmnXml,
+  availableDataTypeIds,
   availableDataModelIds,
   layoutSets,
   pendingApiOperations,
@@ -63,6 +65,7 @@ export const ProcessEditor = ({
   return (
     <BpmnContextProvider bpmnXml={bpmnXml} appLibVersion={appLibVersion}>
       <BpmnApiContextProvider
+        availableDataTypeIds={availableDataTypeIds}
         availableDataModelIds={availableDataModelIds}
         layoutSets={layoutSets}
         pendingApiOperations={pendingApiOperations}

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { LinkIcon } from '@studio/icons';
 import { SelectDataTypesToSign } from './SelectDataTypesToSign';
 import classes from './EditDataTypesToSign.module.css';
-import { getExistingDataTypes } from './DataTypesToSignUtils';
+import { getSelectedDataTypes } from './DataTypesToSignUtils';
 
 export const EditDataTypesToSign = () => {
   const { t } = useTranslation();
@@ -16,21 +16,11 @@ export const EditDataTypesToSign = () => {
     setDataTypesToSignSelectVisible(false);
   }, [bpmnDetails]);
 
-  const existingDataTypes = getExistingDataTypes(bpmnDetails);
-
-  const definedValueWithLinkIcon = (
-    <>
-      {existingDataTypes?.map((dataType) => (
-        <div key={dataType} className={classes.dataType}>
-          <LinkIcon /> {dataType}
-        </div>
-      ))}
-    </>
-  );
+  const selectedDataTypes = getSelectedDataTypes(bpmnDetails);
 
   return (
     <>
-      {!existingDataTypes.length && !dataTypesToSignSelectVisible ? (
+      {!selectedDataTypes.length && !dataTypesToSignSelectVisible ? (
         <StudioProperty.Button
           onClick={() => setDataTypesToSignSelectVisible(true)}
           property={t('process_editor.configuration_panel_set_data_types_to_sign_link')}
@@ -45,7 +35,15 @@ export const EditDataTypesToSign = () => {
           onClick={() => setDataTypesToSignSelectVisible(true)}
           property={t('process_editor.configuration_panel_set_data_types_to_sign')}
           title={t('process_editor.configuration_panel_set_data_types_to_sign')}
-          value={definedValueWithLinkIcon}
+          value={
+            <>
+              {selectedDataTypes?.map((dataType) => (
+                <div key={dataType} className={classes.dataType}>
+                  <LinkIcon /> {dataType}
+                </div>
+              ))}
+            </>
+          }
         />
       )}
     </>

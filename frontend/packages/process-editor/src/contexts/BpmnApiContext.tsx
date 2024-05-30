@@ -9,6 +9,7 @@ type QueryOptions = {
 };
 
 export type BpmnApiContextProps = {
+  availableDataTypeIds: string[];
   availableDataModelIds: string[];
   layoutSets: LayoutSets;
   pendingApiOperations: boolean;
@@ -37,6 +38,7 @@ export type BpmnApiContextProviderProps = {
 
 export const BpmnApiContextProvider = ({
   children,
+  availableDataTypeIds,
   availableDataModelIds,
   layoutSets,
   pendingApiOperations,
@@ -55,6 +57,7 @@ export const BpmnApiContextProvider = ({
   return (
     <BpmnApiContext.Provider
       value={{
+        availableDataTypeIds,
         availableDataModelIds,
         layoutSets,
         pendingApiOperations,

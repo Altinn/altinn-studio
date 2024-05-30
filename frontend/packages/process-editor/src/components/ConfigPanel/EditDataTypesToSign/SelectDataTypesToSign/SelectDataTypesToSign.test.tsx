@@ -1,156 +1,77 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { render, screen, waitFor } from '@testing-library/react';
+import { textMock } from '../../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import type { BpmnApiContextProps } from '../../../contexts/BpmnApiContext';
-import { BpmnApiContext } from '../../../contexts/BpmnApiContext';
-import type { BpmnContextProps } from '../../../contexts/BpmnContext';
-import { BpmnContext } from '../../../contexts/BpmnContext';
-import type { BpmnDetails } from '../../../types/BpmnDetails';
-import { BpmnTypeEnum } from '../../../enum/BpmnTypeEnum';
-import type Modeler from 'bpmn-js/lib/Modeler';
+import { BpmnApiContext } from '../../../../contexts/BpmnApiContext';
+import { BpmnContext } from '../../../../contexts/BpmnContext';
 import type { SelectDataTypesToSignProps } from './SelectDataTypesToSign';
 import { SelectDataTypesToSign } from './SelectDataTypesToSign';
-import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
+import { BpmnConfigPanelFormContextProvider } from '../../../../contexts/BpmnConfigPanelContext';
+import {
+  mockBpmnApiContextValue,
+  mockBpmnContextValue,
+} from '../../../../../test/mocks/bpmnContextMock';
+import { createMock, updateModdlePropertiesMock } from '../../../../../test/mocks/bpmnModelerMock';
+import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
+import {
+  getMockBpmnElementForTask,
+  mockBpmnDetails,
+} from '../../../../../test/mocks/bpmnDetailsMock';
 
-const mockTaskId: string = 'testId';
-const mockName: string = 'testName';
-const noModelKey: string = 'noModelKey';
+jest.useFakeTimers({ advanceTimers: true });
+createMock.mockImplementation((_, data) => data.dataType);
 
-const modelerRefMock = {
-  current: {
-    get: () => {},
-  } as unknown as Modeler,
-};
-
-const mockBpmnDetails: BpmnDetails = {
-  id: mockTaskId,
-  name: mockName,
-  taskType: 'data',
-  type: BpmnTypeEnum.Task,
-};
-
-const mockBpmnContextValue: Partial<BpmnContextProps> = {
-  bpmnDetails: mockBpmnDetails,
-  modelerRef: modelerRefMock,
-};
+const availableDataTypeIds = ['dataType1', 'dataType2', 'dataType3'];
 
 const defaultSelectDataTypeProps: SelectDataTypesToSignProps = {
-  connectedTaskId: mockTaskId,
-  dataModelIds: [],
-  existingDataType: undefined,
   onClose: jest.fn(),
 };
 
-describe('SelectDataType', () => {
+describe('SelectDataTypesToSign', () => {
   afterEach(jest.clearAllMocks);
-  it('should display the default text as disabled in the select list when no data type is connected to task and there are available data types', () => {
-    renderEditDataType();
-    const selectDataModel = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_datamodel'),
+
+  it('saves the new selection', async () => {
+    const user = userEvent.setup();
+
+    renderSelectDataTypesToSign();
+
+    const combobox = screen.getByRole('combobox', {
+      name: textMock('process_editor.configuration_panel_set_data_types_to_sign'),
     });
-    expect(selectDataModel).toBeInTheDocument();
-    expect(selectDataModel).toHaveValue(noModelKey);
-    expect(
-      screen.getByRole('option', {
-        name: textMock('process_editor.configuration_panel_select_datamodel'),
-      }),
-    ).toBeDisabled();
+    await user.click(combobox);
+
+    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
+    await user.click(screen.getByRole('option', { name: availableDataTypeIds[0] }));
+
+    await waitFor(() => expect(createMock).toHaveBeenCalledTimes(1));
+    expect(updateModdlePropertiesMock).toHaveBeenCalledTimes(1);
   });
 
-  it('should call updateDataType with new data type when new option is clicked', async () => {
+  it('calls onClose when clicking the close button', async () => {
     const user = userEvent.setup();
-    const mutateDataTypeMock = jest.fn();
-    const dataTypeToConnect = 'datamodel0';
-    const dataModelIds = [dataTypeToConnect, 'dataModel1', 'dataModel2'];
-
-    renderEditDataType(
-      { dataModelIds },
-      {
-        mutateDataType: mutateDataTypeMock,
-      },
-    );
-    const selectDataModel = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_datamodel'),
+    renderSelectDataTypesToSign();
+    const closeButton = screen.getByRole('button', {
+      name: textMock('general.close'),
     });
-    await user.selectOptions(selectDataModel, dataTypeToConnect);
-    expect(mutateDataTypeMock).toHaveBeenCalledWith({
-      connectedTaskId: mockTaskId,
-      newDataType: dataTypeToConnect,
-    });
-  });
-
-  it('should call updateDataType with new data type when data type is changed', async () => {
-    const user = userEvent.setup();
-    const mutateDataTypeMock = jest.fn();
-    const existingDataType = 'dataModel0';
-    const dataTypeToConnect = 'datamodel1';
-    const dataModelIds = [existingDataType, dataTypeToConnect, 'dataModel2'];
-    renderEditDataType(
-      { dataModelIds, existingDataType },
-      {
-        mutateDataType: mutateDataTypeMock,
-      },
-    );
-    const selectDataModel = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_datamodel'),
-    });
-    await user.selectOptions(selectDataModel, dataTypeToConnect);
-    expect(mutateDataTypeMock).toHaveBeenCalledWith({
-      connectedTaskId: mockTaskId,
-      newDataType: dataTypeToConnect,
-    });
-  });
-
-  it('should call updateDataType with no data type when data type is deleted', async () => {
-    const user = userEvent.setup();
-    const mutateDataTypeMock = jest.fn();
-    const existingDataType = 'dataModel0';
-    const dataModelIds = [existingDataType, 'datamodel1', 'dataModel2'];
-    renderEditDataType(
-      { dataModelIds, existingDataType },
-      {
-        mutateDataType: mutateDataTypeMock,
-      },
-    );
-    const deleteDataTypeButton = screen.getByRole('button', {
-      name: textMock('general.delete'),
-    });
-    await user.click(deleteDataTypeButton);
-    expect(mutateDataTypeMock).toHaveBeenCalledWith({
-      connectedTaskId: mockTaskId,
-      newDataType: undefined,
-    });
-  });
-
-  it('should not call updateDataType when data type is set to existing', async () => {
-    const user = userEvent.setup();
-    const mutateDataTypeMock = jest.fn();
-    const existingDataType = 'dataModel0';
-    const dataModelIds = [existingDataType, 'datamodel1', 'dataModel2'];
-    renderEditDataType(
-      { dataModelIds, existingDataType },
-      {
-        mutateDataType: mutateDataTypeMock,
-      },
-    );
-    const selectDataModel = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_datamodel'),
-    });
-    await user.selectOptions(selectDataModel, existingDataType);
-    expect(mutateDataTypeMock).not.toHaveBeenCalled();
+    await user.click(closeButton);
+    expect(defaultSelectDataTypeProps.onClose).toHaveBeenCalled();
   });
 });
 
-const renderEditDataType = (
-  props: Partial<SelectDataTypesToSignProps> = {},
-  bpmnApiContextProps: Partial<BpmnApiContextProps> = {},
-) => {
+const renderSelectDataTypesToSign = () => {
   return render(
-    <BpmnApiContext.Provider value={{ ...bpmnApiContextProps }}>
-      <BpmnContext.Provider value={{ ...mockBpmnContextValue }}>
+    <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, availableDataTypeIds }}>
+      <BpmnContext.Provider
+        value={{
+          ...mockBpmnContextValue,
+          bpmnDetails: {
+            ...mockBpmnDetails,
+            element: getMockBpmnElementForTask('signing'),
+          },
+        }}
+      >
         <BpmnConfigPanelFormContextProvider>
-          <SelectDataTypesToSign {...defaultSelectDataTypeProps} {...props} />
+          <SelectDataTypesToSign {...defaultSelectDataTypeProps} />
         </BpmnConfigPanelFormContextProvider>
       </BpmnContext.Provider>
     </BpmnApiContext.Provider>,

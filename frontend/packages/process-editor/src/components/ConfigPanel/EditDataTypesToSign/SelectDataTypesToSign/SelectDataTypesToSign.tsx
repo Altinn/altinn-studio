@@ -4,26 +4,24 @@ import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
 import classes from './SelectDataTypesToSign.module.css';
-import { useAppMetadataQuery } from 'app-development/hooks/queries';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
 import { useBpmnContext } from '@altinn/process-editor/contexts/BpmnContext';
-import { updateDataTypes, getExistingDataTypes } from '../DataTypesToSignUtils';
+import { updateDataTypes, getSelectedDataTypes } from '../DataTypesToSignUtils';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
+import { useBpmnApiContext } from '@altinn/process-editor/contexts/BpmnApiContext';
 
 export interface SelectDataTypesToSignProps {
   onClose: () => void;
 }
 
 export const SelectDataTypesToSign = ({ onClose }: SelectDataTypesToSignProps) => {
-  const { org, app } = useStudioUrlParams();
-  const { data: appMetadata, isPending: appMetadataPending } = useAppMetadataQuery(org, app);
+  const { availableDataTypeIds } = useBpmnApiContext();
   const { bpmnDetails, modelerRef } = useBpmnContext();
   const modelerInstance = modelerRef.current;
   const modeling: Modeling = modelerInstance.get('modeling');
   const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
-  const [value, setValue] = useState<string[]>(() => getExistingDataTypes(bpmnDetails));
+  const [value, setValue] = useState<string[]>(() => getSelectedDataTypes(bpmnDetails));
 
   const { t } = useTranslation();
 
@@ -51,18 +49,16 @@ export const SelectDataTypesToSign = ({ onClose }: SelectDataTypesToSignProps) =
         )}
         size='small'
         className={classes.dataTypeSelect}
-        loading={appMetadataPending}
-        loadingLabel={t('process_editor.configuration_panel_set_data_types_to_sign')}
         multiple
         onValueChange={handleValueChange}
       >
         <Combobox.Empty>
           {t('process_editor.configuration_panel_no_data_types_to_sign_to_select')}
         </Combobox.Empty>
-        {appMetadata?.dataTypes?.map((dataType) => {
+        {availableDataTypeIds?.map((dataTypeId) => {
           return (
-            <Combobox.Option key={dataType.id} value={dataType.id}>
-              {dataType.id}
+            <Combobox.Option key={dataTypeId} value={dataTypeId}>
+              {dataTypeId}
             </Combobox.Option>
           );
         })}

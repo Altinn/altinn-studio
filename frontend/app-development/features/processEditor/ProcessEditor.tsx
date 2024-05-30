@@ -24,7 +24,7 @@ import { useDeleteDataTypeFromAppMetadata } from '../../hooks/mutations/useDelet
 import { SyncSuccessQueriesInvalidator } from 'app-shared/queryInvalidator/SyncSuccessQueriesInvalidator';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSettingsModalContext } from '../../contexts/SettingsModalContext';
-import { useAppPolicyQuery } from '../../hooks/queries';
+import { useAppMetadataQuery, useAppPolicyQuery } from '../../hooks/queries';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
 import { OnProcessTaskAddHandler } from './handlers/OnProcessTaskAddHandler';
 import { OnProcessTaskRemoveHandler } from './handlers/OnProcessTaskRemoveHandler';
@@ -63,6 +63,7 @@ export const ProcessEditor = (): React.ReactElement => {
   const { mutate: addDataTypeToAppMetadata } = useAddDataTypeToAppMetadata(org, app);
   const { mutate: deleteDataTypeFromAppMetadata } = useDeleteDataTypeFromAppMetadata(org, app);
 
+  const { data: appMetadata, isPending: appMetadataPending } = useAppMetadataQuery(org, app);
   const { data: availableDataModelIds, isPending: availableDataModelIdsPending } =
     useAppMetadataModelIdsQuery(org, app);
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
@@ -73,6 +74,7 @@ export const ProcessEditor = (): React.ReactElement => {
     addLayoutSetPending ||
     deleteLayoutSetPending ||
     updateDataTypePending ||
+    appMetadataPending ||
     availableDataModelIdsPending ||
     isPendingCurrentPolicy;
 
@@ -138,6 +140,7 @@ export const ProcessEditor = (): React.ReactElement => {
   // TODO: Handle error will be handled better after issue #10735 is resolved
   return (
     <ProcessEditorImpl
+      availableDataTypeIds={appMetadata.dataTypes.map((dataType) => dataType.id)}
       availableDataModelIds={availableDataModelIds}
       layoutSets={layoutSets}
       pendingApiOperations={pendingApiOperations}

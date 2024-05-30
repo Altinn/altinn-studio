@@ -35,7 +35,7 @@ const updateDataTypesToSign = (
   );
 };
 
-export const getExistingDataTypes = (bpmnDetails: BpmnDetails): string[] => {
+export const getSelectedDataTypes = (bpmnDetails: BpmnDetails): string[] => {
   return (
     bpmnDetails.element.businessObject.extensionElements.values[0].signatureConfig?.dataTypesToSign?.dataTypes?.map(
       (element: ModdleElement) => element.dataType,
