@@ -15,7 +15,7 @@ import type { UpdateFormComponentMutationArgs } from '../hooks/mutations/useUpda
 import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateFormComponentMutation';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { LayoutItemType } from '../types/global';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../hooks';
 import type { MutateOptions } from '@tanstack/react-query';
 
@@ -69,7 +69,7 @@ type FormItemContextProviderProps = {
 export const FormItemContextProvider = ({
   children,
 }: FormItemContextProviderProps): React.JSX.Element => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName, selectedFormLayoutName, refetchLayouts } = useAppContext();
   const prevSelectedFormLayoutSetNameRef = useRef(selectedFormLayoutSetName);
   const prevSelectedFormLayoutNameRef = useRef(selectedFormLayoutName);

@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { CreateDataModelPayload } from 'app-shared/types/api';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export interface CreateDataModelMutationArgs {
   name: string;
@@ -11,7 +11,7 @@ export interface CreateDataModelMutationArgs {
 
 export const useCreateDataModelMutation = () => {
   const { createDataModel } = useServicesContext();
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ name, relativePath }: CreateDataModelMutationArgs) => {

@@ -18,7 +18,7 @@ import {
   addConditionalRenderingConnection,
   deleteConditionalRenderingConnection,
 } from '../../utils/ruleConfigUtils';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { useAppContext } from '../../hooks/useAppContext';
 
@@ -29,7 +29,7 @@ export interface IConditionalRenderingModalProps {
 }
 
 export function ConditionalRenderingModal(props: IConditionalRenderingModalProps) {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
   const { selectedLayoutSet } = useAppContext();
   const { data: ruleModel } = useRuleModelQuery(org, app, selectedLayoutSet);

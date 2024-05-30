@@ -2,8 +2,7 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { Validation } from 'app-shared/types/ResourceAdm';
-import type { AxiosError } from 'axios';
+import type { ResourceError, Validation } from 'app-shared/types/ResourceAdm';
 
 /**
  * Query to get the validation status of a resource.
@@ -18,10 +17,10 @@ export const useValidateResourceQuery = (
   org: string,
   repo: string,
   id: string,
-): UseQueryResult<Validation, AxiosError> => {
+): UseQueryResult<Validation, ResourceError> => {
   const { getValidateResource } = useServicesContext();
 
-  return useQuery<Validation, AxiosError>({
+  return useQuery<Validation, ResourceError>({
     queryKey: [QueryKey.ValidateResource, org, repo, id],
     queryFn: () => getValidateResource(org, repo, id),
     select: (data) => ({
