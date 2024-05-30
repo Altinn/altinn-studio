@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { StudioButton } from '@studio/components';
 import { UploadIcon } from '@studio/icons';
 import { fileSelectorInputId } from '@studio/testing/testids';
+import { toast } from 'react-toastify';
 
 export interface IFileSelectorProps {
   accept?: string;
@@ -40,6 +41,12 @@ export const FileSelector = ({
   const handleSubmit = (event?: React.FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
     const file = fileInput?.current?.files?.item(0);
+    if (!file.name.match(/^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/)) {
+      toast.error(t('app_data_modelling.upload_xsd_invalid_error'));
+      fileInput.current.value = '';
+      return;
+    }
+
     if (file) {
       const formData = new FormData();
       formData.append(formFileName, file);
