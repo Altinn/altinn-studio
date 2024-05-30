@@ -1,5 +1,4 @@
 import React from 'react';
-import type { ReactNode } from 'react';
 
 import { Label, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
@@ -11,8 +10,8 @@ import type { OrderDetails } from 'src/features/payment/types';
 
 type PaymentDetailsTableProps = {
   orderDetails?: OrderDetails;
-  tableTitle?: ReactNode;
-  description?: ReactNode;
+  tableTitle?: string;
+  description?: string;
 } & React.HTMLAttributes<HTMLTableElement>;
 
 export const PaymentDetailsTable = ({ orderDetails, tableTitle, description, ...rest }: PaymentDetailsTableProps) => (
@@ -22,8 +21,8 @@ export const PaymentDetailsTable = ({ orderDetails, tableTitle, description, ...
   >
     {tableTitle && (
       <Caption
-        title={tableTitle}
-        description={description}
+        title={<Lang id={tableTitle} />}
+        description={<Lang id={description} />}
       />
     )}
 
