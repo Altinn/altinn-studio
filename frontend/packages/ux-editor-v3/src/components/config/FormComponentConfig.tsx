@@ -117,7 +117,7 @@ export const FormComponentConfig = ({
       )}
       {!hideUnsupported && (
         <Heading level={3} size='xxsmall'>
-          {'Andre innstillinger'}
+          {t('ux_editor.component_other_properties_title')}
         </Heading>
       )}
       {options && optionsId && (

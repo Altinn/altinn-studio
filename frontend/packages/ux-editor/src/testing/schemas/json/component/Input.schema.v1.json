@@ -170,6 +170,7 @@
       "properties": {
         "currency": {
           "title": "Language-sensitive currency formatting",
+          "type": "string",
           "description": "Enables currency to be language sensitive based on selected app language. Note: parts that already exist in number property are not overridden by this prop.",
           "enum": [
             "AED",

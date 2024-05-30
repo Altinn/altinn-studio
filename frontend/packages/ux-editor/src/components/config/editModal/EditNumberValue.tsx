@@ -6,7 +6,7 @@ import { StudioDecimalInput } from '@studio/components';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../../types/FormItem';
 import type { FilterKeysOfType } from 'app-shared/types/FilterKeysOfType';
-import { useComponentPropertyLabel } from '../../../hooks/useComponentPropertyLabel';
+import { useComponentPropertyLabel } from '@altinn/ux-editor/hooks';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../../../hooks';
