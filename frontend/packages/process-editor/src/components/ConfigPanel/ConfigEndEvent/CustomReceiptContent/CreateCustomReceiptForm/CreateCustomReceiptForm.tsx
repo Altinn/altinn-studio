@@ -39,9 +39,7 @@ export const CreateCustomReceiptForm = ({
     const customReceiptForm: CustomReceiptType = getCustomReceiptFormData(formData);
     const { layoutSetId, dataModelId } = customReceiptForm;
 
-    const isValidDataModelId: boolean = dataModelId && dataModelId !== NO_MODEL_KEY;
-
-    if (layoutSetId && isValidDataModelId && !layoutSetError) {
+    if (layoutSetId && getIsDataModelValid(dataModelId) && !layoutSetError) {
       createNewCustomReceipt(customReceiptForm);
     }
     updateErrors(customReceiptForm);
@@ -58,10 +56,14 @@ export const CreateCustomReceiptForm = ({
     setLayoutSetError(!layoutSetId ? t('validation_errors.required') : null);
 
     setDataModelError(
-      !dataModelId || dataModelId === NO_MODEL_KEY
+      !getIsDataModelValid(dataModelId)
         ? t('process_editor.configuration_panel_custom_receipt_create_data_model_error')
         : null,
     );
+  };
+
+  const getIsDataModelValid = (dataModelId: string | undefined): boolean => {
+    return dataModelId && dataModelId !== NO_MODEL_KEY;
   };
 
   const createNewCustomReceipt = (customReceipt: CustomReceiptType) => {
