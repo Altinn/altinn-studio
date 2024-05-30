@@ -7,6 +7,8 @@ using Altinn.App.Core.Models;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 using static Altinn.App.Common.Tests.TelemetrySink;
 
 namespace Altinn.App.Common.Tests;
@@ -55,6 +57,7 @@ public sealed record TelemetrySink : IDisposable
 
     private readonly ConcurrentBag<Activity> _activities = [];
     private readonly ConcurrentDictionary<string, IReadOnlyList<MetricMeasurement>> _metricValues = [];
+    private readonly IServiceProvider? _serviceProvider;
 
     public readonly record struct MetricMeasurement(long Value, IReadOnlyDictionary<string, object?> Tags);
 
@@ -67,6 +70,19 @@ public sealed record TelemetrySink : IDisposable
     public TelemetrySnapshot GetSnapshot(Activity activity) =>
         new([activity], new Dictionary<string, IReadOnlyList<MetricMeasurement>>());
 
+    public void TryFlush()
+    {
+        Assert.NotNull(_serviceProvider);
+
+        var meterProvider = _serviceProvider.GetService<MeterProvider>();
+        var traceProvider = _serviceProvider.GetService<TracerProvider>();
+        Assert.NotNull(meterProvider);
+        Assert.NotNull(traceProvider);
+
+        _ = meterProvider.ForceFlush(25);
+        _ = traceProvider.ForceFlush(25);
+    }
+
     public TelemetrySink(
         IServiceProvider? serviceProvider = null,
         string org = "ttd",
@@ -77,6 +93,12 @@ public sealed record TelemetrySink : IDisposable
         Func<IServiceProvider, Meter, bool>? shouldAlsoListenToMetrics = null
     )
     {
+        _serviceProvider = serviceProvider;
+        if (shouldAlsoListenToActivities is not null)
+            Assert.NotNull(_serviceProvider);
+        if (shouldAlsoListenToMetrics is not null)
+            Assert.NotNull(_serviceProvider);
+
         var appId = new AppIdentifier(org, name);
         var options = new AppSettings { AppVersion = version, };
 
@@ -87,7 +109,7 @@ public sealed record TelemetrySink : IDisposable
             ShouldListenTo = (activitySource) =>
             {
                 var sameSource = ReferenceEquals(activitySource, Object.ActivitySource);
-                return sameSource || (shouldAlsoListenToActivities?.Invoke(serviceProvider!, activitySource) ?? false);
+                return sameSource || (shouldAlsoListenToActivities?.Invoke(_serviceProvider!, activitySource) ?? false);
             },
             Sample = (ref ActivityCreationOptions<ActivityContext> options) =>
                 ActivitySamplingResult.AllDataAndRecorded,

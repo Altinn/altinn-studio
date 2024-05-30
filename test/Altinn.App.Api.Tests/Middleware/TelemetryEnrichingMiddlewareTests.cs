@@ -45,6 +45,7 @@ public class TelemetryEnrichingMiddlewareTests : ApiTestBase, IClassFixture<WebA
 
         var (telemetry, request) = AnalyzeTelemetry(token);
         await request();
+        telemetry.TryFlush();
         var activities = telemetry.CapturedActivities;
         var activity = Assert.Single(
             activities,
@@ -69,6 +70,7 @@ public class TelemetryEnrichingMiddlewareTests : ApiTestBase, IClassFixture<WebA
 
         var (telemetry, request) = AnalyzeTelemetry(token);
         await request();
+        telemetry.TryFlush();
         var activities = telemetry.CapturedActivities;
         var activity = Assert.Single(
             activities,
@@ -96,6 +98,7 @@ public class TelemetryEnrichingMiddlewareTests : ApiTestBase, IClassFixture<WebA
             Assert.NotNull(parentActivity);
             await request();
         }
+        telemetry.TryFlush();
         var activities = telemetry.CapturedActivities;
         var activity = Assert.Single(
             activities,
