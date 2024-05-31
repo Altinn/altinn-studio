@@ -6,16 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { SettingsModal } from './SettingsModal';
 import { useSettingsModalContext } from '../../contexts/SettingsModalContext';
 
-export type SettingsModalButtonProps = {
-  org: string;
-  app: string;
-};
-
-/**
- * @component
- *    Displays a button to open the Settings modal
- */
-export const SettingsModalButton = ({ org, app }: SettingsModalButtonProps): ReactNode => {
+export const SettingsModalButton = (): ReactNode => {
   const { t } = useTranslation();
   const { settingsModalOpen, setSettingsModalOpen, settingsModalSelectedTab } =
     useSettingsModalContext();
@@ -37,8 +28,6 @@ export const SettingsModalButton = ({ org, app }: SettingsModalButtonProps): Rea
           <SettingsModal
             isOpen={settingsModalOpen}
             onClose={() => setSettingsModalOpen(false)}
-            org={org}
-            app={app}
             defaultTab={settingsModalSelectedTab}
           />
         )

@@ -14,5 +14,10 @@ namespace Altinn.Studio.Designer.Constants
         /// The name of the cookie used for asp authentication in designer application
         /// </summary>
         public const string DesignerCookieName = "AltinnStudioDesigner";
+
+        /// <summary>
+        /// The identifying name for a custom receipt at process end in the application
+        /// </summary>
+        public const string CustomReceiptId = "CustomReceipt";
     }
 }

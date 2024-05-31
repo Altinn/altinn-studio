@@ -12,9 +12,14 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { mockAppMetadata } from '../../../../mocks/applicationMetadataMock';
 import userEvent from '@testing-library/user-event';
+import { app, org } from '@studio/testing/testids';
 
-const mockOrg: string = 'testOrg';
-const mockApp: string = 'testApp';
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => {
+    return { org, app };
+  },
+}));
 
 jest.mock('../../../../../../../hooks/mutations/useAppMetadataMutation');
 const updateAppMetadataMutation = jest.fn();
@@ -27,8 +32,6 @@ mockUpdateAppMetadataMutation.mockReturnValue({
 
 const defaultProps: SetupTabContentProps = {
   appMetadata: mockAppMetadata,
-  org: mockOrg,
-  app: mockApp,
 };
 
 describe('SetupTabContent', () => {
