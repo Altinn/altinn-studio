@@ -49,11 +49,10 @@
         "children": [
           "0:currentValue",
           "0:newValue",
+          "1:cards",
           "1:mainUploaderSingle",
           "1:mainUploaderMulti",
-          "1:subGroup",
-          "2:source",
-          "2:reference"
+          "1:subGroup"
         ],
         "dataModelBindings": {
           "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788"
@@ -300,6 +299,33 @@
         "mapping": {
           "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].source": "source"
         }
+      },
+      {
+        "id": "main-comments",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Ytterlige kommentarer?"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristKommentar-datadef-37133.value"
+        }
+      },
+      {
+        "id": "cards",
+        "type": "Cards",
+        "color": "neutral",
+        "cards": [
+          {
+            "title": "Kilde",
+            "description": "Vi trodde dette bare var noe interne greier vi brukte til testing. Hvem tipset deg om dette skjemaet?",
+            "children": ["source"]
+          },
+          {
+            "title": "Referanse",
+            "description": "Vi er nysgjerrige på hvem du snakket med før du bestemte deg for å fylle ut dette skjemaet.",
+            "children": ["reference", "main-comments"]
+          }
+        ]
       },
       {
         "id": "subGroup",
