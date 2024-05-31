@@ -15,13 +15,13 @@ import type { AccessList } from 'app-shared/types/ResourceAdm';
 export const useGetAccessListsQuery = (
   org: string,
   env: string,
-): UseInfiniteQueryResult<InfiniteData<AccessList, number>> => {
+): UseInfiniteQueryResult<InfiniteData<AccessList, string>> => {
   const { getAccessLists } = useServicesContext();
 
   return useInfiniteQuery({
     queryKey: [QueryKey.AccessLists, env],
     queryFn: ({ pageParam }) => getAccessLists(org, env, pageParam),
-    initialPageParam: 0,
+    initialPageParam: '',
     getNextPageParam: (lastPage) => lastPage.nextPage,
     enabled: !!org && !!env,
     select: (data) => ({

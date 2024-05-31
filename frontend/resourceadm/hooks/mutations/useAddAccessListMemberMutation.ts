@@ -18,9 +18,12 @@ export const useAddAccessListMemberMutation = (
   const { addAccessListMember } = useServicesContext();
 
   return useMutation({
-    mutationFn: (orgnr: string) => addAccessListMember(org, listIdentifier, orgnr, env),
+    mutationFn: (orgnrs: string[]) =>
+      addAccessListMember(org, listIdentifier, env, { data: orgnrs }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QueryKey.AccessList, env, listIdentifier] });
+      queryClient.invalidateQueries({
+        queryKey: [QueryKey.AccessListMembers, env, listIdentifier],
+      });
     },
   });
 };

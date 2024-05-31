@@ -9,23 +9,11 @@ import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';
 import { TabContent } from '../../TabContent';
 import { SelectAllowedPartyTypes } from './SelectAllowedPartyTypes';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
-export type AccessControlTabProps = {
-  org: string;
-  app: string;
-};
-
-/**
- * @component
- *    Displays the tab rendering the access control for an app
- *
- * @property {string}[org] - The org
- * @property {string}[app] - The app
- *
- * @returns {ReactNode} - The rendered component
- */
-export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode => {
+export const AccessControlTab = (): ReactNode => {
   const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
 
   const {
     data: appMetadata,
@@ -52,7 +40,7 @@ export const AccessControlTab = ({ org, app }: AccessControlTabProps): ReactNode
             <Paragraph size='medium'>
               {t('settings_modal.access_control_tab_checkbox_description')}
             </Paragraph>
-            <SelectAllowedPartyTypes org={org} app={app} appMetadata={appMetadata} />
+            <SelectAllowedPartyTypes appMetadata={appMetadata} />
           </>
         );
       }
