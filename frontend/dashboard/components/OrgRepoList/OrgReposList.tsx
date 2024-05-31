@@ -38,6 +38,9 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
     repos: searchResults?.data,
     starredRepos,
   });
+  const orgRepos = reposWithStarred.filter((repo) => !repo.name.endsWith('-datamodels'));
+  const dataModelCount = reposWithStarred.length - orgRepos.length;
+  const totalRows = searchResults?.totalCount - dataModelCount ?? 0;
 
   return (
     <div>
@@ -45,11 +48,11 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
         {getReposLabel({ selectedContext, orgs: organizations, t })}
       </Heading>
       <RepoList
-        repos={reposWithStarred.filter((repo) => !repo.name.endsWith('-datamodels'))}
+        repos={orgRepos}
         isLoading={isLoadingSearchResults || areStarredReposPending}
         onPageSizeChange={setPageSize}
         isServerSort={true}
-        totalRows={searchResults?.totalCount ?? 0}
+        totalRows={totalRows}
         onPageChange={setPageNumber}
         onSortModelChange={setSortModel}
         sortModel={sortModel}

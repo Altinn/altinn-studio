@@ -12,6 +12,7 @@ import {
 import { ActionLinks } from './ActionLinks';
 import { FavoriteButton } from './FavoriteButton';
 import classes from './RepoList.module.css';
+import { RepoNameWithLink } from './RepoNameWithLink';
 
 export interface RepoListProps {
   isLoading: boolean;
@@ -40,7 +41,7 @@ export const RepoList = ({
   onPageSizeChange,
   pageSizeOptions = DATAGRID_PAGE_SIZE_OPTIONS,
   onSortClick,
-}: RepoListProps) => {
+}: RepoListProps): React.ReactElement => {
   const { t } = useTranslation();
 
   const columns = [
@@ -91,7 +92,7 @@ export const RepoList = ({
   const rows = repos.map((repo) => ({
     id: repo.id,
     favoriteIcon: <FavoriteButton repo={repo} />,
-    name: repo.name,
+    name: <RepoNameWithLink repo={repo} />,
     createdBy: repo.owner.full_name || repo.owner.login,
     updated: new Date(repo.updated_at).toLocaleDateString('nb', { dateStyle: 'short' }),
     description: repo.description,

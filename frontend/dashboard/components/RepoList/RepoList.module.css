@@ -18,6 +18,17 @@
   width: 155px;
 }
 
+.repoLink,
+.repoLink:visited {
+  color: inherit;
+  text-decoration: none;
+}
+
+.repoLink:hover {
+  color: inherit;
+  text-decoration: underline;
+}
+
 .actionLinks {
   display: flex;
   justify-content: flex-end;

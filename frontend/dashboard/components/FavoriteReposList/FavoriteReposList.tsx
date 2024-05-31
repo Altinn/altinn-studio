@@ -3,7 +3,6 @@ import { RepoList } from '../RepoList';
 import { useTranslation } from 'react-i18next';
 import { useStarredReposQuery } from '../../hooks/queries';
 import { Heading } from '@digdir/design-system-react';
-import { DATAGRID_DEFAULT_PAGE_SIZE } from 'dashboard/constants';
 
 export const FavoriteReposList = () => {
   const { t } = useTranslation();
@@ -19,7 +18,6 @@ export const FavoriteReposList = () => {
         repos={userStarredRepos}
         isLoading={areUserStarredReposPending}
         totalRows={userStarredRepos?.length ?? 0}
-        // pageSizeOptions={[DATAGRID_DEFAULT_PAGE_SIZE]}
       />
     </div>
   );

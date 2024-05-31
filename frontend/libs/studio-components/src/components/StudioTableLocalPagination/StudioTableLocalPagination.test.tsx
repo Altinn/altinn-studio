@@ -7,7 +7,6 @@ import { columns, rows } from '../StudioTableRemotePagination/mockData';
 
 describe('StudioTableLocalPagination', () => {
   const paginationProps: StudioTableLocalPaginationProps['pagination'] = {
-    pageSize: 5,
     pageSizeOptions: [5, 10, 50],
     pageSizeLabel: 'Rows per page',
     nextButtonText: 'Next',
