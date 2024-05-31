@@ -128,7 +128,10 @@ export const ProcessEditor = (): React.ReactElement => {
       org,
       app,
       currentPolicy,
+      layoutSets,
       mutateApplicationPolicy,
+      deleteDataTypeFromAppMetadata,
+      deleteLayoutSet,
     );
     onProcessTaskRemoveHandler.handleOnProcessTaskRemove(taskMetadata);
   };
@@ -150,8 +153,6 @@ export const ProcessEditor = (): React.ReactElement => {
       appLibVersion={appLibData.backendVersion}
       bpmnXml={hasBpmnQueryError ? null : bpmnXml}
       mutateDataType={mutateDataType}
-      addDataTypeToAppMetadata={addDataTypeToAppMetadata}
-      deleteDataTypeFromAppMetadata={deleteDataTypeFromAppMetadata}
       saveBpmn={saveBpmnXml}
       openPolicyEditor={() => {
         setSettingsModalSelectedTab('policy');

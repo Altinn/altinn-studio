@@ -1,9 +1,9 @@
 import type { Policy } from 'app-shared/types/Policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
-import { TaskEvent } from '@altinn/process-editor/utils/ProcessTaskManager';
 import { OnProcessTaskRemoveHandler } from './OnProcessTaskRemoveHandler';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { BpmnTypeEnum } from '@altinn/process-editor/enum/BpmnTypeEnum';
+import { TaskEvent } from '@altinn/process-editor/types/TaskEvent';
 
 const orgMock = 'testOrg';
 const appMock = 'testApp';
