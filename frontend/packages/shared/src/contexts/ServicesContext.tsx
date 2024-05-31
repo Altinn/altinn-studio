@@ -39,6 +39,16 @@ const handleError = (
 ): void => {
   // TODO : log axios errors
 
+  const errorCode = error?.response?.data?.errorCode;
+  if (errorCode) {
+    const errorMessageKey = `api_errors.${errorCode}`;
+
+    if (i18n.exists(errorMessageKey)) {
+      toast.error(t(errorMessageKey), { toastId: errorMessageKey });
+      return;
+    }
+  }
+
   if (error?.response?.status === ServerCodes.Unauthorized) {
     const errorMessageKey = 'api_errors.Unauthorized';
     if (i18n.exists(errorMessageKey)) {
@@ -48,16 +58,6 @@ const handleError = (
       logout().then(() => window.location.assign(userLogoutAfterPath()));
     }, LOG_OUT_TIMER_MS);
     return;
-  }
-
-  const errorCode = error?.response?.data?.errorCode;
-  if (errorCode) {
-    const errorMessageKey = `api_errors.${errorCode}`;
-
-    if (i18n.exists(errorMessageKey)) {
-      toast.error(t(errorMessageKey), { toastId: errorMessageKey });
-      return;
-    }
   }
 
   if (
