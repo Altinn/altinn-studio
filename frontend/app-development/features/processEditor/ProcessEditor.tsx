@@ -116,7 +116,9 @@ export const ProcessEditor = (): React.ReactElement => {
       org,
       app,
       currentPolicy,
+      addLayoutSet,
       mutateApplicationPolicy,
+      addDataTypeToAppMetadata,
     );
     onProcessTaskAddHandler.handleOnProcessTaskAdd(taskMetadata);
   };

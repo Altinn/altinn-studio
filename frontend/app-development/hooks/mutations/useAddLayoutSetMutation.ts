@@ -1,9 +1,21 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { type UseMutateFunction, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { LayoutSetConfig, LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
-import type { LayoutSetsResponse } from 'app-shared/types/api/AddLayoutSetResponse';
+import type {
+  AddLayoutSetResponse,
+  LayoutSetsResponse,
+} from 'app-shared/types/api/AddLayoutSetResponse';
+
+export type AddLayoutSetMutation = UseMutateFunction<
+  {
+    layoutSets: AddLayoutSetResponse;
+    layoutSetConfig: LayoutSetConfig;
+  },
+  Error,
+  { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig }
+>;
 
 const isLayoutSets = (obj: LayoutSetsResponse): obj is LayoutSets => {
   if (obj === undefined || !(obj instanceof Object)) return false;

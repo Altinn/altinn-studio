@@ -139,7 +139,7 @@ describe('useBpmnEditor', () => {
   });
 
   it('should handle "shape.remove" event', async () => {
-    renderUseBpmnEditor(false, 'shape.remove');
+    renderUseBpmnEditor(true, 'shape.remove');
 
     const handleTaskRemoveMock = jest.fn();
     (RemoveProcessTaskManager as jest.Mock).mockImplementation(() => ({
@@ -147,6 +147,19 @@ describe('useBpmnEditor', () => {
     }));
 
     await waitFor(() => expect(handleTaskRemoveMock).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(setBpmnDetailsMock).toHaveBeenCalledWith(null));
+  });
+
+  it('should handle "shape.add" event', async () => {
+    renderUseBpmnEditor(true, 'shape.remove');
+
+    const handleTaskRemoveMock = jest.fn();
+    (RemoveProcessTaskManager as jest.Mock).mockImplementation(() => ({
+      handleAdd: () => handleTaskRemoveMock(),
+    }));
+
+    await waitFor(() => expect(handleTaskRemoveMock).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(setBpmnDetailsMock).toHaveBeenCalledWith(null));
   });
 
   it('should call setBpmnDetails when "element.click" event is triggered on eventBus', () => {
