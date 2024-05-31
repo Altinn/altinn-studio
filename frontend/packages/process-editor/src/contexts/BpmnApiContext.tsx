@@ -23,7 +23,6 @@ export type BpmnApiContextProps = {
   mutateDataType: (dataTypeChange: DataTypeChange, options?: QueryOptions) => void;
   addDataTypeToAppMetadata: (data: { dataTypeId: string }) => void;
   deleteDataTypeFromAppMetadata: (data: { dataTypeId: string }) => void;
-
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
   openPolicyEditor: () => void;
   onProcessTaskAdd: (taskMetadata: OnProcessTaskEvent) => void;

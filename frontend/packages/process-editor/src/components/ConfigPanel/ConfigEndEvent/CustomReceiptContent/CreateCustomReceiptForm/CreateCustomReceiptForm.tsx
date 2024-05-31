@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioTextfield } from '@studio/components';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { type CustomReceiptType } from '../../../../../types/CustomReceiptType';
-import { type DataTypeChange } from 'app-shared/types/api/DataTypeChange';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import { type LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { SelectCustomReceiptDataModelId } from './SelectCustomReceiptDataModelId';
@@ -19,13 +18,8 @@ export const CreateCustomReceiptForm = ({
   onCloseForm,
 }: CreateCustomReceiptFormProps): React.ReactElement => {
   const { t } = useTranslation();
-  const {
-    allDataModelIds,
-    layoutSets,
-    existingCustomReceiptLayoutSetId,
-    addLayoutSet,
-    mutateDataType,
-  } = useBpmnApiContext();
+  const { allDataModelIds, layoutSets, existingCustomReceiptLayoutSetId, addLayoutSet } =
+    useBpmnApiContext();
 
   const allDataModelIdsEmpty: boolean = allDataModelIds.length === 0;
 
@@ -69,6 +63,7 @@ export const CreateCustomReceiptForm = ({
   const createNewCustomReceipt = (customReceipt: CustomReceiptType) => {
     const customReceiptLayoutSetConfig: LayoutSetConfig = {
       id: customReceipt.layoutSetId,
+      dataType: customReceipt.dataModelId,
       tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
     };
     addLayoutSet(
@@ -77,19 +72,9 @@ export const CreateCustomReceiptForm = ({
         layoutSetConfig: customReceiptLayoutSetConfig,
       },
       {
-        onSuccess: () => saveDataModel(customReceipt.dataModelId),
+        onSuccess: onCloseForm,
       },
     );
-  };
-
-  const saveDataModel = (dataModelId: string) => {
-    const dataTypeChange: DataTypeChange = {
-      newDataType: dataModelId,
-      connectedTaskId: PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
-    };
-    mutateDataType(dataTypeChange, {
-      onSuccess: onCloseForm,
-    });
   };
 
   const handleValidateLayoutSetId = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,6 +96,7 @@ export const CreateCustomReceiptForm = ({
         error={layoutSetError}
         onChange={handleValidateLayoutSetId}
       />
+      {/* ADD COMBOBOX BELOW */}
       <SelectCustomReceiptDataModelId
         error={dataModelError}
         onChange={() => setDataModelError(null)}
