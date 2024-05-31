@@ -1,13 +1,16 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { BrregSearchResult, BrregSubPartySearchResult } from 'app-shared/types/ResourceAdm';
-import type { AxiosError } from 'axios';
+import type {
+  BrregSearchResult,
+  BrregSubPartySearchResult,
+  ResourceError,
+} from 'app-shared/types/ResourceAdm';
 
 export const useSubPartiesRegistryQuery = (searchUrl: string) => {
   const { getSubParties } = useServicesContext();
 
-  return useQuery<BrregSubPartySearchResult, AxiosError, BrregSearchResult>({
+  return useQuery<BrregSubPartySearchResult, ResourceError, BrregSearchResult>({
     queryKey: [QueryKey.SubPartiesRegistrySearch, searchUrl],
     queryFn: () => getSubParties(searchUrl),
     select: (data): BrregSearchResult => {
@@ -24,5 +27,6 @@ export const useSubPartiesRegistryQuery = (searchUrl: string) => {
       };
     },
     enabled: !!searchUrl,
+    placeholderData: keepPreviousData,
   });
 };

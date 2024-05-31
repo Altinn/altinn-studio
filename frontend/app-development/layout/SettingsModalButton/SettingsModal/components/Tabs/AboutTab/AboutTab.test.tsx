@@ -1,6 +1,5 @@
 import React from 'react';
 import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
-import type { AboutTabProps } from './AboutTab';
 import { AboutTab } from './AboutTab';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { AppConfig } from 'app-shared/types/AppConfig';
@@ -39,10 +38,12 @@ const getAppConfig = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getRepoMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 
-const defaultProps: AboutTabProps = {
-  org,
-  app,
-};
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => {
+    return { org, app };
+  },
+}));
 
 describe('AboutTab', () => {
   afterEach(jest.clearAllMocks);
@@ -72,7 +73,7 @@ describe('AboutTab', () => {
     'shows an error message if an error occured on the %s query',
     async (queryName) => {
       const errorMessage = 'error-message-test';
-      render(defaultProps, {
+      render({
         [queryName]: () => Promise.reject({ message: errorMessage }),
       });
 
@@ -166,19 +167,18 @@ describe('AboutTab', () => {
   });
 });
 
-const resolveAndWaitForSpinnerToDisappear = async (props: Partial<AboutTabProps> = {}) => {
+const resolveAndWaitForSpinnerToDisappear = async () => {
   getAppConfig.mockImplementation(() => Promise.resolve(mockAppConfig));
   getRepoMetadata.mockImplementation(() => Promise.resolve(mockRepository1));
   getAppMetadata.mockImplementation(() => Promise.resolve(mockAppMetadata));
 
-  render(props);
+  render();
   await waitForElementToBeRemoved(() =>
     screen.queryByTitle(textMock('settings_modal.loading_content')),
   );
 };
 
 const render = (
-  props: Partial<AboutTabProps> = {},
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
@@ -193,7 +193,7 @@ const render = (
   return rtlRender(
     <MemoryRouter>
       <ServicesContextProvider {...allQueries} client={queryClient}>
-        <AboutTab {...defaultProps} {...props} />
+        <AboutTab />
       </ServicesContextProvider>
     </MemoryRouter>,
   );
