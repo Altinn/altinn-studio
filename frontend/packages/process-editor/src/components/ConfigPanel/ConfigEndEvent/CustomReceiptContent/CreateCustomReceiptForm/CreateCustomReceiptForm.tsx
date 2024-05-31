@@ -8,7 +8,6 @@ import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import { type LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { SelectCustomReceiptDataModelId } from './SelectCustomReceiptDataModelId';
 import { getLayoutSetIdValidationErrorKey } from 'app-shared/utils/layoutSetsUtils';
-import { NO_MODEL_KEY } from '../../../../../constants';
 
 export type CreateCustomReceiptFormProps = {
   onCloseForm: () => void;
@@ -33,7 +32,7 @@ export const CreateCustomReceiptForm = ({
     const customReceiptForm: CustomReceiptType = getCustomReceiptFormData(formData);
     const { layoutSetId, dataModelId } = customReceiptForm;
 
-    if (layoutSetId && getIsDataModelValid(dataModelId) && !layoutSetError) {
+    if (layoutSetId && dataModelId && !layoutSetError) {
       createNewCustomReceipt(customReceiptForm);
     }
     updateErrors(customReceiptForm);
@@ -50,14 +49,10 @@ export const CreateCustomReceiptForm = ({
     setLayoutSetError(!layoutSetId ? t('validation_errors.required') : null);
 
     setDataModelError(
-      !getIsDataModelValid(dataModelId)
+      !dataModelId
         ? t('process_editor.configuration_panel_custom_receipt_create_data_model_error')
         : null,
     );
-  };
-
-  const getIsDataModelValid = (dataModelId: string | undefined): boolean => {
-    return dataModelId && dataModelId !== NO_MODEL_KEY;
   };
 
   const createNewCustomReceipt = (customReceipt: CustomReceiptType) => {

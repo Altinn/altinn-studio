@@ -1,9 +1,8 @@
-import React from 'react';
-import { StudioNativeSelect } from '@studio/components';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '../../../../../../contexts/BpmnApiContext';
 import { getDataTypeFromLayoutSetsWithExistingId } from '../../../../../../utils/configPanelUtils';
-import { NO_MODEL_KEY } from '../../../../../../constants';
+import { Combobox } from '@digdir/design-system-react';
 
 export type SelectCustomReceiptDataModelIdProps = {
   error: string;
@@ -21,31 +20,33 @@ export const SelectCustomReceiptDataModelId = ({
     layoutSets,
     existingCustomReceiptLayoutSetId,
   );
-  const allDataModelIdsEmpty: boolean = allDataModelIds.length === 0;
+
+  const [value, setValue] = useState(existingDataModelId ? [existingDataModelId] : []);
 
   return (
-    <StudioNativeSelect
+    <Combobox
       label={t('process_editor.configuration_panel_custom_receipt_select_data_model_label')}
       size='small'
-      description={
-        allDataModelIdsEmpty &&
-        t('process_editor.configuration_panel_custom_receipt_select_data_model_description')
-      }
       name='customReceiptDataModel'
       id='customReceiptDataModelSelect'
-      disabled={allDataModelIdsEmpty}
-      defaultValue={existingDataModelId ?? NO_MODEL_KEY}
       error={error}
-      onChange={onChange}
+      value={value}
     >
-      <option disabled={true} value={NO_MODEL_KEY}>
-        {t('process_editor.configuration_panel_select_data_model')}
-      </option>
-      {allDataModelIds.map((id: string) => (
-        <option key={id} value={id}>
-          {id}
-        </option>
+      <Combobox.Empty>
+        {t('process_editor.configuration_panel_no_data_model_to_select')}
+      </Combobox.Empty>
+      {allDataModelIds.map((option) => (
+        <Combobox.Option
+          value={option}
+          key={option}
+          onClick={() => {
+            setValue([option]);
+            onChange();
+          }}
+        >
+          {option}
+        </Combobox.Option>
       ))}
-    </StudioNativeSelect>
+    </Combobox>
   );
 };
