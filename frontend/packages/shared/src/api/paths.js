@@ -14,14 +14,14 @@ export const appVersionPath = (org, app) => `${basePath}/${org}/${app}/app-devel
 // Config
 export const serviceConfigPath = (org, app) => `${basePath}/${org}/${app}/config`; // Get, Post
 
-// Datamodel
-export const createDatamodelPath = (org, app) => `${basePath}/${org}/${app}/datamodels/new`; // Post
-export const datamodelPath = (org, app, modelPath, saveOnly = false) => `${basePath}/${org}/${app}/datamodels/datamodel?${s({ modelPath, saveOnly })}`; // Get, Put, Delete
-export const datamodelsPath = (org, app) => `${basePath}/${org}/${app}/datamodels/all-json`; // Get
-export const datamodelsXsdPath = (org, app) => `${basePath}/${org}/${app}/datamodels/all-xsd`; // Get
-export const datamodelsUploadPath = (org, app) => `${basePath}/${org}/${app}/datamodels/upload`; // Post
-export const datamodelAddXsdFromRepoPath = (org, app, filePath) => `${basePath}/${org}/${app}/datamodels/xsd-from-repo?${s({ filePath })}`; // Post
-export const datamodelUploadPagePath = (org, app) => `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/datamodel`;
+// DataModel
+export const createDataModelPath = (org, app) => `${basePath}/${org}/${app}/datamodels/new`; // Post
+export const dataModelPath = (org, app, modelPath, saveOnly = false) => `${basePath}/${org}/${app}/datamodels/datamodel?${s({ modelPath, saveOnly })}`; // Get, Put, Delete
+export const dataModelsPath = (org, app) => `${basePath}/${org}/${app}/datamodels/all-json`; // Get
+export const dataModelsXsdPath = (org, app) => `${basePath}/${org}/${app}/datamodels/all-xsd`; // Get
+export const dataModelsUploadPath = (org, app) => `${basePath}/${org}/${app}/datamodels/upload`; // Post
+export const dataModelAddXsdFromRepoPath = (org, app, filePath) => `${basePath}/${org}/${app}/datamodels/xsd-from-repo?${s({ filePath })}`; // Post
+export const dataModelUploadPagePath = (org, app) => `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/datamodel`;
 
 // Deployment
 // See frontend/app-development/utils/urlHelper.ts Deployments
@@ -32,7 +32,7 @@ export const widgetSettingsPath = (org, app) => `${basePath}/${org}/${app}/app-d
 export const optionListIdsPath = (org, app) => `${basePath}/${org}/${app}/app-development/option-list-ids`; // Get
 export const ruleConfigPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/rule-config?${s({ layoutSetName })}`; // Get, Post
 export const appMetadataModelIdsPath = (org, app, onlyUnReferenced) => `${basePath}/${org}/${app}/app-development/model-ids?${s({ onlyUnReferenced })}`; // Get
-export const datamodelMetadataPath = (org, app, layoutSetName, dataModelName) => `${basePath}/${org}/${app}/app-development/model-metadata?${s({ layoutSetName })}&${s({ dataModelName })}`; // Get
+export const dataModelMetadataPath = (org, app, layoutSetName, dataModelName) => `${basePath}/${org}/${app}/app-development/model-metadata?${s({ layoutSetName })}&${s({ dataModelName })}`; // Get
 export const layoutNamesPath = (org, app) => `${basePath}/${org}/${app}/app-development/layout-names`; // Get
 export const layoutSetsPath = (org, app) => `${basePath}/${org}/${app}/app-development/layout-sets`; // Get
 export const layoutSetPath = (org, app, layoutSetIdToUpdate) => `${basePath}/${org}/${app}/app-development/layout-set/${layoutSetIdToUpdate}`; // Put, Delete
@@ -138,12 +138,12 @@ export const resourceValidateResourcePath = (org, repo, id) => `${basePath}/${or
 export const publishResourcePath = (org, repo, id, env) => `${basePath}/${org}/resources/publish/${repo}/${id}?env=${env}`; // Get
 export const altinn2LinkServicesPath = (org, env) => `${basePath}/${org}/resources/altinn2linkservices/${env}`; // Get
 export const importResourceFromAltinn2Path = (org, env, serviceCode, serviceEdition) => `${basePath}/${org}/resources/importresource/${serviceCode}/${serviceEdition}/${env}`; // Post
+export const accessListsPath = (org, env, page) => `${basePath}/${org}/resources/accesslist/?env=${env}${page ? `&page=${page}` : ''}`; // Get
 export const importResourceFromAltinn3Path = (org, resourceId, env) => `${basePath}/${org}/resources/addexistingresource/${resourceId}/${env}`; // Post
-export const accessListsPath = (org, env, page) => `${basePath}/${org}/resources/accesslist/?env=${env}&page=${page}`; // Get
 export const createAccessListsPath = (org, env) => `${basePath}/${org}/resources/accesslist/?env=${env}`; //  Post
 export const accessListPath = (org, listId, env) => `${basePath}/${org}/resources/accesslist/${listId}?env=${env}`; // Get, Patch, Delete
-export const accessListMemberPath = (org, listId, orgnr, env) => `${basePath}/${org}/resources/accesslist/${listId}/members/${orgnr}?env=${env}`; // Post, Delete
-export const resourceAccessListsPath = (org, resourceId, env, page) => `${basePath}/${org}/resources/${resourceId}/accesslists/?env=${env}&page=${page}`; // Get
+export const accessListMemberPath = (org, listId, env, page) => `${basePath}/${org}/resources/accesslist/${listId}/members/?env=${env}${page ? `&page=${page}` : ''}`; // Get, Post, Delete
+export const resourceAccessListsPath = (org, resourceId, env, page) => `${basePath}/${org}/resources/${resourceId}/accesslists/?env=${env}${page ? `&page=${page}` : ''}`; // Get
 export const resourceAccessListPath = (org, resourceId, listId, env) => `${basePath}/${org}/resources/${resourceId}/accesslists/${listId}?env=${env}`; // Post, Delete, Patch
 
 // Process Editor

@@ -11,7 +11,7 @@ import { GatewayActionContext } from '../enums/GatewayActionContext';
 const valueTypes: Record<SimpleSubexpressionValueType, string> = {
   [SimpleSubexpressionValueType.Boolean]: 'Boolean',
   [SimpleSubexpressionValueType.Component]: 'Component',
-  [SimpleSubexpressionValueType.Datamodel]: 'Datamodel',
+  [SimpleSubexpressionValueType.DataModel]: 'DataModel',
   [SimpleSubexpressionValueType.GatewayAction]: 'Gateway action',
   [SimpleSubexpressionValueType.GatewayActionContext]: 'Gateway action context',
   [SimpleSubexpressionValueType.InstanceContext]: 'Instance context',
@@ -49,7 +49,7 @@ const instanceContext: Record<InstanceContext, string> = {
 
 const errorMessages: Record<ExpressionErrorKey, string> = {
   [ExpressionErrorKey.InvalidComponentId]: 'The component ID is invalid. Choose one from the list.',
-  [ExpressionErrorKey.InvalidDatamodelPath]:
+  [ExpressionErrorKey.InvalidDataModelPath]:
     'The data model path is invalid. Choose one from the list.',
   [ExpressionErrorKey.InvalidFirstOperand]: 'The first operand is invalid.',
   [ExpressionErrorKey.InvalidSecondOperand]: 'The second operand is invalid.',
@@ -68,7 +68,7 @@ export const texts: ExpressionTexts = {
     'The expression is not valid and will not be saved if you leave the tab. Are you sure you want to continue?',
   componentId: 'Component ID',
   confirmDeleteSubexpression: 'Are you sure you want to delete this subexpression?',
-  datamodelPath: 'Datamodel path',
+  dataModelPath: 'Data model path',
   delete: 'Delete',
   disabledLogicalOperator: 'There must be at least two subexpressions to use a logical operator.',
   edit: 'Edit',
@@ -90,7 +90,7 @@ export const texts: ExpressionTexts = {
   numberValidationError: 'The value must be a number.',
   or: 'or',
   readonlyComponentId: 'Component ID:',
-  readonlyDatamodelPath: 'Datamodel path:',
+  readonlyDataModelPath: 'Data model path:',
   readonlyGatewayActionContext: 'Gateway action context:',
   readonlyInstanceContext: 'Instance context:',
   relationalOperator: 'Relational operator',

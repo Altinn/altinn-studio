@@ -41,8 +41,8 @@ const isOperandValid = (
   dataLookupOptions: Partial<DataLookupOptions>,
 ): boolean => {
   switch (value.type) {
-    case SimpleSubexpressionValueType.Datamodel:
-      return isDatamodelValueValid(value);
+    case SimpleSubexpressionValueType.DataModel:
+      return isDataModelValueValid(value);
     case SimpleSubexpressionValueType.Component:
       return isComponentValueValid(value, dataLookupOptions);
     default:
@@ -50,8 +50,8 @@ const isOperandValid = (
   }
 };
 
-const isDatamodelValueValid = (
-  value: SimpleSubexpressionValue<SimpleSubexpressionValueType.Datamodel>,
+const isDataModelValueValid = (
+  value: SimpleSubexpressionValue<SimpleSubexpressionValueType.DataModel>,
 ): boolean => !!value.path;
 
 const isComponentValueValid = (

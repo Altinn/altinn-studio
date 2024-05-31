@@ -8,15 +8,7 @@ import { Textfield } from '@digdir/design-system-react';
 type AppConfigForm = Pick<AppConfig, 'serviceName' | 'serviceId'>;
 
 export type InputFieldsProps = {
-  /**
-   * The app configuration data
-   */
   appConfig: AppConfig;
-  /**
-   * Function to save the updated data
-   * @param appConfig the new app config
-   * @returns void
-   */
   onSave: (appConfig: AppConfig) => void;
 };
 

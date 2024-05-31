@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 import { LegacySelect } from '@digdir/design-system-react';
-import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
+import { useDataModelMetadataQuery } from '../../hooks/queries/useDataModelMetadataQuery';
 import { FormField } from '../FormField';
 import type { Option } from '@altinn/text-editor/types';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import type { DatamodelFieldElement } from 'app-shared/types/DatamodelFieldElement';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
 import { useAppContext } from '../../hooks';
 
 export interface ISelectDataModelProps {
@@ -14,7 +14,7 @@ export interface ISelectDataModelProps {
   onDataModelChange: (dataModelField: string) => void;
   noOptionsMessage?: string;
   hideRestrictions?: boolean;
-  dataModelFieldsFilter?: (dataModelField: DatamodelFieldElement) => boolean;
+  dataModelFieldsFilter?: (dataModelField: DataModelFieldElement) => boolean;
   componentType?: string;
   propertyPath?: string;
   helpText?: string;
@@ -31,9 +31,9 @@ export const SelectDataModelComponent = ({
   helpText,
   propertyPath,
 }: ISelectDataModelProps) => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
-  const { data } = useDatamodelMetadataQuery(org, app, selectedFormLayoutSetName, undefined);
+  const { data } = useDataModelMetadataQuery(org, app, selectedFormLayoutSetName, undefined);
   const [dataModelElementNames, setDataModelElementNames] = React.useState<Option[]>([]);
 
   useEffect(() => {

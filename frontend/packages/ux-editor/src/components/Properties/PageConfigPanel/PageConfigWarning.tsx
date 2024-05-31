@@ -1,7 +1,7 @@
 import React from 'react';
 import { List, Link, Heading } from '@digdir/design-system-react';
 import { repositoryLayoutPath } from 'app-shared/api/paths';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { getDuplicatedIds } from '../../../utils/formLayoutUtils';
 import type { IInternalLayout } from '../../../types/global';
 import { useTranslation } from 'react-i18next';
@@ -15,7 +15,7 @@ type PageConfigWarningProps = {
 };
 
 export const PageConfigWarning = ({ layout, selectedFormLayoutName }: PageConfigWarningProps) => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
   const duplicatedIds = getDuplicatedIds(layout)
     .map((id) => `<${id}>`)

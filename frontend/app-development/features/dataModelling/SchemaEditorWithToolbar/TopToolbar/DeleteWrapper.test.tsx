@@ -39,7 +39,7 @@ const render = (
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
   queryClient.setQueryData(
-    [QueryKey.DatamodelsMetadata, org, app],
+    [QueryKey.DataModelsMetadata, org, app],
     [jsonMetadata1Mock, jsonMetadata2Mock],
   );
   return renderWithMockStore({}, {}, queryClient)(<DeleteWrapper {...defaultProps} {...props} />);

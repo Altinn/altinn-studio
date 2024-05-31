@@ -7,11 +7,11 @@ import { useDeployPermissionsQuery, useOrgListQuery } from '../../../hooks/queri
 import { Trans, useTranslation } from 'react-i18next';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
 import { useInvalidator } from '../../../hooks/useInvalidator';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Alert } from '@digdir/design-system-react';
 
 export function DeployPage() {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
   const { data: orgs, isPending: orgsIsPending, isError: orgsIsError } = useOrgListQuery();
   const {

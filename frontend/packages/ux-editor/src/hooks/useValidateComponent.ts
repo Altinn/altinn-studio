@@ -6,7 +6,7 @@ import type {
   FormRadioButtonsComponent,
 } from '../types/FormComponent';
 import { useOptionListIdsQuery } from './queries/useOptionListIdsQuery';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export enum ErrorCode {
   NoOptions = 'NoOptions',
@@ -48,7 +48,7 @@ const validateOptionGroup = (
 };
 
 export const useValidateComponent = (component: FormComponent): ComponentValidationResult => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds } = useOptionListIdsQuery(org, app);
 
   switch (component.type) {

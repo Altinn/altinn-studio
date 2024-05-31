@@ -3,10 +3,10 @@ import { FormDesigner } from './containers/FormDesigner';
 import { useText, useAppContext } from './hooks';
 import { StudioPageSpinner } from '@studio/components';
 import { ErrorPage } from './components/ErrorPage';
-import { useDatamodelMetadataQuery } from './hooks/queries/useDatamodelMetadataQuery';
+import { useDataModelMetadataQuery } from './hooks/queries/useDataModelMetadataQuery';
 import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { FormItemContextProvider } from './containers/FormItemContext';
 
 /**
@@ -17,14 +17,14 @@ import { FormItemContextProvider } from './containers/FormItemContext';
 
 export function App() {
   const t = useText();
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
   const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
-  const { isSuccess: isDatamodelFetched, isError: dataModelFetchedError } =
-    useDatamodelMetadataQuery(org, app, selectedFormLayoutSetName, undefined);
+  const { isSuccess: isDataModelFetched, isError: dataModelFetchedError } =
+    useDataModelMetadataQuery(org, app, selectedFormLayoutSetName, undefined);
   const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
 
-  const componentIsReady = areWidgetsFetched && isDatamodelFetched && areTextResourcesFetched;
+  const componentIsReady = areWidgetsFetched && isDataModelFetched && areTextResourcesFetched;
 
   const componentHasError = dataModelFetchedError || widgetFetchedError;
 
@@ -38,7 +38,7 @@ export function App() {
     });
 
     if (dataModelFetchedError) {
-      return createErrorMessage(t('general.dataModel'));
+      return createErrorMessage(t('general.data_model'));
     }
     if (widgetFetchedError) {
       return createErrorMessage(t('general.widget'));

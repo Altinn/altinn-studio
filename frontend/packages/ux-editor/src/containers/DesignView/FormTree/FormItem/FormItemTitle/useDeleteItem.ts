@@ -1,4 +1,4 @@
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useDeleteFormContainerMutation } from '../../../../../hooks/mutations/useDeleteFormContainerMutation';
 import { useDeleteFormComponentMutation } from '../../../../../hooks/mutations/useDeleteFormComponentMutation';
 import { useMemo } from 'react';
@@ -8,7 +8,7 @@ import type { FormContainer } from '../../../../../types/FormContainer';
 import { useAppContext } from '../../../../../hooks';
 
 export const useDeleteItem = (formItem: FormComponent | FormContainer) => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
   const { mutate: deleteContainer } = useDeleteFormContainerMutation(
     org,

@@ -11,7 +11,7 @@ const user = userEvent.setup();
 
 // Test data:
 const defaultProps: ItemRestrictionsProps = { schemaNode: fieldNode1Mock };
-const saveDatamodel = jest.fn();
+const saveDataModel = jest.fn();
 
 describe('ItemRestrictions', () => {
   afterAll(jest.clearAllMocks);
@@ -19,17 +19,17 @@ describe('ItemRestrictions', () => {
   test('item restrictions require checkbox to work', async () => {
     renderItemRestrictions();
     await user.click(screen.getByRole('checkbox'));
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
   });
 
   test('item restrictions tab require checkbox to decheck', async () => {
     renderItemRestrictions();
     await user.click(screen.getByRole('checkbox'));
-    expect(saveDatamodel).toHaveBeenCalledTimes(2);
+    expect(saveDataModel).toHaveBeenCalledTimes(2);
   });
 });
 
 const renderItemRestrictions = (props?: Partial<ItemRestrictionsProps>) =>
   renderWithProviders({
-    appContextProps: { schemaModel: SchemaModel.fromArray(uiSchemaNodesMock), save: saveDatamodel },
+    appContextProps: { schemaModel: SchemaModel.fromArray(uiSchemaNodesMock), save: saveDataModel },
   })(<ItemRestrictions {...defaultProps} {...props} />);

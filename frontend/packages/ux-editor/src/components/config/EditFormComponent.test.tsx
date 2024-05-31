@@ -6,8 +6,8 @@ import { renderHookWithProviders, renderWithProviders } from '../../testing/mock
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
-import type { DatamodelMetadataResponse } from 'app-shared/types/api';
+import { useDataModelMetadataQuery } from '../../hooks/queries/useDataModelMetadataQuery';
+import type { DataModelMetadataResponse } from 'app-shared/types/api';
 import { componentMocks } from '../../testing/componentMocks';
 import { dataModelNameMock, layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
@@ -21,8 +21,8 @@ jest.mock('./componentSpecificContent/Image/ImageComponent', () => ({
   ImageComponent: () => <div data-testid={imageSpecificContentId} />,
 }));
 
-const getDatamodelMetadata = () =>
-  Promise.resolve<DatamodelMetadataResponse>({
+const getDataModelMetadata = () =>
+  Promise.resolve<DataModelMetadataResponse>({
     elements: {
       testModel: {
         id: 'testModel',
@@ -100,8 +100,8 @@ const waitForData = async () => {
   const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
   const dataModelMetadataResult = renderHookWithProviders(
-    () => useDatamodelMetadataQuery(org, app, layoutSet1NameMock, dataModelNameMock),
-    { queries: { getDatamodelMetadata } },
+    () => useDataModelMetadataQuery(org, app, layoutSet1NameMock, dataModelNameMock),
+    { queries: { getDataModelMetadata } },
   ).result;
   await waitFor(() => expect(dataModelMetadataResult.current.isSuccess).toBe(true));
 };
@@ -116,6 +116,6 @@ const render = async (props: Partial<IEditFormComponentProps> = {}) => {
   await waitForData();
 
   renderWithProviders(<EditFormComponent {...defaultProps} {...props} />, {
-    queries: { getDatamodelMetadata },
+    queries: { getDataModelMetadata },
   });
 };

@@ -12,7 +12,7 @@ export type DefinedBindingProps = {
 
 export const DefinedBinding = ({ onClick, label, selectedOption }: DefinedBindingProps) => {
   const { t } = useTranslation();
-  const title = t('right_menu.dataModelBindings_edit', { binding: label });
+  const title = t('right_menu.data_model_bindings_edit', { binding: label });
 
   const value = (
     <span className={classes.selectedOption}>

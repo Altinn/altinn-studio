@@ -1,6 +1,6 @@
 export { useAppVersionQuery } from './useAppVersionQuery';
-export { useDatamodelsJsonQuery } from './useDatamodelsJsonQuery';
-export { useDatamodelsXsdQuery } from './useDatamodelsXsdQuery';
+export { useDataModelsJsonQuery } from './useDataModelsJsonQuery';
+export { useDataModelsXsdQuery } from './useDataModelsXsdQuery';
 export { useInstanceIdQuery } from './useInstanceIdQuery';
 export { useRepoMetadataQuery } from './useRepoMetadataQuery';
 export { useRepoPullQuery } from './useRepoPullQuery';

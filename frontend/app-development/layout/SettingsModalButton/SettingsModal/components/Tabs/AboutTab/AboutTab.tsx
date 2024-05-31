@@ -15,23 +15,11 @@ import { TabDataError } from '../../TabDataError';
 import { InputFields } from './InputFields';
 import { CreatedFor } from './CreatedFor';
 import { TabContent } from '../../TabContent';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
-export type AboutTabProps = {
-  org: string;
-  app: string;
-};
-
-/**
- * @component
- *    Displays the tab rendering the config for an app
- *
- * @property {string}[org] - The org
- * @property {string}[app] - The app
- *
- * @returns {ReactNode} - The rendered component
- */
-export const AboutTab = ({ org, app }: AboutTabProps): ReactNode => {
+export const AboutTab = (): ReactNode => {
   const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
 
   const repositoryType = getRepositoryType(org, app);
 
