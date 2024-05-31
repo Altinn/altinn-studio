@@ -10,6 +10,7 @@ import classes from './Elements.module.css';
 
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQuery';
+import { StudioSpinner } from '@studio/components';
 
 export const Elements = () => {
   const { org, app } = useStudioEnvironmentParams();
@@ -22,13 +23,14 @@ export const Elements = () => {
 
   const t = useText();
 
-  const shouldShowConfPageToolbar = () => {
-    return existingCustomReceiptName === selectedFormLayoutSetName || processTaskType === 'payment';
-  };
+  const shouldShowConfPageToolbar =
+    existingCustomReceiptName === selectedFormLayoutSetName || processTaskType === 'payment';
+  const confPageToolbarMode =
+    existingCustomReceiptName === selectedFormLayoutSetName ? 'receipt' : 'payment';
 
-  const confPageToolbarMode = () => {
-    return existingCustomReceiptName === selectedFormLayoutSetName ? 'receipt' : 'payment';
-  };
+  if (processTaskType === undefined) {
+    return <StudioSpinner spinnerTitle={t('general.loading')} showSpinnerTitle />;
+  }
 
   return (
     <div className={classes.root}>
@@ -40,8 +42,8 @@ export const Elements = () => {
         <Paragraph className={classes.noPageSelected} size='small'>
           {t('left_menu.no_components_selected')}
         </Paragraph>
-      ) : shouldShowConfPageToolbar() ? (
-        <ConfPageToolbar confPageType={confPageToolbarMode()} />
+      ) : shouldShowConfPageToolbar ? (
+        <ConfPageToolbar confPageType={confPageToolbarMode} />
       ) : (
         <DefaultToolbar />
       )}
