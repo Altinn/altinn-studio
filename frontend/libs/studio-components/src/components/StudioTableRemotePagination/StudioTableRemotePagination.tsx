@@ -1,5 +1,5 @@
 import { Label, NativeSelect, Pagination, Paragraph, Table } from '@digdir/design-system-react';
-import React, { forwardRef, useId } from 'react';
+import React, { forwardRef, useEffect, useId } from 'react';
 import classes from './StudioTableRemotePagination.module.css';
 
 type tableSize = 'small' | 'medium' | 'large';
@@ -66,13 +66,22 @@ export const StudioTableRemotePagination = forwardRef<
     } = pagination || {};
 
     const isTableSortable = onSortClick && rows.length > 0;
-    const isPaginationActive = pagination && rows.length > 0;
+    const isPaginationActive =
+      pagination && rows.length > 0 && totalRows > Math.min(...pageSizeOptions);
 
     const firstRowIndex = (currentPage - 1) * pageSize + 1;
     const lastRowIndex = Math.min(currentPage * pageSize, totalRows);
 
     const labelId = useId();
     // const labelSize = resizeLabelMap[size];
+
+    useEffect(() => {
+      const isOutOfRange = totalRows > 0 && rows.length === 0;
+      if (isOutOfRange) {
+        handlePageChange(1);
+        return;
+      }
+    }, [totalRows, rows, handlePageChange]);
 
     return (
       <div className={classes.componentContainer}>
