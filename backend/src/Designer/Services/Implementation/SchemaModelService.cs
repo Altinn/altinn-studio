@@ -416,12 +416,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 if (altinnAppGitRepository.AppUsesLayoutSets())
                 {
                     var layoutSets = await altinnAppGitRepository.GetLayoutSetsFile();
-                    var layoutSet = layoutSets.Sets.Find(set => set.Tasks[0] == removeForm.TaskId);
-                    if (layoutSet is not null)
+                    List<LayoutSetConfig> layoutSetsWithDataType = layoutSets.Sets.FindAll(set => set.DataType == id);
+                    foreach (LayoutSetConfig layoutSet in layoutSetsWithDataType)
                     {
                         layoutSet.DataType = null;
-                        await altinnAppGitRepository.SaveLayoutSets(layoutSets);
                     }
+                    await altinnAppGitRepository.SaveLayoutSets(layoutSets);
                 }
                 applicationMetadata.DataTypes.Remove(removeForm);
                 await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
