@@ -10,7 +10,7 @@ import type { BpmnTaskType } from '../types/BpmnTaskType';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { getMockBpmnElementForTask, mockBpmnDetails } from '../../test/mocks/bpmnDetailsMock';
 import { mockModelerRef } from '../../test/mocks/bpmnModelerMock';
-import { AddProcessTaskManager, RemoveProcessTaskManager } from '../utils/ProcessTaskManager';
+import { RemoveProcessTaskManager } from '../utils/ProcessTaskManager';
 
 const layoutSetId = 'someLayoutSetId';
 const layoutSetsMock: LayoutSets = {
@@ -77,6 +77,8 @@ jest.mock('./useBpmnModeler', () => ({
 }));
 
 const setBpmnDetailsMock = jest.fn();
+const onProcessTaskAddMock = jest.fn();
+const onProcessTaskRemoveMock = jest.fn();
 const overrideUseBpmnContext = () => {
   (useBpmnContext as jest.Mock).mockReturnValue({
     getUpdatedXml: jest.fn(),
@@ -103,9 +105,9 @@ const wrapper = ({ children }) => (
     <BpmnApiContextProvider
       addLayoutSet={jest.fn()}
       deleteLayoutSet={jest.fn()}
-      deleteDataTypeFromAppMetadata={jest.fn()}
-      addDataTypeToAppMetadata={jest.fn()}
       saveBpmn={saveBpmnMock}
+      onProcessTaskAdd={onProcessTaskAddMock}
+      onProcessTaskRemove={onProcessTaskRemoveMock}
       layoutSets={layoutSetsMock}
     >
       {children}
@@ -130,12 +132,7 @@ describe('useBpmnEditor', () => {
   it('should handle "shape.add" event', async () => {
     renderUseBpmnEditor(false, 'shape.add');
 
-    const handleTaskAddMock = jest.fn();
-    (AddProcessTaskManager as jest.Mock).mockImplementation(() => ({
-      handleTaskAdd: () => handleTaskAddMock(),
-    }));
-
-    await waitFor(() => expect(handleTaskAddMock).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(onProcessTaskAddMock).toHaveBeenCalledTimes(1));
   });
 
   it('should handle "shape.remove" event', async () => {

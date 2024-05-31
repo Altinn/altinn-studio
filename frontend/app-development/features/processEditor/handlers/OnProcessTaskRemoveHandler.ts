@@ -23,8 +23,33 @@ export class OnProcessTaskRemoveHandler {
    * @param taskMetadata
    */
   public handleOnProcessTaskRemove(taskMetadata: OnProcessTaskEvent): void {
+    if (taskMetadata.taskType === 'data') {
+      this.handleDataTaskRemove(taskMetadata);
+    }
+
     if (taskMetadata.taskType === 'payment') {
       this.handlePaymentTaskRemove(taskMetadata);
+    }
+
+    if (taskMetadata.taskType === 'signing') {
+      this.handleSigningTaskRemove(taskMetadata);
+    }
+  }
+
+  /**
+   * Deletes the layoutSet from the deleted data task
+   * @private
+   */
+  private handleDataTaskRemove(taskMetadata: OnProcessTaskEvent): void {
+    const layoutSetId = getLayoutSetIdFromTaskId(
+      taskMetadata.taskEvent.element.id,
+      this.layoutSets,
+    );
+
+    if (layoutSetId) {
+      this.deleteLayoutSet({
+        layoutSetIdToUpdate: layoutSetId,
+      });
     }
   }
 
@@ -58,11 +83,41 @@ export class OnProcessTaskRemoveHandler {
 
     this.mutateApplicationPolicy(updatedPolicy);
 
-    // Delete layout set
+    // Delete layoutSet
     const layoutSetId = getLayoutSetIdFromTaskId(
       taskMetadata.taskEvent.element.id,
       this.layoutSets,
     );
+
+    if (layoutSetId) {
+      this.deleteLayoutSet({
+        layoutSetIdToUpdate: layoutSetId,
+      });
+    }
+  }
+
+  /**
+   * Deletes layoutSet and dataType from the deleted signing task
+   * @param taskMetadata
+   * @private
+   */
+  private handleSigningTaskRemove(taskMetadata: OnProcessTaskEvent): void {
+    // Delete dataType
+    const dataTypeId = getDataTypeIdFromBusinessObject(
+      taskMetadata.taskType,
+      taskMetadata.taskEvent.element.businessObject,
+    );
+
+    this.deleteDataTypeFromAppMetadata({
+      dataTypeId,
+    });
+
+    // Delete layoutSet
+    const layoutSetId = getLayoutSetIdFromTaskId(
+      taskMetadata.taskEvent.element.id,
+      this.layoutSets,
+    );
+
     if (layoutSetId) {
       this.deleteLayoutSet({
         layoutSetIdToUpdate: layoutSetId,

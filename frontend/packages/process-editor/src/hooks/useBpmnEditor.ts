@@ -5,7 +5,7 @@ import { useBpmnModeler } from './useBpmnModeler';
 import { getBpmnEditorDetailsFromBusinessObject } from '../utils/hookUtils';
 import { useBpmnConfigPanelFormContext } from '../contexts/BpmnConfigPanelContext';
 import { useBpmnApiContext } from '../contexts/BpmnApiContext';
-import { RemoveProcessTaskManager, type TaskEvent } from '../utils/ProcessTaskManager';
+import type { TaskEvent } from '../types/TaskEvent';
 
 // Wrapper around bpmn-js to Reactify it
 
@@ -20,20 +20,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   const { metaDataFormRef, resetForm } = useBpmnConfigPanelFormContext();
   const { getModeler, destroyModeler } = useBpmnModeler();
 
-  const {
-    deleteLayoutSet,
-    deleteDataTypeFromAppMetadata,
-    saveBpmn,
-    layoutSets,
-    onProcessTaskAdd,
-    onProcessTaskRemove,
-  } = useBpmnApiContext();
-
-  // Needs to update the layoutSetsRef.current when layoutSets changes to avoid staled data in the event listeners
-  // const layoutSetsRef = useRef(layoutSets);
-  // useEffect(() => {
-  //   layoutSetsRef.current = layoutSets;
-  // }, [layoutSets]);
+  const { saveBpmn, onProcessTaskAdd, onProcessTaskRemove } = useBpmnApiContext();
 
   const handleCommandStackChanged = async () => {
     saveBpmn(await getUpdatedXml(), metaDataFormRef.current || null);
@@ -51,15 +38,6 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
 
   const handleShapeRemove = (taskEvent: TaskEvent): void => {
     const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(taskEvent?.element?.businessObject);
-    // const removeProcessTaskManager = new RemoveProcessTaskManager(
-    //   layoutSetsRef.current,
-    //   deleteLayoutSet,
-    //   deleteDataTypeFromAppMetadata,
-    //   bpmnDetails,
-    //   onProcessTaskRemove,
-    // );
-    //
-    // removeProcessTaskManager.handleTaskRemove(taskEvent);
     onProcessTaskRemove({
       taskEvent,
       taskType: bpmnDetails.taskType,

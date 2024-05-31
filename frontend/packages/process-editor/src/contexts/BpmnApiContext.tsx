@@ -20,9 +20,6 @@ export type BpmnApiContextProps = {
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
   mutateLayoutSetId: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
   mutateDataType: (dataTypeChange: DataTypeChange, options?: QueryOptions) => void;
-  addDataTypeToAppMetadata: (data: { dataTypeId: string }) => void;
-  deleteDataTypeFromAppMetadata: (data: { dataTypeId: string }) => void;
-
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
   openPolicyEditor: () => void;
   onProcessTaskAdd: (taskMetadata: OnProcessTaskEvent) => void;
@@ -45,8 +42,6 @@ export const BpmnApiContextProvider = ({
   deleteLayoutSet,
   mutateLayoutSetId,
   mutateDataType,
-  addDataTypeToAppMetadata,
-  deleteDataTypeFromAppMetadata,
   saveBpmn,
   openPolicyEditor,
   onProcessTaskRemove,
@@ -63,8 +58,6 @@ export const BpmnApiContextProvider = ({
         deleteLayoutSet,
         mutateLayoutSetId,
         mutateDataType,
-        addDataTypeToAppMetadata,
-        deleteDataTypeFromAppMetadata,
         saveBpmn,
         openPolicyEditor,
         onProcessTaskRemove,
