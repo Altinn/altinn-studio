@@ -14,19 +14,19 @@ namespace Designer.Tests.Controllers.ProcessModelingController
 {
     public class AddDataTypeToApplicationMetadataTests : DisagnerEndpointsTestsBase<AddDataTypeToApplicationMetadataTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        private static string VersionPrefix(string org, string repository, string dataTypeId) => $"/designer/api/{org}/{repository}/process-modelling/data-type/{dataTypeId}";
+        private static string VersionPrefix(string org, string repository, string dataTypeId, string taskId) => $"/designer/api/{org}/{repository}/process-modelling/data-type/{dataTypeId}?taskId={taskId}";
 
         public AddDataTypeToApplicationMetadataTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
         [Theory]
-        [InlineData("ttd", "empty-app", "testUser", "paymentInformation-1234")]
-        public async Task AddDataTypeToApplicationMetadata_ShouldAddDataTypeAndReturnOK(string org, string app, string developer, string dataTypeId)
+        [InlineData("ttd", "empty-app", "testUser", "paymentInformation-1234", "task_1")]
+        public async Task AddDataTypeToApplicationMetadata_ShouldAddDataTypeAndReturnOK(string org, string app, string developer, string dataTypeId, string taskId)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
-            string url = VersionPrefix(org, targetRepository, dataTypeId);
+            string url = VersionPrefix(org, targetRepository, dataTypeId, taskId);
 
             using var request = new HttpRequestMessage(HttpMethod.Post, url);
             using var response = await HttpClient.SendAsync(request);
@@ -43,6 +43,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
                 AllowedContentTypes = new List<string>() { "application/json" },
                 MaxCount = 1,
                 MinCount = 0,
+                TaskId = taskId,
                 EnablePdfCreation = false,
                 EnableFileScan = false,
                 ValidationErrorOnPendingFileScan = false,
@@ -52,15 +53,16 @@ namespace Designer.Tests.Controllers.ProcessModelingController
 
             appMetadata.DataTypes.Count.Should().Be(2);
             appMetadata.DataTypes.Find(dataType => dataType.Id == dataTypeId).Should().BeEquivalentTo(expectedDataType);
+            appMetadata.DataTypes.Find(dataType => dataType.Id == dataTypeId).TaskId.Should().Be(taskId);
         }
 
         [Theory]
-        [InlineData("ttd", "empty-app", "testUser", "ref-data-as-pdf")]
-        public async Task AddDataTypeToApplicationMetadataWhenExists_ShouldNotAddDataTypeAndReturnOK(string org, string app, string developer, string dataTypeId)
+        [InlineData("ttd", "empty-app", "testUser", "ref-data-as-pdf", "task_1")]
+        public async Task AddDataTypeToApplicationMetadataWhenExists_ShouldNotAddDataTypeAndReturnOK(string org, string app, string developer, string dataTypeId, string taskId)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
-            string url = VersionPrefix(org, targetRepository, dataTypeId);
+            string url = VersionPrefix(org, targetRepository, dataTypeId, taskId);
             using var request = new HttpRequestMessage(HttpMethod.Post, url);
             using var response = await HttpClient.SendAsync(request);
 
