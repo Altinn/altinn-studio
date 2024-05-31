@@ -18,9 +18,11 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
     public class ProcessModelingService : IProcessModelingService
     {
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
-        public ProcessModelingService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
+        private readonly IAppDevelopmentService _appDevelopmentService;
+        public ProcessModelingService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IAppDevelopmentService appDevelopmentService)
         {
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
+            _appDevelopmentService = appDevelopmentService;
         }
 
         private string TemplatesFolderIdentifier(SemanticVersion version) => string.Join(".", nameof(Services), nameof(Implementation), nameof(ProcessModeling), "Templates", $"v{version.Major}");
@@ -84,13 +86,17 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
             await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
         }
 
-        public string GetTaskTypeFromProcessDefinition(AltinnRepoEditingContext altinnRepoEditingContext, string taskId)
+        public async Task<string> GetTaskTypeFromProcessDefinition(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetId)
         {
-            Stream processDefinitionStream = GetProcessDefinitionStream(altinnRepoEditingContext);
-            XmlSerializer serializer = new XmlSerializer(typeof(Definitions));
-            Definitions? definitions = (Definitions?)serializer.Deserialize(processDefinitionStream);
-            ProcessTask? task = definitions?.Process.Tasks.FirstOrDefault(task => task.Id == taskId);
-            return task?.ExtensionElements?.TaskExtension?.TaskType ?? string.Empty;
+            using (Stream processDefinitionStream = GetProcessDefinitionStream(altinnRepoEditingContext))
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(Definitions));
+                Definitions? definitions = (Definitions?)serializer.Deserialize(processDefinitionStream);
+                LayoutSetConfig layoutSet = await _appDevelopmentService.GetLayoutSetConfig(altinnRepoEditingContext, layoutSetId);
+                string taskId = layoutSet.Tasks.First();
+                ProcessTask? task = definitions?.Process.Tasks.FirstOrDefault(task => task.Id == taskId);
+                return task?.ExtensionElements?.TaskExtension?.TaskType ?? string.Empty;
+            }
         }
 
         private IEnumerable<string> EnumerateTemplateResources(SemanticVersion version)

@@ -64,8 +64,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Gets the task type from a process definition.
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-        /// <param name="taskId">The id of the task to check</param>
+        /// <param name="layoutSetId">The id of the layoutSet to check</param>
         /// <returns>The task type</returns>
-        public string GetTaskTypeFromProcessDefinition(AltinnRepoEditingContext altinnRepoEditingContext, string taskId);
+        public Task<string> GetTaskTypeFromProcessDefinition(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetId);
     }
 }

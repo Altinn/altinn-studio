@@ -165,12 +165,13 @@ namespace Altinn.Studio.Designer.Controllers
             return Ok();
         }
 
-        [HttpGet("task-type/{taskId}")]
-        public string GetTaskTypeFromProcessDefinition(string org, string repo, string taskId)
+        [HttpGet("task-type/{layoutSetId}")]
+        public async Task<string> GetTaskTypeFromProcessDefinition(string org, string repo, string layoutSetId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
-            return _processModelingService.GetTaskTypeFromProcessDefinition(editingContext, taskId);
+            string taskType = await _processModelingService.GetTaskTypeFromProcessDefinition(editingContext, layoutSetId);
+            return taskType;
         }
     }
 }
