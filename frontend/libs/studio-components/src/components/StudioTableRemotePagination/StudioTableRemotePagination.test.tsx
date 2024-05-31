@@ -9,6 +9,7 @@ describe('StudioTableRemotePagination', () => {
   const paginationProps: PaginationProps = {
     currentPage: 1,
     totalPages: 2,
+    totalRows: rows.length,
     pageSize: 5,
     pageSizeOptions: [5, 10, 20],
     pageSizeLabel: 'Rows per page',

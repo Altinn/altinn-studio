@@ -68,6 +68,9 @@ export const StudioTableRemotePagination = forwardRef<
     const isTableSortable = onSortClick && rows.length > 0;
     const isPaginationActive = pagination && rows.length > 0;
 
+    const firstRowIndex = (currentPage - 1) * pageSize + 1;
+    const lastRowIndex = Math.min(currentPage * pageSize, totalRows);
+
     const labelId = useId();
     // const labelSize = resizeLabelMap[size];
 
@@ -128,7 +131,7 @@ export const StudioTableRemotePagination = forwardRef<
                 ))}
               </NativeSelect>
               <Paragraph size={size} className={classes.pageInfo}>
-                Viser rad 1-5 av {totalRows}
+                Viser rad {firstRowIndex}-{lastRowIndex} av {totalRows}
               </Paragraph>
             </div>
             {totalPages > 1 && (

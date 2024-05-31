@@ -120,7 +120,6 @@ export const RepoList = ({
 
   const localPaginationProps = {
     ...remotePaginationProps,
-    // pageSize: DATAGRID_PAGE_SIZE_OPTIONS[0],
     pageSizeOptions: DATAGRID_PAGE_SIZE_OPTIONS,
   };
 

@@ -12,7 +12,7 @@
 }
 
 .paginationContainer {
-  margin-top: var(--fds-spacing-5);
+  margin-top: var(--fds-spacing-4);
   display: flex;
   justify-content: space-between;
 }
