@@ -11,7 +11,6 @@ export type StudioTableLocalPaginationProps = {
   emptyTableMessage?: React.ReactNode;
   isSortable?: boolean;
   pagination?: {
-    pageSize: number;
     pageSizeOptions: number[];
     pageSizeLabel: string;
     nextButtonText: string;
@@ -53,6 +52,7 @@ export const StudioTableLocalPagination = forwardRef<
 
     const studioTableRemotePaginationProps = pagination && {
       ...pagination,
+      pageSize,
       currentPage,
       totalPages,
       totalRows: rows.length,

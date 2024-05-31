@@ -56,8 +56,6 @@ export const useReposSearch = ({
     }
   };
 
-  console.log(selectedColumn);
-
   const filter = {
     uid,
     keyword,
