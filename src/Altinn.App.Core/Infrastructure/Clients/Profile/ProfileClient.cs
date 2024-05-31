@@ -11,10 +11,25 @@ using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Profile.Models;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Infrastructure.Clients.Profile;
+
+internal static class ProfileClientDI
+{
+    public static IServiceCollection AddProfileClient(this IServiceCollection services)
+    {
+        services.AddTransient<IProfileClient>(sp => new ProfileClientCachingDecorator(
+            ActivatorUtilities.CreateInstance<ProfileClient>(sp),
+            sp.GetRequiredService<IMemoryCache>(),
+            sp.GetRequiredService<IOptions<CacheSettings>>()
+        ));
+        return services;
+    }
+}
 
 /// <summary>
 /// A client for retrieving profiles from Altinn Platform.

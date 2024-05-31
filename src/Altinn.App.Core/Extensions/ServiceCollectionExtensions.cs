@@ -40,7 +40,6 @@ using Altinn.App.Core.Internal.Process.EventHandlers;
 using Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Process.ServiceTasks;
-using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Secrets;
 using Altinn.App.Core.Internal.Sign;
@@ -97,8 +96,7 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<IInstanceClient, InstanceClient>();
         services.AddHttpClient<IInstanceEventClient, InstanceEventClient>();
         services.AddHttpClient<IEventsClient, EventsClient>();
-        services.AddHttpClient<IProfileClient, ProfileClient>();
-        services.Decorate<IProfileClient, ProfileClientCachingDecorator>();
+        services.AddProfileClient();
         services.AddHttpClient<IAltinnPartyClient, AltinnPartyClient>();
 #pragma warning disable CS0618 // Type or member is obsolete
         services.AddHttpClient<IText, TextClient>();
