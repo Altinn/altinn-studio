@@ -56,19 +56,6 @@
             "taskId": "Task_3",
             "maxCount": 1,
             "minCount": 1
-        },
-        {
-            "id": "receiptDataType",
-            "allowedContentTypes": [
-                "application/xml"
-            ],
-            "appLogic": {
-                "autoCreate": true,
-                "classRef": "Altinn.App.Models.receiptDataType"
-            },
-            "taskId": "CustomReceipt",
-            "maxCount": 1,
-            "minCount": 1
         }
     ],
     "partyTypesAllowed": {

@@ -55,13 +55,44 @@ public class LayoutSetsFileSyncDataTypeTests : DisagnerEndpointsTestsBase<Layout
 
     [Theory]
     [MemberData(nameof(ProcessDataTypeChangedNotifyTestData))]
-    public async Task ProcessDataTypeChangedNotify_NewDataTypeForTask5IsMessage_ShouldSyncLayoutSets(string org, string app, string developer, string applicationMetadataPath, DataTypeChange dataTypeChange)
+    public async Task ProcessDataTypeChangedNotify_NewDataTypeForTask5IsMessage_ShouldSyncLayoutSets(string org, string app, string developer, string layoutSetsPath, DataTypeChange dataTypeChange)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
-        await AddFileToRepo(applicationMetadataPath, "App/ui/layout-sets.json");
+        await AddFileToRepo(layoutSetsPath, "App/ui/layout-sets.json");
         string dataTypeToConnect = "message";
         string task = "Task_5";
+        dataTypeChange.NewDataType = dataTypeToConnect;
+        dataTypeChange.ConnectedTaskId = task;
+
+        string url = VersionPrefix(org, targetRepository);
+
+        string dataTypeChangeString = JsonSerializer.Serialize(dataTypeChange,
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
+        {
+            Content = new StringContent(dataTypeChangeString, Encoding.UTF8, "application/json")
+        };
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+        response.StatusCode.Should().Be(HttpStatusCode.Accepted);
+
+        string layoutSetsFromRepo =
+            TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/ui/layout-sets.json");
+
+        LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsFromRepo, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+
+        layoutSets.Sets.Find(set => set.Tasks[0] == task).DataType.Should().Be(dataTypeToConnect);
+    }
+
+    [Theory]
+    [MemberData(nameof(ProcessDataTypeChangedNotifyTestData))]
+    public async Task ProcessDataTypeChangedNotify_NewDataTypeForCustomReceipt_ShouldSyncLayoutSets(string org, string app, string developer, string layoutSetsPath, DataTypeChange dataTypeChange)
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
+        await AddFileToRepo(layoutSetsPath, "App/ui/layout-sets.json");
+        string dataTypeToConnect = "message";
+        string task = "CustomReceipt";
         dataTypeChange.NewDataType = dataTypeToConnect;
         dataTypeChange.ConnectedTaskId = task;
 
