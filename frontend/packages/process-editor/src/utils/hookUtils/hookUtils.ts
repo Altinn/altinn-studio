@@ -65,7 +65,6 @@ export const getDataTypeIdFromBusinessObject = (
   return businessObject?.extensionElements?.values[0][configNode][dataTypeName];
 };
 
-// TODO remember to update every places where getLayoutSetIdFromTaskId is used to match elementId argument
 export const getLayoutSetIdFromTaskId = (elementId: string, layoutSets: LayoutSets) => {
   const layoutSet = layoutSets.sets.find((set) => set.tasks[0] === elementId);
   return layoutSet?.id;
