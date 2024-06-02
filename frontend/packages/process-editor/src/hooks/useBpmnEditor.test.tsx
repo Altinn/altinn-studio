@@ -76,6 +76,7 @@ jest.mock('./useBpmnModeler', () => ({
 const setBpmnDetailsMock = jest.fn();
 const onProcessTaskAddMock = jest.fn();
 const onProcessTaskRemoveMock = jest.fn();
+
 const overrideUseBpmnContext = () => {
   (useBpmnContext as jest.Mock).mockReturnValue({
     getUpdatedXml: jest.fn(),
@@ -132,29 +133,11 @@ describe('useBpmnEditor', () => {
     await waitFor(() => expect(onProcessTaskAddMock).toHaveBeenCalledTimes(1));
   });
 
-  // it('should handle "shape.remove" event', async () => {
-  //   renderUseBpmnEditor(true, 'shape.remove');
-  //
-  //   const handleTaskRemoveMock = jest.fn();
-  //   (RemoveProcessTaskManager as jest.Mock).mockImplementation(() => ({
-  //     handleTaskRemove: () => handleTaskRemoveMock(),
-  //   }));
-  //
-  //   await waitFor(() => expect(handleTaskRemoveMock).toHaveBeenCalledTimes(1));
-  //   await waitFor(() => expect(setBpmnDetailsMock).toHaveBeenCalledWith(null));
-  // });
-  //
-  // it('should handle "shape.add" event', async () => {
-  //   renderUseBpmnEditor(true, 'shape.remove');
-  //
-  //   const handleTaskRemoveMock = jest.fn();
-  //   (RemoveProcessTaskManager as jest.Mock).mockImplementation(() => ({
-  //     handleAdd: () => handleTaskRemoveMock(),
-  //   }));
-  //
-  //   await waitFor(() => expect(handleTaskRemoveMock).toHaveBeenCalledTimes(1));
-  //   await waitFor(() => expect(setBpmnDetailsMock).toHaveBeenCalledWith(null));
-  // });
+  it('should handle "shape.remove" event', async () => {
+    renderUseBpmnEditor(false, 'shape.remove');
+
+    await waitFor(() => expect(onProcessTaskRemoveMock).toHaveBeenCalledTimes(1));
+  });
 
   it('should call setBpmnDetails when "element.click" event is triggered on eventBus', () => {
     const currentEventName = 'element.click';
