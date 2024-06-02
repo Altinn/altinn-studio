@@ -5,7 +5,7 @@ import {
   getDataTypeIdFromBusinessObject,
   getLayoutSetIdFromTaskId,
 } from '@altinn/process-editor/utils/hookUtils/hookUtils';
-import { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
 export class OnProcessTaskRemoveHandler {
   constructor(

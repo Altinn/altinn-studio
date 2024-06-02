@@ -3,7 +3,7 @@ import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessT
 import { OnProcessTaskRemoveHandler } from './OnProcessTaskRemoveHandler';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { BpmnTypeEnum } from '@altinn/process-editor/enum/BpmnTypeEnum';
-import { TaskEvent } from '@altinn/process-editor/types/TaskEvent';
+import type { TaskEvent } from '@altinn/process-editor/types/TaskEvent';
 
 const orgMock = 'testOrg';
 const appMock = 'testApp';
@@ -62,6 +62,8 @@ describe('OnProcessTaskRemoveHandler', () => {
 
     onProcessTaskRemoveHandler.handleOnProcessTaskRemove(taskMetadata);
     expect(deletelayoutSetMock).toHaveBeenCalledWith({ layoutSetIdToUpdate: 'testLayoutSetId' });
+    expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
+    expect(deleteDataTypeFromAppMetadataMock).not.toHaveBeenCalled();
   });
 
   it('should remove payment policy from current policy when task type is payment', () => {
@@ -146,7 +148,7 @@ describe('OnProcessTaskRemoveHandler', () => {
     expect(deletelayoutSetMock).toHaveBeenCalledWith({ layoutSetIdToUpdate: 'testLayoutSetId' });
   });
 
-  it('should remove datatype from app metadata and delete layoutSet when the signing Task is deleted', () => {
+  it('should remove datatype from app metadata and delete layoutSet when the signing task is deleted', () => {
     const layoutSets: LayoutSets = {
       sets: [{ id: 'testLayoutSetId', dataType: 'signing', tasks: ['testElementId'] }],
     };
@@ -172,5 +174,6 @@ describe('OnProcessTaskRemoveHandler', () => {
     onProcessTaskRemoveHandler.handleOnProcessTaskRemove(taskMetadata);
     expect(deleteDataTypeFromAppMetadataMock).toHaveBeenCalled();
     expect(deletelayoutSetMock).toHaveBeenCalledWith({ layoutSetIdToUpdate: 'testLayoutSetId' });
+    expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
   });
 });

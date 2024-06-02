@@ -1,5 +1,5 @@
-import { BpmnTaskType } from '../types/BpmnTaskType';
-import { TaskEvent } from '../types/TaskEvent';
+import type { BpmnTaskType } from '../types/BpmnTaskType';
+import type { TaskEvent } from '../types/TaskEvent';
 
 export type OnProcessTaskEvent = {
   taskEvent?: TaskEvent;

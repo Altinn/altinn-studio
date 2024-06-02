@@ -2,7 +2,8 @@ import type { Policy } from 'app-shared/types/Policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
 import { OnProcessTaskAddHandler } from './OnProcessTaskAddHandler';
 import { BpmnTypeEnum } from '@altinn/process-editor/enum/BpmnTypeEnum';
-import { TaskEvent } from '@altinn/process-editor/types/TaskEvent';
+import type { TaskEvent } from '@altinn/process-editor/types/TaskEvent';
+import type { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
 
 const orgMock = 'testOrg';
 const appMock = 'testApp';
@@ -54,6 +55,8 @@ describe('OnProcessTaskAddHandler', () => {
       layoutSetConfig: { id: 'testId', tasks: ['testId'] },
       layoutSetIdToUpdate: 'testId',
     });
+    expect(addDataTypeToAppMetadataMock).not.toHaveBeenCalled();
+    expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
   });
 
   it('should add layoutSet, dataType and default policy when payment task is added', () => {
@@ -136,5 +139,23 @@ describe('OnProcessTaskAddHandler', () => {
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
       dataTypeId: 'signingInformation',
     });
+    expect(addLayoutSetMock).not.toHaveBeenCalled();
+    expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
   });
+
+  it.each(['confirmation', 'feedback'])(
+    'should not add layoutSet, dataType or default policy when task type is %s',
+    (task) => {
+      const onProcessTaskAddHandler = createOnProcessTaskHandler();
+
+      onProcessTaskAddHandler.handleOnProcessTaskAdd({
+        taskEvent: createTaskEvent(),
+        taskType: task as BpmnTaskType,
+      });
+
+      expect(addLayoutSetMock).not.toHaveBeenCalled();
+      expect(addDataTypeToAppMetadataMock).not.toHaveBeenCalled();
+      expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
+    },
+  );
 });
