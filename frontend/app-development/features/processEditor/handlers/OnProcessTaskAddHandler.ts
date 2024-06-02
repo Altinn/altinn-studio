@@ -3,7 +3,7 @@ import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessT
 import type { Policy } from 'app-shared/types/Policy';
 import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { getDataTypeIdFromBusinessObject } from '@altinn/process-editor/utils/hookUtils/hookUtils';
-import { AddLayoutSetMutation } from '../../../hooks/mutations/useAddLayoutSetMutation';
+import type { AddLayoutSetMutation } from '../../../hooks/mutations/useAddLayoutSetMutation';
 
 export class OnProcessTaskAddHandler {
   constructor(
