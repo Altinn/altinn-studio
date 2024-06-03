@@ -452,7 +452,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Put, listUrl, serviceResourceString, accessList.Etag);
 
             HttpResponseMessage response = await _httpClient.SendAsync(request);
-            if (response.StatusCode == HttpStatusCode.PreconditionFailed) 
+            if (response.StatusCode == HttpStatusCode.PreconditionFailed)
             {
                 return new StatusCodeResult(412);
             }
@@ -594,7 +594,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}{relativeUrl}");
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
-            if (eTag != null) {
+            if (eTag != null)
+            {
                 request.Headers.Add("If-Match", eTag);
             }
             request.Method = verb;
