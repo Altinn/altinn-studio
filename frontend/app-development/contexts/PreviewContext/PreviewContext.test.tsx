@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, renderHook, screen, waitFor, act } from '@testing-library/react';
 import { PreviewContextProvider, usePreviewContext } from './PreviewContext';
 
 describe('PreviewContext', () => {
@@ -40,5 +40,24 @@ describe('PreviewContext', () => {
       'usePreviewContext must be used within a PreviewContextProvider',
     );
     expect(consoleError).toHaveBeenCalled();
+  });
+
+  it('should toggle the shouldReloadPreview between true and false when doReload and hasReloaded is invoked', async () => {
+    const { result } = renderHook(() => usePreviewContext(), {
+      wrapper: PreviewContextProvider,
+    });
+
+    const { shouldReloadPreview, doReloadPreview, previewHasLoaded } = result.current;
+    expect(shouldReloadPreview).toBe(false);
+
+    act(doReloadPreview);
+    await waitFor(() => {
+      expect(result.current.shouldReloadPreview).toBe(true);
+    });
+
+    act(previewHasLoaded);
+    await waitFor(() => {
+      expect(result.current.shouldReloadPreview).toBe(false);
+    });
   });
 });
