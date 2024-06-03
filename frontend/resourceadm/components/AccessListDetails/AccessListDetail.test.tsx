@@ -62,6 +62,24 @@ describe('AccessListDetail', () => {
     });
   });
 
+  it('should show error message if call to update name returns http status code 412', async () => {
+    const user = userEvent.setup();
+    const updateMock = jest.fn().mockImplementation(() =>
+      Promise.reject({
+        response: { status: 412 },
+      }),
+    );
+    renderAccessListDetail({}, { updateAccessList: updateMock });
+
+    const nameField = screen.getByLabelText(textMock('resourceadm.listadmin_list_name'));
+    await user.type(nameField, ' change');
+    await waitFor(() => nameField.blur());
+
+    expect(
+      screen.getByText(textMock('resourceadm.listadmin_list_sim_update_error')),
+    ).toBeInTheDocument();
+  });
+
   it('should call service to update description', async () => {
     const user = userEvent.setup();
     renderAccessListDetail({}, { updateAccessList: updateAccessListMock });
