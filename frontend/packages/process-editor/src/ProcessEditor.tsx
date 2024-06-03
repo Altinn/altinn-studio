@@ -17,6 +17,7 @@ export type ProcessEditorProps = {
   appLibVersion: string;
   bpmnXml: string | undefined | null;
   availableDataModelIds: BpmnApiContextProps['availableDataModelIds'];
+  allDataModelIds: BpmnApiContextProps['allDataModelIds'];
   layoutSets: BpmnApiContextProps['layoutSets'];
   pendingApiOperations: boolean;
   existingCustomReceiptLayoutSetId: BpmnApiContextProps['existingCustomReceiptLayoutSetId'];
@@ -36,6 +37,7 @@ export const ProcessEditor = ({
   appLibVersion,
   bpmnXml,
   availableDataModelIds,
+  allDataModelIds,
   layoutSets,
   pendingApiOperations,
   existingCustomReceiptLayoutSetId,
@@ -64,6 +66,7 @@ export const ProcessEditor = ({
     <BpmnContextProvider bpmnXml={bpmnXml} appLibVersion={appLibVersion}>
       <BpmnApiContextProvider
         availableDataModelIds={availableDataModelIds}
+        allDataModelIds={allDataModelIds}
         layoutSets={layoutSets}
         pendingApiOperations={pendingApiOperations}
         existingCustomReceiptLayoutSetId={existingCustomReceiptLayoutSetId}

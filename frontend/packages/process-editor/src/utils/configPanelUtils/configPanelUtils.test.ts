@@ -2,7 +2,6 @@ import {
   getConfigTitleHelpTextKey,
   getConfigTitleKey,
   getDataTypeFromLayoutSetsWithExistingId,
-  getDataModelOptions,
 } from './configPanelUtils';
 
 describe('configPanelUtils', () => {
@@ -75,26 +74,6 @@ describe('configPanelUtils', () => {
         existingCustomReceiptLayoutSetId,
       );
       expect(existingDataModelId).toBeUndefined();
-    });
-  });
-
-  describe('getDataModelOptions', () => {
-    it('should return availableIds with existingId appended when existingId is provided', () => {
-      const availableIds = ['id1', 'id2', 'id3'];
-      const existingId = 'existingId';
-
-      const result = getDataModelOptions(availableIds, existingId);
-
-      expect(result).toEqual([...availableIds, existingId]);
-    });
-
-    it('should return availableIds unchanged when existingId is not provided', () => {
-      const availableIds = ['id1', 'id2', 'id3'];
-      const existingId = '';
-
-      const result = getDataModelOptions(availableIds, existingId);
-
-      expect(result).toEqual(availableIds);
     });
   });
 });
