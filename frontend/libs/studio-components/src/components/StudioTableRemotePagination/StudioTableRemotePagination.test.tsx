@@ -33,6 +33,19 @@ describe('StudioTableRemotePagination', () => {
     ).toBeInTheDocument();
   });
 
+  it('renders sorting button only when specified in column object', async () => {
+    const handleSorting = jest.fn();
+    render(
+      <StudioTableRemotePagination columns={columns} rows={rows} onSortClick={handleSorting} />,
+    );
+
+    const sortByNameButton = screen.queryByRole('button', { name: 'Name' });
+    const sortByCreatedByButton = screen.queryByRole('button', { name: 'Created by' });
+
+    expect(sortByNameButton).toBeInTheDocument();
+    expect(sortByCreatedByButton).not.toBeInTheDocument();
+  });
+
   it('triggers the handleSorting function when a sortable column header is clicked', async () => {
     const handleSorting = jest.fn();
     render(

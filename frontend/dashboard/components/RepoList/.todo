@@ -14,3 +14,5 @@ DONE Add link to edit app
 13. Write tests for OrgRepoList
 14. Write tests for FavoriteReposList
 15. Move texts in getErrorMessage into translations
+16. Fix presentation of remote table in storybook
+17. Fix presentation of local table in storybook

@@ -2,14 +2,6 @@ import { Label, NativeSelect, Pagination, Paragraph, Table } from '@digdir/desig
 import React, { forwardRef, useEffect, useId } from 'react';
 import classes from './StudioTableRemotePagination.module.css';
 
-type tableSize = 'small' | 'medium' | 'large';
-type labelSize = 'xsmall' | 'small' | 'medium';
-export const resizeLabelMap: Record<tableSize, labelSize> = {
-  small: 'xsmall',
-  medium: 'small',
-  large: 'medium',
-};
-
 export type Columns = {
   accessor: string;
   value: string;
@@ -73,7 +65,6 @@ export const StudioTableRemotePagination = forwardRef<
     const lastRowIndex = Math.min(currentPage * pageSize, totalRows);
 
     const labelId = useId();
-    // const labelSize = resizeLabelMap[size];
 
     useEffect(() => {
       const isOutOfRange = totalRows > 0 && rows.length === 0;

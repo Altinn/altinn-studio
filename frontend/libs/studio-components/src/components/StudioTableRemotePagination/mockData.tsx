@@ -21,6 +21,7 @@ export const columns = [
   {
     accessor: 'name',
     value: 'Name',
+    sortable: true,
   },
   {
     accessor: 'creator',
