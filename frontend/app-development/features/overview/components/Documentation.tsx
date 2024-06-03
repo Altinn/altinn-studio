@@ -8,7 +8,7 @@ export const Documentation = (): React.ReactElement => {
   const { t } = useTranslation();
   return (
     <div className={classes.documentation}>
-      <Heading level={2} size='xxsmall' className={classes.heading}>
+      <Heading level={2} size='xxsmall'>
         {t('overview.documentation.title')}
       </Heading>
       <Link
