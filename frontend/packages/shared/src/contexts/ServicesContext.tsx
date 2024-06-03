@@ -40,24 +40,20 @@ const handleError = (
   // TODO : log axios errors
 
   const errorCode = error?.response?.data?.errorCode;
-  if (errorCode) {
-    const errorMessageKey = `api_errors.${errorCode}`;
+  const errorMessageKey = errorCode ? `api_errors.${errorCode}` : 'api_errors.Unauthorized';
 
-    if (i18n.exists(errorMessageKey)) {
-      toast.error(t(errorMessageKey), { toastId: errorMessageKey });
-      return;
-    }
-  }
-
-  if (error?.response?.status === ServerCodes.Unauthorized) {
-    const errorMessageKey = 'api_errors.Unauthorized';
-    if (i18n.exists(errorMessageKey)) {
-      toast.error(t(errorMessageKey), { toastId: errorMessageKey, autoClose: LOG_OUT_TIMER_MS });
-    }
+  const renderToast = () => {
+    toast.error(t(errorMessageKey), { toastId: errorMessageKey, autoClose: LOG_OUT_TIMER_MS });
     setTimeout(() => {
       logout().then(() => window.location.assign(userLogoutAfterPath()));
     }, LOG_OUT_TIMER_MS);
-    return;
+  };
+
+  if (errorCode || error?.response?.status === ServerCodes.Unauthorized) {
+    if (i18n.exists(errorMessageKey)) {
+      renderToast();
+      return;
+    }
   }
 
   if (

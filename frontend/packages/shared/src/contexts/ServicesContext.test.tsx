@@ -94,6 +94,22 @@ describe('ServicesContext', () => {
     expect(await screen.findByText(textMock('api_errors.DM_01'))).toBeInTheDocument();
   });
 
+  it('displays a specific error message if API returns error code DM_03', async () => {
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(422, 'DM_03')),
+          retry: false,
+        }),
+      { wrapper },
+    );
+
+    await waitFor(() => result.current.isError);
+
+    expect(await screen.findByText(textMock('api_errors.DM_03'))).toBeInTheDocument();
+  });
+
   it('displays a specific error message if API returns error code DM_05', async () => {
     const { result } = renderHook(
       () =>
