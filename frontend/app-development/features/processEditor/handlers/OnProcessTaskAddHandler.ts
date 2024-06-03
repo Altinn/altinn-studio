@@ -12,7 +12,10 @@ export class OnProcessTaskAddHandler {
     private readonly currentPolicy: Policy,
     private readonly addLayoutSet: AddLayoutSetMutation,
     private readonly mutateApplicationPolicy: (policy: Policy) => void,
-    private readonly addDataTypeToAppMetadata: (data: { dataTypeId: string }) => void,
+    private readonly addDataTypeToAppMetadata: (data: {
+      dataTypeId: string;
+      taskId: string;
+    }) => void,
   ) {}
 
   /**
@@ -59,6 +62,7 @@ export class OnProcessTaskAddHandler {
 
     this.addDataTypeToAppMetadata({
       dataTypeId,
+      taskId: taskMetadata.taskEvent.element.id,
     });
 
     // Add default policy
@@ -88,6 +92,7 @@ export class OnProcessTaskAddHandler {
 
     this.addDataTypeToAppMetadata({
       dataTypeId,
+      taskId: taskMetadata.taskEvent.element.id,
     });
   }
 

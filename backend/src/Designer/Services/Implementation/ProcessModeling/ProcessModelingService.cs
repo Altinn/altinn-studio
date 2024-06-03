@@ -55,7 +55,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
             return altinnAppGitRepository.GetProcessDefinitionFile();
         }
 
-        public async Task AddDataTypeToApplicationMetadataAsync(AltinnRepoEditingContext altinnRepoEditingContext, string dataTypeId, CancellationToken cancellationToken = default)
+        public async Task AddDataTypeToApplicationMetadataAsync(AltinnRepoEditingContext altinnRepoEditingContext, string dataTypeId, string taskId, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
@@ -67,6 +67,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
                     Id = dataTypeId,
                     AllowedContentTypes = ["application/json"],
                     MaxCount = 1,
+                    TaskId = taskId,
                     EnablePdfCreation = false
                 });
                 await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);

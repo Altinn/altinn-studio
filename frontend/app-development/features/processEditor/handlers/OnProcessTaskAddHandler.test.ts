@@ -107,7 +107,10 @@ describe('OnProcessTaskAddHandler', () => {
       },
       layoutSetIdToUpdate: 'testElementId',
     });
-    expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({ dataTypeId: 'paymentInformation' });
+    expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
+      dataTypeId: 'paymentInformation',
+      taskId: 'testElementId',
+    });
     expect(mutateApplicationPolicyMock).toHaveBeenCalledWith(expectedResponse);
   });
 
@@ -138,6 +141,7 @@ describe('OnProcessTaskAddHandler', () => {
 
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
       dataTypeId: 'signingInformation',
+      taskId: 'testElementId',
     });
     expect(addLayoutSetMock).not.toHaveBeenCalled();
     expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
