@@ -46,7 +46,7 @@ describe('SelectCustomReceiptDataModelId', () => {
     expect(mockOnChange).toHaveBeenCalledTimes(1);
   });
 
-  it('should display a combobox without value and a description that data models are missing when clicking "add data model" when there are no data models', async () => {
+  it('should display a combobox without value and an empty combobox element informing that data models are missing when clicking "add data model" when there are no data models', async () => {
     const user = userEvent.setup();
     renderSelectCustomReceiptDataModelId({
       allDataModelIds: [],

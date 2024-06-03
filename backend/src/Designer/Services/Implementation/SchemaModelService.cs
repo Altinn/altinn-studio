@@ -416,8 +416,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 if (altinnAppGitRepository.AppUsesLayoutSets())
                 {
                     var layoutSets = await altinnAppGitRepository.GetLayoutSetsFile();
-                    List<LayoutSetConfig> layoutSetsWithDataType = layoutSets.Sets.FindAll(set => set.DataType == id);
-                    foreach (LayoutSetConfig layoutSet in layoutSetsWithDataType)
+                    List<LayoutSetConfig> layoutSetsWithDataTypeToDelete = layoutSets.Sets.FindAll(set => set.DataType == id);
+                    foreach (LayoutSetConfig layoutSet in layoutSetsWithDataTypeToDelete)
                     {
                         layoutSet.DataType = null;
                     }

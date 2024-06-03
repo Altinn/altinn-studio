@@ -6,7 +6,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 export const useAppMetadataModelIdsQuery = (
   org: string,
   app: string,
-  onlyUnReferenced: boolean = false,
+  onlyUnReferenced: boolean = true,
 ): UseQueryResult<string[]> => {
   const { getAppMetadataModelIds } = useServicesContext();
   return useQuery<string[]>({
