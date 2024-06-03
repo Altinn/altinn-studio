@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
-import type { AxiosError } from 'axios';
 import { Tag, Paragraph, Spinner, Alert } from '@digdir/design-system-react';
 import classes from './ResourceDeployEnvCard.module.css';
 import { ArrowRightIcon } from '@studio/icons';
@@ -9,6 +8,7 @@ import { StudioButton } from '@studio/components';
 import { usePublishResourceMutation } from '../../hooks/mutations';
 import { type Environment } from '../../utils/resourceUtils';
 import { useUrlParams } from '../../hooks/useSelectedContext';
+import type { ResourceError } from 'app-shared/types/ResourceAdm';
 
 export type ResourceDeployEnvCardProps = {
   isDeployPossible: boolean;
@@ -50,7 +50,7 @@ export const ResourceDeployEnvCard = ({
         toast.success(t('resourceadm.resource_published_success', { envName: t(env.label) }));
       },
       onError: (error: Error) => {
-        if ((error as AxiosError).response.status === 403) {
+        if ((error as ResourceError).response?.status === 403) {
           setHasNoPublishAccess(true);
         }
       },

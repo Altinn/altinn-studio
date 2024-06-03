@@ -34,7 +34,7 @@ public class ProcessDataTypeChangedApplicationMetadataHandler : INotificationHan
 
                 var applicationMetadata = await repository.GetApplicationMetadata(cancellationToken);
 
-                if (TryChangeDataType(applicationMetadata, notification.NewDataType, notification.ConnectedTaskId))
+                if (notification.ConnectedTaskId != Constants.General.CustomReceiptId && TryChangeDataType(applicationMetadata, notification.NewDataType, notification.ConnectedTaskId))
                 {
                     await repository.SaveApplicationMetadata(applicationMetadata);
                 }

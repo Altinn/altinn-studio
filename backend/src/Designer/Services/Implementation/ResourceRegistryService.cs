@@ -111,7 +111,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             if (policyPath != null)
             {
-                MultipartFormDataContent content = new MultipartFormDataContent();
+                using MultipartFormDataContent content = new MultipartFormDataContent();
 
                 if (ResourceAdminHelper.ValidFilePath(policyPath))
                 {

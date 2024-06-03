@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
@@ -16,14 +15,12 @@ import { InputFields } from './InputFields';
 import { CreatedFor } from './CreatedFor';
 import { TabContent } from '../../TabContent';
 import { usePreviewContext } from '../../../../../../contexts/PreviewContext';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
-export type AboutTabProps = {
-  org: string;
-  app: string;
-};
-
-export const AboutTab = ({ org, app }: AboutTabProps): ReactNode => {
+export const AboutTab = (): React.ReactElement => {
   const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+
   const repositoryType = getRepositoryType(org, app);
 
   const { doReloadPreview } = usePreviewContext();

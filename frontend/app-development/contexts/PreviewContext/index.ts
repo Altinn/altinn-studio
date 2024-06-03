@@ -1,1 +1,6 @@
-export { PreviewContext, usePreviewContext, PreviewContextProvider } from './PreviewContext';
+export {
+  PreviewContext,
+  type PreviewContextProps,
+  usePreviewContext,
+  PreviewContextProvider,
+} from './PreviewContext';

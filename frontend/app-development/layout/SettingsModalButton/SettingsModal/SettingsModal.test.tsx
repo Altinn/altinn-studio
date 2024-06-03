@@ -11,7 +11,7 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import { useAppConfigMutation } from '../../../hooks/mutations';
 import { MemoryRouter } from 'react-router-dom';
-import { app, org } from '@studio/testing/testids';
+
 import { SettingsModalContextProvider } from '../../../contexts/SettingsModalContext';
 import { PreviewContextProvider } from '../../../contexts/PreviewContext';
 
@@ -35,8 +35,6 @@ describe('SettingsModal', () => {
   const defaultProps: SettingsModalProps = {
     isOpen: true,
     onClose: mockOnClose,
-    org,
-    app,
   };
 
   it('closes the modal when the close button is clicked', async () => {
