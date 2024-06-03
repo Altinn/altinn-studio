@@ -309,7 +309,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             HttpResponseMessage getAccessListsResponse = await _httpClient.SendAsync(request);
             getAccessListsResponse.EnsureSuccessStatusCode();
-            return await getAccessListsResponse.Content.ReadAsAsync<AccessList>();
+            AccessList responseList = await getAccessListsResponse.Content.ReadAsAsync<AccessList>();
+            responseList.Etag = getAccessListsResponse.Headers.ETag.ToString();
+            return responseList;
         }
 
         public async Task<PagedAccessListMembersResponse> GetAccessListMembers(
@@ -438,7 +440,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return deleteAccessListResponse.StatusCode;
         }
 
-        public async Task<AccessList> UpdateAccessList(
+        public async Task<ActionResult<AccessList>> UpdateAccessList(
             string org,
             string identifier,
             string env,
@@ -447,9 +449,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             string listUrl = $"/{org}/{identifier}";
             string serviceResourceString = JsonSerializer.Serialize(accessList, _serializerOptions);
-            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Put, listUrl, serviceResourceString);
+            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Put, listUrl, serviceResourceString, accessList.Etag);
 
             HttpResponseMessage response = await _httpClient.SendAsync(request);
+            if (response.StatusCode == HttpStatusCode.PreconditionFailed) 
+            {
+                return new StatusCodeResult(412);
+            }
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsAsync<AccessList>();
         }
@@ -577,7 +583,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return pageUrl.Replace(accessListBaseUrl, "");
         }
 
-        private async Task<HttpRequestMessage> CreateAccessListRequest(string env, HttpMethod verb, string relativeUrl, string serializedContent = null)
+        private async Task<HttpRequestMessage> CreateAccessListRequest(string env, HttpMethod verb, string relativeUrl, string serializedContent = null, string eTag = null)
         {
             _maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(env);
             TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
@@ -588,6 +594,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}{relativeUrl}");
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
+            if (eTag != null) {
+                request.Headers.Add("If-Match", eTag);
+            }
             request.Method = verb;
             if (serializedContent != null)
             {

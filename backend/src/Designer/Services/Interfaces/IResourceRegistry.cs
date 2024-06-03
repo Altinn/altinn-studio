@@ -117,7 +117,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="env">Chosen environment</param>
         /// <param name="accessList">New data with name and description of access list</param>
         /// <returns>The updated access list</returns>
-        Task<AccessList> UpdateAccessList(string org, string identifier, string env, AccessList accessList);
+        Task<ActionResult<AccessList>> UpdateAccessList(string org, string identifier, string env, AccessList accessList);
 
         /// <summary>
         /// Add a new party as access list member
