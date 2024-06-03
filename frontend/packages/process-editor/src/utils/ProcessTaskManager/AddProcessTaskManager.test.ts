@@ -69,6 +69,7 @@ describe('AddProcessTaskManager', () => {
 
     expect(addDataTypeToAppMetadata).toHaveBeenCalledWith({
       dataTypeId: 'paymentInformation',
+      taskId: 'testId',
     });
   });
 
@@ -85,6 +86,7 @@ describe('AddProcessTaskManager', () => {
 
     expect(addDataTypeToAppMetadata).toHaveBeenCalledWith({
       dataTypeId: 'signingInformation',
+      taskId: 'testId',
     });
   });
 
