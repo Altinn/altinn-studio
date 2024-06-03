@@ -144,6 +144,7 @@ export interface AccessList {
   identifier: string;
   name: string;
   description?: string;
+  etag?: string;
   resourceConnections?: {
     resourceIdentifier: string;
   }[];

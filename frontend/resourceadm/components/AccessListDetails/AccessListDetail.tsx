@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import { Textfield, Modal, Heading, Link as DigdirLink } from '@digdir/design-system-react';
+import { Textfield, Modal, Heading, Link as DigdirLink, Alert } from '@digdir/design-system-react';
 import classes from './AccessListDetail.module.css';
 import type { AccessList } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from '../FieldWrapper';
@@ -40,7 +40,11 @@ export const AccessListDetail = ({
     isFetchingNextPage,
     fetchNextPage,
   } = useGetAccessListMembersQuery(org, list.identifier, env);
-  const { mutate: editAccessList } = useEditAccessListMutation(org, list.identifier, env);
+  const { mutate: editAccessList, error: updateAccessListError } = useEditAccessListMutation(
+    org,
+    list.identifier,
+    env,
+  );
   const { mutate: deleteAccessList, isPending: isDeletingAccessList } = useDeleteAccessListMutation(
     org,
     list.identifier,
@@ -121,6 +125,9 @@ export const AccessListDetail = ({
           onBlur={(event) => handleSave({ ...list, description: event.target.value })}
         />
       </FieldWrapper>
+      {updateAccessListError?.response.status === 412 && (
+        <Alert severity='danger'>{t('resourceadm.listadmin_list_sim_update_error')}</Alert>
+      )}
       {membersData && (
         <AccessListMembers
           org={org}

@@ -1088,6 +1088,7 @@
   "resourceadm.listadmin_list_name_description": "Gi listen et beskrivende navn, f.eks \"Godkjente banker\"",
   "resourceadm.listadmin_list_organizations": "Registrerte enheter",
   "resourceadm.listadmin_list_organizations_description": "Enheter i denne listen vil ha tilgang til ressursen",
+  "resourceadm.listadmin_list_sim_update_error": "Listen er endret etter du åpnet den. Last siden på nytt for å hente nyeste versjon.",
   "resourceadm.listadmin_list_tenor_org": "Tenor testorganisasjon",
   "resourceadm.listadmin_list_unit": "tilgangslister",
   "resourceadm.listadmin_lists_in": "Lister i {{environment}}",
