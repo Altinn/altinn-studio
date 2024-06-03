@@ -1,6 +1,8 @@
 export enum SimpleSubexpressionValueType {
   Component = 'component',
-  Datamodel = 'datamodel',
+  DataModel = 'dataModel',
+  GatewayAction = 'gatewayAction',
+  GatewayActionContext = 'gatewayActionContext',
   InstanceContext = 'instanceContext',
   String = 'string',
   Number = 'number',

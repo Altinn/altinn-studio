@@ -5,20 +5,18 @@ import { createQueryClientMock, queryClientMock } from 'app-shared/mocks/queryCl
 import type { TextResourceValueEditorProps } from './TextResourceValueEditor';
 import { TextResourceValueEditor } from './TextResourceValueEditor';
 import { renderWithProviders } from '../../../../testing/mocks';
-import { act, screen } from '@testing-library/react';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { screen } from '@testing-library/react';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { appContextMock } from '../../../../testing/appContextMock';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
 // Test data:
-const org = 'org';
-const app = 'app';
-
 const textResources: ITextResource[] = [
   { id: '1', value: 'Text 1' },
   { id: '2', value: 'Text 2' },
@@ -26,8 +24,7 @@ const textResources: ITextResource[] = [
 ];
 
 const textResourceId = textResources[0].id;
-const onReferenceChange = jest.fn();
-const defaultProps: TextResourceValueEditorProps = { textResourceId, onReferenceChange };
+const defaultProps: TextResourceValueEditorProps = { textResourceId };
 
 describe('TextResourceValueEditor', () => {
   afterEach(() => {
@@ -51,8 +48,8 @@ describe('TextResourceValueEditor', () => {
 
     const textboxLabel = textMock('ux_editor.text_resource_binding_text');
     const textbox = screen.getByRole('textbox', { name: textboxLabel });
-    await act(() => user.type(textbox, 'a'));
-    await act(() => user.tab());
+    await user.type(textbox, 'a');
+    await user.tab();
 
     expect(upsertTextResources).toHaveBeenCalledTimes(1);
     expect(upsertTextResources).toHaveBeenCalledWith(org, app, DEFAULT_LANGUAGE, {

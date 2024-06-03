@@ -36,8 +36,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="sourceRepository">The name of the repository to be copied.</param>
         /// <param name="targetRepository">The name of the new repository.</param>
         /// <param name="developer">Developer's username</param>
+        /// <param name="targetOrg">TThe name of the organization in which the repo will be copied. If not set it defaults to <paramref name="org"/></param>
         /// <returns>The repository created in gitea</returns>
-        Task<RepositoryClient.Model.Repository> CopyRepository(string org, string sourceRepository, string targetRepository, string developer);
+        Task<RepositoryClient.Model.Repository> CopyRepository(string org, string sourceRepository, string targetRepository, string developer, string targetOrg = null);
 
         /// <summary>
         /// Deletes the local repository for the user and makes a new clone of the repo
@@ -126,15 +127,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="newResource">The new resource that is to be added to the repository</param>
         /// <returns>Status code result of resource creation request: 201 if success, or 409 or 400 on error</returns>
         StatusCodeResult AddServiceResource(string org, ServiceResource newResource);
-
-        /// <summary>
-        /// Checks a resource if it has a policy by checking if a policyfile exists in the same folder as the resourcefile.
-        /// </summary>
-        /// <param name="org">The organisation which owns the repository</param>
-        /// <param name="repository">The repository</param>
-        /// <param name="resource">The resource which is to be checked for policy</param>
-        /// <returns>Returns true if resourcefile has a policyfile along with it. If not, returns false</returns>
-        bool ResourceHasPolicy(string org, string repository, ServiceResource resource);
 
         /// <summary>
         /// Publishes a specific resource to the ResourceRegistry

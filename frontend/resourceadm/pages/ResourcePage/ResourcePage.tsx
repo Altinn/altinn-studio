@@ -91,7 +91,7 @@ export const ResourcePage = (): React.JSX.Element => {
   const { data: accessList } = useGetAccessListQuery(selectedContext, accessListId, env);
 
   // Mutation function for editing a resource
-  const { mutate: editResource } = useEditResourceMutation(selectedContext, repo, resourceId);
+  const { mutateAsync: editResource } = useEditResourceMutation(selectedContext, repo, resourceId);
 
   // Set resourceData when loaded from server. Should only be called once
   useEffect(() => {
@@ -112,6 +112,7 @@ export const ResourcePage = (): React.JSX.Element => {
    */
   const navigateToPage = async (page: NavigationBarPage) => {
     if (currentPage !== page) {
+      await editResource(resourceData);
       await refetchResource();
 
       // Validate Resource and display errors + modal
@@ -282,11 +283,11 @@ export const ResourcePage = (): React.JSX.Element => {
           {currentPage === deployPageId && (
             <DeployResourcePage
               navigateToPageWithError={navigateToPageWithError}
-              resourceVersionText={resourceData?.version ?? ''}
+              resourceVersionText={loadedResourceData?.version ?? ''}
               onSaveVersion={(version: string) =>
                 handleSaveResource({
                   ...resourceData,
-                  version,
+                  version: version?.trim(), // empty version is not allowed
                 })
               }
               id='page-content-deploy'

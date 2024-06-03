@@ -1,8 +1,7 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ResourceReference } from 'app-shared/types/ResourceAdm';
 import type { ResourceReferenceFieldsProps } from './ResourceReferenceFields';
 import { ResourceReferenceFields } from './ResourceReferenceFields';
@@ -45,7 +44,7 @@ describe('ResourceReferenceFields', () => {
     render(<ResourceReferenceFields {...defaultProps} />);
 
     const referenceField = screen.getByLabelText(textMock('resourceadm.about_resource_reference'));
-    await act(() => user.type(referenceField, mockReferenceInput));
+    await user.type(referenceField, mockReferenceInput);
 
     expect(referenceField).toHaveValue(`${mockReference1.reference}${mockReferenceInput}`);
   });
@@ -60,7 +59,7 @@ describe('ResourceReferenceFields', () => {
 
     expect(sourceField).toHaveValue('Default');
 
-    await act(() => user.selectOptions(sourceField, 'Altinn3'));
+    await user.selectOptions(sourceField, 'Altinn3');
 
     expect(sourceField).toHaveValue('Altinn3');
   });
@@ -73,7 +72,7 @@ describe('ResourceReferenceFields', () => {
 
     expect(typeField).toHaveValue('Default');
 
-    await act(() => user.selectOptions(typeField, 'MaskinportenScope'));
+    await user.selectOptions(typeField, 'MaskinportenScope');
 
     expect(typeField).toHaveValue('MaskinportenScope');
   });
@@ -83,8 +82,8 @@ describe('ResourceReferenceFields', () => {
     render(<ResourceReferenceFields {...defaultProps} />);
 
     const referenceField = screen.getByLabelText(textMock('resourceadm.about_resource_reference'));
-    await act(() => user.type(referenceField, mockReferenceInput));
-    await act(() => referenceField.blur());
+    await user.type(referenceField, mockReferenceInput);
+    await waitFor(() => referenceField.blur());
 
     expect(mockOnResourceReferenceFieldChanged).toHaveBeenCalledWith([
       {
@@ -99,8 +98,8 @@ describe('ResourceReferenceFields', () => {
     render(<ResourceReferenceFields {...defaultProps} />);
 
     const typeField = screen.getByLabelText(textMock('resourceadm.about_resource_reference_type'));
-    await act(() => user.selectOptions(typeField, 'ServiceEditionCode'));
-    await act(() => typeField.blur());
+    await user.selectOptions(typeField, 'ServiceEditionCode');
+    await waitFor(() => typeField.blur());
 
     expect(mockOnResourceReferenceFieldChanged).toHaveBeenCalledWith([
       {
@@ -117,8 +116,8 @@ describe('ResourceReferenceFields', () => {
     const sourceField = screen.getByLabelText(
       textMock('resourceadm.about_resource_reference_source'),
     );
-    await act(() => user.selectOptions(sourceField, 'Altinn3'));
-    await act(() => sourceField.blur());
+    await user.selectOptions(sourceField, 'Altinn3');
+    await waitFor(() => sourceField.blur());
 
     expect(mockOnResourceReferenceFieldChanged).toHaveBeenCalledWith([
       {
@@ -126,5 +125,13 @@ describe('ResourceReferenceFields', () => {
         referenceSource: 'Altinn3',
       },
     ]);
+  });
+
+  it('should show maskinporten error if no reference is MaskinportenScope', () => {
+    render(<ResourceReferenceFields {...defaultProps} showErrors={true} />);
+
+    expect(
+      screen.getByText(textMock('resourceadm.about_resource_reference_maskinporten_missing')),
+    ).toBeVisible();
   });
 });

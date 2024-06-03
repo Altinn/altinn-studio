@@ -11,17 +11,17 @@ import {
   externalLayoutsMock,
   layout1Mock,
   layout1NameMock,
-} from '../../testing/layoutMock';
+} from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
 import type { FormLayoutsResponse } from 'app-shared/types/api';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const selectedLayoutName = 'Side1';
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutName = layout1NameMock;
+const selectedLayoutSet = layoutSet1NameMock;
 const maxCount = 2;
 const updatedContainer: FormContainer = {
   id: 'newId',

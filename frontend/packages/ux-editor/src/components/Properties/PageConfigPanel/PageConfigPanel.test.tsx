@@ -6,14 +6,16 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { IFormLayouts } from '../../../types/global';
-import { layout1NameMock, layoutMock, layoutSetsMock } from '../../../testing/layoutMock';
+import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data
-const app = 'app';
-const org = 'org';
-const layoutSet = layoutSetsMock.sets[0].id;
+const layoutSet = layoutSet1NameMock;
+const duplicatedLayout = 'duplicatedLayout';
+const dataModelName = undefined;
 
 const defaultTexts: ITextResources = {
   [DEFAULT_LANGUAGE]: [
@@ -24,6 +26,16 @@ const defaultTexts: ITextResources = {
 };
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
+  [duplicatedLayout]: {
+    components: {},
+    containers: {},
+    order: {
+      ['idContainer']: ['idContainer1', 'idContainer2', 'idContainer3'],
+      ['idContainer1']: ['idContainer', 'idContainer1', 'idContainer2'],
+    },
+    customRootProperties: {},
+    customDataProperties: {},
+  },
 };
 
 describe('PageConfigPanel', () => {
@@ -60,6 +72,21 @@ describe('PageConfigPanel', () => {
     screen.getByRole('heading', { name: newVisualPageName });
     screen.getByRole('button', { name: textMock('ux_editor.id_identifier') });
   });
+
+  it('render warning when layout is selected and has duplicated ids', () => {
+    renderPageConfigPanel(duplicatedLayout);
+    screen.getByRole('heading', { name: textMock('ux_editor.config.warning_duplicates.heading') });
+  });
+
+  it('should display duplicated ids in the document', () => {
+    renderPageConfigPanel(duplicatedLayout);
+
+    const duplicatedIds = screen.getByText(/<idcontainer1>, <idcontainer2>/i);
+    expect(duplicatedIds).toBeInTheDocument();
+
+    const uniqueIds = screen.queryByText(/<idcontainer>, <idContainer3>/i);
+    expect(uniqueIds).not.toBeInTheDocument();
+  });
 });
 
 const renderPageConfigPanel = (
@@ -68,7 +95,10 @@ const renderPageConfigPanel = (
 ) => {
   queryClientMock.setQueryData([QueryKey.TextResources, org, app], textResources);
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet], layouts);
-  queryClientMock.setQueryData([QueryKey.DatamodelMetadata, org, app, layoutSet], []);
+  queryClientMock.setQueryData(
+    [QueryKey.DataModelMetadata, org, app, layoutSet, dataModelName],
+    [],
+  );
 
   return renderWithProviders(<PageConfigPanel />, {
     appContextProps: { selectedFormLayoutName: selectedLayoutName },

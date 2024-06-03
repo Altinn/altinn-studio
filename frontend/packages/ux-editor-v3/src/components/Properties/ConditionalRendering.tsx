@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Alert } from '@digdir/design-system-react';
 import classes from './ConditionalRendering.module.css';
-import { PlusIcon } from '@navikt/aksel-icons';
+import { PlusIcon } from '@studio/icons';
 import { ConditionalRenderingModal } from '../toolbar/ConditionalRenderingModal';
 import { OldDynamicsInfo } from './OldDynamicsInfo';
 import { Divider } from 'app-shared/primitives';

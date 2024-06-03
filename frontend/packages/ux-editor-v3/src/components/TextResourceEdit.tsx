@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import classes from './TextResourceEdit.module.css';
 import type { ITextResource } from 'app-shared/types/global';
 import { Fieldset, LegacyTextArea } from '@digdir/design-system-react';
-import { XMarkIcon } from '@navikt/aksel-icons';
+import { XMarkIcon } from '@studio/icons';
 import { getAllLanguages, getCurrentEditId } from '../selectors/textResourceSelectors';
 import { setCurrentEditId } from '../features/appData/textResources/textResourcesSlice';
 import { useDispatch, useSelector } from 'react-redux';
@@ -10,14 +10,14 @@ import { useTextResourcesSelector } from '../hooks';
 import { useUpsertTextResourcesMutation } from 'app-shared/hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../hooks/useAppContext';
 import { StudioButton } from '@studio/components';
 
 export const TextResourceEdit = () => {
   const dispatch = useDispatch();
   const editId = useSelector(getCurrentEditId);
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
   const languages: string[] = useTextResourcesSelector<string[]>(getAllLanguages);
   const setEditId = (id: string) => dispatch(setCurrentEditId(id));
@@ -64,7 +64,7 @@ export interface TextBoxProps {
 }
 
 const TextBox = ({ language, t, textResource, textResourceId }: TextBoxProps) => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { mutate } = useUpsertTextResourcesMutation(org, app);
 
   const { previewIframeRef } = useAppContext();

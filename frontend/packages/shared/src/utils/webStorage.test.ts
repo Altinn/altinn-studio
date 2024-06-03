@@ -41,6 +41,25 @@ describe('typedLocalStorage', () => {
     typedLocalStorage.removeItem('test');
     expect(typedLocalStorage.getItem<string | undefined>('test')).toBeUndefined();
   });
+
+  it('should not store undefined values', async () => {
+    const key = 'undefinedValueKey';
+    const value = undefined;
+    typedLocalStorage.setItem<string>(key, undefined);
+    expect(typedLocalStorage.getItem(key)).toBe(value);
+    expect(window?.localStorage.getItem(key)).toBe(null);
+  });
+
+  it('should remove invalid values', async () => {
+    const key = 'invalidValueKey';
+    const value = undefined;
+    const warSpy = jest.spyOn(global.console, 'warn').mockImplementation();
+    window?.localStorage.setItem(key, value);
+    expect(typedLocalStorage.getItem(key)).toBe(value);
+    expect(window?.localStorage.getItem(key)).toBe(null);
+    expect(warSpy).toHaveBeenCalledTimes(1);
+    warSpy.mockRestore();
+  });
 });
 
 afterAll(() => {

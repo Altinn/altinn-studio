@@ -1,35 +1,33 @@
 import type { ReactNode } from 'react';
 import React from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import type { PageAccordionProps } from './PageAccordion';
 import { PageAccordion } from './PageAccordion';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import {
   formLayoutSettingsMock,
   renderHookWithProviders,
   renderWithProviders,
 } from '../../../testing/mocks';
-import { layout1NameMock } from '../../../testing/layoutMock';
+import { layout1NameMock } from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { appContextMock } from '../../../testing/appContextMock';
+import { app, org } from '@studio/testing/testids';
 
-const mockOrg = 'org';
-const mockApp = 'app';
 const mockPageName1: string = layout1NameMock;
-const mockSelectedLayoutSet = 'test-layout-set';
+const mockSelectedLayoutSet = layoutSet1NameMock;
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({
-    org: mockOrg,
-    app: mockApp,
-  }),
-}));
-
-const mockDeleteFormLayout = jest.fn();
 jest.mock('../../../hooks/mutations/useDeleteLayoutMutation', () => ({
-  useDeleteLayoutMutation: jest.fn(() => ({ mutate: mockDeleteFormLayout, isPending: false })),
+  __esModule: true,
+  ...jest.requireActual('../../../hooks/mutations/useDeleteLayoutMutation'),
 }));
+const useDeleteLayoutMutationSpy = jest.spyOn(
+  require('../../../hooks/mutations/useDeleteLayoutMutation'),
+  'useDeleteLayoutMutation',
+);
 
 const mockChildren: ReactNode = (
   <div>
@@ -53,7 +51,7 @@ describe('PageAccordion', () => {
     await render();
 
     const accordionButton = screen.getByRole('button', { name: mockPageName1 });
-    await act(() => user.click(accordionButton));
+    await user.click(accordionButton);
 
     expect(mockOnClick).toHaveBeenCalledTimes(1);
   });
@@ -66,7 +64,7 @@ describe('PageAccordion', () => {
     expect(elementInMenu).not.toBeInTheDocument();
 
     const menuButton = screen.getByRole('button', { name: textMock('general.options') });
-    await act(() => user.click(menuButton));
+    await user.click(menuButton);
 
     const elementInMenuAfter = screen.getByText(textMock('ux_editor.page_menu_up'));
     expect(elementInMenuAfter).toBeInTheDocument();
@@ -80,26 +78,35 @@ describe('PageAccordion', () => {
     const deleteButton = screen.getByRole('button', {
       name: textMock('general.delete_item', { item: mockPageName1 }),
     });
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
 
-    expect(mockDeleteFormLayout).toHaveBeenCalledTimes(1);
-    expect(mockDeleteFormLayout).toHaveBeenCalledWith(mockPageName1);
+    expect(queriesMock.deleteFormLayout).toHaveBeenCalledTimes(1);
+    expect(queriesMock.deleteFormLayout).toHaveBeenCalledWith(
+      org,
+      app,
+      mockPageName1,
+      mockSelectedLayoutSet,
+    );
+
+    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchLayouts).toHaveBeenCalledWith(mockSelectedLayoutSet, false);
   });
 
   it('Disables delete button when isPending is true', async () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
-    jest
-      .spyOn(require('../../../hooks/mutations/useDeleteLayoutMutation'), 'useDeleteLayoutMutation')
-      .mockImplementation(() => ({ mutate: mockDeleteFormLayout, isPending: true }));
+    useDeleteLayoutMutationSpy.mockImplementation(() => ({
+      mutate: queriesMock.deleteFormLayout,
+      isPending: true,
+    }));
     await render();
     const deleteButton = screen.getByRole('button', {
       name: textMock('general.delete_item', { item: mockPageName1 }),
     });
 
     expect(deleteButton).toBeDisabled();
-    await act(() => user.click(deleteButton));
-    expect(mockDeleteFormLayout).not.toHaveBeenCalled();
+    await user.click(deleteButton);
+    expect(queriesMock.deleteFormLayout).not.toHaveBeenCalled();
   });
 
   it('Does not call deleteLayout when delete button is clicked, but deletion is not confirmed', async () => {
@@ -110,8 +117,8 @@ describe('PageAccordion', () => {
     const deleteButton = screen.getByRole('button', {
       name: textMock('general.delete_item', { item: mockPageName1 }),
     });
-    await act(() => user.click(deleteButton));
-    expect(mockDeleteFormLayout).not.toHaveBeenCalled();
+    await user.click(deleteButton);
+    expect(queriesMock.deleteFormLayout).not.toHaveBeenCalled();
   });
 });
 
@@ -120,7 +127,7 @@ const waitForData = async () => {
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
   const settingsResult = renderHookWithProviders(
-    () => useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet),
+    () => useFormLayoutSettingsQuery(org, app, mockSelectedLayoutSet),
     { queries: { getFormLayoutSettings } },
   ).result;
 

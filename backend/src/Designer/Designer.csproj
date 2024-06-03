@@ -14,6 +14,10 @@
     <Configurations>Release;Debug</Configurations>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <CodeAnalisysCompatibleVersion>4.5.0</CodeAnalisysCompatibleVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Altinn.App.Core" />
     <PackageReference Include="Altinn.Authorization.ABAC" />
@@ -37,6 +41,10 @@
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" />
     <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink" />
     <PackageReference Include="HtmlAgilityPack" />
@@ -45,9 +53,9 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Polly" />
     <PackageReference Include="Scrutor" />
-    <PackageReference Include="Yuniql.AspNetCore" />
-    <PackageReference Include="Yuniql.PostgreSql" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(CodeAnalisysCompatibleVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="$(CodeAnalisysCompatibleVersion)" />
   </ItemGroup>
 
   <ItemGroup>
@@ -152,6 +160,10 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Services\Implementation\ProcessModeling\Templates\**\*.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations/InitialSqlScripts/*.sql" />
   </ItemGroup>
 
   <Target Name="AfterPublishScript" AfterTargets="Publish">

@@ -1,13 +1,13 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../testing/mocks';
-import { formDesignerMock } from '../../../testing/stateMocks';
 import { formItemContextProviderMock } from '../../../testing/formItemContextMocks';
 import type { IFormLayouts } from '../../../types/global';
-import { layout1NameMock, layoutMock } from '../../../testing/layoutMock';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { layout1NameMock, layoutMock } from '@altinn/ux-editor-v3/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { Expressions } from './Expressions';
@@ -16,10 +16,9 @@ import type { FormComponent } from '../../../types/FormComponent';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { parsableExternalExpression } from '../../../testing/expressionMocks';
 import type { FormContainer } from '../../../types/FormContainer';
+import { app, org } from '@studio/testing/testids';
 
-const org = 'org';
-const app = 'app';
-const layoutSetName = formDesignerMock.layout.selectedLayoutSet;
+const layoutSetName = layoutSet1NameMock;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };
@@ -117,11 +116,11 @@ describe('Expressions', () => {
     const addExpressionButton = screen.getByRole('button', {
       name: textMock('right_menu.expressions_add'),
     });
-    await act(() => user.click(addExpressionButton));
+    await user.click(addExpressionButton);
     const propertyDropDownMenuItem = screen.getByRole('menuitem', {
       name: textMock('right_menu.expressions_property_read_only'),
     });
-    await act(() => user.click(propertyDropDownMenuItem));
+    await user.click(propertyDropDownMenuItem);
 
     const newExpression = screen.getByText(
       textMock('right_menu.expressions_property_preview_read_only'),
@@ -141,7 +140,7 @@ describe('Expressions', () => {
     const editExpressionButton = screen.getByRole('button', {
       name: textMock('right_menu.expression_edit'),
     });
-    await act(() => user.click(editExpressionButton));
+    await user.click(editExpressionButton);
 
     expect(expressionInPreview).not.toBeInTheDocument();
   });
@@ -154,7 +153,7 @@ describe('Expressions', () => {
       name: textMock('right_menu.expression_delete'),
     });
     expect(deleteExpressionButton).toBeInTheDocument();
-    await act(() => user.click(deleteExpressionButton));
+    await user.click(deleteExpressionButton);
 
     expect(deleteExpressionButton).not.toBeInTheDocument();
   });

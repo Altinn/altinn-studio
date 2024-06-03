@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PanelComponent } from './PanelComponent';
 import type { FormComponent } from '../../../../types/FormComponent';
@@ -12,13 +12,13 @@ import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQ
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
+import { app, org } from '@studio/testing/testids';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 
 const component: FormComponent<ComponentType.Panel> = {
   id: '',
@@ -65,7 +65,7 @@ describe('PanelComponent', () => {
 
     const checkbox = screen.getByLabelText(textMock('ux_editor.show_icon'));
 
-    await act(() => user.click(checkbox));
+    await user.click(checkbox);
 
     expect(mockHandleComponentChange).toHaveBeenCalledTimes(1);
     expect(mockHandleComponentChange).toHaveBeenCalledWith({ ...component, showIcon: true });
@@ -77,8 +77,8 @@ describe('PanelComponent', () => {
     const select = screen.getByRole('combobox', {
       name: textMock('ux_editor.choose_variant'),
     });
-    await act(() => user.click(select));
-    await act(() => user.click(screen.getAllByRole('option')[1]));
+    await user.click(select);
+    await user.click(screen.getAllByRole('option')[1]);
 
     expect(mockHandleComponentChange).toHaveBeenCalledTimes(1);
     expect(mockHandleComponentChange).toHaveBeenCalledWith({

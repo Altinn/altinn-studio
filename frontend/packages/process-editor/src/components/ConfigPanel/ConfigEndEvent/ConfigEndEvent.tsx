@@ -1,31 +1,14 @@
 import React from 'react';
-import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
-import { StudioSectionHeader, StudioToggleableTextfield } from '@studio/components';
-import { Paragraph } from '@digdir/design-system-react';
-import { PencilWritingIcon } from '@navikt/aksel-icons';
+import { StudioLabelAsParagraph, StudioSectionHeader } from '@studio/components';
+import { Link, Paragraph, Accordion } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import classes from './ConfigEndEvent.module.css';
-import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import { ConfigIcon } from '../ConfigContent/ConfigIcon';
-import { getLayoutSetIdValidationErrorKey } from 'app-shared/utils/layoutSetsUtils';
-import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
+import { CustomReceiptContent } from './CustomReceiptContent';
+import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 export const ConfigEndEvent = () => {
   const { t } = useTranslation();
-  const { layoutSets, existingCustomReceiptLayoutSetName, addLayoutSet, mutateLayoutSet } =
-    useBpmnApiContext();
-
-  const handleUpdateLayoutSet = (layoutSetIdToUpdate: string, customReceiptId: string) => {
-    if (layoutSetIdToUpdate === customReceiptId || (!layoutSetIdToUpdate && !customReceiptId))
-      return;
-    const customReceiptLayoutSetConfig: LayoutSetConfig = {
-      id: customReceiptId,
-      tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
-    };
-    if (!layoutSetIdToUpdate)
-      addLayoutSet({ layoutSetIdToUpdate, layoutSetConfig: customReceiptLayoutSetConfig });
-    else mutateLayoutSet({ layoutSetIdToUpdate, layoutSetConfig: customReceiptLayoutSetConfig });
-  };
 
   return (
     <>
@@ -35,43 +18,44 @@ export const ConfigEndEvent = () => {
           text: t('process_editor.configuration_panel_end_event'),
           level: 2,
         }}
-        helpText={{
-          text: t('process_editor.configuration_panel_header_help_text_custom_receipt'),
-          title: t('process_editor.configuration_panel_header_help_text_title'),
-        }}
-        className={classes.endEvent}
       />
-      <div className={classes.container}>
-        <Paragraph size='small'>
-          {existingCustomReceiptLayoutSetName
-            ? t('process_editor.configuration_panel_custom_receipt_name')
-            : t('process_editor.configuration_panel_custom_receipt_add')}
-        </Paragraph>
-        <StudioToggleableTextfield
-          viewProps={{
-            title: t('process_editor.configuration_panel_custom_receipt_add'),
-            children: existingCustomReceiptLayoutSetName,
-            variant: existingCustomReceiptLayoutSetName ? 'tertiary' : 'secondary',
-            fullWidth: true,
-          }}
-          inputProps={{
-            label: t('process_editor.configuration_panel_custom_receipt_add_button_title'),
-            icon: <PencilWritingIcon />,
-            value: existingCustomReceiptLayoutSetName,
-            onBlur: ({ target }) =>
-              handleUpdateLayoutSet(existingCustomReceiptLayoutSetName, target.value),
-            size: 'small',
-          }}
-          customValidation={(newLayoutSetId: string) => {
-            const validationResult = getLayoutSetIdValidationErrorKey(
-              layoutSets,
-              existingCustomReceiptLayoutSetName,
-              newLayoutSetId,
-            );
-            return validationResult ? t(validationResult) : undefined;
-          }}
-        />
-      </div>
+      <Accordion color='neutral'>
+        <Accordion.Item>
+          <Accordion.Header>
+            {t('process_editor.configuration_panel_custom_receipt_accordion_header')}
+          </Accordion.Header>
+          <Accordion.Content className={classes.accordionContent}>
+            <div className={classes.container}>
+              <div className={classes.customReceiptText}>
+                <StudioLabelAsParagraph size='small' spacing>
+                  {t('process_editor.configuration_panel_custom_receipt_default_receipt_heading')}
+                </StudioLabelAsParagraph>
+                <Paragraph size='small' className={classes.paragraph}>
+                  {t('process_editor.configuration_panel_custom_receipt_default_receipt_info')}
+                </Paragraph>
+                <Link
+                  href={altinnDocsUrl('app/development/configuration/process/customize/#receipt')}
+                  rel='noopener noreferrer'
+                  size='small'
+                >
+                  {t('process_editor.configuration_panel_custom_receipt_default_receipt_link')}
+                </Link>
+              </div>
+              <div>
+                <div className={classes.customReceiptText}>
+                  <StudioLabelAsParagraph size='small' spacing>
+                    {t('process_editor.configuration_panel_custom_receipt_heading')}
+                  </StudioLabelAsParagraph>
+                  <Paragraph size='small'>
+                    {t('process_editor.configuration_panel_custom_receipt_info')}
+                  </Paragraph>
+                </div>
+                <CustomReceiptContent />
+              </div>
+            </div>
+          </Accordion.Content>
+        </Accordion.Item>
+      </Accordion>
     </>
   );
 };

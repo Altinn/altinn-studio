@@ -5,8 +5,8 @@ import type {
   IToolbarElement,
 } from '../types/global';
 import { BASE_CONTAINER_ID, MAX_NESTED_GROUP_LEVEL } from 'app-shared/constants';
-import { ObjectUtils } from '@studio/pure-functions';
-import { insertArrayElementAtPos, removeItemByValue } from 'app-shared/utils/arrayUtils';
+import { insertArrayElementAtPos, areItemsUnique } from 'app-shared/utils/arrayUtils';
+import { ArrayUtils, ObjectUtils } from '@studio/pure-functions';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent } from '../types/FormComponent';
 import { generateFormItem } from './component';
@@ -16,6 +16,7 @@ import type { FormContainer } from '../types/FormContainer';
 import type { FormItem } from '../types/FormItem';
 import * as formItemUtils from './formItemUtils';
 import type { ContainerComponentType } from '../types/ContainerComponent';
+import { flattenObjectValues } from 'app-shared/utils/objectUtils';
 
 export const mapComponentToToolbarElement = <T extends ComponentType>(
   c: FormItemConfigs[T],
@@ -190,7 +191,10 @@ export const removeComponent = (layout: IInternalLayout, componentId: string): I
   const newLayout = ObjectUtils.deepCopy(layout);
   const containerId = findParentId(layout, componentId);
   if (containerId) {
-    newLayout.order[containerId] = removeItemByValue(newLayout.order[containerId], componentId);
+    newLayout.order[containerId] = ArrayUtils.removeItemByValue(
+      newLayout.order[containerId],
+      componentId,
+    );
     delete newLayout.components[componentId];
   }
   return newLayout;
@@ -282,7 +286,10 @@ export const moveLayoutItem = (
   const item = getItem(newLayout, id);
   item.pageIndex = calculateNewPageIndex(newLayout, newContainerId, newPosition);
   if (oldContainerId) {
-    newLayout.order[oldContainerId] = removeItemByValue(newLayout.order[oldContainerId], id);
+    newLayout.order[oldContainerId] = ArrayUtils.removeItemByValue(
+      newLayout.order[oldContainerId],
+      id,
+    );
     newLayout.order[newContainerId] = insertArrayElementAtPos(
       newLayout.order[newContainerId],
       id,
@@ -406,3 +413,26 @@ export const isItemChildOfContainer = (
 export const idExistsInLayout = (id: string, layout: IInternalLayout): boolean =>
   Object.keys(layout.components || {}).some((key) => key.toUpperCase() === id.toUpperCase()) ||
   Object.keys(layout.containers || {}).some((key) => key.toUpperCase() === id.toUpperCase());
+
+/**
+ * Checks if there are components with duplicated ids in the layout.
+ * @param layout The layout to check.
+ * @returns True if some items in the array are duplicated and false otherwise.
+ */
+export const duplicatedIdsExistsInLayout = (layout: IInternalLayout): boolean => {
+  if (!layout?.order) return false;
+  const idsInLayout = flattenObjectValues(layout.order);
+  return !areItemsUnique(idsInLayout);
+};
+
+/**
+ * Get the duplicated ids in the layout
+ * @param layout The layout to check
+ * @returns An array of unique duplicated ids
+ */
+export const getDuplicatedIds = (layout: IInternalLayout): string[] => {
+  const idsInLayout = flattenObjectValues(layout.order);
+  const duplicatedIds = idsInLayout.filter((id, index) => idsInLayout.indexOf(id) !== index);
+  const uniqueDuplicatedIds = Array.from(new Set(duplicatedIds));
+  return uniqueDuplicatedIds;
+};

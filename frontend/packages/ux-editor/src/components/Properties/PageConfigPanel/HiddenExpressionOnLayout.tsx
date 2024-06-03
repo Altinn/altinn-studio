@@ -4,23 +4,36 @@ import type { Expression } from '@studio/components';
 import type { IInternalLayout } from '../../../types/global';
 import { ObjectUtils } from '@studio/pure-functions';
 import { useFormLayoutMutation } from '../../../hooks/mutations/useFormLayoutMutation';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useSelectedFormLayoutWithName, useAppContext } from '../../../hooks';
 import { Trans } from 'react-i18next';
+import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
+import { useDebounce } from 'app-shared/hooks/useDebounce';
 
 export const HiddenExpressionOnLayout = () => {
-  const { app, org } = useStudioUrlParams();
+  const { app, org } = useStudioEnvironmentParams();
   const { layout, layoutName } = useSelectedFormLayoutWithName();
-  const { selectedFormLayoutSetName } = useAppContext();
+  const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
   const { mutate: saveLayout } = useFormLayoutMutation(
     org,
     app,
     layoutName,
     selectedFormLayoutSetName,
   );
-  const handleChangeHiddenExpressionOnLayout = async (expression: Expression) => {
+  const { debounce } = useDebounce({ debounceTimeInMs: AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS });
+
+  const handleChangeHiddenExpressionOnLayout = (expression: Expression) => {
     const updatedLayout: IInternalLayout = ObjectUtils.deepCopy(layout);
-    saveLayout({ ...updatedLayout, hidden: expression });
+    debounce(() =>
+      saveLayout(
+        { ...updatedLayout, hidden: expression },
+        {
+          onSuccess: async () => {
+            await refetchLayouts(selectedFormLayoutSetName);
+          },
+        },
+      ),
+    );
   };
 
   const handleDeleteHiddenExpressionOnLayout = async () => {

@@ -8,11 +8,11 @@ import type { IWidget, IWidgetTexts } from '../../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { ITextResource } from 'app-shared/types/global';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
+import { app, org } from '@studio/testing/testids';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 const displayName = ComponentType.TextArea;
 const language = 'nb';
 const textId = 'testid';

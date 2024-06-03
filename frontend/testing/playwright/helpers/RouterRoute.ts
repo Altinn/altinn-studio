@@ -7,7 +7,7 @@ type SupportedRoutes =
   | 'dashboardCreateApp'
   | 'deploy'
   | 'editorOverview'
-  | 'editorDatamodel'
+  | 'editorDataModel'
   | 'editorProcess'
   | 'editorText'
   | 'editorUi'
@@ -21,13 +21,13 @@ const routerRoutes: RouterRoutes = {
   dashboard: '/dashboard',
   dashboardCreateApp: '/dashboard/self/new',
   deploy: '/editor/{{org}}/{{app}}/deploy',
-  editorOverview: `/editor/{{org}}/{{app}}/overview`,
-  editorDatamodel: `/editor/{{org}}/{{app}}/datamodel`,
-  editorProcess: `/editor/{{org}}/{{app}}/process-editor`,
-  editorText: `/editor/{{org}}/{{app}}/text-editor`,
-  editorUi: `/editor/{{org}}/{{app}}/ui-editor`,
-  gitea: `/repos/{{org}}/{{app}}`,
-  preview: `/preview/{{org}}/{{app}}`,
+  editorOverview: '/editor/{{org}}/{{app}}/overview',
+  editorDataModel: '/editor/{{org}}/{{app}}/data-model',
+  editorProcess: '/editor/{{org}}/{{app}}/process-editor',
+  editorText: '/editor/{{org}}/{{app}}/text-editor',
+  editorUi: '/editor/{{org}}/{{app}}/ui-editor',
+  gitea: '/repos/{{org}}/{{app}}',
+  preview: '/preview/{{org}}/{{app}}',
 };
 
 export class RouterRoute extends StudioEnvironment {

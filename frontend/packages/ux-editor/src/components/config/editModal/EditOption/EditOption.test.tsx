@@ -8,13 +8,11 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const textResources: ITextResource[] = [
   { id: '1', value: 'Text 1' },
   { id: '2', value: 'Text 2' },
@@ -49,14 +47,14 @@ describe('EditOption', () => {
   it('Opens a fieldset with the given legend when the button is clicked', async () => {
     const user = userEvent.setup();
     renderEditOption();
-    await act(() => user.click(screen.getByRole('button', { name: legend })));
+    await user.click(screen.getByRole('button', { name: legend }));
     screen.getByRole('group', { name: legend });
   });
 
   it('Displays a text field with the value of the option in the fieldset', async () => {
     const user = userEvent.setup();
     renderEditOption();
-    await act(() => user.click(screen.getByRole('button', { name: legend })));
+    await user.click(screen.getByRole('button', { name: legend }));
     const fieldset = screen.getByRole('group', { name: legend });
     const textField = within(fieldset).getByRole('textbox', { name: textMock('general.value') });
     expect(textField).toHaveValue(value);
@@ -65,31 +63,30 @@ describe('EditOption', () => {
   it('Calls onChange with the new value when the text field is changed', async () => {
     const user = userEvent.setup();
     renderEditOption();
-    await act(() => user.click(screen.getByRole('button', { name: legend })));
+    await user.click(screen.getByRole('button', { name: legend }));
     const fieldset = screen.getByRole('group', { name: legend });
     const textField = within(fieldset).getByRole('textbox', { name: textMock('general.value') });
-    await act(() => user.type(textField, 'abc'));
-    await act(() => user.click(document.body));
+    await user.type(textField, 'abc');
     expect(onChange).toHaveBeenCalledWith({ label, value: value + 'abc' });
   });
 
   it('Calls onDelete when the delete button is clicked', async () => {
     const user = userEvent.setup();
     renderEditOption();
-    await act(() => user.click(screen.getByRole('button', { name: legend })));
+    await user.click(screen.getByRole('button', { name: legend }));
     const fieldset = screen.getByRole('group', { name: legend });
     const deleteButton = within(fieldset).getByRole('button', { name: textMock('general.delete') });
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
     expect(onDelete).toHaveBeenCalledTimes(1);
   });
 
   it('Closes the fieldset when the close button is clicked', async () => {
     const user = userEvent.setup();
     renderEditOption();
-    await act(() => user.click(screen.getByRole('button', { name: legend })));
+    await user.click(screen.getByRole('button', { name: legend }));
     const fieldset = screen.getByRole('group', { name: legend });
     const closeButton = within(fieldset).getByRole('button', { name: textMock('general.close') });
-    await act(() => user.click(closeButton));
+    await user.click(closeButton);
     expect(screen.queryByRole('group', { name: legend })).not.toBeInTheDocument();
   });
 
@@ -104,7 +101,7 @@ describe('EditOption', () => {
     async (key) => {
       const user = userEvent.setup();
       renderEditOption();
-      await act(() => user.click(screen.getByRole('button', { name: legend })));
+      await user.click(screen.getByRole('button', { name: legend }));
       const fieldset = screen.getByRole('group', { name: legend });
       within(fieldset).getByRole('button', { name: textResourceLabels[key] });
     },
@@ -115,12 +112,12 @@ describe('EditOption', () => {
     async (key) => {
       const user = userEvent.setup();
       renderEditOption();
-      await act(() => user.click(screen.getByRole('button', { name: legend })));
+      await user.click(screen.getByRole('button', { name: legend }));
       const fieldset = screen.getByRole('group', { name: legend });
       const textResourceButton = within(fieldset).getByRole('button', {
         name: textResourceLabels[key],
       });
-      await act(() => user.click(textResourceButton));
+      await user.click(textResourceButton);
       screen.getByRole('group', { name: textResourceLabels[key] });
     },
   );
@@ -131,20 +128,20 @@ describe('EditOption', () => {
       const user = userEvent.setup();
       const testOption = { ...option, [key]: textResources[0].id };
       renderEditOption({ option: testOption });
-      await act(() => user.click(screen.getByRole('button', { name: legend })));
+      await user.click(screen.getByRole('button', { name: legend }));
       const fieldset = screen.getByRole('group', { name: legend });
       const textResourceButton = within(fieldset).getByRole('button', {
         name: textResourceLabels[key],
       });
-      await act(() => user.click(textResourceButton));
+      await user.click(textResourceButton);
       const textResourceFieldset = screen.getByRole('group', { name: textResourceLabels[key] });
       const searchTabLabel = textMock('ux_editor.text_resource_binding_search');
       const searchTab = within(textResourceFieldset).getByRole('tab', { name: searchTabLabel });
-      await act(() => user.click(searchTab));
+      await user.click(searchTab);
       const searchInput = within(textResourceFieldset).getByRole('combobox');
-      await act(() => user.click(searchInput));
+      await user.click(searchInput);
       const newOptionOption = screen.getByRole('option', { name: textResources[1].id });
-      await act(() => user.click(newOptionOption));
+      await user.click(newOptionOption);
       expect(onChange).toHaveBeenCalledTimes(1);
       expect(onChange).toHaveBeenCalledWith({ ...testOption, [key]: textResources[1].id });
     },
@@ -153,10 +150,10 @@ describe('EditOption', () => {
   it('Renders the label delete button as disabled', async () => {
     const user = userEvent.setup();
     renderEditOption();
-    await act(() => user.click(screen.getByRole('button', { name: legend })));
+    await user.click(screen.getByRole('button', { name: legend }));
     const fieldset = screen.getByRole('group', { name: legend });
     const labelButton = within(fieldset).getByRole('button', { name: textResourceLabels.label });
-    await act(() => user.click(labelButton));
+    await user.click(labelButton);
     const labelFieldset = screen.getByRole('group', { name: textResourceLabels.label });
     const deleteButton = within(labelFieldset).getByRole('button', {
       name: textMock('general.delete'),
@@ -171,18 +168,18 @@ describe('EditOption', () => {
       jest.spyOn(window, 'confirm').mockReturnValue(true);
       const testOption = { ...option, [key]: textResources[0].id };
       renderEditOption({ option: testOption });
-      await act(() => user.click(screen.getByRole('button', { name: legend })));
+      await user.click(screen.getByRole('button', { name: legend }));
       const fieldset = screen.getByRole('group', { name: legend });
       const textResourceButton = within(fieldset).getByRole('button', {
         name: textResourceLabels[key],
       });
-      await act(() => user.click(textResourceButton));
+      await user.click(textResourceButton);
       const textResourceFieldset = screen.getByRole('group', { name: textResourceLabels[key] });
       const removeButtonLabel = textMock('general.delete');
       const removeButton = within(textResourceFieldset).getByRole('button', {
         name: removeButtonLabel,
       });
-      await act(() => user.click(removeButton));
+      await user.click(removeButton);
       expect(onChange).toHaveBeenCalledWith({ ...testOption, [key]: undefined });
     },
   );

@@ -62,6 +62,49 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
+        public async Task DeleteSchema_AppRepoWithLayoutSets_ShouldDelete()
+        {
+            // Arrange
+            var org = "ttd";
+            var sourceRepository = "app-with-layoutsets";
+            var developer = "testUser";
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer);
+
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            try
+            {
+                string dataModelName = "datamodel";
+                var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings, TestDataHelper.XmlSchemaToJsonSchemaConverter, TestDataHelper.JsonSchemaToXmlSchemaConverter, TestDataHelper.ModelMetadataToCsharpConverter);
+                var schemaFiles = schemaModelService.GetSchemaFiles(editingContext);
+                schemaFiles.Should().HaveCount(1);
+
+                var altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
+                var applicationMetadataBefore = await altinnAppGitRepository.GetApplicationMetadata();
+                var layoutSetsBefore = await altinnAppGitRepository.GetLayoutSetsFile();
+
+                // Act
+                var schemaToDelete = schemaFiles.First(s => s.FileName == $"{dataModelName}.schema.json");
+                await schemaModelService.DeleteSchema(editingContext, schemaToDelete.RepositoryRelativeUrl);
+
+                // Assert
+                schemaFiles = schemaModelService.GetSchemaFiles(editingContext);
+                schemaFiles.Should().HaveCount(0);
+                var applicationMetadataAfter = await altinnAppGitRepository.GetApplicationMetadata();
+                applicationMetadataAfter.DataTypes.Should().HaveCount(applicationMetadataBefore.DataTypes.Count - 1);
+                var layoutSetsAfter = await altinnAppGitRepository.GetLayoutSetsFile();
+                layoutSetsBefore.Sets.Exists(set => set.DataType == dataModelName).Should().BeTrue();
+                layoutSetsAfter.Sets.Exists(set => set.DataType == dataModelName).Should().BeFalse();
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+            }
+        }
+
+        [Fact]
         public async Task DeleteSchema_ModelsRepo_ShouldDelete()
         {
             // Arrange
@@ -144,6 +187,65 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
+        public async Task UpdateSchema_ModelMetadataExistForModelInRepo_ShouldDeleteModelMetadata()
+        {
+            // Arrange
+            var org = "ttd";
+            var sourceRepository = "hvem-er-hvem";
+            var developer = "testUser";
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer);
+
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            try
+            {
+                var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings, TestDataHelper.XmlSchemaToJsonSchemaConverter, TestDataHelper.JsonSchemaToXmlSchemaConverter, TestDataHelper.ModelMetadataToCsharpConverter);
+                var updatedSchema = @"{""properties"":{""rootType1"":{""$ref"":""#/definitions/rootType""}},""definitions"":{""rootType"":{""properties"":{""keyword"":{""type"":""string""}}}}}";
+
+                var altinnGitRepository = altinnGitRepositoryFactory.GetAltinnGitRepository(org, targetRepository, developer);
+                Assert.True(altinnGitRepository.FileExistsByRelativePath("App/models/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.metadata.json"));
+                await schemaModelService.UpdateSchema(editingContext, "App/models/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.schema.json", updatedSchema);
+                Assert.False(altinnGitRepository.FileExistsByRelativePath("App/models/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.metadata.json"));
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+            }
+        }
+
+        [Fact]
+        public async Task UpdateSchema_NoModelMetadataForModelInRepo_ShouldOnlyUpdate()
+        {
+            // Arrange
+            var org = "ttd";
+            var sourceRepository = "hvem-er-hvem";
+            var developer = "testUser";
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer);
+
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            try
+            {
+                var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings, TestDataHelper.XmlSchemaToJsonSchemaConverter, TestDataHelper.JsonSchemaToXmlSchemaConverter, TestDataHelper.ModelMetadataToCsharpConverter);
+                var expectedUpdatedSchema = @"{""properties"":{""rootType1"":{""$ref"":""#/definitions/rootType""}},""definitions"":{""rootType"":{""properties"":{""keyword"":{""type"":""string""}}}}}";
+                var altinnGitRepository = altinnGitRepositoryFactory.GetAltinnGitRepository(org, targetRepository, developer);
+                Assert.False(altinnGitRepository.FileExistsByRelativePath("App/models/HvemErHvem_SERES.metadata.json"));
+
+                await schemaModelService.UpdateSchema(editingContext, "App/models/HvemErHvem_SERES.schema.json", expectedUpdatedSchema);
+                Assert.False(altinnGitRepository.FileExistsByRelativePath("App/models/HvemErHvem_SERES.metadata.json"));
+                var updatedSchema = await altinnGitRepository.ReadTextByRelativePathAsync("App/models/HvemErHvem_SERES.schema.json");
+                string serializedExpectedSchemaUpdates = FormatJsonString(updatedSchema);
+                updatedSchema.Should().BeEquivalentTo(serializedExpectedSchemaUpdates);
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+            }
+        }
+
+        [Fact]
         public async Task UpdateSchema_InvalidJsonSchema_ShouldThrowException()
         {
             // Arrange
@@ -170,7 +272,7 @@ namespace Designer.Tests.Services
             });
 
             Assert.NotNull(exception.CustomErrorMessages);
-            Assert.Equal(new List<string>() { "'root': member names cannot be the same as their enclosing type" }, exception.CustomErrorMessages);
+            exception.CustomErrorMessages.Should().ContainSingle(c => c.Contains("root': member names cannot be the same as their enclosing type"));
         }
 
         [Theory]

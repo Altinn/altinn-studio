@@ -13,7 +13,7 @@ import {
 } from '../components/AppBarConfig/AppPreviewBarConfig';
 
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { previewPage } from 'app-shared/api/paths';
 import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
@@ -21,7 +21,7 @@ import {
   useSelectedFormLayoutName,
   useSelectedFormLayoutSetName,
   useSelectedTaskId,
-} from '../../../packages/ux-editor/src/hooks';
+} from '@altinn/ux-editor/hooks';
 
 export interface LandingPageProps {
   variant?: AltinnHeaderVariant;
@@ -30,7 +30,7 @@ export interface LandingPageProps {
 export type PreviewAsViewSize = 'desktop' | 'mobile';
 
 export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
   const previewConnection = usePreviewConnection();
   const { data: user } = useUserQuery();

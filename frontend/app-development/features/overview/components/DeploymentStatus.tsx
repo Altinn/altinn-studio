@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './DeploymentStatus.module.css';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Trans, useTranslation } from 'react-i18next';
 import { Alert, Heading, Paragraph, Spinner, Link } from '@digdir/design-system-react';
 import { DateUtils } from '@studio/pure-functions';
@@ -24,12 +24,12 @@ export const DeploymentStatus = ({
   isProduction,
   urlToApp,
 }: DeploymentStatusProps) => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
 
   const formatDateTime = (dateAsString: string): string => {
     return t('general.date_time_format', {
-      date: DateUtils.formatDateDDMMYY(dateAsString),
+      date: DateUtils.formatDateDDMMYYYY(dateAsString),
       time: DateUtils.formatTimeHHmm(dateAsString),
     });
   };

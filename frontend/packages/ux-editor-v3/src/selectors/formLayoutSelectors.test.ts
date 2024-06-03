@@ -7,10 +7,11 @@ import {
   selectedLayoutNameSelector,
 } from './formLayoutSelectors';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
+import { layout1NameMock, layout2NameMock } from '../testing/layoutMock';
 
 // Test data:
-const layout1Name = 'Side1';
-const layout2Name = 'Side2';
+const layout1Name = layout1NameMock;
+const layout2Name = layout2NameMock;
 const selectedLayout = layout1Name;
 const appState: IAppState = {
   ...appStateMock,

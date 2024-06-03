@@ -19,10 +19,10 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_FormLayouts_Ok()
         {
-            string expectedFormLayout = TestDataHelper.GetFileFromRepo(Org, App, Developer, "App/ui/layouts/layout.json");
+            string expectedFormLayout = TestDataHelper.GetFileFromRepo(Org, AppV3, Developer, "App/ui/layouts/layout.json");
             string expectedFormLayouts = @"{""layout"": " + expectedFormLayout + "}";
 
-            string dataPathWithData = $"{Org}/{App}/api/resource/FormLayout.json";
+            string dataPathWithData = $"{Org}/{AppV3}/api/resource/FormLayout.json";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

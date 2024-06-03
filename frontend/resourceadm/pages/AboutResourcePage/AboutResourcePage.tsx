@@ -102,6 +102,14 @@ export const AboutResourcePage = ({
         <Heading size='large' level={1}>
           {t('resourceadm.about_resource_title')}
         </Heading>
+        <ResourceTextField
+          label={t('resourceadm.about_resource_identifier_label')}
+          description={t('resourceadm.about_resource_identifier_description')}
+          value={resourceData.identifier}
+          readOnly
+          onFocus={() => setTranslationType('none')}
+          onBlur={() => {}}
+        />
         <ResourceRadioGroup
           label={t('resourceadm.about_resource_resource_type')}
           description={t('resourceadm.about_resource_resource_type_label')}
@@ -155,7 +163,6 @@ export const AboutResourcePage = ({
         />
         <ResourceSwitchInput
           label={t('resourceadm.about_resource_delegable_label')}
-          description={t('resourceadm.about_resource_delegable_text')}
           value={resourceData.delegable ?? true}
           onFocus={() => setTranslationType('none')}
           onChange={(isChecked: boolean) => handleSave({ ...resourceData, delegable: isChecked })}
@@ -167,6 +174,7 @@ export const AboutResourcePage = ({
             description={t('resourceadm.about_resource_rights_description_text')}
             translationDescription={t('resourceadm.about_resource_translation_right_description')}
             isTranslationPanelOpen={translationType === 'rightDescription'}
+            useTextArea
             value={resourceData.rightDescription}
             onFocus={() => setTranslationType('rightDescription')}
             onBlur={(translations: SupportedLanguage) =>
@@ -191,7 +199,6 @@ export const AboutResourcePage = ({
         />
         <ResourceRadioGroup
           label={t('resourceadm.about_resource_status_label')}
-          description={t('resourceadm.about_resource_status_text')}
           value={resourceData.status}
           options={statusOptions}
           hasError={showAllErrors && !Object.keys(resourceStatusMap).includes(resourceData.status)}

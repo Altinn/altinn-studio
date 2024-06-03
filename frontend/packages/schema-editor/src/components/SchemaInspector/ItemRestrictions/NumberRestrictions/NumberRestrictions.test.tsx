@@ -1,7 +1,7 @@
 import React from 'react';
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { NumberRestrictions } from './NumberRestrictions';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { IntRestrictionKey } from '@altinn/schema-model';
 
@@ -83,7 +83,7 @@ describe('NumberRestrictions component', () => {
     };
     render(<NumberRestrictions readonly={false} {...props} />);
     const checkbox = screen.getAllByLabelText(textMock('schema_editor.format_date_inclusive'))[0];
-    await act(() => user.click(checkbox));
+    await user.click(checkbox);
     expect(onChangeRestrictions).toHaveBeenCalled();
   });
 
@@ -101,7 +101,7 @@ describe('NumberRestrictions component', () => {
     const textBoxMinimum = screen.getByRole('textbox', {
       name: textMock('schema_editor.minimum_inclusive'),
     });
-    await act(() => user.type(textBoxMinimum, '1'));
+    await user.type(textBoxMinimum, '1');
     const expectedRestrictions = {
       [IntRestrictionKey.minimum]: 1,
       [IntRestrictionKey.exclusiveMinimum]: undefined,
@@ -130,7 +130,7 @@ describe('NumberRestrictions component', () => {
     const textBoxMinimum = screen.getByRole('textbox', {
       name: textMock('schema_editor.minimum_inclusive'),
     });
-    await act(() => user.type(textBoxMinimum, '0'));
+    await user.type(textBoxMinimum, '0');
     const expectedRestrictions = {
       [IntRestrictionKey.minimum]: 0,
       [IntRestrictionKey.exclusiveMinimum]: undefined,

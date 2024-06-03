@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import { useSelectedFormLayoutName } from './';
-import { layoutSetsMock, layout1NameMock } from '../testing/layoutMock';
+import { layout1NameMock } from '../testing/layoutMock';
+import { layoutSet1NameMock } from '../testing/layoutSetsMock';
 import { renderHook } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
@@ -10,14 +11,13 @@ import { MemoryRouter } from 'react-router-dom';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const selectedLayoutSet = layoutSetsMock.sets[0].id;
+const selectedLayoutSet = layoutSet1NameMock;
 
 const mockSetSearchParams = jest.fn();
-const mockSearchParams = { layout: 'Side1' };
+const mockSearchParams = { layout: layout1NameMock };
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({

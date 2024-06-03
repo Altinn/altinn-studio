@@ -2,18 +2,17 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { formLayoutSettingsMock, renderHookWithProviders } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
-import { act, waitFor } from '@testing-library/react';
+import { waitFor } from '@testing-library/react';
 import type { UpdateLayoutNameMutationArgs } from './useUpdateLayoutNameMutation';
 import { useUpdateLayoutNameMutation } from './useUpdateLayoutNameMutation';
-import { layout1NameMock } from '../../testing/layoutMock';
-import { appContextMock } from '../../testing/appContextMock';
+import { layout1NameMock } from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const newName = 'newName';
 const oldName = layout1NameMock;
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 const args: UpdateLayoutNameMutationArgs = { newName, oldName };
 
 describe('useUpdateLayoutNameMutation', () => {
@@ -26,7 +25,7 @@ describe('useUpdateLayoutNameMutation', () => {
       useUpdateLayoutNameMutation(org, app, selectedLayoutSet),
     ).result;
 
-    await act(() => updateLayoutNameResult.current.mutateAsync(args));
+    await updateLayoutNameResult.current.mutateAsync(args);
 
     expect(queriesMock.updateFormLayoutName).toHaveBeenCalledTimes(1);
     expect(queriesMock.updateFormLayoutName).toHaveBeenCalledWith(
@@ -36,8 +35,6 @@ describe('useUpdateLayoutNameMutation', () => {
       newName,
       selectedLayoutSet,
     );
-
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
   });
 });
 

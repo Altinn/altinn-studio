@@ -8,6 +8,7 @@ import { textMock } from './mocks/i18nMock';
 import { SignalR } from './mocks/signalr';
 import type { ReactNode } from 'react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { app, org } from './testids';
 
 failOnConsole({
   shouldFailOnWarn: true,
@@ -60,6 +61,9 @@ jest.mock('react-i18next', () => ({
   Trans: ({ i18nKey }) => textMock(i18nKey),
   useTranslation: () => ({
     t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
+    i18n: {
+      exists: () => true,
+    },
   }),
   withTranslation: () => (Component: ReactNode) => Component,
 }));
@@ -70,7 +74,7 @@ jest.mock('@microsoft/signalr', () => SignalR);
 // Mock org and app params
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
-  useParams: () => ({ org: 'org', app: 'app' }),
+  useParams: () => ({ org, app }),
 }));
 
 jest.setTimeout(3000000);

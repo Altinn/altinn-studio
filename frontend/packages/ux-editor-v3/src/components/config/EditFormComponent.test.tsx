@@ -1,14 +1,16 @@
 import React from 'react';
 import { EditFormComponent } from './EditFormComponent';
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { FormComponent } from '../../types/FormComponent';
 import { renderHookWithMockStore, renderWithMockStore } from '../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
-import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
+import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
-import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
-import type { DatamodelMetadataResponse } from 'app-shared/types/api';
+import { useDataModelMetadataQuery } from '../../hooks/queries/useDataModelMetadataQuery';
+import type { DataModelMetadataResponse } from 'app-shared/types/api';
+import { dataModelNameMock, layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
@@ -37,8 +39,8 @@ jest.mock('./componentSpecificContent/Image/ImageComponent', () => ({
   ImageComponent: () => <div data-testid={imageSpecificContentId} />,
 }));
 
-const getDatamodelMetadata = () =>
-  Promise.resolve<DatamodelMetadataResponse>({
+const getDataModelMetadata = () =>
+  Promise.resolve<DataModelMetadataResponse>({
     elements: {
       testModel: {
         id: 'testModel',
@@ -96,7 +98,7 @@ describe('EditFormComponent', () => {
     };
 
     const linkIcon = screen.getByText(/ux_editor.modal_properties_data_model_link/i);
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
 
     Object.keys(labels).map(async (label) =>
       expect(await screen.findByRole(labels[label], { name: label })),
@@ -151,7 +153,7 @@ describe('EditFormComponent', () => {
 
     const maxFilesInput = screen.getByLabelText('ux_editor.modal_properties_maximum_files');
 
-    await act(() => user.clear(maxFilesInput));
+    await user.clear(maxFilesInput);
     expect(handleUpdate).toHaveBeenCalledWith({
       ...allComponentProps,
       maxNumberOfAttachments: 1,
@@ -171,7 +173,7 @@ describe('EditFormComponent', () => {
 
     const minFilesInput = screen.getByLabelText('ux_editor.modal_properties_minimum_files');
 
-    await act(() => user.clear(minFilesInput));
+    await user.clear(minFilesInput);
     expect(handleUpdate).toHaveBeenCalledWith({
       ...allComponentProps,
       required: false,
@@ -223,9 +225,9 @@ const waitForData = async () => {
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
   const dataModelMetadataResult = renderHookWithMockStore(
     {},
-    { getDatamodelMetadata },
-  )(() => useDatamodelMetadataQuery('test-org', 'test-app', 'test-layout-set')).renderHookResult
-    .result;
+    { getDataModelMetadata },
+  )(() => useDataModelMetadataQuery(org, app, layoutSet1NameMock, dataModelNameMock))
+    .renderHookResult.result;
   await waitFor(() => expect(dataModelMetadataResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
@@ -258,7 +260,7 @@ const render = async ({
 
   renderWithMockStore(
     {},
-    { getDatamodelMetadata },
+    { getDataModelMetadata },
   )(
     <EditFormComponent
       editFormId={''}

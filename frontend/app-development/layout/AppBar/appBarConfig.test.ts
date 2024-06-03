@@ -4,7 +4,7 @@ import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
-import { DatabaseIcon } from '@navikt/aksel-icons';
+import { DatabaseIcon } from '@studio/icons';
 
 describe('getTopBarMenu', () => {
   it('should return all items when provided repository type is "App" which is not hidden behind feature-flags', () => {
@@ -12,17 +12,17 @@ describe('getTopBarMenu', () => {
     expect(getFilteredTopBarMenu(RepositoryType.App)).toHaveLength(menuLength);
   });
 
-  it('Should only return the datamodel menu item when the provided repo type is "Datamodels"', () => {
+  it('Should only return the data model menu item when the provided repo type is "DataModels"', () => {
     const expected: TopBarMenuItem[] = [
       {
-        key: TopBarMenu.Datamodel,
-        link: RoutePaths.Datamodel,
+        key: TopBarMenu.DataModel,
+        link: RoutePaths.DataModel,
         icon: DatabaseIcon,
-        repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
+        repositoryTypes: [RepositoryType.App, RepositoryType.DataModels],
       },
     ];
 
-    expect(getFilteredTopBarMenu(RepositoryType.Datamodels)).toEqual(expected);
+    expect(getFilteredTopBarMenu(RepositoryType.DataModels)).toEqual(expected);
   });
 
   it('should return empty list when provided repo type is "Unknown"', () => {

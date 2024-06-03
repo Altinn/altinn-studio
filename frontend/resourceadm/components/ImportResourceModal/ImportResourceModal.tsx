@@ -9,16 +9,16 @@ import { useNavigate } from 'react-router-dom';
 import { ServiceContent } from './ServiceContent';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { useImportResourceFromAltinn2Mutation } from '../../hooks/mutations';
-import type { Resource } from 'app-shared/types/ResourceAdm';
+import type { Resource, ResourceError } from 'app-shared/types/ResourceAdm';
 import { getResourcePageURL } from '../../utils/urlUtils';
-import type { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUrlParams } from '../../hooks/useSelectedContext';
 import { StudioButton } from '@studio/components';
 import { formatIdString } from '../../utils/stringUtils';
-import { getResourceIdentifierErrorMessage } from '../../utils/resourceUtils';
-
-const environmentOptions = ['AT21', 'AT22', 'AT23', 'AT24', 'TT02', 'PROD'];
+import {
+  getAvailableEnvironments,
+  getResourceIdentifierErrorMessage,
+} from '../../utils/resourceUtils';
 
 export type ImportResourceModalProps = {
   isOpen: boolean;
@@ -59,7 +59,10 @@ export const ImportResourceModal = ({
 
   const idErrorMessage = getResourceIdentifierErrorMessage(id, resourceIdExists);
   const hasValidValues =
-    selectedEnv && selectedService && id && !idErrorMessage && !isImportingResource;
+    selectedEnv && selectedService && id.length >= 4 && !idErrorMessage && !isImportingResource;
+
+  const environmentOptions = getAvailableEnvironments(selectedContext);
+
   /**
    * Reset fields on close
    */
@@ -86,8 +89,8 @@ export const ImportResourceModal = ({
           toast.success(t('resourceadm.dashboard_import_success'));
           navigate(getResourcePageURL(selectedContext, repo, resource.identifier, 'about'));
         },
-        onError: (error: AxiosError) => {
-          if (error.response.status === ServerCodes.Conflict) {
+        onError: (error: Error) => {
+          if ((error as ResourceError).response?.status === ServerCodes.Conflict) {
             setResourceIdExists(true);
           }
         },
@@ -113,8 +116,8 @@ export const ImportResourceModal = ({
           }}
         >
           {environmentOptions.map((env) => (
-            <Combobox.Option key={env} value={env}>
-              {env}
+            <Combobox.Option key={env.id} value={env.id}>
+              {t(env.label)}
             </Combobox.Option>
           ))}
         </Combobox>

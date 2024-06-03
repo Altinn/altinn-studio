@@ -1,11 +1,7 @@
 import React, { useMemo } from 'react';
 import { TextRow } from './TextRow';
-import type {
-  TextResourceEntryDeletion,
-  TextResourceIdMutation,
-  UpsertTextResourceMutation,
-  TextTableRow,
-} from './types';
+import type { TextResourceEntryDeletion, TextResourceIdMutation, TextTableRow } from './types';
+import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 import { filterFunction, getLangName } from './utils';
 
 import {
@@ -18,7 +14,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { APP_NAME } from 'app-shared/constants';
 import { useLayoutNamesQuery } from './hooks/useLayoutNamesQuery';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export type TextListProps = {
   resourceRows: TextTableRow[];
@@ -34,7 +30,7 @@ export const TextList = ({
   selectedLanguages,
   ...rest
 }: TextListProps) => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
   const { data: layoutNames, isPending: layoutNamesPending } = useLayoutNamesQuery(org, app);
 

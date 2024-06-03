@@ -3,11 +3,11 @@ import { renderHookWithProviders } from '../testing/mocks';
 import { useFormLayoutsQuery } from './queries/useFormLayoutsQuery';
 import { externalLayoutsMock, layoutMock } from '../testing/layoutMock';
 import { waitFor } from '@testing-library/react';
+import { app, org } from '@studio/testing/testids';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 
 const render = async () => {
   const getFormLayouts = jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock));

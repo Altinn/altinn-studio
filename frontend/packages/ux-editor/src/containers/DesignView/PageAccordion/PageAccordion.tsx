@@ -4,10 +4,10 @@ import classes from './PageAccordion.module.css';
 import cn from 'classnames';
 import { Accordion } from '@digdir/design-system-react';
 import { NavigationMenu } from './NavigationMenu';
-import * as testids from '../../../../../../testing/testids';
+import { pageAccordionContentId } from '@studio/testing/testids';
 import { TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../hooks';
 import { StudioButton } from '@studio/components';
 import { useDeleteLayoutMutation } from '../../../hooks/mutations/useDeleteLayoutMutation';
@@ -18,6 +18,7 @@ export type PageAccordionProps = {
   isOpen: boolean;
   onClick: () => void;
   pageIsReceipt?: boolean;
+  isValid?: boolean;
 };
 
 /**
@@ -39,10 +40,11 @@ export const PageAccordion = ({
   isOpen,
   onClick,
   pageIsReceipt,
+  isValid,
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
-  const { org, app } = useStudioUrlParams();
-  const { selectedFormLayoutSetName } = useAppContext();
+  const { org, app } = useStudioEnvironmentParams();
+  const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
 
   const { mutate: deleteLayout, isPending } = useDeleteLayoutMutation(
     org,
@@ -52,7 +54,11 @@ export const PageAccordion = ({
 
   const handleConfirmDelete = () => {
     if (confirm(t('ux_editor.page_delete_text'))) {
-      deleteLayout(pageName);
+      deleteLayout(pageName, {
+        onSuccess: async ({ layouts }) => {
+          await refetchLayouts(selectedFormLayoutSetName, Object.keys(layouts).length === 1);
+        },
+      });
     }
   };
 
@@ -62,7 +68,11 @@ export const PageAccordion = ({
       open={isOpen}
     >
       <div className={classes.accordionHeaderRow}>
-        <Accordion.Header className={classes.accordionHeader} level={3} onHeaderClick={onClick}>
+        <Accordion.Header
+          className={isValid ? classes.accordionHeader : classes.accordionHeaderWarning}
+          level={3}
+          onHeaderClick={onClick}
+        >
           {pageName}
         </Accordion.Header>
         <div className={classes.navigationMenu}>
@@ -79,7 +89,7 @@ export const PageAccordion = ({
         </div>
       </div>
       <Accordion.Content
-        data-testid={testids.pageAccordionContent(pageName)}
+        data-testid={pageAccordionContentId(pageName)}
         className={classes.accordionContent}
       >
         {children}

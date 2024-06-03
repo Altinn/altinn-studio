@@ -33,7 +33,11 @@ export interface ResourceContactPoint {
   contactPage: string;
 }
 
-export type ResourceTypeOption = 'GenericAccessResource' | 'Systemresource' | 'MaskinportenSchema';
+export type ResourceTypeOption =
+  | 'GenericAccessResource'
+  | 'Systemresource'
+  | 'MaskinportenSchema'
+  | 'BrokerService';
 
 export type ResourceStatusOption = 'Completed' | 'Deprecated' | 'UnderDevelopment' | 'Withdrawn';
 
@@ -57,9 +61,9 @@ export interface Version {
 export interface ResourceListItem {
   title: SupportedLanguage;
   createdBy: string;
-  lastChanged: Date;
-  hasPolicy: boolean;
+  lastChanged?: Date;
   identifier: string;
+  environments: string[];
 }
 
 export interface ResourceVersionStatus {
@@ -120,8 +124,8 @@ export interface BrregSubPartySearchResult {
 
 export interface BrregSearchResult {
   parties: AccessListMember[];
-  links: BrregPagination;
-  page: BrregPageInfo;
+  links?: BrregPagination;
+  page?: BrregPageInfo;
 }
 
 export interface BrregParty {
@@ -140,7 +144,6 @@ export interface AccessList {
   identifier: string;
   name: string;
   description?: string;
-  members?: AccessListMember[];
   resourceConnections?: {
     resourceIdentifier: string;
   }[];
@@ -148,11 +151,31 @@ export interface AccessList {
 
 export interface AccessListsResponse {
   data: AccessList[];
-  nextPage?: number;
+  nextPage?: string;
+}
+
+export interface AccessListMembersResponse {
+  data: AccessListMember[];
+  nextPage?: string;
+}
+
+export interface AccessListOrganizationNumbers {
+  data: string[];
+}
+
+export interface AccessListOrganizationNumbers {
+  data: string[];
 }
 
 export interface JsonPatch {
   op: 'replace' | 'add' | 'remove';
   path: string;
   value?: string | number;
+}
+
+export interface ResourceError extends Error {
+  response?: {
+    status: number;
+    data?: any;
+  };
 }

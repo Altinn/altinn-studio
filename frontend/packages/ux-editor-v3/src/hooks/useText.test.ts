@@ -2,7 +2,7 @@ import { renderHookWithMockStore } from '../testing/mocks';
 import { appDataMock } from '../testing/stateMocks';
 import { useText } from './useText';
 import type { IAppDataState } from '../features/appData/appDataReducers';
-import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 
 // Test data:
 const text = 'Lorem ipsum';

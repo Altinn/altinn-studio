@@ -3,10 +3,9 @@ import type { ReactElement } from 'react';
 import { render, screen } from '@testing-library/react';
 import type { ResourceDeployStatusProps } from './ResourceDeployStatus';
 import { ResourceDeployStatus } from './ResourceDeployStatus';
-import { act } from 'react-dom/test-utils';
 import userEvent from '@testing-library/user-event';
 import type { DeployError } from '../../types/DeployError';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 // add own version of mock for <Trans> element, to test replacement of <LinkButton>
@@ -89,7 +88,7 @@ describe('ResourceDeployStatus', () => {
       name: textMock(mockDeployError1.message),
     });
 
-    await act(() => user.click(linkButton));
+    await user.click(linkButton);
 
     expect(mockOnNavigateToPageWithError).toHaveBeenCalledWith(mockDeployError1.pageWithError);
   });

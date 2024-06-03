@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './Preview.module.css';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useSelector } from 'react-redux';
 import cn from 'classnames';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
@@ -60,7 +60,7 @@ const NoSelectedPageMessage = () => {
 
 // The actual preview frame that displays the selected page
 const PreviewFrame = () => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const [viewportToSimulate, setViewportToSimulate] = useState<SupportedView>('desktop');
   const { t } = useTranslation();
   const { previewIframeRef, selectedLayoutSet } = useAppContext();

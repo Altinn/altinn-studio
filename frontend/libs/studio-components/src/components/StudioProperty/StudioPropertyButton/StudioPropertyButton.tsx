@@ -3,13 +3,14 @@ import React, { forwardRef } from 'react';
 import type { StudioButtonProps } from '../../StudioButton';
 import { StudioButton } from '../../StudioButton';
 import classes from './StudioPropertyButton.module.css';
-import { PlusCircleIcon, PencilIcon } from '@studio/icons';
+import { PadlockLockedFillIcon, PlusCircleIcon, PencilIcon } from '@studio/icons';
 import cn from 'classnames';
 
 export type StudioPropertyButtonProps = {
   property: string;
   value?: ReactNode;
   compact?: boolean;
+  readOnly?: boolean;
   withoutNegativeMargin?: boolean;
 } & Omit<StudioButtonProps, 'children' | 'value'>;
 
@@ -18,6 +19,7 @@ const StudioPropertyButton = forwardRef<HTMLButtonElement, StudioPropertyButtonP
     {
       className: givenClass,
       compact,
+      readOnly,
       icon: givenIcon,
       property,
       value,
@@ -34,13 +36,19 @@ const StudioPropertyButton = forwardRef<HTMLButtonElement, StudioPropertyButtonP
       classes.propertyButton,
       hasValue && classes.withValue,
       compact && classes.compact,
+      readOnly && classes.readOnly,
       withoutNegativeMargin && classes.withoutNegativeMargin,
       givenClass,
     );
 
+    if (readOnly) {
+      rest.onClick = null;
+    }
+
     return (
       <StudioButton
         aria-label={property}
+        aria-readonly={readOnly ? true : null}
         className={className}
         fullWidth
         icon={icon}
@@ -54,10 +62,16 @@ const StudioPropertyButton = forwardRef<HTMLButtonElement, StudioPropertyButtonP
           <span className={classes.property}>{property}</span>
           <span className={classes.value}>{value}</span>
         </span>
-        {hasValue && (
-          <span className={classes.editIconWrapper}>
-            <PencilIcon />
+        {readOnly ? (
+          <span className={classes.readOnlyWrapper}>
+            <PadlockLockedFillIcon />
           </span>
+        ) : (
+          hasValue && (
+            <span className={classes.editIconWrapper}>
+              <PencilIcon />
+            </span>
+          )
         )}
       </StudioButton>
     );

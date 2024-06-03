@@ -13,7 +13,7 @@ import { StudioPageSpinner } from '@studio/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { HandleAdd, HandleMove } from 'app-shared/types/dndTypes';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { generateComponentId } from '../utils/generateId';
@@ -30,9 +30,9 @@ import { Preview } from '../components/Preview';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 
 export const FormDesigner = (): JSX.Element => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { data: instanceId } = useInstanceIdQuery(org, app);
-  const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
+  const { selectedFormLayoutSetName, selectedFormLayoutName, refetchLayouts } = useAppContext();
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(
     org,
     app,
@@ -108,7 +108,14 @@ export const FormDesigner = (): JSX.Element => {
         triggerDepthAlert();
         return;
       }
-      addItemToLayout({ componentType: type, newId, parentId, index });
+      addItemToLayout(
+        { componentType: type, newId, parentId, index },
+        {
+          onSuccess: async () => {
+            await refetchLayouts(selectedFormLayoutSetName);
+          },
+        },
+      );
       handleEdit(getItem(updatedLayout, newId));
     };
     const moveItem: HandleMove = (id, { parentId, index }) => {
@@ -122,7 +129,11 @@ export const FormDesigner = (): JSX.Element => {
         triggerDepthAlert();
         return;
       }
-      updateFormLayout(updatedLayout);
+      updateFormLayout(updatedLayout, {
+        onSuccess: async () => {
+          await refetchLayouts(selectedFormLayoutSetName);
+        },
+      });
     };
 
     return (

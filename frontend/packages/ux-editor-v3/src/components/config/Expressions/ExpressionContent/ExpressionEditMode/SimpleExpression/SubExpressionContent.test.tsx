@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { SubExpressionContentProps } from './SubExpressionContent';
 import { SubExpressionContent } from './SubExpressionContent';
@@ -11,18 +11,17 @@ import {
 } from '../../../../../../testing/expressionMocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../../../../testing/mocks';
-import { formDesignerMock } from '../../../../../../testing/stateMocks';
-import { textMock } from '../../../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { layout1NameMock, layoutMock } from '../../../../../../testing/layoutMock';
+import { layout1NameMock, layoutMock } from '@altinn/ux-editor-v3/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import type { IFormLayouts } from '../../../../../../types/global';
 import { DataSource } from '../../../../../../types/Expressions';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
-const org = 'org';
-const app = 'app';
-const layoutSetName = formDesignerMock.layout.selectedLayoutSet;
+const layoutSetName = layoutSet1NameMock;
 
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
@@ -93,13 +92,11 @@ describe('SubExpressionContent', () => {
     });
     expect(referenceSelector).toHaveValue(subExpression0.value as string);
     // Click component/dataSource dropdown
-    await act(() => user.click(selectDataSourceComponent));
-    await act(() =>
-      user.click(
-        screen.getByRole('option', {
-          name: textMock('right_menu.expressions_data_source_data_model'),
-        }),
-      ),
+    await user.click(selectDataSourceComponent);
+    await user.click(
+      screen.getByRole('option', {
+        name: textMock('right_menu.expressions_data_source_data_model'),
+      }),
     );
     expect(onUpdateSubExpression).toHaveBeenCalledTimes(1);
     expect(onUpdateSubExpression).toHaveBeenCalledWith({
@@ -133,7 +130,7 @@ describe('SubExpressionContent', () => {
     });
     expect(comparableValueInputField).toHaveValue(subExpression0.comparableValue as string);
     // Type new value to string comparable data source value
-    await act(() => user.clear(comparableValueInputField));
+    await user.clear(comparableValueInputField);
 
     expect(onUpdateSubExpression).toHaveBeenCalledTimes(1);
     expect(onUpdateSubExpression).toHaveBeenCalledWith({
@@ -174,7 +171,7 @@ describe('SubExpressionContent', () => {
     const deleteSubExpressionButton = screen.getByTitle(
       textMock('right_menu.expression_sub_expression_delete'),
     );
-    await act(() => user.click(deleteSubExpressionButton));
+    await user.click(deleteSubExpressionButton);
     expect(onRemoveSubExpression).toHaveBeenCalledTimes(1);
   });
 });

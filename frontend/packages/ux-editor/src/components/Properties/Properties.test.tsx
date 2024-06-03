@@ -1,7 +1,7 @@
 import React from 'react';
 import { Properties } from './Properties';
-import { act, screen } from '@testing-library/react';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { screen } from '@testing-library/react';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { FormItemContext } from '../../containers/FormItemContext';
 import userEvent from '@testing-library/user-event';
 import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
@@ -19,6 +19,15 @@ const expressionsTestId = 'expressions';
 const calculationsTestId = 'calculations';
 
 // Mocks:
+jest.mock('../config/EditFormComponent', () => ({
+  __esModule: true,
+  ...jest.requireActual('../config/EditFormComponent'),
+}));
+const editFormComponentSpy = jest.spyOn(
+  require('../config/EditFormComponent'),
+  'EditFormComponent',
+);
+
 jest.mock('./PageConfigPanel', () => ({
   PageConfigPanel: () => <div data-testid={pageConfigPanelTestId} />,
 }));
@@ -27,9 +36,6 @@ jest.mock('./Text', () => ({
 }));
 jest.mock('./DataModelBindings', () => ({
   DataModelBindings: () => <div data-testid={DataModelBindingsTestId} />,
-}));
-jest.mock('../config/EditFormComponent', () => ({
-  EditFormComponent: () => <div data-testid={editFormComponentTestId} />,
 }));
 jest.mock('./ConditionalRendering', () => ({
   ConditionalRendering: () => <div data-testid={conditionalRenderingTestId} />,
@@ -51,9 +57,9 @@ describe('Properties', () => {
       const user = userEvent.setup();
       renderProperties();
       const button = screen.queryByRole('button', { name: textMock('right_menu.text') });
-      await act(() => user.click(button));
+      await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'true');
-      await act(() => user.click(button));
+      await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'false');
     });
   });
@@ -62,11 +68,11 @@ describe('Properties', () => {
       const user = userEvent.setup();
       renderProperties();
       const button = screen.queryByRole('button', {
-        name: textMock('right_menu.dataModelBindings'),
+        name: textMock('right_menu.data_model_bindings'),
       });
-      await act(() => user.click(button));
+      await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'true');
-      await act(() => user.click(button));
+      await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'false');
     });
   });
@@ -90,13 +96,24 @@ describe('Properties', () => {
         name: textMock('ux_editor.id_identifier'),
       });
       expect(editComponentIdButton).toBeInTheDocument();
-      await act(() => user.click(editComponentIdButton));
+      await user.click(editComponentIdButton);
       const textbox = screen.getByRole('textbox', {
         name: textMock('ux_editor.modal_properties_component_change_id'),
       });
       const validId = 'valid-id';
-      await act(() => user.type(textbox, validId));
-      await act(() => user.click(document.body));
+      await user.type(textbox, validId);
+      await user.click(document.body);
+      expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalledTimes(1);
+      expect(formItemContextProviderMock.debounceSave).toHaveBeenCalledTimes(1);
+    });
+
+    it('saves the component when changes are made in the component', async () => {
+      const user = userEvent.setup();
+      renderProperties();
+      const button = screen.queryByRole('button', { name: textMock('right_menu.content') });
+      await user.click(button);
+      const readOnly = screen.getByText(textMock('ux_editor.component_properties.readOnly'));
+      await user.click(readOnly);
       expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalledTimes(1);
       expect(formItemContextProviderMock.debounceSave).toHaveBeenCalledTimes(1);
     });
@@ -104,16 +121,14 @@ describe('Properties', () => {
     it('should not invoke handleUpdate when the id is invalid', async () => {
       const user = userEvent.setup();
       renderProperties();
-      await act(() =>
-        user.click(screen.getByRole('button', { name: textMock('ux_editor.id_identifier') })),
-      );
+      await user.click(screen.getByRole('button', { name: textMock('ux_editor.id_identifier') }));
+
       const invalidId = 'invalidId-01';
-      await act(() =>
-        user.type(
-          screen.getByLabelText(textMock('ux_editor.modal_properties_component_change_id')),
-          invalidId,
-        ),
+      await user.type(
+        screen.getByLabelText(textMock('ux_editor.modal_properties_component_change_id')),
+        invalidId,
       );
+
       expect(formItemContextProviderMock.handleUpdate).not.toHaveBeenCalled();
     });
 
@@ -123,7 +138,7 @@ describe('Properties', () => {
       const textAccordion = screen.getByRole('button', { name: textMock('right_menu.text') });
       expect(textAccordion).toHaveAttribute('aria-expanded', 'false');
       const dataModelBindingsAccordion = screen.getByRole('button', {
-        name: textMock('right_menu.dataModelBindings'),
+        name: textMock('right_menu.data_model_bindings'),
       });
       expect(dataModelBindingsAccordion).toHaveAttribute('aria-expanded', 'false');
       const contentAccordion = screen.getByRole('button', { name: textMock('right_menu.content') });
@@ -150,9 +165,9 @@ describe('Properties', () => {
       const user = userEvent.setup();
       renderProperties();
       const button = screen.queryByRole('button', { name: textMock('right_menu.content') });
-      await act(() => user.click(button));
+      await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'true');
-      await act(() => user.click(button));
+      await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'false');
     });
   });
@@ -168,9 +183,9 @@ describe('Properties', () => {
       const user = userEvent.setup();
       renderProperties();
       const button = screen.queryByRole('button', { name: textMock('right_menu.dynamics') });
-      await act(() => user.click(button));
+      await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'true');
-      await act(() => user.click(button));
+      await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'false');
     });
 
@@ -192,17 +207,18 @@ describe('Properties', () => {
       const user = userEvent.setup();
       renderProperties();
       const button = screen.queryByRole('button', { name: textMock('right_menu.calculations') });
-      await act(() => user.click(button));
+      await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'true');
-      await act(() => user.click(button));
+      await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'false');
     });
   });
 
   it('Renders properties accordions when formItem is selected', () => {
+    editFormComponentSpy.mockReturnValue(<input data-testid={editFormComponentTestId}></input>);
     renderProperties();
     expect(screen.getByText(textMock('right_menu.text'))).toBeInTheDocument();
-    expect(screen.getByText(textMock('right_menu.dataModelBindings'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('right_menu.data_model_bindings'))).toBeInTheDocument();
     expect(screen.getByText(textMock('right_menu.content'))).toBeInTheDocument();
     expect(screen.getByText(textMock('right_menu.dynamics'))).toBeInTheDocument();
     expect(screen.getByText(textMock('right_menu.calculations'))).toBeInTheDocument();

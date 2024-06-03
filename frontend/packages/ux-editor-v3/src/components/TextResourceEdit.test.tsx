@@ -9,16 +9,15 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithMockStore, renderWithMockStore, textLanguagesMock } from '../testing/mocks';
 import { appDataMock, textResourcesMock } from '../testing/stateMocks';
-import { act, fireEvent, screen, waitFor } from '@testing-library/react';
-import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { appContextMock } from '../testing/appContextMock';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const legendText = 'Rediger tekst';
 const descriptionText = 'Tekstens ID: {{id}}';
 const nbText = 'Bokmål';
@@ -76,8 +75,8 @@ describe('TextResourceEdit', () => {
     const resources: ITextResources = { nb: [{ id, value }] };
     await render(resources, id);
     const textBox = screen.getByLabelText(nbText);
-    await act(() => user.type(textBox, additionalValue));
-    await act(() => user.tab());
+    await user.type(textBox, additionalValue);
+    await user.tab();
     expect(queriesMock.upsertTextResources).toHaveBeenCalledTimes(1);
     expect(queriesMock.upsertTextResources).toHaveBeenCalledWith(org, app, 'nb', {
       [id]: value + additionalValue,
@@ -105,8 +104,8 @@ describe('TextResourceEdit', () => {
     };
     await render(resources, id, previewIframeRef);
     const textBox = screen.getByLabelText(nbText);
-    await act(async () => user.type(textBox, additionalValue));
-    await act(async () => user.tab());
+    await user.type(textBox, additionalValue);
+    await user.tab();
     expect(reload).toHaveBeenCalledTimes(1);
   });
 
@@ -116,9 +115,9 @@ describe('TextResourceEdit', () => {
     const resources: ITextResources = { nb: [{ id, value }] };
     await render(resources, id);
     const textBox = screen.getByLabelText(nbText);
-    await act(() => user.clear(textBox));
-    await act(() => user.type(textBox, value));
-    await act(() => user.tab());
+    await user.clear(textBox);
+    await user.type(textBox, value);
+    await user.tab();
     expect(queriesMock.upsertTextResources).not.toHaveBeenCalled();
   });
 
@@ -127,8 +126,8 @@ describe('TextResourceEdit', () => {
     const resources: ITextResources = { nb: [] };
     await render(resources, id);
     const textBox = screen.getByLabelText(nbText);
-    await act(() => user.clear(textBox));
-    await act(() => user.tab());
+    await user.clear(textBox);
+    await user.tab();
     expect(queriesMock.upsertTextResources).not.toHaveBeenCalled();
   });
 
@@ -150,7 +149,7 @@ describe('TextResourceEdit', () => {
     const value = 'Lorem';
     const resources = { nb: [{ id, value }] };
     const { store } = await render(resources, id);
-    await act(() => user.click(screen.getByRole('button', { name: closeText })));
+    await user.click(screen.getByRole('button', { name: closeText }));
     const actions = store.getActions();
     expect(actions).toHaveLength(1);
     expect(actions[0].type).toBe('textResources/setCurrentEditId');

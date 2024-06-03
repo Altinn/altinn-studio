@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import type { IGenericEditComponent } from '../../componentConfig';
@@ -7,7 +7,7 @@ import { ImageComponent } from './ImageComponent';
 import { renderHookWithProviders, renderWithProviders } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
+import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import type { FormImageComponent } from '../../../../types/FormComponent';
 
 const user = userEvent.setup();
@@ -62,7 +62,7 @@ describe('ImageComponent', () => {
       name: /source/i,
     });
 
-    await act(() => user.type(srcInput, imgSrc));
+    await user.type(srcInput, imgSrc);
 
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentData,
@@ -83,8 +83,8 @@ describe('ImageComponent', () => {
       name: /placement/i,
     });
 
-    await act(() => user.type(placementInput, 'L')); // Type something to trigger showing Select options
-    await act(() => user.click(screen.getByText('Left')));
+    await user.type(placementInput, 'L'); // Type something to trigger showing Select options
+    await user.click(screen.getByText('Left'));
 
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentData,

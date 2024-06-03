@@ -3,7 +3,7 @@ import type { DeploymentEnvironmentLogListProps } from './DeploymentEnvironmentL
 import { DeploymentEnvironmentLogList } from './DeploymentEnvironmentLogList';
 import { screen } from '@testing-library/react';
 import { renderWithMockStore } from 'app-development/test/mocks';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 
@@ -183,6 +183,60 @@ describe('DeploymentEnvironmentLogList', () => {
       screen.getByText(
         `${textMock('app_deployment.pipeline_deployment.build_result.partiallySucceeded')}`,
       ),
+    ).toBeInTheDocument();
+  });
+
+  it('does not render build log link when started date is null', () => {
+    render({
+      pipelineDeploymentList: [
+        {
+          ...pipelineDeployment,
+          build: {
+            ...pipelineDeployment.build,
+            started: null,
+          },
+        },
+      ],
+    });
+    expect(
+      screen.queryByText(`${textMock('app_deployment.table.build_log_active_link')}`),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(`${textMock('app_deployment.table.build_log_expired_link')}`),
+    ).not.toBeInTheDocument();
+  });
+
+  it('renders expired text when build log link is expired (> 30 days)', () => {
+    render({
+      pipelineDeploymentList: [
+        {
+          ...pipelineDeployment,
+          build: {
+            ...pipelineDeployment.build,
+            started: new Date(null).toDateString(),
+          },
+        },
+      ],
+    });
+    expect(
+      screen.getByText(`${textMock('app_deployment.table.build_log_expired_link')}`),
+    ).toBeInTheDocument();
+  });
+
+  it('renders build log link when started date is valid (< 30 days)', () => {
+    render({
+      pipelineDeploymentList: [
+        {
+          ...pipelineDeployment,
+          build: {
+            ...pipelineDeployment.build,
+            started: new Date().toDateString(),
+          },
+        },
+      ],
+    });
+    expect(
+      screen.getByText(`${textMock('app_deployment.table.build_log_active_link')}`),
     ).toBeInTheDocument();
   });
 });

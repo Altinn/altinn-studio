@@ -1,10 +1,15 @@
-import type { MutableRefObject } from 'react';
-import { useRef, useEffect } from 'react';
+import { type MutableRefObject, useEffect, useCallback, useRef } from 'react';
 import type BpmnModeler from 'bpmn-js/lib/Modeler';
 import { useBpmnContext } from '../contexts/BpmnContext';
 import { useBpmnModeler } from './useBpmnModeler';
 import { getBpmnEditorDetailsFromBusinessObject } from '../utils/hookUtils';
-import type { BpmnDetails } from '../types/BpmnDetails';
+import { useBpmnConfigPanelFormContext } from '../contexts/BpmnConfigPanelContext';
+import { useBpmnApiContext } from '../contexts/BpmnApiContext';
+import {
+  AddProcessTaskManager,
+  RemoveProcessTaskManager,
+  type TaskEvent,
+} from '../utils/ProcessTaskManager';
 
 // Wrapper around bpmn-js to Reactify it
 
@@ -14,113 +19,122 @@ type UseBpmnViewerResult = {
 };
 
 export const useBpmnEditor = (): UseBpmnViewerResult => {
-  const {
-    bpmnXml,
-    modelerRef,
-    setNumberOfUnsavedChanges,
-    setDataTasksAdded,
-    setDataTasksRemoved,
-    setBpmnDetails,
-  } = useBpmnContext();
+  const { getUpdatedXml, bpmnXml, modelerRef, setBpmnDetails } = useBpmnContext();
   const canvasRef = useRef<HTMLDivElement | null>(null);
-  const { getModeler } = useBpmnModeler();
+  const { metaDataFormRef, resetForm } = useBpmnConfigPanelFormContext();
+  const { getModeler, destroyModeler } = useBpmnModeler();
+
+  const {
+    addLayoutSet,
+    deleteLayoutSet,
+    addDataTypeToAppMetadata,
+    deleteDataTypeFromAppMetadata,
+    saveBpmn,
+    layoutSets,
+    onProcessTaskAdd,
+    onProcessTaskRemove,
+  } = useBpmnApiContext();
+
+  // Needs to update the layoutSetsRef.current when layoutSets changes to avoid staled data in the event listeners
+  const layoutSetsRef = useRef(layoutSets);
+  useEffect(() => {
+    layoutSetsRef.current = layoutSets;
+  }, [layoutSets]);
+
+  const handleCommandStackChanged = async () => {
+    saveBpmn(await getUpdatedXml(), metaDataFormRef.current || null);
+    resetForm();
+  };
+
+  const handleShapeAdd = (taskEvent: TaskEvent): void => {
+    const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(taskEvent?.element?.businessObject);
+    const addProcessTaskManager = new AddProcessTaskManager(
+      addLayoutSet,
+      addDataTypeToAppMetadata,
+      bpmnDetails,
+      onProcessTaskAdd,
+    );
+
+    addProcessTaskManager.handleTaskAdd(taskEvent);
+    updateBpmnDetailsByTaskEvent(taskEvent);
+  };
+
+  const handleShapeRemove = (taskEvent: TaskEvent): void => {
+    const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(taskEvent?.element?.businessObject);
+    const removeProcessTaskManager = new RemoveProcessTaskManager(
+      layoutSetsRef.current,
+      deleteLayoutSet,
+      deleteDataTypeFromAppMetadata,
+      bpmnDetails,
+      onProcessTaskRemove,
+    );
+
+    removeProcessTaskManager.handleTaskRemove(taskEvent);
+    setBpmnDetails(null);
+  };
+
+  const updateBpmnDetailsByTaskEvent = useCallback(
+    (taskEvent: TaskEvent) => {
+      const bpmnDetails = {
+        ...getBpmnEditorDetailsFromBusinessObject(taskEvent.element?.businessObject),
+        element: taskEvent.element,
+      };
+      setBpmnDetails(bpmnDetails);
+    },
+    [setBpmnDetails],
+  );
+
+  const initializeEditor = async () => {
+    try {
+      await modelerRef.current.importXML(bpmnXml);
+      const canvas: any = modelerRef.current.get('canvas');
+      canvas.zoom('fit-viewport');
+    } catch (exception) {
+      console.log('An error occurred while rendering the viewer:', exception);
+    }
+  };
+
+  const initializeBpmnChanges = () => {
+    modelerRef.current.on('commandStack.changed', async () => {
+      await handleCommandStackChanged();
+    });
+    modelerRef.current.on('shape.add', (taskEvent: TaskEvent) => {
+      handleShapeAdd(taskEvent);
+    });
+    modelerRef.current.on('shape.remove', (taskEvent: TaskEvent) => {
+      handleShapeRemove(taskEvent);
+    });
+  };
 
   useEffect(() => {
     if (!canvasRef.current) {
       console.log('Canvas reference is not yet available in the DOM.');
-      return;
     }
-    const modelerInstance: BpmnModeler = getModeler(canvasRef.current);
+    // GetModeler can only be fetched from this hook once since the modeler creates a
+    // new instance and will attach the same canvasRef container to all instances it fetches.
+    // Set modelerRef.current to the Context so that it can be used in other components
+    modelerRef.current = getModeler(canvasRef.current);
 
-    // set modelerRef.current to the Context so that it can be used in other components
-    modelerRef.current = modelerInstance;
-
-    const initializeEditor = async () => {
-      try {
-        await modelerInstance.importXML(bpmnXml);
-        const canvas: any = modelerInstance.get('canvas');
-        canvas.zoom('fit-viewport');
-        // Reset the dataTasks tracking states when the editor is initialized
-        setDataTasksAdded([]);
-        setDataTasksRemoved([]);
-      } catch (exception) {
-        console.log('An error occurred while rendering the viewer:', exception);
-      }
-    };
-
-    initializeEditor();
-  }, [
-    bpmnXml,
-    modelerRef,
-    setBpmnDetails,
-    setNumberOfUnsavedChanges,
-    setDataTasksAdded,
-    setDataTasksRemoved,
-  ]);
-
-  useEffect(() => {
-    const modelerInstance: BpmnModeler = getModeler(canvasRef.current);
-    const initializeUnsavedChangesCount = () => {
-      modelerInstance.on('commandStack.changed', () => {
-        setNumberOfUnsavedChanges((prevCount) => prevCount + 1);
-      });
-    };
-
-    const initializeChangesStatus = () => {
-      modelerInstance.on('shape.add', (e: any) => {
-        const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
-        updateDataTaskTrackingLists(bpmnDetails, 'add');
-      });
-
-      modelerInstance.on('shape.remove', (e: any) => {
-        const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
-        updateDataTaskTrackingLists(bpmnDetails, 'remove');
-      });
-    };
-
-    const eventBus: BpmnModeler = modelerInstance.get('eventBus');
-    const events = ['element.click'];
-
-    events.forEach((event) => {
-      eventBus.on(event, (event: any) => {
-        if (!event) return;
-
-        const bpmnDetails = {
-          ...getBpmnEditorDetailsFromBusinessObject(event.element?.businessObject),
-          element: event.element,
-        };
-        setBpmnDetails(bpmnDetails);
-      });
+    initializeEditor().then(() => {
+      // Wait for the initializeEditor to be initialized before attaching event listeners, to avoid trigger add.shape events on first draw
+      initializeBpmnChanges();
     });
 
-    initializeUnsavedChangesCount();
-    initializeChangesStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Missing dependencies are not added to avoid getModeler to be called multiple times
+
+  useEffect(() => {
+    const eventBus: BpmnModeler = modelerRef.current.get('eventBus');
+    eventBus.on('element.click', updateBpmnDetailsByTaskEvent);
+  }, [modelerRef, updateBpmnDetailsByTaskEvent]);
+
+  useEffect(() => {
+    // Destroy the modeler instance when the component is unmounted
+    return () => {
+      destroyModeler();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  /**
-   * Updates the data task tracking lists based on the action
-   * action add: Adds the item to the dataTasksAdded list and removes it from the dataTasksRemoved list
-   * action remove: Adds the item to the dataTasksRemoved list and removes it from the dataTasksAdded list
-   * @param itemToAdd The item to add to the primary list
-   * @param action The action performed on the item
-   */
-  const updateDataTaskTrackingLists = (itemToAdd: BpmnDetails, action: 'add' | 'remove') => {
-    if (itemToAdd?.taskType !== 'data') {
-      return;
-    }
-
-    if (action === 'add') {
-      setDataTasksAdded((prevItems: BpmnDetails[]) => [...prevItems, itemToAdd]);
-      setDataTasksRemoved((prevItems) => prevItems.filter((task) => task.id !== itemToAdd.id));
-      return;
-    }
-
-    if (action === 'remove') {
-      setDataTasksRemoved((prevItems: BpmnDetails[]) => [...prevItems, itemToAdd]);
-      setDataTasksAdded((prevItems) => prevItems.filter((task) => task.id !== itemToAdd.id));
-      return;
-    }
-  };
 
   return { canvasRef, modelerRef };
 };

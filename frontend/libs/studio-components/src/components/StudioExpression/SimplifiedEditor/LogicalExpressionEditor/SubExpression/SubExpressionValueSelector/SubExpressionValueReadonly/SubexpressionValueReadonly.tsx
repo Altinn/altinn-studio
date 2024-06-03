@@ -16,10 +16,14 @@ export const SubexpressionValueReadonly = ({
   value,
 }: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType>) => {
   switch (value.type) {
-    case SimpleSubexpressionValueType.Datamodel:
-      return <DatamodelLookupValue value={value} />;
+    case SimpleSubexpressionValueType.DataModel:
+      return <DataModelLookupValue value={value} />;
     case SimpleSubexpressionValueType.Component:
       return <ComponentLookupValue value={value} />;
+    case SimpleSubexpressionValueType.GatewayAction:
+      return <GatewayAction value={value} />;
+    case SimpleSubexpressionValueType.GatewayActionContext:
+      return <GatewayActionContextValue value={value} />;
     case SimpleSubexpressionValueType.InstanceContext:
       return <InstanceContextValue value={value} />;
     case SimpleSubexpressionValueType.String:
@@ -33,13 +37,13 @@ export const SubexpressionValueReadonly = ({
   }
 };
 
-const DatamodelLookupValue = ({
+const DataModelLookupValue = ({
   value,
-}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.Datamodel>) => {
+}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.DataModel>) => {
   const { texts } = useStudioExpressionContext();
   return (
     <Binding
-      name={texts.readonlyDatamodelPath}
+      name={texts.readonlyDataModelPath}
       binding={<StudioCodeFragment>{value.path}</StudioCodeFragment>}
     />
   );
@@ -72,6 +76,29 @@ const InstanceContextValue = ({
       }
     />
   );
+};
+
+const GatewayActionContextValue = ({
+  value,
+}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.GatewayActionContext>) => {
+  const { texts } = useStudioExpressionContext();
+  const name = texts.gatewayActionContext[value.key];
+  return (
+    <Binding
+      name={texts.readonlyGatewayActionContext}
+      binding={
+        <Tag size='small' color='info'>
+          {name}
+        </Tag>
+      }
+    />
+  );
+};
+
+const GatewayAction = ({
+  value,
+}: SubexpressionValueReadonlyProps<SimpleSubexpressionValueType.GatewayAction>) => {
+  return <Paragraph size='small'>{value.value}</Paragraph>;
 };
 
 const Binding = ({ name, binding }: { name: string; binding: ReactNode }) => {

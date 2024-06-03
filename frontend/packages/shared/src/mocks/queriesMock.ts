@@ -4,11 +4,10 @@ import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
-import type { Commit } from 'app-shared/types/Commit';
 import type {
-  DatamodelMetadataJson,
-  DatamodelMetadataXsd,
-} from 'app-shared/types/DatamodelMetadata';
+  DataModelMetadataJson,
+  DataModelMetadataXsd,
+} from 'app-shared/types/DataModelMetadata';
 import type { Environment } from 'app-shared/types/Environment';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { Organization } from 'app-shared/types/Organization';
@@ -30,7 +29,7 @@ import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import type {
   AppReleasesResponse,
   CreateRepoCommitPayload,
-  DatamodelMetadataResponse,
+  DataModelMetadataResponse,
   FormLayoutsResponse,
   SearchRepositoryResponse,
 } from 'app-shared/types/api';
@@ -51,9 +50,8 @@ import {
   appReleasesResponse,
   applicationMetadata,
   branchStatus,
-  commit,
   createRepoCommitPayload,
-  datamodelMetadataResponse,
+  dataModelMetadataResponse,
   layoutSets,
   newsList,
   orgList,
@@ -73,21 +71,22 @@ import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsRespon
 
 export const queriesMock: ServicesContextProps = {
   // Queries
+  getAppMetadataModelIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getAppReleases: jest
     .fn()
     .mockImplementation(() => Promise.resolve<AppReleasesResponse>(appReleasesResponse)),
   getAppVersion: jest.fn().mockImplementation(() => Promise.resolve<AppVersion>(appVersion)),
   getBranchStatus: jest.fn().mockImplementation(() => Promise.resolve<BranchStatus>(branchStatus)),
-  getDatamodel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
-  getDatamodelMetadata: jest
+  getDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
+  getDataModelMetadata: jest
     .fn()
     .mockImplementation(() =>
-      Promise.resolve<DatamodelMetadataResponse>(datamodelMetadataResponse),
+      Promise.resolve<DataModelMetadataResponse>(dataModelMetadataResponse),
     ),
-  getDatamodelsJson: jest
+  getDataModelsJson: jest
     .fn()
-    .mockImplementation(() => Promise.resolve<DatamodelMetadataJson[]>([])),
-  getDatamodelsXsd: jest.fn().mockImplementation(() => Promise.resolve<DatamodelMetadataXsd[]>([])),
+    .mockImplementation(() => Promise.resolve<DataModelMetadataJson[]>([])),
+  getDataModelsXsd: jest.fn().mockImplementation(() => Promise.resolve<DataModelMetadataXsd[]>([])),
   getDeployPermissions: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getDeployments: jest
     .fn()
@@ -104,7 +103,6 @@ export const queriesMock: ServicesContextProps = {
   getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgList>(orgList)),
   getOrganizations: jest.fn().mockImplementation(() => Promise.resolve<Organization[]>([])),
-  getRepoInitialCommit: jest.fn().mockImplementation(() => Promise.resolve<Commit>(commit)),
   getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
   getRepoPull: jest.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
   getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
@@ -157,12 +155,14 @@ export const queriesMock: ServicesContextProps = {
   getSubParties: jest
     .fn()
     .mockImplementation(() => Promise.resolve<BrregSubPartySearchResult>(null)),
+  getAccessListMembers: jest.fn().mockImplementation(() => Promise.resolve({ data: [] })),
 
   // Queries - PrgetBpmnFile
   getBpmnFile: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
 
   // Mutations
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
+  addDataTypeToAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   addLayoutSet: jest.fn().mockImplementation(() => Promise.resolve()),
   addLanguageCode: jest.fn().mockImplementation(() => Promise.resolve()),
   addRepo: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
@@ -171,14 +171,15 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
   copyApp: jest.fn().mockImplementation(() => Promise.resolve()),
-  createDatamodel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
+  createDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   createDeployment: jest.fn().mockImplementation(() => Promise.resolve()),
   createRelease: jest.fn().mockImplementation(() => Promise.resolve()),
   createRepoCommit: jest
     .fn()
     .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
   deleteAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
-  deleteDatamodel: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteDataModel: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteDataTypeFromAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteFormLayout: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteLanguageCode: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteLayoutSet: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -186,7 +187,7 @@ export const queriesMock: ServicesContextProps = {
   logout: jest.fn().mockImplementation(() => Promise.resolve()),
   pushRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
   resetRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
-  saveDatamodel: jest.fn().mockImplementation(() => Promise.resolve()),
+  saveDataModel: jest.fn().mockImplementation(() => Promise.resolve()),
   saveFormLayout: jest.fn().mockImplementation(() => Promise.resolve()),
   saveFormLayoutV3: jest.fn().mockImplementation(() => Promise.resolve()),
   saveFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
@@ -201,6 +202,7 @@ export const queriesMock: ServicesContextProps = {
   updateAppPolicy: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppConfig: jest.fn().mockImplementation(() => Promise.resolve()),
+  uploadDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   upsertTextResources: jest
     .fn()
     .mockImplementation(() => Promise.resolve<ITextResourcesObjectFormat>({})),
@@ -208,6 +210,7 @@ export const queriesMock: ServicesContextProps = {
   // Mutations - Resourceadm
   createResource: jest.fn().mockImplementation(() => Promise.resolve()),
   importResourceFromAltinn2: jest.fn().mockImplementation(() => Promise.resolve<Resource>(null)),
+  importResourceFromAltinn3: jest.fn().mockImplementation(() => Promise.resolve({})),
   publishResource: jest.fn().mockImplementation(() => Promise.resolve()),
   updatePolicy: jest.fn().mockImplementation(() => Promise.resolve()),
   updateResource: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -221,4 +224,5 @@ export const queriesMock: ServicesContextProps = {
 
   // Mutations - ProcessEditor
   updateBpmnXml: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateProcessDataType: jest.fn().mockImplementation(() => Promise.resolve()),
 };

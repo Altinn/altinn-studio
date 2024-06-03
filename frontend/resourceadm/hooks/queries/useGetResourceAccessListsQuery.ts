@@ -17,13 +17,13 @@ export const useGetResourceAccessListsQuery = (
   org: string,
   resourceId: string,
   env: string,
-): UseInfiniteQueryResult<InfiniteData<AccessList, number>> => {
+): UseInfiniteQueryResult<InfiniteData<AccessList, string>> => {
   const { getResourceAccessLists } = useServicesContext();
 
   return useInfiniteQuery({
     queryKey: [QueryKey.ResourceAccessLists, env, resourceId],
     queryFn: ({ pageParam }) => getResourceAccessLists(org, resourceId, env, pageParam),
-    initialPageParam: 0,
+    initialPageParam: '',
     getNextPageParam: (lastPage) => lastPage.nextPage,
     enabled: !!org && !!env && !!resourceId,
     select: (data) => ({

@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { FormTree } from './FormTree';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { BASE_CONTAINER_ID, DEFAULT_LANGUAGE } from 'app-shared/constants';
@@ -7,19 +7,18 @@ import { renderWithProviders } from '../../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ITextResources } from 'app-shared/types/global';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormItemContext } from '../../FormItemContext';
 import type { IInternalLayout } from '../../../types/global';
 import type { FormComponent } from '../../../types/FormComponent';
 import type { FormContainer } from '../../../types/FormContainer';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const textResources: ITextResources = {
   [DEFAULT_LANGUAGE]: [],
 };
@@ -111,19 +110,19 @@ describe('FormTree', () => {
   it('Makes the child components appear when the container is expanded', async () => {
     render();
     const containerElement = screen.getByRole('treeitem', { name: rootContainerName });
-    await act(() => user.click(containerElement));
+    await user.click(containerElement);
     expect(screen.getByRole('treeitem', { name: subComponentName })).toBeInTheDocument();
     const subContainerElement = screen.getByRole('treeitem', { name: subContainerName });
     expect(subContainerElement).toBeInTheDocument();
     expect(screen.queryByRole('treeitem', { name: subSubComponentName })).not.toBeInTheDocument();
-    await act(() => user.click(subContainerElement));
+    await user.click(subContainerElement);
     expect(screen.getByRole('treeitem', { name: subSubComponentName })).toBeInTheDocument();
   });
 
   it('Calls handleEdit with the correct item when an item is clicked', async () => {
     render();
     const component = screen.getByRole('treeitem', { name: rootComponentName });
-    await act(() => user.click(component));
+    await user.click(component);
     expect(handleEdit).toHaveBeenCalledTimes(1);
     expect(handleEdit).toHaveBeenCalledWith(rootComponent);
   });
@@ -131,18 +130,18 @@ describe('FormTree', () => {
   it('Displays a text telling that the container is empty when an empty container is expanded', async () => {
     render();
     const emptyContainer = screen.getByRole('treeitem', { name: emptyRootContainerName });
-    await act(() => user.click(emptyContainer));
+    await user.click(emptyContainer);
     expect(screen.getByText(textMock('ux_editor.container_empty'))).toBeInTheDocument();
   });
 
   it('Adheres to tree view keyboard navigation rules', async () => {
     render();
-    await act(() => user.tab());
+    await user.tab();
     expect(screen.getByRole('treeitem', { name: rootComponentName })).toHaveFocus();
-    await act(() => user.keyboard('{arrowdown}'));
+    await user.keyboard('{arrowdown}');
     expect(screen.getByRole('treeitem', { name: rootContainerName })).toHaveFocus();
-    await act(() => user.keyboard('{arrowright}'));
-    await act(() => user.keyboard('{arrowdown}'));
+    await user.keyboard('{arrowright}');
+    await user.keyboard('{arrowdown}');
     expect(screen.getByRole('treeitem', { name: subComponentName })).toHaveFocus();
   });
 

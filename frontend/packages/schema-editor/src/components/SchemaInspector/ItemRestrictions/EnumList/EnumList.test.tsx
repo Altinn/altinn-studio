@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, act } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import type { EnumListProps } from './EnumList';
 import { EnumList } from './EnumList';
 import { fieldNode1Mock, uiSchemaNodesMock } from '../../../../../test/mocks/uiSchemaMock';
@@ -7,7 +7,7 @@ import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../test/renderWithProviders';
 import type { FieldNode } from '@altinn/schema-model';
 import { SchemaModel } from '@altinn/schema-model';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const mockEnums: string[] = ['a', 'b', 'c'];
 
@@ -49,7 +49,7 @@ describe('EnumList', () => {
     renderEnumList();
 
     const addEnumButton = screen.getByRole('button', { name: textMock('schema_editor.add_enum') });
-    await act(() => user.click(addEnumButton));
+    await user.click(addEnumButton);
 
     const enumLabel = screen.getByRole('textbox', {
       name: textMock('schema_editor.enum_value', { index: 0 }),
@@ -71,7 +71,7 @@ describe('EnumList', () => {
     const [, deleteEnumButtonB] = screen.getAllByRole('button', {
       name: textMock('schema_editor.delete_field'),
     });
-    await act(() => user.click(deleteEnumButtonB));
+    await user.click(deleteEnumButtonB);
 
     const allDeleteButtonsAfter = screen.getAllByRole('button', {
       name: textMock('schema_editor.delete_field'),
@@ -86,20 +86,20 @@ describe('EnumList', () => {
     renderEnumList(mockSchemaNode, schemaModel);
 
     const addEnumButton = screen.getByRole('button', { name: textMock('schema_editor.add_enum') });
-    await act(() => user.click(addEnumButton));
+    await user.click(addEnumButton);
     expect(mockSaveDataModel).not.toHaveBeenCalled();
 
     const newEnumInput = screen.getByRole('textbox', {
       name: textMock('schema_editor.enum_value', { index: 3 }),
     });
 
-    await act(() => user.type(newEnumInput, 'a'));
+    await user.type(newEnumInput, 'a');
 
     const errorMessage = screen.getByText(textMock('schema_editor.enum_error_duplicate'));
     expect(errorMessage).toBeInTheDocument();
     expect(mockSaveDataModel).not.toHaveBeenCalled();
 
-    await act(() => user.type(newEnumInput, 'a'));
+    await user.type(newEnumInput, 'a');
 
     const errorMessageAfter = screen.queryByText(textMock('schema_editor.enum_error_duplicate'));
     expect(errorMessageAfter).not.toBeInTheDocument();
@@ -125,7 +125,7 @@ describe('EnumList', () => {
     });
     expect(enumFieldB).toHaveValue('b');
 
-    await act(() => user.type(enumFieldB, 'x'));
+    await user.type(enumFieldB, 'x');
 
     expect(mockSaveDataModel).toHaveBeenCalledTimes(1);
     expect(mockSaveDataModel).toHaveBeenCalledWith(schemaModel);

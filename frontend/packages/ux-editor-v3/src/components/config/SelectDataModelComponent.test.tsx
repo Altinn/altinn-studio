@@ -1,17 +1,19 @@
 import React from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 
 import { renderWithMockStore, renderHookWithMockStore } from '../../testing/mocks';
 import { appDataMock, textResourcesMock } from '../../testing/stateMocks';
 import type { IAppDataState } from '../../features/appData/appDataReducers';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
-import { useDatamodelMetadataQuery } from '../../hooks/queries/useDatamodelMetadataQuery';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+import { useDataModelMetadataQuery } from '../../hooks/queries/useDataModelMetadataQuery';
 import userEvent from '@testing-library/user-event';
-import type { DatamodelMetadataResponse } from 'app-shared/types/api';
+import { dataModelNameMock, layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
+import type { DataModelMetadataResponse } from 'app-shared/types/api';
+import { app, org } from '@studio/testing/testids';
 
-const getDatamodelMetadata = () =>
-  Promise.resolve<DatamodelMetadataResponse>({
+const getDataModelMetadata = () =>
+  Promise.resolve<DataModelMetadataResponse>({
     elements: {
       testModel: {
         id: 'testModel',
@@ -53,14 +55,14 @@ const getDatamodelMetadata = () =>
 const user = userEvent.setup();
 
 const waitForData = async () => {
-  const datamodelMetadatResult = renderHookWithMockStore(
+  const dataModelMetadataResult = renderHookWithMockStore(
     {},
     {
-      getDatamodelMetadata,
+      getDataModelMetadata,
     },
-  )(() => useDatamodelMetadataQuery('test-org', 'test-app', 'test-layout-set')).renderHookResult
-    .result;
-  await waitFor(() => expect(datamodelMetadatResult.current.isSuccess).toBe(true));
+  )(() => useDataModelMetadataQuery(org, app, layoutSet1NameMock, dataModelNameMock))
+    .renderHookResult.result;
+  await waitFor(() => expect(dataModelMetadataResult.current.isSuccess).toBe(true));
 };
 
 const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn() } = {}) => {
@@ -75,7 +77,7 @@ const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn(
 
   renderWithMockStore(
     { appData },
-    { getDatamodelMetadata },
+    { getDataModelMetadata },
   )(
     <SelectDataModelComponent
       label={textMock('ux_editor.modal_properties_data_model_helper')}
@@ -115,10 +117,10 @@ describe('EditDataModelBindings', () => {
       handleComponentChange,
     });
     const selectElement = screen.getByRole('combobox');
-    await act(async () => {
-      await user.click(selectElement);
-      await user.click(screen.getByText('testModel.field1'));
-    });
+
+    await user.click(selectElement);
+    await user.click(screen.getByText('testModel.field1'));
+
     await waitFor(() => {});
     expect(handleComponentChange).toHaveBeenCalledWith('testModel.field1');
   });

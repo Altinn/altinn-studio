@@ -2,14 +2,14 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { formLayoutSettingsMock, renderHookWithMockStore } from '../../testing/mocks';
 import { useDeleteLayoutMutation } from './useDeleteLayoutMutation';
-import { externalLayoutsMock, layout2NameMock } from '../../testing/layoutMock';
+import { externalLayoutsMock, layout2NameMock } from '@altinn/ux-editor-v3/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 const layoutName = layout2NameMock;
 
 describe('useDeleteLayoutMutation', () => {

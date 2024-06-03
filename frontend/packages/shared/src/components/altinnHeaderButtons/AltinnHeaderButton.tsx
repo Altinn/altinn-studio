@@ -18,12 +18,12 @@ export const AltinnHeaderButton = ({ action }: AltinnHeaderButtonProps) => {
       href={action.to}
       key={action.menuKey}
       data-testid={action.menuKey}
-      aria-label={t(action.title)}
+      aria-label={t(action.menuKey)}
       color={action.isInverted ? 'inverted' : 'first'}
       variant='secondary'
       size='small'
     >
-      {t(action.title)}
+      {t(action.menuKey)}
     </StudioButton>
   );
 };
