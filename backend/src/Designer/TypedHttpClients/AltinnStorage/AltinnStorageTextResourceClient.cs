@@ -38,7 +38,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             Uri uri = await CreatePostUri(envName, org, app);
             HttpClientHelper.AddSubscriptionKeys(_httpClient, uri, _platformSettings);
             string stringContent = JsonSerializer.Serialize(textResource);
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, uri)
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, uri)
             {
                 Content = new StringContent(stringContent, Encoding.UTF8, "application/json"),
             };
