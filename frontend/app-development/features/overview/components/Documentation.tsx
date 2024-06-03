@@ -4,7 +4,7 @@ import { Heading, Link } from '@digdir/design-system-react';
 import { ExternalLinkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 
-export const Documentation = () => {
+export const Documentation = (): React.ReactElement => {
   const { t } = useTranslation();
   return (
     <div className={classes.documentation}>

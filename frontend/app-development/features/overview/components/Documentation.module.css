@@ -22,7 +22,7 @@
 
 @media (min-width: 1200px) {
   .documentation {
-    min-height: 280px;
+    min-height: 104px;
   }
 
   .content {
@@ -34,7 +34,7 @@
   .documentation::before {
     background-image: url('/designer/img/Altinn-studio-3.svg');
     background-position: center center;
-    background-size: 150px auto;
+    background-size: 94px auto;
     background-repeat: no-repeat;
 
     content: ' ';
@@ -42,8 +42,8 @@
     position: absolute;
     bottom: var(--fds-spacing-4);
     right: var(--fds-spacing-4);
-    width: 150px;
-    height: 150px;
+    width: 94px;
+    height: 94px;
     opacity: 0.3;
 
     transform: rotateY(180deg);
