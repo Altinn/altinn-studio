@@ -201,7 +201,10 @@ public class TelemetrySnapshot(
     public readonly IEnumerable<object>? Activities = activities?.Select(a => new
     {
         ActivityName = a.DisplayName,
-        Tags = a.TagObjects.Select(tag => new KeyValuePair<string, string?>(tag.Key, tag.Value?.ToString())),
+        Tags = a
+            .TagObjects.Select(tag => new KeyValuePair<string, string?>(tag.Key, tag.Value?.ToString()))
+            .Where(tag => tag.Key != "_MS.ProcessedByMetricExtractors")
+            .ToList(),
         a.IdFormat,
         a.Status,
         a.Events,
