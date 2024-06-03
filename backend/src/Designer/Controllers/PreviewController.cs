@@ -1002,6 +1002,11 @@ namespace Altinn.Studio.Designer.Controllers
             LayoutSets layoutSetsWithMockedDataTypesIfMissing = AddDataTypesToReturnedLayoutSetsIfMissing(layoutSets);
             layoutSetsWithMockedDataTypesIfMissing.Sets.ForEach(set =>
             {
+                if (set.Tasks[0] == Constants.General.CustomReceiptId)
+                {
+                    return;
+                }
+
                 if (!applicationMetadata.DataTypes.Any(dataType => dataType.Id == set.DataType))
                 {
                     applicationMetadata.DataTypes.Add(new DataType()

@@ -1,7 +1,6 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { SettingsModalButtonProps } from './SettingsModalButton';
 import { SettingsModalButton } from './SettingsModalButton';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { QueryClient } from '@tanstack/react-query';
@@ -11,12 +10,6 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { MemoryRouter } from 'react-router-dom';
 import { AppDevelopmentContextProvider } from '../../contexts/AppDevelopmentContext';
-import { app, org } from '@studio/testing/testids';
-
-const defaultProps: SettingsModalButtonProps = {
-  org,
-  app,
-};
 
 describe('SettingsModal', () => {
   const user = userEvent.setup();
@@ -88,7 +81,7 @@ const renderSettingsModalButton = (
     <MemoryRouter>
       <ServicesContextProvider {...allQueries} client={queryClient}>
         <AppDevelopmentContextProvider>
-          <SettingsModalButton {...defaultProps} />
+          <SettingsModalButton />
         </AppDevelopmentContextProvider>
       </ServicesContextProvider>
     </MemoryRouter>,

@@ -1,6 +1,5 @@
 import React from 'react';
 import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
-import type { PolicyTabProps } from './PolicyTab';
 import { PolicyTab } from './PolicyTab';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -13,6 +12,7 @@ import userEvent from '@testing-library/user-event';
 import { useAppPolicyMutation } from 'app-development/hooks/mutations';
 import { mockPolicy } from '../../../mocks/policyMock';
 import { app, org } from '@studio/testing/testids';
+import { MemoryRouter } from 'react-router-dom';
 
 const mockActions: PolicyAction[] = [
   { actionId: 'a1', actionTitle: 'Action 1', actionDescription: 'The first action' },
@@ -54,10 +54,12 @@ const getAppPolicy = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getPolicyActions = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getPolicySubjects = jest.fn().mockImplementation(() => Promise.resolve({}));
 
-const defaultProps: PolicyTabProps = {
-  org,
-  app,
-};
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => {
+    return { org, app };
+  },
+}));
 
 describe('PolicyTab', () => {
   afterEach(jest.clearAllMocks);
@@ -151,8 +153,10 @@ const render = (
   };
 
   return rtlRender(
-    <ServicesContextProvider {...allQueries} client={queryClient}>
-      <PolicyTab {...defaultProps} />
-    </ServicesContextProvider>,
+    <MemoryRouter>
+      <ServicesContextProvider {...allQueries} client={queryClient}>
+        <PolicyTab />
+      </ServicesContextProvider>
+    </MemoryRouter>,
   );
 };

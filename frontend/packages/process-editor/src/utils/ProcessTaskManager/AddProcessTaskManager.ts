@@ -61,6 +61,7 @@ export class AddProcessTaskManager {
 
     this.addDataTypeToAppMetadata({
       dataTypeId,
+      taskId: this.bpmnDetails.id,
     });
   }
 
@@ -77,6 +78,7 @@ export class AddProcessTaskManager {
 
     this.addDataTypeToAppMetadata({
       dataTypeId,
+      taskId: this.bpmnDetails.id,
     });
   }
 

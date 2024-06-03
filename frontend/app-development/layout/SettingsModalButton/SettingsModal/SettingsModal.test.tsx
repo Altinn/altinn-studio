@@ -11,7 +11,6 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';
 import { MemoryRouter } from 'react-router-dom';
-import { app, org } from '@studio/testing/testids';
 
 jest.mock('../../../hooks/mutations/useAppConfigMutation');
 const updateAppConfigMutation = jest.fn();
@@ -33,8 +32,6 @@ describe('SettingsModal', () => {
   const defaultProps: SettingsModalProps = {
     isOpen: true,
     onClose: mockOnClose,
-    org,
-    app,
   };
 
   it('closes the modal when the close button is clicked', async () => {

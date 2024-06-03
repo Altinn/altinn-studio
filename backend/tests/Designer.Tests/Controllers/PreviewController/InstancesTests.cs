@@ -67,7 +67,7 @@ namespace Designer.Tests.Controllers.PreviewController
 
             string dataPathWithData = $"{Org}/{targetRepository}/instances?instanceOwnerPartyId=51001";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet={CustomReceiptLayoutSetName2}");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet={CustomReceiptLayoutSetName}");
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -75,7 +75,7 @@ namespace Designer.Tests.Controllers.PreviewController
             string responseBody = await response.Content.ReadAsStringAsync();
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
             Instance instance = JsonConvert.DeserializeObject<Instance>(responseDocument.RootElement.ToString());
-            Assert.Equal(DataTypeForCustomReceipt, instance.Data[0].DataType);
+            Assert.Equal(CustomReceiptDataType, instance.Data[0].DataType);
             Assert.Equal("EndEvent_1", instance.Process.EndEvent);
             instance.Process.CurrentTask.Should().BeNull();
         }
