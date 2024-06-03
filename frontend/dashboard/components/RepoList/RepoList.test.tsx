@@ -6,7 +6,7 @@ import { searchRepositoryResponseMock } from '../../data-mocks/searchRepositoryR
 import type { IRepoListProps } from './RepoList';
 import { RepoList } from './RepoList';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { repository } from 'app-shared/mocks/mocks';
 import { nbNO } from '@mui/x-data-grid/locales';
 

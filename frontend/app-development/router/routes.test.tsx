@@ -7,6 +7,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { app, org } from '@studio/testing/testids';
 
 // Mocks:
 jest.mock('@altinn/ux-editor-v3/SubApp', () => ({
@@ -15,10 +16,6 @@ jest.mock('@altinn/ux-editor-v3/SubApp', () => ({
 jest.mock('@altinn/ux-editor/SubApp', () => ({
   SubApp: () => <div data-testid='latest version' />,
 }));
-
-// Test data
-const org = 'org';
-const app = 'app';
 
 describe('routes', () => {
   describe(RoutePaths.UIEditor, () => {

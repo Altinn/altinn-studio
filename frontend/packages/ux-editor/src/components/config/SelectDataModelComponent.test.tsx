@@ -2,14 +2,18 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../../testing/mocks';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { getDataModelFieldsFilter } from '../../utils/datamodel';
+import { getDataModelFieldsFilter } from '../../utils/dataModel';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { app, org } from '@studio/testing/testids';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
-const datamodelMetadataMock = [
+const dataModelName = undefined;
+
+const dataModelMetadataMock = [
   {
     id: 'testModel',
     type: 'ComplexType',
@@ -61,13 +65,13 @@ const datamodelMetadataMock = [
 const user = userEvent.setup();
 
 const render = async ({
-  dataModelMetadata = datamodelMetadataMock,
+  dataModelMetadata = dataModelMetadataMock,
   componentType = ComponentType.Input,
   label = undefined,
   handleComponentChange = jest.fn(),
 } = {}) => {
   queryClientMock.setQueryData(
-    [QueryKey.DatamodelMetadata, 'org', 'app', 'test-layout-set'],
+    [QueryKey.DataModelMetadata, org, app, layoutSet1NameMock, dataModelName],
     dataModelMetadata,
   );
   renderWithProviders(

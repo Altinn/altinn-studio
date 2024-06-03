@@ -4,16 +4,16 @@ import { renderHookWithMockStore } from '../../testing/mocks';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import type { IInternalLayout } from '../../types/global';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
-import { baseContainerIdMock } from '../../testing/layoutMock';
+import { baseContainerIdMock, layout1NameMock } from '@altinn/ux-editor-v3/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import type { AppContextProps } from '../../AppContext';
 import type { RefObject } from 'react';
 import { createRef } from 'react';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const layoutName = 'layoutName';
-const selectedLayoutSet = 'test-layout-set';
+const layoutName = layout1NameMock;
+const selectedLayoutSet = layoutSet1NameMock;
 const componentId = 'component1';
 const componentType = ComponentTypeV3.TextArea;
 const baseContainerId = baseContainerIdMock;

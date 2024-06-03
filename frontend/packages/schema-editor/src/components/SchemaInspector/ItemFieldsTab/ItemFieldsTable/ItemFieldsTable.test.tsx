@@ -13,7 +13,7 @@ import {
 import type { RenderWithProvidersData } from '../../../../../test/renderWithProviders';
 import { renderWithProviders } from '../../../../../test/renderWithProviders';
 import { nodeMockBase, rootNodeMock } from '../../../../../test/mocks/uiSchemaMock';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 const selectedItemPointer = '#/properties/test';
@@ -37,7 +37,7 @@ const selectedItemChild: FieldNode = {
   children: [],
 };
 const uiSchema: UiSchemaNodes = [rootNode, selectedItem, selectedItemChild];
-const saveDatamodel = jest.fn();
+const saveDataModel = jest.fn();
 const model = SchemaModel.fromArray(uiSchema);
 
 const defaultProps: ItemFieldsTableProps = {
@@ -53,7 +53,7 @@ const renderItemFieldsTab = (
     ...data,
     appContextProps: {
       schemaModel: model,
-      save: saveDatamodel,
+      save: saveDataModel,
       ...data.appContextProps,
     },
   })(<ItemFieldsTable {...defaultProps} {...props} />);
@@ -99,7 +99,7 @@ describe('ItemFieldsTable', () => {
     const [firstTextBoxAfter] = screen.getAllByLabelText(textMock('schema_editor.field_name'));
     expect(firstTextBoxAfter).toHaveValue(expectedNameInTextField(0) + 'a');
 
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
   });
 
   it('Calls "save" when "Enter" key is pressed in Text field', async () => {
@@ -112,7 +112,7 @@ describe('ItemFieldsTable', () => {
     await user.type(firstTextBox, 'a');
     await user.keyboard('{Enter}');
 
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
   });
 
   it('Updates the select correctly', async () => {
@@ -127,7 +127,7 @@ describe('ItemFieldsTable', () => {
 
     await user.selectOptions(firstSelect, textMock('schema_editor.string'));
 
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
   });
 
   it('Updates the switch correctly', async () => {
@@ -139,7 +139,7 @@ describe('ItemFieldsTable', () => {
 
     await user.click(firstSwitch);
 
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
   });
 
   it('Calls "save" when the delete button is clicked', async () => {
@@ -157,10 +157,10 @@ describe('ItemFieldsTable', () => {
     expect(dialog).toBeInTheDocument();
 
     const confirmButton = screen.getByRole('button', {
-      name: textMock('schema_editor.datamodel_field_deletion_confirm'),
+      name: textMock('schema_editor.data_model_field_deletion_confirm'),
     });
     await user.click(confirmButton);
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
   });
 });
 

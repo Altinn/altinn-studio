@@ -9,9 +9,8 @@ import { useNavigate } from 'react-router-dom';
 import { ServiceContent } from './ServiceContent';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { useImportResourceFromAltinn2Mutation } from '../../hooks/mutations';
-import type { Resource } from 'app-shared/types/ResourceAdm';
+import type { Resource, ResourceError } from 'app-shared/types/ResourceAdm';
 import { getResourcePageURL } from '../../utils/urlUtils';
-import type { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUrlParams } from '../../hooks/useSelectedContext';
 import { StudioButton } from '@studio/components';
@@ -90,8 +89,8 @@ export const ImportResourceModal = ({
           toast.success(t('resourceadm.dashboard_import_success'));
           navigate(getResourcePageURL(selectedContext, repo, resource.identifier, 'about'));
         },
-        onError: (error: AxiosError) => {
-          if (error.response.status === ServerCodes.Conflict) {
+        onError: (error: Error) => {
+          if ((error as ResourceError).response?.status === ServerCodes.Conflict) {
             setResourceIdExists(true);
           }
         },

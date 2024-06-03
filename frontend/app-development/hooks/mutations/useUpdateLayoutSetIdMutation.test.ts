@@ -2,10 +2,9 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithMockStore } from '../../test/mocks';
 import { useUpdateLayoutSetIdMutation } from './useUpdateLayoutSetIdMutation';
 import { waitFor } from '@testing-library/react';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const layoutSetIdToUpdate = 'oldLayoutSetName';
 const newLayoutSetId: string = 'newLayoutSetName';
 

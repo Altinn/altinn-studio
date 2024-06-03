@@ -1,7 +1,6 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import type { AxiosError } from 'axios';
 import { Heading, Link as DigdirLink, ToggleGroup, Button } from '@digdir/design-system-react';
 import { StudioSpinner, StudioButton } from '@studio/components';
 import { PencilWritingIcon, PlusIcon } from '@studio/icons';
@@ -13,6 +12,7 @@ import { useUrlParams } from '../../hooks/useSelectedContext';
 import type { EnvId } from '../../utils/resourceUtils';
 import { getAvailableEnvironments, getEnvLabel } from '../../utils/resourceUtils';
 import { AccessListErrorMessage } from '../../components/AccessListErrorMessage';
+import type { ResourceError } from 'app-shared/types/ResourceAdm';
 
 export const ListAdminPage = (): React.JSX.Element => {
   const { t } = useTranslation();
@@ -75,7 +75,7 @@ export const ListAdminPage = (): React.JSX.Element => {
             />
             {listFetchError && (
               <AccessListErrorMessage
-                error={listFetchError as AxiosError}
+                error={listFetchError as ResourceError}
                 env={selectedEnv as EnvId}
               />
             )}
@@ -122,7 +122,9 @@ export const ListAdminPage = (): React.JSX.Element => {
                     variant='tertiary'
                     onClick={() => fetchNextPage()}
                   >
-                    {t('resourceadm.listadmin_load_more')}
+                    {t('resourceadm.listadmin_load_more', {
+                      unit: t('resourceadm.listadmin_list_unit'),
+                    })}
                   </Button>
                 )}
               </div>

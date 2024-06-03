@@ -173,7 +173,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             cancellationToken.ThrowIfCancellationRequested();
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
 
-            MemoryStream xsdMemoryStream = new MemoryStream();
+            using MemoryStream xsdMemoryStream = new MemoryStream();
             xsdStream.CopyTo(xsdMemoryStream);
             string jsonContent;
             AltinnRepositoryType altinnRepositoryType = await altinnAppGitRepository.GetRepositoryType();
@@ -412,18 +412,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             if (applicationMetadata.DataTypes != null)
             {
-                DataType removeForm = applicationMetadata.DataTypes.Find(m => m.Id == id);
+                DataType dataTypeToDelete = applicationMetadata.DataTypes.Find(m => m.Id == id);
                 if (altinnAppGitRepository.AppUsesLayoutSets())
                 {
                     var layoutSets = await altinnAppGitRepository.GetLayoutSetsFile();
-                    var layoutSet = layoutSets.Sets.Find(set => set.Tasks[0] == removeForm.TaskId);
-                    if (layoutSet is not null)
+                    List<LayoutSetConfig> layoutSetsWithDeletedDataType = layoutSets.Sets.FindAll(set => set.DataType == dataTypeToDelete.Id);
+                    foreach (LayoutSetConfig layoutSet in layoutSetsWithDeletedDataType)
                     {
                         layoutSet.DataType = null;
-                        await altinnAppGitRepository.SaveLayoutSets(layoutSets);
                     }
+                    await altinnAppGitRepository.SaveLayoutSets(layoutSets);
                 }
-                applicationMetadata.DataTypes.Remove(removeForm);
+                applicationMetadata.DataTypes.Remove(dataTypeToDelete);
                 await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
             }
         }

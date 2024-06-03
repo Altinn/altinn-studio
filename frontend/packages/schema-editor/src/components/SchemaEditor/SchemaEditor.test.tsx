@@ -9,12 +9,12 @@ import {
   makePointerFromArray,
   SchemaModel,
 } from '@altinn/schema-model';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { RenderWithProvidersData } from '../../../test/renderWithProviders';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { getSavedModel } from '../../../test/test-utils';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
-import * as testids from '../../../../../testing/testids';
+import { typeItemId } from '@studio/testing/testids';
 import { uiSchemaNodesMock } from '../../../test/mocks/uiSchemaMock';
 
 const user = userEvent.setup();
@@ -222,16 +222,16 @@ describe('SchemaEditor', () => {
         setSelectedTypePointer: setSelectedTypePointerMock,
       },
     });
-    const type = screen.getByTestId(testids.typeItem(selectedTypePointer));
+    const type = screen.getByTestId(typeItemId(selectedTypePointer));
     await user.click(type);
     expect(screen.getByRole('heading', { name: typeName, level: 1 })).toBeInTheDocument();
   });
 
-  it('Navigates back to the datamodel when clicking the "back to datamodel" link', async () => {
+  it('Navigates back to the data model when clicking the "back to data model" link', async () => {
     const setSelectedTypePointer = jest.fn();
     const setSelectedNodePointer = jest.fn();
     const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchemaTypePanel));
-    const dataModelName = 'TestDatamodelName';
+    const dataModelName = 'TestDataModel';
 
     renderEditor({
       appContextProps: {
@@ -244,7 +244,7 @@ describe('SchemaEditor', () => {
     });
 
     const backButton = screen.getByRole('button', {
-      name: textMock('schema_editor.back_to_datamodel'),
+      name: textMock('schema_editor.back_to_data_model'),
     });
     await user.click(backButton);
     expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);

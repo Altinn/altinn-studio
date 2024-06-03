@@ -6,14 +6,18 @@ import type { AddFormItemMutationArgs } from './useAddItemToLayoutMutation';
 import { useAddItemToLayoutMutation } from './useAddItemToLayoutMutation';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
-import { externalLayoutsMock, layoutSetsMock } from '../../testing/layoutMock';
+import { externalLayoutsMock } from '@altinn/ux-editor/testing/layoutMock';
+import {
+  layoutSet1NameMock,
+  layoutSet2NameMock,
+  layoutSetsMock,
+} from '@altinn/ux-editor/testing/layoutSetsMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 const id = 'component-id';
 
 const defaultArgs: AddFormItemMutationArgs = {
@@ -64,7 +68,7 @@ describe('useAddItemToLayoutMutation', () => {
   });
 
   it('Adds correct taskId to attachment metadata when component type is fileUpload and selectedLayoutSet is test-layout-set-2', async () => {
-    const { result } = renderAddItemToLayoutMutation('test-layout-set-2');
+    const { result } = renderAddItemToLayoutMutation(layoutSet2NameMock);
     result.current.mutate({ ...defaultArgs, componentType: ComponentType.FileUpload });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(org, app, {

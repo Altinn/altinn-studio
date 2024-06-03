@@ -54,12 +54,12 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication
              * Have to create a HttpRequestMessage instead of using helper extension methods like _httpClient.PostAsync(...)
              * because the endpoint is built up in that way
              */
-            HttpRequestMessage message = new HttpRequestMessage
+            using HttpRequestMessage message = new HttpRequestMessage
             {
                 RequestUri = new Uri($"{uri.Scheme}://{uri.Host}:{uri.Port}/{_platformSettings.ApiAuthenticationConvertUri}")
             };
 
-            HttpResponseMessage response = await _httpClient.SendAsync(message);
+            using HttpResponseMessage response = await _httpClient.SendAsync(message);
 
             _logger.LogInformation($"//AltinnAuthenticationClient // ConvertTokenAsync // Response: {response}");
             var outputToken = await response.Content.ReadAsAsync<string>();

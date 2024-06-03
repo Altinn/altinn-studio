@@ -2,30 +2,18 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import type { IVersionControlButtonsProps } from './VersionControlButtons';
 import { VersionControlButtons } from './VersionControlButtons';
-import { setWindowLocationForTests } from '../../../../../../testing/testUtils';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { repository, repoStatus } from 'app-shared/mocks/mocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
-const org = 'test-org';
-const app = 'test-app';
-
-setWindowLocationForTests(org, app);
-
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'), // use actual for all non-hook parts
-  useParams: () => ({
-    org: org,
-    app: app,
-  }),
-}));
 
 /**
  * This part is probably not ideal. A more scalable way to mock these calls should be done in a more central place

@@ -6,7 +6,7 @@ import { renderWithProviders } from '../../../../test/renderWithProviders';
 import { extractNameFromPointer, ROOT_POINTER, SchemaModel } from '@altinn/schema-model';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import {
   booleanDefinitionPointer,
   combinationDefinitionPointer,
@@ -30,7 +30,7 @@ const createSchemaModel = () => initialModel.deepClone();
 const setSelectedNodePointer = jest.fn();
 const setSelectedTypePointer = jest.fn();
 const save = jest.fn();
-const datamodelName = 'Test';
+const dataModelName = 'Test';
 
 const defaultProps: HeadingRowProps = {
   pointer: undefined,
@@ -43,7 +43,7 @@ const defaultAppContextProps: SchemaEditorAppContextProps = {
   setSelectedNodePointer,
   setSelectedTypePointer,
   save,
-  name: datamodelName,
+  name: dataModelName,
 };
 
 // Mocks:
@@ -58,15 +58,15 @@ describe('HeadingRow', () => {
   afterEach(jest.clearAllMocks);
 
   describe('When no type is selected', () => {
-    it('Renders a level one heading with the name of the datamodel', () => {
+    it('Renders a level one heading with the name of the data model', () => {
       renderHeadingRow();
-      expect(screen.getByRole('heading', { level: 1, name: datamodelName })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 1, name: dataModelName })).toBeInTheDocument();
     });
 
     it('Selects the root node when clicking the name', async () => {
       const user = userEvent.setup();
       renderHeadingRow();
-      await user.click(screen.getByRole('button', { name: datamodelName }));
+      await user.click(screen.getByRole('button', { name: dataModelName }));
       expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
       expect(setSelectedNodePointer).toHaveBeenCalledWith(ROOT_POINTER);
     });

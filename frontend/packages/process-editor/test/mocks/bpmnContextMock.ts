@@ -21,12 +21,12 @@ export const mockLayoutSets: LayoutSets = {
   sets: [
     {
       id: 'testId',
-      dataType: 'layoutSetId1',
+      dataType: 'dataTypeId1',
       tasks: ['testId'],
     },
     {
       id: 'layoutSetId2',
-      dataType: 'layoutSetId2',
+      dataType: 'dataTypeId2',
       tasks: ['Task_2'],
     },
   ],
@@ -45,4 +45,6 @@ export const mockBpmnApiContextValue: BpmnApiContextProps = {
   deleteDataTypeFromAppMetadata: jest.fn(),
   saveBpmn: jest.fn(),
   openPolicyEditor: jest.fn(),
+  onProcessTaskRemove: jest.fn(),
+  onProcessTaskAdd: jest.fn(),
 };

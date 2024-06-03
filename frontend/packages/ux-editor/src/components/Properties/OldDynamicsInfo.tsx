@@ -3,14 +3,14 @@ import classes from './OldDynamicsInfo.module.css';
 import { ExternalLinkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { giteaEditLink, altinnDocsUrl } from 'app-shared/ext-urls';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../hooks';
 import { Link } from '@digdir/design-system-react';
 
 export const OldDynamicsInfo = () => {
   const { t } = useTranslation();
   const { selectedFormLayoutSetName } = useAppContext();
-  const { app, org } = useStudioUrlParams();
+  const { app, org } = useStudioEnvironmentParams();
   const dynamicLocation = selectedFormLayoutSetName
     ? `App/ui/${selectedFormLayoutSetName}/RuleHandler.js`
     : 'App/ui/RuleHandler.js';

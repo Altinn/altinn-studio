@@ -1,22 +1,26 @@
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import { useReactiveLocalStorage } from 'app-shared/hooks/useReactiveLocalStorage';
+import { useEffect, useState } from 'react';
+import { typedLocalStorage } from 'app-shared/utils/webStorage';
 
 export type UseSelectedFormLayoutSetNameResult = {
   selectedFormLayoutSetName: string;
   setSelectedFormLayoutSetName: (layoutName: string) => void;
-  removeSelectedFormLayoutSetName: () => void;
 };
 
 export const useSelectedFormLayoutSetName = (): UseSelectedFormLayoutSetNameResult => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
-  const [
-    selectedFormLayoutSetNameState,
-    setSelectedFormLayoutSetName,
-    removeSelectedFormLayoutSetName,
-  ] = useReactiveLocalStorage('layoutSet/' + app, undefined);
+  const storageKey: string = 'selectedFormLayoutSetName';
+  const [selectedFormLayoutSetNameState, setSelectedFormLayoutSetName] = useState(
+    typedLocalStorage.getItem<string>(storageKey),
+  );
+
+  useEffect(() => {
+    if (selectedFormLayoutSetNameState)
+      typedLocalStorage.setItem<string>(storageKey, selectedFormLayoutSetNameState);
+  }, [selectedFormLayoutSetNameState]);
 
   let selectedFormLayoutSetName: string;
 
@@ -31,6 +35,5 @@ export const useSelectedFormLayoutSetName = (): UseSelectedFormLayoutSetNameResu
   return {
     selectedFormLayoutSetName,
     setSelectedFormLayoutSetName,
-    removeSelectedFormLayoutSetName,
   };
 };

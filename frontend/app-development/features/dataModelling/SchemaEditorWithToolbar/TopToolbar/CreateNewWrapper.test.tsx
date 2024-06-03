@@ -3,9 +3,9 @@ import { render as renderRtl, screen } from '@testing-library/react';
 import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
 import type { CreateNewWrapperProps } from './CreateNewWrapper';
 import { CreateNewWrapper } from './CreateNewWrapper';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import {
-  datamodel1NameMock,
+  dataModel1NameMock,
   jsonMetadata1Mock,
 } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
 
@@ -107,7 +107,7 @@ describe('CreateNewWrapper', () => {
     });
 
     it('should not call handleCreateSchema callback and show error message when trying to create a new model with the same name as an existing one when ok button is clicked', async () => {
-      const newModelName = datamodel1NameMock;
+      const newModelName = dataModel1NameMock;
       const errMessage = textMock('schema_editor.error_model_name_exists', { newModelName });
       render({ createNewOpen: true, dataModels: [jsonMetadata1Mock] });
 

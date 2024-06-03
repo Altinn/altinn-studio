@@ -19,7 +19,6 @@ public class PreviewService : IPreviewService
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     public const string MockDataModelIdPrefix = "MockDataModel";
     public const string MockDataTaskId = "test-datatask-id";
-    private const string CustomReceiptTaskId = "CustomReceipt";
 
     /// <summary>
     /// Constructor
@@ -37,7 +36,7 @@ public class PreviewService : IPreviewService
         AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
         Application applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
         string task = await GetTaskForLayoutSetName(org, app, developer, layoutSetName, cancellationToken);
-        bool shouldProcessActAsReceipt = task == CustomReceiptTaskId;
+        bool shouldProcessActAsReceipt = task == Constants.General.CustomReceiptId;
         // RegEx for instance guid in app-frontend: [\da-f]{8}-[\da-f]{4}-[1-5][\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}
         string instanceGuid = "f1e23d45-6789-1bcd-8c34-56789abcdef0";
         ProcessState processState = shouldProcessActAsReceipt
@@ -97,7 +96,7 @@ public class PreviewService : IPreviewService
             {
                 foreach (LayoutSetConfig layoutSet in layoutSets.Sets.Where(ls => !tasks.Contains(ls.Tasks[0])))
                 {
-                    if (layoutSet.Tasks[0] == CustomReceiptTaskId)
+                    if (layoutSet.Tasks[0] == Constants.General.CustomReceiptId)
                     {
                         continue;
                     }
@@ -158,7 +157,7 @@ public class PreviewService : IPreviewService
     private async Task<string> GetDataTypeForCustomReceipt(AltinnAppGitRepository altinnAppGitRepository)
     {
         LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile();
-        string dataType = layoutSets?.Sets?.Find(set => set.Tasks[0] == CustomReceiptTaskId)?.DataType;
+        string dataType = layoutSets?.Sets?.Find(set => set.Tasks[0] == Constants.General.CustomReceiptId)?.DataType;
         return dataType ?? string.Empty;
     }
 }

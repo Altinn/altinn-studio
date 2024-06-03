@@ -13,8 +13,8 @@ const defaultValueByType: {
     type: SimpleSubexpressionValueType.Component,
     id: '',
   },
-  [SimpleSubexpressionValueType.Datamodel]: {
-    type: SimpleSubexpressionValueType.Datamodel,
+  [SimpleSubexpressionValueType.DataModel]: {
+    type: SimpleSubexpressionValueType.DataModel,
     path: '',
   },
   [SimpleSubexpressionValueType.GatewayAction]: {

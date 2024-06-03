@@ -31,7 +31,7 @@ import {
   baseInternalSubExpression,
   booleanValue,
   componentId,
-  datamodelField,
+  dataModelField,
   equivalentExternalExpressionWithMultipleSubExpressions,
   internalExpressionWithMultipleSubExpressions,
   internalParsableComplexExpression,
@@ -50,7 +50,7 @@ import {
   unParsableComplexExpression,
 } from '../testing/expressionMocks';
 import { ObjectUtils } from '@studio/pure-functions';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { FormContainer } from '../types/FormContainer';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 
@@ -332,7 +332,7 @@ describe('expressionsUtils', () => {
       expect(internalExpression.subExpressions[2].dataSource).toBe(DataSource.Component);
       expect(internalExpression.subExpressions[2].value).toBe(componentId);
       expect(internalExpression.subExpressions[2].comparableDataSource).toBe(DataSource.DataModel);
-      expect(internalExpression.subExpressions[2].comparableValue).toBe(datamodelField);
+      expect(internalExpression.subExpressions[2].comparableValue).toBe(dataModelField);
     });
     it('converts non-studio-friendly expression to internal complex expression', () => {
       const internalExpression: Expression = convertExternalExpressionToInternal(

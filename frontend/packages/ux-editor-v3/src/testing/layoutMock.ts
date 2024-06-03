@@ -1,7 +1,6 @@
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { IInternalLayout } from '../types/global';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { FormComponent } from '../types/FormComponent';
 import type {
@@ -11,7 +10,6 @@ import type {
 
 export const layout1NameMock = 'Side1';
 export const layout2NameMock = 'Side2';
-
 export const baseContainerIdMock = BASE_CONTAINER_ID;
 export const component1IdMock = 'Component-1';
 export const component1TypeMock = ComponentTypeV3.Input;
@@ -99,19 +97,4 @@ const layout2Mock: ExternalFormLayoutV3 = {
 export const externalLayoutsMock: FormLayoutsResponseV3 = {
   [layout1NameMock]: layout1Mock,
   [layout2NameMock]: layout2Mock,
-};
-
-export const layoutSetsMock: LayoutSets = {
-  sets: [
-    {
-      id: 'test-layout-set',
-      dataType: 'datamodel',
-      tasks: ['Task_1'],
-    },
-    {
-      id: 'test-layout-set-2',
-      dataType: 'datamodel-2',
-      tasks: ['Task_2'],
-    },
-  ],
 };

@@ -2,14 +2,14 @@ import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 import type { AltinnHeaderButtonProps } from './AltinnHeaderButton';
 import { AltinnHeaderButton } from './AltinnHeaderButton';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { AltinnButtonActionItem } from '../altinnHeader/types';
+import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 
 const mockTo: string = '/test';
-const mockButtonTitle: string = 'title';
+const mockMenuKey: TopBarMenu = TopBarMenu.About;
 const mockAction: AltinnButtonActionItem = {
-  menuKey: 'menu-1',
-  title: mockButtonTitle,
+  menuKey: mockMenuKey,
   to: mockTo,
 };
 
@@ -24,7 +24,7 @@ describe('AltinnHeaderbuttons', () => {
   it('should render the button for the provided action with the correct href', () => {
     render();
 
-    const link = screen.getByRole('link', { name: textMock(mockButtonTitle) });
+    const link = screen.getByRole('link', { name: textMock(mockMenuKey) });
     expect(link).toHaveAttribute('href', mockTo);
   });
 });

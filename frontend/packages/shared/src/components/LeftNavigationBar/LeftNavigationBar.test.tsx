@@ -6,7 +6,7 @@ import { LeftNavigationBar } from './LeftNavigationBar';
 import type { LeftNavigationTab, TabAction } from 'app-shared/types/LeftNavigationTab';
 import { TestFlaskIcon } from '@studio/icons';
 import { MemoryRouter } from 'react-router-dom';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const mockOnClick = jest.fn();
 

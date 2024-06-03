@@ -12,7 +12,7 @@ import {
   SchemaModel,
   validateTestUiSchema,
 } from '@altinn/schema-model';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { getSavedModel } from '../../../test/test-utils';
 import { nodeMockBase, rootNodeMock } from '../../../test/mocks/uiSchemaMock';
@@ -23,7 +23,7 @@ const mockUiSchema = buildUiSchema(dataMock);
 const model = SchemaModel.fromArray(mockUiSchema);
 const getMockSchemaByPath = (selectedId: string): UiSchemaNode => model.getNode(selectedId);
 
-const saveDatamodel = jest.fn();
+const saveDataModel = jest.fn();
 const setSelectedTypePointer = jest.fn();
 
 const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSchemaNode) => {
@@ -31,7 +31,7 @@ const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSche
   return renderWithProviders({
     appContextProps: {
       schemaModel,
-      save: saveDatamodel,
+      save: saveDataModel,
       setSelectedTypePointer,
       selectedNodePointer: selectedItem?.pointer,
     },
@@ -41,7 +41,7 @@ const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSche
 describe('SchemaInspector', () => {
   afterEach(jest.clearAllMocks);
 
-  it('Saves datamodel when entering text in textboxes', async () => {
+  it('Saves data model when entering text in textboxes', async () => {
     renderSchemaInspector(mockUiSchema, getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon'));
     const tablist = screen.getByRole('tablist');
     expect(tablist).toBeDefined();
@@ -55,7 +55,7 @@ describe('SchemaInspector', () => {
     }
 
     expect(setSelectedTypePointer).toHaveBeenCalledWith('#/$defs/new-value');
-    expect(saveDatamodel).toHaveBeenCalled();
+    expect(saveDataModel).toHaveBeenCalled();
   });
 
   test('renders no item if nothing is selected', () => {
@@ -64,7 +64,7 @@ describe('SchemaInspector', () => {
     expect(textboxes).toHaveLength(0);
   });
 
-  it('Saves datamodel correctly when changing restriction value', async () => {
+  it('Saves data model correctly when changing restriction value', async () => {
     const pointer = '#/$defs/Kommentar2000Restriksjon';
 
     renderSchemaInspector(mockUiSchema, getMockSchemaByPath(pointer));
@@ -77,8 +77,8 @@ describe('SchemaInspector', () => {
     await user.type(minLengthTextField, minLength);
     await user.tab();
 
-    expect(saveDatamodel).toHaveBeenCalled();
-    let updatedModel = getSavedModel(saveDatamodel, 3);
+    expect(saveDataModel).toHaveBeenCalled();
+    let updatedModel = getSavedModel(saveDataModel, 3);
     let updatedNode = updatedModel.getNode(pointer) as FieldNode;
     expect(updatedNode.restrictions.minLength).toEqual(parseInt(minLength));
 
@@ -87,7 +87,7 @@ describe('SchemaInspector', () => {
     await user.type(maxLengthTextField, maxLength);
     await user.tab();
 
-    updatedModel = getSavedModel(saveDatamodel, 7);
+    updatedModel = getSavedModel(saveDataModel, 7);
     updatedNode = updatedModel.getNode(pointer) as FieldNode;
     expect(updatedNode.restrictions.minLength).toEqual(parseInt(minLength));
   });
@@ -120,7 +120,7 @@ describe('SchemaInspector', () => {
 
     // eslint-disable-next-line testing-library/await-async-utils
     waitFor(() => {
-      expect(saveDatamodel).toHaveBeenCalledTimes(1);
+      expect(saveDataModel).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -151,7 +151,7 @@ describe('SchemaInspector', () => {
     const enumFieldAfter = within(enumFieldset).getAllByRole('textbox');
     expect(enumFieldAfter).toHaveLength(item.enum.length + 1);
 
-    expect(saveDatamodel).not.toHaveBeenCalled();
+    expect(saveDataModel).not.toHaveBeenCalled();
   });
 
   it('Does not display the fields tab when the selected item is a combination', async () => {

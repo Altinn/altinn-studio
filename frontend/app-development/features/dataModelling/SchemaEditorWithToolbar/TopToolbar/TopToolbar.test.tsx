@@ -3,7 +3,7 @@ import type { TopToolbarProps } from './TopToolbar';
 import { TopToolbar } from './TopToolbar';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
+import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { jsonMetadata1Mock } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -14,6 +14,7 @@ import { buildJsonSchema } from '@altinn/schema-model';
 import { renderWithMockStore } from '../../../../test/mocks';
 import { useQueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
@@ -27,7 +28,7 @@ const savingText = 'Saving';
 const texts = {
   'general.error_message': generalErrorMessage,
   'general.close': closeText,
-  'schema_editor.datamodel_generation_success_message': dataModelGenerationSuccessMessage,
+  'schema_editor.data_model_generation_success_message': dataModelGenerationSuccessMessage,
   'general.saving': savingText,
   'schema_editor.edit_mode': editText,
   'schema_editor.generate_model_files': generateText,
@@ -44,8 +45,6 @@ const defaultProps: TopToolbarProps = {
   setSelectedOption,
   onSetSchemaGenerationErrorMessages,
 };
-const org = 'org';
-const app = 'app';
 const modelPath = jsonMetadata1Mock.repositoryRelativeUrl;
 
 const renderToolbar = (

@@ -2,24 +2,24 @@ import React from 'react';
 import { XSDUpload } from './XSDUpload';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import * as testids from '../../../../../testing/testids';
+import { fileSelectorInputId } from '@studio/testing/testids';
 import { renderWithMockStore } from '../../../../test/mocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
 const user = userEvent.setup();
 
-jest.mock('../../../../hooks/mutations/useUploadDatamodelMutation', () => ({
+jest.mock('../../../../hooks/mutations/useUploadDataModelMutation', () => ({
   __esModule: true,
-  ...jest.requireActual('../../../../hooks/mutations/useUploadDatamodelMutation'),
+  ...jest.requireActual('../../../../hooks/mutations/useUploadDataModelMutation'),
 }));
 
-const useUploadDatamodelMutationSpy = jest.spyOn(
-  require('../../../../hooks/mutations/useUploadDatamodelMutation'),
-  'useUploadDatamodelMutation',
+const useUploadDataModelMutationSpy = jest.spyOn(
+  require('../../../../hooks/mutations/useUploadDataModelMutation'),
+  'useUploadDataModelMutation',
 );
 
 const clickUploadButton = async () => {
@@ -39,7 +39,7 @@ describe('XSDUpload', () => {
   afterEach(jest.restoreAllMocks);
 
   it('shows a spinner when uploading', async () => {
-    useUploadDatamodelMutationSpy.mockReturnValue({ isPending: true });
+    useUploadDataModelMutationSpy.mockReturnValue({ isPending: true });
 
     render();
 
@@ -52,7 +52,7 @@ describe('XSDUpload', () => {
     const button = screen.getByRole('button', { name: textMock('app_data_modelling.upload_xsd') });
     expect(button).toBeInTheDocument();
 
-    const fileInput = screen.getByTestId(testids.fileSelectorInput);
+    const fileInput = screen.getByTestId(fileSelectorInputId);
     expect(fileInput).toBeInTheDocument();
   });
 
@@ -61,7 +61,7 @@ describe('XSDUpload', () => {
     const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
     render({
       queries: {
-        uploadDatamodel: jest
+        uploadDataModel: jest
           .fn()
           .mockImplementation(() => Promise.reject(createApiErrorMock(400, errorCode))),
       },
@@ -70,7 +70,7 @@ describe('XSDUpload', () => {
 
     await clickUploadButton();
 
-    const fileInput = screen.getByTestId(testids.fileSelectorInput);
+    const fileInput = screen.getByTestId(fileSelectorInputId);
 
     await user.upload(fileInput, file);
 
@@ -82,7 +82,7 @@ describe('XSDUpload', () => {
     const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
     render({
       queries: {
-        uploadDatamodel: jest
+        uploadDataModel: jest
           .fn()
           .mockImplementation(() => Promise.reject(createApiErrorMock(400, errorCode))),
       },
@@ -91,7 +91,7 @@ describe('XSDUpload', () => {
 
     await clickUploadButton();
 
-    const fileInput = screen.getByTestId(testids.fileSelectorInput);
+    const fileInput = screen.getByTestId(fileSelectorInputId);
 
     await user.upload(fileInput, file);
 
@@ -102,7 +102,7 @@ describe('XSDUpload', () => {
     const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
     render({
       queries: {
-        uploadDatamodel: jest
+        uploadDataModel: jest
           .fn()
           .mockImplementation(() => Promise.reject(createApiErrorMock(400))),
       },
@@ -111,7 +111,7 @@ describe('XSDUpload', () => {
 
     await clickUploadButton();
 
-    const fileInput = screen.getByTestId(testids.fileSelectorInput);
+    const fileInput = screen.getByTestId(fileSelectorInputId);
 
     await user.upload(fileInput, file);
 

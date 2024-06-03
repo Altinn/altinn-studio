@@ -2,7 +2,7 @@ import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ResourceAccessListsProps } from './ResourceAccessLists';
 import { ResourceAccessLists } from './ResourceAccessLists';
@@ -36,7 +36,7 @@ const accessListResults = {
       resourceConnections: [{ resourceIdentifier: resourceId }],
     },
   ],
-  nextPage: 1,
+  nextPage: 'http://at22-next-page',
 };
 
 const accessListResultsPage2 = {
@@ -49,7 +49,7 @@ const accessListResultsPage2 = {
       resourceConnections: [],
     },
   ],
-  nextPage: null,
+  nextPage: '',
 };
 
 const defaultProps: ResourceAccessListsProps = {
@@ -152,8 +152,20 @@ describe('ResourceAccessLists', () => {
     const spinnerTitle = screen.queryByText(textMock('resourceadm.loading_lists'));
     await waitForElementToBeRemoved(spinnerTitle);
 
-    await waitFor(() => screen.findByText(textMock('resourceadm.listadmin_load_more')));
-    await user.click(screen.getByText(textMock('resourceadm.listadmin_load_more')));
+    await waitFor(() =>
+      screen.findByText(
+        textMock('resourceadm.listadmin_load_more', {
+          unit: textMock('resourceadm.listadmin_list_unit'),
+        }),
+      ),
+    );
+    await user.click(
+      screen.getByText(
+        textMock('resourceadm.listadmin_load_more', {
+          unit: textMock('resourceadm.listadmin_list_unit'),
+        }),
+      ),
+    );
 
     expect(await screen.findByText(page2ListName)).toBeInTheDocument();
   });

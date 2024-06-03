@@ -7,9 +7,9 @@ import { post } from '../../../utils/networking';
 import { repositoryPath, userLogoutAfterPath, userLogoutPath } from '../../../api/paths';
 import { useTranslation } from 'react-i18next';
 import type { User } from 'app-shared/types/Repository';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { StudioButton } from '@studio/components';
-import * as testids from '../../../../../../testing/testids';
+import { profileButtonId } from '@studio/testing/testids';
 
 export interface IProfileMenuComponentProps {
   showlogout?: boolean;
@@ -37,7 +37,7 @@ export const ProfileMenu = ({
   const menuRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
 
   const handleClick = (event: any) => setMenuOpen(true);
   const handleClose = () => setMenuOpen(false);
@@ -84,7 +84,7 @@ export const ProfileMenu = ({
       variant='tertiary'
       color='inverted'
       onClick={handleClick}
-      data-testid={testids.profileButton}
+      data-testid={profileButtonId}
       aria-haspopup
       ref={menuRef}
     >

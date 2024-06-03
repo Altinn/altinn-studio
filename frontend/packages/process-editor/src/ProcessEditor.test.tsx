@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { ProcessEditorProps } from './ProcessEditor';
 import { ProcessEditor } from './ProcessEditor';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
 
@@ -25,6 +25,8 @@ const defaultProps: ProcessEditorProps = {
   addDataTypeToAppMetadata: jest.fn(),
   deleteDataTypeFromAppMetadata: jest.fn(),
   openPolicyEditor: jest.fn(),
+  onProcessTaskRemove: jest.fn(),
+  onProcessTaskAdd: jest.fn(),
 };
 
 const renderProcessEditor = (bpmnXml: string) => {

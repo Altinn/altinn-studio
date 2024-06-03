@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { ConfigViewerPanel } from './ConfigViewerPanel';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useBpmnContext } from '../../contexts/BpmnContext';
 
 jest.mock('../../contexts/BpmnContext', () => ({

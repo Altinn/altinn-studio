@@ -3,7 +3,7 @@ import { render as rtlRender, screen } from '@testing-library/react';
 import type { SetupTabContentProps } from './SetupTabContent';
 import { SetupTabContent } from './SetupTabContent';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
-import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { UseMutationResult } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -12,9 +12,14 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { mockAppMetadata } from '../../../../mocks/applicationMetadataMock';
 import userEvent from '@testing-library/user-event';
+import { app, org } from '@studio/testing/testids';
 
-const mockOrg: string = 'testOrg';
-const mockApp: string = 'testApp';
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => {
+    return { org, app };
+  },
+}));
 
 jest.mock('../../../../../../../hooks/mutations/useAppMetadataMutation');
 const updateAppMetadataMutation = jest.fn();
@@ -27,8 +32,6 @@ mockUpdateAppMetadataMutation.mockReturnValue({
 
 const defaultProps: SetupTabContentProps = {
   appMetadata: mockAppMetadata,
-  org: mockOrg,
-  app: mockApp,
 };
 
 describe('SetupTabContent', () => {

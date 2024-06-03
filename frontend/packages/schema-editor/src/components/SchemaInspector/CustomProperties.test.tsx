@@ -4,7 +4,7 @@ import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import { FieldType, ROOT_POINTER, SchemaModel, validateTestUiSchema } from '@altinn/schema-model';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { screen } from '@testing-library/react';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { nodeMockBase } from '../../../test/mocks/uiSchemaMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
@@ -42,7 +42,7 @@ const rootNode: UiSchemaNode = {
 };
 const uiSchema: UiSchemaNodes = [rootNode, node];
 const schemaModel = SchemaModel.fromArray(uiSchema);
-const saveDatamodel = jest.fn();
+const saveDataModel = jest.fn();
 
 describe('CustomProperties', () => {
   beforeAll(() => validateTestUiSchema(uiSchema));
@@ -92,8 +92,8 @@ describe('CustomProperties', () => {
   it('Saves model without deleted property when the delete button is clicked', async () => {
     render();
     await user.click(screen.getAllByRole('button', { name: textMock('general.delete') })[0]);
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
-    const updatedModel = getSavedModel(saveDatamodel);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(saveDataModel);
     const updatedNode = updatedModel.getNode(defaultPath);
     const expectedProperties = { ...customProperties };
     delete expectedProperties[Object.keys(customProperties)[0]];
@@ -104,8 +104,8 @@ describe('CustomProperties', () => {
     render();
     const newLetter = 'e';
     await user.type(screen.getByLabelText(stringPropKey), newLetter);
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
-    const updatedModel = getSavedModel(saveDatamodel);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(saveDataModel);
     const updatedNode = updatedModel.getNode(defaultPath);
     expect(updatedNode.custom[stringPropKey]).toEqual(stringPropValue + newLetter);
   });
@@ -114,8 +114,8 @@ describe('CustomProperties', () => {
     render();
     const newDigit = 4;
     await user.type(screen.getByLabelText(numberPropKey), newDigit.toString());
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
-    const updatedModel = getSavedModel(saveDatamodel);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(saveDataModel);
     const updatedNode = updatedModel.getNode(defaultPath);
     expect(updatedNode.custom[numberPropKey]).toEqual(numberPropValue * 10 + newDigit);
   });
@@ -123,8 +123,8 @@ describe('CustomProperties', () => {
   it('Saves model correctly when a boolean property is changed from false to true', async () => {
     render();
     await user.click(screen.getByLabelText(initiallyFalseBoolPropKey));
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
-    const updatedModel = getSavedModel(saveDatamodel);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(saveDataModel);
     const updatedNode = updatedModel.getNode(defaultPath);
     expect(updatedNode.custom[initiallyFalseBoolPropKey]).toBe(true);
   });
@@ -132,8 +132,8 @@ describe('CustomProperties', () => {
   it('Saves model correctly when a boolean property is changed from true to false', async () => {
     render();
     await user.click(screen.getByLabelText(initiallyTrueBoolPropKey));
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
-    const updatedModel = getSavedModel(saveDatamodel);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(saveDataModel);
     const updatedNode = updatedModel.getNode(defaultPath);
     expect(updatedNode.custom[initiallyTrueBoolPropKey]).toBe(false);
   });
@@ -143,7 +143,7 @@ const render = (path: string = defaultPath) =>
   renderWithProviders({
     appContextProps: {
       schemaModel,
-      save: saveDatamodel,
+      save: saveDataModel,
       selectedNodePointer: path,
     },
   })(<CustomProperties path={path} />);

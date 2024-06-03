@@ -24,7 +24,7 @@
         },
         {
             "id": "receipt",
-            "dataType": "receiptDataType",
+            "dataType": "datamodel",
             "tasks": [
                 "CustomReceipt"
             ]

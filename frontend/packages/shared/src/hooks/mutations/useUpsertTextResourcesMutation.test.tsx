@@ -6,10 +6,9 @@ import type { ITextResource } from 'app-shared/types/global';
 import { createQueryClientMock } from '../../mocks/queryClientMock';
 import React from 'react';
 import { ServicesContextProvider } from '../../contexts/ServicesContext';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const language = 'nb';
 const textId = 'testid';
 const textValue = 'testvalue';

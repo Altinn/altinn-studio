@@ -7,7 +7,7 @@ import { renderWithMockStore } from '../../testing/mocks';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { FormItemContextProvider } from '../FormItemContext';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { internalLayoutWithMultiPageGroup } from '../../testing/layoutWithMultiPageGroupMocks';
 
 const defaultProps: FormLayoutProps = {

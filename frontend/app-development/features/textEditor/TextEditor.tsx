@@ -11,13 +11,13 @@ import {
   useDeleteLanguageMutation,
   useTextIdMutation,
 } from '../../hooks/mutations';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
 import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 
 export const TextEditor = () => {
   const { t } = useTranslation();
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const [searchParams, setSearchParams] = useSearchParams({ lang: '', search: '' });
 
   const selectedLanguagesStorageKey = `${org}:${app}:selectedLanguages`;

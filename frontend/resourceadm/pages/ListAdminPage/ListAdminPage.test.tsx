@@ -2,7 +2,7 @@ import React from 'react';
 import { MemoryRouter, useParams } from 'react-router-dom';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ListAdminPage } from './ListAdminPage';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -13,7 +13,7 @@ const accessListResults = {
   data: [
     { env: 'tt02', identifier: 'listid', name: 'Test-list', description: 'Test-list description' },
   ],
-  nextPage: 1,
+  nextPage: 'http://at22-next-page',
 };
 
 const accessListResultsPage2 = {
@@ -25,7 +25,7 @@ const accessListResultsPage2 = {
       description: 'Test-list description2',
     },
   ],
-  nextPage: null,
+  nextPage: '',
 };
 
 const mockedNavigate = jest.fn();
@@ -103,8 +103,20 @@ describe('ListAdminPage', () => {
     const user = userEvent.setup();
     renderListAdminPage();
 
-    await waitFor(() => screen.findByText(textMock('resourceadm.listadmin_load_more')));
-    await user.click(screen.getByText(textMock('resourceadm.listadmin_load_more')));
+    await waitFor(() =>
+      screen.findByText(
+        textMock('resourceadm.listadmin_load_more', {
+          unit: textMock('resourceadm.listadmin_list_unit'),
+        }),
+      ),
+    );
+    await user.click(
+      screen.getByText(
+        textMock('resourceadm.listadmin_load_more', {
+          unit: textMock('resourceadm.listadmin_list_unit'),
+        }),
+      ),
+    );
 
     expect(await screen.findByText('Test-list2')).toBeInTheDocument();
   });

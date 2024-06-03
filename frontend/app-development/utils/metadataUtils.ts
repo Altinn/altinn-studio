@@ -1,8 +1,8 @@
 import type {
-  DatamodelMetadata,
-  DatamodelMetadataJson,
-  DatamodelMetadataXsd,
-} from 'app-shared/types/DatamodelMetadata';
+  DataModelMetadata,
+  DataModelMetadataJson,
+  DataModelMetadataXsd,
+} from 'app-shared/types/DataModelMetadata';
 import { replaceEnd } from 'app-shared/utils/stringUtils';
 import { ArrayUtils } from '@studio/pure-functions';
 import type { MetadataOption } from '../types/MetadataOption';
@@ -16,9 +16,9 @@ import { removeSchemaExtension } from 'app-shared/utils/filenameUtils';
  * @returns The filtered Xsd data list.
  */
 export const filterOutXsdDataIfJsonDataExist = (
-  jsonData: DatamodelMetadataJson[],
-  xsdData: DatamodelMetadataXsd[],
-): DatamodelMetadataXsd[] =>
+  jsonData: DataModelMetadataJson[],
+  xsdData: DataModelMetadataXsd[],
+): DataModelMetadataXsd[] =>
   xsdData.filter(
     ({ fileName }) =>
       !jsonData.find(
@@ -34,16 +34,16 @@ export const filterOutXsdDataIfJsonDataExist = (
  * @returns The merged Json and Xsd data list.
  */
 export const mergeJsonAndXsdData = (
-  jsonData: DatamodelMetadataJson[],
-  xsdData: DatamodelMetadataXsd[],
-): DatamodelMetadata[] => [...jsonData, ...filterOutXsdDataIfJsonDataExist(jsonData, xsdData)];
+  jsonData: DataModelMetadataJson[],
+  xsdData: DataModelMetadataXsd[],
+): DataModelMetadata[] => [...jsonData, ...filterOutXsdDataIfJsonDataExist(jsonData, xsdData)];
 
 /**
- * Converts a DatamodelMetadata object to a MetadataOption object.
- * @param metadata The DatamodelMetadata object to convert.
+ * Converts a DataModelMetadata object to a MetadataOption object.
+ * @param metadata The DataModelMetadata object to convert.
  * @returns The MetadataOption object.
  */
-export const convertMetadataToOption = (metadata: DatamodelMetadata): MetadataOption => {
+export const convertMetadataToOption = (metadata: DataModelMetadata): MetadataOption => {
   let label = removeSchemaExtension(metadata.fileName);
   if (metadata.fileType === '.xsd') {
     label += ' (XSD)';
@@ -52,11 +52,11 @@ export const convertMetadataToOption = (metadata: DatamodelMetadata): MetadataOp
 };
 
 /**
- * Converts a list of DatamodelMetadata objects to a list of MetadataOption objects.
- * @param metadataList The list of DatamodelMetadata objects to convert.
+ * Converts a list of DataModelMetadata objects to a list of MetadataOption objects.
+ * @param metadataList The list of DataModelMetadata objects to convert.
  * @returns The list of MetadataOption objects.
  */
-export const convertMetadataListToOptions = (metadataList: DatamodelMetadata[]): MetadataOption[] =>
+export const convertMetadataListToOptions = (metadataList: DataModelMetadata[]): MetadataOption[] =>
   metadataList?.map(convertMetadataToOption);
 
 /**
@@ -79,20 +79,20 @@ export const groupMetadataOptions = (metadataOptions: MetadataOption[]): Metadat
   ).filter(({ options }) => options.length > 0);
 
 /**
- * Converts a list of DatamodelMetadata objects to grouped lists of MetadataOption objects.
- * @param metadataList The list of DatamodelMetadata objects to convert.
+ * Converts a list of DataModelMetadata objects to grouped lists of MetadataOption objects.
+ * @param metadataList The list of DataModelMetadata objects to convert.
  * @returns A list of MetadataOptionsGroup objects.
  */
 export const convertMetadataListToOptionGroups = (
-  metadataList: DatamodelMetadata[],
+  metadataList: DataModelMetadata[],
 ): MetadataOptionsGroup[] => groupMetadataOptions(convertMetadataListToOptions(metadataList));
 
 /**
- * Extracts all model names from a list of DatamodelMetadata objects.
- * @param metadataList The list of DatamodelMetadata objects to extract model names from.
+ * Extracts all model names from a list of DataModelMetadata objects.
+ * @param metadataList The list of DataModelMetadata objects to extract model names from.
  * @returns A list of model names.
  */
-export const extractModelNamesFromMetadataList = (metadataList: DatamodelMetadata[]): string[] =>
+export const extractModelNamesFromMetadataList = (metadataList: DataModelMetadata[]): string[] =>
   ArrayUtils.removeDuplicates(
     metadataList?.map(({ fileName }) => fileName.replace(/\.((schema\.json)|(xsd))$/, '')),
   );
@@ -104,9 +104,9 @@ export const extractModelNamesFromMetadataList = (metadataList: DatamodelMetadat
  * @returns The first item of the new list of which the file name does not exist in the old one or undefined if there is no such item.
  */
 export const findNewMetadataItem = (
-  oldMetadataList: DatamodelMetadata[],
-  newMetadataList: DatamodelMetadata[],
-): DatamodelMetadata | undefined =>
+  oldMetadataList: DataModelMetadata[],
+  newMetadataList: DataModelMetadata[],
+): DataModelMetadata | undefined =>
   newMetadataList.find(
     ({ fileName }) =>
       !oldMetadataList.find(({ fileName: oldFileName }) => oldFileName === fileName),
@@ -119,8 +119,8 @@ export const findNewMetadataItem = (
  * @returns True if an item with the same file name exists in the list, false otherwise.
  */
 export const metadataItemExists = (
-  metadataList: DatamodelMetadata[],
-  item: DatamodelMetadata,
+  metadataList: DataModelMetadata[],
+  item: DataModelMetadata,
 ): boolean => !!metadataList?.find(({ fileName }) => fileName === item.fileName);
 
 /**
@@ -136,8 +136,8 @@ export const metadataItemExists = (
  */
 export const computeSelectedOption = (
   currentSelectedOption?: MetadataOption,
-  currentMetadataList?: DatamodelMetadata[],
-  previousMetadataList?: DatamodelMetadata[],
+  currentMetadataList?: DataModelMetadata[],
+  previousMetadataList?: DataModelMetadata[],
 ): MetadataOption | undefined => {
   if (!currentMetadataList?.length) return undefined;
 

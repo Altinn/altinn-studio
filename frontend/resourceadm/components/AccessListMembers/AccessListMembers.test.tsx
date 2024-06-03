@@ -2,7 +2,7 @@ import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { AccessListMembersProps } from './AccessListMembers';
 import { AccessListMembers } from './AccessListMembers';
@@ -23,19 +23,20 @@ const defaultProps: AccessListMembersProps = {
     identifier: testListIdentifier,
     name: 'Test-list',
     description: 'This is a description',
-    members: [
-      {
-        orgNr: testMemberPartyId,
-        orgName: '',
-        isSubParty: false,
-      },
-      {
-        orgNr: '112233445',
-        orgName: 'test',
-        isSubParty: true,
-      },
-    ],
   },
+  members: [
+    {
+      orgNr: testMemberPartyId,
+      orgName: '',
+      isSubParty: false,
+    },
+    {
+      orgNr: '112233445',
+      orgName: 'test',
+      isSubParty: true,
+    },
+  ],
+  loadMoreButton: null,
 };
 
 describe('AccessListMembers', () => {
@@ -47,11 +48,11 @@ describe('AccessListMembers', () => {
   });
 
   it('should show message when list is empty', () => {
-    renderAccessListMembers({ list: { ...defaultProps.list, members: undefined } });
+    renderAccessListMembers({ members: [] });
     expect(screen.getByText(textMock('resourceadm.listadmin_empty_list'))).toBeInTheDocument();
   });
 
-  it('should call service to remove member', async () => {
+  it('should remove member from table when remove member button is clicked', async () => {
     const user = userEvent.setup();
     const removeAccessListMemberMock = jest.fn();
     renderAccessListMembers({}, { removeAccessListMember: removeAccessListMemberMock });
@@ -59,15 +60,12 @@ describe('AccessListMembers', () => {
     const removeButtons = screen.getAllByText(textMock('resourceadm.listadmin_remove_from_list'));
     await user.click(removeButtons[0]);
 
-    expect(removeAccessListMemberMock).toHaveBeenCalledWith(
-      testOrg,
-      testListIdentifier,
-      testMemberPartyId,
-      testEnv,
-    );
+    expect(removeAccessListMemberMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, {
+      data: [testMemberPartyId],
+    });
   });
 
-  it('should call service to add member', async () => {
+  it('should show new member in list after member is added', async () => {
     const user = userEvent.setup();
     const addAccessListMemberMock = jest.fn();
     const searchResultText = 'Digdir';
@@ -95,15 +93,12 @@ describe('AccessListMembers', () => {
 
     await waitFor(() => screen.findByText(searchResultText));
 
-    const searchResultsButton = screen.getByText(textMock('resourceadm.listadmin_add_to_list'));
-    await user.click(searchResultsButton);
+    const addMemberButton = screen.getByText(textMock('resourceadm.listadmin_add_to_list'));
+    await user.click(addMemberButton);
 
-    expect(addAccessListMemberMock).toHaveBeenCalledWith(
-      testOrg,
-      testListIdentifier,
-      searchResultOrgNr,
-      testEnv,
-    );
+    expect(addAccessListMemberMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, {
+      data: [searchResultOrgNr],
+    });
   });
 
   it('should show message when no parties are found', async () => {
@@ -122,7 +117,7 @@ describe('AccessListMembers', () => {
     await user.click(addMoreButton);
 
     const textField = screen.getByLabelText(textMock('resourceadm.listadmin_search'));
-    await user.type(textField, '123456789');
+    await user.type(textField, 'test');
 
     await screen.findByText(textMock('resourceadm.listadmin_search_no_parties'));
   });
@@ -151,6 +146,64 @@ describe('AccessListMembers', () => {
     await user.type(textField, 'test');
 
     await screen.findByText(textMock('resourceadm.listadmin_search_no_sub_parties'));
+  });
+
+  it('should show special organization from tenor when search for orgnr is not found', async () => {
+    const user = userEvent.setup();
+
+    renderAccessListMembers(
+      {},
+      {
+        getParties: jest.fn().mockImplementation(() => Promise.resolve({})),
+      },
+    );
+
+    const addMoreButton = screen.getByRole('button', {
+      name: textMock('resourceadm.listadmin_search_add_more'),
+    });
+    await user.click(addMoreButton);
+
+    const textField = screen.getByLabelText(textMock('resourceadm.listadmin_search'));
+    await user.type(textField, '123456789');
+
+    await screen.findByText(textMock('resourceadm.listadmin_list_tenor_org'));
+  });
+
+  it('should show error message if organization cannot be added to list', async () => {
+    const user = userEvent.setup();
+    const searchResultText = 'Digdir';
+    const searchResultOrgNr = '987654321';
+
+    renderAccessListMembers(
+      {},
+      {
+        addAccessListMember: jest
+          .fn()
+          .mockImplementation(() => Promise.reject({ response: { data: { code: 'RR-00001' } } })),
+        getParties: jest.fn().mockImplementation(() =>
+          Promise.resolve({
+            _embedded: {
+              enheter: [{ organisasjonsnummer: searchResultOrgNr, navn: searchResultText }],
+            },
+          }),
+        ),
+      },
+    );
+
+    const addMoreButton = screen.getByRole('button', {
+      name: textMock('resourceadm.listadmin_search_add_more'),
+    });
+    await user.click(addMoreButton);
+
+    const textField = screen.getByLabelText(textMock('resourceadm.listadmin_search'));
+    await user.type(textField, searchResultOrgNr);
+
+    await waitFor(() => screen.findByText(searchResultText));
+
+    const addMemberButton = screen.getByText(textMock('resourceadm.listadmin_add_to_list'));
+    await user.click(addMemberButton);
+
+    expect(screen.getByText(textMock('resourceadm.listadmin_invalid_org'))).toBeInTheDocument();
   });
 
   it('should go to next page when paging button is clicked', async () => {

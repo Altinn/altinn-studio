@@ -1,24 +1,24 @@
 import React from 'react';
 import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
-import type { AccessControlTabProps } from './AccessControlTab';
 import { AccessControlTab } from './AccessControlTab';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import { mockAppMetadata } from '../../../mocks/applicationMetadataMock';
 import userEvent from '@testing-library/user-event';
-
-const mockApp: string = 'app';
-const mockOrg: string = 'org';
+import { app, org } from '@studio/testing/testids';
+import { MemoryRouter } from 'react-router-dom';
 
 const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 
-const defaultProps: AccessControlTabProps = {
-  org: mockOrg,
-  app: mockApp,
-};
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => {
+    return { org, app };
+  },
+}));
 
 describe('AccessControlTab', () => {
   afterEach(jest.clearAllMocks);
@@ -90,8 +90,10 @@ const render = (
   };
 
   return rtlRender(
-    <ServicesContextProvider {...allQueries} client={queryClient}>
-      <AccessControlTab {...defaultProps}></AccessControlTab>
-    </ServicesContextProvider>,
+    <MemoryRouter>
+      <ServicesContextProvider {...allQueries} client={queryClient}>
+        <AccessControlTab />
+      </ServicesContextProvider>
+    </MemoryRouter>,
   );
 };

@@ -26,3 +26,7 @@ export const isSePrefix = (s: string): boolean => {
 export const stringNumberToAriaLabel = (s: string): string => {
   return s.split('').join(' ');
 };
+
+export const isOrgNrString = (s: string): boolean => {
+  return /^\d{9}$/.test(s); // regex for search string is exactly 9 digits
+};

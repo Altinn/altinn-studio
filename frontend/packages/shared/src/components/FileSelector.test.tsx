@@ -3,9 +3,16 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IFileSelectorProps } from './FileSelector';
 import { FileSelector } from './FileSelector';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { Button } from '@digdir/design-system-react';
-import * as testids from '../../../../testing/testids';
+import { fileSelectorInputId } from '@studio/testing/testids';
+import { toast } from 'react-toastify';
+
+jest.mock('react-toastify', () => ({
+  toast: {
+    error: jest.fn(),
+  },
+}));
 
 const user = userEvent.setup();
 
@@ -30,7 +37,7 @@ describe('FileSelector', () => {
     const handleSubmit = jest.fn();
     renderFileSelector({ submitHandler: handleSubmit });
 
-    const fileInput = screen.getByTestId(testids.fileSelectorInput);
+    const fileInput = screen.getByTestId(fileSelectorInputId);
     await user.upload(fileInput, null);
 
     expect(handleSubmit).not.toHaveBeenCalled();
@@ -41,7 +48,7 @@ describe('FileSelector', () => {
     const handleSubmit = jest.fn();
     renderFileSelector({ submitHandler: handleSubmit });
 
-    const fileInput = screen.getByTestId(testids.fileSelectorInput);
+    const fileInput = screen.getByTestId(fileSelectorInputId);
     await user.upload(fileInput, file);
 
     expect(handleSubmit).toHaveBeenCalledWith(expect.any(FormData), 'hello.png');
@@ -62,7 +69,7 @@ describe('FileSelector', () => {
   it('Should call file input onClick handler when the default upload button is clicked', async () => {
     renderFileSelector();
     const button = screen.getByRole('button', { name: textMock('app_data_modelling.upload_xsd') });
-    const fileInput = screen.getByTestId(testids.fileSelectorInput);
+    const fileInput = screen.getByTestId(fileSelectorInputId);
     fileInput.onclick = jest.fn();
     await user.click(button);
     expect(fileInput.onclick).toHaveBeenCalled();
@@ -71,9 +78,20 @@ describe('FileSelector', () => {
   it('Should call file input onClick handler when the custom upload button is clicked', async () => {
     renderFileSelector({ submitButtonRenderer: testCustomButtonRenderer });
     const button = screen.getByRole('button', { name: customButtonText });
-    const fileInput = screen.getByTestId(testids.fileSelectorInput);
+    const fileInput = screen.getByTestId(fileSelectorInputId);
     fileInput.onclick = jest.fn();
     await user.click(button);
     expect(fileInput.onclick).toHaveBeenCalled();
+  });
+
+  it('Should show a toast error when an invalid file name is uploaded', async () => {
+    const invalidFileName = '123_invalid_name"%#$&';
+    const file = new File(['datamodell'], invalidFileName);
+    renderFileSelector();
+    const fileInput = screen.getByTestId(fileSelectorInputId);
+    await user.upload(fileInput, file);
+    expect(toast.error).toHaveBeenCalledWith(
+      textMock('app_data_modelling.upload_xsd_invalid_error'),
+    );
   });
 });

@@ -15,5 +15,11 @@ export interface BpmnExtensionElementsEditor {
   values?: Array<{
     taskType: BpmnTaskType;
     $type: string;
+    paymentConfig?: {
+      paymentDataType: string;
+    };
+    signatureConfig?: {
+      signatureDataType: string;
+    };
   }>;
 }
