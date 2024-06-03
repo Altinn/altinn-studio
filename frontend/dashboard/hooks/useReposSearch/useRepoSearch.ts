@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { GridSortModel } from '@mui/x-data-grid';
 import { useSearchReposQuery } from '../queries';
 import type { SearchRepositoryResponse } from 'app-shared/types/api/SearchRepositoryResponse';
