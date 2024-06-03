@@ -8,12 +8,12 @@
       },
       {
         "dataModelBindings": {
-          "simpleBinding": "property1"
+          "simpleBinding": "shortAnswerInput"
         },
         "id": "Input-Test",
         "type": "Input",
         "textResourceBindings": {
-          "title": "Side1.Input-RvqppS.title"
+          "title": "InputPage.Input.title"
         }
       },
       {
@@ -38,7 +38,7 @@
         "hidden": false,
         "whatToRender": {
           "type": "page",
-          "id": "Side4"
+          "id": "SummaryPage"
         }
       },
       {
@@ -87,7 +87,7 @@
         "hidden": false,
         "whatToRender": {
           "type": "page",
-          "id": "Side1"
+          "id": "InputPage"
         }
       },
       {
@@ -121,7 +121,7 @@
         "hidden": false,
         "whatToRender": {
           "type": "page",
-          "id": "Side3"
+          "id": "GroupPage"
         }
       },
       {
@@ -129,15 +129,6 @@
         "type": "Button",
         "textResourceBindings": {
           "title": "Side4.Button-qHGXDg.title"
-        }
-      },
-      {
-        "id": "Summary2-previous-processarg",
-        "type": "Summary2",
-        "hidden": false,
-        "whatToRender": {
-          "type": "task",
-          "id": "PreviousProcessSummary"
         }
       },
       {
