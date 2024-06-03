@@ -6,6 +6,13 @@ import { FileSelector } from './FileSelector';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { Button } from '@digdir/design-system-react';
 import { fileSelectorInputId } from '@studio/testing/testids';
+import { toast } from 'react-toastify';
+
+jest.mock('react-toastify', () => ({
+  toast: {
+    error: jest.fn(),
+  },
+}));
 
 const user = userEvent.setup();
 
@@ -75,5 +82,16 @@ describe('FileSelector', () => {
     fileInput.onclick = jest.fn();
     await user.click(button);
     expect(fileInput.onclick).toHaveBeenCalled();
+  });
+
+  it('Should show a toast error when an invalid file name is uploaded', async () => {
+    const invalidFileName = '123_invalid_name"%#$&';
+    const file = new File(['datamodell'], invalidFileName);
+    renderFileSelector();
+    const fileInput = screen.getByTestId(fileSelectorInputId);
+    await user.upload(fileInput, file);
+    expect(toast.error).toHaveBeenCalledWith(
+      textMock('app_data_modelling.upload_xsd_invalid_error'),
+    );
   });
 });
