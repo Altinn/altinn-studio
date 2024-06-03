@@ -173,7 +173,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             cancellationToken.ThrowIfCancellationRequested();
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
 
-            MemoryStream xsdMemoryStream = new MemoryStream();
+            using MemoryStream xsdMemoryStream = new MemoryStream();
             xsdStream.CopyTo(xsdMemoryStream);
             string jsonContent;
             AltinnRepositoryType altinnRepositoryType = await altinnAppGitRepository.GetRepositoryType();

@@ -44,7 +44,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
              * because the base address can change on each request and after HttpClient gets initial base address,
              * it is not advised (and not allowed) to change base address.
              */
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, uri)
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, uri)
             {
                 Content = new StringContent(policyFile, Encoding.UTF8, "application/xml"),
             };
