@@ -91,7 +91,6 @@ export const CreateCustomReceiptForm = ({
         error={layoutSetError}
         onChange={handleValidateLayoutSetId}
       />
-      {/* ADD COMBOBOX BELOW */}
       <SelectCustomReceiptDataModelId
         error={dataModelError}
         onChange={() => setDataModelError(null)}
