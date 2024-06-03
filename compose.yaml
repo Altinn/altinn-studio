@@ -77,6 +77,9 @@ services:
       - ServiceRepositorySettings:RepositoryLocation=/AltinnCore/Repos/
       - TestdataRepositorySettings:RepositoryLocation=/Testdata
       - Integrations:AzureDevOpsSettings:BaseUri=http://studio-azure-mock:6161/_apis/
+      - OidcSettings:ClientId=${OIDC_CLIENT_ID}
+      - OidcSettings:ClientSecret=${OIDC_CLIENT_SECRET}
+      - FeatureManagement:AnsattPorten=${FEATURE_FLAGS_ANSATTPORTEN:-false}
     ports:
       - '6000:6000'
     depends_on:

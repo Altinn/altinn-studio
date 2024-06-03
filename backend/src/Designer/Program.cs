@@ -32,6 +32,7 @@ using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.FeatureManagement;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 
@@ -252,6 +253,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     // Registers all handlers and the mediator
     services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
     services.AddTransient<IFileSyncHandlerExecutor, FileSyncHandlerExecutor>();
+    services.AddFeatureManagement();
 
     logger.LogInformation("// Program.cs // ConfigureServices // Configuration complete");
 }
