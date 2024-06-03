@@ -60,12 +60,12 @@ describe('DownloadRepoPopoverContent', () => {
     await user.type(input, app);
     await user.click(confirmButton);
 
-    expect(resetRepoChanges).toHaveBeenCalled();
+    expect(resetRepoChanges).toHaveBeenCalledTimes(1);
 
     const toastSuccessText = await screen.findByText(textMock('overview.reset_repo_completed'));
     expect(toastSuccessText).toBeInTheDocument();
 
-    expect(mockOnClose).toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
   it('calls onClose function when cancel button is clicked', async () => {
@@ -75,7 +75,19 @@ describe('DownloadRepoPopoverContent', () => {
     const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
     await user.click(cancelButton);
 
-    expect(mockOnClose).toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onClose function when Enter is pressed', async () => {
+    const user = userEvent.setup();
+    renderRemoveChangesPopoverContent();
+
+    const input = screen.getByLabelText(textMock('overview.reset_repo_confirm_repo_name'));
+    await user.type(input, app);
+    await user.keyboard('{Enter}');
+
+    expect(resetRepoChanges).toHaveBeenCalledTimes(1);
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 });
 
