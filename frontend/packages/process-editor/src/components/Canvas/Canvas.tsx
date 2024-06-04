@@ -11,12 +11,14 @@ import { BPMNEditor } from './BPMNEditor';
 import { VersionHelpText } from './VersionHelpText';
 
 export const Canvas = (): React.ReactElement => {
-  const { isEditAllowed } = useBpmnContext();
+  const { isEditAllowed, bpmnXml } = useBpmnContext();
 
   return (
     <>
       {!isEditAllowed && <VersionHelpText />}
-      <div className={classes.wrapper}>{isEditAllowed ? <BPMNEditor /> : <BPMNViewer />}</div>
+      <div className={classes.wrapper} key={bpmnXml}>
+        {isEditAllowed ? <BPMNEditor /> : <BPMNViewer />}
+      </div>
     </>
   );
 };
