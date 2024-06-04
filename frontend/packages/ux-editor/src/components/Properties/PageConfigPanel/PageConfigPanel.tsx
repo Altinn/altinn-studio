@@ -11,6 +11,7 @@ import { textResourceByLanguageAndIdSelector } from '../../../selectors/textReso
 import type { ITextResource } from 'app-shared/types/global';
 import { duplicatedIdsExistsInLayout } from '../../../utils/formLayoutUtils';
 import { PageConfigWarning } from './PageConfigWarning';
+import classes from './PageConfigPanel.module.css';
 
 export const PageConfigPanel = () => {
   const { selectedFormLayoutName } = useAppContext();
@@ -54,7 +55,7 @@ export const PageConfigPanel = () => {
           <Accordion color='subtle'>
             <Accordion.Item>
               <Accordion.Header>{t('right_menu.text')}</Accordion.Header>
-              <Accordion.Content>
+              <Accordion.Content className={classes.text}>
                 <TextResource
                   handleIdChange={() => {}}
                   label={t('ux_editor.modal_properties_textResourceBindings_page_name')}

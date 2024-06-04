@@ -63,12 +63,7 @@
       "title": "Mode",
       "description": "The mode of the button",
       "default": "submit",
-      "enum": ["submit", "save", "go-to-task", "instantiate"],
-      "type": "string"
-    },
-    "taskId": {
-      "title": "Task ID",
-      "description": "The ID of the task to go to (only used when mode is \"go-to-task\")",
+      "enum": ["submit", "save", "instantiate"],
       "type": "string"
     },
     "mapping": {
