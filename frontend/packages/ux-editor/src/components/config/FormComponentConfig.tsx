@@ -13,7 +13,7 @@ import {
 import { EditGrid } from './editModal/EditGrid';
 import type { FormItem } from '../../types/FormItem';
 import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
-import { useComponentPropertyDescription } from '@altinn/ux-editor/hooks/useComponentPropertyDescription';
+import { useComponentPropertyDescription } from '../../hooks/useComponentPropertyDescription';
 
 export interface IEditFormComponentProps {
   editFormId: string;
