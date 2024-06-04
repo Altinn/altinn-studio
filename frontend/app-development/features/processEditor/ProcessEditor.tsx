@@ -65,6 +65,11 @@ export const ProcessEditor = (): React.ReactElement => {
 
   const { data: availableDataModelIds, isPending: availableDataModelIdsPending } =
     useAppMetadataModelIdsQuery(org, app);
+  const { data: allDataModelIds, isPending: allDataModelIdsPending } = useAppMetadataModelIdsQuery(
+    org,
+    app,
+    false,
+  );
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
   const pendingApiOperations: boolean =
@@ -74,6 +79,7 @@ export const ProcessEditor = (): React.ReactElement => {
     deleteLayoutSetPending ||
     updateDataTypePending ||
     availableDataModelIdsPending ||
+    allDataModelIdsPending ||
     isPendingCurrentPolicy;
 
   const { onWSMessageReceived } = useWebSocket({
@@ -144,6 +150,7 @@ export const ProcessEditor = (): React.ReactElement => {
   return (
     <ProcessEditorImpl
       availableDataModelIds={availableDataModelIds}
+      allDataModelIds={allDataModelIds}
       layoutSets={layoutSets}
       pendingApiOperations={pendingApiOperations}
       existingCustomReceiptLayoutSetId={existingCustomReceiptId}

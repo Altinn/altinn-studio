@@ -16,15 +16,23 @@ export interface AppContextProps {
   refetchLayouts: (layoutSetName: string, resetQueries?: boolean) => Promise<void>;
   refetchLayoutSettings: (layoutSetName: string, resetQueries?: boolean) => Promise<void>;
   refetchTexts: (language: string, resetQueries?: boolean) => Promise<void>;
+  shouldReloadPreview: boolean;
+  previewHasLoaded: () => void;
 }
 
 export const AppContext = createContext<AppContextProps>(null);
 
 type AppContextProviderProps = {
   children: React.ReactNode;
+  shouldReloadPreview: boolean;
+  previewHasLoaded: () => void;
 };
 
-export const AppContextProvider = ({ children }: AppContextProviderProps): React.JSX.Element => {
+export const AppContextProvider = ({
+  children,
+  shouldReloadPreview,
+  previewHasLoaded,
+}: AppContextProviderProps): React.JSX.Element => {
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
   const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } =
     useSelectedFormLayoutSetName();
@@ -77,6 +85,8 @@ export const AppContextProvider = ({ children }: AppContextProviderProps): React
       refetchLayouts,
       refetchLayoutSettings,
       refetchTexts,
+      shouldReloadPreview,
+      previewHasLoaded,
     }),
     [
       selectedFormLayoutSetName,
@@ -86,6 +96,8 @@ export const AppContextProvider = ({ children }: AppContextProviderProps): React
       refetchLayouts,
       refetchLayoutSettings,
       refetchTexts,
+      shouldReloadPreview,
+      previewHasLoaded,
     ],
   );
 

@@ -15,6 +15,7 @@ const defaultProps: ProcessEditorProps = {
   saveBpmn: jest.fn(),
   appLibVersion: mockAppLibVersion8,
   availableDataModelIds: [],
+  allDataModelIds: [],
   layoutSets: { sets: [] },
   pendingApiOperations: false,
   existingCustomReceiptLayoutSetId: undefined,
