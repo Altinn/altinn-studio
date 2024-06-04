@@ -26,23 +26,12 @@
       },
       {
         "dataModelBindings": {
-          "simpleBinding": "property1"
+          "simpleBinding": "inputfield"
         },
         "id": "Input-RvqppS",
         "type": "Input",
         "textResourceBindings": {
           "title": "Side1.Input-RvqppS.title"
-        }
-      },
-
-      {
-        "dataModelBindings": {
-          "simpleBinding": "property1"
-        },
-        "id": "Input-RvqppSkjbnkejrn",
-        "type": "Input",
-        "textResourceBindings": {
-          "title": "Dette er en tekst!"
         }
       },
       {
@@ -74,7 +63,11 @@
         "whatToRender": {
           "type": "component",
           "id": "Input-RvqppSkjbnkejrn"
-        }
+        },
+        "overWriteProperties": [{
+          "componentId": "Input-RvqppSkjbnkejrn",
+          "hidden": true
+        }]
       },
       {
         "id": "NavigationButtons-JCPsfd",

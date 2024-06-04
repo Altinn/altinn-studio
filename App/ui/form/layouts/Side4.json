@@ -7,16 +7,6 @@
         "type": "NavigationBar"
       },
       {
-        "dataModelBindings": {
-          "simpleBinding": "property1"
-        },
-        "id": "Input-Test",
-        "type": "Input",
-        "textResourceBindings": {
-          "title": "Side1.Input-RvqppS.title"
-        }
-      },
-      {
         "size": "M",
         "id": "Header-in-new-summaryaergreg",
         "type": "Header",

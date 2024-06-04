@@ -36,6 +36,11 @@ namespace Altinn.App.Models.model
     [JsonProperty("street")]
     [JsonPropertyName("street")]
     public string street { get; set; }
+    
+    [XmlElement("inputfield", Order = 6)]
+    [JsonProperty("inputfield")]
+    [JsonPropertyName("inputfield")]
+    public string inputfield { get; set; }
 
   }
 }
