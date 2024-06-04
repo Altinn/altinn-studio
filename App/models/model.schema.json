@@ -25,6 +25,21 @@
     "inputfield": {
       "type": "string"
     },
+    "shortAnswerInput": {
+      "type": "string"
+    },
+    "longAnswerInput": {
+      "type": "string"
+    },
+    "radioButtonInput": {
+      "type": "string"
+    },
+    "checkboxesInput": {
+      "type": "string"
+    },
+    "nestedInput": {
+      "type": "string"
+    },
     "streetnr": {
       "type": "string"
     },
