@@ -50,7 +50,7 @@
                         "value": "baat"
                     }
                 ],
-                "required": true
+                "required": false
             },
             {
                 "size": "h3",
