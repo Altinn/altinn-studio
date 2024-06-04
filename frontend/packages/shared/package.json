@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "author": "Altinn",
   "dependencies": {
+    "@mui/material": "5.15.19",
     "classnames": "2.5.1",
     "qs": "6.12.1",
     "react": "18.3.1",

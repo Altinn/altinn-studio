@@ -2,9 +2,6 @@
   "name": "@altinn/schema-editor",
   "description": "JSON schema editor",
   "version": "0.1.0",
-  "dependencies": {
-    "jsonpointer": "5.0.1"
-  },
   "devDependencies": {
     "jest": "29.7.0"
   },

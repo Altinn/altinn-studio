@@ -10,6 +10,7 @@
     "eslint-plugin-import": "2.29.1",
     "glob": "10.4.1",
     "husky": "9.0.11",
+    "jsonpointer": "5.0.1",
     "lint-staged": "15.2.5",
     "prettier": "^3.0.3",
     "ts-node": "^10.9.1",
