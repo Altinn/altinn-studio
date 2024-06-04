@@ -8,13 +8,14 @@ import type {
   LayoutSetsResponse,
 } from 'app-shared/types/api/AddLayoutSetResponse';
 
+export type AddLayoutSetMutationPayload = {
+  layoutSetIdToUpdate: string;
+  layoutSetConfig: LayoutSetConfig;
+};
 export type AddLayoutSetMutation = UseMutateFunction<
-  {
-    layoutSets: AddLayoutSetResponse;
-    layoutSetConfig: LayoutSetConfig;
-  },
+  AddLayoutSetResponse,
   Error,
-  { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig }
+  AddLayoutSetMutationPayload
 >;
 
 const isLayoutSets = (obj: LayoutSetsResponse): obj is LayoutSets => {
@@ -28,13 +29,7 @@ export const useAddLayoutSetMutation = (org: string, app: string) => {
   const [_, setSelectedLayoutSet] = useLocalStorage<string>('layoutSet/' + app, null);
 
   return useMutation({
-    mutationFn: ({
-      layoutSetIdToUpdate,
-      layoutSetConfig,
-    }: {
-      layoutSetIdToUpdate: string;
-      layoutSetConfig: LayoutSetConfig;
-    }) =>
+    mutationFn: ({ layoutSetIdToUpdate, layoutSetConfig }: AddLayoutSetMutationPayload) =>
       addLayoutSet(org, app, layoutSetIdToUpdate, layoutSetConfig).then((layoutSets) => ({
         layoutSets,
         layoutSetConfig,

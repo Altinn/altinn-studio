@@ -1,9 +1,11 @@
 import { PaymentPolicyBuilder } from '../../../utils/policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
 import type { Policy } from 'app-shared/types/Policy';
-import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { getDataTypeIdFromBusinessObject } from '@altinn/process-editor/utils/hookUtils/hookUtils';
-import type { AddLayoutSetMutation } from '../../../hooks/mutations/useAddLayoutSetMutation';
+import type {
+  AddLayoutSetMutation,
+  AddLayoutSetMutationPayload,
+} from '../../../hooks/mutations/useAddLayoutSetMutation';
 
 export class OnProcessTaskAddHandler {
   constructor(
@@ -101,10 +103,9 @@ export class OnProcessTaskAddHandler {
    * @returns {{layoutSetIdToUpdate: string, layoutSetConfig: LayoutSetConfig}}
    * @private
    */
-  private createLayoutSetConfig(taskEvent: OnProcessTaskEvent['taskEvent']): {
-    layoutSetIdToUpdate: string;
-    layoutSetConfig: LayoutSetConfig;
-  } {
+  private createLayoutSetConfig(
+    taskEvent: OnProcessTaskEvent['taskEvent'],
+  ): AddLayoutSetMutationPayload {
     const elementId = taskEvent.element.id;
     return {
       layoutSetIdToUpdate: elementId,

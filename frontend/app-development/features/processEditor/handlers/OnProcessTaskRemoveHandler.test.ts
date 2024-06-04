@@ -4,6 +4,7 @@ import { OnProcessTaskRemoveHandler } from './OnProcessTaskRemoveHandler';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { BpmnTypeEnum } from '@altinn/process-editor/enum/BpmnTypeEnum';
 import type { TaskEvent } from '@altinn/process-editor/types/TaskEvent';
+import { BpmnBusinessObjectEditor } from '@altinn/process-editor/types/BpmnBusinessObjectEditor';
 
 const orgMock = 'testOrg';
 const appMock = 'testApp';
@@ -19,6 +20,21 @@ const layoutSetsMock = {
 const mutateApplicationPolicyMock = jest.fn();
 const deleteDataTypeFromAppMetadataMock = jest.fn();
 const deletelayoutSetMock = jest.fn();
+
+const createTaskMetadataMock = (
+  taskType: string,
+  businessObject?: BpmnBusinessObjectEditor,
+): OnProcessTaskEvent => ({
+  taskType: taskType,
+  taskEvent: {
+    element: {
+      id: 'testElementId',
+      businessObject: {
+        ...(businessObject || {}),
+      },
+    },
+  } as TaskEvent,
+});
 
 const createOnRemoveProcessTaskHandler = ({ currentPolicy, layoutSets }: any) => {
   return new OnProcessTaskRemoveHandler(
@@ -42,19 +58,11 @@ describe('OnProcessTaskRemoveHandler', () => {
       sets: [{ id: 'testLayoutSetId', dataType: 'data', tasks: ['testElementId'] }],
     };
 
-    const taskMetadata: OnProcessTaskEvent = {
-      taskType: 'data',
-      taskEvent: {
-        element: {
-          id: 'testElementId',
-          businessObject: {
-            id: 'testEventId',
-            $type: BpmnTypeEnum.Task,
-            extensionElements: undefined,
-          },
-        },
-      } as TaskEvent,
-    };
+    const taskMetadata = createTaskMetadataMock('data', {
+      id: 'testEventId',
+      $type: BpmnTypeEnum.Task,
+      extensionElements: undefined,
+    });
 
     const onProcessTaskRemoveHandler = createOnRemoveProcessTaskHandler({
       layoutSets,
@@ -102,22 +110,13 @@ describe('OnProcessTaskRemoveHandler', () => {
       ],
     };
 
-    const taskMetadata: OnProcessTaskEvent = {
-      taskType: 'payment',
-      taskEvent: {
-        element: {
-          id: 'testElementId',
-          businessObject: {},
-        },
-      } as TaskEvent,
-    };
-
     const onProcessTaskRemoveHandler = createOnRemoveProcessTaskHandler({
       currentPolicy,
     });
-    onProcessTaskRemoveHandler.handleOnProcessTaskRemove(taskMetadata);
+    onProcessTaskRemoveHandler.handleOnProcessTaskRemove(createTaskMetadataMock('payment'));
 
     expect(mutateApplicationPolicyMock).toHaveBeenCalledWith(expectedResponse);
+    expect(mutateApplicationPolicyMock).toHaveBeenCalledTimes(1);
     expect(deletelayoutSetMock).not.toHaveBeenCalled();
   });
 
@@ -126,19 +125,11 @@ describe('OnProcessTaskRemoveHandler', () => {
       sets: [{ id: 'testLayoutSetId', dataType: 'payment', tasks: ['testElementId'] }],
     };
 
-    const taskMetadata: OnProcessTaskEvent = {
-      taskType: 'payment',
-      taskEvent: {
-        element: {
-          id: 'testElementId',
-          businessObject: {
-            id: 'testEventId',
-            $type: BpmnTypeEnum.Task,
-            extensionElements: undefined,
-          },
-        },
-      } as TaskEvent,
-    };
+    const taskMetadata = createTaskMetadataMock('payment', {
+      id: 'testEventId',
+      $type: BpmnTypeEnum.Task,
+      extensionElements: undefined,
+    });
 
     const onProcessTaskRemoveHandler = createOnRemoveProcessTaskHandler({
       layoutSets,
@@ -153,19 +144,11 @@ describe('OnProcessTaskRemoveHandler', () => {
       sets: [{ id: 'testLayoutSetId', dataType: 'signing', tasks: ['testElementId'] }],
     };
 
-    const taskMetadata: OnProcessTaskEvent = {
-      taskType: 'signing',
-      taskEvent: {
-        element: {
-          id: 'testElementId',
-          businessObject: {
-            id: 'testEventId',
-            $type: BpmnTypeEnum.Task,
-            extensionElements: undefined,
-          },
-        },
-      } as TaskEvent,
-    };
+    const taskMetadata = createTaskMetadataMock('signing', {
+      id: 'testEventId',
+      $type: BpmnTypeEnum.Task,
+      extensionElements: undefined,
+    });
 
     const onProcessTaskRemoveHandler = createOnRemoveProcessTaskHandler({
       layoutSets,
