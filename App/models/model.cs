@@ -42,27 +42,27 @@ namespace Altinn.App.Models.model
     [JsonPropertyName("inputfield")]
     public string inputfield { get; set; }
 
-    [XmlElement("shortAnswerInput", Order = 6)]
+    [XmlElement("shortAnswerInput", Order = 7)]
     [JsonProperty("shortAnswerInput")]
     [JsonPropertyName("shortAnswerInput")]
     public string shortAnswerInput { get; set; }
 
-    [XmlElement("longAnswerInput", Order = 7)]
+    [XmlElement("longAnswerInput", Order = 8)]
     [JsonProperty("longAnswerInput")]
     [JsonPropertyName("longAnswerInput")]
     public string longAnswerInput { get; set; }
 
-    [XmlElement("radioButtonInput", Order = 8)]
+    [XmlElement("radioButtonInput", Order = 9)]
     [JsonProperty("radioButtonInput")]
     [JsonPropertyName("radioButtonInput")]
     public string radioButtonInput { get; set; }
 
-    [XmlElement("checkboxesInput", Order = 9)]
+    [XmlElement("checkboxesInput", Order = 10)]
     [JsonProperty("checkboxesInput")]
     [JsonPropertyName("checkboxesInput")]
     public string checkboxesInput { get; set; }
 
-    [XmlElement("nestedInput", Order = 10)]
+    [XmlElement("nestedInput", Order = 11)]
     [JsonProperty("nestedInput")]
     [JsonPropertyName("nestedInput")]
     public string nestedInput { get; set; }
