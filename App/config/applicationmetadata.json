@@ -37,6 +37,26 @@
       "validationErrorOnPendingFileScan": false,
       "enabledFileAnalysers": [],
       "enabledFileValidators": []
+    },
+    {
+      "id": "model2",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.model2.model2",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false
+      },
+      "taskId": "PreviousProcessSummary",
+      "maxCount": 1,
+      "minCount": 1,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
     }
   ],
   "partyTypesAllowed": {
