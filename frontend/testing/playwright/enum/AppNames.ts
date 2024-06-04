@@ -7,4 +7,5 @@ export enum AppNames {
   SETTINGS_MODAL_APP = 'settings-modal-app-test',
   UI_EDITOR_APP = 'ui-editor-app-test',
   TEXT_EDITOR_APP = 'text-editor-app-test',
+  PROCESS_EDITOR_APP = 'process-editor-app-test',
 }
