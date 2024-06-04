@@ -1,5 +1,5 @@
 {
-  "$id": "https://altinncdn.no/schemas/json/component/Group.schema.v1.json",
+  "$id": "https://altinncdn.no/schemas/json/component/PaymentDetails.schema.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "id": {
@@ -47,56 +47,31 @@
       },
       "additionalProperties": false
     },
-    "renderAsSummary": {
-      "title": "Render as summary",
-      "description": "Boolean value or expression indicating if the component should be rendered as a summary. Defaults to false.",
-      "default": false,
-      "$ref": "expression.schema.v1.json#/definitions/boolean"
-    },
-    "type": { "const": "Group" },
+    "type": { "const": "PaymentDetails" },
     "textResourceBindings": {
+      "type": "object",
       "properties": {
         "title": {
           "title": "Title",
-          "description": "The title of the group (shown above the group)",
+          "description": "The title of the paragraph",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "description": {
           "title": "Description",
-          "description": "The description text shown underneath the title",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "summaryTitle": {
-          "title": "Summary title",
-          "description": "Title used in the summary view (overrides the default title)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "summaryAccessibleTitle": {
-          "title": "Accessible summary title",
-          "description": "Title used for aria-label on the edit button in the summary view (overrides the default and summary title)",
+          "description": "Description, optionally shown below the title",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
-      }
+      },
+      "additionalProperties": false
     },
-    "groupingIndicator": {
-      "title": "Set grouping indicator",
-      "description": "Can visually group components together by indenting them or by putting them in a panel. ",
-      "enum": ["indented", "panel"],
-      "type": "string"
-    },
-    "children": {
-      "title": "Children",
-      "description": "Array of component IDs that should be displayed in the group",
-      "type": "array",
-      "items": { "type": "string" }
-    },
-    "headingLevel": {
-      "title": "Heading level",
-      "description": "The heading level of the group title.",
-      "enum": [2, 3, 4, 5, 6],
-      "type": "string"
+    "mapping": {
+      "title": "Mapping",
+      "description": "A mapping of key-value pairs (usually used for mapping a path in the data model to a query string parameter).",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": { "type": "string" }
     }
   },
-  "required": ["id", "type", "children"],
-  "title": "Group component schema"
+  "required": ["id", "type"],
+  "title": "PaymentDetails component schema"
 }
