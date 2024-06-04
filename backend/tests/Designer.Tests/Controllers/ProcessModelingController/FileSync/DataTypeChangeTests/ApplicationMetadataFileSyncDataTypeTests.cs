@@ -82,6 +82,37 @@ public class ApplicationMetadataFileSyncDataTypeTests : DisagnerEndpointsTestsBa
         applicationMetadata.DataTypes.Find(type => type.Id == dataTypeToConnect).TaskId.Should().Be(task); // Data type 'message' is now connected to Task_5
     }
 
+    [Theory]
+    [MemberData(nameof(ProcessDataTypeChangedNotifyTestData))]
+    public async Task ProcessDataTypeChangedNotify_NewDataTypeForCustomReceipt_ShouldNotSyncApplicationMetadata(
+        string org, string app, string developer, string applicationMetadataPath, DataTypeChange dataTypeChange)
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
+        await AddFileToRepo(applicationMetadataPath, "App/config/applicationmetadata.json");
+        string dataTypeToConnect = "message";
+        string task = "CustomReceipt";
+        dataTypeChange.NewDataType = dataTypeToConnect;
+        dataTypeChange.ConnectedTaskId = task;
+
+        string url = VersionPrefix(org, targetRepository);
+
+        string dataTypeChangeString = JsonSerializer.Serialize(dataTypeChange,
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
+        {
+            Content = new StringContent(dataTypeChangeString, Encoding.UTF8, "application/json")
+        };
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+        response.StatusCode.Should().Be(HttpStatusCode.Accepted);
+
+        string applicationMetadataFromRepo = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
+
+        ApplicationMetadata applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataFromRepo, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+
+        applicationMetadata.DataTypes.Find(type => type.Id == dataTypeToConnect).TaskId.Should().NotBe(task); // CustomReceipt has not been added to the dataType
+    }
+
     public static IEnumerable<object[]> ProcessDataTypeChangedNotifyTestData()
     {
         yield return

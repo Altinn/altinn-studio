@@ -18,7 +18,7 @@ jest.mock('./App', () => ({
 
 describe('SubApp', () => {
   it('Renders the app within the AppContext provider', () => {
-    render(<SubApp />);
+    render(<SubApp shouldReloadPreview={false} previewHasLoaded={jest.fn()} />);
     const provider = screen.getByTestId(providerTestId);
     expect(provider).toBeInTheDocument();
     expect(within(provider).getByTestId(appTestId)).toBeInTheDocument();

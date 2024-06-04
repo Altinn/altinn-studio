@@ -16,6 +16,7 @@ export * from './StudioModal';
 export * from './StudioNativeSelect';
 export * from './StudioNotFoundPage';
 export * from './StudioPageSpinner';
+export * from './StudioPopover';
 export * from './StudioProperty';
 export * from './StudioSectionHeader';
 export * from './StudioSpinner';
