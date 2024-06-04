@@ -2,13 +2,15 @@ import React from 'react';
 import { SelectDataModelComponent } from '../../../SelectDataModelComponent';
 import { getDataModelFieldsFilter } from '../../../../../utils/dataModel';
 import type { FormItem } from '../../../../../types/FormItem';
-import { StudioButton, StudioDeleteButton } from '@studio/components';
+import { StudioButton, StudioDeleteButton, StudioLabelAsParagraph } from '@studio/components';
 import { XMarkIcon } from '@studio/icons';
 import classes from './EditBinding.module.css';
 import { useTranslation } from 'react-i18next';
+import { Fieldset, Paragraph } from '@digdir/design-system-react';
 
 export type EditBindingProps = {
   bindingKey: string;
+  dataModelName: string;
   component: FormItem;
   helpText: string;
   label: string;
@@ -20,6 +22,7 @@ export type EditBindingProps = {
 
 export const EditBinding = ({
   bindingKey,
+  dataModelName,
   component,
   helpText,
   label,
@@ -33,13 +36,18 @@ export const EditBinding = ({
   const propertyPath = `definitions/component/properties/dataModelBindings/properties/${bindingKey}`;
 
   return (
-    <fieldset className={classes.editBinding}>
-      <legend className={classes.legend}>{label}</legend>
+    <Fieldset legend={label} className={classes.editBinding} size='small'>
+      <div>
+        <StudioLabelAsParagraph size='small'>
+          {t('ux_editor.modal_properties_data_model_selected')}
+        </StudioLabelAsParagraph>
+        <Paragraph size='small'>{dataModelName}</Paragraph>
+      </div>
       <SelectDataModelComponent
         dataModelFieldsFilter={getDataModelFieldsFilter(component.type, bindingKey === 'list')}
         helpText={helpText}
         inputId={`selectDataModelSelect-${bindingKey}`}
-        label={label}
+        label={t('ux_editor.modal_properties_data_model_selected_binding')}
         onDataModelChange={onBindingChange}
         propertyPath={propertyPath}
         selectedElement={selectedElement}
@@ -59,6 +67,6 @@ export const EditBinding = ({
           title={t('general.delete')}
         />
       </div>
-    </fieldset>
+    </Fieldset>
   );
 };

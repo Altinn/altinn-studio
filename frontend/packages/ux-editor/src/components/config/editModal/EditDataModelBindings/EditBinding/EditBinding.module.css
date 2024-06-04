@@ -1,20 +1,20 @@
 .editBinding {
   background-color: white;
-  border: 0;
   border-radius: var(--fds-border_radius-medium);
   box-shadow: var(--fds-shadow-small);
-  display: flex;
-  flex-direction: column;
-  gap: var(--data-model-binding-spacing);
   margin: var(--studio-property-button-vertical-spacing) var(--fds-spacing-5);
   padding: var(--data-model-binding-spacing);
+  gap: var(--data-model-binding-spacing);
 }
 
-.legend {
-  display: none;
+.editBinding legend * {
+  border-bottom: 1px solid var(--semantic-surface-neutral-subtle-hover);
+  padding-bottom: var(--fds-spacing-1);
+  color: var(--fds-semantic-text-neutral-subtle);
+  font-weight: normal;
 }
 
 .buttons {
   display: flex;
-  gap: var(--data-model-binding-spacing);
+  gap: var(--studio-property-button-vertical-spacing);
 }

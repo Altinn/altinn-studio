@@ -95,6 +95,7 @@ export const EditDataModelBindings = <T extends ComponentType>({
       ) : dataModelSelectVisible ? (
         <EditBinding
           bindingKey={bindingKey}
+          dataModelName={data[0].name}
           component={component}
           helpText={helpText}
           label={labelSpecificText}
