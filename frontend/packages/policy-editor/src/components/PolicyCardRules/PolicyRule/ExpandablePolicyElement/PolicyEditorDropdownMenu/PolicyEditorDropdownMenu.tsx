@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import classes from './PolicyEditorDropdownMenu.module.css';
 import { DropdownMenu } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon, TabsIcon, TrashIcon } from '@studio/icons';
@@ -24,36 +24,29 @@ export const PolicyEditorDropdownMenu = ({
 }: PolicyEditorDropdownMenuProps): React.ReactNode => {
   const { t } = useTranslation();
 
-  const anchorEl = useRef(null);
-
   return (
     <>
-      <StudioButton
-        aria-expanded={isOpen}
-        aria-haspopup='menu'
-        className={isError && classes.errorButton}
-        color={isError ? 'danger' : 'second'}
-        icon={<MenuElipsisVerticalIcon fontSize='1.8rem' />}
-        onClick={handleClickMoreIcon}
-        ref={anchorEl}
-        size='small'
-        title={t('policy_editor.more')}
-        variant='tertiary'
-      />
-      <DropdownMenu
-        anchorEl={anchorEl.current}
-        onClose={handleCloseMenu}
-        placement='bottom-end'
-        size='small'
-        open={isOpen}
-      >
+      <DropdownMenu onClose={handleCloseMenu} placement='bottom-end' size='small' open={isOpen}>
+        <DropdownMenu.Trigger asChild>
+          <StudioButton
+            aria-expanded={isOpen}
+            aria-haspopup='menu'
+            className={isError && classes.errorButton}
+            color={isError ? 'danger' : 'second'}
+            icon={<MenuElipsisVerticalIcon fontSize='1.8rem' />}
+            onClick={handleClickMoreIcon}
+            size='small'
+            title={t('policy_editor.more')}
+            variant='tertiary'
+          />
+        </DropdownMenu.Trigger>
         <DropdownMenu.Content>
           <DropdownMenu.Group>
             <DropdownMenu.Item onClick={handleClone}>
               <TabsIcon className={classes.icon} />
               {t('policy_editor.expandable_card_dropdown_copy')}
             </DropdownMenu.Item>
-            <DropdownMenu.Item color='danger' onClick={handleDelete}>
+            <DropdownMenu.Item className={classes.deleteButton} onClick={handleDelete}>
               <TrashIcon className={classes.icon} />
               {t('general.delete')}
             </DropdownMenu.Item>

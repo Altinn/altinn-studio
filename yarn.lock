@@ -3448,6 +3448,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@digdir/designsystemet-css@npm:^0.9.0":
+  version: 0.9.0
+  resolution: "@digdir/designsystemet-css@npm:0.9.0"
+  checksum: 10/01442285c2d862a76b0693dc07b1856ad4a153ec038d86ea080eec02feb8df47c3ae5f69e7d6812a17a1b7b32d6fe1fc362a900aaf039e25fd7ab6a4a612c19a
+  languageName: node
+  linkType: hard
+
 "@digdir/designsystemet-react@npm:^0.62.0":
   version: 0.62.0
   resolution: "@digdir/designsystemet-react@npm:0.62.0"
@@ -3460,6 +3467,13 @@ __metadata:
     react: ">=18.3.1"
     react-dom: ">=18.3.1"
   checksum: 10/c1f488c482a5358c9b6d4fd9a15390bbe923cba824cd6dddb47cbbf55e7be07fd4e2e4358767498995d95209352890a1a662a2cc748e37ed005a07ae9e35303f
+  languageName: node
+  linkType: hard
+
+"@digdir/designsystemet-theme@npm:^0.15.3":
+  version: 0.15.3
+  resolution: "@digdir/designsystemet-theme@npm:0.15.3"
+  checksum: 10/0c9760ffbc42ed736ebcd1ee9069b2a8dd9312de08263d8beee74438933df736280c07fba2568d05f202ea88687b3309c40bf55be3d7d8e57f54cf84cc33af96
   languageName: node
   linkType: hard
 
@@ -9170,6 +9184,8 @@ __metadata:
     "@altinn/figma-design-tokens": "npm:6.0.1"
     "@digdir/design-system-react": "npm:0.53.12"
     "@digdir/design-system-tokens": "npm:0.13.0"
+    "@digdir/designsystemet-css": "npm:^0.9.0"
+    "@digdir/designsystemet-theme": "npm:^0.15.3"
     "@emotion/react": "npm:11.11.4"
     "@emotion/styled": "npm:11.11.5"
     "@microsoft/applicationinsights-react-js": "npm:17.2.0"

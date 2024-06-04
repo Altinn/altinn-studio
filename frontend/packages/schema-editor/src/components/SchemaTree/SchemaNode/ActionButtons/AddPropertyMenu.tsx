@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAddProperty } from '../../../../hooks/useAddProperty';
 import { ObjectKind } from '@altinn/schema-model';
@@ -11,7 +11,6 @@ interface AddPropertyMenuProps {
 }
 
 export const AddPropertyMenu = ({ pointer }: AddPropertyMenuProps) => {
-  const addButtonRef = useRef<HTMLButtonElement>(null);
   const { t } = useTranslation();
   const [isAddDropdownOpen, setIsAddDropdownOpen] = useState(false);
   const addProperty = useAddProperty();
@@ -29,21 +28,16 @@ export const AddPropertyMenu = ({ pointer }: AddPropertyMenuProps) => {
 
   return (
     <>
-      <ActionButton
-        aria-expanded={isAddDropdownOpen}
-        aria-haspopup='menu'
-        icon={<PlusIcon />}
-        onClick={() => setIsAddDropdownOpen(true)}
-        ref={addButtonRef}
-        titleKey='schema_editor.add_node_of_type'
-      />
-      <DropdownMenu
-        anchorEl={addButtonRef.current}
-        open={isAddDropdownOpen}
-        onClose={closeDropdown}
-        size='small'
-        portal
-      >
+      <DropdownMenu open={isAddDropdownOpen} onClose={closeDropdown} size='small' portal>
+        <DropdownMenu.Trigger asChild>
+          <ActionButton
+            aria-expanded={isAddDropdownOpen}
+            aria-haspopup='menu'
+            icon={<PlusIcon />}
+            onClick={() => setIsAddDropdownOpen(true)}
+            titleKey='schema_editor.add_node_of_type'
+          />
+        </DropdownMenu.Trigger>
         <DropdownMenu.Content>
           <DropdownMenu.Group>
             <DropdownMenu.Item onClick={addField}>

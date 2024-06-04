@@ -64,7 +64,7 @@ export const ResourceSwitchInput = ({
         {label}
       </Label>
       {description && (
-        <Paragraph short size='small' className={classes.description}>
+        <Paragraph variant='short' size='small' className={classes.description}>
           {description}
         </Paragraph>
       )}

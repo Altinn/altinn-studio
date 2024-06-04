@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DropdownMenu } from '@digdir/design-system-react';
 import { MenuElipsisVerticalIcon, ArrowUpIcon, ArrowDownIcon } from '@studio/icons';
@@ -50,7 +50,6 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
 
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const settingsRef = useRef(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const moveLayout = (action: 'up' | 'down') => {
@@ -67,23 +66,18 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
 
   return (
     <div>
-      <StudioButton
-        icon={<MenuElipsisVerticalIcon />}
-        onClick={() => setDropdownOpen((v) => !v)}
-        aria-haspopup='menu'
-        aria-expanded={dropdownOpen}
-        variant='tertiary'
-        title={t('general.options')}
-        size='small'
-        ref={settingsRef}
-      />
-      <DropdownMenu
-        anchorEl={settingsRef.current}
-        open={dropdownOpen}
-        onClose={() => setDropdownOpen(false)}
-        portal
-        size='small'
-      >
+      <DropdownMenu open={dropdownOpen} onClose={() => setDropdownOpen(false)} portal size='small'>
+        <DropdownMenu.Trigger asChild>
+          <StudioButton
+            icon={<MenuElipsisVerticalIcon />}
+            onClick={() => setDropdownOpen((v) => !v)}
+            aria-haspopup='menu'
+            aria-expanded={dropdownOpen}
+            variant='tertiary'
+            title={t('general.options')}
+            size='small'
+          />
+        </DropdownMenu.Trigger>
         <DropdownMenu.Content>
           <DropdownMenu.Group>
             {!pageIsReceipt && (

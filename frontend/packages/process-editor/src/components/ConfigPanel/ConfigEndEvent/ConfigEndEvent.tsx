@@ -36,7 +36,6 @@ export const ConfigEndEvent = () => {
                 <Link
                   href={altinnDocsUrl('app/development/configuration/process/customize/#receipt')}
                   rel='noopener noreferrer'
-                  size='small'
                 >
                   {t('process_editor.configuration_panel_custom_receipt_default_receipt_link')}
                 </Link>

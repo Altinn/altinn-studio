@@ -11,6 +11,7 @@ export type ErrorBoundaryFallbackProps = {
 };
 
 export const ErrorBoundaryFallback = ({ error }: ErrorBoundaryFallbackProps) => {
+  console.log(error);
   const { t } = useTranslation();
   const { resetBoundary } = useErrorBoundary();
 

@@ -62,8 +62,8 @@ describe('StudioDeleteButton', () => {
 
   it('Supports polymorphism', () => {
     render(
-      <StudioButton as='a' href='/'>
-        {buttonLabel}
+      <StudioButton asChild>
+        <a href='/'>{buttonLabel}</a>
       </StudioButton>,
     );
     expect(screen.getByRole('link')).toBeInTheDocument();
