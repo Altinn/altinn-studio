@@ -20,7 +20,7 @@ describe('urlUtils', () => {
         repo: 'org-name-datamodels',
       });
 
-      expect(result).toBe(`${APP_DEVELOPMENT_BASENAME}/org-name/org-name-datamodels/datamodel`);
+      expect(result).toBe(`${APP_DEVELOPMENT_BASENAME}/org-name/org-name-datamodels/data-model`);
     });
 
     it('should not return url to dataModelling when repo name does not match "<org>-dataModels"', () => {
