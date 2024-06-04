@@ -4,8 +4,9 @@ import { OnProcessTaskAddHandler } from './OnProcessTaskAddHandler';
 import { BpmnTypeEnum } from '@altinn/process-editor/enum/BpmnTypeEnum';
 import type { TaskEvent } from '@altinn/process-editor/types/TaskEvent';
 import type { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
-import { app as appMock, org } from '@studio/testing/testids';
 
+const orgMock = 'testOrg';
+const appMock = 'testApp';
 const currentPolicyMock: Policy = {
   requiredAuthenticationLevelOrg: '3',
   requiredAuthenticationLevelEndUser: '3',
