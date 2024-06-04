@@ -10,7 +10,8 @@ export type SupportedFeatureFlags =
   | 'shouldOverrideAppLibCheck'
   | 'resourceAccessLists'
   | 'resourceMigration'
-  | 'displayPaymentTaskProcessEditor';
+  | 'displayPaymentTaskProcessEditor'
+  | 'dataModelBindingSelector';
 
 /*
  * Please add all the features that you want to be toggle on by default here.

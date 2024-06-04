@@ -6,7 +6,8 @@ import { StudioButton, StudioDeleteButton, StudioLabelAsParagraph } from '@studi
 import { XMarkIcon } from '@studio/icons';
 import classes from './EditBinding.module.css';
 import { useTranslation } from 'react-i18next';
-import { Fieldset, Paragraph } from '@digdir/design-system-react';
+import { Fieldset, NativeSelect, Paragraph } from '@digdir/design-system-react';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export type EditBindingProps = {
   bindingKey: string;
@@ -32,17 +33,27 @@ export const EditBinding = ({
   selectedElement,
 }: EditBindingProps) => {
   const { t } = useTranslation();
-
   const propertyPath = `definitions/component/properties/dataModelBindings/properties/${bindingKey}`;
+  const shouldDisplayDataModelSelector = shouldDisplayFeature('dataModelBindingSelector');
 
   return (
     <Fieldset legend={label} className={classes.editBinding} size='small'>
-      <div>
-        <StudioLabelAsParagraph size='small'>
-          {t('ux_editor.modal_properties_data_model_selected')}
-        </StudioLabelAsParagraph>
+      {/* <div> */}
+      <StudioLabelAsParagraph size='small'>
+        {t('ux_editor.modal_properties_data_model_selected')}
+      </StudioLabelAsParagraph>
+      {shouldDisplayDataModelSelector ? (
+        <NativeSelect
+          id={`selectDataModelSelect-${bindingKey}`}
+          onChange={(e) => onBindingChange(e.target.value)}
+          value={selectedElement}
+        >
+          <option value={selectedElement}>{dataModelName}</option>
+        </NativeSelect>
+      ) : (
         <Paragraph size='small'>{dataModelName}</Paragraph>
-      </div>
+      )}
+      {/* </div> */}
       <SelectDataModelComponent
         dataModelFieldsFilter={getDataModelFieldsFilter(component.type, bindingKey === 'list')}
         helpText={helpText}
