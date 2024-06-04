@@ -5,15 +5,11 @@
   position: relative;
 }
 
-.heading {
-  margin-bottom: var(--fds-spacing-2);
-}
-
 .link {
   display: flex;
   align-items: flex-start;
-  margin-top: var(--fds-spacing-4);
-  line-height: var(--fds-sizing-6);
+  margin-top: var(--fds-spacing-2);
+  line-height: var(--fds-sizing-5);
 }
 
 .linkIcon {
@@ -22,7 +18,7 @@
 
 @media (min-width: 1200px) {
   .documentation {
-    min-height: 280px;
+    min-height: 104px;
   }
 
   .content {
@@ -34,16 +30,16 @@
   .documentation::before {
     background-image: url('/designer/img/Altinn-studio-3.svg');
     background-position: center center;
-    background-size: 150px auto;
+    background-size: 64px auto;
     background-repeat: no-repeat;
 
     content: ' ';
     display: block;
     position: absolute;
-    bottom: var(--fds-spacing-4);
+    bottom: 0;
     right: var(--fds-spacing-4);
-    width: 150px;
-    height: 150px;
+    width: 64px;
+    height: 64px;
     opacity: 0.3;
 
     transform: rotateY(180deg);
