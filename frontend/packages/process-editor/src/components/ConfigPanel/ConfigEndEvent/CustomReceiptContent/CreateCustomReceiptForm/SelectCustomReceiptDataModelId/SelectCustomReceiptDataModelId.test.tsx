@@ -19,7 +19,7 @@ import {
 
 const mockError: string = 'Error';
 const mockOnChange = jest.fn();
-const mockAvailableDataModelIds: string[] = ['model1', 'model2'];
+const mockAllDataModelIds: string[] = ['model1', 'model2'];
 
 const defaultProps: SelectCustomReceiptDataModelIdProps = {
   error: mockError,
@@ -32,38 +32,37 @@ describe('SelectCustomReceiptDataModelId', () => {
   it('calls onChange function when an option is selected', async () => {
     const user = userEvent.setup();
     renderSelectCustomReceiptDataModelId({
-      availableDataModelIds: mockAvailableDataModelIds,
+      allDataModelIds: mockAllDataModelIds,
     });
 
-    const selectElement = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_custom_receipt_select_data_model_label'),
-    );
-    await user.click(selectElement);
+    const combobox = screen.getByRole('combobox', {
+      name: textMock('process_editor.configuration_panel_custom_receipt_select_data_model_label'),
+    });
+    await user.click(combobox);
 
-    const optionElement = screen.getByRole('option', { name: mockAvailableDataModelIds[0] });
-    await user.selectOptions(selectElement, optionElement);
+    const optionElement = screen.getByRole('option', { name: mockAllDataModelIds[0] });
+    await user.click(optionElement);
 
     expect(mockOnChange).toHaveBeenCalledTimes(1);
   });
 
-  it('displays the description when there are no available data model ids', () => {
-    renderSelectCustomReceiptDataModelId();
-
-    const description = screen.getByText(
-      textMock('process_editor.configuration_panel_custom_receipt_select_data_model_description'),
-    );
-    expect(description).toBeInTheDocument();
-  });
-
-  it('hides the description when there are available data model ids', () => {
+  it('should display a combobox without value and an empty combobox element informing that data models are missing when clicking "add data model" when there are no data models', async () => {
+    const user = userEvent.setup();
     renderSelectCustomReceiptDataModelId({
-      availableDataModelIds: mockAvailableDataModelIds,
+      allDataModelIds: [],
     });
 
-    const description = screen.queryByText(
-      textMock('process_editor.configuration_panel_custom_receipt_select_data_model_description'),
+    const combobox = screen.getByRole('combobox', {
+      name: textMock('process_editor.configuration_panel_custom_receipt_select_data_model_label'),
+    });
+
+    await user.click(combobox);
+    expect(combobox).not.toHaveValue();
+
+    const noAvailableModelsOption = screen.getByText(
+      textMock('process_editor.configuration_panel_no_data_model_to_select'),
     );
-    expect(description).not.toBeInTheDocument();
+    expect(noAvailableModelsOption).toBeInTheDocument();
   });
 });
 

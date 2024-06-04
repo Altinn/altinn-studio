@@ -23,7 +23,9 @@ export const SelectDataType = ({
 }: SelectDataTypeProps): React.ReactElement => {
   const { t } = useTranslation();
   const { mutateDataType } = useBpmnApiContext();
+
   const currentValue = existingDataType ? [existingDataType] : [];
+
   const handleChangeDataModel = (newDataModelIds?: string[]) => {
     const newDataModelId = newDataModelIds ? newDataModelIds[0] : undefined;
     if (newDataModelId !== existingDataType) {
