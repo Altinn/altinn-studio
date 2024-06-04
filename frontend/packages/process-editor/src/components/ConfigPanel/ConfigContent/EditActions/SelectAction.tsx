@@ -10,6 +10,7 @@ export interface SelectActionProps {
   currentActionName: string;
   onSetCurrentActionName: (actionName: string) => void;
 }
+
 export const SelectAction = ({
   actionName,
   availablePredefinedActions,
@@ -28,7 +29,12 @@ export const SelectAction = ({
       label={comboboxLabel}
       description={t('process_editor.configuration_panel_actions_combobox_description')}
       size='small'
-      inputValue={currentActionName}
+      value={
+        availablePredefinedActions.includes(currentActionName) ||
+        allPredefinedActions.includes(actionName)
+          ? [currentActionName]
+          : []
+      }
       onBlur={({ target }) => onSetCurrentActionName(target.value)}
     >
       <Combobox.Empty>
@@ -40,7 +46,11 @@ export const SelectAction = ({
         </Combobox.Option>
       )}
       {availablePredefinedActions.map((predefinedAction: string) => (
-        <Combobox.Option key={predefinedAction} value={predefinedAction}>
+        <Combobox.Option
+          key={predefinedAction}
+          value={predefinedAction}
+          displayValue={predefinedAction}
+        >
           {predefinedAction}
         </Combobox.Option>
       ))}

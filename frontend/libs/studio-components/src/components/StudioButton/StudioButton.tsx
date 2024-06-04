@@ -32,11 +32,11 @@ const StudioButton: OverridableComponent<StudioButtonProps, HTMLButtonElement> =
 
   return (
     <Button {...rest} color={selectedColor} className={classNames} icon={!children} ref={ref}>
-      <>
+      <span>
         {icon && iconPlacement === 'left' && iconComponent}
         {children}
         {icon && iconPlacement === 'right' && iconComponent}
-      </>
+      </span>
     </Button>
   );
 });

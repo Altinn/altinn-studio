@@ -11,8 +11,9 @@ describe('SelectAction', () => {
   it('should show combobox with all predefined actions as options', async () => {
     const user = userEvent.setup();
     renderSelectAction();
-    const combobox = screen.getByTitle(`combobox_${mockActionNameWrite}`);
+    const combobox = screen.getByRole(`combobox`);
     await user.click(combobox);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     mockAvailablePredefinedActions.forEach((action) =>
       expect(screen.getByRole('option', { name: action })).toBeInTheDocument(),
     );

@@ -3,29 +3,33 @@
 exports[`ProfileMenu should match snapshot 1`] = `
 <button
   aria-haspopup="true"
-  class="fds-button-button-c7ee1cc4 fds-utility-focusable-7600d88a fds-button-medium-c7ee1cc4 fds-button-tertiary-c7ee1cc4 fds-button-inverted-c7ee1cc4"
+  class="fds-btn fds-focus fds-btn--md fds-btn--tertiary fds-btn--first undefined"
   data-testid="profileButton"
   type="button"
 >
-  <span />
-  <img
-    alt="[mockedText(general.profile_icon)]"
-    title="[mockedText(shared.header_profile_icon_text)]"
-  />
+  <span>
+    <span />
+    <img
+      alt="[mockedText(general.profile_icon)]"
+      title="[mockedText(shared.header_profile_icon_text)]"
+    />
+  </span>
 </button>
 `;
 
 exports[`ProfileMenu should match snapshot with logout text 1`] = `
 <button
   aria-haspopup="true"
-  class="fds-button-button-c7ee1cc4 fds-utility-focusable-7600d88a fds-button-medium-c7ee1cc4 fds-button-tertiary-c7ee1cc4 fds-button-inverted-c7ee1cc4"
+  class="fds-btn fds-focus fds-btn--md fds-btn--tertiary fds-btn--first undefined"
   data-testid="profileButton"
   type="button"
 >
-  <span />
-  <img
-    alt="[mockedText(general.profile_icon)]"
-    title="[mockedText(shared.header_profile_icon_text)]"
-  />
+  <span>
+    <span />
+    <img
+      alt="[mockedText(general.profile_icon)]"
+      title="[mockedText(shared.header_profile_icon_text)]"
+    />
+  </span>
 </button>
 `;
