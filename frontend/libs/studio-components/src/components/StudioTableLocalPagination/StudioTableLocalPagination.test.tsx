@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { StudioTableLocalPagination } from './StudioTableLocalPagination';
 import type { StudioTableLocalPaginationProps } from './StudioTableLocalPagination';
 import { columns, rows } from '../StudioTableRemotePagination/mockData';
+import { Rows, Columns } from '../StudioTableRemotePagination';
 
 describe('StudioTableLocalPagination', () => {
   const paginationProps: StudioTableLocalPaginationProps['pagination'] = {
@@ -27,14 +28,18 @@ describe('StudioTableLocalPagination', () => {
     ).toBeInTheDocument();
   });
 
-  it('does not render sorting buttons when isSortable is set to false', () => {
-    render(<StudioTableLocalPagination columns={columns} rows={rows} isSortable={false} />);
+  it('renders sorting button only when specified in column prop', async () => {
+    render(<StudioTableLocalPagination columns={columns} rows={rows} />);
 
-    expect(screen.queryByRole('button', { name: 'Name' })).not.toBeInTheDocument();
+    const sortByNameButton = screen.queryByRole('button', { name: 'Name' });
+    const sortByCreatedByButton = screen.queryByRole('button', { name: 'Created by' });
+
+    expect(sortByNameButton).toBeInTheDocument();
+    expect(sortByCreatedByButton).not.toBeInTheDocument();
   });
 
   it('triggers sorting when a sortable column header is clicked', async () => {
-    render(<StudioTableLocalPagination columns={columns} rows={rows} isSortable />);
+    render(<StudioTableLocalPagination columns={columns} rows={rows} />);
     const user = userEvent.setup();
 
     await user.click(screen.getByRole('button', { name: 'Name' }));
@@ -115,7 +120,7 @@ describe('StudioTableLocalPagination', () => {
     expect(tableBodyRows).toHaveLength(10);
   });
 
-  it('sets currentPage to 1 when no rows are displayed', async () => {
+  it('fallbacks to page 1 when no rows are displayed (out of bounds)', async () => {
     render(
       <StudioTableLocalPagination columns={columns} rows={rows} pagination={paginationProps} />,
     );
@@ -129,7 +134,7 @@ describe('StudioTableLocalPagination', () => {
     await user.selectOptions(screen.getByRole('combobox', { name: 'Rows per page' }), '50');
     const tableBody = screen.getAllByRole('rowgroup')[1];
     const tableBodyRows = within(tableBody).getAllByRole('row');
-    expect(tableBodyRows.length).toBeGreaterThan(10);
+    expect(tableBodyRows.length).toBe(16);
   });
 
   it('displays the empty table message when there are no rows to display', () => {
@@ -141,5 +146,24 @@ describe('StudioTableLocalPagination', () => {
       />,
     );
     expect(screen.getByText('No rows to display')).toBeInTheDocument();
+  });
+
+  it('formats cells when a valueFormatter is specified', () => {
+    const rows: Rows = [{ id: 1, name: 'Sophie Salt' }];
+    const columns: Columns = [
+      {
+        accessor: 'name',
+        value: 'Name',
+        valueFormatter: (value) => `Formatted: ${value}`,
+      },
+    ];
+
+    render(<StudioTableLocalPagination columns={columns} rows={rows} />);
+
+    const formattedNameCell = screen.getByText('Formatted: Sophie Salt');
+    expect(formattedNameCell).toBeInTheDocument();
+
+    const unFormattedNameCell = screen.queryByText('Sophie Salt');
+    expect(unFormattedNameCell).not.toBeInTheDocument();
   });
 });

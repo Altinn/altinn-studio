@@ -8,6 +8,7 @@ export type Columns = {
   sortable?: boolean;
   headerCellClass?: string;
   bodyCellsClass?: string;
+  valueFormatter?: (value: React.ReactNode) => React.ReactNode;
 }[];
 
 export type Rows = (Record<string, React.ReactNode> & Record<'id', string | number>)[];
@@ -94,9 +95,9 @@ export const StudioTableRemotePagination = forwardRef<
           <Table.Body>
             {rows.map((row) => (
               <Table.Row key={String(row.id)}>
-                {columns.map(({ accessor, bodyCellsClass }) => (
+                {columns.map(({ accessor, bodyCellsClass, valueFormatter }) => (
                   <Table.Cell key={accessor} className={bodyCellsClass}>
-                    {row[accessor]}
+                    {valueFormatter ? valueFormatter(row[accessor]) : row[accessor]}
                   </Table.Cell>
                 ))}
               </Table.Row>

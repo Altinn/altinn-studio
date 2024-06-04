@@ -56,6 +56,7 @@ export const RepoList = ({
       value: t('dashboard.name'),
       sortable: true,
       headerCellClass: classes.nameHeaderCell,
+      valueFormatter: (repoFullName) => <RepoNameWithLink repoFullName={repoFullName} />,
     },
     {
       accessor: 'createdBy',
@@ -68,6 +69,7 @@ export const RepoList = ({
       value: t('dashboard.last_modified'),
       sortable: true,
       headerCellClass: classes.lastUpdatedHeaderCell,
+      valueFormatter: (date) => new Date(date).toLocaleDateString('nb', { dateStyle: 'short' }),
     },
     {
       accessor: 'description',
@@ -82,7 +84,7 @@ export const RepoList = ({
     },
   ];
 
-  // Gitea API does not support sorting by createdBy or description
+  // The local table can sort all columns, but Gitea API does not support sorting by createdBy or description
   const nonSortableAccessors = ['createdBy', 'description'];
   const remotePaginationColumns = columns.map((column) => ({
     ...column,
@@ -92,9 +94,9 @@ export const RepoList = ({
   const rows = repos.map((repo) => ({
     id: repo.id,
     favoriteIcon: <FavoriteButton repo={repo} />,
-    name: <RepoNameWithLink repo={repo} />,
+    name: repo.full_name,
     createdBy: repo.owner.full_name || repo.owner.login,
-    updated: new Date(repo.updated_at).toLocaleDateString('nb', { dateStyle: 'short' }),
+    updated: repo.updated_at,
     description: repo.description,
     actionIcons: <ActionLinks repo={repo} />,
   }));

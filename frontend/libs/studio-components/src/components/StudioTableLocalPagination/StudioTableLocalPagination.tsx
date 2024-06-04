@@ -9,7 +9,6 @@ export type StudioTableLocalPaginationProps = {
   rows: Rows;
   size?: 'small' | 'medium' | 'large';
   emptyTableMessage?: React.ReactNode;
-  isSortable?: boolean;
   pagination?: {
     pageSizeOptions: number[];
     pageSizeLabel: string;
@@ -22,48 +21,43 @@ export type StudioTableLocalPaginationProps = {
 export const StudioTableLocalPagination = forwardRef<
   HTMLTableElement,
   StudioTableLocalPaginationProps
->(
-  (
-    { columns, rows, isSortable = true, size = 'medium', emptyTableMessage, pagination },
-    ref,
-  ): React.ReactElement => {
-    const [currentPage, setCurrentPage] = useState<number>(1);
-    const [pageSize, setPageSize] = useState<number>(pagination?.pageSizeOptions[0] ?? undefined);
+>(({ columns, rows, size = 'medium', emptyTableMessage, pagination }, ref): React.ReactElement => {
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(pagination?.pageSizeOptions[0] ?? undefined);
 
-    const { handleSorting, sortedRows } = useTableSorting(rows, { enable: isSortable });
+  const { handleSorting, sortedRows } = useTableSorting(rows, { enable: true });
 
-    const initialRowsToRender = getRowsToRender(currentPage, pageSize, rows);
-    const [rowsToRender, setRowsToRender] = useState<Rows>(initialRowsToRender);
+  const initialRowsToRender = getRowsToRender(currentPage, pageSize, rows);
+  const [rowsToRender, setRowsToRender] = useState<Rows>(initialRowsToRender);
 
-    useEffect(() => {
-      const newRowsToRender = getRowsToRender(currentPage, pageSize, sortedRows || rows);
-      setRowsToRender(newRowsToRender);
-    }, [sortedRows, rows, currentPage, pageSize]);
+  useEffect(() => {
+    const newRowsToRender = getRowsToRender(currentPage, pageSize, sortedRows || rows);
+    setRowsToRender(newRowsToRender);
+  }, [sortedRows, rows, currentPage, pageSize]);
 
-    const totalPages = Math.ceil(rows.length / pageSize);
+  const totalPages = Math.ceil(rows.length / pageSize);
 
-    const studioTableRemotePaginationProps = pagination && {
-      ...pagination,
-      pageSize,
-      currentPage,
-      totalPages,
-      totalRows: rows.length,
-      onPageChange: setCurrentPage,
-      onPageSizeChange: setPageSize,
-    };
+  const studioTableRemotePaginationProps = pagination && {
+    ...pagination,
+    pageSize,
+    currentPage,
+    totalPages,
+    totalRows: rows.length,
+    onPageChange: setCurrentPage,
+    onPageSizeChange: setPageSize,
+  };
 
-    return (
-      <StudioTableRemotePagination
-        columns={columns}
-        rows={rowsToRender}
-        size={size}
-        emptyTableMessage={emptyTableMessage}
-        onSortClick={isSortable && handleSorting}
-        pagination={studioTableRemotePaginationProps}
-        ref={ref}
-      />
-    );
-  },
-);
+  return (
+    <StudioTableRemotePagination
+      columns={columns}
+      rows={rowsToRender}
+      size={size}
+      emptyTableMessage={emptyTableMessage}
+      onSortClick={handleSorting}
+      pagination={studioTableRemotePaginationProps}
+      ref={ref}
+    />
+  );
+});
 
 StudioTableLocalPagination.displayName = 'StudioTableLocalPagination';

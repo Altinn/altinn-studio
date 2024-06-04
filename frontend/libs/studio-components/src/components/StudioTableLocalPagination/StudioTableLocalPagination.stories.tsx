@@ -40,7 +40,6 @@ export const Preview: Story = (args) => (
     rows={rows}
     size={args.size}
     emptyTableMessage={'No data found'}
-    isSortable={true}
     pagination={{
       pageSizeOptions: [5, 10, 20, 50],
       pageSizeLabel: 'Rows per page',
