@@ -71,7 +71,7 @@ describe('AccessListMembers', () => {
     const searchResultText = 'Digdir';
     const searchResultOrgNr = '987654321';
     renderAccessListMembers(
-      {},
+      { loadMoreButton: <button></button> },
       {
         addAccessListMember: addAccessListMemberMock,
         getParties: jest.fn().mockImplementation(() =>
@@ -99,6 +99,7 @@ describe('AccessListMembers', () => {
     expect(addAccessListMemberMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, {
       data: [searchResultOrgNr],
     });
+    expect(screen.getAllByText(searchResultOrgNr).length).toBe(2);
   });
 
   it('should show message when no parties are found', async () => {

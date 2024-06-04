@@ -37,6 +37,8 @@ export const AccessListMembers = ({
 }: AccessListMembersProps): React.JSX.Element => {
   const { t } = useTranslation();
 
+  // if list has more than 100 members and not all are loaded, keep added members in local array for display
+  const [localItems, setLocalItems] = useState<AccessListMember[]>([]);
   const [invalidOrgnrs, setInvalidOrgnrs] = useState<string[]>([]);
   const [isAddMode, setIsAddMode] = useState<boolean>(members.length === 0);
   const [isSubPartySearch, setIsSubPartySearch] = useState<boolean>(false);
@@ -60,6 +62,9 @@ export const AccessListMembers = ({
 
   const handleAddMember = (memberToAdd: AccessListMember): void => {
     addListMember([memberToAdd.orgNr], {
+      onSuccess: () => {
+        setLocalItems((prev) => [...prev, memberToAdd]);
+      },
       onError: (error: Error) => {
         if (
           ((error as ResourceError).response?.data as { code: string }).code ===
@@ -72,7 +77,11 @@ export const AccessListMembers = ({
   };
 
   const handleRemoveMember = (memberIdToRemove: string): void => {
-    removeListMember([memberIdToRemove]);
+    removeListMember([memberIdToRemove], {
+      onSuccess: () => {
+        setLocalItems((prev) => prev.filter((item) => item.orgNr !== memberIdToRemove));
+      },
+    });
   };
 
   const getResultData = () => {
@@ -99,6 +108,19 @@ export const AccessListMembers = ({
     }
   };
 
+  const getMergedMembersData = (): AccessListMember[] => {
+    const returnData = [...members];
+    // if load more button exists, there are more members in the list that can be shown. Always show newly added items
+    if (loadMoreButton) {
+      localItems.forEach((localItem) => {
+        if (!returnData.some((member) => member.orgNr === localItem.orgNr)) {
+          returnData.push(localItem);
+        }
+      });
+    }
+    return returnData;
+  };
+
   const resultData = getResultData();
 
   return (
@@ -107,7 +129,7 @@ export const AccessListMembers = ({
       description={t('resourceadm.listadmin_list_organizations_description')}
     >
       <AccessListMembersTable
-        listItems={members}
+        listItems={getMergedMembersData()}
         isLoading={isRemovingMember}
         onButtonClick={(item: AccessListMember) => handleRemoveMember(item.orgNr)}
       />
@@ -153,7 +175,7 @@ export const AccessListMembers = ({
             isHeaderHidden
             listItems={resultData?.parties ?? []}
             isLoading={isAddingNewListMember}
-            disabledItems={members}
+            disabledItems={getMergedMembersData()}
             invalidItems={invalidOrgnrs}
             isAdd
             onButtonClick={handleAddMember}
