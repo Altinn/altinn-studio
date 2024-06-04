@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { LegacySelect } from '@digdir/design-system-react';
+import { NativeSelect } from '@digdir/design-system-react';
 import { useDataModelMetadataQuery } from '../../hooks/queries/useDataModelMetadataQuery';
 import { FormField } from '../FormField';
 import type { Option } from '@altinn/text-editor/types';
@@ -45,8 +45,8 @@ export const SelectDataModelComponent = ({
     setDataModelElementNames(elementNames);
   }, [data, dataModelFieldsFilter]);
 
-  const onChangeSelectedBinding = (e: any) => {
-    onDataModelChange(e);
+  const onChangeSelectedBinding = (value: string) => {
+    onDataModelChange(value);
   };
 
   return (
@@ -59,11 +59,13 @@ export const SelectDataModelComponent = ({
       helpText={helpText}
       label={label}
       renderField={({ fieldProps }) => (
-        <LegacySelect
-          {...fieldProps}
-          onChange={(e: any) => fieldProps.onChange(e)}
-          options={dataModelElementNames}
-        />
+        <NativeSelect {...fieldProps} onChange={(e) => fieldProps.onChange(e.target.value)}>
+          {dataModelElementNames.map((element) => (
+            <option key={element.value} value={element.value}>
+              {element.label}
+            </option>
+          ))}
+        </NativeSelect>
       )}
     />
   );
