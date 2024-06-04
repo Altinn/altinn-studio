@@ -9,7 +9,7 @@
     "not op_mini all"
   ],
   "dependencies": {
-    "@mui/material": "5.15.18",
+    "@mui/material": "5.15.19",
     "@reduxjs/toolkit": "1.9.7",
     "@studio/icons": "workspace:^",
     "@studio/pure-functions": "workspace:^",

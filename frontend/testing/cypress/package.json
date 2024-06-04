@@ -3,7 +3,7 @@
   "description": "studio tests",
   "version": "1.0.0",
   "devDependencies": {
-    "@testing-library/cypress": "10.0.1",
+    "@testing-library/cypress": "10.0.2",
     "axe-core": "4.9.1",
     "cypress": "13.10.0",
     "cypress-axe": "1.5.0",
