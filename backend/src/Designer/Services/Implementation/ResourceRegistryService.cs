@@ -358,7 +358,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         {
                             OrgNr = orgnr,
                             OrgName = enhetOrgName ?? underenhetOrgName ?? "",
-                            IsSubParty = underenhetOrgName == null
+                            IsSubParty = underenhetOrgName != null
                         };
                         return member;
                     }));
