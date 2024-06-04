@@ -45,7 +45,7 @@ const ConfigPanelContent = (): React.ReactElement => {
 
   const elementIsTask = bpmnDetails.type === BpmnTypeEnum.Task;
   if (elementIsTask) {
-    return <ConfigContent />;
+    return <ConfigContent key={bpmnDetails.id} />;
   }
 
   return (
