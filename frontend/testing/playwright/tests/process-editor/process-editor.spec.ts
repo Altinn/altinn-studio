@@ -75,17 +75,54 @@ test('That it is possible to click a task in the process editor, and delete the 
   await processEditorPage.verifyThatAddNewDataModelButtonIsHidden();
 });
 
-test('That it is possible to click a task in the process editor, and add a new action', async ({
-  page,
-  testAppName,
-}): Promise<void> => {});
+/*
+TODO WAIT FOR COMBOBOX MERGE
 
-test('That it is possible to click a task in the process editor, and navigate to policy editor', async ({
+test('That it is possible to click a task in the process editor, add a new action, and open the policy editor', async ({
   page,
   testAppName,
-}): Promise<void> => {});
+}): Promise<void> => {
+  const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
+  const bpmnJSQuery = new BpmnJSQuery(page);
 
-test('That it is possible to add a new task to the process editor, and add it to the existing process', async ({
+  const initialTaskDataElementIdSelector: string = await bpmnJSQuery.getTaskById('Task_1');
+  await processEditorPage.clickOnInitialTask(initialTaskDataElementIdSelector);
+  await processEditorPage.waitForInitialTaskHeaderToBeVisible();
+
+  await processEditorPage.clickOnActionsAccordion(); // Maybe combine with below
+  await processEditorPage.waitForAddActionsButtonToBeVisible();
+
+  await processEditorPage.clickAddActionsButton();
+  await processEditorPage.waitForActionComboboxToBeVisible('1');
+
+  await processEditorPage.clickOnActionCombobox('1');
+  await processEditorPage.clickOnActionOption('write');
+  await processEditorPage.clickOnSaveActionButton();
+  await processEditorPage.waitForActionButtonToBeVisible('write');
+
+  await processEditorPage.clickOnPolicyAccordion(); // Maybe combine with above
+  await processEditorPage.waitForNavigateToPolicyButtonIsVisible();
+  await processEditorPage.clickOnNavigateToPolicyEditorButton();
+});
+*/
+
+test('That it is possible to add a new task to the process editor, configure some of its data', async ({
   page,
   testAppName,
-}): Promise<void> => {});
+}): Promise<void> => {
+  const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
+  const bpmnJSQuery = new BpmnJSQuery(page);
+
+  /*  const initialTaskDataElementIdSelector: string = await bpmnJSQuery.getTaskById('Task_1');
+  await processEditorPage.clickOnInitialTask(initialTaskDataElementIdSelector);
+  await processEditorPage.waitForInitialTaskHeaderToBeVisible();*/
+
+  await processEditorPage.dragTaskInToBpmnEditor('data');
+  // await processEditorPage.waitForTaskToBeVisibleInConfigPanel('data');
+
+  await processEditorPage.clickOnActionsAccordion();
+});
+
+// GEt ID from element dragged in
+
+// Click arrow - SequenceFlow_*
