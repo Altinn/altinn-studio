@@ -119,6 +119,8 @@ test('That it is possible to add a new task to the process editor, configure som
 
   await processEditorPage.dragTaskInToBpmnEditor('data');
   // await processEditorPage.waitForTaskToBeVisibleInConfigPanel('data');
+  const id = await processEditorPage.getTaskIdFromOpenNewlyAddedTask();
+  console.log('ID---', id);
 
   await processEditorPage.clickOnActionsAccordion();
 });

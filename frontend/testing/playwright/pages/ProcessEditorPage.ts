@@ -224,23 +224,27 @@ export class ProcessEditorPage extends BasePage {
 
     await this.page.getByTitle(title).hover();
     await this.page.mouse.down();
-
-    await this.page.mouse.move(targetX, targetY, { steps: 20 });
+    const numberOfMouseMoveEvents: number = 20;
+    await this.page.mouse.move(targetX, targetY, { steps: numberOfMouseMoveEvents });
     await this.page.mouse.up();
-
-    const buttonSelector = 'text=ID: Activity_';
-    await this.page.waitForSelector(buttonSelector);
-
-    const button = this.page.locator(buttonSelector);
-
-    await this.page.getByTitle(title).hover();
-    const fullText = await button.textContent();
-    const extractedText = fullText.match(/ID: (Activity_\w+)/);
-    console.log('extracted', extractedText[1]);
   }
 
   public async waitForTaskToBeVisibleInConfigPanel(task: BpmnTaskType): Promise<void> {
     const text = this.page.getByText(`Altinn ${task} task`);
-    expect(text).toBeVisible();
+    await expect(text).toBeVisible();
+  }
+
+  public async getTaskIdFromOpenNewlyAddedTask(): Promise<string> {
+    const selector = 'text=ID: Activity_';
+    await this.page.waitForSelector(selector);
+    return await this.getFullIdFromButtonSelector(selector);
+  }
+
+  private async getFullIdFromButtonSelector(selector: string): Promise<string> {
+    const button = this.page.locator(selector);
+    const fullText = await button.textContent();
+    const extractedText = fullText.match(/ID: (Activity_\w+)/);
+    const fullId: string = extractedText[0];
+    return fullId;
   }
 }
