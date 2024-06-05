@@ -3,9 +3,14 @@ import { App } from './App';
 import './styles/index.css';
 import { AppContextProvider } from './AppContext';
 
-export const SubApp = () => {
+type SubAppProps = {
+  shouldReloadPreview: boolean;
+  previewHasLoaded: () => void;
+};
+
+export const SubApp = (props: SubAppProps) => {
   return (
-    <AppContextProvider>
+    <AppContextProvider {...props}>
       <App />
     </AppContextProvider>
   );

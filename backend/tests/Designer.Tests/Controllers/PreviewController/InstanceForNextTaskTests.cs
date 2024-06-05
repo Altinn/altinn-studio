@@ -20,9 +20,9 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_InstanceForNextProcess_Ok()
         {
-            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}";
+            string dataPathWithData = $"{Org}/{AppV3}/instances/{PartyId}/{InstanceGuId}";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSet=");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV3}&selectedLayoutSet=");
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -35,11 +35,11 @@ namespace Designer.Tests.Controllers.PreviewController
         }
 
         [Fact]
-        public async Task Get_InstanceForNextTaskForStatefulApp_Ok_TaskIsIncreased()
+        public async Task Get_InstanceForNextTaskForV4App_Ok_TaskIsIncreased()
         {
-            string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}";
+            string dataPathWithData = $"{Org}/{AppV4}/instances/{PartyId}/{InstanceGuId}";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSet={LayoutSetName}");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet={LayoutSetName}");
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

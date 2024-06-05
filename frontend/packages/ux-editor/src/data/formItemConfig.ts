@@ -21,6 +21,7 @@ import {
   NavBarIcon,
   PaperclipIcon,
   TextIcon,
+  PaymentDetailsIcon,
   PinIcon,
   PresentationIcon,
   RadioButtonIcon,
@@ -30,6 +31,7 @@ import {
   TableIcon,
   TasklistIcon,
   TitleIcon,
+  WalletIcon,
 } from '@studio/icons';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import { LayoutItemType } from '../types/global';
@@ -375,6 +377,18 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: TextIcon,
   },
+  [ComponentType.Payment]: {
+    name: ComponentType.Payment,
+    itemType: LayoutItemType.Component,
+    defaultProperties: {},
+    icon: WalletIcon,
+  },
+  [ComponentType.PaymentDetails]: {
+    name: ComponentType.PaymentDetails,
+    itemType: LayoutItemType.Component,
+    defaultProperties: {},
+    icon: PaymentDetailsIcon,
+  },
   [ComponentType.PrintButton]: {
     name: ComponentType.PrintButton,
     itemType: LayoutItemType.Component,
@@ -439,6 +453,7 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.List],
   formItemConfigs[ComponentType.Custom],
   formItemConfigs[ComponentType.RepeatingGroup],
+  formItemConfigs[ComponentType.PaymentDetails],
 ];
 
 export const schemaComponents: FormItemConfigs[ComponentType][] = [
@@ -478,4 +493,9 @@ export const confOnScreenComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Paragraph],
   formItemConfigs[ComponentType.AttachmentList],
   formItemConfigs[ComponentType.Image],
+];
+
+export const paymentLayoutComponents: FormItemConfigs[ComponentType][] = [
+  formItemConfigs[ComponentType.Payment],
+  ...confOnScreenComponents,
 ];

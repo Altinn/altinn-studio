@@ -1,10 +1,10 @@
 import React from 'react';
-import { act, fireEvent, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EditGrid } from './EditGrid';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { component1Mock } from '../../../../testing/layoutMock';
 
 const waitForData = async () => {
@@ -50,7 +50,7 @@ describe('EditGrid', () => {
     });
     expect(laptopTab).toBeInTheDocument();
     expect(laptopTab).toHaveAttribute('aria-selected', 'false');
-    await act(() => user.click(laptopTab));
+    await user.click(laptopTab);
     expect(laptopTab).toHaveAttribute('aria-selected', 'true');
 
     const sliderLaptop = screen.getByRole('slider');
@@ -83,7 +83,7 @@ describe('EditGrid', () => {
 
     const switchUseDefault = screen.getByRole('checkbox');
 
-    await act(() => user.click(switchUseDefault));
+    await user.click(switchUseDefault);
 
     const lockIconAfterSwitchClick = screen.queryByRole('img', { name: 'lockIcon' });
     expect(lockIconAfterSwitchClick).not.toBeInTheDocument();
@@ -141,7 +141,7 @@ describe('EditGrid', () => {
     });
 
     const switchUseDefault = screen.getByRole('checkbox');
-    await act(() => user.click(switchUseDefault));
+    await user.click(switchUseDefault);
 
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...component1Mock,
@@ -162,11 +162,11 @@ describe('EditGrid', () => {
     const laptopTab = screen.getByRole('tab', {
       name: textMock('ux_editor.modal_properties_grid_size_md'),
     });
-    await act(() => user.click(laptopTab));
+    await user.click(laptopTab);
 
     const switchUseDefault = screen.getByRole('checkbox');
 
-    await act(() => user.click(switchUseDefault));
+    await user.click(switchUseDefault);
 
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...component1Mock,
@@ -190,7 +190,7 @@ describe('EditGrid', () => {
 
     const switchUseDefault = screen.getByRole('checkbox');
 
-    await act(() => user.click(switchUseDefault));
+    await user.click(switchUseDefault);
 
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...component1Mock,
@@ -211,7 +211,7 @@ describe('EditGrid', () => {
 
     const switchUseDefault = screen.getByRole('checkbox');
 
-    await act(() => user.click(switchUseDefault));
+    await user.click(switchUseDefault);
 
     expect(handleComponentChange).toHaveBeenCalledWith(component1Mock);
   });

@@ -1,7 +1,8 @@
 import React from 'react';
 import { Trans } from 'react-i18next';
-import { Alert, Paragraph, Label } from '@digdir/design-system-react';
+import { Alert, Paragraph } from '@digdir/design-system-react';
 import { LinkButton } from '../LinkButton';
+import { StudioLabelAsParagraph } from '@studio/components';
 
 type MigrationStepProps = {
   /**
@@ -57,9 +58,9 @@ export const MigrationStep = ({
 }: MigrationStepProps): React.JSX.Element => {
   return (
     <div>
-      <Label asChild size='medium' spacing>
-        <p>{title}</p>
-      </Label>
+      <StudioLabelAsParagraph size='medium' spacing>
+        {title}
+      </StudioLabelAsParagraph>
       <Alert severity={isSuccess ? 'success' : 'danger'}>
         <Paragraph size='small'>
           <Trans i18nKey={text} values={translationValues}>

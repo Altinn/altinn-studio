@@ -6,7 +6,7 @@ import { StudioDecimalInput } from '@studio/components';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../../types/FormItem';
 import type { FilterKeysOfType } from 'app-shared/types/FilterKeysOfType';
-import { useComponentPropertyLabel } from '../../../hooks/useComponentPropertyLabel';
+import { useComponentPropertyLabel, useAppContext } from '../../../hooks';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { useTranslation } from 'react-i18next';
 
@@ -26,8 +26,17 @@ export const EditNumberValue = <T extends ComponentType, K extends NumberKeys<Fo
 }: EditNumberValueProps<T, K>) => {
   const { t } = useTranslation();
   const componentPropertyLabel = useComponentPropertyLabel();
-  const handleValueChange = (newValue: number) =>
-    handleComponentChange(setComponentProperty<T, number, K>(component, propertyKey, newValue));
+  const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
+  const handleValueChange = async (newValue: number) => {
+    await handleComponentChange(
+      setComponentProperty<T, number, K>(component, propertyKey, newValue),
+      {
+        onSuccess: async () => {
+          await refetchLayouts(selectedFormLayoutSetName, true);
+        },
+      },
+    );
+  };
 
   return (
     <FormField

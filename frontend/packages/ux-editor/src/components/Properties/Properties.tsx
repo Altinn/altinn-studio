@@ -49,11 +49,11 @@ export const Properties = () => {
                 <Text />
               </Accordion.Content>
             </Accordion.Item>
-            <Accordion.Item open={openList.includes('datamodel')}>
-              <Accordion.Header onHeaderClick={() => toggleOpen('datamodel')}>
-                {t('right_menu.dataModelBindings')}
+            <Accordion.Item open={openList.includes('dataModel')}>
+              <Accordion.Header onHeaderClick={() => toggleOpen('dataModel')}>
+                {t('right_menu.data_model_bindings')}
               </Accordion.Header>
-              <Accordion.Content className={classes.datamodelBindings}>
+              <Accordion.Content className={classes.dataModelBindings}>
                 <DataModelBindings />
               </Accordion.Content>
             </Accordion.Item>
@@ -65,9 +65,9 @@ export const Properties = () => {
                 <EditFormComponent
                   editFormId={formItemId}
                   component={formItem}
-                  handleComponentUpdate={async (updatedComponent) => {
+                  handleComponentUpdate={async (updatedComponent, mutateOptions) => {
                     handleUpdate(updatedComponent);
-                    debounceSave(formItemId, updatedComponent);
+                    debounceSave(formItemId, updatedComponent, mutateOptions);
                   }}
                 />
               </Accordion.Content>

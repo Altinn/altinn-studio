@@ -9,7 +9,7 @@ import type { RuleConnection } from 'app-shared/types/RuleConfig';
 import { useRuleConfigQuery } from '../../hooks/queries/useRuleConfigQuery';
 import { useRuleConfigMutation } from '../../hooks/mutations/useRuleConfigMutation';
 import { addRuleConnection, deleteRuleConnection } from '../../utils/ruleConfigUtils';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../hooks/useAppContext';
 
 export interface IRuleModalProps {
@@ -19,7 +19,7 @@ export interface IRuleModalProps {
 }
 
 export function RuleModal(props: IRuleModalProps) {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
   const { selectedLayoutSet } = useAppContext();
   const { data: ruleConfig } = useRuleConfigQuery(org, app, selectedLayoutSet);

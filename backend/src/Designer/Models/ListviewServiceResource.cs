@@ -24,11 +24,16 @@ namespace Altinn.Studio.Designer.Models
         /// <summary>
         /// Timestamp for when the resourcefile was last changed
         /// </summary>
-        public DateTime LastChanged { get; set; }
+        public DateTime? LastChanged { get; set; }
 
         /// <summary>
         /// A bool indicating if the resource has a policy or not
         /// </summary>
         public bool? HasPolicy { get; set; }
+
+        /// <summary>
+        /// A list of environments the resource is deployed in
+        /// </summary>
+        public IList<string> Environments { get; set; }
     }
 }

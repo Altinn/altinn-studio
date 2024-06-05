@@ -172,8 +172,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<bool> PutStarred(string org, string repository)
         {
-            HttpRequestMessage request = new(HttpMethod.Put, $"user/starred/{org}/{repository}");
-            HttpResponseMessage response = await _httpClient.SendAsync(request);
+            using HttpRequestMessage request = new(HttpMethod.Put, $"user/starred/{org}/{repository}");
+            using HttpResponseMessage response = await _httpClient.SendAsync(request);
 
             return response.StatusCode == HttpStatusCode.NoContent;
         }
@@ -181,8 +181,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<bool> DeleteStarred(string org, string repository)
         {
-            HttpRequestMessage request = new(HttpMethod.Delete, $"user/starred/{org}/{repository}");
-            HttpResponseMessage response = await _httpClient.SendAsync(request);
+            using HttpRequestMessage request = new(HttpMethod.Delete, $"user/starred/{org}/{repository}");
+            using HttpResponseMessage response = await _httpClient.SendAsync(request);
 
             return response.StatusCode == HttpStatusCode.NoContent;
         }
@@ -234,8 +234,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 if (commitResponse != null)
                 {
                     string commitUserName = commitResponse.LastOrDefault().Commit?.Author?.Name;
-                    GiteaUser user = await GetCachedUser(commitUserName);
-                    listviewResource.CreatedBy = string.IsNullOrEmpty(user.FullName) ? commitUserName : user.FullName;
+                    string userFullName = await GetCachedUserFullName(commitUserName);
+                    listviewResource.CreatedBy = userFullName;
                     listviewResource.LastChanged = DateTime.Parse(commitResponse.FirstOrDefault().Created);
                 }
             }
@@ -243,11 +243,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (string.IsNullOrEmpty(listviewResource.CreatedBy))
             {
                 string localUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-                GiteaUser localUser = await GetCachedUser(localUserName);
-                listviewResource.CreatedBy = string.IsNullOrEmpty(localUser.FullName) ? localUserName : localUser.FullName;
+                string userFullName = await GetCachedUserFullName(localUserName);
+                listviewResource.CreatedBy = userFullName;
             }
 
-            if (listviewResource.LastChanged.Year.Equals(1))
+            if (listviewResource.LastChanged == null)
             {
                 listviewResource.LastChanged = DateTime.Now;
             }
@@ -436,7 +436,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private async Task<HttpResponseMessage> PostBranch(string org, string repository, string branchName)
         {
             string content = $"{{\"new_branch_name\":\"{branchName}\"}}";
-            HttpRequestMessage message = new(HttpMethod.Post, $"repos/{org}/{repository}/branches");
+            using HttpRequestMessage message = new(HttpMethod.Post, $"repos/{org}/{repository}/branches");
             message.Content = new StringContent(content, Encoding.UTF8, "application/json");
 
             return await _httpClient.SendAsync(message);
@@ -573,7 +573,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<bool> CreatePullRequest(string org, string repository, CreatePullRequestOption createPullRequestOption)
         {
             string content = JsonSerializer.Serialize(createPullRequestOption);
-            HttpResponseMessage response = await _httpClient.PostAsync($"repos/{org}/{repository}/pulls", new StringContent(content, Encoding.UTF8, "application/json"));
+            using HttpResponseMessage response = await _httpClient.PostAsync($"repos/{org}/{repository}/pulls", new StringContent(content, Encoding.UTF8, "application/json"));
 
             return response.IsSuccessStatusCode;
         }
@@ -648,8 +648,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     formValues.Add(new KeyValuePair<string, string>("_csrf", csrf));
                     formValues.Add(new KeyValuePair<string, string>("id", key));
 
-                    FormUrlEncodedContent content = new(formValues);
-                    HttpResponseMessage response = await client.PostAsync(giteaUrl, content);
+                    using FormUrlEncodedContent content = new(formValues);
+                    using HttpResponseMessage response = await client.PostAsync(giteaUrl, content);
                     if (!response.StatusCode.Equals(HttpStatusCode.OK))
                     {
                         break;
@@ -722,20 +722,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return null;
         }
 
-        private async Task<GiteaUser> GetCachedUser(string username)
+        private async Task<string> GetCachedUserFullName(string username)
         {
-            string cacheKey = $"giteauser:{username}";
-            if (!_cache.TryGetValue(cacheKey, out GiteaUser giteaUser))
+            string cacheKey = $"giteauser_fullname:{username}";
+            var cacheEntryOptions = new MemoryCacheEntryOptions();
+            if (!_cache.TryGetValue(cacheKey, out string giteaUserFullName))
             {
                 HttpResponseMessage response = await _httpClient.GetAsync($"users/{username}/");
-                response.EnsureSuccessStatusCode();
-                giteaUser = await response.Content.ReadAsAsync<GiteaUser>();
-                var cacheEntryOptions = new MemoryCacheEntryOptions();
-
-                _cache.Set(cacheKey, giteaUser, cacheEntryOptions);
+                GiteaUser giteaUser = await response.Content.ReadAsAsync<GiteaUser>();
+                giteaUserFullName = string.IsNullOrEmpty(giteaUser.FullName) ? username : giteaUser.FullName;
+                _cache.Set(cacheKey, giteaUserFullName, cacheEntryOptions);
             }
 
-            return giteaUser;
+            return giteaUserFullName;
         }
 
         private async Task<Organization> GetCachedOrg(string org)

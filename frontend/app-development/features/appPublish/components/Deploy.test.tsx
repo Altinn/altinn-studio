@@ -1,10 +1,10 @@
 import React from 'react';
 import type { DeployProps } from './Deploy';
 import { Deploy } from './Deploy';
-import { act, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithMockStore } from 'app-development/test/mocks';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { AppRelease } from 'app-shared/types/AppRelease';
 import { appRelease } from 'app-shared/mocks/mocks';
@@ -152,18 +152,18 @@ describe('DeploymentActions', () => {
     );
 
     const select = screen.getByLabelText(textMock('app_deployment.choose_version'));
-    await act(() => user.click(select));
+    await user.click(select);
 
     const option = screen.getByRole('option', { name: imageOptions[0].label });
-    await act(() => user.click(option));
+    await user.click(option);
 
     const deployButton = await screen.findByRole('button', {
       name: textMock('app_deployment.btn_deploy_new_version'),
     });
-    await act(() => user.click(deployButton));
+    await user.click(deployButton);
 
     const confirmButton = screen.getByRole('button', { name: textMock('general.yes') });
-    await act(() => user.click(confirmButton));
+    await user.click(confirmButton);
 
     expect(
       await screen.findByText(textMock('app_deployment.technical_error_1')),

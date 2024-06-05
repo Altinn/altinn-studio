@@ -1,9 +1,9 @@
 import React from 'react';
-import { render as rtlRender, act, screen } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ThreeDotsMenuProps } from './ThreeDotsMenu';
 import { ThreeDotsMenu } from './ThreeDotsMenu';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 const threeDotsButtonMock = textMock('sync_header.gitea_menu');
@@ -11,6 +11,7 @@ const cloneTextMock = textMock('sync_header.clone');
 const repositoryTextMock = textMock('sync_header.repository');
 const localChangesTextMock = textMock('sync_header.local_changes');
 const localChangesModalMock = 'LocalChangesModal';
+import { app, org } from '@studio/testing/testids';
 
 jest.mock(
   'app-shared/components/GiteaHeader/ThreeDotsMenu/LocalChangesModal/LocalChangesModal',
@@ -27,7 +28,7 @@ describe('ThreeDotsMenu', () => {
     const threeDotsMenu = screen.getByRole('button', { name: threeDotsButtonMock });
     expect(threeDotsMenu).toBeInTheDocument();
 
-    await act(() => user.click(threeDotsMenu));
+    await user.click(threeDotsMenu);
     const cloneText = screen.getByRole('button', { name: cloneTextMock });
     expect(cloneText).toBeInTheDocument();
 
@@ -44,7 +45,7 @@ describe('ThreeDotsMenu', () => {
     const threeDotsMenu = screen.getByRole('button', { name: threeDotsButtonMock });
     expect(threeDotsMenu).toBeInTheDocument();
 
-    await act(() => user.click(threeDotsMenu));
+    await user.click(threeDotsMenu);
 
     const cloneText = screen.queryByText(cloneTextMock);
     expect(cloneText).not.toBeInTheDocument();
@@ -55,9 +56,9 @@ describe('ThreeDotsMenu', () => {
     const threeDotsMenu = screen.getByRole('button', { name: threeDotsButtonMock });
     expect(threeDotsMenu).toBeInTheDocument();
 
-    await act(() => user.click(threeDotsMenu));
+    await user.click(threeDotsMenu);
     const localChangesText = screen.getByText(localChangesTextMock);
-    await act(() => user.click(localChangesText));
+    await user.click(localChangesText);
     const localChangesModal = screen.getByTestId(localChangesModalMock);
     expect(localChangesModal).toBeInTheDocument();
   });
@@ -67,8 +68,8 @@ const render = async (props: Partial<ThreeDotsMenuProps> = {}) => {
   const allProps: ThreeDotsMenuProps = {
     onlyShowRepository: false,
     hasCloneModal: false,
-    org: 'org',
-    app: 'app',
+    org,
+    app,
     ...props,
   };
 

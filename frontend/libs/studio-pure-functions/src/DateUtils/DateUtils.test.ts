@@ -11,7 +11,7 @@ test('that formatTimeHHmm works', () => {
 });
 
 test('that formatDateDDMMYY works', () => {
-  const formatted = DateUtils.formatDateDDMMYY(
+  const formatted = DateUtils.formatDateDDMMYYYY(
     'Tue Jan 10 2023 13:23:45 GMT+0100 (Central European Standard Time)',
     'Europe/Oslo',
   );
@@ -35,7 +35,7 @@ test('that isDateWithinSeconds works', () => {
     10,
   );
   expect(oldDate).toBe(false);
-  const newDate = DateUtils.isDateWithinSeconds(new Date().toLocaleString(), 36000);
+  const newDate = DateUtils.isDateWithinSeconds(new Date().toISOString(), 36000);
   expect(newDate).toBe(true);
 });
 
@@ -45,7 +45,7 @@ test('that isDateWithinDays works', () => {
     10,
   );
   expect(oldDate).toBe(false);
-  const newDate = DateUtils.isDateWithinDays(new Date().toLocaleString(), 10);
+  const newDate = DateUtils.isDateWithinDays(new Date().toISOString(), 10);
   expect(newDate).toBe(true);
 });
 

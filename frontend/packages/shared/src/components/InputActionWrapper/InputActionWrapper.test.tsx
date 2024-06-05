@@ -1,8 +1,8 @@
 import React from 'react';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import type { InputActionWrapperProps } from './InputActionWrapper';
 import { InputActionWrapper } from './InputActionWrapper';
-import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
+import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation() }));
@@ -53,44 +53,44 @@ describe('InputActionWrapper', () => {
   it('triggers save click on save button click', async () => {
     render(<InputActionWrapper {...mockProps} />);
     const saveButton = screen.getByLabelText('general.save');
-    await act(() => user.click(saveButton));
+    await user.click(saveButton);
     expect(mockProps.onSaveClick).toHaveBeenCalledTimes(1);
   });
 
   it('triggers delete click on delete button click', async () => {
     render(<InputActionWrapper {...mockProps} />);
     const deleteButton = screen.getByLabelText('general.delete');
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
     expect(mockProps.onDeleteClick).toHaveBeenCalledTimes(1);
   });
 
   it('check that handleActionClick is called when edit button is clicked', async () => {
     render(<InputActionWrapper {...mockProps} mode='hoverMode' />);
     const editButton = screen.getByLabelText('general.edit');
-    await act(() => user.click(editButton));
+    await user.click(editButton);
     expect(mockProps.onEditClick).toHaveBeenCalledTimes(1);
   });
 
   it('check that handleHover is called when onMouseOver is called ', async () => {
     render(<InputActionWrapper {...mockProps} mode='standBy' />);
     const input = screen.getByRole('textbox');
-    await act(() => user.hover(input));
+    await user.hover(input);
     expect(screen.getByLabelText('general.edit')).toBeInTheDocument();
   });
 
   it('check that handleBlur is called when onMouseLeave is called ', async () => {
     render(<InputActionWrapper {...mockProps} mode='standBy' />);
     const input = screen.getByRole('textbox');
-    await act(() => user.hover(input));
+    await user.hover(input);
     expect(screen.getByLabelText('general.edit')).toBeInTheDocument();
-    await act(() => user.unhover(input));
+    await user.unhover(input);
     expect(screen.queryByLabelText('general.edit')).not.toBeInTheDocument();
   });
 
   it('check that handleFocus is called when onFocus is called ', async () => {
     render(<InputActionWrapper {...mockProps} mode='standBy' />);
     const input = screen.getByRole('textbox');
-    await act(() => user.hover(input));
+    await user.hover(input);
     expect(screen.getByLabelText('general.edit')).toBeInTheDocument();
   });
 

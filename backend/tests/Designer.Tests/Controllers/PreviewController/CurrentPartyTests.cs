@@ -19,7 +19,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_CurrentParty_Ok()
         {
-            string dataPathWithData = $"{Org}/{App}/api/authorization/parties/current";
+            string dataPathWithData = $"{Org}/{AppV3}/api/authorization/parties/current";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

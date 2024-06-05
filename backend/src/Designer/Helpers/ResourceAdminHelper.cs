@@ -20,7 +20,7 @@ namespace Altinn.Studio.Designer.Helpers
                 string nbTitle = titleToValidate.ContainsKey("nb") ? titleToValidate["nb"] : string.Empty;
                 string nnTitle = titleToValidate.ContainsKey("nn") ? titleToValidate["nn"] : string.Empty;
 
-                return !string.IsNullOrWhiteSpace(enTitle) && !string.IsNullOrWhiteSpace(nbTitle) && !string.IsNullOrWhiteSpace(nnTitle);
+                return !string.IsNullOrWhiteSpace(enTitle.Trim()) && !string.IsNullOrWhiteSpace(nbTitle.Trim()) && !string.IsNullOrWhiteSpace(nnTitle.Trim());
             }
             else
             {

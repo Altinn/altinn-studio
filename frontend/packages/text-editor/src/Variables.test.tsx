@@ -2,7 +2,7 @@ import React from 'react';
 import type { VariablesProps } from './Variables';
 import { Variables } from './Variables';
 import { screen, render as rtlRender } from '@testing-library/react';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const renderVariables = (props: Partial<VariablesProps> = {}) => {
   const allProps: VariablesProps = {

@@ -1,21 +1,21 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { ProcessEditor } from './ProcessEditor';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../test/testUtils';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { AppVersion } from 'app-shared/types/AppVersion';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
-import { useBpmnContext } from '../../../packages/process-editor/src/contexts/BpmnContext';
+import { useBpmnContext } from '@altinn/process-editor/contexts/BpmnContext';
 import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { type SyncError, type SyncSuccess } from './syncUtils';
 import { processEditorWebSocketHub } from 'app-shared/api/paths';
+import { app, org } from '@studio/testing/testids';
+import { SyncSuccessQueriesInvalidator } from 'app-shared/queryInvalidator/SyncSuccessQueriesInvalidator';
 
 // test data
-const org = 'org';
-const app = 'app';
 const defaultAppVersion: AppVersion = { backendVersion: '8.0.0', frontendVersion: '4.0.0' };
 
 jest.mock('app-shared/hooks/useWebSocket', () => ({
@@ -26,12 +26,12 @@ jest.mock('app-shared/hooks/useConfirmationDialogOnPageLeave', () => ({
   useConfirmationDialogOnPageLeave: jest.fn(),
 }));
 
-jest.mock('../../../packages/process-editor/src/contexts/BpmnContext', () => ({
-  ...jest.requireActual('../../../packages/process-editor/src/contexts/BpmnContext'),
+jest.mock('@altinn/process-editor/contexts/BpmnContext', () => ({
+  ...jest.requireActual('@altinn/process-editor/contexts/BpmnContext'),
   useBpmnContext: jest.fn(),
 }));
 
-jest.mock('../../../packages/process-editor/src/components/Canvas', () => ({
+jest.mock('@altinn/process-editor/components/Canvas', () => ({
   Canvas: () => <div></div>,
 }));
 
@@ -95,6 +95,7 @@ describe('ProcessEditor', () => {
     renderProcessEditor();
 
     expect(useWebSocket).toHaveBeenCalledWith({
+      clientsName: ['FileSyncSuccess', 'FileSyncError'],
       webSocketUrl: processEditorWebSocketHub(),
       webSocketConnector: WSConnector,
     });
@@ -124,7 +125,7 @@ describe('ProcessEditor', () => {
     await screen.findByText(textMock('process_editor.sync_error_application_metadata_task_id'));
   });
 
-  it('should invoke mockOnWSMessageReceived with success details and console.log success', async () => {
+  it('should invalidate query cache to the updated file when mockOnWSMessageReceived is invoked with success details', async () => {
     const syncSuccessMock: SyncSuccess = {
       source: {
         name: 'applicationMetadata.json',
@@ -132,8 +133,10 @@ describe('ProcessEditor', () => {
       },
     };
 
-    const consoleSpy = jest.spyOn(console, 'log');
+    const queryClientMock = createQueryClientMock();
+    const invalidator = SyncSuccessQueriesInvalidator.getInstance(queryClientMock, org, app);
 
+    invalidator.invalidateQueryByFileName = jest.fn();
     const mockOnWSMessageReceived = jest
       .fn()
       .mockImplementation((callback: Function) => callback(syncSuccessMock));
@@ -144,7 +147,11 @@ describe('ProcessEditor', () => {
     });
 
     renderProcessEditor();
-    expect(consoleSpy).toHaveBeenCalledWith('SyncSuccess received');
+    await waitFor(() => {
+      expect(invalidator.invalidateQueryByFileName).toHaveBeenCalledWith(
+        syncSuccessMock.source.name,
+      );
+    });
   });
 });
 

@@ -5,10 +5,10 @@ import {
   appPolicyPath,
   appVersionPath,
   branchStatusPath,
-  datamodelMetadataPath,
-  datamodelPath,
-  datamodelsPath,
-  datamodelsXsdPath,
+  dataModelMetadataPath,
+  dataModelPath,
+  dataModelsPath,
+  dataModelsXsdPath,
   deployPermissionsPath,
   deploymentsPath,
   envConfigPath,
@@ -21,9 +21,9 @@ import {
   orgsListPath,
   accessListsPath,
   accessListPath,
+  accessListMemberPath,
   processEditorPath,
   releasesPath,
-  repoInitialCommitPath,
   repoMetaPath,
   repoPullPath,
   repoSearchPath,
@@ -46,11 +46,12 @@ import {
   widgetSettingsPath,
   resourceAccessListsPath,
   layoutNamesPath,
+  appMetadataModelIdsPath,
 } from './paths';
-import type { AppReleasesResponse, DatamodelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
+import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
-import type { DatamodelMetadataJson, DatamodelMetadataXsd } from 'app-shared/types/DatamodelMetadata';
+import type { DataModelMetadataJson, DataModelMetadataXsd } from 'app-shared/types/DataModelMetadata';
 import type { Environment } from 'app-shared/types/Environment';
 import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
@@ -65,23 +66,24 @@ import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { newsListUrl, orgListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
-import type { PolicyAction, Policy, PolicySubject } from '@altinn/policy-editor';
-import type { BrregPartySearchResult, BrregSubPartySearchResult, AccessList, Resource, ResourceListItem, ResourceVersionStatus, Validation, AccessListsResponse } from 'app-shared/types/ResourceAdm';
+import type { PolicyAction, PolicySubject } from '@altinn/policy-editor';
+import type { BrregPartySearchResult, BrregSubPartySearchResult, AccessList, Resource, ResourceListItem, ResourceVersionStatus, Validation, AccessListsResponse, AccessListMembersResponse } from 'app-shared/types/ResourceAdm';
 import type { AppConfig } from 'app-shared/types/AppConfig';
-import type { Commit } from 'app-shared/types/Commit';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import type { NewsList } from 'app-shared/types/api/NewsList';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
+import type { Policy } from 'app-shared/types/Policy';
 
+export const getAppMetadataModelIds = (org: string, app: string, onlyUnReferenced: boolean) => get<string[]>(appMetadataModelIdsPath(org, app, onlyUnReferenced));
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getAppVersion = (org: string, app: string) => get<AppVersion>(appVersionPath(org, app));
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
-export const getDatamodel = (owner: string, app: string, modelPath: string) => get<JsonSchema>(datamodelPath(owner, app, modelPath));
-export const getDatamodelMetadata = (owner: string, app: string, layoutSetName: string) => get<DatamodelMetadataResponse>(datamodelMetadataPath(owner, app, layoutSetName));
-export const getDatamodelsJson = (owner: string, app: string) => get<DatamodelMetadataJson[]>(datamodelsPath(owner, app));
-export const getDatamodelsXsd = (owner: string, app: string) => get<DatamodelMetadataXsd[]>(datamodelsXsdPath(owner, app));
+export const getDataModel = (owner: string, app: string, modelPath: string) => get<JsonSchema>(dataModelPath(owner, app, modelPath));
+export const getDataModelMetadata = (owner: string, app: string, layoutSetName: string, dataModelName: string) => get<DataModelMetadataResponse>(dataModelMetadataPath(owner, app, layoutSetName, dataModelName));
+export const getDataModelsJson = (owner: string, app: string) => get<DataModelMetadataJson[]>(dataModelsPath(owner, app));
+export const getDataModelsXsd = (owner: string, app: string) => get<DataModelMetadataXsd[]>(dataModelsXsdPath(owner, app));
 export const getDeployPermissions = (owner: string, app: string) => get<string[]>(deployPermissionsPath(owner, app));
 export const getDeployments = (owner: string, app: string) => get<DeploymentsResponse>(deploymentsPath(owner, app, 'Descending'));
 export const getEnvironments = () => get<Environment[]>(envConfigPath());
@@ -96,7 +98,6 @@ export const getNewsList = (language: 'nb' | 'en') => get<NewsList>(newsListUrl(
 export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));
 export const getOrgList = () => get<OrgList>(orgListUrl());
 export const getOrganizations = () => get<Organization[]>(orgsListPath());
-export const getRepoInitialCommit = (owner: string, app: string) => get<Commit>(repoInitialCommitPath(owner, app));
 export const getRepoMetadata = (owner: string, app: string) => get<Repository>(repoMetaPath(owner, app));
 export const getRepoPull = (owner: string, app: string) => get<RepoStatus>(repoPullPath(owner, app));
 export const getRepoStatus = (owner: string, app: string) => get<RepoStatus>(repoStatusPath(owner, app));
@@ -124,9 +125,10 @@ export const getResourceList = (org: string) => get<ResourceListItem[]>(resource
 export const getResourcePublishStatus = (org: string, repo: string, id: string) => get<ResourceVersionStatus>(resourcePublishStatusPath(org, repo, id));
 export const getValidatePolicy = (org: string, repo: string, id: string) => get<Validation>(resourceValidatePolicyPath(org, repo, id));
 export const getValidateResource = (org: string, repo: string, id: string) => get<Validation>(resourceValidateResourcePath(org, repo, id));
-export const getAccessLists = (org: string, environment: string, page?: number) => get<AccessListsResponse>(accessListsPath(org, environment, page));
+export const getAccessLists = (org: string, environment: string, page?: string) => get<AccessListsResponse>(accessListsPath(org, environment, page));
 export const getAccessList = (org: string, listId: string, environment: string) => get<AccessList>(accessListPath(org, listId, environment));
-export const getResourceAccessLists = (org: string, resourceId: string, environment: string, page?: number) => get<AccessListsResponse>(resourceAccessListsPath(org, resourceId, environment, page));
+export const getAccessListMembers = (org: string, listId: string, environment: string, page?: string) => get<AccessListMembersResponse>(accessListMemberPath(org, listId, environment, page));
+export const getResourceAccessLists = (org: string, resourceId: string, environment: string, page?: string) => get<AccessListsResponse>(resourceAccessListsPath(org, resourceId, environment, page));
 export const getParties = (url: string) => get<BrregPartySearchResult>(url);
 export const getSubParties = (url: string) => get<BrregSubPartySearchResult>(url);
 

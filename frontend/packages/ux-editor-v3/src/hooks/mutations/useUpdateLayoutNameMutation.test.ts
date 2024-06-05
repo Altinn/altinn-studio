@@ -5,14 +5,14 @@ import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuer
 import { waitFor } from '@testing-library/react';
 import type { UpdateLayoutNameMutationArgs } from './useUpdateLayoutNameMutation';
 import { useUpdateLayoutNameMutation } from './useUpdateLayoutNameMutation';
-import { layout1NameMock } from '../../testing/layoutMock';
+import { layout1NameMock } from '@altinn/ux-editor-v3/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const newName = 'newName';
 const oldName = layout1NameMock;
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 const args: UpdateLayoutNameMutationArgs = { newName, oldName };
 
 describe('useUpdateLayoutNameMutation', () => {

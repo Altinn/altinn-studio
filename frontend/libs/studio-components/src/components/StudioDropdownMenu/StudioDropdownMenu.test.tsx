@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { StudioDropdownMenu } from './';
 import React, { createRef } from 'react';
 import userEvent from '@testing-library/user-event';
@@ -35,7 +35,7 @@ describe('StudioDropdownMenu', () => {
     const user = userEvent.setup();
     renderTestDropdownMenu();
     await openDropdown(user);
-    await act(() => user.click(screen.getByRole('menuitem', { name: group1Item1Text })));
+    await user.click(screen.getByRole('menuitem', { name: group1Item1Text }));
     expect(group1Item1Action).toHaveBeenCalled();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
@@ -54,7 +54,7 @@ describe('StudioDropdownMenu', () => {
     renderTestDropdownMenu();
     await openDropdown(user);
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    await act(() => user.click(document.body));
+    await user.click(document.body);
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
@@ -67,7 +67,7 @@ describe('StudioDropdownMenu', () => {
   });
 
   const openDropdown = (user: UserEvent) =>
-    act(() => user.click(screen.getByRole('button', { name: buttonLabel })));
+    user.click(screen.getByRole('button', { name: buttonLabel }));
 });
 
 const buttonLabel = 'Open';

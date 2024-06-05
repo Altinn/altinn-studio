@@ -4,9 +4,9 @@ import React from 'react';
 import type { SchemaEditorAppContextProps } from '../../../contexts/SchemaEditorAppContext';
 import { renderWithProviders } from '../../../../test/renderWithProviders';
 import { extractNameFromPointer, ROOT_POINTER, SchemaModel } from '@altinn/schema-model';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import {
   booleanDefinitionPointer,
   combinationDefinitionPointer,
@@ -30,7 +30,7 @@ const createSchemaModel = () => initialModel.deepClone();
 const setSelectedNodePointer = jest.fn();
 const setSelectedTypePointer = jest.fn();
 const save = jest.fn();
-const datamodelName = 'Test';
+const dataModelName = 'Test';
 
 const defaultProps: HeadingRowProps = {
   pointer: undefined,
@@ -43,7 +43,7 @@ const defaultAppContextProps: SchemaEditorAppContextProps = {
   setSelectedNodePointer,
   setSelectedTypePointer,
   save,
-  name: datamodelName,
+  name: dataModelName,
 };
 
 // Mocks:
@@ -58,15 +58,15 @@ describe('HeadingRow', () => {
   afterEach(jest.clearAllMocks);
 
   describe('When no type is selected', () => {
-    it('Renders a level one heading with the name of the datamodel', () => {
+    it('Renders a level one heading with the name of the data model', () => {
       renderHeadingRow();
-      expect(screen.getByRole('heading', { level: 1, name: datamodelName })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 1, name: dataModelName })).toBeInTheDocument();
     });
 
     it('Selects the root node when clicking the name', async () => {
       const user = userEvent.setup();
       renderHeadingRow();
-      await act(() => user.click(screen.getByRole('button', { name: datamodelName })));
+      await user.click(screen.getByRole('button', { name: dataModelName }));
       expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
       expect(setSelectedNodePointer).toHaveBeenCalledWith(ROOT_POINTER);
     });
@@ -78,8 +78,8 @@ describe('HeadingRow', () => {
         const schemaModel = createSchemaModel();
         const numberOfRootChildrenBefore = schemaModel.getRootChildren().length;
         renderHeadingRow({ appContextProps: { schemaModel } });
-        await act(() => user.click(getAddButton()));
-        await act(() => user.click(getAddMenuitem(type)));
+        await user.click(getAddButton());
+        await user.click(getAddMenuitem(type));
         expect(save).toHaveBeenCalledTimes(1);
         const savedModel = save.mock.calls[0][0];
         expect(savedModel.getNodeMap()).toBe(schemaModel.getNodeMap());
@@ -187,7 +187,7 @@ describe('HeadingRow', () => {
       it('Selects the type when clicking the name', async () => {
         const user = userEvent.setup();
         renderHeadingRowForType(pointer);
-        await act(() => user.click(screen.getByRole('button', { name })));
+        await user.click(screen.getByRole('button', { name }));
         expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
         expect(setSelectedNodePointer).toHaveBeenCalledWith(pointer);
       });
@@ -200,8 +200,8 @@ describe('HeadingRow', () => {
             const schemaModel = createSchemaModel();
             const numberOfChildrenBefore = schemaModel.getChildNodes(pointer).length;
             renderHeadingRowForType(pointer, { schemaModel });
-            await act(() => user.click(getAddButton()));
-            await act(() => user.click(getAddMenuitem(type)));
+            await user.click(getAddButton());
+            await user.click(getAddMenuitem(type));
             expect(save).toHaveBeenCalledTimes(1);
             const savedModel = save.mock.calls[0][0];
             expect(savedModel.getNodeMap()).toBe(schemaModel.getNodeMap());
@@ -229,7 +229,7 @@ describe('HeadingRow', () => {
           const schemaModel = createSchemaModel();
           jest.spyOn(window, 'confirm').mockImplementation(() => true);
           renderHeadingRowForType(pointer, { schemaModel });
-          await act(() => user.click(getDeleteButton()));
+          await user.click(getDeleteButton());
           expect(save).toHaveBeenCalledTimes(1);
           const savedModel = save.mock.calls[0][0];
           expect(savedModel.getNodeMap()).toBe(schemaModel.getNodeMap());

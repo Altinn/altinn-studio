@@ -18,9 +18,9 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_LayoutSettings_Ok()
         {
-            string expectedLayoutSettings = TestDataHelper.GetFileFromRepo(Org, App, Developer, "App/ui/Settings.json");
+            string expectedLayoutSettings = TestDataHelper.GetFileFromRepo(Org, AppV3, Developer, "App/ui/Settings.json");
 
-            string dataPathWithData = $"{Org}/{App}/api/layoutsettings";
+            string dataPathWithData = $"{Org}/{AppV3}/api/layoutsettings";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

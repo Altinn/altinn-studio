@@ -6,13 +6,13 @@ import { MemoryRouter } from 'react-router-dom';
 import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { RepositoryType } from 'app-shared/types/global';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const mockMenuItems: TopBarMenuItem[] = [
   {
     key: TopBarMenu.About,
     link: 'Link1',
-    repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
+    repositoryTypes: [RepositoryType.App, RepositoryType.DataModels],
   },
   {
     key: TopBarMenu.Create,
@@ -20,9 +20,9 @@ const mockMenuItems: TopBarMenuItem[] = [
     repositoryTypes: [RepositoryType.App],
   },
   {
-    key: TopBarMenu.Datamodel,
+    key: TopBarMenu.DataModel,
     link: 'Link3',
-    repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
+    repositoryTypes: [RepositoryType.App, RepositoryType.DataModels],
   },
 ];
 

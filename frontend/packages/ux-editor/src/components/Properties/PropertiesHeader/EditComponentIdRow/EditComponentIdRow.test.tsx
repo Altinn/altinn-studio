@@ -1,18 +1,18 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { EditComponentIdRow, type EditComponentIdRowProps } from './EditComponentIdRow';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { IFormLayouts } from '../../../../types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { layout1NameMock, layoutMock, layoutSetsMock } from '../../../../testing/layoutMock';
+import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { app, org } from '@studio/testing/testids';
 
-const org = 'org';
-const app = 'app';
-const layoutSetName = layoutSetsMock.sets[0].id;
+const layoutSetName = layoutSet1NameMock;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };
@@ -48,7 +48,7 @@ describe('EditComponentIdRow', () => {
     const user = userEvent.setup();
     await studioRender();
     const testIdButton = screen.getByRole('button', { name: textMock('ux_editor.id_identifier') });
-    await act(() => user.click(testIdButton));
+    await user.click(testIdButton);
     const textField = screen.getByRole('textbox', {
       name: textMock('ux_editor.modal_properties_component_change_id'),
     });
@@ -59,11 +59,11 @@ describe('EditComponentIdRow', () => {
     const user = userEvent.setup();
     await studioRender();
     const testIdButton = screen.getByRole('button', { name: textMock('ux_editor.id_identifier') });
-    await act(() => user.click(testIdButton));
+    await user.click(testIdButton);
     const textField = screen.getByRole('textbox', {
       name: textMock('ux_editor.modal_properties_component_change_id'),
     });
-    await act(() => user.click(document.body));
+    await user.click(document.body);
     expect(textField).not.toBeInTheDocument();
   });
 
@@ -72,12 +72,12 @@ describe('EditComponentIdRow', () => {
     const handleComponentUpdate = jest.fn();
     await studioRender({ handleComponentUpdate });
     const testIdButton = screen.getByRole('button', { name: textMock('ux_editor.id_identifier') });
-    await act(() => user.click(testIdButton));
+    await user.click(testIdButton);
     const textField = screen.getByRole('textbox', {
       name: textMock('ux_editor.modal_properties_component_change_id'),
     });
-    await act(() => user.type(textField, 'newTestId'));
-    await act(() => user.click(document.body));
+    await user.type(textField, 'newTestId');
+    await user.click(document.body);
     expect(handleComponentUpdate).toHaveBeenCalled();
   });
 
@@ -85,11 +85,11 @@ describe('EditComponentIdRow', () => {
     const user = userEvent.setup();
     await studioRender();
     const testIdButton = screen.getByRole('button', { name: textMock('ux_editor.id_identifier') });
-    await act(() => user.click(testIdButton));
+    await user.click(testIdButton);
     const textField = screen.getByRole('textbox', {
       name: textMock('ux_editor.modal_properties_component_change_id'),
     });
-    await act(() => user.clear(textField));
+    await user.clear(textField);
     expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
   });
 
@@ -97,12 +97,12 @@ describe('EditComponentIdRow', () => {
     const user = userEvent.setup();
     await studioRender();
     const testIdButton = screen.getByRole('button', { name: textMock('ux_editor.id_identifier') });
-    await act(() => user.click(testIdButton));
+    await user.click(testIdButton);
     const textField = screen.getByRole('textbox', {
       name: textMock('ux_editor.modal_properties_component_change_id'),
     });
-    await act(() => user.clear(textField));
-    await act(() => user.type(textField, 'fileUploadComponentIdMock'));
+    await user.clear(textField);
+    await user.type(textField, 'fileUploadComponentIdMock');
     expect(
       screen.getByText(textMock('ux_editor.modal_properties_component_id_not_unique_error')),
     ).toBeInTheDocument();

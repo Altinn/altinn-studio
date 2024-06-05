@@ -1,6 +1,6 @@
 import React from 'react';
 import { EditCodeList } from './EditCodeList';
-import { screen, waitFor, act } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import {
   renderWithProviders,
@@ -9,7 +9,7 @@ import {
 } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('EditCodeList', () => {
   it('should render the component', async () => {
@@ -50,8 +50,8 @@ describe('EditCodeList', () => {
 
     await waitFor(() => screen.findByRole('combobox'));
 
-    await act(() => user.click(screen.getByRole('combobox')));
-    await act(() => user.click(screen.getByRole('option', { name: 'test-1' })));
+    await user.click(screen.getByRole('combobox'));
+    await user.click(screen.getByRole('option', { name: 'test-1' }));
     await waitFor(() => expect(handleComponentChangeMock).toHaveBeenCalled());
   });
 

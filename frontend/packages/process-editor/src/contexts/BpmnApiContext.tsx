@@ -1,50 +1,48 @@
 import type { LayoutSets, LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import React, { createContext, useContext } from 'react';
+import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
+import type { DataTypeChange } from 'app-shared/types/api/DataTypeChange';
+import type { OnProcessTaskEvent } from '../types/OnProcessTask';
 
-export type BpmnApiContextProps = {
-  layoutSets: LayoutSets;
-  existingCustomReceiptLayoutSetName: string | undefined;
-  addLayoutSet: (data: { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig }) => void;
-  mutateLayoutSet: (data: {
-    layoutSetIdToUpdate: string;
-    layoutSetConfig: LayoutSetConfig;
-  }) => void;
+type QueryOptions = {
+  onSuccess: () => void;
 };
 
-export const BpmnApiContext = createContext<BpmnApiContextProps>(undefined);
+export type BpmnApiContextProps = {
+  availableDataModelIds: string[];
+  allDataModelIds: string[];
+  layoutSets: LayoutSets;
+  pendingApiOperations: boolean;
+  existingCustomReceiptLayoutSetId: string | undefined;
+  addLayoutSet: (
+    data: { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig },
+    options?: QueryOptions,
+  ) => void;
+  deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
+  mutateLayoutSetId: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
+  mutateDataType: (dataTypeChange: DataTypeChange, options?: QueryOptions) => void;
+  addDataTypeToAppMetadata: (data: { dataTypeId: string; taskId: string }) => void;
+  deleteDataTypeFromAppMetadata: (data: { dataTypeId: string }) => void;
+  saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
+  openPolicyEditor: () => void;
+  onProcessTaskAdd: (taskMetadata: OnProcessTaskEvent) => void;
+  onProcessTaskRemove: (taskMetadata: OnProcessTaskEvent) => void;
+};
+
+export const BpmnApiContext = createContext<Partial<BpmnApiContextProps>>(undefined);
 
 export type BpmnApiContextProviderProps = {
   children: React.ReactNode;
-  layoutSets: LayoutSets;
-  existingCustomReceiptLayoutSetName: string | undefined;
-  addLayoutSet: (data: { layoutSetIdToUpdate: string; layoutSetConfig: LayoutSetConfig }) => void;
-  mutateLayoutSet: (data: {
-    layoutSetIdToUpdate: string;
-    layoutSetConfig: LayoutSetConfig;
-  }) => void;
-};
+} & BpmnApiContextProps;
+
 export const BpmnApiContextProvider = ({
   children,
-  layoutSets,
-  existingCustomReceiptLayoutSetName,
-  addLayoutSet,
-  mutateLayoutSet,
-}: BpmnApiContextProviderProps) => {
-  return (
-    <BpmnApiContext.Provider
-      value={{
-        layoutSets,
-        existingCustomReceiptLayoutSetName,
-        addLayoutSet,
-        mutateLayoutSet,
-      }}
-    >
-      {children}
-    </BpmnApiContext.Provider>
-  );
+  ...rest
+}: Partial<BpmnApiContextProviderProps>) => {
+  return <BpmnApiContext.Provider value={{ ...rest }}>{children}</BpmnApiContext.Provider>;
 };
 
-export const useBpmnApiContext = (): BpmnApiContextProps => {
+export const useBpmnApiContext = (): Partial<BpmnApiContextProps> => {
   const context = useContext(BpmnApiContext);
   if (context === undefined) {
     throw new Error('useBpmnApiContext must be used within a BpmnApiContextProvider');

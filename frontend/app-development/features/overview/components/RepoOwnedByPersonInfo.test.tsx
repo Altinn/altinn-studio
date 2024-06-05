@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { RepoOwnedByPersonInfo } from './RepoOwnedByPersonInfo';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('RepoOwnedByPersonInfo', () => {
   it('should show alert and info texts', () => {

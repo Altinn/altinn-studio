@@ -1,10 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DropdownMenu } from '@digdir/design-system-react';
-import { MenuElipsisVerticalIcon, ArrowUpIcon, ArrowDownIcon } from '@navikt/aksel-icons';
+import { MenuElipsisVerticalIcon, ArrowUpIcon, ArrowDownIcon } from '@studio/icons';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
 import { useUpdateLayoutOrderMutation } from '../../../../hooks/mutations/useUpdateLayoutOrderMutation';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../../hooks';
 import { StudioButton } from '@studio/components';
 
@@ -25,7 +25,7 @@ export type NavigationMenuProps = {
 export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps): JSX.Element => {
   const { t } = useTranslation();
 
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
 
   const { selectedFormLayoutSetName } = useAppContext();
 

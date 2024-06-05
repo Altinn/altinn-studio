@@ -6,7 +6,26 @@ import { componentMocks } from '../../testing/componentMocks';
 import InputSchema from '../../testing/schemas/json/component/Input.schema.v1.json';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { screen } from '@testing-library/react';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+
+const somePropertyName = 'somePropertyName';
+const customTextMockToHandleUndefined = (
+  keys: string | string[],
+  variables?: KeyValuePairs<string>,
+) => {
+  const key = Array.isArray(keys) ? keys[0] : keys;
+  if (key === `ux_editor.component_properties_description.${somePropertyName}`) return key;
+  return variables
+    ? '[mockedText(' + key + ', ' + JSON.stringify(variables) + ')]'
+    : '[mockedText(' + key + ')]';
+};
+
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: customTextMockToHandleUndefined,
+  }),
+}));
 
 describe('FormComponentConfig', () => {
   it('should render expected components', async () => {
@@ -103,7 +122,7 @@ describe('FormComponentConfig', () => {
       },
     });
     expect(
-      screen.queryByText(textMock(`ux_editor.component_properties.grid`)),
+      screen.queryByText(textMock('ux_editor.component_properties.grid')),
     ).not.toBeInTheDocument();
   });
 
@@ -116,8 +135,39 @@ describe('FormComponentConfig', () => {
       },
     });
     expect(
-      screen.queryByText(textMock(`ux_editor.component_properties.grid`)),
+      screen.queryByText(textMock('ux_editor.component_properties.grid')),
     ).not.toBeInTheDocument();
+  });
+
+  it('should show description text for objects if key is defined', () => {
+    render({
+      props: {
+        schema: InputSchema,
+      },
+    });
+    expect(
+      screen.getByText(textMock('ux_editor.component_properties_description.pageBreak')),
+    ).toBeInTheDocument();
+  });
+
+  it('should show description from schema for objects if key is not defined', () => {
+    const descriptionFromSchema = 'Some description for some object property';
+    render({
+      props: {
+        schema: {
+          ...InputSchema,
+          properties: {
+            ...InputSchema.properties,
+            somePropertyName: {
+              type: 'object',
+              properties: {},
+              description: descriptionFromSchema,
+            },
+          },
+        },
+      },
+    });
+    expect(screen.getByText(descriptionFromSchema)).toBeInTheDocument();
   });
 
   it('should not render property if it is unsupported', () => {
@@ -169,11 +219,11 @@ describe('FormComponentConfig', () => {
     });
     expect(
       screen.getByRole('combobox', {
-        name: textMock(`ux_editor.component_properties.supportedArrayProperty`),
+        name: textMock('ux_editor.component_properties.supportedArrayProperty'),
       }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByLabelText(textMock(`ux_editor.component_properties.unsupportedArrayProperty`)),
+      screen.queryByLabelText(textMock('ux_editor.component_properties.unsupportedArrayProperty')),
     ).not.toBeInTheDocument();
   });
 

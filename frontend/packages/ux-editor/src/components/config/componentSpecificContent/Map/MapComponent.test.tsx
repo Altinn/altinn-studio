@@ -1,10 +1,10 @@
 import React from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MapComponent } from './MapComponent';
 import { renderWithProviders, renderHookWithProviders } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
-import { mockUseTranslation } from '../../../../../../../testing/mocks/i18nMock';
+import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import type { IGenericEditComponent } from '../../componentConfig';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 
@@ -90,7 +90,7 @@ describe('AddMapLayer', () => {
     await renderMapComponent({ component: componentMock });
 
     const input = screen.getByLabelText(texts['ux_editor.url_label']);
-    await act(() => user.type(input, 'test'));
+    await user.type(input, 'test');
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
       layers: [
@@ -108,7 +108,7 @@ describe('AddMapLayer', () => {
     await renderMapComponent({ component: componentMock });
 
     const input = screen.getByLabelText(texts['ux_editor.attribution_label']);
-    await act(() => user.type(input, 'test'));
+    await user.type(input, 'test');
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
       layers: [
@@ -126,7 +126,7 @@ describe('AddMapLayer', () => {
     await renderMapComponent({ component: componentMock });
 
     const input = screen.getByLabelText(texts['ux_editor.subdomains_label']);
-    await act(() => user.type(input, 'test'));
+    await user.type(input, 'test');
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
       layers: [
@@ -145,7 +145,7 @@ describe('AddMapLayer', () => {
 
     const button = screen.getByRole('button');
 
-    await act(() => user.click(button));
+    await user.click(button);
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
       layers: [

@@ -1,4 +1,5 @@
 {
+  "$schema": "",
   "sets": [{
     "id": "message",
     "dataType": "message",
@@ -32,6 +33,13 @@
       "dataType": "datalist",
       "tasks": [
         "Task_5"
+      ]
+    },
+    {
+      "id": "receipt",
+      "dataType": "receiptDataType",
+      "tasks": [
+        "CustomReceipt"
       ]
     }
   ]

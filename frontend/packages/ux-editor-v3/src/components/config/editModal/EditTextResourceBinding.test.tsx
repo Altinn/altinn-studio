@@ -1,7 +1,7 @@
 import React from 'react';
 import type { EditTextResourceBindingProps } from './EditTextResourceBinding';
 import { EditTextResourceBinding } from './EditTextResourceBinding';
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   renderHookWithMockStore,
@@ -10,17 +10,14 @@ import {
 } from '../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
 import type { ITextResource, ITextResourcesWithLanguage } from 'app-shared/types/global';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import type { FormComponent } from '../../../types/FormComponent';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
-
-// Test data:
-const org = 'org';
-const app = 'app';
 
 describe('EditTextResourceBindings component', () => {
   const mockComponent: FormComponent = {
@@ -54,7 +51,7 @@ describe('EditTextResourceBindings component', () => {
       handleComponentChange,
       textKey: 'does-not-exist',
     });
-    await act(() => user.click(screen.getByLabelText(textMock('general.add'))));
+    await user.click(screen.getByLabelText(textMock('general.add')));
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
   });
 
@@ -66,15 +63,15 @@ describe('EditTextResourceBindings component', () => {
     });
 
     // Click search button
-    await act(() => user.click(screen.getByLabelText(textMock('general.search'))));
+    await user.click(screen.getByLabelText(textMock('general.search')));
 
     // Select with existing texts should be shown
     const select = screen.getByRole('combobox');
     expect(select).toBeInTheDocument();
-    await act(() => user.click(select));
+    await user.click(select);
 
     // Select text from available options
-    await act(() => user.click(screen.getByRole('option', { name: textResources[0].id })));
+    await user.click(screen.getByRole('option', { name: textResources[0].id }));
 
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
     expect(handleComponentChange).toHaveBeenCalledWith({
@@ -93,13 +90,11 @@ describe('EditTextResourceBindings component', () => {
       handleComponentChange,
       removeTextResourceBinding,
     });
-    await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
-    await act(() =>
-      user.click(
-        screen.getByRole('button', {
-          name: textMock('ux_editor.text_resource_bindings.delete_confirm'),
-        }),
-      ),
+    await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock('ux_editor.text_resource_bindings.delete_confirm'),
+      }),
     );
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
     expect(handleComponentChange).toHaveBeenCalledWith({

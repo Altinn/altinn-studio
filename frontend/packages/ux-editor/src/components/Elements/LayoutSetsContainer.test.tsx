@@ -1,18 +1,21 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../testing/mocks';
-import { layoutSetsMock } from '../../testing/layoutMock';
+import {
+  layoutSet1NameMock,
+  layoutSet2NameMock,
+  layoutSetsMock,
+} from '../../testing/layoutSetsMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { appContextMock } from '../../testing/appContextMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data
-const org = 'org';
-const app = 'app';
-const layoutSetName1 = layoutSetsMock.sets[0].id;
-const layoutSetName2 = layoutSetsMock.sets[1].id;
+const layoutSetName1 = layoutSet1NameMock;
+const layoutSetName2 = layoutSet2NameMock;
 
 describe('LayoutSetsContainer', () => {
   it('renders component', async () => {
@@ -30,10 +33,12 @@ describe('LayoutSetsContainer', () => {
   it('Should update selected layout set when set is clicked in native select', async () => {
     render();
     const user = userEvent.setup();
-    await act(() => user.selectOptions(screen.getByRole('combobox'), layoutSetName2));
+    await user.selectOptions(screen.getByRole('combobox'), layoutSetName2);
     expect(appContextMock.setSelectedFormLayoutSetName).toHaveBeenCalledTimes(1);
     expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchLayouts).toHaveBeenCalledWith('test-layout-set-2');
     expect(appContextMock.refetchLayoutSettings).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchLayoutSettings).toHaveBeenCalledWith('test-layout-set-2');
   });
 });
 

@@ -235,7 +235,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
-        /// <returns>The layout-sets.json</returns>
+        /// <returns>A string array of all layout names without file extension in all sets</returns>
         [HttpGet]
         [UseSystemTextJson]
         [Route("layout-names")]
@@ -248,20 +248,40 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Gets a list of all data model IDs present in application metadata
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="onlyUnReferenced">If true only model IDs without task_id ref in app metadata is returned</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns></returns>
+        [HttpGet]
+        [UseSystemTextJson]
+        [Route("model-ids")]
+        public async Task<IActionResult> GetAppMetadataDataModelIds(string org, string app, CancellationToken cancellationToken, [FromQuery] bool onlyUnReferenced = false)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            IEnumerable<string> dataModelIds = await _appDevelopmentService.GetAppMetadataModelIds(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), onlyUnReferenced, cancellationToken);
+            return Ok(dataModelIds);
+        }
+
+        /// <summary>
         /// Return JSON presentation of the model
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="layoutSetName">Name of current layoutSet in ux-editor that edited layout belongs to</param>
+        /// <param name="dataModelName">Name of data model to fetch</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The model as JSON</returns>
         [HttpGet]
         [UseSystemTextJson]
         [Route("model-metadata")]
-        public async Task<IActionResult> GetModelMetadata(string org, string app, [FromQuery] string layoutSetName, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetModelMetadata(string org, string app, [FromQuery] string layoutSetName, [FromQuery] string dataModelName, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            ModelMetadata modelMetadata = await _appDevelopmentService.GetModelMetadata(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), layoutSetName, cancellationToken);
+            ModelMetadata modelMetadata = await _appDevelopmentService.GetModelMetadata(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), layoutSetName, dataModelName, cancellationToken);
+
             return Ok(modelMetadata);
         }
 
@@ -280,10 +300,6 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
             LayoutSets layoutSets = await _appDevelopmentService.GetLayoutSets(editingContext, cancellationToken);
-            if (layoutSets is null)
-            {
-                return Ok();
-            }
             return Ok(layoutSets);
         }
 
@@ -306,21 +322,21 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Update an existing layout set with new config
+        /// Updates the layout set name for an existing layout set
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="layoutSetIdToUpdate">The id of a layout set to replace</param>
-        /// <param name="layoutSet">The config needed for the layout set to be added to layout-sets.json</param>
+        /// <param name="layoutSetIdToUpdate">The layout set id to update</param>
+        /// <param name="newLayoutSetName">The new id for the layout set</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         [HttpPut]
         [UseSystemTextJson]
         [Route("layout-set/{layoutSetIdToUpdate}")]
-        public async Task<ActionResult> UpdateLayoutSet(string org, string app, [FromRoute] string layoutSetIdToUpdate, [FromBody] LayoutSetConfig layoutSet, CancellationToken cancellationToken)
+        public async Task<ActionResult> UpdateLayoutSetName(string org, string app, [FromRoute] string layoutSetIdToUpdate, [FromBody] string newLayoutSetName, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            LayoutSets layoutSets = await _appDevelopmentService.UpdateLayoutSet(editingContext, layoutSetIdToUpdate, layoutSet, cancellationToken);
+            LayoutSets layoutSets = await _appDevelopmentService.UpdateLayoutSetName(editingContext, layoutSetIdToUpdate, newLayoutSetName, cancellationToken);
             return Ok(layoutSets);
         }
 
@@ -336,17 +352,10 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("layout-set/{layoutSetIdToUpdate}")]
         public async Task<ActionResult> DeleteLayoutSet(string org, string app, [FromRoute] string layoutSetIdToUpdate, CancellationToken cancellationToken)
         {
-            try
-            {
-                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                LayoutSets layoutSets = await _appDevelopmentService.DeleteLayoutSet(editingContext, layoutSetIdToUpdate, cancellationToken);
-                return Ok(layoutSets);
-            }
-            catch (FileNotFoundException exception)
-            {
-                return NotFound($"Layout-sets.json not found: {exception}");
-            }
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+            LayoutSets layoutSets = await _appDevelopmentService.DeleteLayoutSet(editingContext, layoutSetIdToUpdate, cancellationToken);
+            return Ok(layoutSets);
         }
 
         /// <summary>

@@ -1,11 +1,10 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithMockStore } from '../../test/mocks';
-import { act, waitFor } from '@testing-library/react';
+import { waitFor } from '@testing-library/react';
 import { useDeleteLayoutSetMutation } from './useDeleteLayoutSetMutation';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const layoutSetToDeleteId = 'oldLayoutSetName';
 
 describe('useDeleteLayoutSetMutation', () => {
@@ -13,11 +12,9 @@ describe('useDeleteLayoutSetMutation', () => {
     const deleteLayoutSetResult = renderHookWithMockStore()(() =>
       useDeleteLayoutSetMutation(org, app),
     ).renderHookResult.result;
-    await act(() =>
-      deleteLayoutSetResult.current.mutateAsync({
-        layoutSetIdToUpdate: layoutSetToDeleteId,
-      }),
-    );
+    await deleteLayoutSetResult.current.mutateAsync({
+      layoutSetIdToUpdate: layoutSetToDeleteId,
+    });
     await waitFor(() => expect(deleteLayoutSetResult.current.isSuccess).toBe(true));
 
     expect(queriesMock.deleteLayoutSet).toHaveBeenCalledTimes(1);

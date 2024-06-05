@@ -5,10 +5,10 @@ import { Heading } from '@digdir/design-system-react';
 import {
   CogIcon,
   InformationSquareIcon,
-  PersonSuitIcon,
+  TimerStartIcon,
   ShieldLockIcon,
   SidebarBothIcon,
-} from '@navikt/aksel-icons';
+} from '@studio/icons';
 import { StudioModal } from '@studio/components';
 import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
@@ -23,35 +23,19 @@ import { SetupTab } from './components/Tabs/SetupTab';
 export type SettingsModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  org: string;
-  app: string;
+  defaultTab?: SettingsModalTab;
 };
 
-/**
- * @component
- *    Displays the settings modal
- *
- * @property {boolean}[isOpen] - Flag for if the modal is open
- * @property {function}[onClose] - Function to be executed on close
- *
- * @returns {ReactNode} - The rendered component
- */
-export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps): ReactNode => {
+export const SettingsModal = ({ isOpen, onClose, defaultTab }: SettingsModalProps): ReactNode => {
   const { t } = useTranslation();
 
-  const [currentTab, setCurrentTab] = useState<SettingsModalTab>('about');
+  const [currentTab, setCurrentTab] = useState<SettingsModalTab>(defaultTab || 'about');
 
-  /**
-   * Ids for the navigation tabs
-   */
   const aboutTabId: SettingsModalTab = 'about';
   const setupTabId: SettingsModalTab = 'setup';
   const policyTabId: SettingsModalTab = 'policy';
-  const accessControlTabId: SettingsModalTab = 'accessControl';
+  const accessControlTabId: SettingsModalTab = 'access_control';
 
-  /**
-   * The tabs to display in the navigation bar
-   */
   const leftNavigationTabs: LeftNavigationTab[] = [
     createNavigationTab(
       <InformationSquareIcon className={classes.icon} />,
@@ -72,38 +56,30 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
       currentTab,
     ),
     createNavigationTab(
-      <PersonSuitIcon className={classes.icon} />,
+      <TimerStartIcon className={classes.icon} />,
       accessControlTabId,
       () => changeTabTo(accessControlTabId),
       currentTab,
     ),
   ];
 
-  /**
-   * Changes the active tab
-   * @param tabId
-   */
   const changeTabTo = (tabId: SettingsModalTab) => {
     setCurrentTab(tabId);
   };
 
-  /**
-   * Displays the currently selected tab and its content
-   * @returns
-   */
   const displayTabs = () => {
     switch (currentTab) {
       case 'about': {
-        return <AboutTab org={org} app={app} />;
+        return <AboutTab />;
       }
       case 'setup': {
-        return <SetupTab org={org} app={app} />;
+        return <SetupTab />;
       }
       case 'policy': {
-        return <PolicyTab org={org} app={app} />;
+        return <PolicyTab />;
       }
-      case 'accessControl': {
-        return <AccessControlTab org={org} app={app} />;
+      case 'access_control': {
+        return <AccessControlTab />;
       }
     }
   };
@@ -124,11 +100,7 @@ export const SettingsModal = ({ isOpen, onClose, org, app }: SettingsModalProps)
     >
       <div className={classes.modalContent}>
         <div className={classes.leftNavWrapper}>
-          <LeftNavigationBar
-            tabs={leftNavigationTabs}
-            className={classes.leftNavigationBar}
-            selectedTab={currentTab}
-          />
+          <LeftNavigationBar tabs={leftNavigationTabs} selectedTab={currentTab} />
         </div>
         <div className={classes.contentWrapper}>{displayTabs()}</div>
       </div>

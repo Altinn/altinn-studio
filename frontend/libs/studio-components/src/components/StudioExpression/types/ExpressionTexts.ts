@@ -3,6 +3,7 @@ import type { LogicalTupleOperator } from '../enums/LogicalTupleOperator';
 import type { ExpressionErrorKey } from '../enums/ExpressionErrorKey';
 import type { RelationalOperator } from './RelationalOperator';
 import type { InstanceContext } from '../enums/InstanceContext';
+import type { GatewayActionContext } from '../enums/GatewayActionContext';
 
 export type ExpressionTexts = {
   addSubexpression: string;
@@ -13,7 +14,7 @@ export type ExpressionTexts = {
   changeToSimplifiedWarning: string;
   componentId: string;
   confirmDeleteSubexpression: string;
-  datamodelPath: string;
+  dataModelPath: string;
   delete: string;
   disabledLogicalOperator: string;
   edit: string;
@@ -23,6 +24,8 @@ export type ExpressionTexts = {
   expression: string;
   false: string;
   firstOperand: string;
+  gatewayActionContext: Record<GatewayActionContext, string>;
+  gatewayActionKey: string;
   instanceContext: Record<InstanceContext, string>;
   instanceContextKey: string;
   invalidExpression: string;
@@ -33,7 +36,8 @@ export type ExpressionTexts = {
   numberValidationError: string;
   or: string;
   readonlyComponentId: string;
-  readonlyDatamodelPath: string;
+  readonlyDataModelPath: string;
+  readonlyGatewayActionContext: string;
   readonlyInstanceContext: string;
   relationalOperator: string;
   relationalOperators: Record<RelationalOperator, string>;

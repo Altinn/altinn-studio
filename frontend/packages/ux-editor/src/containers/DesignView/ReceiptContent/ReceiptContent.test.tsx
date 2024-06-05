@@ -1,16 +1,17 @@
 import React from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import type { ReceiptContentProps } from './ReceiptContent';
 import { ReceiptContent } from './ReceiptContent';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { FormLayoutPage } from '../../../types/FormLayoutPage';
 import {
   component1Mock,
   component2Mock,
   layout1NameMock,
   layout2NameMock,
-} from '../../../testing/layoutMock';
+} from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import type { IInternalLayout } from '../../../types/global';
 import {
   formLayoutSettingsMock,
@@ -23,10 +24,9 @@ import { DragAndDrop } from 'app-shared/components/dragAndDrop';
 import { FormItemContextProvider } from '../../FormItemContext';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import { app, org } from '@studio/testing/testids';
 
-const mockOrg = 'org';
-const mockApp = 'app';
-const mockSelectedLayoutSet = 'test-layout-set';
+const mockSelectedLayoutSet = layoutSet1NameMock;
 
 const mockPageName1 = layout1NameMock;
 const mockPageName2 = layout2NameMock;
@@ -74,7 +74,7 @@ describe('ReceiptContent', () => {
     await render();
 
     const receiptButton = screen.getByRole('button', { name: mockReceiptName });
-    await act(() => user.click(receiptButton));
+    await user.click(receiptButton);
 
     expect(mockOnClickAccordion).toHaveBeenCalledTimes(1);
   });
@@ -84,7 +84,7 @@ describe('ReceiptContent', () => {
     await render({ selectedAccordion: mockPageName1 });
 
     const receiptButton = screen.getByRole('button', { name: mockReceiptName });
-    await act(() => user.click(receiptButton));
+    await user.click(receiptButton);
 
     expect(mockOnClickAccordion).toHaveBeenCalledTimes(1);
   });
@@ -95,10 +95,10 @@ const waitForData = async () => {
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
   const formLayoutsResult = renderHookWithProviders(() =>
-    useFormLayoutsQuery(mockOrg, mockApp, mockSelectedLayoutSet),
+    useFormLayoutsQuery(org, app, mockSelectedLayoutSet),
   ).result;
   const settingsResult = renderHookWithProviders(
-    () => useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet),
+    () => useFormLayoutSettingsQuery(org, app, mockSelectedLayoutSet),
     { queries: { getFormLayoutSettings } },
   ).result;
 

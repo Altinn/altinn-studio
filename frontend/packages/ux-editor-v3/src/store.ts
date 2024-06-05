@@ -1,5 +1,5 @@
 import { rootReducer } from './reducers';
-import type { PreloadedState } from 'redux';
+import type { PreloadedState } from '@reduxjs/toolkit';
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 
 const reducer = combineReducers({

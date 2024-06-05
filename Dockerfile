@@ -73,6 +73,5 @@ COPY --from=generate-studio-frontend /build/frontend/dist/studio-root ./wwwroot/
 
 ## Copying app template
 COPY --from=generate-studio-backend /app_template ./Templates/AspNet
-COPY backend/src/Designer/Migration ./Migration
 
 ENTRYPOINT ["dotnet", "Altinn.Studio.Designer.dll"]

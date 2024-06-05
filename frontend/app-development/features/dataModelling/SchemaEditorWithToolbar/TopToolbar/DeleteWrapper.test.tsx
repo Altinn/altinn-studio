@@ -1,9 +1,9 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { DeleteWrapperProps } from './DeleteWrapper';
 import { DeleteWrapper } from './DeleteWrapper';
-import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
+import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import {
   jsonMetadata1Mock,
   jsonMetadata2Mock,
@@ -13,6 +13,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertMetadataToOption } from '../../../../utils/metadataUtils';
 import { renderWithMockStore } from '../../../../test/mocks';
 import type { QueryClient } from '@tanstack/react-query';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
@@ -28,8 +29,6 @@ const texts = {
   'general.cancel': cancelText,
 };
 const selectedOption = convertMetadataToOption(jsonMetadata1Mock);
-const org = 'org';
-const app = 'app';
 const defaultProps: DeleteWrapperProps = { selectedOption };
 
 // Mocks:
@@ -40,7 +39,7 @@ const render = (
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
   queryClient.setQueryData(
-    [QueryKey.DatamodelsMetadata, org, app],
+    [QueryKey.DataModelsMetadata, org, app],
     [jsonMetadata1Mock, jsonMetadata2Mock],
   );
   return renderWithMockStore({}, {}, queryClient)(<DeleteWrapper {...defaultProps} {...props} />);
@@ -57,23 +56,23 @@ describe('DeleteWrapper', () => {
   it('should open the delete dialog when clicking delete button and schemaName is set', async () => {
     render();
     expect(queryDeleteMessage()).not.toBeInTheDocument();
-    await act(() => user.click(getDeleteButton()));
+    await user.click(getDeleteButton());
     expect(getDeleteMessage()).toBeInTheDocument();
   });
 
   it('should call deleteAction callback and close dialog when clicking continue button', async () => {
     render();
-    await act(() => user.click(getDeleteButton()));
-    await act(() => user.click(getContinueButton()));
+    await user.click(getDeleteButton());
+    await user.click(getContinueButton());
     expect(queryDeleteMessage()).not.toBeInTheDocument();
   });
 
   it('should close the delete dialog when clicking cancel', async () => {
     render();
     expect(queryDeleteMessage()).not.toBeInTheDocument();
-    await act(() => user.click(getDeleteButton()));
+    await user.click(getDeleteButton());
     expect(getDeleteMessage()).toBeInTheDocument();
-    await act(() => user.click(getCancelButton()));
+    await user.click(getCancelButton());
     expect(queryDeleteMessage()).not.toBeInTheDocument();
   });
 });

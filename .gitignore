@@ -11,9 +11,6 @@ syntax: glob
 *.userosscache
 *.sln.docstates
 
-# Entity Framework
-Migrations/
-
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
@@ -408,11 +405,10 @@ backend/srcaccesstoken/
 stats.csv
 
 ## VSCode settings
-.vscode/settings.json
 .vscode/tasks.json
 .vscode/launch.json
-/test-results/
+**/test-results/
 /blob-report/
 /playwright/.cache/
-/frontend/testing/playwright/playwright-report
+**/playwright/playwright-report/
 .playwright/

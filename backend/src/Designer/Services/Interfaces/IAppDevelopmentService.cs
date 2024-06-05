@@ -76,16 +76,28 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         public Task<string[]> GetLayoutNames(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Returns a list of data model IDs in application metadata.
+        /// </summary>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+        /// <param name="onlyUnReferenced">If true only model IDs without task_id ref in app metadata is returned</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>The model metadata for a given layout set.</returns>
+        public Task<IEnumerable<string>> GetAppMetadataModelIds(
+            AltinnRepoEditingContext altinnRepoEditingContext,
+            bool onlyUnReferenced,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Returns the <see cref="ModelMetadata"/> for an app.
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <param name="layoutSetName">Name of layoutSet to fetch corresponding model metadata for</param>
+        /// <param name="dataModelName">Name of data model to fetch</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The model metadata for a given layout set.</returns>
         public Task<ModelMetadata> GetModelMetadata(
-            AltinnRepoEditingContext altinnRepoEditingContext, [CanBeNull] string layoutSetName,
+            AltinnRepoEditingContext altinnRepoEditingContext, [CanBeNull] string layoutSetName, [CanBeNull] string dataModelName,
             CancellationToken cancellationToken = default);
-
 
         /// <summary>
         /// Gets an array of all layoutsets for layout-sets.json. If no sets returns null.
@@ -103,13 +115,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         public Task<LayoutSets> AddLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, LayoutSetConfig newLayoutSet, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Updates an existing layout set in layout-sets.json based on layoutSetId
+        /// Updates an existing layout set with a new layout set id
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-        /// <param name="layoutSetToUpdateId">The id of the layout set to replace</param>
-        /// <param name="newLayoutSet">Config for the updated layout set</param>
+        /// <param name="oldLayoutSetName">The id of the layout set to replace</param>
+        /// <param name="newLayoutSetName">The new id for the layout set</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        public Task<LayoutSets> UpdateLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetToUpdateId, LayoutSetConfig newLayoutSet, CancellationToken cancellationToken = default);
+        public Task<LayoutSets> UpdateLayoutSetName(AltinnRepoEditingContext altinnRepoEditingContext, string oldLayoutSetName, string newLayoutSetName, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Deletes an existing layout set in layout-sets.json based on layoutSetId and deletes connection between related dataType/task in application metadata

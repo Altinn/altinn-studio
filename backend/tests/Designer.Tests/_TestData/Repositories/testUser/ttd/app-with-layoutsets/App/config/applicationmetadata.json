@@ -19,6 +19,18 @@
             "minCount": 1
         },
         {
+            "id": "unUsedDatamodel",
+            "allowedContentTypes": [
+                "application/xml"
+            ],
+            "appLogic": {
+                "autoCreate": true,
+                "classRef": "Altinn.App.Models.unUsedDatamodel"
+            },
+            "maxCount": 1,
+            "minCount": 1
+        },
+        {
             "id": "fileUpload-message",
             "taskId": "Task_1",
             "maxSize": 5,
@@ -39,7 +51,7 @@
             ],
             "appLogic": {
                 "autoCreate": true,
-                "classRef": "Altinn.App.Models.datamodel"
+                "classRef": "Altinn.App.Models.HvemErHvem_M"
             },
             "taskId": "Task_3",
             "maxCount": 1,
@@ -53,9 +65,6 @@
         "subUnit": false
     },
     "autoDeleteOnProcessEnd": false,
-    "onEntry": {
-        "show": "select-instance"
-    },
     "created": "2021-02-06T15:18:12.2060944Z",
     "createdBy": "jeeva",
     "lastChanged": "2021-02-06T15:18:12.2062288Z",

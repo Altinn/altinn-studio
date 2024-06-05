@@ -1,10 +1,10 @@
 import React from 'react';
-import { render as rtlRender, screen, waitFor, act } from '@testing-library/react';
+import { render as rtlRender, screen, waitFor } from '@testing-library/react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { ArrayRestrictions } from './ArrayRestrictions';
 import { ArrRestrictionKey } from '@altinn/schema-model';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 // Test data:
 const onChangeRestrictionValueMock = jest.fn();
@@ -43,7 +43,7 @@ describe('ArrayRestrictions', () => {
     };
     render(props);
     const minItems = screen.getByLabelText(textMock('schema_editor.' + ArrRestrictionKey.minItems));
-    await act(() => user.type(minItems, 'test 2'));
+    await user.type(minItems, 'test 2');
     await waitFor(() =>
       expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(
         pathMock,
@@ -62,7 +62,7 @@ describe('ArrayRestrictions', () => {
     };
     render(props);
     const maxItems = screen.getByLabelText(textMock('schema_editor.' + ArrRestrictionKey.maxItems));
-    await act(() => user.type(maxItems, 'test 2'));
+    await user.type(maxItems, 'test 2');
     await waitFor(() =>
       expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(
         pathMock,
@@ -83,7 +83,7 @@ describe('ArrayRestrictions', () => {
     const uniqueItems = screen.getByLabelText(
       textMock('schema_editor.' + ArrRestrictionKey.uniqueItems),
     );
-    await act(() => user.click(uniqueItems));
+    await user.click(uniqueItems);
     await waitFor(() =>
       expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(
         pathMock,

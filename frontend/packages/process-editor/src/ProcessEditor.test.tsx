@@ -1,30 +1,37 @@
 import React from 'react';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import type { ProcessEditorProps } from './ProcessEditor';
 import { ProcessEditor } from './ProcessEditor';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
 
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 
 const mockAppLibVersion8: string = '8.0.3';
-const mockAppLibVersion7: string = '7.0.3';
-
-const mockOnSave = jest.fn();
 
 const defaultProps: ProcessEditorProps = {
   bpmnXml: mockBPMNXML,
-  onSave: mockOnSave,
+  saveBpmn: jest.fn(),
   appLibVersion: mockAppLibVersion8,
+  availableDataModelIds: [],
+  allDataModelIds: [],
   layoutSets: { sets: [] },
-  existingCustomReceiptLayoutSetName: undefined,
+  pendingApiOperations: false,
+  existingCustomReceiptLayoutSetId: undefined,
   addLayoutSet: jest.fn(),
-  mutateLayoutSet: jest.fn(),
+  deleteLayoutSet: jest.fn(),
+  mutateLayoutSetId: jest.fn(),
+  mutateDataType: jest.fn(),
+  addDataTypeToAppMetadata: jest.fn(),
+  deleteDataTypeFromAppMetadata: jest.fn(),
+  openPolicyEditor: jest.fn(),
+  onProcessTaskRemove: jest.fn(),
+  onProcessTaskAdd: jest.fn(),
 };
 
-const renderProcessEditor = (props: Partial<ProcessEditorProps> = {}) => {
-  const allProps = { ...defaultProps, ...props };
+const renderProcessEditor = (bpmnXml: string) => {
+  const allProps = { ...defaultProps, bpmnXml };
   const router = createMemoryRouter([
     {
       path: '/',
@@ -38,12 +45,12 @@ const renderProcessEditor = (props: Partial<ProcessEditorProps> = {}) => {
 describe('ProcessEditor', () => {
   beforeEach(jest.clearAllMocks);
   it('should render loading while bpmnXml is undefined', () => {
-    renderProcessEditor({ bpmnXml: undefined });
-    expect(screen.getByTitle(textMock('process_editor.loading'))).toBeInTheDocument();
+    renderProcessEditor(undefined);
+    expect(screen.getByText(textMock('process_editor.loading'))).toBeInTheDocument();
   });
 
   it('should render "NoBpmnFoundAlert" when bpmnXml is null', () => {
-    renderProcessEditor({ bpmnXml: null });
+    renderProcessEditor(null);
     expect(
       screen.getByRole('heading', {
         name: textMock('process_editor.fetch_bpmn_error_title'),
@@ -52,39 +59,16 @@ describe('ProcessEditor', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render "canvas" when bpmnXml is provided and default render is edit-mode', async () => {
-    // eslint-disable-next-line testing-library/no-unnecessary-act
-    await act(() => {
-      renderProcessEditor();
-    });
-
-    expect(
-      screen.getByRole('button', { name: textMock('process_editor.save') }),
-    ).toBeInTheDocument();
-  });
-
   it('does not display the information about too old version when the version is 8 or newer', async () => {
     const user = userEvent.setup();
-    renderProcessEditor();
+    renderProcessEditor(mockBPMNXML);
 
-    // Fix to remove act error
-    await act(() => user.tab());
+    await user.tab();
 
     const alertHeader = screen.queryByRole('heading', {
       name: textMock('process_editor.too_old_version_title'),
       level: 1,
     });
     expect(alertHeader).not.toBeInTheDocument();
-  });
-
-  it('displays the alert when the version is 7 or older', async () => {
-    const user = userEvent.setup();
-    renderProcessEditor({ appLibVersion: mockAppLibVersion7 });
-
-    // Fix to remove act error
-    await act(() => user.tab());
-
-    const tooOldText = screen.getByText(textMock('process_editor.too_old_version_title'));
-    expect(tooOldText).toBeInTheDocument();
   });
 });

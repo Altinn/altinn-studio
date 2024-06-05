@@ -3,10 +3,10 @@ import { renderWithProviders } from '../../../../../testing/mocks';
 import { FormItemTitle } from './FormItemTitle';
 import type { FormComponent } from '../../../../../types/FormComponent';
 import { componentMocks } from '../../../../../testing/componentMocks';
-import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { type FormContainer } from '../../../../../types/FormContainer';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 // Mocks:
@@ -36,7 +36,7 @@ describe('FormItemTitle', () => {
 
     render(component, label);
 
-    await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
+    await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
 
     expect(mockDeleteItem).toHaveBeenCalledTimes(1);
     expect(mockDeleteItem).toHaveBeenCalledWith(component.id);
@@ -50,7 +50,7 @@ describe('FormItemTitle', () => {
     jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => false));
     render(component, label);
 
-    await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
+    await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
 
     expect(mockDeleteItem).not.toHaveBeenCalled();
   });
@@ -65,7 +65,7 @@ describe('FormItemTitle', () => {
 
     render(component, label);
 
-    await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
+    await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
     expect(mockedConfirm).toBeCalledWith(textMock('ux_editor.component_deletion_text'));
   });
 
@@ -79,7 +79,7 @@ describe('FormItemTitle', () => {
 
     render(groupComponent, label);
 
-    await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
+    await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
     expect(mockedConfirm).toBeCalledWith(textMock('ux_editor.component_group_deletion_text'));
   });
 });

@@ -1,25 +1,32 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../testing/mocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { HiddenExpressionOnLayout } from './HiddenExpressionOnLayout';
 import type { IFormLayouts } from '../../../types/global';
-import { layout1NameMock, layoutMock, layoutSetsMock } from '../../../testing/layoutMock';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { BooleanExpression } from '@studio/components';
 import { GeneralRelationOperator } from '@studio/components';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data
-const app = 'app';
-const org = 'org';
-const layoutSet = layoutSetsMock.sets[0].id;
+const layoutSet = layoutSet1NameMock;
+const dataModelName = undefined;
 
 const defaultLayouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };
+
+jest.mock('app-shared/hooks/useDebounce', () => ({
+  useDebounce: jest.fn().mockReturnValue({
+    debounce: jest.fn((fn) => fn()),
+  }),
+}));
 
 describe('HiddenExpressionOnLayout', () => {
   afterEach(() => jest.clearAllMocks());
@@ -47,8 +54,20 @@ describe('HiddenExpressionOnLayout', () => {
     const addSubExpressionButton = screen.getByRole('button', {
       name: textMock('expression.addSubexpression'),
     });
-    await act(() => user.click(addSubExpressionButton));
+    await user.click(addSubExpressionButton);
+
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
+    expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
+      org,
+      app,
+      layout1NameMock,
+      layoutSet,
+      expect.objectContaining({
+        data: expect.objectContaining({
+          hidden: ['equals', 0, 0],
+        }),
+      }),
+    );
   });
 
   it('calls saveLayout when existing expression is changed', async () => {
@@ -61,12 +80,24 @@ describe('HiddenExpressionOnLayout', () => {
     const editExpressionButton = screen.getByRole('button', {
       name: textMock('general.edit'),
     });
-    await act(() => user.click(editExpressionButton));
+    await user.click(editExpressionButton);
     const saveExpressionButton = screen.getByRole('button', {
       name: textMock('expression.saveAndClose'),
     });
-    await act(() => user.click(saveExpressionButton));
+    await user.click(saveExpressionButton);
+
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
+    expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
+      org,
+      app,
+      layout1NameMock,
+      layoutSet,
+      expect.objectContaining({
+        data: expect.objectContaining({
+          hidden: expression,
+        }),
+      }),
+    );
   });
 
   it('calls saveLayout when expression is deleted', async () => {
@@ -80,13 +111,16 @@ describe('HiddenExpressionOnLayout', () => {
     const deleteExpressionButton = screen.getByRole('button', {
       name: textMock('right_menu.expression_delete'),
     });
-    await act(() => user.click(deleteExpressionButton));
+    await user.click(deleteExpressionButton);
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
   });
 });
 
 const renderHiddenExpressionOnLayout = (layouts = defaultLayouts) => {
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet], layouts);
-  queryClientMock.setQueryData([QueryKey.DatamodelMetadata, org, app, layoutSet], []);
+  queryClientMock.setQueryData(
+    [QueryKey.DataModelMetadata, org, app, layoutSet, dataModelName],
+    [],
+  );
   return renderWithProviders(<HiddenExpressionOnLayout />);
 };

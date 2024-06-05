@@ -1,4 +1,4 @@
-import { areObjectsEqual, mapByProperty } from 'app-shared/utils/objectUtils';
+import { areObjectsEqual, mapByProperty, flattenObjectValues } from 'app-shared/utils/objectUtils';
 
 describe('objectUtils', () => {
   describe('areObjectsEqual', () => {
@@ -33,13 +33,16 @@ describe('objectUtils', () => {
         [value3]: object3,
       });
     });
+  });
 
-    it('Throws an error if the values of the given property are not unique', () => {
-      const object4 = { [property]: value1 };
-      const objectList = [object1, object2, object3, object4];
-      const expectedError =
-        'The values of the given property in the mapByProperty function should be unique.';
-      expect(() => mapByProperty(objectList, property)).toThrowError(expectedError);
+  describe('flattenObjectValues', () => {
+    it('Flattens the values of an object', () => {
+      const object = {
+        a: 'value1',
+        b: 'value2',
+        c: 'value3',
+      };
+      expect(flattenObjectValues(object)).toEqual(['value1', 'value2', 'value3']);
     });
   });
 });

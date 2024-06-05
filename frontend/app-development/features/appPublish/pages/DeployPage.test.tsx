@@ -1,9 +1,10 @@
 import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { DeployPage } from './DeployPage';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from 'app-development/test/mocks';
+import { org } from '@studio/testing/testids';
 
 describe('DeployPage', () => {
   it('renders a spinner while loading', () => {
@@ -22,7 +23,6 @@ describe('DeployPage', () => {
   });
 
   it('renders no environments message if no org environments', async () => {
-    const org = 'org';
     render({
       getOrgList: jest
         .fn()
@@ -39,7 +39,6 @@ describe('DeployPage', () => {
   });
 
   it('renders no team message if no permissions', async () => {
-    const org = 'org';
     const envName = 'tt02';
     render({
       getOrgList: jest
@@ -56,7 +55,6 @@ describe('DeployPage', () => {
   });
 
   it('renders deploy page', async () => {
-    const org = 'org';
     const envName = 'tt02';
     render({
       getOrgList: jest

@@ -1,47 +1,28 @@
 import React from 'react';
 import { ConfigPanel } from './ConfigPanel';
 import { render, screen } from '@testing-library/react';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { BpmnContextProps } from '../../contexts/BpmnContext';
 import { BpmnContext } from '../../contexts/BpmnContext';
-import type { BpmnDetails } from '../../types/BpmnDetails';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 import { BpmnConfigPanelFormContextProvider } from '../../contexts/BpmnConfigPanelContext';
 import type Modeler from 'bpmn-js/lib/Modeler';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { BpmnApiContextProvider } from '../../contexts/BpmnApiContext';
+import { mockBpmnDetails } from '../../../test/mocks/bpmnDetailsMock';
+
+jest.mock('./ConfigSequenceFlow', () => ({
+  ConfigSequenceFlow: () => <h1>ConfigSequenceFlow Mocked Component</h1>,
+}));
 
 jest.mock('app-shared/utils/featureToggleUtils', () => ({
   shouldDisplayFeature: jest.fn().mockReturnValue(false),
 }));
 
-const mockBpmnDetails: BpmnDetails = {
-  id: 'testId',
-  name: 'testName',
-  taskType: 'data',
-  type: BpmnTypeEnum.Task,
-};
-
-const mockBpmnContextValue: BpmnContextProps = {
-  bpmnXml: `<?xml version="1.0" encoding="UTF-8"?></xml>`,
-  appLibVersion: '8.0.3',
-  numberOfUnsavedChanges: 0,
-  setNumberOfUnsavedChanges: jest.fn(),
-  getUpdatedXml: jest.fn(),
-  isEditAllowed: true,
-  bpmnDetails: mockBpmnDetails,
-  setBpmnDetails: jest.fn(),
-  dataTasksAdded: [],
-  setDataTasksAdded: jest.fn(),
-  dataTasksRemoved: [],
-  setDataTasksRemoved: jest.fn(),
-};
-
 describe('ConfigPanel', () => {
-  beforeEach(() => {
-    jest.resetAllMocks();
+  afterEach(() => {
+    jest.clearAllMocks();
   });
-
   it('should render no selected task message', () => {
     renderConfigPanel({ bpmnDetails: null });
     const title = screen.getByRole('heading', {
@@ -58,13 +39,24 @@ describe('ConfigPanel', () => {
 
   it('should render ConfigPanel if bpmn type is task', () => {
     renderConfigPanel({
-      modelerRef: { current: { get: () => {} } as unknown as Modeler },
+      modelerRef: {
+        current: {
+          get: () => {},
+        } as unknown as Modeler,
+      },
       bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.Task },
     });
     const editTaskIdButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_change_task_id'),
     });
     expect(editTaskIdButton).toBeInTheDocument();
+  });
+
+  it('should render sequence flow config panel if bpmn type is sequence flow', () => {
+    renderConfigPanel({ bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.SequenceFlow } });
+    expect(
+      screen.getByRole('heading', { name: 'ConfigSequenceFlow Mocked Component' }),
+    ).toBeInTheDocument();
   });
 
   it('should display the details about the end event when bpmnDetails.type is "EndEvent" and customizeEndEvent feature flag is enabled', () => {
@@ -81,18 +73,11 @@ describe('ConfigPanel', () => {
       expectedText: 'process_editor.configuration_panel_no_task_title',
     },
     {
-      task: BpmnTypeEnum.SequenceFlow,
-      expectedText: 'process_editor.configuration_panel_element_not_supported_message',
-    },
-    {
       task: BpmnTypeEnum.StartEvent,
       expectedText: 'process_editor.configuration_panel_element_not_supported_message',
     },
-    {
-      task: BpmnTypeEnum.EndEvent,
-      expectedText: 'process_editor.configuration_panel_element_not_supported_message',
-    },
   ])('should display correct message based on selected bpmn type', ({ task, expectedText }) => {
+    (shouldDisplayFeature as jest.Mock).mockReturnValue(false);
     renderConfigPanel({
       modelerRef: { current: '' as unknown as Modeler },
       bpmnDetails: { ...mockBpmnDetails, type: task },
@@ -103,13 +88,8 @@ describe('ConfigPanel', () => {
 
 const renderConfigPanel = (rootContextProps: Partial<BpmnContextProps> = {}) => {
   return render(
-    <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
-      <BpmnApiContextProvider
-        layoutSets={{ sets: [] }}
-        existingCustomReceiptLayoutSetName={undefined}
-        addLayoutSet={jest.fn()}
-        mutateLayoutSet={jest.fn()}
-      >
+    <BpmnContext.Provider value={{ ...rootContextProps }}>
+      <BpmnApiContextProvider>
         <BpmnConfigPanelFormContextProvider>
           <ConfigPanel />
         </BpmnConfigPanelFormContextProvider>

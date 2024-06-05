@@ -1,7 +1,7 @@
 import React from 'react';
 import { Properties } from './Properties';
-import { render as rtlRender, act, screen, waitFor } from '@testing-library/react';
-import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
+import { render as rtlRender, screen, waitFor } from '@testing-library/react';
+import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import { FormItemContext } from '../../containers/FormItemContext';
 import userEvent from '@testing-library/user-event';
 import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
@@ -49,9 +49,9 @@ describe('Properties', () => {
     it('Toggles content when clicked', async () => {
       render();
       const button = screen.queryByRole('button', { name: contentText });
-      await act(() => user.click(button));
+      await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'true');
-      await act(() => user.click(button));
+      await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'false');
     });
 
@@ -73,9 +73,9 @@ describe('Properties', () => {
     it('Toggles dynamics when clicked', async () => {
       render();
       const button = screen.queryByRole('button', { name: dynamicsText });
-      await act(() => user.click(button));
+      await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'true');
-      await act(() => user.click(button));
+      await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'false');
     });
 
@@ -83,7 +83,7 @@ describe('Properties', () => {
       const { rerender } = render();
       rerender(getComponent({ formItemId: 'test' }));
       const dynamicsButton = screen.queryByRole('button', { name: dynamicsText });
-      await act(() => user.click(dynamicsButton));
+      await user.click(dynamicsButton);
       const newDynamics = screen.getByTestId(expressionsTestId);
       expect(newDynamics).toBeInTheDocument();
     });
@@ -99,9 +99,9 @@ describe('Properties', () => {
     it('Toggles calculations when clicked', async () => {
       render();
       const button = screen.queryByRole('button', { name: calculationsText });
-      await act(() => user.click(button));
+      await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'true');
-      await act(() => user.click(button));
+      await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'false');
     });
   });

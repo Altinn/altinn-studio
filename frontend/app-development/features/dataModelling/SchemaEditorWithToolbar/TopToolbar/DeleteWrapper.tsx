@@ -1,8 +1,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioButton } from '@studio/components';
-import { TrashIcon } from '@navikt/aksel-icons';
-import { useDeleteDatamodelMutation } from '../../../../hooks/mutations';
+import { TrashIcon } from '@studio/icons';
+import { useDeleteDataModelMutation } from '../../../../hooks/mutations';
 import type { MetadataOption } from '../../../../types/MetadataOption';
 import { AltinnConfirmDialog } from 'app-shared/components';
 
@@ -13,7 +13,7 @@ export interface DeleteWrapperProps {
 export function DeleteWrapper({ selectedOption }: DeleteWrapperProps) {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const { t } = useTranslation();
-  const { mutate } = useDeleteDatamodelMutation();
+  const { mutate } = useDeleteDataModelMutation();
 
   const modelPath = selectedOption?.value.repositoryRelativeUrl;
 

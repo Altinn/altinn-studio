@@ -1,13 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAppConfigQuery } from 'app-development/hooks/queries';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Heading } from '@digdir/design-system-react';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { StudioSpinner } from '@studio/components';
 
 export const Header = () => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
 
   const {
     data: appConfigData,
@@ -18,12 +18,14 @@ export const Header = () => {
   });
   const { t } = useTranslation();
 
+  useEffect(() => {
+    if (isError) {
+      toast.error(t('overview.fetch_title_error_message'));
+    }
+  }, [isError, t]);
+
   if (isPending) {
     return <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('overview.header_loading')} />;
-  }
-
-  if (isError) {
-    toast.error(t('overview.fetch_title_error_message'));
   }
 
   return (

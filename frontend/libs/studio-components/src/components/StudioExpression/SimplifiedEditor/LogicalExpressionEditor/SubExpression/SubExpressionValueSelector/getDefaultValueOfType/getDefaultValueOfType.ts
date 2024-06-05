@@ -1,6 +1,7 @@
 import { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSubexpressionValueType';
 import type { SimpleSubexpressionValue } from '../../../../../types/SimpleSubexpressionValue';
 import { InstanceContext } from '../../../../../enums/InstanceContext';
+import { GatewayActionContext } from '../../../../../enums/GatewayActionContext';
 
 export const getDefaultValueOfType = (newType: SimpleSubexpressionValueType) =>
   defaultValueByType[newType];
@@ -12,9 +13,17 @@ const defaultValueByType: {
     type: SimpleSubexpressionValueType.Component,
     id: '',
   },
-  [SimpleSubexpressionValueType.Datamodel]: {
-    type: SimpleSubexpressionValueType.Datamodel,
+  [SimpleSubexpressionValueType.DataModel]: {
+    type: SimpleSubexpressionValueType.DataModel,
     path: '',
+  },
+  [SimpleSubexpressionValueType.GatewayAction]: {
+    type: SimpleSubexpressionValueType.GatewayAction,
+    value: 'GatewayAction',
+  },
+  [SimpleSubexpressionValueType.GatewayActionContext]: {
+    type: SimpleSubexpressionValueType.GatewayActionContext,
+    key: GatewayActionContext.Confirm,
   },
   [SimpleSubexpressionValueType.InstanceContext]: {
     type: SimpleSubexpressionValueType.InstanceContext,

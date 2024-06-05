@@ -1,35 +1,90 @@
 import React from 'react';
 import { ProcessEditor as ProcessEditorImpl } from '@altinn/process-editor';
-import { useBpmnMutation } from 'app-development/hooks/mutations';
-import { useBpmnQuery } from 'app-development/hooks/queries/useBpmnQuery';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useAppPolicyMutation, useBpmnMutation } from '../../hooks/mutations';
+import { useBpmnQuery } from '../../hooks/queries/useBpmnQuery';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { toast } from 'react-toastify';
-import { Spinner } from '@digdir/design-system-react';
+import { StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
 import { processEditorWebSocketHub } from 'app-shared/api/paths';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { type SyncSuccess, type SyncError, SyncUtils } from './syncUtils';
-import { useUpdateLayoutSetMutation } from '../../hooks/mutations/useUpdateLayoutSetMutation';
+import { useUpdateLayoutSetIdMutation } from '../../hooks/mutations/useUpdateLayoutSetIdMutation';
 import { useAddLayoutSetMutation } from '../../hooks/mutations/useAddLayoutSetMutation';
-import { type MetaDataForm } from '@altinn/process-editor/src/contexts/BpmnConfigPanelContext';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
+import { useDeleteLayoutSetMutation } from '../../hooks/mutations/useDeleteLayoutSetMutation';
+import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
+import { useUpdateProcessDataTypeMutation } from '../../hooks/mutations/useUpdateProcessDataTypeMutation';
+import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
+import { useAddDataTypeToAppMetadata } from '../../hooks/mutations/useAddDataTypeToAppMetadata';
+import { useDeleteDataTypeFromAppMetadata } from '../../hooks/mutations/useDeleteDataTypeFromAppMetadata';
+import { SyncSuccessQueriesInvalidator } from 'app-shared/queryInvalidator/SyncSuccessQueriesInvalidator';
+import { useQueryClient } from '@tanstack/react-query';
+import { useSettingsModalContext } from '../../contexts/SettingsModalContext';
+import { useAppPolicyQuery } from '../../hooks/queries';
+import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
+import { OnProcessTaskAddHandler } from './handlers/OnProcessTaskAddHandler';
+import { OnProcessTaskRemoveHandler } from './handlers/OnProcessTaskRemoveHandler';
+
+enum SyncClientsName {
+  FileSyncSuccess = 'FileSyncSuccess',
+  FileSyncError = 'FileSyncError',
+}
 
 export const ProcessEditor = (): React.ReactElement => {
   const { t } = useTranslation();
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
+  const queryClient = useQueryClient();
+  const { data: currentPolicy, isPending: isPendingCurrentPolicy } = useAppPolicyQuery(org, app);
+  const { mutate: mutateApplicationPolicy } = useAppPolicyMutation(org, app);
+  const invalidator = SyncSuccessQueriesInvalidator.getInstance(queryClient, org, app);
+  const { setSettingsModalOpen, setSettingsModalSelectedTab } = useSettingsModalContext();
   const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
   const { data: appLibData, isLoading: appLibDataLoading } = useAppVersionQuery(org, app);
-  const bpmnMutation = useBpmnMutation(org, app);
-  const { mutate: mutateLayoutSet } = useUpdateLayoutSetMutation(org, app);
-  const { mutate: addLayoutSet } = useAddLayoutSetMutation(org, app);
-  const existingCustomReceiptName: string | undefined = useCustomReceiptLayoutSetName(org, app);
+  const { mutate: mutateBpmn, isPending: mutateBpmnPending } = useBpmnMutation(org, app);
+  const { mutate: mutateLayoutSetId, isPending: mutateLayoutSetIdPending } =
+    useUpdateLayoutSetIdMutation(org, app);
+  const { mutate: addLayoutSet, isPending: addLayoutSetPending } = useAddLayoutSetMutation(
+    org,
+    app,
+  );
+  const { mutate: deleteLayoutSet, isPending: deleteLayoutSetPending } = useDeleteLayoutSetMutation(
+    org,
+    app,
+  );
+  const { mutate: mutateDataType, isPending: updateDataTypePending } =
+    useUpdateProcessDataTypeMutation(org, app);
+
+  const existingCustomReceiptId: string | undefined = useCustomReceiptLayoutSetName(org, app);
+
+  const { mutate: addDataTypeToAppMetadata } = useAddDataTypeToAppMetadata(org, app);
+  const { mutate: deleteDataTypeFromAppMetadata } = useDeleteDataTypeFromAppMetadata(org, app);
+
+  const { data: availableDataModelIds, isPending: availableDataModelIdsPending } =
+    useAppMetadataModelIdsQuery(org, app);
+  const { data: allDataModelIds, isPending: allDataModelIdsPending } = useAppMetadataModelIdsQuery(
+    org,
+    app,
+    false,
+  );
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
+
+  const pendingApiOperations: boolean =
+    mutateBpmnPending ||
+    mutateLayoutSetIdPending ||
+    addLayoutSetPending ||
+    deleteLayoutSetPending ||
+    updateDataTypePending ||
+    availableDataModelIdsPending ||
+    allDataModelIdsPending ||
+    isPendingCurrentPolicy;
 
   const { onWSMessageReceived } = useWebSocket({
     webSocketUrl: processEditorWebSocketHub(),
+    clientsName: [SyncClientsName.FileSyncSuccess, SyncClientsName.FileSyncError],
     webSocketConnector: WSConnector,
   });
 
@@ -42,40 +97,73 @@ export const ProcessEditor = (): React.ReactElement => {
 
     const isSuccessMessage = 'source' in message;
     if (isSuccessMessage) {
-      // Here we can handle the SyncSuccess message or invalidate the query cache
-      console.log('SyncSuccess received');
+      // Please extend the "fileNameCacheKeyMap" inside the "SyncSuccessQueriesInvalidator" class. Do not add query-client invalidation directly here.
+      invalidator.invalidateQueryByFileName(message.source.name);
     }
   });
 
-  const saveBpmnXml = async (xml: string, metaData: MetaDataForm): Promise<void> => {
+  const saveBpmnXml = async (xml: string, metaData?: MetaDataForm): Promise<void> => {
     const formData = new FormData();
     formData.append('content', new Blob([xml]), 'process.bpmn');
     formData.append('metadata', JSON.stringify(metaData));
 
-    bpmnMutation.mutate(
+    mutateBpmn(
       { form: formData },
       {
-        onSuccess: () => {
-          toast.success(t('process_editor.saved_successfully'));
+        onError: () => {
+          toast.error(t('process_editor.save_bpmn_xml_error'));
         },
       },
     );
   };
 
+  const onProcessTaskAdd = (taskMetadata: OnProcessTaskEvent): void => {
+    const onProcessTaskAddHandler = new OnProcessTaskAddHandler(
+      org,
+      app,
+      currentPolicy,
+      mutateApplicationPolicy,
+    );
+    onProcessTaskAddHandler.handleOnProcessTaskAdd(taskMetadata);
+  };
+
+  const onProcessTaskRemove = (taskMetadata: OnProcessTaskEvent): void => {
+    const onProcessTaskRemoveHandler = new OnProcessTaskRemoveHandler(
+      org,
+      app,
+      currentPolicy,
+      mutateApplicationPolicy,
+    );
+    onProcessTaskRemoveHandler.handleOnProcessTaskRemove(taskMetadata);
+  };
+
   if (appLibDataLoading) {
-    return <Spinner title={t('process_editor.loading')} />;
+    return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} showSpinnerTitle />;
   }
 
   // TODO: Handle error will be handled better after issue #10735 is resolved
   return (
     <ProcessEditorImpl
+      availableDataModelIds={availableDataModelIds}
+      allDataModelIds={allDataModelIds}
       layoutSets={layoutSets}
-      existingCustomReceiptLayoutSetName={existingCustomReceiptName}
+      pendingApiOperations={pendingApiOperations}
+      existingCustomReceiptLayoutSetId={existingCustomReceiptId}
       addLayoutSet={addLayoutSet}
-      mutateLayoutSet={mutateLayoutSet}
+      deleteLayoutSet={deleteLayoutSet}
+      mutateLayoutSetId={mutateLayoutSetId}
       appLibVersion={appLibData.backendVersion}
       bpmnXml={hasBpmnQueryError ? null : bpmnXml}
-      onSave={saveBpmnXml}
+      mutateDataType={mutateDataType}
+      addDataTypeToAppMetadata={addDataTypeToAppMetadata}
+      deleteDataTypeFromAppMetadata={deleteDataTypeFromAppMetadata}
+      saveBpmn={saveBpmnXml}
+      openPolicyEditor={() => {
+        setSettingsModalSelectedTab('policy');
+        setSettingsModalOpen(true);
+      }}
+      onProcessTaskAdd={onProcessTaskAdd}
+      onProcessTaskRemove={onProcessTaskRemove}
     />
   );
 };

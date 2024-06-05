@@ -1,5 +1,5 @@
 import { Spinner } from '@digdir/design-system-react';
-import { CogIcon } from '@navikt/aksel-icons';
+import { CogIcon } from '@studio/icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSchemaQuery } from '../../../../hooks/queries';
@@ -25,7 +25,7 @@ export const GenerateModelsButton = ({
   const handleGenerateButtonClick = () => {
     mutate(data, {
       onSuccess: () => {
-        toast.success(t('schema_editor.datamodel_generation_success_message'));
+        toast.success(t('schema_editor.data_model_generation_success_message'));
         onSetSchemaGenerationErrorMessages([]);
       },
       onError: (error) => {

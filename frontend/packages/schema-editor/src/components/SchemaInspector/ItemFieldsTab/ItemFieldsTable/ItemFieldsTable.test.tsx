@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import type { ItemFieldsTableProps } from './ItemFieldsTable';
 import { ItemFieldsTable } from './ItemFieldsTable';
 import type { FieldNode, UiSchemaNodes } from '@altinn/schema-model';
@@ -13,7 +13,7 @@ import {
 import type { RenderWithProvidersData } from '../../../../../test/renderWithProviders';
 import { renderWithProviders } from '../../../../../test/renderWithProviders';
 import { nodeMockBase, rootNodeMock } from '../../../../../test/mocks/uiSchemaMock';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 const selectedItemPointer = '#/properties/test';
@@ -37,7 +37,7 @@ const selectedItemChild: FieldNode = {
   children: [],
 };
 const uiSchema: UiSchemaNodes = [rootNode, selectedItem, selectedItemChild];
-const saveDatamodel = jest.fn();
+const saveDataModel = jest.fn();
 const model = SchemaModel.fromArray(uiSchema);
 
 const defaultProps: ItemFieldsTableProps = {
@@ -53,7 +53,7 @@ const renderItemFieldsTab = (
     ...data,
     appContextProps: {
       schemaModel: model,
-      save: saveDatamodel,
+      save: saveDataModel,
       ...data.appContextProps,
     },
   })(<ItemFieldsTable {...defaultProps} {...props} />);
@@ -81,8 +81,7 @@ describe('ItemFieldsTable', () => {
       }),
     ).toHaveLength(children.length);
 
-    // Added to avoid the "Warning: An update to Select inside a test was not wrapped in act(...)." bug
-    await act(() => user.tab());
+    await user.tab();
   });
 
   it('Updates the text field correctly', async () => {
@@ -94,13 +93,13 @@ describe('ItemFieldsTable', () => {
     });
     expect(firstTextBox).toHaveValue(expectedNameInTextField(0));
 
-    await act(() => user.type(firstTextBox, 'a'));
-    await act(() => user.tab());
+    await user.type(firstTextBox, 'a');
+    await user.tab();
 
     const [firstTextBoxAfter] = screen.getAllByLabelText(textMock('schema_editor.field_name'));
     expect(firstTextBoxAfter).toHaveValue(expectedNameInTextField(0) + 'a');
 
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
   });
 
   it('Calls "save" when "Enter" key is pressed in Text field', async () => {
@@ -110,10 +109,10 @@ describe('ItemFieldsTable', () => {
     const [firstTextBox] = screen.getAllByLabelText(textMock('schema_editor.field_name'));
     expect(firstTextBox).toHaveValue(expectedNameInTextField(0));
 
-    await act(() => user.type(firstTextBox, 'a'));
-    await act(() => user.keyboard('{Enter}'));
+    await user.type(firstTextBox, 'a');
+    await user.keyboard('{Enter}');
 
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
   });
 
   it('Updates the select correctly', async () => {
@@ -126,9 +125,9 @@ describe('ItemFieldsTable', () => {
     }) as HTMLOptionElement;
     expect(objectOption.selected).toBe(true);
 
-    await act(() => user.selectOptions(firstSelect, textMock('schema_editor.string')));
+    await user.selectOptions(firstSelect, textMock('schema_editor.string'));
 
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
   });
 
   it('Updates the switch correctly', async () => {
@@ -138,9 +137,9 @@ describe('ItemFieldsTable', () => {
     const [firstSwitch] = screen.getAllByLabelText(textMock('schema_editor.required'));
     expect(firstSwitch).not.toBeChecked();
 
-    await act(() => user.click(firstSwitch));
+    await user.click(firstSwitch);
 
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
   });
 
   it('Calls "save" when the delete button is clicked', async () => {
@@ -152,16 +151,16 @@ describe('ItemFieldsTable', () => {
     const lastDeleteButton = screen.getAllByRole('button', {
       name: textMock('schema_editor.delete_field'),
     })[lastIndex];
-    await act(() => user.click(lastDeleteButton));
+    await user.click(lastDeleteButton);
 
     const dialog = screen.getByRole('dialog');
     expect(dialog).toBeInTheDocument();
 
     const confirmButton = screen.getByRole('button', {
-      name: textMock('schema_editor.datamodel_field_deletion_confirm'),
+      name: textMock('schema_editor.data_model_field_deletion_confirm'),
     });
-    await act(() => user.click(confirmButton));
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
+    await user.click(confirmButton);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
   });
 });
 

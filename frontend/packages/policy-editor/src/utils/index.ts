@@ -237,3 +237,8 @@ export const findSubjectByPolicyRuleSubject = (
     (subject) => subject.subjectId.toLowerCase() === policyRuleSubject.toLowerCase(),
   );
 };
+
+export const getNewRuleId = (rules: PolicyRuleCard[]): string => {
+  const lastId: number = Number(rules[rules.length - 1]?.ruleId ?? 0) + 1;
+  return String(lastId);
+};

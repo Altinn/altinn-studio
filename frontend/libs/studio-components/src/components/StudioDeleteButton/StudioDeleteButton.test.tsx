@@ -1,6 +1,6 @@
 import type { RefObject } from 'react';
 import React, { createRef } from 'react';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { StudioDeleteButton } from './StudioDeleteButton';
 import type { StudioDeleteButtonProps } from './StudioDeleteButton';
 import userEvent from '@testing-library/user-event';
@@ -18,7 +18,7 @@ describe('StudioDeleteButton', () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
     renderDeleteButton();
-    await act(() => user.click(getDeleteButton()));
+    await user.click(getDeleteButton());
     expect(onDelete).toHaveBeenCalledTimes(1);
   });
 
@@ -26,7 +26,7 @@ describe('StudioDeleteButton', () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(() => false);
     renderDeleteButton();
-    await act(() => user.click(getDeleteButton()));
+    await user.click(getDeleteButton());
     expect(onDelete).toHaveBeenCalledTimes(0);
   });
 
@@ -34,14 +34,14 @@ describe('StudioDeleteButton', () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
     renderDeleteButton();
-    await act(() => user.click(getDeleteButton()));
+    await user.click(getDeleteButton());
     expect(onDelete).toHaveBeenCalledTimes(1);
   });
 
   it('Calls the onDelete callback directly when no confirm message is set', async () => {
     const user = userEvent.setup();
     renderDeleteButton();
-    await act(() => user.click(getDeleteButton()));
+    await user.click(getDeleteButton());
     expect(onDelete).toHaveBeenCalledTimes(1);
   });
 
@@ -50,7 +50,7 @@ describe('StudioDeleteButton', () => {
     jest.spyOn(window, 'confirm').mockImplementation(() => false);
     const onClick = jest.fn();
     renderDeleteButton({ onClick });
-    await act(() => user.click(getDeleteButton()));
+    await user.click(getDeleteButton());
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 

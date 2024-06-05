@@ -10,26 +10,23 @@ import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import type { User } from 'app-shared/types/Repository';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { RepositoryType } from 'app-shared/types/global';
-import {
-  useSelectedFormLayoutSetName,
-  useSelectedFormLayoutName,
-} from '../../packages/ux-editor/src/hooks';
+import { useSelectedFormLayoutSetName, useSelectedFormLayoutName } from '@altinn/ux-editor/hooks';
 
 type SubMenuContentProps = {
   org: string;
   app: string;
+  hasRepoError?: boolean;
 };
 
-export const subMenuContent = ({ org, app }: SubMenuContentProps) => {
+export const subMenuContent = ({ org, app, hasRepoError }: SubMenuContentProps) => {
   const repositoryType = getRepositoryType(org, app);
   return (
     <GiteaHeader
       org={org}
       app={app}
       hasCloneModal
-      leftComponent={
-        repositoryType !== RepositoryType.Datamodels && <SettingsModalButton org={org} app={app} />
-      }
+      leftComponent={repositoryType !== RepositoryType.DataModels && <SettingsModalButton />}
+      hasRepoError={hasRepoError}
     />
   );
 };
@@ -41,20 +38,17 @@ export const buttonActions = (
 ): AltinnButtonActionItem[] => {
   const packagesRouter = new PackagesRouter({ org, app });
 
-  const actions: AltinnButtonActionItem[] = [
+  return [
     {
-      title: 'top_menu.preview',
       menuKey: TopBarMenu.Preview,
       to: `${packagesRouter.getPackageNavigationUrl('preview')}${selectedFormLayoutName ? `?layout=${selectedFormLayoutName}` : ''}`,
       isInverted: true,
     },
     {
-      title: 'top_menu.deploy',
       menuKey: TopBarMenu.Deploy,
       to: packagesRouter.getPackageNavigationUrl('editorPublish'),
     },
   ];
-  return actions;
 };
 
 type PageHeaderProps = {
@@ -83,8 +77,8 @@ export const PageHeader = ({
   return (
     <AltinnHeader
       menuItems={!isRepoError && menuItems}
-      showSubMenu={showSubMenu && !isRepoError}
-      subMenuContent={!isRepoError && subMenuContent({ org, app })}
+      showSubMenu={showSubMenu || !isRepoError}
+      subMenuContent={subMenuContent({ org, app, hasRepoError: isRepoError })}
       org={org}
       app={!isRepoError && app}
       user={user}

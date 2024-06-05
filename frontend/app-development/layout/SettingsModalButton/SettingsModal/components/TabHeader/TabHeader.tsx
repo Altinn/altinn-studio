@@ -4,9 +4,6 @@ import classes from './TabHeader.module.css';
 import { Heading } from '@digdir/design-system-react';
 
 export type TabHeaderProps = {
-  /**
-   * The text in the header
-   */
   text: string;
 };
 
