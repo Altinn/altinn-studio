@@ -8,6 +8,7 @@ digdir:
       kafka-password: kafkaPassword
       schema-registry-password: schemaPassword
       schema-registry-username: schemaUsername
+      feature-enabled: false
 #      activity-record-topic: activityTopic #Do not set unless you know you want to ship to different location than the default topic
 #      maskinporten-token-record-topic: mpTokenTopic #Do not set unless you know you want to ship to different location than the default topic
 #      maskinporten-authentication-record-topic: mpAuthTopic #Do not set unless you know you want to ship to different location than the default topic

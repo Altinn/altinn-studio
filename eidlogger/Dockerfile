@@ -4,11 +4,12 @@ ARG GITHUB_USER
 ARG GITHUB_PASSWORD
 COPY settings.xml.template /root/.m2/settings.xml
 WORKDIR /app
-COPY pom.xml pom.xml
 COPY mvnw mvnw
 COPY .mvn ./.mvn
+COPY pom.xml pom.xml
+RUN ./mvnw dependency:go-offline -B
 COPY src ./src
-RUN ./mvnw clean install -DskipTests
+RUN ./mvnw clean package
 
 # Package stage
 FROM eclipse-temurin:21-jre-alpine
