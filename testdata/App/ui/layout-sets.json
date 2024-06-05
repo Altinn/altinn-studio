@@ -34,6 +34,13 @@
       "tasks": [
         "Task_5"
       ]
+    },
+    {
+      "id": "receipt",
+      "dataType": "receiptDataType",
+      "tasks": [
+        "CustomReceipt"
+      ]
     }
   ]
 }

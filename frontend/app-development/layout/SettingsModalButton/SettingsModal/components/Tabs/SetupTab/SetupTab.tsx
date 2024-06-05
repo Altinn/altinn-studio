@@ -8,23 +8,11 @@ import { ErrorMessage } from '@digdir/design-system-react';
 import { TabHeader } from '../../TabHeader';
 import { SetupTabContent } from './SetupTabContent';
 import { TabContent } from '../../TabContent';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
-export type SetupTabProps = {
-  org: string;
-  app: string;
-};
-
-/**
- * @component
- *    Displays the tab rendering the setup tab for an app
- *
- * @property {string}[org] - The org
- * @property {string}[app] - The app
- *
- * @returns {ReactNode} - The rendered component
- */
-export const SetupTab = ({ org, app }: SetupTabProps): ReactNode => {
+export const SetupTab = (): ReactNode => {
   const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
 
   const {
     status: appMetadataStatus,
@@ -43,7 +31,7 @@ export const SetupTab = ({ org, app }: SetupTabProps): ReactNode => {
           </TabDataError>
         );
       case 'success':
-        return <SetupTabContent appMetadata={appMetadata} org={org} app={app} />;
+        return <SetupTabContent appMetadata={appMetadata} />;
     }
   };
 

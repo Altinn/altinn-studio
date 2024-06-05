@@ -4,6 +4,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { useAppContext, useSelectedTaskId } from '../../hooks';
+import { useChecksum } from '../../hooks/useChecksum.ts';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/design-system-react';
 import { StudioButton, StudioCenter } from '@studio/components';
@@ -64,6 +65,9 @@ const PreviewFrame = () => {
   const taskId = useSelectedTaskId(selectedFormLayoutSetName);
   const { t } = useTranslation();
 
+  const { shouldReloadPreview, previewHasLoaded } = useAppContext();
+  const checksum = useChecksum(shouldReloadPreview);
+
   useEffect(() => {
     return () => {
       previewIframeRef.current = null;
@@ -76,10 +80,12 @@ const PreviewFrame = () => {
       <div className={classes.previewArea}>
         <div className={classes.iframeContainer}>
           <iframe
+            key={checksum}
             ref={previewIframeRef}
             className={cn(classes.iframe, classes[viewportToSimulate])}
             title={t('ux_editor.preview')}
             src={previewPage(org, app, selectedFormLayoutSetName, taskId, selectedFormLayoutName)}
+            onLoad={previewHasLoaded}
           />
         </div>
         <PreviewLimitationsInfo />

@@ -10,6 +10,7 @@ import type { AppVersion } from 'app-shared/types/AppVersion';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
 import React from 'react';
+import { usePreviewContext } from '../contexts/PreviewContext';
 
 interface IRouteProps {
   headerTextKey?: string;
@@ -37,8 +38,15 @@ const isLatestFrontendVersion = (version: AppVersion): boolean =>
 const UiEditor = () => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: version } = useAppVersionQuery(org, app);
+  const { shouldReloadPreview, previewHasLoaded } = usePreviewContext();
+
   if (!version) return null;
-  return isLatestFrontendVersion(version) ? <UiEditorLatest /> : <UiEditorV3 />;
+
+  return isLatestFrontendVersion(version) ? (
+    <UiEditorLatest shouldReloadPreview={shouldReloadPreview} previewHasLoaded={previewHasLoaded} />
+  ) : (
+    <UiEditorV3 />
+  );
 };
 
 export const routerRoutes: RouterRoute[] = [
