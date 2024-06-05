@@ -1,10 +1,10 @@
 import React from 'react';
-import type { GridSortModel } from '@mui/x-data-grid';
 import type { RepositoryWithStarred } from 'dashboard/utils/repoUtils/repoUtils';
 import { useTranslation } from 'react-i18next';
 import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import { DATAGRID_DEFAULT_PAGE_SIZE, DATAGRID_PAGE_SIZE_OPTIONS } from '../../constants';
 import {
+  RemotePaginationProps,
   StudioSpinner,
   StudioTableLocalPagination,
   StudioTableRemotePagination,
@@ -16,30 +16,27 @@ import { RepoNameWithLink } from './RepoNameWithLink';
 
 export interface RepoListProps {
   isLoading: boolean;
-  repos?: RepositoryWithStarred[];
+  repos: RepositoryWithStarred[];
   isServerSort?: boolean;
   pageSize?: DATAGRID_PAGE_SIZE_TYPE;
-  pageNumber: number;
-  totalRows: number;
+  pageNumber?: number;
+  totalRows?: number;
   onPageChange?: (page: number) => void;
-  onSortModelChange?: (newSortModel: GridSortModel) => void;
   onPageSizeChange?: (newPageSize: DATAGRID_PAGE_SIZE_TYPE) => void;
   pageSizeOptions?: Array<number>;
-  sortModel?: GridSortModel;
-  disableVirtualization?: boolean;
   onSortClick?: (columnKey: string) => void;
 }
 
 export const RepoList = ({
   repos = [],
   isLoading,
-  pageSize = DATAGRID_DEFAULT_PAGE_SIZE,
-  pageNumber,
   isServerSort = false,
   totalRows,
+  pageNumber,
+  pageSize = DATAGRID_DEFAULT_PAGE_SIZE,
+  pageSizeOptions = DATAGRID_PAGE_SIZE_OPTIONS,
   onPageChange,
   onPageSizeChange,
-  pageSizeOptions = DATAGRID_PAGE_SIZE_OPTIONS,
   onSortClick,
 }: RepoListProps): React.ReactElement => {
   const { t } = useTranslation();
@@ -80,7 +77,6 @@ export const RepoList = ({
       accessor: 'actionIcons',
       value: '',
       sortable: false,
-      headerCellClass: classes.actionIconsHeaderCell,
     },
   ];
 
@@ -101,29 +97,30 @@ export const RepoList = ({
     actionIcons: <ActionLinks repo={repo} />,
   }));
 
-  const remoteEmptyTableMessage = isLoading ? (
+  const emptyTableMessage = isLoading ? (
     <StudioSpinner spinnerTitle={t('general.loading')} />
   ) : (
     t('dashboard.no_repos_result')
   );
 
-  const remotePaginationProps = {
+  const paginationTexts = {
+    pageSizeLabel: t('dashboard.rows_per_page'),
+    showingRowText: t('dashboard.showing_row'),
+    ofText: t('general.of'),
+    nextButtonAriaLabel: t('general.next'),
+    previousButtonAriaLabel: t('general.previous'),
+    numberButtonAriaLabel: (number) => `${t('general.page')} ${number}`,
+  };
+
+  const paginationProps: RemotePaginationProps = {
     currentPage: pageNumber + 1,
     totalRows,
     totalPages: Math.ceil(totalRows / pageSize),
     pageSize,
     pageSizeOptions,
-    pageSizeLabel: t('dashboard.rows_per_page'),
     onPageChange: (page: number) => onPageChange(page - 1),
     onPageSizeChange,
-    nextButtonText: t('ux_editor.modal_properties_button_type_next'),
-    previousButtonText: t('ux_editor.modal_properties_button_type_back'),
-    itemLabel: (num: number) => `${t('general.page')} ${num}`,
-  };
-
-  const localPaginationProps = {
-    ...remotePaginationProps,
-    pageSizeOptions: DATAGRID_PAGE_SIZE_OPTIONS,
+    paginationTexts,
   };
 
   return (
@@ -134,8 +131,8 @@ export const RepoList = ({
             columns={remotePaginationColumns}
             rows={rows}
             size='small'
-            emptyTableMessage={remoteEmptyTableMessage}
-            pagination={remotePaginationProps}
+            emptyTableMessage={emptyTableMessage}
+            pagination={paginationProps}
             onSortClick={onSortClick}
           />
         </>
@@ -144,8 +141,8 @@ export const RepoList = ({
           columns={columns}
           rows={rows}
           size='small'
-          emptyTableMessage={t('dashboard.no_repos_result')}
-          pagination={localPaginationProps}
+          emptyTableMessage={emptyTableMessage}
+          pagination={paginationProps}
         />
       )}
     </div>

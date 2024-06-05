@@ -1,23 +1,27 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Columns, Rows, StudioTableRemotePagination } from './StudioTableRemotePagination';
-import type { PaginationProps } from './StudioTableRemotePagination';
+import { StudioTableRemotePagination } from './StudioTableRemotePagination';
+import type { RemotePaginationProps, Columns, Rows } from './StudioTableRemotePagination';
 import { columns, rows } from './mockData';
 
 describe('StudioTableRemotePagination', () => {
-  const paginationProps: PaginationProps = {
+  const paginationProps: RemotePaginationProps = {
     currentPage: 1,
     totalPages: 4,
     totalRows: rows.length,
     pageSize: 5,
     pageSizeOptions: [5, 10, 20, 50],
-    pageSizeLabel: 'Rows per page',
     onPageChange: jest.fn(),
     onPageSizeChange: jest.fn(),
-    nextButtonText: 'Next',
-    previousButtonText: 'Previous',
-    itemLabel: (num) => `Page ${num}`,
+    paginationTexts: {
+      pageSizeLabel: 'Rows per page',
+      showingRowText: 'Showing rows',
+      ofText: 'of',
+      nextButtonAriaLabel: 'Next',
+      previousButtonAriaLabel: 'Previous',
+      numberButtonAriaLabel: (num) => `Page ${num}`,
+    },
   };
 
   it('renders the table with columns and rows', () => {
@@ -127,16 +131,16 @@ describe('StudioTableRemotePagination', () => {
   });
 
   it('formats cells when a valueFormatter is specified', () => {
-    const rows: Rows = [{ id: 1, name: 'Sophie Salt' }];
-    const columns: Columns = [
+    const testColumns: Columns = [
       {
         accessor: 'name',
         value: 'Name',
         valueFormatter: (value) => `Formatted: ${value}`,
       },
     ];
+    const testRows: Rows = [{ id: 1, name: 'Sophie Salt' }];
 
-    render(<StudioTableRemotePagination columns={columns} rows={rows} />);
+    render(<StudioTableRemotePagination columns={testColumns} rows={testRows} />);
 
     const formattedNameCell = screen.getByText('Formatted: Sophie Salt');
     expect(formattedNameCell).toBeInTheDocument();

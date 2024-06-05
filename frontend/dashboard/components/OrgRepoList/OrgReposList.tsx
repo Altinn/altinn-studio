@@ -24,10 +24,8 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
   const {
     searchResults: repoResults,
     isLoadingSearchResults: areReposPending,
-    sortModel,
     pageSize,
     pageNumber,
-    setSortModel,
     setPageNumber,
     setPageSize,
     onSortClick,
@@ -54,14 +52,12 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
       <RepoList
         repos={reposWithStarred.filter((repo) => !repo.name.endsWith('-datamodels'))}
         isLoading={areReposPending || areStarredReposPending || areDataModelsPending}
-        onPageSizeChange={setPageSize}
         isServerSort={true}
         totalRows={totalRows}
-        onPageChange={setPageNumber}
-        onSortModelChange={setSortModel}
-        sortModel={sortModel}
         pageSize={pageSize}
+        onPageSizeChange={setPageSize}
         pageNumber={pageNumber}
+        onPageChange={setPageNumber}
         onSortClick={onSortClick}
       />
     </div>

@@ -1,39 +1,45 @@
 import { Label, NativeSelect, Pagination, Paragraph, Table } from '@digdir/design-system-react';
-import React, { forwardRef, useEffect, useId } from 'react';
+import React, { forwardRef, ReactNode, useEffect, useId } from 'react';
 import classes from './StudioTableRemotePagination.module.css';
 
 export type Columns = {
   accessor: string;
-  value: string;
+  value: ReactNode;
   sortable?: boolean;
   headerCellClass?: string;
   bodyCellsClass?: string;
-  valueFormatter?: (value: React.ReactNode) => React.ReactNode;
+  valueFormatter?: (value: ReactNode) => ReactNode;
 }[];
 
-export type Rows = (Record<string, React.ReactNode> & Record<'id', string | number>)[];
+export type Rows = (Record<string, ReactNode> & Record<'id', string | number>)[];
 
-export type PaginationProps = {
+export type PaginationTexts = {
+  pageSizeLabel: string;
+  showingRowText: string;
+  ofText: string;
+  nextButtonAriaLabel: string;
+  previousButtonAriaLabel: string;
+  numberButtonAriaLabel: (num: number) => string;
+};
+
+export type RemotePaginationProps = {
   currentPage: number;
   totalPages: number;
   totalRows: number;
   pageSize: number;
   pageSizeOptions: number[];
-  pageSizeLabel: string;
   onPageChange: (currentPage: number) => void;
   onPageSizeChange: (currentSize: number) => void;
-  nextButtonText: string;
-  previousButtonText: string;
-  itemLabel: (num: number) => string;
+  paginationTexts: PaginationTexts;
 };
 
 export type StudioTableRemotePaginationProps = {
   columns: Columns;
   rows: Rows;
+  emptyTableMessage?: ReactNode;
   size?: 'small' | 'medium' | 'large';
-  emptyTableMessage?: React.ReactNode;
   onSortClick?: (columnKey: string) => void;
-  pagination?: PaginationProps;
+  pagination?: RemotePaginationProps;
 };
 
 export const StudioTableRemotePagination = forwardRef<
@@ -44,31 +50,37 @@ export const StudioTableRemotePagination = forwardRef<
     { columns, rows, size = 'medium', emptyTableMessage, onSortClick, pagination },
     ref,
   ): React.ReactElement => {
+    const selectId = useId();
+
     const {
       currentPage,
       totalPages,
       totalRows,
       pageSize,
       pageSizeOptions,
-      pageSizeLabel,
       onPageChange: handlePageChange,
       onPageSizeChange: handlePageSizeChange,
-      nextButtonText,
-      previousButtonText,
-      itemLabel,
+      paginationTexts,
     } = pagination || {};
 
-    const isTableSortable = onSortClick && rows.length > 0;
-    const isPaginationActive =
-      pagination && rows.length > 0 && totalRows > Math.min(...pageSizeOptions);
+    const {
+      pageSizeLabel,
+      showingRowText,
+      ofText,
+      nextButtonAriaLabel,
+      previousButtonAriaLabel,
+      numberButtonAriaLabel,
+    } = paginationTexts || {};
+
+    const isTableEmpty = rows.length === 0;
+    const isSortingActive = !isTableEmpty && onSortClick;
+    const isPaginationActive = pagination && totalRows > Math.min(...pageSizeOptions);
 
     const firstRowIndex = (currentPage - 1) * pageSize + 1;
     const lastRowIndex = Math.min(currentPage * pageSize, totalRows);
 
-    const labelId = useId();
-
     useEffect(() => {
-      const isOutOfRange = totalRows > 0 && rows.length === 0;
+      const isOutOfRange = totalRows > 0 && isTableEmpty;
       if (isOutOfRange) {
         handlePageChange(1);
         return;
@@ -83,7 +95,7 @@ export const StudioTableRemotePagination = forwardRef<
               {columns.map(({ accessor, value, sortable, headerCellClass }) => (
                 <Table.HeaderCell
                   key={accessor}
-                  sortable={isTableSortable && sortable}
+                  sortable={isSortingActive && sortable}
                   onSortClick={() => onSortClick(accessor)}
                   className={headerCellClass}
                 >
@@ -104,7 +116,7 @@ export const StudioTableRemotePagination = forwardRef<
             ))}
           </Table.Body>
         </Table>
-        {!rows.length && (
+        {isTableEmpty && (
           <Paragraph className={classes.emptyTableMessage} size={size}>
             {emptyTableMessage}
           </Paragraph>
@@ -112,11 +124,11 @@ export const StudioTableRemotePagination = forwardRef<
         {isPaginationActive && (
           <div className={classes.paginationContainer}>
             <div className={classes.selectContainer}>
-              <Label htmlFor={labelId} size={size} className={classes.selectLabel}>
+              <Label htmlFor={selectId} size={size} className={classes.selectLabel}>
                 {pageSizeLabel}
               </Label>
               <NativeSelect
-                id={labelId}
+                id={selectId}
                 size={size}
                 defaultValue={pageSize}
                 className={classes.select}
@@ -128,8 +140,8 @@ export const StudioTableRemotePagination = forwardRef<
                   </option>
                 ))}
               </NativeSelect>
-              <Paragraph size={size} className={classes.pageInfo}>
-                Viser rad {firstRowIndex}-{lastRowIndex} av {totalRows}
+              <Paragraph size={size} className={classes.rowCounter}>
+                {showingRowText} {firstRowIndex}-{lastRowIndex} {ofText} {totalRows}
               </Paragraph>
             </div>
             {totalPages > 1 && (
@@ -138,9 +150,9 @@ export const StudioTableRemotePagination = forwardRef<
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onChange={handlePageChange}
-                nextLabel={nextButtonText}
-                previousLabel={previousButtonText}
-                itemLabel={itemLabel}
+                nextLabel={nextButtonAriaLabel}
+                previousLabel={previousButtonAriaLabel}
+                itemLabel={numberButtonAriaLabel}
                 hideLabels
                 compact
               />

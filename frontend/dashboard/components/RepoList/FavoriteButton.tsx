@@ -12,8 +12,7 @@ export const FavoriteButton = ({ repo }: FavoriteButtonProps): React.ReactElemen
   const { mutate: setStarredRepo } = useSetStarredRepoMutation();
   const { mutate: unsetStarredRepo } = useUnsetStarredRepoMutation();
 
-  const handleToggleFav = (event: React.MouseEvent) => {
-    event.stopPropagation();
+  const handleToggleFav = () => {
     if (repo.hasStarred) {
       unsetStarredRepo(repo);
     } else {
@@ -22,7 +21,7 @@ export const FavoriteButton = ({ repo }: FavoriteButtonProps): React.ReactElemen
   };
 
   return (
-    <Button onClick={(e) => handleToggleFav(e)} variant={'tertiary'} icon>
+    <Button onClick={handleToggleFav} variant={'tertiary'} icon>
       {repo.hasStarred ? <StarFillIcon name='star-fill-icon' /> : <StarIcon name='star-icon' />}
     </Button>
   );

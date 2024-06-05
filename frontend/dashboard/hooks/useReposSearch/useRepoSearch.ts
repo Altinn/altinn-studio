@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import type { GridSortModel } from '@mui/x-data-grid';
 import { useSearchReposQuery } from '../queries';
 import type { SearchRepositoryResponse } from 'app-shared/types/api/SearchRepositoryResponse';
 import { useSearchParamsState } from 'app-shared/hooks/useSearchParamsState';
@@ -11,8 +10,6 @@ type UseRepoSearchResult = {
   isLoadingSearchResults: boolean;
   pageSize: DATAGRID_PAGE_SIZE_TYPE;
   pageNumber: number;
-  sortModel: GridSortModel;
-  setSortModel: (selectedSortModel: GridSortModel) => void;
   setPageNumber: (pageNumber: number) => void;
   setPageSize: (pageSize: DATAGRID_PAGE_SIZE_TYPE) => void;
   onSortClick: (columnKey: string) => void;
@@ -39,7 +36,6 @@ export const useReposSearch = ({
         : defaultPageSize;
     },
   );
-  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'alpha', sort: 'asc' }]);
   const [selectedColumn, setSelectedColumn] = useState('alpha');
   const [sortDirection, setSortDirection] = useState('asc');
 
@@ -75,11 +71,9 @@ export const useReposSearch = ({
   return {
     searchResults,
     isLoadingSearchResults,
-    sortModel,
     pageSize,
     pageNumber,
     setPageNumber,
-    setSortModel,
     setPageSize,
     onSortClick,
   };

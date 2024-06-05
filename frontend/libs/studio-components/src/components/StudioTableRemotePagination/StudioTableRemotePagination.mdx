@@ -3,6 +3,7 @@ import { Heading, Paragraph } from '@digdir/design-system-react';
 import * as StudioTableRemotePaginationStories from './StudioTableRemotePagination.stories';
 import { StudioTableRemotePagination } from './StudioTableRemotePagination';
 import { propInfoColumns, propInfoRowsRemotePagination } from './mockData';
+import classes from './StudioTableRemotePagination.module.css';
 
 <Meta of={StudioTableRemotePaginationStories} />
 
@@ -20,10 +21,15 @@ import { propInfoColumns, propInfoRowsRemotePagination } from './mockData';
 <Heading level={2} size='xsmall'>
   Column format
 </Heading>
-<Paragraph>Columns must have both an `accessor` and a `value` property.</Paragraph>
+<ul>
+  <li>The columns prop has two required properties: `accessor` and a `value`.</li>
+  <li>
+    These properties are optional: `sortable`, `headerCellClass`, `bodyCellsClass` and `valueFormatter`.
+  </li>
+</ul>
 
 ```tsx
-const columns = [
+export const columns = [
   {
     accessor: 'icon',
     value: '',
@@ -31,6 +37,7 @@ const columns = [
   {
     accessor: 'name',
     value: 'Name',
+    sortable: true,
   },
   {
     accessor: 'creator',
@@ -39,6 +46,10 @@ const columns = [
   {
     accessor: 'lastChanged',
     value: 'Last changed',
+    sortable: true,
+    headerCellClass: classes.lastChangedColumnWidth,
+    bodyCellsClass: 'someOtherCustomClass',
+    valueFormatter: (date) => new Date(date).toLocaleDateString('nb', { dateStyle: 'short' }),
   },
 ];
 ```
@@ -58,17 +69,17 @@ const columns = [
 const rows = [
   {
     id: 1,
-    icon: <StarFillIcon />,
+    icon: <IconButton icon={<StarFillIcon />} />,
     name: 'Coordinated register notification',
     creator: 'Brønnøysund Register Centre',
-    lastChanged: '12-04-2023',
+    lastChanged: '2023-04-12',
   },
   {
     id: 2,
-    icon: <StarFillIcon />,
+    icon: <IconButton icon={<StarFillIcon />} />,
     name: 'Application for authorisation and license as a healthcare personnel',
     creator: 'The Norwegian Directorate of Health',
-    lastChanged: '05-04-2023',
-  },
+    lastChanged: '2023-04-05',
+  }
 ];
 ```

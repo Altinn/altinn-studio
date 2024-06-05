@@ -1,21 +1,21 @@
 import React, { forwardRef, useEffect, useState } from 'react';
 import { StudioTableRemotePagination } from '../StudioTableRemotePagination';
-import type { Rows } from '../StudioTableRemotePagination';
+import type { Columns, Rows } from '../StudioTableRemotePagination';
 import { useTableSorting } from '../../hooks/useTableSorting';
 import { getRowsToRender } from '../StudioTableRemotePagination/utils';
+import { PaginationTexts } from '../StudioTableRemotePagination/StudioTableRemotePagination';
+
+export type LocalPaginationProps = {
+  pageSizeOptions: number[];
+  paginationTexts: PaginationTexts;
+};
 
 export type StudioTableLocalPaginationProps = {
-  columns: Record<'accessor' | 'value', string>[];
+  columns: Columns;
   rows: Rows;
   size?: 'small' | 'medium' | 'large';
   emptyTableMessage?: React.ReactNode;
-  pagination?: {
-    pageSizeOptions: number[];
-    pageSizeLabel: string;
-    nextButtonText: string;
-    previousButtonText: string;
-    itemLabel: (num: number) => string;
-  };
+  pagination?: LocalPaginationProps;
 };
 
 export const StudioTableLocalPagination = forwardRef<
@@ -25,7 +25,8 @@ export const StudioTableLocalPagination = forwardRef<
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(pagination?.pageSizeOptions[0] ?? undefined);
 
-  const { handleSorting, sortedRows } = useTableSorting(rows, { enable: true });
+  const isSortable = columns.some((column) => column.sortable);
+  const { handleSorting, sortedRows } = useTableSorting(rows, { enable: isSortable });
 
   const initialRowsToRender = getRowsToRender(currentPage, pageSize, rows);
   const [rowsToRender, setRowsToRender] = useState<Rows>(initialRowsToRender);
@@ -35,14 +36,15 @@ export const StudioTableLocalPagination = forwardRef<
     setRowsToRender(newRowsToRender);
   }, [sortedRows, rows, currentPage, pageSize]);
 
-  const totalPages = Math.ceil(rows.length / pageSize);
+  const totalRows = rows.length;
+  const totalPages = Math.ceil(totalRows / pageSize);
 
   const studioTableRemotePaginationProps = pagination && {
     ...pagination,
     pageSize,
     currentPage,
     totalPages,
-    totalRows: rows.length,
+    totalRows,
     onPageChange: setCurrentPage,
     onPageSizeChange: setPageSize,
   };

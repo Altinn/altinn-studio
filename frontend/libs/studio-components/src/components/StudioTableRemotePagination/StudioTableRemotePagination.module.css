@@ -31,7 +31,7 @@
   font-weight: normal !important;
 }
 
-.pageInfo {
+.rowCounter {
   margin-block: auto;
   margin-left: var(--fds-spacing-6);
 }

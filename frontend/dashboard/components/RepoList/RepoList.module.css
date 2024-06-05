@@ -1,5 +1,5 @@
 .favoriteIconHeaderCell {
-  width: 42px;
+  width: 46px; /*Has to be exactly 46px to make the width the same for empty and filled table columns*/
 }
 
 .nameHeaderCell {
@@ -14,10 +14,6 @@
   width: 15%;
 }
 
-.actionIconsHeaderCell {
-  width: 155px;
-}
-
 .repoLink,
 .repoLink:visited {
   color: inherit;
@@ -29,7 +25,7 @@
   text-decoration: underline;
 }
 
-.actionLinks {
+.actionLinksContainer {
   display: flex;
   justify-content: flex-end;
   gap: var(--fds-spacing-1);

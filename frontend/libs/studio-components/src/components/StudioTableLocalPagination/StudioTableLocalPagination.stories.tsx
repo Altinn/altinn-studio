@@ -2,6 +2,7 @@ import React from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
 import { StudioTableLocalPagination } from './StudioTableLocalPagination';
 import { columns, rows } from '../StudioTableRemotePagination/mockData';
+import { PaginationTexts } from '../StudioTableRemotePagination/StudioTableRemotePagination';
 
 type Story = StoryFn<typeof StudioTableLocalPagination>;
 
@@ -23,10 +24,6 @@ const meta: Meta = {
     emptyTableMessage: {
       description: 'The message to display when the table is empty.',
     },
-    isSortable: {
-      description:
-        'Boolean that sets sorting to true or false. If set to false, the sorting buttons are hidden.',
-    },
     pagination: {
       description:
         'An object containing pagination-related props. If not provided, pagination is hidden.',
@@ -34,20 +31,28 @@ const meta: Meta = {
   },
 };
 
-export const Preview: Story = (args) => (
-  <StudioTableLocalPagination
-    columns={columns}
-    rows={rows}
-    size={args.size}
-    emptyTableMessage={'No data found'}
-    pagination={{
-      pageSizeOptions: [5, 10, 20, 50],
-      pageSizeLabel: 'Rows per page',
-      nextButtonText: 'Next',
-      previousButtonText: 'Previous',
-      itemLabel: (num) => `Page ${num}`,
-    }}
-  />
-);
+export const Preview: Story = (args) => {
+  const paginationTexts: PaginationTexts = {
+    pageSizeLabel: 'Rows per page:',
+    showingRowText: 'Showing rows',
+    ofText: 'of',
+    nextButtonAriaLabel: 'Next',
+    previousButtonAriaLabel: 'Previous',
+    numberButtonAriaLabel: (num) => `Page ${num}`,
+  };
+
+  return (
+    <StudioTableLocalPagination
+      columns={columns}
+      rows={rows}
+      size={args.size}
+      emptyTableMessage={'No data found'}
+      pagination={{
+        pageSizeOptions: [5, 10, 20, 50],
+        paginationTexts,
+      }}
+    />
+  );
+};
 
 export default meta;

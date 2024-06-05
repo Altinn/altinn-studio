@@ -2,17 +2,21 @@ import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StudioTableLocalPagination } from './StudioTableLocalPagination';
-import type { StudioTableLocalPaginationProps } from './StudioTableLocalPagination';
+import type { LocalPaginationProps } from './StudioTableLocalPagination';
 import { columns, rows } from '../StudioTableRemotePagination/mockData';
-import { Rows, Columns } from '../StudioTableRemotePagination';
+import type { Rows, Columns } from '../StudioTableRemotePagination';
 
 describe('StudioTableLocalPagination', () => {
-  const paginationProps: StudioTableLocalPaginationProps['pagination'] = {
+  const paginationProps: LocalPaginationProps = {
     pageSizeOptions: [5, 10, 50],
-    pageSizeLabel: 'Rows per page',
-    nextButtonText: 'Next',
-    previousButtonText: 'Previous',
-    itemLabel: (num) => `Page ${num}`,
+    paginationTexts: {
+      pageSizeLabel: 'Rows per page',
+      showingRowText: 'Showing rows',
+      ofText: 'of',
+      nextButtonAriaLabel: 'Next',
+      previousButtonAriaLabel: 'Previous',
+      numberButtonAriaLabel: (number) => `Page ${number}`,
+    },
   };
 
   it('renders the table with columns and rows', () => {
@@ -149,16 +153,16 @@ describe('StudioTableLocalPagination', () => {
   });
 
   it('formats cells when a valueFormatter is specified', () => {
-    const rows: Rows = [{ id: 1, name: 'Sophie Salt' }];
-    const columns: Columns = [
+    const testColumn: Columns = [
       {
         accessor: 'name',
         value: 'Name',
         valueFormatter: (value) => `Formatted: ${value}`,
       },
     ];
+    const testRow: Rows = [{ id: 1, name: 'Sophie Salt' }];
 
-    render(<StudioTableLocalPagination columns={columns} rows={rows} />);
+    render(<StudioTableLocalPagination columns={testColumn} rows={testRow} />);
 
     const formattedNameCell = screen.getByText('Formatted: Sophie Salt');
     expect(formattedNameCell).toBeInTheDocument();

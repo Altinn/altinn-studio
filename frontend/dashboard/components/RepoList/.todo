@@ -14,6 +14,7 @@ DONE Rewrite tests for the local table
 * Rewrite tests for RepoList
 * Write tests for OrgRepoList
 * Write tests for FavoriteReposList
-* Move texts in getErrorMessage into translations
+* Move texts in getErrorMessage and StudioTableRemotePagination into translations
 * Fix presentation of remote table in storybook
 * Fix presentation of local table in storybook
+* Add tooltips and ARIA-roles where necessary

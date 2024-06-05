@@ -13,12 +13,7 @@ export const FavoriteReposList = () => {
       <Heading level={2} size='small' spacing>
         {t('dashboard.favourites')}
       </Heading>
-      <RepoList
-        pageNumber={1}
-        repos={userStarredRepos}
-        isLoading={areUserStarredReposPending}
-        totalRows={userStarredRepos?.length ?? 0}
-      />
+      <RepoList repos={userStarredRepos} isLoading={areUserStarredReposPending} />
     </div>
   );
 };
