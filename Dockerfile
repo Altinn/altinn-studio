@@ -16,25 +16,15 @@ COPY ./frontend/packages/process-editor/package.json ./frontend/packages/process
 COPY ./frontend/packages/schema-editor/package.json ./frontend/packages/schema-editor/
 COPY ./frontend/packages/schema-model/package.json ./frontend/packages/schema-model/
 COPY ./frontend/packages/shared/package.json ./frontend/packages/shared/
-
 COPY ./frontend/packages/text-editor/package.json ./frontend/packages/text-editor/
-
 COPY ./frontend/packages/ux-editor/package.json ./frontend/packages/ux-editor/
-
 COPY ./frontend/packages/ux-editor-v3/package.json ./frontend/packages/ux-editor-v3/
-
 COPY ./frontend/resourceadm/package.json ./frontend/resourceadm/
-
-COPY ./frontend/scripts/package.json ./frontend/scripts/
-COPY ./frontend/scripts/yarn.lock ./frontend/scripts/
-
+COPY ./frontend/resourceadm/testing/playwright/package.json ./frontend/resourceadm/testing/playwright/
 COPY ./frontend/studio-root/package.json ./frontend/studio-root/
-
 COPY ./frontend/testing/cypress/package.json ./frontend/testing/cypress/
 COPY ./frontend/testing/mockend/package.json ./frontend/testing/mockend/
-
 COPY ./frontend/testing/playwright/package.json ./frontend/testing/playwright/
-
 COPY ./.yarnrc.yml ./.yarnrc.yml
 COPY ./.yarn/releases ./.yarn/releases
 
