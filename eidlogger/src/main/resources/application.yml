@@ -1,0 +1,18 @@
+digdir:
+  event:
+    logging:
+      environment-name: dev
+      bootstrap-servers: example.com:80
+      schema-registry-url: example.com:80
+      kafka-username: kafkaUsername
+      kafka-password: kafkaPassword
+      schema-registry-password: schemaPassword
+      schema-registry-username: schemaUsername
+#      activity-record-topic: activityTopic #Do not set unless you know you want to ship to different location than the default topic
+#      maskinporten-token-record-topic: mpTokenTopic #Do not set unless you know you want to ship to different location than the default topic
+#      maskinporten-authentication-record-topic: mpAuthTopic #Do not set unless you know you want to ship to different location than the default topic
+#      thread-pool-size: 8 # Defaults to 4 if not set
+
+spring:
+  application:
+    name: eid-logger

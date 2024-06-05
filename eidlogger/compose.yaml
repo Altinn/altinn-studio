@@ -1,0 +1,11 @@
+services:
+  eid-logger:
+    build:
+      context: .
+      args:
+        GITHUB_USER: ${GITHUB_USER}
+        GITHUB_PASSWORD: ${GITHUB_PASSWORD}
+    ports:
+      - 8080:8080
+
+
