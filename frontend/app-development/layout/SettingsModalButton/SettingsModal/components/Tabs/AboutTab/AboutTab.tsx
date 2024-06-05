@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
@@ -15,13 +14,16 @@ import { TabDataError } from '../../TabDataError';
 import { InputFields } from './InputFields';
 import { CreatedFor } from './CreatedFor';
 import { TabContent } from '../../TabContent';
+import { usePreviewContext } from '../../../../../../contexts/PreviewContext';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
-export const AboutTab = (): ReactNode => {
+export const AboutTab = (): React.ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
 
   const repositoryType = getRepositoryType(org, app);
+
+  const { doReloadPreview } = usePreviewContext();
 
   const {
     status: appConfigStatus,
@@ -42,6 +44,9 @@ export const AboutTab = (): ReactNode => {
   const { mutate: updateAppConfigMutation } = useAppConfigMutation(org, app);
 
   const handleSaveAppConfig = (appConfig: AppConfig) => {
+    if (appConfigData.serviceName !== appConfig.serviceName) {
+      doReloadPreview();
+    }
     updateAppConfigMutation(appConfig);
   };
 
