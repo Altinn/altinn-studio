@@ -1,0 +1,143 @@
+using System.Text.Json.Nodes;
+using System.Threading;
+using System.Threading.Tasks;
+using Altinn.Studio.Designer.Events;
+using Altinn.Studio.Designer.Hubs.SyncHub;
+using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Services.Interfaces;
+using MediatR;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+
+namespace Altinn.Studio.Designer.EventHandlers.ComponentIdChanged;
+
+public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentIdChangedEvent>
+{
+    private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
+    private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
+
+    public ComponentIdChangedLayoutsHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+        IFileSyncHandlerExecutor fileSyncHandlerExecutor)
+    {
+        _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
+        _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
+    }
+
+    public async Task Handle(ComponentIdChangedEvent notification, CancellationToken cancellationToken)
+    {
+        var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            notification.EditingContext.Org,
+            notification.EditingContext.Repo,
+            notification.EditingContext.Developer);
+        
+        LayoutSets layoutSets = await repository.GetLayoutSetsFile(cancellationToken);
+        
+        // WHAT FILE TO SEND IN THIS CASE? CAN WE FETCH ONLY SINGLE LAYOUTS OR NEED TO SEND NAME OF LAYOUT SET(S) AND FETCH ALL LAYOUTS PER SET?
+        foreach (LayoutSetConfig layoutSet in layoutSets.Sets)
+        {
+            await _fileSyncHandlerExecutor.ExecuteWithExceptionHandling(
+                notification.EditingContext,
+                SyncErrorCodes.ApplicationMetadataDataTypeSyncError,
+                $"App/ui/{layoutSet}", async () =>
+                {
+                    string[] layoutNames = repository.GetLayoutNames(layoutSet.Id);
+                    foreach (var layoutName in layoutNames)
+                    {
+                        var layout = await repository.GetLayout(layoutSet.Id, layoutName, cancellationToken);
+                        if (TryChangeComponentId(layout, notification.OldComponentId, notification.NewComponentId))
+                        {
+                            await repository.SaveLayout(layoutSet.Id, layoutName, layout, cancellationToken);
+                        }
+                    }
+                });
+        }
+    }
+
+    /// <summary>
+    /// Tries to change the componentId in different occurrences in a single layout file.
+    /// Occurrences can be references in expressions in boolean fields, textResourceBindings or in hiddenRow in groups
+    /// If there are changes, the layout file is updated and the method returns true.
+    /// Otherwise, the method returns false.
+    /// </summary>
+    public bool TryChangeComponentId(JsonNode layout, string oldComponentId, string newComponentId)
+    {
+        JsonNode originalLayout = layout.DeepClone();
+
+        FindIdOccurrencesRecursive(layout, oldComponentId, newComponentId);
+
+        return !layout.ToJsonString().Equals(originalLayout.ToJsonString());
+    }
+
+    private void FindIdOccurrencesRecursive(JsonNode node, string oldComponentId, string newComponentId)
+    {
+        // Should we check if node is string to avoid unnecessary upcoming checks?
+        if (node is JsonObject jsonObject)
+        {
+            // Could we update on the fly during recursive operations?
+            if (jsonObject[oldComponentId] is not null)
+            {
+                // When componentId is the propertyName
+                UpdateComponentIdActingAsPropertyName(jsonObject, oldComponentId, newComponentId);
+            }
+            else if (jsonObject["component"] is not null)
+            {
+                // Objects that references components i.e. in `rowsAfter` in RepeatingGroup
+                UpdateComponentIdActingAsCellMemberInRepeatingGroup(jsonObject, oldComponentId, newComponentId);
+            }
+            else if (jsonObject["componentRef"] is not null)
+            {
+                // Components that are used in summary components will have this ref
+                UpdateComponentIdActingAsComponentRefInSummary(jsonObject, oldComponentId, newComponentId);
+            }
+            foreach (var property in jsonObject)
+            {
+                // What if the first if-sentence updates/removes the id?
+                FindIdOccurrencesRecursive(property.Value, oldComponentId, newComponentId);
+            }
+        }
+        else if (node is JsonArray jsonArray)
+        {
+            // Property is possibly an Expression that may include a component-reference
+            foreach (var item in jsonArray)
+            {
+                if (item is JsonArray jsonInnerArray && jsonInnerArray.Count == 2 && item[0]?.ToString() == "component" && item[1]?.ToString() == oldComponentId)
+                {
+                    UpdateComponentIdActingAsExpressionMember(jsonInnerArray, newComponentId);
+                }
+                else
+                {
+                    FindIdOccurrencesRecursive(item, oldComponentId, newComponentId);
+                }
+            }
+        }
+    }
+
+    private void UpdateComponentIdActingAsPropertyName(JsonObject jsonObject, string oldComponentId, string newComponentId)
+    {
+        JsonNode value = jsonObject[oldComponentId];
+        jsonObject.Remove(oldComponentId);
+        jsonObject[newComponentId] = value;
+    }
+    
+    private void UpdateComponentIdActingAsExpressionMember(JsonArray jsonArray, string newComponentId)
+    {
+        jsonArray[1] = newComponentId;
+    }
+    
+    private void UpdateComponentIdActingAsCellMemberInRepeatingGroup(JsonNode jsonNode, string oldComponentId, string newComponentId)
+    {
+        if (jsonNode["component"]?.ToString() == oldComponentId)
+        {
+            jsonNode["component"] = newComponentId;
+        }
+    }
+    
+    private void UpdateComponentIdActingAsComponentRefInSummary(JsonNode jsonNode, string oldComponentId, string newComponentId)
+    {
+        if (jsonNode["componentRef"]?.ToString() == oldComponentId)
+        {
+            jsonNode["componentRef"] = newComponentId;
+        }
+    }
+
+}

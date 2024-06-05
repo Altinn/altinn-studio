@@ -38,8 +38,10 @@ export const useUpdateFormComponentMutation = (
 
       const currentId = id;
       const newId = updatedComponent.id;
+      let componentIdChange = null;
 
       if (currentId !== newId) {
+        componentIdChange = { oldComponentId: currentId, newComponentId: newId };
         components[newId] = updatedComponent;
         delete components[id];
 
@@ -61,7 +63,7 @@ export const useUpdateFormComponentMutation = (
         components[id] = updatedComponent;
       }
 
-      return saveLayout(updatedLayout)
+      return saveLayout({ internalLayout: updatedLayout, componentIdChange })
         .then(async (data) => {
           if (
             updatedComponent.type === ComponentType.FileUpload ||

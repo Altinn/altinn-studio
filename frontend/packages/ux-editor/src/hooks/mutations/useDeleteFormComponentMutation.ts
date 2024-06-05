@@ -20,7 +20,7 @@ export const useDeleteFormComponentMutation = (org: string, app: string, layoutS
         await deleteAppAttachmentMetadataMutation.mutateAsync(id);
       }
 
-      return formLayoutsMutation.mutateAsync(updatedLayout);
+      return formLayoutsMutation.mutateAsync({ internalLayout: updatedLayout });
     },
   });
 };

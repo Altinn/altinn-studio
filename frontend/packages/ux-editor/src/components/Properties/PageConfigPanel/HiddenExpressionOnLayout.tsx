@@ -26,7 +26,7 @@ export const HiddenExpressionOnLayout = () => {
     const updatedLayout: IInternalLayout = ObjectUtils.deepCopy(layout);
     debounce(() =>
       saveLayout(
-        { ...updatedLayout, hidden: expression },
+        { internalLayout: { ...updatedLayout, hidden: expression } },
         {
           onSuccess: async () => {
             await refetchLayouts(selectedFormLayoutSetName);

@@ -28,10 +28,12 @@ export const EditComponentIdRow = ({
   const idInputValue = component.id;
 
   const saveComponentUpdate = (id: string) => {
-    handleComponentUpdate({
-      ...component,
-      id,
-    });
+    if (id !== idInputValue) {
+      handleComponentUpdate({
+        ...component,
+        id,
+      });
+    }
   };
 
   const validateId = (value: string) => {
