@@ -232,6 +232,7 @@
       "type": "object",
       "properties": {
         "simpleBinding": { "type": "string" },
+        "label": { "type": "string" },
         "metadata": {
           "description": "Describes the location where metadata for the option based component should be stored in the datamodel.",
           "type": "string"

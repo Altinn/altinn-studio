@@ -44,7 +44,7 @@ export const PageLayout = (): React.ReactNode => {
       return <NotFoundPage />;
     }
     if (repoStatus?.hasMergeConflict) {
-      return <MergeConflictWarning org={org} app={app} />;
+      return <MergeConflictWarning />;
     }
     return <Outlet />;
   };

@@ -33,12 +33,15 @@ const layoutSetIdTextKeys: Record<string, string> = {
   [existingLayoutSetName]: 'process_editor.configuration_panel_layout_set_id_not_unique',
 };
 
-const mockAvailableDataModelIds: string[] = [mockBpmnApiContextValue.layoutSets.sets[1].dataType];
+const mockAllDataModelIds: string[] = [
+  mockBpmnApiContextValue.layoutSets.sets[0].dataType,
+  mockBpmnApiContextValue.layoutSets.sets[1].dataType,
+];
 
 const defaultBpmnContextProps: BpmnApiContextProps = {
   ...mockBpmnApiContextValue,
   existingCustomReceiptLayoutSetId: existingCustomReceiptLayoutSetId,
-  availableDataModelIds: mockAvailableDataModelIds,
+  allDataModelIds: mockAllDataModelIds,
 };
 
 describe('CustomReceipt', () => {
@@ -82,7 +85,7 @@ describe('CustomReceipt', () => {
       name: textMock('process_editor.configuration_panel_set_data_model'),
     });
     await user.click(combobox);
-    const newOption: string = mockAvailableDataModelIds[0];
+    const newOption: string = mockAllDataModelIds[1];
     const option = screen.getByRole('option', { name: newOption });
     await user.click(option);
 
