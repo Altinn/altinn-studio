@@ -2,7 +2,7 @@ import React from 'react';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
 import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
-import { useText, useAppContext } from '../../hooks';
+import { useAppContext } from '../../hooks';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
 
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -11,9 +11,10 @@ import classes from './Elements.module.css';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQuery';
 import { StudioSpinner } from '@studio/components';
+import { useTranslation } from 'react-i18next';
 
 export const Elements = (): React.ReactElement => {
-  const t = useText();
+  const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
 
@@ -43,7 +44,7 @@ export const Elements = (): React.ReactElement => {
       <div>
         <LayoutSetsContainer />
         <div className={classes.errorMessage}>
-          <Alert severity='danger' size='small'>
+          <Alert severity='danger'>
             <Heading level={3} size='xsmall' spacing>
               {t('schema_editor.error_could_not_detect_taskType', {
                 layout: selectedFormLayoutSetName,
