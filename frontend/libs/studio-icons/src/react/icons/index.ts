@@ -16,6 +16,7 @@ export { NavBarIcon } from './NavBarIcon';
 export { NumberIcon } from './NumberIcon';
 export { ObjectIcon } from './ObjectIcon';
 export { TextIcon } from './TextIcon';
+export { PaymentDetailsIcon } from './PaymentDetailsIcon';
 export { PaymentTaskIcon } from './PaymentTaskIcon';
 export { PropertyIcon } from './PropertyIcon';
 export { RadioButtonIcon } from './RadioButtonIcon';

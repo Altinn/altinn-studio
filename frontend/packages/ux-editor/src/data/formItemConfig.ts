@@ -21,6 +21,7 @@ import {
   NavBarIcon,
   PaperclipIcon,
   TextIcon,
+  PaymentDetailsIcon,
   PinIcon,
   PresentationIcon,
   RadioButtonIcon,
@@ -382,6 +383,12 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {},
     icon: WalletIcon,
   },
+  [ComponentType.PaymentDetails]: {
+    name: ComponentType.PaymentDetails,
+    itemType: LayoutItemType.Component,
+    defaultProperties: {},
+    icon: PaymentDetailsIcon,
+  },
   [ComponentType.PrintButton]: {
     name: ComponentType.PrintButton,
     itemType: LayoutItemType.Component,
@@ -446,6 +453,7 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.List],
   formItemConfigs[ComponentType.Custom],
   formItemConfigs[ComponentType.RepeatingGroup],
+  formItemConfigs[ComponentType.PaymentDetails],
 ];
 
 export const schemaComponents: FormItemConfigs[ComponentType][] = [
