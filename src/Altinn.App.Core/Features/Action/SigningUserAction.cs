@@ -72,7 +72,7 @@ public class SigningUserAction : IUserAction
             var dataTypeIds =
                 currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration?.DataTypesToSign ?? [];
             var dataTypesToSign = appMetadata
-                ?.DataTypes?.Where(d => dataTypeIds.Contains(d.Id, StringComparer.OrdinalIgnoreCase))
+                .DataTypes?.Where(d => dataTypeIds.Contains(d.Id, StringComparer.OrdinalIgnoreCase))
                 .ToList();
 
             if (

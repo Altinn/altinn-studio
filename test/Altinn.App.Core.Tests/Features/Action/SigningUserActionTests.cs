@@ -21,6 +21,9 @@ namespace Altinn.App.Core.Tests.Features.Action;
 
 public class SigningUserActionTests
 {
+    private readonly ApplicationMetadata _defaultAppMetadata =
+        new("org/id") { DataTypes = [new DataType { Id = "model" }] };
+
     [Fact]
     public async Task HandleAction_returns_ok_if_user_is_valid()
     {
@@ -30,9 +33,8 @@ public class SigningUserActionTests
             UserId = 1337,
             Party = new Party() { SSN = "12345678901" }
         };
-        var appMetadata = new ApplicationMetadata("org/id") { DataTypes = [new DataType { Id = "model" }] };
         (var userAction, var signClientMock) = CreateSigningUserAction(
-            applicationMetadataToReturn: appMetadata,
+            applicationMetadataToReturn: _defaultAppMetadata,
             userProfileToReturn: userProfile
         );
         var instance = new Instance()
@@ -124,7 +126,7 @@ public class SigningUserActionTests
             UserId = 1337,
             Party = new Party() { SSN = "12345678901" }
         };
-        (var userAction, var signClientMock) = CreateSigningUserAction(userProfile);
+        (var userAction, var signClientMock) = CreateSigningUserAction(_defaultAppMetadata, userProfile);
         var instance = new Instance()
         {
             Id = "500000/b194e9f5-02d0-41bc-8461-a0cbac8a6efc",
@@ -191,7 +193,7 @@ public class SigningUserActionTests
     }
 
     [Fact]
-    public async Task HandleAction_throws_ApplicationConfigException_if_SignatureDataType_is_null()
+    public async Task HandleAction_throws_ApplicationConfigException_If_SignatureDataType_is_null()
     {
         // Arrange
         UserProfile userProfile = new UserProfile()
@@ -200,6 +202,7 @@ public class SigningUserActionTests
             Party = new Party() { SSN = "12345678901" }
         };
         (var userAction, var signClientMock) = CreateSigningUserAction(
+            applicationMetadataToReturn: _defaultAppMetadata,
             userProfileToReturn: userProfile,
             testBpmnfilename: "signing-task-process-missing-config.bpmn"
         );
@@ -222,9 +225,44 @@ public class SigningUserActionTests
         signClientMock.VerifyNoOtherCalls();
     }
 
+    [Fact]
+    public async Task HandleAction_throws_ApplicationConfigException_If_Empty_DataTypesToSign()
+    {
+        // Arrange
+        UserProfile userProfile = new UserProfile()
+        {
+            UserId = 1337,
+            Party = new Party() { SSN = "12345678901" }
+        };
+
+        var appMetadata = new ApplicationMetadata("org/id") { DataTypes = [] };
+        (var userAction, var signClientMock) = CreateSigningUserAction(
+            userProfileToReturn: userProfile,
+            applicationMetadataToReturn: appMetadata,
+            testBpmnfilename: "signing-task-process-empty-datatypes-to-sign.bpmn"
+        );
+        var instance = new Instance()
+        {
+            Id = "500000/b194e9f5-02d0-41bc-8461-a0cbac8a6efc",
+            InstanceOwner = new() { PartyId = "5000", },
+            Process = new() { CurrentTask = new() { ElementId = "Task2" } },
+            Data = new()
+            {
+                new() { Id = "a499c3ef-e88a-436b-8650-1c43e5037ada", DataType = "Model" }
+            }
+        };
+        var userActionContext = new UserActionContext(instance, 1337);
+
+        // Act
+        await Assert.ThrowsAsync<ApplicationConfigException>(
+            async () => await userAction.HandleAction(userActionContext)
+        );
+        signClientMock.VerifyNoOtherCalls();
+    }
+
     private static (SigningUserAction SigningUserAction, Mock<ISignClient> SignClientMock) CreateSigningUserAction(
+        ApplicationMetadata applicationMetadataToReturn,
         UserProfile userProfileToReturn = null,
-        ApplicationMetadata applicationMetadataToReturn = null,
         PlatformHttpException platformHttpExceptionToThrow = null,
         string testBpmnfilename = "signing-task-process.bpmn"
     )
