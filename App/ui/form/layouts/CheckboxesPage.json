@@ -75,13 +75,67 @@
                 }
             },
             {
-                "id": "CheckboxesPage-Summary2",
+                "size": "h4",
+                "id": "CheckboxesPage-Header-Summary2-Display-Auto",
+                "type": "Header",
+                "textResourceBindings": {
+                    "title": "displayType: NULL (Auto)"
+                }
+            },
+            {
+                "id": "CheckboxesPage-Summary2-Display-Auto",
                 "type": "Summary2",
                 "hidden": false,
                 "whatToRender": {
                     "type": "component",
                     "id": "CheckboxesPage-Checkboxes"
                 }
+            },
+            {
+                "size": "h4",
+                "id": "CheckboxesPage-Header-Summary2-Display-String",
+                "type": "Header",
+                "textResourceBindings": {
+                    "title": "displayType: String"
+                }
+            },
+            {
+                "id": "CheckboxesPage-Summary2-Display-String",
+                "type": "Summary2",
+                "hidden": false,
+                "whatToRender": {
+                    "type": "component",
+                    "id": "CheckboxesPage-Checkboxes"
+                },
+                "overWriteProperties": [
+                    {
+                        "componentId": "CheckboxesPage-Checkboxes",
+                        "displayType": "string"
+                    }
+                ]
+            },
+            {
+                "size": "h4",
+                "id": "CheckboxesPage-Header-Summary2-Display-List",
+                "type": "Header",
+                "textResourceBindings": {
+                    "title": "displayType: List"
+                }
+            },
+            {
+                "id": "CheckboxesPage-Summary2-Display-List",
+                "type": "Summary2",
+                "hidden": false,
+                "whatToRender": {
+                    "type": "component",
+                    "id": "CheckboxesPage-Checkboxes"
+                },
+                "overWriteProperties": [
+                    {
+                        "componentId": "CheckboxesPage-Checkboxes",
+                        "displayType": "list"
+                    }
+                ]
             },
             {
                 "id": "NavigationButtons",
