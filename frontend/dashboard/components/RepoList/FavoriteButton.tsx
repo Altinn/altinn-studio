@@ -3,12 +3,14 @@ import { Button } from '@digdir/design-system-react';
 import React from 'react';
 import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from '../../hooks/mutations';
 import type { RepositoryWithStarred } from '../../utils/repoUtils/repoUtils';
+import { useTranslation } from 'react-i18next';
 
 type FavoriteButtonProps = {
   repo: RepositoryWithStarred;
 };
 
 export const FavoriteButton = ({ repo }: FavoriteButtonProps): React.ReactElement => {
+  const { t } = useTranslation();
   const { mutate: setStarredRepo } = useSetStarredRepoMutation();
   const { mutate: unsetStarredRepo } = useUnsetStarredRepoMutation();
 
@@ -20,8 +22,10 @@ export const FavoriteButton = ({ repo }: FavoriteButtonProps): React.ReactElemen
     }
   };
 
+  const title = repo.hasStarred ? t('dashboard.unstar') : t('dashboard.star');
+
   return (
-    <Button onClick={handleToggleFav} variant={'tertiary'} icon>
+    <Button title={title} onClick={handleToggleFav} variant={'tertiary'} icon>
       {repo.hasStarred ? <StarFillIcon name='star-fill-icon' /> : <StarIcon name='star-icon' />}
     </Button>
   );

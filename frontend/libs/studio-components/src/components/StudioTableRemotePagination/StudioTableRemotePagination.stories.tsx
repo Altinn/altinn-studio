@@ -81,7 +81,7 @@ export const Preview: Story = (args) => {
       columns={columns}
       rows={rowsToRender}
       size={args.size}
-      emptyTableMessage={'No data found'}
+      emptyTableFallback={'No data found'}
       onSortClick={handleSorting}
       pagination={paginationProps}
     />

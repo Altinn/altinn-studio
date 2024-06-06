@@ -46,7 +46,7 @@ export const Preview: Story = (args) => {
       columns={columns}
       rows={rows}
       size={args.size}
-      emptyTableMessage={'No data found'}
+      emptyTableFallback={'No data found'}
       pagination={{
         pageSizeOptions: [5, 10, 20, 50],
         paginationTexts,

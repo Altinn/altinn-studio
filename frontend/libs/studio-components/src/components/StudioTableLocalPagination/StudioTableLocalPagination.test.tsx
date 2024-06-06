@@ -146,7 +146,7 @@ describe('StudioTableLocalPagination', () => {
       <StudioTableLocalPagination
         columns={columns}
         rows={[]}
-        emptyTableMessage='No rows to display'
+        emptyTableFallback='No rows to display'
       />,
     );
     expect(screen.getByText('No rows to display')).toBeInTheDocument();

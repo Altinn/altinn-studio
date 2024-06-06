@@ -13,17 +13,18 @@ import { ActionLinks } from './ActionLinks';
 import { FavoriteButton } from './FavoriteButton';
 import classes from './RepoList.module.css';
 import { RepoNameWithLink } from './RepoNameWithLink';
+import { Paragraph } from '@digdir/design-system-react';
 
 export interface RepoListProps {
-  isLoading: boolean;
   repos: RepositoryWithStarred[];
+  isLoading: boolean;
   isServerSort?: boolean;
-  pageSize?: DATAGRID_PAGE_SIZE_TYPE;
-  pageNumber?: number;
   totalRows?: number;
+  pageNumber?: number;
+  pageSize?: DATAGRID_PAGE_SIZE_TYPE;
+  pageSizeOptions?: Array<number>;
   onPageChange?: (page: number) => void;
   onPageSizeChange?: (newPageSize: DATAGRID_PAGE_SIZE_TYPE) => void;
-  pageSizeOptions?: Array<number>;
   onSortClick?: (columnKey: string) => void;
 }
 
@@ -40,43 +41,45 @@ export const RepoList = ({
   onSortClick,
 }: RepoListProps): React.ReactElement => {
   const { t } = useTranslation();
+  const tableSize = 'small';
 
   const columns = [
     {
       accessor: 'favoriteIcon',
-      value: '',
+      heading: t('dashboard.favorite_status'),
       sortable: false,
       headerCellClass: classes.favoriteIconHeaderCell,
     },
     {
       accessor: 'name',
-      value: t('dashboard.name'),
+      heading: t('dashboard.name'),
       sortable: true,
       headerCellClass: classes.nameHeaderCell,
       valueFormatter: (repoFullName) => <RepoNameWithLink repoFullName={repoFullName} />,
     },
     {
       accessor: 'createdBy',
-      value: t('dashboard.created_by'),
+      heading: t('dashboard.created_by'),
       sortable: true,
       headerCellClass: classes.createdByHeaderCell,
     },
     {
       accessor: 'updated',
-      value: t('dashboard.last_modified'),
+      heading: t('dashboard.last_modified'),
       sortable: true,
       headerCellClass: classes.lastUpdatedHeaderCell,
       valueFormatter: (date) => new Date(date).toLocaleDateString('nb', { dateStyle: 'short' }),
     },
     {
       accessor: 'description',
-      value: t('dashboard.description'),
+      heading: t('dashboard.description'),
       sortable: true,
     },
     {
       accessor: 'actionIcons',
-      value: '',
+      heading: t('general.actions'),
       sortable: false,
+      headerCellClass: classes.actionIconsHeaderCell,
     },
   ];
 
@@ -97,13 +100,13 @@ export const RepoList = ({
     actionIcons: <ActionLinks repo={repo} />,
   }));
 
-  const emptyTableMessage = isLoading ? (
+  const emptyTableFallback = isLoading ? (
     <StudioSpinner spinnerTitle={t('general.loading')} />
   ) : (
-    t('dashboard.no_repos_result')
+    <Paragraph size={tableSize}>{t('dashboard.no_repos_result')}</Paragraph>
   );
 
-  const paginationTexts = {
+  const paginationTexts: PaginationTexts = {
     pageSizeLabel: t('dashboard.rows_per_page'),
     showingRowText: t('dashboard.showing_row'),
     ofText: t('general.of'),
@@ -130,8 +133,8 @@ export const RepoList = ({
           <StudioTableRemotePagination
             columns={remotePaginationColumns}
             rows={rows}
-            size='small'
-            emptyTableMessage={emptyTableMessage}
+            size={tableSize}
+            emptyTableFallback={emptyTableFallback}
             pagination={paginationProps}
             onSortClick={onSortClick}
           />
@@ -140,8 +143,8 @@ export const RepoList = ({
         <StudioTableLocalPagination
           columns={columns}
           rows={rows}
-          size='small'
-          emptyTableMessage={emptyTableMessage}
+          size={tableSize}
+          emptyTableFallback={emptyTableFallback}
           pagination={paginationProps}
         />
       )}

@@ -42,7 +42,7 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
   return (
     <div className={classes.actionLinksContainer} ref={copyModalAnchorRef}>
       <Button variant={'tertiary'} icon className={classes.giteaButton} asChild>
-        <a href={repo.html_url} title={t('dashboard.repository_in_list', { appName: repoName })}>
+        <a href={repo.html_url} title={t('dashboard.show_repo')}>
           <i className={cn('fa fa-gitea', classes.giteaIcon)} />
         </a>
       </Button>
@@ -52,7 +52,12 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
         </a>
       </Button>
       <DropdownMenu size={'small'}>
-        <DropdownMenu.Trigger variant={'tertiary'} asChild>
+        <DropdownMenu.Trigger
+          aria-label={t('dashboard.app_dropdown', { appName: repoName })}
+          variant={'tertiary'}
+          asChild
+          title={t('dashboard.app_dropdown')}
+        >
           <Button variant={'tertiary'} icon>
             <MenuElipsisVerticalIcon />
           </Button>

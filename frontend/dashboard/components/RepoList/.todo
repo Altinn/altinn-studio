@@ -11,10 +11,10 @@ DONE Add link to edit app
 DONE Add valueFormatter
 DONE Rewrite tests for the remote table
 DONE Rewrite tests for the local table
+DONE Fix presentation of remote table in storybook
+DONE Fix presentation of local table in storybook
+DONE Add tooltips and ARIA-roles where necessary
 * Rewrite tests for RepoList
 * Write tests for OrgRepoList
 * Write tests for FavoriteReposList
-* Move texts in getErrorMessage and StudioTableRemotePagination into translations
-* Fix presentation of remote table in storybook
-* Fix presentation of local table in storybook
-* Add tooltips and ARIA-roles where necessary
+* Move texts in getErrorMessage into translations

@@ -6,7 +6,7 @@
   width: 100%;
 }
 
-.emptyTableMessage {
+.emptyTableFallbackContainer {
   padding: var(--fds-spacing-4);
   text-align: center;
 }

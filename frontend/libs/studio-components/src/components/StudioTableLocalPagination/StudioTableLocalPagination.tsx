@@ -14,14 +14,14 @@ export type StudioTableLocalPaginationProps = {
   columns: Columns;
   rows: Rows;
   size?: 'small' | 'medium' | 'large';
-  emptyTableMessage?: React.ReactNode;
+  emptyTableFallback?: React.ReactNode;
   pagination?: LocalPaginationProps;
 };
 
 export const StudioTableLocalPagination = forwardRef<
   HTMLTableElement,
   StudioTableLocalPaginationProps
->(({ columns, rows, size = 'medium', emptyTableMessage, pagination }, ref): React.ReactElement => {
+>(({ columns, rows, size = 'medium', emptyTableFallback, pagination }, ref): React.ReactElement => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(pagination?.pageSizeOptions[0] ?? undefined);
 
@@ -54,7 +54,7 @@ export const StudioTableLocalPagination = forwardRef<
       columns={columns}
       rows={rowsToRender}
       size={size}
-      emptyTableMessage={emptyTableMessage}
+      emptyTableFallback={emptyTableFallback}
       onSortClick={handleSorting}
       pagination={studioTableRemotePaginationProps}
       ref={ref}

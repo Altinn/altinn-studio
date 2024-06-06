@@ -36,7 +36,7 @@ export type RemotePaginationProps = {
 export type StudioTableRemotePaginationProps = {
   columns: Columns;
   rows: Rows;
-  emptyTableMessage?: ReactNode;
+  emptyTableFallback?: ReactNode;
   size?: 'small' | 'medium' | 'large';
   onSortClick?: (columnKey: string) => void;
   pagination?: RemotePaginationProps;
@@ -47,7 +47,7 @@ export const StudioTableRemotePagination = forwardRef<
   StudioTableRemotePaginationProps
 >(
   (
-    { columns, rows, size = 'medium', emptyTableMessage, onSortClick, pagination },
+    { columns, rows, size = 'medium', emptyTableFallback, onSortClick, pagination },
     ref,
   ): React.ReactElement => {
     const selectId = useId();
@@ -92,14 +92,14 @@ export const StudioTableRemotePagination = forwardRef<
         <Table size={size} className={classes.table} ref={ref}>
           <Table.Head>
             <Table.Row>
-              {columns.map(({ accessor, value, sortable, headerCellClass }) => (
+              {columns.map(({ accessor, heading, sortable, headerCellClass }) => (
                 <Table.HeaderCell
                   key={accessor}
                   sortable={isSortingActive && sortable}
                   onSortClick={() => onSortClick(accessor)}
                   className={headerCellClass}
                 >
-                  {value}
+                  {heading}
                 </Table.HeaderCell>
               ))}
             </Table.Row>
@@ -117,9 +117,7 @@ export const StudioTableRemotePagination = forwardRef<
           </Table.Body>
         </Table>
         {isTableEmpty && (
-          <Paragraph className={classes.emptyTableMessage} size={size}>
-            {emptyTableMessage}
-          </Paragraph>
+          <div className={classes.emptyTableFallbackContainer}>{emptyTableFallback}</div>
         )}
         {isPaginationActive && (
           <div className={classes.paginationContainer}>
