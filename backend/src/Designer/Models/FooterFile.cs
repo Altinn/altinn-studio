@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using JetBrains.Annotations;
 
@@ -40,7 +41,10 @@ public enum ComponentType
 
 public enum IconType
 {
+    [EnumMember(Value = "information")]
     Information,
+    [EnumMember(Value = "email")]
     Email,
+    [EnumMember(Value = "phone")]
     Phone
 }
