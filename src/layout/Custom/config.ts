@@ -9,6 +9,8 @@ export const Config = new CG.component({
     renderInButtonGroup: true,
     renderInAccordion: false,
     renderInAccordionGroup: false,
+    renderInCards: true,
+    renderInCardsMedia: true,
   },
 })
   .addDataModelBinding(

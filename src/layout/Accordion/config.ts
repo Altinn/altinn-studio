@@ -9,6 +9,8 @@ export const Config = new CG.component({
     renderInButtonGroup: false,
     renderInAccordion: false,
     renderInAccordionGroup: true,
+    renderInCards: false,
+    renderInCardsMedia: false,
   },
 })
   .addTextResource(

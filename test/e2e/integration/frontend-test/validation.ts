@@ -379,7 +379,7 @@ describe('Validation', () => {
     cy.get(appFrontend.group.addNewItemSubGroup).click();
     cy.get(appFrontend.group.saveSubGroup).click();
     cy.get(appFrontend.group.row(0).nestedGroup.row(0).editBtn).click();
-    cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
+    cy.get(appFrontend.group.editContainer).find(appFrontend.group.back).click();
     cy.get(appFrontend.group.row(0).editBtn).click();
     cy.get(appFrontend.group.row(2).editBtn).click();
     cy.get(appFrontend.errorReport).findByText(texts.requiredComment).click();
@@ -886,7 +886,7 @@ describe('Validation', () => {
 
       cy.goto('changename');
 
-      cy.findByRole('checkbox', { name: /tall-input/i }).dsCheck();
+      cy.findByRole('checkbox', { name: /tall-input/i }).check();
       cy.gotoNavPage('numeric-fields');
 
       cy.get(appFrontend.fieldValidation('int32AsNumber')).should('contain.text', 'Du må fylle ut int32');

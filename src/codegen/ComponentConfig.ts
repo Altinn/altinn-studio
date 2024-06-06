@@ -24,6 +24,8 @@ export interface RequiredComponentConfig {
     renderInButtonGroup: boolean;
     renderInAccordion: boolean;
     renderInAccordionGroup: boolean;
+    renderInCards: boolean;
+    renderInCardsMedia: boolean;
   };
 }
 

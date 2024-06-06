@@ -265,6 +265,7 @@ Cypress.Commands.add('getCurrentPageId', () => cy.location('hash').then((hash) =
 Cypress.Commands.add('snapshot', (name: string) => {
   cy.clearSelectionAndWait();
   cy.waitUntilSaved();
+  cy.waitForNetworkIdle(100);
 
   // Running wcag tests before taking snapshot, because the resizing of the viewport can cause some elements to
   // re-render and go slightly out of sync with the proper state of the application. One example is the Dropdown

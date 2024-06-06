@@ -102,10 +102,6 @@ describe('PDF', () => {
     cy.get(appFrontend.group.editContainer).should('be.visible');
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).first().click();
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.back).should('be.visible');
-    cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).first().click();
-    cy.dsSelect('#source-0', 'Digitaliseringsdirektoratet');
-    cy.get('#reference-0').should('have.value', '');
-    cy.dsSelect('#reference-0', 'Sophie Salt');
     cy.get(appFrontend.group.edit).first().click();
     cy.get(appFrontend.group.editContainer).should('not.exist');
 
@@ -113,10 +109,6 @@ describe('PDF', () => {
     cy.get(appFrontend.group.editContainer).should('be.visible');
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).first().click();
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.back).should('be.visible');
-    cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).first().click();
-    cy.dsSelect('#source-1', 'Altinn');
-    cy.get('#reference-1').should('have.value', '');
-    cy.dsSelect('#reference-1', 'Ola Nordmann');
     cy.get(appFrontend.group.edit).eq(1).click();
     cy.get(appFrontend.group.editContainer).should('not.exist');
 
@@ -128,24 +120,12 @@ describe('PDF', () => {
 
       cy.getSummary('Group summary title').should('contain.text', 'Endre fra : NOK 1');
       cy.getSummary('Group summary title').should('contain.text', 'Endre verdi 1 til  : NOK 5');
-      cy.getSummary('Group summary title').should(
-        'contain.text',
-        'hvor fikk du vite om skjemaet? : Digitaliseringsdirektoratet',
-      );
-      cy.getSummary('Group summary title').should('contain.text', 'Referanse : Sophie Salt');
 
       cy.getSummary('Group summary title').should('contain.text', 'Endre fra : NOK 120');
       cy.getSummary('Group summary title').should('contain.text', 'Endre verdi 120 til  : NOK 350');
-      cy.getSummary('Group summary title').should('contain.text', 'hvor fikk du vite om skjemaet? : Altinn');
-      cy.getSummary('Group summary title').should('contain.text', 'Referanse : Ola Nordmann');
 
       cy.getSummary('Group summary title').should('contain.text', 'Endre fra : NOK 1 233');
       cy.getSummary('Group summary title').should('contain.text', 'Endre verdi 1233 til  : NOK 3 488');
-      cy.getSummary('Group summary title').should(
-        'contain.text',
-        'hvor fikk du vite om skjemaet? : Du har ikke lagt inn informasjon her',
-      );
-      cy.getSummary('Group summary title').should('contain.text', 'Referanse : Du har ikke lagt inn informasjon her');
     });
   });
 

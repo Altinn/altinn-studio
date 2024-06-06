@@ -10,6 +10,8 @@ export const Config = new CG.component({
     renderInButtonGroup: false,
     renderInAccordion: false,
     renderInAccordionGroup: false,
+    renderInCards: true,
+    renderInCardsMedia: false,
   },
 })
   .makeSelectionComponent()

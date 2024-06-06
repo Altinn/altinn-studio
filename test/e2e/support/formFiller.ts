@@ -98,7 +98,6 @@ function fillOutGroup() {
 
   cy.dsSelect('#nested-source-0-0', 'Annet');
   cy.dsSelect('#nested-reference-0-0', 'Test');
-  cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
   cy.dsSelect('#source-0', 'Digitaliseringsdirektoratet');
   cy.dsSelect('#reference-0', 'Sophie Salt');
 

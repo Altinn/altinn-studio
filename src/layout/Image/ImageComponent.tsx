@@ -6,6 +6,7 @@ import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { useParentCard } from 'src/layout/Cards/CardContext';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IImageProps = PropsFromGenericComponent<'Image'>;
@@ -23,7 +24,7 @@ export function ImageComponent({ node }: IImageProps) {
   const languageKey = useCurrentLanguage();
   const width = image?.width || '100%';
   const align = image?.align || 'center';
-  const altText = textResourceBindings?.altTextImg && langAsString(textResourceBindings.altTextImg);
+  const altText = textResourceBindings?.altTextImg ? langAsString(textResourceBindings.altTextImg) : undefined;
 
   let imgSrc = image?.src[languageKey] || image?.src.nb || '';
   if (imgSrc.startsWith('wwwroot')) {
@@ -33,6 +34,22 @@ export function ImageComponent({ node }: IImageProps) {
   const imgType = imgSrc.slice(-3);
   const renderSvg = imgType.toLowerCase() === 'svg';
 
+  const renderedInCardMedia = useParentCard()?.renderedInMedia;
+  const cardMediaHeight = useParentCard()?.minMediaHeight;
+  if (renderedInCardMedia) {
+    return (
+      <InnerImage
+        id={id}
+        renderSvg={renderSvg}
+        altText={altText}
+        imgSrc={imgSrc}
+        width={width}
+        height={cardMediaHeight}
+        renderedInCardMedia={true}
+      />
+    );
+  }
+
   return (
     <Grid
       container
@@ -41,31 +58,13 @@ export function ImageComponent({ node }: IImageProps) {
       spacing={1}
     >
       <Grid item={true}>
-        {renderSvg ? (
-          <object
-            type='image/svg+xml'
-            id={id}
-            data={imgSrc}
-            role={'presentation'}
-          >
-            <img
-              src={imgSrc}
-              alt={altText}
-              style={{
-                width,
-              }}
-            />
-          </object>
-        ) : (
-          <img
-            id={id}
-            src={imgSrc}
-            alt={altText}
-            style={{
-              width,
-            }}
-          />
-        )}
+        <InnerImage
+          id={id}
+          renderSvg={renderSvg}
+          altText={altText}
+          imgSrc={imgSrc}
+          width={width}
+        />
       </Grid>
       {textResourceBindings?.help && (
         <Grid
@@ -79,5 +78,54 @@ export function ImageComponent({ node }: IImageProps) {
         </Grid>
       )}
     </Grid>
+  );
+}
+
+interface InnerImageProps {
+  renderSvg: boolean;
+  id: string;
+  imgSrc: string;
+  altText: string | undefined;
+  width: string;
+  height?: string;
+
+  // When rendered in cards, the aspect can change. We want to keep the image in the aspect ratio of the cards,
+  // but cut sides or top/bottom if needed.
+  renderedInCardMedia?: boolean;
+}
+
+function InnerImage({ renderSvg, id, imgSrc, altText, width, height, renderedInCardMedia }: InnerImageProps) {
+  if (renderSvg) {
+    return (
+      <object
+        type='image/svg+xml'
+        id={id}
+        data={imgSrc}
+        role={'presentation'}
+      >
+        <img
+          src={imgSrc}
+          alt={altText}
+          style={{
+            width,
+            height,
+            objectFit: renderedInCardMedia ? 'cover' : undefined,
+          }}
+        />
+      </object>
+    );
+  }
+
+  return (
+    <img
+      id={id}
+      src={imgSrc}
+      alt={altText}
+      style={{
+        width,
+        height,
+        objectFit: renderedInCardMedia ? 'cover' : undefined,
+      }}
+    />
   );
 }
