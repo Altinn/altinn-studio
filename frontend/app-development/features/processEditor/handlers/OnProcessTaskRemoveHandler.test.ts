@@ -6,6 +6,7 @@ import { BpmnTypeEnum } from '@altinn/process-editor/enum/BpmnTypeEnum';
 import type { TaskEvent } from '@altinn/process-editor/types/TaskEvent';
 import { BpmnBusinessObjectEditor } from '@altinn/process-editor/types/BpmnBusinessObjectEditor';
 import { app, org } from '@studio/testing/testids';
+import { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
 
 const currentPolicyMock: Policy = {
   requiredAuthenticationLevelOrg: '3',
@@ -24,7 +25,7 @@ const createTaskMetadataMock = (
   taskType: string,
   businessObject?: BpmnBusinessObjectEditor,
 ): OnProcessTaskEvent => ({
-  taskType: taskType,
+  taskType: taskType as BpmnTaskType,
   taskEvent: {
     element: {
       id: 'testElementId',
