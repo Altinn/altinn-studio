@@ -1,5 +1,5 @@
-import React from 'react';
-import { Accordion } from '@digdir/design-system-react';
+import React, { useRef, useState } from 'react';
+import { Accordion, Modal } from '@digdir/design-system-react';
 import { FileIcon } from '@studio/icons';
 import { StudioSectionHeader } from '@studio/components';
 import { useText, useTextResourcesSelector, useAppContext, useFormLayouts } from '../../../hooks';
@@ -9,13 +9,19 @@ import { TextResource } from '../../TextResource/TextResource';
 import { EditPageId } from './EditPageId';
 import { textResourceByLanguageAndIdSelector } from '../../../selectors/textResourceSelectors';
 import type { ITextResource } from 'app-shared/types/global';
-import { duplicatedIdsExistsInLayout } from '../../../utils/formLayoutUtils';
+import {
+  duplicatedIdsExistInLayouts,
+  duplicatedIdsExistsInLayout,
+} from '../../../utils/formLayoutUtils';
 import { PageConfigWarning } from './PageConfigWarning';
 import classes from './PageConfigPanel.module.css';
+import { PageConfigWarningModal } from './PageConfigWarningModal';
 
 export const PageConfigPanel = () => {
   const { selectedFormLayoutName } = useAppContext();
   const t = useText();
+
+  const modalRef = useRef<HTMLDialogElement>(null);
 
   const layoutIsSelected =
     selectedFormLayoutName !== DEFAULT_SELECTED_LAYOUT_NAME && selectedFormLayoutName !== undefined;
@@ -36,8 +42,18 @@ export const PageConfigPanel = () => {
   const layout = useFormLayouts()[selectedFormLayoutName];
   const hasDuplicatedIds = duplicatedIdsExistsInLayout(layout);
 
+  const formLayouts = useFormLayouts();
+
+  const hasDuplicatedIdsInAllLayouts = duplicatedIdsExistInLayouts(Object.values(formLayouts));
+
   if (layoutIsSelected && hasDuplicatedIds) {
     return <PageConfigWarning selectedFormLayoutName={selectedFormLayoutName} layout={layout} />;
+  }
+
+  // TODO add modal.
+  if (hasDuplicatedIdsInAllLayouts) {
+    modalRef.current?.showModal();
+    return <>{<PageConfigWarningModal modalRef={modalRef} />}</>;
   }
 
   return (

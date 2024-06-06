@@ -5,6 +5,7 @@ import {
   addNavigationButtons,
   createEmptyLayout,
   duplicatedIdsExistsInLayout,
+  duplicatedIdsExistInLayouts,
   findParentId,
   getChildIds,
   getDepth,
@@ -607,5 +608,44 @@ describe('formLayoutUtils', () => {
       const duplicatedIds = getDuplicatedIds(layout);
       expect(duplicatedIds).toEqual([paragraphInGroupId]);
     });
+  });
+
+  describe('duplicatedIdsExistInAllLayouts', () => {
+    it('Returns true if there are duplicated ids across all layouts in the layoutset, otherwis return false', () => {
+      const layoutSet = {
+        layout1: {
+          ...mockInternal,
+          order: {
+            ...mockInternal.order,
+            [groupId]: [paragraphInGroupId, paragraphInGroupId],
+          },
+        },
+        layout2: {
+          ...mockInternal,
+          order: {
+            ...mockInternal.order,
+            [groupId]: [paragraphInGroupId, paragraphInGroupId],
+          },
+        },
+      };
+      expect(duplicatedIdsExistInLayouts(Object.values(layoutSet))).toBe(true);
+      expect(duplicatedIdsExistInLayouts(Object.values(mockInternal))).toBe(false);
+    });
+  });
+
+  it('Returns true if duplicated ids exist across layouts', () => {
+    const layouts = [
+      { ...mockInternal, order: { 1: ['id1', 'id2', 'id3'] } },
+      { ...mockInternal, order: { 2: ['id1', 'id8', 'id9'] } },
+    ];
+    expect(duplicatedIdsExistInLayouts(layouts)).toBe(true);
+  });
+
+  it('Returns false if duplicated ids do not exist across layouts', () => {
+    const layouts = [
+      { ...mockInternal, order: { 1: ['id1', 'id2', 'id3'] } },
+      { ...mockInternal, order: { 2: ['id4', 'id5', 'id6'] } },
+    ];
+    expect(duplicatedIdsExistInLayouts(layouts)).toBe(false);
   });
 });
