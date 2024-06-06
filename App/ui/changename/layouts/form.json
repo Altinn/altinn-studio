@@ -42,6 +42,22 @@
         }
       },
       {
+        "id": "tabs",
+        "type": "Tabs",
+        "tabs": [
+          {
+            "id": "tab-1",
+            "children": ["newMiddleName"],
+            "title": "Nytt mellomnavn",
+            "icon": "/ttd/frontend-test/images/altinn-logo.svg"
+          },  {
+            "id": "tab-2",
+            "children": ["newLastName"],
+            "title": "Nytt etternavn"
+          }
+        ]
+      },
+      {
         "id": "newLastName",
         "type": "Input",
         "textResourceBindings": {
