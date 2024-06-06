@@ -7,7 +7,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { AppContextProps } from '../../AppContext';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
-import { QueryClient } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 jest.mock('app-shared/hooks/useCustomReceiptLayoutSetName');
@@ -47,7 +47,7 @@ describe('Elements', () => {
     mockUseCustomReceiptLayoutSetName.mockReturnValue('CustomReceipt');
     renderElements({ selectedFormLayoutSetName: 'CustomReceipt' });
     await waitForElementToBeRemoved(() =>
-      screen.getByText(textMock('schema_editor.loading_available_components')),
+      screen.queryByText(textMock('schema_editor.loading_available_components')),
     );
 
     expect(
@@ -84,7 +84,7 @@ describe('Elements', () => {
     );
 
     await waitForElementToBeRemoved(() =>
-      screen.getByText(textMock('schema_editor.loading_available_components')),
+      screen.queryByText(textMock('schema_editor.loading_available_components')),
     );
     expect(
       screen.getByText(
