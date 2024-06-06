@@ -20,9 +20,9 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_Datamodel_Ok()
         {
-            string expectedDatamodel = TestDataHelper.GetFileFromRepo(Org, AppV3, Developer, "App/models/custom-dm-name.schema.json");
+            string expectedDatamodel = TestDataHelper.GetFileFromRepo(Org, PreviewApp, Developer, "App/models/custom-dm-name.schema.json");
 
-            string dataPathWithData = $"{Org}/{AppV3}/api/jsonschema/custom-dm-name";
+            string dataPathWithData = $"{Org}/{PreviewApp}/api/jsonschema/custom-dm-name";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
