@@ -4,9 +4,8 @@ import { OnProcessTaskAddHandler } from './OnProcessTaskAddHandler';
 import { BpmnTypeEnum } from '@altinn/process-editor/enum/BpmnTypeEnum';
 import type { TaskEvent } from '@altinn/process-editor/types/TaskEvent';
 import type { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
+import { app, org } from '@studio/testing/testids';
 
-const orgMock = 'testOrg';
-const appMock = 'testApp';
 const currentPolicyMock: Policy = {
   requiredAuthenticationLevelOrg: '3',
   requiredAuthenticationLevelEndUser: '3',
@@ -18,8 +17,8 @@ const addDataTypeToAppMetadataMock = jest.fn();
 
 const createOnProcessTaskHandler = () =>
   new OnProcessTaskAddHandler(
-    orgMock,
-    appMock,
+    org,
+    app,
     currentPolicyMock,
     addLayoutSetMock,
     mutateApplicationPolicyMock,
@@ -55,6 +54,7 @@ describe('OnProcessTaskAddHandler', () => {
       layoutSetConfig: { id: 'testId', tasks: ['testId'] },
       layoutSetIdToUpdate: 'testId',
     });
+    expect(addLayoutSetMock).toHaveBeenCalledTimes(1);
     expect(addDataTypeToAppMetadataMock).not.toHaveBeenCalled();
     expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
   });

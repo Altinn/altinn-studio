@@ -53,10 +53,8 @@ export class OnProcessTaskAddHandler {
    * @private
    */
   private handlePaymentTaskAdd(taskMetadata: OnProcessTaskEvent): void {
-    // Add layoutSet for the task
     this.addLayoutSet(this.createLayoutSetConfig(taskMetadata.taskEvent));
 
-    // Add dataType
     const dataTypeId = getDataTypeIdFromBusinessObject(
       taskMetadata.taskType,
       taskMetadata.taskEvent.element.businessObject,
@@ -67,7 +65,6 @@ export class OnProcessTaskAddHandler {
       taskId: taskMetadata.taskEvent.element.id,
     });
 
-    // Add default policy
     const paymentPolicyBuilder = new PaymentPolicyBuilder(this.org, this.app);
     const defaultPaymentPolicy = paymentPolicyBuilder.getDefaultPaymentPolicy(
       taskMetadata.taskEvent.element.id,
@@ -86,7 +83,6 @@ export class OnProcessTaskAddHandler {
    * @private
    */
   private handleSigningTaskAdd(taskMetadata: OnProcessTaskEvent): void {
-    // Add DataType
     const dataTypeId = getDataTypeIdFromBusinessObject(
       taskMetadata.taskType,
       taskMetadata.taskEvent.element.businessObject,

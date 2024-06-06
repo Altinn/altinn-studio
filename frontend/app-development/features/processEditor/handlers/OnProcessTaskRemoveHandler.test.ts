@@ -5,9 +5,8 @@ import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { BpmnTypeEnum } from '@altinn/process-editor/enum/BpmnTypeEnum';
 import type { TaskEvent } from '@altinn/process-editor/types/TaskEvent';
 import { BpmnBusinessObjectEditor } from '@altinn/process-editor/types/BpmnBusinessObjectEditor';
+import { app, org } from '@studio/testing/testids';
 
-const orgMock = 'testOrg';
-const appMock = 'testApp';
 const currentPolicyMock: Policy = {
   requiredAuthenticationLevelOrg: '3',
   requiredAuthenticationLevelEndUser: '3',
@@ -38,8 +37,8 @@ const createTaskMetadataMock = (
 
 const createOnRemoveProcessTaskHandler = ({ currentPolicy, layoutSets }: any) => {
   return new OnProcessTaskRemoveHandler(
-    orgMock,
-    appMock,
+    org,
+    app,
     currentPolicy || currentPolicyMock,
     layoutSets || layoutSetsMock,
     mutateApplicationPolicyMock,

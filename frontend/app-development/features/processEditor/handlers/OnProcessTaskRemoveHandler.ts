@@ -59,7 +59,6 @@ export class OnProcessTaskRemoveHandler {
    * @private
    */
   private handlePaymentTaskRemove(taskMetadata: OnProcessTaskEvent): void {
-    // Delete dataType
     const dataTypeId = getDataTypeIdFromBusinessObject(
       taskMetadata.taskType,
       taskMetadata.taskEvent.element.businessObject,
@@ -69,7 +68,6 @@ export class OnProcessTaskRemoveHandler {
       dataTypeId,
     });
 
-    // Delete policy
     const paymentPolicyBuilder = new PaymentPolicyBuilder(this.org, this.app);
     const currentPaymentRuleId = paymentPolicyBuilder.getPolicyRuleId(
       taskMetadata.taskEvent.element.id,
@@ -83,7 +81,6 @@ export class OnProcessTaskRemoveHandler {
 
     this.mutateApplicationPolicy(updatedPolicy);
 
-    // Delete layoutSet
     const layoutSetId = getLayoutSetIdFromTaskId(
       taskMetadata.taskEvent.element.id,
       this.layoutSets,
@@ -102,7 +99,6 @@ export class OnProcessTaskRemoveHandler {
    * @private
    */
   private handleSigningTaskRemove(taskMetadata: OnProcessTaskEvent): void {
-    // Delete dataType
     const dataTypeId = getDataTypeIdFromBusinessObject(
       taskMetadata.taskType,
       taskMetadata.taskEvent.element.businessObject,
@@ -112,7 +108,6 @@ export class OnProcessTaskRemoveHandler {
       dataTypeId,
     });
 
-    // Delete layoutSet
     const layoutSetId = getLayoutSetIdFromTaskId(
       taskMetadata.taskEvent.element.id,
       this.layoutSets,
