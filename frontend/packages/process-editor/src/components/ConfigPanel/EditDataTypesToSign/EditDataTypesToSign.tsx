@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';
@@ -10,24 +10,15 @@ import { getSelectedDataTypes } from './DataTypesToSignUtils';
 export const EditDataTypesToSign = () => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
-  const [dataTypesToSignSelectVisible, setDataTypesToSignSelectVisible] = useState(false);
-
-  useEffect(() => {
-    setDataTypesToSignSelectVisible(false);
-  }, [bpmnDetails]);
-
   const selectedDataTypes = getSelectedDataTypes(bpmnDetails);
+
+  const [dataTypesToSignSelectVisible, setDataTypesToSignSelectVisible] = useState(
+    !selectedDataTypes.length,
+  );
 
   return (
     <>
-      {!selectedDataTypes.length && !dataTypesToSignSelectVisible ? (
-        <StudioProperty.Button
-          onClick={() => setDataTypesToSignSelectVisible(true)}
-          property={t('process_editor.configuration_panel_set_data_types_to_sign_link')}
-          size='small'
-          icon={<LinkIcon />}
-        />
-      ) : dataTypesToSignSelectVisible ? (
+      {dataTypesToSignSelectVisible ? (
         <SelectDataTypesToSign onClose={() => setDataTypesToSignSelectVisible(false)} />
       ) : (
         <StudioProperty.Button

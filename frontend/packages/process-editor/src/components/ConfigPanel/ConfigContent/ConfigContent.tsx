@@ -58,7 +58,7 @@ export const ConfigContent = (): React.ReactElement => {
           existingDataTypeForTask={existingDataTypeForTask}
         />
       )}
-      {bpmnDetails.taskType === 'signing' && <EditDataTypesToSign />}
+      {bpmnDetails.taskType === 'signing' && <EditDataTypesToSign key={bpmnDetails.id} />}
       <Accordion color='neutral'>
         <Accordion.Item>
           <Accordion.Header>

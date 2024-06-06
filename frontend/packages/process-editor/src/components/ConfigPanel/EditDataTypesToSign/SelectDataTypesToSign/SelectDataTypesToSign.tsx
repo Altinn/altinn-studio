@@ -37,13 +37,11 @@ export const SelectDataTypesToSign = ({ onClose }: SelectDataTypesToSignProps) =
       <Combobox
         label={t('process_editor.configuration_panel_set_data_types_to_sign')}
         value={value}
-        description={t(
-          'process_editor.configuration_panel_data_types_to_sign_selection_description',
-        )}
         size='small'
         className={classes.dataTypeSelect}
         multiple
         onValueChange={handleValueChange}
+        error={!value.length && t('process_editor.configuration_panel_data_types_to_sign_required')}
       >
         <Combobox.Empty>
           {t('process_editor.configuration_panel_no_data_types_to_sign_to_select')}
@@ -63,6 +61,7 @@ export const SelectDataTypesToSign = ({ onClose }: SelectDataTypesToSignProps) =
           size='small'
           title={t('general.close')}
           variant='secondary'
+          disabled={!value.length}
         />
       </div>
     </div>
