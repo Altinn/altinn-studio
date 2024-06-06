@@ -2,6 +2,7 @@ import React from 'react';
 import type { RepositoryWithStarred } from 'dashboard/utils/repoUtils/repoUtils';
 import { useTranslation } from 'react-i18next';
 import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
+import type { Columns, PaginationTexts } from '@studio/components';
 import { DATAGRID_DEFAULT_PAGE_SIZE, DATAGRID_PAGE_SIZE_OPTIONS } from '../../constants';
 import {
   RemotePaginationProps,
@@ -43,7 +44,7 @@ export const RepoList = ({
   const { t } = useTranslation();
   const tableSize = 'small';
 
-  const columns = [
+  const columns: Columns = [
     {
       accessor: 'favoriteIcon',
       heading: t('dashboard.favorite_status'),
@@ -55,7 +56,7 @@ export const RepoList = ({
       heading: t('dashboard.name'),
       sortable: true,
       headerCellClass: classes.nameHeaderCell,
-      valueFormatter: (repoFullName) => <RepoNameWithLink repoFullName={repoFullName} />,
+      valueFormatter: (repoFullName: string) => <RepoNameWithLink repoFullName={repoFullName} />,
     },
     {
       accessor: 'createdBy',
@@ -68,7 +69,8 @@ export const RepoList = ({
       heading: t('dashboard.last_modified'),
       sortable: true,
       headerCellClass: classes.lastUpdatedHeaderCell,
-      valueFormatter: (date) => new Date(date).toLocaleDateString('nb', { dateStyle: 'short' }),
+      valueFormatter: (date: string) =>
+        new Date(date).toLocaleDateString('nb', { dateStyle: 'short' }),
     },
     {
       accessor: 'description',

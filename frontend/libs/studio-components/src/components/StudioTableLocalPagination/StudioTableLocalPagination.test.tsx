@@ -156,7 +156,7 @@ describe('StudioTableLocalPagination', () => {
     const testColumn: Columns = [
       {
         accessor: 'name',
-        value: 'Name',
+        heading: 'Name',
         valueFormatter: (value) => `Formatted: ${value}`,
       },
     ];

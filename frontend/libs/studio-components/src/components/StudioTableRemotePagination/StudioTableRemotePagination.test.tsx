@@ -134,7 +134,7 @@ describe('StudioTableRemotePagination', () => {
     const testColumns: Columns = [
       {
         accessor: 'name',
-        value: 'Name',
+        heading: 'Name',
         valueFormatter: (value) => `Formatted: ${value}`,
       },
     ];

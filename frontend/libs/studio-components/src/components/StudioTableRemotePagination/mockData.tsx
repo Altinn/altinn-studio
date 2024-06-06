@@ -17,20 +17,20 @@ const IconButton = ({ icon }: IconButtonProps): React.ReactElement => (
 export const columns = [
   {
     accessor: 'icon',
-    value: '',
+    heading: '',
   },
   {
     accessor: 'name',
-    value: 'Name',
+    heading: 'Name',
     sortable: true,
   },
   {
     accessor: 'creator',
-    value: 'Created by',
+    heading: 'Created by',
   },
   {
     accessor: 'lastChanged',
-    value: 'Last changed',
+    heading: 'Last changed',
     sortable: true,
     headerCellClass: classes.lastChangedColumnWidth,
     bodyCellsClass: 'someOtherCustomClass',

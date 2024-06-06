@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, render, logRoles } from '@testing-library/react';
+import { screen, render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MockServicesContextWrapper } from '../../dashboardTestUtils';
 import { searchRepositoryResponseMock } from '../../data-mocks/searchRepositoryResponseMock';
@@ -19,7 +19,6 @@ const renderWithMockServices = (
     isServerSort: false,
     totalRows: repos.length,
     pageNumber: 1,
-    pageSize: 5,
     onPageChange: jest.fn(),
     onPageSizeChange: jest.fn(),
     onSortClick: jest.fn(),

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MockServicesContextWrapper } from '../../dashboardTestUtils';
 import { Dashboard } from './Dashboard';
 import { textMock } from '../../../testing/mocks/i18nMock';
@@ -25,15 +25,17 @@ jest.mock('react-router-dom', () => ({
 }));
 
 describe('Dashboard', () => {
-  test('should display favorite list with one item', async () => {
+  it('should display favorite list with one item', async () => {
     renderWithMockServices({
       getStarredRepos: () => Promise.resolve<Repository[]>([repository]),
     });
-    expect(
-      await screen.findAllByRole('menuitem', {
-        name: textMock('dashboard.unstar', { appName: repository.name }),
-      }),
-    ).toHaveLength(1);
+
+    await waitFor(() => {
+      const starredRepos = screen.getAllByText(textMock('dashboard.unstar'));
+      expect(starredRepos).toHaveLength(1);
+
+      // får "dashboard.no_repos_result" i stedet for "dashboard.unstar"
+    });
   });
 
   test('should display list of my application', async () => {

@@ -4,7 +4,7 @@ import classes from './StudioTableRemotePagination.module.css';
 
 export type Columns = {
   accessor: string;
-  value: ReactNode;
+  heading: ReactNode;
   sortable?: boolean;
   headerCellClass?: string;
   bodyCellsClass?: string;
