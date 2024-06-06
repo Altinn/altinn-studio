@@ -18,7 +18,7 @@ export class ProcessEditorPage extends BasePage {
     await this.page.waitForURL(this.getRoute('editorProcess'));
   }
 
-  public async clickOnInitialTask(elementSelector: string): Promise<void> {
+  public async clickOnTaskInBpmnEditor(elementSelector: string): Promise<void> {
     await this.page.click(elementSelector);
   }
 
@@ -213,7 +213,7 @@ export class ProcessEditorPage extends BasePage {
   public async dragTaskInToBpmnEditor(task: BpmnTaskType, dropElementSelector: string) {
     const boundingBox = await this.page.locator(dropElementSelector).boundingBox();
     const targetX = boundingBox.width / 2;
-    const targetY = boundingBox.height / 2;
+    const targetY = boundingBox.y + boundingBox.height / 2;
 
     const title = `Create Altinn ${task} task`;
     await this.startDragElement(title);
@@ -221,7 +221,7 @@ export class ProcessEditorPage extends BasePage {
   }
 
   public async waitForTaskToBeVisibleInConfigPanel(task: BpmnTaskType): Promise<void> {
-    const text = this.page.getByText(`Altinn ${task} task`);
+    const text = this.page.getByText(`Navn: Altinn ${task} task`);
     await expect(text).toBeVisible();
   }
 
@@ -280,6 +280,17 @@ export class ProcessEditorPage extends BasePage {
       `${this.textMock('process_editor.configuration_panel_id_label')} ${id}`,
     );
     await expect(button).toBeVisible();
+  }
+
+  public async verifyThatThereAreNoDataModelsAvailable(): Promise<void> {
+    const noDataModelMessage = this.page.getByText(
+      this.textMock('process_editor.configuration_panel_no_data_model_to_select'),
+    );
+    await expect(noDataModelMessage).toBeVisible();
+  }
+
+  public async closeEmptyDataModelMessage(): Promise<void> {
+    await this.page.keyboard.press('Escape');
   }
 
   /**
