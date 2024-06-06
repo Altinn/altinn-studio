@@ -48,6 +48,14 @@ jobs:
         with:
           cache: 'yarn'
 
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /home/runner/.docker
+          key: ${{ runner.os }}-docker-compose-${{ hashFiles('docker-compose.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-docker-compose-
+
       - name: Run setup.js script
         run: |
           node ./development/setup.js
