@@ -48,7 +48,7 @@ namespace Designer.Tests.Services
         }
 
         [Theory]
-        [InlineData("ttd", "app-with-process", "testUser")]
+        [InlineData("ttd", "app-with-process-and-layoutsets", "testUser")]
         public async Task GetTaskTypeFromProcessDefinition_GivenProcessDefinition_ReturnsTaskType(string org, string app, string developer)
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
