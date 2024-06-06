@@ -17,7 +17,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_Options_when_options_exists_Ok()
         {
-            string dataPathWithData = $"{Org}/{AppV3}/api/options/test-options";
+            string dataPathWithData = $"{Org}/{PreviewApp}/api/options/test-options";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
