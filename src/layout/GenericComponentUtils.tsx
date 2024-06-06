@@ -69,6 +69,7 @@ export function GenericComponentLegend() {
       required={'required' in node.item ? node.item.required : false}
       labelSettings={'labelSettings' in node.item ? node.item.labelSettings : undefined}
       layout={('layout' in node.item && node.item.layout) || undefined}
+      readOnly={'readOnly' in node.item ? node.item.readOnly : false}
     />
   );
 }

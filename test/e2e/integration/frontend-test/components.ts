@@ -337,8 +337,8 @@ describe('UI Components', () => {
     // Make all components on the page readOnly, and snapshot the effect
     cy.get(appFrontend.changeOfName.newMiddleName).clear();
     cy.get(appFrontend.changeOfName.newMiddleName).type('all_readOnly');
-    cy.get(appFrontend.changeOfName.confirmChangeName).find('input').should('be.disabled');
-    cy.get(appFrontend.changeOfName.reasons).find('input').should('be.disabled');
+    cy.get(appFrontend.changeOfName.confirmChangeName).find('input').should('have.attr', 'readonly');
+    cy.get(appFrontend.changeOfName.reasons).find('input').should('have.attr', 'readonly');
     cy.snapshot('components:read-only');
   });
 

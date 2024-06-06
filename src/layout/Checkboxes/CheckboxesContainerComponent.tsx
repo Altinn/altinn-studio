@@ -68,7 +68,7 @@ export const CheckboxContainerComponent = ({ node, isValid, overrideDisplay }: I
         className={cn({ [classes.horizontal]: horizontal }, classes.checkboxGroup)}
         legend={labelTextGroup}
         description={textResourceBindings?.description && <Lang id={textResourceBindings?.description} />}
-        disabled={readOnly}
+        readOnly={readOnly}
         hideLegend={overrideDisplay?.renderLegend === false}
         error={!isValid}
         aria-label={ariaLabel}

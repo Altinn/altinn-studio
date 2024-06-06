@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { PadlockLockedFillIcon } from '@navikt/aksel-icons';
+
 import { Description } from 'src/components/form/Description';
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import classes from 'src/components/form/Legend.module.css';
@@ -13,13 +15,23 @@ export interface IFormLegendProps {
   label: React.ReactNode;
   description: React.ReactNode;
   required?: boolean;
+  readOnly?: boolean;
   labelSettings?: ILabelSettings;
   helpText: React.ReactNode;
   id: string;
   layout?: LayoutStyle;
 }
 
-export function Legend({ label, required, labelSettings, id, helpText, description, layout }: IFormLegendProps) {
+export function Legend({
+  label,
+  required,
+  readOnly,
+  labelSettings,
+  id,
+  helpText,
+  description,
+  layout,
+}: IFormLegendProps) {
   const { elementAsString } = useLanguage();
   const labelAsText = elementAsString(label);
   if (!label || !labelAsText) {
@@ -27,14 +39,22 @@ export function Legend({ label, required, labelSettings, id, helpText, descripti
   }
 
   const LabelText = (
-    <>
-      {label}
-      <RequiredIndicator required={required} />
-      <OptionalIndicator
-        labelSettings={labelSettings}
-        required={required}
-      />
-    </>
+    <span className={classes.legendSpan}>
+      {readOnly && (
+        <PadlockLockedFillIcon
+          aria-hidden={true}
+          className={classes.padlock}
+        />
+      )}
+      <span>
+        {label}
+        <RequiredIndicator required={required} />
+        <OptionalIndicator
+          labelSettings={labelSettings}
+          required={required}
+        />
+      </span>
+    </span>
   );
 
   if (layout === LayoutStyle.Table) {
