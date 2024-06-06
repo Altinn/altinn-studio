@@ -23,8 +23,6 @@ const defaultProps: ProcessEditorProps = {
   deleteLayoutSet: jest.fn(),
   mutateLayoutSetId: jest.fn(),
   mutateDataType: jest.fn(),
-  addDataTypeToAppMetadata: jest.fn(),
-  deleteDataTypeFromAppMetadata: jest.fn(),
   openPolicyEditor: jest.fn(),
   onProcessTaskRemove: jest.fn(),
   onProcessTaskAdd: jest.fn(),

@@ -1,4 +1,4 @@
-import { type BpmnBusinessObjectEditor } from '../../types/BpmnBusinessObjectEditor';
+import { type BpmnBusinessObjectEditor } from './BpmnBusinessObjectEditor';
 
 export type TaskEvent = Event & {
   element: {

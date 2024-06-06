@@ -1,13 +1,23 @@
-import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
 import { PaymentPolicyBuilder } from '../../../utils/policy';
+import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
 import type { Policy } from 'app-shared/types/Policy';
+import { getDataTypeIdFromBusinessObject } from '@altinn/process-editor/utils/hookUtils/hookUtils';
+import type {
+  AddLayoutSetMutation,
+  AddLayoutSetMutationPayload,
+} from '../../../hooks/mutations/useAddLayoutSetMutation';
 
 export class OnProcessTaskAddHandler {
   constructor(
     private readonly org: string,
     private readonly app: string,
     private readonly currentPolicy: Policy,
+    private readonly addLayoutSet: AddLayoutSetMutation,
     private readonly mutateApplicationPolicy: (policy: Policy) => void,
+    private readonly addDataTypeToAppMetadata: (data: {
+      dataTypeId: string;
+      taskId: string;
+    }) => void,
   ) {}
 
   /**
@@ -15,12 +25,46 @@ export class OnProcessTaskAddHandler {
    * @param taskMetadata
    */
   public handleOnProcessTaskAdd(taskMetadata: OnProcessTaskEvent): void {
+    if (taskMetadata.taskType === 'data') {
+      this.handleDataTaskAdd(taskMetadata);
+    }
+
     if (taskMetadata.taskType === 'payment') {
       this.handlePaymentTaskAdd(taskMetadata);
     }
+
+    if (taskMetadata.taskType === 'signing') {
+      this.handleSigningTaskAdd(taskMetadata);
+    }
   }
 
+  /**
+   * Adds a layout set to the added data task
+   * @param taskMetadata
+   * @private
+   */
+  private handleDataTaskAdd(taskMetadata: OnProcessTaskEvent): void {
+    this.addLayoutSet(this.createLayoutSetConfig(taskMetadata.taskEvent));
+  }
+
+  /**
+   * Adds a dataType, layoutSet and default policy to the added payment task
+   * @param taskMetadata
+   * @private
+   */
   private handlePaymentTaskAdd(taskMetadata: OnProcessTaskEvent): void {
+    this.addLayoutSet(this.createLayoutSetConfig(taskMetadata.taskEvent));
+
+    const dataTypeId = getDataTypeIdFromBusinessObject(
+      taskMetadata.taskType,
+      taskMetadata.taskEvent.element.businessObject,
+    );
+
+    this.addDataTypeToAppMetadata({
+      dataTypeId,
+      taskId: taskMetadata.taskEvent.element.id,
+    });
+
     const paymentPolicyBuilder = new PaymentPolicyBuilder(this.org, this.app);
     const defaultPaymentPolicy = paymentPolicyBuilder.getDefaultPaymentPolicy(
       taskMetadata.taskEvent.element.id,
@@ -31,5 +75,37 @@ export class OnProcessTaskAddHandler {
       ...this.currentPolicy,
       rules: [...this.currentPolicy.rules, ...defaultPaymentPolicy.rules],
     });
+  }
+
+  /**
+   * Adds a dataType to the added signing task
+   * @param taskMetadata
+   * @private
+   */
+  private handleSigningTaskAdd(taskMetadata: OnProcessTaskEvent): void {
+    const dataTypeId = getDataTypeIdFromBusinessObject(
+      taskMetadata.taskType,
+      taskMetadata.taskEvent.element.businessObject,
+    );
+
+    this.addDataTypeToAppMetadata({
+      dataTypeId,
+      taskId: taskMetadata.taskEvent.element.id,
+    });
+  }
+
+  /**
+   * Creates the layout set config for the task
+   * @returns {{layoutSetIdToUpdate: string, layoutSetConfig: LayoutSetConfig}}
+   * @private
+   */
+  private createLayoutSetConfig(
+    taskEvent: OnProcessTaskEvent['taskEvent'],
+  ): AddLayoutSetMutationPayload {
+    const elementId = taskEvent.element.id;
+    return {
+      layoutSetIdToUpdate: elementId,
+      layoutSetConfig: { id: elementId, tasks: [elementId] },
+    };
   }
 }

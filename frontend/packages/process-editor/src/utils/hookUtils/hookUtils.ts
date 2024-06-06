@@ -65,7 +65,7 @@ export const getDataTypeIdFromBusinessObject = (
   return businessObject?.extensionElements?.values[0][configNode][dataTypeName];
 };
 
-export const getLayoutSetIdFromTaskId = (bpmnDetails: BpmnDetails, layoutSets: LayoutSets) => {
-  const layoutSet = layoutSets.sets.find((set) => set.tasks[0] === bpmnDetails.id);
+export const getLayoutSetIdFromTaskId = (elementId: string, layoutSets: LayoutSets) => {
+  const layoutSet = layoutSets.sets.find((set) => set.tasks[0] === elementId);
   return layoutSet?.id;
 };
