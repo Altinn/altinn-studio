@@ -10,8 +10,9 @@ namespace Designer.Tests.Controllers.PreviewController
     where TTestClass : class
     {
         protected const string Org = "ttd";
-        protected const string AppV3 = "preview-app";
+        protected const string AppV3 = "app-without-layoutsets";
         protected const string AppV4 = "app-with-layoutsets";
+        protected const string PreviewApp = "preview-app";
         protected const string Developer = "testUser";
         protected const string LayoutSetName = "layoutSet1";
         protected const string LayoutSetName2 = "layoutSet2";

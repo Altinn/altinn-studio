@@ -42,8 +42,6 @@ export const mockBpmnApiContextValue: BpmnApiContextProps = {
   deleteLayoutSet: jest.fn(),
   mutateLayoutSetId: jest.fn(),
   mutateDataType: jest.fn(),
-  addDataTypeToAppMetadata: jest.fn(),
-  deleteDataTypeFromAppMetadata: jest.fn(),
   saveBpmn: jest.fn(),
   openPolicyEditor: jest.fn(),
   onProcessTaskRemove: jest.fn(),
