@@ -9,9 +9,11 @@ import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
+import { reduceToValidParties } from 'src/features/party/partyProviderUtils';
 import { useShouldFetchProfile } from 'src/features/profile/ProfileProvider';
-import type { IParty } from 'src/types/shared';
+import { type IParty } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 // Also used for prefetching @see appPrefetcher.ts, partyPrefetcher.ts
@@ -106,7 +108,7 @@ const { Provider: RealCurrentPartyProvider, useCtx: useCurrentPartyCtx } = creat
 });
 
 const CurrentPartyProvider = ({ children }: PropsWithChildren) => {
-  const validParties = usePartiesCtx() as IParty[];
+  const validParties = reduceToValidParties(usePartiesCtx() as IParty[], useApplicationMetadata());
   const [sentToMutation, setSentToMutation] = useState<IParty | undefined>(undefined);
   const { mutateAsync, data: dataFromMutation, error: errorFromMutation } = useSetCurrentPartyMutation();
   const { data: partyFromQuery, isLoading, error: errorFromQuery } = useCurrentPartyQuery(true);

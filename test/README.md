@@ -14,6 +14,8 @@ This is only needed the first time, or when dependencies are updated:
 yarn --immutable
 ```
 
+Please refer to [Linux Prerequisites](https://docs.cypress.io/guides/getting-started/installing-cypress#Linux-Prerequisites) to run Cypress on Linux/Wsl.
+
 ### Running tests against a remote environment
 
 1. Start your local development server for `app-frontend-react`:
@@ -40,8 +42,6 @@ npx cypress run --env environment=tt02 -s 'test/e2e/integration/*/*.ts'
 - [ttd/signing-test](https://dev.altinn.studio/repos/ttd/signing-test)
 - [ttd/expression-validation-test](https://dev.altinn.studio/repos/ttd/expression-validation-test)
 - [ttd/payment-test](https://dev.altinn.studio/repos/ttd/payment-test)
-
-
 
 3. Start the app you want to test:
 
