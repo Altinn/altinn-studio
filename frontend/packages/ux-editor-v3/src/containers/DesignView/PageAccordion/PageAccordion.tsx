@@ -8,7 +8,7 @@ import { pageAccordionContentId } from '@studio/testing/testids';
 import { TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../hooks/useAppContext';
 import { firstAvailableLayout } from '../../../utils/formLayoutsUtils';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
@@ -44,7 +44,7 @@ export const PageAccordion = ({
   pageIsReceipt,
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { selectedLayoutSet } = useAppContext();
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedLayout = searchParams.get('layout');

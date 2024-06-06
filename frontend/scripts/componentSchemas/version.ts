@@ -6,9 +6,9 @@ export const versionSettings = {
   },
   v4: {
     layoutSchemaUrl:
-      'https://altinncdn.no/toolkits/altinn-app-frontend/4.0.0-rc2/schemas/json/layout/layout.schema.v1.json',
+      'https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json',
     expressionSchemaUrl:
-      'https://altinncdn.no/toolkits/altinn-app-frontend/4.0.0-rc2/schemas/json/layout/expression.schema.v1.json',
+      'https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/expression.schema.v1.json',
     componentSchemaPath: '../../packages/ux-editor/src/testing/schemas/json/component',
   },
 };

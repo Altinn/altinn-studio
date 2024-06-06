@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './RedirectToCreatePageButton.module.css';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { PencilWritingIcon } from '@studio/icons';
 import { StudioButton } from '@studio/components';
@@ -11,7 +11,7 @@ import { RedirectBox } from '../../../../RedirectBox';
 
 export const RedirectToCreatePageButton = (): React.ReactElement => {
   const { t } = useTranslation();
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const packagesRouter = new PackagesRouter({ org, app });
   const { existingCustomReceiptLayoutSetId } = useBpmnApiContext();
 

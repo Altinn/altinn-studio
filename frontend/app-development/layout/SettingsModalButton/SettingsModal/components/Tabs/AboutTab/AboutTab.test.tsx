@@ -1,12 +1,11 @@
 import React from 'react';
-import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
-import type { AboutTabProps } from './AboutTab';
+import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { AboutTab } from './AboutTab';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import userEvent from '@testing-library/user-event';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';
-import type { QueryClient, UseMutationResult } from '@tanstack/react-query';
+import type { UseMutationResult } from '@tanstack/react-query';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -17,6 +16,11 @@ import { formatDateToDateAndTimeString } from 'app-development/utils/dateUtils';
 import { MemoryRouter } from 'react-router-dom';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { app, org } from '@studio/testing/testids';
+import { SettingsModalContextProvider } from '../../../../../../contexts/SettingsModalContext';
+import {
+  PreviewContext,
+  type PreviewContextProps,
+} from '../../../../../../contexts/PreviewContext';
 
 const mockNewText: string = 'test';
 
@@ -24,6 +28,12 @@ const mockAppMetadata: ApplicationMetadata = {
   id: `${org}/${app}`,
   org,
   createdBy: 'Test Testesen',
+};
+
+const defaultPreviewContextProps: PreviewContextProps = {
+  shouldReloadPreview: false,
+  doReloadPreview: jest.fn(),
+  previewHasLoaded: jest.fn(),
 };
 
 jest.mock('../../../../../../hooks/mutations/useAppConfigMutation');
@@ -39,32 +49,34 @@ const getAppConfig = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getRepoMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 
-const defaultProps: AboutTabProps = {
-  org,
-  app,
-};
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => {
+    return { org, app };
+  },
+}));
 
 describe('AboutTab', () => {
   afterEach(jest.clearAllMocks);
 
   it('initially displays the spinner when loading data', () => {
-    render();
+    renderAboutTab();
 
     expect(screen.getByTitle(textMock('settings_modal.loading_content'))).toBeInTheDocument();
   });
 
   it('fetches appConfig on mount', () => {
-    render();
+    renderAboutTab();
     expect(getAppConfig).toHaveBeenCalledTimes(1);
   });
 
   it('fetches repoMetaData on mount', () => {
-    render();
+    renderAboutTab();
     expect(getRepoMetadata).toHaveBeenCalledTimes(1);
   });
 
   it('fetches applicationMetadata on mount', () => {
-    render();
+    renderAboutTab();
     expect(getAppMetadata).toHaveBeenCalledTimes(1);
   });
 
@@ -72,8 +84,10 @@ describe('AboutTab', () => {
     'shows an error message if an error occured on the %s query',
     async (queryName) => {
       const errorMessage = 'error-message-test';
-      render(defaultProps, {
-        [queryName]: () => Promise.reject({ message: errorMessage }),
+      renderAboutTab({
+        queries: {
+          [queryName]: () => Promise.reject({ message: errorMessage }),
+        },
       });
 
       await waitForElementToBeRemoved(() =>
@@ -138,7 +152,7 @@ describe('AboutTab', () => {
 
   it('displays owners login name when full name is not set', async () => {
     getRepoMetadata.mockImplementation(() => Promise.resolve(mockRepository2));
-    render();
+    renderAboutTab();
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('settings_modal.loading_content')),
     );
@@ -164,24 +178,40 @@ describe('AboutTab', () => {
 
     expect(screen.getByText(mockAppMetadata.createdBy)).toBeInTheDocument();
   });
+
+  it('calls "doReloadPreview" when saving the app config', async () => {
+    const user = userEvent.setup();
+
+    const doReloadPreview = jest.fn();
+    await resolveAndWaitForSpinnerToDisappear({ previewContextProps: { doReloadPreview } });
+
+    const serviceName = screen.getByLabelText(textMock('settings_modal.about_tab_name_label'));
+    await user.type(serviceName, mockNewText);
+    await user.tab();
+
+    expect(doReloadPreview).toHaveBeenCalledTimes(1);
+  });
 });
 
-const resolveAndWaitForSpinnerToDisappear = async (props: Partial<AboutTabProps> = {}) => {
+type Props = {
+  queries: Partial<ServicesContextProps>;
+  previewContextProps: Partial<PreviewContextProps>;
+};
+
+const resolveAndWaitForSpinnerToDisappear = async (props: Partial<Props> = {}) => {
   getAppConfig.mockImplementation(() => Promise.resolve(mockAppConfig));
   getRepoMetadata.mockImplementation(() => Promise.resolve(mockRepository1));
   getAppMetadata.mockImplementation(() => Promise.resolve(mockAppMetadata));
 
-  render(props);
+  renderAboutTab(props);
   await waitForElementToBeRemoved(() =>
     screen.queryByTitle(textMock('settings_modal.loading_content')),
   );
 };
 
-const render = (
-  props: Partial<AboutTabProps> = {},
-  queries: Partial<ServicesContextProps> = {},
-  queryClient: QueryClient = createQueryClientMock(),
-) => {
+const renderAboutTab = (props: Partial<Props> = {}) => {
+  const { queries, previewContextProps } = props;
+
   const allQueries: ServicesContextProps = {
     ...queriesMock,
     getAppConfig,
@@ -190,10 +220,16 @@ const render = (
     ...queries,
   };
 
-  return rtlRender(
+  return render(
     <MemoryRouter>
-      <ServicesContextProvider {...allQueries} client={queryClient}>
-        <AboutTab {...defaultProps} {...props} />
+      <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
+        <SettingsModalContextProvider>
+          <PreviewContext.Provider
+            value={{ ...defaultPreviewContextProps, ...previewContextProps }}
+          >
+            <AboutTab />
+          </PreviewContext.Provider>
+        </SettingsModalContextProvider>
       </ServicesContextProvider>
     </MemoryRouter>,
   );

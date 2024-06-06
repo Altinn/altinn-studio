@@ -105,6 +105,16 @@
           "title": "Edit button (open) (for repeating groups)",
           "description": "The text for the \"Edit\" button when the repeating group item is not in edit mode (i.e. the user can open the edit mode)",
           "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "pagination_next_button": {
+          "title": "Next button in pagination",
+          "description": "The text for the \"Next\" button in pagination",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "pagination_back_button": {
+          "title": "Back button in pagination",
+          "description": "The text for the \"Back\" button in pagination",
+          "$ref": "expression.schema.v1.json#/definitions/string"
         }
       }
     },
@@ -126,6 +136,23 @@
       "description": "Array of component IDs that should be displayed in the repeating group",
       "type": "array",
       "items": { "type": "string" }
+    },
+    "showValidations": {
+      "title": "Validation types",
+      "description": "List of validation types to show",
+      "type": "array",
+      "items": {
+        "enum": [
+          "Schema",
+          "Component",
+          "Expression",
+          "CustomBackend",
+          "Required",
+          "AllExceptRequired",
+          "All"
+        ],
+        "type": "string"
+      }
     },
     "validateOnSaveRow": {
       "title": "Validation types",
@@ -211,6 +238,14 @@
       },
       "additionalProperties": false
     },
+    "pagination": {
+      "title": "Pagination options",
+      "description": "Pagination options for the repeating group rows.",
+      "type": "object",
+      "properties": { "rowsPerPage": { "type": "integer", "minimum": 1 } },
+      "required": ["rowsPerPage"],
+      "additionalProperties": false
+    },
     "maxCount": {
       "title": "Max number of rows",
       "description": "Maximum number of rows that can be added.",
@@ -239,6 +274,12 @@
       "description": "Expression or boolean indicating whether each row should be hidden. An expression will be evaluated per row, and if it evaluates to true, the row will be hidden. If set to true, all rows will be hidden.",
       "default": false,
       "$ref": "expression.schema.v1.json#/definitions/boolean"
+    },
+    "stickyHeader": {
+      "title": "Sticky header",
+      "description": "If set to true, the header of the repeating group will be sticky",
+      "default": false,
+      "type": "boolean"
     },
     "rowsBefore": {
       "title": "Rows in Grid or Grid-like component",

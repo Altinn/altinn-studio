@@ -2,7 +2,7 @@ import React from 'react';
 import { ProcessEditor as ProcessEditorImpl } from '@altinn/process-editor';
 import { useAppPolicyMutation, useBpmnMutation } from '../../hooks/mutations';
 import { useBpmnQuery } from '../../hooks/queries/useBpmnQuery';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { toast } from 'react-toastify';
 import { StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
@@ -36,7 +36,7 @@ enum SyncClientsName {
 
 export const ProcessEditor = (): React.ReactElement => {
   const { t } = useTranslation();
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const queryClient = useQueryClient();
   const { data: currentPolicy, isPending: isPendingCurrentPolicy } = useAppPolicyQuery(org, app);
   const { mutate: mutateApplicationPolicy } = useAppPolicyMutation(org, app);
@@ -66,6 +66,11 @@ export const ProcessEditor = (): React.ReactElement => {
   const { data: appMetadata, isPending: appMetadataPending } = useAppMetadataQuery(org, app);
   const { data: availableDataModelIds, isPending: availableDataModelIdsPending } =
     useAppMetadataModelIdsQuery(org, app);
+  const { data: allDataModelIds, isPending: allDataModelIdsPending } = useAppMetadataModelIdsQuery(
+    org,
+    app,
+    false,
+  );
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
   const pendingApiOperations: boolean =
@@ -76,6 +81,7 @@ export const ProcessEditor = (): React.ReactElement => {
     updateDataTypePending ||
     appMetadataPending ||
     availableDataModelIdsPending ||
+    allDataModelIdsPending ||
     isPendingCurrentPolicy;
 
   const { onWSMessageReceived } = useWebSocket({
@@ -118,7 +124,9 @@ export const ProcessEditor = (): React.ReactElement => {
       org,
       app,
       currentPolicy,
+      addLayoutSet,
       mutateApplicationPolicy,
+      addDataTypeToAppMetadata,
     );
     onProcessTaskAddHandler.handleOnProcessTaskAdd(taskMetadata);
   };
@@ -128,7 +136,10 @@ export const ProcessEditor = (): React.ReactElement => {
       org,
       app,
       currentPolicy,
+      layoutSets,
       mutateApplicationPolicy,
+      deleteDataTypeFromAppMetadata,
+      deleteLayoutSet,
     );
     onProcessTaskRemoveHandler.handleOnProcessTaskRemove(taskMetadata);
   };
@@ -142,6 +153,7 @@ export const ProcessEditor = (): React.ReactElement => {
     <ProcessEditorImpl
       availableDataTypeIds={appMetadata?.dataTypes?.map((dataType) => dataType.id)}
       availableDataModelIds={availableDataModelIds}
+      allDataModelIds={allDataModelIds}
       layoutSets={layoutSets}
       pendingApiOperations={pendingApiOperations}
       existingCustomReceiptLayoutSetId={existingCustomReceiptId}
@@ -151,8 +163,6 @@ export const ProcessEditor = (): React.ReactElement => {
       appLibVersion={appLibData.backendVersion}
       bpmnXml={hasBpmnQueryError ? null : bpmnXml}
       mutateDataType={mutateDataType}
-      addDataTypeToAppMetadata={addDataTypeToAppMetadata}
-      deleteDataTypeFromAppMetadata={deleteDataTypeFromAppMetadata}
       saveBpmn={saveBpmnXml}
       openPolicyEditor={() => {
         setSettingsModalSelectedTab('policy');

@@ -18,6 +18,7 @@ export type ProcessEditorProps = {
   bpmnXml: string | undefined | null;
   availableDataTypeIds: BpmnApiContextProps['availableDataTypeIds'];
   availableDataModelIds: BpmnApiContextProps['availableDataModelIds'];
+  allDataModelIds: BpmnApiContextProps['allDataModelIds'];
   layoutSets: BpmnApiContextProps['layoutSets'];
   pendingApiOperations: boolean;
   existingCustomReceiptLayoutSetId: BpmnApiContextProps['existingCustomReceiptLayoutSetId'];
@@ -25,8 +26,6 @@ export type ProcessEditorProps = {
   deleteLayoutSet: BpmnApiContextProps['deleteLayoutSet'];
   mutateLayoutSetId: BpmnApiContextProps['mutateLayoutSetId'];
   mutateDataType: BpmnApiContextProps['mutateDataType'];
-  addDataTypeToAppMetadata: BpmnApiContextProps['addDataTypeToAppMetadata'];
-  deleteDataTypeFromAppMetadata: BpmnApiContextProps['deleteDataTypeFromAppMetadata'];
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
   openPolicyEditor: BpmnApiContextProps['openPolicyEditor'];
   onProcessTaskAdd: BpmnApiContextProps['onProcessTaskAdd'];
@@ -38,6 +37,7 @@ export const ProcessEditor = ({
   bpmnXml,
   availableDataTypeIds,
   availableDataModelIds,
+  allDataModelIds,
   layoutSets,
   pendingApiOperations,
   existingCustomReceiptLayoutSetId,
@@ -45,8 +45,6 @@ export const ProcessEditor = ({
   deleteLayoutSet,
   mutateLayoutSetId,
   mutateDataType,
-  addDataTypeToAppMetadata,
-  deleteDataTypeFromAppMetadata,
   saveBpmn,
   openPolicyEditor,
   onProcessTaskAdd,
@@ -67,6 +65,7 @@ export const ProcessEditor = ({
       <BpmnApiContextProvider
         availableDataTypeIds={availableDataTypeIds}
         availableDataModelIds={availableDataModelIds}
+        allDataModelIds={allDataModelIds}
         layoutSets={layoutSets}
         pendingApiOperations={pendingApiOperations}
         existingCustomReceiptLayoutSetId={existingCustomReceiptLayoutSetId}
@@ -74,8 +73,6 @@ export const ProcessEditor = ({
         deleteLayoutSet={deleteLayoutSet}
         mutateLayoutSetId={mutateLayoutSetId}
         mutateDataType={mutateDataType}
-        addDataTypeToAppMetadata={addDataTypeToAppMetadata}
-        deleteDataTypeFromAppMetadata={deleteDataTypeFromAppMetadata}
         saveBpmn={saveBpmn}
         openPolicyEditor={openPolicyEditor}
         onProcessTaskAdd={onProcessTaskAdd}

@@ -16,7 +16,7 @@ import { useDeleteFormComponentMutation } from '../../hooks/mutations/useDeleteF
 import { useTextResourcesSelector, useAppContext } from '../../hooks';
 import { useTranslation } from 'react-i18next';
 import { AltinnConfirmDialog } from 'app-shared/components';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export interface IFormComponentProps {
   component: IFormComponent;
@@ -39,7 +39,7 @@ export const FormComponent = memo(function FormComponent({
   isEditMode,
 }: IFormComponentProps) {
   const { t } = useTranslation();
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
 
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
     textResourcesByLanguageSelector(DEFAULT_LANGUAGE),

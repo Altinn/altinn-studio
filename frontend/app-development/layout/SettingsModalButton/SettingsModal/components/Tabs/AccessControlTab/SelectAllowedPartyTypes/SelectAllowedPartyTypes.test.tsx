@@ -12,10 +12,16 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { app, org } from '@studio/testing/testids';
+import { MemoryRouter } from 'react-router-dom';
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => {
+    return { org, app };
+  },
+}));
 
 const defaultProps: SelectAllowedPartyTypesProps = {
-  org,
-  app,
   appMetadata: mockAppMetadata,
 };
 
@@ -140,8 +146,10 @@ describe('SelectAllowedPartyTypes', () => {
 const renderSelectAllowedPartyTypes = (props: Partial<SelectAllowedPartyTypesProps> = {}) => {
   const queryClient: QueryClient = createQueryClientMock();
   return rtlRender(
-    <ServicesContextProvider {...queriesMock} client={queryClient}>
-      <SelectAllowedPartyTypes {...defaultProps} {...props}></SelectAllowedPartyTypes>
-    </ServicesContextProvider>,
+    <MemoryRouter>
+      <ServicesContextProvider {...queriesMock} client={queryClient}>
+        <SelectAllowedPartyTypes {...defaultProps} {...props}></SelectAllowedPartyTypes>
+      </ServicesContextProvider>
+    </MemoryRouter>,
   );
 };

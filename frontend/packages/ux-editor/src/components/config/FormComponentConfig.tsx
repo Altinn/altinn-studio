@@ -13,6 +13,7 @@ import {
 import { EditGrid } from './editModal/EditGrid';
 import type { FormItem } from '../../types/FormItem';
 import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
+import { useComponentPropertyDescription } from '../../hooks/useComponentPropertyDescription';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -34,6 +35,7 @@ export const FormComponentConfig = ({
 }: FormComponentConfigProps) => {
   const t = useText();
   const componentPropertyLabel = useComponentPropertyLabel();
+  const componentPropertyDescription = useComponentPropertyDescription();
 
   if (!schema?.properties) return null;
 
@@ -199,7 +201,9 @@ export const FormComponentConfig = ({
               {componentPropertyLabel(propertyKey)}
             </Heading>
             {properties[propertyKey]?.description && (
-              <Paragraph size='small'>{properties[propertyKey].description}</Paragraph>
+              <Paragraph size='small'>
+                {componentPropertyDescription(propertyKey) ?? properties[propertyKey].description}
+              </Paragraph>
             )}
             <FormComponentConfig
               key={propertyKey}

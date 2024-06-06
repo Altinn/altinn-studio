@@ -7,7 +7,7 @@ import { StudioButton, StudioSpinner } from '@studio/components';
 
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { FormField } from '../../../FormField';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import classes from './EditCodeList.module.css';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 
@@ -15,7 +15,7 @@ export function EditCodeList<
   T extends ComponentType.Checkboxes | ComponentType.RadioButtons | ComponentType.Dropdown,
 >({ component, handleComponentChange }: IGenericEditComponent<T>) {
   const { t } = useTranslation();
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
 
   const { data: optionListIds, isPending, isError, error } = useOptionListIdsQuery(org, app);
   const [useCustomCodeList, setUseCustomCodeList] = useState<boolean>(optionListIds?.length === 0);

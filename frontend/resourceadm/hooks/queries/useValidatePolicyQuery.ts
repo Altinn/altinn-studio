@@ -2,8 +2,7 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { Validation } from 'app-shared/types/ResourceAdm';
-import type { AxiosError } from 'axios';
+import type { ResourceError, Validation } from 'app-shared/types/ResourceAdm';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 /**
@@ -19,10 +18,10 @@ export const useValidatePolicyQuery = (
   org: string,
   repo: string,
   id: string,
-): UseQueryResult<Validation, AxiosError> => {
+): UseQueryResult<Validation, ResourceError> => {
   const { getValidatePolicy } = useServicesContext();
 
-  return useQuery<Validation, AxiosError>({
+  return useQuery<Validation, ResourceError>({
     queryKey: [QueryKey.ValidatePolicy, org, repo, id],
     queryFn: () => getValidatePolicy(org, repo, id),
     select: (data) => {

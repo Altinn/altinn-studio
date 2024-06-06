@@ -9,12 +9,12 @@ import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSet
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
 
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import classes from './Elements.module.css';
 import { useAppContext } from '../../hooks/useAppContext';
 
 export const Elements = () => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const selectedLayout: string = useSelector(selectedLayoutNameSelector);
   const { selectedLayoutSet } = useAppContext();
   const layoutSetsQuery = useLayoutSetsQuery(org, app);

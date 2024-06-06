@@ -18,23 +18,11 @@ import {
 } from 'app-shared/hooks/queries';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { TabContent } from '../../TabContent';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
-export type PolicyTabProps = {
-  org: string;
-  app: string;
-};
-
-/**
- * @component
- *    Displays the tab rendering the polciy for an app
- *
- * @property {string}[org] - The org
- * @property {string}[app] - The app
- *
- * @returns {ReactNode} - The rendered component
- */
-export const PolicyTab = ({ org, app }: PolicyTabProps): ReactNode => {
+export const PolicyTab = (): ReactNode => {
   const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
 
   const {
     status: policyStatus,

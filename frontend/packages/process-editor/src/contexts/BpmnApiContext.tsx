@@ -11,6 +11,7 @@ type QueryOptions = {
 export type BpmnApiContextProps = {
   availableDataTypeIds: string[];
   availableDataModelIds: string[];
+  allDataModelIds: string[];
   layoutSets: LayoutSets;
   pendingApiOperations: boolean;
   existingCustomReceiptLayoutSetId: string | undefined;
@@ -21,9 +22,6 @@ export type BpmnApiContextProps = {
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
   mutateLayoutSetId: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
   mutateDataType: (dataTypeChange: DataTypeChange, options?: QueryOptions) => void;
-  addDataTypeToAppMetadata: (data: { dataTypeId: string }) => void;
-  deleteDataTypeFromAppMetadata: (data: { dataTypeId: string }) => void;
-
   saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
   openPolicyEditor: () => void;
   onProcessTaskAdd: (taskMetadata: OnProcessTaskEvent) => void;
@@ -38,40 +36,12 @@ export type BpmnApiContextProviderProps = {
 
 export const BpmnApiContextProvider = ({
   children,
-  availableDataTypeIds,
-  availableDataModelIds,
-  layoutSets,
-  pendingApiOperations,
-  existingCustomReceiptLayoutSetId,
-  addLayoutSet,
-  deleteLayoutSet,
-  mutateLayoutSetId,
-  mutateDataType,
-  addDataTypeToAppMetadata,
-  deleteDataTypeFromAppMetadata,
-  saveBpmn,
-  openPolicyEditor,
-  onProcessTaskRemove,
-  onProcessTaskAdd,
+  ...rest
 }: Partial<BpmnApiContextProviderProps>) => {
   return (
     <BpmnApiContext.Provider
       value={{
-        availableDataTypeIds,
-        availableDataModelIds,
-        layoutSets,
-        pendingApiOperations,
-        existingCustomReceiptLayoutSetId,
-        addLayoutSet,
-        deleteLayoutSet,
-        mutateLayoutSetId,
-        mutateDataType,
-        addDataTypeToAppMetadata,
-        deleteDataTypeFromAppMetadata,
-        saveBpmn,
-        openPolicyEditor,
-        onProcessTaskRemove,
-        onProcessTaskAdd,
+        ...rest,
       }}
     >
       {children}

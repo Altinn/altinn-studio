@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import classes from './Preview.module.css';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { useAppContext, useSelectedTaskId } from '../../hooks';
+import { useChecksum } from '../../hooks/useChecksum.ts';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/design-system-react';
 import { StudioButton, StudioCenter } from '@studio/components';
@@ -58,11 +59,14 @@ const NoSelectedPageMessage = () => {
 
 // The actual preview frame that displays the selected page
 const PreviewFrame = () => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const [viewportToSimulate, setViewportToSimulate] = useState<SupportedView>('desktop');
   const { previewIframeRef, selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
   const taskId = useSelectedTaskId(selectedFormLayoutSetName);
   const { t } = useTranslation();
+
+  const { shouldReloadPreview, previewHasLoaded } = useAppContext();
+  const checksum = useChecksum(shouldReloadPreview);
 
   useEffect(() => {
     return () => {
@@ -76,10 +80,12 @@ const PreviewFrame = () => {
       <div className={classes.previewArea}>
         <div className={classes.iframeContainer}>
           <iframe
+            key={checksum}
             ref={previewIframeRef}
             className={cn(classes.iframe, classes[viewportToSimulate])}
             title={t('ux_editor.preview')}
             src={previewPage(org, app, selectedFormLayoutSetName, taskId, selectedFormLayoutName)}
+            onLoad={previewHasLoaded}
           />
         </div>
         <PreviewLimitationsInfo />
