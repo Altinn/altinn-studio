@@ -20,11 +20,11 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_FormData_Ok()
         {
-            string expectedFormData = TestDataHelper.GetFileFromRepo(Org, AppV3, Developer, "App/models/custom-dm-name.schema.json");
+            string expectedFormData = TestDataHelper.GetFileFromRepo(Org, PreviewApp, Developer, "App/models/custom-dm-name.schema.json");
 
-            string dataPathWithData = $"{Org}/{AppV3}/instances/{PartyId}/{InstanceGuId}/data/test-datatask-id";
+            string dataPathWithData = $"{Org}/{PreviewApp}/instances/{PartyId}/{InstanceGuId}/data/test-datatask-id";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV3}&selectedLayoutSet=");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={PreviewApp}&selectedLayoutSet=");
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
