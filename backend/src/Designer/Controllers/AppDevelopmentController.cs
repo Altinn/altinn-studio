@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -120,7 +119,7 @@ namespace Altinn.Studio.Designer.Controllers
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
                 ComponentIdChange componentIdChange = System.Text.Json.JsonSerializer.Deserialize<ComponentIdChange>(payload["componentIdChange"]);
                 await _appDevelopmentService.SaveFormLayout(editingContext, layoutSetName, layoutName, payload["layout"], cancellationToken);
-                
+
                 if (componentIdChange is not null)
                 {
 
@@ -128,6 +127,7 @@ namespace Altinn.Studio.Designer.Controllers
                     {
                         OldComponentId = componentIdChange.OldComponentId,
                         NewComponentId = componentIdChange.NewComponentId,
+                        LayoutSetName = layoutSetName,
                         EditingContext = editingContext
                     }, cancellationToken);
                 }

@@ -6,8 +6,6 @@ using Altinn.Studio.Designer.Hubs.SyncHub;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Altinn.Studio.Designer.EventHandlers.ComponentIdChanged;
 
@@ -29,15 +27,16 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
             notification.EditingContext.Org,
             notification.EditingContext.Repo,
             notification.EditingContext.Developer);
-        
+
         LayoutSets layoutSets = await repository.GetLayoutSetsFile(cancellationToken);
-        
+
         // WHAT FILE TO SEND IN THIS CASE? CAN WE FETCH ONLY SINGLE LAYOUTS OR NEED TO SEND NAME OF LAYOUT SET(S) AND FETCH ALL LAYOUTS PER SET?
         foreach (LayoutSetConfig layoutSet in layoutSets.Sets)
         {
+            // If we replace layouts in cache we can pass only the changed layouts
             await _fileSyncHandlerExecutor.ExecuteWithExceptionHandling(
                 notification.EditingContext,
-                SyncErrorCodes.ApplicationMetadataDataTypeSyncError,
+                SyncErrorCodes.LayoutSetComponentIdSyncError,
                 $"App/ui/{layoutSet}", async () =>
                 {
                     string[] layoutNames = repository.GetLayoutNames(layoutSet.Id);
@@ -114,16 +113,17 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
 
     private void UpdateComponentIdActingAsPropertyName(JsonObject jsonObject, string oldComponentId, string newComponentId)
     {
+        // Might need to make this stricter in case app-dev are calling components keys that already are used in the schema
         JsonNode value = jsonObject[oldComponentId];
         jsonObject.Remove(oldComponentId);
         jsonObject[newComponentId] = value;
     }
-    
+
     private void UpdateComponentIdActingAsExpressionMember(JsonArray jsonArray, string newComponentId)
     {
         jsonArray[1] = newComponentId;
     }
-    
+
     private void UpdateComponentIdActingAsCellMemberInRepeatingGroup(JsonNode jsonNode, string oldComponentId, string newComponentId)
     {
         if (jsonNode["component"]?.ToString() == oldComponentId)
@@ -131,7 +131,7 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
             jsonNode["component"] = newComponentId;
         }
     }
-    
+
     private void UpdateComponentIdActingAsComponentRefInSummary(JsonNode jsonNode, string oldComponentId, string newComponentId)
     {
         if (jsonNode["componentRef"]?.ToString() == oldComponentId)

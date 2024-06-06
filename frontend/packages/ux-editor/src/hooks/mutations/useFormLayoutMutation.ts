@@ -39,6 +39,8 @@ export const useFormLayoutMutation = (
         });
       }
 
+      // REMEMBER TO UPDATE CACHE WITH ACTUAL LAYOUT FROM BACKEND. OR INVALIDATE RELEVANT FILES THAT COMES FROM SYNC EVENT.
+      // WOULD NEED A NEW ENDPOINT TO FETCH INDIVIDUAL LAYOUTS IF SO
       queryClient.setQueryData(
         [QueryKey.FormLayouts, org, app, layoutSetName],
         (oldData: IFormLayouts) => ({ ...oldData, [layoutName]: savedLayout }),
