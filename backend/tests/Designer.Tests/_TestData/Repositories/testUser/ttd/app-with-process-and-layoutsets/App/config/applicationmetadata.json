@@ -1,0 +1,33 @@
+{
+    "id": "ttd/app-with-process-and-layoutsets",
+    "org": "ttd",
+    "title": {
+        "nb": "app-with-process-and-layoutsets"
+    },
+    "dataTypes": [
+        {
+            "id": "datamodel",
+            "allowedContentTypes": [
+                "application/xml"
+            ],
+            "appLogic": {
+                "autoCreate": true,
+                "classRef": "Altinn.App.Models.datamodel"
+            },
+            "taskId": "Task_1",
+            "maxCount": 1,
+            "minCount": 1
+        }
+    ],
+    "partyTypesAllowed": {
+        "bankruptcyEstate": false,
+        "organisation": false,
+        "person": false,
+        "subUnit": false
+    },
+    "autoDeleteOnProcessEnd": false,
+    "created": "2021-02-06T15:18:12.2060944Z",
+    "createdBy": "Mocked Author",
+    "lastChanged": "2021-02-06T15:18:12.2062288Z",
+    "lastChangedBy": "Mocked Changed By Author"
+}
