@@ -38,7 +38,8 @@ export function getSourceOptions({ source, node, dataSources }: IGetSourceOption
     return undefined;
   }
 
-  const { formDataSelector, langToolsRef } = dataSources;
+  const { formDataSelector, langToolsSelector } = dataSources;
+  const langTools = langToolsSelector(node);
   const { group, value, label, helpText, description } = source;
   const cleanValue = getKeyWithoutIndexIndicators(value);
   const cleanGroup = getKeyWithoutIndexIndicators(group);
@@ -63,16 +64,14 @@ export function getSourceOptions({ source, node, dataSources }: IGetSourceOption
          * langAsString function to actually be langAsStringUsingPathInDataModel partially
          * applied with the correct path in the data model.
          */
-        const modifiedDataSources = {
+        const modifiedDataSources: HierarchyDataSources = {
           ...dataSources,
-          langToolsRef: {
-            current: {
-              ...langToolsRef.current,
-              langAsString: (key: string) => langToolsRef.current.langAsStringUsingPathInDataModel(key, path),
-              langAsNonProcessedString: (key: string) =>
-                langToolsRef.current.langAsNonProcessedStringUsingPathInDataModel(key, path),
-            },
-          },
+          langToolsSelector: () => ({
+            ...langTools,
+            langAsString: (key: string) => langTools.langAsStringUsingPathInDataModel(key, path),
+            langAsNonProcessedString: (key: string) =>
+              langTools.langAsNonProcessedStringUsingPathInDataModel(key, path),
+          }),
         };
 
         const config = {
@@ -91,19 +90,19 @@ export function getSourceOptions({ source, node, dataSources }: IGetSourceOption
           value: String(formDataSelector(valuePath)),
           label:
             label && !Array.isArray(label)
-              ? langToolsRef.current.langAsStringUsingPathInDataModel(label, path)
+              ? langTools.langAsStringUsingPathInDataModel(label, path)
               : Array.isArray(labelExpression)
                 ? evalExpr(labelExpression, node, modifiedDataSources)
                 : undefined,
           description:
             description && !Array.isArray(description)
-              ? langToolsRef.current.langAsStringUsingPathInDataModel(description, path)
+              ? langTools.langAsStringUsingPathInDataModel(description, path)
               : Array.isArray(descriptionExpression)
                 ? evalExpr(descriptionExpression, node, modifiedDataSources)
                 : undefined,
           helpText:
             helpText && !Array.isArray(helpText)
-              ? langToolsRef.current.langAsStringUsingPathInDataModel(helpText, path)
+              ? langTools.langAsStringUsingPathInDataModel(helpText, path)
               : Array.isArray(helpTextExpression)
                 ? evalExpr(helpTextExpression, node, modifiedDataSources)
                 : undefined,

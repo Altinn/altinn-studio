@@ -10,7 +10,7 @@ import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { DisplayDataProps } from 'src/features/displayData';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IInputFormatting } from 'src/layout/Input/config.generated';
+import type { IInputFormattingInternal } from 'src/layout/Input/config.generated';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -28,7 +28,7 @@ export class Input extends InputDef {
 
     const text = node.getFormData(formDataSelector).simpleBinding || '';
     const numberFormatting = getMapToReactNumberConfig(
-      node.item.formatting as IInputFormatting | undefined,
+      node.item.formatting as IInputFormattingInternal | undefined,
       text,
       currentLanguage,
     );

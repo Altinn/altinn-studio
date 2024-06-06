@@ -32,11 +32,7 @@ export interface ContextDataSources {
   options: ReturnType<typeof useAllOptionsSelector>;
   authContext: Partial<IAuthContext> | null;
   isHidden: (nodeId: string) => boolean;
-  langToolsRef: {
-    // We pass langTools as a ref, because it itself re-renders a lot, and we don't want to
-    // re-create the hierarchy every time language stuff changes.
-    current: IUseLanguage;
-  };
+  langToolsSelector: (node: LayoutNode | undefined) => IUseLanguage;
   currentLanguage: string;
 }
 

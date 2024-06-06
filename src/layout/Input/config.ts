@@ -1,4 +1,5 @@
 import { CG } from 'src/codegen/CG';
+import { ExprVal } from 'src/features/expressions/types';
 import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
@@ -11,6 +12,20 @@ export const Config = new CG.component({
     renderInAccordionGroup: false,
   },
 })
+  .addTextResource(
+    new CG.trb({
+      name: 'prefix',
+      title: 'Prefix',
+      description: 'Prefix shown before the input field',
+    }),
+  )
+  .addTextResource(
+    new CG.trb({
+      name: 'suffix',
+      title: 'Suffix',
+      description: 'Suffix shown after the input field',
+    }),
+  )
   .addDataModelBinding(CG.common('IDataModelBindingsSimple'))
   .addProperty(new CG.prop('saveWhileTyping', CG.common('SaveWhileTyping').optional({ default: true })))
   .addProperty(
@@ -72,22 +87,25 @@ export const Config = new CG.component({
           'number',
           new CG.union(
             new CG.obj(
-              new CG.prop('format', new CG.str()),
+              new CG.prop('format', new CG.expr(ExprVal.String)),
               new CG.prop('mask', new CG.union(new CG.str(), new CG.arr(new CG.str())).optional()),
               new CG.prop('allowEmptyFormatting', new CG.bool().optional()),
               new CG.prop('patternChar', new CG.str().optional()),
             ).exportAs('PatternFormatProps'),
             new CG.obj(
-              new CG.prop('thousandSeparator', new CG.union(new CG.bool(), new CG.str()).optional()),
-              new CG.prop('decimalSeparator', new CG.str().optional()),
+              new CG.prop(
+                'thousandSeparator',
+                new CG.union(new CG.expr(ExprVal.Boolean), new CG.expr(ExprVal.String)).optional(),
+              ),
+              new CG.prop('decimalSeparator', new CG.expr(ExprVal.String).optional()),
               new CG.prop('allowedDecimalSeparators', new CG.arr(new CG.str()).optional()),
               new CG.prop('thousandsGroupStyle', new CG.enum('thousand', 'lakh', 'wan', 'none').optional()),
               new CG.prop('decimalScale', new CG.num().optional()),
               new CG.prop('fixedDecimalScale', new CG.bool().optional()),
               new CG.prop('allowNegative', new CG.bool().optional()),
               new CG.prop('allowLeadingZeros', new CG.bool().optional()),
-              new CG.prop('suffix', new CG.str().optional()),
-              new CG.prop('prefix', new CG.str().optional()),
+              new CG.prop('suffix', new CG.expr(ExprVal.String).optional()),
+              new CG.prop('prefix', new CG.expr(ExprVal.String).optional()),
             )
               .exportAs('NumberFormatProps')
               .setTitle('Number formatting options')

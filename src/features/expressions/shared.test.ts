@@ -93,11 +93,10 @@ describe('Expressions shared function tests', () => {
           instanceDataSources: buildInstanceDataSources(instance),
           applicationSettings: frontendSettings || ({} as IApplicationSettings),
           authContext: buildAuthContext(permissions),
-          langToolsRef: {
-            current: staticUseLanguageForTests({
+          langToolsSelector: () =>
+            staticUseLanguageForTests({
               textResources: textResources ? resourcesAsMap(textResources) : {},
             }),
-          },
           process,
           currentLanguage: profileSettings?.language || 'nb',
           options: (nodeId) => options[nodeId] || [],

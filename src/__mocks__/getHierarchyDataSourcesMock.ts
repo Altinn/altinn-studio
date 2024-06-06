@@ -15,7 +15,7 @@ export function getHierarchyDataSourcesMock(): HierarchyDataSources {
     authContext: null,
     devToolsIsOpen: false,
     devToolsHiddenComponents: 'hide',
-    langToolsRef: { current: staticUseLanguageForTests() },
+    langToolsSelector: () => staticUseLanguageForTests(),
     currentLanguage: 'nb',
   };
 }

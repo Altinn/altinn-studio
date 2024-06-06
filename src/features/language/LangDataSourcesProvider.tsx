@@ -5,14 +5,9 @@ import { ContextNotProvided } from 'src/core/contexts/context';
 import { useLaxApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { useDataModelReaders } from 'src/features/formData/FormDataReaders';
 import { useLaxInstanceDataSources } from 'src/features/instance/InstanceContext';
-import {
-  useLangToolsDataSources,
-  useLangToolsRef,
-  useSetLangToolsDataSources,
-} from 'src/features/language/LangToolsStore';
+import { useLangToolsDataSources, useSetLangToolsDataSources } from 'src/features/language/LangToolsStore';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
-import { useLanguageWithForcedNode } from 'src/features/language/useLanguage';
 import { getLanguageFromCode } from 'src/language/languages';
 import type { TextResourceMap } from 'src/features/language/textResources';
 import type { TextResourceVariablesDataSources } from 'src/features/language/useLanguage';
@@ -71,9 +66,3 @@ export const LangDataSourcesProvider = ({ children }: PropsWithChildren) => {
 
   return <>{children}</>;
 };
-
-export function ProvideUseLanguageRef() {
-  const intoRef = useLangToolsRef();
-  intoRef.current = useLanguageWithForcedNode(undefined);
-  return null;
-}

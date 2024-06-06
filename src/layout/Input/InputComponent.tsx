@@ -11,14 +11,16 @@ import classes from 'src/layout/Input/InputComponent.module.css';
 import { isNumericFormat, isPatternFormat } from 'src/layout/Input/number-format-helpers';
 import { useCharacterLimit } from 'src/utils/inputUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IInputFormatting } from 'src/layout/Input/config.generated';
+import type { IInputFormattingInternal } from 'src/layout/Input/config.generated';
 
 export type IInputProps = PropsFromGenericComponent<'Input'>;
 
 import type { TextfieldProps } from '@digdir/designsystemet-react/dist/types/components/form/Textfield/Textfield';
 
-interface InputComponentProps extends TextfieldProps {
+interface InputComponentProps extends Omit<TextfieldProps, 'prefix' | 'suffix'> {
   textOnly?: boolean;
+  prefixText?: string;
+  suffixText?: string;
 }
 
 const TextOnly: React.FunctionComponent<TextfieldProps> = ({ className, id, value }) => {
@@ -45,8 +47,9 @@ const TextOnly: React.FunctionComponent<TextfieldProps> = ({ className, id, valu
 
 // We need to use this wrapped Textfield component because we have a conflict between the 'size' prop
 // of the TextField and the react-number-format components which also have a 'size' prop
+// The prefix/suffix props from the design system also conflicts with react-number-format
 const TextfieldWrapped: React.FunctionComponent<InputComponentProps> = (props) => {
-  const { size: _, textOnly, ...customProps } = props;
+  const { size: _, textOnly, prefixText, suffixText, ...customProps } = props;
 
   if (textOnly) {
     return <TextOnly {...customProps}></TextOnly>;
@@ -55,6 +58,8 @@ const TextfieldWrapped: React.FunctionComponent<InputComponentProps> = (props) =
   return (
     <Textfield
       size={'small'}
+      prefix={prefixText}
+      suffix={suffixText}
       {...customProps}
     ></Textfield>
   );
@@ -82,9 +87,13 @@ export const InputComponent: React.FunctionComponent<IInputProps> = ({ node, isV
 
   const { langAsString } = useLanguage();
 
-  const reactNumberFormatConfig = useMapToReactNumberConfig(formatting as IInputFormatting | undefined, formValue);
+  const reactNumberFormatConfig = useMapToReactNumberConfig(
+    formatting as IInputFormattingInternal | undefined,
+    formValue,
+  );
   const ariaLabel = overrideDisplay?.renderedInTable === true ? langAsString(textResourceBindings?.title) : undefined;
-
+  const prefixText = textResourceBindings?.prefix ? langAsString(textResourceBindings.prefix) : undefined;
+  const suffixText = textResourceBindings?.suffix ? langAsString(textResourceBindings.suffix) : undefined;
   const characterLimit = useCharacterLimit(maxLength);
 
   const commonProps = {
@@ -100,6 +109,8 @@ export const InputComponent: React.FunctionComponent<IInputProps> = ({ node, isV
     required,
     onBlur: debounce,
     textOnly: overrideDisplay?.rowReadOnly && readOnly,
+    prefixText,
+    suffixText,
   };
 
   if (variant === 'search') {
