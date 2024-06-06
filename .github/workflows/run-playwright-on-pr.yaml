@@ -60,7 +60,6 @@ jobs:
           push: false
           load: true
           files: |-
-            .env
             compose.yaml
             compose-cache.json
 
