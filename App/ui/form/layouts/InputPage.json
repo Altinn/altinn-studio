@@ -8,49 +8,107 @@
                 "type": "NavigationBar"
             },
             {
-                "size": "h2",
                 "id": "InputPage-Header",
                 "type": "Header",
+                "size": "h2",
                 "textResourceBindings": {
                     "title": "InputPage"
                 }
             },
             {
-                "size": "h3",
                 "id": "InputPage-Header-Component",
                 "type": "Header",
+                "size": "h3",
                 "textResourceBindings": {
                     "title": "Header.Component"
                 }
             },
             {
+                "id": "InputPage-Input",
+                "type": "Input",
                 "dataModelBindings": {
                     "simpleBinding": "shortAnswerInput"
                 },
-                "id": "InputPage-Input",
-                "type": "Input",
                 "textResourceBindings": {
                     "title": "InputPage.Input.title"
                 }
             },
             {
-                "size": "h3",
+                "id": "InputPage-Input-grid1",
+                "type": "Input",
+                "dataModelBindings": {
+                    "simpleBinding": "shortAnswerInput"
+                },
+                "textResourceBindings": {
+                    "title": "InputPage.Input.Grid.title-1"
+                },
+                "grid": {
+                    "xs": 12,
+                    "md": 6
+                }
+            },
+            {
+                "id": "InputPage-Input-grid2",
+                "type": "Input",
+                "dataModelBindings": {
+                    "simpleBinding": "shortAnswerInput"
+                },
+                "textResourceBindings": {
+                    "title": "InputPage.Input.Grid.title-2"
+                },
+                "grid": {
+                    "xs": 12,
+                    "md": 6
+                }
+            },
+            {
+                "id": "InputPage-Input-long",
+                "type": "Input",
+                "dataModelBindings": {
+                    "simpleBinding": "shortAnswerInput"
+                },
+                "textResourceBindings": {
+                    "title": "InputPage.Input.Grid.title.long"
+                },
+                "grid": {
+                    "innerGrid": {
+                        "xs": 12,
+                        "md": 6
+                    }
+                }
+            },
+            {
                 "id": "InputPage-Header-Summary",
                 "type": "Header",
+                "size": "h3",
                 "textResourceBindings": {
                     "title": "Header.Summary"
                 }
             },
             {
-                "componentRef": "InputPage-Input",
                 "id": "InputPage-Summary",
                 "type": "Summary",
-                "largeGroup": false
+                "componentRef": "InputPage-Input"
             },
             {
-                "size": "h3",
+                "id": "InputPage-Summary-grid1",
+                "type": "Summary",
+                "componentRef": "InputPage-Input-grid1"
+            },
+            {
+                "id": "InputPage-Summary-grid2",
+                "type": "Summary",
+                "componentRef": "InputPage-Input-grid2"
+            },
+            {
+                "id": "InputPage-Summary-long",
+                "type": "Summary",
+                "componentRef": "InputPage-Input-long"
+            },
+            {
                 "id": "InputPage-Header-Summary2",
                 "type": "Header",
+                "size": "h3",
                 "textResourceBindings": {
                     "title": "Header.Summary2"
                 }
@@ -58,17 +116,40 @@
             {
                 "id": "InputPage-Summary2",
                 "type": "Summary2",
-                "hidden": false,
                 "whatToRender": {
                     "type": "component",
                     "id": "InputPage-Input"
                 }
             },
             {
+                "id": "InputPage-Summary2-grid1",
+                "type": "Summary2",
+                "whatToRender": {
+                    "type": "component",
+                    "id": "InputPage-Input-grid1"
+                }
+            },
+            {
+                "id": "InputPage-Summary2-grid2",
+                "type": "Summary2",
+                "whatToRender": {
+                    "type": "component",
+                    "id": "InputPage-Input-grid2"
+                }
+            },
+            {
+                "id": "InputPage-Summary2-grid-long",
+                "type": "Summary2",
+                "whatToRender": {
+                    "type": "component",
+                    "id": "InputPage-Input-long"
+                }
+            },
+            {
                 "id": "NavigationButtons",
+                "type": "NavigationButtons",
                 "showBackButton": true,
-                "textResourceBindings": {},
-                "type": "NavigationButtons"
+                "textResourceBindings": {}
             }
         ]
     }
