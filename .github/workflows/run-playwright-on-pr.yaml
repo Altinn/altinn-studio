@@ -60,11 +60,9 @@ jobs:
           push: false
           load: true
           files: |-
+            .env
             compose.yaml
             compose-cache.json
-
-      - name: Build docker-compose
-        run: docker buildx bake --file .env --file docker-compose.yml --file docker-compose-cache.json
 
       - name: Run setup.js script
         run: |
