@@ -210,23 +210,14 @@ export class ProcessEditorPage extends BasePage {
     await expect(heading).toBeVisible();
   }
 
-  public async dragTaskInToBpmnEditor(task: BpmnTaskType) {
-    const elementSelector = 'svg[data-element-id="SingleDataTask"]';
-    await this.page.waitForSelector(elementSelector);
-
-    const element = this.page.locator(elementSelector);
-    const boundingBox = await element.boundingBox();
-
+  public async dragTaskInToBpmnEditor(task: BpmnTaskType, dropElementSelector: string) {
+    const boundingBox = await this.page.locator(dropElementSelector).boundingBox();
     const targetX = boundingBox.width / 2;
     const targetY = boundingBox.height / 2;
 
     const title = `Create Altinn ${task} task`;
-
-    await this.page.getByTitle(title).hover();
-    await this.page.mouse.down();
-    const numberOfMouseMoveEvents: number = 20;
-    await this.page.mouse.move(targetX, targetY, { steps: numberOfMouseMoveEvents });
-    await this.page.mouse.up();
+    await this.startDragElement(title);
+    await this.stopDragElement(targetX, targetY);
   }
 
   public async waitForTaskToBeVisibleInConfigPanel(task: BpmnTaskType): Promise<void> {
@@ -240,11 +231,79 @@ export class ProcessEditorPage extends BasePage {
     return await this.getFullIdFromButtonSelector(selector);
   }
 
+  public async clickOnTaskIdEditButton(id: string): Promise<void> {
+    await this.page
+      .getByText(`${this.textMock('process_editor.configuration_panel_id_label')} ${id}`)
+      .click();
+  }
+
+  public async waitForEditIdInputFieldToBeVisible(): Promise<void> {
+    const inputField = this.page.getByRole('textbox', {
+      name: this.textMock('process_editor.configuration_panel_change_task_id'),
+    });
+    await expect(inputField).toBeVisible();
+  }
+
+  public async emptyIdInputfield(): Promise<void> {
+    await this.page
+      .getByRole('textbox', {
+        name: this.textMock('process_editor.configuration_panel_change_task_id'),
+      })
+      .clear();
+  }
+
+  public async writeNewId(id: string): Promise<void> {
+    await this.page
+      .getByRole('textbox', {
+        name: this.textMock('process_editor.configuration_panel_change_task_id'),
+      })
+      .fill(id);
+  }
+
+  public async waitForTextBoxToHaveValue(id: string): Promise<void> {
+    const textBox = this.page.getByRole('textbox', {
+      name: this.textMock('process_editor.configuration_panel_change_task_id'),
+    });
+    await expect(textBox).toHaveValue(id);
+  }
+
+  public async saveNewId(): Promise<void> {
+    await this.page
+      .getByRole('textbox', {
+        name: this.textMock('process_editor.configuration_panel_change_task_id'),
+      })
+      .blur();
+  }
+
+  public async waitForNewTaskIdButtonToBeVisible(id: string): Promise<void> {
+    const button = this.page.getByText(
+      `${this.textMock('process_editor.configuration_panel_id_label')} ${id}`,
+    );
+    await expect(button).toBeVisible();
+  }
+
+  /**
+   *
+   * Helper methods below this
+   *
+   */
+
+  private async startDragElement(title: string): Promise<void> {
+    await this.page.getByTitle(title).hover();
+    await this.page.mouse.down();
+  }
+
+  private async stopDragElement(xPosition: number, yPosition: number): Promise<void> {
+    const numberOfMouseMoveEvents: number = 20;
+    await this.page.mouse.move(xPosition, yPosition, { steps: numberOfMouseMoveEvents });
+    await this.page.mouse.up();
+  }
+
   private async getFullIdFromButtonSelector(selector: string): Promise<string> {
     const button = this.page.locator(selector);
     const fullText = await button.textContent();
     const extractedText = fullText.match(/ID: (Activity_\w+)/);
-    const fullId: string = extractedText[0];
+    const fullId: string = extractedText[1];
     return fullId;
   }
 }

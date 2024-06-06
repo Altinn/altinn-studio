@@ -53,7 +53,10 @@ test('That it is possible to click a task in the process editor, and delete the 
   const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
   const bpmnJSQuery = new BpmnJSQuery(page);
 
-  const initialTaskDataElementIdSelector: string = await bpmnJSQuery.getTaskById('Task_1');
+  const initialTaskDataElementIdSelector: string = await bpmnJSQuery.getTaskByIdAndType(
+    'Task_1',
+    'g',
+  );
   await processEditorPage.clickOnInitialTask(initialTaskDataElementIdSelector);
   await processEditorPage.waitForInitialTaskHeaderToBeVisible();
 
@@ -73,6 +76,8 @@ test('That it is possible to click a task in the process editor, and delete the 
 
   await processEditorPage.verifyDataModelButtonTextIsSelectedDataModel(dataModelName);
   await processEditorPage.verifyThatAddNewDataModelButtonIsHidden();
+
+  // Navigate to datamodel page, generate a new datamodel - see that it appears
 });
 
 /*
@@ -84,6 +89,8 @@ test('That it is possible to click a task in the process editor, add a new actio
 }): Promise<void> => {
   const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
   const bpmnJSQuery = new BpmnJSQuery(page);
+
+  // ADD WRITTEN ACTIONS TOO
 
   const initialTaskDataElementIdSelector: string = await bpmnJSQuery.getTaskById('Task_1');
   await processEditorPage.clickOnInitialTask(initialTaskDataElementIdSelector);
@@ -113,18 +120,32 @@ test('That it is possible to add a new task to the process editor, configure som
   const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
   const bpmnJSQuery = new BpmnJSQuery(page);
 
-  /*  const initialTaskDataElementIdSelector: string = await bpmnJSQuery.getTaskById('Task_1');
-  await processEditorPage.clickOnInitialTask(initialTaskDataElementIdSelector);
-  await processEditorPage.waitForInitialTaskHeaderToBeVisible();*/
+  // Drag task in to editor and get new id
+  const svgSelector = await bpmnJSQuery.getTaskByIdAndType('SingleDataTask', 'svg');
+  await processEditorPage.dragTaskInToBpmnEditor('data', svgSelector);
+  await processEditorPage.waitForTaskToBeVisibleInConfigPanel('data');
+  const randomGeneratedId = await processEditorPage.getTaskIdFromOpenNewlyAddedTask();
 
-  await processEditorPage.dragTaskInToBpmnEditor('data');
-  // await processEditorPage.waitForTaskToBeVisibleInConfigPanel('data');
-  const id = await processEditorPage.getTaskIdFromOpenNewlyAddedTask();
-  console.log('ID---', id);
+  // Edit the random id to a chosen id
+  await processEditorPage.clickOnTaskIdEditButton(randomGeneratedId);
+  await processEditorPage.waitForEditIdInputFieldToBeVisible();
+  await processEditorPage.emptyIdInputfield();
 
+  const newId: string = 'my_new_id';
+  await processEditorPage.writeNewId(newId);
+  await processEditorPage.waitForTextBoxToHaveValue(newId);
+  // await processEditorPage.saveNewId();
+
+  await processEditorPage.waitForNewTaskIdButtonToBeVisible(newId);
+
+  // Add datamodel
+
+  // Add two actions
   await processEditorPage.clickOnActionsAccordion();
+
+  // Navigate to Gitea
 });
 
-// GEt ID from element dragged in
+// Drag new element in, add one datamodel connection, add two actions, navigate to gitea, check that all is ok
 
-// Click arrow - SequenceFlow_*
+// Click arrow - do something - SequenceFlow_*

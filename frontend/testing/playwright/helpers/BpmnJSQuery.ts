@@ -1,5 +1,7 @@
 import type { Page } from '@playwright/test';
 
+type SvgElement = 'svg' | 'g';
+
 export class BpmnJSQuery {
   public readonly page: Page;
 
@@ -10,8 +12,8 @@ export class BpmnJSQuery {
   /**
    * Gets the BPMN element by its 'data-element-id'
    */
-  public async getTaskById(dataElementId: string): Promise<string> {
-    const elementSelector = `g[data-element-id="${dataElementId}"]`;
+  public async getTaskByIdAndType(id: string, type: SvgElement): Promise<string> {
+    const elementSelector = `${type}[data-element-id="${id}"]`;
     await this.page.waitForSelector(elementSelector);
     return elementSelector;
   }
