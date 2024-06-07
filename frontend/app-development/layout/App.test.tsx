@@ -43,8 +43,6 @@ describe('App', () => {
     expect(
       screen.queryByRole('button', { name: textMock('general.continue') }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: textMock('general.sign_out') }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: textMock('general.') })).not.toBeInTheDocument();
   });
 });
