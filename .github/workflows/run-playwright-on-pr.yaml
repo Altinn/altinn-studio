@@ -84,7 +84,7 @@ jobs:
         working-directory: frontend/testing/playwright
         env:
           environment: local
-        run:
+        run: |
           yarn setup:local:env
           yarn playwright:test:all
 
