@@ -47,6 +47,7 @@ import {
   resourceAccessListsPath,
   layoutNamesPath,
   appMetadataModelIdsPath,
+  processTaskTypePath,
 } from './paths';
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
@@ -134,3 +135,4 @@ export const getSubParties = (url: string) => get<BrregSubPartySearchResult>(url
 
 // ProcessEditor
 export const getBpmnFile = (org: string, app: string) => get<string>(processEditorPath(org, app));
+export const getProcessTaskType = (org: string, app: string, taskId: string) => get<string>(`${processTaskTypePath(org, app, taskId)}`);

@@ -20,9 +20,9 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_Image_From_Wwww_Root_Folder_Ok()
         {
-            byte[] expectedImageData = TestDataHelper.GetFileAsByteArrayFromRepo(Org, AppV3, Developer, "App/wwwroot/AltinnD-logo.svg");
+            byte[] expectedImageData = TestDataHelper.GetFileAsByteArrayFromRepo(Org, PreviewApp, Developer, "App/wwwroot/AltinnD-logo.svg");
 
-            string dataPathWithData = $"{Org}/{AppV3}/AltinnD-logo.svg";
+            string dataPathWithData = $"{Org}/{PreviewApp}/AltinnD-logo.svg";
 
             using HttpResponseMessage response = await HttpClient.GetAsync(dataPathWithData);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -35,9 +35,9 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_Image_From_Sub_Folder_Ok()
         {
-            byte[] expectedImageData = TestDataHelper.GetFileAsByteArrayFromRepo(Org, AppV3, Developer, "App/wwwroot/images/AltinnD-logo.svg");
+            byte[] expectedImageData = TestDataHelper.GetFileAsByteArrayFromRepo(Org, PreviewApp, Developer, "App/wwwroot/images/AltinnD-logo.svg");
 
-            string dataPathWithData = $"{Org}/{AppV3}/images/AltinnD-logo.svg";
+            string dataPathWithData = $"{Org}/{PreviewApp}/images/AltinnD-logo.svg";
 
             using HttpResponseMessage response = await HttpClient.GetAsync(dataPathWithData);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -50,9 +50,9 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_Image_From_Sub_Sub_Folder_Ok()
         {
-            byte[] expectedImageData = TestDataHelper.GetFileAsByteArrayFromRepo(Org, AppV3, Developer, "App/wwwroot/images/subImagesFolder/AltinnD-logo.svg");
+            byte[] expectedImageData = TestDataHelper.GetFileAsByteArrayFromRepo(Org, PreviewApp, Developer, "App/wwwroot/images/subImagesFolder/AltinnD-logo.svg");
 
-            string dataPathWithData = $"{Org}/{AppV3}/images/subImagesFolder/AltinnD-logo.svg";
+            string dataPathWithData = $"{Org}/{PreviewApp}/images/subImagesFolder/AltinnD-logo.svg";
 
             using HttpResponseMessage response = await HttpClient.GetAsync(dataPathWithData);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
