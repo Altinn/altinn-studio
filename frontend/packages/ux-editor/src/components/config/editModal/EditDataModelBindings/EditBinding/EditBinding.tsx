@@ -2,19 +2,22 @@ import React from 'react';
 import { SelectDataModelComponent } from '../../../SelectDataModelComponent';
 import { getDataModelFieldsFilter } from '../../../../../utils/dataModel';
 import type { FormItem } from '../../../../../types/FormItem';
-import { StudioButton, StudioDeleteButton, StudioLabelAsParagraph } from '@studio/components';
+import { StudioButton, StudioDeleteButton, StudioDisplayTile } from '@studio/components';
 import { XMarkIcon } from '@studio/icons';
 import classes from './EditBinding.module.css';
 import { useTranslation } from 'react-i18next';
-import { Fieldset, NativeSelect, Paragraph } from '@digdir/design-system-react';
+import { Fieldset, NativeSelect } from '@digdir/design-system-react';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { FormField } from 'app-shared/components/FormField';
 
 export type EditBindingProps = {
   bindingKey: string;
   dataModelName: string;
+  dataModels: string[];
   component: FormItem;
   helpText: string;
   label: string;
+  onDataModelChange: (dataModel: string) => void;
   onBindingChange: (binding: string) => void;
   onClose: () => void;
   onDelete: () => void;
@@ -24,9 +27,11 @@ export type EditBindingProps = {
 export const EditBinding = ({
   bindingKey,
   dataModelName,
+  dataModels,
   component,
   helpText,
   label,
+  onDataModelChange,
   onBindingChange,
   onClose,
   onDelete,
@@ -35,30 +40,49 @@ export const EditBinding = ({
   const { t } = useTranslation();
   const propertyPath = `definitions/component/properties/dataModelBindings/properties/${bindingKey}`;
   const shouldDisplayDataModelSelector = shouldDisplayFeature('dataModelBindingSelector');
+  console.log(bindingKey);
 
   return (
     <Fieldset legend={label} className={classes.editBinding} size='small'>
-      {/* <div> */}
-      <StudioLabelAsParagraph size='small'>
-        {t('ux_editor.modal_properties_data_model_selected')}
-      </StudioLabelAsParagraph>
       {shouldDisplayDataModelSelector ? (
-        <NativeSelect
-          id={`selectDataModelSelect-${bindingKey}`}
-          onChange={(e) => onBindingChange(e.target.value)}
+        <FormField
+          id={dataModelName}
+          onChange={onDataModelChange}
           value={selectedElement}
-        >
-          <option value={selectedElement}>{dataModelName}</option>
-        </NativeSelect>
+          propertyPath={propertyPath}
+          helpText={helpText}
+          label={t('ux_editor.modal_properties_data_model')}
+          renderField={({ fieldProps }) => (
+            <NativeSelect {...fieldProps} onChange={(e) => fieldProps.onChange(e.target.value)}>
+              {dataModels.map((element) => (
+                <option key={element} value={element}>
+                  {element}
+                </option>
+              ))}
+            </NativeSelect>
+          )}
+        />
       ) : (
-        <Paragraph size='small'>{dataModelName}</Paragraph>
+        // <SelectDataModelComponent
+        //   dataModelFieldsFilter={getDataModelFieldsFilter(component.type, bindingKey === 'list')}
+        //   helpText={helpText}
+        //   inputId={`selectDataModelSelect-${bindingKey}`}
+        //   label={t('ux_editor.modal_properties_data_model_selected')}
+        //   onDataModelChange={onBindingChange}
+        //   propertyPath={propertyPath}
+        //   selectedElement={dataModelName}
+        // />
+        <StudioDisplayTile
+          label={t('ux_editor.modal_properties_data_model')}
+          value={dataModelName}
+          className={classes.displayTileContainer}
+        />
       )}
-      {/* </div> */}
       <SelectDataModelComponent
         dataModelFieldsFilter={getDataModelFieldsFilter(component.type, bindingKey === 'list')}
         helpText={helpText}
         inputId={`selectDataModelSelect-${bindingKey}`}
-        label={t('ux_editor.modal_properties_data_model_selected_binding')}
+        label={t('ux_editor.modal_properties_data_model_binding')}
         onDataModelChange={onBindingChange}
         propertyPath={propertyPath}
         selectedElement={selectedElement}
