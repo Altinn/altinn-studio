@@ -1,5 +1,6 @@
 import { Label, NativeSelect, Pagination, Paragraph, Table } from '@digdir/design-system-react';
-import React, { forwardRef, ReactNode, useEffect, useId } from 'react';
+import React, { forwardRef, useEffect, useId } from 'react';
+import type { ReactNode } from 'react';
 import classes from './StudioTableRemotePagination.module.css';
 
 export type Columns = {
@@ -85,7 +86,7 @@ export const StudioTableRemotePagination = forwardRef<
         handlePageChange(1);
         return;
       }
-    }, [totalRows, rows, handlePageChange]);
+    }, [totalRows, isTableEmpty, handlePageChange]);
 
     return (
       <div className={classes.componentContainer}>

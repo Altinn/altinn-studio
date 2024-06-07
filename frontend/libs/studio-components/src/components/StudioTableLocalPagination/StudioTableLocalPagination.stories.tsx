@@ -2,7 +2,7 @@ import React from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
 import { StudioTableLocalPagination } from './StudioTableLocalPagination';
 import { columns, rows } from '../StudioTableRemotePagination/mockData';
-import { PaginationTexts } from '../StudioTableRemotePagination/StudioTableRemotePagination';
+import type { PaginationTexts } from '../StudioTableRemotePagination';
 
 type Story = StoryFn<typeof StudioTableLocalPagination>;
 

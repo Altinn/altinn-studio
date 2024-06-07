@@ -17,4 +17,3 @@ DONE Add tooltips and ARIA-roles where necessary
 * Rewrite tests for RepoList
 * Write tests for OrgRepoList
 * Write tests for FavoriteReposList
-* Move texts in getErrorMessage into translations

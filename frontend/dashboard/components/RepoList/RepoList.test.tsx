@@ -32,7 +32,7 @@ const renderWithMockServices = (
 };
 
 describe('RepoList', () => {
-  it('should display spinner while loading starred repositories', () => {
+  it('should display spinner while loading repositories', () => {
     renderWithMockServices({
       repos: [],
       totalRows: 0,

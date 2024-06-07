@@ -53,7 +53,7 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
       </Button>
       <DropdownMenu size={'small'}>
         <DropdownMenu.Trigger
-          aria-label={t('dashboard.app_dropdown', { appName: repoName })}
+          aria-label={t('dashboard.app_dropdown')}
           variant={'tertiary'}
           asChild
           title={t('dashboard.app_dropdown')}

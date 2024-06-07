@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
-import {
-  RemotePaginationProps,
-  PaginationTexts,
-  StudioTableRemotePagination,
-} from './StudioTableRemotePagination';
+import { StudioTableRemotePagination } from './StudioTableRemotePagination';
+import type { RemotePaginationProps, PaginationTexts } from './StudioTableRemotePagination';
 import { columns, rows } from './mockData';
 import { useTableSorting } from '../../hooks/useTableSorting';
 import { getRowsToRender } from './utils';

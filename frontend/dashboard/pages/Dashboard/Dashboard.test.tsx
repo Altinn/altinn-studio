@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitForElementToBeRemoved, within } from '@testing-library/react';
 import { MockServicesContextWrapper } from '../../dashboardTestUtils';
 import { Dashboard } from './Dashboard';
 import { textMock } from '../../../testing/mocks/i18nMock';
@@ -30,15 +30,19 @@ describe('Dashboard', () => {
       getStarredRepos: () => Promise.resolve<Repository[]>([repository]),
     });
 
-    await waitFor(() => {
-      const starredRepos = screen.getAllByText(textMock('dashboard.unstar'));
-      expect(starredRepos).toHaveLength(1);
+    await waitForElementToBeRemoved(() => screen.queryAllByText(textMock('general.loading')));
 
-      // får "dashboard.no_repos_result" i stedet for "dashboard.unstar"
+    const starredHeading = screen.getByRole('heading', {
+      name: textMock('dashboard.favourites'),
     });
+    //eslint-disable-next-line testing-library/no-node-access
+    const starredContainer = starredHeading.closest('div');
+    const starredRepos = within(starredContainer).getAllByTitle(textMock('dashboard.show_repo'));
+
+    expect(starredRepos).toHaveLength(1);
   });
 
-  test('should display list of my application', async () => {
+  it('should display application list with one item', async () => {
     renderWithMockServices({
       searchRepos: () =>
         Promise.resolve<SearchRepositoryResponse>({
@@ -46,10 +50,51 @@ describe('Dashboard', () => {
           data: [repository],
         }),
     });
-    expect(
-      await screen.findAllByRole('menuitem', {
-        name: textMock('dashboard.star', { appName: repository.name }),
-      }),
-    ).toHaveLength(1);
+
+    await waitForElementToBeRemoved(() => screen.queryAllByText(textMock('general.loading')));
+
+    const appsHeading = screen.getByRole('heading', { name: /apps/ });
+    //eslint-disable-next-line testing-library/no-node-access
+    const appsContainer = appsHeading.closest('div');
+    const appRepos = within(appsContainer).getAllByTitle(textMock('dashboard.show_repo'));
+
+    expect(appRepos).toHaveLength(1);
+  });
+
+  it('should display datamodels list with one item', async () => {
+    const dataModelsRepository = { ...repository, name: '-datamodels' };
+    renderWithMockServices({
+      searchRepos: () =>
+        Promise.resolve<SearchRepositoryResponse>({
+          ...searchRepositoryResponse,
+          data: [dataModelsRepository],
+        }),
+    });
+
+    await waitForElementToBeRemoved(() => screen.queryAllByText(textMock('general.loading')));
+
+    const dataModelHeading = screen.getByRole('heading', { name: /datamodels/ });
+    //eslint-disable-next-line testing-library/no-node-access
+    const dataModelContainer = dataModelHeading.closest('div');
+    const dataModelRepos = within(dataModelContainer).getAllByTitle(
+      textMock('dashboard.show_repo'),
+    );
+
+    expect(dataModelRepos).toHaveLength(1);
+  });
+
+  it('should not render datamodels list if there are no datamodels', async () => {
+    renderWithMockServices({
+      searchRepos: () =>
+        Promise.resolve<SearchRepositoryResponse>({
+          ...searchRepositoryResponse,
+          data: [repository],
+        }),
+    });
+
+    await waitForElementToBeRemoved(() => screen.queryAllByText(textMock('general.loading')));
+
+    const dataModelHeading = screen.queryByRole('heading', { name: /datamodels/ });
+    expect(dataModelHeading).not.toBeInTheDocument();
   });
 });

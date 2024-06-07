@@ -1,9 +1,8 @@
 import React, { forwardRef, useEffect, useState } from 'react';
 import { StudioTableRemotePagination } from '../StudioTableRemotePagination';
-import type { Columns, Rows } from '../StudioTableRemotePagination';
+import type { Columns, Rows, PaginationTexts } from '../StudioTableRemotePagination';
 import { useTableSorting } from '../../hooks/useTableSorting';
 import { getRowsToRender } from '../StudioTableRemotePagination/utils';
-import { PaginationTexts } from '../StudioTableRemotePagination/StudioTableRemotePagination';
 
 export type LocalPaginationProps = {
   pageSizeOptions: number[];

@@ -32,8 +32,10 @@ export const DatamodelsReposList = ({ user, organizations }: DataModelsReposList
     page: 0,
   });
 
+  const dataModelRepos = repos?.data?.filter((repo) => repo.name.endsWith('-datamodels'));
+
   const reposWithStarred = useAugmentReposWithStarred({
-    repos: repos?.data,
+    repos: dataModelRepos,
     starredRepos,
   });
 
