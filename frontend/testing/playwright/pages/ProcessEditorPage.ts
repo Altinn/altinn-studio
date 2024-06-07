@@ -2,8 +2,9 @@ import { BasePage } from '../helpers/BasePage';
 import type { Environment } from '../helpers/StudioEnvironment';
 import type { Page } from '@playwright/test';
 import { expect } from '@playwright/test';
+import { type BpmnTaskType } from '../types/BpmnTaskType';
 
-type BpmnTaskType = 'data' | 'feedback' | 'signing' | 'confirm';
+const connectionArrowText: string = 'Connect using Sequence/MessageFlow or Association';
 
 export class ProcessEditorPage extends BasePage {
   constructor(page: Page, environment?: Environment) {
@@ -126,14 +127,10 @@ export class ProcessEditorPage extends BasePage {
       .click();
   }
 
-  public async waitForActionComboboxToBeVisible(
-    actionIndex: string,
-    actionName?: string,
-  ): Promise<void> {
+  public async waitForActionComboboxTitleToBeVisible(actionIndex: string): Promise<void> {
     const combobox = this.page.getByRole('combobox', {
       name: this.textMock('process_editor.configuration_panel_actions_action_label', {
         actionIndex,
-        actionName,
       }),
     });
     await expect(combobox).toBeVisible();
@@ -291,6 +288,10 @@ export class ProcessEditorPage extends BasePage {
 
   public async closeEmptyDataModelMessage(): Promise<void> {
     await this.page.keyboard.press('Escape');
+  }
+
+  public async clickOnConnectionArrow(): Promise<void> {
+    await this.page.getByTitle(connectionArrowText).click();
   }
 
   /**

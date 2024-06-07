@@ -9,19 +9,9 @@ import { BpmnJSQuery } from '../../helpers/BpmnJSQuery';
 import { Header } from '../../components/Header';
 import { DataModelPage } from '../../pages/DataModelPage';
 import { GiteaPage } from '../../pages/GiteaPage';
+import { type BpmnTaskType } from '../../types/BpmnTaskType';
 
-/*
-### Scenario 2
-SCENARIO: User edits task ID
-WHEN the user selects a task in the process editor
-THEN the details of that task are visible in the configuration panel on the right-hand side.
-WHEN the user clicks on the task ID
-THEN the task ID field becomes editable
-WHEN the user changes the task ID
-THEN the task ID is updated in the GUI
-  AND the task ID is updated in the `process.bpmn` file
-  AND the task ID is updated in `applicationMetadata.json` file
-*/
+// TRY TO SPLIT THE LARGE TEST INTO SMALLER ONES
 
 // This line must be there to ensure that the tests do not run in parallell, and
 // that the before all call is being executed before we start the tests
@@ -128,8 +118,9 @@ test('That it is possible to add a new task to the process editor, configure som
 
   // Drag task in to editor and get new id
   const svgSelector = await bpmnJSQuery.getTaskByIdAndType('SingleDataTask', 'svg');
-  await processEditorPage.dragTaskInToBpmnEditor('data', svgSelector);
-  await processEditorPage.waitForTaskToBeVisibleInConfigPanel('data');
+  const dataTask: BpmnTaskType = 'data';
+  await processEditorPage.dragTaskInToBpmnEditor(dataTask, svgSelector);
+  await processEditorPage.waitForTaskToBeVisibleInConfigPanel(dataTask);
   const randomGeneratedId = await processEditorPage.getTaskIdFromOpenNewlyAddedTask();
 
   // Edit the random id to a chosen id
@@ -172,9 +163,26 @@ test('That it is possible to add a new task to the process editor, configure som
   await processEditorPage.waitForDataModelButtonToBeVisible();
   await processEditorPage.verifyDataModelButtonTextIsSelectedDataModel(newDataModel);
 
+  // Connect the task to the process
+  await processEditorPage.clickOnConnectionArrow();
+
+  const initialId: string = 'Task_1';
+  const initialTaskSelector: string = await bpmnJSQuery.getTaskByIdAndType(initialId, 'g');
+  await processEditorPage.clickOnTaskInBpmnEditor(initialTaskSelector);
+
   // Add two actions
+  /*
   await processEditorPage.clickOnActionsAccordion();
   await processEditorPage.waitForAddActionsButtonToBeVisible();
+  await processEditorPage.clickAddActionsButton();
+  */
+
+  // Verify that changes does not exist on git
+  await goToGiteaAndNavigateToProcessBpmnFilee(header, giteaPage);
+  await giteaPage.verifyThatTheNewTaskIsHidden(newId, dataTask);
+
+  const numberOfPagesBackToAltinnStudio: number = 5;
+  await giteaPage.goBackNPages(numberOfPagesBackToAltinnStudio);
 
   // Commit changes
   await header.clickOnUploadLocalChangesButton();
@@ -182,12 +190,24 @@ test('That it is possible to add a new task to the process editor, configure som
   await header.checkThatUploadSuccessMessageIsVisible();
 
   // Navigate to Gitea
+  await goToGiteaAndNavigateToProcessBpmnFilee(header, giteaPage);
+  await giteaPage.verifyThatTheNewTaskIsVisible(newId, dataTask);
+
+  // TODO - verify actions
+  await giteaPage.verifySequenceFlowDirection(newId, initialId); //
+  const numblerBackToConfig: number = 2;
+  await giteaPage.goBackNPages(numblerBackToConfig);
+  await giteaPage.clickOnApplicationMetadataFile();
+  await giteaPage.verifyIdInDataModel(newId, newDataModel);
+});
+
+const goToGiteaAndNavigateToProcessBpmnFilee = async (header: Header, giteaPage: GiteaPage) => {
   await header.clickOnThreeDotsMenu();
   await header.clickOnGoToGiteaRepository();
 
   await giteaPage.verifyGiteaPage();
-});
-
-// Drag new element in, add one datamodel connection, add two actions, navigate to gitea, check that all is ok
-
-// Click arrow - do something - SequenceFlow_*
+  await giteaPage.clickOnAppFilesButton();
+  await giteaPage.clickOnConfigFilesButton();
+  await giteaPage.clickOnProcessFilesButton();
+  await giteaPage.clickOnProcessBpmnFile();
+};
