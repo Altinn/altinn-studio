@@ -1,0 +1,9 @@
+.card {
+  padding: 0;
+}
+
+.header {
+  font-size: var(--fds-sizing-2);
+  color: red;
+  padding: 0;
+}

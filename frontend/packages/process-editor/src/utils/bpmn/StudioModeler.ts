@@ -3,6 +3,7 @@ import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type { Element } from 'bpmn-moddle';
 import type ElementRegistry from 'diagram-js/lib/core/ElementRegistry';
 import { type Moddle } from 'bpmn-js/lib/model/Types';
+import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
 import { BpmnModelerInstance } from './BpmnModelerInstance';
 
 // Short description: This class is used to interact with the bpmn-js modeler instance to create, update and delete elements in the bpmn diagram.
@@ -46,5 +47,9 @@ export class StudioModeler {
 
   public getAllTasksByType(elementType: string): Element[] {
     return this.elementRegistry.filter((element) => element.type === elementType);
+  }
+
+  public get getActionElements(): ModdleElement[] | undefined {
+    return this.element.businessObject.extensionElements?.values[0]?.actions?.action;
   }
 }

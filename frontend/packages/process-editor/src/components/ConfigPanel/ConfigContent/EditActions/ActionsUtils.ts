@@ -13,9 +13,11 @@ export const addNewActionToTask = (
 ) => {
   const actionsElement: ModdleElement =
     bpmnDetails.element.businessObject.extensionElements.values[0].actions;
+
   const newActionElement: ModdleElement = bpmnFactory.create('altinn:Action', {
     action: generatedActionName,
   });
+
   // Task has actions in element from before
   if (actionsElement) {
     actionsElement.action.push(newActionElement);
