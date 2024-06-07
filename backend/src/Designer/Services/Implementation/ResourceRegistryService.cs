@@ -488,7 +488,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     return new ContentResult() { Content = responseContent, StatusCode = (int)response.StatusCode };
                 }
             }
-            else if (response.StatusCode == HttpStatusCode.PreconditionFailed) 
+            else if (response.StatusCode == HttpStatusCode.PreconditionFailed)
             {
                 return new StatusCodeResult(412);
             }
@@ -523,7 +523,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     return new ContentResult() { Content = responseContent, StatusCode = (int)response.StatusCode };
                 }
             }
-            else if (response.StatusCode == HttpStatusCode.PreconditionFailed) 
+            else if (response.StatusCode == HttpStatusCode.PreconditionFailed)
             {
                 return new StatusCodeResult(412);
             }
