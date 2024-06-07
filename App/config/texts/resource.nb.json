@@ -23,7 +23,19 @@
         },
         {
             "id": "InputPage.Input.title",
-            "value": "Eksempel på kort svar komponent."
+            "value": "Eksempel på kort svar komponent"
+        },
+        {
+            "id": "InputPage.Input.Grid.title-1",
+            "value": "Eksempel på kort svar komponent med grid"
+        },
+        {
+            "id": "InputPage.Input.Grid.title-2",
+            "value": "Enda et eksempel på kort svar komponent med grid"
+        },
+        {
+            "id": "InputPage.Input.Grid.title.long",
+            "value": "Eksempel på kort svar komponent med grid på kun selve inputfeltet og kjempelang tittel som forklarer i slitsomt nøye detaljer hva som skal fylles ut i dette feltet, slik at teksten bryter over flere linjer"
         },
         {
             "id": "TextareaPage",
