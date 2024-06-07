@@ -3,6 +3,7 @@ FROM node:lts-alpine AS generate-studio-frontend
 WORKDIR /build
 
 COPY ./package.json yarn.lock ./
+COPY ./development/azure-devops-mock/package.json ./development/azure-devops-mock/
 COPY ./frontend/app-development/package.json ./frontend/app-development/
 COPY ./frontend/app-preview/package.json ./frontend/app-preview/
 COPY ./frontend/dashboard/package.json ./frontend/dashboard/
@@ -21,6 +22,9 @@ COPY ./frontend/packages/ux-editor-v3/package.json ./frontend/packages/ux-editor
 COPY ./frontend/resourceadm/package.json ./frontend/resourceadm/
 COPY ./frontend/resourceadm/testing/playwright/package.json ./frontend/resourceadm/testing/playwright/
 COPY ./frontend/studio-root/package.json ./frontend/studio-root/
+COPY ./frontend/testing/cypress/package.json ./frontend/testing/cypress/
+COPY ./frontend/testing/mockend/package.json ./frontend/testing/mockend/
+COPY ./frontend/testing/playwright/package.json ./frontend/testing/playwright/
 COPY ./.yarnrc.yml ./.yarnrc.yml
 COPY ./.yarn/releases ./.yarn/releases
 

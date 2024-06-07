@@ -116,6 +116,7 @@
     "semverRange": ""
   },
   "workspaces": [
+    "development/azure-devops-mock",
     "frontend/app-development",
     "frontend/app-preview",
     "frontend/dashboard",
@@ -123,6 +124,9 @@
     "frontend/resourceadm/testing/playwright",
     "frontend/language",
     "frontend/studio-root",
+    "frontend/testing/mockend",
+    "frontend/testing/cypress",
+    "frontend/testing/playwright",
     "frontend/packages/schema-editor",
     "frontend/packages/schema-model",
     "frontend/packages/shared",
