@@ -91,11 +91,7 @@ export const EditTaskId = (): React.ReactElement => {
       }}
       viewProps={{
         className: classes.view,
-        children: (
-          <span>
-            <b>ID:</b> {bpmnDetails.id}
-          </span>
-        ),
+        children: <span>ID: {bpmnDetails.id}</span>,
         value: bpmnDetails.id,
         variant: 'tertiary',
         'aria-label': t('process_editor.configuration_panel_change_task_id'),
