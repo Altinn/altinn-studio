@@ -141,12 +141,15 @@ const addReleaseAndDeployTestDataToDb = async () =>
   );
 
 const script = async () => {
+  const args = process.argv.slice(2);
   const env = ensureDotEnv();
   await dnsIsOk('studio.localhost');
-  if (!(env.IGNORE_DOCKER_DNS_LOOKUP === 'true')) {
+  if (args.includes('--skipDockerDnsLookup')) {
     await dnsIsOk('host.docker.internal');
   }
-  await startingDockerCompose();
+  if (args.includes('--skipDockerCompose')) {
+    await startingDockerCompose();
+  }
   await waitFor('http://studio.localhost/repos/');
   await createUser(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS, true);
   await ensureUserPassword(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS);

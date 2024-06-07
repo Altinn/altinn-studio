@@ -51,7 +51,6 @@ jobs:
           echo GITEA_ORG_USER=ttd >> .env
           echo POSTGRES_PASSWORD=kyeDIG@eip >> .env
           echo COMMIT= >> .env
-          echo IGNORE_DOCKER_DNS_LOOKUP=true >> .env
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -68,7 +67,7 @@ jobs:
 
       - name: Run setup.js script
         run: |
-          node ./development/setup.js
+          node ./development/setup.js --skipDockerDnsLookup --skipDockerCompose
 
       - name: Playwright run
         working-directory: frontend/testing/playwright
