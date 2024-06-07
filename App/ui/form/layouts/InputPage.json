@@ -26,21 +26,25 @@
             {
                 "id": "InputPage-Input",
                 "type": "Input",
+                "textResourceBindings": {
+                    "title": "InputPage.Input.title"
+                },
                 "dataModelBindings": {
                     "simpleBinding": "shortAnswerInput"
                 },
-                "textResourceBindings": {
-                    "title": "InputPage.Input.title"
-                }
+                "maxLength": 20,
+                "required": true,
+                "showValidations": [
+                    "All"]
             },
             {
                 "id": "InputPage-Input-grid1",
                 "type": "Input",
-                "dataModelBindings": {
-                    "simpleBinding": "shortAnswerInput"
-                },
                 "textResourceBindings": {
                     "title": "InputPage.Input.Grid.title-1"
+                },
+                "dataModelBindings": {
+                    "simpleBinding": "shortAnswerInput"
                 },
                 "grid": {
                     "xs": 12,
@@ -50,11 +54,11 @@
             {
                 "id": "InputPage-Input-grid2",
                 "type": "Input",
-                "dataModelBindings": {
-                    "simpleBinding": "shortAnswerInput"
-                },
                 "textResourceBindings": {
                     "title": "InputPage.Input.Grid.title-2"
+                },
+                "dataModelBindings": {
+                    "simpleBinding": "shortAnswerInput"
                 },
                 "grid": {
                     "xs": 12,
@@ -64,11 +68,11 @@
             {
                 "id": "InputPage-Input-long",
                 "type": "Input",
-                "dataModelBindings": {
-                    "simpleBinding": "shortAnswerInput"
-                },
                 "textResourceBindings": {
                     "title": "InputPage.Input.Grid.title.long"
+                },
+                "dataModelBindings": {
+                    "simpleBinding": "shortAnswerInput"
                 },
                 "grid": {
                     "innerGrid": {
