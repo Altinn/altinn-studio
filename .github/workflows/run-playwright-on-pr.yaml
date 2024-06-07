@@ -28,7 +28,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: 'Checking Out Code'
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -75,12 +76,14 @@ jobs:
         run: |
           node ./development/setup.js
 
+      - name: 'Installing Dependencies'
+        uses: ./.github/actions/yarn-install
+
       - name: Playwright run
         working-directory: frontend/testing/playwright
         env:
           environment: local
         run: |
-          yarn
           yarn playwright install --with-deps
           yarn setup:playwright
           yarn playwright:test:all
