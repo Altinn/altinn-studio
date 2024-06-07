@@ -50,6 +50,17 @@ describe('SelectDataType', () => {
     });
   });
 
+  it('should add existing data type to combobox options', () => {
+    const existingDataType = 'dataModel0';
+    const dataModelIds = ['dataModel1', 'dataModel2'];
+    renderEditDataType({ dataModelIds, existingDataType });
+
+    const combobox = screen.getByRole('combobox', {
+      name: textMock('process_editor.configuration_panel_set_data_model'),
+    });
+    expect(combobox).toHaveValue(existingDataType);
+  });
+
   it('should call updateDataType with new data type when data type is changed', async () => {
     const user = userEvent.setup();
     const mutateDataTypeMock = jest.fn();
