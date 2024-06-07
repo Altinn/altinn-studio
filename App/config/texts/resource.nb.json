@@ -77,10 +77,21 @@
             "id": "Side4.Header-in-new-summary",
             "value": "Jeg skal rendres inne i ny summary:"
         },
-
         {
             "id": "undefined",
             "value": "Her ligger en tittel inne i en gruppe"
+        },
+        {
+            "id": "RenderPreviousTask",
+            "value": "Oppsummering av tidligere Task"
+        },
+        {
+            "id": "RenderSpecificPageFromPreviousTask",
+            "value": "Oppsummering av side fra tidligere Task"
+        },
+        {
+            "id": "RenderSpecificComponentFromPreviousTask",
+            "value": "Oppsummering av komponent fra tidligere Task"
         }
-    ]
+     ]
 }

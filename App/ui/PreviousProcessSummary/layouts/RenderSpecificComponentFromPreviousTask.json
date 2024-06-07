@@ -3,11 +3,15 @@
   "data": {
     "layout": [
       {
+        "id": "NavigationBar",
+        "type": "NavigationBar"
+      },
+      {
         "size": "M",
-        "id": "page3summarytask",
+        "id": "page3Task2",
         "type": "Header",
         "textResourceBindings": {
-          "title": "Her skal vi rendre hele Task_1:"
+          "title": "Her skal vi rendre hele en enkelt komponent fra Task_1:"
         }
       },
       {
@@ -16,7 +20,7 @@
         "hidden": false,
         "whatToRender": {
           "type": "task",
-          "id": "Task_1"
+          "id": "Task_1>CheckboxesPage>CheckboxesPage-Checkboxes"
         }
       }
     ]
