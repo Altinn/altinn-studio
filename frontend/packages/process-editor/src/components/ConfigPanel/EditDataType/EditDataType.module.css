@@ -1,8 +1,3 @@
-.datamodelUndefined,
-.datamodelDefined {
-  padding: var(--fds-spacing-3) var(--fds-spacing-3);
-}
-
 .definedValue {
   align-items: center;
   display: flex;
