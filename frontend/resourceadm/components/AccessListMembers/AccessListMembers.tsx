@@ -24,6 +24,8 @@ export interface AccessListMembersProps {
   org: string;
   env: string;
   list: AccessList;
+  etag: string;
+  setEtag: (newETag: string) => void;
   members: AccessListMember[];
   loadMoreButton: React.JSX.Element;
 }
@@ -32,6 +34,8 @@ export const AccessListMembers = ({
   org,
   env,
   list,
+  etag,
+  setEtag,
   members,
   loadMoreButton,
 }: AccessListMembersProps): React.JSX.Element => {
@@ -61,27 +65,35 @@ export const AccessListMembers = ({
   );
 
   const handleAddMember = (memberToAdd: AccessListMember): void => {
-    addListMember([memberToAdd.orgNr], {
-      onSuccess: () => {
-        setLocalItems((prev) => [...prev, memberToAdd]);
+    addListMember(
+      { data: [memberToAdd.orgNr], etag: etag },
+      {
+        onSuccess: (data) => {
+          setEtag(data.etag);
+          setLocalItems((prev) => [...prev, memberToAdd]);
+        },
+        onError: (error: Error) => {
+          if (
+            ((error as ResourceError).response?.data as { code: string }).code ===
+            INVALID_ORG_ERROR_CODE
+          ) {
+            setInvalidOrgnrs((old) => [...old, memberToAdd.orgNr]);
+          }
+        },
       },
-      onError: (error: Error) => {
-        if (
-          ((error as ResourceError).response?.data as { code: string }).code ===
-          INVALID_ORG_ERROR_CODE
-        ) {
-          setInvalidOrgnrs((old) => [...old, memberToAdd.orgNr]);
-        }
-      },
-    });
+    );
   };
 
   const handleRemoveMember = (memberIdToRemove: string): void => {
-    removeListMember([memberIdToRemove], {
-      onSuccess: () => {
-        setLocalItems((prev) => prev.filter((item) => item.orgNr !== memberIdToRemove));
+    removeListMember(
+      { data: [memberIdToRemove], etag: etag },
+      {
+        onSuccess: (data) => {
+          setEtag(data.etag);
+          setLocalItems((prev) => prev.filter((item) => item.orgNr !== memberIdToRemove));
+        },
       },
-    });
+    );
   };
 
   const getResultData = () => {

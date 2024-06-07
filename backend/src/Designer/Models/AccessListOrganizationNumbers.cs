@@ -5,5 +5,6 @@ namespace Altinn.Studio.Designer.Models
     public class AccessListOrganizationNumbers
     {
         public IList<string> Data { get; set; }
+        public string? Etag { get; set; }
     }
 }

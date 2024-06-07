@@ -26,6 +26,7 @@ const defaultProps: AccessListDetailProps = {
   list: {
     env: testEnv,
     identifier: testListIdentifier,
+    etag: '',
     name: 'Test-list',
     description: 'This is a description',
   },
@@ -43,7 +44,7 @@ const membersResultsPage2 = {
   nextPage: '',
 };
 
-const updateAccessListMock = jest.fn();
+const updateAccessListMock = jest.fn().mockImplementation(() => Promise.resolve({}));
 
 describe('AccessListDetail', () => {
   afterEach(jest.clearAllMocks);

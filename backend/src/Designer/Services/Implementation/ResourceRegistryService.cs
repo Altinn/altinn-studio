@@ -470,7 +470,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             UpdateAccessListMemberDto newListMembers = PrefixAccessListMembersData(members);
             string listUrl = $"/{org}/{identifier}/members";
             string addMemberPayloadString = JsonSerializer.Serialize(newListMembers, _serializerOptions);
-            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Post, listUrl, addMemberPayloadString);
+            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Post, listUrl, addMemberPayloadString, members.Etag);
 
             HttpResponseMessage response = await _httpClient.SendAsync(request);
             if (response.StatusCode == HttpStatusCode.BadRequest)
@@ -488,8 +488,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     return new ContentResult() { Content = responseContent, StatusCode = (int)response.StatusCode };
                 }
             }
+            else if (response.StatusCode == HttpStatusCode.PreconditionFailed) 
+            {
+                return new StatusCodeResult(412);
+            }
             response.EnsureSuccessStatusCode();
-            return new StatusCodeResult(201);
+            return new ObjectResult(new AccessListOrganizationNumbersResponse() { Etag = response.Headers.ETag.ToString() }) { StatusCode = (int)response.StatusCode };
         }
 
         public async Task<ActionResult> RemoveAccessListMembers(
@@ -502,7 +506,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             UpdateAccessListMemberDto deleteListMembers = PrefixAccessListMembersData(members);
             string listUrl = $"/{org}/{identifier}/members";
             string removeMemberPayloadString = JsonSerializer.Serialize(deleteListMembers, _serializerOptions);
-            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Delete, listUrl, removeMemberPayloadString);
+            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Delete, listUrl, removeMemberPayloadString, members.Etag);
 
             HttpResponseMessage response = await _httpClient.SendAsync(request);
             if (response.StatusCode == HttpStatusCode.BadRequest)
@@ -519,8 +523,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     return new ContentResult() { Content = responseContent, StatusCode = (int)response.StatusCode };
                 }
             }
+            else if (response.StatusCode == HttpStatusCode.PreconditionFailed) 
+            {
+                return new StatusCodeResult(412);
+            }
             response.EnsureSuccessStatusCode();
-            return new StatusCodeResult(204);
+            return new ObjectResult(new AccessListOrganizationNumbersResponse() { Etag = response.Headers.ETag.ToString() }) { StatusCode = (int)response.StatusCode };
         }
 
         public async Task<HttpStatusCode> AddResourceAccessList(

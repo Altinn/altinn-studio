@@ -31,6 +31,7 @@ export const AccessListDetail = ({
   const deleteWarningModalRef = useRef<HTMLDialogElement>(null);
   const navigate = useNavigate();
 
+  const [latestEtag, setLatestEtag] = useState<string>(list.etag || '');
   const [listName, setListName] = useState<string>(list.name || '');
   const [listDescription, setListDescription] = useState<string>(list.description || '');
 
@@ -53,7 +54,14 @@ export const AccessListDetail = ({
 
   // change list name, description and possibly other properties
   const handleSave = (accessList: AccessList): void => {
-    editAccessList(accessList);
+    editAccessList(
+      { ...accessList, etag: latestEtag },
+      {
+        onSuccess: (data: AccessList) => {
+          setLatestEtag(data.etag);
+        },
+      },
+    );
   };
 
   const handleDelete = (): void => {
@@ -133,6 +141,8 @@ export const AccessListDetail = ({
           org={org}
           env={env}
           list={list}
+          etag={latestEtag}
+          setEtag={setLatestEtag}
           members={membersData.pages}
           loadMoreButton={
             hasNextPage && (

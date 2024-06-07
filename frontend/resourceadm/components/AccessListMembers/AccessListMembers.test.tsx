@@ -37,6 +37,8 @@ const defaultProps: AccessListMembersProps = {
     },
   ],
   loadMoreButton: null,
+  etag: '',
+  setEtag: jest.fn(),
 };
 
 describe('AccessListMembers', () => {
@@ -62,12 +64,13 @@ describe('AccessListMembers', () => {
 
     expect(removeAccessListMemberMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, {
       data: [testMemberPartyId],
+      etag: '',
     });
   });
 
   it('should show new member in list after member is added', async () => {
     const user = userEvent.setup();
-    const addAccessListMemberMock = jest.fn();
+    const addAccessListMemberMock = jest.fn().mockImplementation(() => Promise.resolve({}));
     const searchResultText = 'Digdir';
     const searchResultOrgNr = '987654321';
     renderAccessListMembers(
@@ -98,6 +101,7 @@ describe('AccessListMembers', () => {
 
     expect(addAccessListMemberMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, {
       data: [searchResultOrgNr],
+      etag: '',
     });
     expect(screen.getAllByText(searchResultOrgNr).length).toBe(2);
   });

@@ -162,6 +162,7 @@ export interface AccessListMembersResponse {
 
 export interface AccessListOrganizationNumbers {
   data: string[];
+  etag: string;
 }
 
 export interface AccessListOrganizationNumbers {
