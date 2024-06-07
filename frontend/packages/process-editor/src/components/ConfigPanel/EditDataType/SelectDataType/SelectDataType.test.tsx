@@ -50,7 +50,8 @@ describe('SelectDataType', () => {
     });
   });
 
-  it('should add existing data type to combobox options', () => {
+  it('should add existing data type to combobox options', async () => {
+    const user = userEvent.setup();
     const existingDataType = 'dataModel0';
     const dataModelIds = ['dataModel1', 'dataModel2'];
     renderEditDataType({ dataModelIds, existingDataType });
@@ -59,6 +60,10 @@ describe('SelectDataType', () => {
       name: textMock('process_editor.configuration_panel_set_data_model'),
     });
     expect(combobox).toHaveValue(existingDataType);
+
+    await user.click(combobox);
+    const addedOption = screen.getByRole('option', { name: 'dataModel0' });
+    expect(addedOption).toBeInTheDocument();
   });
 
   it('should call updateDataType with new data type when data type is changed', async () => {
