@@ -63,17 +63,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # - name: Build docker-compose
-      #   run: docker buildx bake --file compose.yaml --file compose-cache.json
-
       - name: Cache Docker layers
-        uses: docker/bake-action@master
-        with:
-          push: false
-          load: true
-          files: |-
-            compose.yaml
-            compose-cache.json
+        run: docker buildx bake --file compose.yaml --file compose-cache.json
 
       - name: Run setup.js script
         run: |
