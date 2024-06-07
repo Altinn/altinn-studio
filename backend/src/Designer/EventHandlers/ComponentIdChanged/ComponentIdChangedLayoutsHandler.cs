@@ -33,12 +33,14 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
         // WHAT FILE TO SEND IN THIS CASE? CAN WE FETCH ONLY SINGLE LAYOUTS OR NEED TO SEND NAME OF LAYOUT SET(S) AND FETCH ALL LAYOUTS PER SET?
         foreach (LayoutSetConfig layoutSet in layoutSets.Sets)
         {
-            // If we replace layouts in cache we can pass only the changed layouts
-            await _fileSyncHandlerExecutor.ExecuteWithExceptionHandling(
+            // If we replace layouts in cache we can pass only the changed layouts --> Edit: We cannot because frontend does not have the synced changes
+            await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingConditionalNotification(
                 notification.EditingContext,
                 SyncErrorCodes.LayoutSetComponentIdSyncError,
-                $"App/ui/{layoutSet}", async () =>
+                "App/ui/layouts",
+                async () =>
                 {
+                    bool hasChanges = false;
                     string[] layoutNames = repository.GetLayoutNames(layoutSet.Id);
                     foreach (var layoutName in layoutNames)
                     {
@@ -46,8 +48,10 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
                         if (TryChangeComponentId(layout, notification.OldComponentId, notification.NewComponentId))
                         {
                             await repository.SaveLayout(layoutSet.Id, layoutName, layout, cancellationToken);
+                            hasChanges = true;
                         }
                     }
+                    return hasChanges;
                 });
         }
     }

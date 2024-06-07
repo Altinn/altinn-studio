@@ -38,7 +38,7 @@ export const HiddenExpressionOnLayout = () => {
 
   const handleDeleteHiddenExpressionOnLayout = async () => {
     const updatedLayout: IInternalLayout = ObjectUtils.deepCopy(layout);
-    saveLayout({ ...updatedLayout, hidden: undefined });
+    saveLayout({ internalLayout: { ...updatedLayout, hidden: undefined } });
   };
 
   return (

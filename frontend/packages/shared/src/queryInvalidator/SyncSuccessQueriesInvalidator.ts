@@ -24,9 +24,11 @@ export class SyncSuccessQueriesInvalidator extends Queue {
     'applicationmetadata.json': [QueryKey.AppMetadata, '[org]', '[app]'],
     'layout-sets.json': [QueryKey.LayoutSets, '[org]', '[app]'],
     'policy.xml': [QueryKey.AppPolicy, '[org]', '[app]'],
+    'Settings.json': [QueryKey.FormLayoutSettings, '[org]', '[app]', '[layoutSetName]'],
+    layouts: [QueryKey.FormLayouts, '[org]', '[app]', '[layoutSetName]'],
   };
 
-  constructor(queryClient: QueryClient, org: string, app: string) {
+  constructor(queryClient: QueryClient, org: string, app: string, layoutSetName?: string) {
     super({ timeout: 500 });
     this.org = org;
     this.app = app;
@@ -52,22 +54,29 @@ export class SyncSuccessQueriesInvalidator extends Queue {
     return SyncSuccessQueriesInvalidator.instance;
   }
 
-  public invalidateQueryByFileName(fileName: string): void {
-    const cacheKey = this.getCacheKeyByFileName(fileName);
+  public invalidateQueryByFileName(fileName: string, layoutSetName: string): void {
+    console.log('invalidating cache: ', fileName);
+    const cacheKey = this.getCacheKeyByFileName(fileName, layoutSetName);
     if (!cacheKey) return;
 
     this.addTaskToQueue({
       id: fileName,
       callback: () => {
+        console.log('Invalidating cache with cacheKey: ', cacheKey);
         this.queryClient.invalidateQueries({ queryKey: cacheKey });
       },
     });
   }
 
-  private getCacheKeyByFileName(fileName: string): string[] {
+  private getCacheKeyByFileName(fileName: string, layoutSetName: string): string[] {
     const cacheKey = this.fileNameCacheKeyMap[fileName];
     if (!cacheKey) return undefined;
 
-    return cacheKey.map((key) => key.replace('[org]', this.org).replace('[app]', this.app));
+    return cacheKey.map((key) =>
+      key
+        .replace('[org]', this.org)
+        .replace('[app]', this.app)
+        .replace('[layoutSetName]', layoutSetName),
+    );
   }
 }

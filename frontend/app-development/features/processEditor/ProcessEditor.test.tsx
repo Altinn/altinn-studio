@@ -10,10 +10,10 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { useBpmnContext } from '@altinn/process-editor/contexts/BpmnContext';
 import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
-import { type SyncError, type SyncSuccess } from './syncUtils';
-import { processEditorWebSocketHub } from 'app-shared/api/paths';
+import { SyncEventsWebSocketHub } from 'app-shared/api/paths';
 import { app, org } from '@studio/testing/testids';
 import { SyncSuccessQueriesInvalidator } from 'app-shared/queryInvalidator/SyncSuccessQueriesInvalidator';
+import type { SyncError, SyncSuccess } from 'app-shared/types/api/SyncResponses';
 
 // test data
 const defaultAppVersion: AppVersion = { backendVersion: '8.0.0', frontendVersion: '4.0.0' };
@@ -99,7 +99,7 @@ describe('ProcessEditor', () => {
 
     expect(useWebSocket).toHaveBeenCalledWith({
       clientsName: ['FileSyncSuccess', 'FileSyncError'],
-      webSocketUrl: processEditorWebSocketHub(),
+      webSocketUrl: SyncEventsWebSocketHub(),
       webSocketConnector: WSConnector,
     });
   });

@@ -26,7 +26,8 @@ public class ProcessTaskIdChangedApplicationMetadataHandler : INotificationHandl
         await _fileSyncHandlerExecutor.ExecuteWithExceptionHandling(
             notification.EditingContext,
             SyncErrorCodes.ApplicationMetadataTaskIdSyncError,
-            "App/config/applicationmetadata.json", async () =>
+            "App/config/applicationmetadata.json",
+            async () =>
             {
                 var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
                     notification.EditingContext.Org,

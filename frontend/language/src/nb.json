@@ -1878,6 +1878,7 @@
   "ux_editor.modal_properties_code_list_id": "Kodeliste-ID",
   "ux_editor.modal_properties_code_list_read_more": "<0 href=\"{{optionsDocs}}\" >Les mer om kodelister</0>",
   "ux_editor.modal_properties_component_change_id": "Komponent-ID",
+  "ux_editor.modal_properties_component_change_id_information": "Ved redigering av komponent ID vil Studio automatisk oppdatere IDen der den er brukt som referanse, men det er ikke garantert at alle forekomster er oppdatert.",
   "ux_editor.modal_properties_component_id_not_unique_error": "Komponenten må ha en unik ID",
   "ux_editor.modal_properties_component_id_not_valid": "Komponent-ID-en må ha minst 2 tegn. ID-en kan ikke starte med bindestrek (-) eller slutte med bindestrek og tall. Bruk bare tegn fra det engelske alfabetet.",
   "ux_editor.modal_properties_custom_code_list_id": "ID til egendefinert kodeliste",

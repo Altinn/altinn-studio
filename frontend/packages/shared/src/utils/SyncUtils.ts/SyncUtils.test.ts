@@ -1,4 +1,5 @@
-import { type ErrorCode, type SyncError, SyncUtils } from './SyncUtils';
+import { SyncUtils } from './SyncUtils';
+import type { ErrorCode, SyncError } from 'app-shared/types/api/SyncResponses';
 
 const defaultSyncErrorMock: SyncError = {
   errorCode: 'applicationMetadataTaskIdSyncError',

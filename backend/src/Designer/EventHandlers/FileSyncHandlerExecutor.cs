@@ -36,4 +36,28 @@ public class FileSyncHandlerExecutor : IFileSyncHandlerExecutor
             await _hubContext.Clients.Group(editingContext.Developer).FileSyncError(error);
         }
     }
+
+    public async Task ExecuteWithExceptionHandlingConditionalNotification(AltinnRepoEditingContext editingContext, string errorCode, string sourcePath, Func<Task<bool>> handlerFunction)
+    {
+        var source = new Source(Path.GetFileName(sourcePath), sourcePath);
+        try
+        {
+            bool shouldNotify = await handlerFunction();
+            SyncSuccess success = new(source);
+            if (shouldNotify)
+            {
+                await _hubContext.Clients.Group(editingContext.Developer).FileSyncSuccess(success);
+            }
+        }
+        catch (Exception e)
+        {
+            SyncError error = new(
+                errorCode,
+                source,
+                e.Message
+            );
+
+            await _hubContext.Clients.Group(editingContext.Developer).FileSyncError(error);
+        }
+    }
 }

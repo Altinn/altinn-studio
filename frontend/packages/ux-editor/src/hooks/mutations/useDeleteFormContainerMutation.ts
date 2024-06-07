@@ -40,7 +40,7 @@ export const useDeleteFormContainerMutation = (org: string, app: string, layoutS
         );
       }
 
-      return formLayoutsMutation.mutateAsync(updatedLayout);
+      return formLayoutsMutation.mutateAsync({ internalLayout: updatedLayout });
     },
   });
 };

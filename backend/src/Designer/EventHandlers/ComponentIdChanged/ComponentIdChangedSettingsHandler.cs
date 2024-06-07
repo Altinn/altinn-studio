@@ -30,15 +30,20 @@ public class ComponentIdChangedSettingsHandler : INotificationHandler<ComponentI
         JsonNode layoutSettings =
             await repository.GetLayoutSettingsAndCreateNewIfNotFound(notification.LayoutSetName, cancellationToken);
 
-        await _fileSyncHandlerExecutor.ExecuteWithExceptionHandling(
+        bool hasChanges = false;
+        await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingConditionalNotification(
             notification.EditingContext,
             SyncErrorCodes.SettingsComponentIdSyncError,
-            $"App/ui/{notification.LayoutSetName}/Settings.json", async () =>
+            $"App/ui/{notification.LayoutSetName}/Settings.json",
+            async () =>
             {
                 if (TryChangeComponentId(layoutSettings, notification.OldComponentId, notification.NewComponentId))
                 {
                     await repository.SaveLayoutSettings(notification.LayoutSetName, layoutSettings);
+                    hasChanges = true;
                 }
+
+                return hasChanges;
             });
     }
 
@@ -58,8 +63,14 @@ public class ComponentIdChangedSettingsHandler : INotificationHandler<ComponentI
         {
             for (int i = 0; i < excludeFromPdfArray.Count; i++)
             {
-                if (excludeFromPdfArray[i]?.ToString() == oldComponentId)
+                string currentComponentId = excludeFromPdfArray[i]?.ToString();
+                if (currentComponentId == oldComponentId)
                 {
+                    if (string.IsNullOrEmpty(currentComponentId))
+                    {
+                        excludeFromPdfArray.RemoveAt(i);
+                        break;
+                    }
                     excludeFromPdfArray[i] = newComponentId;
                     hasChanges = true;
                     break;

@@ -122,7 +122,6 @@ namespace Altinn.Studio.Designer.Controllers
 
                 if (componentIdChange is not null)
                 {
-
                     await _mediator.Publish(new ComponentIdChangedEvent
                     {
                         OldComponentId = componentIdChange.OldComponentId,

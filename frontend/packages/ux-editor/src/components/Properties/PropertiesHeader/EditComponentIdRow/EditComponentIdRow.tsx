@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StudioToggleableTextfieldSchema, type SchemaValidationError } from '@studio/components';
+import { Alert } from '@digdir/design-system-react';
 import { KeyVerticalIcon } from '@studio/icons';
 import classes from './EditComponentIdRow.module.css';
 import { idExists } from '../../../../utils/formLayoutsUtils';
@@ -76,6 +77,11 @@ export const EditComponentIdRow = ({
           size: 'small',
           error: errorMessage,
           className: classes.idInput,
+          children: (
+            <div className={classes.idInput}>
+              <Alert>{t('ux_editor.modal_properties_component_change_id_information')}</Alert>
+            </div>
+          ),
         }}
         customValidation={(value) => {
           return validateId(value);

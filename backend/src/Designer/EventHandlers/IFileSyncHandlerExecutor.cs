@@ -8,4 +8,8 @@ public interface IFileSyncHandlerExecutor
 {
     Task ExecuteWithExceptionHandling(AltinnRepoEditingContext editingContext, string errorCode, string sourcePath,
         Func<Task> handlerFunction);
+
+    Task ExecuteWithExceptionHandlingConditionalNotification(AltinnRepoEditingContext editingContext, string errorCode, string sourcePath,
+      Func<Task<bool>> handlerFunction);
+
 }

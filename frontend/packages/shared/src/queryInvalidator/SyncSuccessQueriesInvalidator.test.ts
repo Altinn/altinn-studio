@@ -2,13 +2,12 @@ import { QueryClient } from '@tanstack/react-query';
 import { SyncSuccessQueriesInvalidator } from './SyncSuccessQueriesInvalidator';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { waitFor } from '@testing-library/react';
+import { org, app, selectedLayoutSet } from '@studio/testing/testids';
 
 jest.mock('@tanstack/react-query');
 
 describe('SyncSuccessQueriesInvalidator', () => {
   let queryClientMock: QueryClient;
-  const org = 'testOrg';
-  const app = 'testApp';
 
   beforeEach(() => {
     queryClientMock = new QueryClient();
@@ -23,8 +22,8 @@ describe('SyncSuccessQueriesInvalidator', () => {
     const instance = SyncSuccessQueriesInvalidator.getInstance(queryClientMock, org, app);
 
     const fileName = 'applicationmetadata.json';
-    instance.invalidateQueryByFileName(fileName);
-    instance.invalidateQueryByFileName(fileName);
+    instance.invalidateQueryByFileName(fileName, selectedLayoutSet);
+    instance.invalidateQueryByFileName(fileName, selectedLayoutSet);
     await waitFor(() =>
       expect(queryClientMock.invalidateQueries).toHaveBeenCalledWith({
         queryKey: [QueryKey.AppMetadata, org, app],
@@ -37,7 +36,7 @@ describe('SyncSuccessQueriesInvalidator', () => {
     const queriesInvalidator = SyncSuccessQueriesInvalidator.getInstance(queryClientMock, org, app);
 
     const fileName = 'unknown.json';
-    queriesInvalidator.invalidateQueryByFileName(fileName);
+    queriesInvalidator.invalidateQueryByFileName(fileName, selectedLayoutSet);
 
     await new Promise((resolve) => setTimeout(resolve, 500));
     expect(queryClientMock.invalidateQueries).not.toHaveBeenCalled();

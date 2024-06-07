@@ -5,3 +5,7 @@
 .idInput {
   padding: var(--fds-spacing-5);
 }
+
+.alert {
+  padding: var(--fds-spacing-5) var(--fds-spacing-5);
+}

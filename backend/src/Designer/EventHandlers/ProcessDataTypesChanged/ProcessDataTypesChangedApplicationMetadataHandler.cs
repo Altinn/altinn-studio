@@ -26,7 +26,8 @@ public class ProcessDataTypesChangedApplicationMetadataHandler : INotificationHa
         await _fileSyncHandlerExecutor.ExecuteWithExceptionHandling(
             notification.EditingContext,
             SyncErrorCodes.ApplicationMetadataDataTypeSyncError,
-            "App/config/applicationmetadata.json", async () =>
+            "App/config/applicationmetadata.json",
+            async () =>
             {
                 var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
                     notification.EditingContext.Org,
