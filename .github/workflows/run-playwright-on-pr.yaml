@@ -80,12 +80,11 @@ jobs:
         uses: ./.github/actions/yarn-install
 
       - name: Playwright run
-        # uses: docker://mcr.microsoft.com/playwright:v1.34.3-jammy
         working-directory: frontend/testing/playwright
         env:
           environment: local
         run: |
-          yarn setup:local:env
+          yarn setup:playwright
           yarn playwright:test:all
 
       - name: Stop compose file
