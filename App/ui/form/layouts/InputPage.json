@@ -32,7 +32,6 @@
                 "dataModelBindings": {
                     "simpleBinding": "shortAnswerInput"
                 },
-                "maxLength": 20,
                 "required": true,
                 "showValidations": [
                     "All"]
