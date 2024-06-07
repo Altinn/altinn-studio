@@ -143,7 +143,22 @@
       "title": "Data model binding",
       "description": "Describes the location in the data model where the component should store its value(s). A simple binding is used for components that only store a single value, usually a string.",
       "type": "object",
-      "properties": { "simpleBinding": { "type": "string" } },
+      "properties": {
+        "simpleBinding": {
+          "anyOf": [
+            { "type": "string" },
+            {
+              "type": "object",
+              "properties": {
+                "property": { "type": "string" },
+                "dataType": { "type": "string" }
+              },
+              "required": ["property", "dataType"],
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
       "required": ["simpleBinding"],
       "additionalProperties": false
     },
