@@ -1,28 +1,28 @@
 {
   "target": {
     "studio_azure_mock": {
-      "cache-from": ["type=registry,ref=ghcr.io/altinn/altinn-studio/studio_azure_mock"],
-      "cache-to": ["type=registry,ref=ghcr.io/altinn/altinn-studio/studio_azure_mock"],
+      "cache-from": ["type=gha,scope=altinn/altinn-studio/studio_azure_mock"],
+      "cache-to": ["type=gha,mode=max,scope=altinn/altinn-studio/studio_azure_mock"],
       "output": ["type=docker"]
     },
     "studio_loadbalancer": {
-      "cache-from": ["type=registry,ref=ghcr.io/altinn/altinn-studio/studio_loadbalancer"],
-      "cache-to": ["type=registry,ref=ghcr.io/altinn/altinn-studio/studio_loadbalancer"],
+      "cache-from": ["type=gha,scope=altinn/altinn-studio/studio_loadbalancer"],
+      "cache-to": ["type=gha,mode=max,scope=altinn/altinn-studio/studio_loadbalancer"],
       "output": ["type=docker"]
     },
     "studio_designer": {
-      "cache-from": ["type=registry,ref=ghcr.io/altinn/altinn-studio/studio_designer"],
-      "cache-to": ["type=registry,ref=ghcr.io/altinn/altinn-studio/studio_designer"],
+      "cache-from": ["type=gha,scope=altinn/altinn-studio/studio_designer"],
+      "cache-to": ["type=gha,mode=max,scope=altinn/altinn-studio/studio_designer"],
       "output": ["type=docker"]
     },
     "studio_repositories": {
-      "cache-from": ["type=registry,ref=ghcr.io/altinn/altinn-studio/studio_repositories"],
-      "cache-to": ["type=registry,ref=ghcr.io/altinn/altinn-studio/studio_repositories"],
+      "cache-from": ["type=gha,scope=altinn/altinn-studio/studio_repositories"],
+      "cache-to": ["type=gha,mode=max,scope=altinn/altinn-studio/studio_repositories"],
       "output": ["type=docker"]
     },
     "studio_db": {
-      "cache-from": ["type=registry,ref=ghcr.io/altinn/altinn-studio/studio_db"],
-      "cache-to": ["type=registry,ref=ghcr.io/altinn/altinn-studio/studio_db"],
+      "cache-from": ["type=gha,scope=altinn/altinn-studio/studio_db"],
+      "cache-to": ["type=gha,mode=max,scope=altinn/altinn-studio/studio_db"],
       "output": ["type=docker"]
     }
   }
