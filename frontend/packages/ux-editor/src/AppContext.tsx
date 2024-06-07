@@ -18,6 +18,7 @@ export interface AppContextProps {
   refetchTexts: (language: string, resetQueries?: boolean) => Promise<void>;
   shouldReloadPreview: boolean;
   previewHasLoaded: () => void;
+  onLayoutSetNameChange: (layoutSetName: string) => void;
 }
 
 export const AppContext = createContext<AppContextProps>(null);
@@ -26,12 +27,14 @@ type AppContextProviderProps = {
   children: React.ReactNode;
   shouldReloadPreview: boolean;
   previewHasLoaded: () => void;
+  onLayoutSetNameChange: (layoutSetName: string) => void;
 };
 
 export const AppContextProvider = ({
   children,
   shouldReloadPreview,
   previewHasLoaded,
+  onLayoutSetNameChange,
 }: AppContextProviderProps): React.JSX.Element => {
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
   const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } =
@@ -87,6 +90,7 @@ export const AppContextProvider = ({
       refetchTexts,
       shouldReloadPreview,
       previewHasLoaded,
+      onLayoutSetNameChange,
     }),
     [
       selectedFormLayoutSetName,
@@ -98,6 +102,7 @@ export const AppContextProvider = ({
       refetchTexts,
       shouldReloadPreview,
       previewHasLoaded,
+      onLayoutSetNameChange,
     ],
   );
 

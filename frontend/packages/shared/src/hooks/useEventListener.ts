@@ -7,6 +7,7 @@ import { useEffect } from 'react';
  */
 export function useEventListener(eventType: string, action: () => void) {
   useEffect(() => {
+    console.log('re');
     window.addEventListener(eventType, action);
     return () => window.removeEventListener(eventType, action);
   }, [eventType, action]);

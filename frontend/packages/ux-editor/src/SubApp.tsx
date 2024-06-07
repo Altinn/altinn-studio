@@ -6,6 +6,7 @@ import { AppContextProvider } from './AppContext';
 type SubAppProps = {
   shouldReloadPreview: boolean;
   previewHasLoaded: () => void;
+  onLayoutSetNameChange: (layoutSetName: string) => void;
 };
 
 export const SubApp = (props: SubAppProps) => {

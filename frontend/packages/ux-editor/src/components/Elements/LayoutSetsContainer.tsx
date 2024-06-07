@@ -16,6 +16,7 @@ export function LayoutSetsContainer() {
     setSelectedFormLayoutName,
     refetchLayouts,
     refetchLayoutSettings,
+    onLayoutSetNameChange,
   } = useAppContext();
 
   const onLayoutSetClick = async (set: string) => {
@@ -25,6 +26,7 @@ export function LayoutSetsContainer() {
 
       setSelectedFormLayoutSetName(set);
       setSelectedFormLayoutName(undefined);
+      onLayoutSetNameChange(set);
     }
   };
 

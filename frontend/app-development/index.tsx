@@ -15,6 +15,7 @@ import { altinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
 import type { QueryClientConfig } from '@tanstack/react-query';
 import { PageRoutes } from './router/PageRoutes';
 import { AppDevelopmentContextProvider } from './contexts/AppDevelopmentContext';
+import { Websocket } from './components';
 
 const store = setupStore();
 
@@ -47,7 +48,9 @@ root.render(
       <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
         <PreviewConnectionContextProvider>
           <AppDevelopmentContextProvider>
-            <PageRoutes />
+            <Websocket>
+              <PageRoutes />
+            </Websocket>
           </AppDevelopmentContextProvider>
         </PreviewConnectionContextProvider>
       </ServicesContextProvider>
