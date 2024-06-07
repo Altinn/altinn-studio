@@ -18,17 +18,15 @@
       },
       {
         "id": "text2",
-        "type": "Input",
+        "type": "Paragraph",
         "textResourceBindings": {
-          "title": "Datamodell 2"
-        },
-        "dataModelBindings": {
-          "simpleBinding": {
-            "dataType": "modell2",
-            "property": "tekstfelt"
-          }
-        },
-        "renderAsSummary": true
+          "title": [
+            "concat",
+            "Datamodell 2 (fra uttrykk)<br>**",
+            ["dataModel", "tekstfelt", "modell2"],
+            "**"
+          ]
+        }
       },
       {
         "id": "text3",
