@@ -56,7 +56,7 @@ describe('AccessListMembers', () => {
 
   it('should remove member from table when remove member button is clicked', async () => {
     const user = userEvent.setup();
-    const removeAccessListMemberMock = jest.fn();
+    const removeAccessListMemberMock = jest.fn().mockImplementation(() => Promise.resolve({}));
     renderAccessListMembers({}, { removeAccessListMember: removeAccessListMemberMock });
 
     const removeButtons = screen.getAllByText(textMock('resourceadm.listadmin_remove_from_list'));
