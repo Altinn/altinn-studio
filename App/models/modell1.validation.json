@@ -4,7 +4,7 @@
     "tekstfelt": [
       {
         "message": "Feil er feil",
-        "condition": ["equals", ["dataModel", ["argv", 0], ["argv", 1]], "feil"]
+        "condition": ["equals", ["dataModel", ["argv", 0]], "feil"]
       }
     ],
     "bransje": [
@@ -12,8 +12,8 @@
         "message": "Du kan ikke velge både IKT og Verkstedindustri",
         "condition": [
           "and",
-          ["commaContains", ["dataModel", ["argv", 0], ["argv", 1]], "491"],
-          ["commaContains", ["dataModel", ["argv", 0], ["argv", 1]], "445"]
+          ["commaContains", ["dataModel", ["argv", 0]], "491"],
+          ["commaContains", ["dataModel", ["argv", 0]], "445"]
         ]
       }
     ]

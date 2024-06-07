@@ -5,13 +5,13 @@
       {
         "message": "Feil er advarsel",
         "severity": "warning",
-        "condition": ["equals", ["dataModel", ["argv", 0], ["argv", 1]], "feil"]
+        "condition": ["equals", ["dataModel", ["argv", 0]], "feil"]
       }
     ],
     "personer.etternavn": [
       {
         "message": "Etternavn kan ikke inneholde utropstegn!!!",
-        "condition": ["contains", ["dataModel", ["argv", 0], ["argv", 1]], "!"]
+        "condition": ["contains", ["dataModel", ["argv", 0]], "!"]
       }
     ]
   },
