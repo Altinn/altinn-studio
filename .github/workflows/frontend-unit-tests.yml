@@ -81,7 +81,7 @@ jobs:
         uses: ./.github/actions/yarn-install
 
       - name: 'Running Unit Tests'
-        run: yarn jest --changedSince=origin/main --ci --coverage --max-workers=2 --cacheDirectory=$(yarn config get cacheFolder) --config=frontend/jest.config.js
+        run: yarn test:ci
 
       - name: 'Upload coverage reports to Codecov'
         uses: codecov/codecov-action@v4

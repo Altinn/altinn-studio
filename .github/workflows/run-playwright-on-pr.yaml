@@ -26,6 +26,8 @@ jobs:
     #  contents: read
     timeout-minutes: 25
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.44.1-jammy
 
     steps:
       - name: 'Checking Out Code'
@@ -74,7 +76,6 @@ jobs:
         env:
           environment: local
         run: |
-          yarn setup:playwright
           yarn playwright:test:all
 
       - name: Stop compose file
