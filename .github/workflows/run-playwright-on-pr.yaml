@@ -57,14 +57,14 @@ jobs:
 
       - name: Run setup.js script
         run: |
-          node ./development/setup.js --skipDockerDnsLookup --skipDockerCompose
+          node ./development/setup.js --skipDockerDnsLookup
 
       - name: Playwright run
         working-directory: frontend/testing/playwright
         env:
           environment: local
         run: |
-          yarn setup:playwright
+          yarn setup:playwright:ci
           yarn playwright:test:all
 
       - name: Stop compose file
