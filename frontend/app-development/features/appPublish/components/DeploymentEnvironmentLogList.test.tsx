@@ -198,7 +198,9 @@ describe('DeploymentEnvironmentLogList', () => {
         },
       ],
     });
-    expect(screen.queryByText(`${textMock('app_deployment.table.')}`)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(`${textMock('app_deployment.table.build_log_active_link')}`),
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByText(`${textMock('app_deployment.table.build_log_expired_link')}`),
     ).not.toBeInTheDocument();

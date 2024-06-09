@@ -90,7 +90,7 @@
     "start-studio-root": "yarn workspace studio-root start",
     "stats": "node frontend/stats.js",
     "syncpack": "npx syncpack fix-mismatches && npx syncpack format && npx syncpack set-semver-ranges",
-    "test": "jest --changedSince=origin/main --maxWorkers=50% --config=frontend/jest.config.js",
+    "test": "jest --maxWorkers=50% --config=frontend/jest.config.js",
     "test:ci": "jest --changedSince=origin/main --ci --coverage --max-workers=2 --cacheDirectory=$(yarn config get cacheFolder) --config=frontend/jest.config.js",
     "typecheck": "yarn workspaces foreach -A run typecheck",
     "playwright:test:all": "yarn workspace playwright-studio test:all",

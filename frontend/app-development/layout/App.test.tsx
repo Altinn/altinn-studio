@@ -33,7 +33,7 @@ describe('App', () => {
 
     await screen.findByTestId(appContentWrapperId);
     expect(screen.getByRole('button', { name: textMock('general.continue') })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: textMock('general.') })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: textMock('general.sign_out') })).toBeInTheDocument();
   });
 
   it('should not present popover if session is over 10min', async () => {
