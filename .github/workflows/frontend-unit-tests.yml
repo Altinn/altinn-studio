@@ -80,6 +80,9 @@ jobs:
       - name: 'Installing Dependencies'
         uses: ./.github/actions/yarn-install
 
+      - name: Fetch base branch (PR)
+        run: git fetch --no-tags origin ${{ github.event.pull_request.base.ref }}
+
       - name: Test1
         env:
           TEST1: ${{ github.event.pull_request.base.ref }}
