@@ -138,7 +138,7 @@ export function App() {
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
         transformOrigin={{ vertical: 'top', horizontal: 'center' }}
         handleClose={(event: string) => handleSessionExpiresClose(event)}
-        btnCancelText={t('general.')}
+        btnCancelText={t('general.sign_out')}
         btnConfirmText={t('general.continue')}
         btnClick={handleSessionExpiresClose}
         paperProps={{ style: { margin: '2.4rem' } }}
