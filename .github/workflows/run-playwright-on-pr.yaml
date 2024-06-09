@@ -64,7 +64,7 @@ jobs:
         env:
           environment: local
         run: |
-          yarn setup:playwright:ci
+          yarn setup:playwright
           yarn playwright:test:all
 
       - name: Stop compose file
