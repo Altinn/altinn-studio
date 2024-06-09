@@ -18,12 +18,9 @@ on:
 jobs:
   playwright-tests:
     name: Build environment and run e2e test
-    # I need "packages: write" to access GHCR.
-    # More about permissions here: https://docs.github.com/en/actions/using-jobs/assigning-permissions-to-jobs
-    permissions: write-all
-    #permissions:
-    #  id-token: write
-    #  contents: read
+    permissions:
+      id-token: write
+      contents: read
     timeout-minutes: 25
     runs-on: ubuntu-latest
 
@@ -63,12 +60,12 @@ jobs:
           node ./development/setup.js --skipDockerDnsLookup --skipDockerCompose
 
       - name: Playwright run
-        uses: docker://mcr.microsoft.com/playwright:v1.44.1-jammy
-        with:
-          path: frontend/testin g/playwright/test-results
-          args: /bin/sh -c "yarn setup:playwright:ci && yarn playwright:test:all"
+        working-directory: frontend/testing/playwright
         env:
           environment: local
+        run: |
+          yarn setup:playwright:ci
+          yarn playwright:test:all
 
       - name: Stop compose file
         if: always()
