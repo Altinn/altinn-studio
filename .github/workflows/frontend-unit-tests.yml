@@ -80,18 +80,14 @@ jobs:
       - name: 'Installing Dependencies'
         uses: ./.github/actions/yarn-install
 
-      - name: Fetch base branch (PR)
-        run: git fetch --no-tags origin ${{ github.event.pull_request.base.ref }}
+      # - name: Fetch base branch (PR)
+      #   run: git fetch --no-tags origin ${{ github.event.pull_request.base.ref }}
+      #        git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/* # fetches all branches
 
-      - name: Test1
+      - name: Dump GitHub context
         env:
-          TEST1: ${{ github.event.pull_request.base.ref }}
-        run: echo "$TEST1"
-
-      - name: Test2
-        env:
-          TEST2: ${{ github.event.pull_request.base.sha }}
-        run: echo "$TEST2"
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
 
       - name: 'Running Unit Tests'
         run: yarn jest --changedSince=origin/${{ github.event.pull_request.base.ref }} --ci --coverage --max-workers=2 --cacheDirectory=$(yarn config get cacheFolder) --config=frontend/jest.config.js
