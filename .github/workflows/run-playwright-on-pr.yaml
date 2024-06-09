@@ -63,10 +63,10 @@ jobs:
           node ./development/setup.js --skipDockerDnsLookup --skipDockerCompose
 
       - name: Playwright run
-        uses: docker://mcr.microsoft.com/playwright:v1.41.1-jammy
+        uses: docker://mcr.microsoft.com/playwright:v1.44.1-jammy
         with:
-          path: frontend/testing/playwright/test-results
-          args: yarn playwright:test:all
+          path: frontend/testin g/playwright/test-results
+          args: yarn setup:playwright:ci; yarn playwright:test:all
         env:
           environment: local
 
