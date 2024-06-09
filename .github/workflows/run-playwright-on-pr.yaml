@@ -26,8 +26,6 @@ jobs:
     #  contents: read
     timeout-minutes: 25
     runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/playwright:v1.44.1-jammy
 
     steps:
       - name: 'Checking Out Code'
@@ -65,11 +63,12 @@ jobs:
           node ./development/setup.js --skipDockerDnsLookup --skipDockerCompose
 
       - name: Playwright run
-        working-directory: frontend/testing/playwright
+        uses: docker://mcr.microsoft.com/playwright:v1.44.1-jammy
+        with:
+          path: frontend/testing/playwright/test-results
+          args: yarn playwright:test:all
         env:
           environment: local
-        run: |
-          yarn playwright:test:all
 
       - name: Stop compose file
         if: always()
