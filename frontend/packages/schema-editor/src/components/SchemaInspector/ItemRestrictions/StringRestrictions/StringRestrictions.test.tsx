@@ -40,8 +40,8 @@ describe('StringRestrictions', () => {
 
   test('Format selection appears with all options', async () => {
     renderStringRestrictions();
-    expect(screen.getByText(textMock(`schema_editor.format`))).toBeDefined();
-    const select = screen.getByRole('combobox', { name: textMock(`schema_editor.format`) });
+    expect(screen.getByText(textMock('schema_editor.format'))).toBeDefined();
+    const select = screen.getByRole('combobox', { name: textMock('schema_editor.format') });
     expect(select).toBeInTheDocument();
     await user.click(select);
     Object.values(StringFormat).forEach((format) => {
@@ -56,7 +56,7 @@ describe('StringRestrictions', () => {
 
   test('Empty format option is selected by default', async () => {
     renderStringRestrictions();
-    const select = screen.getByRole('combobox', { name: textMock(`schema_editor.format`) });
+    const select = screen.getByRole('combobox', { name: textMock('schema_editor.format') });
     await user.click(select);
     expect(
       screen.getByRole('option', { name: textMock('schema_editor.format_none') }),
@@ -84,7 +84,7 @@ describe('StringRestrictions', () => {
     onChangeRestrictions.mockReset();
     rerender(<StringRestrictions {...defaultProps} />);
     await user.click(formatSelect);
-    await user.click(screen.getByRole('option', { name: textMock(`schema_editor.format_none`) }));
+    await user.click(screen.getByRole('option', { name: textMock('schema_editor.format_none') }));
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
@@ -267,13 +267,13 @@ describe('StringRestrictions', () => {
   test('Minimum length field has given value', async () => {
     const minLength = 3;
     renderStringRestrictions({ restrictions: { minLength } });
-    const minLengthField = await screen.findByLabelText(textMock(`schema_editor.minLength`));
+    const minLengthField = await screen.findByLabelText(textMock('schema_editor.minLength'));
     expect(minLengthField).toHaveValue(minLength.toString());
   });
 
   test('onChangeRestrictions is called with correct input when minimum length is changed', async () => {
     renderStringRestrictions({ restrictions: { minLength: '1' } });
-    await user.type(screen.getByLabelText(textMock(`schema_editor.minLength`)), '2');
+    await user.type(screen.getByLabelText(textMock('schema_editor.minLength')), '2');
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
@@ -284,13 +284,13 @@ describe('StringRestrictions', () => {
   test('Maximum length field has given value', async () => {
     const maxLength = 255;
     renderStringRestrictions({ restrictions: { maxLength } });
-    const maxLengthField = await screen.findByLabelText(textMock(`schema_editor.maxLength`));
+    const maxLengthField = await screen.findByLabelText(textMock('schema_editor.maxLength'));
     expect(maxLengthField).toHaveValue(maxLength.toString());
   });
 
   test('onChangeRestrictions is called with correct input when maximum length is changed', async () => {
     renderStringRestrictions({ restrictions: { maxLength: '14' } });
-    await user.type(screen.getByLabelText(textMock(`schema_editor.maxLength`)), '4');
+    await user.type(screen.getByLabelText(textMock('schema_editor.maxLength')), '4');
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
@@ -301,13 +301,13 @@ describe('StringRestrictions', () => {
   test('Pattern field has given value', async () => {
     const pattern = '[A-Z]';
     renderStringRestrictions({ restrictions: { pattern } });
-    const patternField = await screen.findByLabelText(textMock(`schema_editor.pattern`));
+    const patternField = await screen.findByLabelText(textMock('schema_editor.pattern'));
     expect(patternField).toHaveValue(pattern);
   });
 
   test('onChangeRestrictionValue is called with correct input when pattern is changed', async () => {
     renderStringRestrictions({ restrictions: { pattern: '[a-z' } });
-    await user.type(screen.getByLabelText(textMock(`schema_editor.pattern`)), ']');
+    await user.type(screen.getByLabelText(textMock('schema_editor.pattern')), ']');
     expect(onChangeRestrictionValue).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictionValue).toHaveBeenCalledWith(path, StrRestrictionKey.pattern, '[a-z]');
   });
