@@ -142,7 +142,6 @@ __metadata:
     react-redux: "npm:9.1.2"
     redux: "npm:5.0.1"
     redux-mock-store: "npm:1.5.4"
-    reselect: "npm:5.1.0"
     typescript: "npm:5.4.5"
     uuid: "npm:9.0.1"
   peerDependencies:
@@ -163,7 +162,6 @@ __metadata:
     react-dnd-html5-backend: "npm:16.0.1"
     react-dom: "npm:18.3.1"
     react-modal: "npm:3.16.1"
-    reselect: "npm:5.1.0"
     typescript: "npm:5.4.5"
     uuid: "npm:9.0.1"
   peerDependencies:
@@ -19911,13 +19909,6 @@ __metadata:
   version: 1.0.0
   resolution: "requires-port@npm:1.0.0"
   checksum: 10/878880ee78ccdce372784f62f52a272048e2d0827c29ae31e7f99da18b62a2b9463ea03a75f277352f4697c100183debb0532371ad515a2d49d4bfe596dd4c20
-  languageName: node
-  linkType: hard
-
-"reselect@npm:5.1.0":
-  version: 5.1.0
-  resolution: "reselect@npm:5.1.0"
-  checksum: 10/657c379d9461781b7cb5f0a32133e23b4266886660c94fcc77c102bec8abe484b32bf43a911b99b747ecf7439f157696561d744d40dc920024611beb1a0d921f
   languageName: node
   linkType: hard
 
