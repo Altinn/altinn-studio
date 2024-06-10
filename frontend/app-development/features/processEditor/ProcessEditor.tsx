@@ -17,24 +17,15 @@ import { useUpdateProcessDataTypesMutation } from '../../hooks/mutations/useUpda
 import type { MetadataForm } from 'app-shared/types/BpmnMetadataForm';
 import { useAddDataTypeToAppMetadata } from '../../hooks/mutations/useAddDataTypeToAppMetadata';
 import { useDeleteDataTypeFromAppMetadata } from '../../hooks/mutations/useDeleteDataTypeFromAppMetadata';
-// import { SyncSuccessQueriesInvalidator } from 'app-shared/queryInvalidator/SyncSuccessQueriesInvalidator';
-// import { useQueryClient } from '@tanstack/react-query';
 import { useSettingsModalContext } from '../../contexts/SettingsModalContext';
 import { useAppMetadataQuery, useAppPolicyQuery } from '../../hooks/queries';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
 import { OnProcessTaskAddHandler } from './handlers/OnProcessTaskAddHandler';
 import { OnProcessTaskRemoveHandler } from './handlers/OnProcessTaskRemoveHandler';
-// import {SyncEventsWebSocketHub} from "app-shared/api/paths";
-// import {useWebSocket} from "app-shared/hooks/useWebSocket";
-// import {WSConnector} from "app-shared/websockets/WSConnector";
-// import {SyncClientsName} from "app-shared/enums/SyncClientsNames";
-// import {SyncError, SyncSuccess} from "app-shared/types/api/SyncResponses";
-// import {SyncUtils} from "app-shared/utils/SyncUtils.ts";
 
 export const ProcessEditor = (): React.ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  //const queryClient = useQueryClient();
   const { data: currentPolicy, isPending: isPendingCurrentPolicy } = useAppPolicyQuery(org, app);
   const { mutate: mutateApplicationPolicy } = useAppPolicyMutation(org, app);
   const { setSettingsModalOpen, setSettingsModalSelectedTab } = useSettingsModalContext();
@@ -79,30 +70,6 @@ export const ProcessEditor = (): React.ReactElement => {
     availableDataModelIdsPending ||
     allDataModelIdsPending ||
     isPendingCurrentPolicy;
-
-  // const invalidator = SyncSuccessQueriesInvalidator.getInstance(queryClient, org, app);
-  //
-  // const { onWSMessageReceived } = useWebSocket({
-  //   webSocketUrl: SyncEventsWebSocketHub(),
-  //   clientsName: [SyncClientsName.FileSyncSuccess, SyncClientsName.FileSyncError],
-  //   webSocketConnector: WSConnector
-  // });
-  //
-  // onWSMessageReceived<SyncError | SyncSuccess>((message): void => {
-  //   if (message.source.destination === "UxEditor") return;
-  //   const isErrorMessage = 'errorCode' in message;
-  //   if (isErrorMessage) {
-  //     toast.error(t(SyncUtils.getSyncErrorMessage(message)), { toastId: message.errorCode });
-  //     return;
-  //   }
-  //
-  //   const isSuccessMessage = 'source' in message;
-  //   if (isSuccessMessage) {
-  //     console.log('sync message received in process editor');
-  //     // Please extend the "fileNameCacheKeyMap" inside the "SyncSuccessQueriesInvalidator" class. Do not add query-client invalidation directly here.
-  //     invalidator.invalidateQueryByFileName(message.source.name);
-  //   }
-  // });
 
   const saveBpmnXml = async (xml: string, metadata?: MetadataForm): Promise<void> => {
     const formData = new FormData();

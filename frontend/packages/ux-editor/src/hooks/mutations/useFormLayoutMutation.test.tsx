@@ -58,22 +58,25 @@ describe('useFormLayoutMutation', () => {
       app,
       layoutName,
       selectedLayoutSet,
-      expect.objectContaining({
-        data: {
-          layout: [
-            {
-              id: containerId,
-              type: ComponentType.Group,
-              children: [componentId],
-            },
-            {
-              id: componentId,
-              type: componentType,
-              dataModelBindings: { simpleBinding: 'somePath' },
-            },
-          ],
-        },
-      }),
+      {
+        componentIdChange: undefined,
+        layout: expect.objectContaining({
+          data: {
+            layout: [
+              {
+                id: containerId,
+                type: ComponentType.Group,
+                children: [componentId],
+              },
+              {
+                id: componentId,
+                type: componentType,
+                dataModelBindings: { simpleBinding: 'somePath' },
+              },
+            ],
+          },
+        }),
+      },
     );
   });
 });
@@ -81,4 +84,4 @@ describe('useFormLayoutMutation', () => {
 const renderAndMutate = (layout: IInternalLayout) =>
   renderHookWithProviders(() => useFormLayoutMutation(org, app, layoutName, selectedLayoutSet), {
     queryClient: queryClientMock,
-  }).result.current.mutateAsync(layout);
+  }).result.current.mutateAsync({ internalLayout: layout });

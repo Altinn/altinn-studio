@@ -46,11 +46,17 @@ describe('FormItemTitle', () => {
       app,
       layout1NameMock,
       layoutSet1NameMock,
-      expect.objectContaining({
-        data: {
-          layout: [],
+      {
+        componentIdChange: {
+          newComponentId: undefined,
+          oldComponentId: component.id,
         },
-      }),
+        layout: expect.objectContaining({
+          data: {
+            layout: [],
+          },
+        }),
+      },
     );
     await waitFor(() => {
       expect(mockHandleDiscard).toHaveBeenCalledTimes(1);

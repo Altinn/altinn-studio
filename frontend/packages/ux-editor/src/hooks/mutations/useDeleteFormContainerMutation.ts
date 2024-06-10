@@ -10,9 +10,11 @@ export const useDeleteFormContainerMutation = (org: string, app: string, layoutS
   return useMutation({
     mutationFn: (id: string) => {
       const updatedLayout: IInternalLayout = ObjectUtils.deepCopy(layout);
+      let componentIdChange = null;
 
       // Delete child components:
       // Todo: Consider if this should rather be done in the backend
+      // UPDATE COMPONENT ID FOR ALL CHILDREN - SEND ARRAY OF COMPONENT IDS TO BACKEND?
       for (const componentId of layout.order[id]) {
         if (Object.keys(layout.components).indexOf(componentId) > -1) {
           delete updatedLayout.components[componentId];
@@ -38,9 +40,13 @@ export const useDeleteFormContainerMutation = (org: string, app: string, layoutS
           updatedLayout.order[parentContainerId].indexOf(id),
           1,
         );
+        componentIdChange = {
+          oldComponentId: id,
+          newComponentId: undefined,
+        };
       }
 
-      return formLayoutsMutation.mutateAsync({ internalLayout: updatedLayout });
+      return formLayoutsMutation.mutateAsync({ internalLayout: updatedLayout, componentIdChange });
     },
   });
 };

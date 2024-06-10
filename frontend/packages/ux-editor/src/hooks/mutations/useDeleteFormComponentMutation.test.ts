@@ -20,11 +20,17 @@ describe('useDeleteFormComponentMutation', () => {
       app,
       layout1NameMock,
       selectedLayoutSet,
-      expect.objectContaining({
-        data: expect.objectContaining({
-          layout: expect.not.arrayContaining([expect.objectContaining({ id: component2IdMock })]),
+      {
+        componentIdChange: {
+          newComponentId: undefined,
+          oldComponentId: component2IdMock,
+        },
+        layout: expect.objectContaining({
+          data: expect.objectContaining({
+            layout: expect.not.arrayContaining([expect.objectContaining({ id: component2IdMock })]),
+          }),
         }),
-      }),
+      },
     );
   });
 });

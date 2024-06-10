@@ -57,17 +57,20 @@ describe('useUpdateFormComponentMutation', () => {
       app,
       layout1NameMock,
       selectedLayoutSet,
-      expect.objectContaining({
-        data: expect.objectContaining({
-          layout: expect.arrayContaining([
-            {
-              id,
-              type,
-              dataModelBindings,
-            },
-          ]),
+      {
+        componentIdChange: null,
+        layout: expect.objectContaining({
+          data: expect.objectContaining({
+            layout: expect.arrayContaining([
+              {
+                id,
+                type,
+                dataModelBindings,
+              },
+            ]),
+          }),
         }),
-      }),
+      },
     );
   });
 
@@ -130,18 +133,21 @@ describe('useUpdateFormComponentMutation', () => {
           app,
           layout1NameMock,
           selectedLayoutSet,
-          expect.objectContaining({
-            data: expect.objectContaining({
-              layout: expect.arrayContaining([
-                {
-                  id,
-                  type: componentType,
-                  dataModelBindings,
-                  ...optionsProp,
-                },
-              ]),
+          {
+            componentIdChange: null,
+            layout: expect.objectContaining({
+              data: expect.objectContaining({
+                layout: expect.arrayContaining([
+                  {
+                    id,
+                    type: componentType,
+                    dataModelBindings,
+                    ...optionsProp,
+                  },
+                ]),
+              }),
             }),
-          }),
+          },
         );
       }
     }

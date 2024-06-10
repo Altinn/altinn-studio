@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import React, { useEffect, useRef } from 'react';
 import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
@@ -38,7 +39,7 @@ export const WebSocket = ({ children }: WebSocketProps): React.ReactElement => {
     webSocketConnector: WSConnector,
   });
 
-  onWSMessageReceived<SyncError | SyncSuccess>((message): void => {
+  onWSMessageReceived<SyncError | SyncSuccess>((message): ReactElement => {
     const isErrorMessage = 'errorCode' in message;
     if (isErrorMessage) {
       toast.error(t(SyncUtils.getSyncErrorMessage(message)), { toastId: message.errorCode });
@@ -52,5 +53,5 @@ export const WebSocket = ({ children }: WebSocketProps): React.ReactElement => {
     }
   });
 
-  return <div>{children}</div>;
+  return <>{children}</>;
 };
