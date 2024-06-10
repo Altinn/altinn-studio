@@ -9,8 +9,8 @@
       "GroupPage",
       "AddressPage",
       "FileUploadPage",
-      "SummaryPage",
-      "GridPage"
+      "GridPage",
+      "SummaryPage"
     ]
   }
 }

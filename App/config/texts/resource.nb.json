@@ -6,6 +6,18 @@
       "value": "altinn-apps-all-components"
     },
     {
+      "id": "Grid",
+      "value": "Grid"
+    },
+    {
+      "id": "Grid.Title",
+      "value": "My grid component"
+    },
+    {
+      "id": "Grid.Description",
+      "value": "Hello this is a description of the component below"
+    },
+    {
       "id": "Header.Component",
       "value": "Komponent"
     },
@@ -104,6 +116,30 @@
     {
       "id": "RenderSpecificComponentFromPreviousTask",
       "value": "Oppsummering av komponent fra tidligere Task"
-    }
+    },
+    { "id": "reasons.related", "value": "Slektskap" },
+    {
+      "id": "reasons.adoptive",
+      "value": "Adoptivforelders etternavn eller mellomnavn"
+    },
+    {
+      "id": "reasons.stepParents",
+      "value": "Ste- eller fosterforeldres etternavn eller mellomnavn"
+    },
+    {
+      "id": "reasons.spouse",
+      "value": "Ektefelles etternavn eller mellomnavn"
+    },
+    {
+      "id": "reasons.cohabitant",
+      "value": "Samboers etternavn eller mellomnavn"
+    },
+    {
+      "id": "reasons.pastName",
+      "value": "Tidligere etternavn eller mellomnavn"
+    },
+    { "id": "reasons.farm", "value": "Gårdsbruk" },
+    { "id": "reasons.newName", "value": "Jeg tror navnet er nytt i Norge" },
+    { "id": "reasons.other", "value": "Annen begrunnelse " }
   ]
 }

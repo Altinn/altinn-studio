@@ -3,9 +3,211 @@
   "data": {
     "layout": [
       {
-        "rows": [],
-        "id": "Grid-6lCcyQ",
-        "type": "Grid"
+        "id": "NavigationBar",
+        "type": "NavigationBar"
+      },
+      {
+        "size": "h2",
+        "id": "Grid-Header",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Grid"
+        }
+      },
+      {
+        "size": "h3",
+        "id": "CheckboxesPage-Header-Component",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header.Component"
+        }
+      },
+      {
+        "id": "all-grid-components",
+        "type": "Grid",
+        "textResourceBindings": {
+          "title": "Grid.Title",
+          "description": "Grid.Description"
+        },
+        "rows": [
+          {
+            "header": true,
+            "cells": [{ "text": "Komponenttype" }, { "text": "Eksempel" }]
+          },
+          {
+            "cells": [
+              { "text": "Button" },
+              { "component": "grid-example-button" }
+            ]
+          },
+          {
+            "cells": [
+              { "text": "PrintButton" },
+              { "component": "grid-example-print-button" }
+            ]
+          },
+          {
+            "cells": [
+              { "text": "InstantiationButton" },
+              { "component": "grid-example-instantiation-button" }
+            ]
+          },
+          {
+            "cells": [
+              { "text": "Header" },
+              { "component": "grid-example-header" }
+            ]
+          },
+          {
+            "cells": [
+              { "text": "Paragraph" },
+              { "component": "grid-example-paragraph" }
+            ]
+          },
+          {
+            "cells": [
+              { "text": "Image" },
+              { "component": "grid-example-image" }
+            ]
+          },
+          {
+            "cells": [
+              { "text": "Datepicker" },
+              { "component": "grid-example-datepicker" }
+            ]
+          },
+          {
+            "cells": [
+              { "text": "Dropdown" },
+              { "component": "grid-example-dropdown" }
+            ]
+          },
+          {
+            "cells": [
+              { "text": "MultipleSelect" },
+              { "component": "grid-example-multiple-select" }
+            ]
+          },
+          {
+            "cells": [
+              { "text": "TextArea" },
+              { "component": "grid-example-text-area" }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "grid-example-button",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "A button example"
+        }
+      },
+      {
+        "id": "grid-example-print-button",
+        "type": "PrintButton",
+        "textResourceBindings": {
+          "title": "Print button example"
+        }
+      },
+      {
+        "id": "grid-example-instantiation-button",
+        "type": "InstantiationButton",
+        "textResourceBindings": {
+          "title": "Instantiation button example"
+        }
+      },
+      {
+        "id": "grid-example-datepicker",
+        "type": "Datepicker",
+        "textResourceBindings": {
+          "title": "Datepicker example"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleDate"
+        }
+      },
+      {
+        "id": "grid-example-dropdown",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Dropdown example"
+        },
+        "optionsId": "reasons",
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleDropdown"
+        }
+      },
+      {
+        "id": "grid-example-header",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header example"
+        },
+        "size": "h2"
+      },
+      {
+        "id": "grid-example-image",
+        "type": "Image",
+        "textResourceBindings": {
+          "altTextImg": "Altinn logo"
+        },
+        "image": {
+          "src": {
+            "nb": "/ttd/frontend-test/images/altinn-logo.svg"
+          },
+          "width": "100%",
+          "align": "flex-start"
+        }
+      },
+      {
+        "id": "grid-example-multiple-select",
+        "type": "MultipleSelect",
+        "textResourceBindings": {
+          "title": "Multiple select example"
+        },
+        "optionsId": "reasons",
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleMultiSelect"
+        }
+      },
+      {
+        "id": "grid-example-paragraph",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Paragraph example"
+        }
+      },
+      {
+        "id": "grid-example-text-area",
+        "type": "TextArea",
+        "textResourceBindings": {
+          "title": "Text area example"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleTextArea"
+        }
+      },
+      {
+        "size": "h3",
+        "id": "CheckboxesPage-Header-Summary",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header.Summary"
+        }
+      },
+      {
+        "id": "old-summary",
+        "type": "Summary",
+        "componentRef": "all-grid-components"
+      },
+      {
+        "size": "h3",
+        "id": "CheckboxesPage-Header-Summary2",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header.Summary2"
+        }
       },
       {
         "id": "NavigationButtons-nkqJlY",
