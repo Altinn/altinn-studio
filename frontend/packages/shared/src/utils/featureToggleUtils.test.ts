@@ -57,14 +57,12 @@ describe('featureToggle url', () => {
     window.history.pushState(
       {},
       'PageUrl',
-      '/?featureFlags=customizeEndEvent,shouldOverrideAppLibCheck&persistFeatureFlag=true',
+      '/?featureFlags=shouldOverrideAppLibCheck&persistFeatureFlag=true',
     );
     expect(shouldDisplayFeature('componentConfigBeta')).toBeFalsy();
     expect(shouldDisplayFeature('shouldOverrideAppLibCheck')).toBeTruthy();
-    expect(shouldDisplayFeature('customizeEndEvent')).toBeTruthy();
     expect(typedSessionStorage.getItem<string[]>('featureFlags')).toEqual([
       'shouldOverrideAppLibCheck',
-      'customizeEndEvent',
     ]);
     expect(typedLocalStorage.getItem<string[]>('featureFlags')).toBeUndefined();
   });
