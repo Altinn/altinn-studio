@@ -57,7 +57,7 @@ jobs:
 
       - name: Run setup.js script
         run: |
-          node ./development/setup.js --skipDockerDnsLookup
+          node ./development/setup.js --skipDockerDnsLookup --skipDockerCompose
 
       - name: Playwright run
         working-directory: frontend/testing/playwright
