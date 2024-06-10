@@ -15,7 +15,7 @@
     <!-- Do not upgrade this package unless extensively tested-->
     <PackageReference Update="LibGit2Sharp" Version="0.30.0" />
     <PackageReference Update="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
-    <PackageReference Update="Microsoft.ApplicationInsights.Kubernetes" Version="6.1.2" />
+    <PackageReference Update="Microsoft.ApplicationInsights.Kubernetes" Version="6.1.3" />
     <PackageReference Update="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
     <PackageReference Update="Microsoft.AspNetCore.DataProtection.AzureKeyVault" Version="3.1.24" />
     <PackageReference Update="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
@@ -35,7 +35,7 @@
     <PackageReference Update="Polly" Version="8.4.0" />
     <PackageReference Update="Altinn.Authorization.ABAC" Version="0.0.8" />
     <PackageReference Update="Altinn.ApiClients.Maskinporten" Version="9.1.0" />
-    <PackageReference Update="MediatR" Version="12.2.0" />
+    <PackageReference Update="MediatR" Version="12.3.0" />
   </ItemGroup>
 
   <ItemGroup Label="Packages used for testing">
