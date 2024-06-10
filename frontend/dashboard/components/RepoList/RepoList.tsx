@@ -109,8 +109,7 @@ export const RepoList = ({
 
   const paginationTexts: PaginationTexts = {
     pageSizeLabel: t('dashboard.rows_per_page'),
-    showingRowText: t('dashboard.showing_row'),
-    ofText: t('general.of'),
+    totalRowsText: t('dashboard.total_count'),
     nextButtonAriaLabel: t('general.next'),
     previousButtonAriaLabel: t('general.previous'),
     numberButtonAriaLabel: (number) => `${t('general.page')} ${number}`,

@@ -15,9 +15,8 @@ describe('StudioTableRemotePagination', () => {
     onPageChange: jest.fn(),
     onPageSizeChange: jest.fn(),
     paginationTexts: {
-      pageSizeLabel: 'Rows per page',
-      showingRowText: 'Showing rows',
-      ofText: 'of',
+      pageSizeLabel: 'Rows per page:',
+      totalRowsText: 'Total number of rows:',
       nextButtonAriaLabel: 'Next',
       previousButtonAriaLabel: 'Previous',
       numberButtonAriaLabel: (num) => `Page ${num}`,
@@ -67,7 +66,7 @@ describe('StudioTableRemotePagination', () => {
       <StudioTableRemotePagination columns={columns} rows={rows} pagination={paginationProps} />,
     );
 
-    expect(screen.getByRole('combobox', { name: 'Rows per page' })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Rows per page:' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Next' })).toBeInTheDocument();
   });
 
@@ -114,7 +113,7 @@ describe('StudioTableRemotePagination', () => {
     );
     const user = userEvent.setup();
 
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Rows per page' }), '10');
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Rows per page:' }), '10');
 
     expect(paginationProps.onPageSizeChange).toHaveBeenCalledWith(10);
   });

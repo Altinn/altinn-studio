@@ -10,9 +10,8 @@ describe('StudioTableLocalPagination', () => {
   const paginationProps: LocalPaginationProps = {
     pageSizeOptions: [5, 10, 50],
     paginationTexts: {
-      pageSizeLabel: 'Rows per page',
-      showingRowText: 'Showing rows',
-      ofText: 'of',
+      pageSizeLabel: 'Rows per page:',
+      totalRowsText: 'Total number of rows:',
       nextButtonAriaLabel: 'Next',
       previousButtonAriaLabel: 'Previous',
       numberButtonAriaLabel: (number) => `Page ${number}`,
@@ -73,7 +72,7 @@ describe('StudioTableLocalPagination', () => {
       <StudioTableLocalPagination columns={columns} rows={rows} pagination={paginationProps} />,
     );
 
-    expect(screen.getByRole('combobox', { name: 'Rows per page' })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Rows per page:' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Next' })).toBeInTheDocument();
   });
 
@@ -117,7 +116,7 @@ describe('StudioTableLocalPagination', () => {
     );
     const user = userEvent.setup();
 
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Rows per page' }), '10');
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Rows per page:' }), '10');
 
     const tableBody = screen.getAllByRole('rowgroup')[1];
     const tableBodyRows = within(tableBody).getAllByRole('row');
@@ -135,7 +134,7 @@ describe('StudioTableLocalPagination', () => {
     const lastPageRow = within(lastPageBody).getAllByRole('row');
     expect(lastPageRow.length).toBe(1);
 
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Rows per page' }), '50');
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Rows per page:' }), '50');
     const tableBody = screen.getAllByRole('rowgroup')[1];
     const tableBodyRows = within(tableBody).getAllByRole('row');
     expect(tableBodyRows.length).toBe(16);

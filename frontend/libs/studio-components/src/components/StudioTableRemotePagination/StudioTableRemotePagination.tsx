@@ -16,8 +16,7 @@ export type Rows = (Record<string, ReactNode> & Record<'id', string | number>)[]
 
 export type PaginationTexts = {
   pageSizeLabel: string;
-  showingRowText: string;
-  ofText: string;
+  totalRowsText: string;
   nextButtonAriaLabel: string;
   previousButtonAriaLabel: string;
   numberButtonAriaLabel: (num: number) => string;
@@ -66,8 +65,7 @@ export const StudioTableRemotePagination = forwardRef<
 
     const {
       pageSizeLabel,
-      showingRowText,
-      ofText,
+      totalRowsText,
       nextButtonAriaLabel,
       previousButtonAriaLabel,
       numberButtonAriaLabel,
@@ -76,9 +74,6 @@ export const StudioTableRemotePagination = forwardRef<
     const isTableEmpty = rows.length === 0;
     const isSortingActive = !isTableEmpty && onSortClick;
     const isPaginationActive = pagination && totalRows > Math.min(...pageSizeOptions);
-
-    const firstRowIndex = (currentPage - 1) * pageSize + 1;
-    const lastRowIndex = Math.min(currentPage * pageSize, totalRows);
 
     useEffect(() => {
       const isOutOfRange = totalRows > 0 && isTableEmpty;
@@ -140,7 +135,7 @@ export const StudioTableRemotePagination = forwardRef<
                 ))}
               </NativeSelect>
               <Paragraph size={size} className={classes.rowCounter}>
-                {showingRowText} {firstRowIndex}-{lastRowIndex} {ofText} {totalRows}
+                {totalRowsText} {totalRows}
               </Paragraph>
             </div>
             {totalPages > 1 && (

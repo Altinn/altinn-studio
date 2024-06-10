@@ -34,8 +34,7 @@ const meta: Meta = {
 export const Preview: Story = (args) => {
   const paginationTexts: PaginationTexts = {
     pageSizeLabel: 'Rows per page:',
-    showingRowText: 'Showing rows',
-    ofText: 'of',
+    totalRowsText: 'Total number of rows:',
     nextButtonAriaLabel: 'Next',
     previousButtonAriaLabel: 'Previous',
     numberButtonAriaLabel: (num) => `Page ${num}`,
