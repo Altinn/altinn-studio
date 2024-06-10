@@ -14,6 +14,7 @@ const defaultProps: ProcessEditorProps = {
   bpmnXml: mockBPMNXML,
   saveBpmn: jest.fn(),
   appLibVersion: mockAppLibVersion8,
+  availableDataTypeIds: [],
   availableDataModelIds: [],
   allDataModelIds: [],
   layoutSets: { sets: [] },

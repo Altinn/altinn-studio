@@ -9,6 +9,7 @@ type QueryOptions = {
 };
 
 export type BpmnApiContextProps = {
+  availableDataTypeIds: string[];
   availableDataModelIds: string[];
   allDataModelIds: string[];
   layoutSets: LayoutSets;
