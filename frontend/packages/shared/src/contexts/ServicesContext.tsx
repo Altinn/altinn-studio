@@ -41,19 +41,21 @@ const handleError = (
 
   const errorCode = error?.response?.data?.errorCode;
   const errorMessageKey = errorCode ? `api_errors.${errorCode}` : 'api_errors.Unauthorized';
+  const unAuthorizedErrorCode = error?.response?.status === ServerCodes.Unauthorized;
 
   const renderToast = () => {
-    toast.error(t(errorMessageKey), { toastId: errorMessageKey, autoClose: LOG_OUT_TIMER_MS });
-    setTimeout(() => {
-      logout().then(() => window.location.assign(userLogoutAfterPath()));
-    }, LOG_OUT_TIMER_MS);
+    if (errorCode || unAuthorizedErrorCode) {
+      toast.error(t(errorMessageKey), {
+        toastId: errorMessageKey,
+        onClose: () => logout().then(() => window.location.assign(userLogoutAfterPath())),
+        autoClose: LOG_OUT_TIMER_MS,
+      });
+    }
   };
 
-  if (errorCode || error?.response?.status === ServerCodes.Unauthorized) {
-    if (i18n.exists(errorMessageKey)) {
-      renderToast();
-      return;
-    }
+  if (i18n.exists(errorMessageKey)) {
+    renderToast();
+    return;
   }
 
   if (
