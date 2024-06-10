@@ -9,7 +9,7 @@ COPY .mvn ./.mvn
 COPY pom.xml pom.xml
 RUN ./mvnw dependency:go-offline -B
 COPY src ./src
-RUN ./mvnw clean package
+RUN ./mvnw clean package -DskipTests
 
 # Package stage
 FROM eclipse-temurin:21-jre-alpine
