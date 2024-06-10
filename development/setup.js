@@ -141,7 +141,6 @@ const addReleaseAndDeployTestDataToDb = async () =>
   );
 
 const script = async () => {
-  const args = process.argv.slice(2);
   const env = ensureDotEnv();
   await dnsIsOk('studio.localhost');
   if (!(env.IGNORE_DOCKER_DNS_LOOKUP === 'true')) {
