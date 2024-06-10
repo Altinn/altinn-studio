@@ -78,6 +78,10 @@
       "value": "Gruppe"
     },
     {
+      "id": "GridPage",
+      "value": "Grid"
+    },
+    {
       "id": "GroupPage-Group-Header.title",
       "value": "Her ligger en tekst inne i en gruppe"
     },
