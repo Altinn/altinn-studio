@@ -3,19 +3,12 @@
   "data": {
     "layout": [
       {
-        "id": "NavigationBar",
-        "type": "NavigationBar"
+        "rows": [],
+        "id": "Grid-6lCcyQ",
+        "type": "Grid"
       },
       {
-        "size": "h2",
-        "id": "FileUpload-Header",
-        "type": "Header",
-        "textResourceBindings": {
-          "title": "FileUpload"
-        }
-      },
-      {
-        "id": "NavigationButtons-L67e32",
+        "id": "NavigationButtons-nkqJlY",
         "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
