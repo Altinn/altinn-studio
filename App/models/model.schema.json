@@ -21,6 +21,34 @@
     "streetnr",
     "postnr"
   ],
+  "$defs": {
+    "GridExample": {
+      "type": "object",
+      "properties": {
+        "ExampleDate": {
+          "type": "string"
+        },
+        "ExampleDropdown": {
+          "type": "string"
+        },
+        "ExampleMultiSelect": {
+          "type": "string"
+        },
+        "ExampleTextArea": {
+          "type": "string"
+        },
+        "ExampleInput": {
+          "type": "string"
+        },
+        "ExampleRadio": {
+          "type": "string"
+        },
+        "ExampleCheckbox": {
+          "type": "string"
+        }
+      }
+    }
+  },
   "properties": {
     "inputfield": {
       "type": "string"
@@ -54,6 +82,9 @@
     },
     "street": {
       "type": "string"
+    },
+    "GridExample": {
+      "$ref": "#/$defs/GridExample"
     }
   }
 }

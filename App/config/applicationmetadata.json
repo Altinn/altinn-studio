@@ -2,7 +2,7 @@
   "id": "ttd/component-library",
   "org": "ttd",
   "title": {
-    "nb": "component-library"
+    "nb": "altinn-apps-all-components"
   },
   "dataTypes": [
     {
@@ -50,6 +50,30 @@
         "autoDeleteOnProcessEnd": false
       },
       "taskId": "PreviousProcessSummary",
+      "maxCount": 1,
+      "minCount": 1,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "FileUpload-N6frPq",
+      "taskId": "Task_1",
+      "maxSize": 25,
+      "maxCount": 1,
+      "minCount": 1,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "FileUploadWithTag-UvbEiL",
+      "taskId": "Task_1",
+      "maxSize": 25,
       "maxCount": 1,
       "minCount": 1,
       "enablePdfCreation": true,

@@ -1,98 +1,149 @@
 {
-    "language": "nb",
-    "resources": [
-        {
-            "id": "appName",
-            "value": "altinn-apps-all-components"
-        },
-        {
-            "id": "Header.Component",
-            "value": "Komponent"
-        },
-        {
-            "id": "Header.Summary",
-            "value": "Slik ser det ut i oppsummering"
-        },
-        {
-            "id": "Header.Summary2",
-            "value": "Slik ser det ut i summary 2"
-        },
-        {
-            "id": "InputPage",
-            "value": "Kort svar"
-        },
-        {
-            "id": "InputPage.Input.title",
-            "value": "Eksempel på kort svar komponent"
-        },
-        {
-            "id": "InputPage.Input.Grid.title-1",
-            "value": "Eksempel på kort svar komponent med grid"
-        },
-        {
-            "id": "InputPage.Input.Grid.title-2",
-            "value": "Enda et eksempel på kort svar komponent med grid"
-        },
-        {
-            "id": "InputPage.Input.Grid.title.long",
-            "value": "Eksempel på kort svar komponent med grid på kun selve inputfeltet og kjempelang tittel som forklarer i slitsomt nøye detaljer hva som skal fylles ut i dette feltet, slik at teksten bryter over flere linjer"
-        },
-        {
-            "id": "TextareaPage",
-            "value": "Langt svar"
-        },
-        {
-            "id": "TextareaPage.Textarea.title",
-            "value": "Eksempel på langt svar komponent."
-        },
-        {
-            "id": "RadioButtonsPage",
-            "value": "Radioknapper"
-        },
-        {
-            "id": "RadioButtonsPage.RadioButtons.title",
-            "value": "Hva slags kjøretøy har du?"
-        },
-        {
-            "id": "CheckboxesPage",
-            "value": "Avkryssningsbokser"
-        },
-        {
-            "id": "CheckboxesPage.Checkboxes.title",
-            "value": "Hva skal kjøretøyet brukes til?"
-        },
-        {
-            "id": "GroupPage",
-            "value": "Gruppe"
-        },
-        {
-            "id": "GroupPage-Group-Header.title",
-            "value": "Her ligger en tekst inne i en gruppe"
-        },
-        {
-            "id": "AddressPage",
-            "value": "Adresse"
-        },
-        {
-            "id": "SummaryPage",
-            "value": "Oppsummering 2.0"
-        },
-        {
-            "id": "Side4.Button-qHGXDg.title",
-            "value": "Send inn"
-        },
-        {
-            "id": "Side4.Header-tZjZtv.title",
-            "value": "Eksempel på ny oppsummeringskomponent:"
-        },
-        {
-            "id": "Side4.Header-in-new-summary",
-            "value": "Jeg skal rendres inne i ny summary:"
-        },
-
-        {
-            "id": "undefined",
-            "value": "Her ligger en tittel inne i en gruppe"
-        }
-    ]
+  "language": "nb",
+  "resources": [
+    {
+      "id": "appName",
+      "value": "altinn-apps-all-components"
+    },
+    {
+      "id": "Grid",
+      "value": "Grid"
+    },
+    {
+      "id": "Grid.Title",
+      "value": "My grid component"
+    },
+    {
+      "id": "Grid.Description",
+      "value": "Hello this is a description of the component below"
+    },
+    {
+      "id": "Header.Component",
+      "value": "Komponent"
+    },
+    {
+      "id": "Header.Summary",
+      "value": "Slik ser det ut i oppsummering"
+    },
+    {
+      "id": "Header.Summary2",
+      "value": "Slik ser det ut i summary 2"
+    },
+    {
+      "id": "InputPage",
+      "value": "Kort svar"
+    },
+    {
+      "id": "InputPage.Input.title",
+      "value": "Eksempel på kort svar komponent"
+    },
+    {
+      "id": "InputPage.Input.Grid.title-1",
+      "value": "Eksempel på kort svar komponent med grid"
+    },
+    {
+      "id": "InputPage.Input.Grid.title-2",
+      "value": "Enda et eksempel på kort svar komponent med grid"
+    },
+    {
+      "id": "InputPage.Input.Grid.title.long",
+      "value": "Eksempel på kort svar komponent med grid på kun selve inputfeltet og kjempelang tittel som forklarer i slitsomt nøye detaljer hva som skal fylles ut i dette feltet, slik at teksten bryter over flere linjer"
+    },
+    {
+      "id": "TextareaPage",
+      "value": "Langt svar"
+    },
+    {
+      "id": "TextareaPage.Textarea.title",
+      "value": "Eksempel på langt svar komponent."
+    },
+    {
+      "id": "RadioButtonsPage",
+      "value": "Radioknapper"
+    },
+    {
+      "id": "RadioButtonsPage.RadioButtons.title",
+      "value": "Hva slags kjøretøy har du?"
+    },
+    {
+      "id": "CheckboxesPage",
+      "value": "Avkryssningsbokser"
+    },
+    {
+      "id": "CheckboxesPage.Checkboxes.title",
+      "value": "Hva skal kjøretøyet brukes til?"
+    },
+    {
+      "id": "GroupPage",
+      "value": "Gruppe"
+    },
+    {
+      "id": "GridPage",
+      "value": "Grid"
+    },
+    {
+      "id": "GroupPage-Group-Header.title",
+      "value": "Her ligger en tekst inne i en gruppe"
+    },
+    {
+      "id": "AddressPage",
+      "value": "Adresse"
+    },
+    {
+      "id": "SummaryPage",
+      "value": "Oppsummering 2.0"
+    },
+    {
+      "id": "Side4.Button-qHGXDg.title",
+      "value": "Send inn"
+    },
+    {
+      "id": "Side4.Header-tZjZtv.title",
+      "value": "Eksempel på ny oppsummeringskomponent:"
+    },
+    {
+      "id": "Side4.Header-in-new-summary",
+      "value": "Jeg skal rendres inne i ny summary:"
+    },
+    {
+      "id": "undefined",
+      "value": "Her ligger en tittel inne i en gruppe"
+    },
+    {
+      "id": "RenderPreviousTask",
+      "value": "Oppsummering av tidligere Task"
+    },
+    {
+      "id": "RenderSpecificPageFromPreviousTask",
+      "value": "Oppsummering av side fra tidligere Task"
+    },
+    {
+      "id": "RenderSpecificComponentFromPreviousTask",
+      "value": "Oppsummering av komponent fra tidligere Task"
+    },
+    { "id": "reasons.related", "value": "Slektskap" },
+    {
+      "id": "reasons.adoptive",
+      "value": "Adoptivforelders etternavn eller mellomnavn"
+    },
+    {
+      "id": "reasons.stepParents",
+      "value": "Ste- eller fosterforeldres etternavn eller mellomnavn"
+    },
+    {
+      "id": "reasons.spouse",
+      "value": "Ektefelles etternavn eller mellomnavn"
+    },
+    {
+      "id": "reasons.cohabitant",
+      "value": "Samboers etternavn eller mellomnavn"
+    },
+    {
+      "id": "reasons.pastName",
+      "value": "Tidligere etternavn eller mellomnavn"
+    },
+    { "id": "reasons.farm", "value": "Gårdsbruk" },
+    { "id": "reasons.newName", "value": "Jeg tror navnet er nytt i Norge" },
+    { "id": "reasons.other", "value": "Annen begrunnelse " }
+  ]
 }

@@ -8,6 +8,8 @@
       "CheckboxesPage",
       "GroupPage",
       "AddressPage",
+      "FileUploadPage",
+      "GridPage",
       "SummaryPage"
     ]
   }
