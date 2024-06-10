@@ -17,21 +17,21 @@ export const EditDataTypesToSign = () => {
   );
 
   return dataTypesToSignSelectVisible ? (
-        <SelectDataTypesToSign onClose={() => setDataTypesToSignSelectVisible(false)} />
-      ) : (
-        <StudioProperty.Button
-          onClick={() => setDataTypesToSignSelectVisible(true)}
-          property={t('process_editor.configuration_panel_set_data_types_to_sign')}
-          title={t('process_editor.configuration_panel_set_data_types_to_sign')}
-          value={
-            <>
-              {selectedDataTypes?.map((dataType) => (
-                <div key={dataType} className={classes.dataType}>
-                  <LinkIcon /> {dataType}
-                </div>
-              ))}
-            </>
-          }
-        />
+    <SelectDataTypesToSign onClose={() => setDataTypesToSignSelectVisible(false)} />
+  ) : (
+    <StudioProperty.Button
+      onClick={() => setDataTypesToSignSelectVisible(true)}
+      property={t('process_editor.configuration_panel_set_data_types_to_sign')}
+      title={t('process_editor.configuration_panel_set_data_types_to_sign')}
+      value={
+        <>
+          {selectedDataTypes?.map((dataType) => (
+            <div key={dataType} className={classes.dataType}>
+              <LinkIcon /> {dataType}
+            </div>
+          ))}
+        </>
+      }
+    />
   );
 };
