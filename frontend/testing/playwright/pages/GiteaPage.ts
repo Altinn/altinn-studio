@@ -128,14 +128,6 @@ export class GiteaPage extends BasePage {
   }
 
   public async verifySequenceFlowDirection(fromId: string, toId: string): Promise<void> {
-    /*   const flowId = /Flow_\w+/;
-
-    const text = this.page.getByText(
-      `<bpmn:sequenceFlow id="${flowId}" sourceRef="${fromId}" targetRef="${toId}" />`,
-    );
-    await expect(text).toBeVisible();
-*/
-
     const firstPartOfText = this.page.getByText('<bpmn:sequenceFlow id="Flow_');
     await expect(firstPartOfText).toBeVisible();
 
@@ -172,5 +164,9 @@ export class GiteaPage extends BasePage {
     `;
     const textLocator = this.page.getByText(text);
     expect(textLocator).toBeVisible();
+  }
+
+  public async verifyThatActionIsVisible(action: string): Promise<void> {
+    await this.page.getByText(`<altinn:action>${action}</altinn:action>`).isVisible();
   }
 }

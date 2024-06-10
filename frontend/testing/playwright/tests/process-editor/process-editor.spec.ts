@@ -11,8 +11,6 @@ import { DataModelPage } from '../../pages/DataModelPage';
 import { GiteaPage } from '../../pages/GiteaPage';
 import { type BpmnTaskType } from '../../types/BpmnTaskType';
 
-// TRY TO SPLIT THE LARGE TEST INTO SMALLER ONES
-
 // This line must be there to ensure that the tests do not run in parallell, and
 // that the before all call is being executed before we start the tests
 test.describe.configure({ mode: 'serial' });
@@ -45,6 +43,8 @@ test('That it is possible to click a task in the process editor, and delete the 
 }): Promise<void> => {
   const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
   const bpmnJSQuery = new BpmnJSQuery(page);
+  const header = new Header(page, { app: testAppName });
+  const giteaPage = new GiteaPage(page, { app: testAppName });
 
   const initialTaskDataElementIdSelector: string = await bpmnJSQuery.getTaskByIdAndType(
     'Task_1',
@@ -53,6 +53,7 @@ test('That it is possible to click a task in the process editor, and delete the 
   await processEditorPage.clickOnTaskInBpmnEditor(initialTaskDataElementIdSelector);
   await processEditorPage.waitForInitialTaskHeaderToBeVisible();
 
+  // --------------------- Add and delete datamodel ---------------------
   await processEditorPage.clickOnDataModelButton();
   await processEditorPage.waitForDataModelComboboxToBeVisible();
 
@@ -70,41 +71,43 @@ test('That it is possible to click a task in the process editor, and delete the 
   await processEditorPage.verifyDataModelButtonTextIsSelectedDataModel(dataModelName);
   await processEditorPage.verifyThatAddNewDataModelButtonIsHidden();
 
-  // Navigate to datamodel page, generate a new datamodel - see that it appears
-});
-
-/*
-TODO WAIT FOR COMBOBOX MERGE
-
-test('That it is possible to click a task in the process editor, add a new action, and open the policy editor', async ({
-  page,
-  testAppName,
-}): Promise<void> => {
-  const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
-  const bpmnJSQuery = new BpmnJSQuery(page);
-
-  // ADD WRITTEN ACTIONS TOO
-
-  const initialTaskDataElementIdSelector: string = await bpmnJSQuery.getTaskById('Task_1');
-  await processEditorPage.clickOnInitialTask(initialTaskDataElementIdSelector);
-  await processEditorPage.waitForInitialTaskHeaderToBeVisible();
-
-  await processEditorPage.clickOnActionsAccordion(); // Maybe combine with below
+  // --------------------- Add actions ---------------------
+  await processEditorPage.clickOnActionsAccordion();
   await processEditorPage.waitForAddActionsButtonToBeVisible();
 
+  const actionIndex1: string = '1';
   await processEditorPage.clickAddActionsButton();
-  await processEditorPage.waitForActionComboboxToBeVisible('1');
+  await processEditorPage.waitForActionComboboxTitleToBeVisible(actionIndex1);
 
-  await processEditorPage.clickOnActionCombobox('1');
-  await processEditorPage.clickOnActionOption('write');
+  const actionOptionWrite: string = 'write';
+  await processEditorPage.clickOnActionCombobox(actionIndex1);
+  await processEditorPage.clickOnActionOption(actionOptionWrite);
+  await processEditorPage.removeFocusFromActionCombobox(actionIndex1);
   await processEditorPage.clickOnSaveActionButton();
-  await processEditorPage.waitForActionButtonToBeVisible('write');
+  await processEditorPage.waitForActionButtonToBeVisible(actionIndex1, actionOptionWrite);
 
-  await processEditorPage.clickOnPolicyAccordion(); // Maybe combine with above
+  // --------------------- Verify policy editor ---------------------
+  await processEditorPage.clickOnPolicyAccordion();
   await processEditorPage.waitForNavigateToPolicyButtonIsVisible();
   await processEditorPage.clickOnNavigateToPolicyEditorButton();
+
+  await processEditorPage.verifyThatPolicyEditorIsOpen();
+  await processEditorPage.closePolicyEditor();
+  await processEditorPage.verifyThatPolicyEditorIsClosed();
+
+  // --------------------- Check that files are uploaded to Gitea ---------------------
+  await goToGiteaAndNavigateToProcessBpmnFile(header, giteaPage);
+
+  const numberOfPagesBackToAltinnStudio: number = 5;
+  await giteaPage.goBackNPages(numberOfPagesBackToAltinnStudio);
+
+  await header.clickOnUploadLocalChangesButton();
+  await header.clickOnValidateChanges();
+  await header.checkThatUploadSuccessMessageIsVisible();
+
+  await goToGiteaAndNavigateToProcessBpmnFile(header, giteaPage);
+  await giteaPage.verifyThatActionIsVisible(actionOptionWrite);
 });
-*/
 
 test('That it is possible to add a new task to the process editor, configure some of its data', async ({
   page,
@@ -116,14 +119,14 @@ test('That it is possible to add a new task to the process editor, configure som
   const dataModelPage = new DataModelPage(page, { app: testAppName });
   const giteaPage = new GiteaPage(page, { app: testAppName });
 
-  // Drag task in to editor and get new id
+  // --------------------- Drag new task into the editor ---------------------
   const svgSelector = await bpmnJSQuery.getTaskByIdAndType('SingleDataTask', 'svg');
   const dataTask: BpmnTaskType = 'data';
   await processEditorPage.dragTaskInToBpmnEditor(dataTask, svgSelector);
   await processEditorPage.waitForTaskToBeVisibleInConfigPanel(dataTask);
   const randomGeneratedId = await processEditorPage.getTaskIdFromOpenNewlyAddedTask();
 
-  // Edit the random id to a chosen id
+  // --------------------- Edit the id ---------------------
   await processEditorPage.clickOnTaskIdEditButton(randomGeneratedId);
   await processEditorPage.waitForEditIdInputFieldToBeVisible();
   await processEditorPage.emptyIdInputfield();
@@ -134,7 +137,7 @@ test('That it is possible to add a new task to the process editor, configure som
   await processEditorPage.saveNewId();
   await processEditorPage.waitForNewTaskIdButtonToBeVisible(newId);
 
-  // Add datamodel
+  // --------------------- Add new data model ---------------------
   await processEditorPage.clickOnAddDataModel();
   await processEditorPage.waitForDataModelComboboxToBeVisible();
   await processEditorPage.clickOnDataModelCombobox();
@@ -163,45 +166,36 @@ test('That it is possible to add a new task to the process editor, configure som
   await processEditorPage.waitForDataModelButtonToBeVisible();
   await processEditorPage.verifyDataModelButtonTextIsSelectedDataModel(newDataModel);
 
-  // Connect the task to the process
+  // --------------------- Connect the task to the process ---------------------
   await processEditorPage.clickOnConnectionArrow();
 
   const initialId: string = 'Task_1';
   const initialTaskSelector: string = await bpmnJSQuery.getTaskByIdAndType(initialId, 'g');
   await processEditorPage.clickOnTaskInBpmnEditor(initialTaskSelector);
 
-  // Add two actions
-  /*
-  await processEditorPage.clickOnActionsAccordion();
-  await processEditorPage.waitForAddActionsButtonToBeVisible();
-  await processEditorPage.clickAddActionsButton();
-  */
-
-  // Verify that changes does not exist on git
-  await goToGiteaAndNavigateToProcessBpmnFilee(header, giteaPage);
+  // --------------------- Check that files are uploaded to Gitea ---------------------
+  await goToGiteaAndNavigateToProcessBpmnFile(header, giteaPage);
   await giteaPage.verifyThatTheNewTaskIsHidden(newId, dataTask);
 
   const numberOfPagesBackToAltinnStudio: number = 5;
   await giteaPage.goBackNPages(numberOfPagesBackToAltinnStudio);
 
-  // Commit changes
   await header.clickOnUploadLocalChangesButton();
   await header.clickOnValidateChanges();
   await header.checkThatUploadSuccessMessageIsVisible();
 
-  // Navigate to Gitea
-  await goToGiteaAndNavigateToProcessBpmnFilee(header, giteaPage);
+  await goToGiteaAndNavigateToProcessBpmnFile(header, giteaPage);
   await giteaPage.verifyThatTheNewTaskIsVisible(newId, dataTask);
 
-  // TODO - verify actions
-  await giteaPage.verifySequenceFlowDirection(newId, initialId); //
+  await giteaPage.verifySequenceFlowDirection(newId, initialId);
   const numblerBackToConfig: number = 2;
   await giteaPage.goBackNPages(numblerBackToConfig);
   await giteaPage.clickOnApplicationMetadataFile();
   await giteaPage.verifyIdInDataModel(newId, newDataModel);
 });
 
-const goToGiteaAndNavigateToProcessBpmnFilee = async (header: Header, giteaPage: GiteaPage) => {
+// Helper function
+const goToGiteaAndNavigateToProcessBpmnFile = async (header: Header, giteaPage: GiteaPage) => {
   await header.clickOnThreeDotsMenu();
   await header.clickOnGoToGiteaRepository();
 

@@ -127,21 +127,25 @@ export class ProcessEditorPage extends BasePage {
       .click();
   }
 
-  public async waitForActionComboboxTitleToBeVisible(actionIndex: string): Promise<void> {
+  public async waitForActionComboboxTitleToBeVisible(
+    actionIndex: string,
+    actionName?: string,
+  ): Promise<void> {
     const combobox = this.page.getByRole('combobox', {
       name: this.textMock('process_editor.configuration_panel_actions_action_label', {
         actionIndex,
+        actionName: actionName ?? '',
       }),
     });
     await expect(combobox).toBeVisible();
   }
 
   public async clickOnActionCombobox(actionIndex: string, actionName?: string): Promise<void> {
-    this.page
+    await this.page
       .getByRole('combobox', {
         name: this.textMock('process_editor.configuration_panel_actions_action_label', {
           actionIndex,
-          actionName,
+          actionName: actionName ?? '',
         }),
       })
       .click();
@@ -149,6 +153,20 @@ export class ProcessEditorPage extends BasePage {
 
   public async clickOnActionOption(action: string): Promise<void> {
     await this.page.getByRole('option', { name: action }).click();
+  }
+
+  public async removeFocusFromActionCombobox(
+    actionIndex: string,
+    actionName?: string,
+  ): Promise<void> {
+    await this.page
+      .getByRole('combobox', {
+        name: this.textMock('process_editor.configuration_panel_actions_action_label', {
+          actionIndex,
+          actionName: actionName ?? '',
+        }),
+      })
+      .blur();
   }
 
   public async clickOnSaveActionButton(): Promise<void> {
@@ -166,10 +184,32 @@ export class ProcessEditorPage extends BasePage {
     const button = this.page.getByRole('button', {
       name: this.textMock('process_editor.configuration_panel_actions_action_label', {
         actionIndex,
-        actionName,
+        actionName: actionName ?? '',
       }),
     });
     await expect(button).toBeVisible();
+  }
+
+  public async typeValueInActionCombobox(
+    customText: string,
+    actionIndex: string,
+    actionName?: string,
+  ): Promise<void> {
+    await this.page
+      .getByRole('combobox', {
+        name: this.textMock('process_editor.configuration_panel_actions_action_label', {
+          actionIndex,
+          actionName: actionName ?? '',
+        }),
+      })
+      .fill(customText);
+  }
+
+  public async verifyThatCustomActionTextIsVisible(): Promise<void> {
+    const text = this.page.getByText(
+      this.textMock('process_editor.configuration_panel_actions_custom_action'),
+    );
+    await expect(text).toBeVisible();
   }
 
   public async clickOnPolicyAccordion(): Promise<void> {
@@ -292,6 +332,29 @@ export class ProcessEditorPage extends BasePage {
 
   public async clickOnConnectionArrow(): Promise<void> {
     await this.page.getByTitle(connectionArrowText).click();
+  }
+
+  public async verifyThatPolicyEditorIsOpen(): Promise<void> {
+    const heading = this.page.getByRole('heading', {
+      name: this.textMock('policy_editor.rules'),
+      level: 2,
+    });
+    await expect(heading).toBeVisible();
+  }
+  public async closePolicyEditor(): Promise<void> {
+    await this.page
+      .getByRole('button', {
+        name: this.textMock('settings_modal.close_button_label'),
+      })
+      .click();
+  }
+
+  public async verifyThatPolicyEditorIsClosed(): Promise<void> {
+    const heading = this.page.getByRole('heading', {
+      name: this.textMock('policy_editor.rules'),
+      level: 2,
+    });
+    await expect(heading).toBeHidden();
   }
 
   /**
