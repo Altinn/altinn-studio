@@ -144,12 +144,10 @@ const script = async () => {
   const args = process.argv.slice(2);
   const env = ensureDotEnv();
   await dnsIsOk('studio.localhost');
-  if (!args.includes('--skipDockerDnsLookup')) {
+  if (!(env.IGNORE_DOCKER_DNS_LOOKUP === 'true')) {
     await dnsIsOk('host.docker.internal');
   }
-  if (!args.includes('--skipDockerCompose')) {
-    await startingDockerCompose();
-  }
+  await startingDockerCompose();
   await waitFor('http://studio.localhost/repos/');
   await createUser(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS, true);
   await ensureUserPassword(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS);
