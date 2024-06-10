@@ -144,10 +144,10 @@ const script = async () => {
   const args = process.argv.slice(2);
   const env = ensureDotEnv();
   await dnsIsOk('studio.localhost');
-  if (args.includes('--skipDockerDnsLookup')) {
+  if (!args.includes('--skipDockerDnsLookup')) {
     await dnsIsOk('host.docker.internal');
   }
-  if (args.includes('--skipDockerCompose')) {
+  if (!args.includes('--skipDockerCompose')) {
     await startingDockerCompose();
   }
   await waitFor('http://studio.localhost/repos/');
