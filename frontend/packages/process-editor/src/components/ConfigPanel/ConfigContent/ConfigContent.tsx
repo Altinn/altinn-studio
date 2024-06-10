@@ -11,7 +11,7 @@ import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { Accordion } from '@digdir/design-system-react';
 import { EditActions } from './EditActions';
 import { EditPolicy } from './EditPolicy';
-import { EditDataTypesToSign } from '../EditDataTypesToSign/EditDataTypesToSign';
+import { EditDataTypesToSign } from '../EditDataTypesToSign';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();

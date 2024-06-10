@@ -16,9 +16,7 @@ export const EditDataTypesToSign = () => {
     !selectedDataTypes.length,
   );
 
-  return (
-    <>
-      {dataTypesToSignSelectVisible ? (
+  return dataTypesToSignSelectVisible ? (
         <SelectDataTypesToSign onClose={() => setDataTypesToSignSelectVisible(false)} />
       ) : (
         <StudioProperty.Button
@@ -35,7 +33,5 @@ export const EditDataTypesToSign = () => {
             </>
           }
         />
-      )}
-    </>
   );
 };
