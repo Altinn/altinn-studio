@@ -14,7 +14,7 @@ export const RepoNameWithLink = ({ repoFullName }: RepoNameWithLinkProps): React
   const [org, repoName] = repoFullName.split('/');
   const isDatamodelling = repoFullName.endsWith('-datamodels');
   const editUrl = getRepoEditUrl({ org, repo: repoName });
-  const editTextKey = t(isDatamodelling ? 'dashboard.edit_datamodels' : 'dashboard.edit_service');
+  const editTextKey = t(isDatamodelling ? 'dashboard.edit_datamodels' : 'dashboard.edit_app');
 
   return (
     <Link className={classes.repoLink} href={editUrl} title={editTextKey}>

@@ -1,7 +1,5 @@
 const path = require('path');
 
-process.env.DEBUG_PRINT_LIMIT = 100000000000;
-
 const packagesToTransform = [
   '@?react-leaflet',
   '@react-dnd',

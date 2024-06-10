@@ -37,18 +37,18 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
   const [org, repoName] = repoFullName.split('/');
   const isDatamodelling = repoFullName.endsWith('-datamodels');
   const editUrl = getRepoEditUrl({ org, repo: repoName });
-  const editTextKey = t(isDatamodelling ? 'dashboard.edit_datamodels' : 'dashboard.edit_service');
+  const editTextKey = t(isDatamodelling ? 'dashboard.edit_datamodels' : 'dashboard.edit_app');
 
   return (
     <div className={classes.actionLinksContainer} ref={copyModalAnchorRef}>
-      <Button variant={'tertiary'} icon className={classes.giteaButton} asChild>
+      <Button variant={'tertiary'} className={classes.giteaButton} icon asChild>
         <a href={repo.html_url} title={t('dashboard.show_repo')}>
           <i className={cn('fa fa-gitea', classes.giteaIcon)} />
         </a>
       </Button>
       <Button variant={'tertiary'} icon asChild>
         <a href={editUrl} title={editTextKey}>
-          <PencilIcon title={t('dashboard.edit_app_icon')} />
+          <PencilIcon />
         </a>
       </Button>
       <DropdownMenu size={'small'}>
