@@ -104,8 +104,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="layoutSetName">Name of layoutSet the specific layout belongs to</param>
         /// <param name="layoutName">The name of the form layout to be saved.</param>
-        /// <param name="formLayout">The content to be saved to the layout</param>
-        /// <param name="componentIdChange">If the componentID has been changed, this event includes info to perform the change across the app</param>
+        /// <param name="payload">A json object with, layout, the content to be saved, and the componentIdChange: If the componentID has been changed, this event includes info to perform the change across the app</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
@@ -120,7 +119,7 @@ namespace Altinn.Studio.Designer.Controllers
                 ComponentIdChange componentIdChange = System.Text.Json.JsonSerializer.Deserialize<ComponentIdChange>(payload["componentIdChange"]);
                 await _appDevelopmentService.SaveFormLayout(editingContext, layoutSetName, layoutName, payload["layout"], cancellationToken);
 
-                if (componentIdChange is not null)
+                if (componentIdChange is not null && !string.IsNullOrEmpty(layoutSetName))
                 {
                     await _mediator.Publish(new ComponentIdChangedEvent
                     {

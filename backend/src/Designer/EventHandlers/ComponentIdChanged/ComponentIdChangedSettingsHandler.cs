@@ -66,13 +66,13 @@ public class ComponentIdChangedSettingsHandler : INotificationHandler<ComponentI
                 string currentComponentId = excludeFromPdfArray[i]?.ToString();
                 if (currentComponentId == oldComponentId)
                 {
-                    if (string.IsNullOrEmpty(currentComponentId))
+                    hasChanges = true;
+                    if (string.IsNullOrEmpty(newComponentId))
                     {
                         excludeFromPdfArray.RemoveAt(i);
                         break;
                     }
                     excludeFromPdfArray[i] = newComponentId;
-                    hasChanges = true;
                     break;
                 }
             }

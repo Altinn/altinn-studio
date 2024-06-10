@@ -2,7 +2,9 @@
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
@@ -20,9 +22,9 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         }
 
         [Theory]
-        [InlineData("ttd", "empty-app", "testUser", "testLayout", "layoutSet1", "TestData/App/ui/layoutWithUnknownProperties.json")]
-        [InlineData("ttd", "empty-app", "testUser", "testLayout", "layoutSet1", "TestData/App/ui/changename/layouts/form.json")]
-        [InlineData("ttd", "empty-app", "testUser", "testLayout", "layoutSet1", "TestData/App/ui/changename/layouts/summary.json")]
+        [InlineData("ttd", "app-with-layoutsets", "testUser", "testLayout", "layoutSet1", "TestData/App/ui/layoutWithUnknownProperties.json")]
+        [InlineData("ttd", "app-with-layoutsets", "testUser", "testLayout", "layoutSet1", "TestData/App/ui/changename/layouts/form.json")]
+        [InlineData("ttd", "app-with-layoutsets", "testUser", "testLayout", "layoutSet1", "TestData/App/ui/changename/layouts/summary.json")]
         [InlineData("ttd", "empty-app", "testUser", "testLayout", null, "TestData/App/ui/layoutWithUnknownProperties.json")]
         [InlineData("ttd", "empty-app", "testUser", "testLayout", null, "TestData/App/ui/changename/layouts/form.json")]
         [InlineData("ttd", "empty-app", "testUser", "testLayout", null, "TestData/App/ui/changename/layouts/summary.json")]
@@ -43,9 +45,22 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             string layout = SharedResourcesHelper.LoadTestDataAsString(layoutPath);
 
+            var payload = new JsonObject
+            {
+                ["componentIdChange"] = new JsonObject
+                {
+                    ["oldComponentId"] = "Test",
+                    ["newComponentId"] = "Test2",
+                },
+
+                ["layout"] = JsonNode.Parse(layout)
+            };
+
+            string jsonPayload = payload.ToJsonString();
+
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
             {
-                Content = new StringContent(layout, Encoding.UTF8, MediaTypeNames.Application.Json)
+                Content = new StringContent(jsonPayload, Encoding.UTF8, MediaTypeNames.Application.Json)
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
