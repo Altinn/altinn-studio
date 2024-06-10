@@ -154,7 +154,7 @@
         },
         "image": {
           "src": {
-            "nb": "/ttd/frontend-test/images/altinn-logo.svg"
+            "nb": "/ttd/component-library/images/altinn-logo.svg"
           },
           "width": "100%",
           "align": "flex-start"
@@ -189,6 +189,134 @@
         }
       },
       {
+        "id": "grid-example-common-fields",
+        "type": "Grid",
+        "textResourceBindings": {
+          "title": "Grid.Title",
+          "description": "Grid.Description"
+        },
+        "rows": [
+          {
+            "header": true,
+            "readOnly": false,
+            "cells": [
+              {},
+              {
+                "text": "heading1"
+              },
+              {
+                "text": "heading2"
+              },
+              {
+                "text": "heading3"
+              }
+            ]
+          },
+          {
+            "header": false,
+            "readOnly": false,
+            "cells": [
+              {"text": "Row 1"},
+              {
+                "component": "grid-input-field"
+              },
+              {
+                "component": "grid-checkbox-field"
+              },
+              {
+                "component": "grid-radio-field"
+              }
+            ]
+          },
+          {
+            "header": false,
+            "readOnly": false,
+            "cells": [
+              {"text": "Row 3"},
+              {
+                "component": "grid-input-field"
+              },
+              {
+                "component": "grid-checkbox-field"
+              },
+              {
+                "component": "grid-radio-field"
+              }
+            ]
+          },
+          {
+            "header": false,
+            "readOnly": false,
+            "cells": [
+              {"text": "Row 3"},
+              {
+                "component": "grid-input-field"
+              },
+              {
+                "component": "grid-checkbox-field"
+              },
+              {
+                "component": "grid-radio-field"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "grid-input-field",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "My input field"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleInput"
+        }
+      },
+      {
+        "id": "grid-radio-field",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "My radio field"
+        },
+        "options": [
+          {
+            "label": "Ja",
+            "value": "option1"
+          },
+          {
+            "label": "Nei",
+            "value": "option2"
+          }
+        ],
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleRadio"
+        }
+      },
+      {
+        "id": "grid-checkbox-field",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "My radio field"
+        },
+        "options": [
+          {
+            "label": "Valg 1",
+            "value": "option1"
+          },
+          {
+            "label": "Valg 2",
+            "value": "option2"
+          },
+          {
+            "label": "Valg 3",
+            "value": "option3"
+          }
+        ],
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleCheckbox"
+        }
+      },
+      {
         "size": "h3",
         "id": "CheckboxesPage-Header-Summary",
         "type": "Header",
@@ -200,6 +328,11 @@
         "id": "old-summary",
         "type": "Summary",
         "componentRef": "all-grid-components"
+      },
+      {
+        "id": "old-summary",
+        "type": "Summary",
+        "componentRef": "grid-example-common-fields"
       },
       {
         "size": "h3",
