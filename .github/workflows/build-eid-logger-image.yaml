@@ -5,6 +5,7 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - 'eidlogger/**'
+      - '.github/workflows/build-eid-logger-image.yaml'
   workflow_dispatch:
 
 jobs:
@@ -19,4 +20,4 @@ jobs:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: Build eid logger image
         run: |
-           docker build --build-arg GITHUB_USER=${ACTION_USER} --build-arg GITHUB_PASSWORD=${ACTION_PAT} -t studio-eidlogger:${SHORT_SHA} eidlogger
+           docker build --build-arg GITHUB_USER=${ACTION_USER} --build-arg GITHUB_PASSWORD=${ACTION_PAT} -t studio-eidlogger:${GITHUB_SHA} eidlogger
