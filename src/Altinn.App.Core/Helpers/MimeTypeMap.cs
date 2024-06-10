@@ -621,7 +621,7 @@ public static class MimeTypeMap
             #endregion
         };
 
-        return mappings.ToFrozenDictionary();
+        return mappings.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>

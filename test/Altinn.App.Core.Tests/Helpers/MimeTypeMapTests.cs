@@ -7,6 +7,18 @@ namespace Altinn.App.Core.Tests.Helpers;
 
 public class MimeTypeMapTests
 {
+    [Theory]
+    [InlineData(".pdf")]
+    [InlineData(".pDF")]
+    public void GetMimeType_ShouldNotBe_CaseSensitive(string extension)
+    {
+        // Act
+        var mimeType = MimeTypeMap.GetMimeType(extension);
+
+        // Assert
+        mimeType.ToString().Should().BeEquivalentTo("application/pdf");
+    }
+
     [Fact]
     public void GetMimeType_ShouldReturnCorrectMimeType_for_pdf()
     {
