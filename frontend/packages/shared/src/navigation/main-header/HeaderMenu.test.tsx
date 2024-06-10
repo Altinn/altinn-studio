@@ -74,7 +74,7 @@ describe('HeaderMenu', () => {
 
     await userEvent.click(selfItem); // eslint-disable-line testing-library/no-unnecessary-act
 
-    expect(mockedNavigate).toHaveBeenCalledWith('/');
+    expect(mockedNavigate).toHaveBeenCalledWith('/self');
   });
 
   it('should call setSelectedContext with org-id when selecting org as context', async () => {
