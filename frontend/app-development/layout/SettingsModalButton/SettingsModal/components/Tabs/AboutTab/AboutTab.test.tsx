@@ -2,7 +2,7 @@ import React from 'react';
 import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { AboutTabProps } from './AboutTab';
 import { AboutTab } from './AboutTab';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import userEvent from '@testing-library/user-event';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';
@@ -16,14 +16,13 @@ import { mockAppConfig } from '../../../mocks/appConfigMock';
 import { formatDateToDateAndTimeString } from 'app-development/utils/dateUtils';
 import { MemoryRouter } from 'react-router-dom';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import { app, org } from '@studio/testing/testids';
 
-const mockApp: string = 'app';
-const mockOrg: string = 'org';
 const mockNewText: string = 'test';
 
 const mockAppMetadata: ApplicationMetadata = {
-  id: `${mockOrg}/${mockApp}`,
-  org: mockOrg,
+  id: `${org}/${app}`,
+  org,
   createdBy: 'Test Testesen',
 };
 
@@ -41,8 +40,8 @@ const getRepoMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 
 const defaultProps: AboutTabProps = {
-  org: mockOrg,
-  app: mockApp,
+  org,
+  app,
 };
 
 describe('AboutTab', () => {

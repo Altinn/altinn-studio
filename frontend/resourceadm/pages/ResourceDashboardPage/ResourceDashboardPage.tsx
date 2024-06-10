@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import classes from './ResourceDashboardPage.module.css';
 import { PlusCircleIcon, MigrationIcon, TasklistIcon } from '@studio/icons';
 import { Spinner, Heading } from '@digdir/design-system-react';
@@ -17,6 +18,10 @@ import { getReposLabel } from 'dashboard/utils/repoUtils';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { useUrlParams } from '../../hooks/useSelectedContext';
 import { StudioButton } from '@studio/components';
+import { ImportAltinn3ResourceModal } from '../../components/ImportAltinn3ResourceModal';
+import { useImportResourceFromAltinn3Mutation } from '../../hooks/mutations/useImportResourceFromAltinn3Mutation';
+import type { EnvId } from '../../utils/resourceUtils';
+import type { Resource } from 'app-shared/types/ResourceAdm';
 
 /**
  * @component
@@ -26,14 +31,22 @@ import { StudioButton } from '@studio/components';
  */
 export const ResourceDashboardPage = (): React.JSX.Element => {
   const createResourceModalRef = useRef<HTMLDialogElement>(null);
+  const importAltinn3ResourceModalRef = useRef<HTMLDialogElement>(null);
   const { selectedContext, repo } = useUrlParams();
   const { data: organizations } = useOrganizationsQuery();
+
+  const { mutate: importResource, isPending: isImportingResource } =
+    useImportResourceFromAltinn3Mutation(selectedContext);
 
   const { t } = useTranslation();
 
   const navigate = useNavigate();
 
   const [searchValue, setSearchValue] = useState('');
+  const [importData, setImportData] = useState<{
+    resourceId: string;
+    availableEnvs: EnvId[];
+  } | null>(null);
 
   const [importModalOpen, setImportModalOpen] = useState(false);
 
@@ -50,6 +63,35 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
   const handleNavigateToResource = (id: string) => {
     navigate(getResourcePageURL(selectedContext, repo, id, 'about'));
   };
+
+  const handleImportResource = (resourceId: string, env: EnvId) => {
+    importAltinn3ResourceModalRef.current?.close();
+    const payload = {
+      resourceId: resourceId,
+      environment: env,
+    };
+
+    importResource(payload, {
+      onSuccess: (data: Resource) => {
+        toast.success(
+          t('resourceadm.dashboard_import_resource_success', {
+            resourceName: data.title?.nb,
+          }),
+        );
+        handleNavigateToResource(resourceId);
+      },
+    });
+  };
+
+  const onClickImportResource = (resourceId: string, envs: EnvId[]): void => {
+    setImportData({ resourceId: resourceId, availableEnvs: envs as EnvId[] });
+    if (envs.length === 1) {
+      handleImportResource(resourceId, envs[0]);
+    } else {
+      importAltinn3ResourceModalRef.current.showModal();
+    }
+  };
+
   /**
    * Display different content based on the loading state
    */
@@ -72,6 +114,8 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
           <ResourceTable
             list={filteredResourceList}
             onClickEditResource={handleNavigateToResource}
+            onClickImportResource={onClickImportResource}
+            importResourceId={isImportingResource ? importData?.resourceId : ''}
           />
         </>
       );
@@ -143,6 +187,12 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
         onClose={() => createResourceModalRef.current?.close()}
       />
       <ImportResourceModal isOpen={importModalOpen} onClose={() => setImportModalOpen(false)} />
+      <ImportAltinn3ResourceModal
+        ref={importAltinn3ResourceModalRef}
+        availableEnvs={importData?.availableEnvs ?? []}
+        onClose={() => importAltinn3ResourceModalRef.current?.close()}
+        onImport={(selectedEnv) => handleImportResource(importData.resourceId, selectedEnv)}
+      />
     </div>
   );
 };

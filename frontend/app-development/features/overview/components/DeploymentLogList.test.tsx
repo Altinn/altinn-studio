@@ -4,15 +4,13 @@ import type { DeploymentLogListProps } from './DeploymentLogList';
 import { DeploymentLogList } from './DeploymentLogList';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { pipelineDeployment, environment } from 'app-shared/mocks/mocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { BuildResult } from 'app-shared/types/Build';
+import { app, org } from '@studio/testing/testids';
 
 // Test data
-const org = 'ttd';
-const app = 'test-ttd';
-
 const defaultProps: DeploymentLogListProps = {
   orgEnvironmentList: [
     {

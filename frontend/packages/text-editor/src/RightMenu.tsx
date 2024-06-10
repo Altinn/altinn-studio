@@ -7,7 +7,7 @@ import { Checkbox, Fieldset, Heading } from '@digdir/design-system-react';
 import { defaultLangCode } from './constants';
 import { useTranslation } from 'react-i18next';
 import { AltinnConfirmDialog } from 'app-shared/components';
-import * as testids from '../../../testing/testids';
+import { deleteButtonId } from '@studio/testing/testids';
 import { StudioButton } from '@studio/components';
 import { ArrayUtils } from '@studio/pure-functions';
 
@@ -73,7 +73,7 @@ export const RightMenu = ({
                       trigger={
                         <StudioButton
                           variant={canDeleteLang(langCode) ? 'primary' : 'secondary'}
-                          data-testid={testids.deleteButton(langCode)}
+                          data-testid={deleteButtonId(langCode)}
                           color='danger'
                           onClick={() =>
                             setLangCodeToDelete((prevState) =>

@@ -2,15 +2,12 @@ import { waitFor } from '@testing-library/react';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useFrontEndSettingsQuery } from './useFrontEndSettingsQuery';
-
-// Test data:
-const org = 'org';
-const app = 'app';
+import { app, org } from '@studio/testing/testids';
 
 describe('useFrontEndSettingsQuery', () => {
   it('calls getFrontEndSettings with the correct parameters', () => {
     render();
-    expect(queriesMock.getFrontEndSettings).toHaveBeenCalledWith('org', 'app');
+    expect(queriesMock.getFrontEndSettings).toHaveBeenCalledWith(org, app);
   });
 });
 

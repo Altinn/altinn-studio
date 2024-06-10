@@ -1,6 +1,6 @@
 import React from 'react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { render, screen } from '@testing-library/react';
 import { mockBpmnDetails, paymentActions } from '../../../../../test/mocks/bpmnDetailsMock';
 import { ActionType, EditAction } from './EditAction';

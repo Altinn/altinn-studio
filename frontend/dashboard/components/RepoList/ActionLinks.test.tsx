@@ -7,9 +7,12 @@ import { textMock } from '../../../testing/mocks/i18nMock';
 
 jest.mock('../MakeCopyModal', () => {
   return {
-    MakeCopyModal: React.forwardRef((props, ref: React.Ref<HTMLDivElement>) => (
-      <div ref={ref}>Mocked MakeCopyModal</div>
-    )),
+    MakeCopyModal: React.forwardRef(function MockedMakeCopyModal(
+      props,
+      ref: React.Ref<HTMLDivElement>,
+    ) {
+      return <div ref={ref}>Mocked MakeCopyModal</div>;
+    }),
   };
 });
 

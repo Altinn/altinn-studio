@@ -201,6 +201,7 @@ export const queriesMock: ServicesContextProps = {
   updateAppPolicy: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppConfig: jest.fn().mockImplementation(() => Promise.resolve()),
+  uploadDatamodel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   upsertTextResources: jest
     .fn()
     .mockImplementation(() => Promise.resolve<ITextResourcesObjectFormat>({})),
@@ -208,6 +209,7 @@ export const queriesMock: ServicesContextProps = {
   // Mutations - Resourceadm
   createResource: jest.fn().mockImplementation(() => Promise.resolve()),
   importResourceFromAltinn2: jest.fn().mockImplementation(() => Promise.resolve<Resource>(null)),
+  importResourceFromAltinn3: jest.fn().mockImplementation(() => Promise.resolve({})),
   publishResource: jest.fn().mockImplementation(() => Promise.resolve()),
   updatePolicy: jest.fn().mockImplementation(() => Promise.resolve()),
   updateResource: jest.fn().mockImplementation(() => Promise.resolve()),

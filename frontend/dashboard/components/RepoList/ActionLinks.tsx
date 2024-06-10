@@ -84,3 +84,5 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
     </div>
   );
 };
+
+ActionLinks.displayName = 'ActionLinks';

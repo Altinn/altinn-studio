@@ -8,7 +8,7 @@ import type { DataLookupOptions } from '../../../../types/DataLookupOptions';
 import { DataLookupFuncName } from '../../../../enums/DataLookupFuncName';
 
 describe('findSubexpressionErrors', () => {
-  const dataLookupOptions: DataLookupOptions = {
+  const dataLookupOptions: Partial<DataLookupOptions> = {
     [DataLookupFuncName.Component]: ['1', '2'],
     [DataLookupFuncName.DataModel]: ['a', 'b'],
   };

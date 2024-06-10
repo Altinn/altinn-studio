@@ -4,7 +4,7 @@ import classes from './PageAccordion.module.css';
 import cn from 'classnames';
 import { Accordion } from '@digdir/design-system-react';
 import { NavigationMenu } from './NavigationMenu';
-import * as testids from '../../../../../../testing/testids';
+import { pageAccordionContentId } from '@studio/testing/testids';
 import { TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
@@ -87,7 +87,7 @@ export const PageAccordion = ({
         </div>
       </div>
       <Accordion.Content
-        data-testid={testids.pageAccordionContent(pageName)}
+        data-testid={pageAccordionContentId(pageName)}
         className={classes.accordionContent}
       >
         {children}

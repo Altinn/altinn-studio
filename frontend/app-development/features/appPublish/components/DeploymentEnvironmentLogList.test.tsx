@@ -3,7 +3,7 @@ import type { DeploymentEnvironmentLogListProps } from './DeploymentEnvironmentL
 import { DeploymentEnvironmentLogList } from './DeploymentEnvironmentLogList';
 import { screen } from '@testing-library/react';
 import { renderWithMockStore } from 'app-development/test/mocks';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 

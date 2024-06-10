@@ -19,6 +19,7 @@ module.exports = {
       '@altinn/text-editor': path.resolve(__dirname, 'packages/text-editor/src'),
       '@altinn/ux-editor': path.resolve(__dirname, 'packages/ux-editor/src'),
       '@altinn/ux-editor-v3': path.resolve(__dirname, 'packages/ux-editor-v3/src'),
+      '@studio/testing': path.resolve(__dirname, 'testing'),
     },
     fallback: {
       'react/jsx-runtime': 'react/jsx-runtime.js',

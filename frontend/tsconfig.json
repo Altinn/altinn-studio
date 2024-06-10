@@ -24,7 +24,8 @@
       "app-shared/*": ["./packages/shared/src/*"],
       "@altinn/text-editor/*": ["./packages/text-editor/src/*"],
       "@altinn/ux-editor/*": ["./packages/ux-editor/src/*"],
-      "@altinn/ux-editor-v3/*": ["./packages/ux-editor-v3/src/*"]
+      "@altinn/ux-editor-v3/*": ["./packages/ux-editor-v3/src/*"],
+      "@studio/testing/*": ["./testing/*"]
     },
     "plugins": [{ "name": "typescript-plugin-css-modules" }]
   },

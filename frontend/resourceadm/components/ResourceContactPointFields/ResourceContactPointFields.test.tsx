@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import type { ResourceContactPointFieldsProps } from './ResourceContactPointFields';
 import { ResourceContactPointFields } from './ResourceContactPointFields';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ResourceContactPoint } from 'app-shared/types/ResourceAdm';
 
 const mockContactPoint1: ResourceContactPoint = {

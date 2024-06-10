@@ -149,3 +149,5 @@ export const RepoList = ({
     </div>
   );
 };
+
+RepoList.displayName = 'RepoList';

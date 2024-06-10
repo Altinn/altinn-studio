@@ -3,17 +3,15 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import React from 'react';
 import { TextEditor } from './TextEditor';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import userEvent from '@testing-library/user-event';
-import * as testids from '../../../testing/testids';
+import { org, app, deleteButtonId } from '@studio/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 // Test data
-const org = 'test-org';
-const app = 'test-app';
 const testTextResourceKey = 'test-key';
 const testTextResourceValue = 'test-value';
 const languages = ['nb', 'en'];
@@ -162,7 +160,7 @@ describe('TextEditor', () => {
 
     renderTextEditor();
 
-    const deleteButton = screen.getByTestId(testids.deleteButton('en'));
+    const deleteButton = screen.getByTestId(deleteButtonId('en'));
     await user.click(deleteButton);
 
     const confirmButton = await screen.findByRole('button', {

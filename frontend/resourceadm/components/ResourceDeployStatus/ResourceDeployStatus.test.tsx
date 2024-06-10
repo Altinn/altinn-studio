@@ -5,7 +5,7 @@ import type { ResourceDeployStatusProps } from './ResourceDeployStatus';
 import { ResourceDeployStatus } from './ResourceDeployStatus';
 import userEvent from '@testing-library/user-event';
 import type { DeployError } from '../../types/DeployError';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 // add own version of mock for <Trans> element, to test replacement of <LinkButton>

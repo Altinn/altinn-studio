@@ -1,7 +1,7 @@
 import React from 'react';
 import { ConfigContent } from './ConfigContent';
 import { render, screen } from '@testing-library/react';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { BpmnContextProps } from '../../../contexts/BpmnContext';
 import { BpmnContext } from '../../../contexts/BpmnContext';
 import userEvent from '@testing-library/user-event';
@@ -119,6 +119,19 @@ describe('ConfigContent', () => {
       }),
     ).toBeInTheDocument();
     expect(screen.getByText(connectedDataType)).toBeInTheDocument();
+  });
+
+  it('should render the Policy accordion', async () => {
+    renderConfigContent();
+    const policyAccordion = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_policy_title'),
+    });
+    const user = userEvent.setup();
+    await user.click(policyAccordion);
+    const editPolicyButton = await screen.findByText(
+      textMock('process_editor.configuration_panel.edit_policy_open_policy_editor_button'),
+    );
+    expect(editPolicyButton).toBeInTheDocument();
   });
 });
 

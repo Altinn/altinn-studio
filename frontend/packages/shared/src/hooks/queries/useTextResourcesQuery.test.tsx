@@ -4,10 +4,9 @@ import { renderHook, waitFor } from '@testing-library/react';
 import React from 'react';
 import { ServicesContextProvider } from '../../contexts/ServicesContext';
 import { createQueryClientMock } from '../../mocks/queryClientMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const languagesMock = ['nb', 'nn', 'en'];
 
 describe('useTextResourcesQuery', () => {

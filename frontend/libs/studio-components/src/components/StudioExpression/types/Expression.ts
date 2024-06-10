@@ -4,6 +4,7 @@ import type { LogicalTupleOperator } from '../enums/LogicalTupleOperator';
 import type { DataLookupFuncName } from '../enums/DataLookupFuncName';
 import type { KeyLookupFuncName } from '../enums/KeyLookupFuncName';
 import type { InstanceContext } from '../enums/InstanceContext';
+import type { GatewayActionContext } from '../enums/GatewayActionContext';
 
 export type Expression =
   | null
@@ -50,8 +51,11 @@ export type StringExpression =
 
 type StrictStringExpression =
   | string
+  | [string]
   | FuncComponent
   | FuncDatamodel
+  | FuncGatewayAction
+  | FuncGatewayActionContext
   | FuncDisplayValue
   | FuncInstanceContext
   | FuncFrontendSettings
@@ -103,8 +107,10 @@ export type LogicalTupleFunc<O extends LogicalTupleOperator = LogicalTupleOperat
 
 type FuncComponent = DataLookupFunc<DataLookupFuncName.Component>;
 type FuncDatamodel = DataLookupFunc<DataLookupFuncName.DataModel>;
+type FuncGatewayAction = DataLookupFunc<DataLookupFuncName.GatewayAction>;
 type FuncDisplayValue = ['displayValue', StringExpression];
 type FuncInstanceContext = KeyLookupFunc<KeyLookupFuncName.InstanceContext>;
+type FuncGatewayActionContext = KeyLookupFunc<KeyLookupFuncName.GatewayActionContext>;
 type FuncAuthContext = [
   'authContext',
   'read' | 'write' | 'instantiate' | 'confirm' | 'sign' | 'reject',
@@ -136,4 +142,5 @@ type FuncArgv = ['argv', NumberExpression];
 
 type LookupKey<N extends KeyLookupFuncName> = {
   [KeyLookupFuncName.InstanceContext]: InstanceContext;
+  [KeyLookupFuncName.GatewayActionContext]: GatewayActionContext;
 }[N];

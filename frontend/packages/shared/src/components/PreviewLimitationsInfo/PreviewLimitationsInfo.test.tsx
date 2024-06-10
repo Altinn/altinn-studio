@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PreviewLimitationsInfo } from './PreviewLimitationsInfo';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('PreviewLimitationsInfo', () => {
   it('should close popover and not set value in session storage when hidePreviewLimitationsTemporaryButton is clicked', async () => {

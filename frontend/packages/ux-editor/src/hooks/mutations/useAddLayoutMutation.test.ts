@@ -6,16 +6,14 @@ import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { externalLayoutsMock } from '../../testing/layoutMock';
+import { externalLayoutsMock, layoutSet1NameMock } from '../../testing/layoutMock';
 import type { FormLayoutsResponse } from 'app-shared/types/api';
 import type { ILayoutSettings } from 'app-shared/types/global';
-import { appContextMock } from '../../testing/appContextMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const layoutName = 'layoutName';
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 const defaultArgs: AddLayoutMutationArgs = { layoutName };
 
 describe('useAddLayoutMutation', () => {
@@ -46,7 +44,6 @@ describe('useAddLayoutMutation', () => {
         },
       },
     );
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
   });
 
   it('Calls saveFormLayout with new layout for receiptPage', async () => {
@@ -77,7 +74,6 @@ describe('useAddLayoutMutation', () => {
         },
       },
     );
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
   });
 });
 

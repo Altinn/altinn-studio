@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { InputActionWrapperProps } from './InputActionWrapper';
 import { InputActionWrapper } from './InputActionWrapper';
-import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
+import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation() }));

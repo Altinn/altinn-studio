@@ -6,7 +6,7 @@ import { searchRepositoryResponseMock } from '../../data-mocks/searchRepositoryR
 import type { RepoListProps } from './RepoList';
 import { RepoList } from './RepoList';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const renderWithMockServices = (
   componentProps: Partial<RepoListProps>,

@@ -35,13 +35,14 @@ export const mockLayoutSets: LayoutSets = {
 export const mockBpmnApiContextValue: BpmnApiContextProps = {
   layoutSets: mockLayoutSets,
   pendingApiOperations: false,
-  existingCustomReceiptLayoutSetName: undefined,
+  existingCustomReceiptLayoutSetId: undefined,
   availableDataModelIds: [],
   addLayoutSet: jest.fn(),
   deleteLayoutSet: jest.fn(),
-  mutateLayoutSet: jest.fn(),
+  mutateLayoutSetId: jest.fn(),
   mutateDataType: jest.fn(),
   addDataTypeToAppMetadata: jest.fn(),
   deleteDataTypeFromAppMetadata: jest.fn(),
   saveBpmn: jest.fn(),
+  openPolicyEditor: jest.fn(),
 };

@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { Calculations } from './Calculations';
 import { FormItemContext } from '../../containers/FormItemContext';
 import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { FormComponent } from '../../types/FormComponent';
 
 describe('Calculations', () => {

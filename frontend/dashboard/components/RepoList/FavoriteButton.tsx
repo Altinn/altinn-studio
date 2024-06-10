@@ -30,3 +30,5 @@ export const FavoriteButton = ({ repo }: FavoriteButtonProps): React.ReactElemen
     </Button>
   );
 };
+
+FavoriteButton.displayName = 'FavoriteButton';

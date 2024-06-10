@@ -22,3 +22,5 @@ export const RepoNameWithLink = ({ repoFullName }: RepoNameWithLinkProps): React
     </Link>
   );
 };
+
+RepoNameWithLink.displayName = 'RepoNameWithLink';

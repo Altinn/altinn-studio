@@ -4,32 +4,29 @@ import { screen, waitFor } from '@testing-library/react';
 import type { PageAccordionProps } from './PageAccordion';
 import { PageAccordion } from './PageAccordion';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import {
   formLayoutSettingsMock,
   renderHookWithProviders,
   renderWithProviders,
 } from '../../../testing/mocks';
-import { layout1NameMock } from '../../../testing/layoutMock';
+import { layout1NameMock, layoutSet1NameMock } from '../../../testing/layoutMock';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { appContextMock } from '../../../testing/appContextMock';
+import { app, org } from '@studio/testing/testids';
 
-const mockOrg = 'org';
-const mockApp = 'app';
 const mockPageName1: string = layout1NameMock;
-const mockSelectedLayoutSet = 'test-layout-set';
+const mockSelectedLayoutSet = layoutSet1NameMock;
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({
-    org: mockOrg,
-    app: mockApp,
-  }),
-}));
-
-const mockDeleteFormLayout = jest.fn();
 jest.mock('../../../hooks/mutations/useDeleteLayoutMutation', () => ({
-  useDeleteLayoutMutation: jest.fn(() => ({ mutate: mockDeleteFormLayout, isPending: false })),
+  __esModule: true,
+  ...jest.requireActual('../../../hooks/mutations/useDeleteLayoutMutation'),
 }));
+const useDeleteLayoutMutationSpy = jest.spyOn(
+  require('../../../hooks/mutations/useDeleteLayoutMutation'),
+  'useDeleteLayoutMutation',
+);
 
 const mockChildren: ReactNode = (
   <div>
@@ -82,16 +79,25 @@ describe('PageAccordion', () => {
     });
     await user.click(deleteButton);
 
-    expect(mockDeleteFormLayout).toHaveBeenCalledTimes(1);
-    expect(mockDeleteFormLayout).toHaveBeenCalledWith(mockPageName1);
+    expect(queriesMock.deleteFormLayout).toHaveBeenCalledTimes(1);
+    expect(queriesMock.deleteFormLayout).toHaveBeenCalledWith(
+      org,
+      app,
+      mockPageName1,
+      mockSelectedLayoutSet,
+    );
+
+    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchLayouts).toHaveBeenCalledWith(mockSelectedLayoutSet, false);
   });
 
   it('Disables delete button when isPending is true', async () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
-    jest
-      .spyOn(require('../../../hooks/mutations/useDeleteLayoutMutation'), 'useDeleteLayoutMutation')
-      .mockImplementation(() => ({ mutate: mockDeleteFormLayout, isPending: true }));
+    useDeleteLayoutMutationSpy.mockImplementation(() => ({
+      mutate: queriesMock.deleteFormLayout,
+      isPending: true,
+    }));
     await render();
     const deleteButton = screen.getByRole('button', {
       name: textMock('general.delete_item', { item: mockPageName1 }),
@@ -99,7 +105,7 @@ describe('PageAccordion', () => {
 
     expect(deleteButton).toBeDisabled();
     await user.click(deleteButton);
-    expect(mockDeleteFormLayout).not.toHaveBeenCalled();
+    expect(queriesMock.deleteFormLayout).not.toHaveBeenCalled();
   });
 
   it('Does not call deleteLayout when delete button is clicked, but deletion is not confirmed', async () => {
@@ -111,7 +117,7 @@ describe('PageAccordion', () => {
       name: textMock('general.delete_item', { item: mockPageName1 }),
     });
     await user.click(deleteButton);
-    expect(mockDeleteFormLayout).not.toHaveBeenCalled();
+    expect(queriesMock.deleteFormLayout).not.toHaveBeenCalled();
   });
 });
 
@@ -120,7 +126,7 @@ const waitForData = async () => {
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
   const settingsResult = renderHookWithProviders(
-    () => useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet),
+    () => useFormLayoutSettingsQuery(org, app, mockSelectedLayoutSet),
     { queries: { getFormLayoutSettings } },
   ).result;
 
