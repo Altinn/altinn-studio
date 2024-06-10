@@ -39,12 +39,12 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_ApplicationMetadata_Ok()
         {
-            string expectedApplicationMetadataString = TestDataHelper.GetFileFromRepo(Org, AppV3, Developer, "App/config/applicationmetadata.json");
+            string expectedApplicationMetadataString = TestDataHelper.GetFileFromRepo(Org, PreviewApp, Developer, "App/config/applicationmetadata.json");
             _appDevelopmentServiceMock
                 .Setup(rs => rs.GetAppLibVersion(It.IsAny<AltinnRepoEditingContext>()))
                 .Returns(NuGet.Versioning.NuGetVersion.Parse("1.0.0"));
 
-            string dataPathWithData = $"{Org}/{AppV3}/api/v1/applicationmetadata";
+            string dataPathWithData = $"{Org}/{PreviewApp}/api/v1/applicationmetadata";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -60,12 +60,12 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_ApplicationMetadata_With_V8_Altinn_Nuget_Version_Ok()
         {
-            string expectedApplicationMetadataString = TestDataHelper.GetFileFromRepo(Org, AppV3, Developer, "App/config/applicationmetadata.json");
+            string expectedApplicationMetadataString = TestDataHelper.GetFileFromRepo(Org, PreviewApp, Developer, "App/config/applicationmetadata.json");
             _appDevelopmentServiceMock
                 .Setup(rs => rs.GetAppLibVersion(It.IsAny<AltinnRepoEditingContext>()))
                 .Returns(NuGet.Versioning.NuGetVersion.Parse("8.0.0"));
 
-            string dataPathWithData = $"{Org}/{AppV3}/api/v1/applicationmetadata";
+            string dataPathWithData = $"{Org}/{PreviewApp}/api/v1/applicationmetadata";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
