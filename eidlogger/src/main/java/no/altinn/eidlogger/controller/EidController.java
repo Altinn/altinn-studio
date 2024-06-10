@@ -7,29 +7,29 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
+
 @RestController
 public class EidController {
-//  private final EventLogger eventLogger;
-//
-//  public EidController(EventLogger eventLogger) {
-//    this.eventLogger = eventLogger;
-//  }
+  private final EventLogger eventLogger;
 
-    @PostMapping("/eid-event-log")
-    public void log(@RequestBody EidLogRequest request) {
+  public EidController(EventLogger eventLogger) {
+    this.eventLogger = eventLogger;
+  }
 
-        ActivityRecord record = ActivityRecord.builder()
-                .eventName(request.getEventName())
-                .eventSubjectPid(request.getEventSubjectPid())
-                .correlationId(request.getCorrelationId())
-                .serviceProviderId(request.getServiceProviderId())
-                .serviceProviderOrgno(request.getServiceProviderOrgno())
-                .serviceProviderName(request.getServiceProviderName())
-                .serviceOwnerId(request.getServiceOwnerId())
-                .serviceOwnerOrgno(request.getServiceOwnerOrgno())
-                .serviceOwnerName(request.getServiceOwnerName())
-                .build();
+  @PostMapping("/eid-event-log")
+  public void log(@RequestBody EidLogRequest request) {
+    var studioData = new HashMap<String, String>();
+    studioData.put("studio-field", "dummy-value");
 
-//    eventLogger.log(record);
-    }
+    ActivityRecord record = ActivityRecord.builder()
+      .eventName(request.getEventName())
+      .eventDescription(request.getEventDescription())
+      .eventCreated(request.getEventCreated())
+      .correlationId(request.getCorrelationId())
+      .extraData(studioData)
+      .build();
+
+    eventLogger.log(record);
+  }
 }

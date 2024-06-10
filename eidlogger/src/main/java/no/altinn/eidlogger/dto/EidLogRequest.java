@@ -13,18 +13,4 @@ public class EidLogRequest {
   private Instant eventCreated;
   private String eventDescription;
   private String correlationId;
-  private String kafkaTopicDestination;
-  private String applicationName;
-  private String applicationEnvironment;
-  private String eventActorId;
-  private String eventSubjectPid;
-  private String serviceProviderId;
-  private String serviceProviderOrgno;
-  private String serviceProviderName;
-  private String serviceOwnerId;
-  private String serviceOwnerOrgno;
-  private String serviceOwnerName;
-  private String authEid;
-  private String authMethod;
-
 }
