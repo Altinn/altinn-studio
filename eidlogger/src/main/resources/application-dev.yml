@@ -1,7 +1,8 @@
 digdir:
   event:
     logging:
-      feature-enabled: true
+      # values should be stored in .env file
+      feature-enabled: false
       environment-name: dev
       bootstrap-servers:
       schema-registry-url:
