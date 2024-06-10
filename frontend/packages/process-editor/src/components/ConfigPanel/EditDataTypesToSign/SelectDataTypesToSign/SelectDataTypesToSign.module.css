@@ -1,11 +1,8 @@
-.buttons {
-  display: flex;
-  gap: var(--fds-spacing-3);
-  margin-top: 30px;
-}
-
-.dataTypeSelect {
-  flex: 1;
+.container {
+  display: grid;
+  gap: var(--fds-spacing-2);
+  padding-inline: var(--fds-spacing-5);
+  padding-bottom: var(--fds-spacing-3);
 }
 
 .dataTypeSelectAndButtons {
@@ -13,7 +10,9 @@
   flex-direction: row;
   align-items: flex-start;
   gap: var(--fds-spacing-4);
-  padding-inline: var(--fds-spacing-5);
-  padding-bottom: var(--fds-spacing-3);
   vertical-align: middle;
+}
+
+.dataTypeSelect {
+  flex: 1;
 }

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Combobox } from '@digdir/design-system-react';
+import React, { useId, useState } from 'react';
+import { Combobox, Label } from '@digdir/design-system-react';
 import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
@@ -26,6 +26,7 @@ export const SelectDataTypesToSign = ({ onClose }: SelectDataTypesToSignProps) =
   const { debounce } = useDebounce({ debounceTimeInMs: AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS });
 
   const { t } = useTranslation();
+  const labelId = useId();
 
   const handleValueChange = (dataTypes: string[]) => {
     setValue(dataTypes);
@@ -33,28 +34,33 @@ export const SelectDataTypesToSign = ({ onClose }: SelectDataTypesToSignProps) =
   };
 
   return (
-    <div className={classes.dataTypeSelectAndButtons}>
-      <Combobox
-        label={t('process_editor.configuration_panel_set_data_types_to_sign')}
-        value={value}
-        size='small'
-        className={classes.dataTypeSelect}
-        multiple
-        onValueChange={handleValueChange}
-        error={!value.length && t('process_editor.configuration_panel_data_types_to_sign_required')}
-      >
-        <Combobox.Empty>
-          {t('process_editor.configuration_panel_no_data_types_to_sign_to_select')}
-        </Combobox.Empty>
-        {availableDataTypeIds?.map((dataTypeId) => {
-          return (
-            <Combobox.Option key={dataTypeId} value={dataTypeId}>
-              {dataTypeId}
-            </Combobox.Option>
-          );
-        })}
-      </Combobox>
-      <div className={classes.buttons}>
+    <div className={classes.container}>
+      <Label size='small' htmlFor={labelId}>
+        {t('process_editor.configuration_panel_set_data_types_to_sign')}
+      </Label>
+      <div className={classes.dataTypeSelectAndButtons}>
+        <Combobox
+          id={labelId}
+          value={value}
+          size='small'
+          className={classes.dataTypeSelect}
+          multiple
+          onValueChange={handleValueChange}
+          error={
+            !value.length && t('process_editor.configuration_panel_data_types_to_sign_required')
+          }
+        >
+          <Combobox.Empty>
+            {t('process_editor.configuration_panel_no_data_types_to_sign_to_select')}
+          </Combobox.Empty>
+          {availableDataTypeIds?.map((dataTypeId) => {
+            return (
+              <Combobox.Option key={dataTypeId} value={dataTypeId}>
+                {dataTypeId}
+              </Combobox.Option>
+            );
+          })}
+        </Combobox>
         <StudioButton
           icon={<XMarkIcon />}
           onClick={onClose}
