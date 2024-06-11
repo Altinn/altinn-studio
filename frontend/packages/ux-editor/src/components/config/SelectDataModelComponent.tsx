@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { NativeSelect } from '@digdir/design-system-react';
+import { StudioNativeSelect } from '@studio/components';
 import { useDataModelMetadataQuery } from '../../hooks/queries/useDataModelMetadataQuery';
 import { FormField } from '../FormField';
 import type { Option } from '@altinn/text-editor/types';
@@ -12,12 +12,12 @@ export interface ISelectDataModelProps {
   selectedElement: string;
   label: string;
   onDataModelChange: (dataModelField: string) => void;
-  noOptionsMessage?: string;
   hideRestrictions?: boolean;
   dataModelFieldsFilter?: (dataModelField: DataModelFieldElement) => boolean;
   componentType?: string;
   propertyPath?: string;
   helpText?: string;
+  dataModelName?: string;
 }
 
 export const SelectDataModelComponent = ({
@@ -25,15 +25,15 @@ export const SelectDataModelComponent = ({
   selectedElement,
   label,
   onDataModelChange,
-  noOptionsMessage,
   dataModelFieldsFilter,
   componentType,
   helpText,
   propertyPath,
+  dataModelName,
 }: ISelectDataModelProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
-  const { data } = useDataModelMetadataQuery(org, app, selectedFormLayoutSetName, undefined);
+  const { data } = useDataModelMetadataQuery(org, app, selectedFormLayoutSetName, dataModelName);
   const [dataModelElementNames, setDataModelElementNames] = React.useState<Option[]>([]);
 
   useEffect(() => {
@@ -42,6 +42,7 @@ export const SelectDataModelComponent = ({
       value: element.dataBindingName,
       label: element.dataBindingName,
     }));
+    elementNames.unshift({ value: '', label: 'Velg ...' });
     setDataModelElementNames(elementNames);
   }, [data, dataModelFieldsFilter]);
 
@@ -59,13 +60,13 @@ export const SelectDataModelComponent = ({
       helpText={helpText}
       label={label}
       renderField={({ fieldProps }) => (
-        <NativeSelect {...fieldProps} onChange={(e) => fieldProps.onChange(e.target.value)}>
+        <StudioNativeSelect {...fieldProps} onChange={(e) => fieldProps.onChange(e.target.value)}>
           {dataModelElementNames.map((element) => (
             <option key={element.value} value={element.value}>
               {element.label}
             </option>
           ))}
-        </NativeSelect>
+        </StudioNativeSelect>
       )}
     />
   );

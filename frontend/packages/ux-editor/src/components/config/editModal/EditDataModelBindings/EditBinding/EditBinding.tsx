@@ -1,103 +1,127 @@
 import React from 'react';
-import { SelectDataModelComponent } from '../../../SelectDataModelComponent';
-import { getDataModelFieldsFilter } from '../../../../../utils/dataModel';
 import type { FormItem } from '../../../../../types/FormItem';
-import { StudioButton, StudioDeleteButton, StudioDisplayTile } from '@studio/components';
+import { StudioButton, StudioDeleteButton } from '@studio/components';
 import { XMarkIcon } from '@studio/icons';
 import classes from './EditBinding.module.css';
 import { useTranslation } from 'react-i18next';
-import { Fieldset, NativeSelect } from '@digdir/design-system-react';
+import { Fieldset } from '@digdir/design-system-react';
+import { SelectDataModelBinding } from './SelectDataModelBinding';
+import { SelectDataFieldBinding } from './SelectDataFieldBinding';
+import {
+  getMaxOccursFromDataModel,
+  getMinOccursFromDataModel,
+  getXsdDataTypeFromDataModel,
+} from '@altinn/ux-editor/utils/dataModel';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { FormField } from 'app-shared/components/FormField';
+import { ComponentType } from 'app-shared/types/ComponentType';
+import { useAppContext } from '@altinn/ux-editor/hooks';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
+import { useDataModelMetadataQuery } from '@altinn/ux-editor/hooks/queries/useDataModelMetadataQuery';
+import type { UpdateFormMutateOptions } from '@altinn/ux-editor/containers/FormItemContext';
 
 export type EditBindingProps = {
   bindingKey: string;
-  dataModelName: string;
-  dataModels: string[];
+  selectedDataModel: string;
   component: FormItem;
   helpText: string;
   label: string;
-  onDataModelChange: (dataModel: string) => void;
-  onBindingChange: (binding: string) => void;
-  onClose: () => void;
-  onDelete: () => void;
-  selectedElement: string;
+  handleComponentChange: (component: FormItem, mutateOptions?: UpdateFormMutateOptions) => void;
+  setDataModelSelectVisible: (visible: boolean) => void;
+  selectedDataField: string;
 };
 
 export const EditBinding = ({
   bindingKey,
-  dataModelName,
-  dataModels,
+  selectedDataModel,
   component,
   helpText,
   label,
-  onDataModelChange,
-  onBindingChange,
-  onClose,
-  onDelete,
-  selectedElement,
+  handleComponentChange,
+  setDataModelSelectVisible,
+  selectedDataField,
 }: EditBindingProps) => {
   const { t } = useTranslation();
-  const propertyPath = `definitions/component/properties/dataModelBindings/properties/${bindingKey}`;
-  const shouldDisplayDataModelSelector = shouldDisplayFeature('dataModelBindingSelector');
-  console.log(bindingKey);
+  const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: dataModels, isPending: dataModelsArePending } = useAppMetadataModelIdsQuery(
+    org,
+    app,
+    false,
+  );
+  const { data: dataFields, isPending: dataFieldsArePending } = useDataModelMetadataQuery(
+    org,
+    app,
+    selectedFormLayoutSetName,
+    selectedDataModel,
+  );
+
+  if (dataModelsArePending || dataFieldsArePending) {
+    return;
+  }
+
+  const handleBindingChange = (updatedBinding: { property: string; dataType: string }) => {
+    const selectedDataFieldElement = updatedBinding.property;
+    handleComponentChange(
+      {
+        ...component,
+        dataModelBindings: {
+          ...component.dataModelBindings,
+          [bindingKey]: shouldDisplayFeature('dataModelBindingSelector')
+            ? updatedBinding
+            : selectedDataFieldElement,
+        },
+        required: getMinOccursFromDataModel(selectedDataFieldElement, dataFields) > 0 || undefined,
+        timeStamp:
+          component.type === ComponentType.Datepicker
+            ? getXsdDataTypeFromDataModel(selectedDataFieldElement, dataFields) === 'DateTime'
+            : undefined,
+        maxCount:
+          component.type === ComponentType.RepeatingGroup
+            ? getMaxOccursFromDataModel(selectedDataFieldElement, dataFields)
+            : undefined,
+      } as FormItem,
+      {
+        onSuccess: async () => {
+          await refetchLayouts(selectedFormLayoutSetName, true);
+        },
+      },
+    );
+  };
+
+  const handleDelete = () => {
+    handleBindingChange({ property: '', dataType: '' });
+    setDataModelSelectVisible(false);
+  };
 
   return (
     <Fieldset legend={label} className={classes.editBinding} size='small'>
-      {shouldDisplayDataModelSelector ? (
-        <FormField
-          id={dataModelName}
-          onChange={onDataModelChange}
-          value={selectedElement}
-          propertyPath={propertyPath}
-          helpText={helpText}
-          label={t('ux_editor.modal_properties_data_model')}
-          renderField={({ fieldProps }) => (
-            <NativeSelect {...fieldProps} onChange={(e) => fieldProps.onChange(e.target.value)}>
-              {dataModels.map((element) => (
-                <option key={element} value={element}>
-                  {element}
-                </option>
-              ))}
-            </NativeSelect>
-          )}
-        />
-      ) : (
-        // <SelectDataModelComponent
-        //   dataModelFieldsFilter={getDataModelFieldsFilter(component.type, bindingKey === 'list')}
-        //   helpText={helpText}
-        //   inputId={`selectDataModelSelect-${bindingKey}`}
-        //   label={t('ux_editor.modal_properties_data_model_selected')}
-        //   onDataModelChange={onBindingChange}
-        //   propertyPath={propertyPath}
-        //   selectedElement={dataModelName}
-        // />
-        <StudioDisplayTile
-          label={t('ux_editor.modal_properties_data_model')}
-          value={dataModelName}
-          className={classes.displayTileContainer}
-        />
-      )}
-      <SelectDataModelComponent
-        dataModelFieldsFilter={getDataModelFieldsFilter(component.type, bindingKey === 'list')}
-        helpText={helpText}
-        inputId={`selectDataModelSelect-${bindingKey}`}
-        label={t('ux_editor.modal_properties_data_model_binding')}
-        onDataModelChange={onBindingChange}
-        propertyPath={propertyPath}
-        selectedElement={selectedElement}
+      <SelectDataModelBinding
+        selectedDataModel={selectedDataModel}
+        dataModels={dataModels}
+        bindingKey={bindingKey}
+        handleBindingChange={handleBindingChange}
       />
+      <SelectDataFieldBinding
+        selectedDataModel={selectedDataModel}
+        component={component}
+        handleBindingChange={handleBindingChange}
+        bindingKey={bindingKey}
+        helpText={helpText}
+        selectedDataField={selectedDataField}
+      />
+
       <div className={classes.buttons}>
         <StudioButton
           icon={<XMarkIcon />}
-          onClick={onClose}
+          onClick={() => setDataModelSelectVisible(false)}
           size='small'
           title={t('general.close')}
           variant='secondary'
         />
         <StudioDeleteButton
           confirmMessage={t('right_menu.data_model_bindings_delete_confirm')}
-          onDelete={onDelete}
+          onDelete={handleDelete}
           size='small'
           title={t('general.delete')}
         />

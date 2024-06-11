@@ -1,0 +1,56 @@
+import React from 'react';
+import classes from './SelectDataModel.module.css';
+import { FormField } from 'app-shared/components/FormField';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { StudioDisplayTile, StudioNativeSelect } from '@studio/components';
+import { useTranslation } from 'react-i18next';
+
+type SelectDataModelProps = {
+  selectedDataModel: string;
+  bindingKey: string;
+  dataModels: string[];
+  handleBindingChange: (dataModel: { property: string; dataType: string }) => void;
+};
+
+export const SelectDataModelBinding = ({
+  selectedDataModel,
+  bindingKey,
+  dataModels,
+  handleBindingChange,
+}: SelectDataModelProps): React.JSX.Element => {
+  const { t } = useTranslation();
+  const propertyPath = `definitions/component/properties/dataModelBindings/properties/${bindingKey}/dataType`;
+
+  const handleDataModelChange = (newDataModel: string) => {
+    const dataModelBinding = {
+      property: '',
+      dataType: newDataModel,
+    };
+    handleBindingChange(dataModelBinding);
+  };
+
+  return shouldDisplayFeature('dataModelBindingSelector') ? (
+    <FormField
+      id={selectedDataModel}
+      onChange={handleDataModelChange}
+      value={selectedDataModel}
+      propertyPath={propertyPath}
+      label={t('ux_editor.modal_properties_data_model')}
+      renderField={({ fieldProps }) => (
+        <StudioNativeSelect {...fieldProps} onChange={(e) => fieldProps.onChange(e.target.value)}>
+          {dataModels.map((element) => (
+            <option key={element} value={element}>
+              {element}
+            </option>
+          ))}
+        </StudioNativeSelect>
+      )}
+    />
+  ) : (
+    <StudioDisplayTile
+      label={t('ux_editor.modal_properties_data_model')}
+      value={selectedDataModel}
+      className={classes.displayTileContainer}
+    />
+  );
+};

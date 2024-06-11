@@ -18,12 +18,3 @@
   display: flex;
   gap: var(--studio-property-button-vertical-spacing);
 }
-
-.displayTileContainer {
-  padding: 0;
-  padding-right: var(--fds-spacing-1);
-}
-
-.displayTileContainer > div {
-  display: block;
-}
