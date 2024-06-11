@@ -37,6 +37,11 @@ const renderWithMockServices = (services?: Partial<ServicesContextProps>) => {
 };
 
 describe('PageLayout', () => {
+  afterEach(() => {
+    sessionStorage.clear();
+    mockedNavigate.mockReset();
+  });
+
   it('should not redirect to root if context is self', async () => {
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: SelectedContextType.Self,
@@ -94,10 +99,5 @@ describe('PageLayout', () => {
     renderWithMockServices();
     expect(mockedNavigate).toHaveBeenCalledTimes(1);
     expect(mockedNavigate).toHaveBeenCalledWith(SelectedContextType.Self, expect.anything());
-  });
-
-  afterEach(() => {
-    sessionStorage.clear();
-    mockedNavigate.mockReset();
   });
 });
