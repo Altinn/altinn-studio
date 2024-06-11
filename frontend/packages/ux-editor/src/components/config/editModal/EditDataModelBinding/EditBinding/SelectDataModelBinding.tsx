@@ -1,5 +1,5 @@
 import React from 'react';
-import classes from './SelectDataModel.module.css';
+import classes from './SelectDataModelBinding.module.css';
 import { FormField } from 'app-shared/components/FormField';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { StudioDisplayTile, StudioNativeSelect } from '@studio/components';

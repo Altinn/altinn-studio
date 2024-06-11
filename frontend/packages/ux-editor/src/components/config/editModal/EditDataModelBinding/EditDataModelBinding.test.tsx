@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { renderHookWithProviders, renderWithProviders } from '../../../../testing/mocks';
-import { EditDataModelBindings } from './EditDataModelBindings';
+import { EditDataModelBinding } from './EditDataModelBinding';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
@@ -103,7 +103,7 @@ const render = ({
   return {
     mockhHandleComponentChange,
     ...renderWithProviders(
-      <EditDataModelBindings
+      <EditDataModelBinding
         handleComponentChange={mockhHandleComponentChange}
         component={component as FormItem}
         renderOptions={renderOptions}
@@ -384,7 +384,7 @@ describe('EditDataModelBindings', () => {
     });
     screen.getByText('testModel.field1');
     rerender(
-      <EditDataModelBindings
+      <EditDataModelBinding
         handleComponentChange={jest.fn()}
         component={{
           id: 'someComponentId',

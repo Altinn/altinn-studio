@@ -4,7 +4,7 @@ import classes from './AddressComponent.module.css';
 import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { AddressKeys, getTextResourceByAddressKey } from '../../../../utils/component';
-import { EditDataModelBindings } from '../../editModal/EditDataModelBindings/EditDataModelBindings';
+import { EditDataModelBinding } from '../../editModal/EditDataModelBinding/EditDataModelBinding';
 import type { FormAddressComponent } from '../../../../types/FormComponent';
 import { FormField } from '../../../FormField';
 import type { ComponentType } from 'app-shared/types/ComponentType';
@@ -53,7 +53,7 @@ export const AddressComponent = ({
             return null;
           }
           return (
-            <EditDataModelBindings
+            <EditDataModelBinding
               component={component}
               handleComponentChange={handleComponentChange}
               key={value}

@@ -1,14 +1,14 @@
 import type { IGenericEditComponent } from '../../componentConfig';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import React, { useState } from 'react';
-import classes from './EditDataModelBindings.module.css';
+import classes from './EditDataModelBinding.module.css';
 import { useTranslation } from 'react-i18next';
 import { UndefinedBinding } from './UndefinedBinding';
 import { EditBinding } from './EditBinding';
 import { DefinedBinding } from './DefinedBinding';
 import { convertDataBindingToInternalFormat } from './editDataModelBindingUtils';
 
-export interface EditDataModelBindingsProps<T extends ComponentType>
+export interface EditDataModelBindingProps<T extends ComponentType>
   extends IGenericEditComponent<T> {
   renderOptions?: {
     label?: string;
@@ -19,12 +19,12 @@ export interface EditDataModelBindingsProps<T extends ComponentType>
   helpText?: string;
 }
 
-export const EditDataModelBindings = <T extends ComponentType>({
+export const EditDataModelBinding = <T extends ComponentType>({
   component,
   handleComponentChange,
   renderOptions,
   helpText,
-}: EditDataModelBindingsProps<T>) => {
+}: EditDataModelBindingProps<T>) => {
   const { uniqueKey, key, label } = renderOptions || {};
   const bindingKey = key || 'simpleBinding';
   const { t } = useTranslation();
