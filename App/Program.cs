@@ -21,7 +21,6 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
     services.AddHttpClient<ICountryClient, CountryClient>();
     services.AddTransient<TrademarkSearchResultDTO, TrademarkSearchResultDTO>();
     services.AddTransient<IDataProcessor, DataProcessor>();
-    services.AddNetsPaymentServices(config); //Hvis vi vil ha mer out-of-the-box-uten-kode løsning så kan denne alltid addes som en del av library sin setup.
     services.AddTransient<IOrderDetailsCalculator, OrderDetailsCalculator>(); //Vi kunne hatt en standardimplementasjon av denne i library som leser en fastpris fra et bestemt sted.
 }
 
