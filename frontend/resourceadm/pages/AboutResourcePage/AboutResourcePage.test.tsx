@@ -15,7 +15,6 @@ import {
   mapKeywordsArrayToString,
   resourceStatusMap,
 } from '../../utils/resourceUtils/resourceUtils';
-import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -363,8 +362,6 @@ describe('AboutResourcePage', () => {
   });
 
   it('should display access list links when RRR is enabled', async () => {
-    addFeatureFlagToLocalStorage('resourceAccessLists');
-
     render(
       <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
         <AboutResourcePage
