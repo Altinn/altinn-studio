@@ -32,11 +32,11 @@ export const useContextRedirectionGuard = (
   };
 };
 
-function handleContextRedirection(
+const handleContextRedirection = (
   currentContext: SelectedContextType | string,
   organizations: Organization[],
   navigate: NavigateFunction,
-) {
+): void => {
   const targetContext = getTargetContext(currentContext);
 
   if (!hasAccessToContext(targetContext, organizations)) {
@@ -46,30 +46,30 @@ function handleContextRedirection(
 
   if (targetContext === currentContext) return;
   navigateToContext(targetContext, navigate);
-}
+};
 
-function getTargetContext(
+const getTargetContext = (
   currentContext: SelectedContextType | string,
-): SelectedContextType | string {
+): SelectedContextType | string => {
   if (currentContext === SelectedContextType.None) {
     return typedSessionStorage.getItem('dashboard::selectedContext') || SelectedContextType.Self;
   }
   return currentContext;
-}
+};
 
-function hasAccessToContext(
+const hasAccessToContext = (
   targetContext: SelectedContextType | string,
   organizations: Organization[],
-): boolean {
+): boolean => {
   return (
     organizations &&
     userHasAccessToSelectedContext({ selectedContext: targetContext, orgs: organizations })
   );
-}
+};
 
-function navigateToContext(
+const navigateToContext = (
   targetContext: SelectedContextType | string,
   navigate: NavigateFunction,
-) {
+): void => {
   navigate(targetContext + location.search, { replace: true });
-}
+};
