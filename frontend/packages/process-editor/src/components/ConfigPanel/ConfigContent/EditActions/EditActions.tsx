@@ -2,44 +2,48 @@ import React from 'react';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { useTranslation } from 'react-i18next';
 import { StudioProperty } from '@studio/components';
-import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
-import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
-import { addNewActionToTask, getAvailablePredefinedActions } from './ActionsUtils';
+import { getAvailablePredefinedActions } from './ActionsUtils';
 import { EditAction } from './EditAction';
+import { BpmnActionModeler } from '@altinn/process-editor/utils/bpmn/BpmnActionModeler';
 
 export const EditActions = () => {
   const { t } = useTranslation();
-  const { bpmnDetails, modelerRef } = useBpmnContext();
-  const actionElements: ModdleElement[] =
-    bpmnDetails?.element?.businessObject?.extensionElements?.values[0]?.actions?.action ?? [];
-  const modelerInstance = modelerRef.current;
-  const modeling: Modeling = modelerInstance.get('modeling');
-  const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
+  const { bpmnDetails } = useBpmnContext();
+  const bpmnActionModeler = new BpmnActionModeler(bpmnDetails.element);
 
-  const availablePredefinedActions = getAvailablePredefinedActions(
-    bpmnDetails.taskType,
-    actionElements,
-  );
+  // TODO write the code better to handle undefined instead
+  const actions = bpmnActionModeler.actionElements.action || [];
 
-  const handleAddNewAction = () => {
-    addNewActionToTask(bpmnFactory, modeling, undefined, bpmnDetails);
+  const availablePredefinedActions = getAvailablePredefinedActions(bpmnDetails.taskType, actions);
+
+  const handleOnSaveActions = (): void => {
+    const shouldUpdateExistingActions = bpmnActionModeler.hasActionsAlready;
+    if (shouldUpdateExistingActions) {
+      // TODO should have an actionElement here?
+      bpmnActionModeler.updateActionNameOnActionElement('', undefined);
+      return;
+    }
+
+    bpmnActionModeler.addNewActionToTask(undefined);
+    // addNewActionToTask(bpmnFactory, modeling, undefined, bpmnDetails);
   };
 
   return (
     <>
-      {actionElements.map((actionElement: ModdleElement, index: number) => (
+      {actions.map((actionElement: ModdleElement, index: number) => (
         <EditAction
           key={actionElement.action}
           actionElementToEdit={actionElement}
           availablePredefinedActions={availablePredefinedActions}
           bpmnDetails={bpmnDetails}
           index={index}
-          modeling={modeling}
+          // TODO: This modeling do not need to be passed down to the EditAction component after refactoring
+          modeling={bpmnActionModeler.modeling}
         />
       ))}
       <StudioProperty.Button
-        onClick={handleAddNewAction}
+        onClick={handleOnSaveActions}
         property={t('process_editor.configuration_panel_actions_add_new')}
         size='small'
       />

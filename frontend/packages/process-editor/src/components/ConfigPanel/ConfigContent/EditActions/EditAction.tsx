@@ -57,16 +57,17 @@ export const EditAction = ({
     setEditMode(false);
   };
 
-  const handleDeleteAction = (actionElement: ModdleElement) => {
+  const handleDeleteAction = (actionElement: ModdleElement): void => {
     deleteActionFromTask(bpmnDetails, actionElement, modeling);
   };
 
   const allowSettingServerAction = (actionName: string): boolean => {
     if (actionName === '') return false; // Ensure that default is not allowing
-    return (
-      !isActionRequiredForTask(actionName, bpmnDetails.taskType) &&
-      !getPredefinedActions(bpmnDetails.taskType).includes(actionName)
-    );
+
+    const isCustomAction = !getPredefinedActions(bpmnDetails.taskType).includes(actionName);
+    const isActionOptional = !isActionRequiredForTask(actionName, bpmnDetails.taskType);
+
+    return isActionOptional && isCustomAction;
   };
 
   const actionLabel = (actionName = actionElementToEdit.action) =>
