@@ -58,10 +58,9 @@ jobs:
         with:
           push: false
           load: true
-          targets: designer
-          set: |
-              designer.cache-from=type=gha
-              designer.cache-to=type=gha
+          files: |-
+            compose.yaml
+            compose-cache.json
 
       - name: Run setup.js script
         run: |
