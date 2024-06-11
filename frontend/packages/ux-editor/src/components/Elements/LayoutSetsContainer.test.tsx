@@ -39,6 +39,7 @@ describe('LayoutSetsContainer', () => {
     expect(appContextMock.refetchLayouts).toHaveBeenCalledWith('test-layout-set-2');
     expect(appContextMock.refetchLayoutSettings).toHaveBeenCalledTimes(1);
     expect(appContextMock.refetchLayoutSettings).toHaveBeenCalledWith('test-layout-set-2');
+    expect(appContextMock.onLayoutSetNameChange).toHaveBeenCalledWith('test-layout-set-2');
   });
 });
 

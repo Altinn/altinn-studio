@@ -78,7 +78,7 @@ export const EditComponentIdRow = ({
           error: errorMessage,
           className: classes.idInput,
           children: (
-            <div className={classes.idInput}>
+            <div className={classes.alert}>
               <Alert>{t('ux_editor.modal_properties_component_change_id_information')}</Alert>
             </div>
           ),

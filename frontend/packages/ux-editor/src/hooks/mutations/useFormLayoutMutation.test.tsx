@@ -59,7 +59,7 @@ describe('useFormLayoutMutation', () => {
       layoutName,
       selectedLayoutSet,
       {
-        componentIdChange: undefined,
+        componentIdsChange: undefined,
         layout: expect.objectContaining({
           data: {
             layout: [

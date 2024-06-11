@@ -48,8 +48,7 @@ public class ComponentIdChangedSettingsHandler : INotificationHandler<ComponentI
     }
 
     /// <summary>
-    /// Tries to change the componentId in different occurrences in a single layout file.
-    /// Occurrences can be references in expressions in boolean fields, textResourceBindings or in hiddenRow in groups
+    /// Tries to change the componentId in the `excludeFromPdf` for components in the layout settings file.
     /// If there are changes, the layout file is updated and the method returns true.
     /// Otherwise, the method returns false.
     /// </summary>

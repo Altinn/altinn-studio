@@ -58,7 +58,7 @@ describe('useUpdateFormComponentMutation', () => {
       layout1NameMock,
       selectedLayoutSet,
       {
-        componentIdChange: null,
+        componentIdsChange: undefined,
         layout: expect.objectContaining({
           data: expect.objectContaining({
             layout: expect.arrayContaining([
@@ -134,7 +134,7 @@ describe('useUpdateFormComponentMutation', () => {
           layout1NameMock,
           selectedLayoutSet,
           {
-            componentIdChange: null,
+            componentIdsChange: undefined,
             layout: expect.objectContaining({
               data: expect.objectContaining({
                 layout: expect.arrayContaining([

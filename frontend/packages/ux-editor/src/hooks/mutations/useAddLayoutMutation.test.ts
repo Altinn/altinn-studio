@@ -37,7 +37,7 @@ describe('useAddLayoutMutation', () => {
       layoutName,
       selectedLayoutSet,
       {
-        componentIdChange: undefined,
+        componentIdsChange: undefined,
         layout: {
           $schema:
             'https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json',
@@ -70,7 +70,7 @@ describe('useAddLayoutMutation', () => {
       formLayoutSettingsMock.receiptLayoutName,
       selectedLayoutSet,
       {
-        componentIdChange: undefined,
+        componentIdsChange: undefined,
         layout: {
           $schema:
             'https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json',

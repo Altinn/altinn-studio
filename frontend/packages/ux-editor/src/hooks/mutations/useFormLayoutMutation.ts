@@ -5,11 +5,11 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import type { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
-import type { ComponentIdChange, FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
+import type { ComponentIdsChange, FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
 
 type useFormLayoutMutationPayload = {
   internalLayout: IInternalLayout;
-  componentIdChange?: ComponentIdChange;
+  componentIdsChange?: ComponentIdsChange;
 };
 
 export const useFormLayoutMutation = (
@@ -27,7 +27,7 @@ export const useFormLayoutMutation = (
       const convertedLayout: ExternalFormLayout = internalLayoutToExternal(payload.internalLayout);
       const requestPayload: FormLayoutRequest = {
         layout: convertedLayout,
-        componentIdChange: payload.componentIdChange,
+        componentIdsChange: payload.componentIdsChange,
       };
       await saveFormLayout(org, app, layoutName, layoutSetName, requestPayload);
       return payload.internalLayout;
@@ -39,8 +39,6 @@ export const useFormLayoutMutation = (
         });
       }
 
-      // REMEMBER TO UPDATE CACHE WITH ACTUAL LAYOUT FROM BACKEND. OR INVALIDATE RELEVANT FILES THAT COMES FROM SYNC EVENT.
-      // WOULD NEED A NEW ENDPOINT TO FETCH INDIVIDUAL LAYOUTS IF SO
       queryClient.setQueryData(
         [QueryKey.FormLayouts, org, app, layoutSetName],
         (oldData: IFormLayouts) => ({ ...oldData, [layoutName]: savedLayout }),

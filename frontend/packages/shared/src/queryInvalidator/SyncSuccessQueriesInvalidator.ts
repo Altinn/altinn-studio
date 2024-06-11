@@ -28,7 +28,7 @@ export class SyncSuccessQueriesInvalidator extends Queue {
     layouts: [QueryKey.FormLayouts, '[org]', '[app]', '[layoutSetName]'],
   };
 
-  constructor(queryClient: QueryClient, org: string, app: string, layoutSetName?: string) {
+  constructor(queryClient: QueryClient, org: string, app: string) {
     super({ timeout: 500 });
     this.org = org;
     this.app = app;
@@ -55,14 +55,12 @@ export class SyncSuccessQueriesInvalidator extends Queue {
   }
 
   public invalidateQueryByFileName(fileName: string, layoutSetName: string): void {
-    console.log('invalidating cache: ', fileName);
     const cacheKey = this.getCacheKeyByFileName(fileName, layoutSetName);
     if (!cacheKey) return;
 
     this.addTaskToQueue({
       id: fileName,
       callback: () => {
-        console.log('Invalidating cache with cacheKey: ', cacheKey);
         this.queryClient.invalidateQueries({ queryKey: cacheKey });
       },
     });

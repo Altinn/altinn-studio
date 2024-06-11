@@ -5,6 +5,7 @@ import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
 import { useDeleteFormContainerMutation } from './useDeleteFormContainerMutation';
 import {
+  component1IdMock,
   container1IdMock,
   externalLayoutsMock,
   layout1NameMock,
@@ -18,7 +19,7 @@ const selectedLayoutSet = layoutSet1NameMock;
 const id = container1IdMock;
 
 describe('useDeleteFormContainerMutation', () => {
-  it('Should save layout without deleted container', async () => {
+  it('Should save layout without deleted container and send componentIds that has been deleted for syncing', async () => {
     const { result } = await renderDeleteFormContainerMutation();
     await result.current.mutateAsync(id);
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
@@ -28,10 +29,16 @@ describe('useDeleteFormContainerMutation', () => {
       layout1NameMock,
       selectedLayoutSet,
       {
-        componentIdChange: {
-          oldComponentId: id,
-          newComponentId: undefined,
-        },
+        componentIdsChange: [
+          {
+            oldComponentId: component1IdMock,
+            newComponentId: undefined,
+          },
+          {
+            oldComponentId: id,
+            newComponentId: undefined,
+          },
+        ],
         layout: expect.objectContaining({
           data: expect.objectContaining({
             layout: expect.not.arrayContaining([expect.objectContaining({ id })]),

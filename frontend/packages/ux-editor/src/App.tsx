@@ -1,6 +1,6 @@
 import React from 'react';
 import { FormDesigner } from './containers/FormDesigner';
-import { useAppContext } from './hooks';
+import { useText, useAppContext } from './hooks';
 import { StudioPageSpinner } from '@studio/components';
 import { ErrorPage } from './components/ErrorPage';
 import { useDataModelMetadataQuery } from './hooks/queries/useDataModelMetadataQuery';
@@ -8,7 +8,6 @@ import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { FormItemContextProvider } from './containers/FormItemContext';
-import { useTranslation } from 'react-i18next';
 
 /**
  * This is the main React component responsible for controlling
@@ -17,7 +16,7 @@ import { useTranslation } from 'react-i18next';
  */
 
 export function App() {
-  const { t } = useTranslation();
+  const t = useText();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
   const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);

@@ -32,6 +32,14 @@ describe('SyncUtils', () => {
       code: 'layoutSetsDataTypeSyncError',
       expectedTranslationKey: 'process_editor.sync_error_layout_sets_data_type',
     },
+    {
+      code: 'layoutSetComponentIdSyncError',
+      expectedTranslationKey: 'ux_editor.sync_error_layout_set_component_id',
+    },
+    {
+      code: 'settingsComponentIdSyncError',
+      expectedTranslationKey: 'ux_editor.sync_error_settings_component_id',
+    },
   ])(`should map errorCode into translation keys`, ({ code, expectedTranslationKey }) => {
     const syncError: SyncError = {
       ...defaultSyncErrorMock,

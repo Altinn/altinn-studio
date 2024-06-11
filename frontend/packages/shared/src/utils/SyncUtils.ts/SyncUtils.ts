@@ -8,8 +8,8 @@ export class SyncUtils {
     applicationMetadataDataTypeSyncError:
       'process_editor.sync_error_application_metadata_data_type',
     layoutSetsDataTypeSyncError: 'process_editor.sync_error_layout_sets_data_type',
-    layoutSetComponentIdSyncError: 'process_editor.sync_error.unknown_error',
-    settingsComponentIdSyncError: 'process_editor.sync_error.unknown_error',
+    layoutSetComponentIdSyncError: 'ux_editor.sync_error_layout_set_component_id',
+    settingsComponentIdSyncError: 'ux_editor.sync_error_settings_component_id',
   };
 
   public static getSyncErrorMessage(error: SyncError): string {

@@ -5,7 +5,9 @@ export type ComponentIdChange = {
   newComponentId: string;
 };
 
+export type ComponentIdsChange = ComponentIdChange[];
+
 export type FormLayoutRequest = {
   layout: ExternalFormLayout;
-  componentIdChange?: ComponentIdChange;
+  componentIdsChange?: ComponentIdsChange;
 };

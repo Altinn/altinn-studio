@@ -47,10 +47,12 @@ describe('FormItemTitle', () => {
       layout1NameMock,
       layoutSet1NameMock,
       {
-        componentIdChange: {
-          newComponentId: undefined,
-          oldComponentId: component.id,
-        },
+        componentIdsChange: [
+          {
+            newComponentId: undefined,
+            oldComponentId: component.id,
+          },
+        ],
         layout: expect.objectContaining({
           data: {
             layout: [],

@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Hubs.SyncHub;
-using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;
 
@@ -28,32 +27,25 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
             notification.EditingContext.Repo,
             notification.EditingContext.Developer);
 
-        LayoutSets layoutSets = await repository.GetLayoutSetsFile(cancellationToken);
-
-        // WHAT FILE TO SEND IN THIS CASE? CAN WE FETCH ONLY SINGLE LAYOUTS OR NEED TO SEND NAME OF LAYOUT SET(S) AND FETCH ALL LAYOUTS PER SET?
-        foreach (LayoutSetConfig layoutSet in layoutSets.Sets)
-        {
-            // If we replace layouts in cache we can pass only the changed layouts --> Edit: We cannot because frontend does not have the synced changes
-            await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingConditionalNotification(
+        await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingConditionalNotification(
                 notification.EditingContext,
                 SyncErrorCodes.LayoutSetComponentIdSyncError,
                 "App/ui/layouts",
                 async () =>
                 {
                     bool hasChanges = false;
-                    string[] layoutNames = repository.GetLayoutNames(layoutSet.Id);
+                    string[] layoutNames = repository.GetLayoutNames(notification.LayoutSetName);
                     foreach (var layoutName in layoutNames)
                     {
-                        var layout = await repository.GetLayout(layoutSet.Id, layoutName, cancellationToken);
+                        var layout = await repository.GetLayout(notification.LayoutSetName, layoutName, cancellationToken);
                         if (TryChangeComponentId(layout, notification.OldComponentId, notification.NewComponentId))
                         {
-                            await repository.SaveLayout(layoutSet.Id, layoutName, layout, cancellationToken);
+                            await repository.SaveLayout(notification.LayoutSetName, layoutName, layout, cancellationToken);
                             hasChanges = true;
                         }
                     }
                     return hasChanges;
                 });
-        }
     }
 
     /// <summary>
@@ -76,7 +68,6 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
         // Should we check if node is string to avoid unnecessary upcoming checks?
         if (node is JsonObject jsonObject)
         {
-            // Could we update on the fly during recursive operations?
             if (jsonObject[oldComponentId] is not null)
             {
                 // When componentId is the propertyName
@@ -87,6 +78,11 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
                 // Objects that references components i.e. in `rowsAfter` in RepeatingGroup
                 UpdateComponentIdActingAsCellMemberInRepeatingGroup(jsonObject, oldComponentId, newComponentId);
             }
+            else if (jsonObject["tableHeaders"] is JsonArray tableHeadersArray)
+            {
+                // Objects that references components in `tableHeaders` in RepeatingGroup
+                UpdateComponentIdActingAsTableHeaderInRepeatingGroup(tableHeadersArray, oldComponentId, newComponentId);
+            }
             else if (jsonObject["componentRef"] is not null)
             {
                 // Components that are used in summary components will have this ref
@@ -94,7 +90,6 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
             }
             foreach (var property in jsonObject)
             {
-                // What if the first if-sentence updates/removes the id?
                 FindIdOccurrencesRecursive(property.Value, oldComponentId, newComponentId);
             }
         }
@@ -120,7 +115,10 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
         // Might need to make this stricter in case app-dev are calling components keys that already are used in the schema
         JsonNode value = jsonObject[oldComponentId];
         jsonObject.Remove(oldComponentId);
-        jsonObject[newComponentId] = value;
+        if (!string.IsNullOrEmpty(newComponentId))
+        {
+            jsonObject[newComponentId] = value;
+        }
     }
 
     private void UpdateComponentIdActingAsExpressionMember(JsonArray jsonArray, string newComponentId)
@@ -133,6 +131,24 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
         if (jsonNode["component"]?.ToString() == oldComponentId)
         {
             jsonNode["component"] = newComponentId;
+        }
+    }
+
+    private void UpdateComponentIdActingAsTableHeaderInRepeatingGroup(JsonArray jsonArray, string oldComponentId, string newComponentId)
+    {
+        for (int i = 0; i < jsonArray.Count; i++)
+        {
+            string currentComponentId = jsonArray[i]?.ToString();
+            if (currentComponentId == oldComponentId)
+            {
+                if (string.IsNullOrEmpty(newComponentId))
+                {
+                    jsonArray.RemoveAt(i);
+                    break;
+                }
+                jsonArray[i] = newComponentId;
+                break;
+            }
         }
     }
 

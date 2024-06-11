@@ -58,7 +58,7 @@ describe('HiddenExpressionOnLayout', () => {
 
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
     expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(org, app, layout1NameMock, layoutSet, {
-      componentIdChange: undefined,
+      componentIdsChange: undefined,
       layout: expect.objectContaining({
         data: expect.objectContaining({
           hidden: ['equals', 0, 0],
@@ -85,7 +85,7 @@ describe('HiddenExpressionOnLayout', () => {
 
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
     expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(org, app, layout1NameMock, layoutSet, {
-      componentIdChange: undefined,
+      componentIdsChange: undefined,
       layout: expect.objectContaining({
         data: expect.objectContaining({
           hidden: expression,

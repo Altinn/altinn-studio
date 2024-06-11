@@ -32,7 +32,7 @@ export const LayoutContextProvider = ({ children }: Partial<LayoutContextProvide
 export const useLayoutContext = (): Partial<LayoutContextProps> => {
   const context = useContext(LayoutContext);
   if (context === undefined) {
-    throw new Error('usePreviewContext must be used within a PreviewContextProvider');
+    throw new Error('useLayoutContext must be used within a LayoutContextProvider');
   }
   return context;
 };
