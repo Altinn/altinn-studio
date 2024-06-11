@@ -37,7 +37,7 @@ const renderWithMockServices = (services?: Partial<ServicesContextProps>) => {
 };
 
 describe('PageLayout', () => {
-  test('should not redirect to root if context is self', async () => {
+  it('should not redirect to root if context is self', async () => {
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: SelectedContextType.Self,
     });
@@ -45,7 +45,7 @@ describe('PageLayout', () => {
     expect(mockedNavigate).not.toHaveBeenCalled();
   });
 
-  test('should not redirect to root if context is all', async () => {
+  it('should not redirect to root if context is all', async () => {
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: SelectedContextType.All,
     });
@@ -53,7 +53,7 @@ describe('PageLayout', () => {
     expect(mockedNavigate).not.toHaveBeenCalled();
   });
 
-  test('should not redirect to root if user have access to selected context', async () => {
+  it('should not redirect to root if user have access to selected context', async () => {
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: 'ttd',
     });
@@ -61,7 +61,7 @@ describe('PageLayout', () => {
     expect(mockedNavigate).not.toHaveBeenCalled();
   });
 
-  test('should redirect to root if user does not have access to selected context', async () => {
+  it('should redirect to root if user does not have access to selected context', async () => {
     (useParams as jest.Mock).mockReturnValue({
       selectedContext: 'testinvalidcontext',
     });
@@ -70,13 +70,13 @@ describe('PageLayout', () => {
     expect(mockedNavigate).toHaveBeenCalledWith(SelectedContextType.Self, expect.anything());
   });
 
-  test('should redirect to self context if none is defined', async () => {
+  it('should redirect to self context if none is defined', async () => {
     renderWithMockServices();
     expect(mockedNavigate).toHaveBeenCalledTimes(1);
     expect(mockedNavigate).toHaveBeenCalledWith(SelectedContextType.Self, expect.anything());
   });
 
-  test.each([
+  it.each([
     ['"self"', 'self'],
     ['"all"', 'all'],
     ['"ttd"', 'ttd'],
@@ -92,7 +92,7 @@ describe('PageLayout', () => {
     },
   );
 
-  test('should redirect to self if user does not have access to session stored context', async () => {
+  it('should redirect to self if user does not have access to session stored context', async () => {
     (useParams as jest.Mock).mockReturnValue({});
     sessionStorage.setItem('dashboard::selectedContext', '"testinvalidcontext"');
     renderWithMockServices();
