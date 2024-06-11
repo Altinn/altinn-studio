@@ -58,9 +58,10 @@ jobs:
         with:
           push: false
           load: true
+          targets: designer
           set: |
-              web.cache-from=type=gha
-              web.cache-to=type=gha
+              designer.cache-from=type=gha
+              designer.cache-to=type=gha
 
       - name: Run setup.js script
         run: |
