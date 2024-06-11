@@ -430,7 +430,7 @@ export const duplicatedIdsExistsInLayout = (layout: IInternalLayout): boolean =>
  * @param layouts The layouts to check.
  * @returns True if some items in the array are duplicated and false otherwise.
  */
-export const duplicatedIdsExistInLayouts = (layouts: IInternalLayout[]): boolean => {
+export const duplicatedIdsExistInAllLayouts = (layouts: IInternalLayout[]): boolean => {
   const allIds = layouts.reduce((ids, layout) => {
     if (layout?.order) {
       ids.push(...flattenObjectValues(layout.order));

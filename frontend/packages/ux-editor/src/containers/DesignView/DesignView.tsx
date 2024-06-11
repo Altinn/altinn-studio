@@ -14,7 +14,10 @@ import { ReceiptContent } from './ReceiptContent';
 import { useAppContext, useFormLayouts } from '../../hooks';
 import { FormLayout } from './FormLayout';
 import { StudioButton } from '@studio/components';
-import { duplicatedIdsExistsInLayout } from '../../utils/formLayoutUtils';
+import {
+  duplicatedIdsExistsInLayout,
+  duplicatedIdsExistInAllLayouts,
+} from '../../utils/formLayoutUtils';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
@@ -100,6 +103,11 @@ export const DesignView = (): ReactNode => {
 
     // Check if the layout has unique component IDs
     const isValidLayout = !duplicatedIdsExistsInLayout(layout.data);
+
+    const isUniqeIdAccrossAllLayouts = !duplicatedIdsExistInAllLayouts(
+      formLayoutData.map((formLayout) => formLayout.data),
+    );
+
     return (
       <PageAccordion
         key={i}
@@ -107,6 +115,7 @@ export const DesignView = (): ReactNode => {
         isOpen={layout.page === selectedFormLayoutName}
         onClick={() => handleClickAccordion(layout.page)}
         isValid={isValidLayout}
+        areUniqueIds={isUniqeIdAccrossAllLayouts}
       >
         {layout.page === selectedFormLayoutName && (
           <FormLayout layout={layout.data} isValid={isValidLayout} />
