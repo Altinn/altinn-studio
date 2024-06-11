@@ -11,6 +11,7 @@ import { useDeleteAccessListMutation } from '../../hooks/mutations/useDeleteAcce
 import { AccessListMembers } from '../AccessListMembers';
 import { TrashIcon } from '@studio/icons';
 import { StudioButton } from '@studio/components';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 export interface AccessListDetailProps {
   org: string;
@@ -42,7 +43,7 @@ export const AccessListDetail = ({
   );
 
   const checkForEtagVersionError = (error: Error): void => {
-    if ((error as ResourceError).response.status === 412) {
+    if ((error as ResourceError).response.status === ServerCodes.PreconditionFailed) {
       toast.error(t('resourceadm.listadmin_list_sim_update_error'));
     }
   };

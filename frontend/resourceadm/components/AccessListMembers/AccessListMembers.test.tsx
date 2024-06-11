@@ -9,6 +9,7 @@ import { AccessListMembers } from './AccessListMembers';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 const testOrg = 'ttd';
 const testEnv = 'tt02';
@@ -212,7 +213,9 @@ describe('AccessListMembers', () => {
     await renderAndWaitForData({
       addAccessListMember: jest
         .fn()
-        .mockImplementation(() => Promise.reject({ response: { status: 412, data: {} } })),
+        .mockImplementation(() =>
+          Promise.reject({ response: { status: ServerCodes.PreconditionFailed, data: {} } }),
+        ),
       getParties: jest.fn().mockImplementation(() =>
         Promise.resolve({
           _embedded: {
@@ -246,7 +249,9 @@ describe('AccessListMembers', () => {
     await renderAndWaitForData({
       removeAccessListMember: jest
         .fn()
-        .mockImplementation(() => Promise.reject({ response: { status: 412, data: {} } })),
+        .mockImplementation(() =>
+          Promise.reject({ response: { status: ServerCodes.PreconditionFailed, data: {} } }),
+        ),
     });
 
     const removeButtons = screen.getAllByText(textMock('resourceadm.listadmin_remove_from_list'));

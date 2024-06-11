@@ -9,6 +9,7 @@ import { AccessListDetail } from './AccessListDetail';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 const mockedNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
@@ -56,7 +57,7 @@ describe('AccessListDetail', () => {
     const user = userEvent.setup();
     const updateMock = jest.fn().mockImplementation(() =>
       Promise.reject({
-        response: { status: 412 },
+        response: { status: ServerCodes.PreconditionFailed },
       }),
     );
     renderAccessListDetail({}, { updateAccessList: updateMock });
