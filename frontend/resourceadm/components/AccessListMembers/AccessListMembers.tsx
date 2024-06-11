@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
 import { Alert, Textfield, Radio } from '@digdir/design-system-react';
 import classes from './AccessListMembers.module.css';
 import type { AccessList, AccessListMember, ResourceError } from 'app-shared/types/ResourceAdm';
@@ -24,8 +25,8 @@ export interface AccessListMembersProps {
   org: string;
   env: string;
   list: AccessList;
-  etag: string;
-  setEtag: (newETag: string) => void;
+  latestEtag: string;
+  setLatestEtag: (newETag: string) => void;
   members: AccessListMember[];
   loadMoreButton: React.JSX.Element;
 }
@@ -34,8 +35,8 @@ export const AccessListMembers = ({
   org,
   env,
   list,
-  etag,
-  setEtag,
+  latestEtag,
+  setLatestEtag,
   members,
   loadMoreButton,
 }: AccessListMembersProps): React.JSX.Element => {
@@ -64,12 +65,18 @@ export const AccessListMembers = ({
     isSubPartySearch ? searchUrl : '',
   );
 
+  const checkForEtagVersionError = (error: Error): void => {
+    if ((error as ResourceError).response.status === 412) {
+      toast.error(t('resourceadm.listadmin_list_sim_update_error'));
+    }
+  };
+
   const handleAddMember = (memberToAdd: AccessListMember): void => {
     addListMember(
-      { data: [memberToAdd.orgNr], etag: etag },
+      { data: [memberToAdd.orgNr], etag: latestEtag },
       {
         onSuccess: (data) => {
-          setEtag(data.etag);
+          setLatestEtag(data.etag);
           setLocalItems((prev) => [...prev, memberToAdd]);
         },
         onError: (error: Error) => {
@@ -78,6 +85,8 @@ export const AccessListMembers = ({
             INVALID_ORG_ERROR_CODE
           ) {
             setInvalidOrgnrs((old) => [...old, memberToAdd.orgNr]);
+          } else {
+            checkForEtagVersionError(error);
           }
         },
       },
@@ -86,11 +95,14 @@ export const AccessListMembers = ({
 
   const handleRemoveMember = (memberIdToRemove: string): void => {
     removeListMember(
-      { data: [memberIdToRemove], etag: etag },
+      { data: [memberIdToRemove], etag: latestEtag },
       {
         onSuccess: (data) => {
-          setEtag(data.etag);
+          setLatestEtag(data.etag);
           setLocalItems((prev) => prev.filter((item) => item.orgNr !== memberIdToRemove));
+        },
+        onError: (error: Error) => {
+          checkForEtagVersionError(error);
         },
       },
     );

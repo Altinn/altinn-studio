@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { UseMutationResult } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { AccessListOrganizationNumbers } from 'app-shared/types/ResourceAdm';
+import type { AccessListOrganizationNumbers, HeaderEtag } from 'app-shared/types/ResourceAdm';
 
 /**
  * Mutation to add a member to a access list.
@@ -15,7 +15,7 @@ export const useAddAccessListMemberMutation = (
   org: string,
   listIdentifier: string,
   env: string,
-): UseMutationResult<{ etag: string }> => {
+): UseMutationResult<HeaderEtag> => {
   const queryClient = useQueryClient();
   const { addAccessListMember } = useServicesContext();
 

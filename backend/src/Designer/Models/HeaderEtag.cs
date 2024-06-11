@@ -1,6 +1,7 @@
+#nullable enable
 namespace Altinn.Studio.Designer.Models
 {
-    public class AccessListOrganizationNumbersResponse
+    public class HeaderEtag
     {
         public string? Etag { get; set; }
     }

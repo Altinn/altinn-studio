@@ -493,7 +493,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return new StatusCodeResult(412);
             }
             response.EnsureSuccessStatusCode();
-            return new ObjectResult(new AccessListOrganizationNumbersResponse() { Etag = response.Headers.ETag.ToString() }) { StatusCode = (int)response.StatusCode };
+            return new ObjectResult(new HeaderEtag() { Etag = response.Headers.ETag.ToString() }) { StatusCode = (int)response.StatusCode };
         }
 
         public async Task<ActionResult> RemoveAccessListMembers(
@@ -528,7 +528,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return new StatusCodeResult(412);
             }
             response.EnsureSuccessStatusCode();
-            return new ObjectResult(new AccessListOrganizationNumbersResponse() { Etag = response.Headers.ETag.ToString() }) { StatusCode = (int)response.StatusCode };
+            return new ObjectResult(new HeaderEtag() { Etag = response.Headers.ETag.ToString() }) { StatusCode = (int)response.StatusCode };
         }
 
         public async Task<HttpStatusCode> AddResourceAccessList(
@@ -602,7 +602,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}{relativeUrl}");
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
-            if (eTag != null)
+            if (!string.IsNullOrEmpty(eTag))
             {
                 request.Headers.Add("If-Match", eTag);
             }

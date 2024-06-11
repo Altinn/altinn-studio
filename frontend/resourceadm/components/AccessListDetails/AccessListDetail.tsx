@@ -2,9 +2,9 @@ import React, { useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import { Textfield, Modal, Heading, Link as DigdirLink, Alert } from '@digdir/design-system-react';
+import { Textfield, Modal, Heading, Link as DigdirLink } from '@digdir/design-system-react';
 import classes from './AccessListDetail.module.css';
-import type { AccessList } from 'app-shared/types/ResourceAdm';
+import type { AccessList, ResourceError } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from '../FieldWrapper';
 import { useEditAccessListMutation } from '../../hooks/mutations/useEditAccessListMutation';
 import { useDeleteAccessListMutation } from '../../hooks/mutations/useDeleteAccessListMutation';
@@ -35,22 +35,25 @@ export const AccessListDetail = ({
   const [listName, setListName] = useState<string>(list.name || '');
   const [listDescription, setListDescription] = useState<string>(list.description || '');
 
+  // TODO: move members related fetching to <AccessListMembers>
   const {
     data: membersData,
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
   } = useGetAccessListMembersQuery(org, list.identifier, env);
-  const { mutate: editAccessList, error: updateAccessListError } = useEditAccessListMutation(
-    org,
-    list.identifier,
-    env,
-  );
+  const { mutate: editAccessList } = useEditAccessListMutation(org, list.identifier, env);
   const { mutate: deleteAccessList, isPending: isDeletingAccessList } = useDeleteAccessListMutation(
     org,
     list.identifier,
     env,
   );
+
+  const checkForEtagVersionError = (error: Error): void => {
+    if ((error as ResourceError).response.status === 412) {
+      toast.error(t('resourceadm.listadmin_list_sim_update_error'));
+    }
+  };
 
   // change list name, description and possibly other properties
   const handleSave = (accessList: AccessList): void => {
@@ -59,6 +62,9 @@ export const AccessListDetail = ({
       {
         onSuccess: (data: AccessList) => {
           setLatestEtag(data.etag);
+        },
+        onError: (error) => {
+          checkForEtagVersionError(error);
         },
       },
     );
@@ -133,16 +139,13 @@ export const AccessListDetail = ({
           onBlur={(event) => handleSave({ ...list, description: event.target.value })}
         />
       </FieldWrapper>
-      {updateAccessListError?.response.status === 412 && (
-        <Alert severity='danger'>{t('resourceadm.listadmin_list_sim_update_error')}</Alert>
-      )}
       {membersData && (
         <AccessListMembers
           org={org}
           env={env}
           list={list}
-          etag={latestEtag}
-          setEtag={setLatestEtag}
+          latestEtag={latestEtag}
+          setLatestEtag={setLatestEtag}
           members={membersData.pages}
           loadMoreButton={
             hasNextPage && (

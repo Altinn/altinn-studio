@@ -37,8 +37,8 @@ const defaultProps: AccessListMembersProps = {
     },
   ],
   loadMoreButton: null,
-  etag: '',
-  setEtag: jest.fn(),
+  latestEtag: '',
+  setLatestEtag: jest.fn(),
 };
 
 describe('AccessListMembers', () => {
@@ -209,6 +209,65 @@ describe('AccessListMembers', () => {
     await user.click(addMemberButton);
 
     expect(screen.getByText(textMock('resourceadm.listadmin_invalid_org'))).toBeInTheDocument();
+  });
+
+  it('should show error message if add member request returns http status code 412', async () => {
+    const user = userEvent.setup();
+    const searchResultText = 'Digdir';
+    const searchResultOrgNr = '987654321';
+
+    renderAccessListMembers(
+      {},
+      {
+        addAccessListMember: jest
+          .fn()
+          .mockImplementation(() => Promise.reject({ response: { status: 412, data: {} } })),
+        getParties: jest.fn().mockImplementation(() =>
+          Promise.resolve({
+            _embedded: {
+              enheter: [{ organisasjonsnummer: searchResultOrgNr, navn: searchResultText }],
+            },
+          }),
+        ),
+      },
+    );
+
+    const addMoreButton = screen.getByRole('button', {
+      name: textMock('resourceadm.listadmin_search_add_more'),
+    });
+    await user.click(addMoreButton);
+
+    const textField = screen.getByLabelText(textMock('resourceadm.listadmin_search'));
+    await user.type(textField, searchResultOrgNr);
+
+    await waitFor(() => screen.findByText(searchResultText));
+
+    const addMemberButton = screen.getByText(textMock('resourceadm.listadmin_add_to_list'));
+    await user.click(addMemberButton);
+
+    expect(
+      screen.getByText(textMock('resourceadm.listadmin_list_sim_update_error')),
+    ).toBeInTheDocument();
+  });
+
+  it('should show error message if remove member request returns http status code 412', async () => {
+    const user = userEvent.setup();
+
+    renderAccessListMembers(
+      {},
+      {
+        removeAccessListMember: jest
+          .fn()
+          .mockImplementation(() => Promise.reject({ response: { status: 412, data: {} } })),
+      },
+    );
+
+    const removeButtons = screen.getAllByText(textMock('resourceadm.listadmin_remove_from_list'));
+    await user.click(removeButtons[0]);
+
+    expect(
+      screen.getByText(textMock('resourceadm.listadmin_list_sim_update_error')),
+    ).toBeInTheDocument();
   });
 
   it('should go to next page when paging button is clicked', async () => {
