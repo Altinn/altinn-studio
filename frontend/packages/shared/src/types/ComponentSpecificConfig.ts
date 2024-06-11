@@ -321,6 +321,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
   };
   [ComponentType.Paragraph]: {};
   [ComponentType.Payment]: SummarizableComponentProps;
+  [ComponentType.PaymentDetails]: {};
   [ComponentType.PrintButton]: {};
   [ComponentType.RadioButtons]: FormComponentProps &
     SummarizableComponentProps &

@@ -19,7 +19,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_TextResources_Ok()
         {
-            string dataPathWithData = $"{Org}/{AppV3}/api/v1/textresources";
+            string dataPathWithData = $"{Org}/{PreviewApp}/api/v1/textresources";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

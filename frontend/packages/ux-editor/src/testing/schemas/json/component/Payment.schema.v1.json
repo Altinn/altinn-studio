@@ -1,5 +1,5 @@
 {
-  "$id": "https://altinncdn.no/schemas/json/component/Header.schema.v1.json",
+  "$id": "https://altinncdn.no/schemas/json/component/Payment.schema.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "id": {
@@ -59,12 +59,12 @@
       "properties": {
         "title": {
           "title": "Title",
-          "description": "The text to display in the header",
+          "description": "The title of the paragraph",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
-        "help": {
-          "title": "Help text",
-          "description": "The text to display in the help tooltip/popup",
+        "description": {
+          "title": "Description",
+          "description": "Description, optionally shown below the title",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
       },
