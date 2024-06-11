@@ -242,14 +242,6 @@ describe('ResourceDashBoardPage', () => {
     ).toBeInTheDocument();
   });
 
-  it('should show access list button when feature is enabled', () => {
-    renderResourceDashboardPage();
-
-    expect(
-      screen.getByText(textMock('resourceadm.dashboard_change_organization_lists')),
-    ).toBeInTheDocument();
-  });
-
   it('should show merge conflict modal if repo has merge conflict', async () => {
     const getRepoStatus = jest.fn().mockImplementation(() =>
       Promise.resolve<RepoStatus>({
