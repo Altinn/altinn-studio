@@ -36,7 +36,7 @@ export const useReposSearch = ({
         : defaultPageSize;
     },
   );
-  const [selectedColumn, setSelectedColumn] = useState('alpha');
+  const [selectedColumn, setSelectedColumn] = useState('name');
   const [sortDirection, setSortDirection] = useState('asc');
 
   const toggleSortDirection = () => {
