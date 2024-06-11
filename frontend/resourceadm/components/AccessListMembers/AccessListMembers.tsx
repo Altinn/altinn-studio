@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { Alert, Textfield, Radio } from '@digdir/design-system-react';
@@ -16,6 +16,7 @@ import { PlusIcon } from '@studio/icons';
 import { AccessListMembersPaging } from './AccessListMembersPaging';
 import { AccessListMembersTable } from './AccessListMembersTable';
 import { isOrgNrString } from '../../utils/stringUtils';
+import { useGetAccessListMembersQuery } from '../../hooks/queries/useGetAccessListMembersQuery';
 
 const PARTY_SEARCH_TYPE = 'PARTY';
 const SUBPARTY_SEARCH_TYPE = 'SUBPARTY';
@@ -27,8 +28,6 @@ export interface AccessListMembersProps {
   list: AccessList;
   latestEtag: string;
   setLatestEtag: (newETag: string) => void;
-  members: AccessListMember[];
-  loadMoreButton: React.JSX.Element;
 }
 
 export const AccessListMembers = ({
@@ -37,15 +36,13 @@ export const AccessListMembers = ({
   list,
   latestEtag,
   setLatestEtag,
-  members,
-  loadMoreButton,
 }: AccessListMembersProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   // if list has more than 100 members and not all are loaded, keep added members in local array for display
   const [localItems, setLocalItems] = useState<AccessListMember[]>([]);
   const [invalidOrgnrs, setInvalidOrgnrs] = useState<string[]>([]);
-  const [isAddMode, setIsAddMode] = useState<boolean>(members.length === 0);
+  const [isAddMode, setIsAddMode] = useState<boolean>(false);
   const [isSubPartySearch, setIsSubPartySearch] = useState<boolean>(false);
   const [searchText, setSearchText] = useState<string>('');
   const [searchUrl, setSearchUrl] = useState<string>('');
@@ -64,6 +61,18 @@ export const AccessListMembers = ({
   const { data: subPartiesSearchData } = useSubPartiesRegistryQuery(
     isSubPartySearch ? searchUrl : '',
   );
+  const {
+    data: members,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useGetAccessListMembersQuery(org, list.identifier, env);
+
+  useEffect(() => {
+    if (members?.pages?.length === 0) {
+      setIsAddMode(true);
+    }
+  }, [members]);
 
   const checkForEtagVersionError = (error: Error): void => {
     if ((error as ResourceError).response.status === 412) {
@@ -133,9 +142,9 @@ export const AccessListMembers = ({
   };
 
   const getMergedMembersData = (): AccessListMember[] => {
-    const returnData = [...members];
-    // if load more button exists, there are more members in the list that can be shown. Always show newly added items
-    if (loadMoreButton) {
+    const returnData = [...(members?.pages ?? [])];
+    // if hasNextPage is true, there are more members in the list that can be shown. Always show newly added items
+    if (hasNextPage) {
       localItems.forEach((localItem) => {
         if (!returnData.some((member) => member.orgNr === localItem.orgNr)) {
           returnData.push(localItem);
@@ -157,8 +166,19 @@ export const AccessListMembers = ({
         isLoading={isRemovingMember}
         onButtonClick={(item: AccessListMember) => handleRemoveMember(item.orgNr)}
       />
-      {loadMoreButton}
-      {members.length === 0 && (
+      {hasNextPage && (
+        <StudioButton
+          disabled={isFetchingNextPage}
+          size='small'
+          variant='tertiary'
+          onClick={() => fetchNextPage()}
+        >
+          {t('resourceadm.listadmin_load_more', {
+            unit: t('resourceadm.listadmin_member_unit'),
+          })}
+        </StudioButton>
+      )}
+      {!!members && members.pages?.length === 0 && (
         <Alert severity='info'>{t('resourceadm.listadmin_empty_list')}</Alert>
       )}
       {isAddMode && (

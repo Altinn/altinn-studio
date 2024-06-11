@@ -8,7 +8,6 @@ import type { AccessList, ResourceError } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from '../FieldWrapper';
 import { useEditAccessListMutation } from '../../hooks/mutations/useEditAccessListMutation';
 import { useDeleteAccessListMutation } from '../../hooks/mutations/useDeleteAccessListMutation';
-import { useGetAccessListMembersQuery } from '../../hooks/queries/useGetAccessListMembersQuery';
 import { AccessListMembers } from '../AccessListMembers';
 import { TrashIcon } from '@studio/icons';
 import { StudioButton } from '@studio/components';
@@ -35,13 +34,6 @@ export const AccessListDetail = ({
   const [listName, setListName] = useState<string>(list.name || '');
   const [listDescription, setListDescription] = useState<string>(list.description || '');
 
-  // TODO: move members related fetching to <AccessListMembers>
-  const {
-    data: membersData,
-    hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage,
-  } = useGetAccessListMembersQuery(org, list.identifier, env);
   const { mutate: editAccessList } = useEditAccessListMutation(org, list.identifier, env);
   const { mutate: deleteAccessList, isPending: isDeletingAccessList } = useDeleteAccessListMutation(
     org,
@@ -139,30 +131,13 @@ export const AccessListDetail = ({
           onBlur={(event) => handleSave({ ...list, description: event.target.value })}
         />
       </FieldWrapper>
-      {membersData && (
-        <AccessListMembers
-          org={org}
-          env={env}
-          list={list}
-          latestEtag={latestEtag}
-          setLatestEtag={setLatestEtag}
-          members={membersData.pages}
-          loadMoreButton={
-            hasNextPage && (
-              <StudioButton
-                disabled={isFetchingNextPage}
-                size='small'
-                variant='tertiary'
-                onClick={() => fetchNextPage()}
-              >
-                {t('resourceadm.listadmin_load_more', {
-                  unit: t('resourceadm.listadmin_member_unit'),
-                })}
-              </StudioButton>
-            )
-          }
-        />
-      )}
+      <AccessListMembers
+        org={org}
+        env={env}
+        list={list}
+        latestEtag={latestEtag}
+        setLatestEtag={setLatestEtag}
+      />
       <div>
         <StudioButton
           variant='tertiary'
