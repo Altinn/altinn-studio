@@ -265,6 +265,26 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
+        public async Task<LayoutSetConfig> GetLayoutSetConfig(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetId,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            AltinnAppGitRepository altinnAppGitRepository =
+                _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
+                    altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
+            if (appUsesLayoutSets)
+            {
+                // TODO: introduce better check to evaluate if app uses layout sets
+                LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+                return layoutSets.Sets.FirstOrDefault(layoutSet => layoutSet.Id == layoutSetId);
+            }
+
+            throw new NoLayoutSetsFileFoundException(
+                "No layout set found for this app.");
+        }
+
+        /// <inheritdoc />
         public async Task<LayoutSets> AddLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext,
             LayoutSetConfig newLayoutSet, CancellationToken cancellationToken = default)
         {

@@ -3,16 +3,35 @@ import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { IToolbarElement } from '../../types/global';
 import { InformationPanelComponent } from '../toolbar/InformationPanelComponent';
 import { ToolbarItem } from './ToolbarItem';
-import { confOnScreenComponents } from '../../data/formItemConfig';
+import { confOnScreenComponents, paymentLayoutComponents } from '../../data/formItemConfig';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { mapComponentToToolbarElement } from '../../utils/formLayoutUtils';
 import { useTranslation } from 'react-i18next';
 
-export const ConfPageToolbar = () => {
+const getAvailableComponentList = (confPageType: ConfPageType) => {
+  switch (confPageType) {
+    case 'receipt':
+      return confOnScreenComponents;
+    case 'payment':
+      return paymentLayoutComponents;
+    default:
+      return [];
+  }
+};
+
+export type ConfPageType = 'receipt' | 'payment';
+
+export type ConfPageToolbarProps = {
+  confPageType: ConfPageType;
+};
+
+export const ConfPageToolbar = ({ confPageType }: ConfPageToolbarProps) => {
   const [anchorElement, setAnchorElement] = useState<any>(null);
   const [compSelForInfoPanel, setCompSelForInfoPanel] = useState<ComponentType>(null);
   const { t } = useTranslation();
-  const componentList: IToolbarElement[] = confOnScreenComponents.map(mapComponentToToolbarElement);
+  const componentList: IToolbarElement[] = getAvailableComponentList(confPageType).map(
+    mapComponentToToolbarElement,
+  );
   const handleComponentInformationOpen = (component: ComponentType, event: any) => {
     setCompSelForInfoPanel(component);
     setAnchorElement(event.currentTarget);

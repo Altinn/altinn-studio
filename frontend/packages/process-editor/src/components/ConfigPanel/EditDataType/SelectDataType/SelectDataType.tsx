@@ -14,6 +14,7 @@ export interface SelectDataTypeProps {
   onClose: () => void;
   hideDeleteButton?: boolean;
 }
+
 export const SelectDataType = ({
   dataModelIds,
   existingDataType,
@@ -38,6 +39,10 @@ export const SelectDataType = ({
     onClose();
   };
 
+  const dataModelOptionsToDisplay: string[] = existingDataType
+    ? [...new Set([...dataModelIds, existingDataType])]
+    : dataModelIds;
+
   return (
     <div className={classes.dataTypeSelectAndButtons}>
       <Combobox
@@ -50,7 +55,7 @@ export const SelectDataType = ({
         <Combobox.Empty>
           {t('process_editor.configuration_panel_no_data_model_to_select')}
         </Combobox.Empty>
-        {dataModelIds.map((option) => (
+        {dataModelOptionsToDisplay.map((option) => (
           <Combobox.Option
             value={option}
             key={option}
