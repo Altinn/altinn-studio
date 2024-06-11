@@ -1,5 +1,6 @@
 services:
   eid-logger:
+    container_name: eid-logger
     build:
       context: .
       args:

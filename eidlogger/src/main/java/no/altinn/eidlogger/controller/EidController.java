@@ -19,16 +19,17 @@ public class EidController {
 
   @PostMapping("/eid-event-log")
   public void log(@RequestBody EidLogRequest request) {
-    var studioData = new HashMap<String, String>();
-    studioData.put("studio-field", "dummy-value");
 
-    ActivityRecord record = ActivityRecord.builder()
+    ActivityRecord.ActivityRecordBuilder builder = ActivityRecord.builder()
       .eventName(request.getEventName())
       .eventDescription(request.getEventDescription())
-      .eventCreated(request.getEventCreated())
-      .correlationId(request.getCorrelationId())
-      .extraData(studioData)
-      .build();
+      .eventCreated(request.getEventCreated());
+
+    if(request.getStudioData() != null && !request.getStudioData().isEmpty()) {
+      builder.extraData(request.getStudioData());
+    }
+
+    ActivityRecord record = builder.build();
 
     eventLogger.log(record);
   }
