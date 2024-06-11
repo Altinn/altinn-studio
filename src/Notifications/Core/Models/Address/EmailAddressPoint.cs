@@ -1,10 +1,9 @@
-﻿#nullable enable
-using Altinn.Notifications.Core.Enums;
+﻿using Altinn.Notifications.Core.Enums;
 
 namespace Altinn.Notifications.Core.Models.Address;
 
 /// <summary>
-/// A class represeting an address point
+/// A class represeting an email address point
 /// </summary>
 public class EmailAddressPoint : IAddressPoint
 {

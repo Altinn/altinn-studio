@@ -1,8 +1,6 @@
-﻿#nullable enable
-using Altinn.Notifications.Core.Enums;
+﻿using Altinn.Notifications.Core.Enums;
 using Altinn.Notifications.Core.Models;
 using Altinn.Notifications.Core.Models.Address;
-using Altinn.Notifications.Core.Models.Notification;
 using Altinn.Notifications.Core.Models.NotificationTemplate;
 using Altinn.Notifications.Core.Models.Orders;
 using Altinn.Notifications.Extensions;
@@ -20,20 +18,36 @@ public static class OrderMapper
     /// </summary>
     public static NotificationOrderRequest MapToOrderRequest(this EmailNotificationOrderRequestExt extRequest, string creator)
     {
-        var emailTemplate = new EmailTemplate(null, extRequest.Subject, extRequest.Body, (EmailContentType)extRequest.ContentType);
+        var emailTemplate = new EmailTemplate(
+            null,
+            extRequest.Subject,
+            extRequest.Body,
+            (EmailContentType?)extRequest.ContentType ?? EmailContentType.Plain);
 
-        var recipients = new List<Recipient>();
+        List<Recipient> recipients =
+            extRequest.Recipients
+            .Select(r =>
+            {
+                List<IAddressPoint> addresses = new();
 
-        recipients.AddRange(
-            extRequest.Recipients.Select(r => new Recipient(new List<IAddressPoint>() { new EmailAddressPoint(r.EmailAddress!) })));
+                if (!string.IsNullOrEmpty(r.EmailAddress))
+                {
+                    addresses.Add(new EmailAddressPoint(r.EmailAddress));
+                }
+
+                return new Recipient(addresses, r.OrganizationNumber, r.NationalIdentityNumber);
+            })
+            .ToList();
 
         return new NotificationOrderRequest(
             extRequest.SendersReference,
             creator,
-            new(){ emailTemplate },
+            new List<INotificationTemplate>() { emailTemplate },
             extRequest.RequestedSendTime.ToUniversalTime(),
             NotificationChannel.Email,
-            recipients);
+            recipients,
+            extRequest.IgnoreReservation,
+            extRequest.ResourceId);
     }
 
     /// <summary>
@@ -43,18 +57,30 @@ public static class OrderMapper
     {
         INotificationTemplate smsTemplate = new SmsTemplate(extRequest.SenderNumber, extRequest.Body);
 
-        List<Recipient> recipients = new();
+        List<Recipient> recipients =
+          extRequest.Recipients
+          .Select(r =>
+          {
+              List<IAddressPoint> addresses = new();
 
-        recipients.AddRange(
-            extRequest.Recipients.Select(r => new Recipient(new List<IAddressPoint>() { new SmsAddressPoint(r.MobileNumber!) })));
+              if (!string.IsNullOrEmpty(r.MobileNumber))
+              {
+                  addresses.Add(new SmsAddressPoint(r.MobileNumber));
+              }
+
+              return new Recipient(addresses, r.OrganizationNumber, r.NationalIdentityNumber);
+          })
+          .ToList();
 
         return new NotificationOrderRequest(
             extRequest.SendersReference,
             creator,
-            new(){ smsTemplate },
+            new List<INotificationTemplate>() { smsTemplate },
             extRequest.RequestedSendTime.ToUniversalTime(),
             NotificationChannel.Sms,
-            recipients);
+            recipients,
+            extRequest.IgnoreReservation,
+            extRequest.ResourceId);
     }
 
     /// <summary>
@@ -66,6 +92,7 @@ public static class OrderMapper
 
         orderExt.MapBaseNotificationOrder(order);
         orderExt.Recipients = order.Recipients.MapToRecipientExt();
+        orderExt.IgnoreReservation = order.IgnoreReservation;
 
         foreach (var template in order.Templates)
         {
@@ -174,16 +201,17 @@ public static class OrderMapper
         recipientExt.AddRange(
             recipients.Select(r => new RecipientExt
             {
-                OrganisationNumber = r.OrganisationNumber,
-                NationalIdentityNumber = r.NationalIdentityNumber,
                 EmailAddress = GetEmailFromAddressList(r.AddressInfo),
-                MobileNumber = GetMobileNumberFromAddressList(r.AddressInfo)
+                MobileNumber = GetMobileNumberFromAddressList(r.AddressInfo),
+                NationalIdentityNumber = r.NationalIdentityNumber,
+                OrganizationNumber = r.OrganizationNumber,
+                IsReserved = r.IsReserved
             }));
 
         return recipientExt;
     }
 
-    private static IBaseNotificationOrderExt MapBaseNotificationOrder(this IBaseNotificationOrderExt orderExt, IBaseNotificationOrder order)
+    private static BaseNotificationOrderExt MapBaseNotificationOrder(this BaseNotificationOrderExt orderExt, IBaseNotificationOrder order)
     {
         orderExt.Id = order.Id.ToString();
         orderExt.SendersReference = order.SendersReference;
@@ -191,6 +219,8 @@ public static class OrderMapper
         orderExt.Creator = order.Creator.ShortName;
         orderExt.NotificationChannel = (NotificationChannelExt)order.NotificationChannel;
         orderExt.RequestedSendTime = order.RequestedSendTime;
+        orderExt.IgnoreReservation = order.IgnoreReservation;
+        orderExt.ResourceId = order.ResourceId;
 
         return orderExt;
     }

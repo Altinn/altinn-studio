@@ -125,7 +125,7 @@ namespace LocalTest
             // Notifications services
             
             GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
-            services.AddNotificationServices(generalSettings.BaseUrl);
+            services.AddNotificationServices(generalSettings.BaseUrl, Configuration);
             
             // Storage services
             services.AddSingleton<IClaimsPrincipalProvider, ClaimsPrincipalProvider>();

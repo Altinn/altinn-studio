@@ -1,5 +1,4 @@
-﻿#nullable enable
-namespace Altinn.Notifications.Models;
+﻿namespace Altinn.Notifications.Models;
 
 /// <summary>
 /// Enum describing available content types for an email.

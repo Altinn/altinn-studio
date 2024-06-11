@@ -1,4 +1,3 @@
-#nullable enable
 using Altinn.Notifications.Core.Enums;
 
 namespace Altinn.Notifications.Core.Models.NotificationTemplate;

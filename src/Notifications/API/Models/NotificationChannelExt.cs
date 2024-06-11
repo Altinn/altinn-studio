@@ -1,5 +1,4 @@
-﻿#nullable enable
-namespace Altinn.Notifications.Models;
+﻿namespace Altinn.Notifications.Models;
 
 /// <summary>
 /// Enum describing available notification channels.
@@ -9,5 +8,10 @@ public enum NotificationChannelExt
     /// <summary>
     /// The selected channel for the notification is email.
     /// </summary>
-    Email
+    Email,
+
+    /// <summary>
+    /// The selected channel for the notification is sms.
+    /// </summary>
+    Sms
 }

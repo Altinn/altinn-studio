@@ -1,5 +1,4 @@
-﻿#nullable enable
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 using Altinn.Notifications.Core.Enums;
 
@@ -28,6 +27,12 @@ public class NotificationOrderWithStatus : IBaseNotificationOrder
     /// <inheritdoc/>>
     public NotificationChannel NotificationChannel { get; internal set; }
 
+    /// <inheritdoc/>>
+    public bool? IgnoreReservation { get; internal set; }
+
+    /// <inheritdoc/>>
+    public string? ResourceId { get; internal set; }
+
     /// <summary>
     /// Gets the processing status of the notication order
     /// </summary>
@@ -41,7 +46,16 @@ public class NotificationOrderWithStatus : IBaseNotificationOrder
     /// <summary>
     /// Initializes a new instance of the <see cref="NotificationOrderWithStatus"/> class.
     /// </summary>
-    public NotificationOrderWithStatus(Guid id, string? sendersReference, DateTime requestedSendTime, Creator creator, DateTime created, NotificationChannel notificationChannel, ProcessingStatus processingStatus)
+    public NotificationOrderWithStatus(
+        Guid id,
+        string? sendersReference,
+        DateTime requestedSendTime,
+        Creator creator,
+        DateTime created,
+        NotificationChannel notificationChannel,
+        bool? ignoreReservation,
+        string? resourceId,
+        ProcessingStatus processingStatus)
     {
         Id = id;
         SendersReference = sendersReference;
@@ -49,6 +63,8 @@ public class NotificationOrderWithStatus : IBaseNotificationOrder
         Creator = creator;
         Created = created;
         NotificationChannel = notificationChannel;
+        IgnoreReservation = ignoreReservation;
+        ResourceId = resourceId;
         ProcessingStatus = processingStatus;
     }
 

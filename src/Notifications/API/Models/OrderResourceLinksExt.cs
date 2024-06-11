@@ -1,5 +1,4 @@
-﻿#nullable enable
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace Altinn.Notifications.Models;
 
@@ -22,10 +21,4 @@ public class OrderResourceLinksExt
     /// </summary>
     [JsonPropertyName("status")]
     public string Status { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the notifications link 
-    /// </summary>
-    [JsonPropertyName("notifications")]
-    public string Notifications { get; set; } = string.Empty;
 }

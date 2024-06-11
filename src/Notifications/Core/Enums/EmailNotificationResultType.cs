@@ -1,5 +1,4 @@
-﻿#nullable enable
-namespace Altinn.Notifications.Core.Enums;
+﻿namespace Altinn.Notifications.Core.Enums;
 
 /// <summary>
 /// Enum describing email notification result types
@@ -32,6 +31,11 @@ public enum EmailNotificationResultType
     Failed,
 
     /// <summary>
+    /// Failed, recipient is reserved in KRR
+    /// </summary>
+    Failed_RecipientReserved,
+
+    /// <summary>
     /// Recipient to address was not identified
     /// </summary>
     Failed_RecipientNotIdentified,
@@ -39,5 +43,33 @@ public enum EmailNotificationResultType
     /// <summary>
     /// Invalid format for email address
     /// </summary>
-    Failed_InvalidEmailFormat
+    Failed_InvalidEmailFormat,
+
+    /// <summary>
+    /// Recipient supressed by email service
+    /// </summary>
+    Failed_SupressedRecipient,
+
+    /// <summary>
+    /// Transient error, retry later
+    /// </summary>
+    /// <remarks>
+    /// Should not be used externally or persisted in db.
+    /// Only used for processing and logic in service layer.</remarks>
+    Failed_TransientError,
+
+    /// <summary>
+    /// Failed, bounced
+    /// </summary>
+    Failed_Bounced,
+
+    /// <summary>
+    /// Failed, filtered spam
+    /// </summary>
+    Failed_FilteredSpam,
+
+    /// <summary>
+    /// Failed, quarantined
+    /// </summary>
+    Failed_Quarantined
 }

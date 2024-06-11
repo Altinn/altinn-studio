@@ -1,4 +1,5 @@
-﻿#nullable enable
+﻿using System.Text.Json;
+
 using Altinn.Notifications.Core.Models.Address;
 
 namespace Altinn.Notifications.Core.Models;
@@ -9,9 +10,9 @@ namespace Altinn.Notifications.Core.Models;
 public class Recipient
 {
     /// <summary>
-    /// Gets the recipient's organisation number
+    /// Gets the recipient's organization number
     /// </summary>
-    public string? OrganisationNumber { get; set; } = null;
+    public string? OrganizationNumber { get; set; } = null;
 
     /// <summary>
     /// Gets the recipient's national identity number
@@ -21,7 +22,7 @@ public class Recipient
     /// <summary>
     /// Gets or sets a value indicating whether the recipient is reserved from digital communication
     /// </summary>
-    public bool IsReserved { get; set; }
+    public bool? IsReserved { get; set; }
 
     /// <summary>
     /// Gets a list of address points for the recipient
@@ -31,9 +32,9 @@ public class Recipient
     /// <summary>
     /// Initializes a new instance of the <see cref="Recipient"/> class.
     /// </summary>
-    public Recipient(List<IAddressPoint> addressInfo, string? organisationNumber = null, string? nationalIdentityNumber = null)
+    public Recipient(List<IAddressPoint> addressInfo, string? organizationNumber = null, string? nationalIdentityNumber = null)
     {
-        OrganisationNumber = organisationNumber;
+        OrganizationNumber = organizationNumber;
         NationalIdentityNumber = nationalIdentityNumber;
         AddressInfo = addressInfo;
     }
@@ -43,5 +44,14 @@ public class Recipient
     /// </summary>
     public Recipient()
     {
+    }
+
+    /// <summary>
+    /// Creates a deep copy of the recipient object
+    /// </summary>
+    internal Recipient DeepCopy()
+    {
+        string json = JsonSerializer.Serialize(this);
+        return JsonSerializer.Deserialize<Recipient>(json)!;
     }
 }

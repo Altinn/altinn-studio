@@ -27,6 +27,7 @@ namespace LocalTest.Services.Register.Implementation
         public async Task<Party?> GetParty(int partyId)
         {
             var data = await _testDataService.GetTestData();
+            
             Party? party = data.Register.Party.TryGetValue(partyId.ToString()!, out var value) ? value : null;
 
             await AddPersonOrOrganization(party);

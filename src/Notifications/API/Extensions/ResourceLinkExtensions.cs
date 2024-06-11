@@ -1,5 +1,4 @@
-﻿#nullable enable
-using Altinn.Notifications.Core.Models.Orders;
+﻿using Altinn.Notifications.Core.Models.Orders;
 using Altinn.Notifications.Models;
 
 namespace Altinn.Notifications.Extensions;
@@ -39,7 +38,6 @@ public static class ResourceLinkExtensions
         {
             Self = self,
             Status = self + "/status",
-            Notifications = self + "/notifications"
         };
     }
 
@@ -56,11 +54,21 @@ public static class ResourceLinkExtensions
 
         string baseUri = $"{_baseUri}/notifications/api/v1/orders/{order!.Id}/notifications/";
 
-        if (order.NotificationsStatusSummary?.Email != null)
+        NotificationsStatusSummaryExt? summary = order.NotificationsStatusSummary;
+
+        if (summary?.Email != null)
         {
-            order.NotificationsStatusSummary.Email.Links = new()
+            summary.Email.Links = new()
             {
                 Self = baseUri + "email"
+            };
+        }
+
+        if (summary?.Sms != null)
+        {
+            summary.Sms.Links = new()
+            {
+                Self = baseUri + "sms"
             };
         }
     }
@@ -69,13 +77,18 @@ public static class ResourceLinkExtensions
     /// Gets the self link for the provided notification order
     /// </summary>
     /// <exception cref="InvalidOperationException">Exception if class has not been initialized in Program.cs</exception>
-    public static string GetSelfLink(this NotificationOrder order)
+    public static string GetSelfLinkFromOrderId(this Guid? orderId)
     {
         if (_baseUri == null)
         {
             throw new InvalidOperationException("ResourceLinkExtensions has not been initialized with the base URI.");
         }
 
-        return _baseUri + "/notifications/api/v1/orders/" + order!.Id;
+        if (orderId == null)
+        {
+            return string.Empty;
+        }
+
+        return _baseUri + "/notifications/api/v1/orders/" + orderId.ToString();
     }
 }

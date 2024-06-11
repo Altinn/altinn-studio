@@ -85,15 +85,9 @@ public class SmsNotificationOrdersController : ControllerBase
         }
 #endif
 
-        NotificationOrderRequest orderRequest = smsNotificationOrderRequest.MapToOrderRequest(creator);
-        Result<NotificationOrder, ServiceError> result = await _orderRequestService.RegisterNotificationOrder(orderRequest);
+        var orderRequest = smsNotificationOrderRequest.MapToOrderRequest(creator);
+        NotificationOrderRequestResponse result = await _orderRequestService.RegisterNotificationOrder(orderRequest);
 
-        return result.Match(
-             registeredOrder =>
-             {
-                 string selfLink = registeredOrder!.GetSelfLink();
-                 return Accepted(selfLink, new OrderIdExt(registeredOrder!.Id));
-             },
-             error => StatusCode(error.ErrorCode, error.ErrorMessage));
+        return Accepted(result.OrderId.GetSelfLinkFromOrderId(), result.MapToExternal());
     }
 }

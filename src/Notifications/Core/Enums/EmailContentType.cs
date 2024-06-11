@@ -1,5 +1,4 @@
-﻿#nullable enable
-namespace Altinn.Notifications.Core.Enums;
+﻿namespace Altinn.Notifications.Core.Enums;
 
 /// <summary>
 /// Enum describing available email content types

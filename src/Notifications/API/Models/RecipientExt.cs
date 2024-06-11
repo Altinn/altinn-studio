@@ -1,5 +1,4 @@
-﻿#nullable enable
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace Altinn.Notifications.Models;
 
@@ -24,14 +23,20 @@ public class RecipientExt
     public string? MobileNumber { get; set; }
 
     /// <summary>
-    /// Gets or sets the organisation number of the recipient
+    /// Gets or sets the organization number of the recipient
     /// </summary>
-    [JsonPropertyName("organisationNumber")]
-    public string? OrganisationNumber { get; set; }
+    [JsonPropertyName("organizationNumber")]
+    public string? OrganizationNumber { get; set; }
 
     /// <summary>
     /// Gets or sets the national identity number of the recipient
     /// </summary>
     [JsonPropertyName("nationalIdentityNumber")]
     public string? NationalIdentityNumber { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the recipient is reserved from digital communication
+    /// </summary>
+    [JsonPropertyName("isReserved")]
+    public bool? IsReserved { get; set; }
 }

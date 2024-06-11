@@ -1,6 +1,4 @@
-﻿#nullable enable
-using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json;
 
 using Altinn.Notifications.Core.Enums;
 using Altinn.Notifications.Core.Models.NotificationTemplate;
@@ -24,6 +22,12 @@ public class NotificationOrder : IBaseNotificationOrder
     /// <inheritdoc/>>
     public NotificationChannel NotificationChannel { get; internal set; }
 
+    /// <inheritdoc/>>    
+    public bool? IgnoreReservation { get; internal set; }
+
+    /// <inheritdoc/>>
+    public string? ResourceId { get; internal set; }
+
     /// <inheritdoc/>>
     public Creator Creator { get; internal set; }
 
@@ -43,7 +47,17 @@ public class NotificationOrder : IBaseNotificationOrder
     /// <summary>
     /// Initializes a new instance of the <see cref="NotificationOrder"/> class.
     /// </summary>
-    public NotificationOrder(Guid id, string? sendersReference, List<INotificationTemplate> templates, DateTime requestedSendTime, NotificationChannel notificationChannel, Creator creator, DateTime created, List<Recipient> recipients)
+    public NotificationOrder(
+        Guid id,
+        string? sendersReference,
+        List<INotificationTemplate> templates,
+        DateTime requestedSendTime,
+        NotificationChannel notificationChannel,
+        Creator creator,
+        DateTime created,
+        List<Recipient> recipients,
+        bool? ignoreReservation,
+        string? resourceId)
     {
         Id = id;
         SendersReference = sendersReference;
@@ -53,6 +67,8 @@ public class NotificationOrder : IBaseNotificationOrder
         Creator = creator;
         Created = created;
         Recipients = recipients;
+        IgnoreReservation = ignoreReservation;
+        ResourceId = resourceId;
     }
 
     /// <summary>
@@ -68,14 +84,7 @@ public class NotificationOrder : IBaseNotificationOrder
     /// </summary>
     public string Serialize()
     {
-        return JsonSerializer.Serialize(
-            this,
-            new JsonSerializerOptions
-            {
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                Converters = { new JsonStringEnumConverter() }
-            });
+        return JsonSerializer.Serialize(this, JsonSerializerOptionsProvider.Options);
     }
 
     /// <summary>
@@ -83,13 +92,7 @@ public class NotificationOrder : IBaseNotificationOrder
     /// </summary>
     public static NotificationOrder? Deserialize(string serializedString)
     {
-        return JsonSerializer.Deserialize<NotificationOrder>(
-            serializedString,
-            new JsonSerializerOptions()
-            {
-                PropertyNameCaseInsensitive = true,
-                Converters = { new JsonStringEnumConverter() }
-            });
+        return JsonSerializer.Deserialize<NotificationOrder>(serializedString, JsonSerializerOptionsProvider.Options);
     }
 
     /// <summary>

@@ -4,7 +4,10 @@
   "PhoneNumber": "12345678",
   "Email": "test@test.com",
   "PartyId": 510003,
-  "Party": {},
+  "Party": {
+    "partyId": "510003",
+    "ssn": "08829698278"
+  },
   "UserType": 0,
   "ProfileSettingPreference": {
     "Language": "nb",

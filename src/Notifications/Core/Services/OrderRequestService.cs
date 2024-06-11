@@ -1,7 +1,9 @@
 ﻿using Altinn.Notifications.Core.Configuration;
+using Altinn.Notifications.Core.Enums;
+using Altinn.Notifications.Core.Models;
 using Altinn.Notifications.Core.Models.NotificationTemplate;
 using Altinn.Notifications.Core.Models.Orders;
-using Altinn.Notifications.Core.Repository.Interfaces;
+using Altinn.Notifications.Core.Persistence;
 using Altinn.Notifications.Core.Services.Interfaces;
 
 using Microsoft.Extensions.Options;
@@ -14,6 +16,7 @@ namespace Altinn.Notifications.Core.Services;
 public class OrderRequestService : IOrderRequestService
 {
     private readonly IOrderRepository _repository;
+    private readonly IContactPointService _contactPointService;
     private readonly IGuidService _guid;
     private readonly IDateTimeService _dateTime;
     private readonly string _defaultEmailFromAddress;
@@ -22,9 +25,15 @@ public class OrderRequestService : IOrderRequestService
     /// <summary>
     /// Initializes a new instance of the <see cref="OrderRequestService"/> class.
     /// </summary>
-    public OrderRequestService(IOrderRepository repository, IGuidService guid, IDateTimeService dateTime, IOptions<NotificationOrderConfig> config)
+    public OrderRequestService(
+        IOrderRepository repository,
+        IContactPointService contactPointService,
+        IGuidService guid,
+        IDateTimeService dateTime,
+        IOptions<NotificationOrderConfig> config)
     {
         _repository = repository;
+        _contactPointService = contactPointService;
         _guid = guid;
         _dateTime = dateTime;
         _defaultEmailFromAddress = config.Value.DefaultEmailFromAddress;
@@ -32,10 +41,12 @@ public class OrderRequestService : IOrderRequestService
     }
 
     /// <inheritdoc/>
-    public async Task<NotificationOrder> RegisterNotificationOrder(NotificationOrderRequest orderRequest)
+   public async Task<NotificationOrderRequestResponse> RegisterNotificationOrder(NotificationOrderRequest orderRequest)
     {
         Guid orderId = _guid.NewGuid();
-        DateTime created = _dateTime.UtcNow();
+        DateTime currentime = _dateTime.UtcNow();
+
+        var lookupResult = await GetRecipientLookupResult(orderRequest.Recipients, orderRequest.NotificationChannel, orderRequest.ResourceId);
 
         var templates = SetSenderIfNotDefined(orderRequest.Templates);
 
@@ -43,15 +54,79 @@ public class OrderRequestService : IOrderRequestService
             orderId,
             orderRequest.SendersReference,
             templates,
-            orderRequest.RequestedSendTime,
+            orderRequest.RequestedSendTime ?? currentime,
             orderRequest.NotificationChannel,
             orderRequest.Creator,
-            created,
-            orderRequest.Recipients);
+            currentime,
+            orderRequest.Recipients,
+            orderRequest.IgnoreReservation,
+            orderRequest.ResourceId);
 
         NotificationOrder savedOrder = await _repository.Create(order);
 
-        return savedOrder;
+        return new NotificationOrderRequestResponse()
+        {
+            OrderId = savedOrder.Id,
+            RecipientLookup = lookupResult
+        };
+    }
+
+    private async Task<RecipientLookupResult?> GetRecipientLookupResult(List<Recipient> originalRecipients, NotificationChannel channel, string? resourceId)
+    {
+        List<Recipient> recipientsWithoutContactPoint = new();
+
+        foreach (var recipient in originalRecipients)
+        {
+            if (channel == NotificationChannel.Email && !recipient.AddressInfo.Exists(ap => ap.AddressType == AddressType.Email))
+            {
+                recipientsWithoutContactPoint.Add(recipient.DeepCopy());
+            }
+            else if (channel == NotificationChannel.Sms && !recipient.AddressInfo.Exists(ap => ap.AddressType == AddressType.Sms))
+            {
+                recipientsWithoutContactPoint.Add(recipient.DeepCopy());
+            }
+        }
+
+        if (recipientsWithoutContactPoint.Count == 0)
+        {
+            return null;
+        }
+
+        if (channel == NotificationChannel.Email)
+        {
+            await _contactPointService.AddEmailContactPoints(recipientsWithoutContactPoint, resourceId);
+        }
+        else if (channel == NotificationChannel.Sms)
+        {
+            await _contactPointService.AddSmsContactPoints(recipientsWithoutContactPoint, resourceId);
+        }
+
+        var isReserved = recipientsWithoutContactPoint.Where(r => r.IsReserved.HasValue && r.IsReserved.Value).Select(r => r.NationalIdentityNumber!).ToList();
+
+        RecipientLookupResult lookupResult = new()
+        {
+            IsReserved = isReserved,
+            MissingContact = recipientsWithoutContactPoint
+            .Where(r => channel == NotificationChannel.Email ?
+                !r.AddressInfo.Exists(ap => ap.AddressType == AddressType.Email) :
+                !r.AddressInfo.Exists(ap => ap.AddressType == AddressType.Sms))
+            .Select(r => r.OrganizationNumber ?? r.NationalIdentityNumber!)
+            .Except(isReserved)
+            .ToList()
+        };
+
+        int recipientsWeCannotReach = lookupResult.MissingContact.Union(lookupResult.IsReserved).ToList().Count;
+
+        if (recipientsWeCannotReach == recipientsWithoutContactPoint.Count)
+        {
+            lookupResult.Status = RecipientLookupStatus.Failed;
+        }
+        else if (recipientsWeCannotReach > 0)
+        {
+            lookupResult.Status = RecipientLookupStatus.PartialSuccess;
+        }
+
+        return lookupResult;
     }
 
     private List<INotificationTemplate> SetSenderIfNotDefined(List<INotificationTemplate> templates)

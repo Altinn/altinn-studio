@@ -1,5 +1,4 @@
-﻿#nullable enable
-namespace Altinn.Notifications.Core.Services.Interfaces;
+﻿namespace Altinn.Notifications.Core.Services.Interfaces;
 
 /// <summary>
 /// Interface describing a guid service

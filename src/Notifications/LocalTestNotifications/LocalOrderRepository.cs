@@ -3,7 +3,7 @@ using System.Text.Json;
 
 using Altinn.Notifications.Core.Enums;
 using Altinn.Notifications.Core.Models.Orders;
-using Altinn.Notifications.Core.Repository.Interfaces;
+using Altinn.Notifications.Core.Persistence;
 
 using LocalTest.Configuration;
 

@@ -1,5 +1,4 @@
-﻿#nullable enable
-namespace Altinn.Notifications.Core.Enums;
+﻿namespace Altinn.Notifications.Core.Enums;
 
 /// <summary>
 /// Base class for send result of a notification

@@ -1,5 +1,4 @@
-﻿#nullable enable
-namespace Altinn.Notifications.Core.Configuration;
+﻿namespace Altinn.Notifications.Core.Configuration;
 
 /// <summary>
 /// Configuration class for notification orders

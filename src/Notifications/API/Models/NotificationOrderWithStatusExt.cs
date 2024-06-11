@@ -1,5 +1,4 @@
-﻿#nullable enable
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace Altinn.Notifications.Models;
 
@@ -9,33 +8,8 @@ namespace Altinn.Notifications.Models;
 /// <remarks>
 /// External representation to be used in the API.
 /// </remarks>
-public class NotificationOrderWithStatusExt : IBaseNotificationOrderExt
+public class NotificationOrderWithStatusExt : BaseNotificationOrderExt
 {
-    /// <inheritdoc/>>
-    [JsonPropertyName("id")]
-    public string Id { get; set; } = string.Empty;
-
-    /// <inheritdoc/>>
-    [JsonPropertyName("sendersReference")]
-    public string? SendersReference { get; set; }
-
-    /// <inheritdoc/>>
-    [JsonPropertyName("requestedSendTime")]
-    public DateTime RequestedSendTime { get; set; }
-
-    /// <inheritdoc/>>
-    [JsonPropertyName("creator")]
-    public string Creator { get; set; } = string.Empty;
-
-    /// <inheritdoc/>>
-    [JsonPropertyName("created")]
-    public DateTime Created { get; set; }
-
-    /// <inheritdoc/>>
-    [JsonPropertyName("notificationChannel")]
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public NotificationChannelExt NotificationChannel { get; set; }
-
     /// <summary>
     /// Gets or sets the processing status of the notication order
     /// </summary>
