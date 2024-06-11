@@ -5,6 +5,7 @@ import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@ta
 import type * as queries from '../api/queries';
 import type * as mutations from '../api/mutations';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import type { ToastOptions } from 'react-toastify';
 import { ToastContainer, Slide, toast } from 'react-toastify';
 import { ErrorBoundary } from 'react-error-boundary';
 import type { AxiosError } from 'axios';
@@ -39,23 +40,28 @@ const handleError = (
 ): void => {
   // TODO : log axios errors
 
-  const errorCode = error?.response?.data?.errorCode;
-  const errorMessageKey = errorCode ? `api_errors.${errorCode}` : 'api_errors.Unauthorized';
-  const unAuthorizedErrorCode = error?.response?.status === ServerCodes.Unauthorized;
-
-  const renderToast = () => {
-    if (errorCode || unAuthorizedErrorCode) {
+  const renderToast = (key: string, options: ToastOptions = {}) => {
+    const errorMessageKey = `api_errors.${key}`;
+    if (i18n.exists(errorMessageKey)) {
       toast.error(t(errorMessageKey), {
         toastId: errorMessageKey,
-        onClose: () => logout().then(() => window.location.assign(userLogoutAfterPath())),
-        autoClose: LOG_OUT_TIMER_MS,
+        ...options,
       });
     }
   };
 
-  if (i18n.exists(errorMessageKey)) {
-    renderToast();
-    return;
+  const errorCode = error?.response?.data?.errorCode;
+  const unAuthorizedErrorCode = error?.response?.status === ServerCodes.Unauthorized;
+
+  if (unAuthorizedErrorCode) {
+    return renderToast(errorCode || 'Unauthorized', {
+      onClose: () => logout().then(() => window.location.assign(userLogoutAfterPath())),
+      autoClose: LOG_OUT_TIMER_MS,
+    });
+  }
+
+  if (errorCode) {
+    return renderToast(errorCode);
   }
 
   if (
