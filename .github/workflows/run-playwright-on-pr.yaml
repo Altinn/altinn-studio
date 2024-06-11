@@ -18,9 +18,7 @@ on:
 jobs:
   playwright-tests:
     name: Build environment and run e2e test
-    permissions:
-      id-token: write
-      contents: read
+    permissions: write-all
     timeout-minutes: 25
     runs-on: ubuntu-latest
 
