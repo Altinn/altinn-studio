@@ -58,9 +58,9 @@ jobs:
         with:
           push: false
           load: true
-          files: |-
-            compose.yaml
-            compose-cache.json
+          set: |
+              web.cache-from=type=gha
+              web.cache-to=type=gha
 
       - name: Run setup.js script
         run: |
