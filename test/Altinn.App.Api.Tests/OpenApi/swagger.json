@@ -4838,6 +4838,13 @@
             },
             "nullable": true
           },
+          "metadata": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KeyValueEntry"
+            },
+            "nullable": true
+          },
           "deleteStatus": {
             "$ref": "#/components/schemas/DeleteStatus"
           },
@@ -5075,6 +5082,13 @@
             "type": "array",
             "items": {
               "type": "string"
+            },
+            "nullable": true
+          },
+          "metadata": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KeyValueEntry"
             },
             "nullable": true
           },
@@ -5605,6 +5619,20 @@
             "items": {
               "$ref": "#/components/schemas/PatchOperation"
             },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "KeyValueEntry": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "nullable": true
+          },
+          "value": {
+            "type": "string",
             "nullable": true
           }
         },
