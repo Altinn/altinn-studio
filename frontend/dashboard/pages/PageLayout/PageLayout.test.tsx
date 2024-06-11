@@ -76,19 +76,15 @@ describe('PageLayout', () => {
     expect(mockedNavigate).toHaveBeenCalledWith(SelectedContextType.Self, expect.anything());
   });
 
-  it.each([
-    ['"self"', 'self'],
-    ['"all"', 'all'],
-    ['"ttd"', 'ttd'],
-  ])(
+  it.each([['self', 'all', 'ttd']])(
     'should redirect to last selected context if none is selected, selected: %s',
-    async (context, navparam) => {
+    async (context) => {
       (useParams as jest.Mock).mockReturnValue({
         selectedContext: SelectedContextType.None,
       });
-      sessionStorage.setItem('dashboard::selectedContext', context);
+      sessionStorage.setItem('dashboard::selectedContext', `"${context}"`);
       renderWithMockServices();
-      expect(mockedNavigate).toHaveBeenCalledWith(navparam, expect.anything());
+      expect(mockedNavigate).toHaveBeenCalledWith(context, expect.anything());
     },
   );
 
