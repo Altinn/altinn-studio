@@ -60,13 +60,3 @@ export const getDataTypeFromLayoutSetsWithExistingId = (
 ): string | undefined => {
   return layoutSets.sets.find((layoutSet) => layoutSet.id === existingId)?.dataType;
 };
-
-/**
- * Gets the datamodel id options based on the available ids and the existing id
- * @param availableIds the list of available ids
- * @param existingId the existing id
- * @returns a list datamodel options
- */
-export const getDatamodelOptions = (availableIds: string[], existingId: string): string[] => {
-  return existingId ? [...availableIds, existingId] : availableIds;
-};

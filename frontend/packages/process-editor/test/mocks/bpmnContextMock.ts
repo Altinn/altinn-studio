@@ -21,12 +21,12 @@ export const mockLayoutSets: LayoutSets = {
   sets: [
     {
       id: 'testId',
-      dataType: 'layoutSetId1',
+      dataType: 'dataTypeId1',
       tasks: ['testId'],
     },
     {
       id: 'layoutSetId2',
-      dataType: 'layoutSetId2',
+      dataType: 'dataTypeId2',
       tasks: ['Task_2'],
     },
   ],
@@ -36,13 +36,15 @@ export const mockBpmnApiContextValue: BpmnApiContextProps = {
   layoutSets: mockLayoutSets,
   pendingApiOperations: false,
   existingCustomReceiptLayoutSetId: undefined,
+  availableDataTypeIds: [],
   availableDataModelIds: [],
+  allDataModelIds: [],
   addLayoutSet: jest.fn(),
   deleteLayoutSet: jest.fn(),
   mutateLayoutSetId: jest.fn(),
   mutateDataType: jest.fn(),
-  addDataTypeToAppMetadata: jest.fn(),
-  deleteDataTypeFromAppMetadata: jest.fn(),
   saveBpmn: jest.fn(),
   openPolicyEditor: jest.fn(),
+  onProcessTaskRemove: jest.fn(),
+  onProcessTaskAdd: jest.fn(),
 };

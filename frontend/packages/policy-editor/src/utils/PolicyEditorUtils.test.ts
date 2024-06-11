@@ -16,16 +16,15 @@ import {
   mockAction2,
   mockAction3,
   mockAction4,
-  mockPolicyResourceBackendString1,
+} from '../../test/mocks/policyActionMocks';
+import {
   mockPolicyRule1,
   mockPolicyRuleCard1,
   mockPolicyRuleCards,
   mockPolicyRules,
-  mockResource11,
-  mockResource3,
-  mockResourceType1,
-  mockResourecId1,
   mockRuleId1,
+} from '../../test/mocks/policyRuleMocks';
+import {
   mockSubject1,
   mockSubject2,
   mockSubject3,
@@ -34,7 +33,14 @@ import {
   mockSubjectTitle1,
   mockSubjects,
   mockSubjectId3,
-} from '../data-mocks';
+} from '../../test/mocks/policySubjectMocks';
+import {
+  mockResource11,
+  mockResource3,
+  mockResourceType1,
+  mockResourecId1,
+  mockPolicyResourceBackendString1,
+} from '../../test/mocks/policySubResourceMocks';
 import type { PolicySubject } from '../types';
 
 describe('PolicyEditorUtils', () => {

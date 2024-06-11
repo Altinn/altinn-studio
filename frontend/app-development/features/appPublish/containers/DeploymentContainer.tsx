@@ -7,7 +7,7 @@ import {
   useAppDeploymentsQuery,
 } from '../../../hooks/queries';
 import type { Environment } from 'app-shared/types/Environment';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { DeploymentEnvironment } from '../components/DeploymentEnvironment';
 import { getAppLink } from 'app-shared/ext-urls';
 import { useTranslation } from 'react-i18next';
@@ -15,7 +15,7 @@ import { Alert } from '@digdir/design-system-react';
 import { PROD_ENV_TYPE } from 'app-shared/constants';
 
 export const DeploymentContainer = () => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
 
   const {

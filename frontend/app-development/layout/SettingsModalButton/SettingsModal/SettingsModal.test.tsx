@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { SettingsModalProps } from './SettingsModal';
 import { SettingsModal } from './SettingsModal';
@@ -9,9 +9,11 @@ import type { QueryClient, UseMutationResult } from '@tanstack/react-query';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { AppConfig } from 'app-shared/types/AppConfig';
-import { useAppConfigMutation } from 'app-development/hooks/mutations';
+import { useAppConfigMutation } from '../../../hooks/mutations';
 import { MemoryRouter } from 'react-router-dom';
-import { app, org } from '@studio/testing/testids';
+
+import { SettingsModalContextProvider } from '../../../contexts/SettingsModalContext';
+import { PreviewContextProvider } from '../../../contexts/PreviewContext';
 
 jest.mock('../../../hooks/mutations/useAppConfigMutation');
 const updateAppConfigMutation = jest.fn();
@@ -33,12 +35,10 @@ describe('SettingsModal', () => {
   const defaultProps: SettingsModalProps = {
     isOpen: true,
     onClose: mockOnClose,
-    org,
-    app,
   };
 
   it('closes the modal when the close button is clicked', async () => {
-    render(defaultProps);
+    renderSettingsModal(defaultProps);
 
     const closeButton = screen.getByRole('button', {
       name: textMock('settings_modal.close_button_label'),
@@ -61,7 +61,7 @@ describe('SettingsModal', () => {
       screen.getByRole('tab', { name: textMock('settings_modal.left_nav_tab_policy') }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('tab', { name: textMock('settings_modal.left_nav_tab_accessControl') }),
+      screen.getByRole('tab', { name: textMock('settings_modal.left_nav_tab_access_control') }),
     ).toBeInTheDocument();
   });
 
@@ -144,7 +144,7 @@ describe('SettingsModal', () => {
     expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
 
     const accessControlTab = screen.getByRole('tab', {
-      name: textMock('settings_modal.left_nav_tab_accessControl'),
+      name: textMock('settings_modal.left_nav_tab_access_control'),
     });
     await user.click(accessControlTab);
 
@@ -191,7 +191,7 @@ describe('SettingsModal', () => {
    * to be removed from the screen
    */
   const resolveAndWaitForSpinnerToDisappear = async () => {
-    render(defaultProps);
+    renderSettingsModal(defaultProps);
 
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('settings_modal.loading_content')),
@@ -199,15 +199,19 @@ describe('SettingsModal', () => {
   };
 });
 
-const render = (
+const renderSettingsModal = (
   props: SettingsModalProps,
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
-  return rtlRender(
+  return render(
     <MemoryRouter>
       <ServicesContextProvider {...queries} client={queryClient}>
-        <SettingsModal {...props} />
+        <SettingsModalContextProvider>
+          <PreviewContextProvider>
+            <SettingsModal {...props} />
+          </PreviewContextProvider>
+        </SettingsModalContextProvider>
       </ServicesContextProvider>
     </MemoryRouter>,
   );

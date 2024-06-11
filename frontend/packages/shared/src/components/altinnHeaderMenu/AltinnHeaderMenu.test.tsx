@@ -12,7 +12,7 @@ const mockMenuItems: TopBarMenuItem[] = [
   {
     key: TopBarMenu.About,
     link: 'Link1',
-    repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
+    repositoryTypes: [RepositoryType.App, RepositoryType.DataModels],
   },
   {
     key: TopBarMenu.Create,
@@ -20,9 +20,9 @@ const mockMenuItems: TopBarMenuItem[] = [
     repositoryTypes: [RepositoryType.App],
   },
   {
-    key: TopBarMenu.Datamodel,
+    key: TopBarMenu.DataModel,
     link: 'Link3',
-    repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
+    repositoryTypes: [RepositoryType.App, RepositoryType.DataModels],
   },
 ];
 

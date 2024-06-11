@@ -5,11 +5,7 @@ import { useBpmnModeler } from './useBpmnModeler';
 import { getBpmnEditorDetailsFromBusinessObject } from '../utils/hookUtils';
 import { useBpmnConfigPanelFormContext } from '../contexts/BpmnConfigPanelContext';
 import { useBpmnApiContext } from '../contexts/BpmnApiContext';
-import { BpmnTypeEnum } from '../enum/BpmnTypeEnum';
-import {
-  getDataTypeIdFromBusinessObject,
-  getLayoutSetIdFromTaskId,
-} from '../utils/hookUtils/hookUtils';
+import type { TaskEvent } from '../types/TaskEvent';
 
 // Wrapper around bpmn-js to Reactify it
 
@@ -23,67 +19,37 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const { metaDataFormRef, resetForm } = useBpmnConfigPanelFormContext();
   const { getModeler, destroyModeler } = useBpmnModeler();
-  const {
-    addLayoutSet,
-    deleteLayoutSet,
-    addDataTypeToAppMetadata,
-    deleteDataTypeFromAppMetadata,
-    saveBpmn,
-    layoutSets,
-  } = useBpmnApiContext();
+
+  const { saveBpmn, onProcessTaskAdd, onProcessTaskRemove } = useBpmnApiContext();
 
   const handleCommandStackChanged = async () => {
     saveBpmn(await getUpdatedXml(), metaDataFormRef.current || null);
     resetForm();
   };
 
-  const handleShapeAdd = (e) => {
-    const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
-    if (bpmnDetails.taskType === 'data' || bpmnDetails.taskType === 'payment') {
-      addLayoutSet({
-        layoutSetIdToUpdate: bpmnDetails.id,
-        layoutSetConfig: { id: bpmnDetails.id, tasks: [bpmnDetails.id] },
-      });
-    }
-    if (bpmnDetails.taskType === 'payment' || bpmnDetails.taskType === 'signing') {
-      const dataTypeId = getDataTypeIdFromBusinessObject(
-        bpmnDetails.taskType,
-        e.element.businessObject,
-      );
-      addDataTypeToAppMetadata({
-        dataTypeId,
-      });
-    }
-    handleSetBpmnDetails(e);
+  const handleShapeAdd = (taskEvent: TaskEvent): void => {
+    const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(taskEvent?.element?.businessObject);
+    onProcessTaskAdd({
+      taskEvent,
+      taskType: bpmnDetails.taskType,
+    });
+    updateBpmnDetailsByTaskEvent(taskEvent);
   };
 
-  const handleShapeRemove = (e) => {
-    const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(e?.element?.businessObject);
-    if (bpmnDetails.type === BpmnTypeEnum.Task) {
-      const layoutSetId = getLayoutSetIdFromTaskId(bpmnDetails, layoutSets);
-      if (layoutSetId) {
-        deleteLayoutSet({
-          layoutSetIdToUpdate: layoutSetId,
-        });
-      }
-    }
-    if (bpmnDetails.taskType === 'payment' || bpmnDetails.taskType === 'signing') {
-      const dataTypeId = getDataTypeIdFromBusinessObject(
-        bpmnDetails.taskType,
-        e.element.businessObject,
-      );
-      deleteDataTypeFromAppMetadata({
-        dataTypeId,
-      });
-    }
+  const handleShapeRemove = (taskEvent: TaskEvent): void => {
+    const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(taskEvent?.element?.businessObject);
+    onProcessTaskRemove({
+      taskEvent,
+      taskType: bpmnDetails.taskType,
+    });
     setBpmnDetails(null);
   };
 
-  const handleSetBpmnDetails = useCallback(
-    (e) => {
+  const updateBpmnDetailsByTaskEvent = useCallback(
+    (taskEvent: TaskEvent) => {
       const bpmnDetails = {
-        ...getBpmnEditorDetailsFromBusinessObject(e.element?.businessObject),
-        element: e.element,
+        ...getBpmnEditorDetailsFromBusinessObject(taskEvent.element?.businessObject),
+        element: taskEvent.element,
       };
       setBpmnDetails(bpmnDetails);
     },
@@ -101,14 +67,14 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   };
 
   const initializeBpmnChanges = () => {
-    modelerRef.current.on('commandStack.changed', async () => {
+    modelerRef.current.on('commandStack.changed', async (): Promise<void> => {
       await handleCommandStackChanged();
     });
-    modelerRef.current.on('shape.add', (e) => {
-      handleShapeAdd(e);
+    modelerRef.current.on('shape.add', (taskEvent: TaskEvent): void => {
+      handleShapeAdd(taskEvent);
     });
-    modelerRef.current.on('shape.remove', (e) => {
-      handleShapeRemove(e);
+    modelerRef.current.on('shape.remove', (taskEvent: TaskEvent): void => {
+      handleShapeRemove(taskEvent);
     });
   };
 
@@ -120,15 +86,19 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
     // new instance and will attach the same canvasRef container to all instances it fetches.
     // Set modelerRef.current to the Context so that it can be used in other components
     modelerRef.current = getModeler(canvasRef.current);
-    initializeEditor();
-    initializeBpmnChanges();
+
+    initializeEditor().then(() => {
+      // Wait for the initializeEditor to be initialized before attaching event listeners, to avoid trigger add.shape events on first draw
+      initializeBpmnChanges();
+    });
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Missing dependencies are not added to avoid getModeler to be called multiple times
 
   useEffect(() => {
     const eventBus: BpmnModeler = modelerRef.current.get('eventBus');
-    eventBus.on('element.click', handleSetBpmnDetails);
-  }, [modelerRef, handleSetBpmnDetails]);
+    eventBus.on('element.click', updateBpmnDetailsByTaskEvent);
+  }, [modelerRef, updateBpmnDetailsByTaskEvent]);
 
   useEffect(() => {
     // Destroy the modeler instance when the component is unmounted

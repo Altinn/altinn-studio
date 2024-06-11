@@ -148,11 +148,11 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpPost("data-type/{dataTypeId}")]
-        public async Task<ActionResult> AddDataTypeToApplicationMetadata(string org, string repo, [FromRoute] string dataTypeId, CancellationToken cancellationToken)
+        public async Task<ActionResult> AddDataTypeToApplicationMetadata(string org, string repo, [FromRoute] string dataTypeId, [FromQuery] string taskId, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
-            await _processModelingService.AddDataTypeToApplicationMetadataAsync(editingContext, dataTypeId, cancellationToken);
+            await _processModelingService.AddDataTypeToApplicationMetadataAsync(editingContext, dataTypeId, taskId, cancellationToken);
             return Ok();
         }
 
@@ -163,6 +163,15 @@ namespace Altinn.Studio.Designer.Controllers
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
             await _processModelingService.DeleteDataTypeFromApplicationMetadataAsync(editingContext, dataTypeId, cancellationToken);
             return Ok();
+        }
+
+        [HttpGet("task-type/{layoutSetId}")]
+        public async Task<string> GetTaskTypeFromProcessDefinition(string org, string repo, string layoutSetId)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
+            string taskType = await _processModelingService.GetTaskTypeFromProcessDefinition(editingContext, layoutSetId);
+            return taskType;
         }
     }
 }

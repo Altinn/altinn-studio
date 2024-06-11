@@ -4,17 +4,14 @@ import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { EditTaskId } from './EditTaskId/EditTaskId';
 import { StudioDisplayTile, StudioSectionHeader } from '@studio/components';
-import {
-  getConfigTitleKey,
-  getConfigTitleHelpTextKey,
-  getDatamodelOptions,
-} from '../../../utils/configPanelUtils';
+import { getConfigTitleKey, getConfigTitleHelpTextKey } from '../../../utils/configPanelUtils';
 import { ConfigIcon } from './ConfigIcon';
 import { EditDataType } from '../EditDataType';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { Accordion } from '@digdir/design-system-react';
 import { EditActions } from './EditActions';
 import { EditPolicy } from './EditPolicy';
+import { EditDataTypesToSign } from '../EditDataTypesToSign';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -26,8 +23,6 @@ export const ConfigContent = (): React.ReactElement => {
   };
   const layoutSet = layoutSets?.sets.find((set) => set.tasks.includes(bpmnDetails.id));
   const existingDataTypeForTask = layoutSet?.dataType;
-
-  const datamodelIds = getDatamodelOptions(availableDataModelIds, existingDataTypeForTask);
 
   const taskHasConnectedLayoutSet = layoutSets?.sets?.some((set) => set.tasks[0] == bpmnDetails.id);
 
@@ -53,10 +48,11 @@ export const ConfigContent = (): React.ReactElement => {
       {taskHasConnectedLayoutSet && (
         <EditDataType
           connectedTaskId={layoutSet.tasks[0]}
-          datamodelIds={datamodelIds}
+          dataModelIds={availableDataModelIds}
           existingDataTypeForTask={existingDataTypeForTask}
         />
       )}
+      {bpmnDetails.taskType === 'signing' && <EditDataTypesToSign key={bpmnDetails.id} />}
       <Accordion color='neutral'>
         <Accordion.Item>
           <Accordion.Header>

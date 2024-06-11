@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { AxiosError } from 'axios';
+import type { ResourceError } from 'app-shared/types/ResourceAdm';
 
 /**
  * Query to get the list of services from Altinn 2.
@@ -16,10 +16,10 @@ import type { AxiosError } from 'axios';
 export const useGetAltinn2LinkServicesQuery = (
   org: string,
   environment: string,
-): UseQueryResult<Altinn2LinkService[], AxiosError> => {
+): UseQueryResult<Altinn2LinkService[], ResourceError> => {
   const { getAltinn2LinkServices } = useServicesContext();
 
-  return useQuery<Altinn2LinkService[], AxiosError>({
+  return useQuery<Altinn2LinkService[], ResourceError>({
     queryKey: [QueryKey.Altinn2Services, org, environment],
     queryFn: () => getAltinn2LinkServices(org, environment),
   });

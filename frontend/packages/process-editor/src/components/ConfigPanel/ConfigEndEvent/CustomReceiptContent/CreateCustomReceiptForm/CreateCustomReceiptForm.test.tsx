@@ -17,10 +17,9 @@ import { queryOptionMock } from 'app-shared/mocks/queryOptionMock';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 
 const mockAddLayoutSet = jest.fn().mockImplementation(queryOptionMock);
-const mockMutateDataType = jest.fn().mockImplementation(queryOptionMock);
 
 const mockOnCloseForm = jest.fn();
-const mockAvailableDatamodelIds: string[] = ['model1', 'model2'];
+const mockAllDataModelIds: string[] = ['model1', 'model2'];
 
 const defaultProps: CreateCustomReceiptFormProps = {
   onCloseForm: mockOnCloseForm,
@@ -28,9 +27,8 @@ const defaultProps: CreateCustomReceiptFormProps = {
 
 const defaultBpmnApiContextProps: BpmnApiContextProps = {
   ...mockBpmnApiContextValue,
-  availableDataModelIds: mockAvailableDatamodelIds,
+  allDataModelIds: mockAllDataModelIds,
   addLayoutSet: mockAddLayoutSet,
-  mutateDataType: mockMutateDataType,
 };
 
 describe('CreateCustomReceiptForm', () => {
@@ -46,13 +44,14 @@ describe('CreateCustomReceiptForm', () => {
     const newId: string = 'newLayoutSetId';
     await user.type(layoutSetInput, newId);
 
-    const selectElement = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_custom_receipt_select_datamodel_label'),
-    );
-    await user.click(selectElement);
+    const combobox = screen.getByRole('combobox', {
+      name: textMock('process_editor.configuration_panel_custom_receipt_select_data_model_label'),
+    });
+    await user.click(combobox);
 
-    const optionElement = screen.getByRole('option', { name: mockAvailableDatamodelIds[0] });
-    await user.selectOptions(selectElement, optionElement);
+    const optionElement = screen.getByRole('option', { name: mockAllDataModelIds[0] });
+    await user.click(optionElement);
+    await user.keyboard('{Escape}');
 
     const createButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_custom_receipt_create_button'),
@@ -65,22 +64,10 @@ describe('CreateCustomReceiptForm', () => {
         {
           layoutSetConfig: {
             id: newId,
+            dataType: mockAllDataModelIds[0],
             tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
           },
           layoutSetIdToUpdate: newId,
-        },
-        {
-          onSuccess: expect.any(Function),
-        },
-      ),
-    );
-
-    await waitFor(() => expect(mockMutateDataType).toHaveBeenCalledTimes(1));
-    await waitFor(() =>
-      expect(mockMutateDataType).toHaveBeenCalledWith(
-        {
-          connectedTaskId: PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
-          newDataType: mockAvailableDatamodelIds[0],
         },
         {
           onSuccess: expect.any(Function),
@@ -95,13 +82,14 @@ describe('CreateCustomReceiptForm', () => {
     const user = userEvent.setup();
     renderCreateCustomReceiptForm();
 
-    const selectElement = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_custom_receipt_select_datamodel_label'),
-    );
-    await user.click(selectElement);
+    const combobox = screen.getByRole('combobox', {
+      name: textMock('process_editor.configuration_panel_custom_receipt_select_data_model_label'),
+    });
+    await user.click(combobox);
 
-    const optionElement = screen.getByRole('option', { name: mockAvailableDatamodelIds[0] });
-    await user.selectOptions(selectElement, optionElement);
+    const optionElement = screen.getByRole('option', { name: mockAllDataModelIds[0] });
+    await user.click(optionElement);
+    await user.keyboard('{Escape}');
 
     const createButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_custom_receipt_create_button'),
@@ -111,10 +99,10 @@ describe('CreateCustomReceiptForm', () => {
     const layoutIdError = screen.getByText(textMock('validation_errors.required'));
     expect(layoutIdError).toBeInTheDocument();
 
-    const datamodelIdError = screen.queryByText(
-      textMock('process_editor.configuration_panel_custom_receipt_create_datamodel_error'),
+    const dataModelIdError = screen.queryByText(
+      textMock('process_editor.configuration_panel_custom_receipt_create_data_model_error'),
     );
-    expect(datamodelIdError).not.toBeInTheDocument();
+    expect(dataModelIdError).not.toBeInTheDocument();
     expect(mockOnCloseForm).toHaveBeenCalledTimes(0);
   });
 
@@ -188,19 +176,16 @@ describe('CreateCustomReceiptForm', () => {
     expect(mockAddLayoutSet).not.toHaveBeenCalled();
   });
 
-  it('displays error when there are no value present for datamodel id', async () => {
+  it('displays error when there are no value present for data model id', async () => {
     const user = userEvent.setup();
-    renderCreateCustomReceiptForm({ bpmnApiContextProps: mockBpmnApiContextValue });
+    renderCreateCustomReceiptForm({
+      bpmnApiContextProps: { allDataModelIds: mockAllDataModelIds },
+    });
 
     const layoutSetInput = screen.getByLabelText(
       textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
     );
     await user.type(layoutSetInput, 'newLayoutSetId');
-
-    const selectElement = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_custom_receipt_select_datamodel_label'),
-    );
-    await user.click(selectElement);
 
     const createButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_custom_receipt_create_button'),
@@ -210,10 +195,10 @@ describe('CreateCustomReceiptForm', () => {
     const layoutIdError = screen.queryByText(textMock('validation_errors.required'));
     expect(layoutIdError).not.toBeInTheDocument();
 
-    const datamodelIdError = screen.getByText(
-      textMock('process_editor.configuration_panel_custom_receipt_create_datamodel_error'),
+    const dataModelIdError = screen.getByText(
+      textMock('process_editor.configuration_panel_custom_receipt_create_data_model_error'),
     );
-    expect(datamodelIdError).toBeInTheDocument();
+    expect(dataModelIdError).toBeInTheDocument();
     expect(mockOnCloseForm).toHaveBeenCalledTimes(0);
   });
 

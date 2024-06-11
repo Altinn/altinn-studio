@@ -14,6 +14,7 @@ import { useText } from '../../hooks';
 import { getComponentPropertyLabel } from '../../utils/language';
 import { getUnsupportedPropertyTypes } from '../../utils/component';
 import { EditGrid } from './editModal/EditGrid';
+import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -84,12 +85,12 @@ export const FormComponentConfig = ({
       {dataModelBindings?.properties && (
         <>
           <Heading level={3} size='xxsmall'>
-            {t('top_menu.datamodel')}
+            {t(TopBarMenu.DataModel)}
           </Heading>
           {Object.keys(dataModelBindings?.properties).map((propertyKey: any) => {
             return (
               <EditDataModelBindings
-                key={`${component.id}-datamodel-${propertyKey}`}
+                key={`${component.id}-data-model-${propertyKey}`}
                 component={component}
                 handleComponentChange={handleComponentUpdate}
                 editFormId={editFormId}
@@ -117,7 +118,7 @@ export const FormComponentConfig = ({
       )}
       {!hideUnsupported && (
         <Heading level={3} size='xxsmall'>
-          {'Andre innstillinger'}
+          {t('ux_editor.component_other_properties_title')}
         </Heading>
       )}
       {options && optionsId && (

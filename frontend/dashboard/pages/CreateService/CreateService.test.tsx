@@ -117,7 +117,7 @@ describe('CreateService', () => {
     const user = userEvent.setup();
     renderWithMockServices();
 
-    await user.type(screen.getByLabelText(textMock('general.service_name')), 'datamodels');
+    await user.type(screen.getByLabelText(textMock('general.service_name')), 'dataModels');
 
     const createBtn: HTMLElement = screen.getByRole('button', {
       name: textMock('dashboard.create_service_btn'),

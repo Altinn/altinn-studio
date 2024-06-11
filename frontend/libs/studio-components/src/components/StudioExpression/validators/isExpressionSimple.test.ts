@@ -43,8 +43,8 @@ describe('isExpressionSimple', () => {
   );
 
   const expressionValueTestData: Record<string, ValueInComplexFormat> = {
-    'component loookup': [DataLookupFuncName.Component, 'test'],
-    'datamodel lookup': [DataLookupFuncName.DataModel, 'test'],
+    'component lookup': [DataLookupFuncName.Component, 'test'],
+    'data model lookup': [DataLookupFuncName.DataModel, 'test'],
     'instance context lookup': [KeyLookupFuncName.InstanceContext, InstanceContext.AppId],
     'gateway action lookup': [DataLookupFuncName.GatewayAction, 'test'],
     string: 'test',

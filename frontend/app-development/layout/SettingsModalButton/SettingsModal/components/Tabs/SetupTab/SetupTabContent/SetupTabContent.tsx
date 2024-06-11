@@ -5,25 +5,15 @@ import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { useTranslation } from 'react-i18next';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
 import { Paragraph, Switch } from '@digdir/design-system-react';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export type SetupTabContentProps = {
   appMetadata: ApplicationMetadata;
-  org: string;
-  app: string;
 };
 
-/**
- * @component
- *    The content of the Setup Tab
- *
- * @property {ApplicationMetadata}[appMetadata] - The application metadata
- * @property {string}[org] - The org
- * @property {string}[app] - The app
- *
- * @returns {ReactNode} - The rendered component
- */
-export const SetupTabContent = ({ appMetadata, org, app }: SetupTabContentProps): ReactNode => {
+export const SetupTabContent = ({ appMetadata }: SetupTabContentProps): ReactNode => {
   const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
 
   const { mutate: updateAppMetadataMutation } = useAppMetadataMutation(org, app);
 

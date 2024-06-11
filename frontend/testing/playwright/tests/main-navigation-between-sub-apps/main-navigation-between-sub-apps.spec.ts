@@ -60,7 +60,7 @@ test('That it is possible to navigate from overview to the app builder page and 
   await overviewPage.verifyOverviewPage();
 });
 
-test('That it is possible to navigate from overview to the datamodel page and back again', async ({
+test('That it is possible to navigate from overview to the data model page and back again', async ({
   page,
   testAppName,
 }) => {
@@ -68,7 +68,7 @@ test('That it is possible to navigate from overview to the datamodel page and ba
   const dataModelPage = new DataModelPage(page, { app: testAppName });
   const header = new Header(page, { app: testAppName });
 
-  await header.clickOnNavigateToPageInTopMenuHeader('datamodel');
+  await header.clickOnNavigateToPageInTopMenuHeader('data_model');
   await dataModelPage.verifyDataModelPage();
 
   await header.clickOnNavigateToPageInTopMenuHeader('about');
@@ -98,7 +98,7 @@ test('That it is possible to navigate from overview to the process editor page a
   const processEditorPage = new ProcessEditorPage(page, { app: testAppName });
   const header = new Header(page, { app: testAppName });
 
-  await header.clickOnNavigateToPageInTopMenuHeader('process-editor');
+  await header.clickOnNavigateToPageInTopMenuHeader('process_editor');
   await processEditorPage.verifyProcessEditorPage();
 
   await header.clickOnNavigateToPageInTopMenuHeader('about');

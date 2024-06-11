@@ -3,5 +3,4 @@ export {
   getConfigTitleHelpTextKey,
   checkForInvalidCharacters,
   getDataTypeFromLayoutSetsWithExistingId,
-  getDatamodelOptions,
 } from './configPanelUtils';

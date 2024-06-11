@@ -92,10 +92,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <param name="layoutSetName">Name of layoutSet to fetch corresponding model metadata for</param>
+        /// <param name="dataModelName">Name of data model to fetch</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The model metadata for a given layout set.</returns>
         public Task<ModelMetadata> GetModelMetadata(
-            AltinnRepoEditingContext altinnRepoEditingContext, [CanBeNull] string layoutSetName,
+            AltinnRepoEditingContext altinnRepoEditingContext, [CanBeNull] string layoutSetName, [CanBeNull] string dataModelName,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -104,6 +105,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
         public Task<LayoutSets> GetLayoutSets(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Gets a layoutSet config.
+        /// </summary>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+        /// <param name="layoutSetId">The id of the layout set to get config for.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
+        public Task<LayoutSetConfig> GetLayoutSetConfig(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Adds a config for an additional layout set to the layout-sets.json

@@ -11,7 +11,8 @@ import {
   renderHookWithProviders,
   renderWithProviders,
 } from '../../../testing/mocks';
-import { layout1NameMock, layoutSet1NameMock } from '../../../testing/layoutMock';
+import { layout1NameMock } from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { appContextMock } from '../../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';

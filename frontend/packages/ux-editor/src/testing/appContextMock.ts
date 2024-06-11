@@ -1,6 +1,7 @@
 import type { AppContextProps } from '../AppContext';
 import type { RefObject } from 'react';
-import { layout1NameMock, layoutSet1NameMock } from './layoutMock';
+import { layoutSet1NameMock } from './layoutSetsMock';
+import { layout1NameMock } from './layoutMock';
 
 const previewIframeRefMock: RefObject<HTMLIFrameElement> = {
   current: null,
@@ -15,4 +16,6 @@ export const appContextMock: AppContextProps = {
   refetchLayouts: jest.fn(),
   refetchLayoutSettings: jest.fn(),
   refetchTexts: jest.fn(),
+  shouldReloadPreview: false,
+  previewHasLoaded: jest.fn(),
 };

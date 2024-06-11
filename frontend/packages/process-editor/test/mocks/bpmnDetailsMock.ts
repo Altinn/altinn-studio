@@ -57,6 +57,7 @@ export const getMockBpmnElementForTask = (taskType: BpmnTaskType) => {
                 actions: signingActions,
                 signatureConfig: {
                   signatureDataType: 'signatureInformation-1234',
+                  dataTypesToSign: [],
                 },
               },
             ],

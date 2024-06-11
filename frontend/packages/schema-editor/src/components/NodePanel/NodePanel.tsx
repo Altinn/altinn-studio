@@ -14,13 +14,13 @@ export interface NodePanelProps {
 
 export const NodePanel = ({ pointer }: NodePanelProps) => {
   const { schemaModel } = useSchemaEditorAppContext();
-  const isDatamodelRoot = !pointer;
-  const node = isDatamodelRoot ? schemaModel.getRootNode() : schemaModel.getNode(pointer);
+  const isDataModelRoot = !pointer;
+  const node = isDataModelRoot ? schemaModel.getRootNode() : schemaModel.getNode(pointer);
 
   return (
     <>
       <div className={classes.top}>
-        {!isDatamodelRoot && <BackButton />}
+        {!isDataModelRoot && <BackButton />}
         <HeadingRow pointer={pointer} />
       </div>
       {isNodeValidParent(node) && <SchemaTree pointer={pointer} />}
@@ -32,16 +32,16 @@ const BackButton = () => {
   const { setSelectedNodePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
 
-  const navigateToDatamodelRoot = () => {
+  const navigateToDataModelRoot = () => {
     setSelectedNodePointer(undefined);
     setSelectedTypePointer(undefined);
   };
 
   return (
     <Link asChild className={classes.backButton}>
-      <button onClick={navigateToDatamodelRoot}>
+      <button onClick={navigateToDataModelRoot}>
         <ArrowLeftIcon />
-        {t('schema_editor.back_to_datamodel')}
+        {t('schema_editor.back_to_data_model')}
       </button>
     </Link>
   );

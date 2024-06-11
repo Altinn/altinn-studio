@@ -1,8 +1,8 @@
 import React from 'react';
 import { ProcessEditor as ProcessEditorImpl } from '@altinn/process-editor';
-import { useBpmnMutation } from '../../hooks/mutations';
+import { useAppPolicyMutation, useBpmnMutation } from '../../hooks/mutations';
 import { useBpmnQuery } from '../../hooks/queries/useBpmnQuery';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { toast } from 'react-toastify';
 import { StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
@@ -24,6 +24,10 @@ import { useDeleteDataTypeFromAppMetadata } from '../../hooks/mutations/useDelet
 import { SyncSuccessQueriesInvalidator } from 'app-shared/queryInvalidator/SyncSuccessQueriesInvalidator';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSettingsModalContext } from '../../contexts/SettingsModalContext';
+import { useAppMetadataQuery, useAppPolicyQuery } from '../../hooks/queries';
+import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
+import { OnProcessTaskAddHandler } from './handlers/OnProcessTaskAddHandler';
+import { OnProcessTaskRemoveHandler } from './handlers/OnProcessTaskRemoveHandler';
 
 enum SyncClientsName {
   FileSyncSuccess = 'FileSyncSuccess',
@@ -32,8 +36,10 @@ enum SyncClientsName {
 
 export const ProcessEditor = (): React.ReactElement => {
   const { t } = useTranslation();
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const queryClient = useQueryClient();
+  const { data: currentPolicy, isPending: isPendingCurrentPolicy } = useAppPolicyQuery(org, app);
+  const { mutate: mutateApplicationPolicy } = useAppPolicyMutation(org, app);
   const invalidator = SyncSuccessQueriesInvalidator.getInstance(queryClient, org, app);
   const { setSettingsModalOpen, setSettingsModalSelectedTab } = useSettingsModalContext();
   const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
@@ -57,8 +63,14 @@ export const ProcessEditor = (): React.ReactElement => {
   const { mutate: addDataTypeToAppMetadata } = useAddDataTypeToAppMetadata(org, app);
   const { mutate: deleteDataTypeFromAppMetadata } = useDeleteDataTypeFromAppMetadata(org, app);
 
+  const { data: appMetadata, isPending: appMetadataPending } = useAppMetadataQuery(org, app);
   const { data: availableDataModelIds, isPending: availableDataModelIdsPending } =
     useAppMetadataModelIdsQuery(org, app);
+  const { data: allDataModelIds, isPending: allDataModelIdsPending } = useAppMetadataModelIdsQuery(
+    org,
+    app,
+    false,
+  );
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
   const pendingApiOperations: boolean =
@@ -67,7 +79,10 @@ export const ProcessEditor = (): React.ReactElement => {
     addLayoutSetPending ||
     deleteLayoutSetPending ||
     updateDataTypePending ||
-    availableDataModelIdsPending;
+    appMetadataPending ||
+    availableDataModelIdsPending ||
+    allDataModelIdsPending ||
+    isPendingCurrentPolicy;
 
   const { onWSMessageReceived } = useWebSocket({
     webSocketUrl: processEditorWebSocketHub(),
@@ -84,7 +99,7 @@ export const ProcessEditor = (): React.ReactElement => {
 
     const isSuccessMessage = 'source' in message;
     if (isSuccessMessage) {
-      // Here we can handle the SyncSuccess message or invalidate the query cache
+      // Please extend the "fileNameCacheKeyMap" inside the "SyncSuccessQueriesInvalidator" class. Do not add query-client invalidation directly here.
       invalidator.invalidateQueryByFileName(message.source.name);
     }
   });
@@ -104,6 +119,31 @@ export const ProcessEditor = (): React.ReactElement => {
     );
   };
 
+  const onProcessTaskAdd = (taskMetadata: OnProcessTaskEvent): void => {
+    const onProcessTaskAddHandler = new OnProcessTaskAddHandler(
+      org,
+      app,
+      currentPolicy,
+      addLayoutSet,
+      mutateApplicationPolicy,
+      addDataTypeToAppMetadata,
+    );
+    onProcessTaskAddHandler.handleOnProcessTaskAdd(taskMetadata);
+  };
+
+  const onProcessTaskRemove = (taskMetadata: OnProcessTaskEvent): void => {
+    const onProcessTaskRemoveHandler = new OnProcessTaskRemoveHandler(
+      org,
+      app,
+      currentPolicy,
+      layoutSets,
+      mutateApplicationPolicy,
+      deleteDataTypeFromAppMetadata,
+      deleteLayoutSet,
+    );
+    onProcessTaskRemoveHandler.handleOnProcessTaskRemove(taskMetadata);
+  };
+
   if (appLibDataLoading) {
     return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} showSpinnerTitle />;
   }
@@ -111,7 +151,9 @@ export const ProcessEditor = (): React.ReactElement => {
   // TODO: Handle error will be handled better after issue #10735 is resolved
   return (
     <ProcessEditorImpl
+      availableDataTypeIds={appMetadata?.dataTypes?.map((dataType) => dataType.id)}
       availableDataModelIds={availableDataModelIds}
+      allDataModelIds={allDataModelIds}
       layoutSets={layoutSets}
       pendingApiOperations={pendingApiOperations}
       existingCustomReceiptLayoutSetId={existingCustomReceiptId}
@@ -121,13 +163,13 @@ export const ProcessEditor = (): React.ReactElement => {
       appLibVersion={appLibData.backendVersion}
       bpmnXml={hasBpmnQueryError ? null : bpmnXml}
       mutateDataType={mutateDataType}
-      addDataTypeToAppMetadata={addDataTypeToAppMetadata}
-      deleteDataTypeFromAppMetadata={deleteDataTypeFromAppMetadata}
       saveBpmn={saveBpmnXml}
       openPolicyEditor={() => {
         setSettingsModalSelectedTab('policy');
         setSettingsModalOpen(true);
       }}
+      onProcessTaskAdd={onProcessTaskAdd}
+      onProcessTaskRemove={onProcessTaskRemove}
     />
   );
 };

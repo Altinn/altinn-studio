@@ -58,7 +58,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
              * because the base address can change on each request and after HttpClient gets initial base address,
              * it is not advised (and not allowed) to change base address.
              */
-            HttpRequestMessage request = new(HttpMethod.Post, uri)
+            using HttpRequestMessage request = new(HttpMethod.Post, uri)
             {
                 Content = new StringContent(stringContent, Encoding.UTF8, "application/json"),
             };

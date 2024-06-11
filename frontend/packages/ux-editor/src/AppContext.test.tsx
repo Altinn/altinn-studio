@@ -10,7 +10,8 @@ import { MemoryRouter } from 'react-router-dom';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useAppContext } from './hooks';
 import type { QueryClient } from '@tanstack/react-query';
-import { layout1NameMock, layoutSet1NameMock } from './testing/layoutMock';
+import { layout1NameMock } from './testing/layoutMock';
+import { layoutSet1NameMock } from './testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 
 const mockSelectedFormLayoutSetName = layoutSet1NameMock;
@@ -70,7 +71,7 @@ const renderAppContext = (children: (appContext: AppContextProps) => React.React
     ...render(
       <MemoryRouter>
         <ServicesContextProvider {...queriesMock} client={queryClient}>
-          <AppContextProvider>
+          <AppContextProvider shouldReloadPreview={false} previewHasLoaded={jest.fn()}>
             <TestComponent queryClient={queryClient}>
               {(appContext: AppContextProps) => children(appContext)}
             </TestComponent>

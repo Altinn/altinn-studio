@@ -1,7 +1,7 @@
 import type { HTMLAttributes } from 'react';
 import React from 'react';
 import { useOrgListQuery } from 'app-development/hooks/queries';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Alert } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { StudioSpinner } from '@studio/components';
@@ -13,7 +13,7 @@ import { DeploymentContainer } from './DeploymentContainer';
 type DeploymentsProps = Pick<HTMLAttributes<HTMLDivElement>, 'className'>;
 
 export const Deployments = ({ className }: DeploymentsProps) => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
 
   const {
     data: orgs,

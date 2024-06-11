@@ -61,7 +61,7 @@ describe('NodePanel', () => {
       expect(schemaTree).toBeInTheDocument();
     });
 
-    it('Does not render a back to datamodel button', () => {
+    it('Does not render a back to data model button', () => {
       renderNodePanelWithRootNode();
       const backButton = screen.queryByRole('button', { name: backButtonName });
       expect(backButton).not.toBeInTheDocument();
@@ -92,13 +92,13 @@ describe('NodePanel', () => {
       expect(schemaTree).toBeInTheDocument();
     });
 
-    it('Renders a back to datamodel button', () => {
+    it('Renders a back to data model button', () => {
       renderNodePanelWithObjectDefinition();
       const backButton = screen.getByRole('button', { name: backButtonName });
       expect(backButton).toBeInTheDocument();
     });
 
-    it('Navigates back to the datamodel when the back to datamodel button is clicked', async () => {
+    it('Navigates back to the data model when the back to data model button is clicked', async () => {
       const user = userEvent.setup();
       renderNodePanelWithObjectDefinition();
       const backButton = screen.getByRole('button', { name: backButtonName });
@@ -147,7 +147,7 @@ describe('NodePanel', () => {
     };
   });
 
-  const backButtonName = textMock('schema_editor.back_to_datamodel');
+  const backButtonName = textMock('schema_editor.back_to_data_model');
 });
 
 type RenderNodePanelProps = {

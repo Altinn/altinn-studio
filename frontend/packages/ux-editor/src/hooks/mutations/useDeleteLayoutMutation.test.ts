@@ -6,8 +6,8 @@ import {
   externalLayoutsMock,
   layout1NameMock,
   layout2NameMock,
-  layoutSet1NameMock,
-} from '../../testing/layoutMock';
+} from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { appContextMock } from '../../testing/appContextMock';
