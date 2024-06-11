@@ -132,7 +132,7 @@ public class PdfController : ControllerBase
                 JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, _jsonSerializerOptions)
                 ?? throw new JsonException("Could not deserialize LayoutSets");
             layoutSet = layoutSets.Sets?.FirstOrDefault(t =>
-                t.DataType.Equals(dataElement.DataType) && t.Tasks.Contains(taskId)
+                t.DataType.Equals(dataElement.DataType, StringComparison.Ordinal) && t.Tasks.Contains(taskId)
             );
         }
 

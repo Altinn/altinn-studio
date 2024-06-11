@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Altinn.App.Core.Helpers;
 
 /// <summary>
@@ -37,7 +39,7 @@ public static class AppTextHelper
                     stringList[i] = textParams[i];
                 }
 
-                text = string.Format(text, stringList);
+                text = string.Format(CultureInfo.InvariantCulture, text, stringList);
             }
         }
 

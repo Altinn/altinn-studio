@@ -1,3 +1,4 @@
+using System.Globalization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
@@ -69,7 +70,7 @@ public class DefaultAppEvents : IAppEvents
                 _dataClient.DeleteData(
                     applicationMetadata.Org,
                     applicationMetadata.AppIdentifier.App,
-                    int.Parse(instance.InstanceOwner.PartyId),
+                    int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture),
                     Guid.Parse(item.InstanceGuid),
                     Guid.Parse(item.Id),
                     true

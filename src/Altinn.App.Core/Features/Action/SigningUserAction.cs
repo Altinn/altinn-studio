@@ -1,3 +1,4 @@
+using System.Globalization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -149,7 +150,7 @@ public class SigningUserAction : IUserAction
 
         return new Signee
         {
-            UserId = userProfile.UserId.ToString(),
+            UserId = userProfile.UserId.ToString(CultureInfo.InvariantCulture),
             PersonNumber = userProfile.Party.SSN,
             OrganisationNumber = userProfile.Party.OrgNumber,
         };

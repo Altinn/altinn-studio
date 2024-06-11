@@ -25,7 +25,7 @@ public class InstanceDataListsFactory
     {
         foreach (var instanceDataListProvider in _instanceDataListProviders)
         {
-            if (instanceDataListProvider.Id.ToLower().Equals(listId.ToLower()))
+            if (instanceDataListProvider.Id.Equals(listId, StringComparison.OrdinalIgnoreCase))
             {
                 return instanceDataListProvider;
             }

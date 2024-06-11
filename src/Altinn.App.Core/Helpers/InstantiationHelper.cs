@@ -1,3 +1,4 @@
+using System.Globalization;
 using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -110,9 +111,12 @@ public static class InstantiationHelper
 
         bool isSubUnit =
             party.UnitType != null
-            && (SUB_UNIT_CODE.Equals(party.UnitType.Trim()) || SUB_UNIT_CODE_AAFY.Equals(party.UnitType.Trim()));
+            && (
+                SUB_UNIT_CODE.Equals(party.UnitType.Trim(), StringComparison.Ordinal)
+                || SUB_UNIT_CODE_AAFY.Equals(party.UnitType.Trim(), StringComparison.Ordinal)
+            );
         bool isMainUnit = !isSubUnit;
-        bool isKbo = party.UnitType != null && BANKRUPTCY_CODE.Equals(party.UnitType.Trim());
+        bool isKbo = party.UnitType != null && BANKRUPTCY_CODE.Equals(party.UnitType.Trim(), StringComparison.Ordinal);
 
         switch (partyType)
         {
@@ -192,19 +196,23 @@ public static class InstantiationHelper
     {
         if (!string.IsNullOrEmpty(party.SSN))
         {
-            return new() { PartyId = party.PartyId.ToString(), PersonNumber = party.SSN, };
+            return new() { PartyId = party.PartyId.ToString(CultureInfo.InvariantCulture), PersonNumber = party.SSN, };
         }
         else if (!string.IsNullOrEmpty(party.OrgNumber))
         {
-            return new() { PartyId = party.PartyId.ToString(), OrganisationNumber = party.OrgNumber, };
+            return new()
+            {
+                PartyId = party.PartyId.ToString(CultureInfo.InvariantCulture),
+                OrganisationNumber = party.OrgNumber,
+            };
         }
         else if (party.PartyTypeName.Equals(PartyType.SelfIdentified))
         {
-            return new() { PartyId = party.PartyId.ToString(), Username = party.Name, };
+            return new() { PartyId = party.PartyId.ToString(CultureInfo.InvariantCulture), Username = party.Name, };
         }
         return new()
         {
-            PartyId = party.PartyId.ToString(),
+            PartyId = party.PartyId.ToString(CultureInfo.InvariantCulture),
             // instanceOwnerPartyType == "unknown"
         };
     }

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text;
 using Altinn.App.Core.Configuration;
@@ -66,7 +67,7 @@ public class InstanceEventClient : IInstanceEventClient
             StringBuilder bld = new StringBuilder();
             foreach (string type in eventTypes)
             {
-                bld.Append($"{paramSeparator}eventTypes={type}");
+                bld.Append(CultureInfo.InvariantCulture, $"{paramSeparator}eventTypes={type}");
                 paramSeparator = '&';
             }
 

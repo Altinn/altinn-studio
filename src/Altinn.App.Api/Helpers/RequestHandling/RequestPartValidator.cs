@@ -27,7 +27,7 @@ public class RequestPartValidator
     {
         if (part.Name == "instance")
         {
-            if (!part.ContentType.StartsWith("application/json"))
+            if (!part.ContentType.StartsWith("application/json", StringComparison.Ordinal))
             {
                 return $"Unexpected Content-Type '{part.ContentType}' of embedded instance template. Expecting 'application/json'";
             }

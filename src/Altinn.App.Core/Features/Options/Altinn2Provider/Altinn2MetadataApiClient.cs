@@ -1,3 +1,4 @@
+using System.Globalization;
 using Altinn.App.Core.Helpers;
 
 namespace Altinn.App.Core.Features.Options.Altinn2Provider;
@@ -29,12 +30,12 @@ public class Altinn2MetadataApiClient
     public async Task<MetadataCodelistResponse> GetAltinn2Codelist(string id, string langCode, int? version = null)
     {
         var response = await _client.GetAsync(
-            $"https://www.altinn.no/api/metadata/codelists/{id}/{version?.ToString() ?? string.Empty}?language={langCode}"
+            $"https://www.altinn.no/api/metadata/codelists/{id}/{version?.ToString(CultureInfo.InvariantCulture) ?? string.Empty}?language={langCode}"
         );
         if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
             response = await _client.GetAsync(
-                $"https://www.altinn.no/api/metadata/codelists/{id}/{version?.ToString() ?? string.Empty}"
+                $"https://www.altinn.no/api/metadata/codelists/{id}/{version?.ToString(CultureInfo.InvariantCulture) ?? string.Empty}"
             );
         }
         response.EnsureSuccessStatusCode();

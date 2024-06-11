@@ -6,6 +6,7 @@ namespace Altinn.App.Core.Configuration;
 // TODO: IOptions validation so that we know which of these properties are required
 public class AppSettings
 {
+#pragma warning disable CA1707 // Identifiers should not contain underscores
     /// <summary>
     /// Constant for the location of json schema file
     /// </summary>
@@ -15,6 +16,7 @@ public class AppSettings
     /// Constant for the location of validation configuration file
     /// </summary>
     public const string VALIDATION_CONFIG_FILENAME = "validation.json";
+#pragma warning restore CA1707 // Identifiers should not contain underscores
 
     /// <summary>
     /// The app configuration baseUrl where files are stored in the container

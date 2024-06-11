@@ -1,3 +1,4 @@
+using System.Globalization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Auth;
@@ -83,7 +84,7 @@ public class AuthorizationController : Controller
         {
             Response.Cookies.Append(
                 _settings.GetAltinnPartyCookieName,
-                userContext.PartyId.ToString(),
+                userContext.PartyId.ToString(CultureInfo.InvariantCulture),
                 new CookieOptions { Domain = _settings.HostName }
             );
         }

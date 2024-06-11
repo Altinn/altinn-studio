@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Text;
 using Altinn.App.Api.Helpers.RequestHandling;
@@ -146,7 +147,7 @@ public class InstancesController : ControllerBase
 
             string? userOrgClaim = User.GetOrg();
 
-            if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
+            if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.OrdinalIgnoreCase))
             {
                 await _instanceClient.UpdateReadStatus(instanceOwnerPartyId, instanceGuid, "read");
             }
@@ -239,7 +240,10 @@ public class InstancesController : ControllerBase
             // create minimum instance template
             instanceTemplate = new Instance
             {
-                InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.Value.ToString() }
+                InstanceOwner = new InstanceOwner
+                {
+                    PartyId = instanceOwnerPartyId.Value.ToString(CultureInfo.InvariantCulture)
+                }
             };
         }
 
@@ -331,7 +335,7 @@ public class InstancesController : ControllerBase
             instance = await _instanceClient.GetInstance(
                 app,
                 org,
-                int.Parse(instance.InstanceOwner.PartyId),
+                int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture),
                 Guid.Parse(instance.Id.Split("/")[1])
             );
 
@@ -425,7 +429,11 @@ public class InstancesController : ControllerBase
             return NotFound($"Cannot lookup party: {partyLookupException.Message}");
         }
 
-        if (copySourceInstance && party.PartyId.ToString() != instansiationInstance.SourceInstanceId.Split("/")[0])
+        if (
+            copySourceInstance
+            && party.PartyId.ToString(CultureInfo.InvariantCulture)
+                != instansiationInstance.SourceInstanceId.Split("/")[0]
+        )
         {
             return BadRequest("It is not possible to copy instances between instance owners.");
         }
@@ -705,7 +713,7 @@ public class InstancesController : ControllerBase
         Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
 
         string? orgClaim = User.GetOrg();
-        if (!instance.Org.Equals(orgClaim))
+        if (!instance.Org.Equals(orgClaim, StringComparison.OrdinalIgnoreCase))
         {
             return Forbid();
         }
@@ -783,7 +791,7 @@ public class InstancesController : ControllerBase
             new()
             {
                 { "appId", $"{org}/{app}" },
-                { "instanceOwner.partyId", instanceOwnerPartyId.ToString() },
+                { "instanceOwner.partyId", instanceOwnerPartyId.ToString(CultureInfo.InvariantCulture) },
                 { "status.isArchived", "false" },
                 { "status.isSoftDeleted", "false" }
             };
@@ -863,14 +871,17 @@ public class InstancesController : ControllerBase
     {
         string org = application.Org;
         string app = application.AppIdentifier.App;
-        int instanceOwnerPartyId = int.Parse(targetInstance.InstanceOwner.PartyId);
+        int instanceOwnerPartyId = int.Parse(targetInstance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
 
         string[] sourceSplit = sourceInstance.Id.Split("/");
         Guid sourceInstanceGuid = Guid.Parse(sourceSplit[1]);
 
         List<DataType> dts = application
             .DataTypes.Where(dt => dt.AppLogic?.ClassRef != null)
-            .Where(dt => dt.TaskId != null && dt.TaskId.Equals(targetInstance.Process.CurrentTask.ElementId))
+            .Where(dt =>
+                dt.TaskId != null
+                && dt.TaskId.Equals(targetInstance.Process.CurrentTask.ElementId, StringComparison.Ordinal)
+            )
             .ToList();
         List<string> excludedDataTypes = application.CopyInstanceSettings.ExcludedDataTypes;
 
@@ -881,9 +892,9 @@ public class InstancesController : ControllerBase
                 continue;
             }
 
-            if (dts.Any(dts => dts.Id.Equals(de.DataType)))
+            if (dts.Any(dts => dts.Id.Equals(de.DataType, StringComparison.Ordinal)))
             {
-                DataType dt = dts.First(dt => dt.Id.Equals(de.DataType));
+                DataType dt = dts.First(dt => dt.Id.Equals(de.DataType, StringComparison.Ordinal));
 
                 Type type;
                 try
@@ -913,7 +924,11 @@ public class InstancesController : ControllerBase
                     DataHelper.ResetDataFields(application.CopyInstanceSettings.ExcludedDataFields, data);
                 }
 
-                await _prefillService.PrefillDataModel(instanceOwnerPartyId.ToString(), dt.Id, data);
+                await _prefillService.PrefillDataModel(
+                    instanceOwnerPartyId.ToString(CultureInfo.InvariantCulture),
+                    dt.Id,
+                    data
+                );
 
                 await _instantiationProcessor.DataCreation(targetInstance, data, null);
 
@@ -998,7 +1013,9 @@ public class InstancesController : ControllerBase
         {
             try
             {
-                return await _altinnPartyClientClient.GetParty(int.Parse(instanceOwner.PartyId));
+                return await _altinnPartyClientClient.GetParty(
+                    int.Parse(instanceOwner.PartyId, CultureInfo.InvariantCulture)
+                );
             }
             catch (Exception e) when (e is not ServiceException)
             {
@@ -1058,7 +1075,7 @@ public class InstancesController : ControllerBase
     private async Task StorePrefillParts(Instance instance, ApplicationMetadata appInfo, List<RequestPart> parts)
     {
         Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-        int instanceOwnerIdAsInt = int.Parse(instance.InstanceOwner.PartyId);
+        int instanceOwnerIdAsInt = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
         string org = instance.Org;
         string app = instance.AppId.Split("/")[1];
 
@@ -1219,7 +1236,7 @@ public class InstancesController : ControllerBase
         if (updatedValues.Count > 0)
         {
             await _instanceClient.UpdatePresentationTexts(
-                int.Parse(instance.Id.Split("/")[0]),
+                int.Parse(instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
                 Guid.Parse(instance.Id.Split("/")[1]),
                 new PresentationTexts { Texts = updatedValues }
             );
@@ -1238,7 +1255,7 @@ public class InstancesController : ControllerBase
         if (updatedValues.Count > 0)
         {
             await _instanceClient.UpdateDataValues(
-                int.Parse(instance.Id.Split("/")[0]),
+                int.Parse(instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
                 Guid.Parse(instance.Id.Split("/")[1]),
                 new DataValues { Values = updatedValues }
             );

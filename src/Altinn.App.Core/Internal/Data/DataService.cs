@@ -27,7 +27,9 @@ internal class DataService : IDataService
     /// <inheritdoc/>
     public async Task<(Guid dataElementId, T? model)> GetByType<T>(Instance instance, string dataTypeId)
     {
-        DataElement? dataElement = instance.Data.SingleOrDefault(d => d.DataType.Equals(dataTypeId));
+        DataElement? dataElement = instance.Data.SingleOrDefault(d =>
+            d.DataType.Equals(dataTypeId, StringComparison.Ordinal)
+        );
 
         if (dataElement == null)
         {

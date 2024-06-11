@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Claims;
 using AltinnCore.Authentication.Constants;
 using Microsoft.AspNetCore.Http;
@@ -22,9 +23,9 @@ public static class AuthenticationHelper
         {
             foreach (Claim claim in context.User.Claims)
             {
-                if (claim.Type.Equals(AltinnCoreClaimTypes.UserId))
+                if (claim.Type.Equals(AltinnCoreClaimTypes.UserId, StringComparison.Ordinal))
                 {
-                    userId = Convert.ToInt32(claim.Value);
+                    userId = Convert.ToInt32(claim.Value, CultureInfo.InvariantCulture);
                 }
             }
         }

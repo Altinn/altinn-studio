@@ -195,8 +195,12 @@ public class PdfService : IPdfService
         }
 
         TextResourceElement? titleText =
-            textResource.Resources.Find(textResourceElement => textResourceElement.Id.Equals("appName"))
-            ?? textResource.Resources.Find(textResourceElement => textResourceElement.Id.Equals("ServiceName"));
+            textResource.Resources.Find(textResourceElement =>
+                textResourceElement.Id.Equals("appName", StringComparison.Ordinal)
+            )
+            ?? textResource.Resources.Find(textResourceElement =>
+                textResourceElement.Id.Equals("ServiceName", StringComparison.Ordinal)
+            );
 
         if (titleText != null && !string.IsNullOrEmpty(titleText.Value))
         {

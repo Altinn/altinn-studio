@@ -62,7 +62,7 @@ public class TextClient : IText
     public async Task<TextResource?> GetText(string org, string app, string language)
     {
         TextResource? textResource = null;
-        string cacheKey = $"{org}-{app}-{language.ToLower()}";
+        string cacheKey = $"{org}-{app}-{language.ToLowerInvariant()}";
 
         if (!_memoryCache.TryGetValue(cacheKey, out textResource))
         {

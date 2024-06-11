@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Core.Extensions;
@@ -110,7 +111,12 @@ public class StatelessDataController : ControllerBase
             );
         }
 
-        EnforcementResult enforcementResult = await AuthorizeAction(org, app, Convert.ToInt32(owner.PartyId), "read");
+        EnforcementResult enforcementResult = await AuthorizeAction(
+            org,
+            app,
+            Convert.ToInt32(owner.PartyId, CultureInfo.InvariantCulture),
+            "read"
+        );
 
         if (!enforcementResult.Authorized)
         {
@@ -225,7 +231,12 @@ public class StatelessDataController : ControllerBase
             return BadRequest($"Invalid party header");
         }
 
-        EnforcementResult enforcementResult = await AuthorizeAction(org, app, Convert.ToInt32(owner.PartyId), "read");
+        EnforcementResult enforcementResult = await AuthorizeAction(
+            org,
+            app,
+            Convert.ToInt32(owner.PartyId, CultureInfo.InvariantCulture),
+            "read"
+        );
 
         if (!enforcementResult.Authorized)
         {

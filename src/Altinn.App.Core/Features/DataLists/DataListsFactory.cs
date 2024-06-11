@@ -25,7 +25,7 @@ public class DataListsFactory
     {
         foreach (var dataListProvider in _dataListProviders)
         {
-            if (dataListProvider.Id.ToLower().Equals(listId.ToLower()))
+            if (dataListProvider.Id.Equals(listId, StringComparison.OrdinalIgnoreCase))
             {
                 return dataListProvider;
             }

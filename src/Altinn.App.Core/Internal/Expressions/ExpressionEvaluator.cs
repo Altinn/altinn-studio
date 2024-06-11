@@ -266,7 +266,7 @@ public static class ExpressionEvaluator
         int precision = 0;
         if (args.Length == 2 && args[1] is not null)
         {
-            precision = Convert.ToInt32(args[1]);
+            precision = Convert.ToInt32(args[1], CultureInfo.InvariantCulture);
         }
 
         return number.Value.ToString($"N{precision}", CultureInfo.InvariantCulture);
@@ -386,7 +386,7 @@ public static class ExpressionEvaluator
                     $"Expected number, got value {(ab ? "true" : "false")}"
                 ),
             string s => ParseNumber(s),
-            IConvertible c => Convert.ToDouble(c),
+            IConvertible c => Convert.ToDouble(c, CultureInfo.InvariantCulture),
             _ => null
         };
     }
@@ -398,7 +398,7 @@ public static class ExpressionEvaluator
             return PrepareBooleanArg(args[0]) ? args[1] : null;
         }
 
-        if (args.Length > 2 && !"else".Equals(args[2] as string, StringComparison.InvariantCultureIgnoreCase))
+        if (args.Length > 2 && !"else".Equals(args[2] as string, StringComparison.OrdinalIgnoreCase))
         {
             throw new ExpressionEvaluatorTypeErrorException("Expected third argument to be \"else\"");
         }
@@ -488,15 +488,15 @@ public static class ExpressionEvaluator
         if (value is string svalue)
         {
             // Special case for "TruE" to be equal to true
-            if ("true".Equals(svalue, StringComparison.InvariantCultureIgnoreCase))
+            if ("true".Equals(svalue, StringComparison.OrdinalIgnoreCase))
             {
                 return "true";
             }
-            else if ("false".Equals(svalue, StringComparison.InvariantCultureIgnoreCase))
+            else if ("false".Equals(svalue, StringComparison.OrdinalIgnoreCase))
             {
                 return "false";
             }
-            else if ("null".Equals(svalue, StringComparison.InvariantCultureIgnoreCase))
+            else if ("null".Equals(svalue, StringComparison.OrdinalIgnoreCase))
             {
                 return null;
             }
@@ -523,7 +523,7 @@ public static class ExpressionEvaluator
             throw new ExpressionEvaluatorTypeErrorException($"Expected 2 argument(s), got {args.Length}");
         }
 
-        return string.Equals(ToStringForEquals(args[0]), ToStringForEquals(args[1]), StringComparison.InvariantCulture);
+        return string.Equals(ToStringForEquals(args[0]), ToStringForEquals(args[1]), StringComparison.Ordinal);
     }
 
     private static object Argv(object?[] args, object[]? positionalArguments)

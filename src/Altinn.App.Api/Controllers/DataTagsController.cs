@@ -61,7 +61,9 @@ public class DataTagsController : ControllerBase
             return NotFound($"Unable to find instance based on the given parameters.");
         }
 
-        DataElement? dataElement = instance.Data.FirstOrDefault(m => m.Id.Equals(dataGuid.ToString()));
+        DataElement? dataElement = instance.Data.FirstOrDefault(m =>
+            m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal)
+        );
 
         if (dataElement == null)
         {
@@ -106,7 +108,9 @@ public class DataTagsController : ControllerBase
             return NotFound("Unable to find instance based on the given parameters.");
         }
 
-        DataElement? dataElement = instance.Data.FirstOrDefault(m => m.Id.Equals(dataGuid.ToString()));
+        DataElement? dataElement = instance.Data.FirstOrDefault(m =>
+            m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal)
+        );
 
         if (dataElement == null)
         {
@@ -160,7 +164,9 @@ public class DataTagsController : ControllerBase
             return NotFound("Unable to find instance based on the given parameters.");
         }
 
-        DataElement? dataElement = instance.Data.FirstOrDefault(m => m.Id.Equals(dataGuid.ToString()));
+        DataElement? dataElement = instance.Data.FirstOrDefault(m =>
+            m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal)
+        );
 
         if (dataElement == null)
         {

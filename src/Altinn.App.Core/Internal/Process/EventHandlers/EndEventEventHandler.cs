@@ -1,3 +1,4 @@
+using System.Globalization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
@@ -48,7 +49,7 @@ public class EndEventEventHandler : IEndEventEventHandler
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
         if (applicationMetadata.AutoDeleteOnProcessEnd && instance.Process?.Ended != null)
         {
-            int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+            int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
             await _instanceClient.DeleteInstance(instanceOwnerPartyId, instanceIdentifier.InstanceGuid, true);
         }
     }

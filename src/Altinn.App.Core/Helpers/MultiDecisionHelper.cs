@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Claims;
 using Altinn.App.Core.Models;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
@@ -94,7 +95,7 @@ public static class MultiDecisionHelper
         {
             XacmlJsonCategory actionCategory;
             actionCategory = DecisionHelper.CreateActionCategory(actionType, true);
-            actionCategory.Id = ActionId + counter.ToString();
+            actionCategory.Id = ActionId + counter.ToString(CultureInfo.InvariantCulture);
             actionCategories.Add(actionCategory);
             counter++;
         }

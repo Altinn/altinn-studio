@@ -80,6 +80,6 @@ public class RedirectController : ControllerBase
             .ToList();
         string redirectHost = string.Join(".", goToList);
 
-        return validHost.Equals(redirectHost);
+        return validHost.Equals(redirectHost, StringComparison.OrdinalIgnoreCase);
     }
 }

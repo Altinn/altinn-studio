@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Claims;
 using AltinnCore.Authentication.Constants;
 
@@ -16,13 +17,13 @@ public static class ClaimsPrincipalExtensions
         int? userId = GetUserIdAsInt(user);
         if (userId.HasValue)
         {
-            return userId.Value.ToString();
+            return userId.Value.ToString(CultureInfo.InvariantCulture);
         }
 
         int? orgId = GetOrgNumber(user);
         if (orgId.HasValue)
         {
-            return orgId.Value.ToString();
+            return orgId.Value.ToString(CultureInfo.InvariantCulture);
         }
 
         return null;

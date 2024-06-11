@@ -25,7 +25,7 @@ public static class ObjectUtils
             );
         }
 
-        if (type.Namespace?.StartsWith("System") == true)
+        if (type.Namespace?.StartsWith("System", StringComparison.Ordinal) == true)
         {
             return; // System.DateTime.Now causes infinite recursion, and we shuldn't recurse into system types anyway.
         }
@@ -90,7 +90,7 @@ public static class ObjectUtils
             );
         }
 
-        if (type.Namespace?.StartsWith("System") == true)
+        if (type.Namespace?.StartsWith("System", StringComparison.Ordinal) == true)
         {
             return;
         }
@@ -190,7 +190,7 @@ public static class ObjectUtils
             );
         }
         var type = model.GetType();
-        if (type.Namespace?.StartsWith("System") == true)
+        if (type.Namespace?.StartsWith("System", StringComparison.Ordinal) == true)
         {
             return; // System.DateTime.Now causes infinite recursion, and we shuldn't recurse into system types anyway.
         }

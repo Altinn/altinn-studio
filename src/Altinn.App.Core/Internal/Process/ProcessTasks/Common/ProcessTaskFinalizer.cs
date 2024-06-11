@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
@@ -85,7 +86,7 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
         Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
         Guid dataGuid = Guid.Parse(dataElement.Id);
         string app = instance.AppId.Split("/")[1];
-        int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+        int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
         object data = await _dataClient.GetFormData(
             instanceGuid,
             modelType,

@@ -24,7 +24,12 @@ public class ProcessReader : IProcessReader
     public ProcessReader(IProcessClient processClient, Telemetry? telemetry = null)
     {
         XmlSerializer serializer = new XmlSerializer(typeof(Definitions));
-        Definitions? definitions = (Definitions?)serializer.Deserialize(processClient.GetProcessDefinition());
+        // TODO: IO should be async
+        using var stream = processClient.GetProcessDefinition();
+#pragma warning disable CA5369 // Use XmlReader for 'XmlSerializer.Deserialize()'
+        // NOTE: this is trusted XML input, as it comes from the apps own code
+        Definitions? definitions = (Definitions?)serializer.Deserialize(stream);
+#pragma warning restore CA5369 // Use XmlReader for 'XmlSerializer.Deserialize()'
 
         _definitions =
             definitions

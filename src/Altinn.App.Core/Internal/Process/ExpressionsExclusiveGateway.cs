@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Features;
@@ -98,7 +99,7 @@ public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
                     dataElementType,
                     instance.Org,
                     instance.AppId.Split("/")[1],
-                    int.Parse(instance.InstanceOwner.PartyId),
+                    int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture),
                     dataGuid.Value
                 );
             }

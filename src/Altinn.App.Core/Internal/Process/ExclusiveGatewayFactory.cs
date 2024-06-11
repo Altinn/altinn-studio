@@ -30,7 +30,7 @@ public class ExclusiveGatewayFactory
     public IProcessExclusiveGateway? GetProcessExclusiveGateway(string gatewayId)
     {
         return _gateways.FirstOrDefault(gateway =>
-            String.Equals(gateway.GatewayId, gatewayId, StringComparison.CurrentCultureIgnoreCase)
+            string.Equals(gateway.GatewayId, gatewayId, StringComparison.OrdinalIgnoreCase)
         );
     }
 }

@@ -46,9 +46,9 @@ public class SecretsLocalClient : ISecretsClient
     }
 
     /// <inheritdoc />
-    public async Task<string> GetSecretAsync(string secretId)
+    public async Task<string> GetSecretAsync(string secretName)
     {
-        string token = GetTokenFromSecrets(secretId);
+        string token = GetTokenFromSecrets(secretName);
         return await Task.FromResult(token);
     }
 

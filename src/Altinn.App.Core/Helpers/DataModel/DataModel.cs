@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -224,7 +225,7 @@ public class DataModel : IDataModelAccessor
             return (keypart, null);
         }
         var match = _keyPartRegex.Match(keypart);
-        return (match.Groups[1].Value, int.Parse(match.Groups[2].Value));
+        return (match.Groups[1].Value, int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture));
     }
 
     private static void AddIndiciesRecursive(

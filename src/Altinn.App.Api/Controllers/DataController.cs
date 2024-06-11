@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
@@ -133,7 +134,7 @@ public class DataController : ControllerBase
             Application application = await _appMetadata.GetApplicationMetadata();
 
             DataType? dataTypeFromMetadata = application.DataTypes.First(e =>
-                e.Id.Equals(dataType, StringComparison.InvariantCultureIgnoreCase)
+                e.Id.Equals(dataType, StringComparison.OrdinalIgnoreCase)
             );
 
             if (dataTypeFromMetadata == null)
@@ -302,7 +303,9 @@ public class DataController : ControllerBase
                 return NotFound($"Did not find instance {instance}");
             }
 
-            DataElement? dataElement = instance.Data.First(m => m.Id.Equals(dataGuid.ToString()));
+            DataElement? dataElement = instance.Data.First(m =>
+                m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal)
+            );
 
             if (dataElement == null)
             {
@@ -380,7 +383,9 @@ public class DataController : ControllerBase
                 );
             }
 
-            DataElement? dataElement = instance.Data.First(m => m.Id.Equals(dataGuid.ToString()));
+            DataElement? dataElement = instance.Data.First(m =>
+                m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal)
+            );
 
             if (dataElement == null)
             {
@@ -459,7 +464,7 @@ public class DataController : ControllerBase
                 );
             }
 
-            var dataElement = instance.Data.First(m => m.Id.Equals(dataGuid.ToString()));
+            var dataElement = instance.Data.First(m => m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal));
 
             if (dataElement == null)
             {
@@ -547,7 +552,9 @@ public class DataController : ControllerBase
                 );
             }
 
-            DataElement? dataElement = instance.Data.Find(m => m.Id.Equals(dataGuid.ToString()));
+            DataElement? dataElement = instance.Data.Find(m =>
+                m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal)
+            );
 
             if (dataElement == null)
             {
@@ -604,7 +611,7 @@ public class DataController : ControllerBase
         Stream fileStream
     )
     {
-        int instanceOwnerPartyId = int.Parse(instanceBefore.Id.Split("/")[0]);
+        int instanceOwnerPartyId = int.Parse(instanceBefore.Id.Split("/")[0], CultureInfo.InvariantCulture);
         Guid instanceGuid = Guid.Parse(instanceBefore.Id.Split("/")[1]);
 
         DataElement dataElement = await _dataClient.InsertBinaryData(
@@ -655,7 +662,7 @@ public class DataController : ControllerBase
         await UpdatePresentationTextsOnInstance(instance, dataType, appModel);
         await UpdateDataValuesOnInstance(instance, dataType, appModel);
 
-        int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+        int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
 
         ObjectUtils.InitializeAltinnRowId(appModel);
         ObjectUtils.PrepareModelForXmlStorage(appModel);
@@ -692,7 +699,7 @@ public class DataController : ControllerBase
         if (dataStream != null)
         {
             string? userOrgClaim = User.GetOrg();
-            if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
+            if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.OrdinalIgnoreCase))
             {
                 await _instanceClient.UpdateReadStatus(instanceOwnerPartyId, instanceGuid, "read");
             }
@@ -822,7 +829,7 @@ public class DataController : ControllerBase
 
         // This is likely not required as the instance is already read
         string? userOrgClaim = User.GetOrg();
-        if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
+        if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.OrdinalIgnoreCase))
         {
             await _instanceClient.UpdateReadStatus(instanceOwnerId, instanceGuid, "read");
         }
@@ -860,7 +867,7 @@ public class DataController : ControllerBase
         string? language
     )
     {
-        int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+        int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
 
         string classRef = dataType.AppLogic.ClassRef;
         Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
@@ -928,7 +935,7 @@ public class DataController : ControllerBase
         if (updatedValues.Count > 0)
         {
             await _instanceClient.UpdatePresentationTexts(
-                int.Parse(instance.Id.Split("/")[0]),
+                int.Parse(instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
                 Guid.Parse(instance.Id.Split("/")[1]),
                 new PresentationTexts { Texts = updatedValues }
             );
@@ -947,7 +954,7 @@ public class DataController : ControllerBase
         if (updatedValues.Count > 0)
         {
             await _instanceClient.UpdateDataValues(
-                int.Parse(instance.Id.Split("/")[0]),
+                int.Parse(instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
                 Guid.Parse(instance.Id.Split("/")[1]),
                 new DataValues { Values = updatedValues }
             );
@@ -996,7 +1003,7 @@ public class DataController : ControllerBase
             string key = item.Split(':')[0];
             string value = item.Split(':')[1];
 
-            switch (key.ToLower())
+            switch (key.ToLowerInvariant())
             {
                 case "org":
                     if (value.Equals(user.GetOrg(), StringComparison.OrdinalIgnoreCase))
@@ -1006,7 +1013,12 @@ public class DataController : ControllerBase
 
                     break;
                 case "orgno":
-                    if (value.Equals(user.GetOrgNumber().ToString()))
+                    if (
+                        value.Equals(
+                            user.GetOrgNumber()?.ToString(CultureInfo.InvariantCulture),
+                            StringComparison.Ordinal
+                        )
+                    )
                     {
                         return true;
                     }

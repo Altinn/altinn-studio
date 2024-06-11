@@ -93,8 +93,8 @@ public sealed class AppIdentifier : IEquatable<AppIdentifier>
     {
         return Org != null
             && App != null
-            && Org.Equals(other?.Org, StringComparison.CurrentCultureIgnoreCase)
-            && App.Equals(other?.App, StringComparison.CurrentCultureIgnoreCase);
+            && Org.Equals(other?.Org, StringComparison.OrdinalIgnoreCase)
+            && App.Equals(other?.App, StringComparison.OrdinalIgnoreCase);
     }
 
     ///<inheritDoc/>

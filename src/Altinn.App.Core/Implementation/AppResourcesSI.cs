@@ -212,7 +212,7 @@ public class AppResourcesSI : IAppResources
         Application application = GetApplication();
         string classRef = string.Empty;
 
-        DataType? element = application.DataTypes.SingleOrDefault(d => d.Id.Equals(dataType));
+        DataType? element = application.DataTypes.SingleOrDefault(d => d.Id.Equals(dataType, StringComparison.Ordinal));
 
         if (element != null)
         {

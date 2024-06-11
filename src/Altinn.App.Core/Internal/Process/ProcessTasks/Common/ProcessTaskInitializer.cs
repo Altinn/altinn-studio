@@ -1,3 +1,4 @@
+using System.Globalization;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
@@ -107,7 +108,7 @@ public class ProcessTaskInitializer : IProcessTaskInitializer
         if (updatedValues.Count > 0)
         {
             Instance updatedInstance = await _instanceClient.UpdatePresentationTexts(
-                int.Parse(instance.Id.Split("/")[0]),
+                int.Parse(instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
                 Guid.Parse(instance.Id.Split("/")[1]),
                 new PresentationTexts { Texts = updatedValues }
             );
@@ -129,7 +130,7 @@ public class ProcessTaskInitializer : IProcessTaskInitializer
         if (updatedValues.Count > 0)
         {
             Instance updatedInstance = await _instanceClient.UpdateDataValues(
-                int.Parse(instance.Id.Split("/")[0]),
+                int.Parse(instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
                 Guid.Parse(instance.Id.Split("/")[1]),
                 new DataValues { Values = updatedValues }
             );

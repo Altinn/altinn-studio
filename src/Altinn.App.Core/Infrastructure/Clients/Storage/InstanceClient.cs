@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
@@ -60,10 +61,10 @@ public class InstanceClient : IInstanceClient
     }
 
     /// <inheritdoc />
-    public async Task<Instance> GetInstance(string app, string org, int instanceOwnerPartyId, Guid instanceGuid)
+    public async Task<Instance> GetInstance(string app, string org, int instanceOwnerPartyId, Guid instanceId)
     {
-        using var activity = _telemetry?.StartGetInstanceByGuidActivity(instanceGuid);
-        string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
+        using var activity = _telemetry?.StartGetInstanceByGuidActivity(instanceId);
+        string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceId}";
 
         string apiUrl = $"instances/{instanceIdentifier}";
         string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
@@ -78,7 +79,7 @@ public class InstanceClient : IInstanceClient
         }
         else
         {
-            _logger.LogError($"Unable to fetch instance with instance id {instanceGuid}");
+            _logger.LogError($"Unable to fetch instance with instance id {instanceId}");
             throw await PlatformHttpException.CreateAsync(response);
         }
     }
@@ -90,7 +91,7 @@ public class InstanceClient : IInstanceClient
         using var activity = _telemetry?.StartGetInstanceByInstanceActivity(instanceGuid);
         string app = instance.AppId.Split("/")[1];
         string org = instance.Org;
-        int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+        int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
 
         return await GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
     }

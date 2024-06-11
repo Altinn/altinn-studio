@@ -66,7 +66,7 @@ public static class ModelStateHelpers
         GeneralSettings generalSettings
     )
     {
-        if (originalMessage.StartsWith(generalSettings.SoftValidationPrefix))
+        if (originalMessage.StartsWith(generalSettings.SoftValidationPrefix, StringComparison.Ordinal))
         {
             return (
                 ValidationIssueSeverity.Warning,
@@ -75,7 +75,7 @@ public static class ModelStateHelpers
         }
 
 #pragma warning disable CS0618 // Type or member is obsolete
-        if (originalMessage.StartsWith(generalSettings.FixedValidationPrefix))
+        if (originalMessage.StartsWith(generalSettings.FixedValidationPrefix, StringComparison.Ordinal))
         {
             return (
                 ValidationIssueSeverity.Fixed,
@@ -84,7 +84,7 @@ public static class ModelStateHelpers
         }
 #pragma warning restore CS0618 // Type or member is obsolete
 
-        if (originalMessage.StartsWith(generalSettings.InfoValidationPrefix))
+        if (originalMessage.StartsWith(generalSettings.InfoValidationPrefix, StringComparison.Ordinal))
         {
             return (
                 ValidationIssueSeverity.Informational,
@@ -92,7 +92,7 @@ public static class ModelStateHelpers
             );
         }
 
-        if (originalMessage.StartsWith(generalSettings.SuccessValidationPrefix))
+        if (originalMessage.StartsWith(generalSettings.SuccessValidationPrefix, StringComparison.Ordinal))
         {
             return (
                 ValidationIssueSeverity.Success,

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Reflection;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
@@ -93,7 +94,7 @@ public class PrefillSI : IPrefill
             _allowOverwrite = allowOverwriteToken.ToObject<bool>();
         }
 
-        Party? party = await _altinnPartyClientClient.GetParty(int.Parse(partyId));
+        Party? party = await _altinnPartyClientClient.GetParty(int.Parse(partyId, CultureInfo.InvariantCulture));
         if (party == null)
         {
             string errorMessage = $"Could find party for partyId: {partyId}";

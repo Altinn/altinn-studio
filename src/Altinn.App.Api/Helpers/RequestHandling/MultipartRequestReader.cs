@@ -1,3 +1,4 @@
+using System.Globalization;
 using Altinn.App.Core.Helpers.Extensions;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
@@ -69,13 +70,25 @@ public class MultipartRequestReader
                         )
                     )
                     {
-                        Errors.Add(string.Format("Part number {0} doesn't have a content disposition", partCounter));
+                        Errors.Add(
+                            string.Format(
+                                CultureInfo.InvariantCulture,
+                                "Part number {0} doesn't have a content disposition",
+                                partCounter
+                            )
+                        );
                         continue;
                     }
 
                     if (section.ContentType == null)
                     {
-                        Errors.Add(string.Format("Part number {0} doesn't have a content type", partCounter));
+                        Errors.Add(
+                            string.Format(
+                                CultureInfo.InvariantCulture,
+                                "Part number {0} doesn't have a content type",
+                                partCounter
+                            )
+                        );
                         continue;
                     }
 

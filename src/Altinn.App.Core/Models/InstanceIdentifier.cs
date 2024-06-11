@@ -1,3 +1,4 @@
+using System.Globalization;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Models;
@@ -110,7 +111,7 @@ public class InstanceIdentifier
     private static (int InstanceOwnerPartyId, Guid InstanceGuid) DeconstructInstanceId(string instanceId)
     {
         var deconstructed = instanceId.Split("/");
-        int instanceOwnerPartyId = int.Parse(deconstructed[0]);
+        int instanceOwnerPartyId = int.Parse(deconstructed[0], CultureInfo.InvariantCulture);
         Guid instanceGuid = Guid.Parse(deconstructed[1]);
 
         return (instanceOwnerPartyId, instanceGuid);
@@ -129,13 +130,17 @@ public class InstanceIdentifier
         string searchForSingular = "/instance/";
         string instanceSubpath = string.Empty;
 
-        if (url.Contains(searchForPlural, StringComparison.InvariantCultureIgnoreCase))
+        if (url.Contains(searchForPlural, StringComparison.OrdinalIgnoreCase))
         {
-            instanceSubpath = url.Substring(url.IndexOf(searchForPlural) + searchForPlural.Length);
+            instanceSubpath = url.Substring(
+                url.IndexOf(searchForPlural, StringComparison.OrdinalIgnoreCase) + searchForPlural.Length
+            );
         }
-        else if (url.Contains(searchForSingular, StringComparison.InvariantCultureIgnoreCase))
+        else if (url.Contains(searchForSingular, StringComparison.OrdinalIgnoreCase))
         {
-            instanceSubpath = url.Substring(url.IndexOf(searchForSingular) + searchForSingular.Length);
+            instanceSubpath = url.Substring(
+                url.IndexOf(searchForSingular, StringComparison.OrdinalIgnoreCase) + searchForSingular.Length
+            );
         }
 
         if (string.IsNullOrEmpty(instanceSubpath))

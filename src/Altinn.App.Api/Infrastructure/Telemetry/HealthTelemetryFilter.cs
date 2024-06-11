@@ -37,7 +37,7 @@ public class HealthTelemetryFilter : ITelemetryProcessor
     {
         RequestTelemetry request = item as RequestTelemetry;
 
-        if (request != null && request.Url.ToString().EndsWith("/health"))
+        if (request != null && request.Url.ToString().EndsWith("/health", StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }

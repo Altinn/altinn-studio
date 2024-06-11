@@ -1,5 +1,6 @@
 #nullable disable
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using Altinn.App.Core.Extensions;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
@@ -42,17 +43,17 @@ public class IdentityTelemetryFilter : ITelemetryProcessor
                 int? partyId = ctx.User.GetPartyIdAsInt();
                 int authLevel = ctx.User.GetAuthenticationLevel();
 
-                request.Properties.Add("partyId", partyId.ToString());
-                request.Properties.Add("authLevel", authLevel.ToString());
+                request.Properties.Add("partyId", partyId?.ToString(CultureInfo.InvariantCulture) ?? "");
+                request.Properties.Add("authLevel", authLevel.ToString(CultureInfo.InvariantCulture));
 
                 if (userId != null)
                 {
-                    request.Properties.Add("userId", userId.ToString());
+                    request.Properties.Add("userId", userId?.ToString(CultureInfo.InvariantCulture) ?? "");
                 }
 
                 if (orgNumber != null)
                 {
-                    request.Properties.Add("orgNumber", orgNumber.ToString());
+                    request.Properties.Add("orgNumber", orgNumber?.ToString(CultureInfo.InvariantCulture) ?? "");
                 }
             }
         }

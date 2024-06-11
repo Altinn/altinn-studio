@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Models;
@@ -563,7 +564,12 @@ public class ProcessController : ControllerBase
     {
         try
         {
-            return Ok(await _processClient.GetProcessHistory(instanceGuid.ToString(), instanceOwnerPartyId.ToString()));
+            return Ok(
+                await _processClient.GetProcessHistory(
+                    instanceGuid.ToString(),
+                    instanceOwnerPartyId.ToString(CultureInfo.InvariantCulture)
+                )
+            );
         }
         catch (PlatformHttpException e)
         {

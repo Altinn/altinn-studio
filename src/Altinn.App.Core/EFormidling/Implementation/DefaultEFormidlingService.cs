@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.EFormidling.Interface;
@@ -196,7 +197,7 @@ public class DefaultEFormidlingService : IEFormidlingService
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
 
         Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-        int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+        int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
         foreach (DataElement dataElement in instance.Data)
         {
             if (!applicationMetadata.EFormidling.DataTypes.Contains(dataElement.DataType))

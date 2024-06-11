@@ -47,7 +47,7 @@ public class ApplicationMetadataController : ControllerBase
 
         string wantedAppId = $"{org}/{app}";
 
-        if (!checkOrgApp || application.Id.Equals(wantedAppId))
+        if (!checkOrgApp || application.Id.Equals(wantedAppId, StringComparison.Ordinal))
         {
             return Ok(application);
         }
@@ -72,7 +72,7 @@ public class ApplicationMetadataController : ControllerBase
             string policy = await _appMetadata.GetApplicationXACMLPolicy();
             string wantedAppId = $"{org}/{app}";
 
-            if (application.Id.Equals(wantedAppId))
+            if (application.Id.Equals(wantedAppId, StringComparison.Ordinal))
             {
                 return Content(policy, "text/xml", System.Text.Encoding.UTF8);
             }
@@ -100,7 +100,7 @@ public class ApplicationMetadataController : ControllerBase
         string wantedAppId = $"{org}/{app}";
         try
         {
-            if (application.Id.Equals(wantedAppId))
+            if (application.Id.Equals(wantedAppId, StringComparison.Ordinal))
             {
                 string process = await _appMetadata.GetApplicationBPMNProcess();
                 return Content(process, "text/xml", System.Text.Encoding.UTF8);

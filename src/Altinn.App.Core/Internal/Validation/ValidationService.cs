@@ -1,3 +1,4 @@
+using System.Globalization;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
@@ -139,7 +140,7 @@ public class ValidationService : IValidationService
 
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
             string app = instance.AppId.Split("/")[1];
-            int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+            int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
             var data = await _dataClient.GetFormData(
                 instanceGuid,
                 modelType,

@@ -22,7 +22,7 @@ internal static class JsonSerializerIgnorePrefix
                 if (ti.Kind != JsonTypeInfoKind.Object)
                     return;
 
-                ti.Properties.RemoveAll(prop => prop.Name.StartsWith(prefix));
+                ti.Properties.RemoveAll(prop => prop.Name.StartsWith(prefix, StringComparison.Ordinal));
             };
 
             JsonSerializerOptions newOptions =

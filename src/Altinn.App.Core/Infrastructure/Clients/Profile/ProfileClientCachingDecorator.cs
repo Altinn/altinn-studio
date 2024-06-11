@@ -22,7 +22,7 @@ public class ProfileClientCachingDecorator : IProfileClient
     public ProfileClientCachingDecorator(
         IProfileClient decoratedService,
         IMemoryCache memoryCache,
-        IOptions<CacheSettings> _settings
+        IOptions<CacheSettings> settings
     )
     {
         _decoratedService = decoratedService;
@@ -30,7 +30,7 @@ public class ProfileClientCachingDecorator : IProfileClient
 
         _cacheOptions = new()
         {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(_settings.Value.ProfileCacheLifetimeSeconds)
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(settings.Value.ProfileCacheLifetimeSeconds)
         };
     }
 

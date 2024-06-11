@@ -1,3 +1,4 @@
+using System.Globalization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
@@ -167,7 +168,7 @@ public class PartiesController : ControllerBase
 
         Response.Cookies.Append(
             _settings.GetAltinnPartyCookieName,
-            partyId.ToString(),
+            partyId.ToString(CultureInfo.InvariantCulture),
             new CookieOptions { Domain = _settings.HostName }
         );
 

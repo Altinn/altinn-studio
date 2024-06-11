@@ -21,7 +21,7 @@ public static class SelfLinkHelper
 
         string selfLink = $"{host}{url}";
 
-        int start = selfLink.IndexOf("/instances");
+        int start = selfLink.IndexOf("/instances", StringComparison.OrdinalIgnoreCase);
         if (start > 0)
         {
             selfLink = string.Concat(selfLink.AsSpan(0, start), "/instances");
@@ -29,7 +29,7 @@ public static class SelfLinkHelper
 
         selfLink += $"/{instance.Id}";
 
-        if (!selfLink.EndsWith(instance.Id))
+        if (!selfLink.EndsWith(instance.Id, StringComparison.OrdinalIgnoreCase))
         {
             selfLink += instance.Id;
         }
@@ -66,7 +66,7 @@ public static class SelfLinkHelper
 
         string selfLink = $"{host}{url}";
 
-        int start = selfLink.IndexOf("/instances");
+        int start = selfLink.IndexOf("/instances", StringComparison.OrdinalIgnoreCase);
         if (start > 0)
         {
             selfLink = string.Concat(selfLink.AsSpan(0, start), "/instances");

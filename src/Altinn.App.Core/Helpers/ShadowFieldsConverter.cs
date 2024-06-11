@@ -23,7 +23,7 @@ public class IgnorePropertiesWithPrefix
         if (ti.Kind != JsonTypeInfoKind.Object)
             return;
 
-        ti.Properties.RemoveAll(prop => prop.Name.StartsWith(_ignorePrefix));
+        ti.Properties.RemoveAll(prop => prop.Name.StartsWith(_ignorePrefix, StringComparison.Ordinal));
     }
 }
 

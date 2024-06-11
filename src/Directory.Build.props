@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <PropertyGroup>
+    <AnalysisMode>Recommended</AnalysisMode>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

@@ -5,6 +5,7 @@ namespace Altinn.App.Core.Constants;
 /// </summary>
 public static class AuthzConstants
 {
+#pragma warning disable CA1707 // Identifiers should not contain underscores
     /// <summary>
     /// Policy tag for reading an instance.
     /// </summary>
@@ -24,4 +25,5 @@ public static class AuthzConstants
     /// Policy tag for authorizing client scope.
     /// </summary>
     public const string POLICY_INSTANCE_COMPLETE = "InstanceComplete";
+#pragma warning restore CA1707 // Identifiers should not contain underscores
 }

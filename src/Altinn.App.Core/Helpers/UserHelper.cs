@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Claims;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.Profile;
@@ -47,24 +48,24 @@ public class UserHelper
 
         foreach (Claim claim in context.User.Claims)
         {
-            if (claim.Type.Equals(AltinnCoreClaimTypes.UserName))
+            if (claim.Type.Equals(AltinnCoreClaimTypes.UserName, StringComparison.Ordinal))
             {
                 userContext.UserName = claim.Value;
             }
 
-            if (claim.Type.Equals(AltinnCoreClaimTypes.UserId))
+            if (claim.Type.Equals(AltinnCoreClaimTypes.UserId, StringComparison.Ordinal))
             {
-                userContext.UserId = Convert.ToInt32(claim.Value);
+                userContext.UserId = Convert.ToInt32(claim.Value, CultureInfo.InvariantCulture);
             }
 
-            if (claim.Type.Equals(AltinnCoreClaimTypes.PartyID))
+            if (claim.Type.Equals(AltinnCoreClaimTypes.PartyID, StringComparison.Ordinal))
             {
-                userContext.PartyId = Convert.ToInt32(claim.Value);
+                userContext.PartyId = Convert.ToInt32(claim.Value, CultureInfo.InvariantCulture);
             }
 
-            if (claim.Type.Equals(AltinnCoreClaimTypes.AuthenticationLevel))
+            if (claim.Type.Equals(AltinnCoreClaimTypes.AuthenticationLevel, StringComparison.Ordinal))
             {
-                userContext.AuthenticationLevel = Convert.ToInt32(claim.Value);
+                userContext.AuthenticationLevel = Convert.ToInt32(claim.Value, CultureInfo.InvariantCulture);
             }
         }
 
@@ -75,7 +76,10 @@ public class UserHelper
 
         if (context.Request.Cookies[_settings.GetAltinnPartyCookieName] != null)
         {
-            userContext.PartyId = Convert.ToInt32(context.Request.Cookies[_settings.GetAltinnPartyCookieName]);
+            userContext.PartyId = Convert.ToInt32(
+                context.Request.Cookies[_settings.GetAltinnPartyCookieName],
+                CultureInfo.InvariantCulture
+            );
         }
 
         if (userContext.PartyId == userProfile.PartyId)

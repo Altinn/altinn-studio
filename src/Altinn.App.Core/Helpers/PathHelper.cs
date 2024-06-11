@@ -16,7 +16,7 @@ public static class PathHelper
         var fullRootedFolder = Path.GetFullPath(legalPath + Path.DirectorySeparatorChar);
         var expandedFilename = Path.GetFullPath(filePath);
 
-        return expandedFilename.StartsWith(fullRootedFolder);
+        return expandedFilename.StartsWith(fullRootedFolder, StringComparison.Ordinal);
     }
 
     /// <summary>
