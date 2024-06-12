@@ -17,6 +17,7 @@ import type { FormItem } from '../types/FormItem';
 import * as formItemUtils from './formItemUtils';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import { flattenObjectValues } from 'app-shared/utils/objectUtils';
+import type { FormLayoutPage } from '../types/FormLayoutPage';
 
 export const mapComponentToToolbarElement = <T extends ComponentType>(
   c: FormItemConfigs[T],
@@ -438,6 +439,25 @@ export const duplicatedIdsExistInAllLayouts = (layouts: IInternalLayout[]): bool
     return ids;
   }, []);
   return !areItemsUnique(allIds);
+};
+
+export const findLayoutsContainingDuplicateComponents = (layouts: FormLayoutPage[]) => {
+  const componentMap = new Map();
+  const duplicateLayouts = new Set();
+
+  layouts.forEach(({ page, data }) => {
+    const components = flattenObjectValues(data.order);
+    components.forEach((component) => {
+      if (componentMap.has(component)) {
+        duplicateLayouts.add(page);
+        duplicateLayouts.add(componentMap.get(component));
+      } else {
+        componentMap.set(component, page);
+      }
+    });
+  });
+
+  return [...duplicateLayouts];
 };
 
 /**

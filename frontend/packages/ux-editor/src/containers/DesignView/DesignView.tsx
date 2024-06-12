@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import React from 'react';
+import React, { useMemo } from 'react';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -16,7 +16,7 @@ import { FormLayout } from './FormLayout';
 import { StudioButton } from '@studio/components';
 import {
   duplicatedIdsExistsInLayout,
-  duplicatedIdsExistInAllLayouts,
+  findLayoutsContainingDuplicateComponents,
 } from '../../utils/formLayoutUtils';
 
 /**
@@ -92,6 +92,11 @@ export const DesignView = (): ReactNode => {
     );
   };
 
+  const layoutsWithDuplicateComponents = useMemo(
+    () => findLayoutsContainingDuplicateComponents(formLayoutData),
+    [formLayoutData],
+  );
+
   /**
    * Displays the pages as an ordered list
    */
@@ -104,10 +109,6 @@ export const DesignView = (): ReactNode => {
     // Check if the layout has unique component IDs
     const isValidLayout = !duplicatedIdsExistsInLayout(layout.data);
 
-    const isUniqeIdAccrossAllLayouts = !duplicatedIdsExistInAllLayouts(
-      formLayoutData.map((formLayout) => formLayout.data),
-    );
-
     return (
       <PageAccordion
         key={i}
@@ -115,7 +116,7 @@ export const DesignView = (): ReactNode => {
         isOpen={layout.page === selectedFormLayoutName}
         onClick={() => handleClickAccordion(layout.page)}
         isValid={isValidLayout}
-        areUniqueIds={isUniqeIdAccrossAllLayouts}
+        areUniqueIds={!layoutsWithDuplicateComponents.includes(layout.page)}
       >
         {layout.page === selectedFormLayoutName && (
           <FormLayout layout={layout.data} isValid={isValidLayout} />
