@@ -19,10 +19,10 @@ import { StudioTableLocalPagination } from './StudioTableLocalPagination';
   Column format
 </Heading>
 <ul>
-  <li>The columns prop has two required properties: `accessor` and a `value`.</li>
+  <li>The columns prop has two required properties: `accessor` and `heading`.</li>
   <li>
-    These properties are optional: `sortable`, `headerCellClass`, `bodyCellsClass` and
-    `valueFormatter`.
+    These properties are optional: `sortable`, `headerCellClass`, `bodyCellClass` and
+    `bodyCellFormatter`.
   </li>
 </ul>
 
@@ -47,7 +47,7 @@ export const columns = [
     sortable: true,
     headerCellClass: classes.lastChangedColumnWidth,
     bodyCellsClass: 'someOtherCustomClass',
-    valueFormatter: (date) => new Date(date).toLocaleDateString('nb', { dateStyle: 'short' }),
+    valueFormatter: (date) => formatDateDDMMYYYY(date),
   },
 ];
 ```

@@ -33,8 +33,9 @@ export const columns = [
     heading: 'Last changed',
     sortable: true,
     headerCellClass: classes.lastChangedColumnWidth,
-    bodyCellsClass: 'someOtherCustomClass',
-    valueFormatter: (date) => new Date(date).toLocaleDateString('nb', { dateStyle: 'short' }),
+    bodyCellClass: 'someOtherCustomClass',
+    bodyCellFormatter: (date: string) =>
+      new Date(date).toLocaleDateString('nb', { dateStyle: 'short' }),
   },
 ];
 

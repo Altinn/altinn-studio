@@ -156,7 +156,7 @@ describe('StudioTableLocalPagination', () => {
       {
         accessor: 'name',
         heading: 'Name',
-        valueFormatter: (value) => `Formatted: ${value}`,
+        bodyCellFormatter: (value) => `Formatted: ${value}`,
       },
     ];
     const testRow: Rows = [{ id: 1, name: 'Sophie Salt' }];

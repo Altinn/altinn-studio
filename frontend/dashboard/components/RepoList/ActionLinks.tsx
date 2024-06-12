@@ -37,12 +37,19 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
   const [org, repoName] = repoFullName.split('/');
   const isDatamodelling = repoFullName.endsWith('-datamodels');
   const editUrl = getRepoEditUrl({ org, repo: repoName });
-  const editTextKey = t(isDatamodelling ? 'dashboard.edit_datamodels' : 'dashboard.edit_app');
+  const editTextKey = t(isDatamodelling ? 'dashboard.edit_datamodels' : 'dashboard.edit_app', {
+    appName: repoName,
+  });
 
   return (
     <div className={classes.actionLinksContainer} ref={copyModalAnchorRef}>
       <Button variant={'tertiary'} className={classes.giteaButton} icon asChild>
-        <a href={repo.html_url} title={t('dashboard.show_repo')}>
+        <a
+          href={repo.html_url}
+          title={t('dashboard.show_repo', {
+            appName: repoName,
+          })}
+        >
           <i className={cn('fa fa-gitea', classes.giteaIcon)} />
         </a>
       </Button>
@@ -53,10 +60,11 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
       </Button>
       <DropdownMenu size={'small'}>
         <DropdownMenu.Trigger
-          aria-label={t('dashboard.app_dropdown')}
           variant={'tertiary'}
           asChild
-          title={t('dashboard.app_dropdown')}
+          title={t('dashboard.app_dropdown', {
+            appName: repoName,
+          })}
         >
           <Button variant={'tertiary'} icon>
             <MenuElipsisVerticalIcon />

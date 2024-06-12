@@ -22,7 +22,9 @@ export const FavoriteButton = ({ repo }: FavoriteButtonProps): React.ReactElemen
     }
   };
 
-  const title = repo.hasStarred ? t('dashboard.unstar') : t('dashboard.star');
+  const title = t(repo.hasStarred ? 'dashboard.unstar' : 'dashboard.star', {
+    appName: repo.name,
+  });
 
   return (
     <Button title={title} onClick={handleToggleFav} variant={'tertiary'} icon>

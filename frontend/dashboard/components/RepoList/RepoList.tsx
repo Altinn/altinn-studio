@@ -55,7 +55,7 @@ export const RepoList = ({
       heading: t('dashboard.name'),
       sortable: true,
       headerCellClass: classes.nameHeaderCell,
-      valueFormatter: (repoFullName: string) => <RepoNameWithLink repoFullName={repoFullName} />,
+      bodyCellFormatter: (repoFullName: string) => <RepoNameWithLink repoFullName={repoFullName} />,
     },
     {
       accessor: 'createdBy',
@@ -68,7 +68,7 @@ export const RepoList = ({
       heading: t('dashboard.last_modified'),
       sortable: true,
       headerCellClass: classes.lastUpdatedHeaderCell,
-      valueFormatter: (date: string) =>
+      bodyCellFormatter: (date: string) =>
         new Date(date).toLocaleDateString('nb', { dateStyle: 'short' }),
     },
     {

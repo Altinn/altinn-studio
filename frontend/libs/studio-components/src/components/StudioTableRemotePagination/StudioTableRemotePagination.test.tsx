@@ -134,7 +134,7 @@ describe('StudioTableRemotePagination', () => {
       {
         accessor: 'name',
         heading: 'Name',
-        valueFormatter: (value) => `Formatted: ${value}`,
+        bodyCellFormatter: (value) => `Formatted: ${value}`,
       },
     ];
     const testRows: Rows = [{ id: 1, name: 'Sophie Salt' }];
