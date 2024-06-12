@@ -247,10 +247,15 @@ export class ProcessEditorPage extends BasePage {
     await expect(heading).toBeVisible();
   }
 
-  public async dragTaskInToBpmnEditor(task: BpmnTaskType, dropElementSelector: string) {
+  public async dragTaskInToBpmnEditor(
+    task: BpmnTaskType,
+    dropElementSelector: string,
+    extraDistanceX?: number,
+    extraDistanceY?: number,
+  ) {
     const boundingBox = await this.page.locator(dropElementSelector).boundingBox();
-    const targetX = boundingBox.width / 2;
-    const targetY = boundingBox.y + boundingBox.height / 2;
+    const targetX = boundingBox.width / 2 + (extraDistanceX ?? 0);
+    const targetY = boundingBox.y + boundingBox.height / 2 + (extraDistanceY ?? 0);
 
     const title = `Create Altinn ${task} task`;
     await this.startDragElement(title);
@@ -326,7 +331,7 @@ export class ProcessEditorPage extends BasePage {
     await expect(noDataModelMessage).toBeVisible();
   }
 
-  public async closeEmptyDataModelMessage(): Promise<void> {
+  public async pressEscapeOnKeyboard(): Promise<void> {
     await this.page.keyboard.press('Escape');
   }
 
@@ -355,6 +360,36 @@ export class ProcessEditorPage extends BasePage {
       level: 2,
     });
     await expect(heading).toBeHidden();
+  }
+
+  public async clickDataTypesToSignCombobox(): Promise<void> {
+    await this.page
+      .getByRole('combobox', {
+        name: this.textMock('process_editor.configuration_panel_set_data_types_to_sign'),
+      })
+      .click();
+  }
+
+  public async clickOnDataTypesToSignOption(option: string): Promise<void> {
+    await this.page.getByRole('option', { name: option }).click();
+  }
+
+  public async waitForDataTypeToSignButtonToBeVisible(option: string): Promise<void> {
+    const button = this.page.getByLabel(
+      /*'button', {
+      name*/ this.textMock('general.delete_item', { item: option }),
+      /*}*/
+    );
+    await expect(button).toBeVisible();
+  }
+
+  public async tabOutOfDataTypesToSignCombobox(option: string): Promise<void> {
+    const comboboxName: string = this.textMock(
+      'process_editor.configuration_panel_set_data_types_to_sign',
+    );
+    // First tab out of the combobox, then out of the X-button inside the combobox
+    await this.page.getByRole('option', { name: option }).blur();
+    await this.page.getByRole('combobox', { name: comboboxName }).blur();
   }
 
   /**

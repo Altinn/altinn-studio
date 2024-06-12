@@ -37,7 +37,7 @@ const setupAndVerifyProcessEditorPage = async (
   return processEditorPage;
 };
 
-test('That it is possible to click a task in the process editor, and delete the data model id, and add a new one', async ({
+test('That it is possible to add and remove datamodel, and add actions to the default task in the process editor', async ({
   page,
   testAppName,
 }): Promise<void> => {
@@ -101,9 +101,8 @@ test('That it is possible to click a task in the process editor, and delete the 
   const numberOfPagesBackToAltinnStudio: number = 5;
   await giteaPage.goBackNPages(numberOfPagesBackToAltinnStudio);
 
-  await header.clickOnUploadLocalChangesButton();
-  await header.clickOnValidateChanges();
-  await header.checkThatUploadSuccessMessageIsVisible();
+  await processEditorPage.verifyProcessEditorPage();
+  await commitAndPushToGitea(header);
 
   await goToGiteaAndNavigateToProcessBpmnFile(header, giteaPage);
   await giteaPage.verifyThatActionIsVisible(actionOptionWrite);
@@ -127,22 +126,15 @@ test('That it is possible to add a new task to the process editor, configure som
   const randomGeneratedId = await processEditorPage.getTaskIdFromOpenNewlyAddedTask();
 
   // --------------------- Edit the id ---------------------
-  await processEditorPage.clickOnTaskIdEditButton(randomGeneratedId);
-  await processEditorPage.waitForEditIdInputFieldToBeVisible();
-  await processEditorPage.emptyIdInputfield();
-
   const newId: string = 'my_new_id';
-  await processEditorPage.writeNewId(newId);
-  await processEditorPage.waitForTextBoxToHaveValue(newId);
-  await processEditorPage.saveNewId();
-  await processEditorPage.waitForNewTaskIdButtonToBeVisible(newId);
+  await editRandomGeneratedId(processEditorPage, randomGeneratedId, newId);
 
   // --------------------- Add new data model ---------------------
   await processEditorPage.clickOnAddDataModel();
   await processEditorPage.waitForDataModelComboboxToBeVisible();
   await processEditorPage.clickOnDataModelCombobox();
   await processEditorPage.verifyThatThereAreNoDataModelsAvailable();
-  await processEditorPage.closeEmptyDataModelMessage();
+  await processEditorPage.pressEscapeOnKeyboard();
 
   await header.clickOnNavigateToPageInTopMenuHeader('data_model');
   await dataModelPage.verifyDataModelPage();
@@ -153,6 +145,7 @@ test('That it is possible to add a new task to the process editor, configure som
   await dataModelPage.waitForDataModelToAppear(newDataModel);
   await dataModelPage.clickOnGenerateDataModelButton();
   await dataModelPage.checkThatSuccessAlertIsVisibleOnScreen();
+  await dataModelPage.waitForSuccessAlertToDisappear();
 
   await header.clickOnNavigateToPageInTopMenuHeader('process_editor');
   await processEditorPage.verifyProcessEditorPage();
@@ -180,9 +173,8 @@ test('That it is possible to add a new task to the process editor, configure som
   const numberOfPagesBackToAltinnStudio: number = 5;
   await giteaPage.goBackNPages(numberOfPagesBackToAltinnStudio);
 
-  await header.clickOnUploadLocalChangesButton();
-  await header.clickOnValidateChanges();
-  await header.checkThatUploadSuccessMessageIsVisible();
+  await processEditorPage.verifyProcessEditorPage();
+  await commitAndPushToGitea(header);
 
   await goToGiteaAndNavigateToProcessBpmnFile(header, giteaPage);
   await giteaPage.verifyThatTheNewTaskIsVisible(newId, dataTask);
@@ -194,7 +186,85 @@ test('That it is possible to add a new task to the process editor, configure som
   await giteaPage.verifyIdInDataModel(newId, newDataModel);
 });
 
-// Helper function
+test('That it is possible to add a new signing task, and update the datatypes to sign', async ({
+  page,
+  testAppName,
+}): Promise<void> => {
+  const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
+  const bpmnJSQuery = new BpmnJSQuery(page);
+  const header = new Header(page, { app: testAppName });
+  const giteaPage = new GiteaPage(page, { app: testAppName });
+
+  // --------------------- Drag new task into the editor ---------------------
+  const svgSelector = await bpmnJSQuery.getTaskByIdAndType('SingleDataTask', 'svg');
+  const signingTask: BpmnTaskType = 'signing';
+
+  const extraMovingDistanceX: number = -120;
+  const extraMovingDistanceY: number = 0;
+  await processEditorPage.dragTaskInToBpmnEditor(
+    signingTask,
+    svgSelector,
+    extraMovingDistanceX,
+    extraMovingDistanceY,
+  );
+  await processEditorPage.waitForTaskToBeVisibleInConfigPanel(signingTask);
+  const randomGeneratedId = await processEditorPage.getTaskIdFromOpenNewlyAddedTask();
+
+  // --------------------- Edit the id ---------------------
+  const newId: string = 'signing_id';
+  await editRandomGeneratedId(processEditorPage, randomGeneratedId, newId);
+
+  // --------------------- Add data types to sign ---------------------
+  await processEditorPage.clickDataTypesToSignCombobox();
+  const dataTypeToSign: string = 'ref-data-as-pdf';
+  await processEditorPage.clickOnDataTypesToSignOption(dataTypeToSign);
+  await processEditorPage.waitForDataTypeToSignButtonToBeVisible(dataTypeToSign);
+  await processEditorPage.pressEscapeOnKeyboard();
+
+  // --------------------- Verify correct actions ---------------------
+  await processEditorPage.clickOnActionsAccordion();
+
+  const actionIndex1: string = '1';
+  const actionIndex2: string = '2';
+  const actionOptionSign: string = 'sign';
+  const actionOptionReject: string = 'reject';
+  await processEditorPage.waitForActionButtonToBeVisible(actionIndex1, actionOptionSign);
+  await processEditorPage.waitForActionButtonToBeVisible(actionIndex2, actionOptionReject);
+
+  // --------------------- Check that files are uploaded to Gitea ---------------------
+  await goToGiteaAndNavigateToProcessBpmnFile(header, giteaPage);
+  await giteaPage.verifyThatTaskIsHidden(signingTask);
+  await giteaPage.verifyThatActionIsHidden(actionOptionSign);
+  await giteaPage.verifyThatActionIsHidden(actionOptionReject);
+  await giteaPage.verifyThatDataTypeToSignIsHidden(dataTypeToSign);
+
+  const numberOfPagesBackToAltinnStudio: number = 5;
+  await giteaPage.goBackNPages(numberOfPagesBackToAltinnStudio);
+
+  await processEditorPage.verifyProcessEditorPage();
+  await commitAndPushToGitea(header);
+
+  await giteaPage.verifyThatTaskIsVisible(signingTask);
+  await giteaPage.verifyThatActionIsVisible(actionOptionSign);
+  await giteaPage.verifyThatActionIsVisible(actionOptionReject);
+  await giteaPage.verifyThatDataTypeToSignIsVisible(signingTask);
+});
+
+// --------------------- Helper Functions ---------------------
+const editRandomGeneratedId = async (
+  processEditorPage: ProcessEditorPage,
+  randomGeneratedId: string,
+  newId: string,
+): Promise<void> => {
+  await processEditorPage.clickOnTaskIdEditButton(randomGeneratedId);
+  await processEditorPage.waitForEditIdInputFieldToBeVisible();
+  await processEditorPage.emptyIdInputfield();
+  await processEditorPage.writeNewId(newId);
+  await processEditorPage.waitForTextBoxToHaveValue(newId);
+  await processEditorPage.saveNewId();
+  await processEditorPage.waitForNewTaskIdButtonToBeVisible(newId);
+};
+
 const goToGiteaAndNavigateToProcessBpmnFile = async (header: Header, giteaPage: GiteaPage) => {
   await header.clickOnThreeDotsMenu();
   await header.clickOnGoToGiteaRepository();
@@ -205,3 +275,10 @@ const goToGiteaAndNavigateToProcessBpmnFile = async (header: Header, giteaPage: 
   await giteaPage.clickOnProcessFilesButton();
   await giteaPage.clickOnProcessBpmnFile();
 };
+
+const commitAndPushToGitea = async (header: Header): Promise<void> => {
+  await header.clickOnUploadLocalChangesButton();
+  await header.clickOnValidateChanges();
+  await header.checkThatUploadSuccessMessageIsVisible();
+};
+// TODO - Test end event toooo

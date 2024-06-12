@@ -113,11 +113,13 @@ export class DataModelPage extends BasePage {
   }
 
   public async checkThatSuccessAlertIsVisibleOnScreen(): Promise<void> {
-    await this.page
-      .getByRole('alert', {
-        name: this.textMock('schema_editor.data_model_generation_success_message'),
-      })
-      .isVisible();
+    /*const alert = this.page.getByRole('alert', {
+      name: this.textMock('schema_editor.data_model_generation_success_message'),
+    });*/
+    const alert = this.page.getByText(
+      this.textMock('schema_editor.data_model_generation_success_message'),
+    );
+    await expect(alert).toBeVisible();
   }
 
   public async checkThatDataModelOptionExists(option: string): Promise<void> {

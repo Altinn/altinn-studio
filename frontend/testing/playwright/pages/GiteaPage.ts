@@ -169,4 +169,38 @@ export class GiteaPage extends BasePage {
   public async verifyThatActionIsVisible(action: string): Promise<void> {
     await this.page.getByText(`<altinn:action>${action}</altinn:action>`).isVisible();
   }
+
+  public async verifyThatActionIsHidden(action: string): Promise<void> {
+    await this.page.getByText(`<altinn:action>${action}</altinn:action>`).isHidden();
+  }
+
+  public async verifyThatTaskIsHidden(task: string): Promise<void> {
+    await this.page.getByText(`<altinn:taskType>${task}</altinn:taskType>`).isHidden();
+  }
+
+  public async verifyThatTaskIsVisible(task: string): Promise<void> {
+    await this.page.getByText(`<altinn:taskType>${task}</altinn:taskType>`).isVisible();
+  }
+
+  public async verifyThatDataTypeToSignIsHidden(dataTypeToSign: string): Promise<void> {
+    const text = `
+      <altinn:signatureConfig>
+        <altinn:dataTypesToSign>
+          <altinn:dataType>${dataTypeToSign}</altinn:dataType>
+        </altinn:dataTypesToSign>
+      </altinn:signatureConfig>
+    `;
+    await this.page.getByText(text).isHidden();
+  }
+
+  public async verifyThatDataTypeToSignIsVisible(dataTypeToSign: string): Promise<void> {
+    const text = `
+      <altinn:signatureConfig>
+        <altinn:dataTypesToSign>
+          <altinn:dataType>${dataTypeToSign}</altinn:dataType>
+        </altinn:dataTypesToSign>
+      </altinn:signatureConfig>
+    `;
+    await this.page.getByText(text).isVisible();
+  }
 }

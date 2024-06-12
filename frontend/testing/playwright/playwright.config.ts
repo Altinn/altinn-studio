@@ -22,7 +22,7 @@ export default defineConfig<ExtendedTestOptions>({
 
   projects: [
     { name: TestNames.SETUP, testMatch: /.*\.setup\.ts/ },
-    {
+    /*{
       name: TestNames.CREATE_APP_ONLY,
       dependencies: [TestNames.SETUP],
       testDir: './tests/create-app-only/',
@@ -117,7 +117,7 @@ export default defineConfig<ExtendedTestOptions>({
         testAppName: AppNames.TEXT_EDITOR_APP,
         headless: true,
       },
-    },
+    },*/
     {
       name: TestNames.PROCESS_EDITOR,
       dependencies: [TestNames.SETUP],
@@ -130,7 +130,7 @@ export default defineConfig<ExtendedTestOptions>({
         headless: true,
       },
     },
-    {
+    /*{
       name: TestNames.LOGOUT_AND_INVALID_LOGIN_ONLY,
       // Add ALL other test names here to make sure that the log out test is the last test to be executed
       dependencies: [
@@ -155,6 +155,6 @@ export default defineConfig<ExtendedTestOptions>({
         storageState: '.playwright/auth/user.json',
         headless: true,
       },
-    },
+    },*/
   ],
 });

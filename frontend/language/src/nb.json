@@ -824,7 +824,7 @@
   "process_editor.configuration_panel_select_data_model": "Velg en datamodell",
   "process_editor.configuration_panel_set_data_model": "Datamodell:",
   "process_editor.configuration_panel_set_data_model_link": "Legg til datamodell",
-  "process_editor.configuration_panel_set_data_types_to_sign": "Datyper som skal signeres:",
+  "process_editor.configuration_panel_set_data_types_to_sign": "Datatyper som skal signeres:",
   "process_editor.configuration_panel_signing_task": "Oppgave: Signering",
   "process_editor.configuration_view_panel_id_label": "ID:",
   "process_editor.configuration_view_panel_name_label": "Navn: ",
