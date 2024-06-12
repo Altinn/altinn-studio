@@ -17,6 +17,7 @@ using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using MediatR;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -36,6 +37,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IEnvironmentsService _environmentsService;
         private readonly ILogger<DeploymentService> _logger;
         private readonly IPublisher _mediatr;
+        private readonly IWebHostEnvironment _hostingEnvironment;
 
         /// <summary>
         /// Constructor
@@ -48,7 +50,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IReleaseRepository releaseRepository,
             IEnvironmentsService environmentsService,
             IApplicationInformationService applicationInformationService,
-            ILogger<DeploymentService> logger, IPublisher mediatr)
+            ILogger<DeploymentService> logger, IPublisher mediatr, IWebHostEnvironment hostingEnvironment)
         {
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
             _deploymentRepository = deploymentRepository;
@@ -59,6 +61,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _httpContext = httpContextAccessor.HttpContext;
             _logger = logger;
             _mediatr = mediatr;
+            _hostingEnvironment = hostingEnvironment;
         }
 
         /// <inheritdoc/>
@@ -84,7 +87,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             };
 
 
-            var createdEntity =  await _deploymentRepository.Create(deploymentEntity);
+            var createdEntity = await _deploymentRepository.Create(deploymentEntity);
             await PublishAppDeployedEvent(deploymentEntity);
             return createdEntity;
         }
@@ -102,7 +105,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 await _mediatr.Publish(new AppDeployedEvent
                 {
                     EditingContext = AltinnRepoContext.FromOrgRepo(deploymentEntity.Org, deploymentEntity.App),
-                    StudioEnvironment = deploymentEntity.EnvName,
+                    StudioEnvironment = _hostingEnvironment.EnvironmentName,
                     AppsEnvironment = deploymentEntity.EnvName,
                     DeployType = newApp ? DeployType.NewApp : DeployType.ExistingApp
                 });

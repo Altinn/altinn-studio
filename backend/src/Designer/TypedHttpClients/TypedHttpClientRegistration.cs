@@ -13,6 +13,7 @@ using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
+using Altinn.Studio.Designer.TypedHttpClients.EidLogger;
 using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
 using Microsoft.AspNetCore.Http;
@@ -112,5 +113,15 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 })
                 .AddHttpMessageHandler<PlatformBearerTokenHandler>()
                 .AddHttpMessageHandler<EnsureSuccessHandler>();
+
+
+        private static IHttpClientBuilder AddEidLoggerTypedHttpClient(this IServiceCollection services, IConfiguration config)
+        {
+            EidLoggerClientSettings eidLoggerClientSettings = config.GetSection("EidLoggerClientSettings").Get<EidLoggerClientSettings>();
+            return services.AddHttpClient<IEidLoggerClient, EidLoggerClient>(client =>
+            {
+                client.BaseAddress = new Uri(eidLoggerClientSettings.BaseUrl);
+            }).AddHttpMessageHandler<EnsureSuccessHandler>();
+        }
     }
 }

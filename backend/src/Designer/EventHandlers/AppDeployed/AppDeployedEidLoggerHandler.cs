@@ -34,7 +34,7 @@ public class AppDeployedEidLoggerHandler : INotificationHandler<AppDeployedEvent
                     { "org", notification.EditingContext.Org },
                     { "app", notification.EditingContext.Repo },
                     { "studioEnvironment", notification.StudioEnvironment },
-                    { "appEnvironment", notification.AppsEnvironment },
+                    { "appsEnvironment", notification.AppsEnvironment },
                     { "deployType", notification.DeployType.ToString() },
                 }
             };
