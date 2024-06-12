@@ -52,6 +52,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddHttpClient<IPolicyOptions, PolicyOptionsClient>();
             services.AddHttpClient<IResourceRegistryOptions, ResourceRegistryOptionsClients>();
             services.AddHttpClient<IAltinn2MetadataClient, Altinn2MetadataClient>();
+            services.AddEidLoggerTypedHttpClient(config);
 
             return services;
         }
