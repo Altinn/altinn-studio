@@ -123,7 +123,7 @@
   "dashboard.show_repo": "Show repository for {{appName}}",
   "dashboard.sorte_services": "Sort",
   "dashboard.star": "Add {{appName}} to favorites",
-  "dashboard.total_count": "Total number of rows:",
+  "dashboard.total_count": "Total rows:",
   "dashboard.unstar": "Remove {{appName}} from favorites",
   "date_picker.aria_label_icon": "Open date picker",
   "date_picker.aria_label_left_arrow": "Last month.",

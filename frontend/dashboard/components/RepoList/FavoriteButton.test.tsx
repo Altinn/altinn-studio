@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FavoriteButton } from './FavoriteButton';
 import { repository } from 'app-shared/mocks/mocks';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const setStarredRepo = jest.fn();
 const unsetStarredRepo = jest.fn();
@@ -22,7 +22,11 @@ describe('FavoriteButton', () => {
     const user = userEvent.setup();
     render(<FavoriteButton repo={{ ...repository, hasStarred: false }} />);
 
-    await user.click(screen.getByRole('button', { name: textMock('dashboard.star') }));
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock('dashboard.star', { appName: repository.name }),
+      }),
+    );
     expect(setStarredRepo).toHaveBeenCalled();
   });
 
@@ -30,7 +34,11 @@ describe('FavoriteButton', () => {
     const user = userEvent.setup();
     render(<FavoriteButton repo={{ ...repository, hasStarred: true }} />);
 
-    await user.click(screen.getByRole('button', { name: textMock('dashboard.unstar') }));
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock('dashboard.unstar', { appName: repository.name }),
+      }),
+    );
     expect(unsetStarredRepo).toHaveBeenCalled();
   });
 });

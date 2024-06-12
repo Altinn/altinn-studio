@@ -37,7 +37,9 @@ describe('Dashboard', () => {
     });
     //eslint-disable-next-line testing-library/no-node-access
     const starredContainer = starredHeading.closest('div');
-    const starredRepos = within(starredContainer).getAllByTitle(textMock('dashboard.show_repo'));
+    const starredRepos = within(starredContainer).getAllByTitle(
+      textMock('dashboard.unstar', { appName: repository.name }),
+    );
 
     expect(starredRepos).toHaveLength(1);
   });
@@ -56,13 +58,21 @@ describe('Dashboard', () => {
     const appsHeading = screen.getByRole('heading', { name: /apps/ });
     //eslint-disable-next-line testing-library/no-node-access
     const appsContainer = appsHeading.closest('div');
-    const appRepos = within(appsContainer).getAllByTitle(textMock('dashboard.show_repo'));
+    const appRepos = within(appsContainer).getAllByTitle(
+      textMock('dashboard.star', { appName: repository.name }),
+    );
 
     expect(appRepos).toHaveLength(1);
   });
 
   it('should display datamodels list with one item', async () => {
-    const dataModelsRepository = { ...repository, name: '-datamodels' };
+    const appName = '-datamodels';
+    const dataModelsRepository = {
+      ...repository,
+      full_name: `ttd/${appName}`,
+      name: appName,
+    };
+
     renderWithMockServices({
       searchRepos: () =>
         Promise.resolve<SearchRepositoryResponse>({
@@ -73,11 +83,13 @@ describe('Dashboard', () => {
 
     await waitForElementToBeRemoved(() => screen.queryAllByText(textMock('general.loading')));
 
-    const dataModelHeading = screen.getByRole('heading', { name: /datamodels/ });
+    const dataModelHeading = screen.getByRole('heading', {
+      name: textMock('dashboard.my_data_models'),
+    });
     //eslint-disable-next-line testing-library/no-node-access
     const dataModelContainer = dataModelHeading.closest('div');
     const dataModelRepos = within(dataModelContainer).getAllByTitle(
-      textMock('dashboard.show_repo'),
+      textMock('dashboard.star', { appName: appName }),
     );
 
     expect(dataModelRepos).toHaveLength(1);
@@ -94,7 +106,9 @@ describe('Dashboard', () => {
 
     await waitForElementToBeRemoved(() => screen.queryAllByText(textMock('general.loading')));
 
-    const dataModelHeading = screen.queryByRole('heading', { name: /datamodels/ });
+    const dataModelHeading = screen.queryByRole('heading', {
+      name: textMock('dashboard.my_data_models'),
+    });
     expect(dataModelHeading).not.toBeInTheDocument();
   });
 });

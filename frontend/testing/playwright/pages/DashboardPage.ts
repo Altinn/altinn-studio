@@ -98,8 +98,8 @@ export class DashboardPage extends BasePage {
 
   public async clickOnTestAppGiteaButton(appName: string): Promise<void> {
     await this.page
-      .getByRole('menuitem', {
-        name: this.textMock('dashboard.repository_in_list', { appName }),
+      .getByRole('link', {
+        name: this.textMock('dashboard.show_repo', { appName }),
         exact: true,
       })
       .click();
