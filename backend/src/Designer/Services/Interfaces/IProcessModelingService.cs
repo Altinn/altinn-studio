@@ -60,5 +60,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         Task DeleteDataTypeFromApplicationMetadataAsync(AltinnRepoEditingContext altinnRepoEditingContext,
             string dataTypeId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Gets the task type from a process definition.
+        /// </summary>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+        /// <param name="layoutSetId">The id of the layoutSet to check</param>
+        /// <returns>The task type</returns>
+        public Task<string> GetTaskTypeFromProcessDefinition(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetId);
     }
 }

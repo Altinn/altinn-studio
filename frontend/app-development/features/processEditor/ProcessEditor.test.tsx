@@ -77,6 +77,9 @@ describe('ProcessEditor', () => {
 
     const queryClientMock = createQueryClientMock();
     queryClientMock.setQueryData([QueryKey.AppVersion, org, app], defaultAppVersion);
+    queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], {
+      dataTypes: [{ id: 'dataType1' }],
+    });
     (useBpmnContext as jest.Mock).mockReturnValue({
       bpmnDetails: { type: 'bpmn:EndEvent' },
       isEditAllowed: true,

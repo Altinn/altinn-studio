@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@studio/icons": "^0.1.0",
-    "ajv": "8.14.0",
+    "ajv": "8.16.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "uuid": "9.0.1"
