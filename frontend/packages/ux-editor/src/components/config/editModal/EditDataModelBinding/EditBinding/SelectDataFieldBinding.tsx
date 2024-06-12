@@ -1,5 +1,5 @@
 import React from 'react';
-import { SelectDataModelComponent } from '../../../SelectDataModelComponent';
+import { SelectDataFieldComponent } from '../../../SelectDataFieldComponent';
 import { getDataModelFieldsFilter } from '@altinn/ux-editor/utils/dataModel';
 import { useTranslation } from 'react-i18next';
 import type { FormItem } from '../../../../../types/FormItem';
@@ -33,7 +33,7 @@ export const SelectDataFieldBinding = ({
   };
 
   return (
-    <SelectDataModelComponent
+    <SelectDataFieldComponent
       dataModelFieldsFilter={getDataModelFieldsFilter(component.type, bindingKey === 'list')}
       helpText={helpText}
       inputId={`selectDataModelSelect-${bindingKey}`}

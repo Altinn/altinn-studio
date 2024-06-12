@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../../testing/mocks';
-import { SelectDataModelComponent } from './SelectDataModelComponent';
+import { SelectDataFieldComponent } from './SelectDataFieldComponent';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -75,7 +75,7 @@ const render = async ({
     dataModelMetadata,
   );
   renderWithProviders(
-    <SelectDataModelComponent
+    <SelectDataFieldComponent
       label={textMock(`ux_editor.component_title.${componentType}`)}
       onDataModelChange={handleComponentChange}
       dataModelFieldsFilter={getDataModelFieldsFilter(componentType, label)}
