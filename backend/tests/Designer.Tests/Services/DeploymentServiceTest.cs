@@ -38,7 +38,6 @@ namespace Designer.Tests.Services
         private readonly Mock<IEnvironmentsService> _environementsService;
         private readonly Mock<IAzureDevOpsBuildClient> _azureDevOpsBuildClient;
         private readonly Mock<IPublisher> _mediatrMock;
-        private readonly Mock<IWebHostEnvironment> _hostingEnvironmentMock;
 
         public DeploymentServiceTest()
         {
@@ -53,7 +52,6 @@ namespace Designer.Tests.Services
                 .ReturnsAsync(GetEnvironments("environments.json"));
             _applicationInformationService = new Mock<IApplicationInformationService>();
             _mediatrMock = new Mock<IPublisher>();
-            _hostingEnvironmentMock = new Mock<IWebHostEnvironment>();
         }
 
         [Theory]
@@ -97,8 +95,7 @@ namespace Designer.Tests.Services
                 _environementsService.Object,
                 _applicationInformationService.Object,
                 _deploymentLogger.Object,
-                _mediatrMock.Object,
-                _hostingEnvironmentMock.Object);
+                _mediatrMock.Object);
 
             // Act
             DeploymentEntity deploymentEntity =
@@ -148,8 +145,7 @@ namespace Designer.Tests.Services
                 _environementsService.Object,
                 _applicationInformationService.Object,
                 _deploymentLogger.Object,
-                _mediatrMock.Object,
-                _hostingEnvironmentMock.Object);
+                _mediatrMock.Object);
 
             // Act
             SearchResults<DeploymentEntity> results =
@@ -180,8 +176,7 @@ namespace Designer.Tests.Services
                 _environementsService.Object,
                 _applicationInformationService.Object,
                 _deploymentLogger.Object,
-                _mediatrMock.Object,
-                _hostingEnvironmentMock.Object);
+                _mediatrMock.Object);
 
             _azureDevOpsBuildClient.Setup(adob => adob.Get(It.IsAny<string>()))
                 .ReturnsAsync(GetReleases("createdRelease.json").First().Build);
