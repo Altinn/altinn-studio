@@ -59,8 +59,7 @@ describe('ConfigPanel', () => {
     ).toBeInTheDocument();
   });
 
-  it('should display the details about the end event when bpmnDetails.type is "EndEvent" and customizeEndEvent feature flag is enabled', () => {
-    (shouldDisplayFeature as jest.Mock).mockReturnValue(true);
+  it('should display the details about the end event when bpmnDetails.type is "EndEvent"', () => {
     renderConfigPanel({ bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.EndEvent } });
     expect(
       screen.getByText(textMock('process_editor.configuration_panel_end_event')),
