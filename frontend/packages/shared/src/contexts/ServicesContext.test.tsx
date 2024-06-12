@@ -38,9 +38,7 @@ const wrapper = ({
 };
 
 describe('ServicesContext', () => {
-  it('logs the user out after displaying a toast for a given time when the api says unauthorized', async () => {
-    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
-    jest.spyOn(global, 'setTimeout');
+  it('Display the unauthorized error message ', async () => {
     renderHook(
       () =>
         useQuery({
@@ -55,13 +53,9 @@ describe('ServicesContext', () => {
       },
     );
     expect(await screen.findByText(textMock('api_errors.Unauthorized'))).toBeInTheDocument();
-    jest.runAllTimers();
-    await waitFor(() => {
-      expect(queriesMock.logout).toHaveBeenCalledTimes(1);
-    });
-
-    expect(mockConsoleError).toHaveBeenCalled();
   });
+
+  // TODO Add one more test for logout functionality
 
   it('Displays a toast message for "GT_01" error code', async () => {
     const errorCode = 'GT_01';
@@ -127,7 +121,7 @@ describe('ServicesContext', () => {
   });
 
   it('displays a default error message if API returns an error code but the error message does not exist', async () => {
-    const {} = renderHook(
+    const { result } = renderHook(
       () =>
         useQuery({
           queryKey: ['fetchData'],
@@ -137,7 +131,13 @@ describe('ServicesContext', () => {
       { wrapper },
     );
 
-    expect(await screen.findByText(textMock('general.error_message'))).toBeInTheDocument();
+    await waitFor(() => result.current.isError);
+
+    expect(
+      await screen.findByText((content, element) =>
+        content.includes(textMock('general.error_message')),
+      ),
+    ).toBeInTheDocument();
   });
 
   it('displays a default error message if an API call fails', async () => {

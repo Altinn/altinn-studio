@@ -47,6 +47,11 @@ const handleError = (
         toastId: errorMessageKey,
         ...options,
       });
+    } else {
+      toast.error(t('general.error_message'), {
+        toastId: errorMessageKey,
+        ...options,
+      });
     }
   };
 
