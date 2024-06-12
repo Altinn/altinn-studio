@@ -9,6 +9,10 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 const user = userEvent.setup();
 
 // Test data:
+const contentText = textMock('right_menu.content');
+const dynamicsText = textMock('right_menu.dynamics');
+const calculationsText = textMock('right_menu.calculations');
+
 const contentTestId = 'content';
 const conditionalRenderingTestId = 'conditional-rendering';
 const expressionsTestId = 'expressions';
@@ -32,13 +36,13 @@ describe('Properties', () => {
   describe('Content', () => {
     it('Closes content on load', () => {
       render();
-      const button = screen.queryByRole('button', { name: textMock('right_menu.content') });
+      const button = screen.queryByRole('button', { name: contentText });
       expect(button).toHaveAttribute('aria-expanded', 'false');
     });
 
     it('Toggles content when clicked', async () => {
       render();
-      const button = screen.queryByRole('button', { name: textMock('right_menu.content') });
+      const button = screen.queryByRole('button', { name: contentText });
       await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'true');
       await user.click(button);
@@ -48,7 +52,7 @@ describe('Properties', () => {
     it('Opens content when a component is selected', async () => {
       const { rerender } = render();
       rerender(getComponent({ formItemId: 'test' }));
-      const button = screen.queryByRole('button', { name: textMock('right_menu.content') });
+      const button = screen.queryByRole('button', { name: contentText });
       await waitFor(() => expect(button).toHaveAttribute('aria-expanded', 'true'));
     });
   });
@@ -56,13 +60,13 @@ describe('Properties', () => {
   describe('Dynamics', () => {
     it('Closes dynamics on load', () => {
       render();
-      const button = screen.queryByRole('button', { name: textMock('right_menu.dynamics') });
+      const button = screen.queryByRole('button', { name: dynamicsText });
       expect(button).toHaveAttribute('aria-expanded', 'false');
     });
 
     it('Toggles dynamics when clicked', async () => {
       render();
-      const button = screen.queryByRole('button', { name: textMock('right_menu.dynamics') });
+      const button = screen.queryByRole('button', { name: dynamicsText });
       await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'true');
       await user.click(button);
@@ -73,7 +77,7 @@ describe('Properties', () => {
       const { rerender } = render();
       rerender(getComponent({ formItemId: 'test' }));
       const dynamicsButton = screen.queryByRole('button', {
-        name: textMock('right_menu.dynamics'),
+        name: dynamicsText,
       });
       await user.click(dynamicsButton);
       const newDynamics = screen.getByTestId(expressionsTestId);
@@ -84,13 +88,13 @@ describe('Properties', () => {
   describe('Calculations', () => {
     it('Closes calculations on load', () => {
       render();
-      const button = screen.queryByRole('button', { name: textMock('right_menu.calculations') });
+      const button = screen.queryByRole('button', { name: calculationsText });
       expect(button).toHaveAttribute('aria-expanded', 'false');
     });
 
     it('Toggles calculations when clicked', async () => {
       render();
-      const button = screen.queryByRole('button', { name: textMock('right_menu.calculations') });
+      const button = screen.queryByRole('button', { name: calculationsText });
       await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'true');
       await user.click(button);
@@ -101,9 +105,9 @@ describe('Properties', () => {
   it('Renders accordion', () => {
     const formIdMock = 'test-id';
     render({ formItemId: formIdMock });
-    expect(screen.getByText(textMock('right_menu.content'))).toBeInTheDocument();
-    expect(screen.getByText(textMock('right_menu.dynamics'))).toBeInTheDocument();
-    expect(screen.getByText(textMock('right_menu.calculations'))).toBeInTheDocument();
+    expect(screen.getByText(contentText)).toBeInTheDocument();
+    expect(screen.getByText(dynamicsText)).toBeInTheDocument();
+    expect(screen.getByText(calculationsText)).toBeInTheDocument();
     expect(screen.getByTestId(contentTestId)).toBeInTheDocument();
     expect(screen.getByTestId(expressionsTestId)).toBeInTheDocument();
     expect(screen.getByTestId(calculationsTestId)).toBeInTheDocument();
