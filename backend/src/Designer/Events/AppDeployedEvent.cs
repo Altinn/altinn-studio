@@ -5,7 +5,7 @@ namespace Altinn.Studio.Designer.Events;
 
 public class AppDeployedEvent : INotification
 {
-    public AltinnRepoEditingContext EditingContext { get; set; }
+    public AltinnRepoContext EditingContext { get; set; }
 
     public string StudioEnvironment { get; set; }
 

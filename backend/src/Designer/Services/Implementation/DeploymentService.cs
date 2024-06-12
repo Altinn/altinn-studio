@@ -4,7 +4,9 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Infrastructure.Models;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -14,6 +16,7 @@ using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -32,6 +35,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IApplicationInformationService _applicationInformationService;
         private readonly IEnvironmentsService _environmentsService;
         private readonly ILogger<DeploymentService> _logger;
+        private readonly IPublisher _mediatr;
 
         /// <summary>
         /// Constructor
@@ -44,7 +48,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IReleaseRepository releaseRepository,
             IEnvironmentsService environmentsService,
             IApplicationInformationService applicationInformationService,
-            ILogger<DeploymentService> logger)
+            ILogger<DeploymentService> logger, IPublisher mediatr)
         {
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
             _deploymentRepository = deploymentRepository;
@@ -54,6 +58,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _azureDevOpsSettings = azureDevOpsOptions;
             _httpContext = httpContextAccessor.HttpContext;
             _logger = logger;
+            _mediatr = mediatr;
         }
 
         /// <inheritdoc/>
@@ -78,7 +83,34 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Started = queuedBuild.StartTime
             };
 
-            return await _deploymentRepository.Create(deploymentEntity);
+
+            var createdEntity =  await _deploymentRepository.Create(deploymentEntity);
+            await PublishAppDeployedEvent(deploymentEntity);
+            return createdEntity;
+        }
+
+        // Publish app deployed event
+        private async Task PublishAppDeployedEvent(DeploymentEntity deploymentEntity)
+        {
+            try
+            {
+                var deploymentEntities = await _deploymentRepository.Get(deploymentEntity.Org, deploymentEntity.App,
+                    new DocumentQueryModel { Top = 1 });
+                bool newApp = !deploymentEntities.Any();
+
+
+                await _mediatr.Publish(new AppDeployedEvent
+                {
+                    EditingContext = AltinnRepoContext.FromOrgRepo(deploymentEntity.Org, deploymentEntity.App),
+                    StudioEnvironment = deploymentEntity.EnvName,
+                    AppsEnvironment = deploymentEntity.EnvName,
+                    DeployType = newApp ? DeployType.NewApp : DeployType.ExistingApp
+                });
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error publishing AppDeployedEvent for {org}/{app}", deploymentEntity.Org, deploymentEntity.App);
+            }
         }
 
         /// <inheritdoc/>

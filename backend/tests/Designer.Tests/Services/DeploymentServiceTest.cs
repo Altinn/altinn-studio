@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
@@ -17,6 +18,7 @@ using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using AltinnCore.Authentication.Constants;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -34,6 +36,7 @@ namespace Designer.Tests.Services
         private readonly Mock<IApplicationInformationService> _applicationInformationService;
         private readonly Mock<IEnvironmentsService> _environementsService;
         private readonly Mock<IAzureDevOpsBuildClient> _azureDevOpsBuildClient;
+        private readonly Mock<IPublisher> _mediatrMock;
 
         public DeploymentServiceTest()
         {
@@ -47,10 +50,13 @@ namespace Designer.Tests.Services
             _environementsService.Setup(req => req.GetEnvironments())
                 .ReturnsAsync(GetEnvironments("environments.json"));
             _applicationInformationService = new Mock<IApplicationInformationService>();
+            _mediatrMock = new Mock<IPublisher>();
         }
 
-        [Fact]
-        public async Task CreateAsync_OK()
+        [Theory]
+        [InlineData("ttd", "apps-test-tba", false)]
+        [InlineData("ttd", "new-app", true)]
+        public async Task CreateAsync_OK(string org, string app, bool newApp)
         {
             // Arrange
             DeploymentModel deploymentModel = new() { TagName = "1", EnvName = "at23" };
@@ -73,6 +79,11 @@ namespace Designer.Tests.Services
 
             _deploymentRepository.Setup(r => r.Create(
                 It.IsAny<DeploymentEntity>())).ReturnsAsync(GetDeployments("createdDeployment.json").First());
+            // Setup get deployments
+            _deploymentRepository.Setup(r => r.Get(
+                org,
+                app,
+                It.IsAny<DocumentQueryModel>())).ReturnsAsync(GetDeployments("createdDeployment.json").Where(d => d.Org == org && d.App == app));
 
             DeploymentService deploymentService = new(
                 GetAzureDevOpsSettings(),
@@ -82,11 +93,12 @@ namespace Designer.Tests.Services
                 _releaseRepository.Object,
                 _environementsService.Object,
                 _applicationInformationService.Object,
-                _deploymentLogger.Object);
+                _deploymentLogger.Object,
+                _mediatrMock.Object);
 
             // Act
             DeploymentEntity deploymentEntity =
-                await deploymentService.CreateAsync("ttd", "apps-test-tba", deploymentModel);
+                await deploymentService.CreateAsync(org, app, deploymentModel);
 
             // Assert
             Assert.NotNull(deploymentEntity);
@@ -104,6 +116,12 @@ namespace Designer.Tests.Services
             _azureDevOpsBuildClient.Verify(
                 b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>()), Times.Once);
             _deploymentRepository.Verify(r => r.Create(It.IsAny<DeploymentEntity>()), Times.Once);
+
+            var expectedDeployType = newApp ? DeployType.NewApp : DeployType.ExistingApp;
+            _mediatrMock.Verify(m => m.Publish(It.Is<AppDeployedEvent>(n =>
+                n.EditingContext.Org == org &&
+                n.EditingContext.Repo == app &&
+                n.DeployType == expectedDeployType), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Theory]
@@ -125,7 +143,8 @@ namespace Designer.Tests.Services
                 _releaseRepository.Object,
                 _environementsService.Object,
                 _applicationInformationService.Object,
-                _deploymentLogger.Object);
+                _deploymentLogger.Object,
+                _mediatrMock.Object);
 
             // Act
             SearchResults<DeploymentEntity> results =
@@ -155,7 +174,8 @@ namespace Designer.Tests.Services
                 _releaseRepository.Object,
                 _environementsService.Object,
                 _applicationInformationService.Object,
-                _deploymentLogger.Object);
+                _deploymentLogger.Object,
+                _mediatrMock.Object);
 
             _azureDevOpsBuildClient.Setup(adob => adob.Get(It.IsAny<string>()))
                 .ReturnsAsync(GetReleases("createdRelease.json").First().Build);
