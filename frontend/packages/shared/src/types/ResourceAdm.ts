@@ -158,16 +158,12 @@ export interface AccessListsResponse {
   nextPage?: string;
 }
 
-export interface AccessListMembersResponse {
+export interface AccessListMembersResponse extends HeaderEtag {
   data: AccessListMember[];
   nextPage?: string;
 }
 
 export interface AccessListOrganizationNumbers extends HeaderEtag {
-  data: string[];
-}
-
-export interface AccessListOrganizationNumbers {
   data: string[];
 }
 

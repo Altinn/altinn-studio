@@ -310,7 +310,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             HttpResponseMessage getAccessListsResponse = await _httpClient.SendAsync(request);
             getAccessListsResponse.EnsureSuccessStatusCode();
             AccessList responseList = await getAccessListsResponse.Content.ReadAsAsync<AccessList>();
-            responseList.Etag = getAccessListsResponse.Headers.ETag.ToString();
+            responseList.Etag = getAccessListsResponse.Headers.ETag?.ToString();
             return responseList;
         }
 
@@ -368,7 +368,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new PagedAccessListMembersResponse()
             {
                 Data = members,
-                NextPage = membersDto.Links?.Next
+                NextPage = membersDto.Links?.Next,
+                Etag = geMembersResponse.Headers.ETag?.ToString()
             };
         }
 
@@ -427,7 +428,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             HttpResponseMessage response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsAsync<AccessList>();
+            AccessList createdList = await response.Content.ReadAsAsync<AccessList>();
+            createdList.Etag = response.Headers.ETag?.ToString();
+            return createdList;
         }
 
         public async Task<HttpStatusCode> DeleteAccessList(string org, string identifier, string env)
@@ -493,7 +496,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return new StatusCodeResult(412);
             }
             response.EnsureSuccessStatusCode();
-            return new ObjectResult(new HeaderEtag() { Etag = response.Headers.ETag.ToString() }) { StatusCode = (int)response.StatusCode };
+            return new ObjectResult(new HeaderEtag() { Etag = response.Headers.ETag?.ToString() }) { StatusCode = (int)response.StatusCode };
         }
 
         public async Task<ActionResult> RemoveAccessListMembers(
@@ -528,7 +531,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return new StatusCodeResult(412);
             }
             response.EnsureSuccessStatusCode();
-            return new ObjectResult(new HeaderEtag() { Etag = response.Headers.ETag.ToString() }) { StatusCode = (int)response.StatusCode };
+            return new ObjectResult(new HeaderEtag() { Etag = response.Headers.ETag?.ToString() }) { StatusCode = (int)response.StatusCode };
         }
 
         public async Task<HttpStatusCode> AddResourceAccessList(
