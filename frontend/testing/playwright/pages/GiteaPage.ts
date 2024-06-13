@@ -203,4 +203,12 @@ export class GiteaPage extends BasePage {
     `;
     await this.page.getByText(text).isVisible();
   }
+
+  public async verifyThatCustomReceiptIsNotVisible(): Promise<void> {
+    await this.page.getByText('"taskId": "CustomReceipt"').isHidden();
+  }
+
+  public async verifyThatCustomReceiptIsVisible(): Promise<void> {
+    await this.page.getByText('"taskId": "CustomReceipt"').isVisible();
+  }
 }

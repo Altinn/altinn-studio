@@ -136,19 +136,13 @@ test('That it is possible to add a new task to the process editor, configure som
   await processEditorPage.verifyThatThereAreNoDataModelsAvailable();
   await processEditorPage.pressEscapeOnKeyboard();
 
-  await header.clickOnNavigateToPageInTopMenuHeader('data_model');
-  await dataModelPage.verifyDataModelPage();
-  await dataModelPage.clickOnCreateNewDataModelButton();
   const newDataModel: string = 'testDataModel';
-  await dataModelPage.typeDataModelName(newDataModel);
-  await dataModelPage.clickOnCreateModelButton();
-  await dataModelPage.waitForDataModelToAppear(newDataModel);
-  await dataModelPage.clickOnGenerateDataModelButton();
-  await dataModelPage.checkThatSuccessAlertIsVisibleOnScreen();
-  await dataModelPage.waitForSuccessAlertToDisappear();
-
-  await header.clickOnNavigateToPageInTopMenuHeader('process_editor');
-  await processEditorPage.verifyProcessEditorPage();
+  await navigateToDataModelAndCreateNewDataModel(
+    dataModelPage,
+    processEditorPage,
+    header,
+    newDataModel,
+  );
   const newTaskSelector: string = await bpmnJSQuery.getTaskByIdAndType(newId, 'g');
   await processEditorPage.clickOnTaskInBpmnEditor(newTaskSelector);
 
@@ -250,6 +244,54 @@ test('That it is possible to add a new signing task, and update the datatypes to
   await giteaPage.verifyThatDataTypeToSignIsVisible(signingTask);
 });
 
+test('That it is possible to create a custom receipt', async ({ page, testAppName }) => {
+  const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
+  const dataModelPage = new DataModelPage(page, { app: testAppName });
+  const bpmnJSQuery = new BpmnJSQuery(page);
+  const header = new Header(page, { app: testAppName });
+  const giteaPage = new GiteaPage(page, { app: testAppName });
+
+  const newDataModel: string = 'newDataModel';
+  await navigateToDataModelAndCreateNewDataModel(
+    dataModelPage,
+    processEditorPage,
+    header,
+    newDataModel,
+  );
+
+  const endEvent: string = await bpmnJSQuery.getTaskByIdAndType('EndEvent_1', 'g');
+  await processEditorPage.clickOnTaskInBpmnEditor(endEvent);
+  await processEditorPage.waitForEndEventHeaderToBeVisible();
+
+  await processEditorPage.clickOnReceiptAccordion();
+  await processEditorPage.waitForCreateCustomReceiptButtonToBeVisible();
+
+  await processEditorPage.clickOnCreateCustomReceipt();
+  await processEditorPage.waitForLayoutTextfieldToBeVisible();
+
+  const newLayoutSetId: string = 'layoutSetId';
+  await processEditorPage.writeLayoutSetId(newLayoutSetId);
+  await processEditorPage.clickOnAddDataModelCombobox();
+  await processEditorPage.clickOnDataModelOption(newDataModel);
+  await processEditorPage.pressEscapeOnKeyboard();
+
+  await processEditorPage.waitForSaveNewCustomReceiptButtonToBeVisible();
+  await processEditorPage.clickOnSaveNewCustomReceiptButton();
+  await processEditorPage.waitForEditLayoutSetIdButtonToBeVisible();
+
+  // --------------------- Check that files are uploaded to Gitea ---------------------
+  await goToGiteaAndNavigateToApplicationMetadataFile(header, giteaPage);
+  await giteaPage.verifyThatCustomReceiptIsNotVisible();
+  const numberOfPagesBackToAltinnStudio: number = 4;
+  await giteaPage.goBackNPages(numberOfPagesBackToAltinnStudio);
+
+  await processEditorPage.verifyProcessEditorPage();
+  await commitAndPushToGitea(header);
+
+  await goToGiteaAndNavigateToApplicationMetadataFile(header, giteaPage);
+  await giteaPage.verifyThatCustomReceiptIsVisible();
+});
+
 // --------------------- Helper Functions ---------------------
 const editRandomGeneratedId = async (
   processEditorPage: ProcessEditorPage,
@@ -265,7 +307,10 @@ const editRandomGeneratedId = async (
   await processEditorPage.waitForNewTaskIdButtonToBeVisible(newId);
 };
 
-const goToGiteaAndNavigateToProcessBpmnFile = async (header: Header, giteaPage: GiteaPage) => {
+const goToGiteaAndNavigateToProcessBpmnFile = async (
+  header: Header,
+  giteaPage: GiteaPage,
+): Promise<void> => {
   await header.clickOnThreeDotsMenu();
   await header.clickOnGoToGiteaRepository();
 
@@ -281,4 +326,36 @@ const commitAndPushToGitea = async (header: Header): Promise<void> => {
   await header.clickOnValidateChanges();
   await header.checkThatUploadSuccessMessageIsVisible();
 };
-// TODO - Test end event toooo
+
+const navigateToDataModelAndCreateNewDataModel = async (
+  dataModelPage: DataModelPage,
+  processEditorPage: ProcessEditorPage,
+  header: Header,
+  newDataModelName: string,
+): Promise<void> => {
+  await header.clickOnNavigateToPageInTopMenuHeader('data_model');
+  await dataModelPage.verifyDataModelPage();
+  await dataModelPage.clickOnCreateNewDataModelButton();
+  await dataModelPage.typeDataModelName(newDataModelName);
+  await dataModelPage.clickOnCreateModelButton();
+  await dataModelPage.waitForDataModelToAppear(newDataModelName);
+  await dataModelPage.clickOnGenerateDataModelButton();
+  await dataModelPage.checkThatSuccessAlertIsVisibleOnScreen();
+  await dataModelPage.waitForSuccessAlertToDisappear();
+
+  await header.clickOnNavigateToPageInTopMenuHeader('process_editor');
+  await processEditorPage.verifyProcessEditorPage();
+};
+
+const goToGiteaAndNavigateToApplicationMetadataFile = async (
+  header: Header,
+  giteaPage: GiteaPage,
+): Promise<void> => {
+  await header.clickOnThreeDotsMenu();
+  await header.clickOnGoToGiteaRepository();
+
+  await giteaPage.verifyGiteaPage();
+  await giteaPage.clickOnAppFilesButton();
+  await giteaPage.clickOnConfigFilesButton();
+  await giteaPage.clickOnApplicationMetadataFile();
+};

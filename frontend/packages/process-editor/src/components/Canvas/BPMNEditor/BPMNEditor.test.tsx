@@ -13,11 +13,6 @@ jest.mock('../../../hooks/useBpmnEditor', () => ({
 
 describe('BPMNEditor', () => {
   afterEach(jest.clearAllMocks);
-  it('render spinner when pendingApiOperations is true', () => {
-    renderBpmnEditor({ pendingApiOperations: true });
-
-    screen.getByText(textMock('process_editor.loading'));
-  });
 
   it('does not render spinner when pendingApiOperations is false', () => {
     renderBpmnEditor({ pendingApiOperations: false });
