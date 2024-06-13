@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <!-- <IsAotCompatible>true</IsAotCompatible> -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LibGit2Sharp" Version="0.30.0" />
+    <PackageReference Include="System.Linq.Async" Version="6.0.1" />
+    <PackageReference Include="Spectre.Console" Version="0.49.1" />
+    <PackageReference Include="Buildalyzer" Version="7.0.1" />
+  </ItemGroup>
+
+</Project>

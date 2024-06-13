@@ -1,0 +1,18 @@
+{
+  "profiles": {
+    "Fetch": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "commandLineArgs": "fetch -c $(MSBuildProjectDirectory)/../../config.ini"
+    },
+    "Analyze": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "commandLineArgs": "analyze -c $(MSBuildProjectDirectory)/../../config.ini"
+    },
+  }
+}

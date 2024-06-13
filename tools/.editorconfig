@@ -1,0 +1,50 @@
+# EditorConfig is awesome: http://EditorConfig.org
+
+# top-most EditorConfig file
+root = false
+
+[*.cs]
+
+max_line_length = 120
+
+# S125: Sections of code should not be commented out
+dotnet_diagnostic.S125.severity = suggestion
+
+# S1144: Unused private types or members should be removed
+dotnet_diagnostic.S1144.severity = suggestion
+
+# S1075: URIs should not be hardcoded
+dotnet_diagnostic.S1075.severity = suggestion
+
+# CA1050: Declare types in namespaces
+dotnet_diagnostic.CA1050.severity = suggestion
+
+# S3903: Types should be defined in named namespaces
+dotnet_diagnostic.S3903.severity = suggestion
+
+# CA1822: Mark members as static
+dotnet_diagnostic.CA1822.severity = suggestion
+
+# S1199: Nested code blocks should not be used
+dotnet_diagnostic.S1199.severity = suggestion
+
+# S1854: Unused assignments should be removed
+dotnet_diagnostic.S1854.severity = suggestion
+
+# S1481: Unused local variables should be removed
+dotnet_diagnostic.S1481.severity = suggestion
+
+# S1751: Loops with at most one iteration should be refactored
+dotnet_diagnostic.S1751.severity = suggestion
+
+# CA2201: Do not raise reserved exception types
+dotnet_diagnostic.CA2201.severity = suggestion
+
+# S112: General or reserved exceptions should never be thrown
+dotnet_diagnostic.S112.severity = suggestion
+
+# S4487: Unread "private" fields should be removed
+dotnet_diagnostic.S4487.severity = suggestion
+
+# S1135: Track uses of "TODO" tags
+dotnet_diagnostic.S1135.severity = suggestion
