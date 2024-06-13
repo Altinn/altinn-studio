@@ -12,6 +12,7 @@ import { AccessListMembers } from '../AccessListMembers';
 import { TrashIcon } from '@studio/icons';
 import { StudioButton } from '@studio/components';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { AccessListPreconditionFailedToast } from '../AccessListPreconditionFailedToast';
 
 export interface AccessListDetailProps {
   org: string;
@@ -44,7 +45,7 @@ export const AccessListDetail = ({
 
   const checkForEtagVersionError = (error: Error): void => {
     if ((error as ResourceError).response.status === ServerCodes.PreconditionFailed) {
-      toast.error(t('resourceadm.listadmin_list_sim_update_error'));
+      toast.error(<AccessListPreconditionFailedToast />);
     }
   };
 

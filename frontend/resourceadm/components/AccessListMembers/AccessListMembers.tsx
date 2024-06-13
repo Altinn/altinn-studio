@@ -18,6 +18,7 @@ import { AccessListMembersTable } from './AccessListMembersTable';
 import { isOrgNrString } from '../../utils/stringUtils';
 import { useGetAccessListMembersQuery } from '../../hooks/queries/useGetAccessListMembersQuery';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { AccessListPreconditionFailedToast } from '../AccessListPreconditionFailedToast';
 
 const PARTY_SEARCH_TYPE = 'PARTY';
 const SUBPARTY_SEARCH_TYPE = 'SUBPARTY';
@@ -77,7 +78,7 @@ export const AccessListMembers = ({
 
   const checkForEtagVersionError = (error: Error): void => {
     if ((error as ResourceError).response.status === ServerCodes.PreconditionFailed) {
-      toast.error(t('resourceadm.listadmin_list_sim_update_error'));
+      toast.error(<AccessListPreconditionFailedToast />);
     }
   };
 
