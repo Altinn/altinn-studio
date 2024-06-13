@@ -60,16 +60,19 @@ export const LayoutInspector = () => {
         const updatedComponent = JSON.parse(componentProperties ?? '');
 
         if (currentView) {
-          window.queryClient.setQueryData<LayoutContextValue>(['formLayouts', currentLayoutSetId], (_queryData) => {
-            const queryData = structuredClone(_queryData);
-            if (!queryData?.layouts?.[currentView]) {
-              return _queryData;
-            }
-            queryData.layouts[currentView] = queryData.layouts[currentView]?.map((component) =>
-              component.id === selectedComponent ? updatedComponent : component,
-            );
-            return queryData;
-          });
+          window.queryClient.setQueriesData<LayoutContextValue>(
+            { queryKey: ['formLayouts', currentLayoutSetId, true] },
+            (_queryData) => {
+              const queryData = structuredClone(_queryData);
+              if (!queryData?.layouts?.[currentView]) {
+                return _queryData;
+              }
+              queryData.layouts[currentView] = queryData.layouts[currentView]?.map((component) =>
+                component.id === selectedComponent ? updatedComponent : component,
+              );
+              return queryData;
+            },
+          );
         }
 
         setPropertiesHaveChanged(false);
