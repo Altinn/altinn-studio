@@ -14,6 +14,8 @@ cp config.sample.ini config.ini
 ```
 Make the appropriate changes.
 The password needs to be a token from Altinn Studio with `Read` permissions for `organization` and `repository` scope.
+See below:
+![Access token config](img/access-token-config.png)
 
 Example
 ```ini
@@ -37,11 +39,11 @@ Fetch
 dotnet run -c Release -- fetch -c ../../config.ini
 ```
 
- ![Downloading apps](img/download-progress.png)
+![Downloading apps](img/download-progress.png)
 
 Analyze
 ```sh
 dotnet run -c Release -- analyze -c ../../config.ini
 ```
 
- ![Analyzing apps](img/analysis.png)
+![Analyzing apps](img/analysis.png)
