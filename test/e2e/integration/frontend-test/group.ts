@@ -91,6 +91,35 @@ describe('Group', () => {
     });
   });
 
+  it('Should not be possible to add more rows than maxCount', () => {
+    cy.interceptLayout('group', (c) => {
+      if (c.type === 'RepeatingGroup' && c.edit && c.id === 'mainGroup') {
+        c.maxCount = 2;
+      }
+    });
+    init();
+    cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
+    cy.addItemToGroup(1, 1, 'automation');
+    cy.get(appFrontend.group.addNewItem).should('exist');
+    cy.addItemToGroup(2, 2, 'automation');
+    cy.get(appFrontend.group.addNewItem).should('not.exist');
+  });
+
+  it('MaxCount exceeded hides add button when alwaysShowAddButton is true', () => {
+    cy.interceptLayout('group', (c) => {
+      if (c.type === 'RepeatingGroup' && c.edit && c.id === 'mainGroup') {
+        c.maxCount = 2;
+        c.edit.alwaysShowAddButton = true;
+      }
+    });
+    init();
+    cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
+    cy.addItemToGroup(11, 12, 'automation');
+    cy.get(appFrontend.group.addNewItem).should('exist');
+    cy.addItemToGroup(21, 22, 'automation');
+    cy.get(appFrontend.group.addNewItem).should('not.exist');
+  });
+
   it('Calculation on Item in Main Group should update value', () => {
     init();
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();

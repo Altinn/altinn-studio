@@ -127,7 +127,11 @@ function AddButton() {
     return null;
   }
 
-  if ((tooManyRows || isEditingAnyRow) && !forceShow) {
+  if (tooManyRows) {
+    return null;
+  }
+
+  if (isEditingAnyRow && !forceShow) {
     return null;
   }
 
