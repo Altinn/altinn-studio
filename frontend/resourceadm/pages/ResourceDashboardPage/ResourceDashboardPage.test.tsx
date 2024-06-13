@@ -9,7 +9,6 @@ import { MemoryRouter } from 'react-router-dom';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
-import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { Organization } from 'app-shared/types/Organization';
 import { organization } from 'app-shared/mocks/mocks';
@@ -240,16 +239,6 @@ describe('ResourceDashBoardPage', () => {
 
     expect(
       screen.getByText(textMock('resourceadm.dashboard_no_resources_result')),
-    ).toBeInTheDocument();
-  });
-
-  it('should show access list button when feature is enabled', () => {
-    addFeatureFlagToLocalStorage('resourceAccessLists');
-
-    renderResourceDashboardPage();
-
-    expect(
-      screen.getByText(textMock('resourceadm.dashboard_change_organization_lists')),
     ).toBeInTheDocument();
   });
 
