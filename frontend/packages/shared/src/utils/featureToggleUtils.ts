@@ -8,7 +8,6 @@ export type SupportedFeatureFlags =
   | 'customizeEndEvent'
   | 'componentConfigBeta'
   | 'shouldOverrideAppLibCheck'
-  | 'resourceAccessLists'
   | 'resourceMigration'
   | 'displayPaymentTaskProcessEditor';
 
