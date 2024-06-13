@@ -77,7 +77,7 @@ public sealed class AppsFetcher
         }
 
         if (!_directory.Exists)
-            _directory = Directory.CreateDirectory(_config.Directory);
+            _directory = Directory.CreateDirectory(directory);
     }
 
     public async Task Fetch(CancellationToken cancellationToken)

@@ -28,7 +28,10 @@ public sealed class AppsAnalyzer
         table.AddColumn(new TableColumn(""));
 
         _parallelism = Math.Min(Constants.LimitMaxParallelism, _config.MaxParallelism);
-        table.AddRow(new Markup(nameof(FetchConfig.Directory)), new Markup($"= [bold]{_config.Directory}[/]"));
+        var directory = Path.GetFullPath(
+            _config.Directory.Replace("~", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile))
+        );
+        table.AddRow(new Markup(nameof(FetchConfig.Directory)), new Markup($"= [bold]{directory}[/]"));
         table.AddRow(new Markup("Parallelism"), new Markup($"= [bold]{_parallelism}[/]"));
         AnsiConsole.Write(table);
         AnsiConsole.WriteLine();
@@ -48,12 +51,13 @@ public sealed class AppsAnalyzer
         if (!VerifyConfig())
             return;
 
-        _directory = new DirectoryInfo(_config.Directory);
+        var directory = Path.GetFullPath(
+            _config.Directory.Replace("~", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile))
+        );
+        _directory = new DirectoryInfo(directory);
         if (!_directory.Exists)
         {
-            AnsiConsole.MarkupLine(
-                $"Directory for downloaded apps [red]doesn't exist[/]: [bold]{_config.Directory}[/]"
-            );
+            AnsiConsole.MarkupLine($"Directory for downloaded apps [red]doesn't exist[/]: [bold]{directory}[/]");
             return;
         }
 
