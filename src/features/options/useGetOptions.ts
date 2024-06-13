@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
@@ -18,8 +18,6 @@ import type {
 } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-type ValueType = 'single' | 'multi';
-
 const getLabelsForActiveOptions = (selectedOptions: string[], allOptions: IOptionInternal[]): string[] =>
   allOptions.filter((option) => selectedOptions.includes(option.value)).map((option) => option.label);
 
@@ -35,9 +33,8 @@ const useHasChanged = (val: any) => {
   return prevVal !== val;
 };
 
-interface Props<T extends ValueType> {
-  valueType: T;
-
+interface Props {
+  valueType: 'single' | 'multi';
   // Generic props
   node: LayoutNode;
   removeDuplicates?: boolean;
@@ -58,26 +55,15 @@ interface Props<T extends ValueType> {
   sortOrder?: SortOrder;
 }
 
-type CurrentValue<T extends ValueType> = T extends 'single' ? IOptionInternal | undefined : IOptionInternal[];
-type CurrentValueAsString<T extends ValueType> = T extends 'single' ? string : string[];
-type ValueSetter<T extends ValueType> = T extends 'single'
-  ? (value: string | IOptionInternal) => void
-  : (value: string[] | IOptionInternal[]) => void;
+export interface OptionsResult {
+  // This is guaranteed to only contain values that actually exist in the options that are returned.
+  // The Combobox component will crash if a value does not exist in the options list.
+  // The values are guaranteed to be stringy even if the underlying options JSON and/or data model contains numbers, booleans, etc.
+  selectedValues: string[];
 
-export interface OptionsResult<T extends ValueType> {
-  // The current value, as an option (for single-option components) or an array of options (for multi-option components)
-  // It is recommended to use this, and you can also compare this (object) value to the options (array of objects),
-  // as the object references themselves are guaranteed to be the same.
-  current: CurrentValue<T>;
+  setData: (values: string[]) => void;
 
-  // The current value, as a string (for single-option components) or an array of strings (for multi-option components)
-  // This is useful if the downstream component you're using does not support options objects. Also, the value is
-  // guaranteed to be stringy even if the underlying options JSON and/or data model contains numbers, booleans, etc.
-  currentStringy: CurrentValueAsString<T>;
-
-  // Function to set the current value. The value can be either a string or an option object. For multi-option
-  // components, you always set the value of all the selected options at the same time, not just one of them.
-  setData: ValueSetter<T>;
+  rawData: string;
 
   // The final list of options deduced from the component settings. This will be an array of objects, where each object
   // has a string-typed 'value' property, regardless of the underlying options configuration.
@@ -92,13 +78,12 @@ export interface OptionsResult<T extends ValueType> {
   isError: boolean;
 }
 
-interface EffectProps<T extends ValueType> {
+interface EffectProps {
   options: IOptionInternal[] | undefined;
   disable: boolean;
-  valueType: T;
   preselectedOption: IOptionInternal | undefined;
-  currentValue: CurrentValueAsString<T>;
-  setValue: ValueSetter<T>;
+  currentValues: string[];
+  setValue: (values: string[]) => void;
 }
 
 const defaultOptions: IOptionInternal[] = [];
@@ -114,9 +99,10 @@ const compareOptionAlphabetically =
     return sortOrder === 'asc' ? comparison : -comparison;
   };
 
-export function useGetOptions<T extends ValueType>(props: Props<T>): OptionsResult<T> {
+export function useGetOptions(props: Props): OptionsResult {
   const {
     node,
+    valueType: type,
     options,
     optionsId,
     secure,
@@ -126,7 +112,6 @@ export function useGetOptions<T extends ValueType>(props: Props<T>): OptionsResu
     queryParameters,
     sortOrder,
     dataModelBindings,
-    valueType,
     preselectedOptionIndex,
   } = props;
   const { formData, setValue } = useDataModelBindings(dataModelBindings);
@@ -189,29 +174,17 @@ export function useGetOptions<T extends ValueType>(props: Props<T>): OptionsResu
     }
   }, [dataModelBindings, downstreamParameters, setValue]);
 
-  const current = useMemo(() => {
-    if (valueType === 'single') {
-      return alwaysOptions.find((option) => String(option.value) === String(value)) as CurrentValue<T>;
-    }
-    const stringValues = value && value.length > 0 ? value.split(',') : [];
-    return alwaysOptions.filter((option) => stringValues.includes(option.value)) as CurrentValue<T>;
-  }, [value, valueType, alwaysOptions]);
+  const currentValues = useMemo(() => (value && value.length > 0 ? value.split(',') : []), [value]);
 
-  const currentStringy = useMemo(() => {
-    if (valueType === 'single') {
-      return (value || '') as CurrentValueAsString<T>;
-    }
-    return (value ? value.split(',') : []) as CurrentValueAsString<T>;
-  }, [value, valueType]);
+  const selectedValues = useMemo(
+    () => currentValues.filter((value) => alwaysOptions.find((option) => option.value === value)),
+    [alwaysOptions, currentValues],
+  );
 
   const translatedLabels = useMemo(
-    () =>
-      getLabelsForActiveOptions(
-        Array.isArray(currentStringy) ? currentStringy : [currentStringy],
-        calculatedOptions || [],
-      ).map((label) => langAsString(label)),
+    () => getLabelsForActiveOptions(currentValues, calculatedOptions || []).map((label) => langAsString(label)),
 
-    [calculatedOptions, currentStringy, langAsString],
+    [calculatedOptions, currentValues, langAsString],
   );
 
   const labelsHaveChanged = useHasChanged(translatedLabels.join(','));
@@ -225,44 +198,32 @@ export function useGetOptions<T extends ValueType>(props: Props<T>): OptionsResu
       return;
     }
 
-    if (valueType === 'single') {
-      const labelToSet = translatedLabels?.length > 0 ? translatedLabels[0] : undefined;
-      setValue('label' as any, labelToSet);
+    if (type === 'single') {
+      setValue('label' as any, translatedLabels.at(0));
     } else {
       setValue('label' as any, translatedLabels);
     }
-  }, [translatedLabels, labelsHaveChanged, dataModelBindings, setValue, valueType]);
+  }, [translatedLabels, labelsHaveChanged, dataModelBindings, setValue, type]);
 
-  const setData = useMemo(() => {
-    if (valueType === 'single') {
-      return (value: string | IOptionInternal) =>
-        setValue('simpleBinding', typeof value === 'string' ? value : value.value);
-    }
+  const setData = useCallback((values: string[]) => setValue('simpleBinding', values.join(',')), [setValue]);
 
-    return (value: (string | IOptionInternal)[]) => {
-      const asString = value.map((v) => (typeof v === 'string' ? v : v.value)).join(',');
-      setValue('simpleBinding', asString);
-    };
-  }, [setValue, valueType]) as ValueSetter<T>;
-
-  const effectProps: EffectProps<T> = useMemo(
+  const effectProps: EffectProps = useMemo(
     () => ({
       options: calculatedOptions,
-      disable: !(props.dataModelBindings && 'simpleBinding' in props.dataModelBindings),
-      valueType,
+      disable: isFetching || !(props.dataModelBindings && 'simpleBinding' in props.dataModelBindings),
       preselectedOption,
-      currentValue: currentStringy,
+      currentValues,
       setValue: setData,
     }),
-    [calculatedOptions, currentStringy, preselectedOption, props.dataModelBindings, setData, valueType],
+    [calculatedOptions, currentValues, isFetching, preselectedOption, props.dataModelBindings, setData],
   );
 
   usePreselectedOptionIndex(effectProps);
   useRemoveStaleValues(effectProps);
 
   return {
-    current,
-    currentStringy,
+    rawData: value,
+    selectedValues,
     setData,
     options: alwaysOptions,
     isFetching: isFetching || !calculatedOptions,
@@ -273,19 +234,15 @@ export function useGetOptions<T extends ValueType>(props: Props<T>): OptionsResu
  * If given the 'preselectedOptionIndex' property, we should automatically select the given option index as soon
  * as options are ready. The code is complex to guard against overwriting data that has been set by the user.
  */
-function usePreselectedOptionIndex<T extends ValueType>(props: EffectProps<T>) {
+function usePreselectedOptionIndex(props: EffectProps) {
   const { disable, preselectedOption } = props;
   const hasSelectedInitial = useRef(false);
-  const hasValue = isSingle(props) ? !!props.currentValue : isMulti(props) ? props.currentValue.length > 0 : false;
+  const hasValue = props.currentValues.length > 0;
   const shouldSelectOptionAutomatically = !disable && !hasValue && !hasSelectedInitial.current;
 
   useEffect(() => {
     if (shouldSelectOptionAutomatically && preselectedOption !== undefined && !disable) {
-      if (isMulti(props)) {
-        props.setValue([preselectedOption]);
-      } else if (isSingle(props)) {
-        props.setValue(preselectedOption);
-      }
+      props.setValue([preselectedOption.value]);
       hasSelectedInitial.current = true;
     }
   }, [disable, preselectedOption, props, shouldSelectOptionAutomatically]);
@@ -297,32 +254,17 @@ function usePreselectedOptionIndex<T extends ValueType>(props: EffectProps<T>) {
  * from a repeating group. If the options changed and the selected option (or selected row in a repeating group)
  * is gone, we should not save stale/invalid data, so we clear it.
  */
-function useRemoveStaleValues<T extends ValueType>(props: EffectProps<T>) {
+function useRemoveStaleValues(props: EffectProps) {
   const { options, disable } = props;
   useEffect(() => {
     if (disable) {
       return;
     }
 
-    if (options && isSingle(props)) {
-      const { currentValue, setValue } = props;
-      if (currentValue && !options.find((option) => option.value === currentValue)) {
-        setValue('');
-      }
-    } else if (options && isMulti(props)) {
-      const { currentValue, setValue } = props;
-      const itemsToRemove = currentValue.filter((v) => !options.find((option) => option.value === v));
-      if (itemsToRemove.length > 0) {
-        setValue(currentValue.filter((v) => !itemsToRemove.includes(v)));
-      }
+    const { currentValues, setValue } = props;
+    const itemsToRemove = currentValues.filter((v) => !options?.find((option) => option.value === v));
+    if (itemsToRemove.length > 0) {
+      setValue(currentValues.filter((v) => !itemsToRemove.includes(v)));
     }
   }, [disable, options, props]);
-}
-
-function isSingle(props: EffectProps<ValueType>): props is EffectProps<'single'> {
-  return props.valueType === 'single';
-}
-
-function isMulti(props: EffectProps<ValueType>): props is EffectProps<'multi'> {
-  return props.valueType === 'multi';
 }

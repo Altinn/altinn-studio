@@ -11,6 +11,11 @@
   color: var(--semantic-text-neutral-default);
 }
 
+/* Workaround for the design-system aggressively setting the font to 'Inter' */
+[class^='fds-'] {
+  font-family: var(--font-family);
+}
+
 /* Override design system variables */
 * {
   --component-panel-font_size-header-breakpoint_sm: 1.4rem;
@@ -142,11 +147,6 @@ ul,
 dl {
   padding-left: 1.5rem;
   margin-top: 0;
-}
-
-svg,
-img {
-  vertical-align: middle;
 }
 
 /* Align text in table when right to left languages*/

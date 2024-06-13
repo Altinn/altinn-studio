@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 
-import { LegacySelect } from '@digdir/design-system-react';
-import { Button } from '@digdir/designsystemet-react';
+import { Button, Combobox } from '@digdir/designsystemet-react';
 import { Grid } from '@material-ui/core';
 import { CheckmarkCircleFillIcon } from '@navikt/aksel-icons';
+import deepEqual from 'fast-deep-equal';
 
 import { AltinnLoader } from 'src/components/AltinnLoader';
 import { isAttachmentUploaded } from 'src/features/attachments';
@@ -14,11 +14,11 @@ import { useOnAttachmentSave } from 'src/features/validation/callbacks/onAttachm
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useAttachmentValidations } from 'src/features/validation/selectors/attachmentValidations';
 import { hasValidationErrors } from 'src/features/validation/utils';
-import { useFormattedOptions } from 'src/hooks/useFormattedOptions';
 import { AttachmentFileName } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
 import { FileTableButtons } from 'src/layout/FileUpload/FileUploadTable/FileTableButtons';
 import { useFileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
 import classes from 'src/layout/FileUploadWithTag/EditWindowComponent.module.css';
+import comboboxClasses from 'src/styles/combobox.module.css';
 import type { IAttachment } from 'src/features/attachments';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -35,28 +35,14 @@ export function EditWindowComponent({ attachment, mobileView, node, options }: E
   const { langAsString } = useLanguage();
   const { setEditIndex } = useFileTableRow();
   const uploadedAttachment = isAttachmentUploaded(attachment) ? attachment : undefined;
-  const rawSelectedTag = uploadedAttachment?.data.tags ? uploadedAttachment.data.tags[0] : undefined;
-  const [chosenOption, setChosenOption] = useState<IOptionInternal | undefined>(
-    rawSelectedTag ? options?.find((o) => o.value === rawSelectedTag) : undefined,
-  );
-  const formattedOptions = useFormattedOptions(options);
+  const rawSelectedTags = uploadedAttachment?.data.tags?.filter((tag) => options?.find((o) => o.value === tag)) ?? [];
+  const [chosenTags, setChosenTags] = useState<string[]>(rawSelectedTags);
   const updateAttachment = useAttachmentsUpdater();
 
   const attachmentValidations = useAttachmentValidations(node, uploadedAttachment?.data.id);
   const onAttachmentSave = useOnAttachmentSave();
 
   const hasErrors = hasValidationErrors(attachmentValidations);
-
-  const onDropdownDataChange = (value: string) => {
-    if (value !== undefined) {
-      const option = options?.find((o) => o.value === value);
-      if (option !== undefined) {
-        setChosenOption(option);
-      } else {
-        console.error(`Could not find option for ${value}`);
-      }
-    }
-  };
 
   const handleSave = async () => {
     if (!uploadedAttachment) {
@@ -66,14 +52,14 @@ export function EditWindowComponent({ attachment, mobileView, node, options }: E
     const { tags: _tags } = uploadedAttachment.data;
     const existingTags = _tags || [];
 
-    if (chosenOption?.value !== existingTags[0]) {
-      await setAttachmentTag(chosenOption);
+    if (!deepEqual(chosenTags, existingTags)) {
+      await setAttachmentTag(chosenTags);
     }
     setEditIndex(-1);
     onAttachmentSave(node, uploadedAttachment.data.id);
   };
 
-  const setAttachmentTag = async (option?: IOptionInternal) => {
+  const setAttachmentTag = async (tags: string[]) => {
     if (!isAttachmentUploaded(attachment)) {
       return;
     }
@@ -81,7 +67,7 @@ export function EditWindowComponent({ attachment, mobileView, node, options }: E
     await updateAttachment({
       attachment,
       node,
-      tags: option?.value ? [option.value] : [],
+      tags,
     });
   };
 
@@ -171,16 +157,34 @@ export function EditWindowComponent({ attachment, mobileView, node, options }: E
             style={{ minWidth: '150px' }}
             xs
           >
-            <LegacySelect
-              inputId={`attachment-tag-dropdown-${uniqueId}`}
-              onChange={onDropdownDataChange}
-              options={formattedOptions}
-              disabled={saveIsDisabled}
-              error={hasErrors}
-              label={langAsString('general.choose')}
+            <Combobox
+              id={`attachment-tag-dropdown-${uniqueId}`}
+              size='sm'
               hideLabel={true}
-              value={chosenOption?.value}
-            />
+              label={langAsString('general.choose')}
+              value={chosenTags}
+              disabled={saveIsDisabled}
+              onValueChange={setChosenTags}
+              error={hasErrors}
+              className={comboboxClasses.container}
+            >
+              <Combobox.Empty>
+                <Lang id={'form_filler.no_options_found'} />
+              </Combobox.Empty>
+              {options?.map((option) => (
+                <Combobox.Option
+                  key={option.value}
+                  value={option.value}
+                  description={langAsString(option.description)}
+                  displayValue={langAsString(option.label)}
+                >
+                  <Lang
+                    id={option.label}
+                    node={node}
+                  />
+                </Combobox.Option>
+              ))}
+            </Combobox>
           </Grid>
           <Grid
             item={true}
@@ -198,7 +202,7 @@ export function EditWindowComponent({ attachment, mobileView, node, options }: E
             ) : (
               <Button
                 size='small'
-                onClick={() => handleSave()}
+                onClick={handleSave}
                 id={`attachment-save-tag-button-${uniqueId}`}
                 disabled={saveIsDisabled}
               >

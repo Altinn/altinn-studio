@@ -42,15 +42,18 @@
 }
 
 .closeButton > button {
-  height: 32px;
-  width: 32px;
+  height: 37px;
+  width: 37px;
+  min-width: 0;
+  min-height: 0;
   position: absolute;
-  top: 11px;
+  top: 10px;
   right: 0;
   z-index: 1001;
 }
 
 .tabs {
+  font-family: var(--font-family);
   height: 100%;
   width: 100%;
   display: flex;
@@ -62,7 +65,7 @@
   flex-shrink: 0;
 }
 
-.tabs [class*='tabcontent'] {
+.tabs [class*='tabs__content'] {
   min-height: 0;
   flex: 1;
   padding: 0;

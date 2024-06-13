@@ -91,7 +91,7 @@ describe('NavBar', () => {
     });
 
     await userEvent.click(screen.getByRole('combobox', { name: /Språk/i }));
-    const en = screen.getByText(/Engelsk/i, { selector: '[role=option]' });
+    const en = screen.getByRole('option', { name: /engelsk/i });
     await userEvent.click(en);
 
     // Language now changed, so the value should be the language name in the selected language
@@ -112,8 +112,8 @@ describe('NavBar', () => {
     });
 
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
-    screen.getByRole('combobox', { name: /Velg språk test/i });
-    screen.getByText(/Norsk test/i, { selector: '[role=option]' });
-    screen.getByText(/Engelsk test/i, { selector: '[role=option]' });
+    await userEvent.click(screen.getByRole('combobox', { name: /Velg språk test/i }));
+    screen.getByRole('option', { name: /norsk test/i });
+    screen.getByRole('option', { name: /engelsk test/i });
   });
 });

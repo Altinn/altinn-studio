@@ -24,11 +24,10 @@ export const CheckboxContainerComponent = ({ node, isValid, overrideDisplay }: I
     options: calculatedOptions,
     isFetching,
     setData,
-    current,
-    currentStringy,
+    selectedValues,
   } = useGetOptions({
-    valueType: 'multi',
     ...node.item,
+    valueType: 'multi',
     node,
   });
 
@@ -72,7 +71,7 @@ export const CheckboxContainerComponent = ({ node, isValid, overrideDisplay }: I
         hideLegend={overrideDisplay?.renderLegend === false}
         error={!isValid}
         aria-label={ariaLabel}
-        value={currentStringy}
+        value={selectedValues}
         data-testid='checkboxes-fieldset'
       >
         {calculatedOptions.map((option) => (
@@ -82,9 +81,11 @@ export const CheckboxContainerComponent = ({ node, isValid, overrideDisplay }: I
             option={option}
             hideLabel={hideLabel}
             alertOnChange={alertOnChange}
-            checked={current.includes(option)}
+            checked={selectedValues.includes(option.value)}
             setChecked={(isChecked) => {
-              const newData = isChecked ? [...current, option] : current.filter((o) => o !== option);
+              const newData = isChecked
+                ? [...selectedValues, option.value]
+                : selectedValues.filter((o) => o !== option.value);
               setData(newData);
             }}
           />

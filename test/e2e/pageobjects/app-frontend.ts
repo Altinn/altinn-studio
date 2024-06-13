@@ -223,6 +223,7 @@ export class AppFrontend {
     mainGroupSummaryContent: '#summary-mainGroup-0',
     mainGroupTableBody: '#group-mainGroup-table-body',
     options: '#reduxOptions',
+    optionsDynamic: '#reduxOptions-expressions',
     hideRepeatingGroupRow: '#hideRepeatingGroupRow',
     popOverDeleteButton: '[data-testid="warning-popover-delete-button"]',
     popOverCancelButton: '[data-testid="warning-popover-cancel-button"]',

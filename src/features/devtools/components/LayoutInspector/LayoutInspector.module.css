@@ -141,10 +141,12 @@
 }
 
 .closeButton > button {
-  height: 32px;
-  width: 32px;
+  height: 37px;
+  width: 37px;
+  min-width: 0;
+  min-height: 0;
   position: absolute;
-  top: 1px;
+  top: 0;
   right: 0;
   z-index: 1001;
 }

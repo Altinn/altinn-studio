@@ -1,3 +1,4 @@
 .checkboxWrapper > div > div {
-  display: inline-block;
+  display: inline-grid;
+  margin-right: 1rem;
 }

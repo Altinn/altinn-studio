@@ -37,10 +37,7 @@ export const Caption = ({
       {...rest}
       className={cn(classes.tableCaption, className)}
     >
-      <Label
-        as='div'
-        className={classes.captionTitle}
-      >
+      <Label className={classes.captionTitle}>
         {title}
         <RequiredIndicator
           required={required}

@@ -70,10 +70,8 @@ function testConfirmationPage() {
 
   cy.snapshot('confirm');
 
-  // TODO: Enable this when it doesn't break custom receipt. It would be nice to make sure refreshing on a confirm step
-  // restores all state and we're not stuck in any way here.
-  // cy.reloadAndWait();
-  // cy.get(appFrontend.confirm.container).should('be.visible');
+  cy.reloadAndWait();
+  cy.get(appFrontend.confirm.container).should('be.visible');
 
   cy.get(appFrontend.confirm.sendIn).should('be.visible');
   cy.url().then((url) => {

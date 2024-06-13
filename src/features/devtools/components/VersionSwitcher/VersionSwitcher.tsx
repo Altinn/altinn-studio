@@ -1,14 +1,14 @@
 import React from 'react';
 
-import { LegacySelect } from '@digdir/design-system-react';
-import { Button, Fieldset, Spinner } from '@digdir/designsystemet-react';
+import { Button, Combobox, Fieldset, Spinner } from '@digdir/designsystemet-react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
+import comboboxClasses from 'src/styles/combobox.module.css';
 import { appFrontendCDNPath, appPath, frontendVersionsCDN } from 'src/utils/urls/appUrlHelper';
 
 export const VersionSwitcher = () => {
-  const [selectedVersion, setSelectedVersion] = React.useState<string>('');
+  const [selectedVersion, setSelectedVersion] = React.useState<string | undefined>(undefined);
   const {
     data: versions,
     isLoading: isVersionsLoading,
@@ -35,12 +35,14 @@ export const VersionSwitcher = () => {
   });
 
   const onClick = () => {
-    const newDoc = html
-      .replace(/src=".*\/altinn-app-frontend.js"/, `src="${selectedVersion}/altinn-app-frontend.js"`)
-      .replace(/href=".*\/altinn-app-frontend.css"/, `href="${selectedVersion}/altinn-app-frontend.css"`);
-    document.open();
-    document.write(newDoc);
-    document.close();
+    if (selectedVersion) {
+      const newDoc = html
+        .replace(/src=".*\/altinn-app-frontend.js"/, `src="${selectedVersion}/altinn-app-frontend.js"`)
+        .replace(/href=".*\/altinn-app-frontend.css"/, `href="${selectedVersion}/altinn-app-frontend.css"`);
+      document.open();
+      document.write(newDoc);
+      document.close();
+    }
   };
 
   if (isVersionsLoading || isHtmlLoading || !versions) {
@@ -56,11 +58,22 @@ export const VersionSwitcher = () => {
       legend='Frontend versjon'
       style={{ width: 250 }}
     >
-      <LegacySelect
-        value={selectedVersion}
-        options={versions}
-        onChange={(value) => setSelectedVersion(value)}
-      />
+      <Combobox
+        size='sm'
+        value={selectedVersion ? [selectedVersion] : []}
+        onValueChange={(values) => setSelectedVersion(values.at(0))}
+        className={comboboxClasses.container}
+      >
+        {versions.map((version) => (
+          <Combobox.Option
+            key={version.value}
+            value={version.value}
+            displayValue={version.label}
+          >
+            {version.label}
+          </Combobox.Option>
+        ))}
+      </Combobox>
       {selectedVersion && <span>Last inn siden på nytt for å gå tilbake til opprinnelig versjon.</span>}
       <Button
         id='version-switcher-button'

@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 
 type ChangeFn = (...args: any[]) => any;
 export interface AlertOnChange<Fn extends ChangeFn> {
@@ -7,6 +8,7 @@ export interface AlertOnChange<Fn extends ChangeFn> {
   handleChange: Fn;
   confirmChange: () => void;
   cancelChange: () => void;
+  alertMessage: ReactNode;
 }
 
 /**
@@ -21,9 +23,11 @@ export function useAlertOnChange<Fn extends ChangeFn>(
   enabled: boolean,
   onChange: Fn,
   shouldAlert?: (...args: Parameters<Fn>) => boolean,
+  generateMessage?: (...args: Parameters<Fn>) => ReactNode,
 ): AlertOnChange<Fn> {
-  const [alertOpen, setAlertOpen] = useState(false);
-  const argsRef = useRef<any[]>();
+  const [alertOpen, _setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState<ReactNode>('');
+  const argsRef = useRef<Parameters<Fn>>();
 
   const handleChange = useCallback(
     (...args: Parameters<Fn>) => {
@@ -34,16 +38,20 @@ export function useAlertOnChange<Fn extends ChangeFn>(
           event.preventDefault();
         }
         argsRef.current = args;
-        setAlertOpen(true);
+        if (generateMessage) {
+          setAlertMessage(generateMessage(...args));
+        }
+        _setAlertOpen(true);
       } else {
         onChange(...args);
       }
     },
-    [enabled, onChange, shouldAlert],
+    [enabled, generateMessage, onChange, shouldAlert],
   ) as Fn;
 
   const confirmChange = useCallback(() => {
-    setAlertOpen(false);
+    _setAlertOpen(false);
+    setAlertMessage('');
     if (argsRef.current) {
       onChange(...argsRef.current);
     }
@@ -52,25 +60,27 @@ export function useAlertOnChange<Fn extends ChangeFn>(
 
   const cancelChange = useCallback(() => {
     argsRef.current = undefined;
-    setAlertOpen(false);
+    _setAlertOpen(false);
+    setAlertMessage('');
   }, []);
 
   // Prevent the alert from opening from the outside
   // In that case there will be no event to pass through
   // Also make sure if the alert is closed from the outside
   // that the args are cleared
-  const _setAlertOpen = useCallback((open: boolean) => {
+  const setAlertOpen = useCallback((open: boolean) => {
     if (!open) {
       argsRef.current = undefined;
-      setAlertOpen(false);
+      _setAlertOpen(false);
     }
   }, []);
 
   return {
     alertOpen,
-    setAlertOpen: _setAlertOpen,
+    setAlertOpen,
     handleChange,
     confirmChange,
     cancelChange,
+    alertMessage,
   };
 }

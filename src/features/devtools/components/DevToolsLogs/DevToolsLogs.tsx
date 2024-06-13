@@ -82,7 +82,8 @@ export const DevToolsLogs = () => {
         <Button
           onClick={() => toggleShow('error')}
           size='small'
-          color={showLevels.error ? 'second' : 'inverted'}
+          color='second'
+          variant={showLevels.error ? 'primary' : 'secondary'}
           icon={true}
         >
           <XMarkOctagonFillIcon
@@ -93,7 +94,8 @@ export const DevToolsLogs = () => {
         <Button
           onClick={() => toggleShow('warn')}
           size='small'
-          color={showLevels.warn ? 'second' : 'inverted'}
+          color='second'
+          variant={showLevels.warn ? 'primary' : 'secondary'}
           icon={true}
         >
           <ExclamationmarkTriangleFillIcon
@@ -104,7 +106,8 @@ export const DevToolsLogs = () => {
         <Button
           onClick={() => toggleShow('info')}
           size='small'
-          color={showLevels.info ? 'second' : 'inverted'}
+          color='second'
+          variant={showLevels.info ? 'primary' : 'secondary'}
           icon={true}
         >
           <InformationSquareFillIcon

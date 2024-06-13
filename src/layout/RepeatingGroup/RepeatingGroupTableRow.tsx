@@ -390,7 +390,6 @@ const DeleteElement = ({
     <Button
       variant='tertiary'
       color='danger'
-      iconPlacement='right'
       size='small'
       disabled={isDeletingRow}
       onClick={() => handleDelete(uuid)}

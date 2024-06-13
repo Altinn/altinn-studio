@@ -40,24 +40,22 @@ Cypress.Commands.add('dsUncheck', { prevSubject: true }, (subject: JQueryWithSel
 Cypress.Commands.add('waitUntilSaved', () => {
   // If the data-unsaved-changes attribute does not exist, the page is not in a data/form state, and we should not
   // wait for it to be saved.
-  cy.get('body').then(($body) => {
-    if ($body.data('unsaved-changes') === undefined) {
-      cy.log('Not in a data task/form, no need to wait for save');
-    } else {
-      cy.get('body').should('have.attr', 'data-unsaved-changes', 'false');
-    }
-  });
+  cy.get('body').should('not.have.attr', 'data-unsaved-changes', 'true');
 });
 
 Cypress.Commands.add('dsSelect', (selector, value) => {
   cy.log(`Selecting ${value} in ${selector}`);
+  // In case the option is dynamic, wait for save and progressbars to go away, otherwise the component could rerender after opening, causing it to close again
+  cy.waitUntilSaved();
+  cy.findByRole('progressbar').should('not.exist');
+
   cy.get(selector).should('not.be.disabled');
   cy.get(selector).click();
 
   // It is tempting to just use findByRole('option', { name: value }) here, but that's flakier than using findByText()
   // as it never retries if the element re-renders. More information here:
   // https://github.com/testing-library/cypress-testing-library/issues/205#issuecomment-974688283
-  cy.get('[id^="fds-select-"] [aria-expanded=true]').findByText(value).click();
+  cy.get('[class*="fds-combobox__option"]').findByText(value).click();
 
   cy.get('body').click();
 });

@@ -48,47 +48,39 @@ describe('ParagraphComponent', () => {
     expect(screen.getByTestId(`paragraph-component-${id}`).children[0].tagName).toEqual('H3');
   });
 
-  it('should render in a <span> when text content is HTML', async () => {
-    const id = 'mock-id';
-    await render({
-      component: {
-        id,
-        textResourceBindings: {
-          title: 'Hello world with line<br>break',
-        },
-      },
-    });
-    // eslint-disable-next-line testing-library/no-node-access
-    expect(screen.getByTestId(`paragraph-component-${id}`).children[0].tagName).toEqual('SPAN');
-  });
-
-  it('should render as a <p> when text content contains inline elements', async () => {
-    [
+  it('should render as a single <p> when text content contains inline elements', async () => {
+    const cases = [
       { id: 'mock-id1', tag: 'strong' },
       { id: 'mock-id2', tag: 'i' },
       { id: 'mock-id3', tag: 'a' },
-      { id: 'mock-id4', tag: 'br' },
       { id: 'mock-id5' },
-    ].forEach(async ({ id, tag }) => {
+    ];
+
+    for (const { id, tag } of cases) {
       await render({
         component: {
           id,
           textResourceBindings: {
-            title: tag ? `Hello world with <${tag}>inline element</${tag}> text` : 'A simple string',
+            title: tag ? `Hello world <br>with <${tag}>inline element</${tag}> text` : 'A simple string',
           },
         },
       });
-      expect(screen.getByTestId(`paragraph-component-${id}`).tagName).toEqual('P');
-    });
+      // eslint-disable-next-line testing-library/no-node-access
+      expect(screen.getByTestId(`paragraph-component-${id}`).children).toHaveLength(1);
+      // eslint-disable-next-line testing-library/no-node-access
+      expect(screen.getByTestId(`paragraph-component-${id}`).children[0].tagName).toEqual('P');
+    }
   });
 
-  it('should render as a <div> when text content contains block-level elements', async () => {
-    [
+  it('should render block-level elements correctly', async () => {
+    const cases = [
       { id: 'mock-id1', tag: 'div' },
       { id: 'mock-id2', tag: 'p' },
       { id: 'mock-id3', tag: 'h1' },
       { id: 'mock-id4', tag: 'ol' },
-    ].forEach(async ({ id, tag }) => {
+    ];
+
+    for (const { id, tag } of cases) {
       await render({
         component: {
           id,
@@ -97,8 +89,15 @@ describe('ParagraphComponent', () => {
           },
         },
       });
-      expect(screen.getByTestId(`paragraph-component-${id}`).tagName).toEqual('DIV');
-    });
+      // eslint-disable-next-line testing-library/no-node-access
+      expect(screen.getByTestId(`paragraph-component-${id}`).children).toHaveLength(3);
+      // eslint-disable-next-line testing-library/no-node-access
+      expect(screen.getByTestId(`paragraph-component-${id}`).children[0].tagName).toEqual('P');
+      // eslint-disable-next-line testing-library/no-node-access
+      expect(screen.getByTestId(`paragraph-component-${id}`).children[1].tagName).toEqual(tag.toUpperCase());
+      // eslint-disable-next-line testing-library/no-node-access
+      expect(screen.getByTestId(`paragraph-component-${id}`).children[2].tagName).toEqual('P');
+    }
   });
 });
 

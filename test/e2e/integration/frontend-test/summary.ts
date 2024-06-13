@@ -17,10 +17,7 @@ describe('Summary', () => {
     });
 
     cy.goto('changename');
-
-    //Fixing flaky test by making sure that options are loaded before testing them in the summary
-    // Make sure we wait until the option is visible, as it's not instant
-    cy.get('[role=option][value="nordmann"]').should('exist');
+    cy.waitForLoad();
 
     cy.gotoNavPage('summary');
 
@@ -270,8 +267,8 @@ describe('Summary', () => {
     cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.addNewItem).click();
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
+    cy.waitForLoad();
     cy.get(appFrontend.group.row(4).nestedGroup.row(0).nestedSource).should('have.value', 'Altinn');
-    cy.get('[role=option][value="nordmann"]').should('exist');
 
     cy.get(appFrontend.group.saveSubGroup).click();
     cy.get(appFrontend.group.saveMainGroup).click();

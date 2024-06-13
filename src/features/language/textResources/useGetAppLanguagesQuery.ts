@@ -7,5 +7,6 @@ export function useGetAppLanguageQuery() {
   return useQuery({
     queryKey: ['fetchAppLanguages'],
     queryFn: () => fetchAppLanguages(),
+    select: (appLanguages) => appLanguages.map((lang) => lang.language),
   });
 }

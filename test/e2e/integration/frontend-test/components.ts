@@ -363,22 +363,16 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.reasons).findByRole('dialog').should('contain.text', 'Dette er en hjelpetekst.');
   });
 
-  // Function to intercept layout and set alertOnChange to true for a component
-  const setupComponentWithAlert = (componentId: string) => {
+  it('should display alert on changing radio button', () => {
     cy.interceptLayout('changename', (component) => {
-      if (component.id === componentId && (component.type === 'Checkboxes' || component.type === 'RadioButtons')) {
+      if (component.id === 'reason' && component.type === 'RadioButtons') {
         component.alertOnChange = true;
       }
     });
-    cy.goto('changename');
-    if (componentId === 'reason' || componentId === 'confirmChangeName') {
-      cy.get(appFrontend.changeOfName.newFirstName).type('Per');
-      cy.get(appFrontend.changeOfName.newFirstName).blur();
-    }
-  };
 
-  it('should display alert on changing radio button', () => {
-    setupComponentWithAlert('reason');
+    cy.goto('changename');
+    cy.get(appFrontend.changeOfName.newFirstName).type('Per');
+    cy.get(appFrontend.changeOfName.newFirstName).blur();
     cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
 
     cy.findByRole('radio', { name: /Slektskap/ }).should('be.checked');
@@ -394,8 +388,88 @@ describe('UI Components', () => {
     cy.findByRole('radio', { name: /Gårdsbruk/ }).should('be.checked');
   });
 
+  it('should display alert on changing dropdown', () => {
+    cy.interceptLayout('changename', (component) => {
+      if (component.id === 'sources' && component.type === 'Dropdown') {
+        component.alertOnChange = true;
+      }
+    });
+
+    cy.goto('changename');
+    cy.waitForLoad();
+    cy.get(appFrontend.changeOfName.sources).should('have.value', 'Altinn');
+
+    cy.get(appFrontend.changeOfName.sources).click();
+    cy.findByRole('option', { name: /digitaliseringsdirektoratet/i }).click();
+    cy.findByRole('dialog').should('contain.text', 'Er du sikker på at du vil endre til Digitaliseringsdirektoratet?');
+    cy.get(appFrontend.changeOfName.popOverCancelButton).click();
+    cy.get(appFrontend.changeOfName.sources).should('have.value', 'Altinn');
+
+    cy.get(appFrontend.changeOfName.sources).click();
+    cy.findByRole('option', { name: /digitaliseringsdirektoratet/i }).click();
+    cy.findByRole('dialog').should('contain.text', 'Er du sikker på at du vil endre til Digitaliseringsdirektoratet?');
+    cy.get(appFrontend.changeOfName.popOverDeleteButton).click();
+    cy.get(appFrontend.changeOfName.sources).should('have.value', 'Digitaliseringsdirektoratet');
+  });
+
+  it('should display alert on changing multiple-select', () => {
+    cy.interceptLayout('changename', (component) => {
+      if (component.id === 'colorsCheckboxes' && component.type === 'Checkboxes') {
+        (component as any).type = 'MultipleSelect';
+        component.alertOnChange = true;
+      }
+    });
+
+    cy.goto('changename');
+    cy.waitForLoad();
+    cy.findByRole('checkbox', { name: /label databindings/i }).dsCheck();
+    cy.gotoNavPage('label-data-bindings');
+
+    cy.findByRole('combobox', { name: /velg noen farger/i }).click();
+    cy.findByRole('option', { name: /blå/i }).click();
+    cy.findByRole('option', { name: /blå/i }).should('have.attr', 'aria-selected', 'true');
+    cy.findByRole('option', { name: /cyan/i }).click();
+    cy.findByRole('option', { name: /cyan/i }).should('have.attr', 'aria-selected', 'true');
+    cy.findByRole('option', { name: /grønn/i }).click();
+    cy.findByRole('option', { name: /grønn/i }).should('have.attr', 'aria-selected', 'true');
+    cy.findByRole('option', { name: /gul/i }).click();
+    cy.findByRole('option', { name: /gul/i }).should('have.attr', 'aria-selected', 'true');
+
+    cy.findByRole('button', { name: /slett grønn/i, hidden: true }).click();
+    cy.findByRole('dialog').should('contain.text', 'Er du sikker på at du vil slette Grønn?');
+    cy.get(appFrontend.changeOfName.popOverCancelButton).click();
+    cy.findByRole('button', { name: /slett grønn/i, hidden: true }).should('be.visible');
+
+    cy.findByRole('button', { name: /slett gul/i, hidden: true }).click();
+    cy.findByRole('dialog').should('contain.text', 'Er du sikker på at du vil slette Gul?');
+    cy.get(appFrontend.changeOfName.popOverDeleteButton).click();
+    cy.findByRole('button', { name: /slett gul/i, hidden: true }).should('not.exist');
+
+    cy.findByRole('button', { name: /fjern alle valgte/i, hidden: true }).click();
+    cy.findByRole('dialog').should('contain.text', 'Er du sikker på at du vil slette Blå, Cyan, Grønn?');
+    cy.get(appFrontend.changeOfName.popOverCancelButton).click();
+    cy.findByRole('button', { name: /slett blå/i, hidden: true }).should('be.visible');
+    cy.findByRole('button', { name: /slett cyan/i, hidden: true }).should('be.visible');
+    cy.findByRole('button', { name: /slett grønn/i, hidden: true }).should('be.visible');
+
+    cy.findByRole('button', { name: /fjern alle valgte/i, hidden: true }).click();
+    cy.findByRole('dialog').should('contain.text', 'Er du sikker på at du vil slette Blå, Cyan, Grønn?');
+    cy.get(appFrontend.changeOfName.popOverDeleteButton).click();
+    cy.findByRole('button', { name: /slett blå/i, hidden: true }).should('not.exist');
+    cy.findByRole('button', { name: /slett cyan/i, hidden: true }).should('not.exist');
+    cy.findByRole('button', { name: /slett grønn/i, hidden: true }).should('not.exist');
+  });
+
   it('should display alert when unchecking checkbox', () => {
-    setupComponentWithAlert('confirmChangeName');
+    cy.interceptLayout('changename', (component) => {
+      if (component.id === 'confirmChangeName' && component.type === 'Checkboxes') {
+        component.alertOnChange = true;
+      }
+    });
+
+    cy.goto('changename');
+    cy.get(appFrontend.changeOfName.newFirstName).type('Per');
+    cy.get(appFrontend.changeOfName.newFirstName).blur();
     cy.get(appFrontend.changeOfName.confirmChangeName).find('label').dblclick();
     cy.get(appFrontend.changeOfName.popOverCancelButton).click();
     cy.get(appFrontend.changeOfName.reasons).should('be.visible');
@@ -405,7 +479,13 @@ describe('UI Components', () => {
   });
 
   it('should display alert unchecking checkbox in checkbox group', () => {
-    setupComponentWithAlert('innhentet-studie');
+    cy.interceptLayout('changename', (component) => {
+      if (component.id === 'innhentet-studie' && component.type === 'Checkboxes') {
+        component.alertOnChange = true;
+      }
+    });
+
+    cy.goto('changename');
     cy.navPage('grid').click();
     // dialog pops up when unchecking a checkbox
     cy.get('[data-testid="checkboxes-fieldset"]').find('label').contains('Ja').dblclick();

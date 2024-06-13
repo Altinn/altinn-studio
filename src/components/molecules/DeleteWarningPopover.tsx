@@ -1,7 +1,6 @@
 import React from 'react';
 
-import { LegacyPopover } from '@digdir/design-system-react';
-import { Button } from '@digdir/designsystemet-react';
+import { Button, Popover } from '@digdir/designsystemet-react';
 
 import classes from 'src/components/molecules/DeleteWarningPopover.module.css';
 import { Lang } from 'src/features/language/Lang';
@@ -28,35 +27,36 @@ export function DeleteWarningPopover({
   setOpen,
 }: IDeleteWarningPopover) {
   return (
-    <LegacyPopover
+    <Popover
       variant='warning'
       placement={placement}
-      trigger={children}
       open={open}
-      className={classes.popover}
       onOpenChange={() => setOpen(!open)}
     >
-      <div>{messageText}</div>
-      <div className={classes.popoverButtonContainer}>
-        <Button
-          data-testid='warning-popover-delete-button'
-          variant='primary'
-          size='small'
-          color='danger'
-          onClick={onPopoverDeleteClick}
-        >
-          {deleteButtonText}
-        </Button>
-        <Button
-          data-testid='warning-popover-cancel-button'
-          variant='tertiary'
-          size='small'
-          color='second'
-          onClick={onCancelClick}
-        >
-          <Lang id={'general.cancel'} />
-        </Button>
-      </div>
-    </LegacyPopover>
+      <Popover.Trigger asChild>{children}</Popover.Trigger>
+      <Popover.Content className={classes.popover}>
+        <div>{messageText}</div>
+        <div className={classes.popoverButtonContainer}>
+          <Button
+            data-testid='warning-popover-delete-button'
+            variant='primary'
+            size='small'
+            color='danger'
+            onClick={onPopoverDeleteClick}
+          >
+            {deleteButtonText}
+          </Button>
+          <Button
+            data-testid='warning-popover-cancel-button'
+            variant='tertiary'
+            size='small'
+            color='second'
+            onClick={onCancelClick}
+          >
+            <Lang id={'general.cancel'} />
+          </Button>
+        </div>
+      </Popover.Content>
+    </Popover>
   );
 }

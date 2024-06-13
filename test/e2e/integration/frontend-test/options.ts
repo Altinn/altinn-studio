@@ -10,14 +10,10 @@ describe('Options', () => {
     // Case: options are dynamically refetched based on what the user selects as source
     cy.get(appFrontend.changeOfName.sources).should('be.visible');
 
-    // Make sure we wait until the option is visible, as it's not instant
-    cy.get('[role=option][value="nordmann"]').should('exist');
-
     cy.dsSelect(appFrontend.changeOfName.reference, 'Ola Nordmann');
     cy.get(appFrontend.changeOfName.reference).should('have.value', 'Ola Nordmann');
 
     //Secure options
-    cy.get(appFrontend.changeOfName.reference2).get('[role=option][value=1]').should('exist');
     cy.dsSelect(appFrontend.changeOfName.reference2, 'Ole');
     cy.get(appFrontend.changeOfName.reference2).should('have.value', 'Ole');
 
@@ -54,7 +50,7 @@ describe('Options', () => {
     cy.addItemToGroup(1, 2, 'automation');
     cy.addItemToGroup(3, 4, 'altinn');
 
-    cy.findAllByRole('combobox', { name: /Velg/ }).last().click();
+    cy.get(appFrontend.group.optionsDynamic).click();
 
     /**
      * This tests that a Dropdown which has added dynamic expressions for the label property
@@ -141,7 +137,6 @@ describe('Options', () => {
     cy.goto('changename');
 
     cy.get(appFrontend.changeOfName.sources).should('be.visible');
-    cy.get('[role=option][value="nordmann"]').should('exist');
 
     cy.dsSelect(appFrontend.changeOfName.reference, 'Ola Nordmann');
     cy.get(appFrontend.changeOfName.reference).should('have.value', 'Ola Nordmann');
@@ -155,7 +150,6 @@ describe('Options', () => {
 
     cy.dsSelect(appFrontend.changeOfName.sources, 'Digitaliseringsdirektoratet');
     cy.get(appFrontend.changeOfName.sources).should('have.value', 'Digitaliseringsdirektoratet');
-    cy.get('[role=option][value="salt"]').should('exist');
     cy.get(appFrontend.changeOfName.reference).should('not.have.value', 'Ola Nordmann');
 
     cy.gotoNavPage('summary');
@@ -178,14 +172,12 @@ describe('Options', () => {
     cy.goto('changename');
 
     cy.get(appFrontend.changeOfName.sources).should('be.visible');
-    cy.get('[role=option][value="nordmann"]').should('exist');
 
     cy.dsSelect(appFrontend.changeOfName.reference, 'Ola Nordmann');
     cy.get(appFrontend.changeOfName.reference).should('have.value', 'Ola Nordmann');
 
     cy.dsSelect(appFrontend.changeOfName.sources, 'Digitaliseringsdirektoratet');
     cy.get(appFrontend.changeOfName.sources).should('have.value', 'Digitaliseringsdirektoratet');
-    cy.get('[role=option][value="salt"]').should('exist');
 
     cy.get(appFrontend.changeOfName.reference).should('have.value', 'Fortsatt Ola Nordmann');
   });

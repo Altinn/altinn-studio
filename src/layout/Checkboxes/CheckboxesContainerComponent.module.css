@@ -2,15 +2,11 @@
   No longer supported with horizontal layout in design system.
   Possible breaking change if we remove this option of styling.
   */
-.horizontal div {
+.horizontal > div {
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;
   gap: var(--fds-spacing-2);
-}
-
-.horizontal > div > div {
-  display: block;
 }
 
 .checkboxGroup div label {

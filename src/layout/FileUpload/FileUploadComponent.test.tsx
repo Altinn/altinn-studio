@@ -152,7 +152,8 @@ async function selectTag(tagName: string = 'Tag 1') {
   await openEdit();
   await userEvent.click(screen.getByRole('combobox'));
   await userEvent.click(screen.getByText(tagName));
-  await userEvent.click(screen.getByRole('button', { name: 'Lagre' }));
+  const saveButton = await waitFor(() => screen.findByRole('button', { name: 'Lagre' }));
+  await userEvent.click(saveButton);
 }
 
 describe('FileUploadWithTagComponent', () => {

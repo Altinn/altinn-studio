@@ -58,6 +58,8 @@ export function nb(): FixedLanguageList {
       back_to_summary: 'Tilbake til oppsummering',
       alert_confirm: 'Bekreft',
       checkbox_alert: 'Er du sikker på at du vil fjerne avkrysningen?',
+      multi_select_alert: 'Er du sikker på at du vil slette **{0}**?',
+      dropdown_alert: 'Er du sikker på at du vil endre til **{0}**?',
       error_report_header: 'Du må rette disse feilene før du kan gå videre',
       error_required: 'Du må fylle ut {0}',
       file_upload_valid_file_format_all: 'alle',
@@ -101,6 +103,8 @@ export function nb(): FixedLanguageList {
       houseNumber: 'Bolignummer',
       postPlace: 'Poststed',
       zipCode: 'Postnr',
+      no_options_found: 'Fant ingen treff',
+      clear_selection: 'Fjern alle valgte',
     },
     navigation: {
       main: 'Appnavigasjon',
