@@ -15,6 +15,16 @@ cp config.sample.ini config.ini
 Make the appropriate changes.
 The password needs to be a token from Altinn Studio with `Read` permissions for `organization` and `repository` scope.
 
+Example
+```ini
+username=martinothamar
+password=8e************************
+directory=C:\code\digdir\altinn\analysis
+clear_directory=true
+```
+
+This would target Altinn Studio prod by default.
+
 ### Run
 
 Go into CLI directory:
