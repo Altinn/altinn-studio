@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useTreeViewRootContext } from '../hooks/useTreeViewRootContext';
 import { useTreeViewItemContext } from '../hooks/useTreeViewItemContext';
 import {
+  findDirectChildIds,
   findFirstChildId,
   findFirstNodeId,
   findLastVisibleNodeId,
@@ -44,6 +45,21 @@ export const StudioTreeViewItem = ({
     useTreeViewRootContext();
   const { level } = useTreeViewItemContext();
   const treeItemRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (nodeId === selectedId) {
+      setOpen(true);
+    }
+    if (children) {
+      const childIds = findDirectChildIds(rootId, nodeId);
+      childIds.forEach((id) => {
+        if (id === selectedId) {
+          setOpen(true);
+          console.log(`Opening ${nodeId} because child ${id} is selected`);
+        }
+      });
+    }
+  }, [children, nodeId, rootId, selectedId]);
 
   useEffect(() => {
     if (focusedId === nodeId) {
