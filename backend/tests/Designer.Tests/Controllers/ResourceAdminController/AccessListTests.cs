@@ -110,7 +110,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             string uri = $"{VersionPrefix}/ttd/resources/accesslist/test-liste?env=testEnv";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, uri);
 
-            ResourceRegistryMock.Setup(r => r.DeleteAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(HttpStatusCode.NoContent);
+            ResourceRegistryMock.Setup(r => r.DeleteAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(new StatusCodeResult(201));
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
