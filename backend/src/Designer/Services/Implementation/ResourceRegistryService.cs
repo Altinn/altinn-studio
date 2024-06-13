@@ -468,7 +468,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return new StatusCodeResult(412);
             }
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsAsync<AccessList>();
+            AccessList resonseContent = await response.Content.ReadAsAsync<AccessList>();
+            resonseContent.Etag = response.Headers.ETag?.ToString();
+            return resonseContent;
         }
 
         public async Task<ActionResult> AddAccessListMembers(
