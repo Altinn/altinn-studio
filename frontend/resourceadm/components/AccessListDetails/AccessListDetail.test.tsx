@@ -116,6 +116,26 @@ describe('AccessListDetail', () => {
     expect(mockedNavigate).toHaveBeenCalledWith('/listadmin');
   });
 
+  it('should show error message if call to delete list returns http status code 412', async () => {
+    const user = userEvent.setup();
+    const deleteMock = jest.fn().mockImplementation(() =>
+      Promise.reject({
+        response: { status: ServerCodes.PreconditionFailed },
+      }),
+    );
+    renderAccessListDetail({}, { deleteAccessList: deleteMock });
+
+    const deleteListButton = screen.getByText(textMock('resourceadm.listadmin_delete_list'));
+    await user.click(deleteListButton);
+
+    const confirmDeleteButton = screen.getAllByText(textMock('resourceadm.listadmin_delete_list'));
+    await user.click(confirmDeleteButton[0]);
+
+    expect(
+      screen.getByText(textMock('resourceadm.listadmin_list_sim_update_error')),
+    ).toBeInTheDocument();
+  });
+
   it('should close modal on cancel delete', async () => {
     const user = userEvent.setup();
     renderAccessListDetail();
