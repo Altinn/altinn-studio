@@ -415,9 +415,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         // RRR write
-        public async Task<AccessList> CreateAccessList(string org, string env, AccessList accessList)
+        public async Task<ActionResult<AccessList>> CreateAccessList(string org, string env, AccessList accessList)
         {
-            CreateAccessListModel payload = new CreateAccessListModel()
+            CreateAccessListModel payload = new()
             {
                 Name = accessList.Name,
                 Description = accessList.Description
@@ -425,22 +425,30 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string serviceResourceString = JsonSerializer.Serialize(payload, _serializerOptions);
             string createUrl = $"/{org}/{accessList.Identifier}";
             HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Put, createUrl, serviceResourceString);
+            request.Headers.IfNoneMatch.ParseAdd("*");
 
             HttpResponseMessage response = await _httpClient.SendAsync(request);
+            if (response.StatusCode == HttpStatusCode.PreconditionFailed)
+            {
+                return new StatusCodeResult(412);
+            }
             response.EnsureSuccessStatusCode();
             AccessList createdList = await response.Content.ReadAsAsync<AccessList>();
             createdList.Etag = response.Headers.ETag?.ToString();
             return createdList;
         }
 
-        public async Task<HttpStatusCode> DeleteAccessList(string org, string identifier, string env)
+        public async Task<ActionResult> DeleteAccessList(string org, string identifier, string env, string etag)
         {
             string listUrl = $"/{org}/{identifier}";
-            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Delete, listUrl);
-
+            HttpRequestMessage request = await CreateAccessListRequest(env, HttpMethod.Delete, listUrl, "", etag);
             HttpResponseMessage deleteAccessListResponse = await _httpClient.SendAsync(request);
+            if (deleteAccessListResponse.StatusCode == HttpStatusCode.PreconditionFailed)
+            {
+                return new StatusCodeResult(412);
+            }
             deleteAccessListResponse.EnsureSuccessStatusCode();
-            return deleteAccessListResponse.StatusCode;
+            return new StatusCodeResult((int)deleteAccessListResponse.StatusCode);
         }
 
         public async Task<ActionResult<AccessList>> UpdateAccessList(
@@ -607,7 +615,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
             if (!string.IsNullOrEmpty(eTag))
             {
-                request.Headers.Add("If-Match", eTag);
+                request.Headers.IfMatch.ParseAdd(eTag);
             }
             request.Method = verb;
             if (serializedContent != null)

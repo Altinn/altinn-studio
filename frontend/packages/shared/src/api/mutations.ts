@@ -116,7 +116,7 @@ export const importResourceFromAltinn2 = (org: string, environment: string, code
 export const importResourceFromAltinn3 = (org: string, resourceId: string, environment: string) => post<Resource>(importResourceFromAltinn3Path(org, resourceId, environment));
 export const createAccessList = (org: string, environment: string, payload: Partial<AccessList>) => post<AccessList>(createAccessListsPath(org, environment), payload);
 export const updateAccessList = (org: string, listId: string, environment: string, payload: AccessList) => put<AccessList>(accessListPath(org, listId, environment), payload);
-export const deleteAccessList = (org: string, listId: string, environment: string) => del(accessListPath(org, listId, environment));
+export const deleteAccessList = (org: string, listId: string, environment: string, etag: string) => del(accessListPath(org, listId, environment, etag));
 export const addAccessListMember = (org: string, listId: string, environment: string, payload: AccessListOrganizationNumbers) => post<HeaderEtag, AccessListOrganizationNumbers>(accessListMemberPath(org, listId, environment), payload);
 export const removeAccessListMember = (org: string, listId: string, environment: string, payload: AccessListOrganizationNumbers) => del<HeaderEtag>(accessListMemberPath(org, listId, environment), { data: payload });
 export const addResourceAccessList = (org: string, resourceId: string, listId: string, environment: string) => post(resourceAccessListPath(org, resourceId, listId, environment));

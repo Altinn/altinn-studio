@@ -64,10 +64,14 @@ export const AccessListDetail = ({
   };
 
   const handleDelete = (): void => {
-    deleteAccessList(undefined, {
+    deleteAccessList(latestEtag, {
       onSuccess: () => {
         toast.success(t('resourceadm.listadmin_delete_list_success', { listname: listName }));
         navigate(backUrl);
+      },
+      onError: (error) => {
+        checkForEtagVersionError(error);
+        closeModal();
       },
     });
   };

@@ -54,8 +54,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/accesslist/")]
         public async Task<ActionResult<AccessList>> CreateAccessList(string org, string env, [FromBody] AccessList accessList)
         {
-            AccessList newAccessList = await _resourceRegistry.CreateAccessList(org, env, accessList);
-            return Created($"designer/api/{org}/resources/accesslist/{newAccessList.Identifier}", newAccessList);
+            return await _resourceRegistry.CreateAccessList(org, env, accessList);
         }
 
         [HttpGet]
@@ -85,10 +84,9 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpDelete]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaResourceAccessListPermission)]
         [Route("designer/api/{org}/resources/accesslist/{identifier}")]
-        public async Task<ActionResult> DeleteAccessList(string org, string identifier, string env)
+        public async Task<ActionResult> DeleteAccessList(string org, string identifier, string env, string etag)
         {
-            HttpStatusCode statusCode = await _resourceRegistry.DeleteAccessList(org, identifier, env);
-            return new StatusCodeResult(((int)statusCode));
+            return await _resourceRegistry.DeleteAccessList(org, identifier, env, etag);
         }
 
         [HttpPut]

@@ -60,7 +60,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="env">Chosen environment</param>
         /// <param name="accessList">Data for new access list. Identifier, name and description are valid properties. Members cannot be set directly on creation</param>
         /// <returns>The created access list</returns>
-        Task<AccessList> CreateAccessList(string org, string env, AccessList accessList);
+        Task<ActionResult<AccessList>> CreateAccessList(string org, string env, AccessList accessList);
 
         /// <summary>
         /// Get an access list for an organization in a given environment
@@ -106,8 +106,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Current organization</param>
         /// <param name="identifier">Access list identifier</param>
         /// <param name="env">Chosen environment</param>
+        /// <param name="etag">ETag for the list (if any)</param>
         /// <returns>HTTP status code for the operation. 200 OK if delete was successful</returns>
-        Task<HttpStatusCode> DeleteAccessList(string org, string identifier, string env);
+        Task<ActionResult> DeleteAccessList(string org, string identifier, string env, string etag);
 
         /// <summary>
         /// Updates an access list for an organization in a given environment. Will only update name and description, not list members
