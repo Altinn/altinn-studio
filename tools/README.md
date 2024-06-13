@@ -27,9 +27,11 @@ Fetch
 dotnet run -c Release -- fetch -c ../../config.ini
 ```
 
+ ![Downloading apps](img/download-progress.png)
+
 Analyze
 ```sh
 dotnet run -c Release -- analyze -c ../../config.ini
 ```
 
-### Results
+ ![Analyzing apps](img/analysis.png)
