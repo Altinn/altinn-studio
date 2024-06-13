@@ -1,6 +1,8 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Altinn.App.Core.Models.Layout.Components;
+using Altinn.App.Core.Tests.TestUtils;
 using FluentAssertions;
 using Xunit.Sdk;
 
@@ -8,10 +10,14 @@ namespace Altinn.App.Core.Tests.Models;
 
 public class PageComponentConverterTests
 {
+    private static readonly JsonSerializerOptions _jsonSerializerOptions =
+        new() { ReadCommentHandling = JsonCommentHandling.Skip, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
     [Theory]
-    [PageComponentConverterTest]
-    public void RunPageComponentConverterTest(PageComponentConverterTestModel testCase)
+    [FileNamesInFolderData("Models/page-component-converter-tests")]
+    public void RunPageComponentConverterTest(string fileName, string folder)
     {
+        var testCase = LoadData(fileName, folder);
         var exception = Record.Exception(() => JsonSerializer.Deserialize<PageComponent>(testCase.Layout));
 
         if (testCase.Valid)
@@ -29,6 +35,12 @@ public class PageComponentConverterTests
         {
             exception.Should().NotBeNull();
         }
+    }
+
+    private PageComponentConverterTestModel LoadData(string fileName, string folder)
+    {
+        var data = File.ReadAllText(Path.Join(folder, fileName));
+        return JsonSerializer.Deserialize<PageComponentConverterTestModel>(data, _jsonSerializerOptions)!;
     }
 
     private HierarchyTestModel[] GenerateTestHierarchy(GroupComponent group)
@@ -49,24 +61,6 @@ public class PageComponentConverterTests
         }
 
         return children.ToArray();
-    }
-}
-
-public class PageComponentConverterTestAttribute : DataAttribute
-{
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new() { ReadCommentHandling = JsonCommentHandling.Skip, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-
-    public override IEnumerable<object[]> GetData(MethodInfo methodInfo)
-    {
-        var files = Directory.GetFiles(Path.Join("Models", "page-component-converter-tests"));
-
-        foreach (var file in files)
-        {
-            var data = File.ReadAllText(file);
-            var testCase = JsonSerializer.Deserialize<PageComponentConverterTestModel>(data, _jsonSerializerOptions)!;
-            yield return new object[] { testCase };
-        }
     }
 }
 

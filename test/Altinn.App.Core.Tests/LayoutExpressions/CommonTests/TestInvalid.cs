@@ -1,7 +1,9 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Tests.Helpers;
+using Altinn.App.Core.Tests.TestUtils;
 using FluentAssertions;
 using Xunit.Abstractions;
 using Xunit.Sdk;
@@ -21,9 +23,10 @@ public class TestInvalid
     }
 
     [Theory]
-    [SharedTestInvalid()]
-    public void Simple_Theory(InvalidTestCase testCase)
+    [FileNamesInFolderData(["LayoutExpressions", "CommonTests", "shared-tests", "invalid"])]
+    public void Simple_Theory(string testName, string folder)
     {
+        var testCase = LoadData(testName, folder);
         _output.WriteLine($"{testCase.Filename} in {testCase.Folder}");
         _output.WriteLine(testCase.RawJson);
         _output.WriteLine(testCase.FullPath);
@@ -44,28 +47,19 @@ public class TestInvalid
         };
         act.Should().Throw<Exception>().WithMessage(testCase.ExpectsFailure);
     }
-}
 
-public class SharedTestInvalidAttribute : DataAttribute
-{
-    public override IEnumerable<object[]> GetData(MethodInfo methodInfo)
+    private static InvalidTestCase LoadData(string testName, string folder)
     {
-        var files = Directory.GetFiles(Path.Join("LayoutExpressions", "CommonTests", "shared-tests", "invalid"));
-        foreach (var file in files)
+        var data = File.ReadAllText(Path.Join(folder, testName));
+        using var document = JsonDocument.Parse(data);
+        return new InvalidTestCase()
         {
-            var data = File.ReadAllText(file);
-            using var document = JsonDocument.Parse(data);
-            var testCase = new InvalidTestCase()
-            {
-                Name = document.RootElement.GetProperty("name").GetString(),
-                ExpectsFailure = document.RootElement.GetProperty("expectsFailure").GetString(),
-                Filename = Path.GetFileName(file),
-                FullPath = file,
-                RawJson = data,
-            };
-
-            yield return new object[] { testCase };
-        }
+            Name = document.RootElement.GetProperty("name").GetString(),
+            ExpectsFailure = document.RootElement.GetProperty("expectsFailure").GetString(),
+            Filename = testName,
+            FullPath = folder,
+            RawJson = data,
+        };
     }
 }
 

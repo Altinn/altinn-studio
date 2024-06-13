@@ -1,5 +1,3 @@
-#nullable disable
-using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -12,12 +10,12 @@ using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Validation;
 using Altinn.App.Core.Tests.Helpers;
 using Altinn.App.Core.Tests.LayoutExpressions;
+using Altinn.App.Core.Tests.TestUtils;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using Xunit.Sdk;
 
 namespace Altinn.App.Core.Tests.Features.Validators.Default;
 
@@ -37,7 +35,7 @@ public class ExpressionValidatorTests
         _appMetadata
             .Setup(ar => ar.GetApplicationMetadata())
             .ReturnsAsync(new ApplicationMetadata("org/app") { DataTypes = new List<DataType>() { new() { } } });
-        _appResources.Setup(ar => ar.GetLayoutSetForTask(null)).Returns(new LayoutSet());
+        _appResources.Setup(ar => ar.GetLayoutSetForTask(It.IsAny<string>())).Returns(new LayoutSet());
         _layoutInitializer = new(MockBehavior.Strict, _appResources.Object, _frontendSettings) { CallBase = false };
         _validator = new ExpressionValidator(
             _logger.Object,
@@ -47,10 +45,32 @@ public class ExpressionValidatorTests
         );
     }
 
-    [Theory]
-    [ExpressionTest]
-    public async Task RunExpressionValidationTest(ExpressionValidationTestModel testCase)
+    private static readonly JsonSerializerOptions _jsonSerializerOptions =
+        new() { ReadCommentHandling = JsonCommentHandling.Skip, PropertyNamingPolicy = JsonNamingPolicy.CamelCase, };
+
+    public ExpressionValidationTestModel LoadData(string fileName, string folder)
     {
+        var data = File.ReadAllText(Path.Join(folder, fileName));
+        return JsonSerializer.Deserialize<ExpressionValidationTestModel>(data, _jsonSerializerOptions)!;
+    }
+
+    [Theory]
+    [FileNamesInFolderData("Features/Validators/expression-validation-tests/backend")]
+    public async Task RunExpressionValidationTestsForBackend(string fileName, string folder)
+    {
+        await RunExpressionValidationTest(fileName, folder);
+    }
+
+    [Theory]
+    [FileNamesInFolderData(["Features", "Validators", "expression-validation-tests", "shared"])]
+    public async Task RunExpressionValidationTestsForShared(string fileName, string folder)
+    {
+        await RunExpressionValidationTest(fileName, folder);
+    }
+
+    private async Task RunExpressionValidationTest(string fileName, string folder)
+    {
+        var testCase = LoadData(fileName, folder);
         var instance = new Instance();
         var dataElement = new DataElement();
 
@@ -68,7 +88,7 @@ public class ExpressionValidatorTests
             )
             .ReturnsAsync(evaluatorState);
         _appResources
-            .Setup(ar => ar.GetValidationConfiguration(null))
+            .Setup(ar => ar.GetValidationConfiguration(It.IsAny<string>()))
             .Returns(JsonSerializer.Serialize(testCase.ValidationConfig));
 
         var validationIssues = await _validator.ValidateFormData(instance, dataElement, null!, null);
@@ -91,51 +111,28 @@ public class ExpressionValidatorTests
     }
 }
 
-public class ExpressionTestAttribute : DataAttribute
-{
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new() { ReadCommentHandling = JsonCommentHandling.Skip, PropertyNamingPolicy = JsonNamingPolicy.CamelCase, };
-
-    public override IEnumerable<object[]> GetData(MethodInfo methodInfo)
-    {
-        var files = Directory
-            .GetFiles(Path.Join("Features", "Validators", "expression-validation-tests", "shared"))
-            .Concat(Directory.GetFiles(Path.Join("Features", "Validators", "expression-validation-tests", "backend")));
-
-        foreach (var file in files)
-        {
-            var data = File.ReadAllText(file);
-            ExpressionValidationTestModel testCase = JsonSerializer.Deserialize<ExpressionValidationTestModel>(
-                data,
-                _jsonSerializerOptions
-            )!;
-            yield return new object[] { testCase };
-        }
-    }
-}
-
 public class ExpressionValidationTestModel
 {
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
-    public ExpectedObject[] Expects { get; set; }
+    public required ExpectedObject[] Expects { get; set; }
 
-    public JsonElement ValidationConfig { get; set; }
+    public required JsonElement ValidationConfig { get; set; }
 
-    public JsonObject FormData { get; set; }
+    public required JsonObject FormData { get; set; }
 
     [JsonConverter(typeof(LayoutModelConverterFromObject))]
-    public LayoutModel Layouts { get; set; }
+    public required LayoutModel Layouts { get; set; }
 
     public class ExpectedObject
     {
-        public string Message { get; set; }
+        public required string Message { get; set; }
 
         [JsonConverter(typeof(FrontendSeverityConverter))]
-        public ValidationIssueSeverity Severity { get; set; }
+        public required ValidationIssueSeverity Severity { get; set; }
 
-        public string Field { get; set; }
+        public required string Field { get; set; }
 
-        public string ComponentId { get; set; }
+        public required string ComponentId { get; set; }
     }
 }

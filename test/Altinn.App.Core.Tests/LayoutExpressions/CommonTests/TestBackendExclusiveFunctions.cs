@@ -1,16 +1,18 @@
-using System.Reflection;
 using System.Text.Json;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Tests.Helpers;
+using Altinn.App.Core.Tests.TestUtils;
 using FluentAssertions;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 
 namespace Altinn.App.Core.Tests.LayoutExpressions;
 
 public class TestBackendExclusiveFunctions
 {
     private readonly ITestOutputHelper _output;
+
+    private static readonly JsonSerializerOptions _jsonSerializerOptions =
+        new() { ReadCommentHandling = JsonCommentHandling.Skip, PropertyNamingPolicy = JsonNamingPolicy.CamelCase, };
 
     public TestBackendExclusiveFunctions(ITestOutputHelper output)
     {
@@ -19,10 +21,40 @@ public class TestBackendExclusiveFunctions
 
     [Theory]
     [ExclusiveTest("gatewayAction")]
-    public void GatewayAction_Theory(ExpressionTestCaseRoot test) => RunTestCase(test);
+    public void GatewayAction_Theory(string testName, string folder) => RunTestCase(testName, folder);
 
-    private void RunTestCase(ExpressionTestCaseRoot test)
+    private static ExpressionTestCaseRoot LoadTestCase(string testName, string folder)
     {
+        var file = Path.Join(folder, testName);
+
+        ExpressionTestCaseRoot testCase = new();
+        var data = File.ReadAllText(file);
+        try
+        {
+            testCase = JsonSerializer.Deserialize<ExpressionTestCaseRoot>(data, _jsonSerializerOptions)!;
+        }
+        catch (Exception e)
+        {
+            using var jsonDocument = JsonDocument.Parse(data);
+
+            testCase.Name = jsonDocument.RootElement.GetProperty("name").GetString();
+            testCase.ExpectsFailure = jsonDocument.RootElement.TryGetProperty("expectsFailure", out var expectsFailure)
+                ? expectsFailure.GetString()
+                : null;
+            testCase.ParsingException = e;
+        }
+
+        testCase.Filename = Path.GetFileName(file);
+        testCase.FullPath = file;
+        testCase.Folder = folder;
+        testCase.RawJson = data;
+
+        return testCase;
+    }
+
+    private void RunTestCase(string testName, string folder)
+    {
+        var test = LoadTestCase(testName, folder);
         _output.WriteLine($"{test.Filename} in {test.Folder}");
         _output.WriteLine(test.RawJson);
         _output.WriteLine(test.FullPath);
@@ -113,51 +145,7 @@ public class TestBackendExclusiveFunctions
     }
 }
 
-public class ExclusiveTestAttribute : DataAttribute
-{
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new() { ReadCommentHandling = JsonCommentHandling.Skip, PropertyNamingPolicy = JsonNamingPolicy.CamelCase, };
-
-    private readonly string _folder;
-
-    public ExclusiveTestAttribute(string folder)
-    {
-        _folder = folder;
-    }
-
-    public override IEnumerable<object[]> GetData(MethodInfo methodInfo)
-    {
-        var files = Directory.GetFiles(
-            Path.Join("LayoutExpressions", "CommonTests", "exclusive-tests", "functions", _folder)
-        );
-        foreach (var file in files)
-        {
-            ExpressionTestCaseRoot testCase = new();
-            var data = File.ReadAllText(file);
-            try
-            {
-                testCase = JsonSerializer.Deserialize<ExpressionTestCaseRoot>(data, _jsonSerializerOptions)!;
-            }
-            catch (Exception e)
-            {
-                using var jsonDocument = JsonDocument.Parse(data);
-
-                testCase.Name = jsonDocument.RootElement.GetProperty("name").GetString();
-                testCase.ExpectsFailure = jsonDocument.RootElement.TryGetProperty(
-                    "expectsFailure",
-                    out var expectsFailure
-                )
-                    ? expectsFailure.GetString()
-                    : null;
-                testCase.ParsingException = e;
-            }
-
-            testCase.Filename = Path.GetFileName(file);
-            testCase.FullPath = file;
-            testCase.Folder = _folder;
-            testCase.RawJson = data;
-
-            yield return new object[] { testCase };
-        }
-    }
-}
+public class ExclusiveTestAttribute(string folder)
+    : FileNamesInFolderDataAttribute(
+        Path.Join("LayoutExpressions", "CommonTests", "exclusive-tests", "functions", folder)
+    ) { }

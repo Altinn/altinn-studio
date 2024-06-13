@@ -1,8 +1,10 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Tests.Helpers;
+using Altinn.App.Core.Tests.TestUtils;
 using FluentAssertions;
 using Xunit.Abstractions;
 using Xunit.Sdk;
@@ -23,22 +25,43 @@ public class TestContextList
 
     [Theory]
     [SharedTestContextList("simple")]
-    public void Simple_Theory(ContextListRoot test) => RunTestCase(test);
+    public void Simple_Theory(string testName, string folder) => RunTestCase(testName, folder);
 
     [Theory]
     [SharedTestContextList("groups")]
-    public void Group_Theory(ContextListRoot test) => RunTestCase(test);
+    public void Group_Theory(string testName, string folder) => RunTestCase(testName, folder);
 
     [Theory]
     [SharedTestContextList("nonRepeatingGroups")]
-    public void NonRepeatingGroup_Theory(ContextListRoot test) => RunTestCase(test);
+    public void NonRepeatingGroup_Theory(string testName, string folder) => RunTestCase(testName, folder);
 
     [Theory]
     [SharedTestContextList("recursiveGroups")]
-    public void RecursiveGroup_Theory(ContextListRoot test) => RunTestCase(test);
+    public void RecursiveGroup_Theory(string testName, string folder) => RunTestCase(testName, folder);
 
-    private void RunTestCase(ContextListRoot test)
+    private static ContextListRoot LoadTestData(string testName, string folder)
     {
+        ContextListRoot testCase = new();
+        var data = File.ReadAllText(Path.Join(folder, testName));
+        try
+        {
+            testCase = JsonSerializer.Deserialize<ContextListRoot>(data, _jsonSerializerOptions)!;
+        }
+        catch (Exception e)
+        {
+            testCase.ParsingException = e;
+        }
+
+        testCase.Filename = Path.GetFileName(testName);
+        testCase.FullPath = testName;
+        testCase.Folder = folder;
+        testCase.RawJson = data;
+        return testCase;
+    }
+
+    private void RunTestCase(string filename, string folder)
+    {
+        var test = LoadTestData(filename, folder);
         _output.WriteLine($"{test.Filename} in {test.Folder}");
         _output.WriteLine(test.RawJson);
         _output.WriteLine(test.FullPath);
@@ -80,42 +103,7 @@ public class TestContextList
     }
 }
 
-public class SharedTestContextListAttribute : DataAttribute
-{
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new() { ReadCommentHandling = JsonCommentHandling.Skip, };
-
-    private readonly string _folder;
-
-    public SharedTestContextListAttribute(string folder)
-    {
-        _folder = folder;
-    }
-
-    public override IEnumerable<object[]> GetData(MethodInfo methodInfo)
-    {
-        var files = Directory.GetFiles(
-            Path.Join("LayoutExpressions", "CommonTests", "shared-tests", "context-lists", _folder)
-        );
-        foreach (var file in files)
-        {
-            ContextListRoot testCase = new();
-            var data = File.ReadAllText(file);
-            try
-            {
-                testCase = JsonSerializer.Deserialize<ContextListRoot>(data, _jsonSerializerOptions)!;
-            }
-            catch (Exception e)
-            {
-                testCase.ParsingException = e;
-            }
-
-            testCase.Filename = Path.GetFileName(file);
-            testCase.FullPath = file;
-            testCase.Folder = _folder;
-            testCase.RawJson = data;
-
-            yield return new object[] { testCase };
-        }
-    }
-}
+public class SharedTestContextListAttribute(string folder)
+    : FileNamesInFolderDataAttribute(
+        Path.Join("LayoutExpressions", "CommonTests", "shared-tests", "context-lists", folder)
+    ) { }
