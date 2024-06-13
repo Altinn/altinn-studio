@@ -10,7 +10,7 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="7.1.0" />
+    <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="8.0.1" />
     <PackageReference Include="Altinn.Common.AccessTokenClient" Version="1.1.5" />
     <PackageReference Include="Altinn.Common.EFormidlingClient" Version="1.3.3" />
     <PackageReference Include="Altinn.Common.PEP" Version="4.0.0" />
