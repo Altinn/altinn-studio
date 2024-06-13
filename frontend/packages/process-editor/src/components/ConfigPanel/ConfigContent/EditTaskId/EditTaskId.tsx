@@ -20,9 +20,6 @@ export const EditTaskId = (): React.ReactElement => {
   const otherTaskIds = useTaskIds().filter((id) => id !== bpmnDetails.id);
 
   const updateId = (value: string): void => {
-    console.log('bpmnDETAILS', bpmnDetails.element);
-    console.log('VALUE', value);
-
     modeling.updateProperties(bpmnDetails.element, {
       id: value,
     });
@@ -30,7 +27,6 @@ export const EditTaskId = (): React.ReactElement => {
       ...bpmnDetails,
       id: value,
     });
-    console.log('UPDATE CALLED');
   };
 
   const handleOnTaskIdBlur = (event: React.ChangeEvent<HTMLInputElement>): void => {

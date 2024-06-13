@@ -251,6 +251,7 @@ test('That it is possible to create a custom receipt', async ({ page, testAppNam
   const header = new Header(page, { app: testAppName });
   const giteaPage = new GiteaPage(page, { app: testAppName });
 
+  // --------------------- Create new data model ---------------------
   const newDataModel: string = 'newDataModel';
   await navigateToDataModelAndCreateNewDataModel(
     dataModelPage,
@@ -259,6 +260,7 @@ test('That it is possible to create a custom receipt', async ({ page, testAppNam
     newDataModel,
   );
 
+  // --------------------- Add layout set id and data model id to the receipt ---------------------
   const endEvent: string = await bpmnJSQuery.getTaskByIdAndType('EndEvent_1', 'g');
   await processEditorPage.clickOnTaskInBpmnEditor(endEvent);
   await processEditorPage.waitForEndEventHeaderToBeVisible();
