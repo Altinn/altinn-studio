@@ -39,7 +39,10 @@ public sealed class AppsFetcher
         _parallelism = Math.Min(Constants.LimitMaxParallelism, _config.MaxParallelism);
         var clearDirectory = _config.ClearDirectory;
         var clearDirectoryConf = clearDirectory.ToString(CultureInfo.InvariantCulture).ToLowerInvariant();
-        table.AddRow(new Markup(nameof(FetchConfig.Directory)), new Markup($"= [bold]{_config.Directory}[/]"));
+        var directory = Path.GetFullPath(
+            _config.Directory.Replace("~", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile))
+        );
+        table.AddRow(new Markup(nameof(FetchConfig.Directory)), new Markup($"= [bold]{directory}[/]"));
         table.AddRow(new Markup(nameof(FetchConfig.Username)), new Markup($"= [bold]{_config.Username}[/]"));
         table.AddRow(
             new Markup(nameof(FetchConfig.Password)),
@@ -62,7 +65,10 @@ public sealed class AppsFetcher
 
     private void PrepareDirectory()
     {
-        _directory = new DirectoryInfo(_config.Directory);
+        var directory = Path.GetFullPath(
+            _config.Directory.Replace("~", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile))
+        );
+        _directory = new DirectoryInfo(directory);
 
         if (_config.ClearDirectory && _directory.Exists)
         {

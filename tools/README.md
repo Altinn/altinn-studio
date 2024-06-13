@@ -10,19 +10,19 @@ Meant to gather statistics on code from all apps in Altinn 3.
 
 A config file at `config.ini`
 ```sh
-mv config.sample.ini config.ini
+cp config.sample.ini config.ini
 ```
 Make the appropriate changes.
 The password needs to be a token from Altinn Studio with `Read` permissions for `organization` and `repository` scope.
 
 ### Run
 
-Go into CLI directory: 
+Go into CLI directory:
 ```sh
 cd src/Altinn.Analysis.Cli
 ```
 
-Fetch 
+Fetch
 ```sh
 dotnet run -c Release -- fetch -c ../../config.ini
 ```
