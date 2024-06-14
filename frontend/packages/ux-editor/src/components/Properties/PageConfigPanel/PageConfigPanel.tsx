@@ -10,12 +10,14 @@ import { EditPageId } from './EditPageId';
 import { textResourceByLanguageAndIdSelector } from '../../../selectors/textResourceSelectors';
 import type { ITextResource } from 'app-shared/types/global';
 import {
-  duplicatedIdsExistInAllLayouts,
   duplicatedIdsExistsInLayout,
+  findLayoutsContainingDuplicateComponents,
 } from '../../../utils/formLayoutUtils';
 import { PageConfigWarning } from './PageConfigWarning';
 import classes from './PageConfigPanel.module.css';
 import { PageConfigWarningModal } from './PageConfigWarningModal';
+import type { FormLayoutPage } from '@altinn/ux-editor/types/FormLayoutPage';
+import type { IInternalLayout } from '@altinn/ux-editor/types/global';
 
 export const PageConfigPanel = () => {
   const { selectedFormLayoutName } = useAppContext();
@@ -37,12 +39,15 @@ export const PageConfigPanel = () => {
   const layout = useFormLayouts()[selectedFormLayoutName];
   const hasDuplicatedIds = duplicatedIdsExistsInLayout(layout);
 
-  const formLayouts = useFormLayouts();
+  const layouts: Record<string, IInternalLayout> = useFormLayouts();
 
-  const hasDuplicatedIdsInAllLayouts = duplicatedIdsExistInAllLayouts(Object.values(formLayouts));
-  console.log('hasDuplicatedIdsInAllLayoutsssssssss', hasDuplicatedIdsInAllLayouts);
+  const layoutPages: FormLayoutPage[] = Object.keys(layouts).map((key) => ({
+    page: key,
+    data: layouts[key],
+  }));
 
-  /*  console.log('layouttttttttttt', layout); */
+  const duplicateLayouts = findLayoutsContainingDuplicateComponents(layoutPages);
+  const hasDuplicatedIdsInAllLayouts = duplicateLayouts.length > 0;
 
   if (layoutIsSelected && hasDuplicatedIds) {
     return <PageConfigWarning selectedFormLayoutName={selectedFormLayoutName} layout={layout} />;

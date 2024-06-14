@@ -427,24 +427,13 @@ export const duplicatedIdsExistsInLayout = (layout: IInternalLayout): boolean =>
 };
 
 /**
- * Checks if there are components with duplicated ids across all layouts in the layoutset.
+ * Checks if there are component with duplicated ids across all layouts in the layoutset.
  * @param layouts The layouts to check.
- * @returns True if some items in the array are duplicated and false otherwise.
+ * @returns dublicated layouts.
  */
-export const duplicatedIdsExistInAllLayouts = (layouts: IInternalLayout[]): boolean => {
-  const allIds = layouts.reduce((ids, layout) => {
-    if (layout?.order) {
-      ids.push(...flattenObjectValues(layout.order));
-    }
-    return ids;
-  }, []);
-  return !areItemsUnique(allIds);
-};
-
 export const findLayoutsContainingDuplicateComponents = (layouts: FormLayoutPage[]) => {
   const componentMap = new Map();
   const duplicateLayouts = new Set();
-
   layouts.forEach(({ page, data }) => {
     const components = flattenObjectValues(data.order);
     components.forEach((component) => {
@@ -456,7 +445,6 @@ export const findLayoutsContainingDuplicateComponents = (layouts: FormLayoutPage
       }
     });
   });
-
   return [...duplicateLayouts];
 };
 
