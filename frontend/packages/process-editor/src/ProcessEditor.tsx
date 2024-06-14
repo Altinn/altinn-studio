@@ -11,7 +11,7 @@ import classes from './ProcessEditor.module.css';
 import type { BpmnApiContextProps } from './contexts/BpmnApiContext';
 import { BpmnApiContextProvider } from './contexts/BpmnApiContext';
 import { BpmnConfigPanelFormContextProvider } from './contexts/BpmnConfigPanelContext';
-import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
+import type { MetadataForm } from 'app-shared/types/BpmnMetadataForm';
 
 export type ProcessEditorProps = {
   appLibVersion: string;
@@ -26,7 +26,7 @@ export type ProcessEditorProps = {
   deleteLayoutSet: BpmnApiContextProps['deleteLayoutSet'];
   mutateLayoutSetId: BpmnApiContextProps['mutateLayoutSetId'];
   mutateDataTypes: BpmnApiContextProps['mutateDataTypes'];
-  saveBpmn: (bpmnXml: string, metaData?: MetaDataForm) => void;
+  saveBpmn: (bpmnXml: string, metadata?: MetadataForm) => void;
   openPolicyEditor: BpmnApiContextProps['openPolicyEditor'];
   onProcessTaskAdd: BpmnApiContextProps['onProcessTaskAdd'];
   onProcessTaskRemove: BpmnApiContextProps['onProcessTaskRemove'];

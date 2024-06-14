@@ -11,7 +11,7 @@ import type { DataTypesChange } from 'app-shared/types/api/DataTypesChange';
 // Test data
 const newDataTypes = ['data-model'];
 const connectedTaskId = 'Task_1';
-const metaData: DataTypesChange = {
+const metadata: DataTypesChange = {
   newDataTypes,
   connectedTaskId,
 };
@@ -26,9 +26,7 @@ const renderHook = async ({
     {},
     queryClient,
   )(() => useUpdateProcessDataTypesMutation(org, app)).renderHookResult.result;
-  debugger;
-  await waitFor(() => updateProcessDataTypesResult.current.mutateAsync(metaData));
-  debugger;
+  await waitFor(() => updateProcessDataTypesResult.current.mutateAsync(metadata));
   expect(updateProcessDataTypesResult.current.isSuccess).toBe(true);
 };
 
@@ -37,7 +35,7 @@ describe('useUpdateProcessDataTypeMutation', () => {
     await renderHook();
 
     expect(queriesMock.updateProcessDataTypes).toHaveBeenCalledTimes(1);
-    expect(queriesMock.updateProcessDataTypes).toHaveBeenCalledWith(org, app, metaData);
+    expect(queriesMock.updateProcessDataTypes).toHaveBeenCalledWith(org, app, metadata);
   });
 
   it('invalidates metadata queries when update is successful', async () => {

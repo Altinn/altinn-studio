@@ -18,7 +18,7 @@ import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery'
 import { useDeleteLayoutSetMutation } from '../../hooks/mutations/useDeleteLayoutSetMutation';
 import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
 import { useUpdateProcessDataTypesMutation } from '../../hooks/mutations/useUpdateProcessDataTypesMutation';
-import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
+import type { MetadataForm } from 'app-shared/types/BpmnMetadataForm';
 import { useAddDataTypeToAppMetadata } from '../../hooks/mutations/useAddDataTypeToAppMetadata';
 import { useDeleteDataTypeFromAppMetadata } from '../../hooks/mutations/useDeleteDataTypeFromAppMetadata';
 import { SyncSuccessQueriesInvalidator } from 'app-shared/queryInvalidator/SyncSuccessQueriesInvalidator';
@@ -104,10 +104,10 @@ export const ProcessEditor = (): React.ReactElement => {
     }
   });
 
-  const saveBpmnXml = async (xml: string, metaData?: MetaDataForm): Promise<void> => {
+  const saveBpmnXml = async (xml: string, metadata?: MetadataForm): Promise<void> => {
     const formData = new FormData();
     formData.append('content', new Blob([xml]), 'process.bpmn');
-    formData.append('metadata', JSON.stringify(metaData));
+    formData.append('metadata', JSON.stringify(metadata));
 
     mutateBpmn(
       { form: formData },
