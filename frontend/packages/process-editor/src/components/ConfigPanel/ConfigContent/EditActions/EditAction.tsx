@@ -53,6 +53,12 @@ export const EditAction = ({
   };
 
   const handleUpdateAction = (actionElement: ModdleElement, newAction: string) => {
+    console.log('payload to: updateActionNameOnActionElement', {
+      actionElement,
+      newAction,
+      modeling,
+      bpmnDetails,
+    });
     updateActionNameOnActionElement(actionElement, newAction, modeling, bpmnDetails);
     setEditMode(false);
   };

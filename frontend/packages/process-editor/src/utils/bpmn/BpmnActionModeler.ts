@@ -1,21 +1,29 @@
 import { StudioModeler } from '@altinn/process-editor/utils/bpmn/StudioModeler';
-import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
 import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
 import { getPredefinedActions } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/ActionsUtils';
 
-export class BpmnActionModeler extends StudioModeler {
-  private readonly bpmnFactory: BpmnFactory = this.modelerInstance.get('bpmnFactory');
+export type Action = ModdleElement;
+type ActionsElement = {
+  action: Action[];
+};
 
+enum ActionTagType {
+  Action = 'altinn:Action',
+  Actions = 'altinn:Actions',
+}
+
+export class BpmnActionModeler extends StudioModeler {
   constructor(element?: Element) {
     super(element);
   }
 
-  public get actionElements(): ModdleElement[] | undefined {
-    return this.getElement()?.businessObject.extensionElements?.values[0]?.actions;
+  public get actionElements(): ActionsElement {
+    return this.getElement()?.businessObject.extensionElements?.values[0]?.actions ?? [];
   }
 
   public get hasActionsAlready(): boolean {
-    return this.actionElements?.length > 0;
+    console.log(this.actionElements);
+    return this.actionsElements?.length > 0;
   }
 
   public addNewActionToTask(generatedActionName: string | undefined): void {
@@ -28,10 +36,10 @@ export class BpmnActionModeler extends StudioModeler {
   }
 
   public updateActionNameOnActionElement(actionElement: ModdleElement, newAction: string): void {
-    if (actionElement.action === newAction || newAction === '') return;
+    if (actionElement?.action === newAction || newAction === '') return;
 
     // TODO: figure out why we need the if block below.
-    if (getPredefinedActions(this.getElement().bpmnDetails.taskType).includes(newAction)) {
+    if (getPredefinedActions(this.getCurrentTaskType).includes(newAction)) {
       delete actionElement.type;
     }
 
@@ -40,14 +48,18 @@ export class BpmnActionModeler extends StudioModeler {
     });
   }
 
+  private get actionsElements(): Action[] | undefined {
+    return this.actionElements?.action;
+  }
+
   private createActionElement(actionName: string | undefined): ModdleElement {
-    return this.bpmnFactory.create('altinn:Action', {
+    return this.bpmnFactory.create(ActionTagType.Action, {
       action: actionName,
     });
   }
 
   private createActionsElement(actionElement: ModdleElement): ModdleElement {
-    return this.bpmnFactory.create('altinn:Actions', {
+    return this.bpmnFactory.create(ActionTagType.Actions, {
       action: [actionElement],
     });
   }

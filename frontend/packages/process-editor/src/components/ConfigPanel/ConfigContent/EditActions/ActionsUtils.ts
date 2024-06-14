@@ -99,6 +99,11 @@ const updateActionNameOnExistingAction = (
   actionElementToUpdate: ModdleElement,
   newActionName: string,
 ) => {
+  console.log('payload to updateModdleProperties', {
+    bpmnDetails: bpmnDetails.element,
+    actionElementToUpdate,
+    properties: { action: newActionName },
+  });
   modeling.updateModdleProperties(bpmnDetails.element, actionElementToUpdate, {
     action: newActionName,
   });

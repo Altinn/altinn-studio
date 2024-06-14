@@ -3,25 +3,30 @@ import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type { Element } from 'bpmn-moddle';
 import type ElementRegistry from 'diagram-js/lib/core/ElementRegistry';
 import { type Moddle } from 'bpmn-js/lib/model/Types';
-import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
 import { BpmnModelerInstance } from './BpmnModelerInstance';
+import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
+import { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
 
 // Short description: This class is used to interact with the bpmn-js modeler instance to create, update and delete elements in the bpmn diagram.
 // We have not written test for this class then we need to mock the BpmnModelerInstance and its methods.
-enum AvailableInstances {
+enum AvailableBpmnInstances {
   Modeling = 'modeling',
   Moddle = 'moddle',
   ElementRegistry = 'elementRegistry',
+  BpmnFactory = 'bpmnFactory',
 }
 
 export class StudioModeler {
   public readonly modelerInstance: Modeler = BpmnModelerInstance.getInstance();
+  public readonly bpmnFactory: BpmnFactory = this.modelerInstance.get(
+    AvailableBpmnInstances.BpmnFactory,
+  );
   // TODO consider to make this private again, made public due to testing of line 50 in EditActions.tsx
-  public readonly modeling: Modeling = this.modelerInstance.get(AvailableInstances.Modeling);
+  public readonly modeling: Modeling = this.modelerInstance.get(AvailableBpmnInstances.Modeling);
 
-  private readonly moddle: Moddle = this.modelerInstance.get(AvailableInstances.Moddle);
+  private readonly moddle: Moddle = this.modelerInstance.get(AvailableBpmnInstances.Moddle);
   private readonly elementRegistry: ElementRegistry = this.modelerInstance.get(
-    AvailableInstances.ElementRegistry,
+    AvailableBpmnInstances.ElementRegistry,
   );
 
   private element: Element;
@@ -36,6 +41,12 @@ export class StudioModeler {
 
   public getElement(id?: string): Element {
     return this.elementRegistry.get(id || this.getElementId());
+  }
+
+  public get getCurrentTaskType(): BpmnTaskType {
+    const element = this.getElement();
+    const bpmnAttrs = element.businessObject?.$attrs;
+    return bpmnAttrs ? bpmnAttrs['altinn:tasktype'] : null;
   }
 
   public createElement<T>(elementType: string, options: T): Element {
