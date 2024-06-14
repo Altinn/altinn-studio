@@ -217,25 +217,16 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet]
-        [Route("designer/api/{org}/resources/{repository}")]
         [Route("designer/api/{org}/resources/{repository}/{id}")]
-        public ActionResult<ServiceResource> GetResourceById(string org, string repository, string id = "")
+        public ActionResult<ServiceResource> GetResourceById(string org, string repository, string id)
         {
-            if (id != "")
-            {
-                ServiceResource resource = _repository.GetServiceResourceById(org, repository, id);
-                return resource != null ? resource : StatusCode(204);
-            }
-            else
-            {
-                List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repository);
-                return repositoryResourceList != null ? repositoryResourceList.First() : StatusCode(204);
-            }
+            ServiceResource resource = _repository.GetServiceResourceById(org, repository, id);
+            return resource != null ? resource : StatusCode(204);
         }
 
         [HttpGet]
         [Route("designer/api/{org}/resources/publishstatus/{repository}/{id}")]
-        public async Task<ActionResult<ServiceResourceStatus>> GetPublishStatusById(string org, string repository, string id = "")
+        public async Task<ActionResult<ServiceResourceStatus>> GetPublishStatusById(string org, string repository, string id)
         {
             ServiceResourceStatus resourceStatus = new ServiceResourceStatus();
             ServiceResource resource = _repository.GetServiceResourceById(org, repository, id);
@@ -257,33 +248,13 @@ namespace Altinn.Studio.Designer.Controllers
             return resourceStatus;
         }
 
-        [Route("designer/api/{org}/resources/validate/{repository}")]
         [Route("designer/api/{org}/resources/validate/{repository}/{id}")]
-        public ActionResult GetValidateResource(string org, string repository, string id = "")
+        public ActionResult GetValidateResource(string org, string repository, string id)
         {
-            ValidationProblemDetails validationProblemDetails = new ValidationProblemDetails();
-            ServiceResource resourceToValidate;
-
-            if (id != "")
-            {
-                resourceToValidate = _repository.GetServiceResourceById(org, repository, id);
-                if (resourceToValidate != null)
-                {
-                    validationProblemDetails = ValidateResource(resourceToValidate);
-                }
-            }
-            else
-            {
-                List<ServiceResource> repositoryResourceList = _repository.GetServiceResources(org, repository);
-                resourceToValidate = repositoryResourceList.FirstOrDefault();
-                if (repositoryResourceList.Count > 0)
-                {
-                    validationProblemDetails = ValidateResource(resourceToValidate);
-                }
-            }
-
+            ServiceResource resourceToValidate = _repository.GetServiceResourceById(org, repository, id);
             if (resourceToValidate != null)
             {
+                ValidationProblemDetails validationProblemDetails = ValidateResource(resourceToValidate);
                 if (validationProblemDetails.Errors.Count == 0)
                 {
                     validationProblemDetails.Status = 200;
