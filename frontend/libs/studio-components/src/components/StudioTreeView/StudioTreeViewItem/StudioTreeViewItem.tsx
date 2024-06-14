@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useTreeViewRootContext } from '../hooks/useTreeViewRootContext';
 import { useTreeViewItemContext } from '../hooks/useTreeViewItemContext';
 import {
-  findDirectChildIds,
   findFirstChildId,
   findFirstNodeId,
   findLastVisibleNodeId,
@@ -19,6 +18,7 @@ import { ChevronDownIcon, ChevronRightIcon } from '@studio/icons';
 import { StudioButton } from '../../StudioButton';
 import classes from './StudioTreeViewItem.module.css';
 import cn from 'classnames';
+import { useTreeViewItemOpenOnHierarchySelect } from '../hooks/useTreeViewItemOpenOnHierarchySelect';
 
 export type StudioTreeViewItemProps = {
   as?: ElementType;
@@ -46,20 +46,7 @@ export const StudioTreeViewItem = ({
   const { level } = useTreeViewItemContext();
   const treeItemRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (nodeId === selectedId) {
-      setOpen(true);
-    }
-    if (children) {
-      const childIds = findDirectChildIds(rootId, nodeId);
-      childIds.forEach((id) => {
-        if (id === selectedId) {
-          setOpen(true);
-          console.log(`Opening ${nodeId} because child ${id} is selected`);
-        }
-      });
-    }
-  }, [children, nodeId, rootId, selectedId]);
+  useTreeViewItemOpenOnHierarchySelect(rootId, nodeId, selectedId, setOpen);
 
   useEffect(() => {
     if (focusedId === nodeId) {
