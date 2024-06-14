@@ -4,12 +4,12 @@ import type { ItemFieldsTabProps } from './ItemFieldsTab';
 import { ItemFieldsTab } from './ItemFieldsTab';
 import type { FieldNode, UiSchemaNodes } from '@altinn/schema-model';
 import { FieldType, ObjectKind, SchemaModel, validateTestUiSchema } from '@altinn/schema-model';
-import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import type { RenderWithProvidersData } from '../../../../test/renderWithProviders';
 import { renderWithProviders } from '../../../../test/renderWithProviders';
 import userEvent from '@testing-library/user-event';
 import { nodeMockBase, rootNodeMock } from '../../../../test/mocks/uiSchemaMock';
 import { getSavedModel } from '../../../../test/test-utils';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
@@ -40,40 +40,17 @@ const childNode2: FieldNode = {
 const childNodes = [childNode1, childNode2];
 const numberOfFields = selectedItem.children.length; // eslint-disable-line testing-library/no-node-access
 const uiSchema: UiSchemaNodes = [rootItem, selectedItem, childNode1, childNode2];
-const textAdd = 'Legg til felt';
-const textDelete = 'Slett';
-const textDeleteField = 'Slett felt';
-const textFieldName = 'Navn på felt';
-const textRequired = 'Påkrevd';
-const textType = 'Type';
-const fieldTypeNames = {
-  [FieldType.Boolean]: 'Ja/nei',
-  [FieldType.Integer]: 'Helt tall',
-  [FieldType.Number]: 'Desimaltall',
-  [FieldType.Object]: 'Objekt',
-  [FieldType.String]: 'Tekst',
-};
-const texts = {
-  'schema_editor.add_property': textAdd,
-  'schema_editor.delete': textDelete,
-  'schema_editor.delete_field': textDeleteField,
-  'schema_editor.field_name': textFieldName,
-  'schema_editor.required': textRequired,
-  'schema_editor.type': textType,
-  'schema.editor.number': fieldTypeNames[FieldType.Number],
-  'schema_editor.boolean': fieldTypeNames[FieldType.Boolean],
-  'schema_editor.integer': fieldTypeNames[FieldType.Integer],
-  'schema_editor.object': fieldTypeNames[FieldType.Object],
-  'schema_editor.string': fieldTypeNames[FieldType.String],
-  'schema_editor.data_model_field_deletion_confirm': 'Confirm',
-};
+const textAdd = textMock('schema_editor.add_property');
+const textDelete = textMock('schema_editor.delete');
+const textDeleteField = textMock('schema_editor.delete_field');
+const textFieldName = textMock('schema_editor.field_name');
+const textRequired = textMock('schema_editor.required');
+const textType = textMock('schema_editor.type');
+
 const defaultProps: ItemFieldsTabProps = { selectedItem };
 const saveDataModel = jest.fn();
 const model = SchemaModel.fromArray(uiSchema);
 const createModel = () => model.deepClone();
-
-// Mocks:
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 const renderItemFieldsTab = (
   props: Partial<ItemFieldsTabProps> = {},
@@ -169,7 +146,7 @@ describe('ItemFieldsTab', () => {
     expect(dialog).toBeInTheDocument();
 
     const confirmButton = screen.getByRole('button', {
-      name: texts['schema_editor.data_model_field_deletion_confirm'],
+      name: textMock('schema_editor.data_model_field_deletion_confirm'),
     });
     await user.click(confirmButton);
 

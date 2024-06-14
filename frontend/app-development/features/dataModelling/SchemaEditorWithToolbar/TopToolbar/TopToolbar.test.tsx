@@ -3,7 +3,6 @@ import type { TopToolbarProps } from './TopToolbar';
 import { TopToolbar } from './TopToolbar';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { jsonMetadata1Mock } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -15,24 +14,18 @@ import { renderWithMockStore } from '../../../../test/mocks';
 import { useQueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
 // Test data:
-const closeText = 'Close';
-const editText = 'Edit';
-const generateText = 'Generate';
-const generalErrorMessage = 'Something went wrong';
-const dataModelGenerationSuccessMessage = 'Success';
-const savingText = 'Saving';
-const texts = {
-  'general.error_message': generalErrorMessage,
-  'general.close': closeText,
-  'schema_editor.data_model_generation_success_message': dataModelGenerationSuccessMessage,
-  'general.saving': savingText,
-  'schema_editor.edit_mode': editText,
-  'schema_editor.generate_model_files': generateText,
-};
+const generateText = textMock('schema_editor.generate_model_files');
+const generalErrorMessage = textMock('general.error_message');
+const dataModelGenerationSuccessMessage = textMock(
+  'schema_editor.data_model_generation_success_message',
+);
+const savingText = textMock('general.saving');
+
 const setCreateNewOpen = jest.fn();
 const setSelectedOption = jest.fn();
 const onSetSchemaGenerationErrorMessages = jest.fn();
@@ -62,17 +55,6 @@ const renderToolbar = (
 
   return renderWithMockStore({}, { ...servicesContextProps })(<TopToolbarWithInitData />);
 };
-
-// Mocks:
-jest.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    ...mockUseTranslation(texts),
-    i18n: {
-      exists: (key: string) => texts[key] !== undefined,
-    },
-  }),
-  Trans: ({ i18nKey }: { i18nKey: any }) => texts[i18nKey],
-}));
 
 describe('TopToolbar', () => {
   afterEach(jest.clearAllMocks);
