@@ -13,8 +13,8 @@ import { BpmnExpressionModeler } from '../../../utils/bpmn/BpmnExpressionModeler
 import { useExpressionTexts } from 'app-shared/components/Expression/useExpressionTexts';
 import { useTranslation } from 'react-i18next';
 import classes from './ConfigSequenceFlow.module.css';
-import { ConfigIcon } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/ConfigIcon';
-import { BpmnTypeEnum } from '@altinn/process-editor/enum/BpmnTypeEnum';
+import { ConfigIcon } from '../../../components/ConfigPanel/ConfigContent/ConfigIcon';
+import { BpmnTypeEnum } from '../../../enum/BpmnTypeEnum';
 
 const defaultExpression: BooleanExpression = [
   GeneralRelationOperator.Equals,

@@ -6,7 +6,7 @@ import classes from './ConfigEndEvent.module.css';
 import { ConfigIcon } from '../ConfigContent/ConfigIcon';
 import { CustomReceiptContent } from './CustomReceiptContent';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { BpmnTypeEnum } from '@altinn/process-editor/enum/BpmnTypeEnum';
+import { BpmnTypeEnum } from '../../../enum/BpmnTypeEnum';
 
 export const ConfigEndEvent = () => {
   const { t } = useTranslation();
