@@ -57,11 +57,12 @@ export function LargeLikertSummaryContainer({
         )
       }
       className={classes.summary}
+      data-componentid={container.id}
+      data-componentbaseid={container.baseComponentId || container.id}
     >
       <div
         ref={divRef}
         id={id || container.id}
-        data-componentid={container.id}
         data-testid='display-group-container'
         className={classes.groupContainer}
       >

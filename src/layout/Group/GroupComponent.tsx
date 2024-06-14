@@ -71,11 +71,12 @@ export function GroupComponent({
         }
         className={cn(isSummary ? classes.summary : classes.group, { [classes.panel]: isPanel && !isSummary })}
         description={description && !isSummary && <Lang id={description} />}
+        data-componentid={container.id}
+        data-componentbaseid={container.baseComponentId || container.id}
       >
         <div
           ref={containerDivRef}
           id={id || container.id}
-          data-componentid={container.id}
           data-testid='display-group-container'
           className={cn({ [classes.groupingIndicator]: isIndented && !isNested }, classes.groupContainer)}
         >

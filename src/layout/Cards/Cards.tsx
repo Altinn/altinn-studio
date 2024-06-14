@@ -117,13 +117,18 @@ function Media({ card, node, minMediaHeight }: MediaProps) {
         renderedInMedia={true}
         minMediaHeight={minMediaHeight}
       >
-        <GenericComponent
+        <div
           key={card.mediaNode.item.id}
-          node={card.mediaNode}
-          overrideDisplay={{
-            directRender: true,
-          }}
-        />
+          data-componentid={card.mediaNode.item.id}
+          data-componentbaseid={card.mediaNode.item.baseComponentId || card.mediaNode.item.id}
+        >
+          <GenericComponent
+            node={card.mediaNode}
+            overrideDisplay={{
+              directRender: true,
+            }}
+          />
+        </div>
       </CardProvider>
     </Card.Media>
   );

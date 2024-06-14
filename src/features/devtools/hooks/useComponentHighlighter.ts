@@ -2,7 +2,7 @@ import { useRef } from 'react';
 
 import { useComponentRefs } from 'src/features/devtools/hooks/useComponentRefs';
 
-function setHighlightStyle(highlightElement: HTMLElement, referenceElement: HTMLElement): void {
+export function setHighlightStyle(highlightElement: HTMLElement, referenceElement: HTMLElement): void {
   highlightElement.style.position = 'absolute';
   const { top, left, bottom, right } = referenceElement.getBoundingClientRect();
   const width = right - left;
@@ -14,6 +14,7 @@ function setHighlightStyle(highlightElement: HTMLElement, referenceElement: HTML
   highlightElement.style.backgroundColor = 'rgba(0, 200, 255, 0.33)';
   highlightElement.style.border = '3px solid rgb(0, 200, 255)';
   highlightElement.style.zIndex = '900';
+  highlightElement.style.cursor = 'pointer';
 }
 
 export function useComponentHighlighter(componentId: string, exact = false) {

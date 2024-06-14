@@ -44,6 +44,7 @@ export const RepeatingGroupContainer = forwardRef((_, ref: React.ForwardedRef<HT
       container={true}
       item={true}
       data-componentid={node.item.id}
+      data-componentbaseid={node.item.baseComponentId || node.item.id}
       ref={ref}
     >
       {(!edit?.mode ||

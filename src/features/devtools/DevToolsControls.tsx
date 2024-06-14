@@ -9,6 +9,7 @@ import { DevNavigationButtons } from 'src/features/devtools/components/DevNaviga
 import { DevToolsLogs } from 'src/features/devtools/components/DevToolsLogs/DevToolsLogs';
 import { DownloadXMLButton } from 'src/features/devtools/components/DownloadXMLButton/DownloadXMLButton';
 import { ExpressionPlayground } from 'src/features/devtools/components/ExpressionPlayground/ExpressionPlayground';
+import { ComponentSelector } from 'src/features/devtools/components/LayoutInspector/ComponentSelector';
 // There are no beta features at this time
 // import { FeatureToggles } from 'src/features/devtools/components/FeatureToggles/FeatureToggles';
 import { LayoutInspector } from 'src/features/devtools/components/LayoutInspector/LayoutInspector';
@@ -36,8 +37,18 @@ export const DevToolsControls = () => {
       <Tabs.List className={classes.tabList}>
         <Tabs.Tab value={DevToolsTab.General}>{DevToolsTab.General}</Tabs.Tab>
         <Tabs.Tab value={DevToolsTab.Logs}>{DevToolsTab.Logs}</Tabs.Tab>
-        {isInForm && <Tabs.Tab value={DevToolsTab.Layout}>{DevToolsTab.Layout}</Tabs.Tab>}
-        {isInForm && <Tabs.Tab value={DevToolsTab.Components}>{DevToolsTab.Components}</Tabs.Tab>}
+        {isInForm && (
+          <Tabs.Tab value={DevToolsTab.Layout}>
+            {DevToolsTab.Layout}
+            <ComponentSelector type='component' />
+          </Tabs.Tab>
+        )}
+        {isInForm && (
+          <Tabs.Tab value={DevToolsTab.Components}>
+            {DevToolsTab.Components}
+            <ComponentSelector type='node' />
+          </Tabs.Tab>
+        )}
         {isInForm && <Tabs.Tab value={DevToolsTab.Expressions}>{DevToolsTab.Expressions}</Tabs.Tab>}
         {/* <Tabs.Tab value={DevToolsTab.FeatureToggles}>{DevToolsTab.FeatureToggles}</Tabs.Tab> */}
       </Tabs.List>

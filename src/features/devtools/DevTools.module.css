@@ -61,6 +61,7 @@
 }
 
 .tabList {
+  overflow-y: hidden;
   overflow-x: auto;
   flex-shrink: 0;
 }

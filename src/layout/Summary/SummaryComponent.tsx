@@ -81,6 +81,7 @@ function _SummaryComponent({ summaryNode, overrides }: ISummaryComponent, ref: R
       xl={displayGrid?.xl || false}
       data-testid={`summary-${overrides?.targetNode?.item.id || id}`}
       data-componentid={summaryItem.id}
+      data-componentbaseid={summaryItem.baseComponentId || summaryItem.id}
       className={cn(pageBreakStyles(summaryItem.pageBreak ?? targetItem?.pageBreak))}
     >
       <Grid

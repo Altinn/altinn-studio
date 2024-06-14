@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import { EyeSlashIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
@@ -59,9 +59,17 @@ export const NodeHierarchyItem = ({ node, onClick, selected }: INodeHierarchyIte
   const hasChildren = node.children().length > 0;
   const isRepGroup = node.isType('RepeatingGroup');
 
+  const el = useRef<HTMLLIElement>(null);
+  useEffect(() => {
+    if (node.item.id === selected && el.current) {
+      el.current.scrollIntoView({ block: 'nearest' });
+    }
+  }, [node.item.id, selected]);
+
   return (
     <>
       <li
+        ref={el}
         className={cn({
           [classes.item]: true,
           [classes.active]: node.item.id === selected,

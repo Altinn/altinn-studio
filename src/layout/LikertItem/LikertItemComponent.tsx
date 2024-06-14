@@ -29,11 +29,7 @@ export const LikertItemComponent = forwardRef<HTMLTableRowElement, PropsFromGene
       );
     }
 
-    return (
-      <div className={classes.likertRadioGroupWrapperMobile}>
-        <ControlledRadioGroup {...props} />
-      </div>
-    );
+    return <ControlledRadioGroup {...props} />;
   },
 );
 LikertItemComponent.displayName = 'LikertItemComponent';

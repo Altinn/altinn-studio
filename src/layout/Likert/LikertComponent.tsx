@@ -40,7 +40,7 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
     <Grid
       item={true}
       xs={12}
-      data-componentid={node?.item.id}
+      className={cn({ [classes.likertHeader]: hasTitle || hasDescription })}
     >
       {hasTitle && (
         <Typography
@@ -55,7 +55,6 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
       {hasDescription && (
         <Typography
           variant='body1'
-          gutterBottom
           id={descriptionId}
         >
           {lang(node?.item.textResourceBindings?.description)}
@@ -69,10 +68,13 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
       <Grid
         item
         container
+        data-componentid={node.item.id}
+        data-componentbaseid={node.item.baseComponentId || node.item.id}
       >
         <Header />
         <div
           role='group'
+          className={classes.likertMobileGroup}
           aria-labelledby={(hasTitle && titleId) || undefined}
           aria-describedby={(hasDescription && descriptionId) || undefined}
         >
@@ -95,72 +97,75 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
   }
 
   return (
-    <>
+    <Grid
+      item
+      container
+      data-componentid={node.item.id}
+      data-componentbaseid={node.item.baseComponentId || node.item.id}
+    >
       <Header />
       {isFetching ? (
         <AltinnSpinner />
       ) : (
-        <div className={classes.likertTableContainer}>
-          <Table
-            id={id}
-            aria-labelledby={(hasTitle && titleId) || undefined}
-            aria-describedby={(hasDescription && descriptionId) || undefined}
-            className={classes.likertTable}
-            role='group'
+        <Table
+          id={id}
+          aria-labelledby={(hasTitle && titleId) || undefined}
+          aria-describedby={(hasDescription && descriptionId) || undefined}
+          className={classes.likertTable}
+          role='group'
+        >
+          <Table.Head
+            id={`likert-table-header-${id}`}
+            aria-hidden={true}
           >
-            <Table.Head
-              id={`likert-table-header-${id}`}
-              aria-hidden={true}
-            >
-              <Table.Row>
-                <Table.HeaderCell id={`${id}-likert-columnheader-left`}>
-                  <span
-                    className={cn(classes.likertTableHeaderCell, {
-                      'sr-only': node?.item.textResourceBindings?.leftColumnHeader == null,
-                    })}
-                  >
-                    <Lang
-                      id={node?.item.textResourceBindings?.leftColumnHeader ?? 'likert.left_column_default_header_text'}
-                    />
-                  </span>
-                </Table.HeaderCell>
-                {calculatedOptions.map((option, index) => {
-                  const colLabelId = `${id}-likert-columnheader-${index}`;
-                  return (
-                    <Table.HeaderCell
-                      key={option.value}
-                      className={classes.likertTableHeaderCell}
-                      id={colLabelId}
-                    >
-                      {lang(option.label)}
-                    </Table.HeaderCell>
-                  );
-                })}
-              </Table.Row>
-            </Table.Head>
-            <Table.Body id={`likert-table-body-${id}`}>
-              {node?.children().map((comp) => {
-                if (comp.isType('Group') || comp.isType('Summary')) {
-                  window.logWarnOnce('Unexpected Group or Summary inside likert container:\n', comp.item.id);
-                  return;
-                }
-
-                const override: IGenericComponentProps<'LikertItem'>['overrideItemProps'] = {
-                  layout: LayoutStyle.Table,
-                };
-
-                return (
-                  <GenericComponent
-                    key={comp.item.id}
-                    node={comp as LayoutNode<'LikertItem'>}
-                    overrideItemProps={override}
+            <Table.Row>
+              <Table.HeaderCell id={`${id}-likert-columnheader-left`}>
+                <span
+                  className={cn(classes.likertTableHeaderCell, {
+                    'sr-only': node?.item.textResourceBindings?.leftColumnHeader == null,
+                  })}
+                >
+                  <Lang
+                    id={node?.item.textResourceBindings?.leftColumnHeader ?? 'likert.left_column_default_header_text'}
                   />
+                </span>
+              </Table.HeaderCell>
+              {calculatedOptions.map((option, index) => {
+                const colLabelId = `${id}-likert-columnheader-${index}`;
+                return (
+                  <Table.HeaderCell
+                    key={option.value}
+                    className={classes.likertTableHeaderCell}
+                    id={colLabelId}
+                  >
+                    {lang(option.label)}
+                  </Table.HeaderCell>
                 );
               })}
-            </Table.Body>
-          </Table>
-        </div>
+            </Table.Row>
+          </Table.Head>
+          <Table.Body id={`likert-table-body-${id}`}>
+            {node?.children().map((comp) => {
+              if (comp.isType('Group') || comp.isType('Summary')) {
+                window.logWarnOnce('Unexpected Group or Summary inside likert container:\n', comp.item.id);
+                return;
+              }
+
+              const override: IGenericComponentProps<'LikertItem'>['overrideItemProps'] = {
+                layout: LayoutStyle.Table,
+              };
+
+              return (
+                <GenericComponent
+                  key={comp.item.id}
+                  node={comp as LayoutNode<'LikertItem'>}
+                  overrideItemProps={override}
+                />
+              );
+            })}
+          </Table.Body>
+        </Table>
       )}
-    </>
+    </Grid>
   );
 };

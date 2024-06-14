@@ -1,3 +1,7 @@
+.likertHeader {
+  margin-bottom: 24px;
+}
+
 .likertTable {
   width: 100%;
 }
@@ -34,16 +38,6 @@ Altinn, and making sure they are consistent. */
 
 /* ==== */
 
-.likertRadioGroupWrapperMobile {
-  padding-top: 12px;
-}
-
-.likertTableContainer {
-  display: block;
-  width: 100%;
-  padding: 12px;
-}
-
 .likertTableHeaderCell:not(:first-of-type) {
   width: 100px;
   text-align: center;
@@ -54,6 +48,12 @@ Altinn, and making sure they are consistent. */
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.likertMobileGroup {
+  gap: 12px;
+  display: flex;
+  flex-direction: column;
 }
 
 /*
