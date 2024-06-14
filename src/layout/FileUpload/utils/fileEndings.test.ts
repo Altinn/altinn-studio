@@ -8,6 +8,9 @@ describe('attachment file ending utils', () => {
       expect(getFileEnding('navnutenfilendelse')).toEqual('');
       expect(getFileEnding(undefined)).toEqual('');
     });
+    it('should normalize file endings to lower case', () => {
+      expect(getFileEnding('test.JPG')).toEqual('.jpg');
+    });
   });
 
   describe('removeFileEnding', () => {
