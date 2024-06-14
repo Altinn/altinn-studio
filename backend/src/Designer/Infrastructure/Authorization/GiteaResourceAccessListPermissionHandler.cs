@@ -42,7 +42,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             }
 
             string org = _httpContext.GetRouteValue("org")?.ToString();
-            string environment = _httpContext.Request.Query["env"];
+            string environment =_httpContext.GetRouteValue("env")?.ToString();
             if (string.IsNullOrWhiteSpace(org) || string.IsNullOrWhiteSpace(environment))
             {
                 _httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
