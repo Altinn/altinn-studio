@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.2.3</version>
+		<version>3.3.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>no.altinn</groupId>
@@ -15,7 +15,7 @@
 	<description>Eid event logger</description>
 	<properties>
 		<java.version>21</java.version>
-    <springdoc.version>2.3.0</springdoc.version>
+    <springdoc.version>2.5.0</springdoc.version>
     <log-event.version>1.2.2</log-event.version>
 	</properties>
 	<dependencies>
