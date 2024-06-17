@@ -221,28 +221,27 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult<ServiceResource> GetResourceById(string org, string repository, string id)
         {
             ServiceResource resource = _repository.GetServiceResourceById(org, repository, id);
-            return resource != null ? resource : StatusCode(204);
+            return resource != null ? resource : StatusCode(404);
         }
 
         [HttpGet]
         [Route("designer/api/{org}/resources/publishstatus/{repository}/{id}")]
         public async Task<ActionResult<ServiceResourceStatus>> GetPublishStatusById(string org, string repository, string id)
         {
-            ServiceResourceStatus resourceStatus = new ServiceResourceStatus();
             ServiceResource resource = _repository.GetServiceResourceById(org, repository, id);
             if (resource == null)
             {
-                return StatusCode(204);
+                return StatusCode(404);
             }
 
-            resourceStatus.ResourceVersion = resource.Version;
-
-            // Todo. Temp test values until we have integration with resource registry in place
-            resourceStatus.PublishedVersions = new List<ResourceVersionInfo>();
+            ServiceResourceStatus resourceStatus = new() {
+                ResourceVersion = resource.Version,
+                PublishedVersions = []
+            };
 
             foreach (string envir in _resourceRegistrySettings.Keys)
             {
-                resourceStatus = await AddEnvironmentResourceStatus(envir, id, resourceStatus);
+                resourceStatus.PublishedVersions.Add(await AddEnvironmentResourceStatus(envir, id));
             }
 
             return resourceStatus;
@@ -567,27 +566,23 @@ namespace Altinn.Studio.Designer.Controllers
             return orgList;
         }
 
-        private async Task<ServiceResourceStatus> AddEnvironmentResourceStatus(string env, string id, ServiceResourceStatus serviceResourceStatus)
+        private async Task<ResourceVersionInfo> AddEnvironmentResourceStatus(string env, string id)
         {
-            if (serviceResourceStatus.PublishedVersions == null)
-            {
-                serviceResourceStatus.PublishedVersions = new List<ResourceVersionInfo>();
-            }
-
             ServiceResource resource = await _resourceRegistry.GetResource(id, env);
+            string version;
             if (resource == null)
             {
-                serviceResourceStatus.PublishedVersions.Add(new ResourceVersionInfo() { Environment = env, Version = null });
+                version = null;
             }
             else if (string.IsNullOrEmpty(resource.Version))
             {
-                serviceResourceStatus.PublishedVersions.Add(new ResourceVersionInfo() { Environment = env, Version = "N/A" });
+                version = "N/A";
             }
             else
             {
-                serviceResourceStatus.PublishedVersions.Add(new ResourceVersionInfo() { Environment = env, Version = resource.Version });
+                version = resource.Version;
             }
-            return serviceResourceStatus;
+            return new ResourceVersionInfo() { Environment = env, Version = version };
         }
 
         private string GetRepositoryName(string org)
