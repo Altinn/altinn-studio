@@ -19,7 +19,11 @@ type SubMenuContentProps = {
   hasRepoError?: boolean;
 };
 
-export const subMenuContent = ({ org, app, hasRepoError }: SubMenuContentProps) => {
+export const SubMenuContent = ({
+  org,
+  app,
+  hasRepoError,
+}: SubMenuContentProps): React.ReactElement => {
   const repositoryType = getRepositoryType(org, app);
   const { doReloadPreview } = usePreviewContext();
 
@@ -82,7 +86,7 @@ export const PageHeader = ({
     <AltinnHeader
       menuItems={!isRepoError && menuItems}
       showSubMenu={showSubMenu || !isRepoError}
-      subMenuContent={subMenuContent({ org, app, hasRepoError: isRepoError })}
+      subMenuContent={SubMenuContent({ org, app, hasRepoError: isRepoError })}
       org={org}
       app={!isRepoError && app}
       user={user}
