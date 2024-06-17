@@ -63,6 +63,7 @@ describe('featureToggle url', () => {
     expect(shouldDisplayFeature('shouldOverrideAppLibCheck')).toBeTruthy();
     expect(typedSessionStorage.getItem<string[]>('featureFlags')).toEqual([
       'shouldOverrideAppLibCheck',
+      'displayPaymentTaskProcessEditor',
     ]);
     expect(typedLocalStorage.getItem<string[]>('featureFlags')).toBeUndefined();
   });
