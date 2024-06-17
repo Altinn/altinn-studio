@@ -1,0 +1,13 @@
+# .dockerignore
+
+# Exclude build artifacts and temporary files
+target/
+*.class
+*.log
+*.tmp
+
+# Exclude IDE-specific files
+.idea/
+.vscode/
+
+.env

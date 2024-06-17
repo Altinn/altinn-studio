@@ -9,6 +9,7 @@ import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { StudioButton } from '@studio/components';
 import { getEnvLabel } from '../../utils/resourceUtils';
 import type { EnvId } from '../../utils/resourceUtils';
+import type { ResourceError } from 'app-shared/types/ResourceAdm';
 
 export interface NewAccessListModalProps {
   org: string;
@@ -46,16 +47,26 @@ export const NewAccessListModal = forwardRef<HTMLDialogElement, NewAccessListMod
           toast.success(t('resourceadm.listadmin_create_list_success', { listname: newName }));
           navigate(`${navigateUrl}${newId}`);
         },
-        onError: (error: any) => {
-          if (error.response.status === ServerCodes.Conflict) {
+        onError: (error: ResourceError) => {
+          if (
+            error.response?.status === ServerCodes.Conflict ||
+            error.response?.status === ServerCodes.PreconditionFailed
+          ) {
             setErrorMessage(t('resourceadm.listadmin_identifier_conflict'));
           }
         },
       });
     };
 
+    const onCloseModal = (): void => {
+      setId('');
+      setName('');
+      setErrorMessage('');
+      onClose();
+    };
+
     return (
-      <Modal ref={ref} onClose={onClose}>
+      <Modal ref={ref} onClose={onCloseModal}>
         <Modal.Header>
           {t('resourceadm.listadmin_create_list_header', {
             env: t(getEnvLabel(env)),
@@ -87,7 +98,7 @@ export const NewAccessListModal = forwardRef<HTMLDialogElement, NewAccessListMod
           >
             {t('resourceadm.listadmin_confirm_create_list')}
           </StudioButton>
-          <StudioButton size='small' variant='tertiary' onClick={onClose}>
+          <StudioButton size='small' variant='tertiary' onClick={onCloseModal}>
             {t('general.cancel')}
           </StudioButton>
         </Modal.Footer>

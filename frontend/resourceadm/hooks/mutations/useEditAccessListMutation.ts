@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { UseMutationResult } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { AccessList } from 'app-shared/types/ResourceAdm';
+import type { AccessList, ResourceError } from 'app-shared/types/ResourceAdm';
 
 /**
  * Mutation to edit metadata of a access list
@@ -10,7 +11,11 @@ import type { AccessList } from 'app-shared/types/ResourceAdm';
  * @param listIdentifier the identifier of access list to delete
  * @param env the list environment
  */
-export const useEditAccessListMutation = (org: string, listIdentifier: string, env: string) => {
+export const useEditAccessListMutation = (
+  org: string,
+  listIdentifier: string,
+  env: string,
+): UseMutationResult<AccessList, ResourceError> => {
   const queryClient = useQueryClient();
   const { updateAccessList } = useServicesContext();
 

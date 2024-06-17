@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace Altinn.Studio.Designer.Models
 {
-    public class PagedAccessListMembersResponse
+    public class PagedAccessListMembersResponse : HeaderEtag
     {
-        public IEnumerable<AccessListMember> Data { get; set; }
+        public required IEnumerable<AccessListMember> Data { get; set; }
         public string? NextPage { get; set; }
     }
 }
