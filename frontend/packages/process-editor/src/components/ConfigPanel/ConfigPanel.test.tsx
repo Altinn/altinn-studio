@@ -7,16 +7,11 @@ import { BpmnContext } from '../../contexts/BpmnContext';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 import { BpmnConfigPanelFormContextProvider } from '../../contexts/BpmnConfigPanelContext';
 import type Modeler from 'bpmn-js/lib/Modeler';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { BpmnApiContextProvider } from '../../contexts/BpmnApiContext';
 import { mockBpmnDetails } from '../../../test/mocks/bpmnDetailsMock';
 
 jest.mock('./ConfigSequenceFlow', () => ({
   ConfigSequenceFlow: () => <h1>ConfigSequenceFlow Mocked Component</h1>,
-}));
-
-jest.mock('app-shared/utils/featureToggleUtils', () => ({
-  shouldDisplayFeature: jest.fn().mockReturnValue(false),
 }));
 
 describe('ConfigPanel', () => {
@@ -76,7 +71,6 @@ describe('ConfigPanel', () => {
       expectedText: 'process_editor.configuration_panel_element_not_supported_message',
     },
   ])('should display correct message based on selected bpmn type', ({ task, expectedText }) => {
-    (shouldDisplayFeature as jest.Mock).mockReturnValue(false);
     renderConfigPanel({
       modelerRef: { current: '' as unknown as Modeler },
       bpmnDetails: { ...mockBpmnDetails, type: task },

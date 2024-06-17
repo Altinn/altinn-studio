@@ -57,7 +57,7 @@ describe('featureToggle url', () => {
     window.history.pushState(
       {},
       'PageUrl',
-      '/?featureFlags=shouldOverrideAppLibCheck&persistFeatureFlag=true',
+      '/?featureFlags=displayPaymentTaskProcessEditor,shouldOverrideAppLibCheck&persistFeatureFlag=true',
     );
     expect(shouldDisplayFeature('componentConfigBeta')).toBeFalsy();
     expect(shouldDisplayFeature('shouldOverrideAppLibCheck')).toBeTruthy();

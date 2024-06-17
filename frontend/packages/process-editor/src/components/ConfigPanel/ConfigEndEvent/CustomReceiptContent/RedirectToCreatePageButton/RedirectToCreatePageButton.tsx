@@ -34,7 +34,6 @@ export const RedirectToCreatePageButton = (): React.ReactElement => {
           icon={<PencilWritingIcon />}
           href={packagesRouter.getPackageNavigationUrl('editorUiEditor')}
           onClick={handleClick}
-          className={classes.goToCreateButton}
         >
           {t('process_editor.configuration_panel_custom_receipt_navigate_to_lage_button')}
         </StudioButton>

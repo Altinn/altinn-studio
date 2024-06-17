@@ -35,7 +35,7 @@ export const ConfigEndEvent = () => {
                 </Paragraph>
                 <Link
                   href={altinnDocsUrl(
-                    'nb/altinn-studio/reference/configuration/process/customize/#receipt',
+                    'nb/altinn-studio/reference/configuration/process/customize/#kvittering-receipt',
                   )}
                   rel='noopener noreferrer'
                   target='_newTab'

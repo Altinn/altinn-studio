@@ -82,6 +82,27 @@ describe('NewAccessListModal', () => {
       await screen.findByText(textMock('resourceadm.listadmin_identifier_conflict')),
     ).toBeInTheDocument();
   });
+
+  it('should show error message when access list request returns http status code 412', async () => {
+    const user = userEvent.setup();
+    await renderAndOpenModal(user, {
+      createAccessList: jest
+        .fn()
+        .mockImplementation(() =>
+          Promise.reject({ response: { status: ServerCodes.PreconditionFailed } }),
+        ),
+    });
+
+    const nameField = screen.getByLabelText(textMock('resourceadm.listadmin_list_name'));
+    await user.type(nameField, 'nytt navn');
+
+    const createButton = screen.getByText(textMock('resourceadm.listadmin_confirm_create_list'));
+    await user.click(createButton);
+
+    expect(
+      await screen.findByText(textMock('resourceadm.listadmin_identifier_conflict')),
+    ).toBeInTheDocument();
+  });
 });
 
 const renderNewAccessListModal = (queryMocks: Partial<ServicesContextProps>) => {
