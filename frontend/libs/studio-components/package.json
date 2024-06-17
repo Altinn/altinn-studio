@@ -1,6 +1,6 @@
 {
   "name": "@studio/components",
-  "packageManager": "yarn@4.2.2",
+  "packageManager": "yarn@4.3.0",
   "version": "0.1.0",
   "main": "./src/index.ts",
   "scripts": {
@@ -27,7 +27,7 @@
     "@storybook/react": "^8.0.4",
     "@storybook/react-webpack5": "^8.0.4",
     "@storybook/test": "^8.0.4",
-    "@testing-library/jest-dom": "6.4.5",
+    "@testing-library/jest-dom": "6.4.6",
     "@testing-library/react": "16.0.0",
     "@types/jest": "^29.5.5",
     "eslint": "8.57.0",
