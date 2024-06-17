@@ -1,24 +1,65 @@
 import React from 'react';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
-import { Heading, Paragraph } from '@digdir/design-system-react';
-import { useText, useAppContext } from '../../hooks';
+import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
+import { useAppContext } from '../../hooks';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
 
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import classes from './Elements.module.css';
 
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
+import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQuery';
+import { StudioSpinner } from '@studio/components';
+import { useTranslation } from 'react-i18next';
 
-export const Elements = () => {
+export const Elements = (): React.ReactElement => {
+  const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
-  const existingCustomReceiptName: string | undefined = useCustomReceiptLayoutSetName(org, app);
 
+  const {
+    data: processTaskType,
+    isPending: isFetchingProcessTaskType,
+    isError: hasProcessTaskTypeError,
+  } = useProcessTaskTypeQuery(org, app, selectedFormLayoutSetName);
+
+  const existingCustomReceiptName: string | undefined = useCustomReceiptLayoutSetName(org, app);
   const hideComponents =
     selectedFormLayoutName === 'default' || selectedFormLayoutName === undefined;
 
-  const t = useText();
+  if (isFetchingProcessTaskType) {
+    return (
+      <div className={classes.root}>
+        <StudioSpinner
+          spinnerTitle={t('schema_editor.loading_available_components')}
+          showSpinnerTitle
+        />
+      </div>
+    );
+  }
+
+  if (hasProcessTaskTypeError) {
+    return (
+      <div>
+        <LayoutSetsContainer />
+        <div className={classes.errorMessage}>
+          <Alert severity='danger'>
+            <Heading level={3} size='xsmall' spacing>
+              {t('schema_editor.error_could_not_detect_taskType', {
+                layout: selectedFormLayoutSetName,
+              })}
+            </Heading>
+            <Paragraph>{t('schema_editor.error_could_not_detect_taskType_description')}</Paragraph>
+          </Alert>
+        </div>
+      </div>
+    );
+  }
+
+  const selectedLayoutIsCustomReceipt = selectedFormLayoutSetName === existingCustomReceiptName;
+  const shouldShowConfPageToolbar = selectedLayoutIsCustomReceipt || processTaskType === 'payment';
+  const confPageToolbarMode = selectedLayoutIsCustomReceipt ? 'receipt' : 'payment';
 
   return (
     <div className={classes.root}>
@@ -30,8 +71,8 @@ export const Elements = () => {
         <Paragraph className={classes.noPageSelected} size='small'>
           {t('left_menu.no_components_selected')}
         </Paragraph>
-      ) : existingCustomReceiptName === selectedFormLayoutSetName ? (
-        <ConfPageToolbar />
+      ) : shouldShowConfPageToolbar ? (
+        <ConfPageToolbar confPageType={confPageToolbarMode} />
       ) : (
         <DefaultToolbar />
       )}

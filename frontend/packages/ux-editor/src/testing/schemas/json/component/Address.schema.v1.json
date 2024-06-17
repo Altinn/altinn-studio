@@ -98,8 +98,8 @@
     "textResourceBindings": {
       "properties": {
         "title": {
-          "title": "Title from Summary",
-          "description": "Title of the component (currently only used when referenced from a Summary component)",
+          "title": "Title",
+          "description": "Title of the component",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "tableTitle": {
@@ -125,6 +125,26 @@
         "summaryAccessibleTitle": {
           "title": "Accessible summary title",
           "description": "Title used for aria-label on the edit button in the summary view (overrides the default and summary title)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "careOfTitle": {
+          "title": "Care Of Title",
+          "description": "Title for care-of",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "zipCodeTitle": {
+          "title": "Zip Code Title",
+          "description": "Title for the zip code",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "postPlaceTitle": {
+          "title": "Post place Title",
+          "description": "Title for post place",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "houseNumberTitle": {
+          "title": "House number Title",
+          "description": "Title for house number",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
       }

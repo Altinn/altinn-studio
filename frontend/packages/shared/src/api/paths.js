@@ -141,7 +141,7 @@ export const importResourceFromAltinn2Path = (org, env, serviceCode, serviceEdit
 export const accessListsPath = (org, env, page) => `${basePath}/${org}/resources/accesslist/?env=${env}${page ? `&page=${page}` : ''}`; // Get
 export const importResourceFromAltinn3Path = (org, resourceId, env) => `${basePath}/${org}/resources/addexistingresource/${resourceId}/${env}`; // Post
 export const createAccessListsPath = (org, env) => `${basePath}/${org}/resources/accesslist/?env=${env}`; //  Post
-export const accessListPath = (org, listId, env) => `${basePath}/${org}/resources/accesslist/${listId}?env=${env}`; // Get, Patch, Delete
+export const accessListPath = (org, listId, env, etag = '') => `${basePath}/${org}/resources/accesslist/${listId}?env=${env}${etag ? `&etag=${etag}` : ''}`; // Get, Patch, Delete
 export const accessListMemberPath = (org, listId, env, page) => `${basePath}/${org}/resources/accesslist/${listId}/members/?env=${env}${page ? `&page=${page}` : ''}`; // Get, Post, Delete
 export const resourceAccessListsPath = (org, resourceId, env, page) => `${basePath}/${org}/resources/${resourceId}/accesslists/?env=${env}${page ? `&page=${page}` : ''}`; // Get
 export const resourceAccessListPath = (org, resourceId, listId, env) => `${basePath}/${org}/resources/${resourceId}/accesslists/${listId}?env=${env}`; // Post, Delete, Patch
@@ -151,4 +151,5 @@ export const processEditorPath = (org, app) => `${basePath}/${org}/${app}/proces
 export const processEditorWebSocketHub = () => '/sync-hub';
 export const processEditorPathPut = (org, app) => `${basePath}/${org}/${app}/process-modelling/process-definition-latest`;
 export const processEditorDataTypeChangePath = (org, app) => `${basePath}/${org}/${app}/process-modelling/data-type`;
+export const processTaskTypePath = (org, app, taskId) => `${basePath}/${org}/${app}/process-modelling/task-type/${taskId}`; // Get
 export const processEditorDataTypePath = (org, app, dataTypeId, taskId) => `${basePath}/${org}/${app}/process-modelling/data-type/${dataTypeId}?${s({ taskId })}`;

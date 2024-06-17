@@ -8,7 +8,11 @@ export const userHasAccessToSelectedContext = ({
   selectedContext: string | SelectedContextType;
   orgs: Organization[];
 }): boolean => {
-  if (selectedContext == SelectedContextType.Self || selectedContext == SelectedContextType.All) {
+  if (
+    selectedContext == SelectedContextType.Self ||
+    selectedContext == SelectedContextType.All ||
+    selectedContext == SelectedContextType.None
+  ) {
     return true;
   }
 

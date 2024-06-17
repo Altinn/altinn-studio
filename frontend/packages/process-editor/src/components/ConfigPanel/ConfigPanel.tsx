@@ -5,7 +5,6 @@ import { useBpmnContext } from '../../contexts/BpmnContext';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 import { ConfigContent } from './ConfigContent';
 import { ConfigEndEvent } from './ConfigEndEvent';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { ConfigSurface } from '../ConfigSurface/ConfigSurface';
 import { ConfigSequenceFlow } from './ConfigSequenceFlow';
 
@@ -32,9 +31,7 @@ const ConfigPanelContent = (): React.ReactElement => {
   }
 
   const elementIsEndEvent = bpmnDetails.type === BpmnTypeEnum.EndEvent;
-  const shouldDisplayEndEventConfig =
-    shouldDisplayFeature('customizeEndEvent') && elementIsEndEvent;
-  if (shouldDisplayEndEventConfig) {
+  if (elementIsEndEvent) {
     return <ConfigEndEvent />;
   }
 

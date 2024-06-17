@@ -9,12 +9,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
-
-jest.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
-}));
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
@@ -31,8 +26,10 @@ describe('AppPreviewSubMenu', () => {
   it('renders the component with desktop viewSize', () => {
     setQueryData(null);
     renderWithProviders(<AppPreviewSubMenu {...props} />);
-    const desktopButton = screen.getByRole('button', { name: 'preview.view_size_desktop' });
-    const mobileButton = screen.getByRole('button', { name: 'preview.view_size_mobile' });
+    const desktopButton = screen.getByRole('button', {
+      name: textMock('preview.view_size_desktop'),
+    });
+    const mobileButton = screen.getByRole('button', { name: textMock('preview.view_size_mobile') });
     expect(desktopButton).toHaveAttribute('aria-pressed', 'true');
     expect(mobileButton).toHaveAttribute('aria-pressed', 'false');
   });
@@ -40,8 +37,10 @@ describe('AppPreviewSubMenu', () => {
   it('renders the component with mobile viewSize', () => {
     setQueryData(null);
     renderWithProviders(<AppPreviewSubMenu {...props} viewSize='mobile' />);
-    const desktopButton = screen.getByRole('button', { name: 'preview.view_size_desktop' });
-    const mobileButton = screen.getByRole('button', { name: 'preview.view_size_mobile' });
+    const desktopButton = screen.getByRole('button', {
+      name: textMock('preview.view_size_desktop'),
+    });
+    const mobileButton = screen.getByRole('button', { name: textMock('preview.view_size_mobile') });
     expect(desktopButton).toHaveAttribute('aria-pressed', 'false');
     expect(mobileButton).toHaveAttribute('aria-pressed', 'true');
   });

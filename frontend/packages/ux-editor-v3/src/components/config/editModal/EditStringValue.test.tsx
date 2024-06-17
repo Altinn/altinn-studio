@@ -4,13 +4,9 @@ import { screen, waitFor } from '@testing-library/react';
 import { EditStringValue } from './EditStringValue';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
-import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import userEvent from '@testing-library/user-event';
-
-jest.mock('react-i18next', () => ({
-  useTranslation: () => mockUseTranslation({}),
-}));
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
@@ -49,7 +45,9 @@ describe('EditStringValue', () => {
   it(' Ensure that the onChange handler is called with the correct arguments', async () => {
     const handleComponentChange = jest.fn();
     await render({ handleComponentChange });
-    const inputElement = screen.getByLabelText('maxLength');
+    const inputElement = screen.getByLabelText(
+      textMock('ux_editor.component_properties.maxLength'),
+    );
     await user.type(inputElement, 'new value');
     expect(handleComponentChange).toHaveBeenCalledWith({
       id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
