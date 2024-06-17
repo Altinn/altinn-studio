@@ -13,7 +13,6 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { useRepoCommitAndPushMutation } from 'app-shared/hooks/mutations';
 import { toast } from 'react-toastify';
-import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 
 const initialModalState = {
   header: '',
