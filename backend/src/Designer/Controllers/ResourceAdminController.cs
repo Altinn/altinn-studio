@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
@@ -323,6 +324,10 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/importresource/{serviceCode}/{serviceEdition}/{env}")]
         public async Task<ActionResult> ImportResource(string org, string serviceCode, int serviceEdition, string env, [FromBody] string resourceId)
         {
+            if (!Regex.IsMatch(resourceId, "^[a-z0-9_-]{4,}$"))
+            {
+                return new StatusCodeResult(400);
+            }
             string repository = GetRepositoryName(org);
             ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(serviceCode, serviceEdition, env.ToLower());
             resource.Identifier = resourceId;
