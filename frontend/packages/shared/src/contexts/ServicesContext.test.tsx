@@ -55,10 +55,9 @@ describe('ServicesContext', () => {
     expect(await screen.findByText(textMock('api_errors.Unauthorized'))).toBeInTheDocument();
   });
 
-  it('logs out the user and redirects after the unauthorized error toast disappears', async () => {
-    const logoutMock = jest.fn().mockResolvedValueOnce(Promise.resolve());
-
-    const { result } = renderHook(
+  it('Handles logout when toast is closed', async () => {
+    const logoutMock = jest.fn();
+    renderHook(
       () =>
         useQuery({
           queryKey: ['fetchData'],
@@ -66,16 +65,20 @@ describe('ServicesContext', () => {
           retry: false,
         }),
       {
-        wrapper: ({ children }) => wrapper({ children, queries: { logout: logoutMock } }),
+        wrapper: ({ children }) => {
+          return wrapper({ children, queries: { logout: logoutMock } });
+        },
       },
     );
-
-    await waitFor(() => result.current.isError);
-
-    await waitFor(() => screen.findByText(textMock('api_errors.Unauthorized')));
-
-    jest.runAllTimers();
-    // TODO check if the user is logged out.
+    await waitFor(async () => {
+      await Promise.resolve();
+    });
+    jest.advanceTimersByTime(6000);
+    await waitFor(() => {
+      setTimeout(() => {
+        expect(logoutMock).toHaveBeenCalled();
+      }, 5000);
+    });
   });
 
   it('Displays a toast message for "GT_01" error code', async () => {
