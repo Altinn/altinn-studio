@@ -343,6 +343,14 @@
         }
       },
       {
+        "id": "new-summary",
+        "type": "Summary2",
+        "whatToRender": {
+          "type": "page",
+          "id": "GridPage"
+        }
+      },
+      {
         "id": "NavigationButtons-nkqJlY",
         "showBackButton": true,
         "textResourceBindings": {},
