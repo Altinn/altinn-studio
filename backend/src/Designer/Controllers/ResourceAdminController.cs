@@ -234,7 +234,8 @@ namespace Altinn.Studio.Designer.Controllers
                 return StatusCode(404);
             }
 
-            ServiceResourceStatus resourceStatus = new() {
+            ServiceResourceStatus resourceStatus = new()
+            {
                 ResourceVersion = resource.Version,
                 PublishedVersions = []
             };
