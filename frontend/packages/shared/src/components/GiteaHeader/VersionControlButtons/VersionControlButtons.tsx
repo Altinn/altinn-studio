@@ -13,6 +13,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { useRepoCommitAndPushMutation } from 'app-shared/hooks/mutations';
 import { toast } from 'react-toastify';
+import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 
 const initialModalState = {
   header: '',
@@ -33,9 +34,10 @@ function hasLocalChanges(result: IGitStatus) {
 export interface IVersionControlButtonsProps {
   org: string;
   app: string;
+  onPullSuccess?: () => void;
 }
 
-export const VersionControlButtons = ({ org, app }: IVersionControlButtonsProps) => {
+export const VersionControlButtons = ({ org, app, onPullSuccess }: IVersionControlButtonsProps) => {
   const { t } = useTranslation();
   const [hasPushRights, setHasPushRights] = useState(false);
   const [hasMergeConflict, setHasMergeConflict] = useState(false);
@@ -73,6 +75,7 @@ export const VersionControlButtons = ({ org, app }: IVersionControlButtonsProps)
     });
     const { data: result } = await fetchPullData();
     if (result.repositoryStatus === 'Ok') {
+      if (onPullSuccess) onPullSuccess();
       // force reFetch  files
       await queryClient.invalidateQueries(); // Todo: This invalidates ALL queries. Consider providing a list of relevant queries only.
       // if pull was successful, show app is updated message
