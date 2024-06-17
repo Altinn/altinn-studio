@@ -21,16 +21,17 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         }
 
         [Fact]
-        public async Task ExportAltinn2Resource()
+        public async Task ExportAltinn2Resource_Ok()
         {
             // Arrange
             string uri = $"designer/api/ttd/resources/importresource/4485/4444/at23";
             using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri))
             {
-                httpRequestMessage.Content = new StringContent("new-resource-id", Encoding.UTF8, MediaTypeNames.Application.Json);
+                string resourceId = "new-resource-id";
+                httpRequestMessage.Content = new StringContent($"\"{resourceId}\"", Encoding.UTF8, MediaTypeNames.Application.Json);
                 ServiceResource serviceResource = new ServiceResource()
                 {
-                    Identifier = "234",
+                    Identifier = resourceId,
                 };
 
                 XacmlPolicy policy = AuthorizationUtil.ParsePolicy("resource_registry_delegatableapi.xml");
@@ -44,6 +45,24 @@ namespace Designer.Tests.Controllers.ResourceAdminController
 
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            }
+        }
+
+        [Fact]
+        public async Task ExportAltinn2Resource_ResourceIdentifierTooShort_ReturnsBadRequest()
+        {
+            // Arrange
+            string uri = $"designer/api/ttd/resources/importresource/4485/4444/at23";
+            using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri))
+            {
+                string resourceId = "new";
+                httpRequestMessage.Content = new StringContent($"\"{resourceId}\"", Encoding.UTF8, MediaTypeNames.Application.Json);
+
+                // Act
+                using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
             }
         }
     }
