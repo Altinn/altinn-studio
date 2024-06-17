@@ -8,11 +8,19 @@ export type StudioDisplayTileProps = {
   icon?: React.ReactNode;
   label: string;
   value: string;
+  showPadlock?: boolean;
 } & HTMLAttributes<HTMLDivElement>;
 
 const StudioDisplayTile = forwardRef<HTMLDivElement, StudioDisplayTileProps>(
   (
-    { icon, label, value, className: givenClassName, ...rest }: StudioDisplayTileProps,
+    {
+      icon,
+      label,
+      value,
+      className: givenClassName,
+      showPadlock = true,
+      ...rest
+    }: StudioDisplayTileProps,
     ref,
   ): React.ReactElement => {
     const className = cn(givenClassName, classes.container);
@@ -28,7 +36,7 @@ const StudioDisplayTile = forwardRef<HTMLDivElement, StudioDisplayTileProps>(
           </div>
           <Paragraph size='small'>{value}</Paragraph>
         </div>
-        <PadlockLockedFillIcon />
+        {showPadlock && <PadlockLockedFillIcon />}
       </div>
     );
   },

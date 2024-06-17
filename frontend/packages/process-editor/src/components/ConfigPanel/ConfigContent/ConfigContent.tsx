@@ -44,6 +44,7 @@ export const ConfigContent = (): React.ReactElement => {
         label={t('process_editor.configuration_panel_name_label')}
         value={bpmnDetails.name}
         className={classes.displayTile}
+        showPadlock={false}
       />
       {taskHasConnectedLayoutSet && (
         <EditDataType
