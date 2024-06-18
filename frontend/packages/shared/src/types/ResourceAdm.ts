@@ -139,7 +139,11 @@ export interface AccessListMember {
   isSubParty: boolean;
 }
 
-export interface AccessList {
+export interface HeaderEtag {
+  etag?: string;
+}
+
+export interface AccessList extends HeaderEtag {
   env: string;
   identifier: string;
   name: string;
@@ -154,16 +158,12 @@ export interface AccessListsResponse {
   nextPage?: string;
 }
 
-export interface AccessListMembersResponse {
+export interface AccessListMembersResponse extends HeaderEtag {
   data: AccessListMember[];
   nextPage?: string;
 }
 
-export interface AccessListOrganizationNumbers {
-  data: string[];
-}
-
-export interface AccessListOrganizationNumbers {
+export interface AccessListOrganizationNumbers extends HeaderEtag {
   data: string[];
 }
 

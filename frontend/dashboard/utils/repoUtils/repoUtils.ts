@@ -24,18 +24,21 @@ const appsTranslationMap: TranslationMap = {
   all: 'dashboard.all_apps',
   self: 'dashboard.my_apps',
   org: 'dashboard.apps',
+  none: 'undefined',
   named_org: 'dashboard.org_apps',
 };
 const dataModelsTranslationMap: TranslationMap = {
   all: 'dashboard.all_data_models',
   self: 'dashboard.my_data_models',
   org: 'dashboard.data_models',
+  none: 'undefined',
   named_org: 'dashboard.org_data_models',
 };
 const resourcesTranslationMap: TranslationMap = {
   all: 'dashboard.all_resources',
   self: 'dashboard.my_resources',
   org: 'dashboard.resources',
+  none: 'undefined',
   named_org: 'dashboard.org_resources',
 };
 

@@ -36,7 +36,7 @@ import {
   processEditorPathPut,
   layoutSetPath,
   processEditorDataTypePath,
-  processEditorDataTypeChangePath,
+  processEditorDataTypesChangePath,
   dataModelsUploadPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
@@ -55,13 +55,13 @@ import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { CreateDataModelPayload } from 'app-shared/types/api/CreateDataModelPayload';
 import type { Policy } from '@altinn/policy-editor';
-import type { NewResource, AccessList, Resource, AccessListOrganizationNumbers } from 'app-shared/types/ResourceAdm';
+import type { NewResource, AccessList, Resource, AccessListOrganizationNumbers, HeaderEtag } from 'app-shared/types/ResourceAdm';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Repository } from 'app-shared/types/Repository';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import type { AddLayoutSetResponse } from 'app-shared/types/api/AddLayoutSetResponse';
-import type { DataTypeChange } from 'app-shared/types/api/DataTypeChange';
+import type { DataTypesChange } from 'app-shared/types/api/DataTypesChange';
 
 const headers = {
   Accept: 'application/json',
@@ -116,9 +116,9 @@ export const importResourceFromAltinn2 = (org: string, environment: string, code
 export const importResourceFromAltinn3 = (org: string, resourceId: string, environment: string) => post<Resource>(importResourceFromAltinn3Path(org, resourceId, environment));
 export const createAccessList = (org: string, environment: string, payload: Partial<AccessList>) => post<AccessList>(createAccessListsPath(org, environment), payload);
 export const updateAccessList = (org: string, listId: string, environment: string, payload: AccessList) => put<AccessList>(accessListPath(org, listId, environment), payload);
-export const deleteAccessList = (org: string, listId: string, environment: string) => del(accessListPath(org, listId, environment));
-export const addAccessListMember = (org: string, listId: string, environment: string, payload: AccessListOrganizationNumbers) => post(accessListMemberPath(org, listId, environment), payload);
-export const removeAccessListMember = (org: string, listId: string, environment: string, payload: AccessListOrganizationNumbers) => del(accessListMemberPath(org, listId, environment), { data: payload });
+export const deleteAccessList = (org: string, listId: string, environment: string, etag: string) => del(accessListPath(org, listId, environment, etag));
+export const addAccessListMember = (org: string, listId: string, environment: string, payload: AccessListOrganizationNumbers) => post<HeaderEtag, AccessListOrganizationNumbers>(accessListMemberPath(org, listId, environment), payload);
+export const removeAccessListMember = (org: string, listId: string, environment: string, payload: AccessListOrganizationNumbers) => del<HeaderEtag>(accessListMemberPath(org, listId, environment), { data: payload });
 export const addResourceAccessList = (org: string, resourceId: string, listId: string, environment: string) => post(resourceAccessListPath(org, resourceId, listId, environment));
 export const removeResourceAccessList = (org: string, resourceId: string, listId: string, environment: string) => del(resourceAccessListPath(org, resourceId, listId, environment));
 export const publishResource = (org: string, repo: string, id: string, env: string) => post(publishResourcePath(org, repo, id, env), { headers: { 'Content-Type': 'application/json' } });
@@ -137,4 +137,4 @@ export const updateBpmnXml = (org: string, app: string, form: any) =>
     },
   });
 
-export const updateProcessDataType = (org: string, app: string, dataTypeChange: DataTypeChange) => put(processEditorDataTypeChangePath(org, app), dataTypeChange);
+export const updateProcessDataTypes = (org: string, app: string, dataTypesChange: DataTypesChange) => put(processEditorDataTypesChangePath(org, app), dataTypesChange);

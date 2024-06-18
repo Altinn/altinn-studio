@@ -1,23 +1,13 @@
-import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { renderHook } from '@testing-library/react';
 import { useComponentTypeName } from './useComponentTypeName';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 // Test data:
-const inputText = 'input';
-const paragraphText = 'paragraph';
-const texts: KeyValuePairs<string> = {
-  [`ux_editor.component_title.${ComponentType.Input}`]: inputText,
-  [`ux_editor.component_title.${ComponentType.Paragraph}`]: paragraphText,
-};
-
-// Mocks:
-jest.mock('react-i18next', () => ({
-  ...jest.requireActual('react-i18next'),
-  useTranslation: () => ({
-    t: (key: string) => texts?.[key] ?? key,
-  }),
-}));
+const inputText = textMock(`ux_editor.component_title.${ComponentType.Input}`);
+const paragraphText = textMock(`ux_editor.component_title.${ComponentType.Paragraph}`);
+const headerText = textMock(`ux_editor.component_title.${ComponentType.Header}`);
+const checkboxesText = textMock(`ux_editor.component_title.${ComponentType.Checkboxes}`);
 
 describe('useComponentTypeName', () => {
   const { result } = renderHook(useComponentTypeName);
@@ -28,7 +18,7 @@ describe('useComponentTypeName', () => {
   });
 
   it('Returns the component type if the text does not exist', () => {
-    expect(result.current(ComponentType.Header)).toBe(ComponentType.Header);
-    expect(result.current(ComponentType.Checkboxes)).toBe(ComponentType.Checkboxes);
+    expect(result.current(ComponentType.Header)).toBe(headerText);
+    expect(result.current(ComponentType.Checkboxes)).toBe(checkboxesText);
   });
 });

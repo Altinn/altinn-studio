@@ -1,7 +1,7 @@
 import React from 'react';
 import { CustomReceipt } from './CustomReceipt';
 import { render, screen } from '@testing-library/react';
-import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { BpmnContext } from '../../../../../contexts/BpmnContext';
 import userEvent from '@testing-library/user-event';
 import { BpmnApiContext, type BpmnApiContextProps } from '../../../../../contexts/BpmnApiContext';
@@ -72,7 +72,7 @@ describe('CustomReceipt', () => {
     });
   });
 
-  it('calls "mutateDataType" when the data model id is changed', async () => {
+  it('calls "mutateDataTypes" when the data model id is changed', async () => {
     const user = userEvent.setup();
     renderCustomReceipt();
 
@@ -89,10 +89,10 @@ describe('CustomReceipt', () => {
     const option = screen.getByRole('option', { name: newOption });
     await user.click(option);
 
-    expect(mockBpmnApiContextValue.mutateDataType).toHaveBeenCalledTimes(1);
-    expect(mockBpmnApiContextValue.mutateDataType).toHaveBeenCalledWith({
+    expect(mockBpmnApiContextValue.mutateDataTypes).toHaveBeenCalledTimes(1);
+    expect(mockBpmnApiContextValue.mutateDataTypes).toHaveBeenCalledWith({
       connectedTaskId: PROTECTED_TASK_NAME_CUSTOM_RECEIPT,
-      newDataType: newOption,
+      newDataTypes: [newOption],
     });
   });
 

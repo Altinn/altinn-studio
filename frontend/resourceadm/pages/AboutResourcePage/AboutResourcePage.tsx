@@ -27,7 +27,6 @@ import {
   ResourceRadioGroup,
 } from '../../components/ResourcePageInputs';
 import { ResourceContactPointFields } from '../../components/ResourceContactPointFields';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { ResourceReferenceFields } from '../../components/ResourceReferenceFields';
 import { AccessListEnvLinks } from '../../components/AccessListEnvLinks';
 
@@ -275,24 +274,20 @@ export const AboutResourcePage = ({
           onChange={(isChecked: boolean) => handleSave({ ...resourceData, visible: isChecked })}
           toggleTextTranslationKey='resourceadm.about_resource_visible_show_text'
         />
-        {shouldDisplayFeature('resourceAccessLists') && (
-          <>
-            <ResourceSwitchInput
-              label={t('resourceadm.about_resource_limited_by_rrr_label')}
-              description={t('resourceadm.about_resource_limited_by_rrr_description')}
-              value={resourceData.limitedByRRR ?? false}
-              onFocus={() => setTranslationType('none')}
-              onChange={(isChecked: boolean) =>
-                handleSave({ ...resourceData, limitedByRRR: isChecked })
-              }
-              toggleTextTranslationKey='resourceadm.about_resource_use_rrr_show_text'
-            />
-            {resourceData.limitedByRRR && (
-              <div data-testid='rrr-buttons'>
-                <AccessListEnvLinks />
-              </div>
-            )}
-          </>
+        <ResourceSwitchInput
+          label={t('resourceadm.about_resource_limited_by_rrr_label')}
+          description={t('resourceadm.about_resource_limited_by_rrr_description')}
+          value={resourceData.limitedByRRR ?? false}
+          onFocus={() => setTranslationType('none')}
+          onChange={(isChecked: boolean) =>
+            handleSave({ ...resourceData, limitedByRRR: isChecked })
+          }
+          toggleTextTranslationKey='resourceadm.about_resource_use_rrr_show_text'
+        />
+        {resourceData.limitedByRRR && (
+          <div data-testid='rrr-buttons'>
+            <AccessListEnvLinks />
+          </div>
         )}
       </div>
     );
