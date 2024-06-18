@@ -1,14 +1,15 @@
 import React from 'react';
 import { Popover } from '@mui/material';
-import { dataModelUploadPagePath, repositoryGitPath } from 'app-shared/api/paths';
+import { repositoryGitPath } from 'app-shared/api/paths';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import classes from './CloneModal.module.css';
-import { LegacyTextField, Link } from '@digdir/design-system-react';
+import { Link, Paragraph } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { useDataModelsXsdQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { InformationSquareFillIcon } from '@studio/icons';
-import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
+import { StudioButton, StudioLabelAsParagraph, StudioTextfield } from '@studio/components';
+import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 
 export type CloneModalProps = {
   anchorEl: Element;
@@ -17,13 +18,15 @@ export type CloneModalProps = {
 
 export const CloneModal = ({ anchorEl, onClose }: CloneModalProps) => {
   const { org, app } = useStudioEnvironmentParams();
-
-  const gitUrl = window.location.origin.toString() + repositoryGitPath(org, app);
-
-  const copyGitUrl = () => navigator.clipboard.writeText(gitUrl);
-  const canCopy = document.queryCommandSupported ? document.queryCommandSupported('copy') : false;
   const { data: dataModel = [] } = useDataModelsXsdQuery(org, app);
   const { t } = useTranslation();
+  const packagesRouter = new PackagesRouter({ app, org });
+
+  // MOVE THESE TO UTILS
+  const gitUrl = window.location.origin.toString() + repositoryGitPath(org, app);
+  const copyGitUrl = () => navigator.clipboard.writeText(gitUrl);
+  const canCopy = document.queryCommandSupported ? document.queryCommandSupported('copy') : false;
+
   const open = Boolean(anchorEl);
 
   return (
@@ -37,30 +40,50 @@ export const CloneModal = ({ anchorEl, onClose }: CloneModalProps) => {
       }}
     >
       <div className={classes.modalContainer}>
-        <StudioLabelAsParagraph>{t('sync_header.favourite_tool')}</StudioLabelAsParagraph>
-        <Link href={altinnDocsUrl('/nb')} target='_blank' rel='noopener noreferrer'>
+        <StudioLabelAsParagraph size='small' spacing>
+          {t('sync_header.favourite_tool')}
+        </StudioLabelAsParagraph>
+        <Link
+          className={classes.link}
+          size='small'
+          href={altinnDocsUrl('/nb')}
+          target='_blank'
+          rel='noopener noreferrer'
+        >
           {t('sync_header.favourite_tool_link')}
         </Link>
         {
           /*dataModel.length*/ 0 === 0 && (
             <>
-              <div className={classes.blackText}>
+              <div className={classes.iconAndText}>
                 <InformationSquareFillIcon className={classes.infoIcon} />
-                {t('sync_header.data_model_missing')}
+                <Paragraph size='small'>{t('sync_header.data_model_missing')}</Paragraph>
               </div>
-              <div className={classes.blackText}>{t('sync_header.data_model_missing_helper')}</div>
-              <Link href={dataModelUploadPagePath(org, app)}>
+              <Paragraph size='small' spacing>
+                {t('sync_header.data_model_missing_helper')}
+              </Paragraph>
+              <Link
+                className={classes.link}
+                size='small'
+                href={packagesRouter.getPackageNavigationUrl('dataModel')}
+              >
                 {t('sync_header.data_model_missing_link')}
               </Link>
             </>
           )
         }
-        <div className={classes.blackText}>{t('sync_header.clone_https')}</div>
-        <LegacyTextField id='repository-url-form' value={gitUrl} readOnly />
+        <StudioTextfield
+          readOnly
+          value={gitUrl}
+          label={t('sync_header.clone_https')}
+          size='small'
+        />
         {canCopy && (
-          <StudioButton onClick={copyGitUrl} id='copy-repository-url-button' size='small'>
-            {t('sync_header.clone_https_button')}
-          </StudioButton>
+          <div className={classes.buttonWrapper}>
+            <StudioButton fullWidth onClick={copyGitUrl} className={classes.button} size='small'>
+              {t('sync_header.clone_https_button')}
+            </StudioButton>
+          </div>
         )}
       </div>
     </Popover>

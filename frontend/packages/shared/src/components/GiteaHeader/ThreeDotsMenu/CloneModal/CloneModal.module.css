@@ -1,22 +1,23 @@
 .modalContainer {
-  padding: 24px;
-  width: 319px;
+  padding: var(--fds-spacing-5);
 }
 
-.itemSeparator {
-  padding-bottom: 12px;
+.link {
+  margin-bottom: var(--fds-spacing-4);
 }
 
-.sectionSeparator {
-  padding-bottom: 32px;
-}
-
-.blackText {
-  color: black;
+.iconAndText {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-2);
+  margin-bottom: var(--fds-spacing-4);
 }
 
 .infoIcon {
-  font-size: 1.5rem;
+  font-size: var(--fds-sizing-5);
   color: var(--fds-semantic-text-action-default);
-  padding: 0px 0px 3px 0px;
+}
+
+.button {
+  margin-top: var(--fds-spacing-4);
 }
