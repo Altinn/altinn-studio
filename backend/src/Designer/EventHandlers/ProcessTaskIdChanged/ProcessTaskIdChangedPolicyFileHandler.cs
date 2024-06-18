@@ -23,7 +23,8 @@ public class ProcessTaskIdChangedPolicyFileHandler : INotificationHandler<Proces
 
     public async Task Handle(ProcessTaskIdChangedEvent notification, CancellationToken cancellationToken)
     {
-        await _fileSyncHandlerExecutor.ExecuteWithExceptionHandling(
+        bool hasChanges = false;
+        await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
             notification.EditingContext,
             SyncErrorCodes.PolicyFileTaskIdSyncError,
             "App/config/authorization/policy.xml",
@@ -37,7 +38,10 @@ public class ProcessTaskIdChangedPolicyFileHandler : INotificationHandler<Proces
                     xacmlPolicy = PolicyConverter.ConvertPolicy(resourcePolicy);
                     await _repository.SavePolicy(notification.EditingContext.Org, notification.EditingContext.Repo,
                         null, xacmlPolicy);
+                    hasChanges = true;
                 }
+
+                return hasChanges;
             });
     }
 

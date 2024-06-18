@@ -9,7 +9,7 @@ import type { SyncError, SyncSuccess } from 'app-shared/types/api/SyncResponses'
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { app, org } from '@studio/testing/testids';
 import { SyncSuccessQueriesInvalidator } from 'app-shared/queryInvalidator/SyncSuccessQueriesInvalidator';
-import { WebSocket } from './WebSocket';
+import { WebSocketSyncWrapper } from './WebSocketSyncWrapper';
 import { renderWithProviders } from '../../test/testUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 
@@ -17,14 +17,14 @@ jest.mock('app-shared/hooks/useWebSocket', () => ({
   useWebSocket: jest.fn(),
 }));
 
-describe('WebSocket', () => {
+describe('WebSocketSyncWrapper', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
   it('should call useWebSocket with the correct parameters', () => {
     (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
-    renderWebSocket();
+    renderWebSocketSyncWrapper();
 
     expect(useWebSocket).toHaveBeenCalledWith({
       clientsName: ['FileSyncSuccess', 'FileSyncError'],
@@ -52,7 +52,7 @@ describe('WebSocket', () => {
       onWSMessageReceived: mockOnWSMessageReceived,
     });
 
-    renderWebSocket();
+    renderWebSocketSyncWrapper();
 
     await screen.findByText(textMock('process_editor.sync_error_application_metadata_task_id'));
   });
@@ -68,7 +68,7 @@ describe('WebSocket', () => {
     const queryClientMock = createQueryClientMock();
     const invalidator = SyncSuccessQueriesInvalidator.getInstance(queryClientMock, org, app);
 
-    invalidator.invalidateQueryByFileName = jest.fn();
+    invalidator.invalidateQueryByFileLocation = jest.fn();
     const mockOnWSMessageReceived = jest
       .fn()
       .mockImplementation((callback: Function) => callback(syncSuccessMock));
@@ -78,11 +78,10 @@ describe('WebSocket', () => {
       onWSMessageReceived: mockOnWSMessageReceived,
     });
 
-    renderWebSocket();
+    renderWebSocketSyncWrapper();
     await waitFor(() => {
-      expect(invalidator.invalidateQueryByFileName).toHaveBeenCalledWith(
+      expect(invalidator.invalidateQueryByFileLocation).toHaveBeenCalledWith(
         syncSuccessMock.source.name,
-        null, // selectedLayoutSet is not set at this point
       );
     });
   });
@@ -90,9 +89,9 @@ describe('WebSocket', () => {
 
 const mockChildren: ReactNode = <div></div>;
 
-const renderWebSocket = () => {
+const renderWebSocketSyncWrapper = () => {
   const queryClient = createQueryClientMock();
-  return renderWithProviders(<WebSocket>{mockChildren}</WebSocket>, {
+  return renderWithProviders(<WebSocketSyncWrapper>{mockChildren}</WebSocketSyncWrapper>, {
     queryClient,
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
   });

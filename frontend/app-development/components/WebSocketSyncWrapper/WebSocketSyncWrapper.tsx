@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { toast } from 'react-toastify';
@@ -17,21 +17,21 @@ enum SyncClientsName {
   FileSyncError = 'FileSyncError',
 }
 
-type WebSocketProps = {
+type WebSocketSyncWrapperProps = {
   children: React.ReactNode;
 };
-export const WebSocket = ({ children }: WebSocketProps): React.ReactElement => {
+export const WebSocketSyncWrapper = ({
+  children,
+}: WebSocketSyncWrapperProps): React.ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const queryClient = useQueryClient();
   const { selectedLayoutSetName } = useLayoutContext();
-  const layoutSetNameRef = useRef<string>(null);
+  const invalidator = SyncSuccessQueriesInvalidator.getInstance(queryClient, org, app);
 
   useEffect(() => {
-    layoutSetNameRef.current = selectedLayoutSetName;
-  }, [selectedLayoutSetName]);
-
-  const invalidator = SyncSuccessQueriesInvalidator.getInstance(queryClient, org, app);
+    invalidator.layoutSetName = selectedLayoutSetName;
+  }, [invalidator, selectedLayoutSetName]);
 
   const { onWSMessageReceived } = useWebSocket({
     webSocketUrl: SyncEventsWebSocketHub(),
@@ -49,7 +49,7 @@ export const WebSocket = ({ children }: WebSocketProps): React.ReactElement => {
     const isSuccessMessage = 'source' in message;
     if (isSuccessMessage) {
       // Please extend the "fileNameCacheKeyMap" inside the "SyncSuccessQueriesInvalidator" class. Do not add query-client invalidation directly here.
-      invalidator.invalidateQueryByFileName(message.source.name, layoutSetNameRef.current);
+      invalidator.invalidateQueryByFileLocation(message.source.name);
     }
   });
 

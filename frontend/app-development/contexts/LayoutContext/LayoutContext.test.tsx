@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { LayoutContextProvider, useLayoutContext } from './LayoutContext';
+import userEvent from '@testing-library/user-event';
 
 describe('LayoutContext', () => {
   it('should render children', () => {
@@ -40,5 +41,36 @@ describe('LayoutContext', () => {
       'useLayoutContext must be used within a LayoutContextProvider',
     );
     expect(consoleError).toHaveBeenCalled();
+  });
+
+  it('should update selectedLayoutSetName when setSelectedLayoutSetName is called', async () => {
+    const user = userEvent.setup();
+    const selectedLayoutSetNameTestId = 'layout-set-name';
+    const changeSelectedLayoutSetNameButtonText = 'Change selected layout set name';
+    const newSelectedLayoutSetName = 'NewSelectedLayoutSetName';
+    const TestComponent = () => {
+      const { selectedLayoutSetName, setSelectedLayoutSetName } = useLayoutContext();
+
+      return (
+        <div>
+          <div data-testid={selectedLayoutSetNameTestId}>{selectedLayoutSetName}</div>
+          <button onClick={() => setSelectedLayoutSetName(newSelectedLayoutSetName)}>
+            {changeSelectedLayoutSetNameButtonText}
+          </button>
+        </div>
+      );
+    };
+
+    render(
+      <LayoutContextProvider>
+        <TestComponent />
+      </LayoutContextProvider>,
+    );
+
+    expect(screen.getByTestId(selectedLayoutSetNameTestId)).toHaveTextContent('');
+    await user.click(screen.getByText(changeSelectedLayoutSetNameButtonText));
+    expect(screen.getByTestId(selectedLayoutSetNameTestId)).toHaveTextContent(
+      newSelectedLayoutSetName,
+    );
   });
 });

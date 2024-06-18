@@ -31,7 +31,7 @@ public class ComponentIdChangedSettingsHandler : INotificationHandler<ComponentI
             await repository.GetLayoutSettingsAndCreateNewIfNotFound(notification.LayoutSetName, cancellationToken);
 
         bool hasChanges = false;
-        await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingConditionalNotification(
+        await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
             notification.EditingContext,
             SyncErrorCodes.SettingsComponentIdSyncError,
             $"App/ui/{notification.LayoutSetName}/Settings.json",

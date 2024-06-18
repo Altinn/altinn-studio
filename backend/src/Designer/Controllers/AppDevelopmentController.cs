@@ -104,24 +104,23 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="layoutSetName">Name of layoutSet the specific layout belongs to</param>
         /// <param name="layoutName">The name of the form layout to be saved.</param>
-        /// <param name="payload">A json object with, layout, the content to be saved, and the componentIdsChange: If componentIDs have been changed, this event includes info to perform the change across the app</param>
+        /// <param name="formLayoutPayload">A json object with, layout, the content to be saved, and the componentIdsChange: If componentIDs have been changed, this event includes info to perform the change across the app</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
         [UseSystemTextJson]
         [Route("form-layout/{layoutName}")]
-        public async Task<ActionResult> SaveFormLayout(string org, string app, [FromQuery] string layoutSetName, [FromRoute] string layoutName, [FromBody] JsonNode payload, CancellationToken cancellationToken)
+        public async Task<ActionResult> SaveFormLayout(string org, string app, [FromQuery] string layoutSetName, [FromRoute] string layoutName, [FromBody] FormLayoutPayload formLayoutPayload, CancellationToken cancellationToken)
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                List<ComponentIdChange> componentIdsChange = System.Text.Json.JsonSerializer.Deserialize<List<ComponentIdChange>>(payload["componentIdsChange"]);
-                await _appDevelopmentService.SaveFormLayout(editingContext, layoutSetName, layoutName, payload["layout"], cancellationToken);
+                await _appDevelopmentService.SaveFormLayout(editingContext, layoutSetName, layoutName, formLayoutPayload.Layout, cancellationToken);
 
-                if (componentIdsChange is not null && !string.IsNullOrEmpty(layoutSetName))
+                if (formLayoutPayload.ComponentIdsChange is not null && !string.IsNullOrEmpty(layoutSetName))
                 {
-                    foreach (var componentIdChange in componentIdsChange)
+                    foreach (var componentIdChange in formLayoutPayload.ComponentIdsChange)
                     {
                         await _mediator.Publish(new ComponentIdChangedEvent
                         {

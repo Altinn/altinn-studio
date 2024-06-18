@@ -9,3 +9,5 @@ public class ComponentIdChange
     [JsonPropertyName("newComponentId")]
     public string NewComponentId { get; set; }
 }
+
+

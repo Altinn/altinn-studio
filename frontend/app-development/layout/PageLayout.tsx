@@ -8,7 +8,7 @@ import { MergeConflictWarning } from '../features/simpleMerge/MergeConflictWarni
 import { useOrgListQuery } from '../hooks/queries';
 import { NotFoundPage } from './NotFoundPage';
 import { useTranslation } from 'react-i18next';
-import { WebSocket } from '../components';
+import { WebSocketSyncWrapper } from '../components';
 
 /**
  * Displays the layout for the app development pages
@@ -48,9 +48,9 @@ export const PageLayout = (): React.ReactNode => {
       return <MergeConflictWarning />;
     }
     return (
-      <WebSocket>
+      <WebSocketSyncWrapper>
         <Outlet />
-      </WebSocket>
+      </WebSocketSyncWrapper>
     );
   };
 

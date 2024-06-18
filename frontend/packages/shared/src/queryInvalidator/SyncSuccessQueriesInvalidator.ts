@@ -15,9 +15,10 @@ import { Queue } from 'app-shared/queue/Queue';
 
 export class SyncSuccessQueriesInvalidator extends Queue {
   private static instance: SyncSuccessQueriesInvalidator | null = null;
-  private org: string;
-  private app: string;
-  private queryClient: QueryClient;
+  private _org: string;
+  private _app: string;
+  private _layoutSetName?: string;
+  private _queryClient: QueryClient;
 
   // Maps file names to their cache keys for invalidation upon sync success - can be extended to include more files
   private readonly fileNameCacheKeyMap: Record<string, Array<QueryKey | string>> = {
@@ -25,14 +26,22 @@ export class SyncSuccessQueriesInvalidator extends Queue {
     'layout-sets.json': [QueryKey.LayoutSets, '[org]', '[app]'],
     'policy.xml': [QueryKey.AppPolicy, '[org]', '[app]'],
     'Settings.json': [QueryKey.FormLayoutSettings, '[org]', '[app]', '[layoutSetName]'],
+  };
+
+  // Maps folder names to their cache keys for invalidation upon sync success - can be extended to include more folders
+  private readonly folderNameCacheKeyMap: Record<string, Array<QueryKey | string>> = {
     layouts: [QueryKey.FormLayouts, '[org]', '[app]', '[layoutSetName]'],
   };
 
+  public set layoutSetName(layoutSetName: string) {
+    this._layoutSetName = layoutSetName;
+  }
+
   constructor(queryClient: QueryClient, org: string, app: string) {
     super({ timeout: 500 });
-    this.org = org;
-    this.app = app;
-    this.queryClient = queryClient;
+    this._org = org;
+    this._app = app;
+    this._queryClient = queryClient;
   }
 
   // Singleton pattern to ensure only one instance of the StudioBpmnModeler is created
@@ -54,27 +63,36 @@ export class SyncSuccessQueriesInvalidator extends Queue {
     return SyncSuccessQueriesInvalidator.instance;
   }
 
-  public invalidateQueryByFileName(fileName: string, layoutSetName: string): void {
-    const cacheKey = this.getCacheKeyByFileName(fileName, layoutSetName);
+  public static resetInstance(): void {
+    SyncSuccessQueriesInvalidator.instance = null;
+  }
+
+  public invalidateQueryByFileLocation(fileOrFolderName: string): void {
+    const cacheKey = this.getCacheKeyByFileLocation(fileOrFolderName);
     if (!cacheKey) return;
 
     this.addTaskToQueue({
-      id: fileName,
+      id: fileOrFolderName,
       callback: () => {
-        this.queryClient.invalidateQueries({ queryKey: cacheKey });
+        this._queryClient.invalidateQueries({ queryKey: cacheKey });
       },
     });
   }
 
-  private getCacheKeyByFileName(fileName: string, layoutSetName: string): string[] {
-    const cacheKey = this.fileNameCacheKeyMap[fileName];
+  private getCacheKeyByFileLocation(fileOrFolderName: string): string[] {
+    const cacheKey =
+      this.fileNameCacheKeyMap[fileOrFolderName] || this.folderNameCacheKeyMap[fileOrFolderName];
     if (!cacheKey) return undefined;
 
+    return this.replaceCacheKeyPlaceholders(cacheKey);
+  }
+
+  private replaceCacheKeyPlaceholders(cacheKey: string[]): string[] {
     return cacheKey.map((key) =>
       key
-        .replace('[org]', this.org)
-        .replace('[app]', this.app)
-        .replace('[layoutSetName]', layoutSetName),
+        .replace('[org]', this._org)
+        .replace('[app]', this._app)
+        .replace('[layoutSetName]', this._layoutSetName),
     );
   }
 }

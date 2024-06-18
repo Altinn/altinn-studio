@@ -23,7 +23,8 @@ public class ProcessTaskIdChangedApplicationMetadataHandler : INotificationHandl
 
     public async Task Handle(ProcessTaskIdChangedEvent notification, CancellationToken cancellationToken)
     {
-        await _fileSyncHandlerExecutor.ExecuteWithExceptionHandling(
+        bool hasChanges = false;
+        await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
             notification.EditingContext,
             SyncErrorCodes.ApplicationMetadataTaskIdSyncError,
             "App/config/applicationmetadata.json",
@@ -39,7 +40,10 @@ public class ProcessTaskIdChangedApplicationMetadataHandler : INotificationHandl
                 if (TryChangeTaskIds(applicationMetadata, notification.OldId, notification.NewId))
                 {
                     await repository.SaveApplicationMetadata(applicationMetadata);
+                    hasChanges = true;
                 }
+
+                return hasChanges;
             });
     }
 

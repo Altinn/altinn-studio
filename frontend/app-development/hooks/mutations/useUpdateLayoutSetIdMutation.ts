@@ -3,7 +3,7 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 export const useUpdateLayoutSetIdMutation = (org: string, app: string) => {
-  const { updateLayoutSet } = useServicesContext();
+  const { updateLayoutSetId } = useServicesContext();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -13,9 +13,7 @@ export const useUpdateLayoutSetIdMutation = (org: string, app: string) => {
     }: {
       layoutSetIdToUpdate: string;
       newLayoutSetId: string;
-    }) => {
-      return updateLayoutSet(org, app, layoutSetIdToUpdate, newLayoutSetId);
-    },
+    }) => updateLayoutSetId(org, app, layoutSetIdToUpdate, newLayoutSetId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSets, org, app] });
     },

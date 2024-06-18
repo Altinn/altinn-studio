@@ -27,7 +27,7 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
             notification.EditingContext.Repo,
             notification.EditingContext.Developer);
 
-        await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingConditionalNotification(
+        await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
                 notification.EditingContext,
                 SyncErrorCodes.LayoutSetComponentIdSyncError,
                 "App/ui/layouts",
