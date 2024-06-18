@@ -2,6 +2,8 @@ name: Frontend Tests
 
 on:
   push:
+    branches:
+      - main
     paths:
       - 'frontend/**'
       - '!frontend/testing/cypress/**'
@@ -9,6 +11,22 @@ on:
       - 'testdata/**'
       - '.github/workflows/frontend-unit-tests.yml'
       - 'package.json'
+      paths:
+        - 'frontend/**'
+        - '!frontend/testing/cypress/**'
+        - '!frontend/stats/**'
+        - 'testdata/**'
+        - '.github/workflows/frontend-unit-tests.yml'
+        - 'package.json'
+    pull_request:
+      paths:
+        - 'frontend/**'
+        - '!frontend/testing/cypress/**'
+        - '!frontend/stats/**'
+        - 'testdata/**'
+        - '.github/workflows/frontend-unit-tests.yml'
+        - 'package.json'
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.ref }}
@@ -79,11 +97,6 @@ jobs:
 
       - name: 'Installing Dependencies'
         uses: ./.github/actions/yarn-install
-
-      - name: Test1
-        env:
-          TEST1: ${{ github.event_name }}
-        run: echo "$TEST1"
 
       - name: 'Running Unit Tests'
         run: |
