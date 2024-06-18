@@ -4,26 +4,10 @@ import userEvent from '@testing-library/user-event';
 import { MapComponent } from './MapComponent';
 import { renderWithProviders, renderHookWithProviders } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
-import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import type { IGenericEditComponent } from '../../componentConfig';
 import type { ComponentType } from 'app-shared/types/ComponentType';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
-const texts: Record<string, string> = {
-  'validation_errors.required': 'Feltet er påkrevd!',
-  'validation_errors.numbers_only': 'Kun tall er gyldig verdi!',
-  'validation_errors.value_as_url': 'Ugyldig lenke!',
-  'ux_editor.center_location': 'Sentrum av kartet',
-  'ux_editor.map_layer': 'Kartlag',
-  'ux_editor.latitude_label': 'Latitude',
-  'ux_editor.longitude_label': 'Longitude',
-  'ux_editor.url_label': 'Lenke *',
-  'ux_editor.adjust_zoom': 'Standard zoom',
-  'ux_editor.add_map_layer': 'Legg til kartlag',
-  'ux_editor.attribution_label': 'Opphav',
-  'ux_editor.subdomains_label': 'Subdomener (kommaseparert)',
-};
-
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 const handleComponentChangeMock = jest.fn();
 
 const waitForData = async () => {
@@ -48,7 +32,7 @@ describe('MapComponent', () => {
   it('should render /Legg til kartlag/ button', async () => {
     await renderMapComponent({});
     expect(
-      screen.getByRole('button', { name: texts['ux_editor.add_map_layer'] }),
+      screen.getByRole('button', { name: textMock('ux_editor.add_map_layer') }),
     ).toBeInTheDocument();
   });
 });
@@ -80,16 +64,16 @@ describe('AddMapLayer', () => {
   it('renders correctly when layers are not empty', async () => {
     await renderMapComponent({ component: componentMock });
 
-    expect(screen.getByLabelText(texts['ux_editor.url_label'])).toBeInTheDocument();
-    expect(screen.getByLabelText(texts['ux_editor.attribution_label'])).toBeInTheDocument();
-    expect(screen.getByLabelText(texts['ux_editor.subdomains_label'])).toBeInTheDocument();
+    expect(screen.getByLabelText(textMock('ux_editor.url_label'))).toBeInTheDocument();
+    expect(screen.getByLabelText(textMock('ux_editor.attribution_label'))).toBeInTheDocument();
+    expect(screen.getByLabelText(textMock('ux_editor.subdomains_label'))).toBeInTheDocument();
   });
 
   test('should be able to set link', async () => {
     const user = userEvent.setup();
     await renderMapComponent({ component: componentMock });
 
-    const input = screen.getByLabelText(texts['ux_editor.url_label']);
+    const input = screen.getByLabelText(textMock('ux_editor.url_label'));
     await user.type(input, 'test');
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
@@ -107,7 +91,7 @@ describe('AddMapLayer', () => {
     const user = userEvent.setup();
     await renderMapComponent({ component: componentMock });
 
-    const input = screen.getByLabelText(texts['ux_editor.attribution_label']);
+    const input = screen.getByLabelText(textMock('ux_editor.attribution_label'));
     await user.type(input, 'test');
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({
@@ -125,7 +109,7 @@ describe('AddMapLayer', () => {
     const user = userEvent.setup();
     await renderMapComponent({ component: componentMock });
 
-    const input = screen.getByLabelText(texts['ux_editor.subdomains_label']);
+    const input = screen.getByLabelText(textMock('ux_editor.subdomains_label'));
     await user.type(input, 'test');
 
     expect(handleComponentChangeMock).toHaveBeenLastCalledWith({

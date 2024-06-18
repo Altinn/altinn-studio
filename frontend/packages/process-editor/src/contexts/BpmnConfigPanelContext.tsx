@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useRef } from 'react';
-import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
+import type { MetadataForm } from 'app-shared/types/BpmnMetadataForm';
 
 type BpmnConfigPanelContextType = {
-  metaDataFormRef: React.MutableRefObject<MetaDataForm>;
+  metadataFormRef: React.MutableRefObject<MetadataForm>;
   resetForm: () => void;
 };
 
@@ -15,13 +15,13 @@ export type BpmnConfigPanelFormContextProviderProps = {
 export const BpmnConfigPanelFormContextProvider = ({
   children,
 }: BpmnConfigPanelFormContextProviderProps): React.ReactElement => {
-  const metaDataFormRef = useRef<MetaDataForm>(undefined);
+  const metadataFormRef = useRef<MetadataForm>(undefined);
   const resetForm = (): void => {
-    metaDataFormRef.current = undefined;
+    metadataFormRef.current = undefined;
   };
 
   return (
-    <BpmnConfigPanelFormContext.Provider value={{ metaDataFormRef, resetForm }}>
+    <BpmnConfigPanelFormContext.Provider value={{ metadataFormRef, resetForm }}>
       {children}
     </BpmnConfigPanelFormContext.Provider>
   );

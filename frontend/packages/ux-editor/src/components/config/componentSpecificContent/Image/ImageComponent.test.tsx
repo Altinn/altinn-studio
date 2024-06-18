@@ -7,8 +7,8 @@ import { ImageComponent } from './ImageComponent';
 import { renderHookWithProviders, renderWithProviders } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import type { FormImageComponent } from '../../../../types/FormComponent';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
@@ -21,15 +21,6 @@ const componentData: FormImageComponent = {
   },
   itemType: 'COMPONENT',
   dataModelBindings: {},
-};
-const texts = {
-  'ux_editor.modal_properties_image_src_value_label': 'Source',
-  'ux_editor.modal_properties_image_placement_label': 'Placement',
-  'ux_editor.modal_properties_image_alt_text_label': 'Alt text',
-  'ux_editor.modal_properties_image_width_label': 'Width',
-  'ux_editor.modal_properties_image_placement_left': 'Left',
-  'ux_editor.modal_properties_image_placement_center': 'Center',
-  'ux_editor.modal_properties_image_placement_right': 'Right',
 };
 
 const waitForData = async () => {
@@ -49,9 +40,6 @@ const render = async (props: Partial<IGenericEditComponent<ComponentType.Image>>
   return renderWithProviders(<ImageComponent {...allProps} />);
 };
 
-// Mocks:
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
-
 describe('ImageComponent', () => {
   it('should call handleComponentUpdate callback with image src value for nb when image source input is changed', async () => {
     const handleUpdate = jest.fn();
@@ -59,7 +47,7 @@ describe('ImageComponent', () => {
     await render({ handleComponentChange: handleUpdate });
 
     const srcInput = screen.getByRole('textbox', {
-      name: /source/i,
+      name: textMock('ux_editor.modal_properties_image_src_value_label'),
     });
 
     await user.type(srcInput, imgSrc);
@@ -80,11 +68,11 @@ describe('ImageComponent', () => {
     await render({ handleComponentChange: handleUpdate });
 
     const placementInput = screen.getByRole('combobox', {
-      name: /placement/i,
+      name: textMock('ux_editor.modal_properties_image_placement_label'),
     });
 
     await user.type(placementInput, 'L'); // Type something to trigger showing Select options
-    await user.click(screen.getByText('Left'));
+    await user.click(screen.getByText(textMock('ux_editor.modal_properties_image_placement_left')));
 
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentData,

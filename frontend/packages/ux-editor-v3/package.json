@@ -4,7 +4,7 @@
   "version": "1.0.1",
   "author": "Altinn",
   "dependencies": {
-    "@mui/material": "5.15.19",
+    "@mui/material": "5.15.20",
     "@reduxjs/toolkit": "1.9.7",
     "@studio/icons": "workspace:^",
     "classnames": "2.5.1",
@@ -16,7 +16,7 @@
     "react-redux": "9.1.2",
     "redux": "5.0.1",
     "typescript": "5.4.5",
-    "uuid": "9.0.1"
+    "uuid": "10.0.0"
   },
   "devDependencies": {
     "jest": "29.7.0",
@@ -25,7 +25,7 @@
   "license": "3-Clause BSD",
   "main": "index.js",
   "peerDependencies": {
-    "webpack": "5.91.0"
+    "webpack": "5.92.0"
   },
   "scripts": {
     "test": "jest --maxWorkers=50%"

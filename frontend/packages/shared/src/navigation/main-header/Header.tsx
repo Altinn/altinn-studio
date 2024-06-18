@@ -10,6 +10,7 @@ import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 export enum SelectedContextType {
   All = 'all',
   Self = 'self',
+  None = 'none',
 }
 
 export interface IHeaderContext {

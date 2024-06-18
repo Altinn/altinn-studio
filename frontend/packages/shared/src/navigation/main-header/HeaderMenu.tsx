@@ -39,6 +39,7 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
     post(url).then(() => {
       window.location.assign(`${altinnWindow.location.origin}/Home/Logout`);
     });
+    sessionStorage.clear();
     return true;
   };
 
@@ -106,7 +107,7 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
         <MenuItem
           data-testid={userMenuItemId}
           selected={selectedContext === SelectedContextType.Self}
-          onClick={() => handleSetSelectedContext('')}
+          onClick={() => handleSetSelectedContext(SelectedContextType.Self)}
         >
           {user?.full_name || user?.login}
         </MenuItem>

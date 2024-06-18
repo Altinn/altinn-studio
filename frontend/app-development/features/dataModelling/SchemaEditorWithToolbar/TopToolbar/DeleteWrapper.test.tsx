@@ -3,8 +3,9 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { DeleteWrapperProps } from './DeleteWrapper';
 import { DeleteWrapper } from './DeleteWrapper';
-import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import {
+  dataModel1NameMock,
   jsonMetadata1Mock,
   jsonMetadata2Mock,
 } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
@@ -18,21 +19,15 @@ import { app, org } from '@studio/testing/testids';
 const user = userEvent.setup();
 
 // Test data:
-const deleteText = 'Delete';
-const continueText = 'Continue';
-const cancelText = 'Cancel';
-const confirmText = 'Delete {schemaName}?';
-const texts = {
-  'schema_editor.delete_model_confirm': confirmText,
-  'schema_editor.delete_data_model': deleteText,
-  'schema_editor.confirm_deletion': continueText,
-  'general.cancel': cancelText,
-};
+const deleteText = textMock('schema_editor.delete_data_model');
+const continueText = textMock('schema_editor.confirm_deletion');
+const cancelText = textMock('general.cancel');
+const confirmText = textMock('schema_editor.delete_model_confirm', {
+  schemaName: dataModel1NameMock,
+});
+
 const selectedOption = convertMetadataToOption(jsonMetadata1Mock);
 const defaultProps: DeleteWrapperProps = { selectedOption };
-
-// Mocks:
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 const render = (
   props: Partial<DeleteWrapperProps> = {},

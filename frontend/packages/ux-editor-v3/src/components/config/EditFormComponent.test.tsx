@@ -5,31 +5,19 @@ import userEvent from '@testing-library/user-event';
 import type { FormComponent } from '../../types/FormComponent';
 import { renderHookWithMockStore, renderWithMockStore } from '../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../hooks/queries/useLayoutSchemaQuery';
-import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { useDataModelMetadataQuery } from '../../hooks/queries/useDataModelMetadataQuery';
 import type { DataModelMetadataResponse } from 'app-shared/types/api';
 import { dataModelNameMock, layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
 // Test data:
 const srcValueLabel = 'Source';
-const texts = {
-  'general.label': '',
-  'general.value': '',
-  'ux_editor.modal_header_type_h2': 'H2',
-  'ux_editor.modal_header_type_h3': 'H3',
-  'ux_editor.modal_header_type_h4': 'H4',
-  'ux_editor.modal_properties_image_src_value_label': srcValueLabel,
-  'ux_editor.modal_properties_image_placement_label': 'Placement',
-  'ux_editor.modal_properties_image_alt_text_label': 'Alt text',
-  'ux_editor.modal_properties_image_width_label': 'Width',
-};
 
 // Mocks:
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 const buttonSpecificContentId = 'button-specific-content';
 jest.mock('./componentSpecificContent/Button/ButtonComponent', () => ({
   ButtonComponent: () => <div data-testid={buttonSpecificContentId} />,
@@ -97,11 +85,11 @@ describe('EditFormComponent', () => {
       'ux_editor.modal_configure_read_only': 'checkbox',
     };
 
-    const linkIcon = screen.getByText(/ux_editor.modal_properties_data_model_link/i);
+    const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
     await user.click(linkIcon);
 
     Object.keys(labels).map(async (label) =>
-      expect(await screen.findByRole(labels[label], { name: label })),
+      expect(await screen.findByRole(labels[label], { name: textMock(label) })),
     );
     expect(screen.getByRole('combobox'));
     expect(screen.getByLabelText('Autocomplete (WCAG)'));
@@ -114,9 +102,11 @@ describe('EditFormComponent', () => {
       },
     });
 
-    expect(screen.getByLabelText('ux_editor.modal_properties_component_change_id'));
+    expect(screen.getByLabelText(textMock('ux_editor.modal_properties_component_change_id')));
     await waitFor(() =>
-      expect(screen.getByRole('combobox', { name: 'ux_editor.modal_header_type_helper' })),
+      expect(
+        screen.getByRole('combobox', { name: textMock('ux_editor.modal_header_type_helper') }),
+      ),
     );
   });
 
@@ -128,14 +118,14 @@ describe('EditFormComponent', () => {
     });
 
     const labels = [
-      'ux_editor.modal_properties_component_change_id',
-      'ux_editor.modal_properties_file_upload_simple',
-      'ux_editor.modal_properties_file_upload_list',
-      'ux_editor.modal_properties_valid_file_endings_all',
-      'ux_editor.modal_properties_valid_file_endings_custom',
-      'ux_editor.modal_properties_minimum_files',
-      'ux_editor.modal_properties_maximum_files',
-      'ux_editor.modal_properties_maximum_file_size (ux_editor.modal_properties_maximum_file_size_helper)',
+      textMock('ux_editor.modal_properties_component_change_id'),
+      textMock('ux_editor.modal_properties_file_upload_simple'),
+      textMock('ux_editor.modal_properties_file_upload_list'),
+      textMock('ux_editor.modal_properties_valid_file_endings_all'),
+      textMock('ux_editor.modal_properties_valid_file_endings_custom'),
+      textMock('ux_editor.modal_properties_minimum_files'),
+      textMock('ux_editor.modal_properties_maximum_files'),
+      `${textMock('ux_editor.modal_properties_maximum_file_size')} (${textMock('ux_editor.modal_properties_maximum_file_size_helper')})`,
     ];
 
     labels.map((label) => expect(screen.getByLabelText(label)));
@@ -151,7 +141,9 @@ describe('EditFormComponent', () => {
       handleComponentUpdate: handleUpdate,
     });
 
-    const maxFilesInput = screen.getByLabelText('ux_editor.modal_properties_maximum_files');
+    const maxFilesInput = screen.getByLabelText(
+      textMock('ux_editor.modal_properties_maximum_files'),
+    );
 
     await user.clear(maxFilesInput);
     expect(handleUpdate).toHaveBeenCalledWith({
@@ -171,7 +163,9 @@ describe('EditFormComponent', () => {
       handleComponentUpdate: handleUpdate,
     });
 
-    const minFilesInput = screen.getByLabelText('ux_editor.modal_properties_minimum_files');
+    const minFilesInput = screen.getByLabelText(
+      textMock('ux_editor.modal_properties_minimum_files'),
+    );
 
     await user.clear(minFilesInput);
     expect(handleUpdate).toHaveBeenCalledWith({
@@ -215,7 +209,13 @@ describe('EditFormComponent', () => {
         type: 'UnknownComponent' as unknown as any,
       },
     });
-    expect(screen.getByText(/ux_editor.edit_component.unknown_component/));
+    expect(
+      screen.getByText(
+        textMock('ux_editor.edit_component.unknown_component', {
+          componentName: 'UnknownComponent',
+        }),
+      ),
+    );
   });
 });
 
