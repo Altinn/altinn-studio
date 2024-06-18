@@ -7,7 +7,7 @@ import { GiteaIcon } from 'app-shared/icons';
 import { LegacyPopover } from '@digdir/design-system-react';
 
 import { CloneModal } from './CloneModal';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioPopover } from '@studio/components';
 import { LocalChangesModal } from './LocalChangesModal';
 
 export type ThreeDotsMenuProps = {
@@ -29,6 +29,20 @@ export const ThreeDotsMenu = ({
   const openCloneModal = (event: React.MouseEvent) => setCloneModalAnchor(event.currentTarget);
   const [localChangesModalIsOpen, setLocalChangesModalIsOpen] = useState(false);
 
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const openMenu = () => setMenuOpen(true);
+  const closeMenu = () => setMenuOpen(false);
+
+  return (
+    <StudioPopover open={menuOpen} onClose={closeMenu} placement='bottom'>
+      <StudioPopover.Trigger color='inverted' variant='tertiary' onClick={openMenu} size='small'>
+        <MenuElipsisVerticalIcon title={t('sync_header.gitea_menu')} />
+      </StudioPopover.Trigger>
+      <StudioPopover.Content></StudioPopover.Content>
+    </StudioPopover>
+  );
+  /*
   return (
     <>
       <LegacyPopover
@@ -82,5 +96,5 @@ export const ThreeDotsMenu = ({
       </LegacyPopover>
       {hasCloneModal && <CloneModal anchorEl={cloneModalAnchor} onClose={closeCloneModal} />}
     </>
-  );
+  );*/
 };

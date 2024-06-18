@@ -8,7 +8,12 @@ import { useTranslation } from 'react-i18next';
 import { useDataModelsXsdQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { InformationSquareFillIcon } from '@studio/icons';
-import { StudioButton, StudioLabelAsParagraph, StudioTextfield } from '@studio/components';
+import {
+  StudioButton,
+  StudioLabelAsParagraph,
+  StudioPopover,
+  StudioTextfield,
+} from '@studio/components';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 
 export type CloneModalProps = {
