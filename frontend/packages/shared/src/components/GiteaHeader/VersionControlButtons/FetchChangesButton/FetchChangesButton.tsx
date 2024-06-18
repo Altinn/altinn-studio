@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StudioPopover, StudioSpinner } from '@studio/components';
-import { CheckmarkCircleIcon, DownloadIcon } from '@studio/icons';
+import { DownloadIcon } from '@studio/icons';
 import classes from './FetchChangesButton.module.css';
 import { useTranslation } from 'react-i18next';
 import { Notification } from '../Notification';
@@ -8,7 +8,7 @@ import { Heading } from '@digdir/design-system-react';
 import { useRepoPullQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useQueryClient } from '@tanstack/react-query';
-import cn from 'classnames';
+import { GiteaFetchCompleted } from '../GiteaFetchCompleted';
 
 export type FetchChangesProps = {
   hasMergeConflict: boolean; // context
@@ -60,7 +60,7 @@ export const FetchChanges = ({
         {displayNotification && !hasMergeConflict && <Notification numChanges={numChanges} />}
       </StudioPopover.Trigger>
       <StudioPopover.Content className={classes.popoverContent}>
-        {!loading && <FetchCompleted />}
+        {!loading && <GiteaFetchCompleted heading={t('sync_header.service_updated_to_latest')} />}
         {loading && <FetchingFromGitea />}
       </StudioPopover.Content>
     </StudioPopover>
@@ -76,19 +76,6 @@ const FetchingFromGitea = () => {
         {t('sync_header.fetching_latest_version')}
       </Heading>
       <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('sync_modal.loading')} />
-    </>
-  );
-};
-
-const FetchCompleted = () => {
-  const { t } = useTranslation();
-
-  return (
-    <>
-      <Heading size='xxsmall' level={3}>
-        {t('sync_header.service_updated_to_latest')}
-      </Heading>
-      <CheckmarkCircleIcon className={cn(classes.icon, classes.successIcon)} />
     </>
   );
 };

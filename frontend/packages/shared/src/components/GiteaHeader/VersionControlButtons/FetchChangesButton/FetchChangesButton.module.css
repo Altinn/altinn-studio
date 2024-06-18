@@ -1,19 +1,9 @@
-.icon {
-  font-size: var(--fds-sizing-14);
-}
-
-.successIcon {
-  color: var(--fds-semantic-surface-success-default);
-}
-
-.errorIcon {
-  color: var(--fds-semantic-surface-danger-default);
-}
-
 .popoverContent {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   gap: var(--fds-spacing-5);
+  width: 445px;
+  max-width: 100%;
 }

@@ -13,6 +13,7 @@ import { useRepoCommitAndPushMutation } from 'app-shared/hooks/mutations';
 import { toast } from 'react-toastify';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { FetchChanges } from './FetchChangesButton/FetchChangesButton';
+import { ShareChanges } from './ShareChangesButton/ShareChangesButton';
 
 const initialModalState = {
   header: '',
@@ -92,6 +93,7 @@ export const VersionControlButtons = () => {
     }
   };
 
+  // CONTEXT
   const commitAndPushChanges = async (commitMessage: string) => {
     setModalState({
       ...initialModalState,
@@ -130,6 +132,14 @@ export const VersionControlButtons = () => {
         displayNotification={repoStatus?.behindBy > 0 ?? false}
         numChanges={repoStatus?.behindBy ?? 0}
         handleMergeConflict={() => commitAndPushChanges('')}
+      />
+      <ShareChanges
+        hasMergeConflict={hasMergeConflict}
+        handleMergeConflict={commitAndPushChanges}
+        handleCommitAndPush={commitAndPushChanges}
+        hasPushRight={hasPushRights}
+        shareChanges={shareChanges}
+        displayNotification={repoStatus?.contentStatus?.length > 0 ?? false}
       />
       <ShareChangesButton
         hasMergeConflict={hasMergeConflict}
