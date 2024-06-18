@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import classes from './MergeConflictWarning.module.css';
-import { ButtonContainer } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { StudioPopover } from '@studio/components';
 import { RemoveChangesPopoverContent } from './RemoveChangesPopoverContent';
@@ -35,7 +34,7 @@ export const MergeConflictWarning = () => {
           <DownloadRepoPopoverContent onClose={toggleDownloadModal} />
         </StudioPopover.Content>
       </StudioPopover>
-      <ButtonContainer className={classes.buttonContainer}>
+      <div className={classes.buttonContainer}>
         <StudioPopover open={resetRepoPopoverOpen} onClose={toggleResetModal}>
           <StudioPopover.Trigger onClick={toggleResetModal} size='small'>
             {t('merge_conflict.remove_my_changes')}
@@ -44,7 +43,7 @@ export const MergeConflictWarning = () => {
             <RemoveChangesPopoverContent onClose={toggleResetModal} />
           </StudioPopover.Content>
         </StudioPopover>
-      </ButtonContainer>
+      </div>
     </div>
   );
 };
