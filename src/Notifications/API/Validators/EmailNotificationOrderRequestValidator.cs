@@ -17,15 +17,31 @@ public class EmailNotificationOrderRequestValidator : AbstractValidator<EmailNot
     public EmailNotificationOrderRequestValidator()
     {
         RuleFor(order => order.Recipients)
-            .NotEmpty()
-            .WithMessage("One or more recipient is required.")
-            .Must(recipients => recipients.TrueForAll(a =>
-            {
-                return
-                    (!string.IsNullOrWhiteSpace(a.EmailAddress) && IsValidEmail(a.EmailAddress)) ||
-                    (!string.IsNullOrWhiteSpace(a.OrganizationNumber) ^ !string.IsNullOrWhiteSpace(a.NationalIdentityNumber));
-            }))
-            .WithMessage("Either a valid email address, organization number, or national identity number must be provided for each recipient.");
+                .NotEmpty()
+                .WithMessage("One or more recipient is required.");
+
+        RuleForEach(order => order.Recipients)
+                .ChildRules(recipient =>
+                {
+                    recipient.RuleFor(r => r)
+                        .Must(r => !string.IsNullOrEmpty(r.EmailAddress) || !string.IsNullOrEmpty(r.OrganizationNumber) || !string.IsNullOrEmpty(r.NationalIdentityNumber))
+                        .WithMessage("Either a valid email address, organization number, or national identity number must be provided for each recipient.");
+
+                    recipient.RuleFor(r => r.EmailAddress)
+                        .Must(email => IsValidEmail(email))
+                        .When(r => !string.IsNullOrEmpty(r.EmailAddress))
+                        .WithMessage("Invalid email address format.");
+
+                    recipient.RuleFor(a => a.NationalIdentityNumber)
+                        .Must(nin => nin?.Length == ValidationConstants.NationalIdentityNumberLength && nin.All(char.IsDigit))
+                        .When(r => !string.IsNullOrEmpty(r.NationalIdentityNumber))
+                        .WithMessage($"National identity number must be {ValidationConstants.NationalIdentityNumberLength} digits long.");
+
+                    recipient.RuleFor(a => a.OrganizationNumber)
+                        .Must(on => on?.Length == ValidationConstants.OrganizationNumberLength && on.All(char.IsDigit))
+                        .When(r => !string.IsNullOrEmpty(r.OrganizationNumber))
+                        .WithMessage($"Organization number must be {ValidationConstants.OrganizationNumberLength} digits long.");
+                });
 
         RuleFor(order => order.RequestedSendTime)
                 .Must(sendTime => sendTime.Kind != DateTimeKind.Unspecified)
