@@ -4,11 +4,10 @@ import { MonitorIcon, TabsIcon, MenuElipsisVerticalIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
 import { GiteaIcon } from 'app-shared/icons';
-import { LegacyPopover } from '@digdir/design-system-react';
-
-import { CloneModal } from './CloneModal';
+import { LegacyPopover, Link } from '@digdir/design-system-react';
 import { StudioButton, StudioPopover } from '@studio/components';
 import { LocalChangesModal } from './LocalChangesModal';
+import { ClonePopoverContent } from './ClonePopoverContent';
 
 export type ThreeDotsMenuProps = {
   onlyShowRepository?: boolean;
@@ -23,28 +22,16 @@ export const ThreeDotsMenu = ({
   org,
   app,
 }: ThreeDotsMenuProps) => {
-  const [cloneModalAnchor, setCloneModalAnchor] = useState(null);
   const { t } = useTranslation();
-  const closeCloneModal = () => setCloneModalAnchor(null);
-  const openCloneModal = (event: React.MouseEvent) => setCloneModalAnchor(event.currentTarget);
   const [localChangesModalIsOpen, setLocalChangesModalIsOpen] = useState(false);
+  const [clonePopoverOpen, setClonePopoverOpen] = useState(false);
 
-  const [menuOpen, setMenuOpen] = useState(false);
+  const toggleClonePopoverOpen = () => setClonePopoverOpen((oldValue) => !oldValue);
+  const openLocalChangesModal = () => setLocalChangesModalIsOpen(true);
 
-  const openMenu = () => setMenuOpen(true);
-  const closeMenu = () => setMenuOpen(false);
-
-  return (
-    <StudioPopover open={menuOpen} onClose={closeMenu} placement='bottom'>
-      <StudioPopover.Trigger color='inverted' variant='tertiary' onClick={openMenu} size='small'>
-        <MenuElipsisVerticalIcon title={t('sync_header.gitea_menu')} />
-      </StudioPopover.Trigger>
-      <StudioPopover.Content></StudioPopover.Content>
-    </StudioPopover>
-  );
-  /*
   return (
     <>
+      {/* TODO - Replace below with StudioDropdownMenu once it has been updated */}
       <LegacyPopover
         className={classes.popover}
         trigger={
@@ -58,31 +45,54 @@ export const ThreeDotsMenu = ({
         }
       >
         <ul className={classes.menuItems}>
-          {!onlyShowRepository && (
+          {!onlyShowRepository && hasCloneModal && (
             <li>
-              <button onClick={openCloneModal} className={classes.link}>
-                <span className={classes.iconWrapper}>
-                  <TabsIcon className={classes.icon} />
-                </span>
-                <span>{t('sync_header.clone')}</span>
-              </button>
+              <StudioPopover open={clonePopoverOpen} onClose={toggleClonePopoverOpen}>
+                <StudioPopover.Trigger
+                  fullWidth
+                  onClick={toggleClonePopoverOpen}
+                  variant='tertiary'
+                  className={classes.menuButton}
+                  size='small'
+                >
+                  <TabsIcon />
+                  {t('sync_header.clone')}
+                </StudioPopover.Trigger>
+                <StudioPopover.Content className={classes.popoverContent}>
+                  <ClonePopoverContent onClose={toggleClonePopoverOpen} />
+                </StudioPopover.Content>
+              </StudioPopover>
             </li>
           )}
           <li>
-            <a href={repositoryPath(org, app)} className={classes.link}>
-              <span className={classes.iconWrapper}>
-                <GiteaIcon className={classes.icon + ' ' + classes.giteaIcon} />
-              </span>
-              <span>{t('sync_header.repository')}</span>
-            </a>
+            <Link
+              aschild
+              href={repositoryPath(org, app)}
+              target='_newTab'
+              rel='noopener noreferrer'
+              className={classes.link}
+            >
+              <StudioButton
+                size='small'
+                variant='tertiary'
+                fullWidth
+                className={classes.menuButton}
+              >
+                <GiteaIcon />
+                {t('sync_header.repository')}
+              </StudioButton>
+            </Link>
           </li>
           <li>
-            <button onClick={() => setLocalChangesModalIsOpen(true)} className={classes.link}>
-              <span className={classes.iconWrapper}>
-                <MonitorIcon className={classes.icon} />
-              </span>
-              <span>{t('sync_header.local_changes')}</span>
-            </button>
+            <StudioButton
+              onClick={openLocalChangesModal}
+              size='small'
+              className={classes.menuButton}
+              variant='tertiary'
+            >
+              <MonitorIcon className={classes.icon} />
+              {t('sync_header.local_changes')}
+            </StudioButton>
           </li>
           {localChangesModalIsOpen && (
             <LocalChangesModal
@@ -94,7 +104,6 @@ export const ThreeDotsMenu = ({
           )}
         </ul>
       </LegacyPopover>
-      {hasCloneModal && <CloneModal anchorEl={cloneModalAnchor} onClose={closeCloneModal} />}
     </>
-  );*/
+  );
 };

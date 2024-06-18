@@ -1,36 +1,16 @@
 import React from 'react';
-import { CloneModal } from './CloneModal';
-import type { ICloneModalProps } from './CloneModal';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { ClonePopoverContent, type ClonePopoverContentProps } from './ClonePopoverContent';
+import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-
-const render = (props: Partial<ICloneModalProps> = {}) => {
-  const allProps = {
-    // eslint-disable-next-line testing-library/no-node-access
-    anchorEl: document.querySelector('body'),
-    onClose: jest.fn(),
-    open: true,
-    language: {},
-    ...props,
-  };
-  const queries: Partial<ServicesContextProps> = {
-    getDataModelsXsd: async () => [],
-  };
-  return rtlRender(
-    <ServicesContextProvider {...queries}>
-      <CloneModal {...allProps} />
-    </ServicesContextProvider>,
-  );
-};
 
 describe('cloneModal', () => {
   it('should show copy link if copy feature is supported', () => {
     document.queryCommandSupported = jest.fn(() => {
       return true;
     });
-    render();
+    renderClonePopoverContent();
 
     expect(
       screen.getByRole('button', {
@@ -43,7 +23,7 @@ describe('cloneModal', () => {
     document.queryCommandSupported = jest.fn(() => {
       return false;
     });
-    render();
+    renderClonePopoverContent();
 
     expect(
       screen.queryByRole('button', {
@@ -52,3 +32,22 @@ describe('cloneModal', () => {
     ).not.toBeInTheDocument();
   });
 });
+
+const renderClonePopoverContent = (props: Partial<ClonePopoverContentProps> = {}) => {
+  const allProps = {
+    // eslint-disable-next-line testing-library/no-node-access
+    anchorEl: document.querySelector('body'),
+    onClose: jest.fn(),
+    open: true,
+    language: {},
+    ...props,
+  };
+  const queries: Partial<ServicesContextProps> = {
+    getDataModelsXsd: async () => [],
+  };
+  return render(
+    <ServicesContextProvider {...queries}>
+      <ClonePopoverContent {...allProps} />
+    </ServicesContextProvider>,
+  );
+};

@@ -1,5 +1,6 @@
 .modalContainer {
-  padding: var(--fds-spacing-5);
+  padding: var(--fds-spacing-2);
+  cursor: auto;
 }
 
 .link {
