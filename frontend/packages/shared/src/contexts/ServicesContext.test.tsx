@@ -7,6 +7,8 @@ import { useQuery } from '@tanstack/react-query';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { user } from 'app-shared/mocks/mocks';
+import { userLogoutAfterPath } from 'app-shared/api/paths';
 
 const unknownErrorCode = 'unknownErrorCode';
 // Mocks:
@@ -57,6 +59,9 @@ describe('ServicesContext', () => {
 
   it('logs the user out after displaying a toast for a given time when the api says unauthorized', async () => {
     jest.spyOn(global, 'setTimeout');
+    const mockAssign = jest.fn();
+    delete window.location;
+    window.location = { assign: mockAssign } as any;
     renderHook(
       () =>
         useQuery({
@@ -79,6 +84,18 @@ describe('ServicesContext', () => {
     await waitFor(() => {
       setTimeout(() => {
         expect(queriesMock.logout).toHaveBeenCalledTimes(1);
+      }, 5000);
+    });
+
+    await waitFor(() => {
+      setTimeout(() => {
+        expect(mockAssign).toHaveBeenCalledWith('/logout');
+      }, 5000);
+    });
+
+    await waitFor(() => {
+      setTimeout(() => {
+        expect(mockAssign).toHaveBeenCalledWith(userLogoutAfterPath());
       }, 5000);
     });
   });
