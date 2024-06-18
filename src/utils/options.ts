@@ -15,3 +15,18 @@ export function filterDuplicateOptions(options: IOptionInternal[]): IOptionInter
   }
   return out;
 }
+
+/**
+ * Fast method for filtering options with empty value or label
+ */
+export function filterEmptyOptions(options: IOptionInternal[]): IOptionInternal[] {
+  const out: IOptionInternal[] = [];
+  let j = 0;
+  for (let i = 0; i < options.length; i++) {
+    if (!options[i].value?.length || !options[i].label?.length) {
+      continue;
+    }
+    out[j++] = options[i];
+  }
+  return out;
+}
