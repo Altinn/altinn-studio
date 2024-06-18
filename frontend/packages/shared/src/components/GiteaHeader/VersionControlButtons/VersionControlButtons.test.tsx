@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import type { IVersionControlButtonsProps } from './VersionControlButtons';
 import { VersionControlButtons } from './VersionControlButtons';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
@@ -12,8 +11,6 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { repository, repoStatus } from 'app-shared/mocks/mocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
-
-const user = userEvent.setup();
 
 /**
  * This part is probably not ideal. A more scalable way to mock these calls should be done in a more central place
@@ -48,11 +45,6 @@ const defaultQueries: Partial<ServicesContextProps> = {
   commitAndPushChanges,
 };
 
-const defaultProps: IVersionControlButtonsProps = {
-  org,
-  app,
-};
-
 describe('Shared > Version Control > VersionControlHeader', () => {
   afterEach(jest.clearAllMocks);
 
@@ -68,6 +60,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
   });
 
   it('ReFetches queries when clicking the fetch button', async () => {
+    const user = userEvent.setup();
     renderVersionControlButtons();
     const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
     await user.click(fetchButton);
@@ -77,6 +70,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
   });
 
   it('should render commit message modal when clicking the share button with changes', async () => {
+    const user = userEvent.setup();
     const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(aheadRepoStatus));
     const mockQueries: Partial<ServicesContextProps> = {
       getRepoStatus: mockGetRepoStatus,
@@ -94,6 +88,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
   });
 
   it('should render no changes message when clicking the share button with no changes', async () => {
+    const user = userEvent.setup();
     renderVersionControlButtons();
 
     const shareButton = screen.getByRole('button', {
@@ -105,6 +100,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
   });
 
   it('should render commit message modal when clicking the share button with merge conflicts', async () => {
+    const user = userEvent.setup();
     const mockGetRepoStatus = jest.fn().mockReturnValue(mergeConflictRepoStatus);
     const mockQueries: Partial<ServicesContextProps> = {
       getRepoStatus: mockGetRepoStatus,
@@ -122,6 +118,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
   });
 
   it('should call commitAndPush endpoint clicking the share button with changes', async () => {
+    const user = userEvent.setup();
     const mockGetRepoStatus = jest.fn().mockReturnValue(aheadRepoStatus);
     const mockQueries: Partial<ServicesContextProps> = {
       getRepoStatus: mockGetRepoStatus,
@@ -141,6 +138,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
   });
 
   it('should call repoPull when commitAndPush is rejected', async () => {
+    const user = userEvent.setup();
     const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(aheadRepoStatus));
     const mockCommitAndPushChanges = jest.fn().mockImplementation(() => Promise.reject('error'));
     const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
@@ -165,6 +163,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
   });
 
   it('should show mergeConflict message when commitAndPush is rejected and repoPull returns merge conflict status', async () => {
+    const user = userEvent.setup();
     const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(aheadRepoStatus));
     const mockCommitAndPushChanges = jest.fn().mockImplementation(() => Promise.reject('error'));
     const mockRepoPull = jest
@@ -200,6 +199,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
   });
 
   it('should disable version control buttons when repoPull returns merge conflict status', async () => {
+    const user = userEvent.setup();
     const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(aheadRepoStatus));
     const mockCommitAndPushChanges = jest.fn().mockImplementation(() => Promise.reject('error'));
     const mockRepoPull = jest
@@ -248,7 +248,7 @@ const renderVersionControlButtons = (
   });
   render(
     <ServicesContextProvider {...queriesMock} {...defaultQueries} {...queries} client={queryClient}>
-      <VersionControlButtons {...defaultProps} />
+      <VersionControlButtons />
     </ServicesContextProvider>,
   );
 };

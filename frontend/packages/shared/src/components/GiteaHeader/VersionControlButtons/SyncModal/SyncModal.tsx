@@ -7,7 +7,7 @@ import { SimpleContainer } from 'app-shared/primitives';
 import { StudioButton, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
-export interface ISyncModalProps {
+export type SyncModalProps = {
   anchorEl: Element;
   header?: string;
   descriptionText?: string[];
@@ -17,7 +17,7 @@ export interface ISyncModalProps {
   shouldShowCommitBox?: boolean;
   handleClose: any;
   btnMethod?: any;
-}
+};
 
 const headerId = 'sync-modal-header';
 
@@ -31,7 +31,7 @@ export const SyncModal = ({
   shouldShowCommitBox,
   handleClose,
   btnMethod,
-}: ISyncModalProps) => {
+}: SyncModalProps) => {
   const { t } = useTranslation();
 
   const [commitMessage, setCommitMessage] = useState('');
@@ -67,17 +67,20 @@ export const SyncModal = ({
             {header}
           </h3>
         )}
-        {!isLoading && !shouldShowDoneIcon && (
-          <div className={classNames(classes.subHeader)}>
-            {descriptionText.map((text: any, index: any) => {
-              return descriptionText.length - 1 !== index ? (
-                <span key={index}> {`${text}\n\n`} </span>
-              ) : (
-                <span key={index}>{text}</span>
-              );
-            })}
-          </div>
-        )}
+        {
+          // Text on push button
+          !isLoading && !shouldShowDoneIcon && (
+            <div className={classNames(classes.subHeader)}>
+              {descriptionText.map((text: any, index: any) => {
+                return descriptionText.length - 1 !== index ? (
+                  <span key={index}> {`${text}\n\n`} </span>
+                ) : (
+                  <span key={index}>{text}</span>
+                );
+              })}
+            </div>
+          )
+        }
         {isLoading && (
           <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('sync_modal.loading')} />
         )}

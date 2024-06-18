@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import classes from './VersionControlButtons.module.css';
-import { FetchChangesButton } from './FetchChangesButton';
 import { ShareChangesButton } from './ShareChangesButton';
 import { SyncModal } from './SyncModal';
 import type { IContentStatus, IGitStatus } from 'app-shared/types/global';
@@ -10,10 +9,10 @@ import {
   useRepoPullQuery,
   useRepoStatusQuery,
 } from 'app-shared/hooks/queries';
-import { useQueryClient } from '@tanstack/react-query';
 import { useRepoCommitAndPushMutation } from 'app-shared/hooks/mutations';
 import { toast } from 'react-toastify';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { FetchChanges } from './FetchChangesButton/FetchChangesButton';
 
 const initialModalState = {
   header: '',
@@ -43,7 +42,6 @@ export const VersionControlButtons = () => {
   const { data: repoStatus, refetch: refetchRepoStatus } = useRepoStatusQuery(org, app);
   const { refetch: fetchPullData } = useRepoPullQuery(org, app, true);
   const { mutateAsync: repoCommitAndPushMutation } = useRepoCommitAndPushMutation(org, app);
-  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (currentRepo) {
@@ -59,30 +57,6 @@ export const VersionControlButtons = () => {
   const handleSyncModalClose = () => {
     setSyncModalAnchorEl(null);
     setModalState(initialModalState);
-  };
-
-  const fetchChanges = async (currentTarget: any) => {
-    setSyncModalAnchorEl(currentTarget);
-    setModalState({
-      ...initialModalState,
-      header: t('sync_header.fetching_latest_version'),
-      isLoading: true,
-    });
-    const { data: result } = await fetchPullData();
-    if (result.repositoryStatus === 'Ok') {
-      // force reFetch  files
-      await queryClient.invalidateQueries(); // Todo: This invalidates ALL queries. Consider providing a list of relevant queries only.
-      // if pull was successful, show app is updated message
-      setModalState({
-        ...initialModalState,
-        header: t('sync_header.service_updated_to_latest'),
-        isLoading: false,
-        shouldShowDoneIcon: true,
-      });
-    } else if (result.hasMergeConflict || result.repositoryStatus === 'CheckoutConflict') {
-      // Force push to catch 409 error and show merge conflict
-      await commitAndPushChanges('');
-    }
   };
 
   const shareChanges = async (currentTarget: any) => {
@@ -151,11 +125,11 @@ export const VersionControlButtons = () => {
 
   return (
     <div className={classes.headerStyling}>
-      <FetchChangesButton
-        fetchChanges={fetchChanges}
+      <FetchChanges
         hasMergeConflict={hasMergeConflict}
         displayNotification={repoStatus?.behindBy > 0 ?? false}
         numChanges={repoStatus?.behindBy ?? 0}
+        handleMergeConflict={() => commitAndPushChanges('')}
       />
       <ShareChangesButton
         hasMergeConflict={hasMergeConflict}
