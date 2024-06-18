@@ -15,6 +15,10 @@ on:
       - 'development/**'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   playwright-tests:
     name: Build environment and run e2e test
