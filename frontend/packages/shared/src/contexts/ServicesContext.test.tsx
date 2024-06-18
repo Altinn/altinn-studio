@@ -7,7 +7,6 @@ import { useQuery } from '@tanstack/react-query';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { user } from 'app-shared/mocks/mocks';
 import { userLogoutAfterPath } from 'app-shared/api/paths';
 
 const unknownErrorCode = 'unknownErrorCode';
