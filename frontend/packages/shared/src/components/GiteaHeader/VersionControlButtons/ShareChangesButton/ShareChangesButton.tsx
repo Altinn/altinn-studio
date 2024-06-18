@@ -6,6 +6,9 @@ import { useTranslation } from 'react-i18next';
 import { Notification } from '../Notification';
 import { Heading, Paragraph } from '@digdir/design-system-react';
 import { GiteaFetchCompleted } from '../GiteaFetchCompleted';
+import type { IContentStatus, IGitStatus } from 'app-shared/types/global';
+import { useRepoStatusQuery } from 'app-shared/hooks/queries';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export interface IShareChangesButtonProps {
   hasMergeConflict: boolean;
@@ -54,21 +57,20 @@ export const ShareChangesButton = ({
 
 export type ShareChangesProps = {
   hasMergeConflict: boolean; // context
-  handleMergeConflict: (message: string) => Promise<void>; // context
   handleCommitAndPush: (message: string) => Promise<void>;
   hasPushRight: boolean;
-  shareChanges: any;
   displayNotification: boolean;
 };
 
 export const ShareChanges = ({
   hasMergeConflict,
   hasPushRight,
-  shareChanges,
   displayNotification,
   handleCommitAndPush,
 }: ShareChangesProps) => {
   const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+  const { refetch: refetchRepoStatus } = useRepoStatusQuery(org, app);
 
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -76,8 +78,20 @@ export const ShareChanges = ({
 
   const handleClosePopover = () => setPopoverOpen(false);
 
-  const handleOpenPopover = () => {
+  const handleOpenPopover = async () => {
     setPopoverOpen(true);
+    setLoading(true);
+
+    const { data: repoStatusResult } = await refetchRepoStatus();
+    if (repoStatusResult) {
+      setLoading(false);
+
+      if (!hasLocalChanges(repoStatusResult) && repoStatusResult.aheadBy === 0) {
+        setHasChangesToPush(false);
+      } else {
+        setHasChangesToPush(true);
+      }
+    }
   };
 
   const renderCorrectTitle = () => {
@@ -132,7 +146,7 @@ const FetchingFromGitea = () => {
   return (
     <>
       <Heading size='xxsmall' spacing level={3}>
-        {t('sync_header.fetching_latest_version')}
+        {t('sync_header.controlling_service_status')}
       </Heading>
       <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('sync_modal.loading')} />
     </>
@@ -183,5 +197,11 @@ const CommitAndPushContent = ({ onClickCommitAndPush }: CommitAndPushContentProp
         {t('sync_header.describe_and_validate_btnText')}
       </StudioButton>
     </>
+  );
+};
+
+const hasLocalChanges = (result: IGitStatus) => {
+  return (
+    result && result.contentStatus.some((file: IContentStatus) => file.fileStatus !== 'Ignored')
   );
 };
