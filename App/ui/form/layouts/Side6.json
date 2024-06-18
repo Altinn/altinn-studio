@@ -13,7 +13,7 @@
         "dataModelBindings": {
           "simpleBinding": {
             "dataType": "modell1",
-            "property": "listsearch"
+            "field": "listsearch"
           }
         },
         "textResourceBindings": {
@@ -29,15 +29,15 @@
         "dataModelBindings": {
           "name": {
             "dataType": "modell2",
-            "property": "selectedperson.name"
+            "field": "selectedperson.name"
           },
           "age": {
             "dataType": "modell2",
-            "property": "selectedperson.age"
+            "field": "selectedperson.age"
           },
           "profession": {
             "dataType": "modell2",
-            "property": "selectedperson.profession"
+            "field": "selectedperson.profession"
           }
         },
         "summaryBinding": "name",

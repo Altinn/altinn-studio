@@ -23,7 +23,7 @@
         },
         "dataModelBindings": {
           "simpleBinding": {
-            "property": "tekstfelt",
+            "field": "tekstfelt",
             "dataType": "modell1"
           }
         },
@@ -45,7 +45,7 @@
         },
         "dataModelBindings": {
           "simpleBinding": {
-            "property": "tekstfelt",
+            "field": "tekstfelt",
             "dataType": "modell2"
           }
         },
@@ -89,15 +89,15 @@
         "dataModelBindings": {
           "address": {
             "dataType": "modell1",
-            "property": "gateadresse"
+            "field": "gateadresse"
           },
           "zipCode": {
             "dataType": "modell2",
-            "property": "postnummer"
+            "field": "postnummer"
           },
           "postPlace": {
             "dataType": "modell1",
-            "property": "poststed"
+            "field": "poststed"
           }
         },
         "simplified": true

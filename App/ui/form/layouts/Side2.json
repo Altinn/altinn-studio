@@ -15,7 +15,7 @@
         "dataModelBindings": {
           "simpleBinding": {
             "dataType": "modell2",
-            "property": "sektor"
+            "field": "sektor"
           }
         },
         "preselectedOptionIndex": 0,
@@ -39,7 +39,7 @@
         "dataModelBindings": {
           "simpleBinding": {
             "dataType": "modell1",
-            "property": "bransje"
+            "field": "bransje"
           }
         },
         "optionsId": "industry",

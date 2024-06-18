@@ -15,7 +15,7 @@
         "dataModelBindings": {
           "group": {
             "dataType": "modell2",
-            "property": "personer"
+            "field": "personer"
           }
         },
         "children": [
@@ -38,7 +38,7 @@
         "dataModelBindings": {
           "simpleBinding": {
             "dataType": "modell2",
-            "property": "personer.fornavn"
+            "field": "personer.fornavn"
           }
         },
         "grid": {
@@ -54,7 +54,7 @@
         "dataModelBindings": {
           "simpleBinding": {
             "dataType": "modell2",
-            "property": "personer.etternavn"
+            "field": "personer.etternavn"
           }
         },
         "grid": {
@@ -70,7 +70,7 @@
         "dataModelBindings": {
           "simpleBinding": {
             "dataType": "modell2",
-            "property": "personer.fødselsdato"
+            "field": "personer.fødselsdato"
           }
         },
         "timeStamp": false,
@@ -87,7 +87,7 @@
         "dataModelBindings": {
           "simpleBinding": {
             "dataType": "modell2",
-            "property": "personer.alder"
+            "field": "personer.alder"
           }
         },
         "readOnly": true,
@@ -114,7 +114,7 @@
         "dataModelBindings": {
           "simpleBinding": {
             "dataType": "modell2",
-            "property": "personer.legitimasjon"
+            "field": "personer.legitimasjon"
           }
         },
         "displayMode": "simple",
@@ -146,7 +146,7 @@
         "dataModelBindings": {
           "list": {
             "dataType": "modell2",
-            "property": "personer.vedlegg"
+            "field": "personer.vedlegg"
           }
         },
         "displayMode": "list",

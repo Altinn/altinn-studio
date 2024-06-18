@@ -11,7 +11,7 @@
         "dataModelBindings": {
           "simpleBinding": {
             "dataType": "modell1",
-            "property": "tekstfelt"
+            "field": "tekstfelt"
           }
         },
         "renderAsSummary": true
@@ -37,7 +37,7 @@
         "dataModelBindings": {
           "simpleBinding": {
             "dataType": "modell3",
-            "property": "tekstfelt"
+            "field": "tekstfelt"
           }
         },
         "renderAsSummary": true

@@ -62,7 +62,7 @@
         "dataModelBindings": {
           "simpleBinding": {
             "dataType": "modell1",
-            "property": "tekstfelt"
+            "field": "tekstfelt"
           }
         },
         "renderAsSummary": true
@@ -76,7 +76,7 @@
         "dataModelBindings": {
           "simpleBinding": {
             "dataType": "modell2",
-            "property": "tekstfelt"
+            "field": "tekstfelt"
           }
         },
         "renderAsSummary": true
@@ -90,7 +90,7 @@
         "dataModelBindings": {
           "simpleBinding": {
             "dataType": "modell2",
-            "property": "sektor"
+            "field": "sektor"
           }
         },
         "options": [
@@ -114,7 +114,7 @@
         "dataModelBindings": {
           "simpleBinding": {
             "dataType": "modell1",
-            "property": "bransje"
+            "field": "bransje"
           }
         },
         "optionsId": "industry",
@@ -132,7 +132,7 @@
         "dataModelBindings": {
           "group": {
             "dataType": "modell2",
-            "property": "personer"
+            "field": "personer"
           }
         },
         "children": [
@@ -152,7 +152,7 @@
         "dataModelBindings": {
           "simpleBinding": {
             "dataType": "modell2",
-            "property": "personer.fornavn"
+            "field": "personer.fornavn"
           }
         },
         "grid": {
@@ -168,7 +168,7 @@
         "dataModelBindings": {
           "simpleBinding": {
             "dataType": "modell2",
-            "property": "personer.etternavn"
+            "field": "personer.etternavn"
           }
         },
         "grid": {
@@ -184,7 +184,7 @@
         "dataModelBindings": {
           "simpleBinding": {
             "dataType": "modell2",
-            "property": "personer.fødselsdato"
+            "field": "personer.fødselsdato"
           }
         },
         "timeStamp": false,
@@ -201,7 +201,7 @@
         "dataModelBindings": {
           "simpleBinding": {
             "dataType": "modell2",
-            "property": "personer.alder"
+            "field": "personer.alder"
           }
         },
         "readOnly": true,

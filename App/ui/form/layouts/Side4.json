@@ -16,11 +16,11 @@
         "dataModelBindings": {
           "questions": {
             "dataType": "modell2",
-            "property": "questions"
+            "field": "questions"
           },
           "answer": {
             "dataType": "modell2",
-            "property": "questions.Answer"
+            "field": "questions.Answer"
           }
         },
         "options": [
