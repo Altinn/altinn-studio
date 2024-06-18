@@ -9,39 +9,39 @@ import { useRepoPullQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useQueryClient } from '@tanstack/react-query';
 import { GiteaFetchCompleted } from '../GiteaFetchCompleted';
+import { useVersionControlButtonsContext } from '../context';
 
 export type FetchChangesProps = {
-  hasMergeConflict: boolean; // context
-  handleMergeConflict: () => Promise<void>; // context
   displayNotification: boolean;
   numChanges: number;
 };
 export const FetchChanges = ({
-  hasMergeConflict,
-  handleMergeConflict,
   displayNotification,
   numChanges,
 }: FetchChangesProps): React.ReactElement => {
+  const { isLoading, setIsLoading, hasMergeConflict, commitAndPushChanges } =
+    useVersionControlButtonsContext();
+
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { refetch: fetchPullData } = useRepoPullQuery(org, app, true);
   const queryClient = useQueryClient();
 
   const [popoverOpen, setPopoverOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const handleClosePopover = () => setPopoverOpen(false);
 
   const handleOpenPopover = async () => {
     setPopoverOpen(true);
 
-    setLoading(true);
+    setIsLoading(true);
     const { data: result } = await fetchPullData();
+    setIsLoading(false);
+
     if (result.repositoryStatus === 'Ok') {
-      setLoading(false);
       await queryClient.invalidateQueries(); // Todo: This invalidates ALL queries. Consider providing a list of relevant queries only.
     } else if (result.hasMergeConflict || result.repositoryStatus === 'CheckoutConflict') {
-      await handleMergeConflict();
+      await commitAndPushChanges('');
       setPopoverOpen(false);
     }
   };
@@ -60,8 +60,8 @@ export const FetchChanges = ({
         {displayNotification && !hasMergeConflict && <Notification numChanges={numChanges} />}
       </StudioPopover.Trigger>
       <StudioPopover.Content className={classes.popoverContent}>
-        {!loading && <GiteaFetchCompleted heading={t('sync_header.service_updated_to_latest')} />}
-        {loading && <FetchingFromGitea />}
+        {!isLoading && <GiteaFetchCompleted heading={t('sync_header.service_updated_to_latest')} />}
+        {isLoading && <FetchingFromGitea />}
       </StudioPopover.Content>
     </StudioPopover>
   );

@@ -9,6 +9,7 @@ import { GiteaFetchCompleted } from '../GiteaFetchCompleted';
 import type { IContentStatus, IGitStatus } from 'app-shared/types/global';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useVersionControlButtonsContext } from '../context';
 
 export interface IShareChangesButtonProps {
   hasMergeConflict: boolean;
@@ -56,35 +57,29 @@ export const ShareChangesButton = ({
 };
 
 export type ShareChangesProps = {
-  hasMergeConflict: boolean; // context
-  handleCommitAndPush: (message: string) => Promise<void>;
-  hasPushRight: boolean;
   displayNotification: boolean;
 };
 
-export const ShareChanges = ({
-  hasMergeConflict,
-  hasPushRight,
-  displayNotification,
-  handleCommitAndPush,
-}: ShareChangesProps) => {
+export const ShareChanges = ({ displayNotification }: ShareChangesProps) => {
+  const { isLoading, setIsLoading, hasPushRights, hasMergeConflict } =
+    useVersionControlButtonsContext();
+
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { refetch: refetchRepoStatus } = useRepoStatusQuery(org, app);
 
   const [popoverOpen, setPopoverOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [hasChangesToPush, setHasChangesToPush] = useState(true);
 
   const handleClosePopover = () => setPopoverOpen(false);
 
   const handleOpenPopover = async () => {
     setPopoverOpen(true);
-    setLoading(true);
+    setIsLoading(true);
 
     const { data: repoStatusResult } = await refetchRepoStatus();
     if (repoStatusResult) {
-      setLoading(false);
+      setIsLoading(false);
 
       if (!hasLocalChanges(repoStatusResult) && repoStatusResult.aheadBy === 0) {
         setHasChangesToPush(false);
@@ -95,7 +90,7 @@ export const ShareChanges = ({
   };
 
   const renderCorrectTitle = () => {
-    if (!hasPushRight) {
+    if (!hasPushRights) {
       return t('sync_header.sharing_changes_no_access');
     }
     if (hasMergeConflict) {
@@ -104,28 +99,30 @@ export const ShareChanges = ({
     return t('sync_header.changes_to_share');
   };
 
+  const fetchCompleted = !isLoading && !hasChangesToPush;
+
   return (
-    <StudioPopover open={popoverOpen} onClose={handleClosePopover} placement='bottom'>
+    <StudioPopover open={popoverOpen} onClose={handleClosePopover} placement='bottom-end'>
       <StudioPopover.Trigger
         color='inverted'
         size='small'
         variant='tertiary'
         onClick={handleOpenPopover}
-        disabled={!hasPushRight || hasMergeConflict}
+        disabled={!hasPushRights || hasMergeConflict}
         title={renderCorrectTitle()}
       >
         {hasMergeConflict ? <XMarkIcon /> : <UploadIcon />}
         {hasMergeConflict ? t('sync_header.merge_conflict') : t('sync_header.changes_to_share')}
         {displayNotification && !hasMergeConflict && <Notification numChanges={1} />}
       </StudioPopover.Trigger>
-      <StudioPopover.Content className={classes.popoverContent}>
-        {loading && <FetchingFromGitea />}
-        {!loading && hasChangesToPush && (
-          <CommitAndPushContent onClickCommitAndPush={handleCommitAndPush} />
+      <StudioPopover.Content
+        className={fetchCompleted ? classes.popoverContentCenter : classes.popoverContent}
+      >
+        {isLoading && <FetchingFromGitea />}
+        {!isLoading && hasChangesToPush && (
+          <CommitAndPushContent handleClosePopover={handleClosePopover} />
         )}
-        {!loading && !hasChangesToPush && (
-          <GiteaFetchCompleted heading={t('sync_header.nothing_to_push')} />
-        )}
+        {fetchCompleted && <GiteaFetchCompleted heading={t('sync_header.nothing_to_push')} />}
         {/*
         {!loading && <GiteaFetchCompleted heading={t('sync_header.service_updated_to_latest')} />}
         */}
@@ -154,14 +151,17 @@ const FetchingFromGitea = () => {
 };
 
 type CommitAndPushContentProps = {
-  onClickCommitAndPush: (message: string) => Promise<void>;
+  handleClosePopover: () => void;
 };
-const CommitAndPushContent = ({ onClickCommitAndPush }: CommitAndPushContentProps) => {
+const CommitAndPushContent = ({ handleClosePopover }: CommitAndPushContentProps) => {
   const { t } = useTranslation();
+  const { commitAndPushChanges } = useVersionControlButtonsContext();
+
   const [commitMessage, setCommitMessage] = useState('');
 
-  const handleClickCommitAndPush = () => {
-    onClickCommitAndPush(commitMessage);
+  const handleClickCommitAndPush = async () => {
+    await commitAndPushChanges(commitMessage);
+    handleClosePopover();
   };
 
   const handleTextareaChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {

@@ -1,0 +1,96 @@
+import React, { createContext, useContext, useState } from 'react';
+import { useHasPushRights } from '../hooks/useHasPushRights';
+import { type Repository } from 'app-shared/types/Repository';
+import { type RepoStatus } from 'app-shared/types/RepoStatus';
+import { useHasMergeConflict } from '../hooks/useHasMergeConflict';
+import { toast } from 'react-toastify';
+import { useRepoPullQuery } from 'app-shared/hooks/queries';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useRepoCommitAndPushMutation } from 'app-shared/hooks/mutations';
+import { useTranslation } from 'react-i18next';
+
+export type VersionControlButtonsContextProps = {
+  isLoading: boolean;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  hasPushRights: boolean;
+  hasMergeConflict: boolean;
+  setHasMergeConflict: React.Dispatch<React.SetStateAction<boolean>>;
+  repoStatus: RepoStatus;
+  commitAndPushChanges: (message: string) => Promise<void>;
+};
+
+export const VersionControlButtonsContext =
+  createContext<Partial<VersionControlButtonsContextProps>>(undefined);
+
+export type VersionControlButtonsContextProviderProps = {
+  children: React.ReactNode;
+  currentRepo: Repository;
+  repoStatus: RepoStatus;
+};
+
+export const VersionControlButtonsContextProvider = ({
+  children,
+  currentRepo,
+  repoStatus,
+}: Partial<VersionControlButtonsContextProviderProps>) => {
+  const { org, app } = useStudioEnvironmentParams();
+  const { t } = useTranslation();
+
+  const hasPushRights = useHasPushRights(currentRepo);
+  const { hasMergeConflict, setHasMergeConflict } = useHasMergeConflict(repoStatus);
+
+  const { refetch: fetchPullData } = useRepoPullQuery(org, app, true);
+  const { mutateAsync: repoCommitAndPushMutation } = useRepoCommitAndPushMutation(org, app);
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const commitAndPushChanges = async (commitMessage: string) => {
+    setIsLoading(true);
+
+    try {
+      await repoCommitAndPushMutation({ commitMessage });
+    } catch (error) {
+      console.error(error);
+      const { data: result } = await fetchPullData();
+      if (result.hasMergeConflict || result.repositoryStatus === 'CheckoutConflict') {
+        // if pull resulted in a merge conflict, show merge conflict message
+        forceRepoStatusCheck();
+        setIsLoading(false);
+        setHasMergeConflict(true);
+      }
+      return;
+    }
+
+    const { data: result } = await fetchPullData();
+    if (result.repositoryStatus === 'Ok') {
+      toast.success(t('sync_header.sharing_changes_completed'));
+    }
+  };
+
+  return (
+    <VersionControlButtonsContext.Provider
+      value={{
+        isLoading,
+        setIsLoading,
+        hasPushRights,
+        hasMergeConflict,
+        setHasMergeConflict,
+        commitAndPushChanges,
+      }}
+    >
+      {children}
+    </VersionControlButtonsContext.Provider>
+  );
+};
+
+export const useVersionControlButtonsContext = (): Partial<VersionControlButtonsContextProps> => {
+  const context = useContext(VersionControlButtonsContext);
+  if (context === undefined) {
+    throw new Error(
+      'useVersionControlButtonsContext must be used within a VersionControlButtonsContextProvider',
+    );
+  }
+  return context;
+};
+
+const forceRepoStatusCheck = () => window.postMessage('forceRepoStatusCheck', window.location.href);

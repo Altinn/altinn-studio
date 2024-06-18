@@ -7,6 +7,16 @@
   max-width: 100%;
 }
 
+.popoverContentCenter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--fds-spacing-5);
+  width: 445px;
+  max-width: 100%;
+}
+
 .heading {
   padding-bottom: var(--fds-spacing-3);
 }
