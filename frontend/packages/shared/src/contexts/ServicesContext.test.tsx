@@ -55,8 +55,8 @@ describe('ServicesContext', () => {
     expect(await screen.findByText(textMock('api_errors.Unauthorized'))).toBeInTheDocument();
   });
 
-  it('Handles logout when toast is closed', async () => {
-    const logoutMock = jest.fn();
+  it('logs the user out after displaying a toast for a given time when the api says unauthorized', async () => {
+    jest.spyOn(global, 'setTimeout');
     renderHook(
       () =>
         useQuery({
@@ -66,17 +66,19 @@ describe('ServicesContext', () => {
         }),
       {
         wrapper: ({ children }) => {
-          return wrapper({ children, queries: { logout: logoutMock } });
+          return wrapper({ children });
         },
       },
     );
+    expect(await screen.findByText(textMock('api_errors.Unauthorized'))).toBeInTheDocument();
+    jest.runAllTimers();
     await waitFor(async () => {
       await Promise.resolve();
     });
     jest.advanceTimersByTime(6000);
     await waitFor(() => {
       setTimeout(() => {
-        expect(logoutMock).toHaveBeenCalled();
+        expect(queriesMock.logout).toHaveBeenCalledTimes(1);
       }, 5000);
     });
   });
