@@ -844,7 +844,7 @@
   "process_editor.sequence_flow_configuration_panel_explanation": "Med Flytkontroll-verktøyet kan du kontrollere flyten ut av en gateway basert på brukerhandling utført ved hjelp av et utrykk.",
   "process_editor.sequence_flow_configuration_panel_title": "Flytkontroll",
   "process_editor.sync_error.unknown_error": "En ukjent feil oppsto under synkronisering av oppgave-ID. Vennligst prøv igjen.",
-  "process_editor.sync_error_application_metadata_data_type": "En feil oppsto under synkronisering av datatype i filen 'applicationmetadata.json'. Vennligst forsikre deg om at 'applicationmetadata.json' kun inneholder gyldig JSON-struktur og prøv igjen.",
+  "process_editor.sync_error_application_metadata_data_type": "En feil oppsto under synkronisering av datatyper i filen 'applicationmetadata.json'. Vennligst forsikre deg om at 'applicationmetadata.json' kun inneholder gyldig JSON-struktur og prøv igjen.",
   "process_editor.sync_error_application_metadata_task_id": "En feil oppsto under synkronisering av oppgave-ID i filen 'applicationmetadata.json'. Vennligst forsikre deg om at 'applicationmetadata.json' kun inneholder gyldig JSON-struktur og prøv igjen.",
   "process_editor.sync_error_layout_sets_data_type": "En feil oppsto under synkronisering av datatype i filen 'layoutsets.json'. Vennligst forsikre deg om at 'layoutsets.json' kun inneholder gyldig JSON-struktur og prøv igjen.",
   "process_editor.sync_error_layout_sets_task_id": "En feil oppsto under synkronisering av oppgave-ID i filen 'layoutsets.json'. Vennligst forsikre deg om at 'layoutsets.json' kun inneholder gyldig JSON-struktur og prøv igjen.",

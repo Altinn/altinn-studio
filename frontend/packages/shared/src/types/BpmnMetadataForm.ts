@@ -3,6 +3,6 @@ export type TaskIdChange = {
   newId: string;
 };
 
-export type MetaDataForm = {
+export type MetadataForm = {
   taskIdChange?: TaskIdChange;
 };

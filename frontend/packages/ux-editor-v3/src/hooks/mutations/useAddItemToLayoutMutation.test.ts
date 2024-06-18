@@ -39,7 +39,7 @@ const appStateMockCopy = (layoutSetName: string): Partial<IAppState> => ({
   },
 });
 
-const applicationAttachmentMetaDataMock: ApplicationAttachmentMetadata = {
+const applicationAttachmentMetadataMock: ApplicationAttachmentMetadata = {
   id,
   taskId: 'some-task-id',
   maxCount: 1,
@@ -84,7 +84,7 @@ describe('useAddItemToLayoutMutation', () => {
     result.current.mutate({ ...defaultArgs, componentType: ComponentTypeV3.FileUpload });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(org, app, {
-      ...applicationAttachmentMetaDataMock,
+      ...applicationAttachmentMetadataMock,
       taskId: 'Task_2',
     });
   });
@@ -94,7 +94,7 @@ describe('useAddItemToLayoutMutation', () => {
     result.current.mutate({ ...defaultArgs, componentType: ComponentTypeV3.FileUpload });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(org, app, {
-      ...applicationAttachmentMetaDataMock,
+      ...applicationAttachmentMetadataMock,
       taskId: 'Task_1',
     });
   });

@@ -4,7 +4,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { type BpmnApiContextProps, BpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { BpmnContext } from '../../../contexts/BpmnContext';
-import { EditDataType, type EditDataTypeProps } from './EditDataType';
+import { EditDataTypes, type EditDataTypesProps } from './EditDataTypes';
 import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
 import {
   mockBpmnApiContextValue,
@@ -22,18 +22,18 @@ const layoutSetsWithoutDataTypeConnection: LayoutSets = {
   ],
 };
 
-const defaultProps: EditDataTypeProps = {
+const defaultProps: EditDataTypesProps = {
   dataModelIds: [],
   connectedTaskId: '',
   existingDataTypeForTask: undefined,
   hideDeleteButton: true,
 };
 
-describe('EditDataType', () => {
+describe('EditDataTypes', () => {
   afterEach(jest.clearAllMocks);
 
   it('should display a button to add data model when task has no data model', () => {
-    renderEditDataType({
+    renderEditDataTypes({
       bpmnApiContextProps: { layoutSets: layoutSetsWithoutDataTypeConnection },
     });
     expect(
@@ -45,7 +45,7 @@ describe('EditDataType', () => {
 
   it('should display a combobox without value and a description that data models are missing when clicking "add data model" when there are no data models', async () => {
     const user = userEvent.setup();
-    renderEditDataType({
+    renderEditDataTypes({
       bpmnApiContextProps: {
         layoutSets: layoutSetsWithoutDataTypeConnection,
       },
@@ -75,7 +75,7 @@ describe('EditDataType', () => {
     const user = userEvent.setup();
     const availableDataModelIds = ['dataModel1', 'dataModel2'];
     const existingDataType = mockBpmnApiContextValue.layoutSets.sets[0].dataType;
-    renderEditDataType({
+    renderEditDataTypes({
       bpmnApiContextProps: { availableDataModelIds },
       componentProps: {
         existingDataTypeForTask: existingDataType,
@@ -106,7 +106,7 @@ describe('EditDataType', () => {
     const user = userEvent.setup();
     const existingDataType = mockBpmnApiContextValue.layoutSets.sets[0].dataType;
 
-    renderEditDataType({
+    renderEditDataTypes({
       componentProps: {
         existingDataTypeForTask: existingDataType,
         dataModelIds: [existingDataType],
@@ -127,7 +127,7 @@ describe('EditDataType', () => {
 
   it('should display the existing data type in preview when clicking the close button after edit mode and task has data type', async () => {
     const user = userEvent.setup();
-    renderEditDataType({
+    renderEditDataTypes({
       componentProps: {
         existingDataTypeForTask: mockBpmnApiContextValue.layoutSets.sets[0].dataType,
       },
@@ -149,7 +149,7 @@ describe('EditDataType', () => {
 
   it('should display the button to add data model when clicking the close button after edit mode and task has no data type', async () => {
     const user = userEvent.setup();
-    renderEditDataType({
+    renderEditDataTypes({
       bpmnApiContextProps: { layoutSets: layoutSetsWithoutDataTypeConnection },
       componentProps: { existingDataTypeForTask: '' },
     });
@@ -170,17 +170,17 @@ describe('EditDataType', () => {
 
 type RenderProps = {
   bpmnApiContextProps: Partial<BpmnApiContextProps>;
-  componentProps: Partial<EditDataTypeProps>;
+  componentProps: Partial<EditDataTypesProps>;
 };
 
-const renderEditDataType = (props: Partial<RenderProps> = {}) => {
+const renderEditDataTypes = (props: Partial<RenderProps> = {}) => {
   const { bpmnApiContextProps, componentProps } = props;
 
   return render(
     <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
       <BpmnContext.Provider value={mockBpmnContextValue}>
         <BpmnConfigPanelFormContextProvider>
-          <EditDataType {...defaultProps} {...componentProps} />
+          <EditDataTypes {...defaultProps} {...componentProps} />
         </BpmnConfigPanelFormContextProvider>
       </BpmnContext.Provider>
     </BpmnApiContext.Provider>,

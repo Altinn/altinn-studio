@@ -17,8 +17,8 @@ import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceipt
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useDeleteLayoutSetMutation } from '../../hooks/mutations/useDeleteLayoutSetMutation';
 import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
-import { useUpdateProcessDataTypeMutation } from '../../hooks/mutations/useUpdateProcessDataTypeMutation';
-import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
+import { useUpdateProcessDataTypesMutation } from '../../hooks/mutations/useUpdateProcessDataTypesMutation';
+import type { MetadataForm } from 'app-shared/types/BpmnMetadataForm';
 import { useAddDataTypeToAppMetadata } from '../../hooks/mutations/useAddDataTypeToAppMetadata';
 import { useDeleteDataTypeFromAppMetadata } from '../../hooks/mutations/useDeleteDataTypeFromAppMetadata';
 import { SyncSuccessQueriesInvalidator } from 'app-shared/queryInvalidator/SyncSuccessQueriesInvalidator';
@@ -55,8 +55,8 @@ export const ProcessEditor = (): React.ReactElement => {
     org,
     app,
   );
-  const { mutate: mutateDataType, isPending: updateDataTypePending } =
-    useUpdateProcessDataTypeMutation(org, app);
+  const { mutate: mutateDataTypes, isPending: updateDataTypePending } =
+    useUpdateProcessDataTypesMutation(org, app);
 
   const existingCustomReceiptId: string | undefined = useCustomReceiptLayoutSetName(org, app);
 
@@ -104,10 +104,10 @@ export const ProcessEditor = (): React.ReactElement => {
     }
   });
 
-  const saveBpmnXml = async (xml: string, metaData?: MetaDataForm): Promise<void> => {
+  const saveBpmnXml = async (xml: string, metadata?: MetadataForm): Promise<void> => {
     const formData = new FormData();
     formData.append('content', new Blob([xml]), 'process.bpmn');
-    formData.append('metadata', JSON.stringify(metaData));
+    formData.append('metadata', JSON.stringify(metadata));
 
     mutateBpmn(
       { form: formData },
@@ -162,7 +162,7 @@ export const ProcessEditor = (): React.ReactElement => {
       mutateLayoutSetId={mutateLayoutSetId}
       appLibVersion={appLibData.backendVersion}
       bpmnXml={hasBpmnQueryError ? null : bpmnXml}
-      mutateDataType={mutateDataType}
+      mutateDataTypes={mutateDataTypes}
       saveBpmn={saveBpmnXml}
       openPolicyEditor={() => {
         setSettingsModalSelectedTab('policy');
