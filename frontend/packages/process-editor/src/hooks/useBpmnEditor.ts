@@ -17,13 +17,13 @@ type UseBpmnViewerResult = {
 export const useBpmnEditor = (): UseBpmnViewerResult => {
   const { getUpdatedXml, bpmnXml, modelerRef, setBpmnDetails } = useBpmnContext();
   const canvasRef = useRef<HTMLDivElement | null>(null);
-  const { metaDataFormRef, resetForm } = useBpmnConfigPanelFormContext();
+  const { metadataFormRef, resetForm } = useBpmnConfigPanelFormContext();
   const { getModeler, destroyModeler } = useBpmnModeler();
 
   const { saveBpmn, onProcessTaskAdd, onProcessTaskRemove } = useBpmnApiContext();
 
   const handleCommandStackChanged = async () => {
-    saveBpmn(await getUpdatedXml(), metaDataFormRef.current || null);
+    saveBpmn(await getUpdatedXml(), metadataFormRef.current || null);
     resetForm();
   };
 
