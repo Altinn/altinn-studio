@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ResourceReference } from 'app-shared/types/ResourceAdm';
+import type { ResourceFormError, ResourceReference } from 'app-shared/types/ResourceAdm';
 import { ResourceReferenceFieldset } from './ResourceReferenceFieldset';
 import { FieldsetWrapper } from '../FieldsetWrapper';
 import { InputFieldErrorMessage } from '../ResourcePageInputs/InputFieldErrorMessage';
@@ -29,9 +29,9 @@ export type ResourceReferenceFieldsProps = {
    */
   onFocus: () => void;
   /**
-   * If the error should be shown
+   * Field error messages
    */
-  showErrors: boolean;
+  errors: ResourceFormError[];
   /**
    * Whether this field is required or not
    */
@@ -45,7 +45,7 @@ export type ResourceReferenceFieldsProps = {
  * @property {ResourceReference[]}[resourceReferenceList] - The current resource references list
  * @property {function}[onResourceReferenceFieldChanged] - Function to be executed when resource references are changed
  * @property {function}[onFocus] - Function to be executed when the field is focused
- * @property {boolean}[showErrors] - If the error should be shown
+ * @property {ResourceFormError[]}[errors] - Field error messages
  * @property {boolean}[required] - Whether this field is required or not
  *
  * @returns {React.JSX.Element} - The rendered component
@@ -54,14 +54,11 @@ export const ResourceReferenceFields = ({
   resourceReferenceList,
   onResourceReferenceFieldChanged,
   onFocus,
-  showErrors,
+  errors,
   required,
 }: ResourceReferenceFieldsProps): React.JSX.Element => {
   const { t } = useTranslation();
 
-  const hasMaskinportenScope = resourceReferenceList?.some(
-    (ref) => ref.referenceType === 'MaskinportenScope',
-  );
   return (
     <div>
       <FieldsetWrapper<ResourceReference>
@@ -85,18 +82,18 @@ export const ResourceReferenceFields = ({
               resourceReference={item}
               onChangeResourceReferenceField={onChange}
               onFocus={onFocus}
-              showErrors={showErrors}
+              errors={errors}
               required={required}
               index={index}
             />
           );
         }}
       />
-      {showErrors && !hasMaskinportenScope && (
-        <InputFieldErrorMessage
-          message={t('resourceadm.about_resource_reference_maskinporten_missing')}
-        />
-      )}
+      {errors
+        .filter((error) => error.index === undefined)
+        .map((error, index) => (
+          <InputFieldErrorMessage key={index} message={error.error} />
+        ))}
     </div>
   );
 };

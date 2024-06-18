@@ -17,6 +17,7 @@ import {
   mapKeywordStringToKeywordTypeArray,
   mapKeywordsArrayToString,
   resourceTypeMap,
+  validateResource,
 } from '../../utils/resourceUtils';
 import { useTranslation } from 'react-i18next';
 import {
@@ -92,6 +93,8 @@ export const AboutResourcePage = ({
     onSaveResource(res);
   };
 
+  const validationErrors = showAllErrors ? validateResource(resourceData, t) : [];
+
   /**
    * Displays the content on the page
    */
@@ -114,15 +117,12 @@ export const AboutResourcePage = ({
           description={t('resourceadm.about_resource_resource_type_label')}
           value={resourceData.resourceType}
           options={resourceTypeOptions}
-          hasError={
-            showAllErrors && !Object.keys(resourceTypeMap).includes(resourceData.resourceType)
-          }
           onFocus={() => setTranslationType('none')}
           onChange={(selected: ResourceTypeOption) =>
             handleSave({ ...resourceData, resourceType: selected })
           }
           required
-          errorText={t('resourceadm.about_resource_resource_type_error')}
+          errors={validationErrors.filter((error) => error.field === 'resourceType')}
         />
         <ResourceLanguageTextField
           label={t('resourceadm.about_resource_resource_title_label')}
@@ -135,7 +135,7 @@ export const AboutResourcePage = ({
             handleSave({ ...resourceData, title: translations })
           }
           required
-          errorText={showAllErrors ? t('resourceadm.about_resource_error_usage_string_title') : ''}
+          errors={validationErrors.filter((error) => error.field === 'title')}
         />
         <ResourceLanguageTextField
           label={t('resourceadm.about_resource_resource_description_label')}
@@ -149,9 +149,7 @@ export const AboutResourcePage = ({
             handleSave({ ...resourceData, description: translations })
           }
           required
-          errorText={
-            showAllErrors ? t('resourceadm.about_resource_error_usage_string_description') : ''
-          }
+          errors={validationErrors.filter((error) => error.field === 'description')}
         />
         <ResourceTextField
           label={t('resourceadm.about_resource_homepage_label')}
@@ -180,11 +178,7 @@ export const AboutResourcePage = ({
               handleSave({ ...resourceData, rightDescription: translations })
             }
             required
-            errorText={
-              showAllErrors && resourceData.delegable
-                ? t('resourceadm.about_resource_error_usage_string_rights_description')
-                : ''
-            }
+            errors={validationErrors.filter((error) => error.field === 'rightDescription')}
           />
         )}
         <ResourceTextField
@@ -200,13 +194,12 @@ export const AboutResourcePage = ({
           label={t('resourceadm.about_resource_status_label')}
           value={resourceData.status}
           options={statusOptions}
-          hasError={showAllErrors && !Object.keys(resourceStatusMap).includes(resourceData.status)}
           onFocus={() => setTranslationType('none')}
           onChange={(selected: ResourceStatusOption) =>
             handleSave({ ...resourceData, status: selected })
           }
           required
-          errorText={t('resourceadm.about_resource_status_error')}
+          errors={validationErrors.filter((error) => error.field === 'status')}
         />
         {resourceData.resourceType !== 'MaskinportenSchema' && (
           <ResourceSwitchInput
@@ -237,7 +230,7 @@ export const AboutResourcePage = ({
             options={availableForOptions}
             legend={t('resourceadm.about_resource_available_for_legend')}
             description={t('resourceadm.about_resource_available_for_description')}
-            showErrors={showAllErrors}
+            errors={validationErrors.filter((error) => error.field === 'availableForType')}
             onFocus={() => setTranslationType('none')}
             onChange={(selected: ResourceAvailableForTypeOption[]) =>
               handleSave({ ...resourceData, availableForType: selected })
@@ -254,7 +247,7 @@ export const AboutResourcePage = ({
               handleSave({ ...resourceData, resourceReferences: resourceReferences });
             }}
             required
-            showErrors={showAllErrors}
+            errors={validationErrors.filter((x) => x.field === 'resourceReferences')}
           />
         )}
         <ResourceContactPointFields
@@ -264,7 +257,7 @@ export const AboutResourcePage = ({
             handleSave({ ...resourceData, contactPoints: contactPoints })
           }
           required
-          showErrors={showAllErrors}
+          errors={validationErrors.filter((x) => x.field === 'contactPoints')}
         />
         <ResourceSwitchInput
           label={t('resourceadm.about_resource_visible_label')}

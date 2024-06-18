@@ -4,6 +4,7 @@ import { Checkbox } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 import { ResourceFieldHeader } from './ResourceFieldHeader';
+import type { ResourceFormError } from 'app-shared/types/ResourceAdm';
 
 type ResourceCheckboxGroupProps = {
   /**
@@ -19,9 +20,9 @@ type ResourceCheckboxGroupProps = {
    */
   description: string;
   /**
-   * If the errors should be shown
+   * Field errors
    */
-  showErrors: boolean;
+  errors: ResourceFormError[];
   /**
    * Function to be executed when the field is focused
    * @returns void
@@ -50,7 +51,7 @@ type ResourceCheckboxGroupProps = {
  * @property {{value: string, label: string}[]}[options] - The options to display in the checkbox group
  * @property {string}[legend] - The legend of the group
  * @property {string}[description] - The description of the group
- * @property {boolean}[showErrors] - If the errors should be shown
+ * @property {ResourceFormError[]}[errors] -  Field errors
  * @property {function}[onChange] - Fucntion to execute on change
  * @property {function}[onFocus] - Function to be executed when the field is focused
  * @property {string[]}[value] - The selected options
@@ -62,7 +63,7 @@ export const ResourceCheckboxGroup = ({
   options,
   legend,
   description,
-  showErrors,
+  errors,
   onFocus,
   onChange,
   value,
@@ -78,19 +79,17 @@ export const ResourceCheckboxGroup = ({
     ));
   };
 
+  const fieldErrors = errors.map((error, index) => (
+    <InputFieldErrorMessage key={index} message={error.error} />
+  ));
+
   return (
     <div className={classes.inputWrapper}>
       <Checkbox.Group
         legend={<ResourceFieldHeader label={legend} required={required} />}
         description={description}
         size='small'
-        error={
-          showErrors && value.length === 0 ? (
-            <InputFieldErrorMessage
-              message={t('resourceadm.about_resource_available_for_error_message')}
-            />
-          ) : undefined
-        }
+        error={fieldErrors.length > 0 ? fieldErrors : undefined}
         onChange={onChange}
         onFocus={onFocus}
         value={value}

@@ -28,7 +28,7 @@ describe('ResourceContactPointFields', () => {
     contactPointList: mockContactPointList,
     onContactPointsChanged: mockOnContactPointsChanged,
     onFocus: jest.fn(),
-    showErrors: false,
+    errors: [],
   };
 
   it('handles undefined contact point list correctly', () => {
@@ -207,11 +207,17 @@ describe('ResourceContactPointFields', () => {
     ]);
   });
 
-  it('displays error message when show error is true', () => {
+  it('displays error message when field has error message', () => {
     render(
       <ResourceContactPointFields
         {...defaultProps}
-        showErrors
+        errors={[
+          {
+            field: 'contactPoints',
+            index: 0,
+            error: textMock('resourceadm.about_resource_contact_point_error'),
+          },
+        ]}
         contactPointList={[mockContactPoint2]}
       />,
     );

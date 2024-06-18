@@ -13,7 +13,7 @@ describe('RightTranslationBar', () => {
     title: 'Title',
     value: { nb: '', nn: '', en: '' },
     onLanguageChange: mockOnLanguageChange,
-    showErrors: true,
+    errors: [],
     onBlur: mockOnBlur,
   };
 

@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import classes from './ResourcePageInputs.module.css';
 import { Textarea, Textfield } from '@digdir/design-system-react';
 import { RightTranslationBar } from '../RightTranslationBar';
-import type { SupportedLanguage } from 'app-shared/types/ResourceAdm';
-import { getMissingInputLanguageString } from '../../utils/resourceUtils';
+import type { ResourceFormError, SupportedLanguage } from 'app-shared/types/ResourceAdm';
 import { ResourceFieldHeader } from './ResourceFieldHeader';
+import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 
 /**
  * Initial value for languages with empty fields
@@ -44,9 +43,9 @@ type ResourceLanguageTextFieldProps = {
    */
   onBlur: (translations: SupportedLanguage) => void;
   /**
-   * The error text to be shown
+   * The error texts to be shown
    */
-  errorText?: string;
+  errors?: ResourceFormError[];
   /**
    * Whether the component should use textarea instead of input
    */
@@ -68,7 +67,7 @@ type ResourceLanguageTextFieldProps = {
  * @property {string}[value] - The value in the field
  * @property {function}[onFocus] - unction to be executed when the field is focused
  * @property {function}[onBlur] - Function to be executed on blur
- * @property {string}[errorText] - The error text to be shown
+ * @property {ResourceFormError[]}[errors] - The error texts to be shown
  * @property {boolean}[useTextArea] - Whether the component should use textarea instead of input
  * @property {boolean}[required] - Whether this field is required or not
  *
@@ -82,12 +81,10 @@ export const ResourceLanguageTextField = ({
   value,
   onFocus,
   onBlur,
-  errorText,
+  errors,
   useTextArea,
   required,
 }: ResourceLanguageTextFieldProps): React.JSX.Element => {
-  const { t } = useTranslation();
-
   const [translations, setTranslations] = useState<SupportedLanguage>(value ?? emptyLanguages);
 
   const getTrimmedTranslations = (): SupportedLanguage => {
@@ -108,9 +105,9 @@ export const ResourceLanguageTextField = ({
     });
   };
 
-  const fieldError = errorText
-    ? getMissingInputLanguageString(getTrimmedTranslations(), errorText, t)
-    : '';
+  const mainFieldError = errors
+    .filter((error) => error.index === 'nb')
+    .map((error, index) => <InputFieldErrorMessage key={index} message={error.error} />);
 
   return (
     <>
@@ -123,7 +120,7 @@ export const ResourceLanguageTextField = ({
             value={translations['nb']}
             onChange={onChangeNbField}
             onFocus={onFocus}
-            error={fieldError}
+            error={mainFieldError.length > 0 ? mainFieldError : undefined}
             onBlur={onBlurField}
             rows={5}
             required={required}
@@ -136,7 +133,7 @@ export const ResourceLanguageTextField = ({
             value={translations['nb']}
             onChange={onChangeNbField}
             onFocus={onFocus}
-            error={fieldError}
+            error={mainFieldError.length > 0 ? mainFieldError : undefined}
             onBlur={onBlurField}
             required={required}
           />
@@ -148,7 +145,7 @@ export const ResourceLanguageTextField = ({
           value={translations}
           onLanguageChange={setTranslations}
           usesTextArea={useTextArea}
-          showErrors={!!errorText}
+          errors={errors}
           onBlur={onBlurField}
           required={required}
         />
