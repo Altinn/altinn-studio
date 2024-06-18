@@ -11,21 +11,14 @@ on:
       - 'testdata/**'
       - '.github/workflows/frontend-unit-tests.yml'
       - 'package.json'
-      paths:
-        - 'frontend/**'
-        - '!frontend/testing/cypress/**'
-        - '!frontend/stats/**'
-        - 'testdata/**'
-        - '.github/workflows/frontend-unit-tests.yml'
-        - 'package.json'
-    pull_request:
-      paths:
-        - 'frontend/**'
-        - '!frontend/testing/cypress/**'
-        - '!frontend/stats/**'
-        - 'testdata/**'
-        - '.github/workflows/frontend-unit-tests.yml'
-        - 'package.json'
+  pull_request:
+    paths:
+      - 'frontend/**'
+      - '!frontend/testing/cypress/**'
+      - '!frontend/stats/**'
+      - 'testdata/**'
+      - '.github/workflows/frontend-unit-tests.yml'
+      - 'package.json'
   workflow_dispatch:
 
 concurrency:
