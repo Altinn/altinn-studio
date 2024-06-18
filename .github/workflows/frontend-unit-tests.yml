@@ -80,6 +80,11 @@ jobs:
       - name: 'Installing Dependencies'
         uses: ./.github/actions/yarn-install
 
+      - name: Test1
+        env:
+          TEST1: ${{ github.event_name }}
+        run: echo "$TEST1"
+
       - name: 'Running Unit Tests'
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
