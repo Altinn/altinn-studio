@@ -129,21 +129,10 @@ export const isActionRequiredForTask = (action: string, bpmnTaskType: BpmnTaskTy
   return bpmnTaskType === 'confirmation' && action === 'confirm';
 };
 
-export const getAvailablePredefinedActions = (
-  taskType: BpmnTaskType,
-  actionElements: ModdleElement[],
-) => filterAvailableActions(getPredefinedActions(taskType), actionElements) ?? [];
+export const getAvailablePredefinedActions = (taskType: BpmnTaskType) =>
+  getPredefinedActions(taskType) ?? [];
 
-const filterAvailableActions = (
-  predefinedActionNames: string[],
-  existingActionElements: ModdleElement[],
-): string[] => {
-  return predefinedActionNames.filter((actionName: string) =>
-    isActionAvailable(actionName, existingActionElements),
-  );
-};
-
-const isActionAvailable = (
+export const isActionAvailable = (
   actionName: string,
   existingActionElements: ModdleElement[],
 ): boolean => {

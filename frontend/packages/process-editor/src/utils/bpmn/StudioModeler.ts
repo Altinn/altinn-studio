@@ -57,12 +57,8 @@ export class StudioModeler {
     this.modeling.updateProperties(this.getElement(), { ...properties });
   }
 
-  public updateModdleProperties<T>(properties: T): void {
-    this.modeling.updateModdleProperties(
-      this.getElement(),
-      this.getElement().businessObject.extensionElements.values[0],
-      { ...properties },
-    );
+  public updateModdleProperties<T>(properties: T, element: ModdleElement): void {
+    this.modeling.updateModdleProperties(this.getElement(), element, { ...properties });
   }
 
   public getAllTasksByType(elementType: string): Element[] {

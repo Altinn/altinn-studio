@@ -1,3 +1,11 @@
 .tabsContainer {
   border: 0;
 }
+
+.tabsContent {
+  padding: var(--fds-spacing-2) 0 !important;
+}
+
+.actionView {
+  margin-bottom: var(--fds-spacing-3);
+}

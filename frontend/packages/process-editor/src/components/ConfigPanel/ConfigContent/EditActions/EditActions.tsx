@@ -3,58 +3,56 @@ import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { useTranslation } from 'react-i18next';
 import { StudioProperty } from '@studio/components';
 import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
-// import { getAvailablePredefinedActions } from './ActionsUtils';
-// import { EditAction } from './EditAction';
 import { BpmnActionModeler } from '@altinn/process-editor/utils/bpmn/BpmnActionModeler';
-// import { ActionsEditor } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/ActionsEditor/ActionsEditor';
-import { EditAction } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/EditAction';
-import { getAvailablePredefinedActions } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/ActionsUtils';
 import { ActionsEditor } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/ActionsEditor/ActionsEditor';
+import { useChecksum } from './useChecksum';
 
 export const EditActions = () => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
   const bpmnActionModeler = new BpmnActionModeler(bpmnDetails.element);
-
-  // TODO write the code better to handle undefined instead
+  const { checksum, updateChecksum } = useChecksum();
   const actions = bpmnActionModeler.actionElements?.action || [];
-  console.log(actions);
-  // const availablePredefinedActions = getAvailablePredefinedActions(bpmnDetails.taskType, actions);
 
-  // This is actually a save button, but it is named as actions with undefined!
-  const handleOnSaveActions = (): void => {
+  const onNewActionAddClicked = (): void => {
+    // Need to update checksum to trigger re-render of the component, because React does not re-render when actions changes
+    updateChecksum();
     const shouldUpdateExistingActions = bpmnActionModeler.hasActionsAlready;
+
     if (shouldUpdateExistingActions) {
-      // TODO should have an actionElement here?
-      bpmnActionModeler.updateActionNameOnActionElement('', undefined);
+      const existingActionElement = bpmnActionModeler.actionElements;
+
+      const newActionElement = bpmnActionModeler.createActionElement(undefined);
+      existingActionElement?.action.push(newActionElement);
+
+      bpmnActionModeler.updateActionNameOnActionElement(
+        bpmnActionModeler.getExtensionElements(),
+        undefined,
+      );
       return;
     }
 
     bpmnActionModeler.addNewActionToTask(undefined);
-    // addNewActionToTask(bpmnFactory, modeling, undefined, bpmnDetails);
   };
 
   return (
-    <>
-      {actions.map((actionElement: ModdleElement, index: number) => (
-        <div style={{ padding: '10px' }}>
-          <ActionsEditor actionElement={actionElement} />
-        </div>
-        // <EditAction
-        //   key={actionElement.action}
-        //   actionElementToEdit={actionElement}
-        //   availablePredefinedActions={availablePredefinedActions}
-        //   bpmnDetails={bpmnDetails}
-        //   index={index}
-        //   // TODO: This modeling do not need to be passed down to the EditAction component after refactoring
-        //   modeling={bpmnActionModeler.modeling}
-        // />
-      ))}
+    <React.Fragment key={checksum}>
+      {actions.map(
+        (actionElement: ModdleElement, index: number): React.ReactElement => (
+          <div key={`${actionElement.action}-${index}`}>
+            <ActionsEditor
+              actionElement={actionElement}
+              actionIndex={index}
+              mode={!actionElement.action ? 'edit' : 'view'}
+            />
+          </div>
+        ),
+      )}
       <StudioProperty.Button
-        onClick={handleOnSaveActions}
+        onClick={onNewActionAddClicked}
         property={t('process_editor.configuration_panel_actions_add_new')}
         size='small'
       />
-    </>
+    </React.Fragment>
   );
 };

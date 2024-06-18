@@ -3,11 +3,11 @@ import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
 import { getPredefinedActions } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/ActionsUtils';
 
 export type Action = ModdleElement;
-type ActionsElement = {
+export type ActionsElement = {
   action: Action[];
 };
 
-enum ActionTagType {
+export enum ActionTagType {
   Action = 'altinn:Action',
   Actions = 'altinn:Actions',
 }
@@ -17,12 +17,15 @@ export class BpmnActionModeler extends StudioModeler {
     super(element);
   }
 
-  public get actionElements(): ActionsElement {
-    return this.getElement()?.businessObject.extensionElements?.values[0]?.actions ?? [];
+  public get actionElements(): ActionsElement | undefined {
+    return this.getElement()?.businessObject.extensionElements?.values[0]?.actions;
+  }
+
+  public getExtensionElements(): Action | undefined {
+    return this.getElement()?.businessObject.extensionElements?.values[0];
   }
 
   public get hasActionsAlready(): boolean {
-    console.log(this.actionElements);
     return this.actionsElements?.length > 0;
   }
 
@@ -30,32 +33,61 @@ export class BpmnActionModeler extends StudioModeler {
     const actionElement = this.createActionElement(generatedActionName);
     const actionsElement = this.createActionsElement(actionElement);
 
-    this.updateModdleProperties({
-      actions: actionsElement,
-    });
+    this.updateModdleProperties(
+      {
+        actions: actionsElement,
+      },
+      this.getElement().businessObject.extensionElements.values[0],
+    );
+  }
+
+  public deleteActionFromTask(actionElement: Action): void {
+    const actionsElement = this.actionElements;
+    const index = actionsElement.action.indexOf(actionElement);
+    actionsElement.action.splice(index, 1);
+
+    const hasActions = actionsElement?.action.length > 0;
+    if (hasActions) {
+      this.updateModdleProperties(
+        {
+          actions: actionsElement,
+        },
+        this.getElement().businessObject.extensionElements.values[0],
+      );
+      return;
+    }
+
+    this.updateModdleProperties(
+      {
+        actions: undefined,
+      },
+      this.getElement().businessObject.extensionElements.values[0],
+    );
   }
 
   public updateActionNameOnActionElement(actionElement: ModdleElement, newAction: string): void {
     if (actionElement?.action === newAction || newAction === '') return;
 
-    // TODO: figure out why we need the if block below.
     if (getPredefinedActions(this.getCurrentTaskType).includes(newAction)) {
       delete actionElement.type;
     }
 
-    this.updateModdleProperties({
-      action: newAction,
+    this.updateModdleProperties(
+      {
+        action: newAction,
+      },
+      actionElement,
+    );
+  }
+
+  public createActionElement(actionName: string | undefined): ModdleElement {
+    return this.bpmnFactory.create(ActionTagType.Action, {
+      action: actionName,
     });
   }
 
   private get actionsElements(): Action[] | undefined {
     return this.actionElements?.action;
-  }
-
-  private createActionElement(actionName: string | undefined): ModdleElement {
-    return this.bpmnFactory.create(ActionTagType.Action, {
-      action: actionName,
-    });
   }
 
   private createActionsElement(actionElement: ModdleElement): ModdleElement {
