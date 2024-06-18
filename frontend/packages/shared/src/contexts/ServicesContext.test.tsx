@@ -1,7 +1,7 @@
 import React, { type ReactNode } from 'react';
 import { render, renderHook, screen, waitFor } from '@testing-library/react';
 import type { ServicesContextProps } from './ServicesContext';
-import { ServicesContextProvider } from './ServicesContext';
+import { ServicesContextProvider, useServicesContext } from './ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { useQuery } from '@tanstack/react-query';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -204,5 +204,13 @@ describe('ServicesContext', () => {
     expect(screen.getByText(textMock('general.error_message'))).toBeInTheDocument();
     expect(screen.getByText(textMock('general.try_again'))).toBeInTheDocument();
     expect(mockConsoleError).toHaveBeenCalled();
+  });
+
+  it('Throws an error if used outside a ServiceContextProvider', () => {
+    const renderHookFn = () => renderHook(() => useServicesContext());
+    jest.spyOn(console, 'error').mockImplementation();
+    expect(renderHookFn).toThrowError(
+      'useServicesContext must be used within a ServicesContextProvider.',
+    );
   });
 });

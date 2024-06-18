@@ -29,7 +29,7 @@ export type ServicesContextProviderProps = ServicesContextProps & {
 
 const LOG_OUT_TIMER_MS = 5000;
 
-const ServicesContext = createContext<ServicesContextProps>(null);
+const ServicesContext = createContext<ServicesContextProps>(undefined);
 
 const handleError = (
   error: AxiosError<ApiError>,
