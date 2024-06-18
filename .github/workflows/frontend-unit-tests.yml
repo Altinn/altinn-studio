@@ -81,7 +81,12 @@ jobs:
         uses: ./.github/actions/yarn-install
 
       - name: 'Running Unit Tests'
-        run: yarn test:ci
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            yarn test:ci --changedSince=origin/main
+          else
+            yarn test:ci
+          fi
 
       - name: 'Upload coverage reports to Codecov'
         uses: codecov/codecov-action@v4
