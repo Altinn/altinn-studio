@@ -10,7 +10,7 @@ export interface PageConfigWarningModalProps {
 export const PageConfigWarningModal = ({ modalRef }: PageConfigWarningModalProps): ReactNode => {
   const { t } = useTranslation();
   return (
-    <Modal ref={modalRef}>
+    <Modal ref={modalRef} role='dialog'>
       <Modal.Header closeButton={false}>
         {t('ux_editor.modal_properties_warning_modal_title')}
       </Modal.Header>

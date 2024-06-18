@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Accordion } from '@digdir/design-system-react';
 import { FileIcon } from '@studio/icons';
 import { StudioSectionHeader } from '@studio/components';
@@ -49,15 +49,21 @@ export const PageConfigPanel = () => {
   const duplicateLayouts = findLayoutsContainingDuplicateComponents(layoutPages);
   const hasDuplicatedIdsInAllLayouts = duplicateLayouts.length > 0;
 
+  useEffect(() => {
+    if (hasDuplicatedIdsInAllLayouts) {
+      modalRef.current?.showModal();
+    }
+  }, [hasDuplicatedIdsInAllLayouts]);
+
   if (layoutIsSelected && hasDuplicatedIds) {
     return <PageConfigWarning selectedFormLayoutName={selectedFormLayoutName} layout={layout} />;
   }
 
-  if (hasDuplicatedIdsInAllLayouts) {
+  /*   if (hasDuplicatedIdsInAllLayouts) {
     modalRef.current?.showModal();
     return <PageConfigWarningModal modalRef={modalRef} />;
   }
-
+ */
   return (
     <>
       <StudioSectionHeader
@@ -90,6 +96,7 @@ export const PageConfigPanel = () => {
           </Accordion>
         </>
       )}
+      <PageConfigWarningModal modalRef={modalRef} />
     </>
   );
 };

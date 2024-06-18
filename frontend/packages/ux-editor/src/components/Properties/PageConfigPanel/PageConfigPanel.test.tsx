@@ -1,5 +1,5 @@
-import React from 'react';
-import { screen } from '@testing-library/react';
+import React, { act } from 'react';
+import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../../../testing/mocks';
 import { PageConfigPanel } from './PageConfigPanel';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -11,6 +11,12 @@ import type { IFormLayouts } from '../../../types/global';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
+import { findLayoutsContainingDuplicateComponents } from '../../../utils/formLayoutUtils';
+
+jest.mock('../../../utils/formLayoutUtils', () => ({
+  ...jest.requireActual('../../../utils/formLayoutUtils'),
+  findLayoutsContainingDuplicateComponents: jest.fn(),
+}));
 
 // Test data
 const layoutSet = layoutSet1NameMock;
@@ -39,7 +45,10 @@ const layouts: IFormLayouts = {
 };
 
 describe('PageConfigPanel', () => {
-  it('render heading with "no selected page" message when selected layout is "default"', () => {
+  beforeEach(() => {
+    (findLayoutsContainingDuplicateComponents as jest.Mock).mockReturnValue([]);
+  });
+  it('render heading with "no selected page" message when selected layout is "default"', async () => {
     renderPageConfigPanel();
     screen.getByRole('heading', { name: textMock('right_menu.content_empty') });
   });
@@ -73,19 +82,32 @@ describe('PageConfigPanel', () => {
     screen.getByRole('button', { name: textMock('ux_editor.id_identifier') });
   });
 
-  it('render warning when layout is selected and has duplicated ids', () => {
-    renderPageConfigPanel(duplicatedLayout);
+  it('render warning when layout is selected and has duplicated ids', async () => {
+    await waitFor(async () => {
+      renderPageConfigPanel(duplicatedLayout);
+    });
     screen.getByRole('heading', { name: textMock('ux_editor.config.warning_duplicates.heading') });
   });
 
-  it('should display duplicated ids in the document', () => {
-    renderPageConfigPanel(duplicatedLayout);
+  it('should display duplicated ids in the document', async () => {
+    await waitFor(async () => {
+      renderPageConfigPanel(duplicatedLayout);
+    });
 
     const duplicatedIds = screen.getByText(/<idcontainer1>, <idcontainer2>/i);
     expect(duplicatedIds).toBeInTheDocument();
 
     const uniqueIds = screen.queryByText(/<idcontainer>, <idContainer3>/i);
     expect(uniqueIds).not.toBeInTheDocument();
+  });
+
+  it('should show warning modal when there are duplicated ids in all layouts', async () => {
+    await waitFor(async () => {
+      renderPageConfigPanel();
+    });
+
+    const modal = screen.getByRole('dialog', { hidden: true });
+    expect(modal).toBeInTheDocument();
   });
 });
 
