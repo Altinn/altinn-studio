@@ -8,20 +8,18 @@ import { LegacyPopover, Link } from '@digdir/design-system-react';
 import { StudioButton, StudioPopover } from '@studio/components';
 import { LocalChangesModal } from './LocalChangesModal';
 import { ClonePopoverContent } from './ClonePopoverContent';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export type ThreeDotsMenuProps = {
   onlyShowRepository?: boolean;
   hasCloneModal?: boolean;
-  org: string;
-  app: string;
 };
 
 export const ThreeDotsMenu = ({
   onlyShowRepository = false,
   hasCloneModal = false,
-  org,
-  app,
 }: ThreeDotsMenuProps) => {
+  const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
   const [localChangesModalIsOpen, setLocalChangesModalIsOpen] = useState(false);
   const [clonePopoverOpen, setClonePopoverOpen] = useState(false);
@@ -66,7 +64,7 @@ export const ThreeDotsMenu = ({
           )}
           <li>
             <Link
-              aschild
+              aschild='true'
               href={repositoryPath(org, app)}
               target='_newTab'
               rel='noopener noreferrer'

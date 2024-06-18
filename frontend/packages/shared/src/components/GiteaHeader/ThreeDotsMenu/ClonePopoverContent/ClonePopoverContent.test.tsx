@@ -5,10 +5,21 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 
+const mockOnClose = jest.fn();
+
+const defaultProps: ClonePopoverContentProps = {
+  onClose: mockOnClose,
+};
+
 describe('cloneModal', () => {
+  afterEach(jest.clearAllMocks);
+
   it('should show copy link if copy feature is supported', () => {
-    document.queryCommandSupported = jest.fn(() => {
-      return true;
+    Object.defineProperty(navigator, 'clipboard', {
+      value: {
+        writeText: jest.fn(),
+      },
+      writable: true,
     });
     renderClonePopoverContent();
 
@@ -20,8 +31,9 @@ describe('cloneModal', () => {
   });
 
   it('should NOT show copy link if copy feature is NOT supported', () => {
-    document.queryCommandSupported = jest.fn(() => {
-      return false;
+    Object.defineProperty(navigator, 'clipboard', {
+      value: undefined,
+      writable: true,
     });
     renderClonePopoverContent();
 
@@ -34,20 +46,12 @@ describe('cloneModal', () => {
 });
 
 const renderClonePopoverContent = (props: Partial<ClonePopoverContentProps> = {}) => {
-  const allProps = {
-    // eslint-disable-next-line testing-library/no-node-access
-    anchorEl: document.querySelector('body'),
-    onClose: jest.fn(),
-    open: true,
-    language: {},
-    ...props,
-  };
   const queries: Partial<ServicesContextProps> = {
     getDataModelsXsd: async () => [],
   };
   return render(
     <ServicesContextProvider {...queries}>
-      <ClonePopoverContent {...allProps} />
+      <ClonePopoverContent {...defaultProps} {...props} />
     </ServicesContextProvider>,
   );
 };

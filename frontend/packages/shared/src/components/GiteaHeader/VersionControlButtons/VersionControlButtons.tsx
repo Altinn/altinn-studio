@@ -13,6 +13,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { useRepoCommitAndPushMutation } from 'app-shared/hooks/mutations';
 import { toast } from 'react-toastify';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 const initialModalState = {
   header: '',
@@ -30,12 +31,8 @@ function hasLocalChanges(result: IGitStatus) {
   );
 }
 
-export interface IVersionControlButtonsProps {
-  org: string;
-  app: string;
-}
-
-export const VersionControlButtons = ({ org, app }: IVersionControlButtonsProps) => {
+export const VersionControlButtons = () => {
+  const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
   const [hasPushRights, setHasPushRights] = useState(false);
   const [hasMergeConflict, setHasMergeConflict] = useState(false);
