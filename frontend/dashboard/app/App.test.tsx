@@ -45,7 +45,7 @@ describe('App', () => {
     renderWithMockServices();
     await waitForElementToBeRemoved(screen.queryByText(textMock('dashboard.loading')));
     expect(screen.getByRole('heading', { level: 2, name: textMock('dashboard.favourites') }));
-    expect(screen.getByRole('heading', { level: 2, name: textMock('dashboard.my_apps') }));
+    expect(screen.getByRole('heading', { level: 2, name: textMock('dashboard.apps') }));
     expect(screen.getByRole('heading', { level: 2, name: textMock('dashboard.resources') }));
   });
 });

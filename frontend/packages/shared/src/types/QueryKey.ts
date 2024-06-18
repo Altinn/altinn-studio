@@ -28,7 +28,7 @@ export enum QueryKey {
   OrgList = 'OrgList',
   Organizations = 'Organizations',
   ProcessTaskDataType = 'ProcessTaskDataType',
-  RepoMetaData = 'RepoMetaData',
+  RepoMetadata = 'RepoMetadata',
   RepoPullData = 'RepoPullData',
   RepoReset = 'RepoReset',
   RepoStatus = 'RepoStatus',

@@ -9,6 +9,7 @@ import { AccessListDetail } from './AccessListDetail';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 const mockedNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
@@ -26,24 +27,14 @@ const defaultProps: AccessListDetailProps = {
   list: {
     env: testEnv,
     identifier: testListIdentifier,
+    etag: '',
     name: 'Test-list',
     description: 'This is a description',
   },
   backUrl: '/listadmin',
 };
 
-const membersPage2OrgNr = '987654321';
-const membersResults = {
-  data: [{ orgNr: '123456789', orgName: 'Skatteetaten', isSubParty: false }],
-  nextPage: 'http://at22-next-page',
-};
-
-const membersResultsPage2 = {
-  data: [{ orgNr: membersPage2OrgNr, orgName: 'Digitaliseringsdirektoratet', isSubParty: false }],
-  nextPage: '',
-};
-
-const updateAccessListMock = jest.fn();
+const updateAccessListMock = jest.fn().mockImplementation(() => Promise.resolve({}));
 
 describe('AccessListDetail', () => {
   afterEach(jest.clearAllMocks);
@@ -60,6 +51,24 @@ describe('AccessListDetail', () => {
       ...defaultProps.list,
       name: 'Test-list change',
     });
+  });
+
+  it('should show error message if call to update name returns http status code 412', async () => {
+    const user = userEvent.setup();
+    const updateMock = jest.fn().mockImplementation(() =>
+      Promise.reject({
+        response: { status: ServerCodes.PreconditionFailed },
+      }),
+    );
+    renderAccessListDetail({}, { updateAccessList: updateMock });
+
+    const nameField = screen.getByLabelText(textMock('resourceadm.listadmin_list_name'));
+    await user.type(nameField, ' change');
+    await waitFor(() => nameField.blur());
+
+    expect(
+      screen.getByText(textMock('resourceadm.listadmin_list_sim_update_error')),
+    ).toBeInTheDocument();
   });
 
   it('should call service to update description', async () => {
@@ -107,6 +116,26 @@ describe('AccessListDetail', () => {
     expect(mockedNavigate).toHaveBeenCalledWith('/listadmin');
   });
 
+  it('should show error message if call to delete list returns http status code 412', async () => {
+    const user = userEvent.setup();
+    const deleteMock = jest.fn().mockImplementation(() =>
+      Promise.reject({
+        response: { status: ServerCodes.PreconditionFailed },
+      }),
+    );
+    renderAccessListDetail({}, { deleteAccessList: deleteMock });
+
+    const deleteListButton = screen.getByText(textMock('resourceadm.listadmin_delete_list'));
+    await user.click(deleteListButton);
+
+    const confirmDeleteButton = screen.getAllByText(textMock('resourceadm.listadmin_delete_list'));
+    await user.click(confirmDeleteButton[0]);
+
+    expect(
+      screen.getByText(textMock('resourceadm.listadmin_list_sim_update_error')),
+    ).toBeInTheDocument();
+  });
+
   it('should close modal on cancel delete', async () => {
     const user = userEvent.setup();
     renderAccessListDetail();
@@ -120,32 +149,6 @@ describe('AccessListDetail', () => {
     expect(
       screen.queryByText(textMock('resourceadm.listadmin_delete_list_header')),
     ).not.toBeInTheDocument();
-  });
-
-  it('should show more members when load more button is clicked', async () => {
-    const user = userEvent.setup();
-    const getAccessListMembersMock = jest
-      .fn()
-      .mockImplementationOnce(() => Promise.resolve(membersResults))
-      .mockImplementationOnce(() => Promise.resolve(membersResultsPage2));
-    renderAccessListDetail({}, { getAccessListMembers: getAccessListMembersMock });
-
-    await waitFor(() =>
-      screen.findByText(
-        textMock('resourceadm.listadmin_load_more', {
-          unit: textMock('resourceadm.listadmin_member_unit'),
-        }),
-      ),
-    );
-
-    const loadMoreButton = screen.getByText(
-      textMock('resourceadm.listadmin_load_more', {
-        unit: textMock('resourceadm.listadmin_member_unit'),
-      }),
-    );
-    await user.click(loadMoreButton);
-
-    expect(await screen.findByText(membersPage2OrgNr)).toBeInTheDocument();
   });
 });
 

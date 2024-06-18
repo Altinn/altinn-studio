@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
 import { Alert, Textfield, Radio } from '@digdir/design-system-react';
 import classes from './AccessListMembers.module.css';
 import type { AccessList, AccessListMember, ResourceError } from 'app-shared/types/ResourceAdm';
@@ -15,6 +16,9 @@ import { PlusIcon } from '@studio/icons';
 import { AccessListMembersPaging } from './AccessListMembersPaging';
 import { AccessListMembersTable } from './AccessListMembersTable';
 import { isOrgNrString } from '../../utils/stringUtils';
+import { useGetAccessListMembersQuery } from '../../hooks/queries/useGetAccessListMembersQuery';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { AccessListPreconditionFailedToast } from '../AccessListPreconditionFailedToast';
 
 const PARTY_SEARCH_TYPE = 'PARTY';
 const SUBPARTY_SEARCH_TYPE = 'SUBPARTY';
@@ -24,21 +28,23 @@ export interface AccessListMembersProps {
   org: string;
   env: string;
   list: AccessList;
-  members: AccessListMember[];
-  loadMoreButton: React.JSX.Element;
+  latestEtag: string;
+  setLatestEtag: (newETag: string) => void;
 }
 
 export const AccessListMembers = ({
   org,
   env,
   list,
-  members,
-  loadMoreButton,
+  latestEtag,
+  setLatestEtag,
 }: AccessListMembersProps): React.JSX.Element => {
   const { t } = useTranslation();
 
+  // if list has more than 100 members and not all are loaded, keep added members in local array for display
+  const [localItems, setLocalItems] = useState<AccessListMember[]>([]);
   const [invalidOrgnrs, setInvalidOrgnrs] = useState<string[]>([]);
-  const [isAddMode, setIsAddMode] = useState<boolean>(members.length === 0);
+  const [isAddMode, setIsAddMode] = useState<boolean>(false);
   const [isSubPartySearch, setIsSubPartySearch] = useState<boolean>(false);
   const [searchText, setSearchText] = useState<string>('');
   const [searchUrl, setSearchUrl] = useState<string>('');
@@ -57,22 +63,60 @@ export const AccessListMembers = ({
   const { data: subPartiesSearchData } = useSubPartiesRegistryQuery(
     isSubPartySearch ? searchUrl : '',
   );
+  const {
+    data: members,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useGetAccessListMembersQuery(org, list.identifier, env);
+
+  useEffect(() => {
+    if (members?.pages?.length === 0) {
+      setIsAddMode(true);
+    }
+  }, [members]);
+
+  const checkForEtagVersionError = (error: Error): void => {
+    if ((error as ResourceError).response.status === ServerCodes.PreconditionFailed) {
+      toast.error(<AccessListPreconditionFailedToast />);
+    }
+  };
 
   const handleAddMember = (memberToAdd: AccessListMember): void => {
-    addListMember([memberToAdd.orgNr], {
-      onError: (error: Error) => {
-        if (
-          ((error as ResourceError).response?.data as { code: string }).code ===
-          INVALID_ORG_ERROR_CODE
-        ) {
-          setInvalidOrgnrs((old) => [...old, memberToAdd.orgNr]);
-        }
+    addListMember(
+      { data: [memberToAdd.orgNr], etag: latestEtag },
+      {
+        onSuccess: (data) => {
+          setLatestEtag(data.etag);
+          setLocalItems((prev) => [...prev, memberToAdd]);
+        },
+        onError: (error: Error) => {
+          if (
+            ((error as ResourceError).response?.data as { code: string }).code ===
+            INVALID_ORG_ERROR_CODE
+          ) {
+            setInvalidOrgnrs((old) => [...old, memberToAdd.orgNr]);
+          } else {
+            checkForEtagVersionError(error);
+          }
+        },
       },
-    });
+    );
   };
 
   const handleRemoveMember = (memberIdToRemove: string): void => {
-    removeListMember([memberIdToRemove]);
+    removeListMember(
+      { data: [memberIdToRemove], etag: latestEtag },
+      {
+        onSuccess: (data) => {
+          setLatestEtag(data.etag);
+          setLocalItems((prev) => prev.filter((item) => item.orgNr !== memberIdToRemove));
+        },
+        onError: (error: Error) => {
+          checkForEtagVersionError(error);
+        },
+      },
+    );
   };
 
   const getResultData = () => {
@@ -99,6 +143,19 @@ export const AccessListMembers = ({
     }
   };
 
+  const getMergedMembersData = (): AccessListMember[] => {
+    const returnData = [...(members?.pages ?? [])];
+    // if hasNextPage is true, there are more members in the list that can be shown. Always show newly added items
+    if (hasNextPage) {
+      localItems.forEach((localItem) => {
+        if (!returnData.some((member) => member.orgNr === localItem.orgNr)) {
+          returnData.push(localItem);
+        }
+      });
+    }
+    return returnData;
+  };
+
   const resultData = getResultData();
 
   return (
@@ -107,12 +164,23 @@ export const AccessListMembers = ({
       description={t('resourceadm.listadmin_list_organizations_description')}
     >
       <AccessListMembersTable
-        listItems={members}
+        listItems={getMergedMembersData()}
         isLoading={isRemovingMember}
         onButtonClick={(item: AccessListMember) => handleRemoveMember(item.orgNr)}
       />
-      {loadMoreButton}
-      {members.length === 0 && (
+      {hasNextPage && (
+        <StudioButton
+          disabled={isFetchingNextPage}
+          size='small'
+          variant='tertiary'
+          onClick={() => fetchNextPage()}
+        >
+          {t('resourceadm.listadmin_load_more', {
+            unit: t('resourceadm.listadmin_member_unit'),
+          })}
+        </StudioButton>
+      )}
+      {!!members && members.pages?.length === 0 && (
         <Alert severity='info'>{t('resourceadm.listadmin_empty_list')}</Alert>
       )}
       {isAddMode && (
@@ -153,7 +221,7 @@ export const AccessListMembers = ({
             isHeaderHidden
             listItems={resultData?.parties ?? []}
             isLoading={isAddingNewListMember}
-            disabledItems={members}
+            disabledItems={getMergedMembersData()}
             invalidItems={invalidOrgnrs}
             isAdd
             onButtonClick={handleAddMember}

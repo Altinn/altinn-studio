@@ -1,0 +1,18 @@
+spring:
+  profiles:
+    active: dev
+  application:
+    name: eid-logger
+
+
+digdir:
+  event:
+    logging:
+      feature-enabled: false
+      environment-name: dev
+      bootstrap-servers:
+      schema-registry-url:
+      kafka-username:
+      kafka-password:
+      schema-registry-username:
+      schema-registry-password:

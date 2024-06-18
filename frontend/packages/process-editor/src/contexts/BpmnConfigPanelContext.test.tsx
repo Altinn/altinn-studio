@@ -22,8 +22,8 @@ describe('BpmnConfigPanelContext', () => {
 
   it('should provide a useBpmnConfigPanelFormContext hook', () => {
     const TestComponent = () => {
-      const { metaDataFormRef } = useBpmnConfigPanelFormContext();
-      return <div data-testid='context'>{JSON.stringify(metaDataFormRef.current)}</div>;
+      const { metadataFormRef } = useBpmnConfigPanelFormContext();
+      return <div data-testid='context'>{JSON.stringify(metadataFormRef.current)}</div>;
     };
 
     render(
@@ -52,26 +52,26 @@ describe('BpmnConfigPanelContext', () => {
   it('should provide method to reset meta data', async () => {
     const user = userEvent.setup();
     const TestComponent = () => {
-      const { metaDataFormRef, resetForm } = useBpmnConfigPanelFormContext();
-      // Need to update state to trigger a rerender since metaDataFormRef is a mutable object that does not trigger rerender
+      const { metadataFormRef, resetForm } = useBpmnConfigPanelFormContext();
+      // Need to update state to trigger a rerender since metadataFormRef is a mutable object that does not trigger rerender
       const [, setState] = useState(undefined);
 
-      const handleSetMetaData = () => {
+      const handleSetMetadata = () => {
         setState('test');
-        metaDataFormRef.current = { taskIdChange: { oldId: 'old', newId: 'new' } };
+        metadataFormRef.current = { taskIdChange: { oldId: 'old', newId: 'new' } };
       };
 
-      const handleResetMetaData = () => {
+      const handleResetMetadata = () => {
         setState(undefined);
         resetForm();
       };
 
       return (
         <div>
-          <button onClick={handleSetMetaData}>Set meta data</button>
-          <button onClick={handleResetMetaData}>Reset meta data</button>
+          <button onClick={handleSetMetadata}>Set meta data</button>
+          <button onClick={handleResetMetadata}>Reset meta data</button>
           <div data-testid='context'>
-            {metaDataFormRef.current ? JSON.stringify(metaDataFormRef.current) : 'Empty'}
+            {metadataFormRef.current ? JSON.stringify(metadataFormRef.current) : 'Empty'}
           </div>
         </div>
       );

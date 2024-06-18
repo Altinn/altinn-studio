@@ -7,16 +7,11 @@ import { BpmnContext } from '../../contexts/BpmnContext';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 import { BpmnConfigPanelFormContextProvider } from '../../contexts/BpmnConfigPanelContext';
 import type Modeler from 'bpmn-js/lib/Modeler';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { BpmnApiContextProvider } from '../../contexts/BpmnApiContext';
 import { mockBpmnDetails } from '../../../test/mocks/bpmnDetailsMock';
 
 jest.mock('./ConfigSequenceFlow', () => ({
   ConfigSequenceFlow: () => <h1>ConfigSequenceFlow Mocked Component</h1>,
-}));
-
-jest.mock('app-shared/utils/featureToggleUtils', () => ({
-  shouldDisplayFeature: jest.fn().mockReturnValue(false),
 }));
 
 describe('ConfigPanel', () => {
@@ -59,8 +54,7 @@ describe('ConfigPanel', () => {
     ).toBeInTheDocument();
   });
 
-  it('should display the details about the end event when bpmnDetails.type is "EndEvent" and customizeEndEvent feature flag is enabled', () => {
-    (shouldDisplayFeature as jest.Mock).mockReturnValue(true);
+  it('should display the details about the end event when bpmnDetails.type is "EndEvent"', () => {
     renderConfigPanel({ bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.EndEvent } });
     expect(
       screen.getByText(textMock('process_editor.configuration_panel_end_event')),
@@ -77,7 +71,6 @@ describe('ConfigPanel', () => {
       expectedText: 'process_editor.configuration_panel_element_not_supported_message',
     },
   ])('should display correct message based on selected bpmn type', ({ task, expectedText }) => {
-    (shouldDisplayFeature as jest.Mock).mockReturnValue(false);
     renderConfigPanel({
       modelerRef: { current: '' as unknown as Modeler },
       bpmnDetails: { ...mockBpmnDetails, type: task },
