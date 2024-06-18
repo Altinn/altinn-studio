@@ -21,7 +21,7 @@ jest.mock('../../../../contexts/BpmnConfigPanelContext', () => ({
 }));
 
 (useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({
-  metaDataFormRef: { current: undefined },
+  metadataFormRef: { current: undefined },
 });
 
 jest.mock('../../../../utils/bpmn/StudioModeler', () => {
@@ -64,12 +64,12 @@ describe('EditTaskId', () => {
     ).toBeInTheDocument();
   });
 
-  it('should update metaDataFromRef and updateId (implicitly calling setBpmnDetails) when changing task id', async () => {
+  it('should update metadataFromRef and updateId (implicitly calling setBpmnDetails) when changing task id', async () => {
     const user = userEvent.setup();
     const newId = 'newId';
-    const metaDataFormRefMock = { current: undefined };
+    const metadataFormRefMock = { current: undefined };
     (useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({
-      metaDataFormRef: metaDataFormRefMock,
+      metadataFormRef: metadataFormRefMock,
     });
 
     render(<EditTaskId />);
@@ -87,7 +87,7 @@ describe('EditTaskId', () => {
     await user.type(input, newId);
     await user.tab();
 
-    expect(metaDataFormRefMock.current).toEqual(
+    expect(metadataFormRefMock.current).toEqual(
       expect.objectContaining({ taskIdChange: { newId: newId, oldId: 'testId' } }),
     );
     expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1);
@@ -160,9 +160,9 @@ describe('EditTaskId', () => {
 
   it('should not update id if new id is the same as the old id', async () => {
     const user = userEvent.setup();
-    const metaDataFormRefMock = { current: undefined };
+    const metadataFormRefMock = { current: undefined };
     (useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({
-      metaDataFormRef: metaDataFormRefMock,
+      metadataFormRef: metadataFormRefMock,
     });
 
     render(<EditTaskId />);
@@ -180,7 +180,7 @@ describe('EditTaskId', () => {
     await user.type(input, 'testId');
     await user.tab();
 
-    expect(metaDataFormRefMock.current).toBeUndefined();
+    expect(metadataFormRefMock.current).toBeUndefined();
     expect(setBpmnDetailsMock).not.toHaveBeenCalled();
   });
 });

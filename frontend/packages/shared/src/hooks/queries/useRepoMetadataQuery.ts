@@ -20,7 +20,7 @@ export const useRepoMetadataQuery = (
 ): UseQueryResult<Repository, AxiosError> => {
   const { getRepoMetadata } = useServicesContext();
   return useQuery<Repository, AxiosError>({
-    queryKey: [QueryKey.RepoMetaData, owner, app],
+    queryKey: [QueryKey.RepoMetadata, owner, app],
     queryFn: () => getRepoMetadata(owner, app),
     meta,
   });

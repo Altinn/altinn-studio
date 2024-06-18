@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
@@ -8,19 +9,19 @@ using MediatR;
 
 namespace Altinn.Studio.Designer.EventHandlers.ProcessDataTypeChanged;
 
-public class ProcessDataTypeChangedApplicationMetadataHandler : INotificationHandler<ProcessDataTypeChangedEvent>
+public class ProcessDataTypesChangedApplicationMetadataHandler : INotificationHandler<ProcessDataTypesChangedEvent>
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
 
-    public ProcessDataTypeChangedApplicationMetadataHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+    public ProcessDataTypesChangedApplicationMetadataHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
         IFileSyncHandlerExecutor fileSyncHandlerExecutor)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
     }
 
-    public async Task Handle(ProcessDataTypeChangedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(ProcessDataTypesChangedEvent notification, CancellationToken cancellationToken)
     {
         await _fileSyncHandlerExecutor.ExecuteWithExceptionHandling(
             notification.EditingContext,
@@ -34,7 +35,7 @@ public class ProcessDataTypeChangedApplicationMetadataHandler : INotificationHan
 
                 var applicationMetadata = await repository.GetApplicationMetadata(cancellationToken);
 
-                if (notification.ConnectedTaskId != Constants.General.CustomReceiptId && TryChangeDataType(applicationMetadata, notification.NewDataType, notification.ConnectedTaskId))
+                if (notification.ConnectedTaskId != Constants.General.CustomReceiptId && TryChangeDataTypes(applicationMetadata, notification.NewDataTypes, notification.ConnectedTaskId))
                 {
                     await repository.SaveApplicationMetadata(applicationMetadata);
                 }
@@ -46,18 +47,18 @@ public class ProcessDataTypeChangedApplicationMetadataHandler : INotificationHan
     /// If there are changes, the application metadata is updated and the method returns true.
     /// Otherwise, the method returns false.
     /// </summary>
-    private static bool TryChangeDataType(Application applicationMetadata, string newDataType, string connectedTaskId)
+    private static bool TryChangeDataTypes(Application applicationMetadata, List<string> newDataTypes, string connectedTaskId)
     {
         bool hasChanges = false;
 
 
-        var dataTypeToDisconnect = applicationMetadata.DataTypes.Find(dataType => dataType.TaskId == connectedTaskId);
-        if (dataTypeToDisconnect is not null)
+        var dataTypesToDisconnect = applicationMetadata.DataTypes.FindAll(dataType => dataType.TaskId == connectedTaskId);
+        foreach (var dataTypeToDisconnect in dataTypesToDisconnect)
         {
             dataTypeToDisconnect.TaskId = null;
             hasChanges = true;
         }
-        if (!string.IsNullOrEmpty(newDataType))
+        foreach (string newDataType in newDataTypes)
         {
             var dataTypeToUpdate = applicationMetadata.DataTypes.Find(dataType => dataType.Id == newDataType);
             // Only update taskId on appMetaData dataType if the new connected dataType for the layout set exists in appMetaData

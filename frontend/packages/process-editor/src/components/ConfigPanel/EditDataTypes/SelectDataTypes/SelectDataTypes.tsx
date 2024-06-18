@@ -4,10 +4,10 @@ import { StudioButton, StudioDeleteButton } from '@studio/components';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
-import classes from './SelectDataType.module.css';
-import type { DataTypeChange } from 'app-shared/types/api/DataTypeChange';
+import classes from './SelectDataTypes.module.css';
+import type { DataTypesChange } from 'app-shared/types/api/DataTypesChange';
 
-export interface SelectDataTypeProps {
+export interface SelectDataTypesProps {
   dataModelIds: string[];
   existingDataType: string;
   connectedTaskId: string;
@@ -15,26 +15,25 @@ export interface SelectDataTypeProps {
   hideDeleteButton?: boolean;
 }
 
-export const SelectDataType = ({
+export const SelectDataTypes = ({
   dataModelIds,
   existingDataType,
   connectedTaskId,
   onClose,
   hideDeleteButton,
-}: SelectDataTypeProps): React.ReactElement => {
+}: SelectDataTypesProps): React.ReactElement => {
   const { t } = useTranslation();
-  const { mutateDataType } = useBpmnApiContext();
-
+  const { mutateDataTypes } = useBpmnApiContext();
   const currentValue = existingDataType ? [existingDataType] : [];
 
   const handleChangeDataModel = (newDataModelIds?: string[]) => {
     const newDataModelId = newDataModelIds ? newDataModelIds[0] : undefined;
     if (newDataModelId !== existingDataType) {
-      const dataTypeChange: DataTypeChange = {
-        newDataType: newDataModelId,
+      const dataTypesChange: DataTypesChange = {
+        newDataTypes: [newDataModelId],
         connectedTaskId,
       };
-      mutateDataType(dataTypeChange);
+      mutateDataTypes(dataTypesChange);
     }
     onClose();
   };
