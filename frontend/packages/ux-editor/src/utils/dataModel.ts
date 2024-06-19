@@ -1,5 +1,6 @@
 import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import type { FormItem } from '../types/FormItem';
 
 /* UTIL METHODS FOR HANDLING DATA MODEL */
 export function filterDataModelForIntellisense(
@@ -38,31 +39,31 @@ export function filterDataModelForIntellisense(
   );
 }
 
-export const getMinOccursFromDataModel = (
+export const getMinOccursFromDataModelFields = (
   dataBindingName: string,
-  dataModel: DataModelFieldElement[],
+  dataModelFields: DataModelFieldElement[],
 ): number => {
-  const element: DataModelFieldElement = dataModel.find(
+  const element: DataModelFieldElement = dataModelFields.find(
     (e: DataModelFieldElement) => e.dataBindingName === dataBindingName,
   );
   return element?.minOccurs;
 };
 
-export const getMaxOccursFromDataModel = (
+export const getMaxOccursFromDataModelFields = (
   dataBindingName: string,
-  dataModel: DataModelFieldElement[],
+  dataModelFields: DataModelFieldElement[],
 ): number => {
-  const element: DataModelFieldElement = dataModel.find((e: DataModelFieldElement) => {
+  const element: DataModelFieldElement = dataModelFields.find((e: DataModelFieldElement) => {
     return e.dataBindingName === dataBindingName;
   });
   return element?.maxOccurs;
 };
 
-export const getXsdDataTypeFromDataModel = (
+export const getXsdDataTypeFromDataModelFields = (
   dataBindingName: string,
-  dataModel: DataModelFieldElement[],
+  dataModelFields: DataModelFieldElement[],
 ): string => {
-  const element: DataModelFieldElement = dataModel.find((e: DataModelFieldElement) => {
+  const element: DataModelFieldElement = dataModelFields.find((e: DataModelFieldElement) => {
     return e.dataBindingName === dataBindingName;
   });
 
@@ -90,3 +91,57 @@ export const getDataModelFieldsFilter = (
       return generalFilter;
   }
 };
+
+export type DataModelField = {
+  value: string;
+  label: string;
+};
+
+export const filterDataModelFields = (
+  getDataModelFieldsFilter: (element: DataModelFieldElement) => boolean,
+  data: DataModelFieldElement[],
+): DataModelField[] => {
+  return data.filter(getDataModelFieldsFilter).map((element) => ({
+    value: element.dataBindingName,
+    label: element.dataBindingName,
+  }));
+};
+
+export type InternalBindingFormat = {
+  property: string | undefined;
+  dataType: string | undefined;
+};
+
+export const convertDataBindingToInternalFormat = (
+  component: FormItem,
+  bindingKey: string,
+): InternalBindingFormat => {
+  const dataModelBinding =
+    bindingKey in component.dataModelBindings ? component.dataModelBindings[bindingKey] : undefined;
+
+  const isOldOrNotSetFormat =
+    typeof dataModelBinding === 'string' || typeof dataModelBinding === 'undefined';
+
+  if (isOldOrNotSetFormat) {
+    return {
+      property: dataModelBinding,
+      dataType: undefined,
+    };
+  }
+  return dataModelBinding;
+};
+
+export const validateSelectedDataModel = (
+  selectedDataModel: string,
+  dataModels: string[],
+): boolean =>
+  dataModels?.some((dataModel) => dataModel === selectedDataModel) ||
+  selectedDataModel === undefined;
+
+export const validateSelectedDataField = (
+  selectedDataField: string,
+  dataFields: DataModelField[],
+): boolean =>
+  dataFields?.some((dataField) => dataField.value === selectedDataField) ||
+  selectedDataField === '' ||
+  selectedDataField === undefined;

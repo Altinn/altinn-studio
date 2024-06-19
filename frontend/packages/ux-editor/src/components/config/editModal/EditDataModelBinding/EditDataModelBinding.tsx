@@ -6,7 +6,9 @@ import { useTranslation } from 'react-i18next';
 import { UndefinedBinding } from './UndefinedBinding';
 import { EditBinding } from './EditBinding';
 import { DefinedBinding } from './DefinedBinding';
-import { convertDataBindingToInternalFormat } from './editDataModelBindingUtils';
+import { convertDataBindingToInternalFormat } from '../../../../utils/dataModel';
+import { useDataModelBindings } from '@altinn/ux-editor/hooks/useDataModelBindings';
+import { getDataModelFieldsFilter } from '@altinn/ux-editor/utils/dataModel';
 
 export interface EditDataModelBindingProps<T extends ComponentType>
   extends IGenericEditComponent<T> {
@@ -17,6 +19,7 @@ export interface EditDataModelBindingProps<T extends ComponentType>
     uniqueKey?: any;
   };
   helpText?: string;
+  setIsBindingAlert?: (value: boolean) => void;
 }
 
 export const EditDataModelBinding = <T extends ComponentType>({
@@ -24,22 +27,36 @@ export const EditDataModelBinding = <T extends ComponentType>({
   handleComponentChange,
   renderOptions,
   helpText,
+  setIsBindingAlert,
 }: EditDataModelBindingProps<T>) => {
   const { uniqueKey, key, label } = renderOptions || {};
   const bindingKey = key || 'simpleBinding';
   const { t } = useTranslation();
   const [dataModelSelectVisible, setDataModelSelectVisible] = useState(false);
 
+  const internalBindingFormat = convertDataBindingToInternalFormat(component, bindingKey);
+  const selectedDataModelField = internalBindingFormat.property;
+
+  const { isBindingError, isLoading } = useDataModelBindings({
+    bindingFormat: internalBindingFormat,
+    dataModelFieldsFilter: getDataModelFieldsFilter(component.type, bindingKey === 'list'),
+  });
+
+  if (isLoading) {
+    return;
+  }
+
+  if (isBindingError) {
+    setIsBindingAlert(true);
+  }
+
   const labelSpecificText = label
     ? t(`ux_editor.modal_properties_data_model_label.${label}`)
     : t(`ux_editor.component_title.${component.type}`);
 
-  const newDataModelBindingFormat = convertDataBindingToInternalFormat(component, bindingKey);
-  const selectedDataField = newDataModelBindingFormat.property;
-
   return (
     <div key={uniqueKey || ''} className={classes.wrapper}>
-      {!selectedDataField && !dataModelSelectVisible ? (
+      {!selectedDataModelField && !dataModelSelectVisible ? (
         <UndefinedBinding
           onClick={() => setDataModelSelectVisible(true)}
           label={labelSpecificText}
@@ -47,19 +64,19 @@ export const EditDataModelBinding = <T extends ComponentType>({
       ) : dataModelSelectVisible ? (
         <EditBinding
           bindingKey={bindingKey}
-          selectedDataModel={newDataModelBindingFormat.dataType}
           component={component}
           helpText={helpText}
           label={labelSpecificText}
           handleComponentChange={handleComponentChange}
-          selectedDataField={selectedDataField}
           setDataModelSelectVisible={setDataModelSelectVisible}
+          internalBindingFormat={internalBindingFormat}
+          dataModelFieldsFilter={getDataModelFieldsFilter(component.type, bindingKey === 'list')}
         />
       ) : (
         <DefinedBinding
           label={labelSpecificText}
           onClick={() => setDataModelSelectVisible(true)}
-          selectedOption={selectedDataField}
+          selectedOption={selectedDataModelField}
         />
       )}
     </div>

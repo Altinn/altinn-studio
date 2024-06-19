@@ -4,22 +4,29 @@ import { FormField } from 'app-shared/components/FormField';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { StudioDisplayTile, StudioNativeSelect } from '@studio/components';
 import { useTranslation } from 'react-i18next';
+import { useDataModelBindings } from '@altinn/ux-editor/hooks/useDataModelBindings';
+import type { InternalBindingFormat } from '@altinn/ux-editor/utils/dataModel';
+import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
 
 type SelectDataModelProps = {
-  selectedDataModel: string;
+  internalBindingFormat: InternalBindingFormat;
+  dataModelFieldsFilter: (dataModelField: DataModelFieldElement) => boolean;
   bindingKey: string;
-  dataModels: string[];
   handleBindingChange: (dataModel: { property: string; dataType: string }) => void;
 };
 
 export const SelectDataModelBinding = ({
-  selectedDataModel,
+  internalBindingFormat,
+  dataModelFieldsFilter,
   bindingKey,
-  dataModels,
   handleBindingChange,
 }: SelectDataModelProps): React.JSX.Element => {
   const { t } = useTranslation();
   const propertyPath = `definitions/component/properties/dataModelBindings/properties/${bindingKey}/dataType`;
+  const { dataModel, dataModels } = useDataModelBindings({
+    bindingFormat: internalBindingFormat,
+    dataModelFieldsFilter,
+  });
 
   const handleDataModelChange = (newDataModel: string) => {
     const dataModelBinding = {
@@ -31,9 +38,9 @@ export const SelectDataModelBinding = ({
 
   return shouldDisplayFeature('dataModelBindingSelector') ? (
     <FormField
-      id={selectedDataModel}
+      id={dataModel}
       onChange={handleDataModelChange}
-      value={selectedDataModel}
+      value={dataModel}
       propertyPath={propertyPath}
       label={t('ux_editor.modal_properties_data_model')}
       renderField={({ fieldProps }) => (
@@ -49,7 +56,7 @@ export const SelectDataModelBinding = ({
   ) : (
     <StudioDisplayTile
       label={t('ux_editor.modal_properties_data_model')}
-      value={selectedDataModel}
+      value={dataModel}
       className={classes.displayTileContainer}
     />
   );

@@ -1,47 +1,69 @@
 import React from 'react';
-import { SelectDataFieldComponent } from '../../../SelectDataFieldComponent';
-import { getDataModelFieldsFilter } from '@altinn/ux-editor/utils/dataModel';
+import {
+  type InternalBindingFormat,
+  validateSelectedDataField,
+} from '@altinn/ux-editor/utils/dataModel';
 import { useTranslation } from 'react-i18next';
-import type { FormItem } from '../../../../../types/FormItem';
+import { FormField } from 'app-shared/components/FormField';
+import { StudioNativeSelect } from '@studio/components';
+import { useDataModelBindings } from '@altinn/ux-editor/hooks/useDataModelBindings';
+import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
 
 type SelectDataFieldProps = {
-  selectedDataModel: string;
-  component: FormItem;
+  dataModelFieldsFilter: (dataModelField: DataModelFieldElement) => boolean;
+  internalBindingFormat: InternalBindingFormat;
   handleBindingChange: (binding: { property: string; dataType: string }) => void;
   bindingKey: string;
   helpText: string;
-  selectedDataField: string;
 };
 
 export const SelectDataFieldBinding = ({
-  selectedDataModel,
-  component,
+  dataModelFieldsFilter,
+  internalBindingFormat,
   handleBindingChange,
   bindingKey,
   helpText,
-  selectedDataField,
 }: SelectDataFieldProps): React.JSX.Element => {
   const { t } = useTranslation();
   const propertyPath = `definitions/component/properties/dataModelBindings/properties/${bindingKey}`;
+  const { dataModelFields, dataModel, dataModelField } = useDataModelBindings({
+    bindingFormat: internalBindingFormat,
+    dataModelFieldsFilter,
+  });
 
-  const handleDataFieldChange = (selectedDataFieldElement: string) => {
-    const dataModelBinding = {
-      property: selectedDataFieldElement,
-      dataType: selectedDataModel,
+  const dataModelFieldsWithDefaultOption = [{ value: '', label: 'Velg ...' }, ...dataModelFields];
+
+  const handleDataModelFieldChange = (updatedDataModelField: string) => {
+    const updatedDataModelBinding = {
+      property: updatedDataModelField,
+      dataType: dataModel,
     };
-    handleBindingChange(dataModelBinding);
+    handleBindingChange(updatedDataModelBinding);
   };
 
   return (
-    <SelectDataFieldComponent
-      dataModelFieldsFilter={getDataModelFieldsFilter(component.type, bindingKey === 'list')}
-      helpText={helpText}
-      inputId={`selectDataModelSelect-${bindingKey}`}
-      label={t('ux_editor.modal_properties_data_model_binding')}
-      onDataModelChange={handleDataFieldChange}
+    <FormField
+      id={`selectDataModelSelect-${bindingKey}`}
+      onChange={handleDataModelFieldChange}
+      value={dataModelField}
       propertyPath={propertyPath}
-      selectedElement={selectedDataField}
-      dataModelName={selectedDataModel}
+      helpText={helpText}
+      label={t('ux_editor.modal_properties_data_model_binding')}
+      renderField={({ fieldProps }) => (
+        <StudioNativeSelect
+          {...fieldProps}
+          onChange={(e) => fieldProps.onChange(e.target.value)}
+          error={
+            !validateSelectedDataField(dataModelField, dataModelFields) && 'Datafelt må oppdateres.'
+          }
+        >
+          {dataModelFieldsWithDefaultOption.map((element) => (
+            <option key={element.value} value={element.value}>
+              {element.label}
+            </option>
+          ))}
+        </StudioNativeSelect>
+      )}
     />
   );
 };

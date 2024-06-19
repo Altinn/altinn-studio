@@ -7,7 +7,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
 import { useAppContext } from '../../hooks';
 
-export interface ISelectDataModelProps {
+export interface ISelectDataFieldProps {
   inputId?: string;
   selectedElement: string;
   label: string;
@@ -20,7 +20,7 @@ export interface ISelectDataModelProps {
   dataModelName?: string;
 }
 
-export const SelectDataModelComponent = ({
+export const SelectDataFieldComponent = ({
   inputId,
   selectedElement,
   label,
@@ -30,7 +30,7 @@ export const SelectDataModelComponent = ({
   helpText,
   propertyPath,
   dataModelName,
-}: ISelectDataModelProps) => {
+}: ISelectDataFieldProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
   const { data } = useDataModelMetadataQuery(org, app, selectedFormLayoutSetName, dataModelName);

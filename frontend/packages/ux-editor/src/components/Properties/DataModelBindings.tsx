@@ -15,6 +15,8 @@ export const DataModelBindings = (): React.JSX.Element => {
   const { formItemId, formItem, handleUpdate, debounceSave } = useFormItemContext();
   const { data: schema } = useComponentSchemaQuery(formItem.type);
   const [multipleAttachments, setMultipleAttachments] = useState<boolean>(false);
+  const [isBindingAlert, setIsBindingAlert] = useState<boolean>(false);
+
   const t = useText();
 
   React.useEffect(() => {
@@ -61,16 +63,35 @@ export const DataModelBindings = (): React.JSX.Element => {
     );
   };
 
+  const renderAlerts = () => {
+    if (
+      (formItem.type === ComponentType.FileUploadWithTag ||
+        formItem.type === ComponentType.FileUpload) &&
+      isItemChildOfContainer(layout, formItem.id, ComponentType.RepeatingGroup)
+    ) {
+      return (
+        <Alert severity='warning'>
+          {t('ux_editor.modal_properties_data_model_restrictions_attachment_components')}
+        </Alert>
+      );
+    }
+
+    if (isBindingAlert) {
+      return (
+        <Alert severity='warning'>
+          Det er ugyldige knytninger. Datamodell eller datamodellknytning er endret. Oppdater
+          knytningene.
+        </Alert>
+      );
+    }
+
+    return null;
+  };
+
   return (
     dataModelBindingsProperties && (
       <div className={classes.container}>
-        {(formItem.type === ComponentType.FileUploadWithTag ||
-          formItem.type === ComponentType.FileUpload) &&
-          isItemChildOfContainer(layout, formItem.id, ComponentType.RepeatingGroup) && (
-            <Alert severity='warning'>
-              {t('ux_editor.modal_properties_data_model_restrictions_attachment_components')}
-            </Alert>
-          )}
+        {renderAlerts()}
         {dataModelBindings.anyOf && (
           <Switch
             checked={multipleAttachments}
@@ -99,6 +120,7 @@ export const DataModelBindings = (): React.JSX.Element => {
                     key: propertyKey,
                     label: propertyKey !== 'simpleBinding' ? propertyKey : undefined,
                   }}
+                  setIsBindingAlert={setIsBindingAlert}
                 />
               </div>
             );

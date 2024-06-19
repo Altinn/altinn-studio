@@ -180,7 +180,6 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
                               label={this.props.t('ux_editor.modal_properties_data_model_helper')}
                               onDataModelChange={this.handleParamDataChange.bind(null, paramName)}
                               selectedElement={this.state.ruleConnection.inputParams[paramName]}
-                              hideRestrictions={true}
                             />
                           </div>
                         </div>
@@ -211,7 +210,6 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
                       label={this.props.t('ux_editor.modal_properties_data_model_helper')}
                       onDataModelChange={this.handleOutParamDataChange.bind(null, 'outParam0')}
                       selectedElement={this.state.ruleConnection.outParams.outParam0}
-                      hideRestrictions={true}
                     />
                   </div>
                 </div>

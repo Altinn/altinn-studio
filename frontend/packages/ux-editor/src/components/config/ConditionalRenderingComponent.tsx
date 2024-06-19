@@ -338,7 +338,6 @@ class ConditionalRendering extends React.Component<
                               selectedElement={
                                 this.state.conditionalRendering.inputParams[paramName]
                               }
-                              hideRestrictions={true}
                             />
                           </div>
                         </div>

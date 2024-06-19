@@ -13,8 +13,3 @@
   color: var(--fds-semantic-text-neutral-subtle);
   font-weight: normal;
 }
-
-.buttons {
-  display: flex;
-  gap: var(--studio-property-button-vertical-spacing);
-}
