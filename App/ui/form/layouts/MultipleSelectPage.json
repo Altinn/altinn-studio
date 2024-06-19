@@ -30,7 +30,7 @@
                     "simpleBinding": "multipleSelect"
                 },
                 "textResourceBindings": {
-                    "title": "MultipleSelectPage.MulitpleSelect.title"
+                    "title": "MultipleSelectPage.MultipleSelect.title"
                 },
                 "options": [
                     {
