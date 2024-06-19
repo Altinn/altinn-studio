@@ -1,25 +1,18 @@
 import React, { useState } from 'react';
-import { StudioPopover, StudioSpinner } from '@studio/components';
+import { StudioPopover } from '@studio/components';
 import { DownloadIcon } from '@studio/icons';
-import classes from './FetchChangesButton.module.css';
+import classes from './FetchChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';
 import { Notification } from '../Notification';
-import { Heading } from '@digdir/design-system-react';
 import { useRepoPullQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useQueryClient } from '@tanstack/react-query';
 import { GiteaFetchCompleted } from '../GiteaFetchCompleted';
-import { useVersionControlButtonsContext } from '../context';
+import { useVersionControlButtonsContext } from '../../context';
+import { FetchingFromGitea } from '../FetchingFromGitea';
 
-export type FetchChangesProps = {
-  displayNotification: boolean;
-  numChanges: number;
-};
-export const FetchChanges = ({
-  displayNotification,
-  numChanges,
-}: FetchChangesProps): React.ReactElement => {
-  const { isLoading, setIsLoading, hasMergeConflict, commitAndPushChanges } =
+export const FetchChangesPopover = (): React.ReactElement => {
+  const { isLoading, setIsLoading, hasMergeConflict, commitAndPushChanges, repoStatus } =
     useVersionControlButtonsContext();
 
   const { t } = useTranslation();
@@ -28,6 +21,8 @@ export const FetchChanges = ({
   const queryClient = useQueryClient();
 
   const [popoverOpen, setPopoverOpen] = useState(false);
+
+  const displayNotification: boolean = (repoStatus?.behindBy > 0 ?? false) && !hasMergeConflict;
 
   const handleClosePopover = () => setPopoverOpen(false);
 
@@ -47,7 +42,7 @@ export const FetchChanges = ({
   };
 
   return (
-    <StudioPopover open={popoverOpen} onClose={handleClosePopover} placement='bottom'>
+    <StudioPopover open={popoverOpen} onClose={handleClosePopover} placement='bottom-end'>
       <StudioPopover.Trigger
         color='inverted'
         size='small'
@@ -57,25 +52,12 @@ export const FetchChanges = ({
       >
         <DownloadIcon />
         {t('sync_header.fetch_changes')}
-        {displayNotification && !hasMergeConflict && <Notification numChanges={numChanges} />}
+        {displayNotification && <Notification numChanges={repoStatus?.behindBy ?? 0} />}
       </StudioPopover.Trigger>
       <StudioPopover.Content className={classes.popoverContent}>
+        {isLoading && <FetchingFromGitea heading={t('sync_header.fetching_latest_version')} />}
         {!isLoading && <GiteaFetchCompleted heading={t('sync_header.service_updated_to_latest')} />}
-        {isLoading && <FetchingFromGitea />}
       </StudioPopover.Content>
     </StudioPopover>
-  );
-};
-
-const FetchingFromGitea = () => {
-  const { t } = useTranslation();
-
-  return (
-    <>
-      <Heading size='xxsmall' level={3}>
-        {t('sync_header.fetching_latest_version')}
-      </Heading>
-      <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('sync_modal.loading')} />
-    </>
   );
 };

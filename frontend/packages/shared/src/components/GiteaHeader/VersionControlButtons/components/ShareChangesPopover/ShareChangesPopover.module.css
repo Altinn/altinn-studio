@@ -1,7 +1,3 @@
-.commitAndPushButton {
-  margin-top: var(--fds-spacing-3);
-}
-
 .popoverContent {
   width: 445px;
   max-width: 100%;
@@ -15,8 +11,4 @@
   gap: var(--fds-spacing-5);
   width: 445px;
   max-width: 100%;
-}
-
-.heading {
-  padding-bottom: var(--fds-spacing-3);
 }

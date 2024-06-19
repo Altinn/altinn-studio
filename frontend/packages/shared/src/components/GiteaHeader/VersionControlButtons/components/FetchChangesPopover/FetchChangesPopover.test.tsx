@@ -1,5 +1,5 @@
 import React from 'react';
-import { FetchChanges, type FetchChangesProps } from './FetchChangesButton';
+import { FetchChangesPopover, type FetchChangesPopoverProps } from './FetchChangesPopover';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -14,7 +14,7 @@ const mockHandleMergeConflict = jest.fn();
 
 const mockGetRepoPull = jest.fn();
 
-const defaultProps: FetchChangesProps = {
+const defaultProps: FetchChangesPopoverProps = {
   hasMergeConflict: false,
   handleMergeConflict: mockHandleMergeConflict,
   displayNotification: false,
@@ -79,7 +79,7 @@ describe('fetchChanges', () => {
 
 type Props = {
   queries: Partial<ServicesContextProps>;
-  componentProps: Partial<FetchChangesProps>;
+  componentProps: Partial<FetchChangesPopoverProps>;
 };
 
 const renderFetchChangesButton = (props: Partial<Props> = {}) => {
@@ -92,7 +92,7 @@ const renderFetchChangesButton = (props: Partial<Props> = {}) => {
 
   return render(
     <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-      <FetchChanges {...defaultProps} {...componentProps} />
+      <FetchChangesPopover {...defaultProps} {...componentProps} />
     </ServicesContextProvider>,
   );
 };
