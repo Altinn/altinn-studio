@@ -66,11 +66,19 @@
       "value": "Hva slags kjøretøy har du?"
     },
     {
+      "id": "DropdownPage.Dropdown.title",
+      "value": "Hva slags kjøretøy har du?"
+    },
+    {
       "id": "CheckboxesPage",
       "value": "Avkryssningsbokser"
     },
     {
       "id": "CheckboxesPage.Checkboxes.title",
+      "value": "Hva skal kjøretøyet brukes til?"
+    },
+    {
+      "id": "MultipleSelectPage.MultipleSelect.title",
       "value": "Hva skal kjøretøyet brukes til?"
     },
     {
