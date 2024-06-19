@@ -933,12 +933,24 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>Empty response</returns>
         [HttpGet]
         [Route("api/v1/footer")]
-        public IActionResult Footer(string org, string app)
+        public async Task<ActionResult<FooterFile>> Footer(string org, string app, CancellationToken cancellationToken)
         {
-            return Ok();
+            try
+            {
+                string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+                AltinnAppGitRepository altinnAppGitRepository =
+                    _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+                FooterFile footerFile = await altinnAppGitRepository.GetFooter(cancellationToken);
+                return Ok(footerFile);
+            }
+            catch (FileNotFoundException)
+            {
+                return Ok();
+            }
         }
 
         /// <summary>

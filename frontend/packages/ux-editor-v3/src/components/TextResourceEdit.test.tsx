@@ -10,31 +10,19 @@ import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithMockStore, renderWithMockStore, textLanguagesMock } from '../testing/mocks';
 import { appDataMock, textResourcesMock } from '../testing/stateMocks';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
-import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { appContextMock } from '../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
 // Test data:
-const legendText = 'Rediger tekst';
-const descriptionText = 'Tekstens ID: {{id}}';
-const nbText = 'Bokmål';
-const nnText = 'Nynorsk';
-const enText = 'Engelsk';
-const closeText = 'Lukk';
-const texts = {
-  'general.close': closeText,
-  'language.nb': nbText,
-  'language.nn': nnText,
-  'language.en': enText,
-  'ux_editor.edit_text_resource': legendText,
-  'ux_editor.field_id': descriptionText,
-};
-
-// Mocks:
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
+const legendText = textMock('ux_editor.edit_text_resource');
+const nbText = textMock('language.nb');
+const nnText = textMock('language.nn');
+const enText = textMock('language.en');
+const closeText = textMock('general.close');
 
 describe('TextResourceEdit', () => {
   afterEach(() => {

@@ -159,6 +159,7 @@ export const queriesMock: ServicesContextProps = {
 
   // Queries - PrgetBpmnFile
   getBpmnFile: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
+  getProcessTaskType: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
 
   // Mutations
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -224,5 +225,5 @@ export const queriesMock: ServicesContextProps = {
 
   // Mutations - ProcessEditor
   updateBpmnXml: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateProcessDataType: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateProcessDataTypes: jest.fn().mockImplementation(() => Promise.resolve()),
 };
