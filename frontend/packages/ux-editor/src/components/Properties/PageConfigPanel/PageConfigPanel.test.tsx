@@ -1,4 +1,4 @@
-import React, { act } from 'react';
+import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../../../testing/mocks';
 import { PageConfigPanel } from './PageConfigPanel';
@@ -83,16 +83,13 @@ describe('PageConfigPanel', () => {
   });
 
   it('render warning when layout is selected and has duplicated ids', async () => {
-    await waitFor(async () => {
-      renderPageConfigPanel(duplicatedLayout);
-    });
+    renderPageConfigPanel(duplicatedLayout);
+
     screen.getByRole('heading', { name: textMock('ux_editor.config.warning_duplicates.heading') });
   });
 
   it('should display duplicated ids in the document', async () => {
-    await waitFor(async () => {
-      renderPageConfigPanel(duplicatedLayout);
-    });
+    renderPageConfigPanel(duplicatedLayout);
 
     const duplicatedIds = screen.getByText(/<idcontainer1>, <idcontainer2>/i);
     expect(duplicatedIds).toBeInTheDocument();
@@ -102,9 +99,7 @@ describe('PageConfigPanel', () => {
   });
 
   it('should show warning modal when there are duplicated ids in all layouts', async () => {
-    await waitFor(async () => {
-      renderPageConfigPanel();
-    });
+    renderPageConfigPanel();
 
     const modal = screen.getByRole('dialog', { hidden: true });
     expect(modal).toBeInTheDocument();
