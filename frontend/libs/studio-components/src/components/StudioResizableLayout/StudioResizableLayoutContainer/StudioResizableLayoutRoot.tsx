@@ -14,8 +14,6 @@ export type SiblingElements = {
 
 export const StudioResizableLayoutContext = React.createContext({
   orientation: 'horizontal',
-  // siblingElements: new Map<string, SiblingElements>(),
-  // containerFlexGrow: new Map<string, number>(),
 });
 
 const StudioResizableLayoutRoot = ({
@@ -23,12 +21,6 @@ const StudioResizableLayoutRoot = ({
   orientation,
 }: StudioResizableLayoutRootProps): React.ReactElement => {
   const rootRef = useRef<HTMLDivElement>(null);
-
-  // const childrenRef = useRef([]);
-  //
-  // useEffect(() => {
-  //   childrenRef.current = children.slice(0, children.length).map(() => React.createRef());
-  // }, [children]);
 
   return (
     <StudioResizableLayoutContext.Provider value={{ orientation }}>
@@ -38,13 +30,6 @@ const StudioResizableLayoutRoot = ({
         style={{ flexDirection: orientation === 'horizontal' ? 'row' : 'column' }}
       >
         {children}
-        {/* {children.map((child, i: number) => { */}
-        {/*   return React.cloneElement(child, { */}
-        {/*     orentation: "vertical", */}
-        {/*     key: i, */}
-        {/*     ref: (el) => { childrenRef.current[i] = el } */}
-        {/*   }); */}
-        {/* })} */}
       </div>
     </StudioResizableLayoutContext.Provider>
   );
