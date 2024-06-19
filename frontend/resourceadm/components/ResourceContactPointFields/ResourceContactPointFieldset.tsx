@@ -80,6 +80,7 @@ export const ResourceContactPointFieldset = ({
         size='small'
       >
         <Textfield
+          id={`contactPoints-${index}`}
           label={
             <div className={classes.categoryHeader}>
               {t('resourceadm.about_resource_contact_label_category')}

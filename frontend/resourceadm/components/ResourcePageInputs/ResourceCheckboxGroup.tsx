@@ -8,6 +8,10 @@ import type { ResourceFormError } from 'app-shared/types/ResourceAdm';
 
 type ResourceCheckboxGroupProps = {
   /**
+   * The field id, used by ErrorSummary
+   */
+  id: string;
+  /**
    * The options to display in the checkbox group
    */
   options: { value: string; label: string }[];
@@ -48,6 +52,7 @@ type ResourceCheckboxGroupProps = {
  * @component
  *    Displays the checkbox group in the about resource page
  *
+ * @property {string}[id] - The field id, used by ErrorSummary
  * @property {{value: string, label: string}[]}[options] - The options to display in the checkbox group
  * @property {string}[legend] - The legend of the group
  * @property {string}[description] - The description of the group
@@ -60,6 +65,7 @@ type ResourceCheckboxGroupProps = {
  * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceCheckboxGroup = ({
+  id,
   options,
   legend,
   description,
@@ -86,6 +92,7 @@ export const ResourceCheckboxGroup = ({
   return (
     <div className={classes.inputWrapper}>
       <Checkbox.Group
+        id={id}
         legend={<ResourceFieldHeader label={legend} required={required} />}
         description={description}
         size='small'

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
-import { Heading } from '@digdir/design-system-react';
+import { ErrorSummary, Heading } from '@digdir/design-system-react';
 import type { Translation } from '../../types/Translation';
 import type {
   Resource,
@@ -104,7 +104,25 @@ export const AboutResourcePage = ({
         <Heading size='large' level={1}>
           {t('resourceadm.about_resource_title')}
         </Heading>
+        {validationErrors.length > 0 && (
+          <ErrorSummary.Root>
+            <ErrorSummary.Heading>
+              {t('resourceadm.about_resource_error_summary_header')}
+            </ErrorSummary.Heading>
+            <ErrorSummary.List>
+              {validationErrors.map((error) => {
+                const href = `#${error.field}${error.index !== undefined && typeof error.index === 'number' ? `-${error.index}` : ''}`;
+                return (
+                  <ErrorSummary.Item key={JSON.stringify(error)} href={href}>
+                    {error.error}
+                  </ErrorSummary.Item>
+                );
+              })}
+            </ErrorSummary.List>
+          </ErrorSummary.Root>
+        )}
         <ResourceTextField
+          id='identifier'
           label={t('resourceadm.about_resource_identifier_label')}
           description={t('resourceadm.about_resource_identifier_description')}
           value={resourceData.identifier}
@@ -113,6 +131,7 @@ export const AboutResourcePage = ({
           onBlur={() => {}}
         />
         <ResourceRadioGroup
+          id='resourceType'
           label={t('resourceadm.about_resource_resource_type')}
           description={t('resourceadm.about_resource_resource_type_label')}
           value={resourceData.resourceType}
@@ -125,6 +144,7 @@ export const AboutResourcePage = ({
           errors={validationErrors.filter((error) => error.field === 'resourceType')}
         />
         <ResourceLanguageTextField
+          id='title'
           label={t('resourceadm.about_resource_resource_title_label')}
           description={t('resourceadm.about_resource_resource_title_text')}
           translationDescription={t('resourceadm.about_resource_translation_title')}
@@ -138,6 +158,7 @@ export const AboutResourcePage = ({
           errors={validationErrors.filter((error) => error.field === 'title')}
         />
         <ResourceLanguageTextField
+          id='description'
           label={t('resourceadm.about_resource_resource_description_label')}
           description={t('resourceadm.about_resource_resource_description_text')}
           translationDescription={t('resourceadm.about_resource_translation_description')}
@@ -152,6 +173,7 @@ export const AboutResourcePage = ({
           errors={validationErrors.filter((error) => error.field === 'description')}
         />
         <ResourceTextField
+          id='homepage'
           label={t('resourceadm.about_resource_homepage_label')}
           description={t('resourceadm.about_resource_homepage_text')}
           value={resourceData.homepage ?? ''}
@@ -159,6 +181,7 @@ export const AboutResourcePage = ({
           onBlur={(val: string) => handleSave({ ...resourceData, homepage: val })}
         />
         <ResourceSwitchInput
+          id='delegable'
           label={t('resourceadm.about_resource_delegable_label')}
           value={resourceData.delegable ?? true}
           onFocus={() => setTranslationType('none')}
@@ -167,6 +190,7 @@ export const AboutResourcePage = ({
         />
         {resourceData.delegable && (
           <ResourceLanguageTextField
+            id='rightDescription'
             label={t('resourceadm.about_resource_rights_description_label')}
             description={t('resourceadm.about_resource_rights_description_text')}
             translationDescription={t('resourceadm.about_resource_translation_right_description')}
@@ -182,6 +206,7 @@ export const AboutResourcePage = ({
           />
         )}
         <ResourceTextField
+          id='keywords'
           label={t('resourceadm.about_resource_keywords_label')}
           description={t('resourceadm.about_resource_keywords_text')}
           value={resourceData.keywords ? mapKeywordsArrayToString(resourceData.keywords) : ''}
@@ -191,6 +216,7 @@ export const AboutResourcePage = ({
           }
         />
         <ResourceRadioGroup
+          id='status'
           label={t('resourceadm.about_resource_status_label')}
           value={resourceData.status}
           options={statusOptions}
@@ -203,6 +229,7 @@ export const AboutResourcePage = ({
         />
         {resourceData.resourceType !== 'MaskinportenSchema' && (
           <ResourceSwitchInput
+            id='selfIdentifiedUserEnabled'
             label={t('resourceadm.about_resource_self_identified_label')}
             description={t('resourceadm.about_resource_self_identified_text')}
             value={resourceData.selfIdentifiedUserEnabled ?? false}
@@ -215,6 +242,7 @@ export const AboutResourcePage = ({
         )}
         {resourceData.resourceType !== 'MaskinportenSchema' && (
           <ResourceSwitchInput
+            id='resourceType'
             label={t('resourceadm.about_resource_enterprise_label')}
             description={t('resourceadm.about_resource_enterprise_text')}
             value={resourceData.enterpriseUserEnabled ?? false}
@@ -227,6 +255,7 @@ export const AboutResourcePage = ({
         )}
         {resourceData.resourceType !== 'MaskinportenSchema' && (
           <ResourceCheckboxGroup
+            id='availableForType'
             options={availableForOptions}
             legend={t('resourceadm.about_resource_available_for_legend')}
             description={t('resourceadm.about_resource_available_for_description')}
@@ -260,6 +289,7 @@ export const AboutResourcePage = ({
           errors={validationErrors.filter((x) => x.field === 'contactPoints')}
         />
         <ResourceSwitchInput
+          id='visible'
           label={t('resourceadm.about_resource_visible_label')}
           description={t('resourceadm.about_resource_visible_text')}
           value={resourceData.visible ?? false}
@@ -268,6 +298,7 @@ export const AboutResourcePage = ({
           toggleTextTranslationKey='resourceadm.about_resource_visible_show_text'
         />
         <ResourceSwitchInput
+          id='limitedByRRR'
           label={t('resourceadm.about_resource_limited_by_rrr_label')}
           description={t('resourceadm.about_resource_limited_by_rrr_description')}
           value={resourceData.limitedByRRR ?? false}

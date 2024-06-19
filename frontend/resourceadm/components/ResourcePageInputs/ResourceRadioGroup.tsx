@@ -7,6 +7,10 @@ import type { ResourceFormError } from 'app-shared/types/ResourceAdm';
 
 type ResourceRadioGroupProps = {
   /**
+   * The field id, used by ErrorSummary
+   */
+  id: string;
+  /**
    * The label of the dropdown
    */
   label: string;
@@ -47,6 +51,7 @@ type ResourceRadioGroupProps = {
  * @component
  *    Displays a dropdown component used on the about resource page
  *
+ * @property {string}[id] - The field id, used by ErrorSummary
  * @property {string}[label] - The label of the dropdown
  * @property {string}[description] - The description of the dropdown
  * @property {string}[value] - The value selected
@@ -59,6 +64,7 @@ type ResourceRadioGroupProps = {
  * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceRadioGroup = ({
+  id,
   label,
   description,
   value,
@@ -73,6 +79,7 @@ export const ResourceRadioGroup = ({
   return (
     <div className={classes.inputWrapper}>
       <Radio.Group
+        id={id}
         size='small'
         onChange={(val: string) => {
           setSelected(val);

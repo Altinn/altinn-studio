@@ -310,35 +310,35 @@ describe('AboutResourcePage', () => {
     render(<AboutResourcePage {...defaultProps} showAllErrors resourceData={mockResource2} />);
 
     expect(
-      screen.getByText(textMock('resourceadm.about_resource_resource_type_error')),
-    ).toBeInTheDocument();
+      screen.getAllByText(textMock('resourceadm.about_resource_resource_type_error')),
+    ).toHaveLength(2);
     expect(
-      screen.getByText(
+      screen.getAllByText(
         getMissingInputLanguageString(
           mockResource2.title,
           textMock('resourceadm.about_resource_error_usage_string_title'),
           textMock,
         ),
       ),
-    ).toBeInTheDocument();
+    ).toHaveLength(2);
     expect(
-      screen.getByText(
+      screen.getAllByText(
         getMissingInputLanguageString(
           mockResource2.description,
           textMock('resourceadm.about_resource_error_usage_string_description'),
           textMock,
         ),
       ),
-    ).toBeInTheDocument();
+    ).toHaveLength(2);
     expect(
-      screen.getByText(
+      screen.getAllByText(
         getMissingInputLanguageString(
           mockResource2.rightDescription,
           textMock('resourceadm.about_resource_error_usage_string_rights_description'),
           textMock,
         ),
       ),
-    ).toBeInTheDocument();
+    ).toHaveLength(2);
   });
 
   it('does not display error message for rights description when delegable is false', async () => {

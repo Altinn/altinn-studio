@@ -261,6 +261,14 @@ export const validateResource = (
 ): ResourceFormError[] => {
   const errors: ResourceFormError[] = [];
 
+  // validate resourceType
+  if (!Object.keys(resourceTypeMap).includes(resourceData.resourceType)) {
+    errors.push({
+      field: 'resourceType',
+      error: t('resourceadm.about_resource_resource_type_error'),
+    });
+  }
+
   // validate title
   const titleError = getMissingInputLanguageString(
     {
@@ -282,14 +290,14 @@ export const validateResource = (
     errors.push({
       field: 'title',
       index: 'nn',
-      error: t('resourceadm.about_resource_error_translation_missing'),
+      error: t('resourceadm.about_resource_error_translation_missing_title_nn'),
     });
   }
   if (!resourceData.title?.en) {
     errors.push({
       field: 'title',
       index: 'en',
-      error: t('resourceadm.about_resource_error_translation_missing'),
+      error: t('resourceadm.about_resource_error_translation_missing_title_en'),
     });
   }
 
@@ -314,14 +322,14 @@ export const validateResource = (
     errors.push({
       field: 'description',
       index: 'nn',
-      error: t('resourceadm.about_resource_error_translation_missing'),
+      error: t('resourceadm.about_resource_error_translation_missing_description_nn'),
     });
   }
   if (!resourceData.description?.en) {
     errors.push({
       field: 'description',
       index: 'en',
-      error: t('resourceadm.about_resource_error_translation_missing'),
+      error: t('resourceadm.about_resource_error_translation_missing_description_en'),
     });
   }
 
@@ -347,23 +355,23 @@ export const validateResource = (
       errors.push({
         field: 'rightDescription',
         index: 'nn',
-        error: t('resourceadm.about_resource_error_translation_missing'),
+        error: t('resourceadm.about_resource_error_translation_missing_rights_description_nn'),
       });
     }
     if (!resourceData.rightDescription?.en) {
       errors.push({
         field: 'rightDescription',
         index: 'en',
-        error: t('resourceadm.about_resource_error_translation_missing'),
+        error: t('resourceadm.about_resource_error_translation_missing_rights_description_en'),
       });
     }
   }
 
-  // validate resourceType
-  if (!Object.keys(resourceTypeMap).includes(resourceData.resourceType)) {
+  // validate status
+  if (!Object.keys(resourceStatusMap).includes(resourceData.status)) {
     errors.push({
-      field: 'resourceType',
-      error: t('resourceadm.about_resource_resource_type_error'),
+      field: 'status',
+      error: t('resourceadm.about_resource_status_error'),
     });
   }
 
@@ -407,14 +415,6 @@ export const validateResource = (
         error: t('resourceadm.about_resource_reference_maskinporten_missing'),
       });
     }
-  }
-
-  // validate status
-  if (!Object.keys(resourceStatusMap).includes(resourceData.status)) {
-    errors.push({
-      field: 'status',
-      error: t('resourceadm.about_resource_status_error'),
-    });
   }
 
   // validate contactPoints

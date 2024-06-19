@@ -171,6 +171,7 @@ export const ResourceReferenceFieldset = ({
           })}
         </NativeSelect>
         <NativeSelect
+          id={index === 0 ? 'resourceReferences' : undefined}
           size='small'
           onChange={(event) =>
             handleChangeReferenceType(event.target.value as ResourceReferenceType)
@@ -189,6 +190,7 @@ export const ResourceReferenceFieldset = ({
           })}
         </NativeSelect>
         <Textfield
+          id={`resourceReferences-${index}`}
           label={t('resourceadm.about_resource_reference')}
           size='small'
           value={reference}

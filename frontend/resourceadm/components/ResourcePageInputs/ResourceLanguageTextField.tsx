@@ -13,6 +13,10 @@ const emptyLanguages: SupportedLanguage = { nb: '', nn: '', en: '' };
 
 type ResourceLanguageTextFieldProps = {
   /**
+   * The field id, used by ErrorSummary
+   */
+  id: string;
+  /**
    * The label of the text field
    */
   label: string;
@@ -60,6 +64,7 @@ type ResourceLanguageTextFieldProps = {
  * @component
  *    Displays an input textfield for a resource variable that has language support.
  *
+ * @property {string}[id] - The field id, used by ErrorSummary
  * @property {string}[label] - The label of the text field
  * @property {string}[description] - The description of the text field
  * @property {string}[translationDescription] - The description of the translation fields
@@ -74,6 +79,7 @@ type ResourceLanguageTextFieldProps = {
  * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceLanguageTextField = ({
+  id,
   label,
   description,
   translationDescription,
@@ -114,6 +120,7 @@ export const ResourceLanguageTextField = ({
       <div className={classes.inputWrapper}>
         {useTextArea ? (
           <Textarea
+            id={id}
             label={<ResourceFieldHeader label={label} required={required} />}
             description={description}
             size='small'
@@ -127,6 +134,7 @@ export const ResourceLanguageTextField = ({
           />
         ) : (
           <Textfield
+            id={id}
             label={<ResourceFieldHeader label={label} required={required} />}
             description={description}
             size='small'
