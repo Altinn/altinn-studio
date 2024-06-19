@@ -3,7 +3,7 @@ import classes from './GiteaFetchCompleted.module.css';
 import { Heading } from '@digdir/design-system-react';
 import { CheckmarkCircleIcon } from '@studio/icons';
 
-type GiteaFetchCompletedProps = {
+export type GiteaFetchCompletedProps = {
   heading: string;
 };
 

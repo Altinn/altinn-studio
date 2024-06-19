@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './Notification.module.css';
 import { Paragraph } from '@digdir/design-system-react';
 
-type NotificationProps = {
+export type NotificationProps = {
   numChanges: number;
 };
 
