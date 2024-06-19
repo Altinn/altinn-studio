@@ -1,5 +1,5 @@
 import React from 'react';
-import { FetchChangesPopover, type FetchChangesPopoverProps } from './FetchChangesPopover';
+import { FetchChangesPopover } from './FetchChangesPopover';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -9,17 +9,13 @@ import {
 } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-
-const mockHandleMergeConflict = jest.fn();
+import {
+  VersionControlButtonsContext,
+  type VersionControlButtonsContextProps,
+} from '../../context';
+import { mockVersionControlButtonsContextValue } from '../../test/mocks/versionControlContextMock';
 
 const mockGetRepoPull = jest.fn();
-
-const defaultProps: FetchChangesPopoverProps = {
-  hasMergeConflict: false,
-  handleMergeConflict: mockHandleMergeConflict,
-  displayNotification: false,
-  numChanges: 0,
-};
 
 describe('fetchChanges', () => {
   afterEach(jest.clearAllMocks);
@@ -28,7 +24,8 @@ describe('fetchChanges', () => {
     const user = userEvent.setup();
 
     const getRepoPull = mockGetRepoPull.mockImplementation(() => Promise.resolve({}));
-    renderFetchChangesButton({ queries: { getRepoPull } });
+    renderFetchChangesPopover({ queries: { getRepoPull } });
+
     const syncButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
     await user.click(syncButton);
     expect(getRepoPull).toHaveBeenCalledTimes(1);
@@ -36,8 +33,14 @@ describe('fetchChanges', () => {
 
   it('should render number of changes when displayNotification is true and there are no merge conflicts', () => {
     const numberOfChanges = 123;
-    renderFetchChangesButton({
-      componentProps: { displayNotification: true, numChanges: numberOfChanges },
+    renderFetchChangesPopover({
+      versionControlButtonsContextProps: {
+        ...mockVersionControlButtonsContextValue,
+        repoStatus: {
+          ...mockVersionControlButtonsContextValue.repoStatus,
+          behindBy: numberOfChanges,
+        },
+      },
     });
 
     const syncButton = screen.getByRole('button', {
@@ -49,10 +52,13 @@ describe('fetchChanges', () => {
 
   it('should not render number of changes when displayNotification is true and there are merge conflicts', () => {
     const numberOfChanges = 123;
-    renderFetchChangesButton({
-      componentProps: {
-        displayNotification: true,
-        numChanges: numberOfChanges,
+    renderFetchChangesPopover({
+      versionControlButtonsContextProps: {
+        ...mockVersionControlButtonsContextValue,
+        repoStatus: {
+          ...mockVersionControlButtonsContextValue.repoStatus,
+          behindBy: numberOfChanges,
+        },
         hasMergeConflict: true,
       },
     });
@@ -67,7 +73,11 @@ describe('fetchChanges', () => {
   });
 
   it('should render fetch changes button as disabled when there are merge conflicts', () => {
-    renderFetchChangesButton({ componentProps: { hasMergeConflict: true } });
+    renderFetchChangesPopover({
+      versionControlButtonsContextProps: {
+        hasMergeConflict: true,
+      },
+    });
 
     const syncButton = screen.getByRole('button', {
       name: textMock('sync_header.fetch_changes'),
@@ -79,11 +89,11 @@ describe('fetchChanges', () => {
 
 type Props = {
   queries: Partial<ServicesContextProps>;
-  componentProps: Partial<FetchChangesPopoverProps>;
+  versionControlButtonsContextProps: Partial<VersionControlButtonsContextProps>;
 };
 
-const renderFetchChangesButton = (props: Partial<Props> = {}) => {
-  const { queries, componentProps } = props;
+const renderFetchChangesPopover = (props: Partial<Props> = {}) => {
+  const { queries, versionControlButtonsContextProps } = props;
 
   const allQueries: ServicesContextProps = {
     ...queriesMock,
@@ -92,7 +102,11 @@ const renderFetchChangesButton = (props: Partial<Props> = {}) => {
 
   return render(
     <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-      <FetchChangesPopover {...defaultProps} {...componentProps} />
+      <VersionControlButtonsContext.Provider
+        value={{ ...mockVersionControlButtonsContextValue, ...versionControlButtonsContextProps }}
+      >
+        <FetchChangesPopover />
+      </VersionControlButtonsContext.Provider>
     </ServicesContextProvider>,
   );
 };
