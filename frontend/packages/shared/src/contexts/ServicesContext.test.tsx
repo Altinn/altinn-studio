@@ -69,7 +69,9 @@ describe('ServicesContext', () => {
           retry: false,
         }),
       {
-        wrapper,
+        wrapper: ({ children }) => {
+          return wrapper({ children, queries: { logout } });
+        },
       },
     );
     expect(await screen.findByText(textMock('api_errors.Unauthorized'))).toBeInTheDocument();
