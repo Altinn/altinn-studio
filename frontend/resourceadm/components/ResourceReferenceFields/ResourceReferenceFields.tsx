@@ -1,5 +1,4 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import type { ResourceFormError, ResourceReference } from 'app-shared/types/ResourceAdm';
 import { ResourceReferenceFieldset } from './ResourceReferenceFieldset';
 import { FieldsetWrapper } from '../FieldsetWrapper';
@@ -57,8 +56,6 @@ export const ResourceReferenceFields = ({
   errors,
   required,
 }: ResourceReferenceFieldsProps): React.JSX.Element => {
-  const { t } = useTranslation();
-
   return (
     <div>
       <FieldsetWrapper<ResourceReference>
