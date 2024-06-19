@@ -131,6 +131,10 @@ describe('ResourceReferenceFields', () => {
     render(
       <ResourceReferenceFields
         {...defaultProps}
+        resourceReferenceList={[
+          mockReference1,
+          { reference: 'test', referenceSource: 'Default', referenceType: 'Default' },
+        ]}
         errors={[
           {
             field: 'resourceReferences',
