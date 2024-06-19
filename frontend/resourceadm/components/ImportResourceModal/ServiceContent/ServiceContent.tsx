@@ -91,21 +91,23 @@ export const ServiceContent = ({
         <Combobox
           value={
             selectedService
-              ? mapAltinn2LinkServiceToSelectOption([selectedService]).map((ls) => ls.value)
+              ? [mapAltinn2LinkServiceToSelectOption(selectedService).value]
               : undefined
           }
           label={t('resourceadm.dashboard_import_modal_select_service')}
           onValueChange={(newValue: string[]) => {
             handleSelectService(newValue[0]);
           }}
+          filter={(inputValue: string, option) => option.label.indexOf(inputValue) > -1}
         >
-          {mapAltinn2LinkServiceToSelectOption(altinn2LinkServices).map((ls) => {
-            return (
-              <Combobox.Option key={ls.value} value={ls.value}>
-                {ls.label}
-              </Combobox.Option>
-            );
-          })}
+          <Combobox.Empty>
+            {t('resourceadm.dashboard_import_modal_no_services_found')}
+          </Combobox.Empty>
+          {altinn2LinkServices.map(mapAltinn2LinkServiceToSelectOption).map((ls) => (
+            <Combobox.Option key={ls.value} value={ls.value}>
+              {ls.label}
+            </Combobox.Option>
+          ))}
         </Combobox>
       );
     }
