@@ -7,6 +7,7 @@ import {
   isActionAvailable,
 } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/ActionsUtils';
 import { useTranslation } from 'react-i18next';
+import { useActionHandler } from '../hooks/useOnActionChange';
 
 type PredefinedActionsProps = {
   actionElement: Action;
@@ -17,22 +18,10 @@ export const PredefinedActions = ({
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
   const bpmnActionModeler = new BpmnActionModeler(bpmnDetails.element);
+  const { handleOnActionChange } = useActionHandler(actionElement);
 
   const actions = bpmnActionModeler.actionElements?.action || [];
   const availablePredefinedActions = getAvailablePredefinedActions(bpmnDetails.taskType);
-
-  const handleOnActionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const actionToSave = event.target.value;
-
-    const shouldUpdateExistingActions = bpmnActionModeler.hasActionsAlready;
-
-    if (shouldUpdateExistingActions) {
-      bpmnActionModeler.updateActionNameOnActionElement(actionElement, actionToSave);
-      return;
-    }
-
-    bpmnActionModeler.addNewActionToTask(actionToSave);
-  };
 
   const shouldDisableAction = (action: string): boolean => {
     return !isActionAvailable(action, actions) && !(action === actionElement.action);

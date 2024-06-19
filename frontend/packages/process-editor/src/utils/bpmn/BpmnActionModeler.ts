@@ -1,6 +1,7 @@
 import { StudioModeler } from '@altinn/process-editor/utils/bpmn/StudioModeler';
 import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
 import { getPredefinedActions } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/ActionsUtils';
+import { ActionType } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/EditAction';
 
 export type Action = ModdleElement;
 export type ActionsElement = {
@@ -27,6 +28,10 @@ export class BpmnActionModeler extends StudioModeler {
 
   public get hasActionsAlready(): boolean {
     return this.actionsElements?.length > 0;
+  }
+
+  public getTypeForAction(actionElement: Action): ActionType | undefined {
+    return actionElement.type || actionElement.$attrs?.type;
   }
 
   public addNewActionToTask(generatedActionName: string | undefined): void {
@@ -77,6 +82,22 @@ export class BpmnActionModeler extends StudioModeler {
         action: newAction,
       },
       actionElement,
+    );
+  }
+
+  public updateTypeForAction(actionElement: Action, actionType: ActionType): void {
+    const actionsElement = this.actionElements;
+    if (!actionsElement) throw new Error('No actions element found, cannot update type for action');
+
+    console.log({ actionElement, actionsElement });
+    const actionIndex = actionsElement.action.indexOf(actionElement);
+    console.log({ actionIndex, result: actionsElement.action[actionIndex] });
+    actionsElement.action[actionIndex].type = actionType;
+    this.updateModdleProperties(
+      {
+        actions: actionsElement,
+      },
+      this.getExtensionElements,
     );
   }
 

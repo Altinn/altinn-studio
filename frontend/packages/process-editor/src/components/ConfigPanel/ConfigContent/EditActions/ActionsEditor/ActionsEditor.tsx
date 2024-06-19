@@ -15,7 +15,10 @@ import { CustomActions } from '@altinn/process-editor/components/ConfigPanel/Con
 import classes from './ActionsEditor.module.css';
 import { Action, BpmnActionModeler } from '@altinn/process-editor/utils/bpmn/BpmnActionModeler';
 import { useBpmnContext } from '@altinn/process-editor/contexts/BpmnContext';
-import { isActionRequiredForTask } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/ActionsUtils';
+import {
+  getPredefinedActions,
+  isActionRequiredForTask,
+} from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/ActionsUtils';
 import { useTranslation } from 'react-i18next';
 
 enum TabIds {
@@ -76,8 +79,14 @@ type ActionEditableProps = {
 };
 const ActionEditable = ({ actionElement, actionIndex, onClose, onDelete }: ActionEditableProps) => {
   const { t } = useTranslation();
+  const { bpmnDetails } = useBpmnContext();
+
+  const isCustomAction =
+    actionElement.action !== '' &&
+    !getPredefinedActions(bpmnDetails.taskType).includes(actionElement.action);
 
   return (
+    // TODO fix the inline styling!!
     <StudioCard style={{ margin: '8px' }}>
       <StudioCard.Header>
         <StudioHeading level={3} size='xxsmall'>
@@ -88,7 +97,11 @@ const ActionEditable = ({ actionElement, actionIndex, onClose, onDelete }: Actio
       </StudioCard.Header>
       <StudioDivider color='subtle' />
       <StudioCard.Content>
-        <StudioTabs defaultValue={TabIds.Predefined} size='small' className={classes.tabsContainer}>
+        <StudioTabs
+          defaultValue={isCustomAction ? TabIds.Custom : TabIds.Predefined}
+          size='small'
+          className={classes.tabsContainer}
+        >
           <StudioTabs.List>
             <StudioTabs.Tab value={TabIds.Predefined}>
               {t('process_editor.configuration_panel_actions_action_tab_predefined')}
@@ -100,8 +113,8 @@ const ActionEditable = ({ actionElement, actionIndex, onClose, onDelete }: Actio
           <StudioTabs.Content value={TabIds.Predefined} className={classes.tabsContent}>
             <PredefinedActions actionElement={actionElement} />
           </StudioTabs.Content>
-          <StudioTabs.Content value={TabIds.Custom}>
-            <CustomActions />
+          <StudioTabs.Content value={TabIds.Custom} className={classes.tabsContent}>
+            <CustomActions actionElement={actionElement} />
           </StudioTabs.Content>
         </StudioTabs>
       </StudioCard.Content>

@@ -7,18 +7,19 @@ import { BpmnActionModeler } from '@altinn/process-editor/utils/bpmn/BpmnActionM
 import { ActionsEditor } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/ActionsEditor/ActionsEditor';
 import { useChecksum } from './useChecksum';
 
-export const EditActions = () => {
+export const EditActions = (): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
   const bpmnActionModeler = new BpmnActionModeler(bpmnDetails.element);
-  const { checksum, updateChecksum } = useChecksum();
+  const { updateChecksum } = useChecksum();
   const actions = bpmnActionModeler.actionElements?.action || [];
 
   const onNewActionAddClicked = (): void => {
+    // TODO: find a better way to handle re-rendering of the component
     // Need to update checksum to trigger re-render of the component, because React does not re-render when actions changes
     updateChecksum();
-    const shouldUpdateExistingActions = bpmnActionModeler.hasActionsAlready;
 
+    const shouldUpdateExistingActions = bpmnActionModeler.hasActionsAlready;
     if (shouldUpdateExistingActions) {
       const existingActionElement = bpmnActionModeler.actionElements;
 
@@ -29,6 +30,7 @@ export const EditActions = () => {
         bpmnActionModeler.getExtensionElements(),
         undefined,
       );
+
       return;
     }
 
@@ -36,18 +38,17 @@ export const EditActions = () => {
   };
 
   return (
-    <React.Fragment key={checksum}>
-      {actions.map(
-        (actionElement: ModdleElement, index: number): React.ReactElement => (
-          <div key={`${actionElement.action}-${index}`}>
-            <ActionsEditor
-              actionElement={actionElement}
-              actionIndex={index}
-              mode={!actionElement.action ? 'edit' : 'view'}
-            />
-          </div>
-        ),
-      )}
+    <React.Fragment>
+      {actions.map((actionElement: ModdleElement, index: number) => (
+        // TODO: improve the key, but we cannot use the actionElement.action as key
+        <div key={index}>
+          <ActionsEditor
+            actionElement={actionElement}
+            actionIndex={index}
+            mode={!actionElement.action ? 'edit' : 'view'}
+          />
+        </div>
+      ))}
       <StudioProperty.Button
         onClick={onNewActionAddClicked}
         property={t('process_editor.configuration_panel_actions_add_new')}
