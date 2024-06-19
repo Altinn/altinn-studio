@@ -1,12 +1,16 @@
 import { StudioModeler } from '@altinn/process-editor/utils/bpmn/StudioModeler';
 import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
 import { getPredefinedActions } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/ActionsUtils';
-import { ActionType } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/EditAction';
 
 export type Action = ModdleElement;
 export type ActionsElement = {
   action: Action[];
 };
+
+export enum ActionType {
+  Server = 'serverAction',
+  Process = 'processAction',
+}
 
 export enum ActionTagType {
   Action = 'altinn:Action',

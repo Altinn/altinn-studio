@@ -2,14 +2,17 @@ import React from 'react';
 import { StudioTextfield } from '@studio/components';
 import { Switch } from '@digdir/design-system-react';
 
-import { Action, BpmnActionModeler } from '@altinn/process-editor/utils/bpmn/BpmnActionModeler';
+import {
+  Action,
+  ActionType,
+  BpmnActionModeler,
+} from '@altinn/process-editor/utils/bpmn/BpmnActionModeler';
 import { useActionHandler } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/ActionsEditor/hooks/useOnActionChange';
 import { useDebounce } from 'app-shared/hooks/useDebounce';
 import { getPredefinedActions } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/ActionsUtils';
 import { useBpmnContext } from '@altinn/process-editor/contexts/BpmnContext';
 
 import classes from './CustomActions.module.css';
-import { ActionType } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/EditAction';
 
 type CustomActionsProps = {
   actionElement: Action;

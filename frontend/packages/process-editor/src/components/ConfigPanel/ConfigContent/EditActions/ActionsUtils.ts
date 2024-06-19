@@ -2,8 +2,8 @@ import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
 import type { BpmnDetails } from '../../../../types/BpmnDetails';
-import type { ActionType } from './EditAction';
 import type { BpmnTaskType } from '../../../../types/BpmnTaskType';
+import { ActionType } from '@altinn/process-editor/utils/bpmn/BpmnActionModeler';
 
 export const addNewActionToTask = (
   bpmnFactory: BpmnFactory,
