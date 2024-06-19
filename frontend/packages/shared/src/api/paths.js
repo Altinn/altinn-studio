@@ -4,7 +4,7 @@ import { APP_DEVELOPMENT_BASENAME, PREVIEW_MOCK_PARTY_ID, PREVIEW_MOCK_INSTANCE_
 // Base path
 const basePath = '/designer/api';
 
-// ApplicationMetaData
+// ApplicationMetadata
 export const appMetadataPath = (org, app) => `${basePath}/${org}/${app}/metadata`; // Get, Put, Post
 export const appMetadataAttachmentPath = (org, app) => `${basePath}/${org}/${app}/metadata/attachment-component`; // Post, Put, Delete
 
@@ -149,6 +149,6 @@ export const resourceAccessListPath = (org, resourceId, listId, env) => `${baseP
 export const processEditorPath = (org, app) => `${basePath}/${org}/${app}/process-modelling/process-definition`;
 export const processEditorWebSocketHub = () => '/sync-hub';
 export const processEditorPathPut = (org, app) => `${basePath}/${org}/${app}/process-modelling/process-definition-latest`;
-export const processEditorDataTypeChangePath = (org, app) => `${basePath}/${org}/${app}/process-modelling/data-type`;
+export const processEditorDataTypesChangePath = (org, app) => `${basePath}/${org}/${app}/process-modelling/data-types`;
 export const processTaskTypePath = (org, app, taskId) => `${basePath}/${org}/${app}/process-modelling/task-type/${taskId}`; // Get
 export const processEditorDataTypePath = (org, app, dataTypeId, taskId) => `${basePath}/${org}/${app}/process-modelling/data-type/${dataTypeId}?${s({ taskId })}`;
