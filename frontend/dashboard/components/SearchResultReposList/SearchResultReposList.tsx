@@ -14,9 +14,9 @@ export const SearchResultReposList = ({ searchValue }: SearchResultReposList) =>
   const {
     searchResults,
     isLoadingSearchResults,
-    pageSize,
     pageNumber,
     setPageNumber,
+    pageSize,
     setPageSize,
     onSortClick,
   } = useReposSearch({ keyword: searchValue });

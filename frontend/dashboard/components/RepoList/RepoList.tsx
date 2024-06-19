@@ -54,20 +54,17 @@ export const RepoList = ({
       accessor: 'name',
       heading: t('dashboard.name'),
       sortable: true,
-      headerCellClass: classes.nameHeaderCell,
       bodyCellFormatter: (repoFullName: string) => <RepoNameWithLink repoFullName={repoFullName} />,
     },
     {
       accessor: 'createdBy',
       heading: t('dashboard.created_by'),
       sortable: true,
-      headerCellClass: classes.createdByHeaderCell,
     },
     {
       accessor: 'updated',
       heading: t('dashboard.last_modified'),
       sortable: true,
-      headerCellClass: classes.lastUpdatedHeaderCell,
       bodyCellFormatter: (date: string) =>
         new Date(date).toLocaleDateString('nb', { dateStyle: 'short' }),
     },
@@ -116,12 +113,12 @@ export const RepoList = ({
   };
 
   const paginationProps: RemotePaginationProps = {
-    currentPage: pageNumber + 1,
+    currentPage: pageNumber,
     totalRows,
     totalPages: Math.ceil(totalRows / pageSize),
     pageSize,
     pageSizeOptions,
-    onPageChange: (page: number) => onPageChange(page - 1),
+    onPageChange: (page: number) => onPageChange(page),
     onPageSizeChange,
     paginationTexts,
   };
@@ -149,5 +146,3 @@ export const RepoList = ({
     </div>
   );
 };
-
-RepoList.displayName = 'RepoList';

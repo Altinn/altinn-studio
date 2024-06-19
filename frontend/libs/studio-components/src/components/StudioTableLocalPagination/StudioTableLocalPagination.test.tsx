@@ -3,19 +3,18 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StudioTableLocalPagination } from './StudioTableLocalPagination';
 import type { LocalPaginationProps } from './StudioTableLocalPagination';
-import { columns, rows } from '../StudioTableRemotePagination/mockData';
+import {
+  columns,
+  emptyTableFallback,
+  paginationTexts,
+  rows,
+} from '../StudioTableRemotePagination/mockData';
 import type { Rows, Columns } from '../StudioTableRemotePagination';
 
 describe('StudioTableLocalPagination', () => {
   const paginationProps: LocalPaginationProps = {
     pageSizeOptions: [5, 10, 50],
-    paginationTexts: {
-      pageSizeLabel: 'Rows per page:',
-      totalRowsText: 'Total number of rows:',
-      nextButtonAriaLabel: 'Next',
-      previousButtonAriaLabel: 'Previous',
-      numberButtonAriaLabel: (number) => `Page ${number}`,
-    },
+    paginationTexts,
   };
 
   it('renders the table with columns and rows', () => {
@@ -51,7 +50,6 @@ describe('StudioTableLocalPagination', () => {
     expect(
       within(firstBodyRow).getByRole('cell', { name: 'A-melding – all forms' }),
     ).toBeInTheDocument();
-
     expect(
       within(secondBodyRow).getByRole('cell', { name: 'Application for VAT registration' }),
     ).toBeInTheDocument();
@@ -59,6 +57,7 @@ describe('StudioTableLocalPagination', () => {
 
   it('renders the complete table when pagination prop is not provided', () => {
     render(<StudioTableLocalPagination columns={columns} rows={rows} />);
+
     expect(
       screen.getByRole('cell', { name: 'Coordinated register notification' }),
     ).toBeInTheDocument();
@@ -72,8 +71,12 @@ describe('StudioTableLocalPagination', () => {
       <StudioTableLocalPagination columns={columns} rows={rows} pagination={paginationProps} />,
     );
 
-    expect(screen.getByRole('combobox', { name: 'Rows per page:' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Next' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('combobox', { name: paginationTexts.pageSizeLabel }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: paginationTexts.nextButtonAriaLabel }),
+    ).toBeInTheDocument();
   });
 
   it('changes page when the "Next" button is clicked', async () => {
@@ -116,7 +119,10 @@ describe('StudioTableLocalPagination', () => {
     );
     const user = userEvent.setup();
 
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Rows per page:' }), '10');
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: paginationTexts.pageSizeLabel }),
+      '10',
+    );
 
     const tableBody = screen.getAllByRole('rowgroup')[1];
     const tableBodyRows = within(tableBody).getAllByRole('row');
@@ -134,7 +140,10 @@ describe('StudioTableLocalPagination', () => {
     const lastPageRow = within(lastPageBody).getAllByRole('row');
     expect(lastPageRow.length).toBe(1);
 
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Rows per page:' }), '50');
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: paginationTexts.pageSizeLabel }),
+      '50',
+    );
     const tableBody = screen.getAllByRole('rowgroup')[1];
     const tableBodyRows = within(tableBody).getAllByRole('row');
     expect(tableBodyRows.length).toBe(16);
@@ -145,10 +154,10 @@ describe('StudioTableLocalPagination', () => {
       <StudioTableLocalPagination
         columns={columns}
         rows={[]}
-        emptyTableFallback='No rows to display'
+        emptyTableFallback={emptyTableFallback}
       />,
     );
-    expect(screen.getByText('No rows to display')).toBeInTheDocument();
+    expect(screen.getByText(emptyTableFallback)).toBeInTheDocument();
   });
 
   it('formats cells when a valueFormatter is specified', () => {

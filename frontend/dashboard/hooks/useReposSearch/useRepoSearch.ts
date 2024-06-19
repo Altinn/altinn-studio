@@ -5,6 +5,11 @@ import { useSearchParamsState } from 'app-shared/hooks/useSearchParamsState';
 import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import { DATAGRID_PAGE_SIZE_OPTIONS, DATAGRID_DEFAULT_PAGE_SIZE } from '../../constants';
 
+enum Direction {
+  Asc = 'asc',
+  Desc = 'desc',
+}
+
 type UseRepoSearchResult = {
   searchResults: SearchRepositoryResponse | undefined;
   isLoadingSearchResults: boolean;
@@ -25,7 +30,7 @@ export const useReposSearch = ({
   uid,
   defaultPageSize = DATAGRID_DEFAULT_PAGE_SIZE,
 }: UseReposSearchProps): UseRepoSearchResult => {
-  const [pageNumber, setPageNumber] = useState(0);
+  const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useSearchParamsState<DATAGRID_PAGE_SIZE_TYPE>(
     'pageSize',
     defaultPageSize,
@@ -37,10 +42,12 @@ export const useReposSearch = ({
     },
   );
   const [selectedColumn, setSelectedColumn] = useState('name');
-  const [sortDirection, setSortDirection] = useState('asc');
+  const [sortDirection, setSortDirection] = useState(Direction.Asc);
 
   const toggleSortDirection = () => {
-    setSortDirection((prevDirection) => (prevDirection === 'asc' ? 'desc' : 'asc'));
+    setSortDirection((prevDirection) =>
+      prevDirection === Direction.Asc ? Direction.Desc : Direction.Asc,
+    );
   };
 
   const onSortClick = (columnKey: string) => {
@@ -48,7 +55,7 @@ export const useReposSearch = ({
       toggleSortDirection();
     } else {
       setSelectedColumn(columnKey);
-      setSortDirection('asc');
+      setSortDirection(Direction.Asc);
     }
   };
 
@@ -71,9 +78,9 @@ export const useReposSearch = ({
   return {
     searchResults,
     isLoadingSearchResults,
-    pageSize,
     pageNumber,
     setPageNumber,
+    pageSize,
     setPageSize,
     onSortClick,
   };

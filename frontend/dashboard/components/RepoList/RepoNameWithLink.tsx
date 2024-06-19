@@ -1,8 +1,9 @@
 import { getRepoEditUrl } from '../../utils/urlUtils';
 import { Link } from '@digdir/design-system-react';
-import classes from './RepoList.module.css';
+import classes from './RepoNameWithLink.module.css';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { DATA_MODEL_REPO_IDENTIFIER } from '../../constants';
 
 type RepoNameWithLinkProps = {
   repoFullName: string;
@@ -12,9 +13,9 @@ export const RepoNameWithLink = ({ repoFullName }: RepoNameWithLinkProps): React
   const { t } = useTranslation();
 
   const [org, repoName] = repoFullName.split('/');
-  const isDatamodelling = repoFullName.endsWith('-datamodels');
+  const isDataModelRepo = repoFullName.endsWith(DATA_MODEL_REPO_IDENTIFIER);
   const editUrl = getRepoEditUrl({ org, repo: repoName });
-  const editTextKey = t(isDatamodelling ? 'dashboard.edit_datamodels' : 'dashboard.edit_app', {
+  const editTextKey = t(isDataModelRepo ? 'dashboard.edit_data_models' : 'dashboard.edit_app', {
     appName: repoName,
   });
 
@@ -24,5 +25,3 @@ export const RepoNameWithLink = ({ repoFullName }: RepoNameWithLinkProps): React
     </Link>
   );
 };
-
-RepoNameWithLink.displayName = 'RepoNameWithLink';

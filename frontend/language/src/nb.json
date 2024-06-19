@@ -136,7 +136,7 @@
   "dashboard.data_models": "Datamodeller",
   "dashboard.description": "Beskrivelse",
   "dashboard.edit_app": "Rediger {{appName}} i Studio",
-  "dashboard.edit_datamodels": "Rediger {{appName}} i Studio",
+  "dashboard.edit_data_models": "Rediger {{appName}} i Studio",
   "dashboard.favorite_status": "Favorittstatus",
   "dashboard.favourites": "Favoritter",
   "dashboard.field_cannot_be_empty": "Dette feltet kan ikke være tomt",

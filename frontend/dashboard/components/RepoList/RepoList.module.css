@@ -1,48 +1,36 @@
-.favoriteIconHeaderCell {
-  font-size: 0; /*Hides text, but keeps it accessible for screen readers*/
-  width: 46px; /*Has to be exactly 46px to make the width the same for empty and filled table columns*/
+/*.favoriteIconHeaderCell {*/
+/*  font-size: 0; !*Hides text, but keeps it accessible for screen readers*!*/
+/*  width: 46px; !*Has to be exactly 46px to make the width the same for empty and filled table columns*!*/
+/*}*/
+
+/*.nameHeaderCell {*/
+/*  width: 20%;*/
+/*}*/
+
+/*.createdByHeaderCell {*/
+/*  width: 20%;*/
+/*}*/
+
+/*.lastUpdatedHeaderCell {*/
+/*  width: 15%;*/
+/*}*/
+
+/*.actionIconsHeaderCell {*/
+/*  font-size: 0;*/
+/*}*/
+
+tr {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr 1fr 0.5fr 1fr 11rem;
 }
 
-.nameHeaderCell {
-  width: 20%;
+td {
+  display: flex;
+  align-items: center;
 }
 
-.createdByHeaderCell {
-  width: 20%;
-}
-
-.lastUpdatedHeaderCell {
-  width: 15%;
-}
-
+/*Hides text, but keeps it accessible for screen readers*/
+.favoriteIconHeaderCell,
 .actionIconsHeaderCell {
   font-size: 0;
-}
-
-.repoLink,
-.repoLink:visited {
-  color: inherit;
-  text-decoration: none;
-}
-
-.repoLink:hover {
-  color: inherit;
-  text-decoration: underline;
-}
-
-.actionLinksContainer {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--fds-spacing-1);
-}
-
-.giteaButton {
-  margin-right: var(--fds-spacing-2);
-}
-
-.giteaIcon {
-  font-size: 2rem;
-  margin-bottom: var(--fds-spacing-1);
-  margin-right: 0.4rem;
-  color: var(--fds-semantic-text-success-default);
 }

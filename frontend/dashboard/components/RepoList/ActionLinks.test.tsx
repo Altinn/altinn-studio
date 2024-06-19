@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ActionLinks } from './ActionLinks';
 import { repository } from 'app-shared/mocks/mocks';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 jest.mock('../MakeCopyModal', () => {
   return {
@@ -16,11 +16,16 @@ jest.mock('../MakeCopyModal', () => {
   };
 });
 
+const repoName = 'test-repo';
+const repoFullName = 'test-org/test-repo';
+const repoUrl = `/repos/${repoFullName}`;
+const editUrl = `/editor/${repoFullName}`;
+
 const repo = {
   ...repository,
-  name: 'test-repo',
-  full_name: 'test-org/test-repo',
-  html_url: '/repos/test-org/test-repo',
+  name: repoName,
+  full_name: repoFullName,
+  html_url: repoUrl,
 };
 
 describe('ActionLinks', () => {
@@ -28,13 +33,13 @@ describe('ActionLinks', () => {
     render(<ActionLinks repo={repo} />);
 
     const giteaButton = screen.getByRole('link', {
-      name: textMock('dashboard.show_repo', { appName: repo.name }),
+      name: textMock('dashboard.show_repo', { appName: repoName }),
     });
     const editButton = screen.getByRole('link', {
-      name: textMock('dashboard.edit_app', { appName: repo.name }),
+      name: textMock('dashboard.edit_app', { appName: repoName }),
     });
     const dropdownButton = screen.getByRole('button', {
-      name: textMock('dashboard.app_dropdown', { appName: repo.name }),
+      name: textMock('dashboard.app_dropdown', { appName: repoName }),
     });
 
     expect(giteaButton).toBeInTheDocument();
@@ -47,7 +52,7 @@ describe('ActionLinks', () => {
     render(<ActionLinks repo={repo} />);
 
     const dropdownButton = screen.getByRole('button', {
-      name: textMock('dashboard.app_dropdown', { appName: repo.name }),
+      name: textMock('dashboard.app_dropdown', { appName: repoName }),
     });
     await user.click(dropdownButton);
 
@@ -62,7 +67,7 @@ describe('ActionLinks', () => {
     render(<ActionLinks repo={repo} />);
 
     const dropdownButton = screen.getByRole('button', {
-      name: textMock('dashboard.app_dropdown', { appName: repo.name }),
+      name: textMock('dashboard.app_dropdown', { appName: repoName }),
     });
     await user.click(dropdownButton);
 
@@ -70,6 +75,6 @@ describe('ActionLinks', () => {
     const openInNewOption = screen.getByText(textMock('dashboard.open_in_new'));
     await user.click(openInNewOption);
 
-    expect(window.open).toHaveBeenCalledWith('/editor/test-org/test-repo', '_blank');
+    expect(window.open).toHaveBeenCalledWith(editUrl, '_blank');
   });
 });

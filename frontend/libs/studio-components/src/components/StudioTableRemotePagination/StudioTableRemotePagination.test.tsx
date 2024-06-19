@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StudioTableRemotePagination } from './StudioTableRemotePagination';
 import type { RemotePaginationProps, Columns, Rows } from './StudioTableRemotePagination';
-import { columns, rows } from './mockData';
+import { columns, emptyTableFallback, paginationTexts, rows } from './mockData';
 
 describe('StudioTableRemotePagination', () => {
   const paginationProps: RemotePaginationProps = {
@@ -14,13 +14,7 @@ describe('StudioTableRemotePagination', () => {
     pageSizeOptions: [5, 10, 20, 50],
     onPageChange: jest.fn(),
     onPageSizeChange: jest.fn(),
-    paginationTexts: {
-      pageSizeLabel: 'Rows per page:',
-      totalRowsText: 'Total number of rows:',
-      nextButtonAriaLabel: 'Next',
-      previousButtonAriaLabel: 'Previous',
-      numberButtonAriaLabel: (num) => `Page ${num}`,
-    },
+    paginationTexts,
   };
 
   it('renders the table with columns and rows', () => {
@@ -66,23 +60,35 @@ describe('StudioTableRemotePagination', () => {
       <StudioTableRemotePagination columns={columns} rows={rows} pagination={paginationProps} />,
     );
 
-    expect(screen.getByRole('combobox', { name: 'Rows per page:' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Next' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('combobox', { name: paginationTexts.pageSizeLabel }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: paginationTexts.nextButtonAriaLabel }),
+    ).toBeInTheDocument();
   });
 
   it('does not render the pagination controls when pagination prop is not provided', () => {
     render(<StudioTableRemotePagination columns={columns} rows={rows} />);
 
-    expect(screen.queryByRole('combobox', { name: 'Rows per page' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Next' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('combobox', { name: paginationTexts.pageSizeLabel }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: paginationTexts.nextButtonAriaLabel }),
+    ).not.toBeInTheDocument();
   });
 
   it('does not render the pagination controls when there are fewer rows than the smallest page size', () => {
     const fourRows = rows.slice(0, 4);
     render(<StudioTableRemotePagination columns={columns} rows={fourRows} />);
 
-    expect(screen.queryByRole('combobox', { name: 'Rows per page' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Next' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('combobox', { name: paginationTexts.pageSizeLabel }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: paginationTexts.nextButtonAriaLabel }),
+    ).not.toBeInTheDocument();
   });
 
   it('triggers the onPageChange function when "Next" is clicked', async () => {
@@ -91,7 +97,7 @@ describe('StudioTableRemotePagination', () => {
     );
     const user = userEvent.setup();
 
-    await user.click(screen.getByRole('button', { name: 'Next' }));
+    await user.click(screen.getByRole('button', { name: paginationTexts.nextButtonAriaLabel }));
 
     expect(paginationProps.onPageChange).toHaveBeenCalledWith(2);
   });
@@ -113,7 +119,10 @@ describe('StudioTableRemotePagination', () => {
     );
     const user = userEvent.setup();
 
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Rows per page:' }), '10');
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: paginationTexts.pageSizeLabel }),
+      '10',
+    );
 
     expect(paginationProps.onPageSizeChange).toHaveBeenCalledWith(10);
   });
@@ -123,10 +132,10 @@ describe('StudioTableRemotePagination', () => {
       <StudioTableRemotePagination
         columns={columns}
         rows={[]}
-        emptyTableFallback='No rows to display'
+        emptyTableFallback={emptyTableFallback}
       />,
     );
-    expect(screen.getByText('No rows to display')).toBeInTheDocument();
+    expect(screen.getByText(emptyTableFallback)).toBeInTheDocument();
   });
 
   it('formats cells when a valueFormatter is specified', () => {

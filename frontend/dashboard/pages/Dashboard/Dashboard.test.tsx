@@ -8,6 +8,7 @@ import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { repository, searchRepositoryResponse } from 'app-shared/mocks/mocks';
 import type { SearchRepositoryResponse } from 'app-shared/types/api';
+import { DATA_MODEL_REPO_IDENTIFIER } from '../../constants';
 
 const renderWithMockServices = (services?: Partial<ServicesContextProps>) => {
   render(
@@ -66,7 +67,7 @@ describe('Dashboard', () => {
   });
 
   it('should display datamodels list with one item', async () => {
-    const appName = '-datamodels';
+    const appName = DATA_MODEL_REPO_IDENTIFIER;
     const dataModelsRepository = {
       ...repository,
       full_name: `ttd/${appName}`,

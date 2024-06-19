@@ -10,6 +10,7 @@ import { useSearchReposQuery } from 'dashboard/hooks/queries/useSearchReposQuery
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { Heading } from '@digdir/design-system-react';
 import { useStarredReposQuery } from 'dashboard/hooks/queries';
+import { DATA_MODEL_REPO_IDENTIFIER } from '../../constants';
 
 type DataModelsReposListProps = {
   user: User;
@@ -26,16 +27,14 @@ export const DataModelsReposList = ({ user, organizations }: DataModelsReposList
   });
 
   const { data: starredRepos = [], isPending: areStarredReposPending } = useStarredReposQuery();
-  const { data: repos, isPending: areOrgReposPending } = useSearchReposQuery({
+  const { data: allDataModelRepos, isPending: areOrgReposPending } = useSearchReposQuery({
     uid: uid as number,
-    keyword: '-datamodels',
+    keyword: DATA_MODEL_REPO_IDENTIFIER,
     page: 0,
   });
 
-  const dataModelRepos = repos?.data?.filter((repo) => repo.name.endsWith('-datamodels'));
-
   const reposWithStarred = useAugmentReposWithStarred({
-    repos: dataModelRepos,
+    repos: allDataModelRepos?.data,
     starredRepos,
   });
 

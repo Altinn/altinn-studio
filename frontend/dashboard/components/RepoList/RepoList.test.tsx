@@ -54,15 +54,15 @@ describe('RepoList', () => {
 
   it('should not call handleSorting when clicking sort button and isServerSort is false', async () => {
     const user = userEvent.setup();
-    const handleSorting = jest.fn();
+    const mockHandleSorting = jest.fn();
     renderWithMockServices({
       isServerSort: false,
-      onSortClick: handleSorting,
+      onSortClick: mockHandleSorting,
     });
 
     await user.click(screen.getByRole('button', { name: textMock('dashboard.name') }));
 
-    expect(handleSorting).not.toHaveBeenCalled();
+    expect(mockHandleSorting).not.toHaveBeenCalled();
   });
 
   it('should call handleSorting when clicking sort button and isServerSort is true', async () => {
@@ -78,7 +78,7 @@ describe('RepoList', () => {
     expect(handleSorting).toHaveBeenCalledWith('name');
   });
 
-  it('should call onPageChange when navigating to next page', async () => {
+  it('should call onPageChange with an incrementing number when navigating to the next page', async () => {
     const user = userEvent.setup();
     const onPageChange = jest.fn();
     renderWithMockServices({
@@ -92,7 +92,7 @@ describe('RepoList', () => {
     expect(onPageChange).toHaveBeenCalledWith(1);
   });
 
-  it('should call onPageChange when navigating to previous page', async () => {
+  it('should call onPageChange with a decrementing number when navigating to the previous page', async () => {
     const user = userEvent.setup();
     const onPageChange = jest.fn();
     renderWithMockServices({

@@ -28,7 +28,7 @@ export const FavoriteButton = ({ repo }: FavoriteButtonProps): React.ReactElemen
 
   return (
     <Button title={title} onClick={handleToggleFav} variant={'tertiary'} icon>
-      {repo.hasStarred ? <StarFillIcon name='star-fill-icon' /> : <StarIcon name='star-icon' />}
+      {repo.hasStarred ? <StarFillIcon /> : <StarIcon />}
     </Button>
   );
 };

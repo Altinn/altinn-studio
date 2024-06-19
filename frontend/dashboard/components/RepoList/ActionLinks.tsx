@@ -1,6 +1,6 @@
 import { Button, DropdownMenu } from '@digdir/design-system-react';
 import React, { useRef, useState } from 'react';
-import classes from './RepoList.module.css';
+import classes from './ActionLinks.module.css';
 import cn from 'classnames';
 import {
   ExternalLinkIcon,
@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { getRepoEditUrl } from '../../utils/urlUtils';
 import type { Repository } from 'app-shared/types/Repository';
 import { MakeCopyModal } from '../MakeCopyModal';
+import { DATA_MODEL_REPO_IDENTIFIER } from '../../constants';
 
 type ActionLinksProps = {
   repo: Repository;
@@ -35,9 +36,9 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
 
   const repoFullName = repo.full_name;
   const [org, repoName] = repoFullName.split('/');
-  const isDatamodelling = repoFullName.endsWith('-datamodels');
+  const isDataModelRepo = repoFullName.endsWith(DATA_MODEL_REPO_IDENTIFIER);
   const editUrl = getRepoEditUrl({ org, repo: repoName });
-  const editTextKey = t(isDatamodelling ? 'dashboard.edit_datamodels' : 'dashboard.edit_app', {
+  const editTextKey = t(isDataModelRepo ? 'dashboard.edit_data_models' : 'dashboard.edit_app', {
     appName: repoName,
   });
 
@@ -92,5 +93,3 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
     </div>
   );
 };
-
-ActionLinks.displayName = 'ActionLinks';

@@ -1,7 +1,7 @@
 import { Button } from '@digdir/design-system-react';
 import { StarFillIcon, StarIcon } from '@navikt/aksel-icons';
 import React from 'react';
-import type { Rows } from './StudioTableRemotePagination';
+import type { PaginationTexts, Rows } from './StudioTableRemotePagination';
 import classes from './mockData.module.css';
 
 type IconButtonProps = {
@@ -153,3 +153,13 @@ export const rows: Rows = [
     lastChanged: '2023-04-10',
   },
 ];
+
+export const paginationTexts: PaginationTexts = {
+  pageSizeLabel: 'Rows per page:',
+  totalRowsText: 'Total number of rows:',
+  nextButtonAriaLabel: 'Next',
+  previousButtonAriaLabel: 'Previous',
+  numberButtonAriaLabel: (num) => `Page ${num}`,
+};
+
+export const emptyTableFallback = 'No rows to display';

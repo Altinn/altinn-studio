@@ -75,7 +75,7 @@
   "dashboard.data_models": "Data models",
   "dashboard.description": "Description",
   "dashboard.edit_app": "Edit {{appName}} in Studio",
-  "dashboard.edit_datamodels": "Edit {{appName}} in Studio",
+  "dashboard.edit_data_models": "Edit {{appName}} in Studio",
   "dashboard.favorite_status": "Favorite status",
   "dashboard.favourites": "Favourites",
   "dashboard.field_cannot_be_empty": "Field cannot be empty",

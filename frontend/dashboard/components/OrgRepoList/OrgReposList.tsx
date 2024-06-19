@@ -8,7 +8,7 @@ import type { Organization } from 'app-shared/types/Organization';
 import { useReposSearch } from 'dashboard/hooks/useReposSearch';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { Heading } from '@digdir/design-system-react';
-import { DATAGRID_DEFAULT_PAGE_SIZE } from 'dashboard/constants';
+import { DATA_MODEL_REPO_IDENTIFIER, DATAGRID_DEFAULT_PAGE_SIZE } from 'dashboard/constants';
 import { useAugmentReposWithStarred } from 'dashboard/hooks/useAugmentReposWithStarred';
 import { useSearchReposQuery, useStarredReposQuery } from 'dashboard/hooks/queries';
 
@@ -16,6 +16,7 @@ type OrgReposListProps = {
   user: User;
   organizations: Organization[];
 };
+
 export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
@@ -24,16 +25,16 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
   const {
     searchResults: repoResults,
     isLoadingSearchResults: areReposPending,
-    pageSize,
     pageNumber,
     setPageNumber,
+    pageSize,
     setPageSize,
     onSortClick,
   } = useReposSearch({ uid: uid as number, defaultPageSize: DATAGRID_DEFAULT_PAGE_SIZE });
 
   const { data: dataModelsResults, isPending: areDataModelsPending } = useSearchReposQuery({
     uid: uid as number,
-    keyword: '-datamodels',
+    keyword: DATA_MODEL_REPO_IDENTIFIER,
     page: 0,
   });
   const totalRows = repoResults?.totalCount - dataModelsResults?.totalCount ?? 0;
@@ -50,7 +51,7 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
         {getReposLabel({ selectedContext, orgs: organizations, t })}
       </Heading>
       <RepoList
-        repos={reposWithStarred.filter((repo) => !repo.name.endsWith('-datamodels'))}
+        repos={reposWithStarred.filter((repo) => !repo.name.endsWith(DATA_MODEL_REPO_IDENTIFIER))}
         isLoading={areReposPending || areStarredReposPending || areDataModelsPending}
         isServerSort={true}
         totalRows={totalRows}
