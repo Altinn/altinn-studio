@@ -442,7 +442,7 @@ namespace Altinn.Studio.Designer.Controllers
                 foreach (ServiceResource resource in allResources)
                 {
                     if (resource?.HasCompetentAuthority.Orgcode != null
-                        && resource.ResourceReferences != null && resource.ResourceReferences.Exists(r => r.ReferenceType != null && r.ReferenceType.Equals(ReferenceType.ServiceCode)) 
+                        && resource.ResourceReferences != null && resource.ResourceReferences.Exists(r => r.ReferenceType != null && r.ReferenceType.Equals(ReferenceType.ServiceCode))
                         && resource.ResourceType == ResourceType.Altinn2Service)
                     {
                         AvailableService service = new AvailableService();
