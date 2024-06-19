@@ -93,15 +93,14 @@ export class BpmnActionModeler extends StudioModeler {
     const actionsElement = this.actionElements;
     if (!actionsElement) throw new Error('No actions element found, cannot update type for action');
 
-    console.log({ actionElement, actionsElement });
     const actionIndex = actionsElement.action.indexOf(actionElement);
-    console.log({ actionIndex, result: actionsElement.action[actionIndex] });
     actionsElement.action[actionIndex].type = actionType;
+
     this.updateModdleProperties(
       {
         actions: actionsElement,
       },
-      this.getExtensionElements,
+      this.getExtensionElements(),
     );
   }
 
