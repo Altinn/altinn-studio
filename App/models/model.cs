@@ -72,6 +72,16 @@ namespace Altinn.App.Models.model
     [JsonPropertyName("GridExample")]
     public GridExample GridExample { get; set; }
 
+    [XmlElement("dropdown", Order = 13)]
+    [JsonProperty("dropdown")]
+    [JsonPropertyName("dropdown")]
+    public string dropdown { get; set; }
+
+    [XmlElement("multipleSelect", Order = 14)]
+    [JsonProperty("multipleSelect")]
+    [JsonPropertyName("multipleSelect")]
+    public string multipleSelect { get; set; }
+
   }
 
   public class GridExample

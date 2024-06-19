@@ -31,6 +31,8 @@
         <xs:element minOccurs="0" name="co" type="xs:string" />
         <xs:element minOccurs="0" name="street" type="xs:string" />
         <xs:element minOccurs="0" name="GridExample" type="GridExample" />
+        <xs:element minOccurs="0" name="dropdown" type="xs:string" />
+        <xs:element minOccurs="0" name="multipleSelect" type="xs:string" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

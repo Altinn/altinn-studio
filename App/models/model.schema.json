@@ -85,6 +85,12 @@
     },
     "GridExample": {
       "$ref": "#/$defs/GridExample"
+    },
+    "dropdown": {
+      "type": "string"
+    },
+    "multipleSelect": {
+      "type": "string"
     }
   }
 }
