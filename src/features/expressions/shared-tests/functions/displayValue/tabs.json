@@ -1,0 +1,26 @@
+{
+  "name": "Display value of Tabs component",
+  "expression": [
+    "displayValue",
+    "tabs"
+  ],
+  "context": {
+    "component": "tabs",
+    "currentLayout": "Page"
+  },
+  "expects": "",
+  "layouts": {
+    "Page": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "tabs",
+            "type": "Tabs",
+            "children": []
+          }
+        ]
+      }
+    }
+  }
+}

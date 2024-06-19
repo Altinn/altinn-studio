@@ -52,6 +52,7 @@ function resolvedNodesInLayouts(
       delete input['rowsAfter'];
       delete input['rowsBefore'];
       delete input['cardsInternal'];
+      delete input['tabsInternal'];
 
       const resolvedItem = evalExprInObj({
         input,

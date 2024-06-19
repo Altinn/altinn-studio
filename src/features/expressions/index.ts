@@ -65,8 +65,7 @@ export function evalExprInObj<T>(args: EvalExprInObjArgs<T>): ExprResolved<T> {
   if (!args.input) {
     return args.input as ExprResolved<T>;
   }
-
-  const out = evalExprInObjectRecursive<T>(args.input, args as Omit<EvalExprInObjArgs<T>, 'input'>, []);
+  const out = evalExprInObjectRecursive<T>(args, []);
 
   if (args.deleteNonExpressions && out === DELETE_LATER) {
     return {} as any;
@@ -97,7 +96,9 @@ const DELETE_LATER = '__DELETE_LATER__';
 /**
  * Recurse through an input object/array/any, finds expressions and evaluates them
  */
-function evalExprInObjectRecursive<T>(input: any, args: Omit<EvalExprInObjArgs<T>, 'input'>, path: string[]) {
+function evalExprInObjectRecursive<T>(args: EvalExprInObjArgs<T>, path: string[]) {
+  const input = args.input;
+
   if (typeof input !== 'object' || input === null) {
     if (args.deleteNonExpressions) {
       return DELETE_LATER;
@@ -136,7 +137,7 @@ function evalExprInObjectRecursive<T>(input: any, args: Omit<EvalExprInObjArgs<T
     const newPath = [...path];
     const lastLeg = newPath.pop() || '';
     const out = input
-      .map((item, idx) => evalExprInObjectRecursive<T>(item, args, [...newPath, `${lastLeg}[${idx}]`]))
+      .map((item, idx) => evalExprInObjectRecursive<T>({ ...args, input: item }, [...newPath, `${lastLeg}[${idx}]`]))
       .filter((item) => item !== DELETE_LATER);
 
     if (args.deleteNonExpressions && out.length === 0) {
@@ -148,7 +149,7 @@ function evalExprInObjectRecursive<T>(input: any, args: Omit<EvalExprInObjArgs<T
 
   const out = {};
   for (const key of Object.keys(input)) {
-    out[key] = evalExprInObjectRecursive<T>(input[key], args, [...path, key]);
+    out[key] = evalExprInObjectRecursive<T>({ ...args, input: input[key] }, [...path, key]);
     if (out[key] === DELETE_LATER) {
       delete out[key];
     }

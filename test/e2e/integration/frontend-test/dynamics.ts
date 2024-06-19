@@ -20,6 +20,7 @@ describe('Dynamics', () => {
   it('Show and hide name change reasons radio buttons', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).type('test');
+    cy.findByRole('tab', { name: 'Nytt etternavn' }).click();
     cy.get(appFrontend.changeOfName.newLastName).type('test');
     cy.get(appFrontend.changeOfName.confirmChangeName)
       .findByRole('checkbox', {
@@ -63,6 +64,7 @@ describe('Dynamics', () => {
     cy.gotoAndComplete('changename');
     cy.navPage('form').click();
     cy.get(appFrontend.changeOfName.newFirstName).clear();
+    cy.findByRole('tab', { name: 'Nytt etternavn' }).click();
     cy.get(appFrontend.changeOfName.newLastName).clear();
     cy.get(appFrontend.changeOfName.newFirstName).type('test');
     cy.get(appFrontend.errorReport).should('contain.text', texts.testIsNotValidValue);
@@ -101,13 +103,14 @@ describe('Dynamics', () => {
       },
     );
     cy.goto('changename');
-
     // Make sure the summary page can be hidden
     cy.get(appFrontend.navMenuButtons).should('have.length', 3);
     cy.get(appFrontend.changeOfName.newFirstName).type('hideSummary');
     cy.get(appFrontend.navMenuButtons).should('have.length', 2);
 
     cy.get(appFrontend.changeOfName.newFirstName).clear();
+
+    cy.findByRole('tab', { name: 'Nytt etternavn' }).click();
     cy.get(appFrontend.changeOfName.newLastName).should('be.visible');
     cy.get(appFrontend.navMenuButtons).should('have.length', 3);
 
@@ -116,6 +119,7 @@ describe('Dynamics', () => {
     cy.get('#testInputOnSummary').clear();
     cy.get('#testInputOnSummary').type('1234');
     cy.navPage('form').click();
+    cy.findByRole('tab', { name: 'Nytt etternavn' }).click();
     cy.get(appFrontend.changeOfName.newLastName).should('not.exist');
 
     // But hiding the summary page should hide the input there, making the last name component show up again (since

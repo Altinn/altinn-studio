@@ -76,7 +76,7 @@ export function GroupComponent({
       >
         <div
           ref={containerDivRef}
-          id={id || container.id}
+          id={id ?? container.id}
           data-testid='display-group-container'
           className={cn({ [classes.groupingIndicator]: isIndented && !isNested }, classes.groupContainer)}
         >

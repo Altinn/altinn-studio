@@ -7,12 +7,14 @@ describe('Rules', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).type('automation');
     cy.get(appFrontend.changeOfName.newMiddleName).type('is');
+    cy.findByRole('tab', { name: 'Nytt etternavn' }).click();
     cy.get(appFrontend.changeOfName.newLastName).type('fun');
     cy.get(appFrontend.changeOfName.newFullName).should('have.value', 'automation is fun');
   });
 
   it('Rule is run when a backend calculation updates a relevant field', () => {
     cy.goto('changename');
+    cy.findByRole('tab', { name: 'Nytt etternavn' }).click();
     // We update newLastName which triggers a calculation backend that updates NewMiddleName to 'MiddleNameFromCalculation'
     // This should then trigger function which concatenates first + middle + last name to the newFullName field
     cy.get(appFrontend.changeOfName.newLastName).type('LastName');

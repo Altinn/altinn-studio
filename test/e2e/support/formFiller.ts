@@ -42,6 +42,7 @@ function fillOutChangeName() {
 
     cy.navPage('form').click();
     cy.get(appFrontend.changeOfName.newFirstName).type('a');
+    cy.findByRole('tab', { name: 'Nytt etternavn' }).click();
     cy.get(appFrontend.changeOfName.newLastName).type('a');
     cy.get(appFrontend.changeOfName.confirmChangeName)
       .findByRole('checkbox', {

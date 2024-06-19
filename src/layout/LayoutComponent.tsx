@@ -84,6 +84,13 @@ export abstract class AnyComponent<Type extends CompTypes> {
   abstract canRenderInAccordionGroup(): boolean;
 
   /**
+   * Return true to allow this component to be rendered in a Tabs
+   */
+  canRenderInTabs(): boolean {
+    return true;
+  }
+
+  /**
    * Should GenericComponent render validation messages for simpleBinding outside of this component?
    * This has no effect if:
    *  - Your component renders directly, using directRender()
@@ -119,10 +126,10 @@ export abstract class AnyComponent<Type extends CompTypes> {
    */
   validateLayoutConfing(
     component: CompExternalExact<Type>,
-    validatate: (pointer: string | null, data: unknown) => ErrorObject[] | undefined,
+    validate: (pointer: string | null, data: unknown) => ErrorObject[] | undefined,
   ): ErrorObject[] | undefined {
     const schemaPointer = '#/definitions/AnyComponent';
-    return validatate(schemaPointer, component);
+    return validate(schemaPointer, component);
   }
 }
 

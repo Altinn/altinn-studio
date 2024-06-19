@@ -194,9 +194,9 @@ export class BaseLayoutNode<Item extends CompInternal = CompInternal, Type exten
         return true;
       }
 
-      const myBaseId = this.item.baseComponentId || this.item.id;
+      const myBaseId = this.item.baseComponentId ?? this.item.id;
       const groupMode = this.parent.item.edit?.mode;
-      const tableColSetup = this.parent.item.tableColumns && this.parent.item.tableColumns[myBaseId];
+      const tableColSetup = this.parent.item.tableColumns?.[myBaseId];
 
       // This specific configuration hides the component fully, without having set hidden=true on the component itself.
       // It's most likely done by mistake, but we still need to respect it when checking if the component is hidden,

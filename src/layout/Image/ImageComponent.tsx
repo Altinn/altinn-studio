@@ -22,11 +22,11 @@ export function ImageComponent({ node }: IImageProps) {
   const { id, image, textResourceBindings } = node.item;
   const classes = useStyles();
   const languageKey = useCurrentLanguage();
-  const width = image?.width || '100%';
-  const align = image?.align || 'center';
+  const width = image?.width ?? '100%';
+  const align = image?.align ?? 'center';
   const altText = textResourceBindings?.altTextImg ? langAsString(textResourceBindings.altTextImg) : undefined;
 
-  let imgSrc = image?.src[languageKey] || image?.src.nb || '';
+  let imgSrc = image?.src[languageKey] ?? image?.src.nb ?? '';
   if (imgSrc.startsWith('wwwroot')) {
     imgSrc = imgSrc.replace('wwwroot', `/${window.org}/${window.app}`);
   }

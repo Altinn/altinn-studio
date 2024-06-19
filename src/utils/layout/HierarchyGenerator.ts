@@ -255,7 +255,7 @@ export class HierarchyGenerator {
    * Utility function to make it easier to create a LayoutNode object (used by processors in components)
    */
   makeNode<T extends CompTypes>({ item, parent, rowIndex, rowId }: ChildFactoryProps<T>): LayoutNode<T> {
-    const def = this.getLayoutComponentObject(item.type as CompTypes);
+    const def = this.getLayoutComponentObject(item.type);
     if (!def) {
       throw new Error(`Could not find definition for component type '${item.type}'`);
     }

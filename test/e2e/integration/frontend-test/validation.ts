@@ -52,6 +52,7 @@ describe('Validation', () => {
       texts.requiredFieldFromBackend,
     );
     cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newMiddleName)).should('not.exist');
+    cy.findByRole('tab', { name: 'Nytt etternavn' }).click();
     cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newLastName)).should(
       'have.text',
       texts.requiredFieldLastName,
@@ -110,6 +111,7 @@ describe('Validation', () => {
       })
       .check();
     cy.navPage('form').should('have.attr', 'aria-current', 'page');
+    cy.findByRole('tab', { name: 'Nytt etternavn' }).click();
     cy.get(appFrontend.nextButton).scrollIntoView();
     cy.get(appFrontend.nextButton).should('be.inViewport');
     cy.get(appFrontend.nextButton).click();
@@ -120,7 +122,6 @@ describe('Validation', () => {
       .should('contain.text', texts.requiredFieldDateFrom)
       .should('contain.text', texts.next);
     cy.navPage('form').should('have.attr', 'aria-current', 'page');
-
     // Make sure all the buttons in the form are now inside errorReport, not outside of it.
     // - 4 of the button roles belong to each of the errors in the report
     // - 2 of the button roles belong to the buttons on the bottom of the form (print, next)
@@ -128,7 +129,6 @@ describe('Validation', () => {
     cy.get(appFrontend.errorReport)
       .findAllByRole('button')
       .should('have.length', 4 + 2);
-
     const lastNameError = appFrontend.fieldValidation(appFrontend.changeOfName.newLastName);
     cy.get(lastNameError).should('exist').should('not.be.inViewport');
     cy.get(appFrontend.changeOfName.newLastName).should('not.be.focused');
@@ -181,11 +181,13 @@ describe('Validation', () => {
     cy.get(appFrontend.changeOfName.newFirstName).type('a');
 
     // Tests regex validation in schema
+    cy.findByRole('tab', { name: 'Nytt etternavn' }).click();
     cy.get(appFrontend.changeOfName.newLastName).type('client');
     cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newLastName)).should('have.text', texts.clientSide);
     cy.get(appFrontend.changeOfName.newLastName).clear();
 
     // Tests max length validation in schema
+    cy.findByRole('tab', { name: /Nytt mellomnavn/i }).click();
     cy.get(appFrontend.changeOfName.newMiddleName).type(
       'very long middle name that is over 50 characters which is the limit',
     );
@@ -195,7 +197,9 @@ describe('Validation', () => {
     );
 
     // Hiding the field should remove the validation
+    cy.findByRole('tab', { name: 'Nytt etternavn' }).click();
     cy.get(appFrontend.changeOfName.newLastName).type('hideNext');
+    cy.findByRole('tab', { name: /Nytt mellomnavn/i }).click();
     cy.get(appFrontend.changeOfName.newMiddleName).should('exist');
     cy.changeLayout((component) => {
       if (component.id === 'newMiddleName') {

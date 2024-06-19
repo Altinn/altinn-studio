@@ -9,6 +9,7 @@ import type { GenerateCommonImport } from 'src/codegen/dataTypes/GenerateCommonI
 import type { GenerateObject } from 'src/codegen/dataTypes/GenerateObject';
 import type { GenerateProperty } from 'src/codegen/dataTypes/GenerateProperty';
 import type { GenerateTextResourceBinding } from 'src/codegen/dataTypes/GenerateTextResourceBinding';
+import type { CompTypes } from 'src/layout/layout';
 import type {
   ActionComponent,
   ContainerComponent,
@@ -24,25 +25,26 @@ export interface RequiredComponentConfig {
     renderInButtonGroup: boolean;
     renderInAccordion: boolean;
     renderInAccordionGroup: boolean;
+    renderInTabs?: boolean;
     renderInCards: boolean;
     renderInCardsMedia: boolean;
   };
 }
 
 const CategoryImports: { [Category in CompCategory]: GenerateImportedSymbol<any> } = {
-  [CompCategory.Action]: new GenerateImportedSymbol<ActionComponent<any>>({
+  [CompCategory.Action]: new GenerateImportedSymbol<ActionComponent<CompTypes>>({
     import: 'ActionComponent',
     from: 'src/layout/LayoutComponent',
   }),
-  [CompCategory.Form]: new GenerateImportedSymbol<FormComponent<any>>({
+  [CompCategory.Form]: new GenerateImportedSymbol<FormComponent<CompTypes>>({
     import: 'FormComponent',
     from: 'src/layout/LayoutComponent',
   }),
-  [CompCategory.Container]: new GenerateImportedSymbol<ContainerComponent<any>>({
+  [CompCategory.Container]: new GenerateImportedSymbol<ContainerComponent<CompTypes>>({
     import: 'ContainerComponent',
     from: 'src/layout/LayoutComponent',
   }),
-  [CompCategory.Presentation]: new GenerateImportedSymbol<PresentationComponent<any>>({
+  [CompCategory.Presentation]: new GenerateImportedSymbol<PresentationComponent<CompTypes>>({
     import: 'PresentationComponent',
     from: 'src/layout/LayoutComponent',
   }),

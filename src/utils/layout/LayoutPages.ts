@@ -18,7 +18,7 @@ export class LayoutPages<
     private currentView?: keyof Collection,
     objects?: Collection,
   ) {
-    this.objects = objects || ({} as any);
+    this.objects = objects ?? ({} as any);
     for (const layoutKey of Object.keys(this.objects)) {
       const layout = this.objects[layoutKey];
       layout.registerCollection(layoutKey, this);
