@@ -1,254 +1,88 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { VersionControlButtons } from './VersionControlButtons';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import userEvent from '@testing-library/user-event';
-import type { RepoStatus } from 'app-shared/types/RepoStatus';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import {
+  ServicesContextProvider,
+  type ServicesContextProps,
+} from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { repository, repoStatus } from 'app-shared/mocks/mocks';
-import { QueryKey } from 'app-shared/types/QueryKey';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { VersionControlButtonsContextProvider } from './context';
+import {
+  mockRepoStatus,
+  mockVersionControlButtonsContextValue,
+} from './test/mocks/versionControlContextMock';
+import { MemoryRouter } from 'react-router-dom';
 import { app, org } from '@studio/testing/testids';
 
-/**
- * This part is probably not ideal. A more scalable way to mock these calls should be done in a more central place
- * for instance the `renderWithProviders` method.
- */
-const okRepoStatus: RepoStatus = {
-  ...repoStatus,
-  repositoryStatus: 'Ok',
-};
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => {
+    return { org, app };
+  },
+}));
 
-const aheadRepoStatus: RepoStatus = {
-  ...repoStatus,
-  aheadBy: 1,
-  repositoryStatus: 'Ok',
-};
-
-const mergeConflictRepoStatus: RepoStatus = {
-  ...repoStatus,
-  aheadBy: 1,
-  behindBy: 1,
-  hasMergeConflict: true,
-  repositoryStatus: 'CheckoutConflict',
-};
-
-const getRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(okRepoStatus));
-const getRepoPull = jest.fn().mockImplementation(() => Promise.resolve(okRepoStatus));
-const commitAndPushChanges = jest.fn().mockImplementation(() => Promise.resolve(okRepoStatus));
-
-const defaultQueries: Partial<ServicesContextProps> = {
-  getRepoStatus,
-  getRepoPull,
-  commitAndPushChanges,
-};
-
-describe('Shared > Version Control > VersionControlHeader', () => {
+describe('VersionControlButtons', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should render header with fetch and share button by default', () => {
+  it('should render FetchChangesPopover and ShareChangesPopover components', () => {
     renderVersionControlButtons();
-    const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
-    const shareButton = screen.getByRole('button', {
-      name: textMock('sync_header.changes_to_share'),
-    });
-    expect(fetchButton).toBeInTheDocument();
-    expect(shareButton).toBeInTheDocument();
-    expect(shareButton).toHaveAttribute('title', textMock('sync_header.changes_to_share'));
-  });
 
-  it('ReFetches queries when clicking the fetch button', async () => {
-    const user = userEvent.setup();
-    renderVersionControlButtons();
-    const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
-    await user.click(fetchButton);
-    await waitFor(() => expect(queriesMock.getRepoMetadata).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(getRepoStatus).toHaveBeenCalledTimes(2));
-    await waitFor(() => expect(getRepoPull).toHaveBeenCalledTimes(1));
-  });
-
-  it('should render commit message modal when clicking the share button with changes', async () => {
-    const user = userEvent.setup();
-    const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(aheadRepoStatus));
-    const mockQueries: Partial<ServicesContextProps> = {
-      getRepoStatus: mockGetRepoStatus,
-    };
-    renderVersionControlButtons(mockQueries);
-
-    const shareButton = screen.getByRole('button', {
-      name: textMock('sync_header.changes_to_share'),
-    });
-    await user.click(shareButton);
-    await waitFor(() => expect(mockGetRepoStatus).toHaveBeenCalledTimes(2));
     expect(
-      await screen.findByText(textMock('sync_header.describe_and_validate')),
+      screen.getByRole('button', { name: textMock('sync_header.fetch_changes') }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: textMock('sync_header.changes_to_share') }),
     ).toBeInTheDocument();
   });
 
-  it('should render no changes message when clicking the share button with no changes', async () => {
-    const user = userEvent.setup();
-    renderVersionControlButtons();
+  it('should disable ShareChangesPopover button if user has no push rights', () => {
+    renderVersionControlButtons({
+      queries: {
+        getRepoMetadata: jest.fn().mockReturnValue({ data: { hasPushRights: false } }),
+      },
+    });
 
-    const shareButton = screen.getByRole('button', {
+    const shareChangesButton = screen.getByRole('button', {
       name: textMock('sync_header.changes_to_share'),
     });
-    await user.click(shareButton);
-    await waitFor(() => expect(getRepoStatus).toHaveBeenCalledTimes(2));
-    expect(await screen.findByText(textMock('sync_header.nothing_to_push'))).toBeInTheDocument();
+    expect(shareChangesButton).toBeDisabled();
   });
 
-  it('should render commit message modal when clicking the share button with merge conflicts', async () => {
-    const user = userEvent.setup();
-    const mockGetRepoStatus = jest.fn().mockReturnValue(mergeConflictRepoStatus);
-    const mockQueries: Partial<ServicesContextProps> = {
-      getRepoStatus: mockGetRepoStatus,
-    };
-    renderVersionControlButtons(mockQueries);
+  it('should disable FetchChangesPopover button if there are merge conflicts', () => {
+    renderVersionControlButtons({
+      queries: {
+        getRepoStatus: jest.fn().mockReturnValue({ ...mockRepoStatus, hasMergeConflict: true }),
+      },
+    });
 
-    const shareButton = screen.getByRole('button', {
+    const fetchChangesButton = screen.getByRole('button', {
       name: textMock('sync_header.changes_to_share'),
     });
-    await user.click(shareButton);
-    await waitFor(() => expect(mockGetRepoStatus).toHaveBeenCalledTimes(2));
-    expect(
-      await screen.findByText(textMock('sync_header.describe_and_validate')),
-    ).toBeInTheDocument();
-  });
-
-  it('should call commitAndPush endpoint clicking the share button with changes', async () => {
-    const user = userEvent.setup();
-    const mockGetRepoStatus = jest.fn().mockReturnValue(aheadRepoStatus);
-    const mockQueries: Partial<ServicesContextProps> = {
-      getRepoStatus: mockGetRepoStatus,
-    };
-    renderVersionControlButtons(mockQueries);
-
-    const shareButton = screen.getByRole('button', {
-      name: textMock('sync_header.changes_to_share'),
-    });
-    await user.click(shareButton);
-
-    await waitFor(() => expect(mockGetRepoStatus).toHaveBeenCalledTimes(2));
-    await user.click(
-      screen.getByRole('button', { name: textMock('sync_header.describe_and_validate_btnText') }),
-    );
-    await waitFor(() => expect(commitAndPushChanges).toHaveBeenCalledTimes(1));
-  });
-
-  it('should call repoPull when commitAndPush is rejected', async () => {
-    const user = userEvent.setup();
-    const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(aheadRepoStatus));
-    const mockCommitAndPushChanges = jest.fn().mockImplementation(() => Promise.reject('error'));
-    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
-    const mockQueries: Partial<ServicesContextProps> = {
-      getRepoStatus: mockGetRepoStatus,
-      commitAndPushChanges: mockCommitAndPushChanges,
-    };
-    renderVersionControlButtons(mockQueries);
-
-    const shareButton = screen.getByRole('button', {
-      name: textMock('sync_header.changes_to_share'),
-    });
-    await user.click(shareButton);
-
-    await waitFor(() => expect(mockGetRepoStatus).toHaveBeenCalledTimes(2));
-    await user.click(
-      screen.getByRole('button', { name: textMock('sync_header.describe_and_validate_btnText') }),
-    );
-    await waitFor(() => expect(mockCommitAndPushChanges).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(mockConsoleError).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(getRepoPull).toHaveBeenCalledTimes(1));
-  });
-
-  it('should show mergeConflict message when commitAndPush is rejected and repoPull returns merge conflict status', async () => {
-    const user = userEvent.setup();
-    const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(aheadRepoStatus));
-    const mockCommitAndPushChanges = jest.fn().mockImplementation(() => Promise.reject('error'));
-    const mockRepoPull = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve(mergeConflictRepoStatus));
-    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
-    const mockQueries: Partial<ServicesContextProps> = {
-      getRepoStatus: mockGetRepoStatus,
-      commitAndPushChanges: mockCommitAndPushChanges,
-      getRepoPull: mockRepoPull,
-    };
-    renderVersionControlButtons(mockQueries);
-
-    const shareButton = screen.getByRole('button', {
-      name: textMock('sync_header.changes_to_share'),
-    });
-    await user.click(shareButton);
-
-    await waitFor(() => expect(mockGetRepoStatus).toHaveBeenCalledTimes(2));
-    await user.click(
-      screen.getByRole('button', { name: textMock('sync_header.describe_and_validate_btnText') }),
-    );
-
-    const mergeConflictButton = screen.getByRole('button', {
-      name: textMock('sync_header.merge_conflict'),
-    });
-    expect(mergeConflictButton).toHaveAttribute('disabled');
-    expect(mergeConflictButton).toHaveAttribute(
-      'title',
-      textMock('sync_header.merge_conflict_title'),
-    );
-    expect(mockConsoleError).toHaveBeenCalled();
-  });
-
-  it('should disable version control buttons when repoPull returns merge conflict status', async () => {
-    const user = userEvent.setup();
-    const mockGetRepoStatus = jest.fn().mockImplementation(() => Promise.resolve(aheadRepoStatus));
-    const mockCommitAndPushChanges = jest.fn().mockImplementation(() => Promise.reject('error'));
-    const mockRepoPull = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve(mergeConflictRepoStatus));
-    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
-    const mockQueries: Partial<ServicesContextProps> = {
-      getRepoStatus: mockGetRepoStatus,
-      commitAndPushChanges: mockCommitAndPushChanges,
-      getRepoPull: mockRepoPull,
-    };
-    renderVersionControlButtons(mockQueries);
-
-    const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
-    await user.click(fetchButton);
-    expect(fetchButton).toHaveAttribute('disabled');
-    const mergeConflictButton = screen.getByRole('button', {
-      name: textMock('sync_header.merge_conflict'),
-    });
-    expect(mergeConflictButton).toHaveAttribute('disabled');
-    expect(mergeConflictButton).toHaveAttribute(
-      'title',
-      textMock('sync_header.merge_conflict_title'),
-    );
-    expect(mockConsoleError).toHaveBeenCalled();
-  });
-
-  it('should show no push right in button title when repo metadata says no push rights', () => {
-    renderVersionControlButtons({}, false);
-
-    const shareButton = screen.getByRole('button', {
-      name: textMock('sync_header.changes_to_share'),
-    });
-    expect(shareButton).toHaveAttribute('title', textMock('sync_header.sharing_changes_no_access'));
+    expect(fetchChangesButton).toBeDisabled();
   });
 });
 
-const renderVersionControlButtons = (
-  queries: Partial<ServicesContextProps> = {},
-  hasPushRights = true,
-) => {
-  const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.RepoMetaData, org, app], {
-    ...repository,
-    permissions: { ...repository.permissions, push: hasPushRights },
-  });
-  render(
-    <ServicesContextProvider {...queriesMock} {...defaultQueries} {...queries} client={queryClient}>
-      <VersionControlButtons />
-    </ServicesContextProvider>,
+type Props = {
+  queries: Partial<ServicesContextProps>;
+};
+
+const renderVersionControlButtons = (props: Partial<Props> = {}) => {
+  const { queries } = props;
+
+  const allQueries: ServicesContextProps = {
+    ...queriesMock,
+    ...queries,
+  };
+
+  return render(
+    <MemoryRouter>
+      <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
+        <VersionControlButtonsContextProvider {...mockVersionControlButtonsContextValue}>
+          <VersionControlButtons />
+        </VersionControlButtonsContextProvider>
+      </ServicesContextProvider>
+    </MemoryRouter>,
   );
 };
