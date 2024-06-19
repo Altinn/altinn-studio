@@ -232,7 +232,7 @@
             "header": false,
             "readOnly": false,
             "cells": [
-              {"text": "Row 3"},
+              {"text": "Row 2"},
               {
                 "component": "grid-input-field"
               },
