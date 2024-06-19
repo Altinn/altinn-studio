@@ -59,4 +59,16 @@ describe('RightTranslationBar', () => {
 
     expect(mockOnBlur).toHaveBeenCalled();
   });
+
+  it('shows error messages', () => {
+    const errorMessage = 'Some error';
+    render(
+      <RightTranslationBar
+        {...defaultProps}
+        errors={[{ field: 'title', index: 'en', error: errorMessage }]}
+      />,
+    );
+
+    expect(screen.getByText(errorMessage)).toBeInTheDocument();
+  });
 });

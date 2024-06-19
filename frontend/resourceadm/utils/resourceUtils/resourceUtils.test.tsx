@@ -6,12 +6,13 @@ import {
   deepCompare,
   getEnvLabel,
   mapKeywordStringToKeywordTypeArray,
+  validateResource,
 } from './';
 import type { EnvId } from './resourceUtils';
 import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { TestFlaskIcon } from '@studio/icons';
 import React from 'react';
-import type { SupportedLanguage } from 'app-shared/types/ResourceAdm';
+import type { Resource, SupportedLanguage } from 'app-shared/types/ResourceAdm';
 
 describe('mapKeywordStringToKeywordTypeArray', () => {
   it('should split keywords correctly', () => {
@@ -204,6 +205,60 @@ describe('deepCompare', () => {
     it('should return empty label for selected environment when environment with given id does not exist', () => {
       const envLabel = getEnvLabel('mu01' as EnvId);
       expect(envLabel).toEqual('');
+    });
+  });
+
+  describe('validateResource', () => {
+    it('should return all possible errors for maskinportenSchema', () => {
+      const resource: Resource = {
+        identifier: 'res',
+        resourceType: 'MaskinportenSchema',
+        title: null,
+        description: null,
+        delegable: true,
+        rightDescription: null,
+        resourceReferences: [
+          { reference: '', referenceSource: 'Default', referenceType: 'Default' },
+        ],
+        status: null,
+        availableForType: null,
+        contactPoints: [{ category: '', contactPage: '', email: '', telephone: '' }],
+      };
+      const validationErrors = validateResource(resource, () => 'test');
+      expect(validationErrors.length).toBe(13);
+    });
+
+    it('should return all possible errors for genericAccessResource', () => {
+      const resource: Resource = {
+        identifier: 'res',
+        resourceType: null,
+        title: null,
+        description: null,
+        delegable: true,
+        rightDescription: null,
+        status: null,
+        availableForType: null,
+        contactPoints: null,
+      };
+      const validationErrors = validateResource(resource, () => 'test');
+      expect(validationErrors.length).toBe(13);
+    });
+
+    it('should show empty errors for contactPoints and resourceReferences', () => {
+      const resource: Resource = {
+        identifier: 'res',
+        resourceType: 'MaskinportenSchema',
+        title: null,
+        description: null,
+        delegable: true,
+        rightDescription: null,
+        resourceReferences: [],
+        status: null,
+        availableForType: null,
+        contactPoints: [],
+      };
+      const validationErrors = validateResource(resource, () => 'test');
+      expect(validationErrors.length).toBe(13);
     });
   });
 });

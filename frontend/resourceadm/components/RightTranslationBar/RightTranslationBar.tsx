@@ -60,9 +60,11 @@ export const RightTranslationBar = ({
 
   const displayNField = (lang: ValidLanguage) => {
     const label = `${title} (${mapLanguageKeyToLanguageText(lang, t)})`;
+
     const errorMessages = errors
       .filter((error) => error.index === lang)
       .map((error, index) => <InputFieldErrorMessage key={index} message={error.error} />);
+    const errorMessagesToDisplay = errorMessages.length > 0 ? errorMessages : undefined;
 
     if (usesTextArea) {
       return (
@@ -71,7 +73,7 @@ export const RightTranslationBar = ({
           onChange={(e) => handleChange(lang, e.currentTarget.value)}
           rows={5}
           label={<ResourceFieldHeader label={label} required={required} />}
-          error={errorMessages.length > 0 ? errorMessages : undefined}
+          error={errorMessagesToDisplay}
           onBlur={onBlur}
           size='small'
           required={required}
@@ -83,7 +85,7 @@ export const RightTranslationBar = ({
         value={value[lang]}
         onChange={(e) => handleChange(lang, e.target.value)}
         label={<ResourceFieldHeader label={label} required={required} />}
-        error={errorMessages.length > 0 ? errorMessages : undefined}
+        error={errorMessagesToDisplay}
         onBlur={onBlur}
         size='small'
         required={required}
