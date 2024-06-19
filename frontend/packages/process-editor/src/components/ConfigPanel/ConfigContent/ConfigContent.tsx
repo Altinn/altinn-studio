@@ -6,7 +6,7 @@ import { EditTaskId } from './EditTaskId/EditTaskId';
 import { StudioDisplayTile, StudioSectionHeader } from '@studio/components';
 import { getConfigTitleKey, getConfigTitleHelpTextKey } from '../../../utils/configPanelUtils';
 import { ConfigIcon } from './ConfigIcon';
-import { EditDataType } from '../EditDataType';
+import { EditDataTypes } from '../EditDataTypes';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { Accordion } from '@digdir/design-system-react';
 import { EditActions } from './EditActions';
@@ -46,7 +46,7 @@ export const ConfigContent = (): React.ReactElement => {
         className={classes.displayTile}
       />
       {taskHasConnectedLayoutSet && (
-        <EditDataType
+        <EditDataTypes
           connectedTaskId={layoutSet.tasks[0]}
           dataModelIds={availableDataModelIds}
           existingDataTypeForTask={existingDataTypeForTask}

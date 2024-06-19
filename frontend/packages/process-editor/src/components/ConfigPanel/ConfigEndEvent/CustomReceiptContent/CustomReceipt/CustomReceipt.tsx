@@ -7,7 +7,7 @@ import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { getDataTypeFromLayoutSetsWithExistingId } from '../../../../../utils/configPanelUtils';
 import { RedirectToCreatePageButton } from '../RedirectToCreatePageButton';
 import { useTranslation } from 'react-i18next';
-import { EditDataType } from '../../../EditDataType';
+import { EditDataTypes } from '../../../EditDataTypes';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import { getLayoutSetIdValidationErrorKey } from 'app-shared/utils/layoutSetsUtils';
 
@@ -77,7 +77,7 @@ export const CustomReceipt = (): React.ReactElement => {
             'aria-label': t('process_editor.configuration_panel_custom_receipt_textfield_label'),
           }}
         />
-        <EditDataType
+        <EditDataTypes
           connectedTaskId={PROTECTED_TASK_NAME_CUSTOM_RECEIPT}
           dataModelIds={allDataModelIds}
           existingDataTypeForTask={existingDataModelId}

@@ -55,7 +55,7 @@ jest.mock('../utils/hookUtils', () => ({
 
 jest.mock('../contexts/BpmnConfigPanelContext', () => ({
   useBpmnConfigPanelFormContext: jest.fn(() => ({
-    metaDataFormRef: { current: null },
+    metadataFormRef: { current: null },
     resetForm: jest.fn(),
   })),
 }));

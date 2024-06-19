@@ -242,7 +242,7 @@ const renderVersionControlButtons = (
   hasPushRights = true,
 ) => {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.RepoMetaData, org, app], {
+  queryClient.setQueryData([QueryKey.RepoMetadata, org, app], {
     ...repository,
     permissions: { ...repository.permissions, push: hasPushRights },
   });

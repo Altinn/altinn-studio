@@ -2,23 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { LinkIcon } from '@studio/icons';
-import { SelectDataType } from './SelectDataType';
-import classes from './EditDataType.module.css';
+import { SelectDataTypes } from './SelectDataTypes';
+import classes from './EditDataTypes.module.css';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 
-export type EditDataTypeProps = {
+export type EditDataTypesProps = {
   dataModelIds: string[];
   connectedTaskId: string;
   existingDataTypeForTask: string | undefined;
   hideDeleteButton?: boolean;
 };
 
-export const EditDataType = ({
+export const EditDataTypes = ({
   dataModelIds,
   connectedTaskId,
   existingDataTypeForTask,
   hideDeleteButton = false,
-}: EditDataTypeProps) => {
+}: EditDataTypesProps) => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
   const [dataModelSelectVisible, setDataModelSelectVisible] = useState(false);
@@ -43,7 +43,7 @@ export const EditDataType = ({
           icon={<LinkIcon />}
         />
       ) : dataModelSelectVisible ? (
-        <SelectDataType
+        <SelectDataTypes
           dataModelIds={dataModelIds}
           existingDataType={existingDataTypeForTask}
           connectedTaskId={connectedTaskId}

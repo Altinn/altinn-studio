@@ -36,7 +36,7 @@ import {
   processEditorPathPut,
   layoutSetPath,
   processEditorDataTypePath,
-  processEditorDataTypeChangePath,
+  processEditorDataTypesChangePath,
   dataModelsUploadPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
@@ -61,7 +61,7 @@ import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Repository } from 'app-shared/types/Repository';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import type { AddLayoutSetResponse } from 'app-shared/types/api/AddLayoutSetResponse';
-import type { DataTypeChange } from 'app-shared/types/api/DataTypeChange';
+import type { DataTypesChange } from 'app-shared/types/api/DataTypesChange';
 
 const headers = {
   Accept: 'application/json',
@@ -137,4 +137,4 @@ export const updateBpmnXml = (org: string, app: string, form: any) =>
     },
   });
 
-export const updateProcessDataType = (org: string, app: string, dataTypeChange: DataTypeChange) => put(processEditorDataTypeChangePath(org, app), dataTypeChange);
+export const updateProcessDataTypes = (org: string, app: string, dataTypesChange: DataTypesChange) => put(processEditorDataTypesChangePath(org, app), dataTypesChange);
