@@ -234,13 +234,13 @@
             "cells": [
               {"text": "Row 2"},
               {
-                "component": "grid-input-field"
+                "component": "grid-input-field-two"
               },
               {
-                "component": "grid-checkbox-field"
+                "component": "grid-checkbox-field-two"
               },
               {
-                "component": "grid-radio-field"
+                "component": "grid-radio-field-two"
               }
             ]
           },
@@ -250,13 +250,13 @@
             "cells": [
               {"text": "Row 3"},
               {
-                "component": "grid-input-field"
+                "component": "grid-input-field-three"
               },
               {
-                "component": "grid-checkbox-field"
+                "component": "grid-checkbox-field-three"
               },
               {
-                "component": "grid-radio-field"
+                "component": "grid-radio-field-three"
               }
             ]
           }
@@ -317,6 +317,114 @@
         }
       },
       {
+        "id": "grid-input-field-two",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "My input field"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleInputTwo"
+        }
+      },
+      {
+        "id": "grid-radio-field-two",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "My radio field"
+        },
+        "options": [
+          {
+            "label": "Ja",
+            "value": "option1"
+          },
+          {
+            "label": "Nei",
+            "value": "option2"
+          }
+        ],
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleRadioTwo"
+        }
+      },
+      {
+        "id": "grid-checkbox-field-two",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "My radio field"
+        },
+        "options": [
+          {
+            "label": "Valg 1",
+            "value": "option1"
+          },
+          {
+            "label": "Valg 2",
+            "value": "option2"
+          },
+          {
+            "label": "Valg 3",
+            "value": "option3"
+          }
+        ],
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleCheckboxTwo"
+        }
+      },
+      {
+        "id": "grid-input-field-three",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "My input field"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleInputThree"
+        }
+      },
+      {
+        "id": "grid-radio-field-three",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "My radio field"
+        },
+        "options": [
+          {
+            "label": "Ja",
+            "value": "option1"
+          },
+          {
+            "label": "Nei",
+            "value": "option2"
+          }
+        ],
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleRadioThree"
+        }
+      },
+      {
+        "id": "grid-checkbox-field-three",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "My radio field"
+        },
+        "options": [
+          {
+            "label": "Valg 1",
+            "value": "option1"
+          },
+          {
+            "label": "Valg 2",
+            "value": "option2"
+          },
+          {
+            "label": "Valg 3",
+            "value": "option3"
+          }
+        ],
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleCheckboxThree"
+        }
+      },
+      {
         "size": "h3",
         "id": "CheckboxesPage-Header-Summary",
         "type": "Header",
@@ -330,7 +438,7 @@
         "componentRef": "all-grid-components"
       },
       {
-        "id": "old-summary",
+        "id": "old-summary-common-fields",
         "type": "Summary",
         "componentRef": "grid-example-common-fields"
       },
