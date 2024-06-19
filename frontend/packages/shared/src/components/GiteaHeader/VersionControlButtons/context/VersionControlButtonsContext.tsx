@@ -76,6 +76,7 @@ export const VersionControlButtonsContextProvider = ({
         hasMergeConflict,
         setHasMergeConflict,
         commitAndPushChanges,
+        repoStatus,
       }}
     >
       {children}
