@@ -121,5 +121,35 @@ namespace Altinn.App.Models.model
     [JsonPropertyName("ExampleCheckbox")]
     public string ExampleCheckbox { get; set; }
 
+    [XmlElement("ExampleInputTwo", Order = 8)]
+    [JsonProperty("ExampleInputTwo")]
+    [JsonPropertyName("ExampleInputTwo")]
+    public string ExampleInputTwo { get; set; }
+
+    [XmlElement("ExampleInputThree", Order = 9)]
+    [JsonProperty("ExampleInputThree")]
+    [JsonPropertyName("ExampleInputThree")]
+    public string ExampleInputThree { get; set; }
+
+    [XmlElement("ExampleRadioTwo", Order = 10)]
+    [JsonProperty("ExampleRadioTwo")]
+    [JsonPropertyName("ExampleRadioTwo")]
+    public string ExampleRadioTwo { get; set; }
+
+    [XmlElement("ExampleRadioThree", Order = 11)]
+    [JsonProperty("ExampleRadioThree")]
+    [JsonPropertyName("ExampleRadioThree")]
+    public string ExampleRadioThree { get; set; }
+
+    [XmlElement("ExampleCheckboxTwo", Order = 12)]
+    [JsonProperty("ExampleCheckboxTwo")]
+    [JsonPropertyName("ExampleCheckboxTwo")]
+    public string ExampleCheckboxTwo { get; set; }
+
+    [XmlElement("ExampleCheckboxThree", Order = 13)]
+    [JsonProperty("ExampleCheckboxThree")]
+    [JsonPropertyName("ExampleCheckboxThree")]
+    public string ExampleCheckboxThree { get; set; }
+
   }
 }
