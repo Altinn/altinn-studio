@@ -98,7 +98,9 @@ export const ServiceContent = ({
           onValueChange={(newValue: string[]) => {
             handleSelectService(newValue[0]);
           }}
-          filter={(inputValue: string, option) => option.label.indexOf(inputValue) > -1}
+          filter={(inputValue: string, option) =>
+            option.label.toLowerCase().indexOf(inputValue.toLowerCase()) > -1
+          }
         >
           <Combobox.Empty>
             {t('resourceadm.dashboard_import_modal_no_services_found')}
