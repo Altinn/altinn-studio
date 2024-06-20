@@ -3,7 +3,7 @@ import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { useTranslation } from 'react-i18next';
 import { StudioProperty } from '@studio/components';
 import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
-import { BpmnActionModeler } from '@altinn/process-editor/utils/bpmn/BpmnActionModeler';
+import { Action, BpmnActionModeler } from '@altinn/process-editor/utils/bpmn/BpmnActionModeler';
 import { ActionsEditor } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/ActionsEditor/ActionsEditor';
 import { useChecksum } from './useChecksum';
 
@@ -12,7 +12,7 @@ export const EditActions = (): React.ReactElement => {
   const { bpmnDetails } = useBpmnContext();
   const bpmnActionModeler = new BpmnActionModeler(bpmnDetails.element);
   const { updateChecksum } = useChecksum();
-  const actions = bpmnActionModeler.actionElements?.action || [];
+  const actions: Action[] = bpmnActionModeler.actionElements?.action || [];
 
   const onNewActionAddClicked = (): void => {
     // TODO: find a better way to handle re-rendering of the component
@@ -38,7 +38,7 @@ export const EditActions = (): React.ReactElement => {
   };
 
   return (
-    <React.Fragment>
+    <>
       {actions.map((actionElement: ModdleElement, index: number) => (
         // TODO: improve the key, but we cannot use the actionElement.action as key
         <div key={index}>
@@ -54,6 +54,6 @@ export const EditActions = (): React.ReactElement => {
         property={t('process_editor.configuration_panel_actions_add_new')}
         size='small'
       />
-    </React.Fragment>
+    </>
   );
 };
