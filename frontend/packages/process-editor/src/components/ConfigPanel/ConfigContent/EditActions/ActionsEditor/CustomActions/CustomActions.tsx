@@ -1,16 +1,15 @@
 import React from 'react';
 import { StudioTextfield } from '@studio/components';
 import { Switch } from '@digdir/design-system-react';
-
+import { useDebounce } from 'app-shared/hooks/useDebounce';
 import {
   Action,
   ActionType,
   BpmnActionModeler,
-} from '@altinn/process-editor/utils/bpmn/BpmnActionModeler';
-import { useActionHandler } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/ActionsEditor/hooks/useOnActionChange';
-import { useDebounce } from 'app-shared/hooks/useDebounce';
-import { getPredefinedActions } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/ActionsUtils';
-import { useBpmnContext } from '@altinn/process-editor/contexts/BpmnContext';
+} from '../../../../../../utils/bpmn/BpmnActionModeler';
+import { useActionHandler } from '../hooks/useOnActionChange';
+import { getPredefinedActions } from '../../ActionsUtils';
+import { useBpmnContext } from '../../../../../../contexts/BpmnContext';
 
 import classes from './CustomActions.module.css';
 

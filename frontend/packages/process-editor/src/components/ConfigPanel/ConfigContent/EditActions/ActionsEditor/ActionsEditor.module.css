@@ -1,3 +1,23 @@
+/*  Needs important to be able to override designsystem. Can be removed after we upgrade to latest version */
+
+.cardHeader {
+  padding: var(--fds-spacing-2) !important;
+}
+
+.cardFooter {
+  padding: 0 0 var(--fds-spacing-3) var(--fds-spacing-3) !important;
+  gap: var(--fds-spacing-3);
+}
+
+.cardDivider {
+  margin: 0 !important;
+}
+
+.cardContent {
+  padding-left: var(--fds-spacing-3) !important;
+  padding-right: var(--fds-spacing-3) !important;
+}
+
 .tabsContainer {
   border: 0;
 }

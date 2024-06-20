@@ -1,25 +1,22 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   StudioCard,
   StudioTabs,
-  StudioHeading,
   StudioDivider,
   StudioButton,
   StudioDeleteButton,
   StudioProperty,
+  StudioParagraph,
 } from '@studio/components';
 import { CheckmarkIcon } from '@studio/icons';
-import { PredefinedActions } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/ActionsEditor/PredefinedActions/PredefinedActions';
-import { CustomActions } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/ActionsEditor/CustomActions';
+import { PredefinedActions } from './PredefinedActions';
+import { CustomActions } from './CustomActions';
+import { Action, BpmnActionModeler } from '../../../../../utils/bpmn/BpmnActionModeler';
+import { useBpmnContext } from '../../../../../contexts/BpmnContext';
+import { getPredefinedActions, isActionRequiredForTask } from '../ActionsUtils';
 
 import classes from './ActionsEditor.module.css';
-import { Action, BpmnActionModeler } from '@altinn/process-editor/utils/bpmn/BpmnActionModeler';
-import { useBpmnContext } from '@altinn/process-editor/contexts/BpmnContext';
-import {
-  getPredefinedActions,
-  isActionRequiredForTask,
-} from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/ActionsUtils';
-import { useTranslation } from 'react-i18next';
 
 enum TabIds {
   Predefined = 'predefined',
@@ -77,26 +74,30 @@ type ActionEditableProps = {
   onClose: () => void;
   onDelete: () => void;
 };
-const ActionEditable = ({ actionElement, actionIndex, onClose, onDelete }: ActionEditableProps) => {
+const ActionEditable = ({
+  actionElement,
+  actionIndex,
+  onClose,
+  onDelete,
+}: ActionEditableProps): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
 
   const isCustomAction =
-    actionElement.action !== '' &&
+    actionElement.action !== undefined &&
     !getPredefinedActions(bpmnDetails.taskType).includes(actionElement.action);
 
   return (
-    // TODO fix the inline styling!!
-    <StudioCard style={{ margin: '8px' }}>
-      <StudioCard.Header>
-        <StudioHeading level={3} size='xxsmall'>
+    <StudioCard>
+      <StudioCard.Header className={classes.cardHeader}>
+        <StudioParagraph size='small'>
           {t('process_editor.configuration_panel_actions_action_card_title', {
             actionIndex: actionIndex + 1,
           })}
-        </StudioHeading>
+        </StudioParagraph>
       </StudioCard.Header>
-      <StudioDivider color='subtle' />
-      <StudioCard.Content>
+      <StudioDivider color='subtle' className={classes.cardDivider} />
+      <StudioCard.Content className={classes.cardContent}>
         <StudioTabs
           defaultValue={isCustomAction ? TabIds.Custom : TabIds.Predefined}
           size='small'
@@ -118,7 +119,7 @@ const ActionEditable = ({ actionElement, actionIndex, onClose, onDelete }: Actio
           </StudioTabs.Content>
         </StudioTabs>
       </StudioCard.Content>
-      <StudioCard.Footer>
+      <StudioCard.Footer className={classes.cardFooter}>
         <StudioButton
           size='small'
           variant='secondary'

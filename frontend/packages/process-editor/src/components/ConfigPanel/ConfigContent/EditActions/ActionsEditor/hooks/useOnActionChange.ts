@@ -1,6 +1,6 @@
 import React from 'react';
-import { useBpmnContext } from '@altinn/process-editor/contexts/BpmnContext';
-import { Action, BpmnActionModeler } from '@altinn/process-editor/utils/bpmn/BpmnActionModeler';
+import { useBpmnContext } from '../../../../../../contexts/BpmnContext';
+import { Action, BpmnActionModeler } from '../../../../../../utils/bpmn/BpmnActionModeler';
 
 type UseOnActionChangeResult = {
   handleOnActionChange: (event: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => void;

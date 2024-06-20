@@ -1,11 +1,13 @@
 import React from 'react';
-import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { useTranslation } from 'react-i18next';
 import { StudioProperty } from '@studio/components';
 import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
-import { Action, BpmnActionModeler } from '@altinn/process-editor/utils/bpmn/BpmnActionModeler';
-import { ActionsEditor } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/ActionsEditor/ActionsEditor';
 import { useChecksum } from './useChecksum';
+import { ActionsEditor } from './ActionsEditor';
+import { useBpmnContext } from '../../../../contexts/BpmnContext';
+import { Action, BpmnActionModeler } from '../../../../utils/bpmn/BpmnActionModeler';
+
+import classes from './EditActions.module.css';
 
 export const EditActions = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -36,12 +38,11 @@ export const EditActions = (): React.ReactElement => {
 
     bpmnActionModeler.addNewActionToTask(undefined);
   };
-
   return (
     <>
       {actions.map((actionElement: ModdleElement, index: number) => (
         // TODO: improve the key, but we cannot use the actionElement.action as key
-        <div key={index}>
+        <div key={index} className={classes.container}>
           <ActionsEditor
             actionElement={actionElement}
             actionIndex={index}

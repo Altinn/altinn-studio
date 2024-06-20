@@ -1,13 +1,10 @@
 import React from 'react';
-import { StudioNativeSelect } from '@studio/components';
-import { Action, BpmnActionModeler } from '@altinn/process-editor/utils/bpmn/BpmnActionModeler';
-import { useBpmnContext } from '@altinn/process-editor/contexts/BpmnContext';
-import {
-  getAvailablePredefinedActions,
-  isActionAvailable,
-} from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/ActionsUtils';
 import { useTranslation } from 'react-i18next';
+import { StudioNativeSelect } from '@studio/components';
 import { useActionHandler } from '../hooks/useOnActionChange';
+import { useBpmnContext } from '../../../../../../contexts/BpmnContext';
+import { getAvailablePredefinedActions, isActionAvailable } from '../../ActionsUtils';
+import { Action, BpmnActionModeler } from '../../../../../../utils/bpmn/BpmnActionModeler';
 
 type PredefinedActionsProps = {
   actionElement: Action;
