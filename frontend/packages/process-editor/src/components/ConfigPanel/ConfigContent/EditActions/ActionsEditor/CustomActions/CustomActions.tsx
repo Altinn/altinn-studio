@@ -40,7 +40,7 @@ export const CustomActions = ({ actionElement }: CustomActionsProps): React.Reac
       <StudioTextfield
         onChange={onCustomActionChange}
         size='small'
-        label='Skriv inn navnet på handlingen du vil lage'
+        label={t('process_editor.configuration_panel_actions_action_card_custom_label')}
         className={classes.customActionTextfield}
         value={isCustomAction ? actionElement.action : ''}
       />
@@ -50,7 +50,7 @@ export const CustomActions = ({ actionElement }: CustomActionsProps): React.Reac
         value={currentActionType}
         checked={currentActionType === ActionType.Server}
       >
-        Skal handlingen utføres automatisk?
+        {t('process_editor.configuration_panel_actions_set_server_action_label')}
       </Switch>
     </div>
   );

@@ -38,10 +38,11 @@ export const EditActions = (): React.ReactElement => {
 
     bpmnActionModeler.addNewActionToTask(undefined);
   };
+
   return (
     <>
       {actions.map((actionElement: ModdleElement, index: number) => (
-        // TODO: improve the key, but we cannot use the actionElement.action as key
+        // Using the index as key, since we do not have a unique identifier for the action elements
         <div key={index} className={classes.container}>
           <ActionsEditor
             actionElement={actionElement}
