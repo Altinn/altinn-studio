@@ -99,7 +99,7 @@ export const ServiceContent = ({
             handleSelectService(newValue[0]);
           }}
           filter={(inputValue: string, option) =>
-            option.label.toLowerCase().indexOf(inputValue.toLowerCase()) > -1
+            option.label.toLowerCase().indexOf(inputValue?.toLowerCase()) > -1
           }
         >
           <Combobox.Empty>
