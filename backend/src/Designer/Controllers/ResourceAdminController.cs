@@ -505,7 +505,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             if (resource.ResourceType == ResourceType.MaskinportenSchema)
             {
-                if (resource.ResourceReferences == null || !resource.ResourceReferences.Any((x) => x.ReferenceType == ReferenceType.MaskinportenScope)) 
+                if (resource.ResourceReferences == null || !resource.ResourceReferences.Any((x) => x.ReferenceType == ReferenceType.MaskinportenScope))
                 {
                     ModelState.AddModelError($"{resource.Identifier}.resourceReferences", "resourceerror.missingmaskinportenscope");
                 }
