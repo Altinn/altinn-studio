@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { NativeSelect } from '@digdir/design-system-react';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -16,7 +16,12 @@ export function LayoutSetsContainer() {
     setSelectedFormLayoutName,
     refetchLayouts,
     refetchLayoutSettings,
+    onLayoutSetNameChange,
   } = useAppContext();
+
+  useEffect(() => {
+    onLayoutSetNameChange(selectedFormLayoutSetName);
+  }, [onLayoutSetNameChange, selectedFormLayoutSetName]);
 
   const onLayoutSetClick = async (set: string) => {
     if (selectedFormLayoutSetName !== set) {
@@ -25,6 +30,7 @@ export function LayoutSetsContainer() {
 
       setSelectedFormLayoutSetName(set);
       setSelectedFormLayoutName(undefined);
+      onLayoutSetNameChange(set);
     }
   };
 
