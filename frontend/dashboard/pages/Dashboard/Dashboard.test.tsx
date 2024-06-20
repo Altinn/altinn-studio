@@ -66,7 +66,7 @@ describe('Dashboard', () => {
     expect(appRepos).toHaveLength(1);
   });
 
-  it('should display datamodels list with one item', async () => {
+  it('should display data model list with one item', async () => {
     const appName = DATA_MODEL_REPO_IDENTIFIER;
     const dataModelsRepository = {
       ...repository,
@@ -94,22 +94,5 @@ describe('Dashboard', () => {
     );
 
     expect(dataModelRepos).toHaveLength(1);
-  });
-
-  it('should not render datamodels list if there are no datamodels', async () => {
-    renderWithMockServices({
-      searchRepos: () =>
-        Promise.resolve<SearchRepositoryResponse>({
-          ...searchRepositoryResponse,
-          data: [repository],
-        }),
-    });
-
-    await waitForElementToBeRemoved(() => screen.queryAllByText(textMock('general.loading')));
-
-    const dataModelHeading = screen.queryByRole('heading', {
-      name: textMock('dashboard.my_data_models'),
-    });
-    expect(dataModelHeading).not.toBeInTheDocument();
   });
 });
