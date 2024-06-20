@@ -24,6 +24,7 @@ export const EditComponentIdRow = ({
   const [{ data: layoutSchema }, , { data: expressionSchema }, { data: numberFormatSchema }] =
     useLayoutSchemaQuery();
 
+  const [isViewMode, setIsViewMode] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(null);
 
   const idInputValue = component.id;
@@ -77,16 +78,17 @@ export const EditComponentIdRow = ({
           size: 'small',
           error: errorMessage,
           className: classes.idInput,
-          children: (
-            <div className={classes.alert}>
-              <Alert>{t('ux_editor.modal_properties_component_change_id_information')}</Alert>
-            </div>
-          ),
         }}
         customValidation={(value) => {
           return validateId(value);
         }}
+        onIsViewMode={setIsViewMode}
       />
+      {!isViewMode && (
+        <div className={classes.alert}>
+          <Alert>{t('ux_editor.modal_properties_component_change_id_information')}</Alert>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React, { forwardRef, useState } from 'react';
+import React, { forwardRef, useEffect, useState } from 'react';
 import {
   StudioTextfieldToggleView,
   type StudioTextfieldToggleViewProps,
@@ -10,12 +10,20 @@ export type StudioToggleableTextfieldProps = {
   customValidation?: (value: string) => string | undefined;
   inputProps: StudioIconTextfieldProps;
   viewProps: Omit<StudioTextfieldToggleViewProps, 'onClick'>;
+  onIsViewMode?: (isViewMode: boolean) => void;
 };
 
 export const StudioToggleableTextfield = forwardRef<HTMLDivElement, StudioToggleableTextfieldProps>(
-  ({ inputProps, viewProps, customValidation }: StudioToggleableTextfieldProps, ref) => {
+  (
+    { inputProps, viewProps, customValidation, onIsViewMode }: StudioToggleableTextfieldProps,
+    ref,
+  ) => {
     const [isViewMode, setIsViewMode] = useState(true);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(null);
+
+    useEffect(() => {
+      if (onIsViewMode) onIsViewMode(isViewMode);
+    }, [isViewMode, onIsViewMode]);
 
     const toggleViewMode = (): void => {
       setIsViewMode((prevMode) => !prevMode);

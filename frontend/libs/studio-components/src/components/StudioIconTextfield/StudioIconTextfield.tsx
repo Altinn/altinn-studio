@@ -10,20 +10,17 @@ export type StudioIconTextfieldProps = {
 
 export const StudioIconTextfield = forwardRef<HTMLDivElement, StudioIconTextfieldProps>(
   (
-    { icon, className: givenClassName, children, ...rest }: StudioIconTextfieldProps,
+    { icon, className: givenClassName, ...rest }: StudioIconTextfieldProps,
     ref,
   ): React.ReactElement => {
     const className = cn(givenClassName, classes.container);
     return (
-      <>
-        <div className={className} ref={ref}>
-          <div aria-hidden className={classes.prefixIcon}>
-            {icon}
-          </div>
-          <StudioTextfield {...rest} className={classes.textfield} />
+      <div className={className} ref={ref}>
+        <div aria-hidden className={classes.prefixIcon}>
+          {icon}
         </div>
-        {children}
-      </>
+        <StudioTextfield {...rest} className={classes.textfield} />
+      </div>
     );
   },
 );

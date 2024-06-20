@@ -15,6 +15,7 @@ export type StudioToggleableTextfieldSchemaProps = {
   layoutSchema: JsonSchema;
   relatedSchemas: JsonSchema[];
   propertyPath: string;
+  onIsViewMode?: (isViewMode: boolean) => void;
   onError?: (error: SchemaValidationError | null) => void;
 } & StudioToggleableTextfieldProps;
 
@@ -29,6 +30,7 @@ export const StudioToggleableTextfieldSchema = forwardRef<
       inputProps,
       propertyPath,
       onError,
+      onIsViewMode,
       ...rest
     }: StudioToggleableTextfieldSchemaProps,
     ref,
@@ -69,6 +71,7 @@ export const StudioToggleableTextfieldSchema = forwardRef<
           onChange: (event: React.ChangeEvent<HTMLInputElement>) => handleOnChange(event),
           error: inputProps.error,
         }}
+        onIsViewMode={onIsViewMode}
       />
     );
   },
