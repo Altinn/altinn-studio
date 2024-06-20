@@ -82,28 +82,28 @@ describe('RepoList', () => {
     const user = userEvent.setup();
     const onPageChange = jest.fn();
     renderWithMockServices({
-      pageNumber: 0,
+      pageNumber: 1,
       isServerSort: true,
       onPageChange,
     });
 
     await user.click(screen.getByRole('button', { name: textMock('general.next') }));
 
-    expect(onPageChange).toHaveBeenCalledWith(1);
+    expect(onPageChange).toHaveBeenCalledWith(2);
   });
 
   it('should call onPageChange with a decrementing number when navigating to the previous page', async () => {
     const user = userEvent.setup();
     const onPageChange = jest.fn();
     renderWithMockServices({
-      pageNumber: 1,
+      pageNumber: 2,
       isServerSort: true,
       onPageChange,
     });
 
     await user.click(screen.getByRole('button', { name: textMock('general.previous') }));
 
-    expect(onPageChange).toHaveBeenCalledWith(0);
+    expect(onPageChange).toHaveBeenCalledWith(1);
   });
 
   it('should call onPageSizeChange when selecting a new page size', async () => {
