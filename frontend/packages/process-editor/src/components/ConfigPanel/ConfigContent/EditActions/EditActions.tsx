@@ -13,13 +13,11 @@ export const EditActions = (): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
   const bpmnActionModeler = new BpmnActionModeler(bpmnDetails.element);
-  const { updateChecksum } = useChecksum();
+  // This is a custom hook that is used to force re-render the component, since the actions from bpmnjs are not reactive
+  const { updateChecksum: forceReRenderComponent } = useChecksum();
   const actions: Action[] = bpmnActionModeler.actionElements?.action || [];
 
   const onNewActionAddClicked = (): void => {
-    // Need to update checksum to trigger re-render of the component, because React does not re-render when actions changes
-    updateChecksum();
-
     const shouldUpdateExistingActions = bpmnActionModeler.hasActionsAlready;
     if (shouldUpdateExistingActions) {
       const existingActionElement = bpmnActionModeler.actionElements;
@@ -31,11 +29,11 @@ export const EditActions = (): React.ReactElement => {
         bpmnActionModeler.getExtensionElements(),
         undefined,
       );
-
+      forceReRenderComponent();
       return;
     }
-
     bpmnActionModeler.addNewActionToTask(undefined);
+    forceReRenderComponent();
   };
 
   return (
