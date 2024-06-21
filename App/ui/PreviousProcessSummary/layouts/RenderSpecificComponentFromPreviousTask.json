@@ -18,9 +18,10 @@
         "id": "Summary2-previous-process",
         "type": "Summary2",
         "hidden": false,
+        "taskId": "Task_1",
         "target": {
-          "type": "task",
-          "id": "Task_1>CheckboxesPage>CheckboxesPage-Checkboxes"
+          "type": "component",
+          "id": "AddressPage-Address"
         }
       }
     ]

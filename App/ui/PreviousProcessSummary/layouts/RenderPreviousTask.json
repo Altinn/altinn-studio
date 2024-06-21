@@ -18,10 +18,7 @@
         "id": "Summary2-previous-process",
         "type": "Summary2",
         "hidden": false,
-        "target": {
-          "type": "task",
-          "id": "Task_1"
-        }
+        "taskId" :"Task_1"
       }
     ]
   }
