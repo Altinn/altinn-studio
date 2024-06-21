@@ -57,7 +57,9 @@ export const ResourceTable = ({
           size='small'
           icon={
             <PencilIcon
-              title={t('resourceadm.dashboard_table_row_edit')}
+              title={t('resourceadm.dashboard_table_row_edit', {
+                resourceName: getListItemTitle(listItem),
+              })}
               className={classes.editLink}
             />
           }
@@ -73,7 +75,9 @@ export const ResourceTable = ({
           size='small'
           icon={
             <FileImportIcon
-              title={t('resourceadm.dashboard_table_row_import')}
+              title={t('resourceadm.dashboard_table_row_import', {
+                resourceName: getListItemTitle(listItem),
+              })}
               className={classes.editLink}
             />
           }
@@ -85,15 +89,21 @@ export const ResourceTable = ({
     }
   };
 
+  const getListItemTitle = (listItem): string => {
+    return (
+      listItem.title[i18n?.language] ||
+      listItem.title.nb ||
+      t('resourceadm.dashboard_table_row_missing_title')
+    );
+  };
+
   const listData = list.map((listItem) => {
     return {
       ...listItem,
       id: listItem.identifier,
       lastChanged: (listItem.lastChanged ?? '').toString(),
-      title:
-        listItem.title[i18n?.language] ||
-        listItem.title.nb ||
-        t('resourceadm.dashboard_table_row_missing_title'),
+      title: getListItemTitle(listItem),
+
       environments: (
         <div className={classes.tagContainer}>
           {listItem.environments.map((env: string) => {
