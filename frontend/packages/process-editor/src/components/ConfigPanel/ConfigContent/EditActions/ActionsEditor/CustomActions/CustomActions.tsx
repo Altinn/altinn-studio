@@ -2,21 +2,20 @@ import React from 'react';
 import { StudioTextfield } from '@studio/components';
 import { Switch } from '@digdir/design-system-react';
 import { useDebounce } from 'app-shared/hooks/useDebounce';
-import {
-  Action,
-  ActionType,
-  BpmnActionModeler,
-} from '../../../../../../utils/bpmn/BpmnActionModeler';
+import { BpmnActionModeler, ActionType } from '../../../../../../utils/bpmn/BpmnActionModeler';
+import type { Action } from '../../../../../../utils/bpmn/BpmnActionModeler';
 import { useActionHandler } from '../hooks/useOnActionChange';
 import { getPredefinedActions } from '../../ActionsUtils';
 import { useBpmnContext } from '../../../../../../contexts/BpmnContext';
 
 import classes from './CustomActions.module.css';
+import { useTranslation } from 'react-i18next';
 
-type CustomActionsProps = {
+export type CustomActionsProps = {
   actionElement: Action;
 };
 export const CustomActions = ({ actionElement }: CustomActionsProps): React.ReactElement => {
+  const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
   const { handleOnActionChange } = useActionHandler(actionElement);
   const { debounce } = useDebounce({ debounceTimeInMs: 300 });
