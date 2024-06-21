@@ -38,7 +38,8 @@
           "type": "string"
         },
         "ExampleInput": {
-          "type": "string"
+          "type": "string",
+          "maxLength": 7
         },
         "ExampleRadio": {
           "type": "string"
