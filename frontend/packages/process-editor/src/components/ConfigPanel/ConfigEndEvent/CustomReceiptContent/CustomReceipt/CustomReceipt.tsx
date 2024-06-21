@@ -2,7 +2,6 @@ import React from 'react';
 import classes from './CustomReceipt.module.css';
 import { StudioDeleteButton, StudioToggleableTextfield } from '@studio/components';
 import { KeyVerticalIcon } from '@studio/icons';
-import { Paragraph } from '@digdir/design-system-react';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { getDataTypeFromLayoutSetsWithExistingId } from '../../../../../utils/configPanelUtils';
 import { RedirectToCreatePageButton } from '../RedirectToCreatePageButton';
@@ -10,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { EditDataTypes } from '../../../EditDataTypes';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import { getLayoutSetIdValidationErrorKey } from 'app-shared/utils/layoutSetsUtils';
+import { Paragraph } from '@digdir/design-system-react';
 
 export const CustomReceipt = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -65,14 +65,13 @@ export const CustomReceipt = (): React.ReactElement => {
           }}
           viewProps={{
             children: (
-              <Paragraph size='small' className={classes.toggleableButtonText}>
+              <Paragraph size='small'>
                 <strong>
-                  {t('process_editor.configuration_panel_custom_receipt_layoutset_name')}
+                  {t('process_editor.configuration_panel_custom_receipt_layout_set_name')}
                 </strong>
                 {existingCustomReceiptLayoutSetId}
               </Paragraph>
             ),
-            value: existingCustomReceiptLayoutSetId,
             variant: 'tertiary',
             'aria-label': t('process_editor.configuration_panel_custom_receipt_textfield_label'),
           }}

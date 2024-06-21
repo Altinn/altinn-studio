@@ -48,17 +48,20 @@ describe('useUpdateFormContainerMutation', () => {
       app,
       layout1NameMock,
       selectedLayoutSet,
-      expect.objectContaining({
-        data: expect.objectContaining({
-          layout: expect.arrayContaining([
-            {
-              ...layout1Mock.data.layout[0],
-              id: updatedContainer.id,
-              maxCount,
-            },
-          ]),
+      {
+        componentIdsChange: undefined,
+        layout: expect.objectContaining({
+          data: expect.objectContaining({
+            layout: expect.arrayContaining([
+              {
+                ...layout1Mock.data.layout[0],
+                id: updatedContainer.id,
+                maxCount,
+              },
+            ]),
+          }),
         }),
-      }),
+      },
     );
   });
 });

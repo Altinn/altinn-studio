@@ -37,17 +37,20 @@ describe('useAddFormContainerMutation', () => {
       app,
       layout1NameMock,
       selectedLayoutSet,
-      expect.objectContaining({
-        data: expect.objectContaining({
-          layout: expect.arrayContaining([
-            {
-              id,
-              type: ComponentType.Group,
-              children: [],
-            },
-          ]),
+      {
+        componentIdsChange: undefined,
+        layout: expect.objectContaining({
+          data: expect.objectContaining({
+            layout: expect.arrayContaining([
+              {
+                id,
+                type: ComponentType.Group,
+                children: [],
+              },
+            ]),
+          }),
         }),
-      }),
+      },
     );
   });
 });

@@ -71,7 +71,11 @@ const renderAppContext = (children: (appContext: AppContextProps) => React.React
     ...render(
       <MemoryRouter>
         <ServicesContextProvider {...queriesMock} client={queryClient}>
-          <AppContextProvider shouldReloadPreview={false} previewHasLoaded={jest.fn()}>
+          <AppContextProvider
+            shouldReloadPreview={false}
+            previewHasLoaded={jest.fn()}
+            onLayoutSetNameChange={jest.fn()}
+          >
             <TestComponent queryClient={queryClient}>
               {(appContext: AppContextProps) => children(appContext)}
             </TestComponent>

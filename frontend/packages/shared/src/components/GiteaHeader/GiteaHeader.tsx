@@ -12,6 +12,7 @@ type GiteaHeaderProps = {
   rightContentClassName?: string;
   leftComponent?: ReactNode;
   hasRepoError?: boolean;
+  onPullSuccess?: () => void;
 };
 
 /**
@@ -43,12 +44,15 @@ export const GiteaHeader = ({
   rightContentClassName,
   leftComponent,
   hasRepoError,
+  onPullSuccess,
 }: GiteaHeaderProps): React.ReactNode => {
   return (
     <div className={classes.wrapper}>
       <div className={classes.leftContentWrapper}>{leftComponent}</div>
       <div className={`${classes.rightContentWrapper} ${rightContentClassName}`}>
-        {!hasRepoError && <VersionControlButtons org={org} app={app} />}
+        {!hasRepoError && (
+          <VersionControlButtons org={org} app={app} onPullSuccess={onPullSuccess} />
+        )}
         <ThreeDotsMenu
           onlyShowRepository={menuOnlyHasRepository}
           hasCloneModal={hasCloneModal}
