@@ -93,7 +93,6 @@ export function nb(): FixedLanguageList {
       placeholder_receipt_header: 'Skjemaet er nå fullført og sendt inn.',
       placeholder_user: 'OLA PRIVATPERSON',
       radiobutton_alert_label: 'Er du sikker på at du vil endre fra {0}?',
-      radiobutton_alert: 'Er du sikker på at du vil endre?',
       required_description: 'Obligatoriske felter er markert med *',
       required_label: '*',
       summary_item_change: 'Endre',

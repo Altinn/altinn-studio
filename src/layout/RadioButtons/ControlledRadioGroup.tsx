@@ -18,15 +18,15 @@ export type IControlledRadioGroupProps = IRadioButtonsContainerProps;
 export const ControlledRadioGroup = (props: IControlledRadioGroupProps) => {
   const { node, isValid, overrideDisplay } = props;
   const { id, layout, readOnly, textResourceBindings, required, showAsCard } = node.item;
-  const alertOnChange = 'alertOnChange' in node.item ? node.item.alertOnChange : undefined;
-  const labelSettings = 'labelSettings' in node.item ? node.item.labelSettings : undefined;
   const { selectedValues, handleChange, fetchingOptions, calculatedOptions } = useRadioButtons(props);
+  const alertOnChange = 'alertOnChange' in node.item ? node.item.alertOnChange && !!selectedValues[0] : undefined;
+  const labelSettings = 'labelSettings' in node.item ? node.item.labelSettings : undefined;
   const { lang, langAsString } = useLanguage();
   const selectedLabel = calculatedOptions.find((option) => option.value === selectedValues[0])?.label;
   const selectedLabelTranslated = langAsString(selectedLabel);
   const alertText = selectedLabel
     ? lang('form_filler.radiobutton_alert_label', [`<strong>${selectedLabelTranslated}</strong>`])
-    : lang('form_filler.radiobutton_alert');
+    : null;
   const confirmChangeText = langAsString('form_filler.alert_confirm');
 
   const getLabelPrefixForLikert = () => {

@@ -370,6 +370,7 @@ describe('UI Components', () => {
     cy.interceptLayout('changename', (component) => {
       if (component.id === 'reason' && component.type === 'RadioButtons') {
         component.alertOnChange = true;
+        component.preselectedOptionIndex = undefined;
       }
     });
 
@@ -378,6 +379,8 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.newFirstName).blur();
     cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
 
+    cy.findByRole('radio', { name: /Slektskap/ }).should('not.be.checked');
+    cy.findByRole('radio', { name: /Slektskap/ }).click();
     cy.findByRole('radio', { name: /Slektskap/ }).should('be.checked');
 
     cy.findByRole('radio', { name: /Gårdsbruk/ }).click();
