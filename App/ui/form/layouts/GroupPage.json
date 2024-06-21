@@ -31,7 +31,7 @@
                     "title": "Gruppetittel",
                     "description": "Gruppebeskrivelse"
                 },
-                "children": ["GroupPage-Group-Header", "GroupPage-Group-Nested"]
+                "children": ["GroupPage-Group-Header", "GroupPage-Input", "GroupPage-Group-Nested"]
             },
             {
                 "size": "h3",
@@ -78,6 +78,18 @@
                 }
             },
             {
+                "id": "GroupPage-Input",
+                "type": "Input",
+                "textResourceBindings": {
+                    "title": "Required input field inside group"
+                },
+                "dataModelBindings": {
+                    "simpleBinding": "shortAnswerInput"
+                },
+                "required": true,
+                "showValidations": ["All"]
+            },
+            {
                 "id": "GroupPage-Group-Nested",
                 "type": "Group",
                 "groupingIndicator": "indented",
@@ -86,7 +98,7 @@
                     "title": "Nested group title",
                     "description": "Nested group description"
                 },
-                "children": ["GroupPage-Nested-Header", "GroupPage-Nested-Input"]
+                "children": ["GroupPage-Nested-Header", "GroupPage-Nested-Input", "GroupPage-Group-Nested-Nested"]
             },
             {
                 "size": "L",
@@ -103,7 +115,28 @@
                 "id": "GroupPage-Nested-Input",
                 "type": "Input",
                 "textResourceBindings": {
-                    "title": "I am nested input"
+                    "title": "I am input inside nested group"
+                }
+            },
+            {
+                "id": "GroupPage-Group-Nested-Nested",
+                "type": "Group",
+                "groupingIndicator": "indented",
+                "hidden": false,
+                "textResourceBindings": {
+                    "title": "Nested group title inside nested group",
+                    "description": "Nested nested group description inside nested group"
+                },
+                "children": ["GroupPage-Nested-Nested-Input"]
+            },
+            {
+                "dataModelBindings": {
+                    "simpleBinding": "nestedInput"
+                },
+                "id": "GroupPage-Nested-Nested-Input",
+                "type": "Input",
+                "textResourceBindings": {
+                    "title": "I am input inside nested group inside nested group"
                 }
             }
         ]
