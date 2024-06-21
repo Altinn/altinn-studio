@@ -5,7 +5,7 @@ import { useSearchParamsState } from 'app-shared/hooks/useSearchParamsState';
 import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import { DATAGRID_PAGE_SIZE_OPTIONS, DATAGRID_DEFAULT_PAGE_SIZE } from '../../constants';
 
-enum Direction {
+export enum Direction {
   Asc = 'asc',
   Desc = 'desc',
 }

@@ -51,7 +51,9 @@ describe('StudioTableLocalPagination', () => {
       within(firstBodyRow).getByRole('cell', { name: 'A-melding – all forms' }),
     ).toBeInTheDocument();
     expect(
-      within(secondBodyRow).getByRole('cell', { name: 'Application for VAT registration' }),
+      within(secondBodyRow).getByRole('cell', {
+        name: 'Application for a certificate of good conduct',
+      }),
     ).toBeInTheDocument();
   });
 

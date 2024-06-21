@@ -24,7 +24,7 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
 
   const {
     searchResults: repoResults,
-    isLoadingSearchResults: areReposPending,
+    isLoadingSearchResults: hasPendingRepos,
     pageNumber,
     setPageNumber,
     pageSize,
@@ -32,15 +32,15 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
     onSortClick,
   } = useReposSearch({ uid: uid as number, defaultPageSize: DATAGRID_DEFAULT_PAGE_SIZE });
 
-  const { data: dataModelsResults, isPending: areDataModelsPending } = useSearchReposQuery({
+  const { data: dataModelsResults, isPending: hasPendingDataModels } = useSearchReposQuery({
     uid: uid as number,
     keyword: DATA_MODEL_REPO_IDENTIFIER,
-    page: 0,
+    page: 1,
   });
   const totalRows = repoResults?.totalCount - dataModelsResults?.totalCount ?? 0;
 
-  const { data: starredRepos = [], isPending: areStarredReposPending } = useStarredReposQuery();
-  const reposWithStarred = useAugmentReposWithStarred({
+  const { data: starredRepos = [], isPending: hasPendingStarredRepos } = useStarredReposQuery();
+  const reposIncludingStarredData = useAugmentReposWithStarred({
     repos: repoResults?.data,
     starredRepos,
   });
@@ -51,8 +51,10 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
         {getReposLabel({ selectedContext, orgs: organizations, t })}
       </Heading>
       <RepoList
-        repos={reposWithStarred.filter((repo) => !repo.name.endsWith(DATA_MODEL_REPO_IDENTIFIER))}
-        isLoading={areReposPending || areStarredReposPending || areDataModelsPending}
+        repos={reposIncludingStarredData.filter(
+          (repo) => !repo.name.endsWith(DATA_MODEL_REPO_IDENTIFIER),
+        )}
+        isLoading={hasPendingRepos || hasPendingStarredRepos || hasPendingDataModels}
         isServerSort={true}
         totalRows={totalRows}
         pageSize={pageSize}

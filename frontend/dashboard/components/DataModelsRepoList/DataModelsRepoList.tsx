@@ -26,19 +26,19 @@ export const DataModelsReposList = ({ user, organizations }: DataModelsReposList
     organizations,
   });
 
-  const { data: starredRepos = [], isPending: areStarredReposPending } = useStarredReposQuery();
-  const { data: allDataModelRepos, isPending: areOrgReposPending } = useSearchReposQuery({
+  const { data: starredRepos = [], isPending: hasPendingStarredRepos } = useStarredReposQuery();
+  const { data: dataModelRepos, isPending: hasPendingDataModels } = useSearchReposQuery({
     uid: uid as number,
     keyword: DATA_MODEL_REPO_IDENTIFIER,
-    page: 0,
+    page: 1,
   });
 
-  const reposWithStarred = useAugmentReposWithStarred({
-    repos: allDataModelRepos?.data,
+  const dataModelsIncludingStarredData = useAugmentReposWithStarred({
+    repos: dataModelRepos?.data,
     starredRepos,
   });
 
-  if (!reposWithStarred.length) {
+  if (!dataModelsIncludingStarredData.length) {
     return null;
   }
 
@@ -47,7 +47,10 @@ export const DataModelsReposList = ({ user, organizations }: DataModelsReposList
       <Heading level={2} size='small' spacing>
         {getReposLabel({ selectedContext, orgs: organizations, t, isDataModelsRepo: true })}
       </Heading>
-      <RepoList repos={reposWithStarred} isLoading={areOrgReposPending || areStarredReposPending} />
+      <RepoList
+        repos={dataModelsIncludingStarredData}
+        isLoading={hasPendingDataModels || hasPendingStarredRepos}
+      />
     </div>
   );
 };

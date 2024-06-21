@@ -1,4 +1,4 @@
-import { useReposSearch } from './useRepoSearch';
+import { Direction, useReposSearch } from './useRepoSearch';
 import { waitFor } from '@testing-library/react';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { repository } from 'app-shared/mocks/mocks';
@@ -21,9 +21,9 @@ const reposSortedByUpdatedAtReversed = reposSortedByUpdatedAt.reverse();
 const getSearchDataMock = ({ order, sortby }: Partial<SearchRepoFilterParams>) => {
   switch (sortby) {
     case 'alpha':
-      return order === 'asc' ? reposSortedByName : reposSortedByNameReversed;
+      return order === Direction.Asc ? reposSortedByName : reposSortedByNameReversed;
     case 'updated':
-      return order === 'asc' ? reposSortedByUpdatedAt : reposSortedByUpdatedAtReversed;
+      return order === Direction.Asc ? reposSortedByUpdatedAt : reposSortedByUpdatedAtReversed;
     default:
       return [];
   }

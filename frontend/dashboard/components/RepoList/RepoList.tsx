@@ -1,5 +1,5 @@
 import React from 'react';
-import type { RepositoryWithStarred } from 'dashboard/utils/repoUtils/repoUtils';
+import type { RepoIncludingStarredData } from 'dashboard/utils/repoUtils/repoUtils';
 import { useTranslation } from 'react-i18next';
 import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import { DATAGRID_DEFAULT_PAGE_SIZE, DATAGRID_PAGE_SIZE_OPTIONS } from '../../constants';
@@ -16,7 +16,7 @@ import { RepoNameWithLink } from './RepoNameWithLink';
 import { Paragraph } from '@digdir/design-system-react';
 
 export interface RepoListProps {
-  repos: RepositoryWithStarred[];
+  repos: RepoIncludingStarredData[];
   isLoading: boolean;
   isServerSort?: boolean;
   totalRows?: number;
