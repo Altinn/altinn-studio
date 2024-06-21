@@ -94,6 +94,7 @@ jobs:
       - name: 'Running Unit Tests'
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
+            git fetch origin main
             yarn test:ci --changedSince=origin/main
           else
             yarn test:ci
