@@ -29,9 +29,9 @@ export const PredefinedActions = ({
       size='small'
       label={t('process_editor.configuration_panel_actions_action_selector_label')}
       onChange={handleOnActionChange}
-      defaultValue={actionElement.action}
+      defaultValue={actionElement.action || ' '}
     >
-      <option disabled selected={!actionElement.action}></option>
+      <option disabled value=' '></option>
       {availablePredefinedActions.map(
         (action: string): React.ReactElement => (
           <option key={action} value={action} disabled={shouldDisableAction(action)}>

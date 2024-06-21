@@ -17,7 +17,6 @@ export const EditActions = (): React.ReactElement => {
   const actions: Action[] = bpmnActionModeler.actionElements?.action || [];
 
   const onNewActionAddClicked = (): void => {
-    // TODO: find a better way to handle re-rendering of the component
     // Need to update checksum to trigger re-render of the component, because React does not re-render when actions changes
     updateChecksum();
 
