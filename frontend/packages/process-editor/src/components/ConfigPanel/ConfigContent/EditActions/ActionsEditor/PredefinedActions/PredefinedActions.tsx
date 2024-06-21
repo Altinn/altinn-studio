@@ -4,7 +4,7 @@ import { StudioNativeSelect } from '@studio/components';
 import { useActionHandler } from '../hooks/useOnActionChange';
 import { useBpmnContext } from '../../../../../../contexts/BpmnContext';
 import { getAvailablePredefinedActions, isActionAvailable } from '../../ActionsUtils';
-import { Action, BpmnActionModeler } from '../../../../../../utils/bpmn/BpmnActionModeler';
+import { type Action, BpmnActionModeler } from '../../../../../../utils/bpmn/BpmnActionModeler';
 
 type PredefinedActionsProps = {
   actionElement: Action;

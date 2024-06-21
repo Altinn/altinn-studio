@@ -1,6 +1,6 @@
 import React from 'react';
 import { StudioTextfield } from '@studio/components';
-import { Switch } from '@digdir/design-system-react';
+import { HelpText, Switch } from '@digdir/design-system-react';
 import { useDebounce } from 'app-shared/hooks/useDebounce';
 import { BpmnActionModeler, ActionType } from '../../../../../../utils/bpmn/BpmnActionModeler';
 import type { Action } from '../../../../../../utils/bpmn/BpmnActionModeler';
@@ -35,7 +35,7 @@ export const CustomActions = ({ actionElement }: CustomActionsProps): React.Reac
   const currentActionType = bpmnActionModeler.getTypeForAction(actionElement) || ActionType.Process;
 
   return (
-    <div>
+    <>
       <StudioTextfield
         onChange={onCustomActionChange}
         size='small'
@@ -43,15 +43,23 @@ export const CustomActions = ({ actionElement }: CustomActionsProps): React.Reac
         className={classes.customActionTextfield}
         value={isCustomAction ? actionElement.action : ''}
       />
-      <Switch
-        size='small'
-        onChange={onActionTypeChange}
-        value={currentActionType}
-        checked={currentActionType === ActionType.Server}
-        disabled={!isCustomAction}
-      >
-        {t('process_editor.configuration_panel_actions_set_server_action_label')}
-      </Switch>
-    </div>
+      <div className={classes.actionTypeContainer}>
+        <Switch
+          size='small'
+          onChange={onActionTypeChange}
+          value={currentActionType}
+          checked={currentActionType === ActionType.Server}
+          disabled={!isCustomAction}
+        >
+          {t('process_editor.configuration_panel_actions_set_server_action_label')}
+        </Switch>
+        <HelpText
+          title={t('process_editor.configuration_panel_actions_action_type_help_text')}
+          size='small'
+        >
+          {t('process_editor.configuration_panel_actions_set_server_action_info')}
+        </HelpText>
+      </div>
+    </>
   );
 };

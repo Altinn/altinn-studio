@@ -1,4 +1,4 @@
-import React, { ChangeEvent } from 'react';
+import React, { type ChangeEvent } from 'react';
 import { renderHook } from '@testing-library/react';
 import { useActionHandler } from './useOnActionChange';
 import { BpmnContext } from '../../../../../../contexts/BpmnContext';

@@ -1,7 +1,7 @@
 import type { Element } from 'bpmn-moddle';
 import type Modeler from 'bpmn-js/lib/Modeler';
 import { type Moddle } from 'bpmn-js/lib/model/Types';
-import { ModdleElement } from 'bpmn-js/lib/BaseModeler';
+import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type ElementRegistry from 'diagram-js/lib/core/ElementRegistry';
 import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';

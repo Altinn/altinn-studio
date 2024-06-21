@@ -2,7 +2,7 @@ import React from 'react';
 import { userEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { render, screen, waitFor } from '@testing-library/react';
-import { CustomActions, CustomActionsProps } from './CustomActions';
+import { CustomActions, type CustomActionsProps } from './CustomActions';
 import { useActionHandler } from '../hooks/useOnActionChange';
 import { BpmnContext } from '../../../../../../contexts/BpmnContext';
 import { mockBpmnContextValue } from '../../../../../../../test/mocks/bpmnContextMock';
@@ -91,6 +91,20 @@ describe('CustomActions', () => {
     await user.click(actionTypeSwitch);
 
     expect(updateTypeForActionMock).toHaveBeenCalledTimes(0);
+  });
+
+  it('should display help text for action type', () => {
+    (useActionHandler as jest.Mock).mockImplementation(() => ({
+      handleOnActionChange: jest.fn(),
+    }));
+
+    renderCustomAction();
+
+    const helpText = screen.getByText(
+      textMock('process_editor.configuration_panel_actions_action_type_help_text'),
+    );
+
+    expect(helpText).toBeInTheDocument();
   });
 });
 
