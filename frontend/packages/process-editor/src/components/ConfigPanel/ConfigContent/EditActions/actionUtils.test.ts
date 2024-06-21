@@ -1,9 +1,4 @@
-import {
-  getAvailablePredefinedActions,
-  getPredefinedActions,
-  isActionAvailable,
-  isActionRequiredForTask,
-} from './actionsUtils';
+import { getPredefinedActions, isActionAvailable, isActionRequiredForTask } from './actionsUtils';
 
 describe('actionUtils', () => {
   describe('getPredefinedActions', () => {
