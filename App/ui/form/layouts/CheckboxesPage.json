@@ -107,7 +107,7 @@
                     "type": "component",
                     "id": "CheckboxesPage-Checkboxes"
                 },
-                "overWriteProperties": [
+                "overrides": [
                     {
                         "componentId": "CheckboxesPage-Checkboxes",
                         "displayType": "string"
@@ -130,7 +130,7 @@
                     "type": "component",
                     "id": "CheckboxesPage-Checkboxes"
                 },
-                "overWriteProperties": [
+                "overrides": [
                     {
                         "componentId": "CheckboxesPage-Checkboxes",
                         "displayType": "list"
