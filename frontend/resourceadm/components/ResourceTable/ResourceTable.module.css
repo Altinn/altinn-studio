@@ -9,3 +9,7 @@
   flex-wrap: wrap;
   gap: var(--fds-spacing-1);
 }
+
+.lastChangedCell {
+  width: 130px;
+}

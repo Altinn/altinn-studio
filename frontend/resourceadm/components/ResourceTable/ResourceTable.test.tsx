@@ -48,7 +48,7 @@ describe('ResourceTable', () => {
     render(<ResourceTable {...defaultProps} />);
 
     const listItemsBeforeSort = screen.getAllByRole('row').map((row) => row.textContent);
-    const sortButton = screen.getByRole('columnheader', {
+    const sortButton = screen.getByRole('button', {
       name: textMock('resourceadm.dashboard_table_header_name'),
     });
 
