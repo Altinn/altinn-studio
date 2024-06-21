@@ -54,18 +54,6 @@ jobs:
           echo COMMIT= >> .env
           echo IGNORE_DOCKER_DNS_LOOKUP=true >> .env
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Cache Docker layers
-        uses: docker/bake-action@master
-        with:
-          push: false
-          load: true
-          files: |-
-            compose.yaml
-            compose-cache.json
-
       - name: Run setup.js script
         run: |
           node ./development/setup.js
