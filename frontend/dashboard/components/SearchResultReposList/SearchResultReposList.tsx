@@ -9,11 +9,11 @@ type SearchResultReposList = {
   searchValue: string;
 };
 export const SearchResultReposList = ({ searchValue }: SearchResultReposList) => {
-  const { data: starredRepos = [], isPending: areStarredReposPending } = useStarredReposQuery();
+  const { data: starredRepos = [], isPending: hasPendingStarredRepos } = useStarredReposQuery();
   const { t } = useTranslation();
   const {
     searchResults,
-    isLoadingSearchResults,
+    isLoadingSearchResults: hasPendingRepos,
     pageNumber,
     setPageNumber,
     pageSize,
@@ -31,7 +31,7 @@ export const SearchResultReposList = ({ searchValue }: SearchResultReposList) =>
       <h2>{t('dashboard.search_result')}</h2>
       <RepoList
         repos={reposWithStarred}
-        isLoading={isLoadingSearchResults || areStarredReposPending}
+        isLoading={hasPendingRepos || hasPendingStarredRepos}
         onPageSizeChange={setPageSize}
         isServerSort={true}
         totalRows={searchResults?.totalCount}
