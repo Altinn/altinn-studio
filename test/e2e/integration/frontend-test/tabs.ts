@@ -8,7 +8,7 @@ describe('Tabs', () => {
 
     const tab1 = /Nytt mellomnavn/i;
     cy.findByRole('tab', { name: tab1 }).invoke('attr', 'aria-selected').should('equal', 'true');
-    cy.findByRole('tab', { name: tab1 }).findByAltText('Nytt mellomnavn').should('exist'); // Check if icon is present
+    cy.findByRole('tab', { name: tab1 }).findByAltText('').should('exist'); // Check if icon is present
     cy.findByRole('tab', { name: tab1 }).should('have.text', 'Nytt mellomnavn'); // check if text is present
 
     cy.findByRole('tab', { name: 'Nytt etternavn' });
