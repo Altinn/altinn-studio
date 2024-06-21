@@ -259,6 +259,21 @@
                 "component": "grid-radio-field-three"
               }
             ]
+          },
+          {
+            "readOnly": true,
+            "cells": [
+              {"text": "Row 1 - readonly"},
+              {
+                "component": "grid-input-field-readonly"
+              },
+              {
+                "component": "grid-checkbox-field-readonly"
+              },
+              {
+                "component": "grid-radio-field-readonly"
+              }
+            ]
           }
         ]
       },
@@ -423,6 +438,39 @@
         "dataModelBindings": {
           "simpleBinding": "GridExample.ExampleCheckboxThree"
         }
+      },
+      {
+        "id": "grid-input-field-readonly",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "My input field"
+        },
+        "readOnly": true,
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleInput"
+        }
+      },
+      {
+        "id": "grid-radio-field-readonly",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "My radio field"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleRadio"
+        },
+        "readOnly": true
+      },
+      {
+        "id": "grid-checkbox-field-readonly",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "My radio field"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "GridExample.ExampleCheckbox"
+        },
+        "readOnly": true
       },
       {
         "size": "h3",
