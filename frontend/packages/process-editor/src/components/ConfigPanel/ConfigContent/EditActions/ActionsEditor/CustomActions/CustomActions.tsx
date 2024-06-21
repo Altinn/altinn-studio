@@ -48,6 +48,7 @@ export const CustomActions = ({ actionElement }: CustomActionsProps): React.Reac
         onChange={onActionTypeChange}
         value={currentActionType}
         checked={currentActionType === ActionType.Server}
+        disabled={!isCustomAction}
       >
         {t('process_editor.configuration_panel_actions_set_server_action_label')}
       </Switch>

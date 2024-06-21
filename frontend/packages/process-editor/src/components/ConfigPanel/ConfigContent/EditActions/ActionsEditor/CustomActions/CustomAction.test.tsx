@@ -2,7 +2,7 @@ import React from 'react';
 import { userEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { render, screen, waitFor } from '@testing-library/react';
-import { CustomActions } from './CustomActions';
+import { CustomActions, CustomActionsProps } from './CustomActions';
 import { useActionHandler } from '../hooks/useOnActionChange';
 import { BpmnContext } from '../../../../../../contexts/BpmnContext';
 import { mockBpmnContextValue } from '../../../../../../../test/mocks/bpmnContextMock';
@@ -49,6 +49,10 @@ describe('CustomActions', () => {
   it('should be possible to change action type', async () => {
     const user = userEvent.setup();
 
+    (useActionHandler as jest.Mock).mockImplementation(() => ({
+      handleOnActionChange: jest.fn(),
+    }));
+
     const updateTypeForActionMock = jest.fn();
     (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
       updateTypeForAction: updateTypeForActionMock,
@@ -65,13 +69,36 @@ describe('CustomActions', () => {
     expect(updateTypeForActionMock).toHaveBeenCalledTimes(1);
     expect(updateTypeForActionMock).toHaveBeenCalledWith(actionElementMock, 'serverAction');
   });
+
+  it('should not be possible to change action type if action is predefined', async () => {
+    const user = userEvent.setup();
+
+    (useActionHandler as jest.Mock).mockImplementation(() => ({
+      handleOnActionChange: jest.fn(),
+    }));
+
+    const updateTypeForActionMock = jest.fn();
+    (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
+      updateTypeForAction: updateTypeForActionMock,
+      getTypeForAction: jest.fn().mockReturnValue('Process'),
+    }));
+
+    renderCustomAction({ actionElement: { ...actionElementMock, action: 'write' } });
+
+    const actionTypeSwitch = screen.getByLabelText(
+      textMock('process_editor.configuration_panel_actions_set_server_action_label'),
+    );
+    await user.click(actionTypeSwitch);
+
+    expect(updateTypeForActionMock).toHaveBeenCalledTimes(0);
+  });
 });
 
-const renderCustomAction = () => {
+const renderCustomAction = (props?: Partial<CustomActionsProps>) => {
   return render(
     <BpmnContext.Provider value={mockBpmnContextValue}>
       <BpmnConfigPanelFormContextProvider>
-        <CustomActions actionElement={actionElementMock} />
+        <CustomActions actionElement={props?.actionElement || actionElementMock} />
       </BpmnConfigPanelFormContextProvider>
     </BpmnContext.Provider>,
   );
