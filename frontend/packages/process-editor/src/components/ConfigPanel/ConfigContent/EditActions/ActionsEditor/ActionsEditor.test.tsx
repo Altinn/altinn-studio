@@ -6,9 +6,7 @@ import { PredefinedActions } from '@altinn/process-editor/components/ConfigPanel
 import React from 'react';
 
 describe('ActionsEditor', () => {
-  it('should be possible to add new action', () => {
-    re;
-  });
+  it('should be possible to add new action', () => {});
 });
 
 const renderActionsEditor = () => {
