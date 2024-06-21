@@ -107,6 +107,21 @@ export const filterDataModelFields = (
   }));
 };
 
+type DataModelFields = {
+  componentType: ComponentType;
+  bindingKey: string;
+  dataModelMetaData: DataModelFieldElement[];
+};
+
+export const getDataModelFields = ({
+  componentType,
+  bindingKey,
+  dataModelMetaData,
+}: DataModelFields): DataModelField[] => {
+  const filter = getDataModelFieldsFilter(componentType, bindingKey === 'list');
+  return filterDataModelFields(filter, dataModelMetaData);
+};
+
 export type InternalBindingFormat = {
   property: string | undefined;
   dataType: string | undefined;
