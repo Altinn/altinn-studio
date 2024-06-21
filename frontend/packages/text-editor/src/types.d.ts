@@ -11,6 +11,11 @@ export type TextResourceVariable = {
   defaultValue?: string;
 };
 
+type Option = {
+  value: string;
+  label: string;
+};
+
 type LangCode = string;
 
 type TextTableRow = {
