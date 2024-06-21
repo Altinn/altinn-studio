@@ -3,9 +3,10 @@ import { StudioButton, StudioDeleteButton } from '@studio/components';
 import { XMarkIcon } from '@studio/icons';
 import classes from './EditBinding.module.css';
 import { useTranslation } from 'react-i18next';
+import type { InternalBindingFormat } from '@altinn/ux-editor/utils/dataModel';
 
 export type EditBindingButtons = {
-  handleBindingChange: (binding: { property: string; dataType: string }) => void;
+  handleBindingChange: (binding: InternalBindingFormat) => void;
   setDataModelSelectVisible: (visible: boolean) => void;
 };
 
@@ -17,7 +18,7 @@ export const EditBindingButtons = ({
 
   const handleDelete = () => {
     const updatedDataModelBinding = {
-      property: '',
+      field: '',
       dataType: undefined,
     };
     handleBindingChange(updatedDataModelBinding);

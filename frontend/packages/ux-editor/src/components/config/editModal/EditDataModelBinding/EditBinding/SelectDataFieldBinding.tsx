@@ -28,26 +28,28 @@ export const SelectDataFieldBinding = ({
   const { t } = useTranslation();
   const propertyPath = `definitions/component/properties/dataModelBindings/properties/${bindingKey}`;
 
-  const { dataType: currentDataModel, property: currentDataModelField } = internalBindingFormat;
+  const { dataType: currentDataModel, field: currentDataModelField } = internalBindingFormat;
   const { dataModelMetaData, isDataModelValid, selectedDataModel } =
     useValidDataModels(currentDataModel);
 
   const dataModelFields = getDataModelFields({ componentType, bindingKey, dataModelMetaData });
   const isDataModelFieldValid = validateSelectedDataField(currentDataModelField, dataModelFields);
 
-  // also checks if datamodel is valid - datamodel will fallback to default datamodel if invalid
-  // while datafield need to be updated by user
+  // Validate datamodel as well: fallbacks to default if invalid, then user must update datafield
   const isBindingError = !isDataModelFieldValid || !isDataModelValid;
 
   const handleDataModelFieldChange = (updatedDataModelField: string) => {
     const updatedDataModelBinding = {
-      property: updatedDataModelField,
+      field: updatedDataModelField,
       dataType: selectedDataModel,
     };
     handleBindingChange(updatedDataModelBinding);
   };
 
-  const dataModelFieldsWithDefaultOption = [{ value: '', label: 'Velg ...' }, ...dataModelFields];
+  const dataModelFieldsWithDefaultOption = [
+    { value: '', label: t('ux_editor.modal_properties_data_model_field_choose') },
+    ...dataModelFields,
+  ];
   return (
     <FormField
       id={`selectDataModelSelect-${bindingKey}`}
@@ -60,7 +62,7 @@ export const SelectDataFieldBinding = ({
         <StudioNativeSelect
           {...fieldProps}
           onChange={(e) => fieldProps.onChange(e.target.value)}
-          error={isBindingError && 'Datafelt må oppdateres.'}
+          error={isBindingError && t('ux_editor.modal_properties_data_model_field_update')}
         >
           {dataModelFieldsWithDefaultOption.map((element) => (
             <option key={element.value} value={element.value}>

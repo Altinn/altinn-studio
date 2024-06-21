@@ -44,8 +44,8 @@ export const EditBinding = ({
     internalBindingFormat.dataType,
   );
 
-  const handleBindingChange = (updatedBinding: { property: string; dataType: string }) => {
-    const selectedDataFieldElement = updatedBinding.property;
+  const handleBindingChange = (updatedBinding: InternalBindingFormat) => {
+    const selectedDataFieldElement = updatedBinding.field;
     handleComponentChange(
       {
         ...component,

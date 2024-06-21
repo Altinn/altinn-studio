@@ -38,7 +38,7 @@ export const EditDataModelBinding = <T extends ComponentType>({
 
   return (
     <div key={uniqueKey || ''} className={classes.wrapper}>
-      {!internalBindingFormat.property && !dataModelSelectVisible ? (
+      {!internalBindingFormat.field && !dataModelSelectVisible ? (
         <UndefinedBinding
           onClick={() => setDataModelSelectVisible(true)}
           label={labelSpecificText}

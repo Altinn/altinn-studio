@@ -28,7 +28,7 @@ export const DefinedBinding = ({
 }: DefinedBindingProps) => {
   const { t } = useTranslation();
   const title = t('right_menu.data_model_bindings_edit', { binding: label });
-  const { property: currentDataModelField, dataType: currentDataModel } = internalBindingFormat;
+  const { field: currentDataModelField, dataType: currentDataModel } = internalBindingFormat;
   const { dataModelMetaData, isDataModelValid, isLoadingDataModels } =
     useValidDataModels(currentDataModel);
 

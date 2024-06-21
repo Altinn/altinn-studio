@@ -123,7 +123,7 @@ export const getDataModelFields = ({
 };
 
 export type InternalBindingFormat = {
-  property: string | undefined;
+  field: string | undefined;
   dataType: string | undefined;
 };
 
@@ -139,7 +139,7 @@ export const convertDataBindingToInternalFormat = (
 
   if (isOldOrNotSetFormat) {
     return {
-      property: dataModelBinding,
+      field: dataModelBinding,
       dataType: undefined,
     };
   }

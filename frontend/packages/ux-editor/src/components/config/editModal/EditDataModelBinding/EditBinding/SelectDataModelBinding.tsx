@@ -24,7 +24,7 @@ export const SelectDataModelBinding = ({
 
   const handleDataModelChange = (newDataModel: string) => {
     const dataModelBinding = {
-      property: '',
+      field: '',
       dataType: newDataModel,
     };
     handleBindingChange(dataModelBinding);
