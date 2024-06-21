@@ -10,6 +10,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
 import { SettingsModalContextProvider } from '../contexts/SettingsModalContext';
 import { PreviewContextProvider } from '../contexts/PreviewContext';
+import { AppDevelopmentContextProvider } from '../contexts/AppDevelopmentContext';
 
 // Mocks:
 jest.mock('@altinn/ux-editor-v3/SubApp', () => ({
@@ -56,7 +57,9 @@ const renderSubapp = (path: RoutePaths, frontendVersion: string = null) => {
     <ServicesContextProvider {...queriesMock} client={queryClient}>
       <SettingsModalContextProvider>
         <PreviewContextProvider>
-          <Subapp />
+          <AppDevelopmentContextProvider>
+            <Subapp />
+          </AppDevelopmentContextProvider>
         </PreviewContextProvider>
       </SettingsModalContextProvider>
     </ServicesContextProvider>,

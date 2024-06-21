@@ -10,19 +10,19 @@ const newLayoutSetId: string = 'newLayoutSetName';
 
 describe('useUpdateLayoutSetIdMutation', () => {
   it('Calls updateLayoutSetIdMutation with correct arguments and payload', async () => {
-    const updateLayoutSetResult = renderHookWithMockStore()(() =>
+    const updateLayoutSetIdResult = renderHookWithMockStore()(() =>
       useUpdateLayoutSetIdMutation(org, app),
     ).renderHookResult.result;
     await waitFor(() =>
-      updateLayoutSetResult.current.mutateAsync({
+      updateLayoutSetIdResult.current.mutateAsync({
         layoutSetIdToUpdate,
         newLayoutSetId,
       }),
     );
-    expect(updateLayoutSetResult.current.isSuccess).toBe(true);
+    expect(updateLayoutSetIdResult.current.isSuccess).toBe(true);
 
-    expect(queriesMock.updateLayoutSet).toHaveBeenCalledTimes(1);
-    expect(queriesMock.updateLayoutSet).toHaveBeenCalledWith(
+    expect(queriesMock.updateLayoutSetId).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateLayoutSetId).toHaveBeenCalledWith(
       org,
       app,
       layoutSetIdToUpdate,
