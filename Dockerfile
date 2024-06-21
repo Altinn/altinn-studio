@@ -3,6 +3,9 @@ FROM node:lts-alpine AS generate-studio-frontend
 WORKDIR /build
 
 COPY ./package.json yarn.lock ./
+COPY ./.yarnrc.yml ./.yarnrc.yml
+COPY ./.yarn/releases ./.yarn/releases
+
 COPY ./development/azure-devops-mock/package.json ./development/azure-devops-mock/
 COPY ./frontend/app-development/package.json ./frontend/app-development/
 COPY ./frontend/app-preview/package.json ./frontend/app-preview/
@@ -25,8 +28,6 @@ COPY ./frontend/studio-root/package.json ./frontend/studio-root/
 COPY ./frontend/testing/cypress/package.json ./frontend/testing/cypress/
 COPY ./frontend/testing/mockend/package.json ./frontend/testing/mockend/
 COPY ./frontend/testing/playwright/package.json ./frontend/testing/playwright/
-COPY ./.yarnrc.yml ./.yarnrc.yml
-COPY ./.yarn/releases ./.yarn/releases
 
 RUN yarn --immutable
 
@@ -37,9 +38,9 @@ RUN yarn build
 FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS generate-studio-backend
 WORKDIR /build
 COPY backend .
-RUN dotnet build src/Designer/Designer.csproj -c Release -o /app_output
 RUN dotnet publish src/Designer/Designer.csproj -c Release -o /app_output
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
+
 # Prepare app template
 WORKDIR /app_template
 RUN apk add jq zip
