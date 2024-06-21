@@ -3,8 +3,7 @@ import {
   getPredefinedActions,
   isActionAvailable,
   isActionRequiredForTask,
-} from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/ActionsUtils';
-import { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
+} from './actionsUtils';
 
 describe('actionUtils', () => {
   describe('getPredefinedActions', () => {
