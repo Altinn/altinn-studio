@@ -12,7 +12,7 @@ import {
 import { CheckmarkIcon } from '@studio/icons';
 import { PredefinedActions } from './PredefinedActions';
 import { CustomActions } from './CustomActions';
-import { Action, BpmnActionModeler } from '../../../../../utils/bpmn/BpmnActionModeler';
+import { type Action, BpmnActionModeler } from '../../../../../utils/bpmn/BpmnActionModeler';
 import { useBpmnContext } from '../../../../../contexts/BpmnContext';
 import { getPredefinedActions, isActionRequiredForTask } from '../ActionsUtils';
 

@@ -5,7 +5,7 @@ import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
 import { useChecksum } from './useChecksum';
 import { ActionsEditor } from './ActionsEditor';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
-import { Action, BpmnActionModeler } from '../../../../utils/bpmn/BpmnActionModeler';
+import { type Action, BpmnActionModeler } from '../../../../utils/bpmn/BpmnActionModeler';
 
 import classes from './EditActions.module.css';
 
