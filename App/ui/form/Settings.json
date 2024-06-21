@@ -6,6 +6,8 @@
       "TextareaPage",
       "RadioButtonsPage",
       "CheckboxesPage",
+      "DropdownPage",
+      "MultipleSelectPage",
       "GroupPage",
       "AddressPage",
       "FileUploadPage",

@@ -45,6 +45,24 @@
         },
         "ExampleCheckbox": {
           "type": "string"
+        },
+        "ExampleInputTwo": {
+          "type": "string"
+        },
+        "ExampleInputThree": {
+          "type": "string"
+        },
+        "ExampleRadioTwo": {
+          "type": "string"
+        },
+        "ExampleRadioThree": {
+          "type": "string"
+        },
+        "ExampleCheckboxTwo": {
+          "type": "string"
+        },
+        "ExampleCheckboxThree": {
+          "type": "string"
         }
       }
     }
@@ -85,6 +103,12 @@
     },
     "GridExample": {
       "$ref": "#/$defs/GridExample"
+    },
+    "dropdown": {
+      "type": "string"
+    },
+    "multipleSelect": {
+      "type": "string"
     }
   }
 }

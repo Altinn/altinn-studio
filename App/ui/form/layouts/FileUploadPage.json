@@ -15,23 +15,86 @@
         }
       },
       {
-        "displayMode": "list",
+        "displayMode": "simple",
         "hasCustomFileEndings": false,
         "maxFileSizeInMB": 25,
-        "maxNumberOfAttachments": 1,
+        "maxNumberOfAttachments": 10,
         "minNumberOfAttachments": 1,
         "id": "FileUpload-N6frPq",
         "type": "FileUpload"
       },
       {
-        "displayMode": "list",
+        "size": "h3",
+        "id": "FileUpload-Header-Summary",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Oppsummering av FileUpload"
+        }
+      },
+      {
+        "id": "FileUploadSummary",
+        "type": "Summary2",
+        "hidden": false,
+        "target": {
+          "type": "component",
+          "id": "FileUpload-N6frPq"
+        }
+      },
+      {
+        "size": "h2",
+        "id": "FileUpload-HeaderWithtag",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "FileUpload with tag",
+        },
+      },
+      {
+        "displayMode": "simple",
         "hasCustomFileEndings": false,
         "maxFileSizeInMB": 25,
-        "maxNumberOfAttachments": 1,
+        "maxNumberOfAttachments": 10,
         "minNumberOfAttachments": 1,
         "optionsId": "",
         "id": "FileUploadWithTag-UvbEiL",
-        "type": "FileUploadWithTag"
+        "type": "FileUploadWithTag",
+        "textResourceBindings" : {
+          "tagTitle": "Filtype"
+        },
+        "options": [
+          {
+            "label": "Bil",
+            "value": "bil"
+          },
+          {
+            "label": "Moped",
+            "value": "moped"
+          },
+          {
+            "label": "Traktor",
+            "value": "traktor"
+          },
+          {
+            "label": "Båt",
+            "value": "baat"
+          }
+        ]
+      },
+      {
+        "size": "h3",
+        "id": "FileUpload-Header-summary",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Oppsummering av FileUpload with tag:"
+        }
+      },
+      {
+        "id": "FileUploadSummaryWithTag",
+        "type": "Summary2",
+        "hidden": false,
+        "target": {
+          "type": "component",
+          "id": "FileUploadWithTag-UvbEiL"
+        }
       },
       {
         "id": "NavigationButtons-L67e32",

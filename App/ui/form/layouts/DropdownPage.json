@@ -8,29 +8,29 @@
         "type": "NavigationBar"
       },
       {
-        "size": "h2",
-        "id": "RadioButtonsPage-Header",
+        "id": "DropdownPage-Header",
         "type": "Header",
+        "size": "h2",
         "textResourceBindings": {
           "title": "RadioButtonsPage"
         }
       },
       {
-        "size": "h3",
-        "id": "RadioButtonsPage-Header-Component",
+        "id": "DropdownPage-Header-Component",
         "type": "Header",
+        "size": "h3",
         "textResourceBindings": {
           "title": "Header.Component"
         }
       },
       {
+        "id": "DropdownPage-RadioButtons",
+        "type": "Dropdown",
         "dataModelBindings": {
-          "simpleBinding": "radioButtonInput"
+          "simpleBinding": "dropdown"
         },
-        "id": "RadioButtonsPage-RadioButtons",
-        "type": "RadioButtons",
         "textResourceBindings": {
-          "title": "RadioButtonsPage.RadioButtons.title"
+          "title": "DropdownPage.Dropdown.title"
         },
         "options": [
           {
@@ -53,34 +53,34 @@
         "required": false
       },
       {
-        "size": "h3",
-        "id": "RadioButtonsPage-Header-Summary",
+        "id": "DropdownPage-Header-Summary",
         "type": "Header",
+        "size": "h3",
         "textResourceBindings": {
           "title": "Header.Summary"
         }
       },
       {
-        "componentRef": "RadioButtonsPage-RadioButtons",
-        "id": "RadioButtonsPage-Summary",
+        "id": "DropdownPage-Summary",
         "type": "Summary",
+        "componentRef": "DropdownPage-RadioButtons",
         "largeGroup": false
       },
       {
-        "size": "h3",
-        "id": "RadioButtonsPage-Header-Summary2",
+        "id": "DropdownPage-Header-Summary2",
         "type": "Header",
+        "size": "h3",
         "textResourceBindings": {
           "title": "Header.Summary2"
         }
       },
       {
-        "id": "RadioButtonsPage-Summary2",
+        "id": "DropdownPage-Summary2",
         "type": "Summary2",
         "hidden": false,
         "target": {
           "type": "component",
-          "id": "RadioButtonsPage-RadioButtons"
+          "id": "DropdownPage-RadioButtons"
         }
       },
       {
