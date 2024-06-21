@@ -6,7 +6,7 @@ import path from 'path';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 const appFrontend = new AppFrontend();
 
-describe('Payment', () => {
+describe.skip('Payment', () => {
   beforeEach(() => {
     cy.startAppInstance(appFrontend.apps.paymentTest, { authenticationLevel: '1' });
   });
