@@ -4,29 +4,23 @@ import { FormField } from 'app-shared/components/FormField';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { StudioDisplayTile, StudioNativeSelect } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { useDataModelBindings } from '@altinn/ux-editor/hooks/useDataModelBindings';
+import { useValidDataModels } from '@altinn/ux-editor/hooks/useValidDataModels';
 import type { InternalBindingFormat } from '@altinn/ux-editor/utils/dataModel';
-import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
 
 type SelectDataModelProps = {
-  internalBindingFormat: InternalBindingFormat;
-  dataModelFieldsFilter: (dataModelField: DataModelFieldElement) => boolean;
+  currentDataModel: string;
   bindingKey: string;
-  handleBindingChange: (dataModel: { property: string; dataType: string }) => void;
+  handleBindingChange: (dataModelBindings: InternalBindingFormat) => void;
 };
 
 export const SelectDataModelBinding = ({
-  internalBindingFormat,
-  dataModelFieldsFilter,
+  currentDataModel,
   bindingKey,
   handleBindingChange,
 }: SelectDataModelProps): React.JSX.Element => {
   const { t } = useTranslation();
   const propertyPath = `definitions/component/properties/dataModelBindings/properties/${bindingKey}/dataType`;
-  const { dataModel, dataModels } = useDataModelBindings({
-    bindingFormat: internalBindingFormat,
-    dataModelFieldsFilter,
-  });
+  const { dataModels, selectedDataModel } = useValidDataModels(currentDataModel);
 
   const handleDataModelChange = (newDataModel: string) => {
     const dataModelBinding = {
@@ -38,9 +32,9 @@ export const SelectDataModelBinding = ({
 
   return shouldDisplayFeature('dataModelBindingSelector') ? (
     <FormField
-      id={dataModel}
+      id={selectedDataModel}
       onChange={handleDataModelChange}
-      value={dataModel}
+      value={selectedDataModel}
       propertyPath={propertyPath}
       label={t('ux_editor.modal_properties_data_model')}
       renderField={({ fieldProps }) => (
@@ -56,7 +50,7 @@ export const SelectDataModelBinding = ({
   ) : (
     <StudioDisplayTile
       label={t('ux_editor.modal_properties_data_model')}
-      value={dataModel}
+      value={selectedDataModel}
       className={classes.displayTileContainer}
     />
   );

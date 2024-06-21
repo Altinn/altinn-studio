@@ -42,7 +42,6 @@ export const SelectDataFieldComponent = ({
       value: element.dataBindingName,
       label: element.dataBindingName,
     }));
-    elementNames.unshift({ value: '', label: 'Velg ...' });
     setDataModelElementNames(elementNames);
   }, [data, dataModelFieldsFilter]);
 

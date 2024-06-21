@@ -14,9 +14,10 @@ import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useAppContext } from '@altinn/ux-editor/hooks';
 import type { UpdateFormMutateOptions } from '@altinn/ux-editor/containers/FormItemContext';
-import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
 import { EditBindingButtons } from './EditBindingButtons';
-import { useDataModelBindings } from '@altinn/ux-editor/hooks/useDataModelBindings';
+import { useValidDataModels } from '@altinn/ux-editor/hooks/useValidDataModels';
+import { StudioSpinner } from '@studio/components';
+import { useTranslation } from 'react-i18next';
 
 export type EditBindingProps = {
   bindingKey: string;
@@ -26,7 +27,6 @@ export type EditBindingProps = {
   handleComponentChange: (component: FormItem, mutateOptions?: UpdateFormMutateOptions) => void;
   setDataModelSelectVisible: (visible: boolean) => void;
   internalBindingFormat: InternalBindingFormat;
-  dataModelFieldsFilter: (dataModelField: DataModelFieldElement) => boolean;
 };
 
 export const EditBinding = ({
@@ -37,13 +37,12 @@ export const EditBinding = ({
   handleComponentChange,
   setDataModelSelectVisible,
   internalBindingFormat,
-  dataModelFieldsFilter,
 }: EditBindingProps) => {
-  const { dataModelMetaData } = useDataModelBindings({
-    bindingFormat: internalBindingFormat,
-    dataModelFieldsFilter,
-  });
+  const { t } = useTranslation();
   const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
+  const { dataModelMetaData, isLoadingDataModels } = useValidDataModels(
+    internalBindingFormat.dataType,
+  );
 
   const handleBindingChange = (updatedBinding: { property: string; dataType: string }) => {
     const selectedDataFieldElement = updatedBinding.property;
@@ -79,23 +78,31 @@ export const EditBinding = ({
 
   return (
     <Fieldset legend={label} className={classes.editBinding} size='small'>
-      <SelectDataModelBinding
-        dataModelFieldsFilter={dataModelFieldsFilter}
-        internalBindingFormat={internalBindingFormat}
-        handleBindingChange={handleBindingChange}
-        bindingKey={bindingKey}
-      />
-      <SelectDataFieldBinding
-        dataModelFieldsFilter={dataModelFieldsFilter}
-        internalBindingFormat={internalBindingFormat}
-        handleBindingChange={handleBindingChange}
-        bindingKey={bindingKey}
-        helpText={helpText}
-      />
-      <EditBindingButtons
-        handleBindingChange={handleBindingChange}
-        setDataModelSelectVisible={setDataModelSelectVisible}
-      />
+      {isLoadingDataModels ? (
+        <StudioSpinner
+          showSpinnerTitle={false}
+          spinnerTitle={t('ux_editor.modal_properties_loading')}
+        />
+      ) : (
+        <>
+          <SelectDataModelBinding
+            currentDataModel={internalBindingFormat.dataType}
+            handleBindingChange={handleBindingChange}
+            bindingKey={bindingKey}
+          />
+          <SelectDataFieldBinding
+            internalBindingFormat={internalBindingFormat}
+            handleBindingChange={handleBindingChange}
+            bindingKey={bindingKey}
+            helpText={helpText}
+            componentType={component.type}
+          />
+          <EditBindingButtons
+            handleBindingChange={handleBindingChange}
+            setDataModelSelectVisible={setDataModelSelectVisible}
+          />
+        </>
+      )}
     </Fieldset>
   );
 };
