@@ -6,22 +6,25 @@ import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
+const resource1Title = 'tittel 1';
 const mockResourceListItem1: ResourceListItem = {
-  title: { nb: 'tittel 1', en: '', nn: '' },
+  title: { nb: resource1Title, en: '', nn: '' },
   createdBy: 'John Doe',
   lastChanged: new Date('2023-08-28'),
   identifier: 'resource-1',
   environments: ['gitea'],
 };
+const resource2Title = 'tittel 2';
 const mockResourceListItem2: ResourceListItem = {
-  title: { nb: 'tittel 2', en: '', nn: '' },
+  title: { nb: resource2Title, en: '', nn: '' },
   createdBy: 'John Doe',
   lastChanged: new Date('2023-08-29'),
   identifier: 'resource-2',
   environments: ['gitea', 'tt02', 'prod'],
 };
+const resource3Title = 'tittel 3';
 const mockResourceListItem3: ResourceListItem = {
-  title: { nb: '', en: '', nn: '' },
+  title: { nb: resource3Title, en: '', nn: '' },
   createdBy: 'John Doe',
   lastChanged: null,
   identifier: 'resource-3',
@@ -70,7 +73,12 @@ describe('ResourceTable', () => {
   });
 
   it('displays default resource title when title is missing', () => {
-    render(<ResourceTable {...defaultProps} />);
+    render(
+      <ResourceTable
+        {...defaultProps}
+        list={[{ ...mockResourceListItem3, title: { nb: '', nn: '', en: '' } }]}
+      />,
+    );
 
     const titleCell = screen.getByText(textMock('resourceadm.dashboard_table_row_missing_title'));
     expect(titleCell).toBeInTheDocument();
@@ -101,7 +109,9 @@ describe('ResourceTable', () => {
     const user = userEvent.setup();
     render(<ResourceTable {...defaultProps} />);
 
-    const [editButton] = screen.getAllByText(textMock('resourceadm.dashboard_table_row_edit'));
+    const editButton = screen.getByText(
+      textMock('resourceadm.dashboard_table_row_edit', { resourceName: resource1Title }),
+    );
     await user.click(editButton);
 
     expect(mockOnClickEditResource).toHaveBeenCalled();
@@ -116,8 +126,12 @@ describe('ResourceTable', () => {
       />,
     );
 
-    const editButton = screen.queryByText(textMock('resourceadm.dashboard_table_row_edit'));
-    const importButton = screen.queryByText(textMock('resourceadm.dashboard_table_row_import'));
+    const editButton = screen.queryByText(
+      textMock('resourceadm.dashboard_table_row_edit', { resourceName: resource3Title }),
+    );
+    const importButton = screen.queryByText(
+      textMock('resourceadm.dashboard_table_row_import', { resourceName: resource3Title }),
+    );
 
     expect(editButton).not.toBeInTheDocument();
     expect(importButton).not.toBeInTheDocument();
@@ -127,7 +141,9 @@ describe('ResourceTable', () => {
     const user = userEvent.setup();
     render(<ResourceTable {...defaultProps} />);
 
-    const [importButton] = screen.getAllByText(textMock('resourceadm.dashboard_table_row_import'));
+    const importButton = screen.getByText(
+      textMock('resourceadm.dashboard_table_row_import', { resourceName: resource3Title }),
+    );
     await user.click(importButton);
 
     expect(mockOnClickImportResource).toHaveBeenCalled();
