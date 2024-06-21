@@ -337,6 +337,7 @@
   "general.choose_label": "Velg navn",
   "general.choose_method": "Velg metode",
   "general.close": "Lukk",
+  "general.close_item": "Lukk {{item}}",
   "general.close_schema": "Lukk skjema",
   "general.contact": "Kontakt og hjelp",
   "general.contains": "Inneholder",

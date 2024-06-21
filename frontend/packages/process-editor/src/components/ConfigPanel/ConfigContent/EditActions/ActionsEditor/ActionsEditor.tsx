@@ -25,7 +25,7 @@ enum TabIds {
 
 type ComponentMode = 'edit' | 'view';
 
-type ActionsEditorProps = {
+export type ActionsEditorProps = {
   actionElement: Action;
   actionIndex: number;
   mode?: ComponentMode;
@@ -121,13 +121,22 @@ const ActionEditable = ({
       </StudioCard.Content>
       <StudioCard.Footer className={classes.cardFooter}>
         <StudioButton
+          aria-label={t('general.close_item', {
+            item: actionElement.action,
+          })}
           size='small'
           variant='secondary'
           color='success'
           icon={<CheckmarkIcon />}
           onClick={onClose}
         />
-        <StudioDeleteButton size='small' onDelete={onDelete} />
+        <StudioDeleteButton
+          size='small'
+          onDelete={onDelete}
+          aria-label={t('general.delete_item', {
+            item: actionElement.action,
+          })}
+        />
       </StudioCard.Footer>
     </StudioCard>
   );
