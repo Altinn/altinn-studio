@@ -5,7 +5,6 @@ export type TextResourceIdMutation = {
 export type TextResourceEntryDeletion = {
   textId: string;
 };
-
 export type TextResourceVariable = {
   key: string;
   dataSource: string;
@@ -13,3 +12,15 @@ export type TextResourceVariable = {
 };
 
 type LangCode = string;
+
+type TextTableRow = {
+  textKey: string;
+  variables?: TextResourceVariable[];
+  translations: TextTableRowEntry[];
+  usages?: any;
+};
+
+type TextTableRowEntry = {
+  lang: LangCode;
+  translation: string;
+};
