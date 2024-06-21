@@ -151,6 +151,22 @@ describe('StudioTreeViewItem', () => {
     expect(getTreeItem({ name: label })).toBe(wrapper.querySelector('[role="treeitem"]')); // eslint-disable-line testing-library/no-node-access
   });
 
+  it('Opens the tree item when a child is selected', async () => {
+    const childLabel = 'directchild';
+    const childId = 'child';
+    renderItem(
+      {
+        label,
+        children: <StudioTreeViewItem nodeId={childId} label={childLabel} />,
+      },
+      { selectedId: childId },
+    );
+    await user.click(getTreeItem({ name: childLabel, hidden: true }));
+    expect(setSelectedId).toHaveBeenCalledTimes(1);
+    expect(setSelectedId).toHaveBeenCalledWith(childId);
+    expect(getTreeItem({ name: label, expanded: true })).toBeInTheDocument();
+  });
+
   const getTreeItem = (options: ByRoleOptions = {}) => {
     const allOptions: ByRoleOptions = { name: label, ...options };
     allOptions.name = RegExp(`^${allOptions.name}( |$)`);

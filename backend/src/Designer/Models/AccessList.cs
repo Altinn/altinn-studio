@@ -6,7 +6,7 @@ using Altinn.Studio.Designer.Models.Dto;
 namespace Altinn.Studio.Designer.Models
 {
 
-    public class AccessList
+    public class AccessList : HeaderEtag
     {
         public string Identifier { get; set; }
         public string Name { get; set; }

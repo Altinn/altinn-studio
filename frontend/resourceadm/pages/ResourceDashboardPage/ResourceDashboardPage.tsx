@@ -15,7 +15,6 @@ import { filterTableData } from '../../utils/resourceListUtils';
 import { useTranslation } from 'react-i18next';
 import { getResourceDashboardURL, getResourcePageURL } from '../../utils/urlUtils';
 import { getReposLabel } from 'dashboard/utils/repoUtils';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { useUrlParams } from '../../hooks/useSelectedContext';
 import { StudioButton } from '@studio/components';
 import { ImportAltinn3ResourceModal } from '../../components/ImportAltinn3ResourceModal';
@@ -134,22 +133,18 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
           })}
         </Heading>
         <div className={classes.topRightWrapper}>
-          {shouldDisplayFeature('resourceAccessLists') && (
-            <>
-              <StudioButton
-                as={Link}
-                variant='tertiary'
-                color='second'
-                to={`${getResourceDashboardURL(selectedContext, repo)}/accesslists`}
-                size='medium'
-                icon={<TasklistIcon />}
-                iconPlacement='right'
-              >
-                <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
-              </StudioButton>
-              <div className={classes.verticalDivider} />
-            </>
-          )}
+          <StudioButton
+            as={Link}
+            variant='tertiary'
+            color='second'
+            to={`${getResourceDashboardURL(selectedContext, repo)}/accesslists`}
+            size='medium'
+            icon={<TasklistIcon />}
+            iconPlacement='right'
+          >
+            <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
+          </StudioButton>
+          <div className={classes.verticalDivider} />
           <StudioButton
             variant='tertiary'
             color='second'

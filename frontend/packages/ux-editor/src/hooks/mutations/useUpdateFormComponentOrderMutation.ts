@@ -15,7 +15,7 @@ export const useUpdateFormComponentOrderMutation = (
     mutationFn: (order: IFormLayoutOrder) => {
       const newLayout = ObjectUtils.deepCopy(layout);
       newLayout.order = order;
-      return formLayoutMutation.mutateAsync(newLayout);
+      return formLayoutMutation.mutateAsync({ internalLayout: newLayout });
     },
   });
 };

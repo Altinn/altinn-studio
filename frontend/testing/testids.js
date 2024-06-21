@@ -13,3 +13,4 @@ export const pageAccordionContentId = (pageName) => `page-accordion-content-${pa
 export const profileButtonId = 'profileButton';
 export const org = 'testOrg';
 export const app = 'testApp';
+export const selectedLayoutSet = 'layout-set-test';

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import classes from './ConfPageToolbar.module.css';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { IToolbarElement } from '../../types/global';
 import { InformationPanelComponent } from '../toolbar/InformationPanelComponent';
@@ -42,7 +43,7 @@ export const ConfPageToolbar = ({ confPageType }: ConfPageToolbarProps) => {
     setAnchorElement(null);
   };
   return (
-    <>
+    <div className={classes.customComponentList}>
       {componentList.map((component: IToolbarElement) => (
         <ToolbarItem
           text={getComponentTitleByComponentType(component.type, t) || component.label}
@@ -58,6 +59,6 @@ export const ConfPageToolbar = ({ confPageType }: ConfPageToolbarProps) => {
         onClose={handleComponentInformationClose}
         selectedComponent={compSelForInfoPanel}
       />
-    </>
+    </div>
   );
 };
