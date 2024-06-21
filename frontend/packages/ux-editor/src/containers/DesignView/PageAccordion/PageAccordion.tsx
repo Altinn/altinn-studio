@@ -72,7 +72,7 @@ export const PageAccordion = ({
       <div className={classes.accordionHeaderRow}>
         <Accordion.Header
           className={
-            /* isValid */ areUniqueIds ? classes.accordionHeader : classes.accordionHeaderWarning
+            isValid && areUniqueIds ? classes.accordionHeader : classes.accordionHeaderWarning
           }
           level={3}
           onHeaderClick={onClick}
