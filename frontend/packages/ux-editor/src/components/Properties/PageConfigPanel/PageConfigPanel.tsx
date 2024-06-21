@@ -59,11 +59,6 @@ export const PageConfigPanel = () => {
     return <PageConfigWarning selectedFormLayoutName={selectedFormLayoutName} layout={layout} />;
   }
 
-  /*   if (hasDuplicatedIdsInAllLayouts) {
-    modalRef.current?.showModal();
-    return <PageConfigWarningModal modalRef={modalRef} />;
-  }
- */
   return (
     <>
       <StudioSectionHeader
