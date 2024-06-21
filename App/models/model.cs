@@ -106,6 +106,7 @@ namespace Altinn.App.Models.model
     [JsonPropertyName("ExampleTextArea")]
     public string ExampleTextArea { get; set; }
 
+    [MaxLength(7)]
     [XmlElement("ExampleInput", Order = 5)]
     [JsonProperty("ExampleInput")]
     [JsonPropertyName("ExampleInput")]
