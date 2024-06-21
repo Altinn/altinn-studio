@@ -58,7 +58,7 @@
                 "id": "GroupPage-Summary2",
                 "type": "Summary2",
                 "hidden": false,
-                "whatToRender": {
+                "target": {
                     "type": "component",
                     "id": "GroupPage-Group"
                 }

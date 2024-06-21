@@ -78,7 +78,7 @@
         "id": "DropdownPage-Summary2",
         "type": "Summary2",
         "hidden": false,
-        "whatToRender": {
+        "target": {
           "type": "component",
           "id": "DropdownPage-RadioButtons"
         }

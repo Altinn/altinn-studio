@@ -120,7 +120,7 @@
       {
         "id": "InputPage-Summary2",
         "type": "Summary2",
-        "whatToRender": {
+        "target": {
           "type": "component",
           "id": "InputPage-Input"
         }
@@ -128,7 +128,7 @@
       {
         "id": "InputPage-Summary2-grid1",
         "type": "Summary2",
-        "whatToRender": {
+        "target": {
           "type": "component",
           "id": "InputPage-Input-grid1"
         }
@@ -136,7 +136,7 @@
       {
         "id": "InputPage-Summary2-grid2",
         "type": "Summary2",
-        "whatToRender": {
+        "target": {
           "type": "component",
           "id": "InputPage-Input-grid2"
         }
@@ -144,7 +144,7 @@
       {
         "id": "InputPage-Summary2-grid-long",
         "type": "Summary2",
-        "whatToRender": {
+        "target": {
           "type": "component",
           "id": "InputPage-Input-long"
         }

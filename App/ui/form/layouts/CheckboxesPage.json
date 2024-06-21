@@ -86,7 +86,7 @@
                 "id": "CheckboxesPage-Summary2-Display-Auto",
                 "type": "Summary2",
                 "hidden": false,
-                "whatToRender": {
+                "target": {
                     "type": "component",
                     "id": "CheckboxesPage-Checkboxes"
                 }
@@ -103,7 +103,7 @@
                 "id": "CheckboxesPage-Summary2-Display-String",
                 "type": "Summary2",
                 "hidden": false,
-                "whatToRender": {
+                "target": {
                     "type": "component",
                     "id": "CheckboxesPage-Checkboxes"
                 },
@@ -126,7 +126,7 @@
                 "id": "CheckboxesPage-Summary2-Display-List",
                 "type": "Summary2",
                 "hidden": false,
-                "whatToRender": {
+                "target": {
                     "type": "component",
                     "id": "CheckboxesPage-Checkboxes"
                 },

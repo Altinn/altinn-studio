@@ -78,7 +78,7 @@
         "id": "RadioButtonsPage-Summary2",
         "type": "Summary2",
         "hidden": false,
-        "whatToRender": {
+        "target": {
           "type": "component",
           "id": "RadioButtonsPage-RadioButtons"
         }

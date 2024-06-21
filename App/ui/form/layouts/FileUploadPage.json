@@ -35,7 +35,7 @@
         "id": "FileUploadSummary",
         "type": "Summary2",
         "hidden": false,
-        "whatToRender": {
+        "target": {
           "type": "component",
           "id": "FileUpload-N6frPq"
         }
@@ -91,7 +91,7 @@
         "id": "FileUploadSummaryWithTag",
         "type": "Summary2",
         "hidden": false,
-        "whatToRender": {
+        "target": {
           "type": "component",
           "id": "FileUploadWithTag-UvbEiL"
         }

@@ -453,7 +453,7 @@
       {
         "id": "new-summary",
         "type": "Summary2",
-        "whatToRender": {
+        "target": {
           "type": "page",
           "id": "GridPage"
         }

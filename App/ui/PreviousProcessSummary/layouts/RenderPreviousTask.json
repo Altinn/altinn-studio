@@ -18,7 +18,7 @@
         "id": "Summary2-previous-process",
         "type": "Summary2",
         "hidden": false,
-        "whatToRender": {
+        "target": {
           "type": "task",
           "id": "Task_1"
         }

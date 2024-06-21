@@ -62,7 +62,7 @@
         "id": "AddressPage-Summary2",
         "type": "Summary2",
         "hidden": false,
-        "whatToRender": {
+        "target": {
           "type": "component",
           "id": "AddressPage-Address"
         }
