@@ -1,6 +1,6 @@
-import { getPredefinedActions, isActionAvailable, isActionRequiredForTask } from './actionsUtils';
+import { getPredefinedActions, isActionAvailable, isActionRequiredForTask } from './processActions';
 
-describe('actionUtils', () => {
+describe('processActionsUtils', () => {
   describe('getPredefinedActions', () => {
     it('should return predefined actions for signing', () => {
       const result = getPredefinedActions('signing');

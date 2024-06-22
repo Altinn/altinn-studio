@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { StudioNativeSelect } from '@studio/components';
 import { useActionHandler } from '../hooks/useOnActionChange';
 import { useBpmnContext } from '../../../../../../contexts/BpmnContext';
-import { getPredefinedActions, isActionAvailable } from '../../actionsUtils';
+import { getPredefinedActions, isActionAvailable } from '../../../../../../utils/processActions';
 import { type Action, BpmnActionModeler } from '../../../../../../utils/bpmn/BpmnActionModeler';
 
 type PredefinedActionsProps = {

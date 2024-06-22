@@ -1,5 +1,5 @@
 import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
-import type { BpmnTaskType } from '../../../../types/BpmnTaskType';
+import type { BpmnTaskType } from '../../types/BpmnTaskType';
 
 export const getPredefinedActions = (bpmnTaskType: BpmnTaskType): string[] => {
   const allPredefinedActions = ['write', 'reject', 'confirm'];
