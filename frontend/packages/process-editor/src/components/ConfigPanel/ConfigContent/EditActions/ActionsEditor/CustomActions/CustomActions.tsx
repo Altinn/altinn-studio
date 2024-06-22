@@ -5,7 +5,7 @@ import { useDebounce } from 'app-shared/hooks/useDebounce';
 import { BpmnActionModeler, ActionType } from '../../../../../../utils/bpmn/BpmnActionModeler';
 import type { Action } from '../../../../../../utils/bpmn/BpmnActionModeler';
 import { useActionHandler } from '../hooks/useOnActionChange';
-import { getPredefinedActions } from '../../ActionsUtils';
+import { getPredefinedActions } from '../../actionsUtils';
 import { useBpmnContext } from '../../../../../../contexts/BpmnContext';
 
 import classes from './CustomActions.module.css';

@@ -14,7 +14,7 @@ import { PredefinedActions } from './PredefinedActions';
 import { CustomActions } from './CustomActions';
 import { type Action, BpmnActionModeler } from '../../../../../utils/bpmn/BpmnActionModeler';
 import { useBpmnContext } from '../../../../../contexts/BpmnContext';
-import { getPredefinedActions, isActionRequiredForTask } from '../ActionsUtils';
+import { getPredefinedActions, isActionRequiredForTask } from '../actionsUtils';
 
 import classes from './ActionsEditor.module.css';
 

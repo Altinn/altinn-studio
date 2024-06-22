@@ -1,6 +1,6 @@
 import { StudioModeler } from '@altinn/process-editor/utils/bpmn/StudioModeler';
 import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
-import { getPredefinedActions } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditActions/ActionsUtils';
+import { getPredefinedActions } from '../../components/ConfigPanel/ConfigContent/EditActions/actionsUtils';
 
 export type Action = ModdleElement;
 export type ActionsElement = {
