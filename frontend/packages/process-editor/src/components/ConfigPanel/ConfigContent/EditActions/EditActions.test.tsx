@@ -10,7 +10,7 @@ import { BpmnConfigPanelFormContextProvider } from '../../../../contexts/BpmnCon
 
 jest.mock('../../../../utils/bpmn/BpmnActionModeler');
 
-const actionElementMock: Action = {
+const actionElementDefaultMock: Action = {
   $type: 'altinn:Action',
 };
 
@@ -18,6 +18,7 @@ describe('EditActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
+
   it('should add new action if actions not already exists', async () => {
     const user = userEvent.setup();
 
@@ -72,6 +73,51 @@ describe('EditActions', () => {
 
     await waitFor(() => expect(updateActionNameOnActionElementMock).toHaveBeenCalledTimes(1));
   });
+
+  it('should list existing actions in view mode', () => {
+    setupBpmnActionModelerMock({
+      addNewActionToTaskMock: jest.fn(),
+      updateTypeForActionMock: jest.fn(),
+      updateActionNameOnActionElementMock: jest.fn(),
+      hasActionsAlready: true,
+      actionElementMock: {
+        ...actionElementDefaultMock,
+        action: 'reject',
+      },
+    });
+
+    renderEditActions();
+
+    const viewModeElement = screen.getByText(
+      textMock('process_editor.configuration_panel_actions_action_label', {
+        actionIndex: 1,
+        actionName: 'reject',
+      }),
+    );
+    expect(viewModeElement).toBeInTheDocument();
+  });
+
+  it('should display in edit mode when adding new action', async () => {
+    const user = userEvent.setup();
+    setupBpmnActionModelerMock({
+      addNewActionToTaskMock: jest.fn(),
+      createActionElementMock: jest.fn(),
+      getExtensionElementsMock: jest.fn(),
+      updateActionNameOnActionElementMock: jest.fn(),
+      hasActionsAlready: true,
+    });
+    renderEditActions();
+
+    const addButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_actions_add_new'),
+    });
+    await user.click(addButton);
+
+    const predefinedActionSelector = screen.getByLabelText(
+      textMock('process_editor.configuration_panel_actions_action_selector_label'),
+    );
+    await waitFor(() => expect(predefinedActionSelector).toBeInTheDocument());
+  });
 });
 
 const renderEditActions = () => {
@@ -99,7 +145,8 @@ const setupBpmnActionModelerMock = ({
   hasActionsAlready,
   createActionElementMock,
   getExtensionElementsMock,
-}: Partial<BpmnActionModelerMock>) =>
+  actionElementMock,
+}: Partial<BpmnActionModelerMock & { actionElementMock: Action }>) =>
   (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
     addNewActionToTask: addNewActionToTaskMock,
     updateTypeForAction: updateTypeForActionMock,
@@ -109,6 +156,6 @@ const setupBpmnActionModelerMock = ({
     hasActionsAlready,
     getTypeForAction: jest.fn().mockReturnValue('Process'),
     actionElements: {
-      action: [actionElementMock],
+      action: [actionElementMock || actionElementDefaultMock],
     },
   }));

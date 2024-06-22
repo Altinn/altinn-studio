@@ -41,6 +41,7 @@ export const EditActions = (): React.ReactElement => {
       {actions.map((actionElement: ModdleElement, index: number) => (
         // Using the index as key, since we do not have a unique identifier for the action elements
         <div key={index} className={classes.container}>
+          {JSON.stringify(actionElement)}
           <ActionsEditor
             actionElement={actionElement}
             actionIndex={index}
