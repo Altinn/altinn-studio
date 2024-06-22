@@ -42,12 +42,7 @@ export class BpmnActionModeler extends StudioModeler {
     const actionElement = this.createActionElement(generatedActionName);
     const actionsElement = this.createActionsElement(actionElement);
 
-    this.updateModdleProperties(
-      {
-        actions: actionsElement,
-      },
-      this.getElement().businessObject.extensionElements.values[0],
-    );
+    this.updateActionsProperties(actionsElement);
   }
 
   public deleteActionFromTask(actionElement: Action): void {
@@ -56,22 +51,7 @@ export class BpmnActionModeler extends StudioModeler {
     actionsElement.action.splice(index, 1);
 
     const hasActions = actionsElement?.action.length > 0;
-    if (hasActions) {
-      this.updateModdleProperties(
-        {
-          actions: actionsElement,
-        },
-        this.getElement().businessObject.extensionElements.values[0],
-      );
-      return;
-    }
-
-    this.updateModdleProperties(
-      {
-        actions: undefined,
-      },
-      this.getElement().businessObject.extensionElements.values[0],
-    );
+    this.updateActionsProperties(hasActions ? actionsElement : undefined);
   }
 
   public updateActionNameOnActionElement(actionElement: ModdleElement, newAction: string): void {
@@ -80,13 +60,7 @@ export class BpmnActionModeler extends StudioModeler {
     if (getPredefinedActions(this.getCurrentTaskType).includes(newAction)) {
       delete actionElement.type;
     }
-
-    this.updateModdleProperties(
-      {
-        action: newAction,
-      },
-      actionElement,
-    );
+    this.updateActionProperties(newAction, actionElement);
   }
 
   public updateTypeForAction(actionElement: Action, actionType: ActionType): void {
@@ -96,12 +70,7 @@ export class BpmnActionModeler extends StudioModeler {
     const actionIndex = actionsElement.action.indexOf(actionElement);
     actionsElement.action[actionIndex].type = actionType;
 
-    this.updateModdleProperties(
-      {
-        actions: actionsElement,
-      },
-      this.getExtensionElements(),
-    );
+    this.updateActionsProperties(actionsElement);
   }
 
   public createActionElement(actionName: string | undefined): ModdleElement {
@@ -118,5 +87,23 @@ export class BpmnActionModeler extends StudioModeler {
     return this.bpmnFactory.create(ActionTagType.Actions, {
       action: [actionElement],
     });
+  }
+
+  private updateActionsProperties(actionsElement: ActionsElement): void {
+    this.updateModdleProperties(
+      {
+        actions: actionsElement,
+      },
+      this.getExtensionElements(),
+    );
+  }
+
+  private updateActionProperties(actionName: string, actionElement: Action): void {
+    this.updateModdleProperties(
+      {
+        action: actionName,
+      },
+      actionElement,
+    );
   }
 }
