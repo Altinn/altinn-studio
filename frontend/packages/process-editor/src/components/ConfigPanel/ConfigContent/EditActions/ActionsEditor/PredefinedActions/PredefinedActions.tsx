@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { StudioNativeSelect } from '@studio/components';
 import { useActionHandler } from '../hooks/useOnActionChange';
 import { useBpmnContext } from '../../../../../../contexts/BpmnContext';
-import { getAvailablePredefinedActions, isActionAvailable } from '../../actionsUtils';
+import { getPredefinedActions, isActionAvailable } from '../../actionsUtils';
 import { type Action, BpmnActionModeler } from '../../../../../../utils/bpmn/BpmnActionModeler';
 
 type PredefinedActionsProps = {
@@ -18,7 +18,7 @@ export const PredefinedActions = ({
   const { handleOnActionChange } = useActionHandler(actionElement);
 
   const actions = bpmnActionModeler.actionElements?.action || [];
-  const availablePredefinedActions = getAvailablePredefinedActions(bpmnDetails.taskType);
+  const availablePredefinedActions = getPredefinedActions(bpmnDetails.taskType);
 
   const shouldDisableAction = (action: string): boolean => {
     return !isActionAvailable(action, actions) && !(action === actionElement.action);

@@ -17,9 +17,6 @@ export const isActionRequiredForTask = (action: string, bpmnTaskType: BpmnTaskTy
   return bpmnTaskType === 'confirmation' && action === 'confirm';
 };
 
-export const getAvailablePredefinedActions = (taskType: BpmnTaskType): string[] =>
-  getPredefinedActions(taskType) ?? [];
-
 export const isActionAvailable = (
   actionName: string,
   existingActionElements: ModdleElement[],
