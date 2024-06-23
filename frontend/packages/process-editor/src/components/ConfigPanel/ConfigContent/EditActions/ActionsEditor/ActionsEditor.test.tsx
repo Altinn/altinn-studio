@@ -16,8 +16,27 @@ const actionElementMock: Action = {
 };
 
 describe('ActionsEditor', () => {
-  it('should display action in view mode', () => {
+  it('should display action in view mode by default', () => {
     renderActionsEditor();
+    const actionButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_actions_action_label', {
+        actionIndex: 1,
+        actionName: 'reject',
+      }),
+    });
+    expect(actionButton).toBeInTheDocument();
+  });
+
+  it('should display edit mode when mode is set to edit', () => {
+    renderActionsEditor({ mode: 'edit' });
+    const actionSelector = screen.getByLabelText(
+      textMock('process_editor.configuration_panel_actions_action_selector_label'),
+    );
+    expect(actionSelector).toBeInTheDocument();
+  });
+
+  it('should display view mode when mode is set to view', () => {
+    renderActionsEditor({ mode: 'view' });
     const actionButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_actions_action_label', {
         actionIndex: 1,
@@ -38,14 +57,6 @@ describe('ActionsEditor', () => {
     });
 
     await user.click(actionButton);
-    const actionSelector = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_actions_action_selector_label'),
-    );
-    expect(actionSelector).toBeInTheDocument();
-  });
-
-  it('should display edit mode when mode is set to edit', () => {
-    renderActionsEditor({ mode: 'edit' });
     const actionSelector = screen.getByLabelText(
       textMock('process_editor.configuration_panel_actions_action_selector_label'),
     );
