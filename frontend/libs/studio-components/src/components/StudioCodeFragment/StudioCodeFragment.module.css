@@ -1,8 +1,12 @@
 .code {
-  background-color: var(--fds-semantic-surface-neutral-subtle);
+  flex: 1;
+  background-color: rgb(221, 221, 234);
   border: 1px solid var(--fds-semantic-border-neutral-subtle);
   border-radius: var(--fds-border_radius-small);
   font-family: 'Courier New', monospace;
-  font-size: 0.8em;
+  font-size: 0.9em;
   padding: 0 var(--fds-spacing-1);
+  overflow: auto;
+  height: 28px;
+  overflow-y: hidden;
 }
