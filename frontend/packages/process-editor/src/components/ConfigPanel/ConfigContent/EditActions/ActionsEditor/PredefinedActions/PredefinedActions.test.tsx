@@ -72,13 +72,33 @@ describe('PredefinedActions', () => {
     const predefinedOption = screen.getByRole('option', { name: 'reject' });
     expect(predefinedOption).toBeDisabled();
   });
+
+  it('should have blank value if action is not a predefined action', async () => {
+    const user = userEvent.setup();
+
+    const handeOnActionChangeMock = jest.fn();
+    (useActionHandler as jest.Mock).mockImplementation(() => ({
+      handleOnActionChange: handeOnActionChangeMock,
+    }));
+
+    renderPredefinedActions({ actionElement: { ...actionElementMock, action: 'not-predefined' } });
+
+    const predefinedActionSelect = screen.getByLabelText(
+      textMock('process_editor.configuration_panel_actions_action_selector_label'),
+    );
+
+    expect(predefinedActionSelect).toHaveValue(' ');
+  });
 });
 
-const renderPredefinedActions = () => {
+type RenderPredefinedActionsProps = {
+  actionElement?: Action;
+};
+const renderPredefinedActions = (props?: RenderPredefinedActionsProps) => {
   return render(
     <BpmnContext.Provider value={mockBpmnContextValue}>
       <BpmnConfigPanelFormContextProvider>
-        <PredefinedActions actionElement={actionElementMock} />
+        <PredefinedActions actionElement={props?.actionElement || actionElementMock} />
       </BpmnConfigPanelFormContextProvider>
     </BpmnContext.Provider>,
   );

@@ -24,12 +24,16 @@ export const PredefinedActions = ({
     return !isActionAvailable(action, actions) && !(action === actionElement.action);
   };
 
+  const isPredefinedAction = (action: string): boolean => {
+    return availablePredefinedActions.includes(action);
+  };
+
   return (
     <StudioNativeSelect
       size='small'
       label={t('process_editor.configuration_panel_actions_action_selector_label')}
       onChange={handleOnActionChange}
-      defaultValue={actionElement.action || ' '}
+      defaultValue={isPredefinedAction(actionElement.action) || ' '}
     >
       <option disabled value=' '></option>
       {availablePredefinedActions.map(
