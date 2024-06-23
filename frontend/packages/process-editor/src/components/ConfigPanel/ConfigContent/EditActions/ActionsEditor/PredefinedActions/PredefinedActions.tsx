@@ -33,7 +33,7 @@ export const PredefinedActions = ({
       size='small'
       label={t('process_editor.configuration_panel_actions_action_selector_label')}
       onChange={handleOnActionChange}
-      defaultValue={isPredefinedAction(actionElement.action) || ' '}
+      defaultValue={isPredefinedAction(actionElement.action) ? actionElement.action : ' '}
     >
       <option disabled value=' '></option>
       {availablePredefinedActions.map(

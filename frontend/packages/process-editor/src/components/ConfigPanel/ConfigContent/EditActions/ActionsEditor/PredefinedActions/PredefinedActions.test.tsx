@@ -74,8 +74,6 @@ describe('PredefinedActions', () => {
   });
 
   it('should have blank value if action is not a predefined action', async () => {
-    const user = userEvent.setup();
-
     const handeOnActionChangeMock = jest.fn();
     (useActionHandler as jest.Mock).mockImplementation(() => ({
       handleOnActionChange: handeOnActionChangeMock,
