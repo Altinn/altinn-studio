@@ -160,7 +160,7 @@ const renderActionsEditor = (props?: Partial<RenderActionsEditorProps>) => {
     <BpmnContext.Provider value={mockBpmnContextValue}>
       <BpmnConfigPanelFormContextProvider>
         <ActionsEditor
-          actionElement={props.actionElement || actionElementMock}
+          actionElement={props?.actionElement || actionElementMock}
           mode={props?.mode || 'view'}
           actionIndex={0}
         />
