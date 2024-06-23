@@ -6,7 +6,7 @@ import { PredefinedActions } from './PredefinedActions';
 import { useActionHandler } from '../hooks/useOnActionChange';
 import { BpmnContext } from '../../../../../../contexts/BpmnContext';
 import { mockBpmnContextValue } from '../../../../../../../test/mocks/bpmnContextMock';
-import { type Action } from '../../../../../../utils/bpmn/BpmnActionModeler';
+import { type Action, BpmnActionModeler } from '../../../../../../utils/bpmn/BpmnActionModeler';
 import { BpmnConfigPanelFormContextProvider } from '../../../../../../contexts/BpmnConfigPanelContext';
 
 jest.mock('../hooks/useOnActionChange');
@@ -14,6 +14,7 @@ jest.mock('../../../../../../utils/bpmn/BpmnActionModeler');
 
 const actionElementMock: Action = {
   $type: 'altinn:Action',
+  action: 'write',
 };
 
 describe('PredefinedActions', () => {
@@ -45,6 +46,31 @@ describe('PredefinedActions', () => {
         }),
       }),
     );
+  });
+
+  it('should disable actions that are not available', async () => {
+    const user = userEvent.setup();
+
+    const handeOnActionChangeMock = jest.fn();
+    (useActionHandler as jest.Mock).mockImplementation(() => ({
+      handleOnActionChange: handeOnActionChangeMock,
+    }));
+
+    (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
+      actionElements: {
+        action: [{ action: 'reject' }],
+      },
+    }));
+
+    renderPredefinedActions();
+
+    const predefinedActionsSelect = screen.getByLabelText(
+      textMock('process_editor.configuration_panel_actions_action_selector_label'),
+    );
+
+    await user.click(predefinedActionsSelect);
+    const predefinedOption = screen.getByRole('option', { name: 'reject' });
+    expect(predefinedOption).toBeDisabled();
   });
 });
 

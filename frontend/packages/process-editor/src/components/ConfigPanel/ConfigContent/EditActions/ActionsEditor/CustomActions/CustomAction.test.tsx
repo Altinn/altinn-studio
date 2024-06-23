@@ -56,7 +56,7 @@ describe('CustomActions', () => {
     const updateTypeForActionMock = jest.fn();
     (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
       updateTypeForAction: updateTypeForActionMock,
-      getTypeForAction: jest.fn().mockReturnValue('Process'),
+      getTypeForAction: jest.fn().mockReturnValue('processAction'),
     }));
 
     renderCustomAction();
@@ -68,6 +68,33 @@ describe('CustomActions', () => {
 
     expect(updateTypeForActionMock).toHaveBeenCalledTimes(1);
     expect(updateTypeForActionMock).toHaveBeenCalledWith(actionElementMock, 'serverAction');
+
+    await user.click(actionTypeSwitch);
+    expect(updateTypeForActionMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('should be possible to change action type to process', async () => {
+    const user = userEvent.setup();
+
+    (useActionHandler as jest.Mock).mockImplementation(() => ({
+      handleOnActionChange: jest.fn(),
+    }));
+
+    const updateTypeForActionMock = jest.fn();
+    (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
+      updateTypeForAction: updateTypeForActionMock,
+      getTypeForAction: jest.fn().mockReturnValue('serverAction'),
+    }));
+
+    renderCustomAction();
+
+    const actionTypeSwitch = screen.getByLabelText(
+      textMock('process_editor.configuration_panel_actions_set_server_action_label'),
+    );
+    await user.click(actionTypeSwitch);
+
+    expect(updateTypeForActionMock).toHaveBeenCalledTimes(1);
+    expect(updateTypeForActionMock).toHaveBeenCalledWith(actionElementMock, 'processAction');
   });
 
   it('should not be possible to change action type if action is predefined', async () => {

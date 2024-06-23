@@ -44,6 +44,14 @@ describe('ActionsEditor', () => {
     expect(actionSelector).toBeInTheDocument();
   });
 
+  it('should display edit mode when mode is set to edit', () => {
+    renderActionsEditor({ mode: 'edit' });
+    const actionSelector = screen.getByLabelText(
+      textMock('process_editor.configuration_panel_actions_action_selector_label'),
+    );
+    expect(actionSelector).toBeInTheDocument();
+  });
+
   it('should be possible to toggle to view mode from edit mode by clicking close button', async () => {
     const user = userEvent.setup();
     renderActionsEditor({ mode: 'edit' });
@@ -126,17 +134,33 @@ describe('ActionsEditor', () => {
     );
     expect(predefinedActionSelect).toBeInTheDocument();
   });
+
+  it('should display custom action view when action is of type custom', () => {
+    (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
+      getTypeForAction: () => 'serverAction',
+    }));
+
+    renderActionsEditor({
+      actionElement: { ...actionElementMock, action: 'my-custom-action' },
+      mode: 'edit',
+    });
+    const customActionTextfield = screen.getByLabelText(
+      textMock('process_editor.configuration_panel_actions_action_card_custom_label'),
+    );
+    expect(customActionTextfield).toBeInTheDocument();
+  });
 });
 
 type RenderActionsEditorProps = {
   mode?: ActionsEditorProps['mode'];
+  actionElement?: Action;
 };
 const renderActionsEditor = (props?: Partial<RenderActionsEditorProps>) => {
   return render(
     <BpmnContext.Provider value={mockBpmnContextValue}>
       <BpmnConfigPanelFormContextProvider>
         <ActionsEditor
-          actionElement={actionElementMock}
+          actionElement={props.actionElement || actionElementMock}
           mode={props?.mode || 'view'}
           actionIndex={0}
         />
