@@ -217,9 +217,7 @@ describe('deepCompare', () => {
         description: null,
         delegable: true,
         rightDescription: null,
-        resourceReferences: [
-          { reference: '', referenceSource: 'Default', referenceType: 'Default' },
-        ],
+        resourceReferences: [{ reference: 'hei', referenceSource: 'Default', referenceType: null }],
         status: null,
         availableForType: null,
         contactPoints: [{ category: '', contactPage: '', email: '', telephone: '' }],

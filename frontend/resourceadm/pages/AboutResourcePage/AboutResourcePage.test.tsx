@@ -378,6 +378,7 @@ describe('AboutResourcePage', () => {
     render(
       <AboutResourcePage
         {...defaultProps}
+        showAllErrors
         resourceData={{ ...mockResource1, resourceType: 'MaskinportenSchema' }}
       />,
     );
