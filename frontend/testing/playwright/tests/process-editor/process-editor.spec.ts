@@ -43,8 +43,6 @@ test('That it is possible to add and remove datamodel the default task in the pr
 }): Promise<void> => {
   const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
   const bpmnJSQuery = new BpmnJSQuery(page);
-  const header = new Header(page, { app: testAppName });
-  const giteaPage = new GiteaPage(page, { app: testAppName });
 
   const initialTaskDataElementIdSelector: string = await bpmnJSQuery.getTaskByIdAndType(
     'Task_1',
