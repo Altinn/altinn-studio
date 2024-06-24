@@ -36,7 +36,7 @@ export const ResourcesRepoList = ({
   const { data: resourcesRepos } = useSearchReposQuery({
     uid: uid as number,
     keyword: '-resources',
-    page: 0,
+    page: 1,
   });
 
   const {
