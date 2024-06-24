@@ -48,10 +48,7 @@ const handleError = (
         ...options,
       });
     } else {
-      toast.error(t('general.error_message'), {
-        toastId: errorMessageKey,
-        ...options,
-      });
+      renderDefaultToast();
     }
   };
 
@@ -65,6 +62,7 @@ const handleError = (
     setTimeout(() => {
       logout().then(() => window.location.assign(userLogoutAfterPath()));
     }, LOG_OUT_TIMER_MS);
+    return;
   }
 
   if (errorCode) {
@@ -77,6 +75,10 @@ const handleError = (
   )
     return;
 
+  renderDefaultToast();
+};
+
+const renderDefaultToast = () => {
   toast.error(
     () => (
       <Trans
