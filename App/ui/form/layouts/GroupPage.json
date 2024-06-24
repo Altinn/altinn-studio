@@ -31,7 +31,12 @@
                     "title": "Gruppetittel",
                     "description": "Gruppebeskrivelse"
                 },
-                "children": ["GroupPage-Group-Header", "GroupPage-Input", "GroupPage-Group-Nested"]
+                "children": [
+                    "GroupPage-Group-Header",
+                    "GroupPage-Input",
+                    "GroupPage-Group-Nested",
+                    "GroupPage-Nested-Input2"
+                ]
             },
             {
                 "size": "h3",
@@ -116,6 +121,16 @@
                 "type": "Input",
                 "textResourceBindings": {
                     "title": "I am input inside nested group"
+                }
+            },
+            {
+                "dataModelBindings": {
+                    "simpleBinding": "nestedInput"
+                },
+                "id": "GroupPage-Nested-Input2",
+                "type": "Input",
+                "textResourceBindings": {
+                    "title": "I am nested input 2"
                 }
             },
             {
