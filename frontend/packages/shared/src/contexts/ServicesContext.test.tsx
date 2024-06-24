@@ -7,7 +7,6 @@ import { useQuery } from '@tanstack/react-query';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { userLogoutAfterPath } from 'app-shared/api/paths';
 
 const unknownErrorCode = 'unknownErrorCode';
 // Mocks:
@@ -39,7 +38,9 @@ const wrapper = ({
 };
 
 describe('ServicesContext', () => {
-  it('Display the unauthorized error message ', async () => {
+  it('logs the user out after displaying a toast for a given time when the api says unauthorized', async () => {
+    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
+    jest.spyOn(global, 'setTimeout');
     renderHook(
       () =>
         useQuery({
@@ -54,39 +55,12 @@ describe('ServicesContext', () => {
       },
     );
     expect(await screen.findByText(textMock('api_errors.Unauthorized'))).toBeInTheDocument();
-  });
-
-  it('logs the user out after displaying a toast for a given time when the api says unauthorized', async () => {
-    const mockAssign = jest.fn();
-    const logout = jest.fn(() => Promise.resolve());
-    jest.spyOn(global, 'setTimeout');
-
-    renderHook(
-      () =>
-        useQuery({
-          queryKey: ['fetchData'],
-          queryFn: () => Promise.reject(createApiErrorMock(401)),
-          retry: false,
-        }),
-      {
-        wrapper: ({ children }) => {
-          return wrapper({ children, queries: { logout } });
-        },
-      },
-    );
-    expect(await screen.findByText(textMock('api_errors.Unauthorized'))).toBeInTheDocument();
-    expect(logout).not.toHaveBeenCalled();
-    expect(mockAssign).not.toHaveBeenCalled();
-
+    jest.runAllTimers();
     await waitFor(() => {
-      setTimeout(async () => {
-        expect(
-          await screen.findByText(textMock('api_errors.Unauthorized')),
-        ).not.toBeInTheDocument();
-        expect(logout).toHaveBeenCalled();
-        expect(mockAssign).toHaveBeenCalledWith(userLogoutAfterPath());
-      }, 5000);
+      expect(queriesMock.logout).toHaveBeenCalled();
     });
+
+    expect(mockConsoleError).toHaveBeenCalled();
   });
 
   it('Displays a toast message for "GT_01" error code', async () => {
