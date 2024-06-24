@@ -1,7 +1,7 @@
 import { test } from '../../extenders/testExtend';
 import { ProcessEditorPage } from '../../pages/ProcessEditorPage';
 import { BpmnJSQuery } from '@studio/testing/playwright/helpers/BpmnJSQuery';
-import { expect, Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { Header } from '@studio/testing/playwright/components/Header';
 import { DesignerApi } from '@studio/testing/playwright/helpers/DesignerApi';
 import type { StorageState } from '@studio/testing/playwright/types/StorageState';
@@ -37,7 +37,7 @@ test('should be possible to add predefined actions to task', async ({
   await giteaPage.verifyThatActionIsVisible('write');
 });
 
-test('should be possible to add custom actions to task and add serverAction', async ({
+test('should be possible to add custom actions to task and set them as serverAction', async ({
   page,
   testAppName,
 }): Promise<void> => {
