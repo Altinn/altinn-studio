@@ -16,7 +16,7 @@ export type MergeReposProps = {
   starredRepos: Repository[];
 };
 
-export type RepositoryWithStarred = Repository & { hasStarred?: boolean };
+export type RepoIncludingStarredData = Repository & { hasStarred?: boolean };
 
 type TranslationMapKey = SelectedContextType | 'named_org' | 'org';
 type TranslationMap = Record<TranslationMapKey, string>;
@@ -69,7 +69,10 @@ export const getReposLabel = ({
     : t(concatenatedTranslationMap.org);
 };
 
-export const mergeRepos = ({ repos, starredRepos }: MergeReposProps): RepositoryWithStarred[] => {
+export const mergeRepos = ({
+  repos,
+  starredRepos,
+}: MergeReposProps): RepoIncludingStarredData[] => {
   if (!repos) {
     return [];
   }

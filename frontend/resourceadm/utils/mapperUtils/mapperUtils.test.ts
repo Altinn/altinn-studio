@@ -19,11 +19,11 @@ describe('mapperUtils', () => {
     ];
 
     it('should map and sort Altinn2LinkService to SelectOption correctly', () => {
-      const result = mapAltinn2LinkServiceToSelectOption(mockLinkServices);
+      const result = mockLinkServices.map(mapAltinn2LinkServiceToSelectOption);
 
       expect(result).toHaveLength(mockLinkServices.length);
-      expect(result[0].value).toBe(JSON.stringify(mockLinkServices[1]));
-      expect(result[0].label).toBe('acn: code2-edition2-name2');
+      expect(result[0].value).toBe(JSON.stringify(mockLinkServices[0]));
+      expect(result[0].label).toBe('name1 (code1/edition1)');
     });
   });
 });
