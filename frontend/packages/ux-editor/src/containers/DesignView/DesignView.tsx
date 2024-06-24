@@ -93,8 +93,8 @@ export const DesignView = (): ReactNode => {
   };
 
   const layoutsWithDuplicateComponents = useMemo(
-    () => findLayoutsContainingDuplicateComponents(formLayoutData),
-    [formLayoutData],
+    () => findLayoutsContainingDuplicateComponents(layouts),
+    [layouts],
   );
 
   /**
@@ -116,7 +116,7 @@ export const DesignView = (): ReactNode => {
         isOpen={layout.page === selectedFormLayoutName}
         onClick={() => handleClickAccordion(layout.page)}
         isValid={isValidLayout}
-        areUniqueIds={!layoutsWithDuplicateComponents.includes(layout.page)}
+        hasUniqueIds={!layoutsWithDuplicateComponents.includes(layout.page)}
       >
         {layout.page === selectedFormLayoutName && (
           <FormLayout layout={layout.data} isValid={isValidLayout} />

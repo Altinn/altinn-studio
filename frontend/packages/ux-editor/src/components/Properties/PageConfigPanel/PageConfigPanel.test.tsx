@@ -82,13 +82,13 @@ describe('PageConfigPanel', () => {
     screen.getByRole('button', { name: textMock('ux_editor.id_identifier') });
   });
 
-  it('render warning when layout is selected and has duplicated ids', async () => {
+  it('render warning when layout is selected and has duplicated ids', () => {
     renderPageConfigPanel(duplicatedLayout);
 
     screen.getByRole('heading', { name: textMock('ux_editor.config.warning_duplicates.heading') });
   });
 
-  it('should display duplicated ids in the document', async () => {
+  it('should display duplicated ids in the document', () => {
     renderPageConfigPanel(duplicatedLayout);
 
     const duplicatedIds = screen.getByText(/<idcontainer1>, <idcontainer2>/i);
@@ -98,7 +98,7 @@ describe('PageConfigPanel', () => {
     expect(uniqueIds).not.toBeInTheDocument();
   });
 
-  it('should show warning modal when there are duplicated ids in all layouts', async () => {
+  it('should render the warning modal', () => {
     renderPageConfigPanel();
 
     const modal = screen.getByRole('dialog', { hidden: true });

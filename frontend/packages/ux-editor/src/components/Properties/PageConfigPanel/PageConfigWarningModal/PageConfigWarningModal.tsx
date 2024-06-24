@@ -15,7 +15,7 @@ export const PageConfigWarningModal = ({ modalRef }: PageConfigWarningModalProps
         {t('ux_editor.modal_properties_warning_modal_title')}
       </Modal.Header>
       <Modal.Content>
-        {t('En komponent-ID må være unik. Du kan ikke publisere appen før du har rettet feilen.')}
+        {t('ux_editor.modal_properties_warning_modal_sub_title')}
         <div className={classes.instructiveTitle}>
           {t('ux_editor.modal_properties_warning_modal_instructive_text_title')}
         </div>

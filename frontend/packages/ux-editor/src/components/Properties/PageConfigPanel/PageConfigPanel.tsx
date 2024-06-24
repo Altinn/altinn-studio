@@ -16,7 +16,6 @@ import {
 import { PageConfigWarning } from './PageConfigWarning';
 import classes from './PageConfigPanel.module.css';
 import { PageConfigWarningModal } from './PageConfigWarningModal';
-import type { FormLayoutPage } from '@altinn/ux-editor/types/FormLayoutPage';
 import type { IInternalLayout } from '@altinn/ux-editor/types/global';
 
 export const PageConfigPanel = () => {
@@ -36,17 +35,12 @@ export const PageConfigPanel = () => {
   const headingTitle = !layoutIsSelected
     ? t('right_menu.content_empty')
     : layoutNameText ?? selectedFormLayoutName;
-  const layout = useFormLayouts()[selectedFormLayoutName];
-  const hasDuplicatedIds = duplicatedIdsExistsInLayout(layout);
 
   const layouts: Record<string, IInternalLayout> = useFormLayouts();
+  const layout = layouts[selectedFormLayoutName];
+  const hasDuplicatedIds = duplicatedIdsExistsInLayout(layout);
 
-  const layoutPages: FormLayoutPage[] = Object.keys(layouts).map((key) => ({
-    page: key,
-    data: layouts[key],
-  }));
-
-  const duplicateLayouts = findLayoutsContainingDuplicateComponents(layoutPages);
+  const duplicateLayouts = findLayoutsContainingDuplicateComponents(layouts);
   const hasDuplicatedIdsInAllLayouts = duplicateLayouts.length > 0;
 
   useEffect(() => {

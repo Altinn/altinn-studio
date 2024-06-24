@@ -19,7 +19,7 @@ export type PageAccordionProps = {
   onClick: () => void;
   pageIsReceipt?: boolean;
   isValid?: boolean;
-  areUniqueIds?: boolean;
+  hasUniqueIds?: boolean;
 };
 
 /**
@@ -42,7 +42,7 @@ export const PageAccordion = ({
   onClick,
   pageIsReceipt,
   isValid,
-  areUniqueIds,
+  hasUniqueIds,
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
@@ -72,7 +72,7 @@ export const PageAccordion = ({
       <div className={classes.accordionHeaderRow}>
         <Accordion.Header
           className={
-            isValid && areUniqueIds ? classes.accordionHeader : classes.accordionHeaderWarning
+            isValid && hasUniqueIds ? classes.accordionHeader : classes.accordionHeaderWarning
           }
           level={3}
           onHeaderClick={onClick}
