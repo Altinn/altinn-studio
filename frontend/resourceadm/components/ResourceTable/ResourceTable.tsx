@@ -54,7 +54,6 @@ export const ResourceTable = ({
       return (
         <StudioButton
           variant='tertiary'
-          size='small'
           icon={
             <PencilIcon
               title={t('resourceadm.dashboard_table_row_edit', {
@@ -72,7 +71,6 @@ export const ResourceTable = ({
       return (
         <StudioButton
           variant='tertiary'
-          size='small'
           icon={
             <FileImportIcon
               title={t('resourceadm.dashboard_table_row_import', {
@@ -161,6 +159,7 @@ export const ResourceTable = ({
     {
       accessor: 'links',
       heading: '',
+      bodyCellClass: classes.editLinkCell,
     },
   ];
 

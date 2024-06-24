@@ -54,17 +54,20 @@ export const RepoList = ({
       accessor: 'name',
       heading: t('dashboard.name'),
       sortable: true,
+      headerCellClass: classes.nameHeaderCell,
       bodyCellFormatter: (repoFullName: string) => <RepoNameWithLink repoFullName={repoFullName} />,
     },
     {
       accessor: 'createdBy',
       heading: t('dashboard.created_by'),
       sortable: true,
+      headerCellClass: classes.createdByHeaderCell,
     },
     {
       accessor: 'updated',
       heading: t('dashboard.last_modified'),
       sortable: true,
+      headerCellClass: classes.lastUpdatedHeaderCell,
       bodyCellFormatter: (date: string) =>
         new Date(date).toLocaleDateString('nb', { dateStyle: 'short' }),
     },
