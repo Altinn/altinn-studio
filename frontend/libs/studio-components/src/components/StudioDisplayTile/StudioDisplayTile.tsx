@@ -36,7 +36,7 @@ const StudioDisplayTile = forwardRef<HTMLDivElement, StudioDisplayTileProps>(
           </div>
           <Paragraph size='small'>{value}</Paragraph>
         </div>
-        {showPadlock && <PadlockLockedFillIcon />}
+        {showPadlock && <PadlockLockedFillIcon data-testid='padlockIconTestId' />}
       </div>
     );
   },
