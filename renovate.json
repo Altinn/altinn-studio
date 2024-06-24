@@ -14,10 +14,6 @@
     }
   ],
   "ignorePaths": ["testdata/**", "src/**"],
-  "ignoreDeps": [
-    "@mui/x-data-grid",
-    "Moq",
-    "Altinn.App.Core"
-  ],
+  "ignoreDeps": ["Moq", "Altinn.App.Core"],
   "schedule": ["before 07:00 on Monday"]
 }
