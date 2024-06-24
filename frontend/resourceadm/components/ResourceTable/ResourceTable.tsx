@@ -119,7 +119,7 @@ export const ResourceTable = ({
           })}
         </div>
       ),
-      links: renderLinkCell(listItem),
+      links: <div className={classes.editLinkCell}>{renderLinkCell(listItem)}</div>,
     };
   });
 
@@ -159,7 +159,6 @@ export const ResourceTable = ({
     {
       accessor: 'links',
       heading: '',
-      bodyCellClass: classes.editLinkCell,
     },
   ];
 
