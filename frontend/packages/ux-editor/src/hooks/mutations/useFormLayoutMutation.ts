@@ -5,6 +5,12 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import type { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
+import type { ComponentIdsChange, FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
+
+type useFormLayoutMutationPayload = {
+  internalLayout: IInternalLayout;
+  componentIdsChange?: ComponentIdsChange;
+};
 
 export const useFormLayoutMutation = (
   org: string,
@@ -17,11 +23,14 @@ export const useFormLayoutMutation = (
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (layout: IInternalLayout) => {
-      const convertedLayout: ExternalFormLayout = internalLayoutToExternal(layout);
-      return saveFormLayout(org, app, layoutName, layoutSetName, convertedLayout).then(
-        () => layout,
-      );
+    mutationFn: async (payload: useFormLayoutMutationPayload) => {
+      const convertedLayout: ExternalFormLayout = internalLayoutToExternal(payload.internalLayout);
+      const requestPayload: FormLayoutRequest = {
+        layout: convertedLayout,
+        componentIdsChange: payload.componentIdsChange,
+      };
+      await saveFormLayout(org, app, layoutName, layoutSetName, requestPayload);
+      return payload.internalLayout;
     },
     onSuccess: async (savedLayout) => {
       if (previewConnection && previewConnection.state === 'Connected') {

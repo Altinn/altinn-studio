@@ -23,10 +23,12 @@ public class ProcessDataTypesChangedApplicationMetadataHandler : INotificationHa
 
     public async Task Handle(ProcessDataTypesChangedEvent notification, CancellationToken cancellationToken)
     {
-        await _fileSyncHandlerExecutor.ExecuteWithExceptionHandling(
+        bool hasChanges = false;
+        await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
             notification.EditingContext,
             SyncErrorCodes.ApplicationMetadataDataTypeSyncError,
-            "App/config/applicationmetadata.json", async () =>
+            "App/config/applicationmetadata.json",
+            async () =>
             {
                 var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
                     notification.EditingContext.Org,
@@ -38,7 +40,10 @@ public class ProcessDataTypesChangedApplicationMetadataHandler : INotificationHa
                 if (notification.ConnectedTaskId != Constants.General.CustomReceiptId && TryChangeDataTypes(applicationMetadata, notification.NewDataTypes, notification.ConnectedTaskId))
                 {
                     await repository.SaveApplicationMetadata(applicationMetadata);
+                    hasChanges = true;
                 }
+
+                return hasChanges;
             });
     }
 

@@ -57,17 +57,14 @@ describe('HiddenExpressionOnLayout', () => {
     await user.click(addSubExpressionButton);
 
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
-      org,
-      app,
-      layout1NameMock,
-      layoutSet,
-      expect.objectContaining({
+    expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(org, app, layout1NameMock, layoutSet, {
+      componentIdsChange: undefined,
+      layout: expect.objectContaining({
         data: expect.objectContaining({
           hidden: ['equals', 0, 0],
         }),
       }),
-    );
+    });
   });
 
   it('calls saveLayout when existing expression is changed', async () => {
@@ -87,17 +84,14 @@ describe('HiddenExpressionOnLayout', () => {
     await user.click(saveExpressionButton);
 
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
-    expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
-      org,
-      app,
-      layout1NameMock,
-      layoutSet,
-      expect.objectContaining({
+    expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(org, app, layout1NameMock, layoutSet, {
+      componentIdsChange: undefined,
+      layout: expect.objectContaining({
         data: expect.objectContaining({
           hidden: expression,
         }),
       }),
-    );
+    });
   });
 
   it('calls saveLayout when expression is deleted', async () => {

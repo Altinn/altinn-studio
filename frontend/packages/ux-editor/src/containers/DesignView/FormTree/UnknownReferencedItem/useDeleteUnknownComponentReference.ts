@@ -17,10 +17,13 @@ export const useDeleteUnknownComponentReference = () => {
 
   return async (layout: IInternalLayout, id: string): Promise<IInternalLayout> => {
     const updatedLayout = removeComponent(layout, id);
-    return await updateFormLayoutMutation(updatedLayout, {
-      onSuccess: async () => {
-        await refetchLayouts(selectedFormLayoutSetName);
+    return await updateFormLayoutMutation(
+      { internalLayout: updatedLayout },
+      {
+        onSuccess: async () => {
+          await refetchLayouts(selectedFormLayoutSetName);
+        },
       },
-    });
+    );
   };
 };

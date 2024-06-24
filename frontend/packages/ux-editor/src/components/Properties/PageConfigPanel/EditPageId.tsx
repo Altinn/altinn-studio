@@ -6,7 +6,7 @@ import { useUpdateLayoutNameMutation } from '../../../hooks/mutations/useUpdateL
 import { StudioToggleableTextfield } from '@studio/components';
 import { useTextIdMutation } from 'app-development/hooks/mutations';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useText, useAppContext } from '../../../hooks';
+import { useAppContext, useText } from '../../../hooks';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import { Trans } from 'react-i18next';
 

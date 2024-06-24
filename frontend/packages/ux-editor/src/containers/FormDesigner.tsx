@@ -129,11 +129,14 @@ export const FormDesigner = (): JSX.Element => {
         triggerDepthAlert();
         return;
       }
-      updateFormLayout(updatedLayout, {
-        onSuccess: async () => {
-          await refetchLayouts(selectedFormLayoutSetName);
+      updateFormLayout(
+        { internalLayout: updatedLayout },
+        {
+          onSuccess: async () => {
+            await refetchLayouts(selectedFormLayoutSetName);
+          },
         },
-      });
+      );
     };
 
     return (

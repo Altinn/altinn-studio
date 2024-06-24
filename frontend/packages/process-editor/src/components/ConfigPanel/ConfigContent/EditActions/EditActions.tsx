@@ -30,7 +30,7 @@ export const EditActions = () => {
     <>
       {actionElements.map((actionElement: ModdleElement, index: number) => (
         <EditAction
-          key={actionElement.action}
+          key={actionElement.action + index.toString()}
           actionElementToEdit={actionElement}
           availablePredefinedActions={availablePredefinedActions}
           bpmnDetails={bpmnDetails}

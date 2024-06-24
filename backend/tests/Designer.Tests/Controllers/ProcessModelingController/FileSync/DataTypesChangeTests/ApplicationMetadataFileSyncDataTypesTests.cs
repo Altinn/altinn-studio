@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController.FileSync.DataTypesChangeTests;
 
-public class ApplicationMetadataFileSyncDataTypesTests : DisagnerEndpointsTestsBase<ProcessDataTypesChangedNotifyTests>, IClassFixture<WebApplicationFactory<Program>>
+public class ApplicationMetadataFileSyncDataTypesTests : DisagnerEndpointsTestsBase<ApplicationMetadataFileSyncDataTypesTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/process-modelling/data-types";
 

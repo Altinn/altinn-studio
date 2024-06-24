@@ -442,7 +442,8 @@ namespace Altinn.Studio.Designer.Controllers
                 foreach (ServiceResource resource in allResources)
                 {
                     if (resource?.HasCompetentAuthority.Orgcode != null
-                        && resource.ResourceReferences != null && resource.ResourceReferences.Exists(r => r.ReferenceType != null && r.ReferenceType.Equals(ReferenceType.ServiceCode)))
+                        && resource.ResourceReferences != null && resource.ResourceReferences.Exists(r => r.ReferenceType != null && r.ReferenceType.Equals(ReferenceType.ServiceCode))
+                        && resource.ResourceType == ResourceType.Altinn2Service)
                     {
                         AvailableService service = new AvailableService();
                         if (resource.Title.ContainsKey("nb"))
@@ -503,9 +504,23 @@ namespace Altinn.Studio.Designer.Controllers
                 ModelState.AddModelError($"{resource.Identifier}.availableForType", "resourceerror.missingavailablefortype");
             }
 
-            if (resource.ResourceType == ResourceType.MaskinportenSchema && (resource.ResourceReferences == null || resource.ResourceReferences.Count((x) => x.ReferenceType == ReferenceType.MaskinportenScope) < 1))
+            if (resource.ResourceType == ResourceType.MaskinportenSchema)
             {
-                ModelState.AddModelError($"{resource.Identifier}.resourceReferences", "resourceerror.missingmaskinportenscope");
+                if (resource.ResourceReferences == null || !resource.ResourceReferences.Any((x) => x.ReferenceType == ReferenceType.MaskinportenScope))
+                {
+                    ModelState.AddModelError($"{resource.Identifier}.resourceReferences", "resourceerror.missingmaskinportenscope");
+                }
+                for (int i = 0; i < resource.ResourceReferences?.Count; i++)
+                {
+                    bool referenceError = string.IsNullOrEmpty(resource.ResourceReferences[i].Reference);
+                    bool referenceSourceError = resource.ResourceReferences[i].ReferenceSource == null;
+                    bool referenceTypeError = resource.ResourceReferences[i].ReferenceType == null;
+
+                    if (referenceError || referenceSourceError || referenceTypeError)
+                    {
+                        ModelState.AddModelError($"{resource.Identifier}.resourceReferences[{i}]", "resourceerror.missingresourcereferences.");
+                    }
+                }
             }
 
             if (resource.Status == null)
