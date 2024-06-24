@@ -179,3 +179,9 @@ export interface ResourceError extends Error {
     data?: any;
   };
 }
+
+export interface ResourceFormError {
+  field: keyof Resource;
+  index?: number | keyof SupportedLanguage;
+  error: string;
+}

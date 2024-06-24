@@ -7,6 +7,8 @@ import type {
   ResourceKeyword,
   ValidLanguage,
   SupportedLanguage,
+  Resource,
+  ResourceFormError,
 } from 'app-shared/types/ResourceAdm';
 import type { ReactNode } from 'react';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
@@ -251,4 +253,188 @@ export const deepCompare = (original: any, changed: any) => {
   return originalKeys.every(
     (key) => changedKeys.includes(key) && deepCompare(original[key], changed[key]),
   );
+};
+
+export const validateResource = (
+  resourceData: Resource,
+  t: (key: string, params?: KeyValuePairs<string>) => string,
+): ResourceFormError[] => {
+  const errors: ResourceFormError[] = [];
+
+  // validate resourceType
+  if (!Object.keys(resourceTypeMap).includes(resourceData.resourceType)) {
+    errors.push({
+      field: 'resourceType',
+      error: t('resourceadm.about_resource_resource_type_error'),
+    });
+  }
+
+  // validate title
+  const titleError = getMissingInputLanguageString(
+    {
+      nb: resourceData.title?.nb,
+      nn: resourceData.title?.nn,
+      en: resourceData.title?.en,
+    },
+    t('resourceadm.about_resource_error_usage_string_title'),
+    t,
+  );
+  if (titleError) {
+    errors.push({
+      field: 'title',
+      index: 'nb',
+      error: titleError,
+    });
+  }
+  if (!resourceData.title?.nn) {
+    errors.push({
+      field: 'title',
+      index: 'nn',
+      error: t('resourceadm.about_resource_error_translation_missing_title_nn'),
+    });
+  }
+  if (!resourceData.title?.en) {
+    errors.push({
+      field: 'title',
+      index: 'en',
+      error: t('resourceadm.about_resource_error_translation_missing_title_en'),
+    });
+  }
+
+  // validate description
+  const descriptionError = getMissingInputLanguageString(
+    {
+      nb: resourceData.description?.nb,
+      nn: resourceData.description?.nn,
+      en: resourceData.description?.en,
+    },
+    t('resourceadm.about_resource_error_usage_string_description'),
+    t,
+  );
+  if (descriptionError) {
+    errors.push({
+      field: 'description',
+      index: 'nb',
+      error: descriptionError,
+    });
+  }
+  if (!resourceData.description?.nn) {
+    errors.push({
+      field: 'description',
+      index: 'nn',
+      error: t('resourceadm.about_resource_error_translation_missing_description_nn'),
+    });
+  }
+  if (!resourceData.description?.en) {
+    errors.push({
+      field: 'description',
+      index: 'en',
+      error: t('resourceadm.about_resource_error_translation_missing_description_en'),
+    });
+  }
+
+  // validate rightDescription
+  if (resourceData.delegable) {
+    const rightDescriptionError = getMissingInputLanguageString(
+      {
+        nb: resourceData.rightDescription?.nb,
+        nn: resourceData.rightDescription?.nn,
+        en: resourceData.rightDescription?.en,
+      },
+      t('resourceadm.about_resource_error_usage_string_rights_description'),
+      t,
+    );
+    if (rightDescriptionError) {
+      errors.push({
+        field: 'rightDescription',
+        index: 'nb',
+        error: rightDescriptionError,
+      });
+    }
+    if (!resourceData.rightDescription?.nn) {
+      errors.push({
+        field: 'rightDescription',
+        index: 'nn',
+        error: t('resourceadm.about_resource_error_translation_missing_rights_description_nn'),
+      });
+    }
+    if (!resourceData.rightDescription?.en) {
+      errors.push({
+        field: 'rightDescription',
+        index: 'en',
+        error: t('resourceadm.about_resource_error_translation_missing_rights_description_en'),
+      });
+    }
+  }
+
+  // validate status
+  if (!Object.keys(resourceStatusMap).includes(resourceData.status)) {
+    errors.push({
+      field: 'status',
+      error: t('resourceadm.about_resource_status_error'),
+    });
+  }
+
+  // validate availableForType
+  if (
+    resourceData.resourceType !== 'MaskinportenSchema' &&
+    !resourceData.availableForType?.length
+  ) {
+    errors.push({
+      field: 'availableForType',
+      error: t('resourceadm.about_resource_available_for_error_message'),
+    });
+  }
+
+  // validate resourceReferences
+  if (resourceData.resourceType === 'MaskinportenSchema') {
+    // if there are no references, an empty reference is added in the reference component
+    if (!resourceData.resourceReferences?.length) {
+      errors.push({
+        field: `resourceReferences`,
+        index: 0,
+        error: t('resourceadm.about_resource_reference_error'),
+      });
+    }
+
+    resourceData.resourceReferences?.map((x, index) => {
+      if (!x.reference || !x.referenceSource || !x.referenceType) {
+        errors.push({
+          field: 'resourceReferences',
+          index: index,
+          error: t('resourceadm.about_resource_reference_error'),
+        });
+      }
+    });
+    const hasMaskinportenScope = resourceData.resourceReferences?.some(
+      (ref) => ref.referenceType === 'MaskinportenScope',
+    );
+    if (!hasMaskinportenScope) {
+      errors.push({
+        field: 'resourceReferences',
+        error: t('resourceadm.about_resource_reference_maskinporten_missing'),
+      });
+    }
+  }
+
+  // validate contactPoints
+  // if there are no contactPoints, an empty contactPoint is added in the contactPoints component
+  if (!resourceData.contactPoints?.length) {
+    errors.push({
+      field: `contactPoints`,
+      index: 0,
+      error: t('resourceadm.about_resource_contact_point_error'),
+    });
+  }
+  resourceData.contactPoints?.map((x, index) => {
+    if (x.category === '' && x.email === '' && x.telephone === '' && x.contactPage === '') {
+      errors.push({
+        field: 'contactPoints',
+        index: index,
+        error: t('resourceadm.about_resource_contact_point_error'),
+      });
+    }
+  });
+
+  return errors;
 };
