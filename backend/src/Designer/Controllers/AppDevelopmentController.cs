@@ -6,12 +6,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -32,6 +34,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly ISourceControl _sourceControl;
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly ApplicationInsightsSettings _applicationInsightsSettings;
+        private readonly IMediator _mediator;
 
 
         /// <summary>
@@ -42,13 +45,14 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="sourceControl">The source control service.</param>
         /// <param name="altinnGitRepositoryFactory"></param>
         /// <param name="applicationInsightsSettings">An <see cref="ApplicationInsightsSettings"/></param>
-        public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService, ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ApplicationInsightsSettings applicationInsightsSettings)
+        public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService, ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ApplicationInsightsSettings applicationInsightsSettings, IMediator mediator)
         {
             _appDevelopmentService = appDevelopmentService;
             _repository = repositoryService;
             _sourceControl = sourceControl;
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _applicationInsightsSettings = applicationInsightsSettings;
+            _mediator = mediator;
         }
 
         /// <summary>
@@ -100,19 +104,33 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="layoutSetName">Name of layoutSet the specific layout belongs to</param>
         /// <param name="layoutName">The name of the form layout to be saved.</param>
-        /// /// <param name="formLayout">The content to be saved to the layout</param>
+        /// <param name="formLayoutPayload">A json object with, layout, the content to be saved, and the componentIdsChange: If componentIDs have been changed, this event includes info to perform the change across the app</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
         [UseSystemTextJson]
         [Route("form-layout/{layoutName}")]
-        public async Task<ActionResult> SaveFormLayout(string org, string app, [FromQuery] string layoutSetName, [FromRoute] string layoutName, [FromBody] JsonNode formLayout, CancellationToken cancellationToken)
+        public async Task<ActionResult> SaveFormLayout(string org, string app, [FromQuery] string layoutSetName, [FromRoute] string layoutName, [FromBody] FormLayoutPayload formLayoutPayload, CancellationToken cancellationToken)
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                await _appDevelopmentService.SaveFormLayout(editingContext, layoutSetName, layoutName, formLayout, cancellationToken);
+                await _appDevelopmentService.SaveFormLayout(editingContext, layoutSetName, layoutName, formLayoutPayload.Layout, cancellationToken);
+
+                if (formLayoutPayload.ComponentIdsChange is not null && !string.IsNullOrEmpty(layoutSetName))
+                {
+                    foreach (var componentIdChange in formLayoutPayload.ComponentIdsChange)
+                    {
+                        await _mediator.Publish(new ComponentIdChangedEvent
+                        {
+                            OldComponentId = componentIdChange.OldComponentId,
+                            NewComponentId = componentIdChange.NewComponentId,
+                            LayoutSetName = layoutSetName,
+                            EditingContext = editingContext
+                        }, cancellationToken);
+                    }
+                }
                 return Ok();
             }
             catch (FileNotFoundException exception)

@@ -20,7 +20,8 @@ export const FetchChangesButton = ({
 }: IFetchChangesButtonProps) => {
   const { t } = useTranslation();
 
-  const fetchChangesHandler = (event: any) => fetchChanges(event.currentTarget);
+  const fetchChangesHandler = ({ currentTarget }: React.MouseEvent<HTMLButtonElement>) =>
+    fetchChanges(currentTarget);
 
   return (
     <StudioButton

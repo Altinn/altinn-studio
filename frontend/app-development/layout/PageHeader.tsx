@@ -11,6 +11,7 @@ import type { User } from 'app-shared/types/Repository';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { RepositoryType } from 'app-shared/types/global';
 import { useSelectedFormLayoutSetName, useSelectedFormLayoutName } from '@altinn/ux-editor/hooks';
+import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 
 type SubMenuContentProps = {
   org: string;
@@ -18,8 +19,14 @@ type SubMenuContentProps = {
   hasRepoError?: boolean;
 };
 
-export const subMenuContent = ({ org, app, hasRepoError }: SubMenuContentProps) => {
+export const SubMenuContent = ({
+  org,
+  app,
+  hasRepoError,
+}: SubMenuContentProps): React.ReactElement => {
   const repositoryType = getRepositoryType(org, app);
+  const { doReloadPreview } = usePreviewContext();
+
   return (
     <GiteaHeader
       org={org}
@@ -27,6 +34,7 @@ export const subMenuContent = ({ org, app, hasRepoError }: SubMenuContentProps) 
       hasCloneModal
       leftComponent={repositoryType !== RepositoryType.DataModels && <SettingsModalButton />}
       hasRepoError={hasRepoError}
+      onPullSuccess={doReloadPreview}
     />
   );
 };
@@ -78,7 +86,7 @@ export const PageHeader = ({
     <AltinnHeader
       menuItems={!isRepoError && menuItems}
       showSubMenu={showSubMenu || !isRepoError}
-      subMenuContent={subMenuContent({ org, app, hasRepoError: isRepoError })}
+      subMenuContent={SubMenuContent({ org, app, hasRepoError: isRepoError })}
       org={org}
       app={!isRepoError && app}
       user={user}

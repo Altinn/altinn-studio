@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController.FileSync.TaskIdChangeTests;
 
-public class ApplicationMetadataFileSyncTaskIdTests : DisagnerEndpointsTestsBase<UpsertProcessDefinitionAndNotifyTests>, IClassFixture<WebApplicationFactory<Program>>
+public class ApplicationMetadataFileSyncTaskIdTests : DisagnerEndpointsTestsBase<ApplicationMetadataFileSyncTaskIdTests>, IClassFixture<WebApplicationFactory<Program>>
 {
 
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/process-modelling/process-definition-latest";
