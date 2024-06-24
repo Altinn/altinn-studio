@@ -163,6 +163,20 @@ describe('SchemaNode', () => {
     expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
     expect(setSelectedNodePointer).toHaveBeenCalledWith(null);
   });
+
+  it('Marks the node as selected when it is added', async () => {
+    const { pointer } = objectNodeMock;
+    const schemaModel = setupSchemaModel();
+    const save = jest.fn();
+    render({ schemaModel, save, pointer });
+    await user.click(getAddButton());
+    const addFieldButtonName = textMock('schema_editor.add_field');
+    const addFieldButton = screen.getByRole('menuitem', { name: addFieldButtonName });
+    await user.click(addFieldButton);
+    const savedModel = getSavedModel(save);
+    const updatedNode = savedModel.getNode(pointer) as FieldNode;
+    expect(updatedNode.pointer).toEqual(pointer);
+  });
 });
 
 interface RenderProps {

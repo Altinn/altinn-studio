@@ -23,7 +23,8 @@ public class ProcessDataTypesChangedLayoutSetsHandler : INotificationHandler<Pro
 
     public async Task Handle(ProcessDataTypesChangedEvent notification, CancellationToken cancellationToken)
     {
-        await _fileSyncHandlerExecutor.ExecuteWithExceptionHandling(
+        bool hasChanges = false;
+        await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
             notification.EditingContext,
             SyncErrorCodes.LayoutSetsDataTypeSyncError,
             "App/ui/layout-sets.json",
@@ -36,14 +37,17 @@ public class ProcessDataTypesChangedLayoutSetsHandler : INotificationHandler<Pro
 
                 if (!repository.AppUsesLayoutSets())
                 {
-                    return;
+                    return hasChanges;
                 }
 
                 var layoutSets = await repository.GetLayoutSetsFile(cancellationToken);
                 if (TryChangeDataTypes(layoutSets, notification.NewDataTypes, notification.ConnectedTaskId))
                 {
                     await repository.SaveLayoutSets(layoutSets);
+                    hasChanges = true;
                 }
+
+                return hasChanges;
             });
     }
 
