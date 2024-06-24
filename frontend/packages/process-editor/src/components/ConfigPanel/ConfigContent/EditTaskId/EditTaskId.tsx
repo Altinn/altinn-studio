@@ -8,12 +8,12 @@ import { useBpmnConfigPanelFormContext } from '../../../../contexts/BpmnConfigPa
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import classes from './EditTaskId.module.css';
 import { useTaskIds } from '../../../../hooks/useTaskIds';
-import type { MetaDataForm } from 'app-shared/types/BpmnMetaDataForm';
+import type { MetadataForm } from 'app-shared/types/BpmnMetadataForm';
 
 export const EditTaskId = (): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails, modelerRef, setBpmnDetails } = useBpmnContext();
-  const { metaDataFormRef } = useBpmnConfigPanelFormContext();
+  const { metadataFormRef } = useBpmnConfigPanelFormContext();
 
   const modelerInstance = modelerRef.current;
   const modeling: Modeling = modelerInstance.get('modeling');
@@ -34,13 +34,13 @@ export const EditTaskId = (): React.ReactElement => {
 
     if (newId === bpmnDetails.id) return;
 
-    const newMetadata: MetaDataForm = {
+    const newMetadata: MetadataForm = {
       taskIdChange: {
         newId,
         oldId: bpmnDetails.id,
       },
     };
-    metaDataFormRef.current = Object.assign({}, metaDataFormRef.current, newMetadata);
+    metadataFormRef.current = Object.assign({}, metadataFormRef.current, newMetadata);
     updateId(newId);
   };
 
@@ -90,13 +90,11 @@ export const EditTaskId = (): React.ReactElement => {
         size: 'small',
       }}
       viewProps={{
-        className: classes.view,
         children: (
           <span>
             <b>ID:</b> {bpmnDetails.id}
           </span>
         ),
-        value: bpmnDetails.id,
         variant: 'tertiary',
         'aria-label': t('process_editor.configuration_panel_change_task_id'),
       }}

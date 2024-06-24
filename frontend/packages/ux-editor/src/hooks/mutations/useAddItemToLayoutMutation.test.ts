@@ -27,7 +27,7 @@ const defaultArgs: AddFormItemMutationArgs = {
   index: 0,
 };
 
-const applicationAttachmentMetaDataMock: ApplicationAttachmentMetadata = {
+const applicationAttachmentMetadataMock: ApplicationAttachmentMetadata = {
   id,
   taskId: 'some-task-id',
   maxCount: 1,
@@ -72,7 +72,7 @@ describe('useAddItemToLayoutMutation', () => {
     result.current.mutate({ ...defaultArgs, componentType: ComponentType.FileUpload });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(org, app, {
-      ...applicationAttachmentMetaDataMock,
+      ...applicationAttachmentMetadataMock,
       taskId: 'Task_2',
     });
   });
@@ -82,7 +82,7 @@ describe('useAddItemToLayoutMutation', () => {
     result.current.mutate({ ...defaultArgs, componentType: ComponentType.FileUpload });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(org, app, {
-      ...applicationAttachmentMetaDataMock,
+      ...applicationAttachmentMetadataMock,
       taskId: 'Task_1',
     });
   });

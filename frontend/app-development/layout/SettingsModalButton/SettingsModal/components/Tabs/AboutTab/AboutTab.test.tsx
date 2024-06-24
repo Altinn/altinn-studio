@@ -70,7 +70,7 @@ describe('AboutTab', () => {
     expect(getAppConfig).toHaveBeenCalledTimes(1);
   });
 
-  it('fetches repoMetaData on mount', () => {
+  it('fetches repoMetadata on mount', () => {
     renderAboutTab();
     expect(getRepoMetadata).toHaveBeenCalledTimes(1);
   });
