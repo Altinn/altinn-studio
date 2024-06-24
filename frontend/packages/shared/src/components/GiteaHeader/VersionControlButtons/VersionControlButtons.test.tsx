@@ -64,15 +64,6 @@ describe('VersionControlButtons', () => {
     });
     expect(fetchChangesButton).toBeDisabled();
   });
-
-  /*
-  it('should call onPullSuccess when fetching changes', async () => {
-    renderVersionControlButtons();
-    const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
-    await user.click(fetchButton);
-    expect(defaultProps.onPullSuccess).toHaveBeenCalledTimes(1);
-  });
-  */
 });
 
 type Props = {

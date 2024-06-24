@@ -9,7 +9,6 @@ type Props = {
   className?: string;
 };
 
-// TODO DELETE THESE
 export const SimpleContainer = ({ children, className }: Props) => {
   return <div className={classnames(classes.simpleContainer, className)}>{children}</div>;
 };
