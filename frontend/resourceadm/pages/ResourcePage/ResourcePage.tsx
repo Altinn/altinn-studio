@@ -124,6 +124,7 @@ export const ResourcePage = (): React.JSX.Element => {
           setShowResourceErrors(false);
           handleNavigation(page);
         } else {
+          window.scrollTo(0, 0);
           setShowResourceErrors(true);
           setNextPage(page);
           setResourceErrorModalOpen(true);
