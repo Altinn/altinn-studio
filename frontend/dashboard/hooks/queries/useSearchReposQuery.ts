@@ -25,6 +25,5 @@ const mapQueryParams = (params: SearchRepoFilterParams): SearchRepoFilterParams 
       copyParams.sortby = 'updated';
       break;
   }
-  copyParams.page = params.page + 1;
   return copyParams;
 };
