@@ -20202,7 +20202,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "resourceadm@workspace:frontend/resourceadm"
   dependencies:
-    "@mui/x-data-grid": "npm:6.18.5"
     "@svgr/webpack": "npm:8.1.0"
     cross-env: "npm:7.0.3"
     jest: "npm:29.7.0"

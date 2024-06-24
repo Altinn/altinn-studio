@@ -109,7 +109,7 @@ describe('AccessListMembers', () => {
       data: [searchResultOrgNr],
       etag: '',
     });
-    expect(screen.getAllByText(searchResultOrgNr).length).toBe(2);
+    await waitFor(() => expect(screen.getAllByText(searchResultOrgNr).length).toBe(2));
   });
 
   it('should show message when no parties are found', async () => {
@@ -202,7 +202,7 @@ describe('AccessListMembers', () => {
     const addMemberButton = screen.getByText(textMock('resourceadm.listadmin_add_to_list'));
     await user.click(addMemberButton);
 
-    expect(screen.getByText(textMock('resourceadm.listadmin_invalid_org'))).toBeInTheDocument();
+    await waitFor(() => screen.findByText(textMock('resourceadm.listadmin_invalid_org')));
   });
 
   it('should show error message if add member request returns http status code 412', async () => {
