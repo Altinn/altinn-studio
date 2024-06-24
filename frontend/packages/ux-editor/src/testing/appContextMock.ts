@@ -18,4 +18,5 @@ export const appContextMock: AppContextProps = {
   refetchTexts: jest.fn(),
   shouldReloadPreview: false,
   previewHasLoaded: jest.fn(),
+  onLayoutSetNameChange: jest.fn(),
 };

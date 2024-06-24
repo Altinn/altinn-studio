@@ -42,8 +42,9 @@ const mockResourceListItem4: ResourceListItem = {
   identifier: 'r4',
   environments: ['gitea'],
 };
+const mockResourceListItem5Title = 'resource 5';
 const mockResourceListItem5: ResourceListItem = {
-  title: { nb: 'resource 5', nn: '', en: '' },
+  title: { nb: mockResourceListItem5Title, nn: '', en: '' },
   createdBy: 'John Doe',
   lastChanged: new Date('2023-08-30'),
   identifier: 'r5',
@@ -272,7 +273,11 @@ describe('ResourceDashBoardPage', () => {
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
 
-    const [importButton] = screen.getAllByText(textMock('resourceadm.dashboard_table_row_import'));
+    const importButton = screen.getByText(
+      textMock('resourceadm.dashboard_table_row_import', {
+        resourceName: mockResourceListItem5Title,
+      }),
+    );
     await user.click(importButton);
 
     const cancelButton = screen.getByRole('button', {
@@ -300,7 +305,11 @@ describe('ResourceDashBoardPage', () => {
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
 
-    const [importButton] = screen.getAllByText(textMock('resourceadm.dashboard_table_row_import'));
+    const importButton = screen.getByText(
+      textMock('resourceadm.dashboard_table_row_import', {
+        resourceName: mockResourceListItem5Title,
+      }),
+    );
     await user.click(importButton);
 
     const at22radio = screen.getByRole('radio', { name: textMock('resourceadm.deploy_at22_env') });
@@ -325,7 +334,11 @@ describe('ResourceDashBoardPage', () => {
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
 
-    const [importButton] = screen.getAllByText(textMock('resourceadm.dashboard_table_row_import'));
+    const importButton = screen.getByText(
+      textMock('resourceadm.dashboard_table_row_import', {
+        resourceName: mockResourceListItem5Title,
+      }),
+    );
     await user.click(importButton);
 
     expect(mockedNavigate).toHaveBeenCalled();

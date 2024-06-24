@@ -21,11 +21,17 @@ export const useTableSorting = (rows: Rows, options: Record<'enable', boolean>) 
 
   useEffect(() => {
     if (sortColumn !== null) {
-      const newSortedRows = [...rows].sort((a, b) => {
-        const rowA = a[sortColumn];
-        const rowB = b[sortColumn];
-        if (rowA > rowB) return sortDirection === 'asc' ? 1 : -1;
-        if (rowA < rowB) return sortDirection === 'asc' ? -1 : 1;
+      const newSortedRows = [...rows].sort((rowA, rowB) => {
+        let cellA = rowA[sortColumn];
+        let cellB = rowB[sortColumn];
+
+        if (typeof cellA === 'string' && typeof cellB === 'string') {
+          cellA = cellA.toLowerCase();
+          cellB = cellB.toLowerCase();
+        }
+
+        if (cellA > cellB) return sortDirection === 'asc' ? 1 : -1;
+        if (cellA < cellB) return sortDirection === 'asc' ? -1 : 1;
         return 0;
       });
       setSortedRows(newSortedRows);

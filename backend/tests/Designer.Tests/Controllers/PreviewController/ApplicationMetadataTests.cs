@@ -105,9 +105,43 @@ namespace Designer.Tests.Controllers.PreviewController
                 },
                 TaskId = "Task_2"
             });
+            expectedApplicationMetadata.PartyTypesAllowed.Person = false;
+            expectedApplicationMetadata.PartyTypesAllowed.Organisation = false;
+            expectedApplicationMetadata.PartyTypesAllowed.SubUnit = false;
+            expectedApplicationMetadata.PartyTypesAllowed.BankruptcyEstate = false;
 
             string expectedJson = JsonSerializer.Serialize(expectedApplicationMetadata, SerializerOptions);
             JsonUtils.DeepEquals(expectedJson, responseBody).Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task Get_ApplicationMetadata_WithAllPartyTypesAllowedSetToFalse()
+        {
+            string originalApplicationMetadataString = TestDataHelper.GetFileFromRepo(Org, AppV4, Developer, "App/config/applicationmetadata.json");
+            ApplicationMetadata originalApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(originalApplicationMetadataString, SerializerOptions);
+            originalApplicationMetadata.PartyTypesAllowed.Person.Should().BeTrue();
+            originalApplicationMetadata.PartyTypesAllowed.Organisation.Should().BeTrue();
+            originalApplicationMetadata.PartyTypesAllowed.SubUnit.Should().BeTrue();
+            originalApplicationMetadata.PartyTypesAllowed.BankruptcyEstate.Should().BeTrue();
+
+            _appDevelopmentServiceMock
+                .Setup(rs => rs.GetAppLibVersion(It.IsAny<AltinnRepoEditingContext>()))
+                .Returns(NuGet.Versioning.NuGetVersion.Parse("8.0.0"));
+
+
+            string dataPathWithData = $"{Org}/{AppV4}/api/v1/applicationmetadata";
+            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+
+            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+
+            ApplicationMetadata responseApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(responseBody, SerializerOptions);
+            responseApplicationMetadata.PartyTypesAllowed.Person.Should().BeFalse();
+            responseApplicationMetadata.PartyTypesAllowed.Organisation.Should().BeFalse();
+            responseApplicationMetadata.PartyTypesAllowed.SubUnit.Should().BeFalse();
+            responseApplicationMetadata.PartyTypesAllowed.BankruptcyEstate.Should().BeFalse();
         }
     }
 }

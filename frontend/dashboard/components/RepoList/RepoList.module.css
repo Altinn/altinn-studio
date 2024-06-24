@@ -1,53 +1,36 @@
-.actionLink {
-  align-items: center;
+/*.favoriteIconHeaderCell {*/
+/*  font-size: 0; !*Hides text, but keeps it accessible for screen readers*!*/
+/*  width: 46px; !*Has to be exactly 46px to make the width the same for empty and filled table columns*!*/
+/*}*/
+
+/*.nameHeaderCell {*/
+/*  width: 20%;*/
+/*}*/
+
+/*.createdByHeaderCell {*/
+/*  width: 20%;*/
+/*}*/
+
+/*.lastUpdatedHeaderCell {*/
+/*  width: 15%;*/
+/*}*/
+
+/*.actionIconsHeaderCell {*/
+/*  font-size: 0;*/
+/*}*/
+
+tr {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr 1fr 0.5fr 1fr 11rem;
+}
+
+td {
   display: flex;
-  margin-right: 1rem;
-  min-width: 40px;
+  align-items: center;
 }
 
-.actionLink:hover {
-  text-decoration: none;
-}
-
-.actionLink:hover span {
-  text-decoration: underline;
-}
-
-.dropdownIcon {
-  font-size: 2rem;
-}
-
-.editLink {
-  color: #165db8;
-}
-
-.editLink:hover {
-  color: #165db8;
-}
-
-.favoriteIcon {
-  font-size: 26px;
-  color: #000000;
-}
-
-.linkIcon {
-  font-size: 2rem;
-  height: 32px;
-  width: 32px;
-}
-
-.repoLink {
-  color: #57823d;
-}
-
-.repoLink:hover {
-  color: #57823d;
-}
-
-.textWithTooltip {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.columnHeader {
-  background-color: white !important;
+/*Hides text, but keeps it accessible for screen readers*/
+.favoriteIconHeaderCell,
+.actionIconsHeaderCell {
+  font-size: 0;
 }

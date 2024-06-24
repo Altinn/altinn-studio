@@ -11,19 +11,9 @@
   gap: var(--fds-spacing-2);
 }
 
-.toggleableButtonText {
-  text-align: left;
-  padding-left: var(--fds-spacing-1);
-  width: 100%;
-}
-
 .customReceiptField {
   display: flex;
   align-items: center;
-}
-
-.icon {
-  font-size: var(--fds-spacing-6);
 }
 
 .buttonWrapper {
