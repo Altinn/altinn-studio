@@ -52,17 +52,18 @@ export const SelectDataFieldBinding = ({
   ];
   return (
     <FormField
-      id={`selectDataModelSelect-${bindingKey}`}
+      id={`selectDataModelField-${bindingKey}`}
       onChange={handleDataModelFieldChange}
       value={isBindingError ? '' : currentDataModelField}
       propertyPath={propertyPath}
       helpText={helpText}
-      label={t('ux_editor.modal_properties_data_model_binding')}
+      label={t('ux_editor.modal_properties_data_model_field_binding')}
       renderField={({ fieldProps }) => (
         <StudioNativeSelect
           {...fieldProps}
           onChange={(e) => fieldProps.onChange(e.target.value)}
           error={isBindingError && t('ux_editor.modal_properties_data_model_field_update')}
+          size='small'
         >
           {dataModelFieldsWithDefaultOption.map((element) => (
             <option key={element.value} value={element.value}>

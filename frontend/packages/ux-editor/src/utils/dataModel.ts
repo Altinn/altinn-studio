@@ -132,7 +132,9 @@ export const convertDataBindingToInternalFormat = (
   bindingKey: string,
 ): InternalBindingFormat => {
   const dataModelBinding =
-    bindingKey in component.dataModelBindings ? component.dataModelBindings[bindingKey] : undefined;
+    component?.dataModelBindings && bindingKey in component.dataModelBindings
+      ? component.dataModelBindings[bindingKey]
+      : undefined;
 
   const isOldOrNotSetFormat =
     typeof dataModelBinding === 'string' || typeof dataModelBinding === 'undefined';
