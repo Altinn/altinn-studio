@@ -2,6 +2,7 @@
   width: 100%;
 }
 
+.alert,
 .idInput {
   padding: var(--fds-spacing-5);
 }

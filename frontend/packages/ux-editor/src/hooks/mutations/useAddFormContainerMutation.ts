@@ -69,7 +69,7 @@ export const useAddFormContainerMutation = (org: string, app: string, layoutSetN
         }
       }
 
-      return formLayoutsMutation.mutateAsync(updatedLayout);
+      return formLayoutsMutation.mutateAsync({ internalLayout: updatedLayout });
     },
   });
 };

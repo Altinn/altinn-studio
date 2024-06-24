@@ -12,8 +12,14 @@ import { useVersionControlButtonsContext } from '../../context';
 import { FetchingFromGitea } from '../FetchingFromGitea';
 
 export const FetchChangesPopover = (): React.ReactElement => {
-  const { isLoading, setIsLoading, hasMergeConflict, commitAndPushChanges, repoStatus } =
-    useVersionControlButtonsContext();
+  const {
+    isLoading,
+    setIsLoading,
+    hasMergeConflict,
+    commitAndPushChanges,
+    repoStatus,
+    onPullSuccess,
+  } = useVersionControlButtonsContext();
 
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
@@ -34,6 +40,8 @@ export const FetchChangesPopover = (): React.ReactElement => {
     setIsLoading(false);
 
     if (result.repositoryStatus === 'Ok') {
+      if (onPullSuccess) onPullSuccess();
+
       await queryClient.invalidateQueries(); // Todo: This invalidates ALL queries. Consider providing a list of relevant queries only.
     } else if (result.hasMergeConflict || result.repositoryStatus === 'CheckoutConflict') {
       await commitAndPushChanges('');

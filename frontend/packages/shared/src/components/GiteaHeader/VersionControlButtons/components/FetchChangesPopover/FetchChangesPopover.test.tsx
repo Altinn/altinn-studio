@@ -26,8 +26,8 @@ describe('fetchChanges', () => {
     const getRepoPull = mockGetRepoPull.mockImplementation(() => Promise.resolve({}));
     renderFetchChangesPopover({ queries: { getRepoPull } });
 
-    const syncButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
-    await user.click(syncButton);
+    const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
+    await user.click(fetchButton);
     expect(getRepoPull).toHaveBeenCalledTimes(1);
   });
 
@@ -43,11 +43,10 @@ describe('fetchChanges', () => {
       },
     });
 
-    const syncButton = screen.getByRole('button', {
+    const fetchButton = screen.getByRole('button', {
       name: textMock('sync_header.fetch_changes'),
     });
-
-    expect(syncButton).toHaveTextContent(textMock('sync_header.fetch_changes') + numberOfChanges);
+    expect(fetchButton).toHaveTextContent(textMock('sync_header.fetch_changes') + numberOfChanges);
   });
 
   it('should not render number of changes when displayNotification is true and there are merge conflicts', () => {
@@ -63,11 +62,11 @@ describe('fetchChanges', () => {
       },
     });
 
-    const syncButton = screen.getByRole('button', {
+    const fetchButton = screen.getByRole('button', {
       name: textMock('sync_header.fetch_changes'),
     });
 
-    expect(syncButton).not.toHaveTextContent(
+    expect(fetchButton).not.toHaveTextContent(
       textMock('sync_header.fetch_changes') + numberOfChanges,
     );
   });
@@ -79,11 +78,25 @@ describe('fetchChanges', () => {
       },
     });
 
-    const syncButton = screen.getByRole('button', {
+    const fetchButton = screen.getByRole('button', {
       name: textMock('sync_header.fetch_changes'),
     });
 
-    expect(syncButton).toHaveAttribute('disabled');
+    expect(fetchButton).toHaveAttribute('disabled');
+  });
+
+  it('should call onPullSuccess when fetching changes', async () => {
+    const user = userEvent.setup();
+
+    const getRepoPull = mockGetRepoPull.mockImplementation(() =>
+      Promise.resolve({ repositoryStatus: 'Ok' }),
+    );
+    renderFetchChangesPopover({ queries: { getRepoPull } });
+
+    const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
+    await user.click(fetchButton);
+
+    expect(mockVersionControlButtonsContextValue.onPullSuccess).toHaveBeenCalledTimes(1);
   });
 });
 

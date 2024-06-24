@@ -17,4 +17,5 @@ export const mockVersionControlButtonsContextValue: VersionControlButtonsContext
   setHasMergeConflict: jest.fn(),
   repoStatus: mockRepoStatus,
   commitAndPushChanges: jest.fn(),
+  onPullSuccess: jest.fn(),
 };

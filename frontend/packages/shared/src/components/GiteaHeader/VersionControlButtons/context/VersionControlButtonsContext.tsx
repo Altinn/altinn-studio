@@ -17,6 +17,7 @@ export type VersionControlButtonsContextProps = {
   setHasMergeConflict: React.Dispatch<React.SetStateAction<boolean>>;
   repoStatus: RepoStatus;
   commitAndPushChanges: (message: string) => Promise<void>;
+  onPullSuccess: () => void;
 };
 
 export const VersionControlButtonsContext =
@@ -26,12 +27,14 @@ export type VersionControlButtonsContextProviderProps = {
   children: React.ReactNode;
   currentRepo: Repository;
   repoStatus: RepoStatus;
+  onPullSuccess: () => void;
 };
 
 export const VersionControlButtonsContextProvider = ({
   children,
   currentRepo,
   repoStatus,
+  onPullSuccess,
 }: Partial<VersionControlButtonsContextProviderProps>) => {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
@@ -77,6 +80,7 @@ export const VersionControlButtonsContextProvider = ({
         setHasMergeConflict,
         commitAndPushChanges,
         repoStatus,
+        onPullSuccess,
       }}
     >
       {children}

@@ -1,25 +1,4 @@
-export type SyncSuccess = {
-  source: {
-    name: string;
-    path: string;
-  };
-};
-
-export type ErrorCode =
-  | 'applicationMetadataTaskIdSyncError'
-  | 'layoutSetsTaskIdSyncError'
-  | 'policyFileTaskIdSyncError'
-  | 'applicationMetadataDataTypeSyncError'
-  | 'layoutSetsDataTypeSyncError';
-
-export type SyncError = {
-  errorCode: ErrorCode;
-  source: {
-    name: string;
-    path: string;
-  };
-  details: string;
-};
+import type { ErrorCode, SyncError } from 'app-shared/types/api/SyncResponses';
 
 export class SyncUtils {
   private static readonly errorCodeMap: Record<ErrorCode, string> = {
@@ -29,6 +8,8 @@ export class SyncUtils {
     applicationMetadataDataTypeSyncError:
       'process_editor.sync_error_application_metadata_data_type',
     layoutSetsDataTypeSyncError: 'process_editor.sync_error_layout_sets_data_type',
+    layoutSetComponentIdSyncError: 'ux_editor.sync_error_layout_set_component_id',
+    settingsComponentIdSyncError: 'ux_editor.sync_error_settings_component_id',
   };
 
   public static getSyncErrorMessage(error: SyncError): string {

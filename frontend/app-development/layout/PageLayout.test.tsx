@@ -8,6 +8,13 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { repoStatus } from 'app-shared/mocks/mocks';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
+import { useWebSocket } from 'app-shared/hooks/useWebSocket';
+import { SyncEventsWebSocketHub } from 'app-shared/api/paths';
+import { WSConnector } from 'app-shared/websockets/WSConnector';
+
+jest.mock('app-shared/hooks/useWebSocket', () => ({
+  useWebSocket: jest.fn(),
+}));
 
 describe('PageLayout', () => {
   afterEach(() => {
@@ -43,6 +50,7 @@ describe('PageLayout', () => {
   });
 
   it('renders the page content and no errors when there are no errors', async () => {
+    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
     await resolveAndWaitForSpinnerToDisappear();
 
     expect(
@@ -55,6 +63,7 @@ describe('PageLayout', () => {
   });
 
   it('renders header with no publish button when repoOwner is a private person', async () => {
+    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
     await resolveAndWaitForSpinnerToDisappear();
 
     expect(screen.getByRole('link', { name: textMock(TopBarMenu.Preview) })).toBeInTheDocument();
@@ -62,6 +71,17 @@ describe('PageLayout', () => {
     expect(
       screen.queryByRole('button', { name: textMock(TopBarMenu.Deploy) }),
     ).not.toBeInTheDocument();
+  });
+
+  it('should setup the webSocket with the correct parameters', async () => {
+    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
+    await resolveAndWaitForSpinnerToDisappear();
+
+    expect(useWebSocket).toHaveBeenCalledWith({
+      clientsName: ['FileSyncSuccess', 'FileSyncError'],
+      webSocketUrl: SyncEventsWebSocketHub(),
+      webSocketConnector: WSConnector,
+    });
   });
 });
 

@@ -2,20 +2,19 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StudioTableRemotePagination } from './StudioTableRemotePagination';
-import type { PaginationProps } from './StudioTableRemotePagination';
-import { columns, rows } from './mockData';
+import type { RemotePaginationProps, Columns, Rows } from './StudioTableRemotePagination';
+import { columns, emptyTableFallback, paginationTexts, rows } from './mockData';
 
 describe('StudioTableRemotePagination', () => {
-  const paginationProps: PaginationProps = {
+  const paginationProps: RemotePaginationProps = {
     currentPage: 1,
-    totalPages: 2,
-    pageSizeOptions: [5, 10, 20],
-    pageSizeLabel: 'Rows per page',
+    totalPages: 4,
+    totalRows: rows.length,
+    pageSize: 5,
+    pageSizeOptions: [5, 10, 20, 50],
     onPageChange: jest.fn(),
     onPageSizeChange: jest.fn(),
-    nextButtonText: 'Next',
-    previousButtonText: 'Previous',
-    itemLabel: (num) => `Page ${num}`,
+    paginationTexts,
   };
 
   it('renders the table with columns and rows', () => {
@@ -29,6 +28,19 @@ describe('StudioTableRemotePagination', () => {
     expect(
       screen.getByRole('cell', { name: 'The Norwegian Directorate of Health' }),
     ).toBeInTheDocument();
+  });
+
+  it('renders sorting button only when specified in column prop', async () => {
+    const handleSorting = jest.fn();
+    render(
+      <StudioTableRemotePagination columns={columns} rows={rows} onSortClick={handleSorting} />,
+    );
+
+    const sortByNameButton = screen.queryByRole('button', { name: 'Name' });
+    const sortByCreatedByButton = screen.queryByRole('button', { name: 'Created by' });
+
+    expect(sortByNameButton).toBeInTheDocument();
+    expect(sortByCreatedByButton).not.toBeInTheDocument();
   });
 
   it('triggers the handleSorting function when a sortable column header is clicked', async () => {
@@ -48,15 +60,35 @@ describe('StudioTableRemotePagination', () => {
       <StudioTableRemotePagination columns={columns} rows={rows} pagination={paginationProps} />,
     );
 
-    expect(screen.getByRole('combobox', { name: 'Rows per page' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Next' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('combobox', { name: paginationTexts.pageSizeLabel }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: paginationTexts.nextButtonAriaLabel }),
+    ).toBeInTheDocument();
   });
 
   it('does not render the pagination controls when pagination prop is not provided', () => {
     render(<StudioTableRemotePagination columns={columns} rows={rows} />);
 
-    expect(screen.queryByRole('combobox', { name: 'Rows per page' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Next' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('combobox', { name: paginationTexts.pageSizeLabel }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: paginationTexts.nextButtonAriaLabel }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('does not render the pagination controls when there are fewer rows than the smallest page size', () => {
+    const fourRows = rows.slice(0, 4);
+    render(<StudioTableRemotePagination columns={columns} rows={fourRows} />);
+
+    expect(
+      screen.queryByRole('combobox', { name: paginationTexts.pageSizeLabel }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: paginationTexts.nextButtonAriaLabel }),
+    ).not.toBeInTheDocument();
   });
 
   it('triggers the onPageChange function when "Next" is clicked', async () => {
@@ -65,7 +97,7 @@ describe('StudioTableRemotePagination', () => {
     );
     const user = userEvent.setup();
 
-    await user.click(screen.getByRole('button', { name: 'Next' }));
+    await user.click(screen.getByRole('button', { name: paginationTexts.nextButtonAriaLabel }));
 
     expect(paginationProps.onPageChange).toHaveBeenCalledWith(2);
   });
@@ -87,7 +119,10 @@ describe('StudioTableRemotePagination', () => {
     );
     const user = userEvent.setup();
 
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Rows per page' }), '10');
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: paginationTexts.pageSizeLabel }),
+      '10',
+    );
 
     expect(paginationProps.onPageSizeChange).toHaveBeenCalledWith(10);
   });
@@ -97,9 +132,28 @@ describe('StudioTableRemotePagination', () => {
       <StudioTableRemotePagination
         columns={columns}
         rows={[]}
-        emptyTableMessage='No rows to display'
+        emptyTableFallback={emptyTableFallback}
       />,
     );
-    expect(screen.getByText('No rows to display')).toBeInTheDocument();
+    expect(screen.getByText(emptyTableFallback)).toBeInTheDocument();
+  });
+
+  it('formats cells when a valueFormatter is specified', () => {
+    const testColumns: Columns = [
+      {
+        accessor: 'name',
+        heading: 'Name',
+        bodyCellFormatter: (value) => `Formatted: ${value}`,
+      },
+    ];
+    const testRows: Rows = [{ id: 1, name: 'Sophie Salt' }];
+
+    render(<StudioTableRemotePagination columns={testColumns} rows={testRows} />);
+
+    const formattedNameCell = screen.getByText('Formatted: Sophie Salt');
+    expect(formattedNameCell).toBeInTheDocument();
+
+    const unFormattedNameCell = screen.queryByText('Sophie Salt');
+    expect(unFormattedNameCell).not.toBeInTheDocument();
   });
 });

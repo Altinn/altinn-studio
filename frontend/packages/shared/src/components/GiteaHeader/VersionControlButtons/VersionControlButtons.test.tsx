@@ -16,6 +16,8 @@ import {
 import { MemoryRouter } from 'react-router-dom';
 import { app, org } from '@studio/testing/testids';
 
+const mockOnPullSuccess = jest.fn();
+
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => {
@@ -62,6 +64,15 @@ describe('VersionControlButtons', () => {
     });
     expect(fetchChangesButton).toBeDisabled();
   });
+
+  /*
+  it('should call onPullSuccess when fetching changes', async () => {
+    renderVersionControlButtons();
+    const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
+    await user.click(fetchButton);
+    expect(defaultProps.onPullSuccess).toHaveBeenCalledTimes(1);
+  });
+  */
 });
 
 type Props = {
@@ -80,7 +91,7 @@ const renderVersionControlButtons = (props: Partial<Props> = {}) => {
     <MemoryRouter>
       <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
         <VersionControlButtonsContextProvider {...mockVersionControlButtonsContextValue}>
-          <VersionControlButtons />
+          <VersionControlButtons onPullSuccess={mockOnPullSuccess} />
         </VersionControlButtonsContextProvider>
       </ServicesContextProvider>
     </MemoryRouter>,

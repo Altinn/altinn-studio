@@ -12,6 +12,7 @@ import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { RepositoryType } from 'app-shared/types/global';
 import { useSelectedFormLayoutSetName, useSelectedFormLayoutName } from '@altinn/ux-editor/hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 
 type SubMenuContentProps = {
   hasRepoError?: boolean;
@@ -20,11 +21,14 @@ type SubMenuContentProps = {
 export const SubMenuContent = ({ hasRepoError }: SubMenuContentProps): React.ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const repositoryType = getRepositoryType(org, app);
+  const { doReloadPreview } = usePreviewContext();
+
   return (
     <GiteaHeader
       hasCloneModal
       leftComponent={repositoryType !== RepositoryType.DataModels && <SettingsModalButton />}
       hasRepoError={hasRepoError}
+      onPullSuccess={doReloadPreview}
     />
   );
 };

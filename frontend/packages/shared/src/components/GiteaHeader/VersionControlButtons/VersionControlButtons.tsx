@@ -6,13 +6,23 @@ import { FetchChangesPopover } from './components/FetchChangesPopover';
 import { ShareChangesPopover } from './components/ShareChangesPopover';
 import { VersionControlButtonsContextProvider } from './context';
 
-export const VersionControlButtons = () => {
+export type VersionControlButtonsProps = {
+  onPullSuccess: () => void;
+};
+
+export const VersionControlButtons = ({
+  onPullSuccess,
+}: VersionControlButtonsProps): React.ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: currentRepo } = useRepoMetadataQuery(org, app);
   const { data: repoStatus } = useRepoStatusQuery(org, app);
 
   return (
-    <VersionControlButtonsContextProvider currentRepo={currentRepo} repoStatus={repoStatus}>
+    <VersionControlButtonsContextProvider
+      currentRepo={currentRepo}
+      repoStatus={repoStatus}
+      onPullSuccess={onPullSuccess}
+    >
       <div className={classes.headerStyling}>
         <FetchChangesPopover />
         <ShareChangesPopover />
