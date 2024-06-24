@@ -127,52 +127,55 @@ export class ProcessEditorPage extends BasePage {
       .click();
   }
 
-  public async waitForActionComboboxTitleToBeVisible(
-    actionIndex: string,
-    actionName?: string,
-  ): Promise<void> {
-    const combobox = this.page.getByRole('combobox', {
-      name: this.textMock('process_editor.configuration_panel_actions_action_label', {
-        actionIndex,
-        actionName: actionName ?? '',
-      }),
-    });
-    await expect(combobox).toBeVisible();
+  public async choosePredefinedAction(action: string): Promise<void> {
+    const predefinedActionsSelect = this.page
+      .getByLabel(this.textMock('process_editor.configuration_panel_actions_action_selector_label'))
+      .first();
+    await expect(predefinedActionsSelect).toBeVisible();
+    await predefinedActionsSelect.selectOption({ label: action });
   }
 
-  public async clickOnActionCombobox(actionIndex: string, actionName?: string): Promise<void> {
+  public async clickOnCustomActionTab(): Promise<void> {
+    await this.page.getByRole('tab', { name: 'Lag egendefinert handling' }).first().click();
+
+    const customActionTextfield = this.page.getByLabel(
+      this.textMock('process_editor.configuration_panel_actions_action_card_custom_label'),
+    );
+
+    await expect(customActionTextfield).toBeVisible();
+  }
+
+  public async writeCustomAction(customAction: string): Promise<void> {
     await this.page
-      .getByRole('combobox', {
+      .getByRole('textbox', {
+        name: this.textMock('process_editor.configuration_panel_actions_action_card_custom_label'),
+      })
+      .fill(customAction);
+  }
+
+  public async makeCustomActionToServerAction(): Promise<void> {
+    await this.page
+      .getByRole('checkbox', {
+        name: this.textMock('process_editor.configuration_panel_actions_set_server_action_label'),
+      })
+      .click();
+  }
+
+  public async editAction(action: string): Promise<void> {
+    await this.page
+      .getByRole('button', {
         name: this.textMock('process_editor.configuration_panel_actions_action_label', {
-          actionIndex,
-          actionName: actionName ?? '',
+          actionIndex: '1',
+          actionName: action,
         }),
       })
       .click();
   }
 
-  public async clickOnActionOption(action: string): Promise<void> {
-    await this.page.getByRole('option', { name: action }).click();
-  }
-
-  public async removeFocusFromActionCombobox(
-    actionIndex: string,
-    actionName?: string,
-  ): Promise<void> {
-    await this.page
-      .getByRole('combobox', {
-        name: this.textMock('process_editor.configuration_panel_actions_action_label', {
-          actionIndex,
-          actionName: actionName ?? '',
-        }),
-      })
-      .blur();
-  }
-
-  public async clickOnSaveActionButton(): Promise<void> {
+  public async deleteAction(action: string): Promise<void> {
     await this.page
       .getByRole('button', {
-        name: this.textMock('general.save'),
+        name: this.textMock('general.delete', { name: action }),
       })
       .click();
   }
@@ -188,28 +191,6 @@ export class ProcessEditorPage extends BasePage {
       }),
     });
     await expect(button).toBeVisible();
-  }
-
-  public async typeValueInActionCombobox(
-    customText: string,
-    actionIndex: string,
-    actionName?: string,
-  ): Promise<void> {
-    await this.page
-      .getByRole('combobox', {
-        name: this.textMock('process_editor.configuration_panel_actions_action_label', {
-          actionIndex,
-          actionName: actionName ?? '',
-        }),
-      })
-      .fill(customText);
-  }
-
-  public async verifyThatCustomActionTextIsVisible(): Promise<void> {
-    const text = this.page.getByText(
-      this.textMock('process_editor.configuration_panel_actions_custom_action'),
-    );
-    await expect(text).toBeVisible();
   }
 
   public async clickOnPolicyAccordion(): Promise<void> {
@@ -237,14 +218,6 @@ export class ProcessEditorPage extends BasePage {
         ),
       })
       .click();
-  }
-
-  public async waitForPolicyEditorModalTabToBeVisible(): Promise<void> {
-    const heading = this.page.getByRole('heading', {
-      name: this.textMock('policy_editor.rules'),
-      level: 2,
-    });
-    await expect(heading).toBeVisible();
   }
 
   public async dragTaskInToBpmnEditor(
@@ -346,6 +319,7 @@ export class ProcessEditorPage extends BasePage {
     });
     await expect(heading).toBeVisible();
   }
+
   public async closePolicyEditor(): Promise<void> {
     await this.page
       .getByRole('button', {
@@ -482,7 +456,6 @@ export class ProcessEditorPage extends BasePage {
     const button = this.page.locator(selector);
     const fullText = await button.textContent();
     const extractedText = fullText.match(/ID: (Activity_\w+)/);
-    const fullId: string = extractedText[1];
-    return fullId;
+    return extractedText[1];
   }
 }

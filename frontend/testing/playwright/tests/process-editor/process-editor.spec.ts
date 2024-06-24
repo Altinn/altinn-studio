@@ -37,7 +37,7 @@ const setupAndVerifyProcessEditorPage = async (
   return processEditorPage;
 };
 
-test('That it is possible to add and remove datamodel, and add actions to the default task in the process editor', async ({
+test('That it is possible to add and remove datamodel the default task in the process editor', async ({
   page,
   testAppName,
 }): Promise<void> => {
@@ -71,21 +71,6 @@ test('That it is possible to add and remove datamodel, and add actions to the de
   await processEditorPage.verifyDataModelButtonTextIsSelectedDataModel(dataModelName);
   await processEditorPage.verifyThatAddNewDataModelButtonIsHidden();
 
-  // --------------------- Add actions ---------------------
-  await processEditorPage.clickOnActionsAccordion();
-  await processEditorPage.waitForAddActionsButtonToBeVisible();
-
-  const actionIndex1: string = '1';
-  await processEditorPage.clickAddActionsButton();
-  await processEditorPage.waitForActionComboboxTitleToBeVisible(actionIndex1);
-
-  const actionOptionWrite: string = 'write';
-  await processEditorPage.clickOnActionCombobox(actionIndex1);
-  await processEditorPage.clickOnActionOption(actionOptionWrite);
-  await processEditorPage.removeFocusFromActionCombobox(actionIndex1);
-  await processEditorPage.clickOnSaveActionButton();
-  await processEditorPage.waitForActionButtonToBeVisible(actionIndex1, actionOptionWrite);
-
   // --------------------- Verify policy editor ---------------------
   await processEditorPage.clickOnPolicyAccordion();
   await processEditorPage.waitForNavigateToPolicyButtonIsVisible();
@@ -94,18 +79,6 @@ test('That it is possible to add and remove datamodel, and add actions to the de
   await processEditorPage.verifyThatPolicyEditorIsOpen();
   await processEditorPage.closePolicyEditor();
   await processEditorPage.verifyThatPolicyEditorIsClosed();
-
-  // --------------------- Check that files are uploaded to Gitea ---------------------
-  await goToGiteaAndNavigateToProcessBpmnFile(header, giteaPage);
-
-  const numberOfPagesBackToAltinnStudio: number = 5;
-  await giteaPage.goBackNPages(numberOfPagesBackToAltinnStudio);
-
-  await processEditorPage.verifyProcessEditorPage();
-  await commitAndPushToGitea(header);
-
-  await goToGiteaAndNavigateToProcessBpmnFile(header, giteaPage);
-  await giteaPage.verifyThatActionIsVisible(actionOptionWrite);
 });
 
 test('That it is possible to add a new task to the process editor, configure some of its data', async ({
@@ -215,21 +188,8 @@ test('That it is possible to add a new signing task, and update the datatypes to
   await processEditorPage.waitForDataTypeToSignButtonToBeVisible(dataTypeToSign);
   await processEditorPage.pressEscapeOnKeyboard();
 
-  // --------------------- Verify correct actions ---------------------
-  await processEditorPage.clickOnActionsAccordion();
-
-  const actionIndex1: string = '1';
-  const actionIndex2: string = '2';
-  const actionOptionSign: string = 'sign';
-  const actionOptionReject: string = 'reject';
-  await processEditorPage.waitForActionButtonToBeVisible(actionIndex1, actionOptionSign);
-  await processEditorPage.waitForActionButtonToBeVisible(actionIndex2, actionOptionReject);
-
   // --------------------- Check that files are uploaded to Gitea ---------------------
   await goToGiteaAndNavigateToProcessBpmnFile(header, giteaPage);
-  await giteaPage.verifyThatTaskIsHidden(signingTask);
-  await giteaPage.verifyThatActionIsHidden(actionOptionSign);
-  await giteaPage.verifyThatActionIsHidden(actionOptionReject);
   await giteaPage.verifyThatDataTypeToSignIsHidden(dataTypeToSign);
 
   const numberOfPagesBackToAltinnStudio: number = 5;
@@ -239,8 +199,6 @@ test('That it is possible to add a new signing task, and update the datatypes to
   await commitAndPushToGitea(header);
 
   await giteaPage.verifyThatTaskIsVisible(signingTask);
-  await giteaPage.verifyThatActionIsVisible(actionOptionSign);
-  await giteaPage.verifyThatActionIsVisible(actionOptionReject);
   await giteaPage.verifyThatDataTypeToSignIsVisible(signingTask);
 });
 

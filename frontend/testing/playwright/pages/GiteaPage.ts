@@ -170,6 +170,12 @@ export class GiteaPage extends BasePage {
     await this.page.getByText(`<altinn:action>${action}</altinn:action>`).isVisible();
   }
 
+  public async verifyThatActionIsCustomServerAction(action: string): Promise<void> {
+    await this.page
+      .getByText(`<altinn:action type="serverAction">${action}</altinn:action>`)
+      .isVisible();
+  }
+
   public async verifyThatActionIsHidden(action: string): Promise<void> {
     await this.page.getByText(`<altinn:action>${action}</altinn:action>`).isHidden();
   }
