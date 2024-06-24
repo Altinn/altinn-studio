@@ -425,7 +425,11 @@ public class PaymentServiceTests
         IPaymentProcessor[] paymentProcessors = [];
         var paymentService = new PaymentService(paymentProcessors, _dataService.Object, _logger.Object);
         Instance instance = CreateInstance();
-        var paymentConfiguration = new AltinnPaymentConfiguration { PaymentDataType = "paymentDataType" };
+        var paymentConfiguration = new AltinnPaymentConfiguration
+        {
+            PaymentDataType = "paymentDataType",
+            PaymentReceiptPdfDataType = "paymentReceiptPdfDataType"
+        };
 
         // Act
         Func<Task> act = async () =>
@@ -560,6 +564,10 @@ public class PaymentServiceTests
 
     private static ValidAltinnPaymentConfiguration CreatePaymentConfiguration()
     {
-        return new AltinnPaymentConfiguration { PaymentDataType = "paymentInformation" }.Validate();
+        return new AltinnPaymentConfiguration
+        {
+            PaymentDataType = "paymentInformation",
+            PaymentReceiptPdfDataType = "paymentReceiptPdf"
+        }.Validate();
     }
 }

@@ -15,16 +15,26 @@ public class AltinnPaymentConfiguration
     [XmlElement("paymentDataType", Namespace = "http://altinn.no/process")]
     public string? PaymentDataType { get; set; }
 
+    /// <summary>
+    /// Set what dataTypeId that should be used for storing the payment receipt pdf
+    /// </summary>
+    [XmlElement("paymentReceiptPdfDataType", Namespace = "http://altinn.no/process")]
+    public string? PaymentReceiptPdfDataType { get; set; }
+
     internal ValidAltinnPaymentConfiguration Validate()
     {
         List<string>? errorMessages = null;
 
-        var paymentDataType = PaymentDataType;
+        string? paymentDataType = PaymentDataType;
+        string? paymentReceiptPdfDataType = PaymentReceiptPdfDataType;
 
         if (paymentDataType.IsNullOrWhitespace(ref errorMessages, "PaymentDataType is missing."))
             ThrowApplicationConfigException(errorMessages);
 
-        return new ValidAltinnPaymentConfiguration(paymentDataType);
+        if (paymentReceiptPdfDataType.IsNullOrWhitespace(ref errorMessages, "PaymentReceiptPdfDataType is missing."))
+            ThrowApplicationConfigException(errorMessages);
+
+        return new ValidAltinnPaymentConfiguration(paymentDataType, paymentReceiptPdfDataType);
     }
 
     [DoesNotReturn]
@@ -36,7 +46,10 @@ public class AltinnPaymentConfiguration
     }
 }
 
-internal readonly record struct ValidAltinnPaymentConfiguration(string PaymentDataType);
+internal readonly record struct ValidAltinnPaymentConfiguration(
+    string PaymentDataType,
+    string PaymentReceiptPdfDataType
+);
 
 file static class ValidationExtensions
 {

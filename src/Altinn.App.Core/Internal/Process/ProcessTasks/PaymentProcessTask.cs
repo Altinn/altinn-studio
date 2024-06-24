@@ -57,11 +57,11 @@ internal sealed class PaymentProcessTask : IProcessTask
 
         Stream pdfStream = await _pdfService.GeneratePdf(instance, taskId, CancellationToken.None);
 
-        var validatedPaymentConfiguration = paymentConfiguration.Validate();
+        ValidAltinnPaymentConfiguration validatedPaymentConfiguration = paymentConfiguration.Validate();
 
         await _dataClient.InsertBinaryData(
             instance.Id,
-            validatedPaymentConfiguration.PaymentDataType,
+            validatedPaymentConfiguration.PaymentReceiptPdfDataType,
             PdfContentType,
             ReceiptFileName,
             pdfStream,

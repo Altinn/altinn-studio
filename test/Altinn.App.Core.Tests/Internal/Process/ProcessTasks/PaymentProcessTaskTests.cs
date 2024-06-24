@@ -43,10 +43,7 @@ public class PaymentProcessTaskTests
             Instance instance = CreateInstance();
             string taskId = instance.Process.CurrentTask.ElementId;
 
-            var altinnTaskExtension = new AltinnTaskExtension
-            {
-                PaymentConfiguration = new AltinnPaymentConfiguration { PaymentDataType = "paymentDataType" }
-            };
+            var altinnTaskExtension = new AltinnTaskExtension { PaymentConfiguration = CreatePaymentConfiguration() };
 
             _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
 
@@ -65,10 +62,9 @@ public class PaymentProcessTaskTests
             Instance instance = CreateInstance();
             string taskId = instance.Process.CurrentTask.ElementId;
 
-            var altinnTaskExtension = new AltinnTaskExtension
-            {
-                PaymentConfiguration = new AltinnPaymentConfiguration { PaymentDataType = "paymentDataType" }
-            };
+            var altinnTaskExtension = new AltinnTaskExtension { PaymentConfiguration = CreatePaymentConfiguration() };
+            ValidAltinnPaymentConfiguration validPaymentConfiguration =
+                altinnTaskExtension.PaymentConfiguration.Validate();
 
             _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
 
@@ -84,7 +80,7 @@ public class PaymentProcessTaskTests
             _dataClientMock.Verify(x =>
                 x.InsertBinaryData(
                     instance.Id,
-                    altinnTaskExtension.PaymentConfiguration.PaymentDataType,
+                    validPaymentConfiguration.PaymentReceiptPdfDataType,
                     "application/pdf",
                     "Betalingskvittering.pdf",
                     It.IsAny<Stream>(),
@@ -99,10 +95,9 @@ public class PaymentProcessTaskTests
             Instance instance = CreateInstance();
             string taskId = instance.Process.CurrentTask.ElementId;
 
-            var altinnTaskExtension = new AltinnTaskExtension
-            {
-                PaymentConfiguration = new AltinnPaymentConfiguration { PaymentDataType = "paymentDataType" }
-            };
+            var altinnTaskExtension = new AltinnTaskExtension { PaymentConfiguration = CreatePaymentConfiguration() };
+            ValidAltinnPaymentConfiguration validPaymentConfiguration =
+                altinnTaskExtension.PaymentConfiguration.Validate();
 
             _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
 
@@ -116,7 +111,7 @@ public class PaymentProcessTaskTests
                 x =>
                     x.InsertBinaryData(
                         instance.Id,
-                        altinnTaskExtension.PaymentConfiguration.PaymentDataType,
+                        validPaymentConfiguration.PaymentReceiptPdfDataType,
                         "application/pdf",
                         "Betalingskvittering.pdf",
                         It.IsAny<Stream>(),
@@ -134,10 +129,7 @@ public class PaymentProcessTaskTests
             Instance instance = CreateInstance();
             string taskId = instance.Process.CurrentTask.ElementId;
 
-            var altinnTaskExtension = new AltinnTaskExtension
-            {
-                PaymentConfiguration = new AltinnPaymentConfiguration { PaymentDataType = "paymentDataType" }
-            };
+            var altinnTaskExtension = new AltinnTaskExtension { PaymentConfiguration = CreatePaymentConfiguration() };
 
             _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
 
@@ -184,12 +176,7 @@ public class PaymentProcessTaskTests
         {
             _processReaderMock
                 .Setup(pr => pr.GetAltinnTaskExtension(It.IsAny<string>()))
-                .Returns(
-                    new AltinnTaskExtension
-                    {
-                        PaymentConfiguration = new AltinnPaymentConfiguration { PaymentDataType = "paymentDataType" }
-                    }
-                );
+                .Returns(new AltinnTaskExtension { PaymentConfiguration = CreatePaymentConfiguration() });
 
             _paymentServiceMock
                 .Setup(ps => ps.IsPaymentCompleted(It.IsAny<Instance>(), It.IsAny<ValidAltinnPaymentConfiguration>()))
@@ -222,12 +209,7 @@ public class PaymentProcessTaskTests
         {
             _processReaderMock
                 .Setup(pr => pr.GetAltinnTaskExtension(It.IsAny<string>()))
-                .Returns(
-                    new AltinnTaskExtension
-                    {
-                        PaymentConfiguration = new AltinnPaymentConfiguration { PaymentDataType = "paymentDataType" }
-                    }
-                );
+                .Returns(new AltinnTaskExtension { PaymentConfiguration = CreatePaymentConfiguration() });
 
             Func<Task> act = async () => await _paymentProcessTask.Abandon("taskId", new Instance());
 
@@ -244,6 +226,15 @@ public class PaymentProcessTaskTests
                 {
                     CurrentTask = new ProcessElementInfo { AltinnTaskType = "payment", ElementId = "Task_1", },
                 },
+            };
+        }
+
+        private static AltinnPaymentConfiguration CreatePaymentConfiguration()
+        {
+            return new AltinnPaymentConfiguration
+            {
+                PaymentDataType = "paymentDataType",
+                PaymentReceiptPdfDataType = "paymentReceiptPdfDataType"
             };
         }
     }

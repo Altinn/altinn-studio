@@ -37,6 +37,7 @@
                     </altinn:actions>
                     <altinn:paymentConfig>
                         <altinn:paymentDataType>paymentInformation</altinn:paymentDataType>
+                        <altinn:paymentReceiptPdfDataType>paymentReceiptPdf</altinn:paymentReceiptPdfDataType>
                     </altinn:paymentConfig>
                 </altinn:taskExtension>
             </bpmn:extensionElements>
