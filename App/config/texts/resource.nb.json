@@ -78,6 +78,10 @@
       "value": "Hva skal kjøretøyet brukes til?"
     },
     {
+      "id": "Grid.Input.Title",
+      "value": "My input field"
+    },
+    {
       "id": "MultipleSelectPage.MultipleSelect.title",
       "value": "Hva skal kjøretøyet brukes til?"
     },

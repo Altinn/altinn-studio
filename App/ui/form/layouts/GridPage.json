@@ -200,9 +200,9 @@
             "header": true,
             "readOnly": false,
             "cells": [
-              {},
+              {"text": "Row number"},
               {
-                "text": "heading1"
+                "labelFrom": "grid-input-field"
               },
               {
                 "text": "heading2"
@@ -281,8 +281,9 @@
         "id": "grid-input-field",
         "type": "Input",
         "textResourceBindings": {
-          "title": "My input field"
+          "title": "Grid.Input.Title"
         },
+        "required": true,
         "dataModelBindings": {
           "simpleBinding": "GridExample.ExampleInput"
         }
