@@ -35,7 +35,7 @@ export class DataModelConfig extends BasePage {
     const button = this.page.getByRole('button', {
       name: this.textMock('process_editor.configuration_panel_set_data_model_link'),
     });
-    await expect(button).toBeVisible({ timeout: 10000 });
+    await expect(button).toBeVisible();
   }
 
   public async clickOnAddButton(): Promise<void> {
