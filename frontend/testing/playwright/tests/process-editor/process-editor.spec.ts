@@ -54,7 +54,7 @@ test('That it is possible to add and remove datamodel, and add actions to the de
   await processEditorPage.waitForInitialTaskHeaderToBeVisible();
 
   // --------------------- Add and delete datamodel ---------------------
-  await processEditorPage.dataModelConfig.waitForAddDataModelButtonWithValueToBeVisible('model');
+  await processEditorPage.dataModelConfig.waitForDataModelButtonToBeVisibleWithValue('model');
   await processEditorPage.dataModelConfig.clickOnDataModelButton();
   await processEditorPage.dataModelConfig.waitForComboboxToBeVisible();
 
