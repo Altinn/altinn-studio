@@ -63,9 +63,11 @@ export class DataModelConfig extends BasePage {
     await this.page.getByRole('option', { name: option }).click();
   }
 
-  public async waitForDataModelButtonToBeVisibleWithValue(value: string): Promise<void> {
+  public async waitForDataModelButtonToBeVisibleWithValue(dataModelName: string): Promise<void> {
     const button = this.page.getByRole('button', {
-      name: this.textMock('process_editor.configuration_panel_set_data_model') + value,
+      name: this.textMock('process_editor.configuration_panel_set_data_model', {
+        dataModelName,
+      }),
     });
     await expect(button).toBeVisible();
   }
@@ -73,7 +75,9 @@ export class DataModelConfig extends BasePage {
   public async verifyDataModelButtonTextIsSelectedDataModel(option: string): Promise<void> {
     await this.page
       .getByRole('button', {
-        name: this.textMock('process_editor.configuration_panel_set_data_model') + option,
+        name: this.textMock('process_editor.configuration_panel_set_data_model', {
+          dataModelName: option,
+        }),
       })
       .isVisible();
   }

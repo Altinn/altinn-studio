@@ -83,7 +83,9 @@ describe('EditDataTypes', () => {
       },
     });
     const updateDataTypeButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_set_data_model'),
+      name: textMock('process_editor.configuration_panel_set_data_model', {
+        dataModelName: existingDataType,
+      }),
     });
     await user.click(updateDataTypeButton);
     const description = screen.getByText(
@@ -114,7 +116,9 @@ describe('EditDataTypes', () => {
     });
 
     const updateDataTypeButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_set_data_model'),
+      name: textMock('process_editor.configuration_panel_set_data_model', {
+        dataModelName: existingDataType,
+      }),
     });
     expect(screen.getByText(existingDataType)).toBeInTheDocument();
 
@@ -134,7 +138,9 @@ describe('EditDataTypes', () => {
     });
 
     const updateDataTypeButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_set_data_model'),
+      name: textMock('process_editor.configuration_panel_set_data_model', {
+        dataModelName: mockBpmnApiContextValue.layoutSets.sets[0].dataType,
+      }),
     });
 
     await user.click(updateDataTypeButton);
@@ -142,7 +148,9 @@ describe('EditDataTypes', () => {
     await user.click(closeButton);
     expect(
       screen.getByRole('button', {
-        name: textMock('process_editor.configuration_panel_set_data_model'),
+        name: textMock('process_editor.configuration_panel_set_data_model', {
+          dataModelName: mockBpmnApiContextValue.layoutSets.sets[0].dataType,
+        }),
       }),
     ).toBeInTheDocument();
   });
