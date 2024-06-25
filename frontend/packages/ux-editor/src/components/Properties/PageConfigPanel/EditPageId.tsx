@@ -31,6 +31,7 @@ export const EditPageId = ({ layoutName }: EditPageIdProps) => {
 
   const layoutOrder = formLayoutSettings?.pages?.order;
 
+  // Need to update this endpoint to handle changing name of PDF layout --> update pdfLayoutName in Settings and not order
   const handleSaveNewName = (newName: string) => {
     if (newName === layoutName) return;
     updateLayoutName(

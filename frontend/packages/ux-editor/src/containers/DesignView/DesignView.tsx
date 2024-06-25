@@ -4,27 +4,23 @@ import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Accordion } from '@digdir/design-system-react';
-import type { IFormLayouts } from '../../types/global';
-import type { FormLayoutPage } from '../../types/FormLayoutPage';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
-import { PlusIcon } from '@studio/icons';
 import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
 import { PageAccordion } from './PageAccordion';
 import { ReceiptContent } from './ReceiptContent';
 import { useAppContext, useFormLayouts } from '../../hooks';
 import { FormLayout } from './FormLayout';
-import { StudioButton } from '@studio/components';
+import { StudioProperty } from '@studio/components';
 import { duplicatedIdsExistsInLayout } from '../../utils/formLayoutUtils';
+import { usePdfLayoutName } from 'app-shared/hooks/usePdfLayoutName';
+import { AddPdfButton } from './PdfLayout/AddPdfButton';
+import { PdfLayoutAccordion } from '@altinn/ux-editor/containers/DesignView/PdfLayout/PdfLayoutAccordion';
+import { mapFormLayoutsToFormLayoutPages } from '@altinn/ux-editor/utils/formLayoutsUtils';
+import { pdfLayoutNameFromSettingsHasConnectedLayout } from '@altinn/ux-editor/utils/designViewUtils/designViewUtils';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
  */
-const mapFormLayoutsToFormLayoutPages = (formLayouts: IFormLayouts): FormLayoutPage[] => {
-  return Object.entries(formLayouts).map(([key, value]) => ({
-    page: key,
-    data: value,
-  }));
-};
 
 /**
  * @component
@@ -39,24 +35,26 @@ export const DesignView = (): ReactNode => {
     selectedFormLayoutName,
     setSelectedFormLayoutName,
     refetchLayouts,
-  } = useAppContext();
+  } = useAppContext(); // Add pdfInformation here? Or whole formLayoutData?
   const { mutate: addLayoutMutation, isPending: isAddLayoutMutationPending } = useAddLayoutMutation(
     org,
     app,
     selectedFormLayoutSetName,
   );
-  const layouts = useFormLayouts();
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
     org,
     app,
     selectedFormLayoutSetName,
   );
+  const layouts = useFormLayouts();
+  const pdfLayoutName = usePdfLayoutName(org, app, selectedFormLayoutSetName);
   const receiptName = formLayoutSettings?.receiptLayoutName;
   const layoutOrder = formLayoutSettings?.pages?.order;
 
   const { t } = useTranslation();
 
   const formLayoutData = mapFormLayoutsToFormLayoutPages(layouts);
+
   /**
    * Handles the click of an accordion. It updates the URL and sets the
    * local storage for which page view that is open
@@ -72,6 +70,7 @@ export const DesignView = (): ReactNode => {
   };
 
   const handleAddPage = () => {
+    //let newNum = pdfLayoutName.includes(t('ux_editor.page')) ? 2 : 1;
     let newNum = 1;
     let newLayoutName = `${t('ux_editor.page')}${layoutOrder.length + newNum}`;
 
@@ -81,6 +80,17 @@ export const DesignView = (): ReactNode => {
     }
     addLayoutMutation(
       { layoutName: newLayoutName, isReceiptPage: false },
+      {
+        onSuccess: async () => {
+          await refetchLayouts(selectedFormLayoutSetName);
+        },
+      },
+    );
+  };
+
+  const handleAddPdf = (pdfName: string) => {
+    addLayoutMutation(
+      { layoutName: pdfName, isReceiptPage: false, isPdf: true },
       {
         onSuccess: async () => {
           await refetchLayouts(selectedFormLayoutSetName);
@@ -131,15 +141,25 @@ export const DesignView = (): ReactNode => {
         />
       </div>
       <div className={classes.buttonContainer}>
-        <StudioButton
-          icon={<PlusIcon aria-hidden />}
-          onClick={() => handleAddPage()}
+        <StudioProperty.Button
+          onClick={handleAddPage}
+          property={t('ux_editor.pages_add')}
           size='small'
-          className={classes.button}
           disabled={isAddLayoutMutationPending}
-        >
-          {t('ux_editor.pages_add')}
-        </StudioButton>
+        />
+        {pdfLayoutNameFromSettingsHasConnectedLayout(pdfLayoutName, layouts) ? (
+          <div className={classes.wrapper}>
+            <div className={classes.accordionWrapper}>
+              <PdfLayoutAccordion
+                pdfLayoutName={pdfLayoutName}
+                selectedFormLayoutName={selectedFormLayoutName}
+                onAccordionClick={() => handleClickAccordion(pdfLayoutName)}
+              />
+            </div>
+          </div>
+        ) : (
+          <AddPdfButton onAddPdf={handleAddPdf} />
+        )}
       </div>
     </div>
   );

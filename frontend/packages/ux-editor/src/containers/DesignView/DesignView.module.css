@@ -15,10 +15,12 @@
 
 .buttonContainer {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--fds-spacing-5);
   padding-top: var(--fds-spacing-5);
   background-color: var(--fds-semantic-surface-neutral-subtle);
-  padding-bottom: var(--fds-spacing-4);
+  padding-bottom: var(--fds-spacing-5);
 }
 
 .button {
@@ -36,4 +38,9 @@
 
 .accordionWrapper {
   flex: 1;
+}
+
+.pdfAccordionWrapper {
+  height: 100%;
+  --background-color: var(--fds-semantic-surface-neutral-subtle);
 }

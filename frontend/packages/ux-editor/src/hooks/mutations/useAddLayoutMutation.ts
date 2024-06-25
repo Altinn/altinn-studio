@@ -15,6 +15,7 @@ import { useAppContext } from '../../hooks';
 
 export interface AddLayoutMutationArgs {
   layoutName: string;
+  isPdf?: boolean;
   isReceiptPage?: boolean;
 }
 
@@ -34,7 +35,7 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
   };
 
   return useMutation({
-    mutationFn: async ({ layoutName, isReceiptPage }: AddLayoutMutationArgs) => {
+    mutationFn: async ({ layoutName, isPdf = false, isReceiptPage }: AddLayoutMutationArgs) => {
       const layoutSettings: ILayoutSettings = formLayoutSettingsQuery.data;
       const layouts = formLayoutsQuery.data;
 
@@ -42,20 +43,23 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
       let newLayouts = ObjectUtils.deepCopy(layouts);
 
       newLayouts[layoutName] = createEmptyLayout();
+
+      // Might need to take PDF into account here as well
       newLayouts = await addOrRemoveNavigationButtons(
         newLayouts,
         save,
         layoutName,
         isReceiptPage ? layoutName : layoutSettings.receiptLayoutName,
       );
-      return { newLayouts, layoutName, isReceiptPage };
+      return { newLayouts, layoutName, isPdf, isReceiptPage };
     },
 
-    onSuccess: async ({ newLayouts, layoutName, isReceiptPage }) => {
+    onSuccess: async ({ newLayouts, layoutName, isPdf, isReceiptPage }) => {
       const layoutSettings: ILayoutSettings = ObjectUtils.deepCopy(formLayoutSettingsQuery.data);
       const { order } = layoutSettings?.pages;
 
       if (isReceiptPage) layoutSettings.receiptLayoutName = layoutName;
+      else if (isPdf) layoutSettings.pages.pdfLayoutName = layoutName;
       else order.push(layoutName);
 
       await formLayoutSettingsMutation.mutateAsync(layoutSettings);

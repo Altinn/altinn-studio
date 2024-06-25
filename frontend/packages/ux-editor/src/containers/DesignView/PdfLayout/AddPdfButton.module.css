@@ -1,0 +1,6 @@
+.assignName {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-2);
+  padding: var(--fds-spacing-2);
+}

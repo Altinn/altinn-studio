@@ -33,7 +33,6 @@ jest.mock('react-router-dom', () => ({
 
 const defaultProps: NavigationMenuProps = {
   pageName: mockPageName1,
-  pageIsReceipt: false,
 };
 
 describe('NavigationMenu', () => {
@@ -95,21 +94,6 @@ describe('NavigationMenu', () => {
       name: textMock('ux_editor.page_menu_up'),
     });
     expect(elementInMenuAfterClose).not.toBeInTheDocument();
-  });
-
-  it('hides the up and down button when page is receipt', async () => {
-    const user = userEvent.setup();
-    await render({ pageIsReceipt: true });
-    const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
-    await user.click(menuButtons[0]);
-
-    const upButton = screen.queryByRole('menuitem', { name: textMock('ux_editor.page_menu_up') });
-    const downButton = screen.queryByRole('menuitem', {
-      name: textMock('ux_editor.page_menu_down'),
-    });
-
-    expect(upButton).not.toBeInTheDocument();
-    expect(downButton).not.toBeInTheDocument();
   });
 
   it('shows the up and down button by default', async () => {

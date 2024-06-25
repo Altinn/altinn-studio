@@ -58,10 +58,19 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
       if (layoutSettings.receiptLayoutName === layoutName) {
         layoutSettings.receiptLayoutName = undefined;
       }
+      if (layoutSettings.pages.pdfLayoutName === layoutName) {
+        delete layoutSettings.pages.pdfLayoutName;
+      }
+      if (layoutSettings.pages.excludeFromPdf?.includes(layoutName)) {
+        layoutSettings.pages.excludeFromPdf.splice(
+          layoutSettings.pages.excludeFromPdf.indexOf(layoutName),
+        );
+      }
       formLayoutSettingsMutation.mutate(layoutSettings);
 
       const layoutPagesOrder = formLayoutSettings?.pages.order;
 
+      // OBS: Might need som adapting here since Side1 can be pdf in layouts folder and not be present in order!!
       // Make sure to create a new page when the last one is deleted!
       if (!selectedFormLayoutName && layoutPagesOrder.length === 0) {
         const layoutName = t('general.page') + (layoutPagesOrder.length + 1);

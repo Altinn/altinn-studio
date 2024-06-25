@@ -12,6 +12,7 @@ import type { ITextResource } from 'app-shared/types/global';
 import { duplicatedIdsExistsInLayout } from '../../../utils/formLayoutUtils';
 import { PageConfigWarning } from './PageConfigWarning';
 import classes from './PageConfigPanel.module.css';
+import { PdfConfig } from '@altinn/ux-editor/components/Properties/PageConfigPanel/PdfConfig';
 
 export const PageConfigPanel = () => {
   const { selectedFormLayoutName } = useAppContext();
@@ -67,6 +68,12 @@ export const PageConfigPanel = () => {
               <Accordion.Header>{t('right_menu.dynamics')}</Accordion.Header>
               <Accordion.Content>
                 <HiddenExpressionOnLayout />
+              </Accordion.Content>
+            </Accordion.Item>
+            <Accordion.Item>
+              <Accordion.Header>{t('right_menu.pdf')}</Accordion.Header>
+              <Accordion.Content className={classes.pdf}>
+                <PdfConfig />
               </Accordion.Content>
             </Accordion.Item>
           </Accordion>
