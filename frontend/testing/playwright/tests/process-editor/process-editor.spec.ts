@@ -52,22 +52,25 @@ test('That it is possible to add and remove datamodel the default task in the pr
   await processEditorPage.waitForInitialTaskHeaderToBeVisible();
 
   // --------------------- Add and delete datamodel ---------------------
-  await processEditorPage.clickOnDataModelButton();
-  await processEditorPage.waitForDataModelComboboxToBeVisible();
+  await processEditorPage.dataModelConfig.waitForDataModelButtonToBeVisibleWithValue('model');
+  await processEditorPage.dataModelConfig.clickOnDataModelButton('model');
+  await processEditorPage.dataModelConfig.waitForComboboxToBeVisible();
 
-  await processEditorPage.clickOnDeleteDataModel();
-  await processEditorPage.waitForAddDataModelButtonToBeVisible();
+  await processEditorPage.dataModelConfig.clickOnDeleteDataModel();
+  await processEditorPage.dataModelConfig.waitForAddDataModelButtonWithoutValueToBeVisible();
 
-  await processEditorPage.clickOnAddDataModel();
-  await processEditorPage.waitForDataModelComboboxToBeVisible();
+  await processEditorPage.dataModelConfig.clickOnAddButton();
+  await processEditorPage.dataModelConfig.waitForComboboxToBeVisible();
 
   const dataModelName: string = 'model';
-  await processEditorPage.clickOnDataModelCombobox();
-  await processEditorPage.clickOnDataModelOption(dataModelName);
-  await processEditorPage.waitForDataModelButtonToBeVisible();
+  await processEditorPage.dataModelConfig.clickOnCombobox();
+  await processEditorPage.dataModelConfig.chooseOption(dataModelName);
+  await processEditorPage.dataModelConfig.waitForDataModelButtonToBeVisibleWithValue(dataModelName);
 
-  await processEditorPage.verifyDataModelButtonTextIsSelectedDataModel(dataModelName);
-  await processEditorPage.verifyThatAddNewDataModelButtonIsHidden();
+  await processEditorPage.dataModelConfig.verifyDataModelButtonTextIsSelectedDataModel(
+    dataModelName,
+  );
+  await processEditorPage.dataModelConfig.verifyThatAddNewDataModelButtonIsHidden();
 
   // --------------------- Verify policy editor ---------------------
   await processEditorPage.clickOnPolicyAccordion();
@@ -101,10 +104,10 @@ test('That it is possible to add a new task to the process editor, configure som
   await editRandomGeneratedId(processEditorPage, randomGeneratedId, newId);
 
   // --------------------- Add new data model ---------------------
-  await processEditorPage.clickOnAddDataModel();
-  await processEditorPage.waitForDataModelComboboxToBeVisible();
-  await processEditorPage.clickOnDataModelCombobox();
-  await processEditorPage.verifyThatThereAreNoDataModelsAvailable();
+  await processEditorPage.dataModelConfig.clickOnAddButton();
+  await processEditorPage.dataModelConfig.waitForComboboxToBeVisible();
+  await processEditorPage.dataModelConfig.clickOnCombobox();
+  await processEditorPage.dataModelConfig.verifyThatThereAreNoDataModelsAvailable();
   await processEditorPage.pressEscapeOnKeyboard();
 
   const newDataModel: string = 'testDataModel';
@@ -117,12 +120,14 @@ test('That it is possible to add a new task to the process editor, configure som
   const newTaskSelector: string = await bpmnJSQuery.getTaskByIdAndType(newId, 'g');
   await processEditorPage.clickOnTaskInBpmnEditor(newTaskSelector);
 
-  await processEditorPage.clickOnAddDataModel();
-  await processEditorPage.waitForDataModelComboboxToBeVisible();
-  await processEditorPage.clickOnDataModelCombobox();
-  await processEditorPage.clickOnDataModelOption(newDataModel);
-  await processEditorPage.waitForDataModelButtonToBeVisible();
-  await processEditorPage.verifyDataModelButtonTextIsSelectedDataModel(newDataModel);
+  await processEditorPage.dataModelConfig.clickOnAddButton();
+  await processEditorPage.dataModelConfig.waitForComboboxToBeVisible();
+  await processEditorPage.dataModelConfig.clickOnCombobox();
+  await processEditorPage.dataModelConfig.chooseOption(newDataModel);
+  await processEditorPage.dataModelConfig.waitForDataModelButtonToBeVisibleWithValue(newDataModel);
+  await processEditorPage.dataModelConfig.verifyDataModelButtonTextIsSelectedDataModel(
+    newDataModel,
+  );
 
   // --------------------- Connect the task to the process ---------------------
   await processEditorPage.clickOnConnectionArrow();
@@ -229,8 +234,8 @@ test('That it is possible to create a custom receipt', async ({ page, testAppNam
 
   const newLayoutSetId: string = 'layoutSetId';
   await processEditorPage.writeLayoutSetId(newLayoutSetId);
-  await processEditorPage.clickOnAddDataModelCombobox();
-  await processEditorPage.clickOnDataModelOption(newDataModel);
+  await processEditorPage.dataModelConfig.clickOnAddDataModelCombobox();
+  await processEditorPage.dataModelConfig.chooseOption(newDataModel);
   await processEditorPage.pressEscapeOnKeyboard();
 
   await processEditorPage.waitForSaveNewCustomReceiptButtonToBeVisible();
