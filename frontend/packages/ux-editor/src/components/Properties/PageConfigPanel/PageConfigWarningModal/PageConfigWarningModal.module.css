@@ -3,8 +3,6 @@
   align-items: center;
 }
 
-.instructiveTitle {
-  font-weight: 500;
-  margin-top: var(--fds-spacing-6);
+.subTitle {
   margin-bottom: var(--fds-spacing-6);
 }
