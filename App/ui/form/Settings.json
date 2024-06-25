@@ -12,6 +12,7 @@
       "AddressPage",
       "FileUploadPage",
       "GridPage",
+      "TabsPage",
       "SummaryPage"
     ]
   }
