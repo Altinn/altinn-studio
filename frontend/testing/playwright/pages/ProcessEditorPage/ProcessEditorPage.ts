@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { ActionsConfig } from './ActionsConfig';
 import { BasePage } from '../../helpers/BasePage';
 import { DataModelConfig } from './DataModelConfig';
 import { type BpmnTaskType } from '../../types/BpmnTaskType';
@@ -9,10 +10,12 @@ const connectionArrowText: string = 'Connect using Sequence/MessageFlow or Assoc
 
 export class ProcessEditorPage extends BasePage {
   public readonly dataModelConfig: DataModelConfig;
+  public readonly actionsConfig: ActionsConfig;
 
   constructor(page: Page, environment?: Environment) {
     super(page, environment);
     this.dataModelConfig = new DataModelConfig(page);
+    this.actionsConfig = new ActionsConfig(page);
   }
 
   public async loadProcessEditorPage(): Promise<void> {
@@ -33,95 +36,6 @@ export class ProcessEditorPage extends BasePage {
     });
 
     await expect(heading).toBeVisible();
-  }
-
-  public async clickOnActionsAccordion(): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock('process_editor.configuration_panel_actions_title'),
-      })
-      .click();
-  }
-
-  public async waitForAddActionsButtonToBeVisible(): Promise<void> {
-    const button = this.page.getByRole('button', {
-      name: this.textMock('process_editor.configuration_panel_actions_add_new'),
-    });
-    await expect(button).toBeVisible();
-  }
-
-  public async clickAddActionsButton(): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock('process_editor.configuration_panel_actions_add_new'),
-      })
-      .click();
-  }
-
-  public async choosePredefinedAction(action: string): Promise<void> {
-    const predefinedActionsSelect = this.page
-      .getByLabel(this.textMock('process_editor.configuration_panel_actions_action_selector_label'))
-      .first();
-    await expect(predefinedActionsSelect).toBeVisible();
-    await predefinedActionsSelect.selectOption({ label: action });
-  }
-
-  public async clickOnCustomActionTab(): Promise<void> {
-    await this.page.getByRole('tab', { name: 'Lag egendefinert handling' }).first().click();
-
-    const customActionTextfield = this.page.getByLabel(
-      this.textMock('process_editor.configuration_panel_actions_action_card_custom_label'),
-    );
-
-    await expect(customActionTextfield).toBeVisible();
-  }
-
-  public async writeCustomAction(customAction: string): Promise<void> {
-    await this.page
-      .getByRole('textbox', {
-        name: this.textMock('process_editor.configuration_panel_actions_action_card_custom_label'),
-      })
-      .fill(customAction);
-  }
-
-  public async makeCustomActionToServerAction(): Promise<void> {
-    await this.page
-      .getByRole('checkbox', {
-        name: this.textMock('process_editor.configuration_panel_actions_set_server_action_label'),
-      })
-      .click();
-  }
-
-  public async editAction(action: string): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock('process_editor.configuration_panel_actions_action_label', {
-          actionIndex: '1',
-          actionName: action,
-        }),
-      })
-      .click();
-  }
-
-  public async deleteAction(action: string): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock('general.delete', { name: action }),
-      })
-      .click();
-  }
-
-  public async waitForActionButtonToBeVisible(
-    actionIndex: string,
-    actionName?: string,
-  ): Promise<void> {
-    const button = this.page.getByRole('button', {
-      name: this.textMock('process_editor.configuration_panel_actions_action_label', {
-        actionIndex,
-        actionName: actionName ?? '',
-      }),
-    });
-    await expect(button).toBeVisible();
   }
 
   public async clickOnPolicyAccordion(): Promise<void> {

@@ -29,8 +29,8 @@ test('should be possible to add predefined actions to task', async ({
   const giteaPage = new GiteaPage(page, { app: testAppName });
   const processEditorPage = await setupProcessEditorActionConfigPanel(page, testAppName);
 
-  await processEditorPage.clickAddActionsButton();
-  await processEditorPage.choosePredefinedAction('write');
+  await processEditorPage.actionsConfig.clickAddActionsButton();
+  await processEditorPage.actionsConfig.choosePredefinedAction('write');
 
   await commitAndPushToGitea(page, testAppName);
   await goToProcessFileInGitea(page, testAppName);
@@ -43,10 +43,10 @@ test('should be possible to add custom actions to task and set them as serverAct
 }): Promise<void> => {
   const giteaPage = new GiteaPage(page, { app: testAppName });
   const processEditorPage = await setupProcessEditorActionConfigPanel(page, testAppName);
-  await processEditorPage.clickAddActionsButton();
-  await processEditorPage.clickOnCustomActionTab();
-  await processEditorPage.writeCustomAction('myCustomAction');
-  await processEditorPage.makeCustomActionToServerAction();
+  await processEditorPage.actionsConfig.clickAddActionsButton();
+  await processEditorPage.actionsConfig.clickOnCustomActionTab();
+  await processEditorPage.actionsConfig.writeCustomAction('myCustomAction');
+  await processEditorPage.actionsConfig.makeCustomActionToServerAction();
 
   await commitAndPushToGitea(page, testAppName);
   await goToProcessFileInGitea(page, testAppName);
@@ -60,9 +60,9 @@ test('should be possible to remove action from task', async ({
   const giteaPage = new GiteaPage(page, { app: testAppName });
   const processEditorPage = await setupProcessEditorActionConfigPanel(page, testAppName);
 
-  await processEditorPage.editAction('write');
+  await processEditorPage.actionsConfig.editAction('write');
 
-  await processEditorPage.deleteAction('write');
+  await processEditorPage.actionsConfig.deleteAction('write');
   await commitAndPushToGitea(page, testAppName);
 
   await goToProcessFileInGitea(page, testAppName);
@@ -83,8 +83,8 @@ const setupProcessEditorActionConfigPanel = async (
   await processEditorPage.clickOnTaskInBpmnEditor(task);
 
   await processEditorPage.waitForInitialTaskHeaderToBeVisible();
-  await processEditorPage.clickOnActionsAccordion();
-  await processEditorPage.waitForAddActionsButtonToBeVisible();
+  await processEditorPage.actionsConfig.clickOnActionsAccordion();
+  await processEditorPage.actionsConfig.waitForAddActionsButtonToBeVisible();
 
   return processEditorPage;
 };
