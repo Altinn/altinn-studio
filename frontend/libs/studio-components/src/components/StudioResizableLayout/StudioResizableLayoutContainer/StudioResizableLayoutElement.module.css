@@ -1,0 +1,34 @@
+.container {
+  display: flex;
+  overflow: hidden;
+  position: relative;
+  flex: 1;
+}
+
+.resizeHandleH {
+  background-color: #f0f0f0;
+  flex: 0 0 4px;
+  position: relative;
+  cursor: col-resize;
+}
+
+.resizeHandleH:after {
+  z-index: 1;
+  content: '';
+  position: absolute;
+  inset: 0px -4px;
+}
+
+.resizeHandleV {
+  background-color: #f0f0f0;
+  flex: 0 0 4px;
+  position: relative;
+  cursor: row-resize;
+}
+
+.resizeHandleV:after {
+  z-index: 1;
+  content: '';
+  position: absolute;
+  inset: -4px 0px;
+}

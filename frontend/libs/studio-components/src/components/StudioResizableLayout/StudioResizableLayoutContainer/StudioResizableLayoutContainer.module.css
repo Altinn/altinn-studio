@@ -1,19 +1,5 @@
-.container {
+.root {
   display: flex;
-  overflow: hidden;
-  position: relative;
-  flex: 1;
-}
-
-.resizeHandle {
-  background-color: #f0f0f0;
-  flex: 0 0 4px;
-  position: relative;
-}
-
-.resizeHandle:after {
-  content: '';
-  position: absolute;
-  left: -15px;
-  right: -15px;
+  flex-direction: row;
+  width: 100%;
 }

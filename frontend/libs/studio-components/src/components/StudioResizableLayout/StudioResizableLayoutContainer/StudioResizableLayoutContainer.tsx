@@ -1,5 +1,5 @@
 import React, { Children, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import classes from './StudioResizableLayoutRoot.module.css';
+import classes from './StudioResizableLayoutContainer.module.css';
 import { type StudioResizableLayoutElementProps } from './StudioResizableLayoutElement';
 import { useResizableFunctions } from '../hooks/useResizableFunctions';
 

@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import classes from './StudioResizableLayoutContainer.module.css';
+import classes from './StudioResizableLayoutElement.module.css';
 import { useStudioResizableLayoutContext } from '../hooks/useStudioResizableLayoutContext';
 import { useMouseMovement } from '../hooks/useMouseMovement';
 import { useKeyboardControls } from '../hooks/useKeyboardControls';
@@ -66,12 +66,11 @@ const StudioResizableLayoutElement = forwardRef(
         {hasNeighbour && (
           <div
             tabIndex={0}
-            className={classes.resizeHandle}
+            className={orientation === 'horizontal' ? classes.resizeHandleH : classes.resizeHandleV}
             onMouseDown={onMouseDown}
             onKeyDown={onKeyDown}
             style={{
               backgroundColor: isResizing ? 'gray' : 'darkgray',
-              cursor: orientation === 'horizontal' ? 'col-resize' : 'row-resize',
             }}
           ></div>
         )}
