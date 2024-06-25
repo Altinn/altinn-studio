@@ -1,5 +1,6 @@
 .root {
   background: var(--fds-semantic-surface-neutral-subtle);
+  flex: var(--elements-width-fraction);
 }
 
 .pagesContent {
