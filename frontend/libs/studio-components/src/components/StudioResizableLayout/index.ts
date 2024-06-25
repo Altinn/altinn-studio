@@ -1,17 +1,25 @@
 import {
+  StudioResizableLayoutElement,
+  type StudioResizableLayoutElementProps,
+} from './StudioResizableLayoutContainer/StudioResizableLayoutElement';
+import {
+  StudioResizableLayoutContext,
   StudioResizableLayoutContainer,
-  type StudioResizableLayoutContainerProps,
 } from './StudioResizableLayoutContainer/StudioResizableLayoutContainer';
-import { StudioResizableLayoutRoot } from './StudioResizableLayoutContainer/StudioResizableLayoutRoot';
 
 type StudioResizableLayoutComponent = {
+  Element: typeof StudioResizableLayoutElement;
   Container: typeof StudioResizableLayoutContainer;
-  Root: typeof StudioResizableLayoutRoot;
+  Context: typeof StudioResizableLayoutContext;
 };
 
 export const StudioResizableLayout: StudioResizableLayoutComponent = {
+  Element: StudioResizableLayoutElement,
   Container: StudioResizableLayoutContainer,
-  Root: StudioResizableLayoutRoot,
+  Context: StudioResizableLayoutContext,
 };
 
-export type { StudioResizableLayoutContainerProps };
+export type {
+  StudioResizableLayoutElementProps as StudioResizableLayoutContainerProps,
+  StudioResizableLayoutContext,
+};
