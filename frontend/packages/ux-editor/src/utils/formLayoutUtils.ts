@@ -434,26 +434,30 @@ export const duplicatedIdsExistsInLayout = (layout: IInternalLayout): boolean =>
 export const findLayoutsContainingDuplicateComponents = (
   layouts: Record<string, IInternalLayout>,
 ) => {
-  const componentMap = new Map();
-  const duplicateLayouts = new Set();
+  const componentMap = new Map<string, string>();
+  const duplicateLayouts = new Set<string>();
+  const duplicateComponents = new Set<string>();
 
   const layoutPages: FormLayoutPage[] = Object.keys(layouts).map((key) => ({
     page: key,
     data: layouts[key],
   }));
-
   layoutPages.forEach(({ page, data }) => {
     const components = flattenObjectValues(data.order);
     components.forEach((component) => {
       if (componentMap.has(component)) {
         duplicateLayouts.add(page);
         duplicateLayouts.add(componentMap.get(component));
+        duplicateComponents.add(component);
       } else {
         componentMap.set(component, page);
       }
     });
   });
-  return [...duplicateLayouts];
+  return {
+    duplicateLayouts: [...duplicateLayouts],
+    duplicateComponents: [...duplicateComponents],
+  };
 };
 
 /**

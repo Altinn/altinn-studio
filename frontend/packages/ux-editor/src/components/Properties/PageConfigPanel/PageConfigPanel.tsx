@@ -40,7 +40,8 @@ export const PageConfigPanel = () => {
   const layout = layouts[selectedFormLayoutName];
   const hasDuplicatedIds = duplicatedIdsExistsInLayout(layout);
 
-  const duplicateLayouts = findLayoutsContainingDuplicateComponents(layouts);
+  const duplicateLayouts: string[] =
+    findLayoutsContainingDuplicateComponents(layouts).duplicateLayouts;
   const hasDuplicatedIdsInAllLayouts = duplicateLayouts.length > 0;
 
   useEffect(() => {

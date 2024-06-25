@@ -613,65 +613,43 @@ describe('formLayoutUtils', () => {
 
   describe('duplicatedIdsExistInAllLayouts', () => {
     it('Returns an empty array if no layouts contain duplicate components', () => {
-      const layouts: FormLayoutPage[] = [
-        {
-          page: 'page1',
-          data: {
-            order: { section1: [] },
-            components: {},
-            containers: {},
-            customRootProperties: {},
-            customDataProperties: {},
-          },
+      const layouts: Record<string, IInternalLayout> = {
+        page1: {
+          order: { section1: [] },
+          components: {},
+          containers: {},
+          customRootProperties: {},
+          customDataProperties: {},
         },
-        {
-          page: 'page2',
-          data: {
-            order: { section1: [] },
-            components: {},
-            containers: {},
-            customRootProperties: {},
-            customDataProperties: {},
-          },
+        page2: {
+          order: { section1: [] },
+          components: {},
+          containers: {},
+          customRootProperties: {},
+          customDataProperties: {},
         },
-      ];
+      };
       const duplicatedLayouts = findLayoutsContainingDuplicateComponents(layouts);
       expect(duplicatedLayouts).toEqual([]);
     });
 
     it('Returns the pages that contain duplicate components', () => {
-      const layouts: FormLayoutPage[] = [
-        {
-          page: 'page1',
-          data: {
-            order: { section1: ['component1'] },
-            components: {},
-            containers: {},
-            customRootProperties: {},
-            customDataProperties: {},
-          },
+      const layouts: Record<string, IInternalLayout> = {
+        page1: {
+          order: { section1: ['component1'] },
+          components: {},
+          containers: {},
+          customRootProperties: {},
+          customDataProperties: {},
         },
-        {
-          page: 'page1',
-          data: {
-            order: { section1: ['component1'] },
-            components: {},
-            containers: {},
-            customRootProperties: {},
-            customDataProperties: {},
-          },
+        page2: {
+          order: { section1: ['component2'] },
+          components: {},
+          containers: {},
+          customRootProperties: {},
+          customDataProperties: {},
         },
-        {
-          page: 'page2',
-          data: {
-            order: { section1: ['component2'] },
-            components: {},
-            containers: {},
-            customRootProperties: {},
-            customDataProperties: {},
-          },
-        },
-      ];
+      };
       const duplicatedLayouts = findLayoutsContainingDuplicateComponents(layouts);
       expect(duplicatedLayouts).toEqual(['page1']);
     });

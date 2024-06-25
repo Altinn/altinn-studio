@@ -116,10 +116,14 @@ export const DesignView = (): ReactNode => {
         isOpen={layout.page === selectedFormLayoutName}
         onClick={() => handleClickAccordion(layout.page)}
         isValid={isValidLayout}
-        hasUniqueIds={!layoutsWithDuplicateComponents.includes(layout.page)}
+        hasUniqueIds={!layoutsWithDuplicateComponents.duplicateLayouts.includes(layout.page)}
       >
         {layout.page === selectedFormLayoutName && (
-          <FormLayout layout={layout.data} isValid={isValidLayout} />
+          <FormLayout
+            layout={layout.data}
+            isValid={isValidLayout}
+            duplicateComponents={layoutsWithDuplicateComponents.duplicateComponents}
+          />
         )}
       </PageAccordion>
     );
