@@ -1,0 +1,51 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "NavigationBar",
+        "type": "NavigationBar"
+      },
+      {
+        "size": "h2",
+        "id": "TabsHeader",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Tabs"
+        }
+      },
+      {
+        "id": "TabsPageHeaderComponent",
+        "type": "Header",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Header.Component"
+        }
+      },
+      {
+        "id": "TabsPageTabsComponent",
+        "type": "Tabs",
+        "defaultTab": "tab2",
+        "tabs": [
+          {"id": "tab1", "title": "Tab uten ikon", "children": ["TabsPageParagraphComponent"]},
+          {"id": "tab2", "title": "Default tab", "children": ["TabsPageParagraphComponent2"]},
+          {"id": "tab3", "title": "Tab med ikon", "icon": "https://dev.w3.org/SVG/tools/svgweb/samples/svg-files/svg.svg", "children": ["TabsPageParagraphComponent"]}
+        ]
+      },
+      {
+        "id": "TabsPageParagraphComponent",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Dette er en lorem ipsum tekst"
+        }
+      },
+      {
+        "id": "TabsPageParagraphComponent2",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Dette er en lorem ipsum tekst 123"
+        }
+      }
+    ]
+  }
+}
