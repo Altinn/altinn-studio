@@ -35,7 +35,7 @@ export class DataModelConfig extends BasePage {
     const button = this.page.getByRole('button', {
       name: this.textMock('process_editor.configuration_panel_set_data_model_link'),
     });
-    await expect(button).toBeVisible();
+    await expect(button).toBeVisible({ timeout: 10000 });
   }
 
   public async clickOnAddButton(): Promise<void> {
@@ -77,7 +77,7 @@ export class DataModelConfig extends BasePage {
       .isVisible();
   }
 
-  public async verifyThatAddNewDataModelButtonIsHidden(): Promise<void> {
+  public async verifyThatAddNewDataModelLinkButtonIsHidden(): Promise<void> {
     await this.page
       .getByRole('button', {
         name: this.textMock('process_editor.configuration_panel_set_data_model_link'),

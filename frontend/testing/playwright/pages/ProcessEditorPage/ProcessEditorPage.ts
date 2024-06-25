@@ -148,14 +148,6 @@ export class ProcessEditorPage extends BasePage {
       .click();
   }
 
-  public async waitForPolicyEditorModalTabToBeVisible(): Promise<void> {
-    const heading = this.page.getByRole('heading', {
-      name: this.textMock('policy_editor.rules'),
-      level: 2,
-    });
-    await expect(heading).toBeVisible();
-  }
-
   public async dragTaskInToBpmnEditor(
     task: BpmnTaskType,
     dropElementSelector: string,
