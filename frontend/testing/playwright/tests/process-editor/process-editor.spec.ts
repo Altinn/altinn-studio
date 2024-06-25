@@ -133,6 +133,7 @@ test('That it is possible to add a new task to the process editor, configure som
   await editRandomGeneratedId(processEditorPage, randomGeneratedId, newId);
 
   // --------------------- Add new data model ---------------------
+  await processEditorPage.dataModelConfig.waitForAddDataModelButtonWithoutValueToBeVisible();
   await processEditorPage.dataModelConfig.clickOnAddButton();
   await processEditorPage.dataModelConfig.waitForComboboxToBeVisible();
   await processEditorPage.dataModelConfig.clickOnCombobox();
@@ -149,6 +150,7 @@ test('That it is possible to add a new task to the process editor, configure som
   const newTaskSelector: string = await bpmnJSQuery.getTaskByIdAndType(newId, 'g');
   await processEditorPage.clickOnTaskInBpmnEditor(newTaskSelector);
 
+  await processEditorPage.dataModelConfig.waitForAddDataModelButtonWithoutValueToBeVisible();
   await processEditorPage.dataModelConfig.clickOnAddButton();
   await processEditorPage.dataModelConfig.waitForComboboxToBeVisible();
   await processEditorPage.dataModelConfig.clickOnCombobox();
