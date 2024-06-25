@@ -11,7 +11,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import type { Policy, PolicyAction, PolicySubject } from '@altinn/policy-editor';
 
 const mockResourceId: string = 'r1';
-const mockSelectedContext: string = 'test';
+const mockOrg: string = 'test';
 const mockId: string = 'page-content-policy';
 
 const mockPolicy: Policy = {
@@ -55,7 +55,7 @@ jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
     resourceId: mockResourceId,
-    selectedContext: mockSelectedContext,
+    org: mockOrg,
   }),
 }));
 

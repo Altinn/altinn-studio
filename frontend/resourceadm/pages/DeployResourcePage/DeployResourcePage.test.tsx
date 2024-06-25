@@ -14,7 +14,7 @@ import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const mockResourceId: string = 'r1';
-const mockSelectedContext: string = 'test';
+const mockOrg: string = 'test';
 const mockId: string = 'page-content-deploy';
 
 const mockRepoStatusAhead: RepoStatus = {
@@ -49,7 +49,7 @@ jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
     resourceId: mockResourceId,
-    selectedContext: mockSelectedContext,
+    org: mockOrg,
   }),
 }));
 
