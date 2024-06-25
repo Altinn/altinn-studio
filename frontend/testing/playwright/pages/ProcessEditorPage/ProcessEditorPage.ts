@@ -1,14 +1,18 @@
-import { BasePage } from '../helpers/BasePage';
-import type { Environment } from '../helpers/StudioEnvironment';
-import type { Page } from '@playwright/test';
 import { expect } from '@playwright/test';
-import { type BpmnTaskType } from '../types/BpmnTaskType';
+import type { Page } from '@playwright/test';
+import { BasePage } from '../../helpers/BasePage';
+import { DataModelConfig } from './DataModelConfig';
+import { type BpmnTaskType } from '../../types/BpmnTaskType';
+import type { Environment } from '../../helpers/StudioEnvironment';
 
 const connectionArrowText: string = 'Connect using Sequence/MessageFlow or Association';
 
 export class ProcessEditorPage extends BasePage {
+  public readonly dataModelConfig: DataModelConfig;
+
   constructor(page: Page, environment?: Environment) {
     super(page, environment);
+    this.dataModelConfig = new DataModelConfig(page);
   }
 
   public async loadProcessEditorPage(): Promise<void> {
@@ -29,79 +33,6 @@ export class ProcessEditorPage extends BasePage {
     });
 
     await expect(heading).toBeVisible();
-  }
-
-  public async clickOnDataModelButton(): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock('process_editor.configuration_panel_set_data_model'),
-      })
-      .click();
-  }
-
-  public async waitForDataModelComboboxToBeVisible(): Promise<void> {
-    const combobox = this.page.getByRole('combobox', {
-      name: this.textMock('process_editor.configuration_panel_set_data_model'),
-    });
-    await expect(combobox).toBeVisible();
-  }
-
-  public async clickOnDeleteDataModel(): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock('general.delete'),
-      })
-      .click();
-  }
-
-  public async waitForAddDataModelButtonToBeVisible(): Promise<void> {
-    const button = this.page.getByRole('button', {
-      name: this.textMock('process_editor.configuration_panel_set_data_model_link'),
-    });
-    await expect(button).toBeVisible();
-  }
-
-  public async clickOnAddDataModel(): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock('process_editor.configuration_panel_set_data_model_link'),
-      })
-      .click();
-  }
-
-  public async clickOnDataModelCombobox(): Promise<void> {
-    await this.page
-      .getByRole('combobox', {
-        name: this.textMock('process_editor.configuration_panel_set_data_model'),
-      })
-      .click();
-  }
-
-  public async clickOnDataModelOption(option: string): Promise<void> {
-    await this.page.getByRole('option', { name: option }).click();
-  }
-
-  public async waitForDataModelButtonToBeVisible(): Promise<void> {
-    const button = this.page.getByRole('button', {
-      name: this.textMock('process_editor.configuration_panel_set_data_model'),
-    });
-    await expect(button).toBeVisible();
-  }
-
-  public async verifyDataModelButtonTextIsSelectedDataModel(option: string): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock('process_editor.configuration_panel_set_data_model') + option,
-      })
-      .isVisible();
-  }
-
-  public async verifyThatAddNewDataModelButtonIsHidden(): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock('process_editor.configuration_panel_set_data_model_link'),
-      })
-      .isHidden();
   }
 
   public async clickOnActionsAccordion(): Promise<void> {
@@ -188,28 +119,6 @@ export class ProcessEditorPage extends BasePage {
       }),
     });
     await expect(button).toBeVisible();
-  }
-
-  public async typeValueInActionCombobox(
-    customText: string,
-    actionIndex: string,
-    actionName?: string,
-  ): Promise<void> {
-    await this.page
-      .getByRole('combobox', {
-        name: this.textMock('process_editor.configuration_panel_actions_action_label', {
-          actionIndex,
-          actionName: actionName ?? '',
-        }),
-      })
-      .fill(customText);
-  }
-
-  public async verifyThatCustomActionTextIsVisible(): Promise<void> {
-    const text = this.page.getByText(
-      this.textMock('process_editor.configuration_panel_actions_custom_action'),
-    );
-    await expect(text).toBeVisible();
   }
 
   public async clickOnPolicyAccordion(): Promise<void> {
@@ -324,13 +233,6 @@ export class ProcessEditorPage extends BasePage {
     await expect(button).toBeVisible();
   }
 
-  public async verifyThatThereAreNoDataModelsAvailable(): Promise<void> {
-    const noDataModelMessage = this.page.getByText(
-      this.textMock('process_editor.configuration_panel_no_data_model_to_select'),
-    );
-    await expect(noDataModelMessage).toBeVisible();
-  }
-
   public async pressEscapeOnKeyboard(): Promise<void> {
     await this.page.keyboard.press('Escape');
   }
@@ -346,6 +248,7 @@ export class ProcessEditorPage extends BasePage {
     });
     await expect(heading).toBeVisible();
   }
+
   public async closePolicyEditor(): Promise<void> {
     await this.page
       .getByRole('button', {
@@ -427,16 +330,6 @@ export class ProcessEditorPage extends BasePage {
         name: this.textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
       })
       .fill(layoutSetId);
-  }
-
-  public async clickOnAddDataModelCombobox(): Promise<void> {
-    await this.page
-      .getByRole('combobox', {
-        name: this.textMock(
-          'process_editor.configuration_panel_custom_receipt_select_data_model_label',
-        ),
-      })
-      .click();
   }
 
   public async waitForSaveNewCustomReceiptButtonToBeVisible(): Promise<void> {

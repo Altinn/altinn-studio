@@ -52,10 +52,11 @@ export const EditDataTypes = ({
         />
       ) : (
         <StudioProperty.Button
-          aria-label={t('process_editor.configuration_panel_set_data_model')}
+          aria-label={
+            t('process_editor.configuration_panel_set_data_model') + existingDataTypeForTask
+          }
           onClick={() => setDataModelSelectVisible(true)}
           property={t('process_editor.configuration_panel_set_data_model')}
-          title={t('process_editor.configuration_panel_set_data_model')}
           value={definedValueWithLinkIcon}
         />
       )}
