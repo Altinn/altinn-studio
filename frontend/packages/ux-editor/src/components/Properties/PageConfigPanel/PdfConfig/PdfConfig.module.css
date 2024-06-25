@@ -1,0 +1,10 @@
+.excludeComponents {
+  background-color: var(--fds-semantic-background-subtle);
+}
+
+.convertToPdfButton {
+  padding-top: var(--fds-spacing-5);
+  padding-inline: var(--fds-spacing-5);
+  display: grid;
+  gap: var(--fds-spacing-5);
+}

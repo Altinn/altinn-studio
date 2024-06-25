@@ -4,10 +4,7 @@ import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Accordion } from '@digdir/designsystemet-react';
-import type { IFormLayouts } from '../../types/global';
-import type { FormLayoutPage } from '../../types/FormLayoutPage';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
-import { PlusIcon } from '@studio/icons';
 import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
 import { PageAccordion } from './PageAccordion';
 import { useAppContext, useFormLayouts } from '../../hooks';
@@ -17,16 +14,15 @@ import {
   duplicatedIdsExistsInLayout,
   findLayoutsContainingDuplicateComponents,
 } from '../../utils/formLayoutUtils';
+import { usePdfLayoutName } from 'app-shared/hooks/usePdfLayoutName';
+import { PdfLayoutAccordion } from '@altinn/ux-editor/containers/DesignView/PdfLayout/PdfLayoutAccordion';
+import { mapFormLayoutsToFormLayoutPages } from '@altinn/ux-editor/utils/formLayoutsUtils';
+import { pdfLayoutNameFromSettingsHasConnectedLayout } from '@altinn/ux-editor/utils/designViewUtils/designViewUtils';
+import { PlusIcon } from '@studio/icons';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
  */
-const mapFormLayoutsToFormLayoutPages = (formLayouts: IFormLayouts): FormLayoutPage[] => {
-  return Object.entries(formLayouts).map(([key, value]) => ({
-    page: key,
-    data: value,
-  }));
-};
 
 /**
  * @component
@@ -41,23 +37,25 @@ export const DesignView = (): ReactNode => {
     selectedFormLayoutName,
     setSelectedFormLayoutName,
     refetchLayouts,
-  } = useAppContext();
+  } = useAppContext(); // Add pdfInformation here? Or whole formLayoutData?
   const { mutate: addLayoutMutation, isPending: isAddLayoutMutationPending } = useAddLayoutMutation(
     org,
     app,
     selectedFormLayoutSetName,
   );
-  const layouts = useFormLayouts();
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
     org,
     app,
     selectedFormLayoutSetName,
   );
+  const layouts = useFormLayouts();
+  const pdfLayoutName = usePdfLayoutName(org, app, selectedFormLayoutSetName);
   const layoutOrder = formLayoutSettings?.pages?.order;
 
   const { t } = useTranslation();
 
   const formLayoutData = mapFormLayoutsToFormLayoutPages(layouts);
+
   /**
    * Handles the click of an accordion. It updates the URL and sets the
    * local storage for which page view that is open
@@ -73,6 +71,7 @@ export const DesignView = (): ReactNode => {
   };
 
   const handleAddPage = () => {
+    //let newNum = pdfLayoutName.includes(t('ux_editor.page')) ? 2 : 1;
     let newNum = 1;
     let newLayoutName = `${t('ux_editor.page')}${layoutOrder.length + newNum}`;
 
@@ -144,6 +143,17 @@ export const DesignView = (): ReactNode => {
           {t('ux_editor.pages_add')}
         </StudioButton>
       </div>
+      {pdfLayoutNameFromSettingsHasConnectedLayout(pdfLayoutName, layouts) && (
+        <div className={classes.wrapper}>
+          <div className={classes.accordionWrapper}>
+            <PdfLayoutAccordion
+              pdfLayoutName={pdfLayoutName}
+              selectedFormLayoutName={selectedFormLayoutName}
+              onAccordionClick={() => handleClickAccordion(pdfLayoutName)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

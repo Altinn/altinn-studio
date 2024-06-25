@@ -4,7 +4,7 @@ import classes from './PageAccordion.module.css';
 import { Accordion } from '@digdir/designsystemet-react';
 import { NavigationMenu } from './NavigationMenu';
 import { pageAccordionContentId } from '@studio/testing/testids';
-import { TrashIcon } from '@studio/icons';
+import { FilePdfIcon, TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../hooks';
@@ -18,6 +18,9 @@ export type PageAccordionProps = {
   onClick: () => void;
   isValid?: boolean;
   hasUniqueIds?: boolean;
+  pageIsReceipt?: boolean;
+  pageIsPdf?: boolean;
+  showNavigationMenu?: boolean;
 };
 
 /**
@@ -29,6 +32,11 @@ export type PageAccordionProps = {
  * @property {ReactNode}[children] - The children of the component
  * @property {boolean}[isOpen] - If the accordion is open or not
  * @property {function}[onClick] - Function to execute when the accordion is clicked
+<<<<<<< HEAD
+=======
+ * @property {boolean}[pageIsReceipt] - If the page is receipt or not
+ * @property {boolean}[pageIsPdf] - If the page is pdf or not
+>>>>>>> 5633f518a (Add PDF config for page and layoutset)
  *
  * @returns {ReactNode} - The rendered component
  */
@@ -39,6 +47,9 @@ export const PageAccordion = ({
   onClick,
   isValid,
   hasUniqueIds,
+  pageIsReceipt,
+  pageIsPdf,
+  showNavigationMenu = true,
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
@@ -61,7 +72,7 @@ export const PageAccordion = ({
   };
 
   return (
-    <Accordion.Item className={classes.accordionItem} open={isOpen}>
+    <Accordion.Item className={pageIsReceipt && classes.receiptItem} open={isOpen}>
       <div className={classes.accordionHeaderRow}>
         <Accordion.Header
           className={
@@ -73,7 +84,8 @@ export const PageAccordion = ({
           {pageName}
         </Accordion.Header>
         <div className={classes.navigationMenu}>
-          <NavigationMenu pageName={pageName} />
+          {pageIsPdf && <FilePdfIcon fontSize='1.5rem' />}
+          {showNavigationMenu && <NavigationMenu pageName={pageName} />}
           <StudioButton
             color='danger'
             icon={<TrashIcon aria-hidden />}

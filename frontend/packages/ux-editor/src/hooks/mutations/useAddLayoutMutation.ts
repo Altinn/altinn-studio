@@ -15,6 +15,8 @@ import { useAppContext } from '../../hooks';
 
 export interface AddLayoutMutationArgs {
   layoutName: string;
+  isPdf?: boolean;
+  isReceiptPage?: boolean;
 }
 
 export const useAddLayoutMutation = (org: string, app: string, layoutSetName: string) => {
@@ -33,22 +35,25 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
   };
 
   return useMutation({
-    mutationFn: async ({ layoutName }: AddLayoutMutationArgs) => {
+    mutationFn: async ({ layoutName, isPdf = false }: AddLayoutMutationArgs) => {
+      const layoutSettings: ILayoutSettings = formLayoutSettingsQuery.data;
       const layouts = formLayoutsQuery.data;
 
       if (Object.keys(layouts).indexOf(layoutName) !== -1) throw Error('Layout already exists');
       let newLayouts = ObjectUtils.deepCopy(layouts);
 
       newLayouts[layoutName] = createEmptyLayout();
+      // Might need to take PDF into account here as well
       newLayouts = await addOrRemoveNavigationButtons(newLayouts, save, layoutName);
-      return { newLayouts, layoutName };
+      return { newLayouts, layoutName, isPdf };
     },
 
-    onSuccess: async ({ newLayouts, layoutName }) => {
+    onSuccess: async ({ newLayouts, layoutName, isPdf }) => {
       const layoutSettings: ILayoutSettings = ObjectUtils.deepCopy(formLayoutSettingsQuery.data);
       const { order } = layoutSettings?.pages;
 
-      order.push(layoutName);
+      if (isPdf) layoutSettings.pages.pdfLayoutName = layoutName;
+      else order.push(layoutName);
 
       await formLayoutSettingsMutation.mutateAsync(layoutSettings);
 
