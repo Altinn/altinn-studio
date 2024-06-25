@@ -6,10 +6,12 @@ export class DataModelConfig extends BasePage {
     super(page);
   }
 
-  public async clickOnDataModelButton(): Promise<void> {
+  public async clickOnDataModelButton(dataModelName: string): Promise<void> {
     await this.page
       .getByRole('button', {
-        name: this.textMock('process_editor.configuration_panel_set_data_model'),
+        name: this.textMock('process_editor.configuration_panel_set_data_model', {
+          dataModelName,
+        }),
       })
       .click();
   }
