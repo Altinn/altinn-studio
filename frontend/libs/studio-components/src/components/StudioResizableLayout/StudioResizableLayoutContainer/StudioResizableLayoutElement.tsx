@@ -40,12 +40,14 @@ const StudioResizableLayoutElement = forwardRef(
     useImperativeHandle(ref, () => containerRef.current);
     const { resizeDelta, collapse, orientation, containerSize } =
       useStudioResizableLayoutContext(index);
-    const { onMouseDown, isResizing } = useMouseMovement(orientation, (delta) => {
-      resizeDelta(index, delta);
-    });
-    const { onKeyDown } = useKeyboardControls((delta) => {
-      resizeDelta(index, delta);
-    });
+    const { onMouseDown, isResizing } = useMouseMovement(orientation, (delta) =>
+      resizeDelta(index, delta),
+    );
+    const { onKeyDown } = useKeyboardControls((delta) => resizeDelta(index, delta));
+
+    useEffect(() => {
+      resizeDelta(index, 0);
+    }, [minimumSize]);
 
     useEffect(() => {
       if (collapsed) {
