@@ -33,6 +33,7 @@ import { Preview } from '../components/Preview';
 import { setSelectedLayoutInLocalStorage } from '../utils/localStorageUtils';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { StudioResizableLayoutRoot } from 'libs/studio-components/src/components/StudioResizableLayout/StudioResizableLayoutContainer/StudioResizableLayoutRoot';
+import { FormDesignerToolbar } from './FormDesignerToolbar';
 
 export interface FormDesignerProps {
   selectedLayout: string;
@@ -147,6 +148,7 @@ export const FormDesigner = ({
     return (
       <DragAndDropTree.Provider rootId={BASE_CONTAINER_ID} onMove={moveItem} onAdd={addItem}>
         <div className={classes.root}>
+          <FormDesignerToolbar></FormDesignerToolbar>
           <div className={classes.container}>
             <StudioResizableLayout.Root orientation='horizontal'>
               <StudioResizableLayout.Container minimumSize={262}>
