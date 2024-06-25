@@ -39,7 +39,6 @@ import {
   internalLayoutWithMultiPageGroup,
 } from '../testing/layoutWithMultiPageGroupMocks';
 import { containerComponentTypes } from '../data/containerComponentTypes';
-import type { FormLayoutPage } from '../../../../packages/ux-editor/src/types/FormLayoutPage';
 
 // Test data:
 const baseContainer: FormContainer<ComponentType.Group> = {
