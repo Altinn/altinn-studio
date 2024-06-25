@@ -1,5 +1,5 @@
 import { BasePage } from '@studio/testing/playwright/helpers/BasePage';
-import { expect, Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 
 export class ActionsConfig extends BasePage {
   constructor(public page: Page) {
