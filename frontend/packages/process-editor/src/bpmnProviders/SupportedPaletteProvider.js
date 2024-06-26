@@ -129,6 +129,7 @@ class SupportedPaletteProvider {
               }),
               paymentConfig: bpmnFactory.create('altinn:PaymentConfig', {
                 paymentDataType: `paymentInformation-${generateRandomId(4)}`,
+                paymentReceiptPdfDataType: `paymentReceiptPdf-${generateRandomId(4)}`,
               }),
             }),
           ],

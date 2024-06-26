@@ -84,6 +84,11 @@ export const altinnCustomTasks = {
           isMany: false,
           type: 'String',
         },
+        {
+          name: 'paymentReceiptPdfDataType',
+          isMany: false,
+          type: 'String',
+        },
       ],
     },
     {

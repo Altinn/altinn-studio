@@ -8,6 +8,7 @@ export const bpmnTaskConfig = {
   payment: {
     configNode: 'paymentConfig',
     dataTypeName: 'paymentDataType',
+    receiptPdfDataTypeName: 'paymentReceiptPdfDataType',
   },
   signing: {
     configNode: 'signatureConfig',
@@ -63,6 +64,15 @@ export const getDataTypeIdFromBusinessObject = (
   const configNode = bpmnTaskConfig[bpmnTaskType].configNode;
   const dataTypeName = bpmnTaskConfig[bpmnTaskType].dataTypeName;
   return businessObject?.extensionElements?.values[0][configNode][dataTypeName];
+};
+
+export const getReceiptPdfDataTypeIdFromBusinessObject = (
+  bpmnTaskType: BpmnTaskType,
+  businessObject: BpmnBusinessObjectEditor,
+): string => {
+  const configNode = bpmnTaskConfig[bpmnTaskType].configNode;
+  const receiptPdfDataTypeName = bpmnTaskConfig[bpmnTaskType].receiptPdfDataTypeName;
+  return businessObject?.extensionElements?.values[0][configNode][receiptPdfDataTypeName];
 };
 
 export const getLayoutSetIdFromTaskId = (elementId: string, layoutSets: LayoutSets) => {
