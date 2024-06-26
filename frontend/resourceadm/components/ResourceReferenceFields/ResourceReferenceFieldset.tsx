@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Fieldset, Textfield, NativeSelect } from '@digdir/design-system-react';
 import type {
+  ResourceFormError,
   ResourceReference,
   ResourceReferenceSource,
   ResourceReferenceType,
@@ -72,9 +73,9 @@ type ResourceReferenceFieldsetProps = {
    */
   onFocus: () => void;
   /**
-   * If the error should be shown
+   * Field error messages
    */
-  showErrors: boolean;
+  errors: ResourceFormError[];
   /**
    * Whether this field is required or not
    */
@@ -92,7 +93,7 @@ type ResourceReferenceFieldsetProps = {
  * @property {ResourceReference}[resourceReference] - The resourceReference to display in the fieldset
  * @property {function}[onChangeResourceReferenceField] - Function to be executed when resourceReference is changed
  * @property {function}[onFocus] - Function to be executed when the field is focused
- * @property {boolean}[showErrors] - If errors should be shown or not
+ * @property {ResourceFormError[]}[errors] - Field error messages
  * @property {boolean}[required] - Whether this field is required or not
  * @property {number}[index] - Index of fieldset
  *
@@ -102,7 +103,7 @@ export const ResourceReferenceFieldset = ({
   resourceReference,
   onChangeResourceReferenceField,
   onFocus,
-  showErrors,
+  errors,
   required,
   index,
 }: ResourceReferenceFieldsetProps): React.JSX.Element => {
@@ -116,8 +117,8 @@ export const ResourceReferenceFieldset = ({
   );
   const [reference, setReference] = useState(resourceReference.reference);
 
-  const isValid = referenceSource && referenceType && reference;
-  const hasError = !isValid && showErrors;
+  const fieldError = errors.filter((error) => error.index === index);
+  const hasError = fieldError.length > 0;
 
   const handleChangeReferenceSource = (newSource: ResourceReferenceSource): void => {
     setReferenceSource(newSource);
@@ -170,6 +171,7 @@ export const ResourceReferenceFieldset = ({
           })}
         </NativeSelect>
         <NativeSelect
+          id={index === 0 ? 'resourceReferences' : undefined}
           size='small'
           onChange={(event) =>
             handleChangeReferenceType(event.target.value as ResourceReferenceType)
@@ -188,6 +190,7 @@ export const ResourceReferenceFieldset = ({
           })}
         </NativeSelect>
         <Textfield
+          id={`resourceReferences-${index}`}
           label={t('resourceadm.about_resource_reference')}
           size='small'
           value={reference}
@@ -197,9 +200,9 @@ export const ResourceReferenceFieldset = ({
           onBlur={handleBlurReference}
         />
       </Fieldset>
-      {hasError && (
-        <InputFieldErrorMessage message={t('resourceadm.about_resource_reference_error')} />
-      )}
+      {fieldError.map((error, errorIndex) => (
+        <InputFieldErrorMessage key={errorIndex} message={error.error} />
+      ))}
     </>
   );
 };

@@ -12,5 +12,6 @@ export {
   mapKeywordStringToKeywordTypeArray,
   mapKeywordsArrayToString,
   resourceTypeMap,
+  validateResource,
 } from './resourceUtils';
 export type { EnvId, Environment } from './resourceUtils';

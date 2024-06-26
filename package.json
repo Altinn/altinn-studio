@@ -67,7 +67,8 @@
     "whatwg-fetch": "3.6.20"
   },
   "resolutions": {
-    "@testing-library/dom": "latest"
+    "@testing-library/dom": "latest",
+    "@babel/traverse": "7.24.7"
   },
   "lint-staged": {
     "*{js,jsx,tsx,ts,css,md}": "prettier -w",

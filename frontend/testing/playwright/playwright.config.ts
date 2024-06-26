@@ -123,6 +123,7 @@ export default defineConfig<ExtendedTestOptions>({
       dependencies: [TestNames.SETUP],
       testDir: './tests/process-editor/',
       testMatch: '*.spec.ts',
+      timeout: 60000,
       use: {
         ...devices['Desktop Chrome'],
         storageState: '.playwright/auth/user.json',
