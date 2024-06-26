@@ -31,12 +31,7 @@
                     "title": "Gruppetittel",
                     "description": "Gruppebeskrivelse"
                 },
-                "children": [
-                    "GroupPage-Group-Header",
-                    "GroupPage-Input",
-                    "GroupPage-Group-Nested",
-                    "GroupPage-Nested-Input2"
-                ]
+                "children": ["GroupPage-Group-Header", "GroupPage-Input", "GroupPage-Group-Nested"]
             },
             {
                 "size": "h3",
@@ -103,7 +98,14 @@
                     "title": "Nested group title",
                     "description": "Nested group description"
                 },
-                "children": ["GroupPage-Nested-Header", "GroupPage-Nested-Input", "GroupPage-Group-Nested-Nested"]
+                "children": [
+                    "GroupPage-Nested-Header",
+                    "GroupPage-Nested-Input",
+                    "GroupPage-Nested-Input2",
+                    "GroupPage-Nested-Textarea",
+                    "GroupPage-Nested-Checkboxes",
+                    "GroupPage-Group-Nested-Nested"
+                ]
             },
             {
                 "size": "L",
@@ -134,6 +136,45 @@
                 }
             },
             {
+                "dataModelBindings": {
+                    "simpleBinding": "longAnswerInput"
+                },
+                "id": "GroupPage-Nested-Textarea",
+                "type": "TextArea",
+                "textResourceBindings": {
+                    "title": "TextareaPage.Textarea.title"
+                }
+            },
+            {
+                "dataModelBindings": {
+                    "simpleBinding": "checkboxesInput"
+                },
+                "id": "GroupPage-Nested-Checkboxes",
+                "type": "Checkboxes",
+                "textResourceBindings": {
+                    "title": "CheckboxesPage.Checkboxes.title"
+                },
+                "options": [
+                    {
+                        "label": "Kjøre til hytta på fjellet",
+                        "value": "kjoreTilHyttaPaaFjellet"
+                    },
+                    {
+                        "label": "Kjøring i skogen",
+                        "value": "kjoringISkogen"
+                    },
+                    {
+                        "label": "Korte strekninger med bykjøring, eller annen moro",
+                        "value": "korteStrekningerMedBykjoring"
+                    },
+                    {
+                        "label": "Lange strekninger på større veier i Norge",
+                        "value": "langeStrekningerPaStorreVeierINorge"
+                    }
+                ],
+                "required": false
+            },
+            {
                 "id": "GroupPage-Group-Nested-Nested",
                 "type": "Group",
                 "groupingIndicator": "indented",
@@ -142,7 +183,7 @@
                     "title": "Nested group title inside nested group",
                     "description": "Nested nested group description inside nested group"
                 },
-                "children": ["GroupPage-Nested-Nested-Input"]
+                "children": ["GroupPage-Nested-Nested-Input", "GroupPage-Nested-Nested-RadioButtons"]
             },
             {
                 "dataModelBindings": {
@@ -153,6 +194,35 @@
                 "textResourceBindings": {
                     "title": "I am input inside nested group inside nested group"
                 }
+            },
+            {
+                "dataModelBindings": {
+                    "simpleBinding": "radioButtonInput"
+                },
+                "id": "GroupPage-Nested-Nested-RadioButtons",
+                "type": "RadioButtons",
+                "textResourceBindings": {
+                    "title": "RadioButtonsPage.RadioButtons.title"
+                },
+                "options": [
+                    {
+                        "label": "Bil",
+                        "value": "bil"
+                    },
+                    {
+                        "label": "Moped",
+                        "value": "moped"
+                    },
+                    {
+                        "label": "Traktor",
+                        "value": "traktor"
+                    },
+                    {
+                        "label": "Båt",
+                        "value": "baat"
+                    }
+                ],
+                "required": false
             }
         ]
     }
