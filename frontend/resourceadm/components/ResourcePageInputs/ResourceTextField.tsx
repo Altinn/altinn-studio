@@ -6,6 +6,10 @@ import { ResourceFieldHeader } from './ResourceFieldHeader';
 
 type ResourceTextFieldProps = {
   /**
+   * The field id, used by ErrorSummary
+   */
+  id: string;
+  /**
    * The label of the text field
    */
   label: string;
@@ -54,6 +58,7 @@ type ResourceTextFieldProps = {
  * @component
  *    Displays an input textfield for a resource variable that has language support.
  *
+ * @property {string}[id] - The field id, used by ErrorSummary
  * @property {string}[label] - The label of the text field
  * @property {string}[description] - The description of the text field
  * @property {string}[value] - The value in the field
@@ -70,6 +75,7 @@ type ResourceTextFieldProps = {
 export const ResourceTextField = forwardRef<HTMLInputElement, ResourceTextFieldProps>(
   (
     {
+      id,
       label,
       description,
       value,
@@ -88,6 +94,7 @@ export const ResourceTextField = forwardRef<HTMLInputElement, ResourceTextFieldP
     return (
       <div className={classes.inputWrapper}>
         <Textfield
+          id={id}
           label={<ResourceFieldHeader label={label} required={required} />}
           description={description}
           size='small'

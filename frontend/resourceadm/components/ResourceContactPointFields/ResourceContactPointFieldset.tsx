@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { ResourceContactPoint } from 'app-shared/types/ResourceAdm';
+import type { ResourceContactPoint, ResourceFormError } from 'app-shared/types/ResourceAdm';
 import { Fieldset, HelpText, Textfield } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { InputFieldErrorMessage } from '../ResourcePageInputs/InputFieldErrorMessage';
@@ -23,9 +23,9 @@ type ResourceContactPointFieldsetProps = {
    */
   onFocus: () => void;
   /**
-   * If the error should be shown
+   * List of error messages
    */
-  showErrors: boolean;
+  errors: ResourceFormError[];
   /**
    * Whether this field is required or not
    */
@@ -43,7 +43,7 @@ type ResourceContactPointFieldsetProps = {
  * @property {ResourceContactPoint}[contactPoint] - The contact point to display in the fieldset
  * @property {function}[onLeaveTextFields] - Function to be executed when leaving a text field
  * @property {function}[onFocus] - Function to be executed when the field is focused
- * @property {boolean}[showErrors] - Function to be executed when leaving a text field
+ * @property {ResourceFormError[]}[errors] - List of error messages
  * @property {boolean}[required] - Whether this field is required or not
  * @property {number}[index] - Index of fieldset
  *
@@ -53,7 +53,7 @@ export const ResourceContactPointFieldset = ({
   contactPoint,
   onLeaveTextFields,
   onFocus,
-  showErrors,
+  errors,
   required,
   index,
 }: ResourceContactPointFieldsetProps): React.JSX.Element => {
@@ -64,8 +64,8 @@ export const ResourceContactPointFieldset = ({
   const [telephone, setTelephone] = useState(contactPoint.telephone);
   const [contactPage, setContactPage] = useState(contactPoint.contactPage);
 
-  const isValid = category !== '' || email !== '' || telephone !== '' || contactPage !== '';
-  const hasError = !isValid && showErrors;
+  const fieldErrors = errors.filter((x) => x.field === 'contactPoints' && x.index === index);
+  const hasError = fieldErrors.length > 0;
 
   return (
     <>
@@ -80,6 +80,7 @@ export const ResourceContactPointFieldset = ({
         size='small'
       >
         <Textfield
+          id={`contactPoints-${index}`}
           label={
             <div className={classes.categoryHeader}>
               {t('resourceadm.about_resource_contact_label_category')}
@@ -122,9 +123,14 @@ export const ResourceContactPointFieldset = ({
           error={hasError}
         />
       </Fieldset>
-      {hasError && (
-        <InputFieldErrorMessage message={t('resourceadm.about_resource_contact_point_error')} />
-      )}
+      {fieldErrors.map((error) => {
+        return (
+          <InputFieldErrorMessage
+            key={`${error.field}-${error.index}`}
+            message={t('resourceadm.about_resource_contact_point_error')}
+          />
+        );
+      })}
     </>
   );
 };

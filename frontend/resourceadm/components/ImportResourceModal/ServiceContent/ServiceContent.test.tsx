@@ -10,6 +10,7 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { mapAltinn2LinkServiceToSelectOption } from 'resourceadm/utils/mapperUtils';
 
 const mockSelectedContext: string = 'selectedContext';
 const mockEnv: string = 'env1';
@@ -30,8 +31,10 @@ const mockAltinn2LinkServices: Altinn2LinkService[] = [
   mockAltinn2LinkService,
   mockAltinn2HyphenLinkService,
 ];
-const mockOption: string = `${mockAltinn2LinkService.serviceOwnerCode}: ${mockAltinn2LinkService.externalServiceCode}-${mockAltinn2LinkService.externalServiceEditionCode}-${mockAltinn2LinkService.serviceName}`;
-const mockHyphenOption: string = `${mockAltinn2HyphenLinkService.serviceOwnerCode}: ${mockAltinn2HyphenLinkService.externalServiceCode}-${mockAltinn2HyphenLinkService.externalServiceEditionCode}-${mockAltinn2HyphenLinkService.serviceName}`;
+const mockOption: string = mapAltinn2LinkServiceToSelectOption(mockAltinn2LinkService).label;
+const mockHyphenOption: string = mapAltinn2LinkServiceToSelectOption(
+  mockAltinn2HyphenLinkService,
+).label;
 
 const mockOnSelectService = jest.fn();
 

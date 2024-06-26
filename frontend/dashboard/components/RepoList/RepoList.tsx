@@ -1,309 +1,149 @@
-import React, { useMemo, useRef, useState } from 'react';
-import type {
-  GridActionsColDef,
-  GridColDef,
-  GridPaginationModel,
-  GridRenderCellParams,
-  GridRowParams,
-  GridSortModel,
-  GridValueFormatterParams,
-  GridValueGetterParams,
-} from '@mui/x-data-grid';
-import { DataGrid, GridActionsCellItem, GridOverlay, nbNO } from '@mui/x-data-grid';
-import cn from 'classnames';
-import type { RepositoryWithStarred } from 'dashboard/utils/repoUtils/repoUtils';
-import { MakeCopyModal } from '../MakeCopyModal';
-import { getRepoEditUrl } from '../../utils/urlUtils';
+import React from 'react';
+import type { RepoIncludingStarredData } from 'dashboard/utils/repoUtils/repoUtils';
 import { useTranslation } from 'react-i18next';
 import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import { DATAGRID_DEFAULT_PAGE_SIZE, DATAGRID_PAGE_SIZE_OPTIONS } from '../../constants';
+import {
+  StudioSpinner,
+  StudioTableLocalPagination,
+  StudioTableRemotePagination,
+} from '@studio/components';
+import type { Columns, PaginationTexts, RemotePaginationProps } from '@studio/components';
+import { ActionLinks } from './ActionLinks';
+import { FavoriteButton } from './FavoriteButton';
 import classes from './RepoList.module.css';
-import type { User } from 'app-shared/types/Repository';
-import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from '../../hooks/mutations';
+import { RepoNameWithLink } from './RepoNameWithLink';
+import { Paragraph } from '@digdir/design-system-react';
 
-import { PencilIcon, FilesIcon, ExternalLinkIcon, StarIcon, StarFillIcon } from '@studio/icons';
-
-export interface IRepoListProps {
+export interface RepoListProps {
+  repos: RepoIncludingStarredData[];
   isLoading: boolean;
-  repos?: RepositoryWithStarred[];
   isServerSort?: boolean;
+  totalRows?: number;
+  pageNumber?: number;
   pageSize?: DATAGRID_PAGE_SIZE_TYPE;
-  rowCount: number;
-  onPageChange?: (page: number) => void;
-  onSortModelChange?: (newSortModel: GridSortModel) => void;
-  onPageSizeChange?: (newPageSize: DATAGRID_PAGE_SIZE_TYPE) => void;
   pageSizeOptions?: Array<number>;
-  sortModel?: GridSortModel;
-  disableVirtualization?: boolean;
+  onPageChange?: (page: number) => void;
+  onPageSizeChange?: (newPageSize: DATAGRID_PAGE_SIZE_TYPE) => void;
+  onSortClick?: (columnKey: string) => void;
 }
 
-const isRowSelectable = () => false;
-
-const defaultArray: RepositoryWithStarred[] = [];
-
-const gridStyleOverride = {
-  border: 'none',
-  '.MuiDataGrid-iconSeparator': {
-    visibility: 'hidden',
-  },
-  '.MuiDataGrid-cell--withRenderer:focus-within': {
-    outline: 'none',
-  },
-};
-
-export const NoResults = () => {
-  const { t } = useTranslation();
-  return (
-    <GridOverlay>
-      <p>{t('dashboard.no_repos_result')}</p>
-    </GridOverlay>
-  );
-};
-
-const TextWithTooltip = (params: GridRenderCellParams) => {
-  return (
-    <div className={classes.textWithTooltip} title={params.value}>
-      {params.value}
-    </div>
-  );
-};
-
 export const RepoList = ({
-  repos = defaultArray,
+  repos = [],
   isLoading,
-  pageSize = DATAGRID_DEFAULT_PAGE_SIZE,
   isServerSort = false,
-  rowCount,
-  onPageChange,
-  onSortModelChange,
-  onPageSizeChange,
+  totalRows,
+  pageNumber,
+  pageSize = DATAGRID_DEFAULT_PAGE_SIZE,
   pageSizeOptions = DATAGRID_PAGE_SIZE_OPTIONS,
-  sortModel,
-  disableVirtualization = false,
-}: IRepoListProps) => {
-  const [paginationModel, setPaginationModel] = React.useState<GridPaginationModel>({
-    pageSize,
-    page: 0,
-  });
-  const [modalOpen, setModalOpen] = useState<boolean>(false);
-
-  const handlePaginationModelChange = (newPaginationModel: GridPaginationModel) => {
-    if (newPaginationModel.page !== paginationModel.page) {
-      onPageChange?.(newPaginationModel.page);
-    }
-    if (newPaginationModel.pageSize !== paginationModel.pageSize) {
-      onPageSizeChange?.(newPaginationModel.pageSize as DATAGRID_PAGE_SIZE_TYPE);
-    }
-    setPaginationModel(newPaginationModel);
-  };
-
-  const [copyCurrentRepoName, setCopyCurrentRepoName] = useState('');
-
-  const { mutate: setStarredRepo } = useSetStarredRepoMutation();
-  const { mutate: unsetStarredRepo } = useUnsetStarredRepoMutation();
-  const copyModalAnchorRef = useRef(null);
+  onPageChange,
+  onPageSizeChange,
+  onSortClick,
+}: RepoListProps): React.ReactElement => {
   const { t } = useTranslation();
+  const tableSize = 'small';
 
-  const cols = useMemo(() => {
-    const favouriteActionCol: GridActionsColDef = {
-      field: '',
-      renderHeader: (): null => null,
-      hideSortIcons: true,
-      type: 'actions',
-      headerClassName: classes.columnHeader,
-      width: 50,
-      getActions: (params: GridRowParams) => {
-        const repo = params.row as RepositoryWithStarred;
+  const columns: Columns = [
+    {
+      accessor: 'favoriteIcon',
+      heading: t('dashboard.favorite_status'),
+      sortable: false,
+      headerCellClass: classes.favoriteIconHeaderCell,
+    },
+    {
+      accessor: 'name',
+      heading: t('dashboard.name'),
+      sortable: true,
+      headerCellClass: classes.nameHeaderCell,
+      bodyCellFormatter: (repoFullName: string) => <RepoNameWithLink repoFullName={repoFullName} />,
+    },
+    {
+      accessor: 'createdBy',
+      heading: t('dashboard.created_by'),
+      sortable: true,
+      headerCellClass: classes.createdByHeaderCell,
+    },
+    {
+      accessor: 'updated',
+      heading: t('dashboard.last_modified'),
+      sortable: true,
+      headerCellClass: classes.lastUpdatedHeaderCell,
+      bodyCellFormatter: (date: string) =>
+        new Date(date).toLocaleDateString('nb', { dateStyle: 'short' }),
+    },
+    {
+      accessor: 'description',
+      heading: t('dashboard.description'),
+      sortable: true,
+    },
+    {
+      accessor: 'actionIcons',
+      heading: t('general.actions'),
+      sortable: false,
+      headerCellClass: classes.actionIconsHeaderCell,
+    },
+  ];
 
-        const handleToggleFav = () => {
-          if (repo.hasStarred) {
-            unsetStarredRepo(repo);
-          } else {
-            setStarredRepo(repo);
-          }
-        };
+  // The local table can sort all columns, but Gitea API does not support sorting by createdBy or description
+  const nonSortableAccessors = ['createdBy', 'description'];
+  const remotePaginationColumns = columns.map((column) => ({
+    ...column,
+    sortable: nonSortableAccessors.includes(column.accessor) ? false : column.sortable,
+  }));
 
-        return [
-          <GridActionsCellItem
-            key={repo.id}
-            id={`fav-repo-${repo.id}`}
-            onClick={handleToggleFav}
-            label={t(repo.hasStarred ? 'dashboard.unstar' : 'dashboard.star', {
-              appName: repo.name,
-            })}
-            icon={
-              repo.hasStarred ? (
-                <StarFillIcon name='star-fill-icon' className={classes.favoriteIcon} />
-              ) : (
-                <StarIcon name='star-icon' className={classes.dropdownIcon} />
-              )
-            }
-          />,
-        ];
-      },
-    };
+  const rows = repos.map((repo) => ({
+    id: repo.id,
+    favoriteIcon: <FavoriteButton repo={repo} />,
+    name: repo.full_name,
+    createdBy: repo.owner.full_name || repo.owner.login,
+    updated: repo.updated_at,
+    description: repo.description,
+    actionIcons: <ActionLinks repo={repo} />,
+  }));
 
-    const columns: GridColDef[] = [
-      {
-        field: 'name',
-        headerName: t('dashboard.name'),
-        width: 200,
-        renderCell: TextWithTooltip,
-      },
-      {
-        field: 'owner.created_by',
-        headerName: t('dashboard.created_by'),
-        width: 180,
-        renderCell: TextWithTooltip,
-        valueGetter: (params: GridValueGetterParams) => {
-          const owner = params.row.owner as User;
-          return owner.full_name || owner.login;
-        },
-      },
-      {
-        field: 'updated_at',
-        headerName: t('dashboard.last_modified'),
-        width: 120,
-        type: 'date',
-        valueFormatter: (params: GridValueFormatterParams) => {
-          const date = params.value as string;
-          return new Date(date).toLocaleDateString('nb', { dateStyle: 'short' });
-        },
-      },
-      {
-        field: 'description',
-        headerName: t('dashboard.description'),
-        flex: 1,
-        minWidth: 120,
-        renderCell: TextWithTooltip,
-      },
-    ];
-    const actionsCol: GridActionsColDef[] = [
-      {
-        field: 'links',
-        width: 400,
-        renderHeader: (): null => null,
-        type: 'actions',
-        align: 'right',
-        getActions: (params: GridRowParams) => {
-          const repoFullName = params.row.full_name as string;
-          const [org, repo] = repoFullName.split('/');
-          const isDataModelling = repoFullName.endsWith('-datamodels');
-          const editUrl = getRepoEditUrl({ org, repo });
-          const editTextKey = isDataModelling ? 'dashboard.edit_data_models' : 'dashboard.edit_app';
+  const emptyTableFallback = isLoading ? (
+    <StudioSpinner spinnerTitle={t('general.loading')} />
+  ) : (
+    <Paragraph size={tableSize}>{t('dashboard.no_repos_result')}</Paragraph>
+  );
 
-          return [
-            <GridActionsCellItem
-              className={cn(classes.actionLink, classes.repoLink)}
-              icon={<i className={cn('fa fa-gitea', classes.linkIcon, classes.repoLink)} />}
-              key={`dashboard.repository${params.row.id}`}
-              label={t('dashboard.repository_in_list', { appName: repo })}
-              onClick={() => (window.location.href = params.row.html_url)}
-              showInMenu={false}
-              edge='end'
-            />,
-            <GridActionsCellItem
-              className={cn(classes.actionLink, classes.editLink)}
-              icon={
-                <PencilIcon
-                  title={t('dashboard.edit_app_icon')}
-                  className={cn(classes.linkIcon, classes.editLink)}
-                />
-              }
-              key={`dashboard.edit_app${params.row.id}`}
-              label={t('dashboard.edit_app', { appName: repo })}
-              onClick={() => (window.location.href = editUrl)}
-              showInMenu={false}
-            >
-              <a
-                key={params.row.id}
-                href={params.row.html_url}
-                className={cn(classes.actionLink, classes.repoLink)}
-              >
-                <span>{t(editTextKey)}</span>
-                <PencilIcon className={classes.linkIcon} />
-              </a>
-              ,
-            </GridActionsCellItem>,
-            <GridActionsCellItem
-              icon={<FilesIcon className={classes.dropdownIcon} />}
-              key={`dashboard.make_copy${params.row.id}`}
-              label={t('dashboard.make_copy')}
-              onClick={() => {
-                setModalOpen(true);
-                setCopyCurrentRepoName(repoFullName);
-              }}
-              showInMenu
-            />,
-            <GridActionsCellItem
-              icon={<ExternalLinkIcon className={classes.dropdownIcon} />}
-              key={`dashboard.open_in_new${params.row.id}`}
-              label={t('dashboard.open_in_new')}
-              onClick={() => window.open(editUrl, '_blank')}
-              showInMenu
-            />,
-          ];
-        },
-      },
-    ];
-
-    return [favouriteActionCol, ...columns, ...actionsCol];
-  }, [setStarredRepo, t, unsetStarredRepo]);
-
-  const handleCloseCopyModal = () => {
-    setModalOpen(false);
-    setCopyCurrentRepoName(null);
+  const paginationTexts: PaginationTexts = {
+    pageSizeLabel: t('dashboard.rows_per_page'),
+    totalRowsText: t('dashboard.total_count'),
+    nextButtonAriaLabel: t('general.next'),
+    previousButtonAriaLabel: t('general.previous'),
+    numberButtonAriaLabel: (number) => `${t('general.page')} ${number}`,
   };
 
-  const localText = {
-    ...nbNO.components.MuiDataGrid.defaultProps.localeText,
-    noRowsLabel: t('dashboard.no_repos_result'),
+  const paginationProps: RemotePaginationProps = {
+    currentPage: pageNumber,
+    totalRows,
+    totalPages: Math.ceil(totalRows / pageSize),
+    pageSize,
+    pageSizeOptions,
+    onPageChange: (page: number) => onPageChange(page),
+    onPageSizeChange,
+    paginationTexts,
   };
 
   return (
-    <div ref={copyModalAnchorRef}>
+    <div>
       {isServerSort ? (
-        <DataGrid
-          localeText={localText}
-          paginationModel={paginationModel}
-          onPaginationModelChange={handlePaginationModelChange}
-          autoHeight={true}
-          loading={isLoading}
-          rows={repos}
-          columns={cols}
-          disableColumnMenu={true}
-          isRowSelectable={isRowSelectable}
-          sortModel={sortModel}
-          paginationMode='server'
-          sortingMode='server'
-          onSortModelChange={onSortModelChange}
-          rowCount={rowCount ?? 0}
-          pageSizeOptions={pageSizeOptions}
-          sx={gridStyleOverride}
-          disableVirtualization={disableVirtualization}
+        <StudioTableRemotePagination
+          columns={remotePaginationColumns}
+          rows={rows}
+          size={tableSize}
+          emptyTableFallback={emptyTableFallback}
+          pagination={paginationProps}
+          onSortClick={onSortClick}
         />
       ) : (
-        <DataGrid
-          localeText={localText}
-          paginationModel={paginationModel}
-          onPaginationModelChange={handlePaginationModelChange}
-          autoHeight={true}
-          loading={isLoading}
-          rows={repos}
-          columns={cols}
-          pageSizeOptions={pageSizeOptions}
-          disableColumnMenu={true}
-          isRowSelectable={isRowSelectable}
-          sx={gridStyleOverride}
-          disableVirtualization={disableVirtualization}
-        />
-      )}
-      {copyCurrentRepoName && (
-        <MakeCopyModal
-          ref={copyModalAnchorRef}
-          open={modalOpen}
-          onClose={handleCloseCopyModal}
-          serviceFullName={copyCurrentRepoName}
+        <StudioTableLocalPagination
+          columns={columns}
+          rows={rows}
+          size={tableSize}
+          emptyTableFallback={emptyTableFallback}
+          pagination={paginationProps}
         />
       )}
     </div>
