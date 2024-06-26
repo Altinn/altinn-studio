@@ -74,7 +74,7 @@ jobs:
         run: yarn typecheck
 
       - name: 'Running Eslint'
-        run: yarn lint
+        run: yarn lint --cache
 
       - name: 'Checking code style'
         run: yarn run codestyle:check
