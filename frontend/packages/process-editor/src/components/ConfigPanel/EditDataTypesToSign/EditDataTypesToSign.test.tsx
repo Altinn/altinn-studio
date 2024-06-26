@@ -31,7 +31,14 @@ const existingDataTypesProps = {
 };
 
 describe('EditDataTypesToSign', () => {
-  afterEach(jest.clearAllMocks);
+  beforeEach(() => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
 
   it('should display a combobox with an error message when task has no data type', () => {
     renderEditDataType();

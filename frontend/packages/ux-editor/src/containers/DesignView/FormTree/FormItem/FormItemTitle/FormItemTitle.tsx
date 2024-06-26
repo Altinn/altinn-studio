@@ -42,7 +42,7 @@ export const FormItemTitle = ({ children, formItem, duplicateComponents }: FormI
   return (
     <div
       className={classNames(classes.root, {
-        [classes.duplicateComponentIds]: duplicateComponents.includes(formItem.id),
+        [classes.duplicateComponentIds]: duplicateComponents?.includes(formItem.id),
       })}
     >
       <div className={classes.label}>{children}</div>

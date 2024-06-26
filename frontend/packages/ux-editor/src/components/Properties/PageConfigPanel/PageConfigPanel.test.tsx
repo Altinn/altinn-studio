@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../../../testing/mocks';
 import { PageConfigPanel } from './PageConfigPanel';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -98,11 +98,23 @@ describe('PageConfigPanel', () => {
     expect(uniqueIds).not.toBeInTheDocument();
   });
 
-  it('should render the warning modal', () => {
+  it('should not show warning modal when there are no duplicated ids across layouts', () => {
     renderPageConfigPanel();
 
-    const modal = screen.getByRole('dialog', { hidden: true });
-    expect(modal).toBeInTheDocument();
+    const modal = screen.queryByRole('dialog');
+
+    expect(modal).not.toBeInTheDocument();
+  });
+
+  it('should show warning modal when there are duplicated ids across layouts', async () => {
+    (findLayoutsContainingDuplicateComponents as jest.Mock).mockReturnValue({
+      duplicateLayouts: [duplicatedLayout],
+    });
+    renderPageConfigPanel();
+    await waitFor(() => {
+      const modal = screen.getByRole('dialog');
+      expect(modal).toBeInTheDocument();
+    });
   });
 });
 

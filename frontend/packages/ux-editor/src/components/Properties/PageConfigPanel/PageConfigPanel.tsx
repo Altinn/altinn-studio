@@ -42,7 +42,7 @@ export const PageConfigPanel = () => {
 
   const duplicateLayouts: string[] =
     findLayoutsContainingDuplicateComponents(layouts).duplicateLayouts;
-  const hasDuplicatedIdsInAllLayouts = duplicateLayouts.length > 0;
+  const hasDuplicatedIdsInAllLayouts = duplicateLayouts?.length > 0;
 
   useEffect(() => {
     if (hasDuplicatedIdsInAllLayouts) {
