@@ -59,7 +59,7 @@ describe('OnProcessTaskAddHandler', () => {
     expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
   });
 
-  it('should add layoutSet, dataType and default policy when payment task is added', () => {
+  it('should add layoutSet, dataTypes and default policy when payment task is added', () => {
     const taskMetadata: OnProcessTaskEvent = {
       taskType: 'payment',
       taskEvent: {
@@ -71,7 +71,10 @@ describe('OnProcessTaskAddHandler', () => {
             extensionElements: {
               values: [
                 {
-                  paymentConfig: { paymentDataType: 'paymentInformation' },
+                  paymentConfig: {
+                    paymentDataType: 'paymentInformation',
+                    paymentReceiptPdfDataType: 'paymentReceiptPdf',
+                  },
                 },
               ],
             },
@@ -109,6 +112,10 @@ describe('OnProcessTaskAddHandler', () => {
     });
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
       dataTypeId: 'paymentInformation',
+      taskId: 'testElementId',
+    });
+    expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
+      dataTypeId: 'paymentReceiptPdf',
       taskId: 'testElementId',
     });
     expect(mutateApplicationPolicyMock).toHaveBeenCalledWith(expectedResponse);

@@ -17,6 +17,7 @@ export interface BpmnExtensionElementsEditor {
     $type: string;
     paymentConfig?: {
       paymentDataType: string;
+      paymentReceiptPdfDataType: string;
     };
     signatureConfig?: {
       signatureDataType: string;
