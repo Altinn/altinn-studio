@@ -1,7 +1,10 @@
 import { PaymentPolicyBuilder } from '../../../utils/policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
 import type { Policy } from 'app-shared/types/Policy';
-import { getDataTypeIdFromBusinessObject } from '@altinn/process-editor/utils/hookUtils/hookUtils';
+import {
+  getDataTypeIdFromBusinessObject,
+  getReceiptPdfDataTypeIdFromBusinessObject,
+} from '@altinn/process-editor/utils/hookUtils/hookUtils';
 import type {
   AddLayoutSetMutation,
   AddLayoutSetMutationPayload,
@@ -62,6 +65,16 @@ export class OnProcessTaskAddHandler {
 
     this.addDataTypeToAppMetadata({
       dataTypeId,
+      taskId: taskMetadata.taskEvent.element.id,
+    });
+
+    const receiptPdfDataTypeId = getReceiptPdfDataTypeIdFromBusinessObject(
+      taskMetadata.taskType,
+      taskMetadata.taskEvent.element.businessObject,
+    );
+
+    this.addDataTypeToAppMetadata({
+      dataTypeId: receiptPdfDataTypeId,
       taskId: taskMetadata.taskEvent.element.id,
     });
 

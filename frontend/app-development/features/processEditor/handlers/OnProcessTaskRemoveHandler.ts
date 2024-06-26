@@ -4,6 +4,7 @@ import { PaymentPolicyBuilder } from '../../../utils/policy';
 import {
   getDataTypeIdFromBusinessObject,
   getLayoutSetIdFromTaskId,
+  getReceiptPdfDataTypeIdFromBusinessObject,
 } from '@altinn/process-editor/utils/hookUtils/hookUtils';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
@@ -66,6 +67,15 @@ export class OnProcessTaskRemoveHandler {
 
     this.deleteDataTypeFromAppMetadata({
       dataTypeId,
+    });
+
+    const receiptPdfDataTypeId = getReceiptPdfDataTypeIdFromBusinessObject(
+      taskMetadata.taskType,
+      taskMetadata.taskEvent.element.businessObject,
+    );
+
+    this.deleteDataTypeFromAppMetadata({
+      dataTypeId: receiptPdfDataTypeId,
     });
 
     const paymentPolicyBuilder = new PaymentPolicyBuilder(this.org, this.app);
