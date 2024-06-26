@@ -721,6 +721,22 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Creates a new options list with the provided id.
+        /// <param name="optionsListId">The id of the options list to create.</param>
+        /// <param name="optionsListPayload">The contents of the new options list as a string</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>The new options list as a string.</returns>
+        /// </summary>
+        public async Task<string> CreateOrOverwriteOptions(string optionsListId, string optionsListPayload, CancellationToken cancellationToken = default)
+        {
+            string optionsFilePath = Path.Combine(OptionsFolderPath, $"{optionsListId}.json");
+            await WriteTextByRelativePathAsync(optionsFilePath, optionsListPayload, true, cancellationToken);
+            string fileContent = await ReadTextByRelativePathAsync(optionsFilePath, cancellationToken);
+
+            return fileContent;
+        }
+
+        /// <summary>
         /// Gets a list of file names from the Options folder representing the available options lists.
         /// <returns>A list of option list names.</returns>
         /// </summary>

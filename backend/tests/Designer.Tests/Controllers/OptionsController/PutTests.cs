@@ -1,34 +1,40 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
 namespace Designer.Tests.Controllers.OptionsController;
 
-public class GetTests : DisagnerEndpointsTestsBase<GetTests>, IClassFixture<WebApplicationFactory<Program>>
+public class PutTests : DisagnerEndpointsTestsBase<PutTests>, IClassFixture<WebApplicationFactory<Program>>
 {
-    public GetTests(WebApplicationFactory<Program> factory) : base(factory)
+    public PutTests(WebApplicationFactory<Program> factory) : base(factory)
     {
     }
 
     [Theory]
-    [InlineData("ttd", "app-with-layoutsets", "test-options")]
-    public async Task Get_Returns_OptionsList(string org, string repo, string optionsListId)
+    [InlineData("ttd", "empty-app", "testUser", "new-options")]
+    public async Task Create_Returns_200_With_New_OptionsList(string org, string repo, string developer, string optionsListId)
     {
         // Arrange
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, repo, developer, targetRepository);
+
         var expectedOptionsList = new List<Dictionary<string, string>>
         {
             new() { { "label", "label1" }, { "value", "value1" } },
             new() { { "label", "label2" }, { "value", "value2" } }
         };
 
-        string apiUrl = $"/designer/api/{org}/{repo}/options/{optionsListId}";
-        HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
+        string apiUrl = $"/designer/api/{org}/{targetRepository}/options/{optionsListId}";
+        HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
+        httpRequestMessage.Content = JsonContent.Create(expectedOptionsList);
 
         // Act
         HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

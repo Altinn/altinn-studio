@@ -49,7 +49,7 @@ public class OptionsController : ControllerBase
 
         try
         {
-            List<Dictionary<string, string>> optionList = await _optionsService.GetOptions(org, repo, developer, optionsListId);
+            List<Dictionary<string, string>> optionList = await _optionsService.GetOptionsList(org, repo, developer, optionsListId);
             return Ok(optionList);
         }
         catch (IOException)
@@ -61,4 +61,42 @@ public class OptionsController : ControllerBase
             return new ObjectResult(new { errorMessage = $"The format of the file {optionsListId}.json might be invalid." }) { StatusCode = 500 };
         }
     }
+
+    /// <summary>
+    /// Endpoint for creating a new option list.
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <param name="optionsListId">Options list identifier specifying the file to create.</param>
+    /// <param name="optionsListPayload">The option list to be created.</param>
+    [HttpPut]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [Route("{optionsListId}")]
+    public async Task<ActionResult> Put(string org, string repo, [FromRoute] string optionsListId, [FromBody] List<Dictionary<string, string>> optionsListPayload)
+    {
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+        if (optionsListPayload == null || optionsListPayload.Count == 0)
+        {
+            return BadRequest("The option list cannot be null or empty.");
+        }
+
+        try
+        {
+            var newOptionsList = await _optionsService.CreateOrOverwriteOptionsList(org, repo, developer, optionsListId, optionsListPayload);
+            return Ok(newOptionsList);
+        }
+        catch (IOException)
+        {
+            return new ObjectResult(new { errorMessage = $"An error occurred while saving the file {optionsListId}.json." }) { StatusCode = 500 };
+        }
+        catch (JsonException)
+        {
+            return new ObjectResult(new { errorMessage = $"The format of the provided option list is invalid." }) { StatusCode = 400 };
+        }
+    }
+
 }

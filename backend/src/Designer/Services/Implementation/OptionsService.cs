@@ -25,7 +25,7 @@ public class OptionsService : IOptionsService
     }
 
     /// <inheritdoc />
-    public async Task<List<Dictionary<string, string>>> GetOptions(string org, string repo, string developer, string optionsListId)
+    public async Task<List<Dictionary<string, string>>> GetOptionsList(string org, string repo, string developer, string optionsListId)
     {
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
@@ -33,5 +33,17 @@ public class OptionsService : IOptionsService
         var optionsList = JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(optionsListString);
 
         return optionsList;
+    }
+
+    /// <inheritdoc />
+    public async Task<List<Dictionary<string, string>>> CreateOrOverwriteOptionsList(string org, string repo, string developer, string optionsListId, List<Dictionary<string, string>> optionsListPayload)
+    {
+        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+
+        string optionsListPayloadString = JsonConvert.SerializeObject(optionsListPayload);
+        string createdOptionsListString = await altinnAppGitRepository.CreateOrOverwriteOptions(optionsListId, optionsListPayloadString);
+        var createdOptionsList = JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(createdOptionsListString);
+
+        return createdOptionsList;
     }
 }
