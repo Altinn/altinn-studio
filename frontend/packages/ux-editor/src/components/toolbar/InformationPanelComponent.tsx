@@ -2,44 +2,46 @@ import React from 'react';
 import classNames from 'classnames';
 import classes from './InformationPanelComponent.module.css';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { Popover } from '@mui/material';
-
 import {
   getComponentHelperTextByComponentType,
   getComponentTitleByComponentType,
 } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
+import { StudioLabelAsParagraph, StudioPopover } from '@studio/components';
+import { InformationIcon } from '@studio/icons';
+import { Paragraph } from '@digdir/design-system-react';
 
 export interface IInformationPanelProvidedProps {
-  anchorElement: any;
-  selectedComponent: ComponentType;
-  informationPanelOpen: boolean;
+  isOpen: boolean;
+  onOpen: () => void;
   onClose: () => void;
+  selectedComponent: ComponentType;
 }
 
 export const InformationPanelComponent = ({
-  anchorElement,
-  informationPanelOpen,
+  isOpen,
+  onOpen,
   onClose,
   selectedComponent,
 }: IInformationPanelProvidedProps) => {
   const { t } = useTranslation();
   return (
-    <Popover
-      anchorEl={anchorElement}
-      open={informationPanelOpen}
-      onClose={onClose}
-      PaperProps={{ square: true }}
-      anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-      transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-      classes={{ paper: classNames(classes.informationPanel) }}
-    >
-      <div className={classNames(classes.informationPanelHeader)}>
-        {getComponentTitleByComponentType(selectedComponent, t)}
-      </div>
-      <div className={classNames(classes.informationPanelText)}>
-        {getComponentHelperTextByComponentType(selectedComponent, t)}
-      </div>
-    </Popover>
+    <StudioPopover open={isOpen} onClose={onClose} placement='right'>
+      <StudioPopover.Trigger size='small' onClick={onOpen} variant='tertiary'>
+        <InformationIcon />
+      </StudioPopover.Trigger>
+      <StudioPopover.Content>
+        <div className={classNames(classes.informationPanelHeader)}>
+          <StudioLabelAsParagraph size='small'>
+            {getComponentTitleByComponentType(selectedComponent, t)}
+          </StudioLabelAsParagraph>
+        </div>
+        <div className={classNames(classes.informationPanelText)}>
+          <Paragraph size='small'>
+            {getComponentHelperTextByComponentType(selectedComponent, t)}
+          </Paragraph>
+        </div>
+      </StudioPopover.Content>
+    </StudioPopover>
   );
 };

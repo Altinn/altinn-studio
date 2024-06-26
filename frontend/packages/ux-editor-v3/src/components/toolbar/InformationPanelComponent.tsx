@@ -15,7 +15,6 @@ export interface IInformationPanelProvidedProps {
   selectedComponent: ComponentTypeV3;
   informationPanelOpen: boolean;
   onClose: () => void;
-  thirdPartyLibrary?: boolean;
 }
 
 export const InformationPanelComponent = ({
@@ -23,7 +22,6 @@ export const InformationPanelComponent = ({
   informationPanelOpen,
   onClose,
   selectedComponent,
-  thirdPartyLibrary,
 }: IInformationPanelProvidedProps) => {
   const { t } = useTranslation();
   return (
