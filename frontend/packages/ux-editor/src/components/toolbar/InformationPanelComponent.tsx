@@ -11,19 +11,19 @@ import { StudioLabelAsParagraph, StudioPopover } from '@studio/components';
 import { InformationIcon } from '@studio/icons';
 import { Paragraph } from '@digdir/design-system-react';
 
-export interface IInformationPanelProvidedProps {
+export type InformationPanelProvidedProps = {
   isOpen: boolean;
   onOpen: () => void;
   onClose: () => void;
   selectedComponent: ComponentType;
-}
+};
 
 export const InformationPanelComponent = ({
   isOpen,
   onOpen,
   onClose,
   selectedComponent,
-}: IInformationPanelProvidedProps) => {
+}: InformationPanelProvidedProps) => {
   const { t } = useTranslation();
   return (
     <StudioPopover open={isOpen} onClose={onClose} placement='right'>
