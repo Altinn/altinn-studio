@@ -22,9 +22,8 @@ export function MultipleSelectComponent({ node, isValid, overrideDisplay }: IMul
     valueType: 'multi',
     node,
     removeDuplicates: true,
-    removeEmpty: true,
   });
-  const { langAsString, lang } = useLanguage();
+  const { langAsString, lang } = useLanguage(node);
 
   const changeMessageGenerator = useCallback(
     (values: string[]) => {
@@ -88,12 +87,15 @@ export function MultipleSelectComponent({ node, isValid, overrideDisplay }: IMul
             key={option.value}
             value={option.value}
             description={option.description ? langAsString(option.description) : undefined}
-            displayValue={langAsString(option.label)}
+            displayValue={langAsString(option.label) || '\u200b'} // Workaround to prevent component from crashing due to empty string
           >
-            <Lang
-              id={option.label}
-              node={node}
-            />
+            <span>
+              <wbr />
+              <Lang
+                id={option.label}
+                node={node}
+              />
+            </span>
           </Combobox.Option>
         ))}
       </Combobox>

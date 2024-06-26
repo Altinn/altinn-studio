@@ -51,7 +51,6 @@ export function FileUploadComponent({ node }: IFileUploadWithTagProps): React.JS
     valueType: 'single',
     node,
     removeDuplicates: true,
-    removeEmpty: true,
     dataModelBindings: undefined,
   });
 
