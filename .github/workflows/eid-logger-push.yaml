@@ -22,7 +22,7 @@ jobs:
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID_FC }}
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
       ACTION_USER: ${{ secrets.ACTION_USER }}
-      ACTION_PASSWORD: ${{ secrets.ACTION_PAT }}
+      ACTION_PAT: ${{ secrets.ACTION_PAT }}
     steps:
       - uses: actions/checkout@v4
         with:
