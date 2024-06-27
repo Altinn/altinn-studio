@@ -582,7 +582,7 @@ describe('Validation', () => {
     cy.get(appFrontend.changeOfName.uploadedTable)
       .find('tbody > tr')
       .eq(0)
-      .find(appFrontend.changeOfName.uploadSuccess)
+      .find(appFrontend.changeOfName.fileUploadSuccess)
       .should('exist');
 
     cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.png', { force: true });

@@ -31,7 +31,6 @@ interface FormState {
 export function Form() {
   const currentPageId = useCurrentView();
   const { isValidPageId, navigateToPage } = useNavigatePage();
-
   const [formState, setFormState] = useState<FormState>({
     hasRequired: false,
     requiredFieldsMissing: false,

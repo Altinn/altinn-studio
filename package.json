@@ -161,11 +161,11 @@
   "packageManager": "yarn@4.2.2",
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      ".husky/pre-commit-check-for-skipped-tests",
-      "eslint --cache --fix"
+      "yarn .husky/pre-commit-check-for-skipped-tests",
+      "yarn eslint --cache --fix"
     ],
-    "*.{json}": "eslint --cache --fix",
-    "*.{css,md}": "prettier --write"
+    "*.json": "yarn eslint --cache --fix",
+    "*.{css,md}": "yarn prettier --write"
   },
   "browserslist": {
     "production": [

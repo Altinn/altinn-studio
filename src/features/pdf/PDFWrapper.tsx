@@ -6,12 +6,21 @@ import cn from 'classnames';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { PDFView } from 'src/features/pdf/PDFView';
 import classes from 'src/features/pdf/PDFView.module.css';
+import { PDFView2 } from 'src/features/pdf/PdfView2';
+import { getFeature } from 'src/features/toggles';
 import { useIsPdf } from 'src/hooks/useIsPdf';
+
+export const usePdfModeActive = (): boolean => {
+  const previewPDF = useDevToolsStore((state) => state.pdfPreview);
+  const pdfIsSetInUrl = useIsPdf();
+  return pdfIsSetInUrl || previewPDF;
+};
 
 export function PDFWrapper({ children }: PropsWithChildren) {
   const previewPDF = useDevToolsStore((state) => state.pdfPreview);
   const setPdfPreview = useDevToolsStore((state) => state.actions.setPdfPreview);
   const renderInstead = useIsPdf();
+  const betaPDFenabled = getFeature('betaPDFenabled');
 
   useEffect(() => {
     if (previewPDF) {
@@ -26,6 +35,10 @@ export function PDFWrapper({ children }: PropsWithChildren) {
     }
   }, [previewPDF, setPdfPreview]);
 
+  if (renderInstead && betaPDFenabled.value) {
+    return <PDFView2 />;
+  }
+
   if (renderInstead) {
     return <PDFView />;
   }
@@ -33,9 +46,11 @@ export function PDFWrapper({ children }: PropsWithChildren) {
   return (
     <>
       <div className={cn({ [classes.hideInPrint]: previewPDF })}>{children}</div>
+
       {previewPDF && (
         <div className={classes.onlyInPrint}>
-          <PDFView />
+          {betaPDFenabled.value && <PDFView2 />}
+          {!betaPDFenabled.value && <PDFView />}
         </div>
       )}
     </>

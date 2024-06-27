@@ -1,0 +1,29 @@
+.formValue {
+  font-weight: 500;
+}
+
+.emptyValue {
+  color: var(--fds-semantic-text-neutral-subtle);
+  font-style: italic;
+}
+
+.error {
+  border-bottom: var(--fds-semantic-border-danger-default) solid 2px;
+}
+
+.labelValueWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-2);
+}
+
+.checkboxSummaryItem {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: row;
+}
+
+.editButton {
+  margin-left: auto;
+  min-width: unset;
+}

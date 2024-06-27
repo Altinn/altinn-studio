@@ -30,6 +30,7 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
 
 const defaultGenerator = new SimpleComponentHierarchyGenerator();
+
 export abstract class AnyComponent<Type extends CompTypes> {
   /**
    * Given properties from GenericComponent, render this layout component
@@ -38,6 +39,7 @@ export abstract class AnyComponent<Type extends CompTypes> {
     | ReturnType<typeof React.forwardRef<HTMLElement, PropsFromGenericComponent<Type>>>
     | ((props: PropsFromGenericComponent<Type>) => JSX.Element | null);
 
+  renderSummary2?(componentNode: LayoutNode<Type>): JSX.Element | null;
   /**
    * Given a node, a list of the node's data, for display in the devtools node inspector
    */

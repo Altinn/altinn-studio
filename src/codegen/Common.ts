@@ -4,6 +4,8 @@ import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import type { MaybeSymbolizedCodeGenerator } from 'src/codegen/CodeGenerator';
 
 const common = {
+  ISummaryOverridesCommon: () =>
+    new CG.obj(new CG.prop('componentId', new CG.str()), new CG.prop('hidden', new CG.bool().optional())),
   ILayoutFile: () =>
     new CG.obj(
       new CG.prop('$schema', new CG.str().optional()),

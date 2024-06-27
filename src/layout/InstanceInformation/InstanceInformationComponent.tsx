@@ -14,6 +14,7 @@ import { useParties } from 'src/features/party/PartiesProvider';
 import { getDateFormat } from 'src/utils/dateHelpers';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
+import type { CompInstanceInformationInternal } from 'src/layout/InstanceInformation/config.generated';
 import type { IInstance, IParty } from 'src/types/shared';
 
 export const returnInstanceMetaDataObject = (
@@ -57,9 +58,9 @@ export const returnInstanceMetaDataObject = (
 
 export const getInstanceReferenceNumber = (instance: IInstance): string => instance.id.split('/')[1].split('-')[4];
 
-export function InstanceInformationComponent({ node }: PropsFromGenericComponent<'InstanceInformation'>) {
-  const elements = node.item.elements;
+export function InstanceInformation({ elements }: CompInstanceInformationInternal) {
   const { dateSent, sender, receiver, referenceNumber } = elements || {};
+
   const langTools = useLanguage();
   const selectedLanguage = useCurrentLanguage();
 
@@ -103,4 +104,8 @@ export function InstanceInformationComponent({ node }: PropsFromGenericComponent
       <AltinnSummaryTable summaryDataObject={instanceMetaDataObject} />
     </Grid>
   );
+}
+
+export function InstanceInformationComponent({ node }: PropsFromGenericComponent<'InstanceInformation'>) {
+  return <InstanceInformation {...node.item} />;
 }

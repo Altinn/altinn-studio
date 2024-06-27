@@ -89,6 +89,19 @@ function BlockUntilLoaded({ children }: PropsWithChildren) {
  * Usually, if you're looking for a specific component/node, useResolvedNode() is better.
  */
 export const useNode = (id: string) => useSelector((s) => s.nodes?.findById(id));
+
+export const useGetPage = (pageId: string) =>
+  useSelector((state) => {
+    if (!pageId) {
+      return null;
+    }
+
+    if (!state?.nodes) {
+      return null;
+    }
+    return state.nodes.findLayout(pageId);
+  });
+
 export const useNodes = () => useSelector((s) => s.nodes!);
 export const useNodesAsRef = () => useSelectorAsRef((s) => s.nodes!);
 export const useNodesAsLaxRef = () => useLaxSelectorAsRef((s) => s.nodes!);

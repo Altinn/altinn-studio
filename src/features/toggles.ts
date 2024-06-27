@@ -1,17 +1,14 @@
-/* IFeatureToggles = string is a placeholder for an empty type. Replace string with a union type of new feature-toggles. Ex. 'feature1' | 'feature2' */
-export type IFeatureToggles = string;
-export type IFeatureToggleConf = {
-  [feature in IFeatureToggles]: {
-    defaultValue: boolean;
-    title: string;
-    description: string;
-    links: string[];
-  };
+export const FeatureToggles = {
+  betaPDFenabled: {
+    defaultValue: false,
+    title: 'Activate beta pdf rendring using Summary2',
+    description: '',
+    links: ['https://github.com/Altinn/app-frontend-react/issues/1502'],
+  },
 };
 
-export const FeatureToggles: IFeatureToggleConf = {};
-
 export type FeatureToggleSource = 'window' | 'cookie' | 'default';
+export type IFeatureToggles = keyof typeof FeatureToggles;
 export type IFeatureTogglesOptionalMap = { [key in IFeatureToggles]?: boolean };
 export type IFeatureTogglesMap = { [key in IFeatureToggles]: boolean };
 export type FeatureValue = { value: boolean; source: FeatureToggleSource };
@@ -55,4 +52,6 @@ export function getAugmentedFeatures(): AugmentedFeatureToggles {
   return augmentedFeatures;
 }
 
-export const featureToggleValues: IFeatureTogglesMap = {};
+export const featureToggleValues: IFeatureTogglesMap = {
+  betaPDFenabled: getFeature('betaPDFenabled').value,
+};

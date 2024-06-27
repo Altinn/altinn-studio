@@ -1,6 +1,12 @@
 import { CG, Variant } from 'src/codegen/CG';
 import { CompCategory } from 'src/layout/common';
 
+export const GROUP_SUMMARY_PROPS = new CG.obj()
+  .extends(CG.common('ISummaryOverridesCommon'))
+  .optional()
+  .setTitle('Summary properties')
+  .setDescription('Properties for how to display the summary of the component');
+
 export const Config = new CG.component({
   category: CompCategory.Container,
   rendersWithLabel: false,
@@ -53,4 +59,5 @@ export const Config = new CG.component({
         .setTitle('Heading level')
         .setDescription('The heading level of the group title.'),
     ),
-  );
+  )
+  .addProperty(new CG.prop('summaryProps', GROUP_SUMMARY_PROPS).onlyIn(Variant.Internal));

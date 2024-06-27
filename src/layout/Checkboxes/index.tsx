@@ -1,17 +1,20 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getCommaSeparatedOptionsToText } from 'src/features/options/getCommaSeparatedOptionsToText';
 import { useAllOptionsSelector } from 'src/features/options/useAllOptions';
 import { CheckboxContainerComponent } from 'src/layout/Checkboxes/CheckboxesContainerComponent';
 import { CheckboxesDef } from 'src/layout/Checkboxes/config.def.generated';
 import { MultipleChoiceSummary } from 'src/layout/Checkboxes/MultipleChoiceSummary';
+import { MultipleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/MultipleValueSummary';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { DisplayDataProps } from 'src/features/displayData';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { FormDataSelector, PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { CheckboxSummaryOverrideProps } from 'src/layout/Summary2/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Checkboxes extends CheckboxesDef {
@@ -44,6 +47,25 @@ export class Checkboxes extends CheckboxesDef {
     const options = useAllOptionsSelector();
     const summaryData = this.getSummaryData(targetNode, langTools, options, formDataSelector);
     return <MultipleChoiceSummary formData={summaryData} />;
+  }
+
+  renderSummary2(
+    componentNode: LayoutNode<'Checkboxes'>,
+    summaryOverrides?: CheckboxSummaryOverrideProps,
+  ): JSX.Element | null {
+    const displayData = this.useDisplayData(componentNode);
+    const maxStringLength = 75;
+    const showAsList =
+      summaryOverrides?.displayType === 'list' ||
+      (!summaryOverrides?.displayType && displayData?.length >= maxStringLength);
+    const title = componentNode.item.textResourceBindings?.title;
+    return (
+      <MultipleValueSummary
+        title={<Lang id={title} />}
+        componentNode={componentNode}
+        showAsList={showAsList}
+      />
+    );
   }
 
   validateDataModelBindings(ctx: LayoutValidationCtx<'Checkboxes'>): string[] {

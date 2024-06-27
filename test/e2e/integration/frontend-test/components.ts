@@ -59,7 +59,7 @@ describe('UI Components', () => {
       .find(appFrontend.changeOfName.uploadingAnimation)
       .should('be.visible');
     cy.wait('@uploadWithDelay');
-    cy.get(appFrontend.changeOfName.uploadSuccess).should('exist');
+    cy.get(appFrontend.changeOfName.fileUploadSuccess).should('exist');
     cy.get(appFrontend.changeOfName.uploadedTable)
       .find(appFrontend.changeOfName.uploadingAnimation)
       .should('not.exist');
@@ -76,7 +76,7 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.uploadDropZone).should('be.visible');
     cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.pdf', { force: true });
     cy.get(appFrontend.changeOfName.uploadedTable).should('be.visible');
-    cy.get(appFrontend.changeOfName.uploadSuccess).should('exist');
+    cy.get(appFrontend.changeOfName.fileUploadSuccess).should('exist');
     cy.snapshot('components:attachment');
     cy.get(appFrontend.changeOfName.deleteAttachment).click();
     cy.get(appFrontend.changeOfName.deleteAttachment).should('not.exist');
@@ -95,7 +95,7 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.pdf', { force: true });
 
     cy.get(appFrontend.changeOfName.uploadedTable).should('be.visible');
-    cy.get(appFrontend.changeOfName.uploadSuccess).should('exist');
+    cy.get(appFrontend.changeOfName.fileUploadSuccess).should('exist');
 
     cy.intercept({ url: '**/instances/**/data/**', method: 'GET' }).as('downloadAttachment');
     cy.get(appFrontend.changeOfName.downloadAttachment).click();
@@ -188,7 +188,7 @@ describe('UI Components', () => {
     cy.goto('changename');
     for (const { uploader, shouldExist } of components) {
       cy.get(uploader).selectFile('test/e2e/fixtures/test.pdf', { force: true });
-      cy.get(appFrontend.changeOfName.uploadSuccess).should('exist');
+      cy.get(appFrontend.changeOfName.fileUploadSuccess).should('exist');
       cy.get(appFrontend.changeOfName.deleteAttachment).click();
       cy.get(appFrontend.changeOfName.popOverCancelButton).click();
       cy.get(shouldExist).should('exist');

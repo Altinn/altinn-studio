@@ -176,7 +176,7 @@ export class AppFrontend {
     popOverCancelButton: '[data-testid="warning-popover-cancel-button"]',
     uploadedTable: '#file-upload-table',
     downloadAttachment: '[data-testid="attachment-download"]',
-    uploadSuccess: '[data-testid="checkmark-success"]',
+    fileUploadSuccess: '[data-testid="status-success"]',
     uploadDropZone: '#altinn-drop-zone-fileUpload-changename',
     componentSummary: '[data-testid="summary-item-simple"]',
     uploadError: '#error_fileUpload-changename',

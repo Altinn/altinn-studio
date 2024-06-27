@@ -5,6 +5,7 @@ import type { ErrorObject } from 'ajv';
 
 import { GridDef } from 'src/layout/Grid/config.def.generated';
 import { RenderGrid } from 'src/layout/Grid/GridComponent';
+import { GridSummary } from 'src/layout/Grid/GridSummary';
 import { GridSummaryComponent } from 'src/layout/Grid/GridSummaryComponent';
 import { GridHierarchyGenerator } from 'src/layout/Grid/hierarchy';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -24,6 +25,10 @@ export class Grid extends GridDef {
 
   renderSummary(props: SummaryRendererProps<'Grid'>): JSX.Element | null {
     return <GridSummaryComponent {...props} />;
+  }
+
+  renderSummary2(componentNode: LayoutNode<'Grid'>): JSX.Element | null {
+    return <GridSummary componentNode={componentNode} />;
   }
 
   renderSummaryBoilerplate(): boolean {

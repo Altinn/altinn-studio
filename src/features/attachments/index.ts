@@ -31,6 +31,7 @@ interface IAttachmentTemporary {
   temporaryId: string;
   filename: string;
   size: number;
+  tags?: string[];
 }
 
 interface Metadata {

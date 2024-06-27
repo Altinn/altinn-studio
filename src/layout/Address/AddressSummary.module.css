@@ -1,0 +1,28 @@
+.addressSummaryComponent {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 16px;
+}
+
+.addressSummaryComponentPostplaceZipCode {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-content: space-between;
+  align-items: baseline;
+  gap: 0.937rem;
+}
+
+.addressSummaryComponentPostplace {
+  flex-grow: 4;
+  max-width: 300px;
+}
+
+.addressSummaryComponentZipCode {
+  flex-grow: 0;
+}
+
+.addressSummaryComponentSmallInputs {
+  max-width: 90px;
+}

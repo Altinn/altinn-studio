@@ -6,6 +6,7 @@ import { FileCsvIcon, FileExcelIcon, FileIcon, FilePdfIcon, FileWordIcon } from 
 import { isAttachmentUploaded } from 'src/features/attachments';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
 import classes from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName.module.css';
 import { getFileEnding, removeFileEnding } from 'src/layout/FileUpload/utils/fileEndings';
 import { getDataElementUrl } from 'src/utils/urls/appUrlHelper';
@@ -15,6 +16,7 @@ import type { IAttachment } from 'src/features/attachments';
 export const AttachmentFileName = ({ attachment, mobileView }: { attachment: IAttachment; mobileView: boolean }) => {
   const language = useCurrentLanguage();
   const instanceId = useLaxInstanceData()?.id;
+  const pdfModeActive = usePdfModeActive();
   const url =
     isAttachmentUploaded(attachment) && instanceId
       ? makeUrlRelativeIfSameDomain(getDataElementUrl(instanceId, attachment.data.id, language))
@@ -41,6 +43,7 @@ export const AttachmentFileName = ({ attachment, mobileView }: { attachment: IAt
             href={url}
             className={classes.download}
             data-testid={`attachment-download`}
+            asChild={pdfModeActive}
           >
             {fileName}
           </Link>

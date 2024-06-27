@@ -2,6 +2,7 @@ import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
+import { AttachmentSummaryComponent2 } from 'src/layout/FileUpload/AttachmentSummaryComponent2';
 import { FileUploadDef } from 'src/layout/FileUpload/config.def.generated';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
@@ -30,6 +31,14 @@ export class FileUpload extends FileUploadDef implements ValidateComponent {
 
   renderSummary({ targetNode }: SummaryRendererProps<'FileUpload'>): JSX.Element | null {
     return <AttachmentSummaryComponent targetNode={targetNode} />;
+  }
+
+  renderSummary2(componentNode: LayoutNode<'FileUpload'>): JSX.Element | null {
+    return <AttachmentSummaryComponent2 targetNode={componentNode} />;
+  }
+
+  shouldRenderInAutomaticPDF() {
+    return true;
   }
 
   // This component does not have empty field validation, so has to override its inherited method

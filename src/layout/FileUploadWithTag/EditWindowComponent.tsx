@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 
 import { Button, Combobox } from '@digdir/designsystemet-react';
 import { Grid } from '@material-ui/core';
-import { CheckmarkCircleFillIcon } from '@navikt/aksel-icons';
 import deepEqual from 'fast-deep-equal';
 
 import { AltinnLoader } from 'src/components/AltinnLoader';
@@ -101,15 +100,11 @@ export function EditWindowComponent({ attachment, mobileView, node, options }: E
         >
           <div className={classes.iconButtonWrapper}>
             {attachment.uploaded && (
-              <div style={{ marginLeft: '0.9375rem', marginRight: '0.9375rem' }}>
+              <div
+                style={{ marginLeft: '0.9375rem', marginRight: '0.9375rem' }}
+                data-testid='status-success'
+              >
                 {!mobileView ? <Lang id='form_filler.file_uploader_list_status_done' /> : undefined}
-                <CheckmarkCircleFillIcon
-                  role='img'
-                  aria-hidden={!mobileView}
-                  aria-label={langAsString('form_filler.file_uploader_list_status_done')}
-                  className={classes.checkMark}
-                  data-testid='checkmark-success'
-                />
               </div>
             )}
             {!attachment.uploaded && (

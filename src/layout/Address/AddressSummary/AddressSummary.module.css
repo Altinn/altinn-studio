@@ -1,0 +1,18 @@
+/* AddressSummary.module.css */
+.container {
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  flex-direction: row;
+  margin-bottom: 10px;
+}
+
+.flexGrow {
+  flex-grow: 1;
+}
