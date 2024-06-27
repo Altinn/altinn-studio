@@ -268,7 +268,6 @@ export class ProcessEditorPage extends BasePage {
    * Helper methods below this
    *
    */
-
   private async startDragElement(title: string): Promise<void> {
     await this.page.getByTitle(title).hover();
     await this.page.mouse.down();

@@ -77,7 +77,7 @@ export class DataModelConfig extends BasePage {
       .isVisible();
   }
 
-  public async verifyThatAddNewDataModelButtonIsHidden(): Promise<void> {
+  public async verifyThatAddNewDataModelLinkButtonIsHidden(): Promise<void> {
     await this.page
       .getByRole('button', {
         name: this.textMock('process_editor.configuration_panel_set_data_model_link'),

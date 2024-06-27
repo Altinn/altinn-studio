@@ -37,10 +37,7 @@ const setupAndVerifyProcessEditorPage = async (
   return processEditorPage;
 };
 
-test('That it is possible to add and remove datamodel the default task in the process editor', async ({
-  page,
-  testAppName,
-}): Promise<void> => {
+test('that the user is able to add and delete data model', async ({ page, testAppName }) => {
   const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
   const bpmnJSQuery = new BpmnJSQuery(page);
 
@@ -51,7 +48,6 @@ test('That it is possible to add and remove datamodel the default task in the pr
   await processEditorPage.clickOnTaskInBpmnEditor(initialTaskDataElementIdSelector);
   await processEditorPage.waitForInitialTaskHeaderToBeVisible();
 
-  // --------------------- Add and delete datamodel ---------------------
   await processEditorPage.dataModelConfig.waitForDataModelButtonToBeVisibleWithValue('model');
   await processEditorPage.dataModelConfig.clickOnDataModelButton('model');
   await processEditorPage.dataModelConfig.waitForComboboxToBeVisible();
@@ -70,9 +66,20 @@ test('That it is possible to add and remove datamodel the default task in the pr
   await processEditorPage.dataModelConfig.verifyDataModelButtonTextIsSelectedDataModel(
     dataModelName,
   );
-  await processEditorPage.dataModelConfig.verifyThatAddNewDataModelButtonIsHidden();
+  await processEditorPage.dataModelConfig.verifyThatAddNewDataModelLinkButtonIsHidden();
+});
 
-  // --------------------- Verify policy editor ---------------------
+test('that the user able to open policy editor', async ({ page, testAppName }) => {
+  const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
+  const bpmnJSQuery = new BpmnJSQuery(page);
+
+  const initialTaskDataElementIdSelector: string = await bpmnJSQuery.getTaskByIdAndType(
+    'Task_1',
+    'g',
+  );
+  await processEditorPage.clickOnTaskInBpmnEditor(initialTaskDataElementIdSelector);
+  await processEditorPage.waitForInitialTaskHeaderToBeVisible();
+
   await processEditorPage.clickOnPolicyAccordion();
   await processEditorPage.waitForNavigateToPolicyButtonIsVisible();
   await processEditorPage.clickOnNavigateToPolicyEditorButton();
@@ -82,7 +89,7 @@ test('That it is possible to add and remove datamodel the default task in the pr
   await processEditorPage.verifyThatPolicyEditorIsClosed();
 });
 
-test('That it is possible to add a new task to the process editor, configure some of its data', async ({
+test('that the user can add a new data model, assign it to a task, and create a sequence between tasks.', async ({
   page,
   testAppName,
 }): Promise<void> => {
@@ -99,11 +106,8 @@ test('That it is possible to add a new task to the process editor, configure som
   await processEditorPage.waitForTaskToBeVisibleInConfigPanel(dataTask);
   const randomGeneratedId = await processEditorPage.getTaskIdFromOpenNewlyAddedTask();
 
-  // --------------------- Edit the id ---------------------
-  const newId: string = 'my_new_id';
-  await editRandomGeneratedId(processEditorPage, randomGeneratedId, newId);
-
   // --------------------- Add new data model ---------------------
+  await processEditorPage.dataModelConfig.waitForAddDataModelButtonWithoutValueToBeVisible();
   await processEditorPage.dataModelConfig.clickOnAddButton();
   await processEditorPage.dataModelConfig.waitForComboboxToBeVisible();
   await processEditorPage.dataModelConfig.clickOnCombobox();
@@ -117,9 +121,10 @@ test('That it is possible to add a new task to the process editor, configure som
     header,
     newDataModel,
   );
-  const newTaskSelector: string = await bpmnJSQuery.getTaskByIdAndType(newId, 'g');
+  const newTaskSelector: string = await bpmnJSQuery.getTaskByIdAndType(randomGeneratedId, 'g');
   await processEditorPage.clickOnTaskInBpmnEditor(newTaskSelector);
 
+  await processEditorPage.dataModelConfig.waitForAddDataModelButtonWithoutValueToBeVisible();
   await processEditorPage.dataModelConfig.clickOnAddButton();
   await processEditorPage.dataModelConfig.waitForComboboxToBeVisible();
   await processEditorPage.dataModelConfig.clickOnCombobox();
@@ -129,78 +134,48 @@ test('That it is possible to add a new task to the process editor, configure som
     newDataModel,
   );
 
-  // --------------------- Connect the task to the process ---------------------
+  // --------------------- Draw sequence between tasks ---------------------
   await processEditorPage.clickOnConnectionArrow();
 
   const initialId: string = 'Task_1';
   const initialTaskSelector: string = await bpmnJSQuery.getTaskByIdAndType(initialId, 'g');
   await processEditorPage.clickOnTaskInBpmnEditor(initialTaskSelector);
 
-  // --------------------- Check that files are uploaded to Gitea ---------------------
-  await goToGiteaAndNavigateToProcessBpmnFile(header, giteaPage);
-  await giteaPage.verifyThatTheNewTaskIsHidden(newId, dataTask);
-
-  const numberOfPagesBackToAltinnStudio: number = 5;
-  await giteaPage.goBackNPages(numberOfPagesBackToAltinnStudio);
-
-  await processEditorPage.verifyProcessEditorPage();
   await commitAndPushToGitea(header);
 
   await goToGiteaAndNavigateToProcessBpmnFile(header, giteaPage);
-  await giteaPage.verifyThatTheNewTaskIsVisible(newId, dataTask);
+  await giteaPage.verifyThatTheNewTaskIsVisible(randomGeneratedId, dataTask);
 
-  await giteaPage.verifySequenceFlowDirection(newId, initialId);
+  await giteaPage.verifySequenceFlowDirection(randomGeneratedId, initialId);
   const numblerBackToConfig: number = 2;
   await giteaPage.goBackNPages(numblerBackToConfig);
   await giteaPage.clickOnApplicationMetadataFile();
-  await giteaPage.verifyIdInDataModel(newId, newDataModel);
+  await giteaPage.verifyIdInDataModel(randomGeneratedId, newDataModel);
 });
 
-test('That it is possible to add a new signing task, and update the datatypes to sign', async ({
+test('that the user can edit the id of a task and add data-types to sign', async ({
   page,
   testAppName,
-}): Promise<void> => {
+}) => {
   const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
-  const bpmnJSQuery = new BpmnJSQuery(page);
   const header = new Header(page, { app: testAppName });
   const giteaPage = new GiteaPage(page, { app: testAppName });
 
-  // --------------------- Drag new task into the editor ---------------------
-  const svgSelector = await bpmnJSQuery.getTaskByIdAndType('SingleDataTask', 'svg');
-  const signingTask: BpmnTaskType = 'signing';
+  const signingTask = await addNewSigningTaskToProcessEditor(page);
 
-  const extraMovingDistanceX: number = -120;
-  const extraMovingDistanceY: number = 0;
-  await processEditorPage.dragTaskInToBpmnEditor(
-    signingTask,
-    svgSelector,
-    extraMovingDistanceX,
-    extraMovingDistanceY,
-  );
-  await processEditorPage.waitForTaskToBeVisibleInConfigPanel(signingTask);
   const randomGeneratedId = await processEditorPage.getTaskIdFromOpenNewlyAddedTask();
 
-  // --------------------- Edit the id ---------------------
   const newId: string = 'signing_id';
   await editRandomGeneratedId(processEditorPage, randomGeneratedId, newId);
 
-  // --------------------- Add data types to sign ---------------------
   await processEditorPage.clickDataTypesToSignCombobox();
   const dataTypeToSign: string = 'ref-data-as-pdf';
   await processEditorPage.clickOnDataTypesToSignOption(dataTypeToSign);
   await processEditorPage.waitForDataTypeToSignButtonToBeVisible(dataTypeToSign);
   await processEditorPage.pressEscapeOnKeyboard();
 
-  // --------------------- Check that files are uploaded to Gitea ---------------------
-  await goToGiteaAndNavigateToProcessBpmnFile(header, giteaPage);
-  await giteaPage.verifyThatDataTypeToSignIsHidden(dataTypeToSign);
-
-  const numberOfPagesBackToAltinnStudio: number = 5;
-  await giteaPage.goBackNPages(numberOfPagesBackToAltinnStudio);
-
-  await processEditorPage.verifyProcessEditorPage();
   await commitAndPushToGitea(header);
-
+  await goToGiteaAndNavigateToProcessBpmnFile(header, giteaPage);
   await giteaPage.verifyThatTaskIsVisible(signingTask);
   await giteaPage.verifyThatDataTypeToSignIsVisible(signingTask);
 });
@@ -256,6 +231,26 @@ test('That it is possible to create a custom receipt', async ({ page, testAppNam
 });
 
 // --------------------- Helper Functions ---------------------
+
+const addNewSigningTaskToProcessEditor = async (page: Page): Promise<string> => {
+  const bpmnJSQuery = new BpmnJSQuery(page);
+  const processEditorPage = new ProcessEditorPage(page);
+  const svgSelector = await bpmnJSQuery.getTaskByIdAndType('SingleDataTask', 'svg');
+  const signingTask: BpmnTaskType = 'signing';
+
+  const extraMovingDistanceX: number = -120;
+  const extraMovingDistanceY: number = 0;
+  await processEditorPage.dragTaskInToBpmnEditor(
+    signingTask,
+    svgSelector,
+    extraMovingDistanceX,
+    extraMovingDistanceY,
+  );
+  await processEditorPage.waitForTaskToBeVisibleInConfigPanel(signingTask);
+
+  return signingTask;
+};
+
 const editRandomGeneratedId = async (
   processEditorPage: ProcessEditorPage,
   randomGeneratedId: string,
