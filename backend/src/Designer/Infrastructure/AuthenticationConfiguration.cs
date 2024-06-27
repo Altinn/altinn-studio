@@ -38,7 +38,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             GeneralSettings generalSettings)
         {
             string schema = env.IsDevelopment() ? "http://" : "https://";
-            string loginUrl = $"{schema}{generalSettings.HostName}/Home/Login/";
+            string loginUrl = $"{schema}{generalSettings.HostName}/ Home/Login/";
 
             // Configure Authentication
             // Use [Authorize] to require login on MVC Controller Actions
