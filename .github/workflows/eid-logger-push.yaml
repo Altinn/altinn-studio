@@ -1,0 +1,46 @@
+name: Eid logger docker build and push
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'eidlogger/**'
+      - '.github/workflows/eid-logger-push.yaml'
+  workflow_dispatch:
+
+permissions:
+      id-token: write
+      contents: read
+
+jobs:
+  docker-build-push:
+    name: Build and push eid logger image
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY: altinntjenestercontainerregistry.azurecr.io
+      REPOSITORY: eid-logger
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID_FC }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID_FC }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+      ACTION_USER: ${{ secrets.ACTION_USER }}
+      ACTION_PASSWORD: ${{ secrets.ACTION_PAT }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: 'Azure login'
+        uses: azure/login@v2
+        with:
+            client-id: ${{ env.AZURE_CLIENT_ID }}
+            tenant-id: ${{ env.AZURE_TENANT_ID }}
+            subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+      - name: Log in to Container registry
+        run: |
+          az acr login --name ${{ env.REGISTRY }} --expose-token --output tsv --query accessToken --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }} --only-show-errors | docker login ${{ env.REGISTRY }} --username 00000000-0000-0000-0000-000000000000 --password-stdin
+      - name: Build eid logger image
+        run: |
+          docker build eidlogger --build-arg GITHUB_USER=${{ env.ACTION_USER }} --build-arg GITHUB_PASSWORD=${{ env.ACTION_PAT }} -t ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ github.sha }} -t ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:latest
+      # - name: Push docker image
+      #   run: |
+      #     docker push ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ github.sha }} && docker push ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:latest
+
