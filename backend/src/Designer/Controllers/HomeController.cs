@@ -127,6 +127,14 @@ namespace Altinn.Studio.Designer.Controllers
             return View();
         }
 
+
+        [Authorize]
+        public async Task<IActionResult> Test()
+        {
+            await Task.CompletedTask;
+            return Ok();
+        }
+
         /// <summary>
         /// Login
         /// </summary>
