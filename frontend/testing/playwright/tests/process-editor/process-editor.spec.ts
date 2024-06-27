@@ -69,40 +69,6 @@ test('that the user is able to add and delete data model', async ({ page, testAp
   await processEditorPage.dataModelConfig.verifyThatAddNewDataModelLinkButtonIsHidden();
 });
 
-test('that the user is able to add actions', async ({ page, testAppName }) => {
-  const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
-  const bpmnJSQuery = new BpmnJSQuery(page);
-  const header = new Header(page, { app: testAppName });
-  const giteaPage = new GiteaPage(page, { app: testAppName });
-
-  const initialTaskDataElementIdSelector: string = await bpmnJSQuery.getTaskByIdAndType(
-    'Task_1',
-    'g',
-  );
-
-  await processEditorPage.clickOnTaskInBpmnEditor(initialTaskDataElementIdSelector);
-  await processEditorPage.waitForInitialTaskHeaderToBeVisible();
-
-  await processEditorPage.clickOnActionsAccordion();
-  await processEditorPage.waitForAddActionsButtonToBeVisible();
-
-  const actionIndex1: string = '1';
-  await processEditorPage.clickAddActionsButton();
-  await processEditorPage.waitForActionComboboxTitleToBeVisible(actionIndex1);
-
-  const actionOptionWrite: string = 'write';
-  await processEditorPage.clickOnActionCombobox(actionIndex1);
-  await processEditorPage.clickOnActionOption(actionOptionWrite);
-  await processEditorPage.removeFocusFromActionCombobox(actionIndex1);
-  await processEditorPage.clickOnSaveActionButton();
-  await processEditorPage.waitForActionButtonToBeVisible(actionIndex1, actionOptionWrite);
-
-  await commitAndPushToGitea(header);
-
-  await goToGiteaAndNavigateToProcessBpmnFile(header, giteaPage);
-  await giteaPage.verifyThatActionIsVisible(actionOptionWrite);
-});
-
 test('that the user able to open policy editor', async ({ page, testAppName }) => {
   const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
   const bpmnJSQuery = new BpmnJSQuery(page);
@@ -114,13 +80,13 @@ test('that the user able to open policy editor', async ({ page, testAppName }) =
   await processEditorPage.clickOnTaskInBpmnEditor(initialTaskDataElementIdSelector);
   await processEditorPage.waitForInitialTaskHeaderToBeVisible();
 
-  await processEditorPage.clickOnPolicyAccordion();
-  await processEditorPage.waitForNavigateToPolicyButtonIsVisible();
-  await processEditorPage.clickOnNavigateToPolicyEditorButton();
+  await processEditorPage.policyConfig.clickOnPolicyAccordion();
+  await processEditorPage.policyConfig.waitForNavigateToPolicyButtonIsVisible();
+  await processEditorPage.policyConfig.clickOnNavigateToPolicyEditorButton();
 
-  await processEditorPage.verifyThatPolicyEditorIsOpen();
-  await processEditorPage.closePolicyEditor();
-  await processEditorPage.verifyThatPolicyEditorIsClosed();
+  await processEditorPage.policyConfig.verifyThatPolicyEditorIsOpen();
+  await processEditorPage.policyConfig.closePolicyEditor();
+  await processEditorPage.policyConfig.verifyThatPolicyEditorIsClosed();
 });
 
 test('that the user can add a new data model, assign it to a task, and create a sequence between tasks.', async ({
@@ -202,10 +168,10 @@ test('that the user can edit the id of a task and add data-types to sign', async
   const newId: string = 'signing_id';
   await editRandomGeneratedId(processEditorPage, randomGeneratedId, newId);
 
-  await processEditorPage.clickDataTypesToSignCombobox();
+  await processEditorPage.signingTaskConfig.clickDataTypesToSignCombobox();
   const dataTypeToSign: string = 'ref-data-as-pdf';
-  await processEditorPage.clickOnDataTypesToSignOption(dataTypeToSign);
-  await processEditorPage.waitForDataTypeToSignButtonToBeVisible(dataTypeToSign);
+  await processEditorPage.signingTaskConfig.clickOnDataTypesToSignOption(dataTypeToSign);
+  await processEditorPage.signingTaskConfig.waitForDataTypeToSignButtonToBeVisible(dataTypeToSign);
   await processEditorPage.pressEscapeOnKeyboard();
 
   await commitAndPushToGitea(header);
@@ -235,21 +201,21 @@ test('That it is possible to create a custom receipt', async ({ page, testAppNam
   await processEditorPage.clickOnTaskInBpmnEditor(endEvent);
   await processEditorPage.waitForEndEventHeaderToBeVisible();
 
-  await processEditorPage.clickOnReceiptAccordion();
-  await processEditorPage.waitForCreateCustomReceiptButtonToBeVisible();
+  await processEditorPage.customReceiptConfig.clickOnReceiptAccordion();
+  await processEditorPage.customReceiptConfig.waitForCreateCustomReceiptButtonToBeVisible();
 
-  await processEditorPage.clickOnCreateCustomReceipt();
-  await processEditorPage.waitForLayoutTextfieldToBeVisible();
+  await processEditorPage.customReceiptConfig.clickOnCreateCustomReceipt();
+  await processEditorPage.customReceiptConfig.waitForLayoutTextfieldToBeVisible();
 
   const newLayoutSetId: string = 'layoutSetId';
-  await processEditorPage.writeLayoutSetId(newLayoutSetId);
+  await processEditorPage.customReceiptConfig.writeLayoutSetId(newLayoutSetId);
   await processEditorPage.dataModelConfig.clickOnAddDataModelCombobox();
   await processEditorPage.dataModelConfig.chooseOption(newDataModel);
   await processEditorPage.pressEscapeOnKeyboard();
 
-  await processEditorPage.waitForSaveNewCustomReceiptButtonToBeVisible();
-  await processEditorPage.clickOnSaveNewCustomReceiptButton();
-  await processEditorPage.waitForEditLayoutSetIdButtonToBeVisible();
+  await processEditorPage.customReceiptConfig.waitForSaveNewCustomReceiptButtonToBeVisible();
+  await processEditorPage.customReceiptConfig.clickOnSaveNewCustomReceiptButton();
+  await processEditorPage.customReceiptConfig.waitForEditLayoutSetIdButtonToBeVisible();
 
   // --------------------- Check that files are uploaded to Gitea ---------------------
   await goToGiteaAndNavigateToApplicationMetadataFile(header, giteaPage);
@@ -292,7 +258,7 @@ const editRandomGeneratedId = async (
 ): Promise<void> => {
   await processEditorPage.clickOnTaskIdEditButton(randomGeneratedId);
   await processEditorPage.waitForEditIdInputFieldToBeVisible();
-  await processEditorPage.emptyIdInputfield();
+  await processEditorPage.emptyIdTextfield();
   await processEditorPage.writeNewId(newId);
   await processEditorPage.waitForTextBoxToHaveValue(newId);
   await processEditorPage.saveNewId();

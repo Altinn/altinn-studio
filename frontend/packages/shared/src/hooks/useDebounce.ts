@@ -5,7 +5,7 @@ type UseDebounceOptions = {
 };
 export const useDebounce = ({ debounceTimeInMs }: UseDebounceOptions) => {
   const debounceRef = useRef(undefined);
-  const debounce = (callback: Function) => {
+  const debounce = (callback: Function): void => {
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       callback();

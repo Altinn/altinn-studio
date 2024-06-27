@@ -23,10 +23,6 @@ export class GiteaPage extends BasePage {
     super(page, environment);
   }
 
-  public async loadGiteaPage(): Promise<void> {
-    await this.page.goto(this.getRoute('gitea'));
-  }
-
   public async verifyGiteaPage(): Promise<void> {
     await this.page.waitForURL(this.getRoute('gitea'));
   }
@@ -168,6 +164,16 @@ export class GiteaPage extends BasePage {
 
   public async verifyThatActionIsVisible(action: string): Promise<void> {
     await this.page.getByText(`<altinn:action>${action}</altinn:action>`).isVisible();
+  }
+
+  public async verifyThatActionIsCustomServerAction(action: string): Promise<void> {
+    await this.page
+      .getByText(`<altinn:action type="serverAction">${action}</altinn:action>`)
+      .isVisible();
+  }
+
+  public async verifyThatActionIsHidden(action: string): Promise<void> {
+    await this.page.getByText(`<altinn:action>${action}</altinn:action>`).isHidden();
   }
 
   public async verifyThatTaskIsVisible(task: string): Promise<void> {
