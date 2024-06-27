@@ -1,0 +1,59 @@
+import { expect, Page } from '@playwright/test';
+import { BasePage } from '../../helpers/BasePage';
+
+export class PolicyConfig extends BasePage {
+  constructor(page: Page) {
+    super(page);
+  }
+
+  public async clickOnPolicyAccordion(): Promise<void> {
+    await this.page
+      .getByRole('button', {
+        name: this.textMock('process_editor.configuration_panel_policy_title'),
+      })
+      .click();
+  }
+
+  public async waitForNavigateToPolicyButtonIsVisible(): Promise<void> {
+    const button = this.page.getByRole('button', {
+      name: this.textMock(
+        'process_editor.configuration_panel.edit_policy_open_policy_editor_button',
+      ),
+    });
+    await expect(button).toBeVisible();
+  }
+
+  public async clickOnNavigateToPolicyEditorButton(): Promise<void> {
+    await this.page
+      .getByRole('button', {
+        name: this.textMock(
+          'process_editor.configuration_panel.edit_policy_open_policy_editor_button',
+        ),
+      })
+      .click();
+  }
+
+  public async verifyThatPolicyEditorIsOpen(): Promise<void> {
+    const heading = this.page.getByRole('heading', {
+      name: this.textMock('policy_editor.rules'),
+      level: 2,
+    });
+    await expect(heading).toBeVisible();
+  }
+
+  public async closePolicyEditor(): Promise<void> {
+    await this.page
+      .getByRole('button', {
+        name: this.textMock('settings_modal.close_button_label'),
+      })
+      .click();
+  }
+
+  public async verifyThatPolicyEditorIsClosed(): Promise<void> {
+    const heading = this.page.getByRole('heading', {
+      name: this.textMock('policy_editor.rules'),
+      level: 2,
+    });
+    await expect(heading).toBeHidden();
+  }
+}

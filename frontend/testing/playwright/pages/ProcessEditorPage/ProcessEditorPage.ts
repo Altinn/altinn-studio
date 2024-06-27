@@ -1,8 +1,11 @@
 import { expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { ActionsConfig } from './ActionsConfig';
+import { PolicyConfig } from './PolicyConfig';
 import { BasePage } from '../../helpers/BasePage';
 import { DataModelConfig } from './DataModelConfig';
+import { SigningTaskConfig } from './SigningTaskConfig';
+import { CustomReceiptConfig } from './CustomReceiptConfig';
 import { type BpmnTaskType } from '../../types/BpmnTaskType';
 import type { Environment } from '../../helpers/StudioEnvironment';
 
@@ -11,11 +14,17 @@ const connectionArrowText: string = 'Connect using Sequence/MessageFlow or Assoc
 export class ProcessEditorPage extends BasePage {
   public readonly dataModelConfig: DataModelConfig;
   public readonly actionsConfig: ActionsConfig;
+  public readonly policyConfig: PolicyConfig;
+  public readonly customReceiptConfig: CustomReceiptConfig;
+  public readonly signingTaskConfig: SigningTaskConfig;
 
   constructor(page: Page, environment?: Environment) {
     super(page, environment);
     this.dataModelConfig = new DataModelConfig(page);
     this.actionsConfig = new ActionsConfig(page);
+    this.policyConfig = new PolicyConfig(page);
+    this.customReceiptConfig = new CustomReceiptConfig(page);
+    this.signingTaskConfig = new SigningTaskConfig(page);
   }
 
   public async loadProcessEditorPage(): Promise<void> {
@@ -36,33 +45,6 @@ export class ProcessEditorPage extends BasePage {
     });
 
     await expect(heading).toBeVisible();
-  }
-
-  public async clickOnPolicyAccordion(): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock('process_editor.configuration_panel_policy_title'),
-      })
-      .click();
-  }
-
-  public async waitForNavigateToPolicyButtonIsVisible(): Promise<void> {
-    const button = this.page.getByRole('button', {
-      name: this.textMock(
-        'process_editor.configuration_panel.edit_policy_open_policy_editor_button',
-      ),
-    });
-    await expect(button).toBeVisible();
-  }
-
-  public async clickOnNavigateToPolicyEditorButton(): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock(
-          'process_editor.configuration_panel.edit_policy_open_policy_editor_button',
-        ),
-      })
-      .click();
   }
 
   public async dragTaskInToBpmnEditor(
@@ -104,7 +86,7 @@ export class ProcessEditorPage extends BasePage {
     await expect(inputField).toBeVisible();
   }
 
-  public async emptyIdInputfield(): Promise<void> {
+  public async emptyIdTextfield(): Promise<void> {
     await this.page
       .getByRole('textbox', {
         name: this.textMock('process_editor.configuration_panel_change_task_id'),
@@ -150,117 +132,12 @@ export class ProcessEditorPage extends BasePage {
     await this.page.getByTitle(connectionArrowText).click();
   }
 
-  public async verifyThatPolicyEditorIsOpen(): Promise<void> {
-    const heading = this.page.getByRole('heading', {
-      name: this.textMock('policy_editor.rules'),
-      level: 2,
-    });
-    await expect(heading).toBeVisible();
-  }
-
-  public async closePolicyEditor(): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock('settings_modal.close_button_label'),
-      })
-      .click();
-  }
-
-  public async verifyThatPolicyEditorIsClosed(): Promise<void> {
-    const heading = this.page.getByRole('heading', {
-      name: this.textMock('policy_editor.rules'),
-      level: 2,
-    });
-    await expect(heading).toBeHidden();
-  }
-
-  public async clickDataTypesToSignCombobox(): Promise<void> {
-    await this.page
-      .getByRole('combobox', {
-        name: this.textMock('process_editor.configuration_panel_set_data_types_to_sign'),
-      })
-      .click();
-  }
-
-  public async clickOnDataTypesToSignOption(option: string): Promise<void> {
-    await this.page.getByRole('option', { name: option }).click();
-  }
-
-  public async waitForDataTypeToSignButtonToBeVisible(option: string): Promise<void> {
-    const button = this.page.getByLabel(this.textMock('general.delete_item', { item: option }));
-    await expect(button).toBeVisible();
-  }
-
   public async waitForEndEventHeaderToBeVisible(): Promise<void> {
     const heading = this.page.getByRole('heading', {
       name: this.textMock('process_editor.configuration_panel_end_event'),
     });
 
     await expect(heading).toBeVisible();
-  }
-
-  public async clickOnReceiptAccordion(): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock('process_editor.configuration_panel_custom_receipt_accordion_header'),
-      })
-      .click();
-  }
-
-  public async waitForCreateCustomReceiptButtonToBeVisible(): Promise<void> {
-    const text = this.page.getByRole('button', {
-      name: this.textMock(
-        'process_editor.configuration_panel_custom_receipt_create_your_own_button',
-      ),
-    });
-    await expect(text).toBeVisible();
-  }
-
-  public async clickOnCreateCustomReceipt(): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock(
-          'process_editor.configuration_panel_custom_receipt_create_your_own_button',
-        ),
-      })
-      .click();
-  }
-
-  public async waitForLayoutTextfieldToBeVisible(): Promise<void> {
-    const textbox = this.page.getByRole('textbox', {
-      name: this.textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
-    });
-    await expect(textbox).toBeVisible();
-  }
-
-  public async writeLayoutSetId(layoutSetId: string): Promise<void> {
-    await this.page
-      .getByRole('textbox', {
-        name: this.textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
-      })
-      .fill(layoutSetId);
-  }
-
-  public async waitForSaveNewCustomReceiptButtonToBeVisible(): Promise<void> {
-    const button = this.page.getByRole('button', {
-      name: this.textMock('process_editor.configuration_panel_custom_receipt_create_button'),
-    });
-    await expect(button).toBeVisible();
-  }
-
-  public async clickOnSaveNewCustomReceiptButton(): Promise<void> {
-    await this.page
-      .getByRole('button', {
-        name: this.textMock('process_editor.configuration_panel_custom_receipt_create_button'),
-      })
-      .click();
-  }
-
-  public async waitForEditLayoutSetIdButtonToBeVisible(): Promise<void> {
-    const button = this.page.getByRole('button', {
-      name: this.textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
-    });
-    await expect(button).toBeVisible();
   }
 
   /**
