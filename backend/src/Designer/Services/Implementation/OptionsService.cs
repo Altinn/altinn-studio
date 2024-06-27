@@ -27,10 +27,10 @@ public class OptionsService : IOptionsService
     {
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-        string optionsListString = await altinnAppGitRepository.GetOptions(optionListId);
-        var optionsList = JsonSerializer.Deserialize<List<Option>>(optionsListString);
+        string optionListString = await altinnAppGitRepository.GetOptions(optionListId);
+        var optionList = JsonSerializer.Deserialize<List<Option>>(optionListString);
 
-        return optionsList;
+        return optionList;
     }
 
     /// <inheritdoc />

@@ -85,8 +85,8 @@ public class OptionsController : ControllerBase
 
         try
         {
-            var newOptionsList = await _optionsService.UpdateOptions(org, repo, developer, optionListId, payload);
-            return Ok(newOptionsList);
+            var newOptionList = await _optionsService.UpdateOptions(org, repo, developer, optionListId, payload);
+            return Ok(newOptionList);
         }
         catch (IOException)
         {

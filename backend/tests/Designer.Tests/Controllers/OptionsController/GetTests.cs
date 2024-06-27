@@ -22,7 +22,7 @@ public class GetTests : DisagnerEndpointsTestsBase<GetTests>, IClassFixture<WebA
     {
         // Arrange
         // This expected list matches the list in 'app-with-layoutsets'
-        var expectedOptionsList = new List<Option>
+        var expectedOptionList = new List<Option>
         {
             new Option
             {
@@ -46,14 +46,14 @@ public class GetTests : DisagnerEndpointsTestsBase<GetTests>, IClassFixture<WebA
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-        Assert.Equal(expectedOptionsList.Count, responseList.Count);
+        Assert.Equal(expectedOptionList.Count, responseList.Count);
 
-        for (int i = 0; i < expectedOptionsList.Count; i++)
+        for (int i = 0; i < expectedOptionList.Count; i++)
         {
-            Assert.Equal(expectedOptionsList[i].Label, responseList[i].Label);
-            Assert.Equal(expectedOptionsList[i].Value, responseList[i].Value);
-            Assert.Equal(expectedOptionsList[i].Description, responseList[i].Description);
-            Assert.Equal(expectedOptionsList[i].HelpText, responseList[i].HelpText);
+            Assert.Equal(expectedOptionList[i].Label, responseList[i].Label);
+            Assert.Equal(expectedOptionList[i].Value, responseList[i].Value);
+            Assert.Equal(expectedOptionList[i].Description, responseList[i].Description);
+            Assert.Equal(expectedOptionList[i].HelpText, responseList[i].HelpText);
         }
     }
 }

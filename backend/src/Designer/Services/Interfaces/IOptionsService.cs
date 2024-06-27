@@ -10,7 +10,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 public interface IOptionsService
 {
     /// <summary>
-    /// Gets a options file from the app repository with the specified optionsListId.
+    /// Gets a options file from the app repository with the specified optionListId.
     /// </summary>
     /// <param name="org">Organisation</param>
     /// <param name="repo">Repository</param>
