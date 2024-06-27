@@ -7,7 +7,6 @@ import type { Action } from '../../../../../../utils/bpmn/BpmnActionModeler';
 import { useActionHandler } from '../hooks/useOnActionChange';
 import { getPredefinedActions } from '../../../../../../utils/processActions';
 import { useBpmnContext } from '../../../../../../contexts/BpmnContext';
-
 import classes from './CustomActions.module.css';
 import { useTranslation } from 'react-i18next';
 

@@ -27,22 +27,27 @@ describe('processActionsUtils', () => {
       const result = isActionRequiredForTask('sign', 'signing');
       expect(result).toEqual(true);
     });
+
     it('should return true for reject action for signing task', () => {
       const result = isActionRequiredForTask('reject', 'signing');
       expect(result).toEqual(true);
     });
+
     it('should return true for pay action for payment task', () => {
       const result = isActionRequiredForTask('pay', 'payment');
       expect(result).toEqual(true);
     });
+
     it('should return true for confirm action for payment task', () => {
       const result = isActionRequiredForTask('confirm', 'payment');
       expect(result).toEqual(true);
     });
+
     it('should return true for reject action for payment task', () => {
       const result = isActionRequiredForTask('reject', 'payment');
       expect(result).toEqual(true);
     });
+
     it('should return true for confirm action for confirmation task', () => {
       const result = isActionRequiredForTask('confirm', 'confirmation');
       expect(result).toEqual(true);
@@ -54,6 +59,7 @@ describe('processActionsUtils', () => {
       const result = isActionAvailable('reject', existingActionElements);
       expect(result).toEqual(true);
     });
+
     it('should return false if action is available', () => {
       const existingActionElements = [{ action: 'write' }];
       const result = isActionAvailable('write', existingActionElements);

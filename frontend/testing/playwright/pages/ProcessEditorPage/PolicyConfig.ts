@@ -1,4 +1,4 @@
-import { expect, Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { BasePage } from '../../helpers/BasePage';
 
 export class PolicyConfig extends BasePage {

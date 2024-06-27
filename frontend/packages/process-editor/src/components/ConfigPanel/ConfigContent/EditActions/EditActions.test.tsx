@@ -138,6 +138,7 @@ type BpmnActionModelerMock = {
   createActionElementMock: jest.Mock;
   getExtensionElementsMock: jest.Mock;
 };
+
 const setupBpmnActionModelerMock = ({
   addNewActionToTaskMock,
   updateTypeForActionMock,

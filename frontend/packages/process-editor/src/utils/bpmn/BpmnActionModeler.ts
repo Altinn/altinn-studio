@@ -17,6 +17,11 @@ export enum ActionTagType {
   Actions = 'altinn:Actions',
 }
 
+/*
+ * Not all lines in this file are covered by tests because it would require extensive mocking of methods and classes from the bpmn-js library.
+ * This effort might not be worthwhile since the package is not very type-safe, meaning our tests might not fail even if the package's API changes.
+ */
+
 export class BpmnActionModeler extends StudioModeler {
   constructor(element?: Element) {
     super(element);

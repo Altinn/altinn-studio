@@ -10,6 +10,12 @@ import type { BpmnTaskType } from '../../types/BpmnTaskType';
 
 // Short description: This class is used to interact with the bpmn-js modeler instance to create, update and delete elements in the bpmn diagram.
 // We have not written test for this class then we need to mock the BpmnModelerInstance and its methods.
+
+/*
+ * Not all lines in this file are covered by tests because it would require extensive mocking of methods and classes from the bpmn-js library.
+ * This effort might not be worthwhile since the package is not very type-safe, meaning our tests might not fail even if the package's API changes.
+ */
+
 enum AvailableBpmnInstances {
   Modeling = 'modeling',
   Moddle = 'moddle',
@@ -22,8 +28,8 @@ export class StudioModeler {
   public readonly bpmnFactory: BpmnFactory = this.modelerInstance.get(
     AvailableBpmnInstances.BpmnFactory,
   );
-  // TODO consider to make this private again, made public due to testing of line 50 in EditActions.tsx
-  public readonly modeling: Modeling = this.modelerInstance.get(AvailableBpmnInstances.Modeling);
+
+  private readonly modeling: Modeling = this.modelerInstance.get(AvailableBpmnInstances.Modeling);
 
   private readonly moddle: Moddle = this.modelerInstance.get(AvailableBpmnInstances.Moddle);
   private readonly elementRegistry: ElementRegistry = this.modelerInstance.get(

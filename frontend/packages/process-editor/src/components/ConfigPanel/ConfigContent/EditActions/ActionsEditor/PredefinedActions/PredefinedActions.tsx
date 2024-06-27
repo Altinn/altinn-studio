@@ -35,7 +35,7 @@ export const PredefinedActions = ({
       onChange={handleOnActionChange}
       defaultValue={isPredefinedAction(actionElement.action) ? actionElement.action : ' '}
     >
-      <option disabled value=' '></option>
+      <option disabled value=' ' />
       {availablePredefinedActions.map(
         (action: string): React.ReactElement => (
           <option key={action} value={action} disabled={shouldDisableAction(action)}>

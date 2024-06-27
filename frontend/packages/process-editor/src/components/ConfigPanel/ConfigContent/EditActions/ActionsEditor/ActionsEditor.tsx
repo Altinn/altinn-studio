@@ -15,7 +15,6 @@ import { PredefinedActions } from './PredefinedActions';
 import { useBpmnContext } from '../../../../../contexts/BpmnContext';
 import { type Action, BpmnActionModeler } from '../../../../../utils/bpmn/BpmnActionModeler';
 import { getPredefinedActions, isActionRequiredForTask } from '../../../../../utils/processActions';
-
 import classes from './ActionsEditor.module.css';
 
 enum TabIds {

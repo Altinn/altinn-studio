@@ -35,12 +35,13 @@ describe('CustomActions', () => {
       textMock('process_editor.configuration_panel_actions_action_card_custom_label'),
     );
 
-    await user.type(inputField, 'My custom action');
+    const myCustomActionName = 'My custom action';
+    await user.type(inputField, myCustomActionName);
     await waitFor(() => expect(handeOnActionChangeMock).toHaveBeenCalledTimes(1));
     expect(handeOnActionChangeMock).toHaveBeenCalledWith(
       expect.objectContaining({
         target: expect.objectContaining({
-          value: 'My custom action',
+          value: myCustomActionName,
         }),
       }),
     );
