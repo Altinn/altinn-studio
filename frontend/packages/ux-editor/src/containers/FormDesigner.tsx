@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Properties } from '../components/Properties';
 import { DesignView } from './DesignView';
 import classes from './FormDesigner.module.css';
@@ -9,7 +9,7 @@ import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
 import { useRuleModelQuery } from '../hooks/queries/useRuleModelQuery';
 import { ErrorPage } from '../components/ErrorPage';
-import { StudioPageSpinner } from '@studio/components';
+import { StudioPageSpinner, StudioResizableLayout } from '@studio/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
@@ -28,6 +28,7 @@ import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayou
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
 import { Preview } from '../components/Preview';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { FormDesignerToolbar } from './FormDesignerToolbar';
 
 export const FormDesigner = (): JSX.Element => {
   const { org, app } = useStudioEnvironmentParams();
@@ -61,6 +62,8 @@ export const FormDesigner = (): JSX.Element => {
     selectedFormLayoutSetName,
   );
   const { handleEdit } = useFormItemContext();
+  const [previewCollapsed, setPreviewCollapsed] = useState<boolean>(false);
+  const [hidePreview, setHidePreview] = useState<boolean>(false);
 
   const t = useText();
 
@@ -142,11 +145,43 @@ export const FormDesigner = (): JSX.Element => {
     return (
       <DragAndDropTree.Provider rootId={BASE_CONTAINER_ID} onMove={moveItem} onAdd={addItem}>
         <div className={classes.root}>
+          <FormDesignerToolbar></FormDesignerToolbar>
           <div className={classes.container}>
-            <Elements />
-            <DesignView />
-            <Properties />
-            <Preview />
+            <StudioResizableLayout.Container
+              layoutId='form-designer-main'
+              orientation='horizontal'
+              localStorageContext={`${user.id}:${org}`}
+            >
+              <StudioResizableLayout.Element minimumSize={262}>
+                <Elements />
+              </StudioResizableLayout.Element>
+              <StudioResizableLayout.Element>
+                <DesignView />
+              </StudioResizableLayout.Element>
+              <StudioResizableLayout.Element onResizing={(resizing) => setHidePreview(resizing)}>
+                <StudioResizableLayout.Container
+                  layoutId='form-designer-sub'
+                  orientation='vertical'
+                >
+                  <StudioResizableLayout.Element>
+                    <Properties key='asdf' />
+                  </StudioResizableLayout.Element>
+                  <StudioResizableLayout.Element>
+                    <Properties key='asdasdff' />
+                  </StudioResizableLayout.Element>
+                </StudioResizableLayout.Container>
+              </StudioResizableLayout.Element>
+              <StudioResizableLayout.Element
+                collapsed={previewCollapsed}
+                collapsedSize={49}
+                minimumSize={400}
+              >
+                <Preview
+                  onCollapseToggle={(collapsed: boolean) => setPreviewCollapsed(collapsed)}
+                  hidePreview={hidePreview}
+                />
+              </StudioResizableLayout.Element>
+            </StudioResizableLayout.Container>
           </div>
         </div>
       </DragAndDropTree.Provider>

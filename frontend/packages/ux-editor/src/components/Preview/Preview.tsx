@@ -13,7 +13,12 @@ import { ViewToggler } from './ViewToggler/ViewToggler';
 import { ArrowRightIcon } from '@studio/icons';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
 
-export const Preview = () => {
+export type PreviewProps = {
+  onCollapseToggle?: (collapsed: boolean) => void;
+  hidePreview?: boolean;
+};
+
+export const Preview = ({ onCollapseToggle, hidePreview }: PreviewProps) => {
   const { t } = useTranslation();
   const [isPreviewHidden, setIsPreviewHidden] = useState<boolean>(false);
   const { selectedFormLayoutName } = useAppContext();
@@ -21,6 +26,7 @@ export const Preview = () => {
     selectedFormLayoutName === 'default' || selectedFormLayoutName === undefined;
 
   const togglePreview = (): void => {
+    onCollapseToggle?.(!isPreviewHidden);
     setIsPreviewHidden((prev: boolean) => !prev);
   };
 
@@ -42,7 +48,25 @@ export const Preview = () => {
         className={classes.closePreviewButton}
         onClick={togglePreview}
       />
-      {noPageSelected ? <NoSelectedPageMessage /> : <PreviewFrame />}
+      {noPageSelected ? (
+        <NoSelectedPageMessage />
+      ) : (
+        <>
+          {hidePreview && (
+            <div
+              style={{
+                display: 'block',
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                top: 0,
+                left: 0,
+              }}
+            ></div>
+          )}
+          <PreviewFrame />
+        </>
+      )}
     </div>
   );
 };

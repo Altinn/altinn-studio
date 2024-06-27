@@ -42,7 +42,6 @@ export const Elements = (): React.ReactElement => {
   if (hasProcessTaskTypeError) {
     return (
       <div>
-        <LayoutSetsContainer />
         <div className={classes.errorMessage}>
           <Alert severity='danger'>
             <Heading level={3} size='xsmall' spacing>
@@ -63,7 +62,6 @@ export const Elements = (): React.ReactElement => {
 
   return (
     <div className={classes.root}>
-      <LayoutSetsContainer />
       <Heading size='xxsmall' className={classes.componentsHeader}>
         {t('left_menu.components')}
       </Heading>
