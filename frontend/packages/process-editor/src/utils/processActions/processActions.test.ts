@@ -22,6 +22,7 @@ describe('processActionsUtils', () => {
       expect(result).toEqual(['write', 'reject', 'confirm']);
     });
   });
+  
   describe('isActionRequiredForTask', () => {
     it('should return true for sign action for signing task', () => {
       const result = isActionRequiredForTask('sign', 'signing');
