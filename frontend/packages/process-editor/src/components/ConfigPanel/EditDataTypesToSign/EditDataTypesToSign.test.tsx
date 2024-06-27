@@ -16,22 +16,31 @@ import { getMockBpmnElementForTask, mockBpmnDetails } from '../../../../test/moc
 const availableDataTypeIds = ['dataType1', 'dataType2', 'dataType3'];
 const existingDataTypeIds = ['dataType1', 'dataType2'];
 
-const element = getMockBpmnElementForTask('signing');
-element.businessObject.extensionElements.values[0].signatureConfig.dataTypesToSign.dataTypes =
-  existingDataTypeIds.map((dataTypeId) => ({ dataType: dataTypeId }));
+const getExistingDataTypesProps = () => {
+  const element = getMockBpmnElementForTask('signing');
+  element.businessObject.extensionElements.values[0].signatureConfig.dataTypesToSign.dataTypes =
+    existingDataTypeIds.map((dataTypeId) => ({ dataType: dataTypeId }));
 
-const existingDataTypesProps = {
-  bpmnApiContextProps: { availableDataTypeIds },
-  bpmnContextProps: {
-    bpmnDetails: {
-      ...mockBpmnDetails,
-      element,
+  return {
+    bpmnApiContextProps: { availableDataTypeIds },
+    bpmnContextProps: {
+      bpmnDetails: {
+        ...mockBpmnDetails,
+        element,
+      },
     },
-  },
+  };
 };
 
 describe('EditDataTypesToSign', () => {
-  afterEach(jest.clearAllMocks);
+  beforeEach(() => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
 
   it('should display a combobox with an error message when task has no data type', () => {
     renderEditDataType();
@@ -70,7 +79,7 @@ describe('EditDataTypesToSign', () => {
   it('should display the existing data type in preview as a button to edit when task has connected data type', async () => {
     const user = userEvent.setup();
 
-    renderEditDataType(existingDataTypesProps);
+    renderEditDataType(getExistingDataTypesProps());
 
     const updateDataTypeButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_data_types_to_sign'),
@@ -88,7 +97,7 @@ describe('EditDataTypesToSign', () => {
   it('should display the existing data type in preview when clicking the close button after edit mode and task has data type', async () => {
     const user = userEvent.setup();
 
-    renderEditDataType(existingDataTypesProps);
+    renderEditDataType(getExistingDataTypesProps());
 
     const updateDataTypeButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_data_types_to_sign'),
@@ -107,7 +116,7 @@ describe('EditDataTypesToSign', () => {
   it('should display description to select data type and show all available data types including existing as options', async () => {
     const user = userEvent.setup();
 
-    renderEditDataType(existingDataTypesProps);
+    renderEditDataType(getExistingDataTypesProps());
 
     const updateDataTypeButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_data_types_to_sign'),
