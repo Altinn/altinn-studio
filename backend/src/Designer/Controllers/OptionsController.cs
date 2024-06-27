@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 using Microsoft.AspNetCore.Authorization;
@@ -32,66 +33,66 @@ public class OptionsController : ControllerBase
     }
 
     /// <summary>
-    /// Endpoint for getting a specific option list.
+    /// Endpoint for fetching a specific option list.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="repo">Application identifier which is unique within an organisation.</param>
-    /// <param name="optionsListId">Options list identifier specifying the file to read.</param>
+    /// <param name="optionListId">Name of the option list.</param>
     [HttpGet]
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [Route("{optionsListId}")]
-    public async Task<ActionResult<List<Dictionary<string, string>>>> Get(string org, string repo, [FromRoute] string optionsListId)
+    [Route("{optionListId}")]
+    public async Task<ActionResult<List<Option>>> Get(string org, string repo, [FromRoute] string optionListId)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
         try
         {
-            List<Dictionary<string, string>> optionList = await _optionsService.GetOptionsList(org, repo, developer, optionsListId);
+            List<Option> optionList = await _optionsService.GetOptions(org, repo, developer, optionListId);
             return Ok(optionList);
         }
         catch (IOException)
         {
-            return NotFound($"The options file {optionsListId}.json does not exist.");
+            return NotFound($"The options file {optionListId}.json does not exist.");
         }
         catch (JsonException)
         {
-            return new ObjectResult(new { errorMessage = $"The format of the file {optionsListId}.json might be invalid." }) { StatusCode = 500 };
+            return new ObjectResult(new { errorMessage = $"The format of the file {optionListId}.json might be invalid." }) { StatusCode = 500 };
         }
     }
 
     /// <summary>
-    /// Endpoint for creating a new option list.
+    /// Endpoint for creating or overwriting an option list.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="repo">Application identifier which is unique within an organisation.</param>
-    /// <param name="optionsListId">Options list identifier specifying the file to create.</param>
-    /// <param name="optionsListPayload">The option list to be created.</param>
+    /// <param name="optionListId">Name of the option list.</param>
+    /// <param name="payload">Contents of the option list.</param>
     [HttpPut]
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [Route("{optionsListId}")]
-    public async Task<ActionResult> Put(string org, string repo, [FromRoute] string optionsListId, [FromBody] List<Dictionary<string, string>> optionsListPayload)
+    [Route("{optionListId}")]
+    public async Task<ActionResult> Put(string org, string repo, [FromRoute] string optionListId, [FromBody] List<Option> payload)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        if (optionsListPayload == null || optionsListPayload.Count == 0)
+        if (payload == null || payload.Count == 0)
         {
             return BadRequest("The option list cannot be null or empty.");
         }
 
         try
         {
-            var newOptionsList = await _optionsService.CreateOrOverwriteOptionsList(org, repo, developer, optionsListId, optionsListPayload);
+            var newOptionsList = await _optionsService.UpdateOptions(org, repo, developer, optionListId, payload);
             return Ok(newOptionsList);
         }
         catch (IOException)
         {
-            return new ObjectResult(new { errorMessage = $"An error occurred while saving the file {optionsListId}.json." }) { StatusCode = 500 };
+            return new ObjectResult(new { errorMessage = $"An error occurred while saving the file {optionListId}.json." }) { StatusCode = 500 };
         }
         catch (JsonException)
         {

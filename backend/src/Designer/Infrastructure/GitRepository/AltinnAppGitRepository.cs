@@ -704,13 +704,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         /// <summary>
         /// Gets the options list with the provided id.
-        /// <param name="optionsListId">The id of the options list to fetch.</param>
+        /// <param name="optionListId">The name of the options list to fetch.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The options list as a string.</returns>
         /// </summary>
-        public async Task<string> GetOptions(string optionsListId, CancellationToken cancellationToken = default)
+        public async Task<string> GetOptions(string optionListId, CancellationToken cancellationToken = default)
         {
-            string optionsFilePath = Path.Combine(OptionsFolderPath, $"{optionsListId}.json");
+            string optionsFilePath = Path.Combine(OptionsFolderPath, $"{optionListId}.json");
             if (!FileExistsByRelativePath(optionsFilePath))
             {
                 throw new NotFoundException("Options file not found.");
@@ -721,16 +721,17 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Creates a new options list with the provided id.
-        /// <param name="optionsListId">The id of the options list to create.</param>
-        /// <param name="optionsListPayload">The contents of the new options list as a string</param>
+        /// Creates a new option list with the provided id.
+        /// If the option list already exists, it will be overwritten.
+        /// <param name="optionListId">The name of the option list to create.</param>
+        /// <param name="payload">The contents of the new option list as a string</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The new options list as a string.</returns>
         /// </summary>
-        public async Task<string> CreateOrOverwriteOptions(string optionsListId, string optionsListPayload, CancellationToken cancellationToken = default)
+        public async Task<string> CreateOrOverwriteOptions(string optionListId, string payload, CancellationToken cancellationToken = default)
         {
-            string optionsFilePath = Path.Combine(OptionsFolderPath, $"{optionsListId}.json");
-            await WriteTextByRelativePathAsync(optionsFilePath, optionsListPayload, true, cancellationToken);
+            string optionsFilePath = Path.Combine(OptionsFolderPath, $"{optionListId}.json");
+            await WriteTextByRelativePathAsync(optionsFilePath, payload, true, cancellationToken);
             string fileContent = await ReadTextByRelativePathAsync(optionsFilePath, cancellationToken);
 
             return fileContent;
