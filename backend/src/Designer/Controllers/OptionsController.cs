@@ -2,11 +2,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
-
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -82,7 +80,7 @@ public class OptionsController : ControllerBase
 
         if (payload == null || payload.Count == 0)
         {
-            return BadRequest("The option list cannot be null or empty.");
+            return BadRequest("The option list has an invalid format.");
         }
 
         try
@@ -94,10 +92,24 @@ public class OptionsController : ControllerBase
         {
             return new ObjectResult(new { errorMessage = $"An error occurred while saving the file {optionListId}.json." }) { StatusCode = 500 };
         }
-        catch (JsonException)
-        {
-            return new ObjectResult(new { errorMessage = $"The format of the provided option list is invalid." }) { StatusCode = 400 };
-        }
     }
 
+    /// <summary>
+    /// Endpoint for deleting an option list.
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <param name="optionListId">Name of the option list.</param>
+    [HttpDelete]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [Route("{optionListId}")]
+    public ActionResult<string> Delete(string org, string repo, [FromRoute] string optionListId)
+    {
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+        _optionsService.DeleteOptions(org, repo, developer, optionListId);
+
+        return Ok($"The options file {optionListId} was successfully deleted.");
+    }
 }

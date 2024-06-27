@@ -44,4 +44,12 @@ public class OptionsService : IOptionsService
 
         return updatedOptions;
     }
+
+    /// <inheritdoc />
+    public void DeleteOptions(string org, string repo, string developer, string optionListId)
+    {
+        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+
+        altinnAppGitRepository.DeleteOptions(optionListId);
+    }
 }
