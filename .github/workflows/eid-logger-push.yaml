@@ -1,8 +1,7 @@
 name: Eid logger docker build and push
 on:
-  pull_request:
+  push:
     branches: [ main ]
-    types: [opened, synchronize, reopened]
     paths:
       - 'eidlogger/**'
       - '.github/workflows/eid-logger-push.yaml'
