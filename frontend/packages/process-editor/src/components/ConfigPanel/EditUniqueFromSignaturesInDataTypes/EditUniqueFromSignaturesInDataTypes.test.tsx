@@ -13,6 +13,21 @@ import {
 } from '../../../../test/mocks/bpmnContextMock';
 import { getMockBpmnElementForTask, mockBpmnDetails } from '../../../../test/mocks/bpmnDetailsMock';
 
+const getExistingDataTypesProps = () => {
+  const element = getMockBpmnElementForTask('signing');
+  element.businessObject.extensionElements.values[0].signatureConfig.uniqueFromSignaturesInDataTypes =
+    { dataTypes: existingDataTypes.map((dataType) => ({ dataType: dataType.id })) };
+
+  return {
+    bpmnContextProps: {
+      bpmnDetails: {
+        ...mockBpmnDetails,
+        element,
+      },
+    },
+  };
+};
+
 const signingTasks = [
   {
     id: 'task_1',
@@ -58,19 +73,6 @@ const existingDataTypes = [
   { id: 'dataType2', name: 'Name 2' },
 ];
 
-const element = getMockBpmnElementForTask('signing');
-element.businessObject.extensionElements.values[0].signatureConfig.uniqueFromSignaturesInDataTypes =
-  { dataTypes: existingDataTypes.map((dataType) => ({ dataType: dataType.id })) };
-
-const existingDataTypesProps = {
-  bpmnContextProps: {
-    bpmnDetails: {
-      ...mockBpmnDetails,
-      element,
-    },
-  },
-};
-
 describe('EditUniqueFromSignaturesInDataTypes', () => {
   afterEach(jest.clearAllMocks);
 
@@ -88,7 +90,7 @@ describe('EditUniqueFromSignaturesInDataTypes', () => {
   it('should display the existing data type in preview when clicking the close button after edit mode', async () => {
     const user = userEvent.setup();
 
-    renderEditUniqueFromSignaturesInDataTypes(existingDataTypesProps);
+    renderEditUniqueFromSignaturesInDataTypes(getExistingDataTypesProps());
 
     const updateDataTypeButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_unique_from_signatures_in_data_types'),
@@ -109,7 +111,7 @@ describe('EditUniqueFromSignaturesInDataTypes', () => {
   it('should display the existing data type in preview as a button to edit and show all available data types including existing as options', async () => {
     const user = userEvent.setup();
 
-    renderEditUniqueFromSignaturesInDataTypes(existingDataTypesProps);
+    renderEditUniqueFromSignaturesInDataTypes(getExistingDataTypesProps());
 
     const updateDataTypeButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_unique_from_signatures_in_data_types'),
