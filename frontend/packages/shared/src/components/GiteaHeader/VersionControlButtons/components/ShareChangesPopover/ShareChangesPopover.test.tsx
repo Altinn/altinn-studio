@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ShareChangesPopover } from './ShareChangesPopover';
@@ -18,7 +18,7 @@ import { mockVersionControlButtonsContextValue } from '../../test/mocks/versionC
 const mockGetRepoStatus = jest.fn();
 
 describe('shareChanges', () => {
-  afterEach(jest.clearAllMocks);
+  beforeEach(jest.clearAllMocks);
 
   it('should call "getRepoStatus" when clicking the share changes button', async () => {
     const user = userEvent.setup();
@@ -103,6 +103,32 @@ describe('shareChanges', () => {
     });
 
     expect(shareButton).toHaveAttribute('disabled');
+  });
+
+  it('should display "changes to share" message when there are local changes or aheadBy is greater than 0', async () => {
+    const user = userEvent.setup();
+
+    const getRepoStatus = mockGetRepoStatus.mockImplementation(() =>
+      Promise.resolve({
+        contentStatus: [{ filePath: '', fileStatus: 'Modified' }],
+        aheadBy: 1,
+      }),
+    );
+    renderShareChangesPopover({ queries: { getRepoStatus } });
+
+    const shareButton = screen.getByRole('button', {
+      name: textMock('sync_header.changes_to_share'),
+    });
+    await user.click(shareButton);
+
+    await waitFor(() => expect(getRepoStatus).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(
+        screen.queryByText(textMock('sync_header.controlling_service_status')),
+      ).not.toBeInTheDocument(),
+    );
+    expect(screen.queryByText(textMock('sync_header.nothing_to_push'))).not.toBeInTheDocument();
+    expect(screen.getByText(textMock('sync_header.changes_to_share'))).toBeInTheDocument();
   });
 });
 
