@@ -53,6 +53,7 @@ describe('processActionsUtils', () => {
       expect(result).toEqual(true);
     });
   });
+  
   describe('isActionAvailable', () => {
     it('should return true if action is not available', () => {
       const existingActionElements = [{ action: 'write' }];
