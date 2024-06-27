@@ -128,7 +128,7 @@ export function App() {
   return (
     <div className={classes.container} ref={sessionExpiredPopoverRef}>
       <SessionExpiredModal
-        open={true} // TODO
+        open={remainingSessionMinutes < 11}
         onClose={handleClickClose}
         onContinue={handleClickContinue}
       />
