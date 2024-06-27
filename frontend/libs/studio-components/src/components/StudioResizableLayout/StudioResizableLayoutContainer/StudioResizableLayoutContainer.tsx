@@ -1,66 +1,77 @@
-import React, { Children, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { Children, useEffect, useRef } from 'react';
 import classes from './StudioResizableLayoutContainer.module.css';
-import { type StudioResizableLayoutElementProps } from './StudioResizableLayoutElement';
-import { useResizableFunctions } from '../hooks/useResizableFunctions';
+import { type StudioResizableLayoutElementProps } from '../StudioResizableLayoutElement/StudioResizableLayoutElement';
+import { useStudioResizableLayoutFunctions } from '../hooks/useStudioResizableFunctions';
+import { useTrackContainerSizes } from '../hooks/useTrackContainerSizes';
+import { StudioResizableLayoutContext } from '../context/StudioResizableLayoutContext';
 
 export type StudioResizableOrientation = 'horizontal' | 'vertical';
 
 export type StudioResizableLayoutContainerProps = {
+  layoutId: string;
   orientation: StudioResizableOrientation;
   children: React.ReactElement<StudioResizableLayoutElementProps>[];
+  /*localStorageContext?: string;*/
+  style?: React.CSSProperties;
 };
-
-export type StudioResizableLayoutContextProps = {
-  orientation: StudioResizableOrientation;
-  containerSizes: number[];
-  resizeDelta: (index: number, size: number) => void;
-  collapse: (index: number) => void;
-};
-
-export const StudioResizableLayoutContext =
-  React.createContext<Partial<StudioResizableLayoutContextProps>>(undefined);
 
 const StudioResizableLayoutContainer = ({
+  layoutId,
   children,
   orientation,
+  // localStorageContext = "default",
+  style,
 }: StudioResizableLayoutContainerProps): React.ReactElement => {
   const elementRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const [containerSizes, setContainerSizes] = useState<number[]>([]);
-  const { resizeTo, resizeDelta } = useResizableFunctions(
+  useEffect(() => {
+    elementRefs.current = elementRefs.current.slice(0, getValidChildren(children).length);
+  }, [children]);
+
+  const { containerSizes, setContainerSizes } = useTrackContainerSizes(layoutId);
+  const { resizeTo, resizeDelta, collapse } = useStudioResizableLayoutFunctions(
     orientation,
     elementRefs,
-    children,
-    setContainerSizes,
+    getValidChildren(children),
+    (index, size) => setContainerSizes((prev) => ({ ...prev, [index]: size })),
   );
 
-  const collapse = (index: number) => {
-    const collapsedSize = children[index].props.collapsedSize || 0;
-    resizeTo(index, collapsedSize);
+  const renderChildren = () => {
+    return Children.map(getValidChildren(children), (child, index) => {
+      const hasNeighbour = index < getValidChildren(children).length - 1;
+      return React.cloneElement(child, {
+        index,
+        hasNeighbour,
+        ref: (element: HTMLDivElement) => (elementRefs.current[index] = element),
+      });
+    });
   };
-
-  useEffect(() => {
-    elementRefs.current = elementRefs.current.slice(0, children.length);
-  }, [children]);
 
   return (
     <StudioResizableLayoutContext.Provider
-      value={{ resizeDelta, collapse, orientation, containerSizes }}
+      value={{ resizeDelta, resizeTo, collapse, orientation, containerSizes }}
     >
       <div
         className={classes.root}
-        style={{ flexDirection: orientation === 'horizontal' ? 'row' : 'column' }}
+        style={{ ...style, flexDirection: orientation === 'horizontal' ? 'row' : 'column' }}
       >
-        {Children.map(children, (child, index) => {
-          const hasNeighbour = index < children.length - 1;
-          return React.cloneElement(child, {
-            index,
-            hasNeighbour,
-            ref: (element: HTMLDivElement) => (elementRefs.current[index] = element),
-          });
-        })}
+        {renderChildren()}
       </div>
     </StudioResizableLayoutContext.Provider>
   );
+};
+
+const getValidChildren = (
+  children: React.ReactElement<
+    StudioResizableLayoutElementProps,
+    string | React.JSXElementConstructor<any>
+  >[],
+) => {
+  return Children.map(children, (child) => {
+    if (!child) {
+      return;
+    }
+    return child;
+  }).filter((child) => !!child);
 };
 
 StudioResizableLayoutContainer.displayName = 'StudioResizableLayout.Container';

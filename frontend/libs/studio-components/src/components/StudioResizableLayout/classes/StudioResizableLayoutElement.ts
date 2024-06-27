@@ -1,23 +1,37 @@
-export class StudioResizableLayoutElement {
+export class StudioResizableLayoutArea {
   constructor(
-    private element: HTMLElement,
-    public minimumSize: number,
+    public index: number,
+    public HTMLElementRef: HTMLElement,
+    public reactElement: React.ReactElement,
     public orientation: 'horizontal' | 'vertical',
   ) {
-    if (element === undefined) {
+    if (HTMLElementRef === undefined) {
       throw new Error('Element is undefined');
+    }
+    if (reactElement === undefined) {
+      throw new Error('React element is undefined');
     }
   }
 
   public get size() {
-    return this.orientation === 'vertical' ? this.element.offsetHeight! : this.element.offsetWidth!;
+    return this.orientation === 'vertical'
+      ? this.HTMLElementRef.offsetHeight!
+      : this.HTMLElementRef.offsetWidth!;
   }
 
   public get flexGrow() {
-    return parseFloat(this.element.style.flexGrow || '1');
+    return parseFloat(this.HTMLElementRef.style.flexGrow || '1');
   }
 
-  public set flexGrow(value: number) {
-    this.element.style.setProperty('flex-grow', value.toString());
+  public get minimumSize() {
+    return this.reactElement.props.minimumSize || 0;
+  }
+
+  public get collapsedSize() {
+    return this.reactElement.props.collapsedSize || 0;
+  }
+
+  public get collapsed() {
+    return this.reactElement.props.collapsed;
   }
 }
