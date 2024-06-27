@@ -13,7 +13,7 @@ import { EditActions } from './EditActions';
 import { EditPolicy } from './EditPolicy';
 import { EditDataTypesToSign } from '../EditDataTypesToSign';
 import { EditUniqueFromSignaturesInDataTypes } from '../EditUniqueFromSignaturesInDataTypes';
-import { StudioModeler } from '@altinn/process-editor/utils/bpmn/StudioModeler';
+import { StudioModeler } from '../../../utils/bpmn/StudioModeler';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
