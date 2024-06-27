@@ -31,5 +31,13 @@
   },
   "files": ["declaration.d.ts"],
   "include": ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "tmp", "./testing/cypress/**", "dist", "**/prettier.config.js"]
+  "exclude": [
+    "node_modules",
+    "tmp",
+    "./testing/cypress/**",
+    "./testing/playwright/**",
+    "./frontend/resourceadm/testing/playwright/**",
+    "dist",
+    "**/prettier.config.js"
+  ]
 }
