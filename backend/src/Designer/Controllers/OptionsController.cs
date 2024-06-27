@@ -31,7 +31,27 @@ public class OptionsController : ControllerBase
     }
 
     /// <summary>
-    /// Endpoint for fetching a specific option list.
+    /// Fetches a list the static option lists belonging to the app.
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <returns>Array of option lists. Empty array if none are found</returns>
+    [HttpGet]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public string[] GetOptionListIds(string org, string repo)
+    {
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+        string[] optionLists = _optionsService.GetOptionListIds(org, repo, developer);
+
+        return optionLists;
+    }
+
+    /// <summary>
+    /// Fetches a specific option list.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="repo">Application identifier which is unique within an organisation.</param>
@@ -42,7 +62,7 @@ public class OptionsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Route("{optionListId}")]
-    public async Task<ActionResult<List<Option>>> Get(string org, string repo, [FromRoute] string optionListId)
+    public async Task<ActionResult<List<Option>>> GetSingleOptionList(string org, string repo, [FromRoute] string optionListId)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
@@ -62,7 +82,7 @@ public class OptionsController : ControllerBase
     }
 
     /// <summary>
-    /// Endpoint for creating or overwriting an option list.
+    /// Creates or overwrites an option list.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="repo">Application identifier which is unique within an organisation.</param>
@@ -95,7 +115,7 @@ public class OptionsController : ControllerBase
     }
 
     /// <summary>
-    /// Endpoint for deleting an option list.
+    /// Deletes an option list.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="repo">Application identifier which is unique within an organisation.</param>
@@ -110,6 +130,6 @@ public class OptionsController : ControllerBase
 
         _optionsService.DeleteOptions(org, repo, developer, optionListId);
 
-        return Ok($"The options file {optionListId} was successfully deleted.");
+        return Ok($"The options file {optionListId}.json was successfully deleted.");
     }
 }

@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using LibGit2Sharp;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -20,6 +21,22 @@ public class OptionsService : IOptionsService
     public OptionsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
+    }
+
+    /// <inheritdoc />
+    public string[] GetOptionListIds(string org, string repo, string developer)
+    {
+        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+
+        try
+        {
+            string[] optionLists = altinnAppGitRepository.GetOptionListIds();
+            return optionLists;
+        }
+        catch (NotFoundException) // Is raised if the Options folder does not exist
+        {
+            return [];
+        }
     }
 
     /// <inheritdoc />

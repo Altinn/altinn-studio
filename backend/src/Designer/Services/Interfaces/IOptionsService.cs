@@ -10,6 +10,15 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 public interface IOptionsService
 {
     /// <summary>
+    /// Gets a list of file names from the Options folder representing the available options lists.
+    /// </summary>
+    /// <param name="org"></param>
+    /// <param name="repo"></param>
+    /// <param name="developer"></param>
+    /// <returns></returns>
+    public string[] GetOptionListIds(string org, string repo, string developer);
+
+    /// <summary>
     /// Gets a options file from the app repository with the specified optionListId.
     /// </summary>
     /// <param name="org">Organisation</param>

@@ -17,8 +17,26 @@ public class GetTests : DisagnerEndpointsTestsBase<GetTests>, IClassFixture<WebA
     }
 
     [Theory]
+    [InlineData("ttd", "app-with-options")]
+    public async Task GetOptionListIds_Returns_OptionListIds(string org, string repo)
+    {
+        // Arrange
+        string apiUrl = $"/designer/api/{org}/{repo}/options";
+        HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
+
+        // Act
+        HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        string responseBody = await response.Content.ReadAsStringAsync();
+        var responseList = JsonSerializer.Deserialize<string[]>(responseBody);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+        Assert.Equal(2, responseList.Length);
+    }
+
+    [Theory]
     [InlineData("ttd", "app-with-layoutsets", "test-options")]
-    public async Task Get_Returns_OptionList(string org, string repo, string optionListId)
+    public async Task GetSingleOptionList_Returns_OptionList(string org, string repo, string optionListId)
     {
         // Arrange
         // This expected list matches the list in 'app-with-layoutsets'
