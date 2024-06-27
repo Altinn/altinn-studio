@@ -76,15 +76,25 @@ const existingDataTypes = [
 describe('EditUniqueFromSignaturesInDataTypes', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should display a button to add unique signature when task has no data types', () => {
+  it('should display a button to add unique signature when task has no data types', async () => {
+    const user = userEvent.setup();
+
     renderEditUniqueFromSignaturesInDataTypes();
-    expect(
-      screen.getByRole('button', {
-        name: textMock(
-          'process_editor.configuration_panel_set_unique_from_signatures_in_data_types_link',
-        ),
-      }),
-    ).toBeInTheDocument();
+
+    const link = screen.getByRole('button', {
+      name: textMock(
+        'process_editor.configuration_panel_set_unique_from_signatures_in_data_types_link',
+      ),
+    });
+
+    await user.click(link);
+
+    const combobox = screen.getByRole('combobox', {
+      name: textMock('process_editor.configuration_panel_set_unique_from_signatures_in_data_types'),
+    });
+
+    await user.click(combobox);
+    expect(combobox).not.toHaveValue();
   });
 
   it('should display the existing data type in preview when clicking the close button after edit mode', async () => {
