@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 using Microsoft.AspNetCore.Authorization;
@@ -43,13 +44,13 @@ public class OptionsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Route("{optionsListId}")]
-    public async Task<ActionResult<List<Dictionary<string, string>>>> Get(string org, string repo, [FromRoute] string optionsListId)
+    public async Task<ActionResult<List<Option>>> Get(string org, string repo, [FromRoute] string optionsListId)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
         try
         {
-            List<Dictionary<string, string>> optionList = await _optionsService.GetOptionsList(org, repo, developer, optionsListId);
+            List<Option> optionList = await _optionsService.GetOptionsList(org, repo, developer, optionsListId);
             return Ok(optionList);
         }
         catch (IOException)
@@ -75,7 +76,7 @@ public class OptionsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Route("{optionsListId}")]
-    public async Task<ActionResult> Put(string org, string repo, [FromRoute] string optionsListId, [FromBody] List<Dictionary<string, string>> optionsListPayload)
+    public async Task<ActionResult> Put(string org, string repo, [FromRoute] string optionsListId, [FromBody] List<Option> optionsListPayload)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
@@ -86,7 +87,7 @@ public class OptionsController : ControllerBase
 
         try
         {
-            var newOptionsList = await _optionsService.CreateOrOverwriteOptionsList(org, repo, developer, optionsListId, optionsListPayload);
+            var newOptionsList = await _optionsService.UpdateOptionsList(org, repo, developer, optionsListId, optionsListPayload);
             return Ok(newOptionsList);
         }
         catch (IOException)

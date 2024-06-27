@@ -1,8 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -18,25 +18,42 @@ public class GetTests : DisagnerEndpointsTestsBase<GetTests>, IClassFixture<WebA
 
     [Theory]
     [InlineData("ttd", "app-with-layoutsets", "test-options")]
-    public async Task Get_Returns_OptionsList(string org, string repo, string optionsListId)
+    public async Task Get_Returns_OptionsList(string org, string repo, string optionListId)
     {
         // Arrange
-        var expectedOptionsList = new List<Dictionary<string, string>>
+        // This expected list matches the list in 'app-with-layoutsets'
+        var expectedOptionsList = new List<Option>
         {
-            new() { { "label", "label1" }, { "value", "value1" } },
-            new() { { "label", "label2" }, { "value", "value2" } }
+            new Option
+            {
+                Label = "label1",
+                Value = "value1",
+            },
+            new Option
+            {
+                Label = "label2",
+                Value = "value2",
+            }
         };
 
-        string apiUrl = $"/designer/api/{org}/{repo}/options/{optionsListId}";
+        string apiUrl = $"/designer/api/{org}/{repo}/options/{optionListId}";
         HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
 
         // Act
         HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string responseBody = await response.Content.ReadAsStringAsync();
-        var responseList = JsonSerializer.Deserialize<List<Dictionary<string, string>>>(responseBody);
+        var responseList = JsonSerializer.Deserialize<List<Option>>(responseBody);
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-        Assert.Equal(expectedOptionsList, responseList);
+        Assert.Equal(expectedOptionsList.Count, responseList.Count);
+
+        for (int i = 0; i < expectedOptionsList.Count; i++)
+        {
+            Assert.Equal(expectedOptionsList[i].Label, responseList[i].Label);
+            Assert.Equal(expectedOptionsList[i].Value, responseList[i].Value);
+            Assert.Equal(expectedOptionsList[i].Description, responseList[i].Description);
+            Assert.Equal(expectedOptionsList[i].HelpText, responseList[i].HelpText);
+        }
     }
 }
