@@ -1,0 +1,64 @@
+import React, { useState } from 'react';
+import { useBpmnContext } from '../../../contexts/BpmnContext';
+import { StudioProperty } from '@studio/components';
+import { useTranslation } from 'react-i18next';
+import { PersonPencilIcon } from '@studio/icons';
+import { SelectUniqueFromSignaturesInDataTypes } from './SelectUniqueFromSignaturesInDataTypes';
+import classes from './EditUniqueFromSignaturesInDataTypes.module.css';
+import { getSelectedDataTypes } from './UniqueFromSignaturesInDataTypesUtils';
+import { StudioModeler } from '../../../utils/bpmn/StudioModeler';
+
+export const EditUniqueFromSignaturesInDataTypes = () => {
+  const { t } = useTranslation();
+  const { bpmnDetails } = useBpmnContext();
+  const selectedDataTypes = getSelectedDataTypes(bpmnDetails);
+  const existingDataTypeForTask = selectedDataTypes.length > 0;
+
+  const [dataTypesToSignSelectVisible, setDataTypesToSignSelectVisible] = useState(false);
+
+  const studioModeler = new StudioModeler();
+  const tasks = studioModeler.getAllTasksByType('bpmn:Task');
+  const signingTasks = tasks
+    .filter((item) =>
+      selectedDataTypes.includes(
+        item.businessObject.extensionElements?.values[0]?.signatureConfig?.signatureDataType,
+      ),
+    )
+    .map((item) => item.businessObject.name);
+
+  return (
+    <>
+      {!existingDataTypeForTask && !dataTypesToSignSelectVisible ? (
+        <StudioProperty.Button
+          onClick={() => setDataTypesToSignSelectVisible(true)}
+          property={t(
+            'process_editor.configuration_panel_set_unique_from_signatures_in_data_types_link',
+          )}
+          size='small'
+          icon={<PersonPencilIcon />}
+        />
+      ) : dataTypesToSignSelectVisible ? (
+        <SelectUniqueFromSignaturesInDataTypes
+          onClose={() => setDataTypesToSignSelectVisible(false)}
+        />
+      ) : (
+        <StudioProperty.Button
+          onClick={() => setDataTypesToSignSelectVisible(true)}
+          property={t(
+            'process_editor.configuration_panel_set_unique_from_signatures_in_data_types',
+          )}
+          title={t('process_editor.configuration_panel_set_unique_from_signatures_in_data_types')}
+          value={
+            <>
+              {signingTasks?.map((dataType) => (
+                <div key={dataType} className={classes.dataType}>
+                  <PersonPencilIcon /> {dataType}
+                </div>
+              ))}
+            </>
+          }
+        />
+      )}
+    </>
+  );
+};

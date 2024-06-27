@@ -12,6 +12,8 @@ import { Accordion } from '@digdir/design-system-react';
 import { EditActions } from './EditActions';
 import { EditPolicy } from './EditPolicy';
 import { EditDataTypesToSign } from '../EditDataTypesToSign';
+import { EditUniqueFromSignaturesInDataTypes } from '../EditUniqueFromSignaturesInDataTypes';
+import { StudioModeler } from '@altinn/process-editor/utils/bpmn/StudioModeler';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -25,6 +27,12 @@ export const ConfigContent = (): React.ReactElement => {
   const existingDataTypeForTask = layoutSet?.dataType;
 
   const taskHasConnectedLayoutSet = layoutSets?.sets?.some((set) => set.tasks[0] == bpmnDetails.id);
+
+  const studioModeler = new StudioModeler();
+  const tasks = studioModeler.getAllTasksByType('bpmn:Task');
+  const isFirstSigningTask = tasks
+    .filter((item) => item.businessObject.extensionElements?.values[0]?.taskType === 'signing')
+    .some((item, index) => item.id === bpmnDetails.id && index === 0);
 
   return (
     <div className={classes.configContent}>
@@ -53,7 +61,12 @@ export const ConfigContent = (): React.ReactElement => {
           existingDataTypeForTask={existingDataTypeForTask}
         />
       )}
-      {bpmnDetails.taskType === 'signing' && <EditDataTypesToSign key={bpmnDetails.id} />}
+      {bpmnDetails.taskType === 'signing' && (
+        <EditDataTypesToSign key={`${bpmnDetails.id}-dataTypes`} />
+      )}
+      {bpmnDetails.taskType === 'signing' && !isFirstSigningTask && (
+        <EditUniqueFromSignaturesInDataTypes key={`${bpmnDetails.id}-uniqueSignature`} />
+      )}
       <Accordion color='neutral'>
         <Accordion.Item>
           <Accordion.Header>
