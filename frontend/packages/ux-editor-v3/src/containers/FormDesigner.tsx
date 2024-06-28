@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { Properties } from '../components/Properties';
 import { DesignView } from './DesignView';
@@ -32,7 +32,7 @@ import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayou
 import { Preview } from '../components/Preview';
 import { setSelectedLayoutInLocalStorage } from '../utils/localStorageUtils';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
-import previewGet from '@studio/testing/mockend/src/routes/preview-get';
+import { StudioResizableLayoutRoot } from 'libs/studio-components/src/components/StudioResizableLayout/StudioResizableLayoutContainer/StudioResizableLayoutRoot';
 import { FormDesignerToolbar } from './FormDesignerToolbar';
 
 export interface FormDesignerProps {
@@ -64,7 +64,6 @@ export const FormDesigner = ({
   );
   const [searchParams] = useSearchParams();
   const { handleEdit } = useFormItemContext();
-  const [previewCollapsed, setPreviewCollapsed] = useState<boolean>(false);
 
   const layoutPagesOrder = formLayoutSettings?.pages.order;
 
@@ -150,33 +149,27 @@ export const FormDesigner = ({
       <DragAndDropTree.Provider rootId={BASE_CONTAINER_ID} onMove={moveItem} onAdd={addItem}>
         <div className={classes.root}>
           <div className={classes.container}>
-            <StudioResizableLayout.Container orientation='horizontal'>
-              <StudioResizableLayout.Element minimumSize={262}>
+            <StudioResizableLayout.Root orientation='horizontal'>
+              <StudioResizableLayout.Container minimumSize={262}>
                 <Elements />
-              </StudioResizableLayout.Element>
-              <StudioResizableLayout.Element>
+              </StudioResizableLayout.Container>
+              <StudioResizableLayout.Container>
                 <DesignView />
-              </StudioResizableLayout.Element>
-              <StudioResizableLayout.Element>
-                <StudioResizableLayout.Container orientation='vertical'>
-                  <StudioResizableLayout.Element>
+              </StudioResizableLayout.Container>
+              <StudioResizableLayout.Container>
+                <StudioResizableLayout.Root orientation='vertical'>
+                  <StudioResizableLayout.Container>
                     <Properties key='asdf' />
-                  </StudioResizableLayout.Element>
-                  <StudioResizableLayout.Element>
+                  </StudioResizableLayout.Container>
+                  <StudioResizableLayout.Container>
                     <Properties key='asdasdff' />
-                  </StudioResizableLayout.Element>
-                </StudioResizableLayout.Container>
-              </StudioResizableLayout.Element>
-              <StudioResizableLayout.Element
-                collapsed={previewCollapsed}
-                collapsedSize={49}
-                minimumSize={400}
-              >
-                <Preview
-                  onCollapseToggle={(collapsed: boolean) => setPreviewCollapsed(collapsed)}
-                />
-              </StudioResizableLayout.Element>
-            </StudioResizableLayout.Container>
+                  </StudioResizableLayout.Container>
+                </StudioResizableLayout.Root>
+              </StudioResizableLayout.Container>
+              <StudioResizableLayout.Container>
+                <Preview />
+              </StudioResizableLayout.Container>
+            </StudioResizableLayout.Root>
           </div>
         </div>
       </DragAndDropTree.Provider>

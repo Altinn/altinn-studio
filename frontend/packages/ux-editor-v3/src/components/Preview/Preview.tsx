@@ -15,18 +15,13 @@ import { ViewToggler } from './ViewToggler/ViewToggler';
 import { ArrowRightIcon } from '@studio/icons';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
 
-export type PreviewProps = {
-  onCollapseToggle?: (collapsed: boolean) => void;
-};
-
-export const Preview = ({ onCollapseToggle }: PreviewProps) => {
+export const Preview = () => {
   const { t } = useTranslation();
   const [isPreviewHidden, setIsPreviewHidden] = useState<boolean>(false);
   const layoutName = useSelector(selectedLayoutNameSelector);
   const noPageSelected = layoutName === 'default' || layoutName === undefined;
 
   const togglePreview = (): void => {
-    onCollapseToggle?.(!isPreviewHidden);
     setIsPreviewHidden((prev: boolean) => !prev);
   };
 
