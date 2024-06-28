@@ -4,6 +4,7 @@ import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
+import { useTaskStore } from 'src/layout/Summary2/taskIdStore';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { useNodes } from 'src/utils/layout/NodesContext';
 import type { IApplicationMetadata } from 'src/features/applicationMetadata';
@@ -133,11 +134,17 @@ export function useMappedAttachments() {
   const nodes = useNodes();
   const formDataSelector = FD.useLaxDebouncedSelector();
 
+  const { overriddenTaskId } = useTaskStore(({ overriddenTaskId }) => ({
+    overriddenTaskId,
+  }));
+
+  const currentTaskId = overriddenTaskId || currentTask;
+
   return useMemoDeepEqual(() => {
     if (data && nodes && application) {
-      return mapAttachments(data, nodes, application, currentTask, formDataSelector);
+      return mapAttachments(data, nodes, application, currentTaskId, formDataSelector);
     }
 
     return undefined;
-  }, [data, nodes, application, currentTask, formDataSelector]);
+  }, [data, nodes, application, currentTaskId, formDataSelector]);
 }
