@@ -64,7 +64,6 @@ export const ThreeDotsMenu = ({
           <Link
             aschild='true'
             href={repositoryPath(org, app)}
-            target='_newTab'
             rel='noopener noreferrer'
             className={classes.link}
           >
