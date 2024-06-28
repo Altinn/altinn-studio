@@ -16,7 +16,7 @@ export const StudioResizableLayoutHandle = ({
   index,
   onResizing,
 }: StudioResizableLayoutHandleProps) => {
-  const { resizeDelta } = useStudioResizableLayoutContext(index);
+  const { resizeDelta, containerSize } = useStudioResizableLayoutContext(index);
   const { onMouseDown, isResizing } = useStudioResizableLayoutMouseMovement(
     orientation,
     (delta, _) => {
@@ -33,7 +33,9 @@ export const StudioResizableLayoutHandle = ({
     <div
       role='separator'
       tabIndex={0}
-      className={`${classes.resizeHandle} ${orientation === 'horizontal' ? classes.resizeHandleH : classes.resizeHandleV}`}
+      className={`${classes.resizeHandle}
+                  ${orientation === 'horizontal' ? classes.resizeHandleH : classes.resizeHandleV}
+                  ${containerSize < 0.05 ? classes.hideLeftSide : ''}`}
       onMouseDown={onMouseDown}
       onKeyDown={onKeyDown}
       style={{

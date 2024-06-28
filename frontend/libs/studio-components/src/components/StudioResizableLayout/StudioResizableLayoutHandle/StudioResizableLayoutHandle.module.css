@@ -29,3 +29,10 @@
 .resizeHandleV:after {
   inset: -6px 0px;
 }
+
+.hideLeftSide {
+}
+
+.hideLeftSide:after {
+  left: 0px;
+}
