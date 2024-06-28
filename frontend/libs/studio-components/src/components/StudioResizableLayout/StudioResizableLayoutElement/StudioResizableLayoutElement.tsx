@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import React, { forwardRef, useEffect } from 'react';
 import classes from './StudioResizableLayoutElement.module.css';
 import { useStudioResizableLayoutContext } from '../hooks/useStudioResizableLayoutContext';
 import { StudioResizableLayoutHandle } from '../StudioResizableLayoutHandle/StudioResizableLayoutHandle';

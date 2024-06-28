@@ -1,9 +1,8 @@
-import React, { act } from 'react';
+import React from 'react';
 import type { StudioResizableLayoutContainerProps } from './StudioResizableLayoutContainer';
 import { StudioResizableLayoutContainer } from './StudioResizableLayoutContainer';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { StudioResizableLayoutElement } from '../StudioResizableLayoutElement/StudioResizableLayoutElement';
-import userEvent from '@testing-library/user-event';
 
 describe('StudioResizableLayoutContainer', () => {
   it('should render just one handle with two elements', () => {
