@@ -8,7 +8,7 @@ using LibGit2Sharp;
 namespace Altinn.Studio.Designer.Services.Implementation;
 
 /// <summary>
-/// Service for handling option lists.
+/// Service for handling options (code lists).
 /// </summary>
 public class OptionsService : IOptionsService
 {
@@ -68,5 +68,19 @@ public class OptionsService : IOptionsService
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
         altinnAppGitRepository.DeleteOptions(optionListId);
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> OptionListExists(string org, string repo, string developer, string optionListId)
+    {
+        try
+        {
+            await GetOptions(org, repo, developer, optionListId);
+            return true;
+        }
+        catch (NotFoundException)
+        {
+            return false;
+        }
     }
 }

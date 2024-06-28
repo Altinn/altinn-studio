@@ -12,8 +12,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.Studio.Designer.Controllers;
 
 /// <summary>
-/// Controller containing actions related to options (codelists).
+/// Controller containing actions related to options (code lists).
 /// </summary>
+[ApiController]
 [Authorize]
 [AutoValidateAntiforgeryToken]
 [Route("designer/api/{org}/{repo:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/options")]
@@ -31,7 +32,7 @@ public class OptionsController : ControllerBase
     }
 
     /// <summary>
-    /// Fetches a list the static option lists belonging to the app.
+    /// Fetches a list of the static option lists belonging to the app.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="repo">Application identifier which is unique within an organisation.</param>
@@ -40,14 +41,13 @@ public class OptionsController : ControllerBase
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public string[] GetOptionListIds(string org, string repo)
+    public ActionResult<string[]> GetOptionListIds(string org, string repo)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
         string[] optionLists = _optionsService.GetOptionListIds(org, repo, developer);
 
-        return optionLists;
+        return Ok(optionLists);
     }
 
     /// <summary>
@@ -82,6 +82,40 @@ public class OptionsController : ControllerBase
     }
 
     /// <summary>
+    /// Create an option list
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <param name="optionListId">Name of the new option list</param>
+    /// <param name="payload">The option list contents</param>
+    /// <returns>The created option list</returns>
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [Route("{optionListId}")]
+    public async Task<ActionResult> Post(string org, string repo, [FromRoute] string optionListId, [FromBody] List<Option> payload)
+    {
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+        bool optionListAlreadyExists = await _optionsService.OptionListExists(org, repo, developer, optionListId);
+        if (optionListAlreadyExists)
+        {
+            return Conflict("The option list already exists.");
+        }
+
+        try
+        {
+            var newOptionList = await _optionsService.UpdateOptions(org, repo, developer, optionListId, payload);
+            return CreatedAtAction("GetSingleOptionList", new { org, repo, optionListId }, newOptionList);
+        }
+        catch (IOException)
+        {
+            return new ObjectResult(new { errorMessage = $"An error occurred while saving the file {optionListId}.json." }) { StatusCode = 500 };
+        }
+    }
+
+    /// <summary>
     /// Creates or overwrites an option list.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -90,18 +124,13 @@ public class OptionsController : ControllerBase
     /// <param name="payload">Contents of the option list.</param>
     [HttpPut]
     [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Route("{optionListId}")]
     public async Task<ActionResult> Put(string org, string repo, [FromRoute] string optionListId, [FromBody] List<Option> payload)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
-        if (payload == null || payload.Count == 0)
-        {
-            return BadRequest("The option list has an invalid format.");
-        }
 
         try
         {
@@ -123,13 +152,19 @@ public class OptionsController : ControllerBase
     [HttpDelete]
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [Route("{optionListId}")]
-    public ActionResult<string> Delete(string org, string repo, [FromRoute] string optionListId)
+    public async Task<ActionResult> Delete(string org, string repo, [FromRoute] string optionListId)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        _optionsService.DeleteOptions(org, repo, developer, optionListId);
+        bool optionListExists = await _optionsService.OptionListExists(org, repo, developer, optionListId);
+        if (!optionListExists)
+        {
+            return NotFound($"The options file {optionListId}.json does not exist.");
+        }
 
+        _optionsService.DeleteOptions(org, repo, developer, optionListId);
         return Ok($"The options file {optionListId}.json was successfully deleted.");
     }
 }

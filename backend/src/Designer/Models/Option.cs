@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis;
 
@@ -11,12 +12,14 @@ public class Option
     /// <summary>
     /// Value that connects the option to the data model.
     /// </summary>
+    [Required]
     [JsonPropertyName("value")]
     public string Value { get; set; }
 
     /// <summary>
     /// Label to present to the user.
     /// </summary>
+    [Required]
     [JsonPropertyName("label")]
     public string Label { get; set; }
 

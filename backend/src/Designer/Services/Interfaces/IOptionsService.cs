@@ -47,4 +47,13 @@ public interface IOptionsService
     /// <param name="developer">Username of developer</param>
     /// <param name="optionListId">Name of the new options list</param>
     public void DeleteOptions(string org, string repo, string developer, string optionListId);
+
+    /// <summary>
+    /// Checks if an options list exists in the app repository.
+    /// </summary>
+    /// <param name="org">Organisation</param>
+    /// <param name="repo">Repository</param>
+    /// <param name="developer">Username of developer</param>
+    /// <param name="optionListId">Name of the options list</param>
+    public Task<bool> OptionListExists(string org, string repo, string developer, string optionListId);
 }
