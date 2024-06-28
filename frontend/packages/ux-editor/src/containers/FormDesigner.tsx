@@ -149,9 +149,8 @@ export const FormDesigner = (): JSX.Element => {
           <FormDesignerToolbar></FormDesignerToolbar>
           <div className={classes.container}>
             <StudioResizableLayout.Container
-              layoutId='form-designer-main'
               orientation='horizontal'
-              localStorageContext={`${user.id}`}
+              localStorageContext={`form-designer-main:${user.id}:${org}`}
             >
               <StudioResizableLayout.Element minimumSize={262}>
                 <Elements />

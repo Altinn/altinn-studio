@@ -8,15 +8,14 @@ import { StudioResizableLayoutContext } from '../context/StudioResizableLayoutCo
 export type StudioResizableOrientation = 'horizontal' | 'vertical';
 
 export type StudioResizableLayoutContainerProps = {
-  layoutId: string;
-  orientation: StudioResizableOrientation;
-  children: React.ReactElement<StudioResizableLayoutElementProps>[];
   localStorageContext?: string;
+  orientation: StudioResizableOrientation;
   style?: React.CSSProperties;
+
+  children: React.ReactElement<StudioResizableLayoutElementProps>[];
 };
 
 const StudioResizableLayoutContainer = ({
-  layoutId,
   children,
   orientation,
   localStorageContext = 'default',
@@ -27,10 +26,7 @@ const StudioResizableLayoutContainer = ({
     elementRefs.current = elementRefs.current.slice(0, getValidChildren(children).length);
   }, [children]);
 
-  const { containerSizes, setContainerSizes } = useTrackContainerSizes(
-    layoutId,
-    localStorageContext,
-  );
+  const { containerSizes, setContainerSizes } = useTrackContainerSizes(localStorageContext);
   const { resizeTo, resizeDelta, collapse } = useStudioResizableLayoutFunctions(
     orientation,
     elementRefs,

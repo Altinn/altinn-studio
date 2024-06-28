@@ -23,6 +23,7 @@ const StudioResizableLayoutElement = forwardRef<HTMLDivElement, StudioResizableL
   (
     {
       index,
+      minimumSize = 0,
       collapsed,
       children,
       hasNeighbour = false,
@@ -31,14 +32,14 @@ const StudioResizableLayoutElement = forwardRef<HTMLDivElement, StudioResizableL
     }: StudioResizableLayoutElementProps,
     ref,
   ) => {
-    const { resizeDelta, collapse, orientation, containerSize } =
+    const { resizeTo, collapse, orientation, containerSize } =
       useStudioResizableLayoutContext(index);
 
     useEffect(() => {
       if (collapsed) {
         collapse(index);
       } else {
-        resizeDelta(index, 0);
+        resizeTo(index, minimumSize);
       }
       // disable linter as we only want to run this effect if the collapsed prop changes
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -47,7 +48,6 @@ const StudioResizableLayoutElement = forwardRef<HTMLDivElement, StudioResizableL
     return (
       <>
         <div className={classes.container} style={{ ...style, flexGrow: containerSize }} ref={ref}>
-          {collapsed}
           {children}
         </div>
         {hasNeighbour && (

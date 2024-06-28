@@ -1,11 +1,11 @@
 import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import { useEffect, useState } from 'react';
 
-export const useTrackContainerSizes = (layoutId: string, localStorageContextKey: string) => {
+export const useTrackContainerSizes = (localStorageContextKey: string) => {
   const [containerSizes, setContainerSizes] = useState<number[]>([]);
 
   const [value, setValue] = useLocalStorage(
-    `studio:resizable-layout:${layoutId}:${localStorageContextKey}`,
+    `studio:resizable-layout:${localStorageContextKey}`,
     containerSizes,
   );
   useEffect(() => {
