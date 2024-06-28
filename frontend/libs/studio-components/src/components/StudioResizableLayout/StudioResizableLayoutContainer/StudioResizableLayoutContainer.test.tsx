@@ -1,41 +1,68 @@
-import React from 'react';
+import React, { act } from 'react';
 import type { StudioResizableLayoutContainerProps } from './StudioResizableLayoutContainer';
 import { StudioResizableLayoutContainer } from './StudioResizableLayoutContainer';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { StudioResizableLayoutElement } from '../StudioResizableLayoutElement/StudioResizableLayoutElement';
+import userEvent from '@testing-library/user-event';
 
 describe('StudioResizableLayoutContainer', () => {
-  it('should render children', () => {
-    renderStudioResizableLayoutContainer();
-    expect(screen.getByTestId('childone')).toBeInTheDocument();
-    expect(screen.getByTestId('childtwo')).toBeInTheDocument();
-  });
-
-  it('should render just one handle with two children', () => {
+  it('should render just one handle with two elements', () => {
     renderStudioResizableLayoutContainer();
     expect(screen.getAllByRole('separator').length).toBe(1);
   });
+
+  it('should resize containers', () => {
+    renderStudioResizableLayoutContainer();
+    const handle = screen.getByRole('separator');
+
+    dragHandle(handle, { clientX: 400 }, { clientX: 200 });
+
+    expect(screen.getAllByTestId('resizablelayoutelement')[0].style.flexGrow).toBe('0.5');
+    expect(screen.getAllByTestId('resizablelayoutelement')[1].style.flexGrow).toBe('1.5');
+  });
+
+  it('should not resize containers below minimum size', () => {
+    // minimum flexgrow should be minimumSize/containerSize=0.25
+    renderStudioResizableLayoutContainer();
+    const handle = screen.getByRole('separator');
+
+    dragHandle(handle, { clientX: 400 }, { clientX: 0 });
+    expect(screen.getAllByTestId('resizablelayoutelement')[0].style.flexGrow).toBe('0.25');
+    expect(screen.getAllByTestId('resizablelayoutelement')[1].style.flexGrow).toBe('1.75');
+
+    dragHandle(handle, { clientX: 0 }, { clientX: 800 });
+    expect(screen.getAllByTestId('resizablelayoutelement')[0].style.flexGrow).toBe('1.75');
+    expect(screen.getAllByTestId('resizablelayoutelement')[1].style.flexGrow).toBe('0.25');
+  });
 });
+
+const dragHandle = (
+  handle: HTMLElement,
+  from: { clientX?: number; clientY?: number },
+  to: { clientX?: number; clientY?: number },
+) => {
+  fireEvent.mouseDown(handle, from);
+  fireEvent.mouseMove(handle, to);
+  fireEvent.mouseUp(handle, to);
+};
 
 const renderStudioResizableLayoutContainer = (
   props: Partial<StudioResizableLayoutContainerProps> = {},
 ) => {
-  const defaultProps: StudioResizableLayoutContainerProps = {
-    layoutId: 'test',
-    orientation: 'horizontal',
-    children: [],
-  };
+  Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
+    value: 400,
+  });
   return render(
-    <StudioResizableLayoutContainer {...defaultProps} {...props}>
-      <StudioResizableLayoutElement minimumSize={262}>
-        <div data-testid='childone' style={{ width: 400 }}>
-          test1
-        </div>
+    <StudioResizableLayoutContainer
+      style={{ width: 800, height: 800 }}
+      orientation='horizontal'
+      {...props}
+    >
+      <StudioResizableLayoutElement minimumSize={100}>
+        <div>test1</div>
       </StudioResizableLayoutElement>
-      <StudioResizableLayoutElement minimumSize={262}>
-        <div data-testid='childtwo' style={{ width: 400 }}>
-          test1
-        </div>
+      <StudioResizableLayoutElement minimumSize={100}>
+        <div>test1</div>
       </StudioResizableLayoutElement>
     </StudioResizableLayoutContainer>,
   );

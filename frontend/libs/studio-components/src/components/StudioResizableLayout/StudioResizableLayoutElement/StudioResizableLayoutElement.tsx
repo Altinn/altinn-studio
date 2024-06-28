@@ -47,7 +47,12 @@ const StudioResizableLayoutElement = forwardRef<HTMLDivElement, StudioResizableL
 
     return (
       <>
-        <div className={classes.container} style={{ ...style, flexGrow: containerSize }} ref={ref}>
+        <div
+          data-testid='resizablelayoutelement'
+          className={classes.container}
+          style={{ ...style, flexGrow: containerSize }}
+          ref={ref}
+        >
           {children}
         </div>
         {hasNeighbour && (

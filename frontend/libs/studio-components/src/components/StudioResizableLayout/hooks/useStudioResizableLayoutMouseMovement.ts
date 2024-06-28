@@ -14,7 +14,7 @@ export const useStudioResizableLayoutMouseMovement = (
 
   const mouseMove = useCallback(
     (event: MouseEvent) => {
-      const mousePos = orientation === 'horizontal' ? event.pageX : event.pageY;
+      const mousePos = orientation === 'horizontal' ? event.clientX : event.clientY;
       const mouseTotalDelta = mousePos - startMousePosition.current;
       const mouseDelta = mousePos - lastMousePosition.current;
       onMousePosChange(mouseDelta, mouseTotalDelta);
@@ -37,7 +37,7 @@ export const useStudioResizableLayoutMouseMovement = (
       if (event.button !== 0) return;
       event.preventDefault();
       setIsResizing(true);
-      lastMousePosition.current = orientation === 'horizontal' ? event.pageX : event.pageY;
+      lastMousePosition.current = orientation === 'horizontal' ? event.clientX : event.clientY;
       startMousePosition.current = lastMousePosition.current;
       window.addEventListener('mousemove', mouseMove);
       window.addEventListener('mouseup', mouseUp);
