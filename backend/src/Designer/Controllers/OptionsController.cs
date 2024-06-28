@@ -1,10 +1,9 @@
 using System.Collections.Generic;
-using System.IO;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -60,7 +59,6 @@ public class OptionsController : ControllerBase
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Route("{optionListId}")]
     public async Task<ActionResult<List<Option>>> GetSingleOptionList(string org, string repo, [FromRoute] string optionListId)
     {
@@ -71,13 +69,9 @@ public class OptionsController : ControllerBase
             List<Option> optionList = await _optionsService.GetOptions(org, repo, developer, optionListId);
             return Ok(optionList);
         }
-        catch (IOException)
+        catch (NotFoundException)
         {
             return NotFound($"The options file {optionListId}.json does not exist.");
-        }
-        catch (JsonException)
-        {
-            return new ObjectResult(new { errorMessage = $"The format of the file {optionListId}.json might be invalid." }) { StatusCode = 500 };
         }
     }
 
@@ -92,7 +86,7 @@ public class OptionsController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     [Route("{optionListId}")]
     public async Task<ActionResult> Post(string org, string repo, [FromRoute] string optionListId, [FromBody] List<Option> payload)
     {
@@ -104,15 +98,8 @@ public class OptionsController : ControllerBase
             return Conflict("The option list already exists.");
         }
 
-        try
-        {
-            var newOptionList = await _optionsService.UpdateOptions(org, repo, developer, optionListId, payload);
-            return CreatedAtAction("GetSingleOptionList", new { org, repo, optionListId }, newOptionList);
-        }
-        catch (IOException)
-        {
-            return new ObjectResult(new { errorMessage = $"An error occurred while saving the file {optionListId}.json." }) { StatusCode = 500 };
-        }
+        var newOptionList = await _optionsService.UpdateOptions(org, repo, developer, optionListId, payload);
+        return CreatedAtAction("GetSingleOptionList", new { org, repo, optionListId }, newOptionList);
     }
 
     /// <summary>
@@ -126,21 +113,14 @@ public class OptionsController : ControllerBase
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Route("{optionListId}")]
     public async Task<ActionResult> Put(string org, string repo, [FromRoute] string optionListId, [FromBody] List<Option> payload)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        try
-        {
-            var newOptionList = await _optionsService.UpdateOptions(org, repo, developer, optionListId, payload);
-            return Ok(newOptionList);
-        }
-        catch (IOException)
-        {
-            return new ObjectResult(new { errorMessage = $"An error occurred while saving the file {optionListId}.json." }) { StatusCode = 500 };
-        }
+        var newOptionList = await _optionsService.UpdateOptions(org, repo, developer, optionListId, payload);
+
+        return Ok(newOptionList);
     }
 
     /// <summary>

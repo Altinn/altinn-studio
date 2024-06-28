@@ -16,12 +16,12 @@ public class GetTests : DisagnerEndpointsTestsBase<GetTests>, IClassFixture<WebA
     {
     }
 
-    [Theory]
-    [InlineData("ttd", "app-with-options")]
-    public async Task GetOptionListIds_Returns_OptionListIds(string org, string repo)
+    [Fact]
+    public async Task GetOptionListIds_Returns_200OK_With_OptionListIds()
     {
         // Arrange
-        string apiUrl = $"/designer/api/{org}/{repo}/options";
+        const string repo = "app-with-options";
+        string apiUrl = $"/designer/api/ttd/{repo}/options";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
 
         // Act
@@ -34,12 +34,32 @@ public class GetTests : DisagnerEndpointsTestsBase<GetTests>, IClassFixture<WebA
         Assert.Equal(2, responseList.Length);
     }
 
-    [Theory]
-    [InlineData("ttd", "app-with-layoutsets", "test-options")]
-    public async Task GetSingleOptionList_Returns_OptionList(string org, string repo, string optionListId)
+    [Fact]
+    public async Task GetOptionListIds_Returns_200OK_With_Empty_OptionListId_Array()
     {
         // Arrange
-        // This expected list matches the list in 'app-with-layoutsets'
+        const string repo = "empty-app";
+        string apiUrl = $"/designer/api/ttd/{repo}/options";
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
+
+        // Act
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        string responseBody = await response.Content.ReadAsStringAsync();
+        string[] responseList = JsonSerializer.Deserialize<string[]>(responseBody);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+        Assert.Empty(responseList);
+    }
+
+    [Fact]
+    public async Task GetSingleOptionList_Returns_200Ok_With_OptionList()
+    {
+        // Arrange
+        const string repo = "app-with-options";
+        const string optionListId = "test-options";
+
+        // This  option list matches the list in 'app-with-options'
         var expectedOptionList = new List<Option>
         {
             new Option
@@ -54,7 +74,7 @@ public class GetTests : DisagnerEndpointsTestsBase<GetTests>, IClassFixture<WebA
             }
         };
 
-        string apiUrl = $"/designer/api/{org}/{repo}/options/{optionListId}";
+        string apiUrl = $"/designer/api/ttd/{repo}/options/{optionListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
 
         // Act
@@ -73,5 +93,22 @@ public class GetTests : DisagnerEndpointsTestsBase<GetTests>, IClassFixture<WebA
             Assert.Equal(expectedOptionList[i].Description, responseList[i].Description);
             Assert.Equal(expectedOptionList[i].HelpText, responseList[i].HelpText);
         }
+    }
+
+    [Fact]
+    public async Task GetSingleOptionList_Returns_404NotFound_When_OptionList_Does_Not_Exist()
+    {
+        // Arrange
+        const string repo = "empty-app";
+        const string optionListId = "non-existing-options";
+
+        string apiUrl = $"/designer/api/ttd/{repo}/options/{optionListId}";
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
+
+        // Act
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
     }
 }

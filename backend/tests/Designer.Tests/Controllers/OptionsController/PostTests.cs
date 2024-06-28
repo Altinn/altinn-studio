@@ -18,13 +18,18 @@ public class PostTests : DisagnerEndpointsTestsBase<PostTests>, IClassFixture<We
     {
     }
 
-    [Theory]
-    [InlineData("ttd", "empty-app", "testUser", "new-option-list")]
-    public async Task Post_Returns_201Created_When_OptionList_Is_Created(string org, string repo, string developer, string optionListId)
+    private const string Org = "ttd";
+    private const string Developer = "testUser";
+
+    [Fact]
+    public async Task Post_Returns_201Created_When_OptionList_Is_Created()
     {
+        const string repo = "empty-app";
+        const string optionListId = "new-option-list";
+
         // Arrange
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await CopyRepositoryForTest(org, repo, developer, targetRepository);
+        await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
 
         var newOptionsList = new List<Option>
         {
@@ -40,7 +45,7 @@ public class PostTests : DisagnerEndpointsTestsBase<PostTests>, IClassFixture<We
             }
         };
 
-        string apiUrl = $"/designer/api/{org}/{targetRepository}/options/{optionListId}";
+        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
         httpRequestMessage.Content = JsonContent.Create(newOptionsList);
 
@@ -60,13 +65,15 @@ public class PostTests : DisagnerEndpointsTestsBase<PostTests>, IClassFixture<We
         }
     }
 
-    [Theory]
-    [InlineData("ttd", "app-with-options", "testUser", "test-options")]
-    public async Task Post_Returns_409Conflict_When_OptionList_Already_Exists(string org, string repo, string developer, string optionListId)
+    [Fact]
+    public async Task Post_Returns_409Conflict_When_OptionList_Already_Exists()
     {
         // Arrange
+        const string repo = "app-with-options";
+        const string optionListId = "test-options";
+
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await CopyRepositoryForTest(org, repo, developer, targetRepository);
+        await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
 
         var newOptionsList = new List<Option>
         {
@@ -82,7 +89,7 @@ public class PostTests : DisagnerEndpointsTestsBase<PostTests>, IClassFixture<We
             }
         };
 
-        string apiUrl = $"/designer/api/{org}/{targetRepository}/options/{optionListId}";
+        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
         httpRequestMessage.Content = JsonContent.Create(newOptionsList);
 
@@ -94,49 +101,38 @@ public class PostTests : DisagnerEndpointsTestsBase<PostTests>, IClassFixture<We
     }
 
     [Theory]
-    [InlineData("ttd", "empty-app", "testUser", "null-option-list")]
-    public async Task Post_Returns_400BadRequest_When_OptionList_Is_Null(string org, string repo, string developer, string optionListId)
-    {
-        // Arrange
-        string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await CopyRepositoryForTest(org, repo, developer, targetRepository);
-
-        string apiUrl = $"/designer/api/{org}/{targetRepository}/options/{optionListId}";
-        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
-        httpRequestMessage.Content = JsonContent.Create<List<Option>>(null);
-
-        // Act
-        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-
-        // Assert
-        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
-    }
-
-    [Theory]
-    [InlineData("ttd", "empty-app", "testUser", "invalid-option-list")]
+    [InlineData("ttd", "empty-app", "testUser", "options-missing-label")]
+    [InlineData("ttd", "empty-app", "testUser", "options-empty-json")]
     public async Task Post_Returns_400BadRequest_When_OptionList_Format_Is_Invalid(string org, string repo, string developer, string optionListId)
     {
         // Arrange
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, repo, developer, targetRepository);
 
-        var invalidOptionsList = new List<Option>
-        {
-            new Option
-            {
-                // Label field is missing
-                Value = "value1",
-            },
-            new Option
-            {
-                Label = "label2",
-                Value = "value2",
-            }
-        };
-
         string apiUrl = $"/designer/api/{org}/{targetRepository}/options/{optionListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
-        httpRequestMessage.Content = JsonContent.Create(invalidOptionsList);
+
+        if (optionListId == "options-missing-label")
+        {
+            var invalidOptionsList = new List<Option>
+            {
+                new Option
+                {
+                    // Missing Label
+                    Value = "value1",
+                },
+                new Option
+                {
+                    Label = "label2",
+                    Value = "value2",
+                }
+            };
+            httpRequestMessage.Content = JsonContent.Create(invalidOptionsList);
+        }
+        else if (optionListId == "options-empty-json")
+        {
+            httpRequestMessage.Content = JsonContent.Create<List<Option>>(null);
+        }
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

@@ -15,15 +15,20 @@ public class DeleteTests : DisagnerEndpointsTestsBase<DeleteTests>, IClassFixtur
     {
     }
 
-    [Theory]
-    [InlineData("ttd", "app-with-layoutsets", "testUser", "test-options")]
-    public async Task Delete_Returns_200_When_Deleting_OptionList(string org, string repo, string developer, string optionListId)
+    private const string Org = "ttd";
+    private const string Developer = "testUser";
+
+    [Fact]
+    public async Task Delete_Returns_200OK_When_Deleting_OptionList()
     {
         // Arrange
-        string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await CopyRepositoryForTest(org, repo, developer, targetRepository);
+        const string repo = "app-with-options";
+        const string optionListId = "test-options";
 
-        string apiUrl = $"/designer/api/{org}/{targetRepository}/options/{optionListId}";
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
+
+        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, apiUrl);
 
         // Act
@@ -34,5 +39,28 @@ public class DeleteTests : DisagnerEndpointsTestsBase<DeleteTests>, IClassFixtur
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         Assert.Equal($"The options file {optionListId}.json was successfully deleted.", responseDocument.RootElement.ToString());
+    }
+
+    [Fact]
+    public async Task Delete_Returns_404NotFound_When_OptionList_Does_Not_Exist()
+    {
+        // Arrange
+        const string repo = "empty-app";
+        const string optionListId = "non-existing-options";
+
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
+
+        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionListId}";
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, apiUrl);
+
+        // Act
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        string responseBody = await response.Content.ReadAsStringAsync();
+        JsonDocument responseDocument = JsonDocument.Parse(responseBody);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
+        Assert.Equal($"The options file {optionListId}.json does not exist.", responseDocument.RootElement.ToString());
     }
 }
