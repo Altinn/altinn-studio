@@ -169,7 +169,7 @@ test('that the user can edit the id of a task and add data-types to sign', async
   await editRandomGeneratedId(processEditorPage, randomGeneratedId, newId);
 
   await processEditorPage.signingTaskConfig.clickDataTypesToSignCombobox();
-  const dataTypeToSign: string = 'ref-data-as-pdf';
+  const dataTypeToSign: string = 'model';
   await processEditorPage.signingTaskConfig.clickOnDataTypesToSignOption(dataTypeToSign);
   await processEditorPage.signingTaskConfig.waitForDataTypeToSignButtonToBeVisible(dataTypeToSign);
   await processEditorPage.pressEscapeOnKeyboard();
