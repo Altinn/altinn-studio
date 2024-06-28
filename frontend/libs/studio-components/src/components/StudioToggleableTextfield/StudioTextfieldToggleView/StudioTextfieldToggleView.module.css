@@ -9,6 +9,15 @@
   display: flex;
   align-items: center;
   color: var(--fds-semantic-text-neutral-default);
+  width: 100%;
+}
+
+.componentIdInViewMode {
+  display: flex;
+  flex-direction: column;
+  text-overflow: ellipsis;
+  overflow: auto;
+  overflow-wrap: break-word;
 }
 
 .editIconWrapper {

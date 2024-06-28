@@ -4,7 +4,7 @@
   border-radius: var(--fds-border_radius-medium);
   border: 0;
   box-shadow: var(--fds-shadow-small);
-  display: grid;
+  display: contents;
   gap: var(--studio-expression-spacing);
   grid-template-columns: [start] 1fr auto [end];
   margin: 0;
@@ -18,10 +18,12 @@
 
 .legendContent {
   margin-left: var(--studio-expression-spacing);
+  overflow-wrap: break-word;
 }
 
 .deleteButton {
   margin-right: var(--studio-expression-spacing);
+  width: 100%;
 }
 
 .legendContent,

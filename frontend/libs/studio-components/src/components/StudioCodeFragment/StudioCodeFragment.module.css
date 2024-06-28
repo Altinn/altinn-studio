@@ -4,9 +4,9 @@
   border: 1px solid var(--fds-semantic-border-neutral-subtle);
   border-radius: var(--fds-border_radius-small);
   font-family: 'Courier New', monospace;
-  font-size: 0.9em;
+  font-size: 0.8em;
   padding: 0 var(--fds-spacing-1);
   overflow: auto;
-  height: 28px;
+  height: 2em;
   overflow-y: hidden;
 }
