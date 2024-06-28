@@ -17,8 +17,10 @@ export const Elements = () => {
   const { org, app } = useStudioEnvironmentParams();
   const selectedLayout: string = useSelector(selectedLayoutNameSelector);
   const { selectedLayoutSet } = useAppContext();
+  const layoutSetsQuery = useLayoutSetsQuery(org, app);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const receiptName = formLayoutSettings?.receiptLayoutName;
+  const layoutSetNames = layoutSetsQuery?.data?.sets;
 
   const hideComponents = selectedLayout === 'default' || selectedLayout === undefined;
 
@@ -26,6 +28,7 @@ export const Elements = () => {
 
   return (
     <div className={classes.root}>
+      {layoutSetNames && <LayoutSetsContainer />}
       <Heading size='xxsmall' className={classes.componentsHeader}>
         {t('left_menu.components')}
       </Heading>

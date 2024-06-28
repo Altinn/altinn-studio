@@ -10,7 +10,7 @@ import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
 import { useRuleModelQuery } from '../hooks/queries/useRuleModelQuery';
 import { ErrorPage } from '../components/ErrorPage';
-import { StudioPageSpinner, StudioResizableLayout } from '@studio/components';
+import { StudioPageSpinner } from '@studio/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
@@ -32,8 +32,6 @@ import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayou
 import { Preview } from '../components/Preview';
 import { setSelectedLayoutInLocalStorage } from '../utils/localStorageUtils';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
-import { StudioResizableLayoutRoot } from 'libs/studio-components/src/components/StudioResizableLayout/StudioResizableLayoutContainer/StudioResizableLayoutRoot';
-import { FormDesignerToolbar } from './FormDesignerToolbar';
 
 export interface FormDesignerProps {
   selectedLayout: string;
@@ -149,27 +147,10 @@ export const FormDesigner = ({
       <DragAndDropTree.Provider rootId={BASE_CONTAINER_ID} onMove={moveItem} onAdd={addItem}>
         <div className={classes.root}>
           <div className={classes.container}>
-            <StudioResizableLayout.Root orientation='horizontal'>
-              <StudioResizableLayout.Container minimumSize={262}>
-                <Elements />
-              </StudioResizableLayout.Container>
-              <StudioResizableLayout.Container>
-                <DesignView />
-              </StudioResizableLayout.Container>
-              <StudioResizableLayout.Container>
-                <StudioResizableLayout.Root orientation='vertical'>
-                  <StudioResizableLayout.Container>
-                    <Properties key='asdf' />
-                  </StudioResizableLayout.Container>
-                  <StudioResizableLayout.Container>
-                    <Properties key='asdasdff' />
-                  </StudioResizableLayout.Container>
-                </StudioResizableLayout.Root>
-              </StudioResizableLayout.Container>
-              <StudioResizableLayout.Container>
-                <Preview />
-              </StudioResizableLayout.Container>
-            </StudioResizableLayout.Root>
+            <Elements />
+            <DesignView />
+            <Properties />
+            <Preview />
           </div>
         </div>
       </DragAndDropTree.Provider>
