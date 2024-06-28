@@ -6,14 +6,14 @@ import { StudioResizableLayoutContainer } from './StudioResizableLayoutContainer
 import { StudioResizableLayoutContext } from './context/StudioResizableLayoutContext';
 
 type StudioResizableLayoutComponent = {
-  Element: typeof StudioResizableLayoutElement;
   Container: typeof StudioResizableLayoutContainer;
+  Element: typeof StudioResizableLayoutElement;
   Context: typeof StudioResizableLayoutContext;
 };
 
 export const StudioResizableLayout: StudioResizableLayoutComponent = {
-  Element: StudioResizableLayoutElement,
   Container: StudioResizableLayoutContainer,
+  Element: StudioResizableLayoutElement,
   Context: StudioResizableLayoutContext,
 };
 

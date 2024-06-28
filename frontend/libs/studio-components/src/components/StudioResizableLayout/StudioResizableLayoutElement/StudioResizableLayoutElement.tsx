@@ -19,10 +19,9 @@ export type StudioResizableLayoutElementProps = {
   ref?: React.Ref<HTMLDivElement>;
 };
 
-const StudioResizableLayoutElement = forwardRef(
+const StudioResizableLayoutElement = forwardRef<HTMLDivElement, StudioResizableLayoutElementProps>(
   (
     {
-      minimumSize = 0,
       index,
       collapsed,
       children,
@@ -32,9 +31,6 @@ const StudioResizableLayoutElement = forwardRef(
     }: StudioResizableLayoutElementProps,
     ref,
   ) => {
-    const containerRef = useRef<HTMLDivElement>(null);
-    useImperativeHandle(ref, () => containerRef.current);
-
     const { resizeDelta, collapse, orientation, containerSize } =
       useStudioResizableLayoutContext(index);
 
@@ -50,11 +46,7 @@ const StudioResizableLayoutElement = forwardRef(
 
     return (
       <>
-        <div
-          className={classes.container}
-          style={{ ...style, flexGrow: containerSize }}
-          ref={containerRef}
-        >
+        <div className={classes.container} style={{ ...style, flexGrow: containerSize }} ref={ref}>
           {collapsed}
           {children}
         </div>
