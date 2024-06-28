@@ -43,8 +43,8 @@ export const SelectDataTypesToSign = ({ onClose }: SelectDataTypesToSignProps) =
         item.businessObject.extensionElements?.values[0]?.signatureConfig?.signatureDataType,
     );
 
-  const filteredAvailableDataTypeIds = availableDataTypeIds.filter(
-    (dataTypeId) => dataTypeId !== 'ref-data-as-pdf' && !signingDataTypeIds.includes(dataTypeId),
+  const filteredDataTypeIds = availableDataTypeIds.filter(
+    (dataTypeId) => !signingDataTypeIds.includes(dataTypeId),
   );
 
   return (
@@ -67,7 +67,7 @@ export const SelectDataTypesToSign = ({ onClose }: SelectDataTypesToSignProps) =
           <Combobox.Empty>
             {t('process_editor.configuration_panel_no_data_types_to_sign_to_select')}
           </Combobox.Empty>
-          {filteredAvailableDataTypeIds?.map((dataTypeId) => {
+          {filteredDataTypeIds?.map((dataTypeId) => {
             return (
               <Combobox.Option key={dataTypeId} value={dataTypeId}>
                 {dataTypeId}
