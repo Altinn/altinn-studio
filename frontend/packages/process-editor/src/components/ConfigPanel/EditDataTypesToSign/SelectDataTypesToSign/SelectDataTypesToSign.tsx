@@ -44,7 +44,7 @@ export const SelectDataTypesToSign = ({ onClose }: SelectDataTypesToSignProps) =
     );
 
   const filteredDataTypeIds = availableDataTypeIds.filter(
-    (dataTypeId) => !signingDataTypeIds.includes(dataTypeId),
+    (dataTypeId) => dataTypeId !== 'ref-data-as-pdf' && !signingDataTypeIds.includes(dataTypeId),
   );
 
   return (

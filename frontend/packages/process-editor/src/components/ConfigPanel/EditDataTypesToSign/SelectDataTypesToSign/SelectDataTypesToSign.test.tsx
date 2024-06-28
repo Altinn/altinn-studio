@@ -62,6 +62,7 @@ const availableDataTypeIds = [
   signingTasks[0].businessObject.extensionElements.values[0].signatureConfig.signatureDataType,
   signingTasks[1].businessObject.extensionElements.values[0].signatureConfig.signatureDataType,
   'dataType3',
+  'ref-data-as-pdf',
 ];
 const existingDataTypeIds = ['dataType3'];
 
@@ -123,6 +124,7 @@ describe('SelectDataTypesToSign', () => {
     expect(screen.queryByRole('option', { name: availableDataTypeIds[0] })).not.toBeInTheDocument();
     expect(screen.queryByRole('option', { name: availableDataTypeIds[1] })).not.toBeInTheDocument();
     expect(screen.getByRole('option', { name: availableDataTypeIds[2] })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: availableDataTypeIds[3] })).not.toBeInTheDocument();
   });
 });
 
