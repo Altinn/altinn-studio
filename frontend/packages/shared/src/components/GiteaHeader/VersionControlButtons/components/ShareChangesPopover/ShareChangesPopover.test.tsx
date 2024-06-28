@@ -105,13 +105,16 @@ describe('shareChanges', () => {
     expect(shareButton).toHaveAttribute('disabled');
   });
 
-  it('should display "changes to share" message when there are local changes or aheadBy is greater than 0', async () => {
+  it('should handle open popover correctly', async () => {
     const user = userEvent.setup();
 
     const getRepoStatus = mockGetRepoStatus.mockImplementation(() =>
       Promise.resolve({
-        contentStatus: [{ filePath: '', fileStatus: 'Modified' }],
-        aheadBy: 1,
+        contentStatus: [{ filePath: '', fileStatus: 'Ignored' }],
+        aheadBy: 0,
+        behindBy: 0,
+        hasMergeConflict: false,
+        repositoryStatus: 'Ok',
       }),
     );
     renderShareChangesPopover({ queries: { getRepoStatus } });
