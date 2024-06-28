@@ -29,7 +29,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class PutDatamodelTests : DisagnerEndpointsTestsBase<PutDatamodelTests>, IClassFixture<WebApplicationFactory<Program>>
+public class PutDatamodelTests : DesignerEndpointsTestsBase<PutDatamodelTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
     private string TargetTestRepository { get; }
