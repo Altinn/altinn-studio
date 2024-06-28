@@ -1,17 +1,16 @@
+import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import React from 'react';
+import { useAppContext } from '../../hooks';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
-import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
-import { useAppContext } from '../../hooks';
-import { LayoutSetsContainer } from './LayoutSetsContainer';
 
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import classes from './Elements.module.css';
 
-import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
-import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQuery';
 import { StudioSpinner } from '@studio/components';
+import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useTranslation } from 'react-i18next';
+import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQuery';
 
 export const Elements = (): React.ReactElement => {
   const { t } = useTranslation();

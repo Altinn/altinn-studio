@@ -18,7 +18,6 @@ const meta: Meta = {
 export const Preview: Story = (args): React.ReactElement => (
   <div>
     <StudioResizableLayoutContainer
-      layoutId=''
       orientation={args.topContainerOrientation}
       style={{ width: 900, height: 800 }}
     >
@@ -29,10 +28,7 @@ export const Preview: Story = (args): React.ReactElement => (
         </div>
       </StudioResizableLayoutElement>
       <StudioResizableLayoutElement>
-        <StudioResizableLayoutContainer
-          layoutId='nestedlayout'
-          orientation={args.subContainerOrientation}
-        >
+        <StudioResizableLayoutContainer orientation={args.subContainerOrientation}>
           <StudioResizableLayoutElement style={{ backgroundColor: '#C1C1C1' }}>
             <div>
               lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor
