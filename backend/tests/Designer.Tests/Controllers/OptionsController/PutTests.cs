@@ -41,11 +41,11 @@ public class PutTests : DisagnerEndpointsTestsBase<PutTests>, IClassFixture<WebA
         };
 
         string apiUrl = $"/designer/api/{org}/{targetRepository}/options/{optionListId}";
-        HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
         httpRequestMessage.Content = JsonContent.Create(newOptionsList);
 
         // Act
-        HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string responseBody = await response.Content.ReadAsStringAsync();
         var responseList = JsonSerializer.Deserialize<List<Option>>(responseBody);
 

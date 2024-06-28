@@ -22,12 +22,12 @@ public class GetTests : DisagnerEndpointsTestsBase<GetTests>, IClassFixture<WebA
     {
         // Arrange
         string apiUrl = $"/designer/api/{org}/{repo}/options";
-        HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
 
         // Act
-        HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string responseBody = await response.Content.ReadAsStringAsync();
-        var responseList = JsonSerializer.Deserialize<string[]>(responseBody);
+        string[] responseList = JsonSerializer.Deserialize<string[]>(responseBody);
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -55,10 +55,10 @@ public class GetTests : DisagnerEndpointsTestsBase<GetTests>, IClassFixture<WebA
         };
 
         string apiUrl = $"/designer/api/{org}/{repo}/options/{optionListId}";
-        HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
 
         // Act
-        HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string responseBody = await response.Content.ReadAsStringAsync();
         var responseList = JsonSerializer.Deserialize<List<Option>>(responseBody);
 

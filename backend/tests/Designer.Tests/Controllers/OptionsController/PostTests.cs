@@ -41,11 +41,11 @@ public class PostTests : DisagnerEndpointsTestsBase<PostTests>, IClassFixture<We
         };
 
         string apiUrl = $"/designer/api/{org}/{targetRepository}/options/{optionListId}";
-        HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
         httpRequestMessage.Content = JsonContent.Create(newOptionsList);
 
         // Act
-        HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string responseBody = await response.Content.ReadAsStringAsync();
         var responseList = JsonSerializer.Deserialize<List<Option>>(responseBody);
 
@@ -83,11 +83,11 @@ public class PostTests : DisagnerEndpointsTestsBase<PostTests>, IClassFixture<We
         };
 
         string apiUrl = $"/designer/api/{org}/{targetRepository}/options/{optionListId}";
-        HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
         httpRequestMessage.Content = JsonContent.Create(newOptionsList);
 
         // Act
-        HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
         // Assert
         Assert.Equal(StatusCodes.Status409Conflict, (int)response.StatusCode);
@@ -102,11 +102,11 @@ public class PostTests : DisagnerEndpointsTestsBase<PostTests>, IClassFixture<We
         await CopyRepositoryForTest(org, repo, developer, targetRepository);
 
         string apiUrl = $"/designer/api/{org}/{targetRepository}/options/{optionListId}";
-        HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
         httpRequestMessage.Content = JsonContent.Create<List<Option>>(null);
 
         // Act
-        HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
         // Assert
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
@@ -135,11 +135,11 @@ public class PostTests : DisagnerEndpointsTestsBase<PostTests>, IClassFixture<We
         };
 
         string apiUrl = $"/designer/api/{org}/{targetRepository}/options/{optionListId}";
-        HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
         httpRequestMessage.Content = JsonContent.Create(invalidOptionsList);
 
         // Act
-        HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
         // Assert
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);

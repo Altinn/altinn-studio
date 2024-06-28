@@ -24,10 +24,10 @@ public class DeleteTests : DisagnerEndpointsTestsBase<DeleteTests>, IClassFixtur
         await CopyRepositoryForTest(org, repo, developer, targetRepository);
 
         string apiUrl = $"/designer/api/{org}/{targetRepository}/options/{optionListId}";
-        HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, apiUrl);
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, apiUrl);
 
         // Act
-        HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string responseBody = await response.Content.ReadAsStringAsync();
         JsonDocument responseDocument = JsonDocument.Parse(responseBody);
 
