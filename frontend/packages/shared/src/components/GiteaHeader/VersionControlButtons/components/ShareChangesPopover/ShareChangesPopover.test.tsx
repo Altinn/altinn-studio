@@ -34,15 +34,76 @@ describe('shareChanges', () => {
   it('should call "getRepoStatus" when clicking the share changes button', async () => {
     const user = userEvent.setup();
 
-    const getRepoStatus = mockGetRepoStatus.mockImplementation(() => Promise.resolve({}));
-    renderShareChangesPopover({ queries: { getRepoStatus } });
+    const getRepoStatus = mockGetRepoStatus.mockImplementation(() =>
+      Promise.resolve({
+        contentStatus: [{ filePath: '', fileStatus: 'Modified' }],
+        aheadBy: 1,
+        behindBy: 0,
+        hasMergeConflict: false,
+        repositoryStatus: 'Ok',
+      }),
+    );
+
+    renderShareChangesPopover({
+      queries: { getRepoStatus },
+      versionControlButtonsContextProps: {
+        ...mockVersionControlButtonsContextValue,
+        hasPushRights: true,
+      },
+    });
 
     const shareButton = screen.getByRole('button', {
       name: textMock('sync_header.changes_to_share'),
     });
     await user.click(shareButton);
 
-    expect(getRepoStatus).toHaveBeenCalled();
+    await waitFor(() =>
+      expect(
+        screen.getByRole('heading', {
+          level: 3,
+          name: textMock('sync_header.describe_and_validate'),
+        }),
+      ),
+    );
+
+    // One call is made when the component is rendered and another when the button is clicked
+    expect(getRepoStatus).toHaveBeenCalledTimes(2);
+  });
+
+  it('should display no changes to share message when there are no local changes or aheadBy is 0', async () => {
+    const user = userEvent.setup();
+
+    const getRepoStatus = mockGetRepoStatus.mockImplementation(() =>
+      Promise.resolve({
+        contentStatus: [{ filePath: '', fileStatus: 'Ignored' }],
+        aheadBy: 0,
+        behindBy: 0,
+        hasMergeConflict: false,
+        repositoryStatus: 'Ok',
+      }),
+    );
+
+    renderShareChangesPopover({
+      queries: { getRepoStatus },
+      versionControlButtonsContextProps: {
+        ...mockVersionControlButtonsContextValue,
+        hasPushRights: true,
+      },
+    });
+
+    const shareButton = screen.getByRole('button', {
+      name: textMock('sync_header.changes_to_share'),
+    });
+    await user.click(shareButton);
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('heading', {
+          level: 3,
+          name: textMock('sync_header.nothing_to_push'),
+        }),
+      ),
+    );
   });
 
   it('should render number of changes when displayNotification is true and there are no merge conflicts', () => {
