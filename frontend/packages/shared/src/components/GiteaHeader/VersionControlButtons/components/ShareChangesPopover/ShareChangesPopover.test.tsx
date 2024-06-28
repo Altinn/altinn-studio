@@ -14,6 +14,17 @@ import {
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { mockVersionControlButtonsContextValue } from '../../test/mocks/versionControlContextMock';
+import { MemoryRouter } from 'react-router-dom';
+import { app, org } from '@studio/testing/testids';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { repository } from 'app-shared/mocks/mocks';
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => {
+    return { org, app };
+  },
+}));
 
 const mockGetRepoStatus = jest.fn();
 
@@ -105,13 +116,13 @@ describe('shareChanges', () => {
     expect(shareButton).toHaveAttribute('disabled');
   });
 
-  it('should handle open popover correctly', async () => {
+  it('should display "changes to share" message when there are local changes or aheadBy is greater than 0', async () => {
     const user = userEvent.setup();
 
     const getRepoStatus = mockGetRepoStatus.mockImplementation(() =>
       Promise.resolve({
-        contentStatus: [{ filePath: '', fileStatus: 'Ignored' }],
-        aheadBy: 0,
+        contentStatus: [{ filePath: '', fileStatus: 'Modified' }],
+        aheadBy: 1,
         behindBy: 0,
         hasMergeConflict: false,
         repositoryStatus: 'Ok',
@@ -143,18 +154,26 @@ type Props = {
 const renderShareChangesPopover = (props: Partial<Props> = {}) => {
   const { queries, versionControlButtonsContextProps } = props;
 
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.RepoMetadata, org, app], {
+    ...repository,
+    permissions: { ...repository.permissions, push: true },
+  });
+
   const allQueries: ServicesContextProps = {
     ...queriesMock,
     ...queries,
   };
 
   return render(
-    <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-      <VersionControlButtonsContext.Provider
-        value={{ ...mockVersionControlButtonsContextValue, ...versionControlButtonsContextProps }}
-      >
-        <ShareChangesPopover />
-      </VersionControlButtonsContext.Provider>
-    </ServicesContextProvider>,
+    <MemoryRouter>
+      <ServicesContextProvider {...allQueries} client={queryClient}>
+        <VersionControlButtonsContext.Provider
+          value={{ ...mockVersionControlButtonsContextValue, ...versionControlButtonsContextProps }}
+        >
+          <ShareChangesPopover />
+        </VersionControlButtonsContext.Provider>
+      </ServicesContextProvider>
+    </MemoryRouter>,
   );
 };
