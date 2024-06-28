@@ -12,7 +12,7 @@ import { ErrorPage } from '../components/ErrorPage';
 import { StudioPageSpinner, StudioResizableLayout } from '@studio/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
-import { useInstanceIdQuery } from 'app-shared/hooks/queries';
+import { useInstanceIdQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { HandleAdd, HandleMove } from 'app-shared/types/dndTypes';
 import type { ComponentType } from 'app-shared/types/ComponentType';
@@ -33,6 +33,7 @@ import { FormDesignerToolbar } from './FormDesignerToolbar';
 export const FormDesigner = (): JSX.Element => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: instanceId } = useInstanceIdQuery(org, app);
+  const { data: user } = useUserQuery();
   const { selectedFormLayoutSetName, selectedFormLayoutName, refetchLayouts } = useAppContext();
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(
     org,
@@ -150,7 +151,7 @@ export const FormDesigner = (): JSX.Element => {
             <StudioResizableLayout.Container
               layoutId='form-designer-main'
               orientation='horizontal'
-              localStorageContext={`${user.id}:${org}`}
+              localStorageContext={`${user.id}`}
             >
               <StudioResizableLayout.Element minimumSize={262}>
                 <Elements />
@@ -159,17 +160,7 @@ export const FormDesigner = (): JSX.Element => {
                 <DesignView />
               </StudioResizableLayout.Element>
               <StudioResizableLayout.Element onResizing={(resizing) => setHidePreview(resizing)}>
-                <StudioResizableLayout.Container
-                  layoutId='form-designer-sub'
-                  orientation='vertical'
-                >
-                  <StudioResizableLayout.Element>
-                    <Properties key='asdf' />
-                  </StudioResizableLayout.Element>
-                  <StudioResizableLayout.Element>
-                    <Properties key='asdasdff' />
-                  </StudioResizableLayout.Element>
-                </StudioResizableLayout.Container>
+                <Properties />
               </StudioResizableLayout.Element>
               <StudioResizableLayout.Element
                 collapsed={previewCollapsed}

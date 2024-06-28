@@ -149,7 +149,6 @@ export const FormDesigner = ({
     return (
       <DragAndDropTree.Provider rootId={BASE_CONTAINER_ID} onMove={moveItem} onAdd={addItem}>
         <div className={classes.root}>
-          <FormDesignerToolbar></FormDesignerToolbar>
           <div className={classes.container}>
             <StudioResizableLayout.Container orientation='horizontal'>
               <StudioResizableLayout.Element minimumSize={262}>
