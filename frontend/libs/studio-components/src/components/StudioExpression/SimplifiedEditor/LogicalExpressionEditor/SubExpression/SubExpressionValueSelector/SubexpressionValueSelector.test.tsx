@@ -1,4 +1,4 @@
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { StudioExpressionContext } from '../../../../StudioExpressionContext';
 import type { SubexpressionValueSelectorProps } from './SubexpressionValueSelector';
 import { SubexpressionValueSelector } from './SubexpressionValueSelector';
@@ -17,6 +17,9 @@ import { ExpressionErrorKey } from '../../../../enums/ExpressionErrorKey';
 import { GatewayActionContext } from '../../../../enums/GatewayActionContext';
 
 describe('SubexpressionValueSelector', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
   it('Renders with the given legend in edit mode', () => {
     const legend = 'test-legend';
     renderSubexpressionValueSelector({ legend, isInEditMode: true });
@@ -138,10 +141,12 @@ describe('SubexpressionValueSelector', () => {
       const user = userEvent.setup();
       const onChange = jest.fn();
       renderSubexpressionValueSelector({ value: dataModelValue, isInEditMode: true, onChange });
-      const input = () => screen.getByRole('combobox', { name: texts.dataModelPath });
-      await user.type(input(), '{backspace}');
+      const input = screen.getByRole('combobox', { name: texts.dataModelPath });
+      await user.type(input, '{backspace}');
       await user.click(document.body);
-      screen.getByText(texts.errorMessages[ExpressionErrorKey.InvalidDataModelPath]);
+      await waitFor(() =>
+        screen.getByText(texts.errorMessages[ExpressionErrorKey.InvalidDataModelPath]),
+      );
     });
   });
 
@@ -189,7 +194,9 @@ describe('SubexpressionValueSelector', () => {
       const input = () => screen.getByRole('combobox', { name: texts.componentId });
       await user.type(input(), '{backspace}');
       await user.click(document.body);
-      screen.getByText(texts.errorMessages[ExpressionErrorKey.InvalidComponentId]);
+      await waitFor(() =>
+        screen.getByText(texts.errorMessages[ExpressionErrorKey.InvalidComponentId]),
+      );
     });
 
     it('Displays initial error and handles non-existing component ID', () => {
