@@ -1,4 +1,4 @@
-import { render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { StudioExpressionContext } from '../../../../StudioExpressionContext';
 import type { SubexpressionValueSelectorProps } from './SubexpressionValueSelector';
 import { SubexpressionValueSelector } from './SubexpressionValueSelector';
@@ -144,9 +144,7 @@ describe('SubexpressionValueSelector', () => {
       const input = screen.getByRole('combobox', { name: texts.dataModelPath });
       await user.type(input, '{backspace}');
       await user.click(document.body);
-      await waitFor(() =>
-        screen.getByText(texts.errorMessages[ExpressionErrorKey.InvalidDataModelPath]),
-      );
+      expect(await screen.findByText(texts.errorMessages[ExpressionErrorKey.InvalidDataModelPath]));
     });
   });
 
@@ -194,9 +192,7 @@ describe('SubexpressionValueSelector', () => {
       const input = () => screen.getByRole('combobox', { name: texts.componentId });
       await user.type(input(), '{backspace}');
       await user.click(document.body);
-      await waitFor(() =>
-        screen.getByText(texts.errorMessages[ExpressionErrorKey.InvalidComponentId]),
-      );
+      expect(await screen.findByText(texts.errorMessages[ExpressionErrorKey.InvalidComponentId]));
     });
 
     it('Displays initial error and handles non-existing component ID', () => {
