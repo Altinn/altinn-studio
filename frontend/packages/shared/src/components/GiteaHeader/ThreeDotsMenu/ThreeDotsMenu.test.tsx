@@ -15,8 +15,7 @@ jest.mock(
 );
 
 const defaultProps: ThreeDotsMenuProps = {
-  onlyShowRepository: false,
-  hasCloneModal: true,
+  isClonePossible: false,
 };
 
 describe('ThreeDotsMenu', () => {
@@ -24,7 +23,7 @@ describe('ThreeDotsMenu', () => {
 
   it('should show the menu items when open', async () => {
     const user = userEvent.setup();
-    await renderThreeDotsMenu();
+    await renderThreeDotsMenu({ isClonePossible: true });
 
     const threeDotsMenu = screen.getByRole('button', { name: textMock('sync_header.gitea_menu') });
     expect(threeDotsMenu).toBeInTheDocument();
@@ -44,7 +43,7 @@ describe('ThreeDotsMenu', () => {
 
   it('should not show the clone option when onlyShowRepository is true', async () => {
     const user = userEvent.setup();
-    await renderThreeDotsMenu({ onlyShowRepository: true });
+    await renderThreeDotsMenu();
 
     const threeDotsMenu = screen.getByRole('button', { name: textMock('sync_header.gitea_menu') });
     expect(threeDotsMenu).toBeInTheDocument();

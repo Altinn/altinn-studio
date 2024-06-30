@@ -43,7 +43,7 @@ export const GiteaHeader = ({
       <div className={classes.leftContentWrapper}>{leftComponent}</div>
       <div className={`${classes.rightContentWrapper} ${rightContentClassName}`}>
         {!hasRepoError && <VersionControlButtons onPullSuccess={onPullSuccess} />}
-        <ThreeDotsMenu onlyShowRepository={menuOnlyHasRepository} hasCloneModal={hasCloneModal} />
+        <ThreeDotsMenu isClonePossible={!menuOnlyHasRepository && hasCloneModal} />
       </div>
     </div>
   );

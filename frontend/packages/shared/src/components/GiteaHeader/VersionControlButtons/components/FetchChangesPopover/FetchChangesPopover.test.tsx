@@ -1,6 +1,6 @@
 import React from 'react';
 import { FetchChangesPopover } from './FetchChangesPopover';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import {
@@ -97,6 +97,29 @@ describe('fetchChanges', () => {
     await user.click(fetchButton);
 
     expect(mockVersionControlButtonsContextValue.onPullSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  it('should call commitAndPushChanges and close popover when there is a merge conflict or checkout conflict', async () => {
+    const user = userEvent.setup();
+
+    const getRepoPull = mockGetRepoPull.mockImplementation(() =>
+      Promise.resolve({ repositoryStatus: 'CheckoutConflict' }),
+    );
+
+    renderFetchChangesPopover({
+      queries: { getRepoPull },
+      versionControlButtonsContextProps: {
+        ...mockVersionControlButtonsContextValue,
+        hasPushRights: true,
+      },
+    });
+
+    const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
+    await user.click(fetchButton);
+
+    await waitFor(() => {
+      expect(mockVersionControlButtonsContextValue.commitAndPushChanges).toHaveBeenCalledWith('');
+    });
   });
 });
 

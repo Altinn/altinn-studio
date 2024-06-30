@@ -9,9 +9,10 @@ import { useTranslation } from 'react-i18next';
 
 export type FormTreeProps = {
   layout: IInternalLayout;
+  duplicateComponents?: string[];
 };
 
-export const FormTree = ({ layout }: FormTreeProps) => {
+export const FormTree = ({ layout, duplicateComponents }: FormTreeProps) => {
   const { handleEdit, formItemId: formId } = useFormItemContext();
   const { t } = useTranslation();
 
@@ -23,7 +24,7 @@ export const FormTree = ({ layout }: FormTreeProps) => {
       emptyMessage={t('ux_editor.container_empty')}
       selectedId={formId}
     >
-      {renderItemList(layout, BASE_CONTAINER_ID)}
+      {renderItemList(layout, duplicateComponents, BASE_CONTAINER_ID)}
     </DragAndDropTree.Root>
   );
 };

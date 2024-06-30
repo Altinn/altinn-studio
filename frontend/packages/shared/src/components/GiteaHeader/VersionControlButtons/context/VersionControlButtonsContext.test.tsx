@@ -161,6 +161,55 @@ describe('VersionControlButtonsContext', () => {
     );
     expect(successText).toBeInTheDocument();
   });
+
+  it('should handle errors during commit and push', async () => {
+    const user = userEvent.setup();
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    const TestComponent = () => {
+      const { commitAndPushChanges, isLoading, hasMergeConflict } =
+        useVersionControlButtonsContext();
+
+      return (
+        <div>
+          <button
+            onClick={() => commitAndPushChanges('test message')}
+            data-testid={commitAndPushButtonTestId}
+          >
+            Commit and Push
+          </button>
+          <div data-testid={isLoadingTestId}>{isLoading.toString()}</div>
+          <div data-testid={hasMergeConflictTestId}>{hasMergeConflict.toString()}</div>
+        </div>
+      );
+    };
+
+    renderVersionControlButtonsContextProvider({
+      contextProviderProps: {
+        children: <TestComponent />,
+      },
+      queries: {
+        getRepoPull: jest.fn().mockImplementation(() => ({
+          hasMergeConflict: true,
+          repositoryStatus: 'CheckoutConflict',
+        })),
+        commitAndPushChanges: jest.fn().mockRejectedValue(new Error('Test error')),
+      },
+    });
+
+    const commitButton = screen.getByTestId(commitAndPushButtonTestId);
+    await user.click(commitButton);
+
+    await waitFor(() => {
+      expect(consoleErrorSpy).toHaveBeenCalledWith(new Error('Test error'));
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId(isLoadingTestId)).toHaveTextContent('false');
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId(hasMergeConflictTestId)).toHaveTextContent('true');
+    });
+  });
 });
 
 type Props = {
