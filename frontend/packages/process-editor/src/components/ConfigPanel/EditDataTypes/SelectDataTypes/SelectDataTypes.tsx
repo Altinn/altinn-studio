@@ -42,8 +42,6 @@ export const SelectDataTypes = ({
     ? [...new Set([...dataModelIds, existingDataType])]
     : dataModelIds;
 
-  console.log(dataModelOptionsToDisplay);
-
   return (
     <div className={classes.dataTypeSelectAndButtons}>
       <Combobox

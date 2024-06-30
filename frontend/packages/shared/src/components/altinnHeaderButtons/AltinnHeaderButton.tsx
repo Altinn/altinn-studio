@@ -1,10 +1,9 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
-import type { AltinnButtonActionItem } from '../altinnHeader/types';
-import { StudioButton } from '@studio/components';
 import cn from 'classnames';
-
+import { useTranslation } from 'react-i18next';
+import { StudioButton } from '@studio/components';
 import classes from './AltinnHeaderButton.module.css';
+import type { AltinnButtonActionItem } from '../altinnHeader/types';
 
 export interface AltinnHeaderButtonProps {
   action: AltinnButtonActionItem;
@@ -23,7 +22,6 @@ export const AltinnHeaderButton = ({ action }: AltinnHeaderButtonProps) => {
       aria-label={t(action.menuKey)}
       color={action.isInverted ? 'inverted' : 'first'}
       variant='secondary'
-      // variant='secondary'
       size='small'
     >
       <a href={action.to} className={cn({ [classes.inverted]: action.isInverted })}>
