@@ -22,7 +22,7 @@ describe('ResourceReferenceFields', () => {
     resourceReferenceList: mockReferenceList,
     onResourceReferenceFieldChanged: mockOnResourceReferenceFieldChanged,
     onFocus: jest.fn(),
-    showErrors: false,
+    errors: [],
   };
 
   it('should handle undefined reference list correctly', () => {
@@ -128,7 +128,21 @@ describe('ResourceReferenceFields', () => {
   });
 
   it('should show maskinporten error if no reference is MaskinportenScope', () => {
-    render(<ResourceReferenceFields {...defaultProps} showErrors={true} />);
+    render(
+      <ResourceReferenceFields
+        {...defaultProps}
+        resourceReferenceList={[
+          mockReference1,
+          { reference: 'test', referenceSource: 'Default', referenceType: 'Default' },
+        ]}
+        errors={[
+          {
+            field: 'resourceReferences',
+            error: textMock('resourceadm.about_resource_reference_maskinporten_missing'),
+          },
+        ]}
+      />,
+    );
 
     expect(
       screen.getByText(textMock('resourceadm.about_resource_reference_maskinporten_missing')),

@@ -16,7 +16,7 @@ export type MergeReposProps = {
   starredRepos: Repository[];
 };
 
-export type RepositoryWithStarred = Repository & { hasStarred?: boolean };
+export type RepoIncludingStarredData = Repository & { hasStarred?: boolean };
 
 type TranslationMapKey = SelectedContextType | 'named_org' | 'org';
 type TranslationMap = Record<TranslationMapKey, string>;
@@ -24,18 +24,21 @@ const appsTranslationMap: TranslationMap = {
   all: 'dashboard.all_apps',
   self: 'dashboard.my_apps',
   org: 'dashboard.apps',
+  none: 'undefined',
   named_org: 'dashboard.org_apps',
 };
 const dataModelsTranslationMap: TranslationMap = {
   all: 'dashboard.all_data_models',
   self: 'dashboard.my_data_models',
   org: 'dashboard.data_models',
+  none: 'undefined',
   named_org: 'dashboard.org_data_models',
 };
 const resourcesTranslationMap: TranslationMap = {
   all: 'dashboard.all_resources',
   self: 'dashboard.my_resources',
   org: 'dashboard.resources',
+  none: 'undefined',
   named_org: 'dashboard.org_resources',
 };
 
@@ -66,7 +69,10 @@ export const getReposLabel = ({
     : t(concatenatedTranslationMap.org);
 };
 
-export const mergeRepos = ({ repos, starredRepos }: MergeReposProps): RepositoryWithStarred[] => {
+export const mergeRepos = ({
+  repos,
+  starredRepos,
+}: MergeReposProps): RepoIncludingStarredData[] => {
   if (!repos) {
     return [];
   }

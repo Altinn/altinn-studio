@@ -5,12 +5,14 @@ import { ObjectKind } from '@altinn/schema-model';
 import { ActionButton } from './ActionButton';
 import { DropdownMenu } from '@digdir/design-system-react';
 import { CombinationIcon, PropertyIcon, ReferenceIcon, PlusIcon } from '@studio/icons';
+import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 interface AddPropertyMenuProps {
   pointer: string;
 }
 
 export const AddPropertyMenu = ({ pointer }: AddPropertyMenuProps) => {
+  const { setSelectedNodePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
   const [isAddDropdownOpen, setIsAddDropdownOpen] = useState(false);
   const addProperty = useAddProperty();
@@ -20,7 +22,8 @@ export const AddPropertyMenu = ({ pointer }: AddPropertyMenuProps) => {
   const addReference = () => addPropertyAndClose(ObjectKind.Reference);
 
   const addPropertyAndClose = (kind: ObjectKind) => {
-    addProperty(kind, undefined, pointer);
+    const childPointer = addProperty(kind, undefined, pointer);
+    setSelectedNodePointer(childPointer);
     closeDropdown();
   };
 

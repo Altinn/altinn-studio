@@ -11,6 +11,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
 import React from 'react';
 import { usePreviewContext } from '../contexts/PreviewContext';
+import { useLayoutContext } from '../contexts/LayoutContext';
 
 interface IRouteProps {
   headerTextKey?: string;
@@ -39,11 +40,16 @@ const UiEditor = () => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: version } = useAppVersionQuery(org, app);
   const { shouldReloadPreview, previewHasLoaded } = usePreviewContext();
+  const { setSelectedLayoutSetName } = useLayoutContext();
 
   if (!version) return null;
 
   return isLatestFrontendVersion(version) ? (
-    <UiEditorLatest shouldReloadPreview={shouldReloadPreview} previewHasLoaded={previewHasLoaded} />
+    <UiEditorLatest
+      shouldReloadPreview={shouldReloadPreview}
+      previewHasLoaded={previewHasLoaded}
+      onLayoutSetNameChange={(layoutSetName) => setSelectedLayoutSetName(layoutSetName)}
+    />
   ) : (
     <UiEditorV3 />
   );

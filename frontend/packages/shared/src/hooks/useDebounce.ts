@@ -1,9 +1,13 @@
+import { useRef } from 'react';
+
 type UseDebounceOptions = {
   debounceTimeInMs: number;
 };
 export const useDebounce = ({ debounceTimeInMs }: UseDebounceOptions) => {
-  const debounce = (callback: Function) => {
-    setTimeout(() => {
+  const debounceRef = useRef(undefined);
+  const debounce = (callback: Function): void => {
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
       callback();
     }, debounceTimeInMs);
   };

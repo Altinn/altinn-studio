@@ -17,10 +17,11 @@ const searchReposResponse = {
   totalCount: 1,
   totalPages: 1,
 };
+const resourceTitle = 'Test ressurs';
 const getResourceListResponse = [
   {
     title: {
-      nb: 'Test ressurs',
+      nb: resourceTitle,
       nn: '',
       en: '',
     },
@@ -141,7 +142,11 @@ describe('RepoList', () => {
       expect(screen.getByTestId('resource-table-wrapper')).toBeInTheDocument();
     });
 
-    await user.click(screen.getByText(textMock('resourceadm.dashboard_table_row_edit')));
+    await user.click(
+      screen.getByText(
+        textMock('resourceadm.dashboard_table_row_edit', { resourceName: resourceTitle }),
+      ),
+    );
 
     expect(window.location.assign).toHaveBeenCalledWith(
       '/resourceadm/ttd/ttd-resources/resource/test-ressurs/about',

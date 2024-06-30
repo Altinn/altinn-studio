@@ -115,7 +115,9 @@ describe('ConfigContent', () => {
     renderConfigContent();
     expect(
       screen.getByRole('button', {
-        name: textMock('process_editor.configuration_panel_set_data_model'),
+        name: textMock('process_editor.configuration_panel_set_data_model', {
+          dataModelName: connectedDataType,
+        }),
       }),
     ).toBeInTheDocument();
     expect(screen.getByText(connectedDataType)).toBeInTheDocument();

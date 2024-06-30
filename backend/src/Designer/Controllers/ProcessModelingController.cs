@@ -106,19 +106,18 @@ namespace Altinn.Studio.Designer.Controllers
             return Accepted();
         }
 
-        [HttpPut("data-type")]
-        public async Task<IActionResult> ProcessDataTypeChangedNotify(string org, string repo, [FromBody] DataTypeChange dataTypeChange, CancellationToken cancellationToken)
+        [HttpPut("data-types")]
+        public async Task<IActionResult> ProcessDataTypesChangedNotify(string org, string repo, [FromBody] DataTypesChange dataTypesChange, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
 
-            if (dataTypeChange is not null)
+            if (dataTypesChange is not null)
             {
-
-                await _mediator.Publish(new ProcessDataTypeChangedEvent
+                await _mediator.Publish(new ProcessDataTypesChangedEvent
                 {
-                    NewDataType = dataTypeChange.NewDataType,
-                    ConnectedTaskId = dataTypeChange.ConnectedTaskId,
+                    NewDataTypes = dataTypesChange.NewDataTypes,
+                    ConnectedTaskId = dataTypesChange.ConnectedTaskId,
                     EditingContext = editingContext
                 }, cancellationToken);
             }
@@ -163,6 +162,15 @@ namespace Altinn.Studio.Designer.Controllers
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
             await _processModelingService.DeleteDataTypeFromApplicationMetadataAsync(editingContext, dataTypeId, cancellationToken);
             return Ok();
+        }
+
+        [HttpGet("task-type/{layoutSetId}")]
+        public async Task<string> GetTaskTypeFromProcessDefinition(string org, string repo, string layoutSetId)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
+            string taskType = await _processModelingService.GetTaskTypeFromProcessDefinition(editingContext, layoutSetId);
+            return taskType;
         }
     }
 }

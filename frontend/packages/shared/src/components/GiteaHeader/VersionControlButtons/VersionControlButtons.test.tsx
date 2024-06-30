@@ -51,6 +51,7 @@ const defaultQueries: Partial<ServicesContextProps> = {
 const defaultProps: IVersionControlButtonsProps = {
   org,
   app,
+  onPullSuccess: jest.fn(),
 };
 
 describe('Shared > Version Control > VersionControlHeader', () => {
@@ -235,6 +236,13 @@ describe('Shared > Version Control > VersionControlHeader', () => {
     });
     expect(shareButton).toHaveAttribute('title', textMock('sync_header.sharing_changes_no_access'));
   });
+
+  it('should call onPullSuccess when fetching changes', async () => {
+    renderVersionControlButtons();
+    const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
+    await user.click(fetchButton);
+    expect(defaultProps.onPullSuccess).toHaveBeenCalledTimes(1);
+  });
 });
 
 const renderVersionControlButtons = (
@@ -242,7 +250,7 @@ const renderVersionControlButtons = (
   hasPushRights = true,
 ) => {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.RepoMetaData, org, app], {
+  queryClient.setQueryData([QueryKey.RepoMetadata, org, app], {
     ...repository,
     permissions: { ...repository.permissions, push: hasPushRights },
   });

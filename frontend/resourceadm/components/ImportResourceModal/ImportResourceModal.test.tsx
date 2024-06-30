@@ -10,6 +10,7 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { mapAltinn2LinkServiceToSelectOption } from 'resourceadm/utils/mapperUtils';
 
 const mockAltinn2LinkService: Altinn2LinkService = {
   serviceOwnerCode: 'ttd',
@@ -18,7 +19,7 @@ const mockAltinn2LinkService: Altinn2LinkService = {
   serviceName: 'TestService',
 };
 const mockAltinn2LinkServices: Altinn2LinkService[] = [mockAltinn2LinkService];
-const mockOption: string = `${mockAltinn2LinkService.serviceOwnerCode}: ${mockAltinn2LinkService.externalServiceCode}-${mockAltinn2LinkService.externalServiceEditionCode}-${mockAltinn2LinkService.serviceName}`;
+const mockOption: string = mapAltinn2LinkServiceToSelectOption(mockAltinn2LinkService).label;
 
 const mockOnClose = jest.fn();
 const getAltinn2LinkServices = jest

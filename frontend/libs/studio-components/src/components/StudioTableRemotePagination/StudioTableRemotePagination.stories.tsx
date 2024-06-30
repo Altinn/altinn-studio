@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
 import { StudioTableRemotePagination } from './StudioTableRemotePagination';
+import type { RemotePaginationProps, PaginationTexts } from './StudioTableRemotePagination';
 import { columns, rows } from './mockData';
 import { useTableSorting } from '../../hooks/useTableSorting';
 import { getRowsToRender } from './utils';
@@ -42,24 +43,33 @@ export const Preview: Story = (args) => {
   const [pageSize, setPageSize] = useState<number>(5);
 
   const { handleSorting, sortedRows } = useTableSorting(rows, { enable: true });
-
   const rowsToRender = getRowsToRender(currentPage, pageSize, sortedRows || rows);
-  const totalPages = Math.ceil(rows.length / pageSize);
 
-  if (!rowsToRender.length && (sortedRows.length || rows.length)) {
+  const totalRows = rows.length;
+  const totalPages = Math.ceil(totalRows / pageSize);
+
+  // Fallback to page 1 if the current page is out of bounds
+  if (!rowsToRender.length && totalRows) {
     setCurrentPage(1);
   }
 
-  const paginationProps = {
+  const paginationTexts: PaginationTexts = {
+    pageSizeLabel: 'Rows per page:',
+    totalRowsText: 'Total number of rows:',
+    nextButtonAriaLabel: 'Next',
+    previousButtonAriaLabel: 'Previous',
+    numberButtonAriaLabel: (num) => `Page ${num}`,
+  };
+
+  const paginationProps: RemotePaginationProps = {
     currentPage,
     totalPages,
+    totalRows,
+    pageSize,
     pageSizeOptions: [5, 10, 20, 50],
-    pageSizeLabel: 'Rows per page',
     onPageChange: setCurrentPage,
     onPageSizeChange: setPageSize,
-    itemLabel: (num: number) => `Page ${num}`,
-    nextButtonText: 'Next',
-    previousButtonText: 'Previous',
+    paginationTexts,
   };
 
   return (
@@ -67,7 +77,7 @@ export const Preview: Story = (args) => {
       columns={columns}
       rows={rowsToRender}
       size={args.size}
-      emptyTableMessage={'No data found'}
+      emptyTableFallback={'No data found'}
       onSortClick={handleSorting}
       pagination={paginationProps}
     />

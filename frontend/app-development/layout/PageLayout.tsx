@@ -8,6 +8,7 @@ import { MergeConflictWarning } from '../features/simpleMerge/MergeConflictWarni
 import { useOrgListQuery } from '../hooks/queries';
 import { NotFoundPage } from './NotFoundPage';
 import { useTranslation } from 'react-i18next';
+import { WebSocketSyncWrapper } from '../components';
 
 /**
  * Displays the layout for the app development pages
@@ -21,7 +22,7 @@ export const PageLayout = (): React.ReactNode => {
 
   const { data: orgs, isPending: orgsPending } = useOrgListQuery();
   const { data: repository } = useRepoMetadataQuery(org, app);
-  const repoOwnerIsOrg = !orgsPending && Object.keys(orgs).includes(repository?.owner.login);
+  const repoOwnerIsOrg = !orgsPending && Object.keys(orgs).includes(repository?.owner?.login);
 
   const {
     data: repoStatus,
@@ -46,7 +47,11 @@ export const PageLayout = (): React.ReactNode => {
     if (repoStatus?.hasMergeConflict) {
       return <MergeConflictWarning />;
     }
-    return <Outlet />;
+    return (
+      <WebSocketSyncWrapper>
+        <Outlet />
+      </WebSocketSyncWrapper>
+    );
   };
 
   return (

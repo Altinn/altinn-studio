@@ -1,0 +1,10 @@
+.customActionTextfield {
+  margin-bottom: var(--fds-spacing-2);
+}
+
+.actionTypeContainer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}

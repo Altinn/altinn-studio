@@ -10,7 +10,6 @@ import type { BpmnTaskType } from '../types/BpmnTaskType';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { getMockBpmnElementForTask, mockBpmnDetails } from '../../test/mocks/bpmnDetailsMock';
 import { mockModelerRef } from '../../test/mocks/bpmnModelerMock';
-import { AddProcessTaskManager, RemoveProcessTaskManager } from '../utils/ProcessTaskManager';
 
 const layoutSetId = 'someLayoutSetId';
 const layoutSetsMock: LayoutSets = {
@@ -50,15 +49,13 @@ class BpmnModelerMockImpl {
   }
 }
 
-jest.mock('../utils/ProcessTaskManager');
-
 jest.mock('../utils/hookUtils', () => ({
   getBpmnEditorDetailsFromBusinessObject: jest.fn().mockReturnValue({}),
 }));
 
 jest.mock('../contexts/BpmnConfigPanelContext', () => ({
   useBpmnConfigPanelFormContext: jest.fn(() => ({
-    metaDataFormRef: { current: null },
+    metadataFormRef: { current: null },
     resetForm: jest.fn(),
   })),
 }));
@@ -77,6 +74,9 @@ jest.mock('./useBpmnModeler', () => ({
 }));
 
 const setBpmnDetailsMock = jest.fn();
+const onProcessTaskAddMock = jest.fn();
+const onProcessTaskRemoveMock = jest.fn();
+
 const overrideUseBpmnContext = () => {
   (useBpmnContext as jest.Mock).mockReturnValue({
     getUpdatedXml: jest.fn(),
@@ -103,9 +103,9 @@ const wrapper = ({ children }) => (
     <BpmnApiContextProvider
       addLayoutSet={jest.fn()}
       deleteLayoutSet={jest.fn()}
-      deleteDataTypeFromAppMetadata={jest.fn()}
-      addDataTypeToAppMetadata={jest.fn()}
       saveBpmn={saveBpmnMock}
+      onProcessTaskAdd={onProcessTaskAddMock}
+      onProcessTaskRemove={onProcessTaskRemoveMock}
       layoutSets={layoutSetsMock}
     >
       {children}
@@ -130,23 +130,13 @@ describe('useBpmnEditor', () => {
   it('should handle "shape.add" event', async () => {
     renderUseBpmnEditor(false, 'shape.add');
 
-    const handleTaskAddMock = jest.fn();
-    (AddProcessTaskManager as jest.Mock).mockImplementation(() => ({
-      handleTaskAdd: () => handleTaskAddMock(),
-    }));
-
-    await waitFor(() => expect(handleTaskAddMock).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(onProcessTaskAddMock).toHaveBeenCalledTimes(1));
   });
 
   it('should handle "shape.remove" event', async () => {
     renderUseBpmnEditor(false, 'shape.remove');
 
-    const handleTaskRemoveMock = jest.fn();
-    (RemoveProcessTaskManager as jest.Mock).mockImplementation(() => ({
-      handleTaskRemove: () => handleTaskRemoveMock(),
-    }));
-
-    await waitFor(() => expect(handleTaskRemoveMock).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(onProcessTaskRemoveMock).toHaveBeenCalledTimes(1));
   });
 
   it('should call setBpmnDetails when "element.click" event is triggered on eventBus', () => {

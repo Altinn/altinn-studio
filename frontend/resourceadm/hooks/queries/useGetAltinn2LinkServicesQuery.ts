@@ -22,5 +22,9 @@ export const useGetAltinn2LinkServicesQuery = (
   return useQuery<Altinn2LinkService[], ResourceError>({
     queryKey: [QueryKey.Altinn2Services, org, environment],
     queryFn: () => getAltinn2LinkServices(org, environment),
+    select: (services: Altinn2LinkService[]) =>
+      [...services].sort((a, b) =>
+        a.serviceName.toLowerCase().localeCompare(b.serviceName.toLowerCase()),
+      ),
   });
 };

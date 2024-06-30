@@ -159,6 +159,7 @@ export const queriesMock: ServicesContextProps = {
 
   // Queries - PrgetBpmnFile
   getBpmnFile: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
+  getProcessTaskType: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
 
   // Mutations
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -196,7 +197,7 @@ export const queriesMock: ServicesContextProps = {
   unsetStarredRepo: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   updateFormLayoutName: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateLayoutSet: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateLayoutSetId: jest.fn().mockImplementation(() => Promise.resolve()),
   updateTextId: jest.fn().mockImplementation(() => Promise.resolve()),
   updateTranslationByLangCode: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppPolicy: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -224,5 +225,5 @@ export const queriesMock: ServicesContextProps = {
 
   // Mutations - ProcessEditor
   updateBpmnXml: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateProcessDataType: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateProcessDataTypes: jest.fn().mockImplementation(() => Promise.resolve()),
 };

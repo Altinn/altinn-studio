@@ -12,6 +12,7 @@ using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
@@ -156,6 +157,8 @@ namespace Altinn.Studio.Designer.Controllers
                 LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
                 applicationMetadata = SetMockDataTypeIfMissing(applicationMetadata, layoutSets);
             }
+
+            applicationMetadata = SetMockedPartyTypesAllowedAsAllFalse(applicationMetadata);
             return Ok(applicationMetadata);
         }
 
@@ -269,7 +272,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("api/v1/data/anonymous")]
         public IActionResult Anonymous(string org, string app)
         {
-            string user = @"{}";
+            string user = "{}";
             return Content(user);
         }
 
@@ -346,6 +349,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>bool</returns>
         [HttpGet]
         [Route("api/v1/parties")]
+        [UseSystemTextJson]
         public ActionResult<List<Party>> AllowedToInstantiateFilter([FromQuery] string allowedToInstantiateFilter)
         {
             List<Party> parties = new() {
@@ -353,16 +357,12 @@ namespace Altinn.Studio.Designer.Controllers
                 {
                     PartyId = PartyId,
                     PartyTypeName = PartyType.Person,
-                    OrgNumber = "1",
-                    SSN = null,
-                    UnitType = "AS",
                     Name = "Test Testesen",
+                    SSN = "11223344556",
                     IsDeleted = false,
                     OnlyHierarchyElementWithNoAccess = false,
                     Person = new Person(),
-                    Organization = null,
-                    ChildParties = null
-                }
+                },
             };
             return Ok(parties);
         }
@@ -933,12 +933,24 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>Empty response</returns>
         [HttpGet]
         [Route("api/v1/footer")]
-        public IActionResult Footer(string org, string app)
+        public async Task<ActionResult<FooterFile>> Footer(string org, string app, CancellationToken cancellationToken)
         {
-            return Ok();
+            try
+            {
+                string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+                AltinnAppGitRepository altinnAppGitRepository =
+                    _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+                FooterFile footerFile = await altinnAppGitRepository.GetFooter(cancellationToken);
+                return Ok(footerFile);
+            }
+            catch (FileNotFoundException)
+            {
+                return Ok();
+            }
         }
 
         /// <summary>
@@ -995,6 +1007,20 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             return MINIMUM_NUGET_VERSION;
+        }
+
+        /// <summary>
+        /// Method to override the partyTypesAllowed in app metadata to bypass the check in app-frontend for a valid party during instantiation.
+        /// </summary>
+        /// <returns>The altered app metadata with all partyTypes set to false</returns>
+        private static ApplicationMetadata SetMockedPartyTypesAllowedAsAllFalse(ApplicationMetadata applicationMetadata)
+        {
+            applicationMetadata.PartyTypesAllowed.Person = false;
+            applicationMetadata.PartyTypesAllowed.Organisation = false;
+            applicationMetadata.PartyTypesAllowed.SubUnit = false;
+            applicationMetadata.PartyTypesAllowed.BankruptcyEstate = false;
+
+            return applicationMetadata;
         }
 
         private static ApplicationMetadata SetMockDataTypeIfMissing(ApplicationMetadata applicationMetadata, LayoutSets layoutSets)

@@ -18,6 +18,7 @@ import { ChevronDownIcon, ChevronRightIcon } from '@studio/icons';
 import { StudioButton } from '../../StudioButton';
 import classes from './StudioTreeViewItem.module.css';
 import cn from 'classnames';
+import { useTreeViewItemOpenOnHierarchySelect } from '../hooks/useTreeViewItemOpenOnHierarchySelect';
 
 export type StudioTreeViewItemProps = {
   as?: ElementType;
@@ -44,6 +45,8 @@ export const StudioTreeViewItem = ({
     useTreeViewRootContext();
   const { level } = useTreeViewItemContext();
   const treeItemRef = useRef<HTMLDivElement>(null);
+
+  useTreeViewItemOpenOnHierarchySelect(rootId, nodeId, selectedId, setOpen);
 
   useEffect(() => {
     if (focusedId === nodeId) {

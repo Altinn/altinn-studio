@@ -1,7 +1,9 @@
+using System.Collections.Generic;
+
 namespace Altinn.Studio.Designer.Models.Dto;
 
-public class DataTypeChange
+public class DataTypesChange
 {
-    public string NewDataType { get; set; }
+    public List<string> NewDataTypes { get; set; }
     public string ConnectedTaskId { get; set; }
 }

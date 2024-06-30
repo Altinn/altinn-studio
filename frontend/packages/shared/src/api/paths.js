@@ -4,7 +4,7 @@ import { APP_DEVELOPMENT_BASENAME, PREVIEW_MOCK_PARTY_ID, PREVIEW_MOCK_INSTANCE_
 // Base path
 const basePath = '/designer/api';
 
-// ApplicationMetaData
+// ApplicationMetadata
 export const appMetadataPath = (org, app) => `${basePath}/${org}/${app}/metadata`; // Get, Put, Post
 export const appMetadataAttachmentPath = (org, app) => `${basePath}/${org}/${app}/metadata/attachment-component`; // Post, Put, Delete
 
@@ -135,20 +135,23 @@ export const resourceSinglePath = (org, repo, id) => `${basePath}/${org}/resourc
 export const resourceEditPath = (org, id) => `${basePath}/${org}/resources/updateresource/${id}`; // Put
 export const resourceValidatePolicyPath = (org, repo, id) => `${basePath}/${org}/${repo}/policy/validate/${id}`; // Get
 export const resourceValidateResourcePath = (org, repo, id) => `${basePath}/${org}/resources/validate/${repo}/${id}`; // Get
-export const publishResourcePath = (org, repo, id, env) => `${basePath}/${org}/resources/publish/${repo}/${id}?env=${env}`; // Get
+export const publishResourcePath = (org, repo, id, env) => `${basePath}/${org}/resources/publish/${repo}/${id}/${env}`; // Get
 export const altinn2LinkServicesPath = (org, env) => `${basePath}/${org}/resources/altinn2linkservices/${env}`; // Get
 export const importResourceFromAltinn2Path = (org, env, serviceCode, serviceEdition) => `${basePath}/${org}/resources/importresource/${serviceCode}/${serviceEdition}/${env}`; // Post
-export const accessListsPath = (org, env, page) => `${basePath}/${org}/resources/accesslist/?env=${env}${page ? `&page=${page}` : ''}`; // Get
+export const accessListsPath = (org, env, page) => `${basePath}/${env}/${org}/resources/accesslist/${page ? `?page=${page}` : ''}`; // Get
 export const importResourceFromAltinn3Path = (org, resourceId, env) => `${basePath}/${org}/resources/addexistingresource/${resourceId}/${env}`; // Post
-export const createAccessListsPath = (org, env) => `${basePath}/${org}/resources/accesslist/?env=${env}`; //  Post
-export const accessListPath = (org, listId, env) => `${basePath}/${org}/resources/accesslist/${listId}?env=${env}`; // Get, Patch, Delete
-export const accessListMemberPath = (org, listId, env, page) => `${basePath}/${org}/resources/accesslist/${listId}/members/?env=${env}${page ? `&page=${page}` : ''}`; // Get, Post, Delete
-export const resourceAccessListsPath = (org, resourceId, env, page) => `${basePath}/${org}/resources/${resourceId}/accesslists/?env=${env}${page ? `&page=${page}` : ''}`; // Get
-export const resourceAccessListPath = (org, resourceId, listId, env) => `${basePath}/${org}/resources/${resourceId}/accesslists/${listId}?env=${env}`; // Post, Delete, Patch
+export const createAccessListsPath = (org, env) => `${basePath}/${env}/${org}/resources/accesslist/`; //  Post
+export const accessListPath = (org, listId, env, etag = '') => `${basePath}/${env}/${org}/resources/accesslist/${listId}${etag ? `?etag=${etag}` : ''}`; // Get, Patch, Delete
+export const accessListMemberPath = (org, listId, env, page) => `${basePath}/${env}/${org}/resources/accesslist/${listId}/members/${page ? `?page=${page}` : ''}`; // Get, Post, Delete
+export const resourceAccessListsPath = (org, resourceId, env, page) => `${basePath}/${env}/${org}/resources/${resourceId}/accesslists/${page ? `?page=${page}` : ''}`; // Get
+export const resourceAccessListPath = (org, resourceId, listId, env) => `${basePath}/${env}/${org}/resources/${resourceId}/accesslists/${listId}`; // Post, Delete, Patch
 
 // Process Editor
 export const processEditorPath = (org, app) => `${basePath}/${org}/${app}/process-modelling/process-definition`;
-export const processEditorWebSocketHub = () => '/sync-hub';
 export const processEditorPathPut = (org, app) => `${basePath}/${org}/${app}/process-modelling/process-definition-latest`;
-export const processEditorDataTypeChangePath = (org, app) => `${basePath}/${org}/${app}/process-modelling/data-type`;
+export const processEditorDataTypesChangePath = (org, app) => `${basePath}/${org}/${app}/process-modelling/data-types`;
+export const processTaskTypePath = (org, app, taskId) => `${basePath}/${org}/${app}/process-modelling/task-type/${taskId}`; // Get
 export const processEditorDataTypePath = (org, app, dataTypeId, taskId) => `${basePath}/${org}/${app}/process-modelling/data-type/${dataTypeId}?${s({ taskId })}`;
+
+// Event Hubs
+export const SyncEventsWebSocketHub = () => '/sync-hub';

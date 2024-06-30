@@ -11,5 +11,6 @@ export const typeItemId = (pointer) => `type-item-${pointer}`;
 export const userMenuItemId = 'user-menu-item';
 export const pageAccordionContentId = (pageName) => `page-accordion-content-${pageName}`;
 export const profileButtonId = 'profileButton';
-export const org = 'org';
-export const app = 'app';
+export const org = 'testOrg';
+export const app = 'testApp';
+export const selectedLayoutSet = 'layout-set-test';

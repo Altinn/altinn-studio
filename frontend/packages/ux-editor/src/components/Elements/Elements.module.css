@@ -21,3 +21,9 @@
 .noPageSelected {
   padding-inline: var(--fds-spacing-3);
 }
+
+.errorMessage {
+  padding: var(--fds-spacing-3);
+  max-width: 350px;
+  width: 100%;
+}

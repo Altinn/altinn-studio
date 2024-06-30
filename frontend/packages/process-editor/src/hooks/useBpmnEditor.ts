@@ -5,11 +5,7 @@ import { useBpmnModeler } from './useBpmnModeler';
 import { getBpmnEditorDetailsFromBusinessObject } from '../utils/hookUtils';
 import { useBpmnConfigPanelFormContext } from '../contexts/BpmnConfigPanelContext';
 import { useBpmnApiContext } from '../contexts/BpmnApiContext';
-import {
-  AddProcessTaskManager,
-  RemoveProcessTaskManager,
-  type TaskEvent,
-} from '../utils/ProcessTaskManager';
+import type { TaskEvent } from '../types/TaskEvent';
 
 // Wrapper around bpmn-js to Reactify it
 
@@ -21,55 +17,31 @@ type UseBpmnViewerResult = {
 export const useBpmnEditor = (): UseBpmnViewerResult => {
   const { getUpdatedXml, bpmnXml, modelerRef, setBpmnDetails } = useBpmnContext();
   const canvasRef = useRef<HTMLDivElement | null>(null);
-  const { metaDataFormRef, resetForm } = useBpmnConfigPanelFormContext();
+  const { metadataFormRef, resetForm } = useBpmnConfigPanelFormContext();
   const { getModeler, destroyModeler } = useBpmnModeler();
 
-  const {
-    addLayoutSet,
-    deleteLayoutSet,
-    addDataTypeToAppMetadata,
-    deleteDataTypeFromAppMetadata,
-    saveBpmn,
-    layoutSets,
-    onProcessTaskAdd,
-    onProcessTaskRemove,
-  } = useBpmnApiContext();
-
-  // Needs to update the layoutSetsRef.current when layoutSets changes to avoid staled data in the event listeners
-  const layoutSetsRef = useRef(layoutSets);
-  useEffect(() => {
-    layoutSetsRef.current = layoutSets;
-  }, [layoutSets]);
+  const { saveBpmn, onProcessTaskAdd, onProcessTaskRemove } = useBpmnApiContext();
 
   const handleCommandStackChanged = async () => {
-    saveBpmn(await getUpdatedXml(), metaDataFormRef.current || null);
+    saveBpmn(await getUpdatedXml(), metadataFormRef.current || null);
     resetForm();
   };
 
   const handleShapeAdd = (taskEvent: TaskEvent): void => {
     const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(taskEvent?.element?.businessObject);
-    const addProcessTaskManager = new AddProcessTaskManager(
-      addLayoutSet,
-      addDataTypeToAppMetadata,
-      bpmnDetails,
-      onProcessTaskAdd,
-    );
-
-    addProcessTaskManager.handleTaskAdd(taskEvent);
+    onProcessTaskAdd({
+      taskEvent,
+      taskType: bpmnDetails.taskType,
+    });
     updateBpmnDetailsByTaskEvent(taskEvent);
   };
 
   const handleShapeRemove = (taskEvent: TaskEvent): void => {
     const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(taskEvent?.element?.businessObject);
-    const removeProcessTaskManager = new RemoveProcessTaskManager(
-      layoutSetsRef.current,
-      deleteLayoutSet,
-      deleteDataTypeFromAppMetadata,
-      bpmnDetails,
-      onProcessTaskRemove,
-    );
-
-    removeProcessTaskManager.handleTaskRemove(taskEvent);
+    onProcessTaskRemove({
+      taskEvent,
+      taskType: bpmnDetails.taskType,
+    });
     setBpmnDetails(null);
   };
 
@@ -95,13 +67,13 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   };
 
   const initializeBpmnChanges = () => {
-    modelerRef.current.on('commandStack.changed', async () => {
+    modelerRef.current.on('commandStack.changed', async (): Promise<void> => {
       await handleCommandStackChanged();
     });
-    modelerRef.current.on('shape.add', (taskEvent: TaskEvent) => {
+    modelerRef.current.on('shape.add', (taskEvent: TaskEvent): void => {
       handleShapeAdd(taskEvent);
     });
-    modelerRef.current.on('shape.remove', (taskEvent: TaskEvent) => {
+    modelerRef.current.on('shape.remove', (taskEvent: TaskEvent): void => {
       handleShapeRemove(taskEvent);
     });
   };

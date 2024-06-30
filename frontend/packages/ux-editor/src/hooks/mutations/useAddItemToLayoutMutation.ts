@@ -25,7 +25,7 @@ export const useAddItemToLayoutMutation = (org: string, app: string, layoutSetNa
 
       if (!layout) return;
 
-      return formLayoutsMutation.mutateAsync(updatedLayout).then(() => {
+      return formLayoutsMutation.mutateAsync({ internalLayout: updatedLayout }).then(() => {
         if (
           componentType === ComponentType.FileUpload ||
           componentType === ComponentType.FileUploadWithTag
