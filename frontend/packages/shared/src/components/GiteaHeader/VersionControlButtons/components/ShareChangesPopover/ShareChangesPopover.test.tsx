@@ -133,6 +133,7 @@ describe('shareChanges', () => {
           contentStatus: [{ filePath: '', fileStatus: '' }],
         },
         hasMergeConflict: true,
+        hasPushRights: true,
       },
     });
 
@@ -141,6 +142,7 @@ describe('shareChanges', () => {
     });
 
     expect(shareButton).not.toHaveTextContent(textMock('sync_header.merge_conflict') + 1);
+    expect(screen.getByTitle(textMock('sync_header.merge_conflict_title'))).toBeInTheDocument();
   });
 
   it('should render merge conflict button as disabled when there are merge conflicts', () => {

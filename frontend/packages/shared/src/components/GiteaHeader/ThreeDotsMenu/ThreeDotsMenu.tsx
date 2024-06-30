@@ -11,14 +11,10 @@ import { ClonePopoverContent } from './ClonePopoverContent';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export type ThreeDotsMenuProps = {
-  onlyShowRepository?: boolean;
-  hasCloneModal?: boolean;
+  isClonePossible?: boolean;
 };
 
-export const ThreeDotsMenu = ({
-  onlyShowRepository = false,
-  hasCloneModal = false,
-}: ThreeDotsMenuProps) => {
+export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
   const [localChangesModalIsOpen, setLocalChangesModalIsOpen] = useState(false);
@@ -41,7 +37,7 @@ export const ThreeDotsMenu = ({
       }
     >
       <ul className={classes.menuItems}>
-        {!onlyShowRepository && hasCloneModal && (
+        {isClonePossible && (
           <li>
             <StudioPopover open={clonePopoverOpen} onClose={toggleClonePopoverOpen}>
               <StudioPopover.Trigger
