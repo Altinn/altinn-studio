@@ -16,45 +16,43 @@ export const NewExpressionButton = ({ options, onAddExpression }: NewExpressionB
   const t = useText();
 
   return (
-    <>
-      <DropdownMenu
-        onClose={() => setShowDropdown(false)}
-        open={showDropdown}
-        placement='top'
-        portal
-        size='small'
-      >
-        <DropdownMenu.Trigger asChild>
-          <StudioButton
-            aria-expanded={showDropdown}
-            aria-haspopup='menu'
-            color='first'
-            fullWidth
-            icon={<PlusIcon />}
-            onClick={() => setShowDropdown(!showDropdown)}
-            size='small'
-            title={t('right_menu.expressions_add')}
-            variant='secondary'
-          >
-            {t('right_menu.expressions_add')}
-          </StudioButton>
-        </DropdownMenu.Trigger>
-        <DropdownMenu.Content>
-          <DropdownMenu.Group heading={t('right_menu.expressions_property')}>
-            {options.map((o) => (
-              <DropdownMenu.Item
-                key={o}
-                onClick={() => {
-                  setShowDropdown(false);
-                  onAddExpression(o);
-                }}
-              >
-                {expressionPropertyTexts(t)[o]}
-              </DropdownMenu.Item>
-            ))}
-          </DropdownMenu.Group>
-        </DropdownMenu.Content>
-      </DropdownMenu>
-    </>
+    <DropdownMenu
+      onClose={() => setShowDropdown(false)}
+      open={showDropdown}
+      placement='top'
+      portal
+      size='small'
+    >
+      <DropdownMenu.Trigger asChild>
+        <StudioButton
+          aria-expanded={showDropdown}
+          aria-haspopup='menu'
+          color='first'
+          fullWidth
+          icon={<PlusIcon />}
+          onClick={() => setShowDropdown(!showDropdown)}
+          size='small'
+          title={t('right_menu.expressions_add')}
+          variant='secondary'
+        >
+          {t('right_menu.expressions_add')}
+        </StudioButton>
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content>
+        <DropdownMenu.Group heading={t('right_menu.expressions_property')}>
+          {options.map((o) => (
+            <DropdownMenu.Item
+              key={o}
+              onClick={() => {
+                setShowDropdown(false);
+                onAddExpression(o);
+              }}
+            >
+              {expressionPropertyTexts(t)[o]}
+            </DropdownMenu.Item>
+          ))}
+        </DropdownMenu.Group>
+      </DropdownMenu.Content>
+    </DropdownMenu>
   );
 };

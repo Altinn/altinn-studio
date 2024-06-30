@@ -30,34 +30,32 @@ export const AddPropertyMenu = ({ pointer }: AddPropertyMenuProps) => {
   const closeDropdown = () => setIsAddDropdownOpen(false);
 
   return (
-    <>
-      <DropdownMenu open={isAddDropdownOpen} onClose={closeDropdown} size='small' portal>
-        <DropdownMenu.Trigger asChild>
-          <ActionButton
-            aria-expanded={isAddDropdownOpen}
-            aria-haspopup='menu'
-            icon={<PlusIcon />}
-            onClick={() => setIsAddDropdownOpen(true)}
-            titleKey='schema_editor.add_node_of_type'
-          />
-        </DropdownMenu.Trigger>
-        <DropdownMenu.Content>
-          <DropdownMenu.Group>
-            <DropdownMenu.Item onClick={addField}>
-              <PropertyIcon />
-              {t('schema_editor.add_field')}
-            </DropdownMenu.Item>
-            <DropdownMenu.Item onClick={addCombination}>
-              <CombinationIcon />
-              {t('schema_editor.add_combination')}
-            </DropdownMenu.Item>
-            <DropdownMenu.Item onClick={addReference}>
-              <ReferenceIcon />
-              {t('schema_editor.add_reference')}
-            </DropdownMenu.Item>
-          </DropdownMenu.Group>
-        </DropdownMenu.Content>
-      </DropdownMenu>
-    </>
+    <DropdownMenu open={isAddDropdownOpen} onClose={closeDropdown} size='small' portal>
+      <DropdownMenu.Trigger asChild>
+        <ActionButton
+          aria-expanded={isAddDropdownOpen}
+          aria-haspopup='menu'
+          icon={<PlusIcon />}
+          onClick={() => setIsAddDropdownOpen(true)}
+          titleKey='schema_editor.add_node_of_type'
+        />
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content>
+        <DropdownMenu.Group>
+          <DropdownMenu.Item onClick={addField}>
+            <PropertyIcon />
+            {t('schema_editor.add_field')}
+          </DropdownMenu.Item>
+          <DropdownMenu.Item onClick={addCombination}>
+            <CombinationIcon />
+            {t('schema_editor.add_combination')}
+          </DropdownMenu.Item>
+          <DropdownMenu.Item onClick={addReference}>
+            <ReferenceIcon />
+            {t('schema_editor.add_reference')}
+          </DropdownMenu.Item>
+        </DropdownMenu.Group>
+      </DropdownMenu.Content>
+    </DropdownMenu>
   );
 };
