@@ -21,7 +21,7 @@ export const AltinnHeaderButton = ({ action }: AltinnHeaderButtonProps) => {
       key={action.menuKey}
       data-testid={action.menuKey}
       aria-label={t(action.menuKey)}
-      color={action.isInverted ? 'inverted' : 'primary'}
+      color={action.isInverted ? 'inverted' : 'first'}
       variant='secondary'
       // variant='secondary'
       size='small'
