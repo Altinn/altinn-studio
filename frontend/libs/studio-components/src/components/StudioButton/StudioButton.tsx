@@ -34,9 +34,9 @@ const StudioButton: OverridableComponent<StudioButtonProps, HTMLButtonElement> =
     <Button {...rest} color={selectedColor} className={classNames} icon={!children} ref={ref}>
       {icon ? (
         <span className={classes.innerContainer}>
-          {icon && iconPlacement === 'left' && iconComponent}
+          {iconPlacement === 'left' && iconComponent}
           {children}
-          {icon && iconPlacement === 'right' && iconComponent}
+          {iconPlacement === 'right' && iconComponent}
         </span>
       ) : (
         children
