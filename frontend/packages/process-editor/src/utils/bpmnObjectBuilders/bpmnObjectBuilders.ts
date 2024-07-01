@@ -1,19 +1,6 @@
 import type { BpmnDetails } from '../../types/BpmnDetails';
 import type { BpmnBusinessObjectViewer } from '../../types/BpmnBusinessObjectViewer';
 import type { BpmnBusinessObjectEditor } from '../../types/BpmnBusinessObjectEditor';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import type { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
-
-export const bpmnTaskConfig = {
-  payment: {
-    configNode: 'paymentConfig',
-    dataTypeName: 'paymentDataType',
-  },
-  signing: {
-    configNode: 'signatureConfig',
-    dataTypeName: 'signatureDataType',
-  },
-};
 
 /**
  * Gets the bpmn details from the business object in viewer mode
@@ -54,18 +41,4 @@ export const getBpmnEditorDetailsFromBusinessObject = (
     taskType: taskTypeFromV8 || taskTypeFromV7,
     type: businessObject?.$type,
   };
-};
-
-export const getDataTypeIdFromBusinessObject = (
-  bpmnTaskType: BpmnTaskType,
-  businessObject: BpmnBusinessObjectEditor,
-): string => {
-  const configNode = bpmnTaskConfig[bpmnTaskType].configNode;
-  const dataTypeName = bpmnTaskConfig[bpmnTaskType].dataTypeName;
-  return businessObject?.extensionElements?.values[0][configNode][dataTypeName];
-};
-
-export const getLayoutSetIdFromTaskId = (elementId: string, layoutSets: LayoutSets) => {
-  const layoutSet = layoutSets.sets.find((set) => set.tasks[0] === elementId);
-  return layoutSet?.id;
 };

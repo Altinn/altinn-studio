@@ -1,13 +1,12 @@
 import type { Policy } from 'app-shared/types/Policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
 import { PaymentPolicyBuilder } from '../../../utils/policy';
-import {
-  getDataTypeIdFromBusinessObject,
-  getLayoutSetIdFromTaskId,
-} from '@altinn/process-editor/utils/hookUtils/hookUtils';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioModeler';
+import { getLayoutSetIdFromTaskId } from '../bpmnHandlerUtils/bpmnHandlerUtils';
 
 export class OnProcessTaskRemoveHandler {
+  private readonly studioModeler = new StudioModeler();
   constructor(
     private readonly org: string,
     private readonly app: string,
@@ -59,13 +58,16 @@ export class OnProcessTaskRemoveHandler {
    * @private
    */
   private handlePaymentTaskRemove(taskMetadata: OnProcessTaskEvent): void {
-    const dataTypeId = getDataTypeIdFromBusinessObject(
-      taskMetadata.taskType,
-      taskMetadata.taskEvent.element.businessObject,
-    );
-
+    const dataTypeId = this.studioModeler.getDataTypeIdFromBusinessObject(taskMetadata.taskType);
     this.deleteDataTypeFromAppMetadata({
       dataTypeId,
+    });
+
+    const receiptPdfDataTypeId = this.studioModeler.getReceiptPdfDataTypeIdFromBusinessObject(
+      taskMetadata.taskType,
+    );
+    this.deleteDataTypeFromAppMetadata({
+      dataTypeId: receiptPdfDataTypeId,
     });
 
     const paymentPolicyBuilder = new PaymentPolicyBuilder(this.org, this.app);
@@ -99,11 +101,7 @@ export class OnProcessTaskRemoveHandler {
    * @private
    */
   private handleSigningTaskRemove(taskMetadata: OnProcessTaskEvent): void {
-    const dataTypeId = getDataTypeIdFromBusinessObject(
-      taskMetadata.taskType,
-      taskMetadata.taskEvent.element.businessObject,
-    );
-
+    const dataTypeId = this.studioModeler.getDataTypeIdFromBusinessObject(taskMetadata.taskType);
     this.deleteDataTypeFromAppMetadata({
       dataTypeId,
     });

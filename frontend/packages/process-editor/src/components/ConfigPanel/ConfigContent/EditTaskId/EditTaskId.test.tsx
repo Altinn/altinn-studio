@@ -24,7 +24,7 @@ jest.mock('../../../../contexts/BpmnConfigPanelContext', () => ({
   metadataFormRef: { current: undefined },
 });
 
-jest.mock('../../../../utils/bpmn/StudioModeler', () => {
+jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
     StudioModeler: jest.fn().mockImplementation(() => {
       return {
