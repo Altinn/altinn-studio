@@ -9,7 +9,7 @@ import { PageContainer } from 'app-shared/components/PageContainer/PageContainer
 import { Deployments } from './Deployments';
 import { Header } from './Header';
 
-export const Overview = () => {
+const Overview = () => {
   const { t } = useTranslation();
 
   return (
@@ -44,3 +44,4 @@ export const Overview = () => {
     </PageContainer>
   );
 };
+export default Overview;

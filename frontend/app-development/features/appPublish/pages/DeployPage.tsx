@@ -10,7 +10,7 @@ import { useInvalidator } from '../../../hooks/useInvalidator';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Alert } from '@digdir/design-system-react';
 
-export function DeployPage() {
+export default function DeployPage() {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
   const { data: orgs, isPending: orgsIsPending, isError: orgsIsError } = useOrgListQuery();

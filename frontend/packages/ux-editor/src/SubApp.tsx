@@ -9,10 +9,12 @@ type SubAppProps = {
   onLayoutSetNameChange: (layoutSetName: string) => void;
 };
 
-export const SubApp = (props: SubAppProps) => {
+const SubApp = (props: SubAppProps) => {
   return (
     <AppContextProvider {...props}>
       <App />
     </AppContextProvider>
   );
 };
+
+export default SubApp;

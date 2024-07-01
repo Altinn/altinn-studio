@@ -140,3 +140,4 @@ export const ProcessEditor = (): React.ReactElement => {
     />
   );
 };
+export default ProcessEditor;

@@ -55,6 +55,8 @@ export const TextEditor = () => {
     );
   }
 
+  console.log('hello');
+
   return (
     <TextEditorImpl
       addLanguage={handleAddLanguage}
@@ -70,3 +72,5 @@ export const TextEditor = () => {
     />
   );
 };
+
+export default TextEditor;

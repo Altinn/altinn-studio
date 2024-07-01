@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import {
   RouterProvider,
   createBrowserRouter,
@@ -37,4 +37,8 @@ const router = createBrowserRouter(
 /**
  * Displays the routes for app development pages
  */
-export const PageRoutes = (): React.ReactElement => <RouterProvider router={router} />;
+export const PageRoutes = (): React.ReactElement => (
+  <Suspense fallback='loading routes'>
+    <RouterProvider router={router} />;
+  </Suspense>
+);

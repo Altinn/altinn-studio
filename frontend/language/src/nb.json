@@ -1832,6 +1832,7 @@
   "ux_editor.latitude_label": "Latitude",
   "ux_editor.list_all": "ALLE",
   "ux_editor.list_favourites": "FAVORITTER",
+  "ux_editor.loading_editor": "Laster inn lage siden",
   "ux_editor.loading_form_layout": "Laster inn formlayout",
   "ux_editor.loading_page": "Laster inn lage siden",
   "ux_editor.longitude_label": "Longitude",
