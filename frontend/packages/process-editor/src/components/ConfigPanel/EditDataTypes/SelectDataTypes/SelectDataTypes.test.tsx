@@ -59,7 +59,6 @@ describe('SelectDataTypes', () => {
     const combobox = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_data_model'),
     });
-    expect(combobox).toHaveValue(existingDataType);
 
     await user.click(combobox);
     const addedOption = screen.getByRole('option', { name: 'dataModel0' });

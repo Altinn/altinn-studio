@@ -24,7 +24,7 @@ export const DownloadRepoPopoverContent = ({
       <Paragraph spacing size='small'>
         <Trans i18nKey={'overview.download_repo_info'} />
       </Paragraph>
-      <Link className={classes.link} size='small' href={repoDownloadPath(org, app)}>
+      <Link className={classes.link} href={repoDownloadPath(org, app)}>
         {t('overview.download_repo_changes')}
       </Link>
       <Link className={classes.link} href={repoDownloadPath(org, app, true)}>

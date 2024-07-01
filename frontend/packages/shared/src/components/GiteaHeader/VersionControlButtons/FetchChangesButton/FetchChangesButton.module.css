@@ -1,3 +1,8 @@
 .button {
   margin-right: 5px;
 }
+
+.buttonIconContainer {
+  display: flex;
+  gap: var(--fds-spacing-2);
+}
