@@ -101,6 +101,9 @@ export const filterDataModelFields = (
   getDataModelFieldsFilter: (element: DataModelFieldElement) => boolean,
   data: DataModelFieldElement[],
 ): DataModelField[] => {
+  if (!data) {
+    return [];
+  }
   return data.filter(getDataModelFieldsFilter).map((element) => ({
     value: element.dataBindingName,
     label: element.dataBindingName,
@@ -162,3 +165,16 @@ export const validateSelectedDataField = (
   dataFields?.some((dataField) => dataField.value === selectedDataField) ||
   selectedDataField === '' ||
   selectedDataField === undefined;
+
+export const getDataModel = (
+  isDataModelValid: boolean,
+  dataModelMetaData?: DataModelFieldElement[],
+  currentDataModel?: string,
+): string => {
+  if (dataModelMetaData) {
+    return isDataModelValid && currentDataModel !== undefined
+      ? currentDataModel
+      : dataModelMetaData[0]?.id;
+  }
+  return currentDataModel;
+};

@@ -9,6 +9,7 @@ export const useDataModelMetadataQuery = (
   app: string,
   layoutSetName: string,
   dataModelName: string,
+  enabled?: boolean,
 ): UseQueryResult<DataModelFieldElement[]> => {
   const { getDataModelMetadata } = useServicesContext();
   return useQuery<DataModelFieldElement[]>({
@@ -24,5 +25,6 @@ export const useDataModelMetadataQuery = (
         });
         return dataModelFields;
       }),
+    enabled,
   });
 };
