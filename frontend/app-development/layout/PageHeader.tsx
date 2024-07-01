@@ -12,6 +12,7 @@ import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { RepositoryType } from 'app-shared/types/global';
 import { useSelectedFormLayoutSetName, useSelectedFormLayoutName } from '@altinn/ux-editor/hooks';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
+import { StudioPageHeader } from '@studio/components';
 
 type SubMenuContentProps = {
   org: string;
@@ -83,16 +84,34 @@ export const PageHeader = ({
   const { selectedFormLayoutName } = useSelectedFormLayoutName(selectedFormLayoutSetName);
 
   return (
-    <AltinnHeader
-      menuItems={!isRepoError && menuItems}
-      showSubMenu={showSubMenu || !isRepoError}
-      subMenuContent={SubMenuContent({ org, app, hasRepoError: isRepoError })}
-      org={org}
-      app={!isRepoError && app}
-      user={user}
-      repository={repository}
-      repoOwnerIsOrg={repoOwnerIsOrg}
-      buttonActions={!isRepoError && buttonActions(org, app, selectedFormLayoutName)}
-    />
+    <>
+      <AltinnHeader
+        menuItems={!isRepoError && menuItems}
+        showSubMenu={showSubMenu || !isRepoError}
+        subMenuContent={SubMenuContent({ org, app, hasRepoError: isRepoError })}
+        org={org}
+        app={!isRepoError && app}
+        user={user}
+        repository={repository}
+        repoOwnerIsOrg={repoOwnerIsOrg}
+        buttonActions={!isRepoError && buttonActions(org, app, selectedFormLayoutName)}
+      />
+      <div style={{ border: '4px solid black', marginBlock: '10px' }} />
+      <StudioPageHeader>
+        <StudioPageHeader.Main variant='regular'>
+          <StudioPageHeader.Left>
+            <p>test</p>
+            <p>test</p>
+          </StudioPageHeader.Left>
+          <StudioPageHeader.Center>Center</StudioPageHeader.Center>
+          <StudioPageHeader.Right>Right</StudioPageHeader.Right>
+        </StudioPageHeader.Main>
+        {(showSubMenu || !isRepoError) && (
+          <StudioPageHeader.Sub>
+            {SubMenuContent({ org, app, hasRepoError: isRepoError })}
+          </StudioPageHeader.Sub>
+        )}
+      </StudioPageHeader>
+    </>
   );
 };

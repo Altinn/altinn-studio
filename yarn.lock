@@ -6683,6 +6683,7 @@ __metadata:
     "@testing-library/react": "npm:16.0.0"
     "@types/jest": "npm:^29.5.5"
     ajv: "npm:8.16.0"
+    classnames: "npm:2.5.1"
     eslint: "npm:8.57.0"
     eslint-plugin-storybook: "npm:^0.8.0"
     jest: "npm:^29.7.0"

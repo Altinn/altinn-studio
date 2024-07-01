@@ -1,0 +1,24 @@
+.main {
+  --studio-header-colour-regular: #022f51;
+  --studio-header-colour-preview: #118849;
+  --studio-page-header-height: 80px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--fds-semantic-background-default);
+  height: var(--studio-page-header-height);
+  padding: 0 var(--fds-spacing-8);
+}
+
+.regular {
+  background-color: var(--studio-header-colour-regular);
+}
+
+.preview {
+  background-color: var(--studio-header-colour-preview);
+}
+
+.sub {
+  width: 100%;
+}
