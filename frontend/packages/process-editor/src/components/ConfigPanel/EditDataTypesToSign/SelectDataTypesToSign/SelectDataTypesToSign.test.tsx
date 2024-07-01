@@ -124,7 +124,7 @@ describe('SelectDataTypesToSign', () => {
     expect(screen.queryByRole('option', { name: availableDataTypeIds[0] })).not.toBeInTheDocument();
     expect(screen.queryByRole('option', { name: availableDataTypeIds[1] })).not.toBeInTheDocument();
     expect(screen.getByRole('option', { name: availableDataTypeIds[2] })).toBeInTheDocument();
-    expect(screen.queryByRole('option', { name: availableDataTypeIds[3] })).not.toBeInTheDocument();
+    expect(screen.getByRole('option', { name: availableDataTypeIds[3] })).toBeInTheDocument();
   });
 });
 
