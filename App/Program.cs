@@ -12,6 +12,7 @@ using PsA3Forms.DTOs;
 using Altinn.App.logic;
 using Altinn.App.Core.Features.Payment;
 using Altinn.App.Custom.Payment;
+using Microsoft.Extensions.Hosting;
 
 
 void RegisterCustomAppServices(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
@@ -34,6 +35,11 @@ ConfigureServices(builder.Services, builder.Configuration);
 
 ConfigureWebHostBuilder(builder.WebHost);
 
+if (!builder.Environment.IsDevelopment())
+{
+    builder.AddAzureKeyVaultAsConfigProvider();
+}
+
 WebApplication app = builder.Build();
 
 Configure();
@@ -49,7 +55,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
 
     // Register services required to run this as an Altinn application
     services.AddAltinnAppServices(config, builder.Environment);
-
+    
     // Add Swagger support (Swashbuckle)
     services.AddSwaggerGen(c =>
     {
