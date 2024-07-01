@@ -1,4 +1,4 @@
-import { StudioModeler } from '../utils/bpmn/StudioModeler';
+import { StudioModeler } from '../utils/bpmnModeler/StudioModeler';
 
 export const useTaskIds = (): string[] => {
   const studioModeler = new StudioModeler();

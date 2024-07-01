@@ -23,6 +23,18 @@ enum AvailableBpmnInstances {
   BpmnFactory = 'bpmnFactory',
 }
 
+const bpmnTaskConfig = {
+  payment: {
+    configNode: 'paymentConfig',
+    dataTypeName: 'paymentDataType',
+    receiptPdfDataTypeName: 'paymentReceiptPdfDataType',
+  },
+  signing: {
+    configNode: 'signatureConfig',
+    dataTypeName: 'signatureDataType',
+  },
+};
+
 export class StudioModeler {
   public readonly modelerInstance: Modeler = BpmnModelerInstance.getInstance();
   public readonly bpmnFactory: BpmnFactory = this.modelerInstance.get(
@@ -70,5 +82,19 @@ export class StudioModeler {
 
   public getAllTasksByType(elementType: string): Element[] {
     return this.elementRegistry.filter((element) => element.type === elementType);
+  }
+
+  public getReceiptPdfDataTypeIdFromBusinessObject(bpmnTaskType: BpmnTaskType): string {
+    const configNode = bpmnTaskConfig[bpmnTaskType].configNode;
+    const receiptPdfDataTypeName = bpmnTaskConfig[bpmnTaskType].receiptPdfDataTypeName;
+    return this.getElement().businessObject?.extensionElements?.values[0][configNode][
+      receiptPdfDataTypeName
+    ];
+  }
+
+  public getDataTypeIdFromBusinessObject(bpmnTaskType: BpmnTaskType): string {
+    const configNode = bpmnTaskConfig[bpmnTaskType].configNode;
+    const dataTypeName = bpmnTaskConfig[bpmnTaskType].dataTypeName;
+    return this.getElement().businessObject?.extensionElements?.values[0][configNode][dataTypeName];
   }
 }
