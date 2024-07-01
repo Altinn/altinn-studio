@@ -26,7 +26,7 @@ export const CustomActions = ({ actionElement }: CustomActionsProps): React.Reac
 
   const onActionTypeChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const isChecked = event.target.checked;
-    const actionType = isChecked ? ActionType.Server : ActionType.Process;
+    const actionType = isChecked ? ActionType.Process : ActionType.Server;
     bpmnActionModeler.updateTypeForAction(actionElement, actionType);
   };
 
@@ -47,7 +47,7 @@ export const CustomActions = ({ actionElement }: CustomActionsProps): React.Reac
           size='small'
           onChange={onActionTypeChange}
           value={currentActionType}
-          checked={currentActionType === ActionType.Server}
+          checked={currentActionType === ActionType.Process}
           disabled={!isCustomAction}
         >
           {t('process_editor.configuration_panel_actions_set_server_action_label')}
