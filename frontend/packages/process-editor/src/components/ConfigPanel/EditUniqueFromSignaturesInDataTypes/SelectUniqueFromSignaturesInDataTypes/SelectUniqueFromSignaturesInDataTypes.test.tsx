@@ -89,7 +89,7 @@ describe('SelectUniqueFromSignaturesInDataTypes', () => {
   it('saves the new selection', async () => {
     const user = userEvent.setup();
 
-    renderSelectDataTypesToSign(existingDataTypesProps);
+    renderSelectDataTypes(existingDataTypesProps);
 
     const combobox = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_unique_from_signatures_in_data_types'),
@@ -109,7 +109,7 @@ describe('SelectUniqueFromSignaturesInDataTypes', () => {
     element.businessObject.extensionElements.values[0].signatureConfig.uniqueFromSignaturesInDataTypes =
       { dataTypes: existingDataTypes.map((dataType) => ({ dataType: dataType.id })) };
 
-    renderSelectDataTypesToSign(existingDataTypesProps);
+    renderSelectDataTypes(existingDataTypesProps);
 
     const closeButton = screen.getByRole('button', { name: textMock('general.close') });
     await user.click(closeButton);
@@ -122,7 +122,7 @@ type RenderProps = {
   bpmnContextProps: Partial<BpmnContextProps>;
 };
 
-const renderSelectDataTypesToSign = (props: Partial<RenderProps> = {}) => {
+const renderSelectDataTypes = (props: Partial<RenderProps> = {}) => {
   const { bpmnApiContextProps, bpmnContextProps } = props;
 
   return render(

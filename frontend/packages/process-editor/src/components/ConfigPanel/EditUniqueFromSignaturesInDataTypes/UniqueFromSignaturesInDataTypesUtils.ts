@@ -9,33 +9,39 @@ export const updateDataTypes = (
   bpmnDetails: BpmnDetails,
   updatedDataTypes: string[],
 ) => {
-  let dataTypesToSignElement: ModdleElement =
+  let uniqueFromSignaturesInDataTypesElement: ModdleElement =
     bpmnDetails.element.businessObject.extensionElements.values[0].signatureConfig
       ?.uniqueFromSignaturesInDataTypes;
 
-  if (!dataTypesToSignElement) {
-    dataTypesToSignElement = bpmnFactory.create('altinn:UniqueFromSignaturesInDataTypes');
+  if (!uniqueFromSignaturesInDataTypesElement) {
+    uniqueFromSignaturesInDataTypesElement = bpmnFactory.create(
+      'altinn:UniqueFromSignaturesInDataTypes',
+    );
   }
 
-  dataTypesToSignElement.dataTypes = updatedDataTypes.map((dataType) =>
+  uniqueFromSignaturesInDataTypesElement.dataTypes = updatedDataTypes.map((dataType) =>
     bpmnFactory.create('altinn:DataType', {
       dataType,
     }),
   );
 
-  updateDataTypesToSign(modeling, bpmnDetails, dataTypesToSignElement);
+  updateUniqueFromSignaturesInDataTypes(
+    modeling,
+    bpmnDetails,
+    uniqueFromSignaturesInDataTypesElement,
+  );
 };
 
-const updateDataTypesToSign = (
+const updateUniqueFromSignaturesInDataTypes = (
   modeling: Modeling,
   bpmnDetails: BpmnDetails,
-  dataTypesToSignElement: ModdleElement,
+  uniqueFromSignaturesInDataTypesElement: ModdleElement,
 ) => {
   modeling.updateModdleProperties(
     bpmnDetails.element,
     bpmnDetails.element.businessObject.extensionElements.values[0].signatureConfig,
     {
-      uniqueFromSignaturesInDataTypes: dataTypesToSignElement,
+      uniqueFromSignaturesInDataTypes: uniqueFromSignaturesInDataTypesElement,
     },
   );
 };
