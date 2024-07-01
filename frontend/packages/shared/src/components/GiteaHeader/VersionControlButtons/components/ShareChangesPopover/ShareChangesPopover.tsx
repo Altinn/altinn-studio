@@ -8,7 +8,7 @@ import { GiteaFetchCompleted } from '../GiteaFetchCompleted';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useVersionControlButtonsContext } from '../../context';
-import { FetchingFromGitea } from '../FetchingFromGitea';
+import { SyncLoadingIndicator } from '../SyncLoadingIndicator';
 import type { IContentStatus, IGitStatus } from 'app-shared/types/global';
 import { CommitAndPushContent } from './CommitAndPushContent';
 
@@ -74,7 +74,9 @@ export const ShareChangesPopover = () => {
       <StudioPopover.Content
         className={fetchCompleted ? classes.popoverContentCenter : classes.popoverContent}
       >
-        {isLoading && <FetchingFromGitea heading={t('sync_header.controlling_service_status')} />}
+        {isLoading && (
+          <SyncLoadingIndicator heading={t('sync_header.controlling_service_status')} />
+        )}
         {!isLoading && hasChangesToPush && (
           <CommitAndPushContent handleClosePopover={handleClosePopover} />
         )}

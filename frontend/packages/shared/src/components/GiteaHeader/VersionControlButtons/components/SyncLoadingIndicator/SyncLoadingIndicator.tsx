@@ -3,11 +3,13 @@ import { Heading } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { StudioSpinner } from '@studio/components';
 
-export type FetchingFromGiteaProps = {
+export type SyncLoadingIndicatorProps = {
   heading: string;
 };
 
-export const FetchingFromGitea = ({ heading }: FetchingFromGiteaProps): React.ReactElement => {
+export const SyncLoadingIndicator = ({
+  heading,
+}: SyncLoadingIndicatorProps): React.ReactElement => {
   const { t } = useTranslation();
 
   return (

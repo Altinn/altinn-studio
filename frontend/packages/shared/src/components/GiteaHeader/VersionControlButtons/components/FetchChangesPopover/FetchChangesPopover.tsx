@@ -9,7 +9,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useQueryClient } from '@tanstack/react-query';
 import { GiteaFetchCompleted } from '../GiteaFetchCompleted';
 import { useVersionControlButtonsContext } from '../../context';
-import { FetchingFromGitea } from '../FetchingFromGitea';
+import { SyncLoadingIndicator } from '../SyncLoadingIndicator';
 
 export const FetchChangesPopover = (): React.ReactElement => {
   const {
@@ -65,7 +65,7 @@ export const FetchChangesPopover = (): React.ReactElement => {
         </StudioButton>
       </StudioPopover.Trigger>
       <StudioPopover.Content className={classes.popoverContent}>
-        {isLoading && <FetchingFromGitea heading={t('sync_header.fetching_latest_version')} />}
+        {isLoading && <SyncLoadingIndicator heading={t('sync_header.fetching_latest_version')} />}
         {!isLoading && <GiteaFetchCompleted heading={t('sync_header.service_updated_to_latest')} />}
       </StudioPopover.Content>
     </StudioPopover>
