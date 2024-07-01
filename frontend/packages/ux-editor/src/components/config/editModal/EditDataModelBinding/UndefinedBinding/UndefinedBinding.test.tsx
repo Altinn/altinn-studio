@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, screen, within } from '@testing-library/react';
-
 import { UndefinedBinding, type UndefinedBindingProps } from './UndefinedBinding';
 
 const label = 'kort svar';
@@ -16,7 +15,7 @@ const renderUndefinedBinding = (props: UndefinedBindingProps = defaultUndefinedB
 };
 
 describe('UndefinedBinding', () => {
-  it('should render edit button with only link icon and label', async () => {
+  it('should render edit button with only link icon and label', () => {
     renderUndefinedBinding();
 
     const editButton = screen.getByRole('button', {

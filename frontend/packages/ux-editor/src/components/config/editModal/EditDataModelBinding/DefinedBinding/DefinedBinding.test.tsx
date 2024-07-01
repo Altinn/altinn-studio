@@ -7,71 +7,36 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import type { DataModelMetadataResponse } from 'app-shared/types/api/DataModelMetadataResponse';
 
-const dataModelMetadata: DataModelMetadataResponse = {
-  elements: {
-    defaultModel: {
-      id: 'defaultModel',
-      type: 'ComplexType',
-      dataBindingName: null,
-      displayString: 'defaultModel',
-      isReadOnly: false,
-      isTagContent: false,
-      jsonSchemaPointer: '#/definitions/defaultModel',
-      maxOccurs: 1,
-      minOccurs: 1,
-      name: 'defaultModel',
-      parentElement: null,
-      restrictions: [],
-      texts: [],
-      xmlSchemaXPath: '/defaultModel',
-      xPath: '/defaultModel',
-    },
-    'defaultModel.field1': {
-      id: 'defaultModel.field1',
-      type: 'SimpleType',
-      dataBindingName: 'field1',
-      displayString: 'defaultModel.field1',
-      isReadOnly: false,
-      isTagContent: false,
-      jsonSchemaPointer: '#/definitions/defaultModel/properties/field1',
-      maxOccurs: 1,
-      minOccurs: 1,
-      name: 'field1',
-      parentElement: 'defaultModel',
-      restrictions: [],
-      texts: [],
-      xmlSchemaXPath: '/defaultModel/field1',
-      xPath: '/defaultModel/field1',
-    },
-  },
-};
+const label = 'label';
+const dataModelField = 'field';
+const dataModel = 'model';
+const bindingKey = 'bindingKey';
 
-const defaultComponent: DefinedBindingProps = {
-  label: 'label',
+const defaultDefinedBinding: DefinedBindingProps = {
+  label,
   onClick: jest.fn(),
   internalBindingFormat: {
-    field: 'field',
-    dataType: 'binding',
+    field: dataModelField,
+    dataType: dataModel,
   },
   componentType: ComponentType.Input,
-  bindingKey: 'bindingKey',
+  bindingKey,
 };
 
 type RenderDefinedBinding = {
-  component: DefinedBindingProps;
+  props?: DefinedBindingProps;
   queryClient?: QueryClient;
   queries?: Partial<ServicesContextProps>;
 };
 
 const renderDefinedBinding = ({
-  component = defaultComponent,
+  props = defaultDefinedBinding,
   queryClient = createQueryClientMock(),
   queries,
 }: RenderDefinedBinding) => {
   return {
-    ...renderWithProviders(<DefinedBinding {...component} />, {
+    ...renderWithProviders(<DefinedBinding {...props} />, {
       queries: { ...queries },
       queryClient,
     }),
@@ -79,31 +44,44 @@ const renderDefinedBinding = ({
 };
 
 describe('DefinedBinding', () => {
-  const getAppMetadataModelIdsMock = jest
-    .fn()
-    .mockImplementation(() => Promise.resolve(['defaultModel']));
-  const getDataModelMetadataMock = jest
-    .fn()
-    .mockImplementation(() => Promise.resolve(dataModelMetadata));
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
 
   it('should render loading spinner', async () => {
-    renderDefinedBinding({
-      component: defaultComponent,
-      queries: {
-        getDataModelMetadata: getDataModelMetadataMock,
-        getAppMetadataModelIds: getAppMetadataModelIdsMock,
-      },
-    });
-    const loadingSpinner = screen.getByTitle(textMock('ux_editor.modal_properties_loading'));
+    renderDefinedBinding({});
+    const loadingSpinnerTitle = textMock('ux_editor.modal_properties_loading');
+
+    const loadingSpinner = screen.getByTitle(loadingSpinnerTitle);
     expect(loadingSpinner).toBeInTheDocument();
+
+    await waitForElementToBeRemoved(() => screen.queryByTitle(loadingSpinnerTitle));
   });
 
   it('should render edit button with the binding selected', async () => {
+    renderDefinedBinding({});
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
+    );
+
+    const editButton = screen.getByRole('button', {
+      name: textMock('right_menu.data_model_bindings_edit', { binding: label }),
+    });
+    expect(editButton).toBeInTheDocument();
+
+    const editButtonText = within(editButton).getByText(dataModelField);
+    expect(editButtonText).toBeInTheDocument();
+  });
+
+  it('should render edit button with the binding selected even with no data model selected', async () => {
     renderDefinedBinding({
-      component: defaultComponent,
-      queries: {
-        getDataModelMetadata: getDataModelMetadataMock,
-        getAppMetadataModelIds: getAppMetadataModelIdsMock,
+      props: {
+        ...defaultDefinedBinding,
+        internalBindingFormat: {
+          field: dataModelField,
+          dataType: '',
+        },
       },
     });
 
@@ -112,11 +90,11 @@ describe('DefinedBinding', () => {
     );
 
     const editButton = screen.getByRole('button', {
-      name: textMock('right_menu.data_model_bindings_edit', { binding: 'label' }),
+      name: textMock('right_menu.data_model_bindings_edit', { binding: label }),
     });
     expect(editButton).toBeInTheDocument();
 
-    const editButtonText = within(editButton).getByText('field');
+    const editButtonText = within(editButton).getByText(dataModelField);
     expect(editButtonText).toBeInTheDocument();
   });
 });
