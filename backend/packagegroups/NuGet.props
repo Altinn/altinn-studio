@@ -2,8 +2,8 @@
 
   <ItemGroup Label="Altinn specific packages">
     <PackageReference Update="Altinn.App.Core" Version="8.0.0-rc1" />
-    <PackageReference Update="Altinn.Common.AccessToken" Version="4.4.2" />
-    <PackageReference Update="Altinn.Common.AccessTokenClient" Version="3.0.3" />
+    <PackageReference Update="Altinn.Common.AccessToken" Version="4.4.3" />
+    <PackageReference Update="Altinn.Common.AccessTokenClient" Version="3.0.4" />
     <PackageReference Update="Altinn.Platform.Storage.Interface" Version="3.28.0" />
   </ItemGroup>
 
@@ -30,7 +30,7 @@
     <PackageReference Update="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.16" />
     <PackageReference Update="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
     <PackageReference Update="Microsoft.EntityFrameworkCore.Tools" Version="8.0.6" />
-    <PackageReference Update="Microsoft.FeatureManagement.AspNetCore" Version="3.3.1" />
+    <PackageReference Update="Microsoft.FeatureManagement.AspNetCore" Version="3.4.0" />
     <PackageReference Update="Scrutor" Version="4.2.2" />
     <PackageReference Update="Swashbuckle.AspNetCore" Version="6.6.2" />
     <PackageReference Update="Polly" Version="8.4.0" />
