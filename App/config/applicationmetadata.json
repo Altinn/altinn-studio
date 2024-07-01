@@ -44,7 +44,8 @@
         "application/json"
       ],
       "maxCount": 1,
-      "minCount": 0
+      "minCount": 0,
+      "grouping": "Betaling"
     },
     {
       "id": "paymentReceiptPdf",
@@ -52,7 +53,8 @@
         "application/pdf"
       ],
       "maxCount": 1,
-      "minCount": 0
+      "minCount": 0,
+      "grouping": "Betaling"
     }
   ],
   "partyTypesAllowed": {
