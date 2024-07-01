@@ -84,7 +84,7 @@ describe('CustomReceipt', () => {
     await user.click(propertyButton);
 
     const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_data_model'),
+      name: textMock('process_editor.configuration_panel_data_model'),
     });
     await user.click(combobox);
     const newOption: string = mockAllDataModelIds[1];
