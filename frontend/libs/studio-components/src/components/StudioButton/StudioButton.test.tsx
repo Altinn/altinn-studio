@@ -54,10 +54,10 @@ describe('StudioButton', () => {
     expect(ref.current).toBe(screen.getByRole('button'));
   });
 
-  it('Supports polymorphism', () => {
+  it('Supports render asChild', () => {
     render(
-      <StudioButton as='a' href='/'>
-        Test
+      <StudioButton asChild>
+        <a href='/'>Test</a>
       </StudioButton>,
     );
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
