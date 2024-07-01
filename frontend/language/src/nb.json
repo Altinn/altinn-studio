@@ -808,6 +808,7 @@
   "process_editor.configuration_panel_custom_receipt_select_data_model_label": "Datamodellknytning",
   "process_editor.configuration_panel_custom_receipt_spinner_title": "Laster inn kvittering",
   "process_editor.configuration_panel_custom_receipt_textfield_label": "Navn på sidegruppe",
+  "process_editor.configuration_panel_data_model": "Datamodell:",
   "process_editor.configuration_panel_data_model_selection_description": "Velg en datamodell å knytte til prosessteget",
   "process_editor.configuration_panel_data_task": "Oppgave: Utfylling",
   "process_editor.configuration_panel_data_types_to_sign_required": "Du må velge minst en datatype",

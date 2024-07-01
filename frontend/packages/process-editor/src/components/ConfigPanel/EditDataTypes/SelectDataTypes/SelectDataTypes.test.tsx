@@ -39,7 +39,7 @@ describe('SelectDataTypes', () => {
       },
     );
     const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_data_model'),
+      name: textMock('process_editor.configuration_panel_data_model'),
     });
     await user.click(combobox);
     await user.click(screen.getByRole('option', { name: dataTypeToConnect }));
@@ -57,7 +57,7 @@ describe('SelectDataTypes', () => {
     renderSelectDataTypes({ dataModelIds, existingDataType });
 
     const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_data_model'),
+      name: textMock('process_editor.configuration_panel_data_model'),
     });
     expect(combobox).toHaveValue(existingDataType);
 
@@ -79,7 +79,7 @@ describe('SelectDataTypes', () => {
       },
     );
     const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_data_model'),
+      name: textMock('process_editor.configuration_panel_data_model'),
     });
     await user.click(combobox);
     await user.click(screen.getByRole('option', { name: dataTypeToConnect }));
@@ -125,7 +125,7 @@ describe('SelectDataTypes', () => {
       },
     );
     const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_data_model'),
+      name: textMock('process_editor.configuration_panel_data_model'),
     });
     await user.click(combobox);
     await user.click(screen.getByRole('option', { name: existingDataType }));
