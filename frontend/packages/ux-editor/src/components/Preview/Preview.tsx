@@ -36,6 +36,7 @@ export const Preview = () => {
   ) : (
     <div className={classes.root}>
       <StudioButton
+        size='small'
         variant='tertiary'
         icon={<ArrowRightIcon aria-hidden />}
         title={t('ux_editor.close_preview')}

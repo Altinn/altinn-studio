@@ -1,25 +1,23 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { FetchingFromGitea, type FetchingFromGiteaProps } from './FetchingFromGitea';
+import { SyncLoadingIndicator, type SyncLoadingIndicatorProps } from './SyncLoadingIndicator';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const mockHeading: string = 'Heading';
 
-const defaultProps: FetchingFromGiteaProps = {
+const defaultProps: SyncLoadingIndicatorProps = {
   heading: mockHeading,
 };
 
-describe('FetchingFromGitea', () => {
-  afterEach(jest.clearAllMocks);
-
+describe('SyncLoadingIndicator', () => {
   it('should render the provided heading', () => {
-    render(<FetchingFromGitea {...defaultProps} />);
+    render(<SyncLoadingIndicator {...defaultProps} />);
 
     expect(screen.getByRole('heading', { name: mockHeading, level: 3 })).toBeInTheDocument();
   });
 
   it('should render the StudioSpinner with the correct spinner title', () => {
-    render(<FetchingFromGitea {...defaultProps} />);
+    render(<SyncLoadingIndicator {...defaultProps} />);
 
     expect(screen.getByText(textMock('sync_modal.loading'))).toBeInTheDocument();
   });

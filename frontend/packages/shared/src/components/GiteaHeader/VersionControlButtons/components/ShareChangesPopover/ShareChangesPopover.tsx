@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudioPopover } from '@studio/components';
+import { StudioButton, StudioPopover } from '@studio/components';
 import { UploadIcon, XMarkIcon } from '@studio/icons';
 import classes from './ShareChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';
@@ -8,7 +8,7 @@ import { GiteaFetchCompleted } from '../GiteaFetchCompleted';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useVersionControlButtonsContext } from '../../context';
-import { FetchingFromGitea } from '../FetchingFromGitea';
+import { SyncLoadingIndicator } from '../SyncLoadingIndicator';
 import type { IContentStatus, IGitStatus } from 'app-shared/types/global';
 import { CommitAndPushContent } from './CommitAndPushContent';
 
@@ -57,22 +57,26 @@ export const ShareChangesPopover = () => {
 
   return (
     <StudioPopover open={popoverOpen} onClose={handleClosePopover} placement='bottom-end'>
-      <StudioPopover.Trigger
-        color='inverted'
-        size='small'
-        variant='tertiary'
-        onClick={handleOpenPopover}
-        disabled={!hasPushRights || hasMergeConflict}
-        title={renderCorrectTitle()}
-      >
-        {hasMergeConflict ? <XMarkIcon /> : <UploadIcon />}
-        {hasMergeConflict ? t('sync_header.merge_conflict') : t('sync_header.changes_to_share')}
-        {displayNotification && <Notification numChanges={1} />}
+      <StudioPopover.Trigger asChild>
+        <StudioButton
+          color='inverted'
+          size='small'
+          variant='tertiary'
+          onClick={handleOpenPopover}
+          disabled={!hasPushRights || hasMergeConflict}
+          title={renderCorrectTitle()}
+          icon={hasMergeConflict ? <XMarkIcon /> : <UploadIcon />}
+        >
+          {hasMergeConflict ? t('sync_header.merge_conflict') : t('sync_header.changes_to_share')}
+          {displayNotification && <Notification numChanges={1} />}
+        </StudioButton>
       </StudioPopover.Trigger>
       <StudioPopover.Content
         className={fetchCompleted ? classes.popoverContentCenter : classes.popoverContent}
       >
-        {isLoading && <FetchingFromGitea heading={t('sync_header.controlling_service_status')} />}
+        {isLoading && (
+          <SyncLoadingIndicator heading={t('sync_header.controlling_service_status')} />
+        )}
         {!isLoading && hasChangesToPush && (
           <CommitAndPushContent handleClosePopover={handleClosePopover} />
         )}

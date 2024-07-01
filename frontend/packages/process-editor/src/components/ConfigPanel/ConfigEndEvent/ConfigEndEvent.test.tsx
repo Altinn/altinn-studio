@@ -24,10 +24,11 @@ describe('ConfigEndEvent', () => {
   it('should hide the custom receipt content behind closed accordion initially', () => {
     renderConfigEndEventPanel();
 
-    const informationTextDefaultReceipt = screen.queryByText(
-      textMock('process_editor.configuration_panel_custom_receipt_default_receipt_info'),
-    );
-    expect(informationTextDefaultReceipt).not.toBeVisible();
+    const accordion = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_custom_receipt_accordion_header'),
+    });
+
+    expect(accordion).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('should display the informal text, the link to read more, and the custom receipt content when opening the accordion', async () => {

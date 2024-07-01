@@ -1,0 +1,8 @@
+.inverted {
+  padding: var(--fds-spacing-3);
+  color: var(--fds-semantic-text-neutral-on_inverted);
+}
+
+.inverted:hover {
+  background: var(--fds-semantic-surface-on_inverted-no_fill-hover);
+}

@@ -31,3 +31,7 @@
   padding: 0;
   margin: 0;
 }
+
+.icon {
+  font-size: var(--fds-sizing-2);
+}

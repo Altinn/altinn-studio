@@ -29,15 +29,16 @@ export const ClonePopoverContent = ({ onClose }: ClonePopoverContentProps) => {
       <StudioLabelAsParagraph size='small' spacing>
         {t('sync_header.favourite_tool')}
       </StudioLabelAsParagraph>
-      <Link
-        className={classes.link}
-        size='small'
-        href={altinnDocsUrl('/nb')}
-        target='_blank'
-        rel='noopener noreferrer'
-      >
-        {t('sync_header.favourite_tool_link')}
-      </Link>
+      <Paragraph asChild size='small'>
+        <Link
+          className={classes.link}
+          href={altinnDocsUrl('/nb')}
+          target='_blank'
+          rel='noopener noreferrer'
+        >
+          {t('sync_header.favourite_tool_link')}
+        </Link>
+      </Paragraph>
       {dataModel.length === 0 && (
         <>
           <div className={classes.iconAndText}>
@@ -47,13 +48,14 @@ export const ClonePopoverContent = ({ onClose }: ClonePopoverContentProps) => {
           <Paragraph size='small' spacing>
             {t('sync_header.data_model_missing_helper')}
           </Paragraph>
-          <Link
-            className={classes.link}
-            size='small'
-            href={packagesRouter.getPackageNavigationUrl('dataModel')}
-          >
-            {t('sync_header.data_model_missing_link')}
-          </Link>
+          <Paragraph size='small' asChild>
+            <Link
+              className={classes.link}
+              href={packagesRouter.getPackageNavigationUrl('dataModel')}
+            >
+              {t('sync_header.data_model_missing_link')}
+            </Link>
+          </Paragraph>
         </>
       )}
       <StudioTextfield readOnly value={gitUrl} label={t('sync_header.clone_https')} size='small' />

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import classes from './ThreeDotsMenu.module.css';
-import { MonitorIcon, TabsIcon, MenuElipsisVerticalIcon } from '@studio/icons';
+import { MonitorIcon, TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
-import { GiteaIcon } from 'app-shared/icons';
+// import { GiteaIcon } from 'app-shared/icons';
 import { LegacyPopover, Link } from '@digdir/design-system-react';
 import { StudioButton, StudioPopover } from '@studio/components';
 import { LocalChangesModal } from './LocalChangesModal';
@@ -58,7 +58,7 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
         )}
         <li>
           <Link
-            aschild='true'
+            asChild
             href={repositoryPath(org, app)}
             rel='noopener noreferrer'
             className={classes.link}
@@ -76,7 +76,7 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
             className={classes.menuButton}
             variant='tertiary'
           >
-            <MonitorIcon className={classes.icon} />
+            <MonitorIcon />
             {t('sync_header.local_changes')}
           </StudioButton>
         </li>
