@@ -1,6 +1,6 @@
 import type React from 'react';
 import { useBpmnContext } from '../../../../../../contexts/BpmnContext';
-import { type Action, BpmnActionModeler } from '../../../../../../utils/bpmn/BpmnActionModeler';
+import { type Action, BpmnActionModeler } from '../../../../../../utils/bpmnModeler/BpmnActionModeler';
 
 type UseOnActionChangeResult = {
   handleOnActionChange: (event: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => void;

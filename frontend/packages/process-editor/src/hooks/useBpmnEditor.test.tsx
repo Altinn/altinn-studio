@@ -4,12 +4,12 @@ import { useBpmnEditor } from './useBpmnEditor';
 import { BpmnContextProvider, useBpmnContext } from '../contexts/BpmnContext';
 import { BpmnApiContextProvider } from '../contexts/BpmnApiContext';
 import { useBpmnModeler } from './useBpmnModeler';
-import { getBpmnEditorDetailsFromBusinessObject } from '../utils/hookUtils';
 import type { BpmnDetails } from '../types/BpmnDetails';
 import type { BpmnTaskType } from '../types/BpmnTaskType';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { getMockBpmnElementForTask, mockBpmnDetails } from '../../test/mocks/bpmnDetailsMock';
 import { mockModelerRef } from '../../test/mocks/bpmnModelerMock';
+import { getBpmnEditorDetailsFromBusinessObject } from '../utils/bpmnObjectBuilders';
 
 const layoutSetId = 'someLayoutSetId';
 const layoutSetsMock: LayoutSets = {

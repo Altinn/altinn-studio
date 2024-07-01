@@ -1,4 +1,4 @@
 export {
   getBpmnViewerDetailsFromBusinessObject,
   getBpmnEditorDetailsFromBusinessObject,
-} from './hookUtils';
+} from './bpmnObjectBuilders';
