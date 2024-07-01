@@ -1,0 +1,301 @@
+import React from 'react';
+import { dataModelMetadataMock } from '@altinn/ux-editor/testing/dataModelMock';
+import { EditBinding, type EditBindingProps } from './EditBinding';
+import { renderWithProviders } from '../../../../../testing/mocks';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
+import { ComponentType } from 'app-shared/types/ComponentType';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+import { typedLocalStorage } from 'app-shared/utils/webStorage';
+import userEvent from '@testing-library/user-event';
+
+const defaultLabel = 'label';
+const defaultBindingKey = 'simpleBinding';
+const defaultDataModelField = 'field1';
+const defaultDataModel = 'defaultModel';
+const secondDataModel = 'secondModel';
+
+const defaultEditBinding: EditBindingProps = {
+  bindingKey: defaultBindingKey,
+  component: componentMocks[ComponentType.Input],
+  helpText: undefined,
+  label: defaultLabel,
+  handleComponentChange: jest.fn(),
+  setDataModelSelectVisible: jest.fn(),
+  internalBindingFormat: {
+    field: defaultDataModelField,
+    dataType: defaultDataModel,
+  },
+};
+
+type RenderEditBinding = {
+  props?: EditBindingProps;
+  queryClient?: ReturnType<typeof createQueryClientMock>;
+  queries?: Partial<ServicesContextProps>;
+};
+
+const renderEditBinding = ({
+  props = defaultEditBinding,
+  queryClient = createQueryClientMock(),
+  queries,
+}: RenderEditBinding) => {
+  return {
+    ...renderWithProviders(<EditBinding {...props} />, {
+      queries: { ...queries },
+      queryClient,
+    }),
+  };
+};
+
+const getAppMetadataModelIdsMock = jest
+  .fn()
+  .mockImplementation(() => Promise.resolve([defaultDataModel, secondDataModel]));
+const getDataModelMetadataMock = jest
+  .fn()
+  .mockImplementation(() => Promise.resolve(dataModelMetadataMock));
+
+describe('EditBinding', () => {
+  it('should render loading spinner', async () => {
+    renderEditBinding({
+      props: defaultEditBinding,
+    });
+
+    const loadingSpinnerTitle = textMock('ux_editor.modal_properties_loading');
+
+    const loadingSpinner = screen.getByTitle(loadingSpinnerTitle);
+    expect(loadingSpinner).toBeInTheDocument();
+
+    await waitForElementToBeRemoved(() => screen.queryByTitle(loadingSpinnerTitle));
+  });
+
+  it('should render field set', async () => {
+    renderEditBinding({});
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
+    );
+
+    const fieldSet = screen.getByRole('group', { name: defaultEditBinding.label });
+    expect(fieldSet).toBeInTheDocument();
+  });
+
+  it('should render correct elements in field set', async () => {
+    renderEditBinding({
+      queries: {
+        getAppMetadataModelIds: getAppMetadataModelIdsMock,
+        getDataModelMetadata: getDataModelMetadataMock,
+      },
+    });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
+    );
+
+    const label = screen.getByText(defaultEditBinding.label);
+    expect(label).toBeInTheDocument();
+
+    const selectedModel = screen.getByText(defaultDataModel);
+    expect(selectedModel).toBeInTheDocument();
+
+    const selectedField = screen.getByRole('combobox', {
+      name: textMock('ux_editor.modal_properties_data_model_field_binding'),
+    });
+    expect(selectedField).toBeInTheDocument();
+  });
+
+  it('should display default data model and "choose datafield" when no bindings', async () => {
+    renderEditBinding({
+      props: {
+        ...defaultEditBinding,
+        internalBindingFormat: {
+          field: '',
+          dataType: undefined,
+        },
+      },
+      queries: {
+        getAppMetadataModelIds: getAppMetadataModelIdsMock,
+        getDataModelMetadata: getDataModelMetadataMock,
+      },
+    });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
+    );
+
+    expect(screen.getByText(defaultDataModel)).toBeInTheDocument();
+
+    const chooseDataFieldOption: HTMLOptionElement = screen.getByRole('option', {
+      name: textMock('ux_editor.modal_properties_data_model_field_choose'),
+    });
+
+    expect(chooseDataFieldOption).toHaveAttribute('value', '');
+    expect(chooseDataFieldOption.selected).toBe(true);
+  });
+
+  it('should render error message when data model field is not valid', async () => {
+    renderEditBinding({
+      props: {
+        ...defaultEditBinding,
+        internalBindingFormat: {
+          field: 'invalidField',
+          dataType: defaultDataModel,
+        },
+      },
+      queries: {
+        getAppMetadataModelIds: getAppMetadataModelIdsMock,
+        getDataModelMetadata: getDataModelMetadataMock,
+      },
+    });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
+    );
+
+    const errorMessage = screen.getByText(
+      textMock('ux_editor.modal_properties_data_model_field_update'),
+    );
+    expect(errorMessage).toBeInTheDocument();
+  });
+
+  it('should render error message when data model is not valid', async () => {
+    renderEditBinding({
+      props: {
+        ...defaultEditBinding,
+        internalBindingFormat: {
+          field: defaultDataModelField,
+          dataType: 'invalidModel',
+        },
+      },
+      queries: {
+        getAppMetadataModelIds: getAppMetadataModelIdsMock,
+        getDataModelMetadata: getDataModelMetadataMock,
+      },
+    });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
+    );
+
+    const errorMessage = screen.getByText(
+      textMock('ux_editor.modal_properties_data_model_field_update'),
+    );
+    expect(errorMessage).toBeInTheDocument();
+  });
+
+  it('should call handleComponentChange with old binding format when data model field is changed', async () => {
+    const user = userEvent.setup();
+    const handleComponentChange = jest.fn();
+    renderEditBinding({
+      props: {
+        ...defaultEditBinding,
+        handleComponentChange,
+      },
+      queries: {
+        getAppMetadataModelIds: getAppMetadataModelIdsMock,
+        getDataModelMetadata: getDataModelMetadataMock,
+      },
+    });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
+    );
+
+    const dataModelFieldSelector = screen.getByRole('combobox', {
+      name: textMock('ux_editor.modal_properties_data_model_field_binding'),
+    });
+    const option2 = screen.getByRole('option', { name: 'field2' });
+    await user.selectOptions(dataModelFieldSelector, option2);
+
+    expect(handleComponentChange).toHaveBeenCalledTimes(1);
+    expect(handleComponentChange).toHaveBeenCalledWith(
+      {
+        ...componentMocks[ComponentType.Input],
+        dataModelBindings: {
+          [defaultEditBinding.bindingKey]: 'field2',
+        },
+        maxCount: undefined,
+        required: true,
+        timeStamp: undefined,
+      },
+      {
+        onSuccess: expect.any(Function),
+      },
+    );
+  });
+});
+
+describe('EditBinding featureFlag enabled', () => {
+  beforeEach(() => {
+    typedLocalStorage.removeItem('featureFlags');
+  });
+  it('should display two selectors: data model and a data model field, when the feature flag is enabled', async () => {
+    typedLocalStorage.setItem<string[]>('featureFlags', ['dataModelBindingSelector']);
+    renderEditBinding({
+      queries: {
+        getAppMetadataModelIds: getAppMetadataModelIdsMock,
+        getDataModelMetadata: getDataModelMetadataMock,
+      },
+    });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
+    );
+
+    const dataModelSelector = screen.getByRole('combobox', {
+      name: textMock('ux_editor.modal_properties_data_model'),
+    });
+    expect(dataModelSelector).toBeInTheDocument();
+
+    const dataModelFieldSelector = screen.getByRole('combobox', {
+      name: textMock('ux_editor.modal_properties_data_model_field_binding'),
+    });
+    expect(dataModelFieldSelector).toBeInTheDocument();
+  });
+
+  it('should call handleComponentChange with new binding format when data model field is changed', async () => {
+    typedLocalStorage.setItem<string[]>('featureFlags', ['dataModelBindingSelector']);
+    const user = userEvent.setup();
+    const handleComponentChange = jest.fn();
+    renderEditBinding({
+      props: {
+        ...defaultEditBinding,
+        handleComponentChange,
+      },
+      queries: {
+        getAppMetadataModelIds: getAppMetadataModelIdsMock,
+        getDataModelMetadata: getDataModelMetadataMock,
+      },
+    });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
+    );
+
+    const dataModelFieldSelector = screen.getByRole('combobox', {
+      name: textMock('ux_editor.modal_properties_data_model_field_binding'),
+    });
+    const option2 = screen.getByRole('option', { name: 'field2' });
+    await user.selectOptions(dataModelFieldSelector, option2);
+
+    expect(handleComponentChange).toHaveBeenCalledTimes(1);
+    expect(handleComponentChange).toHaveBeenCalledWith(
+      {
+        ...componentMocks[ComponentType.Input],
+        dataModelBindings: {
+          [defaultEditBinding.bindingKey]: {
+            field: 'field2',
+            dataType: defaultDataModel,
+          },
+        },
+        maxCount: undefined,
+        required: true,
+        timeStamp: undefined,
+      },
+      {
+        onSuccess: expect.any(Function),
+      },
+    );
+  });
+});
