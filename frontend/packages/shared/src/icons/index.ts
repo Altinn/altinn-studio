@@ -1,1 +1,0 @@
-export { GiteaIcon } from './GiteaIcon';

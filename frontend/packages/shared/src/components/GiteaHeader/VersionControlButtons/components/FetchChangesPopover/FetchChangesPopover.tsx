@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudioPopover } from '@studio/components';
+import { StudioButton, StudioPopover } from '@studio/components';
 import { DownloadIcon } from '@studio/icons';
 import classes from './FetchChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';
@@ -51,16 +51,18 @@ export const FetchChangesPopover = (): React.ReactElement => {
 
   return (
     <StudioPopover open={popoverOpen} onClose={handleClosePopover} placement='bottom-end'>
-      <StudioPopover.Trigger
-        color='inverted'
-        size='small'
-        variant='tertiary'
-        onClick={handleOpenPopover}
-        disabled={hasMergeConflict}
-      >
-        <DownloadIcon />
-        {t('sync_header.fetch_changes')}
-        {displayNotification && <Notification numChanges={repoStatus?.behindBy ?? 0} />}
+      <StudioPopover.Trigger asChild>
+        <StudioButton
+          color='inverted'
+          size='small'
+          variant='tertiary'
+          onClick={handleOpenPopover}
+          disabled={hasMergeConflict}
+          icon={<DownloadIcon />}
+        >
+          {t('sync_header.fetch_changes')}
+          {displayNotification && <Notification numChanges={repoStatus?.behindBy ?? 0} />}
+        </StudioButton>
       </StudioPopover.Trigger>
       <StudioPopover.Content className={classes.popoverContent}>
         {isLoading && <FetchingFromGitea heading={t('sync_header.fetching_latest_version')} />}
