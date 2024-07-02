@@ -3,7 +3,7 @@ import type { TextTableRowEntry } from './types';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 import { Textarea } from '@digdir/design-system-react';
 import { Variables } from './Variables';
-import { useAutoSizeTextArea } from './hooks/useAutoSizeTextArea';
+import { useAutoSizeTextArea } from 'app-shared/hooks/useAutoSizeTextArea';
 import { APP_NAME } from 'app-shared/constants';
 import { FormField } from 'app-shared/components/FormField/FormField';
 import { useTranslation } from 'react-i18next';

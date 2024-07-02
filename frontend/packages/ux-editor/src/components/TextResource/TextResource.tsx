@@ -57,9 +57,15 @@ export const TextResource = ({
   };
 
   const handleClose = () => {
+    debugger;
     if (currentValue === '') {
       handleRemoveTextResource();
     }
+    setIsOpen(false);
+  };
+
+  const handleDelete = () => {
+    handleRemoveTextResource();
     setIsOpen(false);
   };
 
@@ -74,8 +80,8 @@ export const TextResource = ({
       compact={compact}
       legend={label}
       onClose={handleClose}
-      onDelete={handleRemoveTextResource}
-      onSetCurrentValue={(value: string) => setCurrentValue(value)}
+      onDelete={handleRemoveTextResource ? handleDelete : undefined}
+      onSetCurrentValue={setCurrentValue}
       onReferenceChange={handleIdChange}
       textResourceId={textResourceId}
     />
@@ -110,11 +116,6 @@ const TextResourceFieldset = ({
 }: TextResourceFieldsetProps) => {
   const { t } = useTranslation();
 
-  const handleDelete = () => {
-    onDelete?.();
-    onClose();
-  };
-
   return (
     <StudioProperty.Fieldset
       compact={compact}
@@ -132,7 +133,7 @@ const TextResourceFieldset = ({
           <StudioDeleteButton
             confirmMessage={t('ux_editor.text_resource_bindings.delete_confirm_question')}
             disabled={!onDelete}
-            onDelete={handleDelete}
+            onDelete={() => onDelete?.()}
             title={t('general.delete')}
           />
         </>

@@ -24,7 +24,11 @@ const textResources: ITextResource[] = [
 ];
 
 const textResourceId = textResources[0].id;
-const defaultProps: TextResourceValueEditorProps = { textResourceId };
+const mockOnSetCurrentValue = jest.fn();
+const defaultProps: TextResourceValueEditorProps = {
+  textResourceId,
+  onSetCurrentValue: mockOnSetCurrentValue,
+};
 
 describe('TextResourceValueEditor', () => {
   afterEach(() => {
