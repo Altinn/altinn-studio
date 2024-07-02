@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "author": "Altinn",
   "dependencies": {
-    "@mui/material": "5.15.20",
+    "@mui/material": "5.15.21",
     "classnames": "2.5.1",
     "qs": "6.12.1",
     "react": "18.3.1",
@@ -11,7 +11,7 @@
     "react-dnd": "16.0.1",
     "react-dnd-html5-backend": "16.0.1",
     "react-dom": "18.3.1",
-    "react-router-dom": "6.23.1"
+    "react-router-dom": "6.24.0"
   },
   "devDependencies": {
     "@types/react": "18.3.3",
