@@ -74,6 +74,11 @@ export const altinnCustomTasks = {
           isMany: false,
           type: 'String',
         },
+        {
+          name: 'uniqueFromSignaturesInDataTypes',
+          isMany: false,
+          type: 'UniqueFromSignaturesInDataTypes',
+        },
       ],
     },
     {
@@ -105,6 +110,17 @@ export const altinnCustomTasks = {
           isMany: false,
           isBody: true,
           type: 'String',
+        },
+      ],
+    },
+    {
+      name: 'UniqueFromSignaturesInDataTypes',
+      properties: [
+        {
+          name: 'dataTypes',
+          isMany: true,
+          isAttr: false,
+          type: 'DataType',
         },
       ],
     },
