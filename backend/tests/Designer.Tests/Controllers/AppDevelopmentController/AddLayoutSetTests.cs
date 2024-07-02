@@ -20,7 +20,7 @@ using Xunit;
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
     public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
-          : DisagnerEndpointsTestsBase<AddLayoutSetTests>(factory), IClassFixture<WebApplicationFactory<Program>>
+          : DesignerEndpointsTestsBase<AddLayoutSetTests>(factory), IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) =>
             $"/designer/api/{org}/{repository}/app-development";

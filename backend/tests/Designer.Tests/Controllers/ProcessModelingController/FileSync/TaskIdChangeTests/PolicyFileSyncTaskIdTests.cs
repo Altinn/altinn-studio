@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController.FileSync.TaskIdChangeTests;
 
-public class PolicyFileSyncTaskIdTests : DisagnerEndpointsTestsBase<PolicyFileSyncTaskIdTests>,
+public class PolicyFileSyncTaskIdTests : DesignerEndpointsTestsBase<PolicyFileSyncTaskIdTests>,
     IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) =>

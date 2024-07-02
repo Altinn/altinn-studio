@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class GetAppMetadataModelIds : DisagnerEndpointsTestsBase<GetAppMetadataModelIds>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetAppMetadataModelIds : DesignerEndpointsTestsBase<GetAppMetadataModelIds>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
 

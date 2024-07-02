@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class GetAppVersionTests : DisagnerEndpointsTestsBase<GetAppVersionTests>,
+    public class GetAppVersionTests : DesignerEndpointsTestsBase<GetAppVersionTests>,
         IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) =>

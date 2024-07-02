@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Designer.Tests.Hubs.SyncHub;
 
-public class SyncHubConnectionTests : DisagnerEndpointsTestsBase<SyncHubConnectionTests>, IClassFixture<WebApplicationFactory<Program>>
+public class SyncHubConnectionTests : DesignerEndpointsTestsBase<SyncHubConnectionTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private HubConnection HubConnection { get; set; }
 

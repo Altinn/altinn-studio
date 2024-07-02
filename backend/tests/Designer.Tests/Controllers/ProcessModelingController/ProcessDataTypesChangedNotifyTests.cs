@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController;
 
-public class ProcessDataTypesChangedNotifyTests : DisagnerEndpointsTestsBase<ProcessDataTypesChangedNotifyTests>, IClassFixture<WebApplicationFactory<Program>>
+public class ProcessDataTypesChangedNotifyTests : DesignerEndpointsTestsBase<ProcessDataTypesChangedNotifyTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/process-modelling/data-types";
 

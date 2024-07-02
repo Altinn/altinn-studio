@@ -24,7 +24,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class CsharpNamespaceTests : DisagnerEndpointsTestsBase<CsharpNamespaceTests>, IClassFixture<WebApplicationFactory<Program>>
+public class CsharpNamespaceTests : DesignerEndpointsTestsBase<CsharpNamespaceTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
 

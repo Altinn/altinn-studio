@@ -12,7 +12,7 @@ using Moq;
 
 namespace Designer.Tests.Controllers.ResourceAdminController
 {
-    public abstract class ResourceAdminControllerTestsBaseClass<TTesetClass> : DisagnerEndpointsTestsBase<TTesetClass> where TTesetClass : class
+    public abstract class ResourceAdminControllerTestsBaseClass<TTesetClass> : DesignerEndpointsTestsBase<TTesetClass> where TTesetClass : class
     {
         protected readonly string VersionPrefix = "/designer/api";
         protected readonly Mock<IRepository> RepositoryMock;

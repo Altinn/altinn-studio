@@ -10,7 +10,6 @@ using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 
 namespace Designer.Tests.Controllers.ApiTests
 {
@@ -19,7 +18,7 @@ namespace Designer.Tests.Controllers.ApiTests
     /// Provides functionality for copying a repository from the test repositories location to a temporary location for testing which is disposed after execution of the test.
     /// </summary>
     /// <typeparam name="TControllerTest">Tests class type.</typeparam>
-    public abstract class DisagnerEndpointsTestsBase<TControllerTest> : ApiTestsBase<TControllerTest>
+    public abstract class DesignerEndpointsTestsBase<TControllerTest> : ApiTestsBase<TControllerTest>
         where TControllerTest : class
     {
         /// <summary>
@@ -48,7 +47,7 @@ namespace Designer.Tests.Controllers.ApiTests
             Converters = { new JsonStringEnumConverter() }
         };
 
-        public DisagnerEndpointsTestsBase(WebApplicationFactory<Program> factory) : base(factory)
+        public DesignerEndpointsTestsBase(WebApplicationFactory<Program> factory) : base(factory)
         {
         }
 
