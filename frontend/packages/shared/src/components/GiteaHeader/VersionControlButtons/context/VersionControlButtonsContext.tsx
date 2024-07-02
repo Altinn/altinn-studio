@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState } from 'react';
-import { useHasPushRights } from '../hooks/useHasPushRights';
 import { type Repository } from 'app-shared/types/Repository';
 import { type RepoStatus } from 'app-shared/types/RepoStatus';
 import { useHasMergeConflict } from '../hooks/useHasMergeConflict';
@@ -39,7 +38,7 @@ export const VersionControlButtonsContextProvider = ({
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
 
-  const hasPushRights = useHasPushRights(currentRepo);
+  const hasPushRights: boolean = currentRepo?.permissions?.push;
   const { hasMergeConflict, setHasMergeConflict } = useHasMergeConflict(repoStatus);
 
   const { refetch: fetchPullData } = useRepoPullQuery(org, app, true);

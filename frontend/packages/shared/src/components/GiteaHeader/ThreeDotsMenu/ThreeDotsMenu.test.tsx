@@ -32,7 +32,7 @@ describe('ThreeDotsMenu', () => {
     const cloneText = screen.getByRole('button', { name: textMock('sync_header.clone') });
     expect(cloneText).toBeInTheDocument();
 
-    const repoText = screen.getByRole('button', { name: textMock('sync_header.repository') });
+    const repoText = screen.getByRole('link', { name: textMock('sync_header.repository') });
     expect(repoText).toBeInTheDocument();
 
     const localchangeText = screen.getByRole('button', {

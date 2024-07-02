@@ -57,17 +57,22 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
           </li>
         )}
         <li>
-          <Link
+          <StudioButton
             asChild
-            href={repositoryPath(org, app)}
-            rel='noopener noreferrer'
-            className={classes.link}
+            size='small'
+            variant='tertiary'
+            fullWidth
+            className={classes.menuButton}
           >
-            <StudioButton size='small' variant='tertiary' fullWidth className={classes.menuButton}>
+            <Link
+              href={repositoryPath(org, app)}
+              rel='noopener noreferrer'
+              className={classes.link}
+            >
               <GiteaIcon />
               {t('sync_header.repository')}
-            </StudioButton>
-          </Link>
+            </Link>
+          </StudioButton>
         </li>
         <li>
           <StudioButton

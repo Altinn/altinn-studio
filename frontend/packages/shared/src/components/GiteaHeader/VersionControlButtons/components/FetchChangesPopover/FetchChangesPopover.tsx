@@ -42,7 +42,7 @@ export const FetchChangesPopover = (): React.ReactElement => {
     if (result.repositoryStatus === 'Ok') {
       if (onPullSuccess) onPullSuccess();
 
-      await queryClient.invalidateQueries(); // Todo: This invalidates ALL queries. Consider providing a list of relevant queries only.
+      await queryClient.invalidateQueries();
     } else if (result.hasMergeConflict || result.repositoryStatus === 'CheckoutConflict') {
       await commitAndPushChanges('');
       setPopoverOpen(false);
