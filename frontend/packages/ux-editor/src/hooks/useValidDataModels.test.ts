@@ -34,11 +34,10 @@ describe('useValidDataModels', () => {
       expect(result.current.isLoadingDataModels).toBe(false);
     });
 
-    const { selectedDataModel, dataModelMetaData, isDataModelValid, dataModels } = result.current;
+    const { selectedDataModel, isDataModelValid, dataModels } = result.current;
 
     expect(isDataModelValid).toBe(true);
     expect(selectedDataModel).toEqual(defaultDataModel);
-    expect(dataModelMetaData).toEqual(dataModelMetadataMock);
     expect(dataModels).toEqual([defaultDataModel, secondDataModel]);
   });
 

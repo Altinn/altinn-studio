@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DataModelBindings } from './DataModelBindings';
 import { FormItemContext } from '../../containers/FormItemContext';
@@ -115,7 +115,7 @@ describe('DataModelBindings', () => {
     },
   );
 
-  it('should render already existing bindings in previewMode with label', () => {
+  it('should render already existing bindings in previewMode with label', async () => {
     render({
       props: {
         formItem: {
@@ -130,6 +130,10 @@ describe('DataModelBindings', () => {
         formItemId: componentMocks[ComponentType.Address].id,
       },
     });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryAllByTitle(textMock('ux_editor.modal_properties_loading')),
+    );
 
     ['address', 'careOf'].forEach((prop) => {
       const dataModelButton = screen.getByText(
@@ -281,8 +285,13 @@ describe('DataModelBindings', () => {
       name: textMock(`ux_editor.component_title.Input`),
     });
     await user.click(dataModelButton);
-    const option = screen.getByText('testModel');
-    await user.click(option);
+
+    const dataModelFieldSelector = screen.getByRole('combobox', {
+      name: textMock('ux_editor.modal_properties_data_model_field_binding'),
+    });
+    const option = screen.getByRole('option', { name: 'testModel' });
+    await user.selectOptions(dataModelFieldSelector, option);
+
     expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalledTimes(1);
     expect(formItemContextProviderMock.debounceSave).toHaveBeenCalledTimes(1);
   });

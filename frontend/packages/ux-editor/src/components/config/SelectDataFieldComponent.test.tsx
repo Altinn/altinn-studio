@@ -87,15 +87,18 @@ const render = async ({
 describe('SelectDataModelComponent', () => {
   it('should show select with no selected option by default', async () => {
     await render();
+
     expect(
-      screen.getByText(textMock(`ux_editor.component_title.${ComponentType.Input}`)),
+      screen.getByLabelText(textMock(`ux_editor.component_title.${ComponentType.Input}`)),
     ).toBeInTheDocument();
-    expect(screen.getByRole('combobox').getAttribute('value')).toEqual('');
+    const selector = screen.getByRole('combobox') as HTMLSelectElement;
+    expect(selector.value).toEqual('');
   });
 
   it('renders when dataModelData is undefined', async () => {
     await render({ dataModelMetadata: undefined });
-    const bindingTitle = screen.getByText(
+
+    const bindingTitle = screen.getByLabelText(
       textMock(`ux_editor.component_title.${ComponentType.Input}`),
     );
     expect(bindingTitle).toBeInTheDocument();
@@ -115,13 +118,14 @@ describe('SelectDataModelComponent', () => {
     await render({
       handleComponentChange,
     });
+
     const selectElement = screen.getByRole('combobox', {
       name: textMock(`ux_editor.component_title.${ComponentType.Input}`),
     });
-    await user.click(selectElement);
-    const optionElement = screen.getByText('testModel.field1');
-    await user.click(optionElement);
-    await waitFor(() => {});
+    const optionElement = screen.getByRole('option', { name: 'testModel.field1' });
+    await user.selectOptions(selectElement, optionElement);
+
+    expect(handleComponentChange).toHaveBeenCalled();
     expect(handleComponentChange).toHaveBeenCalledWith('testModel.field1');
   });
 

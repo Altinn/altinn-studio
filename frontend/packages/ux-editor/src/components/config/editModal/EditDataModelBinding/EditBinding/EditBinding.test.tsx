@@ -58,9 +58,7 @@ const getDataModelMetadataMock = jest
 
 describe('EditBinding', () => {
   it('should render loading spinner', async () => {
-    renderEditBinding({
-      props: defaultEditBinding,
-    });
+    renderEditBinding({});
 
     const loadingSpinnerTitle = textMock('ux_editor.modal_properties_loading');
 

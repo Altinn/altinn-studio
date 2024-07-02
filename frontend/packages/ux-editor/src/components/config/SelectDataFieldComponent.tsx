@@ -49,6 +49,7 @@ export const SelectDataFieldComponent = ({
     onDataModelChange(value);
   };
 
+  dataModelElementNames.unshift({ value: '', label: '' });
   return (
     <FormField
       id={inputId}
