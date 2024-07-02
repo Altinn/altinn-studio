@@ -62,7 +62,10 @@ export const EditComponentIdRow = ({
   };
 
   return (
-    <div className={duplicatedId ? classes.duplicatedIdField : classes.container}>
+    <div
+      data-testid={'edit-component-id-row-container'}
+      className={duplicatedId ? classes.duplicatedIdField : classes.container}
+    >
       <StudioToggleableTextfieldSchema
         onError={handleValidationError}
         layoutSchema={layoutSchema}
