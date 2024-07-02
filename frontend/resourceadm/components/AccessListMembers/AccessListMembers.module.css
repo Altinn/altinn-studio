@@ -56,10 +56,6 @@
   width: 45%;
 }
 
-.radioGroupHeader {
-  visibility: hidden;
-}
-
 .sr-only {
   position: absolute;
   width: 1px;
