@@ -121,22 +121,43 @@ export const DeploymentEnvironmentLogList = ({
               </Table.Head>
               <Table.Body>
                 {pipelineDeploymentList.map((deploy: PipelineDeployment) => {
+                  const tableCellStatusClassName = getClassName(deploy.build.result);
                   return (
-                    <Table.Row key={deploy.build.id} className={getClassName(deploy.build.result)}>
-                      <Table.Cell className={classNames(classes.tableCell, classes.tableIconCell)}>
+                    <Table.Row key={deploy.build.id} className={tableCellStatusClassName}>
+                      <Table.Cell
+                        className={classNames(
+                          classes.tableCell,
+                          classes.tableIconCell,
+                          tableCellStatusClassName,
+                        )}
+                      >
                         {getIcon(deploy.build.result)}
                       </Table.Cell>
-                      <Table.Cell className={classes.tableCell}>
+                      <Table.Cell
+                        className={classNames(classes.tableCell, tableCellStatusClassName)}
+                      >
                         {t(
                           `app_deployment.pipeline_deployment.build_result.${deploy.build.result}`,
                         )}
                       </Table.Cell>
-                      <Table.Cell className={classes.tableCell}>{deploy.tagName}</Table.Cell>
-                      <Table.Cell className={classes.tableCell}>
+                      <Table.Cell
+                        className={classNames(classes.tableCell, tableCellStatusClassName)}
+                      >
+                        {deploy.tagName}
+                      </Table.Cell>
+                      <Table.Cell
+                        className={classNames(classes.tableCell, tableCellStatusClassName)}
+                      >
                         {deploy.build.finished && DateUtils.formatDateTime(deploy.build.finished)}
                       </Table.Cell>
-                      <Table.Cell className={classes.tableCell}>{deploy.createdBy}</Table.Cell>
-                      <Table.Cell className={classes.tableCell}>
+                      <Table.Cell
+                        className={classNames(classes.tableCell, tableCellStatusClassName)}
+                      >
+                        {deploy.createdBy}
+                      </Table.Cell>
+                      <Table.Cell
+                        className={classNames(classes.tableCell, tableCellStatusClassName)}
+                      >
                         {deploy.build.started &&
                           (DateUtils.isDateWithinDays(deploy.build.started, 30) ? (
                             <Link
