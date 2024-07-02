@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../testing/mocks';
 import { SelectDataFieldComponent } from './SelectDataFieldComponent';
 import { textMock } from '@studio/testing/mocks/i18nMock';
