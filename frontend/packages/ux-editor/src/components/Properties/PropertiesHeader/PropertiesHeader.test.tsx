@@ -10,8 +10,17 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { componentSchemaMocks } from '../../../testing/componentSchemaMocks';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
+import type { IFormLayouts } from '@altinn/ux-editor/types/global';
+import { app, org } from '@studio/testing/testids';
 
 const mockHandleComponentUpdate = jest.fn();
+
+const layoutSetName = layoutSet1NameMock;
+const layouts: IFormLayouts = {
+  [layout1NameMock]: layoutMock,
+};
 
 const defaultProps: PropertiesHeaderProps = {
   formItem: component1Mock,
@@ -94,6 +103,7 @@ const renderPropertiesHeader = (props: Partial<PropertiesHeaderProps> = {}) => {
     [QueryKey.FormComponent, componentType],
     componentSchemaMocks[componentType],
   );
+  queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
   return renderWithProviders(
     <FormItemContext.Provider
       value={{
