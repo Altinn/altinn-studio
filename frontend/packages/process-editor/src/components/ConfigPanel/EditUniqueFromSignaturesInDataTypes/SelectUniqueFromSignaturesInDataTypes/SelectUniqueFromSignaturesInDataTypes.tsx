@@ -25,7 +25,6 @@ export const SelectUniqueFromSignaturesInDataTypes = ({
   const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
   const [value, setValue] = useState<string[]>(() => getSelectedDataTypes(bpmnDetails));
   const { debounce } = useDebounce({ debounceTimeInMs: AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS });
-
   const { t } = useTranslation();
   const labelId = useId();
 
