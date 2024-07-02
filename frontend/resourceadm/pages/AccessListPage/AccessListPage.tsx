@@ -5,18 +5,18 @@ import { StudioSpinner } from '@studio/components';
 import { AccessListDetail } from '../../components/AccessListDetails';
 import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery';
 import { getAccessListPageUrl } from '../../utils/urlUtils';
-import { useUrlParams } from '../../hooks/useSelectedContext';
+import { useUrlParams } from '../../hooks/useUrlParams';
 
 export const AccessListPage = (): React.JSX.Element => {
   const { t } = useTranslation();
 
-  const { selectedContext, repo, env, accessListId } = useUrlParams();
+  const { org, app, env, accessListId } = useUrlParams();
 
   const {
     data: list,
     isLoading: isLoadingList,
     isError: isLoadListError,
-  } = useGetAccessListQuery(selectedContext, accessListId, env);
+  } = useGetAccessListQuery(org, accessListId, env);
 
   if (isLoadingList) {
     return <StudioSpinner showSpinnerTitle spinnerTitle={t('resourceadm.loading_access_list')} />;
@@ -28,10 +28,10 @@ export const AccessListPage = (): React.JSX.Element => {
 
   return (
     <AccessListDetail
-      org={selectedContext}
+      org={org}
       env={env}
       list={list}
-      backUrl={getAccessListPageUrl(selectedContext, repo, env)}
+      backUrl={getAccessListPageUrl(org, app, env)}
     />
   );
 };
