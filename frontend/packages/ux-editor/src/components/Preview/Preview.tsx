@@ -10,32 +10,27 @@ import { Paragraph } from '@digdir/design-system-react';
 import { StudioButton, StudioCenter } from '@studio/components';
 import type { SupportedView } from './ViewToggler/ViewToggler';
 import { ViewToggler } from './ViewToggler/ViewToggler';
-import { ArrowRightIcon } from '@studio/icons';
+import { ShrinkIcon } from '@studio/icons';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
 
 export type PreviewProps = {
-  onCollapseToggle?: (collapsed: boolean) => void;
+  collapsed: boolean;
+  onCollapseToggle: () => void;
   hidePreview?: boolean;
 };
 
-export const Preview = ({ onCollapseToggle, hidePreview }: PreviewProps) => {
+export const Preview = ({ collapsed, onCollapseToggle, hidePreview }: PreviewProps) => {
   const { t } = useTranslation();
-  const [isPreviewHidden, setIsPreviewHidden] = useState<boolean>(false);
   const { selectedFormLayoutName } = useAppContext();
   const noPageSelected =
     selectedFormLayoutName === 'default' || selectedFormLayoutName === undefined;
 
-  const togglePreview = (): void => {
-    onCollapseToggle?.(!isPreviewHidden);
-    setIsPreviewHidden((prev: boolean) => !prev);
-  };
-
-  return isPreviewHidden ? (
+  return collapsed ? (
     <StudioButton
       size='small'
       variant='secondary'
       className={classes.openPreviewButton}
-      onClick={togglePreview}
+      onClick={onCollapseToggle}
     >
       {t('ux_editor.open_preview')}
     </StudioButton>
@@ -43,10 +38,10 @@ export const Preview = ({ onCollapseToggle, hidePreview }: PreviewProps) => {
     <div className={classes.root}>
       <StudioButton
         variant='tertiary'
-        icon={<ArrowRightIcon aria-hidden />}
+        icon={<ShrinkIcon title='1' fontSize='1.5rem' />}
         title={t('ux_editor.close_preview')}
         className={classes.closePreviewButton}
-        onClick={togglePreview}
+        onClick={onCollapseToggle}
       />
       {noPageSelected ? (
         <NoSelectedPageMessage />

@@ -27,6 +27,10 @@ export class StudioResizableLayoutArea {
     return this.reactElement.props.minimumSize || 0;
   }
 
+  public get maximumSize() {
+    return this.reactElement.props.maximumSize || Number.MAX_SAFE_INTEGER;
+  }
+
   public get collapsedSize() {
     return this.reactElement.props.collapsedSize || 0;
   }

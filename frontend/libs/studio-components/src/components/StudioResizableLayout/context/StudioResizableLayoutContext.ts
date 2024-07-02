@@ -6,7 +6,6 @@ export type StudioResizableLayoutContextProps = {
   containerSizes: number[];
   resizeDelta: (index: number, size: number) => void;
   resizeTo: (index: number, size: number) => void;
-  collapse: (index: number) => void;
 };
 
 export const StudioResizableLayoutContext =

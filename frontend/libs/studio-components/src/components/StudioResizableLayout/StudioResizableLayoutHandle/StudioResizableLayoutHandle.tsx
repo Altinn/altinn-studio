@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import React, { useEffect } from 'react';
 import { useStudioResizableLayoutContext } from '../hooks/useStudioResizableLayoutContext';
 import type { StudioResizableOrientation } from '../StudioResizableLayoutContainer/StudioResizableLayoutContainer';
@@ -15,7 +16,7 @@ export const StudioResizableLayoutHandle = ({
   orientation,
   index,
   onResizing,
-}: StudioResizableLayoutHandleProps) => {
+}: StudioResizableLayoutHandleProps): ReactElement => {
   const { resizeDelta, containerSize } = useStudioResizableLayoutContext(index);
   const { onMouseDown, isResizing } = useStudioResizableLayoutMouseMovement(
     orientation,

@@ -1,3 +1,4 @@
+import type { CSSProperties, ReactElement } from 'react';
 import React, { Children, useEffect, useRef } from 'react';
 import classes from './StudioResizableLayoutContainer.module.css';
 import { type StudioResizableLayoutElementProps } from '../StudioResizableLayoutElement/StudioResizableLayoutElement';
@@ -10,9 +11,9 @@ export type StudioResizableOrientation = 'horizontal' | 'vertical';
 export type StudioResizableLayoutContainerProps = {
   localStorageContext?: string;
   orientation: StudioResizableOrientation;
-  style?: React.CSSProperties;
+  style?: CSSProperties;
 
-  children: React.ReactElement<StudioResizableLayoutElementProps>[];
+  children: ReactElement<StudioResizableLayoutElementProps>[];
 };
 
 const StudioResizableLayoutContainer = ({
@@ -20,14 +21,14 @@ const StudioResizableLayoutContainer = ({
   orientation,
   localStorageContext = 'default',
   style,
-}: StudioResizableLayoutContainerProps): React.ReactElement => {
+}: StudioResizableLayoutContainerProps): ReactElement => {
   const elementRefs = useRef<(HTMLDivElement | null)[]>([]);
   useEffect(() => {
     elementRefs.current = elementRefs.current.slice(0, getValidChildren(children).length);
   }, [children]);
 
   const { containerSizes, setContainerSizes } = useTrackContainerSizes(localStorageContext);
-  const { resizeTo, resizeDelta, collapse } = useStudioResizableLayoutFunctions(
+  const { resizeTo, resizeDelta } = useStudioResizableLayoutFunctions(
     orientation,
     elementRefs,
     getValidChildren(children),
@@ -47,7 +48,7 @@ const StudioResizableLayoutContainer = ({
 
   return (
     <StudioResizableLayoutContext.Provider
-      value={{ resizeDelta, resizeTo, collapse, orientation, containerSizes }}
+      value={{ resizeDelta, resizeTo, orientation, containerSizes }}
     >
       <div
         className={classes.root}

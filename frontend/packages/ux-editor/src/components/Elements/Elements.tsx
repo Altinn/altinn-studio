@@ -7,10 +7,11 @@ import { DefaultToolbar } from './DefaultToolbar';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import classes from './Elements.module.css';
 
-import { StudioSpinner } from '@studio/components';
+import { StudioButton, StudioSpinner } from '@studio/components';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useTranslation } from 'react-i18next';
 import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQuery';
+import { ShrinkIcon } from '@studio/icons';
 
 export const Elements = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -61,9 +62,15 @@ export const Elements = (): React.ReactElement => {
 
   return (
     <div className={classes.root}>
-      <Heading size='xxsmall' className={classes.componentsHeader}>
-        {t('left_menu.components')}
-      </Heading>
+      <div className={classes.componentsHeader}>
+        <Heading size='xxsmall'>{t('left_menu.components')}</Heading>
+        <StudioButton
+          variant='tertiary'
+          icon={<ShrinkIcon title='1' fontSize='1.5rem' />}
+          title={t('ux_editor.close_preview')}
+          // onClick={onCollapseToggle}
+        ></StudioButton>
+      </div>
       {hideComponents ? (
         <Paragraph className={classes.noPageSelected} size='small'>
           {t('left_menu.no_components_selected')}

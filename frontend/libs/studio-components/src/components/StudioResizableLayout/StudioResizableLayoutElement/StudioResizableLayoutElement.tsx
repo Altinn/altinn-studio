@@ -1,10 +1,12 @@
-import React, { forwardRef, useEffect } from 'react';
+import type { ReactElement } from 'react';
+import React, { forwardRef } from 'react';
 import classes from './StudioResizableLayoutElement.module.css';
 import { useStudioResizableLayoutContext } from '../hooks/useStudioResizableLayoutContext';
 import { StudioResizableLayoutHandle } from '../StudioResizableLayoutHandle/StudioResizableLayoutHandle';
 
 export type StudioResizableLayoutElementProps = {
   minimumSize?: number;
+  maximumSize?: number;
   collapsedSize?: number;
   collapsed?: boolean;
   style?: React.CSSProperties;
@@ -24,6 +26,8 @@ const StudioResizableLayoutElement = forwardRef<HTMLDivElement, StudioResizableL
     {
       index,
       minimumSize = 0,
+      maximumSize,
+      collapsedSize,
       collapsed,
       children,
       hasNeighbour = false,
@@ -31,26 +35,20 @@ const StudioResizableLayoutElement = forwardRef<HTMLDivElement, StudioResizableL
       onResizing,
     }: StudioResizableLayoutElementProps,
     ref,
-  ) => {
-    const { resizeTo, collapse, orientation, containerSize } =
-      useStudioResizableLayoutContext(index);
-
-    useEffect(() => {
-      if (collapsed) {
-        collapse(index);
-      } else {
-        resizeTo(index, minimumSize);
-      }
-      // disable linter as we only want to run this effect if the collapsed prop changes
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [collapsed]);
+  ): ReactElement => {
+    const { orientation, containerSize } = useStudioResizableLayoutContext(index);
 
     return (
       <>
         <div
           data-testid='resizablelayoutelement'
           className={classes.container}
-          style={{ ...style, flexGrow: containerSize }}
+          style={{
+            ...style,
+            flexGrow: containerSize,
+            maxWidth: collapsed ? collapsedSize : maximumSize,
+            minWidth: collapsed ? collapsedSize : minimumSize,
+          }}
           ref={ref}
         >
           {children}

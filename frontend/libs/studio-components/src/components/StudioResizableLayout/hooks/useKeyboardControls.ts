@@ -1,7 +1,7 @@
 export const useKeyboardControls = (
   onResize: (delta: number) => void,
 ): { onKeyDown: (event: React.KeyboardEvent<HTMLDivElement>) => void } => {
-  const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+  const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>): void => {
     if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
       if (event.shiftKey) {
         onResize(-50);

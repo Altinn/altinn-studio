@@ -9,9 +9,10 @@ import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { useMoveProperty } from './hooks/useMoveProperty';
 import { useAddReference } from './hooks/useAddReference';
 import { NodePanel } from '../NodePanel';
+import { StudioResizableLayout } from '@studio/components';
 
 export const SchemaEditor = () => {
-  const { schemaModel, selectedTypePointer } = useSchemaEditorAppContext();
+  const { schemaModel, selectedTypePointer, selectedNodePointer } = useSchemaEditorAppContext();
   const moveProperty = useMoveProperty();
   const addReference = useAddReference();
 
@@ -20,23 +21,33 @@ export const SchemaEditor = () => {
   const selectedType = selectedTypePointer && schemaModel.getNode(selectedTypePointer);
 
   return (
-    <>
-      <DragAndDropTree.Provider
-        onAdd={addReference}
-        onMove={moveProperty}
-        rootId={ROOT_POINTER}
-        itemId={selectedTypePointer ?? null}
-      >
-        <aside className={classes.inspector}>
-          <TypesInspector schemaItems={definitions} />
-        </aside>
-        <div className={classes.editor}>
-          <NodePanel pointer={selectedType?.pointer} />
-        </div>
-      </DragAndDropTree.Provider>
-      <aside className={classes.inspector}>
-        <SchemaInspector />
-      </aside>
-    </>
+    <DragAndDropTree.Provider
+      onAdd={addReference}
+      onMove={moveProperty}
+      rootId={ROOT_POINTER}
+      itemId={selectedTypePointer ?? null}
+    >
+      <StudioResizableLayout.Container orientation='horizontal' localStorageContext='datamodel'>
+        <StudioResizableLayout.Element minimumSize={100} maximumSize={280}>
+          <aside className={classes.inspector}>
+            <TypesInspector schemaItems={definitions} />
+          </aside>
+        </StudioResizableLayout.Element>
+        <StudioResizableLayout.Element>
+          <div className={classes.editor}>
+            <NodePanel pointer={selectedType?.pointer} />
+          </div>
+        </StudioResizableLayout.Element>
+        <StudioResizableLayout.Element
+          minimumSize={300}
+          collapsed={!selectedNodePointer}
+          collapsedSize={180}
+        >
+          <aside className={classes.inspector}>
+            <SchemaInspector />
+          </aside>
+        </StudioResizableLayout.Element>
+      </StudioResizableLayout.Container>
+    </DragAndDropTree.Provider>
   );
 };
