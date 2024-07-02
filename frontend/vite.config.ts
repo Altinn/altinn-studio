@@ -1,14 +1,14 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import svgr from 'vite-plugin-svgr';
 import path from 'path';
+
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react-swc';
 import setupMiddlewares from '@altinn-studio/mockend/src';
-import devServerPorts from './testing/mockend/ports.json';
+import svgr from 'vite-plugin-svgr';
 
-const { npm_package_name } = process.env;
+const npm_package_name = 'app-development';
 
+// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), svgr()],
   resolve: {
     alias: {
       '@altinn/policy-editor': path.resolve(__dirname, 'packages/policy-editor/src'),
@@ -38,25 +38,19 @@ export default defineConfig({
       generateScopedName: '[name]__[local]--[hash:base64:5]',
     },
   },
+  plugins: [react(), svgr()],
   server: {
-    port: devServerPorts[npm_package_name],
-    strictPort: true,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-      'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization',
-    },
-    proxy: {
-      // Add any proxy configurations if needed
-    },
-    setup: (server) => {
-      server.middlewares.use(setupMiddlewares());
-    },
-    watch: {
-      usePolling: true,
-    },
-    hmr: {
-      overlay: false,
-    },
+    origin: '*',
+    cors: false,
+    port: 2004,
+  },
+  setup: (server) => {
+    server.middlewares.use(setupMiddlewares());
+  },
+  watch: {
+    usePolling: true,
+  },
+  hmr: {
+    overlay: false,
   },
 });

@@ -35,9 +35,11 @@
   "private": true,
   "scripts": {
     "build": "cross-env NODE_ENV=production webpack --config ../webpack.config.prod.js",
+    "build:vite": "cross-env NODE_ENV=production vite build --config ../vite.config.ts",
     "build-with-profile": "yarn build --profile --json > stats.json",
     "bundle-size": "npx webpack-bundle-analyzer ./stats.json",
     "start": "yarn typecheck:watch & cross-env NODE_ENV=development webpack-dev-server --config ../webpack.config.dev.js --mode development",
+    "start:vite": "cross-env NODE_ENV=development vite --config ../vite.config.ts",
     "test": "jest --maxWorkers=50%",
     "typecheck": "npx tsc --noEmit",
     "typecheck:watch": "tsc --noEmit -w"
