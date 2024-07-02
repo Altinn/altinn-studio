@@ -3,7 +3,7 @@ import classes from './LandingPage.module.css';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import { useInstanceIdQuery, useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
-import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
+import { useLocalStorage } from '@studio/components/src/hooks/useLocalStorage';
 import { AltinnHeader } from 'app-shared/components/altinnHeader';
 import type { AltinnHeaderVariant } from 'app-shared/components/altinnHeader/types';
 import { getRepositoryType } from 'app-shared/utils/repository';

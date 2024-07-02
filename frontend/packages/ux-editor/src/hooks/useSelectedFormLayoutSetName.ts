@@ -1,7 +1,7 @@
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useEffect, useState } from 'react';
-import { typedLocalStorage } from 'app-shared/utils/webStorage';
+import { typedLocalStorage } from '@studio/components/src/hooks/webStorage';
 
 export type UseSelectedFormLayoutSetNameResult = {
   selectedFormLayoutSetName: string;

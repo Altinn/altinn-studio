@@ -161,6 +161,7 @@ export class UiEditorPage extends BasePage {
     await this.page
       .getByRole('button', {
         name: this.textMock('general.close'),
+        exact: true,
       })
       .click();
   }
@@ -217,6 +218,7 @@ export class UiEditorPage extends BasePage {
     await this.page
       .getByRole('button', {
         name: this.textMock('general.close'),
+        exact: true,
       })
       .click();
   }

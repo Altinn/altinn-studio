@@ -1,6 +1,6 @@
 import { RepositoryType } from 'app-shared/types/global';
 import { getFilteredTopBarMenu, topBarMenuItem } from './appBarConfig';
-import { typedLocalStorage } from 'app-shared/utils/webStorage';
+import { typedLocalStorage } from '@studio/components/src/hooks/webStorage';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { RoutePaths } from 'app-development/enums/RoutePaths';

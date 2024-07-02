@@ -11,7 +11,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
-import { typedLocalStorage } from 'app-shared/utils/webStorage';
+import { typedLocalStorage } from '@studio/components/src/hooks/webStorage';
 
 // Test data:
 const selectedLayoutSet = layoutSet1NameMock;

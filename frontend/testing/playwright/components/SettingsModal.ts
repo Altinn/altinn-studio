@@ -14,13 +14,17 @@ export class SettingsModal extends BasePage {
       .getByRole('heading', {
         name: this.textMock('settings_modal.heading'),
         level: 1,
+        exact: true,
       })
       .isVisible();
   }
 
   public async clickOnCloseSettingsModalButton(): Promise<void> {
     await this.page
-      .getByRole('button', { name: this.textMock('settings_modal.close_button_label') })
+      .getByRole('button', {
+        name: this.textMock('settings_modal.close_button_label'),
+        exact: true,
+      })
       .click();
   }
 
@@ -29,13 +33,14 @@ export class SettingsModal extends BasePage {
       .getByRole('heading', {
         name: this.textMock('settings_modal.heading'),
         level: 1,
+        exact: true,
       })
       .isHidden();
   }
 
   public async navigateToTab(tab: SettingsModalTab): Promise<void> {
     await this.page
-      .getByRole('tab', { name: this.textMock(`settings_modal.left_nav_tab_${tab}`) })
+      .getByRole('tab', { name: this.textMock(`settings_modal.left_nav_tab_${tab}`), exact: true })
       .click();
   }
 
@@ -44,6 +49,7 @@ export class SettingsModal extends BasePage {
       .getByRole('heading', {
         name: this.textMock(`settings_modal.${tabHeading}_tab_heading`),
         level: 2,
+        exact: true,
       })
       .isVisible();
   }
@@ -53,6 +59,7 @@ export class SettingsModal extends BasePage {
       .getByRole('heading', {
         name: this.textMock(`settings_modal.${tabHeading}_tab_heading`),
         level: 2,
+        exact: true,
       })
       .isHidden();
   }

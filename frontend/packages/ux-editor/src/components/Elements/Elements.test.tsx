@@ -92,8 +92,26 @@ describe('Elements', () => {
       ),
     ).toBeInTheDocument();
   });
+
+  it('should collapse element when collapse button is clicked', async () => {
+    const view = renderElements();
+    const collapseButton = screen.getByRole('button', {
+      name: textMock('left_menu.close_components'),
+    });
+    collapseButton.click();
+    expect(collapseToggle).toHaveBeenCalled();
+
+    view.rerender(<Elements collapsed={true} onCollapseToggle={collapseToggle} />);
+    expect(collapseButton).not.toBeInTheDocument();
+    const openButton = screen.getByRole('button', {
+      name: textMock('left_menu.open_components'),
+    });
+    openButton.click();
+    expect(collapseToggle).toHaveBeenCalledTimes(2);
+  });
 });
 
+const collapseToggle = jest.fn();
 const renderElements = (
   appContextProps?: Partial<AppContextProps>,
   queries?: Partial<ServicesContextProps>,
@@ -101,7 +119,7 @@ const renderElements = (
 ) => {
   return renderWithProviders(
     <DragAndDropTree.Provider rootId='test' onAdd={jest.fn()} onMove={jest.fn()}>
-      <Elements />
+      <Elements collapsed={false} onCollapseToggle={collapseToggle} />
     </DragAndDropTree.Provider>,
     {
       appContextProps,

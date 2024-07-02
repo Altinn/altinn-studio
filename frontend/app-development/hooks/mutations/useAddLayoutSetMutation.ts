@@ -2,7 +2,7 @@ import { type UseMutateFunction, useMutation, useQueryClient } from '@tanstack/r
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { LayoutSetConfig, LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
+import { useLocalStorage } from '@studio/components/src/hooks/useLocalStorage';
 import type {
   AddLayoutSetResponse,
   LayoutSetsResponse,

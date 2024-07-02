@@ -39,10 +39,11 @@ export function LayoutSetsContainer() {
   return (
     <div className={classes.dropDownContainer}>
       <NativeSelect
-        label={t('left_menu.layout_dropdown_menu_label')}
+        aria-label={t('left_menu.layout_dropdown_menu_label')}
         onChange={(event) => onLayoutSetClick(event.target.value)}
         value={selectedFormLayoutSetName}
         className={classes.layoutSetsDropDown}
+        style={{ minWidth: 400 }}
       >
         {layoutSetNames.map((set: string) => {
           return (

@@ -1,6 +1,6 @@
-import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import { renderHook, waitFor } from '@testing-library/react';
-import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
+import { useLocalStorage } from './useLocalStorage';
+import { typedLocalStorage } from './webStorage';
 
 describe('useLocalStorage', () => {
   it('Gives access to the stored value', () => {
