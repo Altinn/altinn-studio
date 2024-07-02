@@ -101,7 +101,7 @@ const renderElements = (
 ) => {
   return renderWithProviders(
     <DragAndDropTree.Provider rootId='test' onAdd={jest.fn()} onMove={jest.fn()}>
-      <Elements />
+      <Elements collapsed={false} onCollapseToggle={jest.fn()} />
     </DragAndDropTree.Provider>,
     {
       appContextProps,
