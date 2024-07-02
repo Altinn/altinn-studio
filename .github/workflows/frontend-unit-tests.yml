@@ -2,6 +2,8 @@ name: Frontend Tests
 
 on:
   push:
+    branches:
+      - main
     paths:
       - 'frontend/**'
       - '!frontend/testing/cypress/**'
@@ -9,9 +11,18 @@ on:
       - 'testdata/**'
       - '.github/workflows/frontend-unit-tests.yml'
       - 'package.json'
+  pull_request:
+    paths:
+      - 'frontend/**'
+      - '!frontend/testing/cypress/**'
+      - '!frontend/stats/**'
+      - 'testdata/**'
+      - '.github/workflows/frontend-unit-tests.yml'
+      - 'package.json'
+  workflow_dispatch:
 
 concurrency:
-  group: ${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -63,7 +74,7 @@ jobs:
         run: yarn typecheck
 
       - name: 'Running Eslint'
-        run: yarn lint
+        run: yarn lint --cache
 
       - name: 'Checking code style'
         run: yarn run codestyle:check
@@ -81,7 +92,13 @@ jobs:
         uses: ./.github/actions/yarn-install
 
       - name: 'Running Unit Tests'
-        run: yarn test:ci
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            git fetch origin ${{ github.event.pull_request.base.ref }}
+            yarn test:ci --changedSince=origin/${{ github.event.pull_request.base.ref }}
+          else
+            yarn test:ci
+          fi
 
       - name: 'Upload coverage reports to Codecov'
         uses: codecov/codecov-action@v4
@@ -90,18 +107,3 @@ jobs:
         with:
           directory: frontend/coverage
           fail_ci_if_error: true
-
-  build:
-    name: 'Building'
-    runs-on: ubuntu-latest
-    steps:
-      - name: 'Checking Out Code'
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: 'Installing Dependencies'
-        uses: ./.github/actions/yarn-install
-
-      - name: 'Building'
-        run: yarn build

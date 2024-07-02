@@ -1,5 +1,6 @@
-FROM node:20-alpine3.18
-COPY . .
+FROM node:lts-alpine
+COPY ./package.json ./
 RUN yarn install
+COPY . .
 EXPOSE 6161
 ENTRYPOINT ["node", "./src"]
