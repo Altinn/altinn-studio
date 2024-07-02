@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { EditComponentIdRow, type EditComponentIdRowProps } from './EditComponentIdRow';
 import userEvent from '@testing-library/user-event';
@@ -11,6 +11,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
+import classes from './EditComponentIdRow.module.css';
 
 const layoutSetName = layoutSet1NameMock;
 const layouts: IFormLayouts = {
@@ -106,5 +107,24 @@ describe('EditComponentIdRow', () => {
     expect(
       screen.getByText(textMock('ux_editor.modal_properties_component_id_not_unique_error')),
     ).toBeInTheDocument();
+  });
+
+  it('Should apply css-duplicatedIdField class when id is duplicated', async () => {
+    jest.mock('../../../../utils/formLayoutUtils');
+    const user = userEvent.setup();
+    await studioRender();
+    const testIdButton = screen.getByRole('button', { name: textMock('ux_editor.id_identifier') });
+    await user.click(testIdButton);
+    const textField = screen.getByRole('textbox', {
+      name: textMock('ux_editor.modal_properties_component_change_id'),
+    });
+    await waitFor(() => {
+      expect(textField).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      // eslint-disable-next-line testing-library/no-node-access
+      const parentDiv = textField.closest('div');
+      expect(parentDiv).toHaveAttribute('class', classes.duplicatedIdField);
+    });
   });
 });
