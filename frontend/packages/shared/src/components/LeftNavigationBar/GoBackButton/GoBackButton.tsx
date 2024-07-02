@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './GoBackButton.module.css';
 import cn from 'classnames';
-import { ArrowLeftIcon } from '@navikt/aksel-icons';
+import { ArrowLeftIcon } from '@studio/icons';
 import { Paragraph } from '@digdir/design-system-react';
 import { NavLink } from 'react-router-dom';
 
@@ -42,7 +42,7 @@ export const GoBackButton = ({ className, text, to }: GoBackButtonProps): ReactN
   return (
     <NavLink className={cn(className, classes.backButton)} to={to}>
       <ArrowLeftIcon className={classes.icon} />
-      <Paragraph asChild size='small' short className={classes.buttonText}>
+      <Paragraph asChild size='small' variant='short' className={classes.buttonText}>
         <span>{text}</span>
       </Paragraph>
     </NavLink>

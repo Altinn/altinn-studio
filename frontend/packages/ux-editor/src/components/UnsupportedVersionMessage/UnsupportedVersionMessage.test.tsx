@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { UnsupportedVersionMessageProps } from './UnsupportedVersionMessage';
 import { UnsupportedVersionMessage } from './UnsupportedVersionMessage';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('UnsupportedVersionMessage', () => {
   it('should render without crashing', () => {

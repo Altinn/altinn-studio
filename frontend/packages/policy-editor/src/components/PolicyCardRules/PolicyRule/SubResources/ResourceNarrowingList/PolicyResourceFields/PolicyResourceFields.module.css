@@ -1,0 +1,24 @@
+.wrapper {
+  display: flex;
+  justify-content: space-between;
+  margin-block: var(--fds-spacing-3);
+}
+
+.inputWrapper {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  margin-right: var(--fds-spacing-1);
+}
+
+.textfieldWrapper {
+  width: 48%;
+}
+
+.buttonWrapper {
+  width: var(--fds-spacing-8);
+}
+
+.label {
+  margin-bottom: var(--fds-spacing-2);
+}

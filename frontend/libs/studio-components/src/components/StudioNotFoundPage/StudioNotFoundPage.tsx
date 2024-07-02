@@ -20,13 +20,13 @@ export const StudioNotFoundPage = forwardRef<HTMLDivElement, StudioNotFoundPageP
     return (
       <div ref={ref} className={cn(className, classes.wrapper)} {...rest}>
         <div className={classes.contentWrapper}>
-          <img src={require('./images/PCImage404.png')} alt='' />
+          <img src={require('./images/PCImage404.png')} alt='' data-testid='404-error' />
           <div className={classes.textWrapper}>
             <Heading level={1} size='large'>
               {title}
             </Heading>
             <div className={classes.body}>{body}</div>
-            <Link href={redirectHref} size='small' className={classes.link}>
+            <Link href={redirectHref} className={classes.link}>
               {redirectLinkText}
             </Link>
           </div>

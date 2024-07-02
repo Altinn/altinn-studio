@@ -1,15 +1,20 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { formLayoutSettingsMock, renderHookWithMockStore } from '../../testing/mocks';
+import { formLayoutSettingsMock, renderHookWithProviders } from '../../testing/mocks';
 import { useDeleteLayoutMutation } from './useDeleteLayoutMutation';
-import { externalLayoutsMock, layout2NameMock } from '../../testing/layoutMock';
+import {
+  externalLayoutsMock,
+  layout1NameMock,
+  layout2NameMock,
+} from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
+import { appContextMock } from '../../testing/appContextMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 const layoutName = layout2NameMock;
 
 describe('useDeleteLayoutMutation', () => {
@@ -42,17 +47,28 @@ describe('useDeleteLayoutMutation', () => {
       receiptLayoutName: undefined,
     });
   });
+
+  it('Selects a new layout when deleting the selected layout', async () => {
+    const { result } = renderDeleteLayoutMutation();
+    await result.current.mutateAsync(layout1NameMock);
+    expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledTimes(1);
+    expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledWith(layoutName);
+  });
+
+  it('Reloads preview when deleting a layout that is not selected', async () => {
+    const { result } = renderDeleteLayoutMutation();
+    await result.current.mutateAsync(layout2NameMock);
+  });
 });
 
 const renderDeleteLayoutMutation = () => {
   queryClientMock.setQueryData(
     [QueryKey.FormLayouts, org, app, selectedLayoutSet],
-    convertExternalLayoutsToInternalFormat(externalLayoutsMock).convertedLayouts,
+    convertExternalLayoutsToInternalFormat(externalLayoutsMock),
   );
   queryClientMock.setQueryData(
     [QueryKey.FormLayoutSettings, org, app, selectedLayoutSet],
     formLayoutSettingsMock,
   );
-  return renderHookWithMockStore()(() => useDeleteLayoutMutation(org, app, selectedLayoutSet))
-    .renderHookResult;
+  return renderHookWithProviders(() => useDeleteLayoutMutation(org, app, selectedLayoutSet));
 };

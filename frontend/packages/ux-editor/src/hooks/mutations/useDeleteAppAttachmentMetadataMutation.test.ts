@@ -1,17 +1,16 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderHookWithMockStore } from '../../testing/mocks';
+import { renderHookWithProviders } from '../../testing/mocks';
 import { useDeleteAppAttachmentMetadataMutation } from './useDeleteAppAttachmentMetadataMutation';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const id = 'test';
 
 describe('useDeleteAppAttachmentMetadataMutation', () => {
   it('Calls deleteAppAttachmentMetadata with correct arguments and payload', async () => {
-    const metadataResult = renderHookWithMockStore()(() =>
+    const metadataResult = renderHookWithProviders(() =>
       useDeleteAppAttachmentMetadataMutation(org, app),
-    ).renderHookResult.result;
+    ).result;
     await metadataResult.current.mutateAsync(id);
     expect(queriesMock.deleteAppAttachmentMetadata).toHaveBeenCalledTimes(1);
     expect(queriesMock.deleteAppAttachmentMetadata).toHaveBeenCalledWith(org, app, id);

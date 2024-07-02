@@ -1,15 +1,19 @@
 import React from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../../testing/mocks';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { getDataModelFieldsFilter } from '../../utils/datamodel';
+import { getDataModelFieldsFilter } from '../../utils/dataModel';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { app, org } from '@studio/testing/testids';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
-const datamodelMetadataMock = [
+const dataModelName = undefined;
+
+const dataModelMetadataMock = [
   {
     id: 'testModel',
     type: 'ComplexType',
@@ -61,13 +65,13 @@ const datamodelMetadataMock = [
 const user = userEvent.setup();
 
 const render = async ({
-  dataModelMetadata = datamodelMetadataMock,
+  dataModelMetadata = dataModelMetadataMock,
   componentType = ComponentType.Input,
   label = undefined,
   handleComponentChange = jest.fn(),
 } = {}) => {
   queryClientMock.setQueryData(
-    [QueryKey.DatamodelMetadata, 'org', 'app', 'test-layout-set'],
+    [QueryKey.DataModelMetadata, org, app, layoutSet1NameMock, dataModelName],
     dataModelMetadata,
   );
   renderWithProviders(
@@ -102,7 +106,7 @@ describe('SelectDataModelComponent', () => {
     const select = screen.getByRole('combobox', {
       name: textMock(`ux_editor.component_title.${ComponentType.Input}`),
     });
-    await act(() => user.click(select));
+    await user.click(select);
     expect(screen.getByText('testModel.field1')).toBeInTheDocument();
   });
 
@@ -114,9 +118,9 @@ describe('SelectDataModelComponent', () => {
     const selectElement = screen.getByRole('combobox', {
       name: textMock(`ux_editor.component_title.${ComponentType.Input}`),
     });
-    await act(() => user.click(selectElement));
+    await user.click(selectElement);
     const optionElement = screen.getByText('testModel.field1');
-    await act(() => user.click(optionElement));
+    await user.click(optionElement);
     await waitFor(() => {});
     expect(handleComponentChange).toHaveBeenCalledWith('testModel.field1');
   });
@@ -128,7 +132,7 @@ describe('SelectDataModelComponent', () => {
     const selectElement = screen.getByRole('combobox', {
       name: textMock(`ux_editor.component_title.${ComponentType.RepeatingGroup}`),
     });
-    await act(() => user.click(selectElement));
+    await user.click(selectElement);
     const optionElement1 = screen.queryByText('testModel.field1');
     const optionElement2 = screen.getByText('multipleAnswers');
     const optionElement3 = screen.getByText('repGroupField');
@@ -145,7 +149,7 @@ describe('SelectDataModelComponent', () => {
     const selectElement = screen.getByRole('combobox', {
       name: textMock(`ux_editor.component_title.${ComponentType.FileUpload}`),
     });
-    await act(() => user.click(selectElement));
+    await user.click(selectElement);
     const optionElement1 = screen.queryByText('testModel.field1');
     const optionElement2 = screen.getByText('multipleAnswers');
     const optionElement3 = screen.queryByText('repGroupField');
@@ -162,7 +166,7 @@ describe('SelectDataModelComponent', () => {
     const selectElement = screen.getByRole('combobox', {
       name: textMock(`ux_editor.component_title.${ComponentType.FileUploadWithTag}`),
     });
-    await act(() => user.click(selectElement));
+    await user.click(selectElement);
     const optionElement1 = screen.queryByText('testModel.field1');
     const optionElement2 = screen.getByText('multipleAnswers');
     const optionElement3 = screen.queryByText('repGroupField');
@@ -178,7 +182,7 @@ describe('SelectDataModelComponent', () => {
     const selectElement = screen.getByRole('combobox', {
       name: textMock(`ux_editor.component_title.${ComponentType.FileUpload}`),
     });
-    await act(() => user.click(selectElement));
+    await user.click(selectElement);
     const optionElement1 = screen.getByText('testModel.field1');
     const optionElement2 = screen.queryByText('multipleAnswers');
     const optionElement3 = screen.queryByText('repGroupField');
@@ -194,7 +198,7 @@ describe('SelectDataModelComponent', () => {
     const selectElement = screen.getByRole('combobox', {
       name: textMock(`ux_editor.component_title.${ComponentType.FileUploadWithTag}`),
     });
-    await act(() => user.click(selectElement));
+    await user.click(selectElement);
     const optionElement1 = screen.getByText('testModel.field1');
     const optionElement2 = screen.queryByText('multipleAnswers');
     const optionElement3 = screen.queryByText('repGroupField');

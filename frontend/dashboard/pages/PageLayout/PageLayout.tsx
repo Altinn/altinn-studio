@@ -1,28 +1,19 @@
 import AppHeader, { HeaderContext } from 'app-shared/navigation/main-header/Header';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import { useOrganizationsQuery } from 'dashboard/hooks/queries';
 import { useUserQuery } from 'app-shared/hooks/queries';
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import type { IHeaderContext } from 'app-shared/navigation/main-header/Header';
+import { useTranslation } from 'react-i18next';
 
-import { userHasAccessToSelectedContext } from '../../utils/userUtils';
-import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
+import { StudioPageSpinner } from '@studio/components';
+import { useContextRedirectionGuard } from 'dashboard/hooks/guards/useContextRedirectionGuard';
 
 export const PageLayout = () => {
+  const { t } = useTranslation();
   const { data: user } = useUserQuery();
   const { data: organizations } = useOrganizationsQuery();
-
-  const selectedContext = useSelectedContext();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (
-      organizations &&
-      !userHasAccessToSelectedContext({ selectedContext, orgs: organizations })
-    ) {
-      navigate('/');
-    }
-  }, [organizations, selectedContext, user.login, navigate]);
+  const { isRedirectionComplete } = useContextRedirectionGuard(organizations);
 
   const headerContextValue: IHeaderContext = useMemo(
     () => ({
@@ -32,6 +23,7 @@ export const PageLayout = () => {
     [organizations, user],
   );
 
+  if (!isRedirectionComplete) return <StudioPageSpinner spinnerTitle={t('dashboard.loading')} />;
   return (
     <>
       <HeaderContext.Provider value={headerContextValue}>

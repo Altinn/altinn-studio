@@ -4,7 +4,7 @@ import type { IHeaderContext } from './Header';
 import { HeaderContext, SelectedContextType } from './Header';
 import type { HeaderMenuProps } from './HeaderMenu';
 import { HeaderMenu } from './HeaderMenu';
-import { act, render as rtlRender, screen } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const originalLocation = window.location;
@@ -46,7 +46,7 @@ describe('HeaderMenu', () => {
       name: /shared\.header_logout/i,
     });
 
-    await act(() => userEvent.click(logoutButton)); // eslint-disable-line testing-library/no-unnecessary-act
+    await userEvent.click(logoutButton); // eslint-disable-line testing-library/no-unnecessary-act
 
     expect(postSpy).toHaveBeenCalledWith(`${window.location.origin}/repos/user/logout`);
   });
@@ -59,7 +59,7 @@ describe('HeaderMenu', () => {
       name: /shared\.header_all/i,
     });
 
-    await act(() => userEvent.click(allItem)); // eslint-disable-line testing-library/no-unnecessary-act
+    await userEvent.click(allItem); // eslint-disable-line testing-library/no-unnecessary-act
 
     expect(mockedNavigate).toHaveBeenCalledWith('/' + SelectedContextType.All);
   });
@@ -72,9 +72,9 @@ describe('HeaderMenu', () => {
       name: /john smith/i,
     });
 
-    await act(() => userEvent.click(selfItem)); // eslint-disable-line testing-library/no-unnecessary-act
+    await userEvent.click(selfItem); // eslint-disable-line testing-library/no-unnecessary-act
 
-    expect(mockedNavigate).toHaveBeenCalledWith('/');
+    expect(mockedNavigate).toHaveBeenCalledWith('/self');
   });
 
   it('should call setSelectedContext with org-id when selecting org as context', async () => {
@@ -85,7 +85,7 @@ describe('HeaderMenu', () => {
       name: /organization 1/i,
     });
 
-    await act(() => userEvent.click(orgItem)); // eslint-disable-line testing-library/no-unnecessary-act
+    await userEvent.click(orgItem); // eslint-disable-line testing-library/no-unnecessary-act
     expect(mockedNavigate).toHaveBeenCalledWith('/username');
   });
 });
@@ -95,7 +95,7 @@ const openMenu = async () => {
   const menuButton = screen.getByRole('button', {
     name: /shared\.header_button_alt/i,
   });
-  await act(() => user.click(menuButton));
+  await user.click(menuButton);
 };
 
 const render = (props: Partial<HeaderMenuProps> = {}) => {

@@ -2,6 +2,7 @@ import type { ITextResourcesState } from '../features/appData/textResources/text
 import type { IAppDataState } from '../features/appData/appDataReducers';
 import type { IFormDesignerState } from '../features/formDesigner/formDesignerReducer';
 import { layout1NameMock } from './layoutMock';
+import { layoutSet1NameMock } from './layoutSetsMock';
 import type { IAppState } from '../types/global';
 
 export const textResourcesMock: ITextResourcesState = {
@@ -17,7 +18,7 @@ export const formDesignerMock: IFormDesignerState = {
     error: null,
     saving: false,
     unSavedChanges: false,
-    selectedLayoutSet: 'test-layout-set',
+    selectedLayoutSet: layoutSet1NameMock,
     selectedLayout: layout1NameMock,
     invalidLayouts: [],
   },

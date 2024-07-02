@@ -1,8 +1,8 @@
 import React from 'react';
-import classes from './MigrationStep.module.css';
-import { Alert, Paragraph, Label } from '@digdir/design-system-react';
-import type { NavigationBarPage } from '../../types/NavigationBarPage';
+import { Trans } from 'react-i18next';
+import { Alert, Paragraph } from '@digdir/design-system-react';
 import { LinkButton } from '../LinkButton';
+import { StudioLabelAsParagraph } from '@studio/components';
 
 type MigrationStepProps = {
   /**
@@ -20,11 +20,11 @@ type MigrationStepProps = {
   /**
    * Function that navigates to the page with error
    */
-  onNavigateToPageWithError: (page: NavigationBarPage) => void;
+  onNavigateToPageWithError: () => void;
   /**
-   * Page to navigate to if there is an error
+   * Translation values for placeholders
    */
-  page: NavigationBarPage;
+  translationValues?: { [key: string]: string | number };
 };
 
 /**
@@ -45,7 +45,7 @@ type MigrationStepProps = {
  * @property {string}[text] - Text to displa inside the Alert
  * @property {boolean}[isSuccess] - Flag for if the alert is green or not
  * @property {function}[onNavigateToPageWithError] - Function that navigates to the page with error
- * @property {NavigationBarPage}[page] - Page to navigate to if there is an error
+ * @property {translationValues}[Object] - Translation values for placeholders
  *
  * @returns {React.JSX.Element} - The rendered Migration Step with text and alert
  */
@@ -53,31 +53,20 @@ export const MigrationStep = ({
   title,
   text,
   isSuccess,
+  translationValues,
   onNavigateToPageWithError,
-  page,
 }: MigrationStepProps): React.JSX.Element => {
-  const displayText = () => {
-    if (!isSuccess) {
-      const textArr = text.split('"');
-
-      return (
-        <Paragraph size='small'>
-          {textArr[0] + ' "'}
-          <LinkButton onClick={() => onNavigateToPageWithError(page)}>{textArr[1]}</LinkButton>
-          {'" ' + textArr[2]}
-        </Paragraph>
-      );
-    }
-    return <Paragraph size='small'>{text}</Paragraph>;
-  };
-
   return (
-    <div className={classes.wrapper}>
-      <Label asChild size='medium' spacing>
-        <p>{title}</p>
-      </Label>
-      <Alert severity={isSuccess ? 'success' : 'danger'} iconTitle={text} className={classes.alert}>
-        {displayText()}
+    <div>
+      <StudioLabelAsParagraph size='medium' spacing>
+        {title}
+      </StudioLabelAsParagraph>
+      <Alert severity={isSuccess ? 'success' : 'danger'}>
+        <Paragraph size='small'>
+          <Trans i18nKey={text} values={translationValues}>
+            <LinkButton onClick={onNavigateToPageWithError} />
+          </Trans>
+        </Paragraph>
       </Alert>
     </div>
   );

@@ -1,31 +1,56 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DataModelBindings } from './DataModelBindings';
 import { FormItemContext } from '../../containers/FormItemContext';
 import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
 import { renderWithProviders } from '../../testing/mocks';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { componentSchemaMocks } from '../../testing/componentSchemaMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../types/FormItem';
 import { componentMocks } from '../../testing/componentMocks';
-import { component3IdMock, component3Mock, layoutMock } from '../../testing/layoutMock';
+import { component3IdMock, component3Mock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { app, org } from '@studio/testing/testids';
+import type { DataModelMetadataResponse } from 'app-shared/types/api';
 
-const user = userEvent.setup();
+const dataModelMetadata: DataModelMetadataResponse = {
+  elements: {
+    testModel: {
+      id: 'testModel',
+      type: 'ComplexType',
+      dataBindingName: 'testModel',
+      displayString: 'testModel',
+      isReadOnly: false,
+      isTagContent: false,
+      jsonSchemaPointer: '#/definitions/testModel',
+      maxOccurs: 1,
+      minOccurs: 1,
+      name: 'testModel',
+      parentElement: null,
+      restrictions: [],
+      texts: [],
+      xmlSchemaXPath: '/testModel',
+      xPath: '/testModel',
+    },
+  },
+};
+
+const getDataModelMetadata = () => Promise.resolve(dataModelMetadata);
 
 describe('DataModelBindings', () => {
   afterEach(jest.clearAllMocks);
 
   it('renders EditDataModelBindings component when schema is present', () => {
-    render({});
+    render();
 
-    const datamodelButton = screen.getByRole('button', {
+    const dataModelButton = screen.getByRole('button', {
       name: textMock(`ux_editor.component_title.Input`),
     });
-    expect(datamodelButton).toBeInTheDocument();
+    expect(dataModelButton).toBeInTheDocument();
   });
 
   it('does not render EditDataModelBindings component when schema.properties is undefined', () => {
@@ -83,10 +108,10 @@ describe('DataModelBindings', () => {
         },
       });
 
-      const datamodelButton = screen.getByRole('button', {
+      const dataModelButton = screen.getByRole('button', {
         name: textMock(`ux_editor.modal_properties_data_model_label.${prop}`),
       });
-      expect(datamodelButton).toBeInTheDocument();
+      expect(dataModelButton).toBeInTheDocument();
     },
   );
 
@@ -107,17 +132,17 @@ describe('DataModelBindings', () => {
     });
 
     ['address', 'careOf'].forEach((prop) => {
-      const datamodelButton = screen.getByText(
+      const dataModelButton = screen.getByText(
         textMock(`ux_editor.modal_properties_data_model_label.${prop}`),
       );
-      expect(datamodelButton).toBeInTheDocument();
+      expect(dataModelButton).toBeInTheDocument();
     });
 
     ['zipCode', 'postPlace', 'houseNumber'].forEach((prop) => {
-      const datamodelButton = screen.getByRole('button', {
+      const dataModelButton = screen.getByRole('button', {
         name: textMock(`ux_editor.modal_properties_data_model_label.${prop}`),
       });
-      expect(datamodelButton).toBeInTheDocument();
+      expect(dataModelButton).toBeInTheDocument();
     });
   });
 
@@ -184,6 +209,7 @@ describe('DataModelBindings', () => {
   });
 
   it('should toggle multiple attachment switch when clicked', async () => {
+    const user = userEvent.setup();
     render({
       props: {
         formItem: componentMocks[ComponentType.FileUpload],
@@ -195,11 +221,12 @@ describe('DataModelBindings', () => {
       name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
     });
     expect(switchElement).not.toBeChecked();
-    await act(() => user.click(switchElement));
+    await user.click(switchElement);
     expect(switchElement).toBeChecked();
   });
 
   it('toggling ON multiple attachment switch should call handleUpdate with expected values', async () => {
+    const user = userEvent.setup();
     const handleUpdate = jest.fn();
     render({
       props: {
@@ -212,7 +239,7 @@ describe('DataModelBindings', () => {
     const switchElement = screen.getByRole('checkbox', {
       name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
     });
-    await act(() => user.click(switchElement));
+    await user.click(switchElement);
     expect(handleUpdate).toHaveBeenCalledTimes(1);
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentMocks[ComponentType.FileUpload],
@@ -221,6 +248,7 @@ describe('DataModelBindings', () => {
   });
 
   it('toggling OFF multiple attachment switch should call handleUpdate with expected values', async () => {
+    const user = userEvent.setup();
     const handleUpdate = jest.fn();
     render({
       props: {
@@ -236,12 +264,27 @@ describe('DataModelBindings', () => {
     const switchElement = screen.getByRole('checkbox', {
       name: textMock('ux_editor.modal_properties_data_model_link_multiple_attachments'),
     });
-    await act(() => user.click(switchElement));
+    await user.click(switchElement);
     expect(handleUpdate).toHaveBeenCalledTimes(1);
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentMocks[ComponentType.FileUpload],
       dataModelBindings: { list: undefined, simpleBinding: '' },
     });
+  });
+
+  it('checks that handleComponentChange is called', async () => {
+    const user = userEvent.setup();
+
+    render();
+
+    const dataModelButton = screen.getByRole('button', {
+      name: textMock(`ux_editor.component_title.Input`),
+    });
+    await user.click(dataModelButton);
+    const option = screen.getByText('testModel');
+    await user.click(option);
+    expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalledTimes(1);
+    expect(formItemContextProviderMock.debounceSave).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -254,9 +297,8 @@ const render = async ({
   props = defaultProps,
 }: {
   props?: Partial<FormItemContext>;
-  editId?: string;
-}) => {
-  queryClientMock.setQueryData([QueryKey.FormLayouts, 'org', 'app', 'test-layout-set'], {
+} = {}) => {
+  queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet1NameMock], {
     default: layoutMock,
   });
   queryClientMock.setQueryData(
@@ -272,5 +314,11 @@ const render = async ({
     >
       <DataModelBindings />
     </FormItemContext.Provider>,
+    {
+      appContextProps: {
+        selectedFormLayoutName: 'default',
+      },
+      queries: { getDataModelMetadata },
+    },
   );
 };

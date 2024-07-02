@@ -8,7 +8,7 @@ import type { ConnectDragSource } from 'react-dnd';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { DragHandle } from './DragHandle';
 import type { ITextResource } from 'app-shared/types/global';
-import { TrashIcon } from '@navikt/aksel-icons';
+import { TrashIcon } from '@studio/icons';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { getComponentTitleByComponentType, getTextResource, truncate } from '../../utils/language';
 import { textResourcesByLanguageSelector } from '../../selectors/textResourceSelectors';
@@ -16,7 +16,7 @@ import { useDeleteFormComponentMutation } from '../../hooks/mutations/useDeleteF
 import { useTextResourcesSelector } from '../../hooks';
 import { useTranslation } from 'react-i18next';
 import { AltinnConfirmDialog } from 'app-shared/components';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../hooks/useAppContext';
 
 export interface IFormComponentProps {
@@ -40,7 +40,7 @@ export const FormComponent = memo(function FormComponent({
   isEditMode,
 }: IFormComponentProps) {
   const { t } = useTranslation();
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
 
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
     textResourcesByLanguageSelector(DEFAULT_LANGUAGE),

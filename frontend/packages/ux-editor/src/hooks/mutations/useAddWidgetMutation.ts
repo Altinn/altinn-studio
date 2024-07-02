@@ -5,7 +5,7 @@ import type {
   IWidget,
 } from '../../types/global';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSelectedFormLayoutWithName } from '../useFormLayoutsSelector';
+import { useSelectedFormLayoutWithName } from '../';
 import { ObjectUtils } from '@studio/pure-functions';
 import { v4 as uuidv4 } from 'uuid';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
@@ -49,7 +49,7 @@ export const useAddWidgetMutation = (org: string, app: string, layoutSetName: st
       const updatedLayout = ObjectUtils.deepCopy(layout);
       updatedLayout.components = components;
       updatedLayout.order[containerId] = containerOrder;
-      await updateLayout(updatedLayout);
+      await updateLayout({ internalLayout: updatedLayout });
       for (const language of extractLanguagesFromWidgetTexts(widget.texts)) {
         const textResources = extractTextsFromWidgetTextsByLanguage(widget.texts, language);
         await updateText({ language, textResources });

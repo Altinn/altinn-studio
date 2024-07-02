@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   internalExpressionWithMultipleSubExpressions,
@@ -7,12 +7,12 @@ import {
 } from '../../../../testing/expressionMocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../../testing/mocks';
-import { formDesignerMock } from '../../../../testing/stateMocks';
 import type { IFormLayouts } from '../../../../types/global';
-import { layout1NameMock, layoutMock } from '../../../../testing/layoutMock';
+import { layout1NameMock, layoutMock } from '@altinn/ux-editor-v3/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import type { ExpressionContentProps } from './ExpressionContent';
 import { ExpressionContent } from './ExpressionContent';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { ExpressionPropertyBase } from '../../../../types/Expressions';
@@ -21,10 +21,9 @@ import { formItemContextProviderMock } from '../../../../testing/formItemContext
 import type { FormComponent } from '../../../../types/FormComponent';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { FormContainer } from '../../../../types/FormContainer';
+import { app, org } from '@studio/testing/testids';
 
-const org = 'org';
-const app = 'app';
-const layoutSetName = formDesignerMock.layout.selectedLayoutSet;
+const layoutSetName = layoutSet1NameMock;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };
@@ -105,7 +104,7 @@ describe('ExpressionContent', () => {
     const deleteButton = screen.getByRole('button', {
       name: textMock('right_menu.expression_delete'),
     });
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
     expect(mockOnDeleteExpression).toHaveBeenCalledTimes(1);
     expect(mockOnDeleteExpression).toHaveBeenCalledWith(ExpressionPropertyBase.Hidden);
   });
@@ -123,7 +122,7 @@ describe('ExpressionContent', () => {
     const deleteButton = screen.getByRole('button', {
       name: textMock('right_menu.expression_delete'),
     });
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
     expect(mockOnDeleteExpression).toHaveBeenCalledTimes(1);
     expect(mockOnDeleteExpression).toHaveBeenCalledWith(ExpressionPropertyBase.Hidden);
   });
@@ -140,7 +139,7 @@ describe('ExpressionContent', () => {
     const deleteButtons = screen.getAllByRole('button', {
       name: textMock('right_menu.expression_sub_expression_delete'),
     });
-    await act(() => user.click(deleteButtons[0]));
+    await user.click(deleteButtons[0]);
     const newDeleteButtons = screen.getAllByRole('button', {
       name: textMock('right_menu.expression_sub_expression_delete'),
     });
@@ -156,7 +155,7 @@ describe('ExpressionContent', () => {
     });
 
     const saveButton = screen.getByRole('button', { name: textMock('right_menu.expression_save') });
-    await act(() => user.click(saveButton));
+    await user.click(saveButton);
     expect(saveButton).not.toBeInTheDocument();
   });
 });

@@ -3,17 +3,17 @@ import { render as rtlRender, screen } from '@testing-library/react';
 import type { AltinnHeaderProps } from './AltinnHeader';
 import { AltinnHeader } from './AltinnHeader';
 import { Button } from '@digdir/design-system-react';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { RepositoryType } from 'app-shared/types/global';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { MemoryRouter } from 'react-router-dom';
 import type { AltinnButtonActionItem } from './types';
+import { app, org } from '@studio/testing/testids';
 
 const mockTo: string = '/test';
-const mockButtonTitle: string = 'title';
+const mockMenuKey: TopBarMenu = TopBarMenu.About;
 const mockAction: AltinnButtonActionItem = {
-  menuKey: 'menu-1',
-  title: mockButtonTitle,
+  menuKey: mockMenuKey,
   to: mockTo,
 };
 
@@ -26,29 +26,29 @@ describe('AltinnHeader', () => {
         {
           key: TopBarMenu.About,
           link: 'Link1',
-          repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
+          repositoryTypes: [RepositoryType.App, RepositoryType.DataModels],
         },
       ],
     });
     expect(screen.getByTitle('Altinn logo')).toBeInTheDocument();
   });
 
-  it('should render AltinnHeaderMenu with only datamodels menu item when repositoryType is datamodels', () => {
+  it('should render AltinnHeaderMenu with only data models menu item when repositoryType is data models', () => {
     render({
       menuItems: [
         {
           key: TopBarMenu.About,
           link: 'Link1',
-          repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
+          repositoryTypes: [RepositoryType.App, RepositoryType.DataModels],
         },
         {
-          key: TopBarMenu.Datamodel,
+          key: TopBarMenu.DataModel,
           link: 'Link2',
-          repositoryTypes: [RepositoryType.Datamodels],
+          repositoryTypes: [RepositoryType.DataModels],
         },
       ],
     });
-    expect(screen.getByRole('link', { name: textMock('top_menu.datamodel') })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: textMock(TopBarMenu.DataModel) })).toBeInTheDocument();
     expect(screen.queryByText(textMock('about'))).not.toBeInTheDocument();
   });
 
@@ -56,7 +56,7 @@ describe('AltinnHeader', () => {
     render({
       buttonActions: [mockAction],
     });
-    expect(screen.getByRole('link', { name: textMock(mockButtonTitle) })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: textMock(mockMenuKey) })).toBeInTheDocument();
     expect(screen.getAllByRole('button').length).toEqual(1); // Profile Menu
   });
 
@@ -88,7 +88,7 @@ describe('AltinnHeader', () => {
       repoOwnerIsOrg: true,
       buttonActions: [mockAction],
     });
-    expect(screen.getByRole('link', { name: textMock(mockButtonTitle) })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: textMock(mockMenuKey) })).toBeInTheDocument();
   });
 
   it('should not render Deploy header button when repo is owned by a private person', () => {
@@ -107,8 +107,8 @@ const render = (props: Partial<AltinnHeaderProps> = {}) => {
     menuItems: [],
     showSubMenu: true,
     subMenuContent: null,
-    app: 'test-app',
-    org: 'test-org',
+    app,
+    org,
     user: {
       avatar_url: '',
       email: 'test@email.com',
@@ -124,11 +124,11 @@ const render = (props: Partial<AltinnHeaderProps> = {}) => {
       html_url: 'html_url',
       id: 1,
       is_cloned_to_local: false,
-      name: 'test-app',
+      name: app,
       owner: {
         avatar_url: 'avatar_url',
         full_name: 'Test Org',
-        login: 'test-org',
+        login: org,
         email: 'test-email',
         id: 1,
         userType: 1,

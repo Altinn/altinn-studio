@@ -8,6 +8,7 @@ import { LocalChangesModal } from '../../components/LocalChangesModal';
 import { UiEditorPage } from '../../pages/UiEditorPage';
 import { GiteaPage } from '../../pages/GiteaPage';
 import { Gitea } from '../../helpers/Gitea';
+import { ComponentType } from '../../enum/ComponentType';
 
 // Before the tests starts, we need to create the data model app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
@@ -98,6 +99,7 @@ const makeChangesOnUiEditorPage = async (uiEditorPage: UiEditorPage, newPageName
   await uiEditorPage.verifyThatNewPageIsHidden(newPageName);
   await uiEditorPage.clickOnAddNewPage();
   await uiEditorPage.verifyThatNewPageIsVisible(newPageName);
+  await uiEditorPage.waitForDraggableToolbarItemToBeVisible(ComponentType.NavigationButtons);
 };
 
 const goToGiteaAndNavigateToUiLayoutFiles = async (header: Header, giteaPage: GiteaPage) => {

@@ -1,11 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DropdownMenu } from '@digdir/design-system-react';
-import { MenuElipsisVerticalIcon, ArrowUpIcon, ArrowDownIcon } from '@navikt/aksel-icons';
+import { MenuElipsisVerticalIcon, ArrowUpIcon, ArrowDownIcon } from '@studio/icons';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
 import { useUpdateLayoutOrderMutation } from '../../../../hooks/mutations/useUpdateLayoutOrderMutation';
 import { useUpdateLayoutNameMutation } from '../../../../hooks/mutations/useUpdateLayoutNameMutation';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useSelector } from 'react-redux';
 import type { IAppState } from '../../../../types/global';
 import { useSearchParams } from 'react-router-dom';
@@ -31,7 +31,7 @@ export type NavigationMenuProps = {
 export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps): JSX.Element => {
   const { t } = useTranslation();
 
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
 
   const { selectedLayoutSet } = useAppContext();
   const invalidLayouts: string[] = useSelector(
@@ -50,7 +50,6 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
 
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const settingsRef = useRef(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const moveLayout = (action: 'up' | 'down') => {
@@ -67,23 +66,18 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
 
   return (
     <div>
-      <StudioButton
-        icon={<MenuElipsisVerticalIcon />}
-        onClick={() => setDropdownOpen((v) => !v)}
-        aria-haspopup='menu'
-        aria-expanded={dropdownOpen}
-        variant='tertiary'
-        title={t('general.options')}
-        size='small'
-        ref={settingsRef}
-      />
-      <DropdownMenu
-        anchorEl={settingsRef.current}
-        open={dropdownOpen}
-        onClose={() => setDropdownOpen(false)}
-        portal
-        size='small'
-      >
+      <DropdownMenu open={dropdownOpen} onClose={() => setDropdownOpen(false)} portal size='small'>
+        <DropdownMenu.Trigger asChild>
+          <StudioButton
+            icon={<MenuElipsisVerticalIcon />}
+            onClick={() => setDropdownOpen((v) => !v)}
+            aria-haspopup='menu'
+            aria-expanded={dropdownOpen}
+            variant='tertiary'
+            title={t('general.options')}
+            size='small'
+          />
+        </DropdownMenu.Trigger>
         <DropdownMenu.Content>
           <DropdownMenu.Group>
             {!pageIsReceipt && (

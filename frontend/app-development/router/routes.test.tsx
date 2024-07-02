@@ -7,18 +7,18 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { app, org } from '@studio/testing/testids';
+import { SettingsModalContextProvider } from '../contexts/SettingsModalContext';
+import { PreviewContextProvider } from '../contexts/PreviewContext';
+import { AppDevelopmentContextProvider } from '../contexts/AppDevelopmentContext';
 
 // Mocks:
-jest.mock('../../packages/ux-editor-v3/src/SubApp', () => ({
+jest.mock('@altinn/ux-editor-v3/SubApp', () => ({
   SubApp: () => <div data-testid='version 3' />,
 }));
-jest.mock('../../packages/ux-editor/src/SubApp', () => ({
+jest.mock('@altinn/ux-editor/SubApp', () => ({
   SubApp: () => <div data-testid='latest version' />,
 }));
-
-// Test data
-const org = 'org';
-const app = 'app';
 
 describe('routes', () => {
   describe(RoutePaths.UIEditor, () => {
@@ -55,7 +55,13 @@ const renderSubapp = (path: RoutePaths, frontendVersion: string = null) => {
   queryClient.setQueryData([QueryKey.AppVersion, org, app], appVersion);
   return render(
     <ServicesContextProvider {...queriesMock} client={queryClient}>
-      <Subapp />
+      <SettingsModalContextProvider>
+        <PreviewContextProvider>
+          <AppDevelopmentContextProvider>
+            <Subapp />
+          </AppDevelopmentContextProvider>
+        </PreviewContextProvider>
+      </SettingsModalContextProvider>
     </ServicesContextProvider>,
   );
 };

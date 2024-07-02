@@ -3,11 +3,8 @@ import { screen } from '@testing-library/react';
 import { Documentation } from './Documentation';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
-import { textMock } from '../../../../testing/mocks/i18nMock';
-
-// Test data
-const org = 'my-org';
-const app = 'my-app';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+import { app, org } from '@studio/testing/testids';
 
 describe('Documentation', () => {
   it('renders component', async () => {
@@ -18,7 +15,6 @@ describe('Documentation', () => {
     expect(
       screen.getByRole('heading', { name: textMock('overview.documentation.title') }),
     ).toBeInTheDocument();
-    expect(screen.getByText(textMock('overview.documentation.content'))).toBeInTheDocument();
     expect(
       screen.getByRole('link', { name: textMock('overview.documentation.link') }),
     ).toBeInTheDocument();

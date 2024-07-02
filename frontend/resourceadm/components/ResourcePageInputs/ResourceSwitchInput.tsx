@@ -5,13 +5,17 @@ import { useTranslation } from 'react-i18next';
 
 type ResourceSwitchInputProps = {
   /**
+   * The field id, used by ErrorSummary
+   */
+  id: string;
+  /**
    * The label of the switch
    */
   label: string;
   /**
    * The description of the switch
    */
-  description: string;
+  description?: string;
   /**
    * The value in the switch
    */
@@ -37,6 +41,7 @@ type ResourceSwitchInputProps = {
  * @component
  *    Displays tge switch component used on the about resource page
  *
+ * @property {string}[id] - The field id, used by ErrorSummary
  * @property {string}[label] - The label of the switch
  * @property {string}[description] - The description of the switch
  * @property {string}[value] - The value in the switch
@@ -47,6 +52,7 @@ type ResourceSwitchInputProps = {
  * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceSwitchInput = ({
+  id,
   label,
   description,
   value,
@@ -63,9 +69,11 @@ export const ResourceSwitchInput = ({
       <Label size='small' spacing>
         {label}
       </Label>
-      <Paragraph short size='small' className={classes.description}>
-        {description}
-      </Paragraph>
+      {description && (
+        <Paragraph variant='short' size='small' className={classes.description}>
+          {description}
+        </Paragraph>
+      )}
       <div className={classes.toggleWrapper}>
         <Switch
           checked={isChecked}
@@ -74,6 +82,7 @@ export const ResourceSwitchInput = ({
             setIsChecked(newValue);
             onChange(newValue);
           }}
+          id={id}
           onFocus={onFocus}
           aria-description={description}
           aria-label={label}

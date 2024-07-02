@@ -1,16 +1,19 @@
 import React, { useState, forwardRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
 import { useCreateAccessListMutation } from '../../hooks/mutations/useCreateAccessListMutation';
 import { Modal, Paragraph } from '@digdir/design-system-react';
 import { ResourceNameAndId } from '../../components/ResourceNameAndId';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { StudioButton } from '@studio/components';
-import { getAvailableEnvironments } from '../../utils/resourceUtils/resourceUtils';
+import { getEnvLabel } from '../../utils/resourceUtils';
+import type { EnvId } from '../../utils/resourceUtils';
+import type { ResourceError } from 'app-shared/types/ResourceAdm';
 
 export interface NewAccessListModalProps {
   org: string;
-  env: string;
+  env: EnvId;
   navigateUrl: string;
   onClose: () => void;
 }
@@ -24,9 +27,10 @@ export const NewAccessListModal = forwardRef<HTMLDialogElement, NewAccessListMod
     const [name, setName] = useState<string>('');
     const [errorMessage, setErrorMessage] = useState<string>('');
 
-    const { mutate: createAccessList } = useCreateAccessListMutation(org, env);
+    const { mutate: createAccessList, isPending: isCreatingAccessList } =
+      useCreateAccessListMutation(org, env);
 
-    const isSaveButtonDisabled = !id.trim().length || !name.trim().length;
+    const isSaveButtonDisabled = !id.trim().length || !name.trim().length || isCreatingAccessList;
 
     const handleCreateNewAccessList = (newId: string, newName: string) => {
       setErrorMessage('');
@@ -39,20 +43,33 @@ export const NewAccessListModal = forwardRef<HTMLDialogElement, NewAccessListMod
       };
 
       createAccessList(newAccessList, {
-        onSuccess: () => navigate(`${navigateUrl}${newId}`),
-        onError: (error: any) => {
-          if (error.response.status === ServerCodes.Conflict) {
+        onSuccess: () => {
+          toast.success(t('resourceadm.listadmin_create_list_success', { listname: newName }));
+          navigate(`${navigateUrl}${newId}`);
+        },
+        onError: (error: ResourceError) => {
+          if (
+            error.response?.status === ServerCodes.Conflict ||
+            error.response?.status === ServerCodes.PreconditionFailed
+          ) {
             setErrorMessage(t('resourceadm.listadmin_identifier_conflict'));
           }
         },
       });
     };
 
+    const onCloseModal = (): void => {
+      setId('');
+      setName('');
+      setErrorMessage('');
+      onClose();
+    };
+
     return (
-      <Modal ref={ref} onClose={onClose}>
+      <Modal ref={ref} onClose={onCloseModal}>
         <Modal.Header>
           {t('resourceadm.listadmin_create_list_header', {
-            env: t(getAvailableEnvironments(org).find((listEnv) => listEnv.id === env).label),
+            env: t(getEnvLabel(env)),
           })}
         </Modal.Header>
         <Modal.Content>
@@ -81,7 +98,7 @@ export const NewAccessListModal = forwardRef<HTMLDialogElement, NewAccessListMod
           >
             {t('resourceadm.listadmin_confirm_create_list')}
           </StudioButton>
-          <StudioButton size='small' variant='tertiary' onClick={onClose}>
+          <StudioButton size='small' variant='tertiary' onClick={onCloseModal}>
             {t('general.cancel')}
           </StudioButton>
         </Modal.Footer>

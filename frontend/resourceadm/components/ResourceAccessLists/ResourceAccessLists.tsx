@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Alert, Checkbox, Heading, Link as DigdirLink, Button } from '@digdir/design-system-react';
+import { Checkbox, Heading, Link as DigdirLink } from '@digdir/design-system-react';
 import classes from './ResourceAccessLists.module.css';
 import { StudioSpinner, StudioButton } from '@studio/components';
 import { PencilWritingIcon, PlusIcon } from '@studio/icons';
@@ -10,11 +10,13 @@ import { useAddResourceAccessListMutation } from '../../hooks/mutations/useAddRe
 import { useRemoveResourceAccessListMutation } from '../../hooks/mutations/useRemoveResourceAccessListMutation';
 import { getResourcePageURL } from '../../utils/urlUtils';
 import { NewAccessListModal } from '../NewAccessListModal';
-import type { Resource } from 'app-shared/types/ResourceAdm';
+import type { Resource, ResourceError } from 'app-shared/types/ResourceAdm';
 import { useUrlParams } from '../../hooks/useSelectedContext';
+import type { EnvId } from '../../utils/resourceUtils';
+import { AccessListErrorMessage } from '../AccessListErrorMessage';
 
 export interface ResourceAccessListsProps {
-  env: string;
+  env: EnvId;
   resourceData: Resource;
 }
 
@@ -74,7 +76,7 @@ export const ResourceAccessLists = ({
   }
 
   if (accessListsError) {
-    return <Alert severity='danger'>{t('resourceadm.listadmin_load_list_error')}</Alert>;
+    return <AccessListErrorMessage error={accessListsError as ResourceError} env={env} />;
   }
 
   return (
@@ -123,33 +125,37 @@ export const ResourceAccessLists = ({
                 {list.name}
               </Checkbox>
               <StudioButton
-                iconPlacement='right'
                 size='small'
                 variant='tertiary'
-                icon={<PencilWritingIcon />}
-                as={Link}
+                asChild
                 aria-label={`${t('resourceadm.listadmin_edit_list')} ${list.name}`}
-                to={`${getResourcePageURL(
-                  selectedContext,
-                  repo,
-                  resourceData.identifier,
-                  'accesslists',
-                )}/${env}/${list.identifier}`}
               >
-                {t('resourceadm.listadmin_edit_list')}
+                <Link
+                  to={`${getResourcePageURL(
+                    selectedContext,
+                    repo,
+                    resourceData.identifier,
+                    'accesslists',
+                  )}/${env}/${list.identifier}`}
+                >
+                  {t('resourceadm.listadmin_edit_list')}
+                  <PencilWritingIcon />
+                </Link>
               </StudioButton>
             </div>
           );
         })}
         {hasNextPage && (
-          <Button
+          <StudioButton
             disabled={isFetchingNextPage}
             size='small'
             variant='tertiary'
             onClick={() => fetchNextPage()}
           >
-            {t('resourceadm.listadmin_load_more')}
-          </Button>
+            {t('resourceadm.listadmin_load_more', {
+              unit: t('resourceadm.listadmin_list_unit'),
+            })}
+          </StudioButton>
         )}
       </div>
       <StudioButton

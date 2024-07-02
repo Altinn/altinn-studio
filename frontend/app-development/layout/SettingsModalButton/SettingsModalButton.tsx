@@ -1,27 +1,20 @@
 import type { ReactNode } from 'react';
-import React, { useState } from 'react';
+import React from 'react';
 import { StudioButton } from '@studio/components';
-import { CogIcon } from '@navikt/aksel-icons';
+import { CogIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { SettingsModal } from './SettingsModal';
+import { useSettingsModalContext } from '../../contexts/SettingsModalContext';
 
-export type SettingsModalButtonProps = {
-  org: string;
-  app: string;
-};
-
-/**
- * @component
- *    Displays a button to open the Settings modal
- */
-export const SettingsModalButton = ({ org, app }: SettingsModalButtonProps): ReactNode => {
+export const SettingsModalButton = (): ReactNode => {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState(false);
+  const { settingsModalOpen, setSettingsModalOpen, settingsModalSelectedTab } =
+    useSettingsModalContext();
 
   return (
     <>
       <StudioButton
-        onClick={() => setIsOpen(true)}
+        onClick={() => setSettingsModalOpen(true)}
         size='small'
         variant='tertiary'
         color='inverted'
@@ -31,8 +24,12 @@ export const SettingsModalButton = ({ org, app }: SettingsModalButtonProps): Rea
       </StudioButton>
       {
         // Done to prevent API calls to be executed before the modal is open
-        isOpen && (
-          <SettingsModal isOpen={isOpen} onClose={() => setIsOpen(false)} org={org} app={app} />
+        settingsModalOpen && (
+          <SettingsModal
+            isOpen={settingsModalOpen}
+            onClose={() => setSettingsModalOpen(false)}
+            defaultTab={settingsModalSelectedTab}
+          />
         )
       }
     </>

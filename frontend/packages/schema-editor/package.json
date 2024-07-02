@@ -2,20 +2,14 @@
   "name": "@altinn/schema-editor",
   "description": "JSON schema editor",
   "version": "0.1.0",
-  "dependencies": {
-    "jsonpointer": "5.0.1"
-  },
   "devDependencies": {
     "jest": "29.7.0"
   },
   "peerDependencies": {
-    "@mui/material": "5.15.13",
-    "axios": "1.6.8",
+    "axios": "1.7.2",
     "classnames": "2.5.1",
-    "react": "18.2.0",
-    "react-dnd": "16.0.1",
-    "react-dnd-html5-backend": "16.0.1",
-    "react-dom": "18.2.0"
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
   },
   "private": true,
   "scripts": {

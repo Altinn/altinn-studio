@@ -1,9 +1,9 @@
 import React from 'react';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { EnumFieldProps } from './EnumField';
 import { EnumField } from './EnumField';
-import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const mockValue: string = 'test';
 const mockIndex: number = 0;
@@ -36,8 +36,8 @@ describe('EnumField', () => {
 
     const newValue: string = '1';
 
-    await act(() => user.type(textField, newValue));
-    await act(() => user.tab());
+    await user.type(textField, newValue);
+    await user.tab();
 
     const updatedValue: string = `${mockValue}${newValue}`;
 
@@ -59,7 +59,7 @@ describe('EnumField', () => {
     });
     expect(deleteButton).toBeInTheDocument();
 
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
 
     expect(mockOnDelete).toHaveBeenCalledTimes(1);
   });
@@ -74,8 +74,8 @@ describe('EnumField', () => {
 
     const newValue: string = '1';
 
-    await act(() => user.type(textField, newValue));
-    await act(() => user.keyboard('{Enter}'));
+    await user.type(textField, newValue);
+    await user.keyboard('{Enter}');
 
     expect(mockOnEnterKeyPress).toHaveBeenCalledTimes(1);
   });

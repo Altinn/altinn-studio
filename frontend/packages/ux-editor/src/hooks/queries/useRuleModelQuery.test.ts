@@ -1,4 +1,4 @@
-import { renderHookWithMockStore } from '../../testing/mocks';
+import { renderHookWithProviders } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import type { WindowWithRuleModel } from './useRuleModelQuery';
 import { useRuleModelQuery } from './useRuleModelQuery';
@@ -25,11 +25,11 @@ import ruleHandlerMock, {
 } from '../../testing/ruleHandlerMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { app, org } from '@studio/testing/testids';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 
 const getRuleModel = jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock));
 
@@ -44,8 +44,8 @@ describe('useRuleModelQuery', () => {
   });
 
   it('Parses file correctly and returns an array of rules and conditions', async () => {
-    const { result } = await renderAndWaitForSuccess({ getRuleModel });
-    expect(result.current.data).toEqual([
+    const view = await renderAndWaitForSuccess({ getRuleModel });
+    expect(view.current.data).toEqual([
       {
         name: rule1Name,
         inputs: {
@@ -101,11 +101,10 @@ const renderAndWaitForSuccess = async (
   queries: Partial<ServicesContextProps> = {},
   queryClient = createQueryClientMock(),
 ) => {
-  const { renderHookResult } = renderHookWithMockStore(
-    {},
+  const { result } = renderHookWithProviders(() => useRuleModelQuery(org, app, selectedLayoutSet), {
     queries,
     queryClient,
-  )(() => useRuleModelQuery(org, app, selectedLayoutSet));
-  await waitFor(() => expect(renderHookResult.result.current.isSuccess).toBe(true));
-  return renderHookResult;
+  });
+  await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  return result;
 };

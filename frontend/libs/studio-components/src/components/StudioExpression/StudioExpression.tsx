@@ -12,9 +12,11 @@ import type { ExpressionTexts } from './types/ExpressionTexts';
 
 export type StudioExpressionProps = {
   expression: BooleanExpression;
+  expressionOptions?: string[];
   onChange: (expression: BooleanExpression) => void;
   texts: ExpressionTexts;
-  dataLookupOptions: DataLookupOptions;
+  dataLookupOptions: Partial<DataLookupOptions>;
+  showAddSubexpression?: boolean;
 };
 
 enum TabId {
@@ -24,26 +26,34 @@ enum TabId {
 
 export const StudioExpression = ({
   expression,
+  expressionOptions,
   onChange,
   dataLookupOptions,
   texts,
+  showAddSubexpression,
 }: StudioExpressionProps) => {
   if (!isExpressionValid(expression)) {
     return <Alert severity='danger'>{texts.invalidExpression}</Alert>;
   }
 
   return (
-    <StudioExpressionContext.Provider value={{ dataLookupOptions, texts }}>
-      <ValidExpression expression={expression} onChange={onChange} />
+    <StudioExpressionContext.Provider value={{ dataLookupOptions, texts, expressionOptions }}>
+      <ValidExpression
+        expression={expression}
+        onChange={onChange}
+        showAddSubexpression={showAddSubexpression}
+      />
     </StudioExpressionContext.Provider>
   );
 };
 
-type ValidExpressionProps = Pick<StudioExpressionProps, 'expression' | 'onChange'>;
+type ValidExpressionProps = Pick<
+  StudioExpressionProps,
+  'expression' | 'onChange' | 'showAddSubexpression'
+>;
 
-const ValidExpression = ({ expression, onChange }: ValidExpressionProps) => {
+const ValidExpression = ({ expression, showAddSubexpression, onChange }: ValidExpressionProps) => {
   const { texts } = useContext(StudioExpressionContext);
-
   const isSimplified = useMemo(() => isExpressionSimple(expression), [expression]);
   const initialTab = isSimplified ? TabId.Simplified : TabId.Manual;
   const [selectedTab, setSelectedTab] = useState<TabId>(initialTab);
@@ -72,7 +82,11 @@ const ValidExpression = ({ expression, onChange }: ValidExpressionProps) => {
         <Tabs.Tab value={TabId.Manual}>{texts.manual}</Tabs.Tab>
       </Tabs.List>
       <Tabs.Content value={TabId.Simplified} className={classes.tabContent}>
-        <SimplifiedEditor expression={expression} onChange={onChange} />
+        <SimplifiedEditor
+          expression={expression}
+          onChange={onChange}
+          showAddSubexpression={showAddSubexpression}
+        />
       </Tabs.Content>
       <Tabs.Content value={TabId.Manual} className={classes.tabContent}>
         <ManualEditor

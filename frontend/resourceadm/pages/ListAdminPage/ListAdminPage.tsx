@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Heading, Link as DigdirLink, ToggleGroup, Button } from '@digdir/design-system-react';
+import { Heading, Link as DigdirLink, ToggleGroup } from '@digdir/design-system-react';
 import { StudioSpinner, StudioButton } from '@studio/components';
 import { PencilWritingIcon, PlusIcon } from '@studio/icons';
 import classes from './ListAdminPage.module.css';
@@ -9,8 +9,10 @@ import { useGetAccessListsQuery } from '../../hooks/queries/useGetAccessListsQue
 import { NewAccessListModal } from '../../components/NewAccessListModal';
 import { getAccessListPageUrl, getResourceDashboardURL } from '../../utils/urlUtils';
 import { useUrlParams } from '../../hooks/useSelectedContext';
-import type { EnvId } from '../../utils/resourceUtils/resourceUtils';
-import { getAvailableEnvironments } from '../../utils/resourceUtils/resourceUtils';
+import type { EnvId } from '../../utils/resourceUtils';
+import { getAvailableEnvironments, getEnvLabel } from '../../utils/resourceUtils';
+import { AccessListErrorMessage } from '../../components/AccessListErrorMessage';
+import type { ResourceError } from 'app-shared/types/ResourceAdm';
 
 export const ListAdminPage = (): React.JSX.Element => {
   const { t } = useTranslation();
@@ -22,6 +24,7 @@ export const ListAdminPage = (): React.JSX.Element => {
     isLoading: isLoadingEnvListData,
     hasNextPage,
     isFetchingNextPage,
+    error: listFetchError,
     fetchNextPage,
   } = useGetAccessListsQuery(selectedContext, selectedEnv);
 
@@ -66,10 +69,16 @@ export const ListAdminPage = (): React.JSX.Element => {
             <NewAccessListModal
               ref={createAccessListModalRef}
               org={selectedContext}
-              env={selectedEnv}
+              env={selectedEnv as EnvId}
               navigateUrl={getAccessListPageUrl(selectedContext, repo, selectedEnv)}
               onClose={() => createAccessListModalRef.current?.close()}
             />
+            {listFetchError && (
+              <AccessListErrorMessage
+                error={listFetchError as ResourceError}
+                env={selectedEnv as EnvId}
+              />
+            )}
             {isLoadingEnvListData && (
               <StudioSpinner
                 showSpinnerTitle={false}
@@ -80,11 +89,7 @@ export const ListAdminPage = (): React.JSX.Element => {
               <div>
                 <Heading level={2} size='xsmall'>
                   {t('resourceadm.listadmin_lists_in', {
-                    environment: t(
-                      getAvailableEnvironments(selectedContext).find(
-                        (listEnv) => listEnv.id === selectedEnv,
-                      ).label,
-                    ),
+                    environment: t(getEnvLabel(selectedEnv as EnvId)),
                   })}
                 </Heading>
                 {envListData.pages.map((list) => {
@@ -92,33 +97,37 @@ export const ListAdminPage = (): React.JSX.Element => {
                     <div key={list.identifier} className={classes.tableRowContent}>
                       <div>{list.name}</div>
                       <StudioButton
-                        iconPlacement='right'
                         size='small'
                         variant='tertiary'
-                        icon={<PencilWritingIcon />}
                         aria-label={`${t('resourceadm.listadmin_edit_list')} ${list.name}`}
-                        as={Link}
-                        to={getAccessListPageUrl(
-                          selectedContext,
-                          repo,
-                          selectedEnv,
-                          list.identifier,
-                        )}
+                        asChild
                       >
-                        {t('resourceadm.listadmin_edit_list')}
+                        <Link
+                          to={getAccessListPageUrl(
+                            selectedContext,
+                            repo,
+                            selectedEnv,
+                            list.identifier,
+                          )}
+                        >
+                          {t('resourceadm.listadmin_edit_list')}
+                          <PencilWritingIcon />
+                        </Link>
                       </StudioButton>
                     </div>
                   );
                 })}
                 {hasNextPage && (
-                  <Button
+                  <StudioButton
                     disabled={isFetchingNextPage}
                     size='small'
                     variant='tertiary'
                     onClick={() => fetchNextPage()}
                   >
-                    {t('resourceadm.listadmin_load_more')}
-                  </Button>
+                    {t('resourceadm.listadmin_load_more', {
+                      unit: t('resourceadm.listadmin_list_unit'),
+                    })}
+                  </StudioButton>
                 )}
               </div>
             )}

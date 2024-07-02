@@ -1,5 +1,5 @@
 import type { IInternalLayout } from '../../types/global';
-import { useFormLayout } from '../useFormLayoutsSelector';
+import { useFormLayout } from '../';
 import { useMutation } from '@tanstack/react-query';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { switchSelectedFieldId } from '../../utils/ruleConfigUtils';
@@ -32,7 +32,7 @@ export const useUpdateFormContainerMutation = (
       const newId = updatedContainer.id || currentId;
 
       // Save:
-      return saveLayout(newLayout).then(() => ({ currentId, newId }));
+      return saveLayout({ internalLayout: newLayout }).then(() => ({ currentId, newId }));
     },
     onSuccess: async ({ currentId, newId }) => {
       await switchSelectedFieldId(ruleConfig, currentId, newId, saveRuleConfig);

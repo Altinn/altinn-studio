@@ -12,7 +12,7 @@ export type LinkButtonProps = {
   /**
    * Children of the component
    */
-  children: ReactNode;
+  children?: ReactNode;
 };
 
 /**

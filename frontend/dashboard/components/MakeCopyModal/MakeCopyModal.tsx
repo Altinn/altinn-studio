@@ -1,126 +1,103 @@
-import type { MouseEvent, ChangeEvent } from 'react';
-import React, { useState } from 'react';
-import { StudioSpinner } from '@studio/components';
-import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
-import type { PopoverOrigin } from '@mui/material';
-import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
-import { validateRepoName } from '../../utils/repoUtils';
-import { Textfield } from '@digdir/design-system-react';
+import React, { forwardRef, useState } from 'react';
+import { StudioModal } from '@studio/components';
+import { Heading } from '@digdir/design-system-react';
 import classes from './MakeCopyModal.module.css';
-import { SimpleContainer } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { useCopyAppMutation } from 'dashboard/hooks/mutations/useCopyAppMutation';
 import type { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { useUserQuery } from 'app-shared/hooks/queries';
+import { useOrganizationsQuery } from '../../hooks/queries';
+import { NewApplicationForm } from '../NewApplicationForm';
+import { type NewAppForm } from '../../types/NewAppForm';
+import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 
-export interface IMakeCopyModalProps {
-  anchorEl: HTMLElement;
-  handleClose: (event?: MouseEvent<HTMLElement>) => void;
+export type MakeCopyModalProps = {
+  open: boolean;
+  onClose: () => void;
   serviceFullName: string;
-}
-
-const transformAnchorOrigin: PopoverOrigin = {
-  vertical: 'center',
-  horizontal: 'center',
 };
 
-export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeCopyModalProps) => {
-  const {
-    mutate: copyAppMutate,
-    isPending: isCopyAppPending,
-    isError: hasCopyAppError,
-  } = useCopyAppMutation({
-    hideDefaultError: (error: AxiosError) => error?.response?.status === ServerCodes.Conflict,
-  });
-  const [repoName, setRepoName] = useState<string>('');
-  const [errorMessage, setErrorMessage] = useState<string>(null);
+export const MakeCopyModal = forwardRef<HTMLDialogElement, MakeCopyModalProps>(
+  ({ open, onClose, serviceFullName }, ref) => {
+    const { data: user } = useUserQuery();
 
-  const { t } = useTranslation();
+    const { data: organizations } = useOrganizationsQuery();
+    const {
+      mutate: copyAppMutate,
+      isPending: isCopyAppPending,
+      isSuccess: isCopyAppSuccess,
+    } = useCopyAppMutation({
+      hideDefaultError: (error: AxiosError) => error?.response?.status === ServerCodes.Conflict,
+    });
 
-  const handleClone = async () => {
-    if (validAppName()) {
+    const [formError, setFormError] = useState<NewAppForm>({ org: '', repoName: '' });
+
+    const { t } = useTranslation();
+
+    const navigateToEditorOverview = (org: string, app: string) => {
+      const packagesRouter = new PackagesRouter({
+        org,
+        app,
+      });
+      packagesRouter.navigateToPackage('editorOverview', '?copiedApp=true');
+    };
+
+    const createClonedRepo = async (newAppForm: NewAppForm) => {
+      const { org: newOrg, repoName: newRepoName } = newAppForm;
       const [org, app] = serviceFullName.split('/');
+
       copyAppMutate(
-        { org, app, repoName },
+        { org, app, newRepoName, newOrg },
         {
           onSuccess: () => {
-            window.location.href = `${APP_DEVELOPMENT_BASENAME}/${org}/${repoName}?copiedApp=true`;
+            navigateToEditorOverview(newOrg, newRepoName);
           },
-          onError: () => {
-            if (hasCopyAppError) {
-              setErrorMessage(t('dashboard.app_already_exists'));
+          onError: (error: AxiosError): void => {
+            const appNameAlreadyExists = error.response.status === ServerCodes.Conflict;
+            if (appNameAlreadyExists) {
+              setFormError(
+                (prevErrors): NewAppForm => ({
+                  ...prevErrors,
+                  repoName: t('dashboard.app_already_exists'),
+                }),
+              );
             }
           },
         },
       );
-    }
-  };
+    };
 
-  const closeHandler = (_x: string | MouseEvent<HTMLElement>, event?: MouseEvent<HTMLElement>) => {
-    if (isCopyAppPending) {
-      return;
-    }
-    if (typeof _x !== 'string') {
-      handleClose(_x);
-    } else {
-      handleClose(event);
-    }
-  };
-
-  const handleRepoNameUpdated = (event: ChangeEvent<HTMLInputElement>) =>
-    setRepoName(event.target.value);
-
-  const validAppName = (): boolean => {
-    if (!repoName) {
-      setErrorMessage(t('dashboard.field_cannot_be_empty'));
-      return false;
-    }
-    if (repoName.length > 30) {
-      setErrorMessage(t('dashboard.service_name_is_too_long'));
-      return false;
-    }
-    if (!validateRepoName(repoName)) {
-      setErrorMessage(t('dashboard.service_name_has_illegal_characters'));
-      return false;
-    }
-    return true;
-  };
-
-  return (
-    <AltinnPopoverSimple
-      open={!!anchorEl}
-      anchorEl={anchorEl}
-      anchorOrigin={transformAnchorOrigin}
-      transformOrigin={transformAnchorOrigin}
-      handleClose={closeHandler}
-      btnCancelText={isCopyAppPending ? null : t('general.cancel')}
-      btnConfirmText={isCopyAppPending ? null : t('dashboard.make_copy')}
-      btnClick={handleClone}
-      paperProps={{
-        style: {
-          margin: '2.4rem',
-        },
-      }}
-      btnPrimaryId='clone-button'
-      btnSecondaryId='cancel-button'
-    >
-      <SimpleContainer>
-        <h2>{t('dashboard.copy_application')}</h2>
-        <p>{t('dashboard.copy_application_description')}</p>
-        <div>
-          <Textfield
-            id='new-clone-name-input'
-            label={t('dashboard.new_service_copy')}
-            value={repoName}
-            onChange={handleRepoNameUpdated}
-            error={errorMessage}
+    return (
+      <StudioModal
+        ref={ref}
+        isOpen={open}
+        onClose={onClose}
+        title={
+          <Heading level={2} size='small' className={classes.modalHeading}>
+            {t('dashboard.copy_application')}
+          </Heading>
+        }
+        closeButtonLabel={t('dashboard.copy_modal_close_button_label')}
+      >
+        <div className={classes.modalContent}>
+          <NewApplicationForm
+            onSubmit={createClonedRepo}
+            user={user}
+            organizations={organizations}
+            isLoading={isCopyAppPending || isCopyAppSuccess}
+            submitButtonText={t('dashboard.make_copy')}
+            formError={formError}
+            setFormError={setFormError}
+            actionableElement={{
+              type: 'button',
+              onClick: onClose,
+            }}
           />
-          {errorMessage && <div className={classes.errorMessage}>{errorMessage}</div>}
         </div>
-        {isCopyAppPending && (
-          <StudioSpinner showSpinnerTitle spinnerTitle={t('dashboard.creating_your_copy')} />
-        )}
-      </SimpleContainer>
-    </AltinnPopoverSimple>
-  );
-};
+      </StudioModal>
+    );
+  },
+);
+
+MakeCopyModal.displayName = 'MakeCopyModal';

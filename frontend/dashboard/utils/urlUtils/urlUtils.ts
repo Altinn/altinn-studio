@@ -12,8 +12,8 @@ type GetRepoUrl = {
 };
 
 export const getRepoEditUrl = ({ org, repo }: GetRepoUrl): string => {
-  if (getRepositoryType(org, repo) === RepositoryType.Datamodels) {
-    return `${APP_DEVELOPMENT_BASENAME}/${org}/${repo}/datamodel`;
+  if (getRepositoryType(org, repo) === RepositoryType.DataModels) {
+    return `${APP_DEVELOPMENT_BASENAME}/${org}/${repo}/data-model`;
   }
 
   return `${APP_DEVELOPMENT_BASENAME}/${org}/${repo}`;

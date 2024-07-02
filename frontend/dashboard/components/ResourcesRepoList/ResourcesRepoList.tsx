@@ -36,7 +36,7 @@ export const ResourcesRepoList = ({
   const { data: resourcesRepos } = useSearchReposQuery({
     uid: uid as number,
     keyword: '-resources',
-    page: 0,
+    page: 1,
   });
 
   const {
@@ -63,13 +63,13 @@ export const ResourcesRepoList = ({
           isResourcesRepo: true,
         })}
       </Heading>
+      <Link href={`${RESOURCEADM_BASENAME}${getResourceDashboardURL(selectedContext, repo)}`}>
+        {t('dashboard.go_to_resources')}
+      </Link>
       {isLoadingResourceList ? (
         <StudioSpinner showSpinnerTitle spinnerTitle={t('dashboard.loading_resource_list')} />
       ) : (
         <div data-testid='resource-table-wrapper'>
-          <Link href={`${RESOURCEADM_BASENAME}${getResourceDashboardURL(selectedContext, repo)}`}>
-            {t('dashboard.go_to_resources')}
-          </Link>
           <ResourceTable
             list={resourceListData}
             onClickEditResource={(id: string) => {

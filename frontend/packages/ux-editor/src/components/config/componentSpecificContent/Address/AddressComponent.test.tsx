@@ -1,11 +1,11 @@
 import React from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
-import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
+import { renderWithProviders, renderHookWithProviders } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { AddressComponent } from './AddressComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormAddressComponent } from '../../../../types/FormComponent';
-import { waitFor, screen, act } from '@testing-library/react';
+import { waitFor, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 // Test data:
@@ -37,7 +37,7 @@ describe('AddressComponent', () => {
   it('Handles switch toggle correctly', async () => {
     await render();
     const switchElement = screen.getByRole('checkbox');
-    await act(() => user.click(switchElement));
+    await user.click(switchElement);
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...component,
       simplified: true,
@@ -46,13 +46,12 @@ describe('AddressComponent', () => {
 });
 
 const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
-    .renderHookResult.result;
+  const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
 const render = async (props?: Partial<IGenericEditComponent<ComponentType.Address>>) => {
   await waitForData();
 
-  return renderWithMockStore()(<AddressComponent {...defaultProps} {...props} />);
+  return renderWithProviders(<AddressComponent {...defaultProps} {...props} />);
 };

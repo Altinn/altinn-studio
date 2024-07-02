@@ -1,25 +1,21 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { renderWithMockStore } from '../../testing/mocks';
-import { layoutSetsMock } from '../../testing/layoutMock';
-import type { AppContextProps } from '../../AppContext';
-import { appStateMock } from '../../testing/stateMocks';
+import { renderWithProviders } from '../../testing/mocks';
+import {
+  layoutSet1NameMock,
+  layoutSet2NameMock,
+  layoutSetsMock,
+} from '../../testing/layoutSetsMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { appContextMock } from '../../testing/appContextMock';
+import { app, org } from '@studio/testing/testids';
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useDispatch: jest.fn(),
-}));
 // Test data
-const org = 'org';
-const app = 'app';
-const layoutSetName1 = layoutSetsMock.sets[0].id;
-const layoutSetName2 = layoutSetsMock.sets[1].id;
-const { selectedLayoutSet } = appStateMock.formDesigner.layout;
-const setSelectedLayoutSetMock = jest.fn();
+const layoutSetName1 = layoutSet1NameMock;
+const layoutSetName2 = layoutSet2NameMock;
 
 describe('LayoutSetsContainer', () => {
   it('renders component', async () => {
@@ -37,16 +33,17 @@ describe('LayoutSetsContainer', () => {
   it('Should update selected layout set when set is clicked in native select', async () => {
     render();
     const user = userEvent.setup();
-    await act(() => user.selectOptions(screen.getByRole('combobox'), layoutSetName2));
-    expect(setSelectedLayoutSetMock).toHaveBeenCalledTimes(1);
+    await user.selectOptions(screen.getByRole('combobox'), layoutSetName2);
+    expect(appContextMock.setSelectedFormLayoutSetName).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchLayouts).toHaveBeenCalledWith('test-layout-set-2');
+    expect(appContextMock.refetchLayoutSettings).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchLayoutSettings).toHaveBeenCalledWith('test-layout-set-2');
+    expect(appContextMock.onLayoutSetNameChange).toHaveBeenCalledWith('test-layout-set-2');
   });
 });
 
 const render = () => {
   queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
-  const appContextProps: Partial<AppContextProps> = {
-    selectedLayoutSet: selectedLayoutSet,
-    setSelectedLayoutSet: setSelectedLayoutSetMock,
-  };
-  return renderWithMockStore({}, {}, undefined, appContextProps)(<LayoutSetsContainer />);
+  return renderWithProviders(<LayoutSetsContainer />);
 };

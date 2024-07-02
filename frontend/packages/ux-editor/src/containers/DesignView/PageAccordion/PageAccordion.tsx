@@ -1,19 +1,16 @@
 import type { ReactNode } from 'react';
-import React, { useCallback } from 'react';
+import React from 'react';
 import classes from './PageAccordion.module.css';
 import cn from 'classnames';
 import { Accordion } from '@digdir/design-system-react';
 import { NavigationMenu } from './NavigationMenu';
-import * as testids from '../../../../../../testing/testids';
+import { pageAccordionContentId } from '@studio/testing/testids';
 import { TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from '../../../hooks/useAppContext';
-import { firstAvailableLayout } from '../../../utils/formLayoutsUtils';
-import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useAppContext } from '../../../hooks';
 import { StudioButton } from '@studio/components';
-import { useDeleteLayout } from './useDeleteLayout';
+import { useDeleteLayoutMutation } from '../../../hooks/mutations/useDeleteLayoutMutation';
 
 export type PageAccordionProps = {
   pageName: string;
@@ -21,6 +18,8 @@ export type PageAccordionProps = {
   isOpen: boolean;
   onClick: () => void;
   pageIsReceipt?: boolean;
+  isValid?: boolean;
+  hasUniqueIds?: boolean;
 };
 
 /**
@@ -42,27 +41,28 @@ export const PageAccordion = ({
   isOpen,
   onClick,
   pageIsReceipt,
+  isValid,
+  hasUniqueIds,
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
-  const { org, app } = useStudioUrlParams();
-  const { selectedLayoutSet } = useAppContext();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const selectedLayout = searchParams.get('layout');
+  const { org, app } = useStudioEnvironmentParams();
+  const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
 
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
-  const layoutOrder = formLayoutSettings?.pages?.order;
+  const { mutate: deleteLayout, isPending } = useDeleteLayoutMutation(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
 
-  const { mutate: deleteLayout, isPending } = useDeleteLayout();
-
-  const handleConfirmDelete = useCallback(() => {
+  const handleConfirmDelete = () => {
     if (confirm(t('ux_editor.page_delete_text'))) {
-      deleteLayout(pageName);
-      if (selectedLayout === pageName) {
-        const layoutToSelect = firstAvailableLayout(pageName, layoutOrder);
-        setSearchParams({ layout: layoutToSelect });
-      }
+      deleteLayout(pageName, {
+        onSuccess: async ({ layouts }) => {
+          await refetchLayouts(selectedFormLayoutSetName, Object.keys(layouts).length === 1);
+        },
+      });
     }
-  }, [deleteLayout, layoutOrder, pageName, selectedLayout, setSearchParams, t]);
+  };
 
   return (
     <Accordion.Item
@@ -70,7 +70,13 @@ export const PageAccordion = ({
       open={isOpen}
     >
       <div className={classes.accordionHeaderRow}>
-        <Accordion.Header className={classes.accordionHeader} level={3} onHeaderClick={onClick}>
+        <Accordion.Header
+          className={
+            isValid && hasUniqueIds ? classes.accordionHeader : classes.accordionHeaderWarning
+          }
+          level={3}
+          onHeaderClick={onClick}
+        >
           {pageName}
         </Accordion.Header>
         <div className={classes.navigationMenu}>
@@ -87,7 +93,7 @@ export const PageAccordion = ({
         </div>
       </div>
       <Accordion.Content
-        data-testid={testids.pageAccordionContent(pageName)}
+        data-testid={pageAccordionContentId(pageName)}
         className={classes.accordionContent}
       >
         {children}

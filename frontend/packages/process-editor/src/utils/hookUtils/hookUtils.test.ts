@@ -9,7 +9,9 @@ import type { BpmnTaskType } from '../../types/BpmnTaskType';
 import {
   getBpmnEditorDetailsFromBusinessObject,
   getBpmnViewerDetailsFromBusinessObject,
+  getLayoutSetIdFromTaskId,
 } from './hookUtils';
+import { mockBpmnDetails } from '../../../test/mocks/bpmnDetailsMock';
 
 describe('hookUtils', () => {
   afterEach(jest.clearAllMocks);
@@ -107,6 +109,31 @@ describe('hookUtils', () => {
       expect(bpmnDetails.name).toEqual(mockName);
       expect(bpmnDetails.type).toEqual(mockTypeTask);
       expect(bpmnDetails.taskType).toBeNull();
+    });
+  });
+
+  const layoutSets = {
+    sets: [
+      { id: 'layoutSet1', tasks: ['task1'] },
+      { id: 'layoutSet2', tasks: ['task2'] },
+    ],
+  };
+
+  describe('getLayoutSetIdFromTaskId', () => {
+    it('should return the layout set id corresponding to the task id', () => {
+      const result = getLayoutSetIdFromTaskId('task1', layoutSets);
+      expect(result).toBe('layoutSet1');
+    });
+
+    it('should return undefined if task id does not exist in any layout set', () => {
+      const result = getLayoutSetIdFromTaskId(mockBpmnDetails.id, layoutSets);
+      expect(result).toBeUndefined();
+    });
+
+    it('should return undefined if layout sets are empty', () => {
+      const layoutSets = { sets: [] };
+      const result = getLayoutSetIdFromTaskId(mockBpmnDetails.id, layoutSets);
+      expect(result).toBeUndefined();
     });
   });
 });

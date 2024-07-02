@@ -4,13 +4,12 @@ import { getComponentIds, getDataModelElementNames } from '../../../utils/expres
 import type { Expression, DataLookupOptions } from '@studio/components';
 import { DataLookupFuncName, StudioDeleteButton } from '@studio/components';
 import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from '../../../hooks/useAppContext';
-import { useDatamodelMetadataQuery } from '../../../hooks/queries/useDatamodelMetadataQuery';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useDataModelMetadataQuery } from '../../../hooks/queries/useDataModelMetadataQuery';
 import { Paragraph } from '@digdir/design-system-react';
 import classes from './ExpressionContent.module.css';
-import { useText } from '../../../hooks';
 import { Expression as ExpressionWithTexts } from 'app-shared/components/Expression';
+import { useText, useAppContext } from '../../../hooks';
 
 export interface ExpressionContentProps {
   expression: Expression;
@@ -26,17 +25,21 @@ export const ExpressionContent = ({
   heading,
 }: ExpressionContentProps) => {
   const t = useText();
-  const { org, app } = useStudioUrlParams();
-  const { selectedLayoutSet } = useAppContext();
-  const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedLayoutSet);
-  const { data: datamodelMetadata } = useDatamodelMetadataQuery(org, app, selectedLayoutSet);
-
-  const dataLookupOptions: DataLookupOptions = useMemo(
+  const { org, app } = useStudioEnvironmentParams();
+  const { selectedFormLayoutSetName } = useAppContext();
+  const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
+  const { data: dataModelMetadata } = useDataModelMetadataQuery(
+    org,
+    app,
+    selectedFormLayoutSetName,
+    undefined,
+  );
+  const dataLookupOptions: Partial<DataLookupOptions> = useMemo(
     () => ({
       [DataLookupFuncName.Component]: getComponentIds(formLayoutsData),
-      [DataLookupFuncName.DataModel]: getDataModelElementNames(datamodelMetadata),
+      [DataLookupFuncName.DataModel]: getDataModelElementNames(dataModelMetadata),
     }),
-    [formLayoutsData, datamodelMetadata],
+    [formLayoutsData, dataModelMetadata],
   );
 
   return (

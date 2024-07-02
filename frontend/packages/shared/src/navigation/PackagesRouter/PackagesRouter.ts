@@ -5,6 +5,7 @@ type ParamsOptions = {
 
 type PackagesRoute =
   | 'dashboard'
+  | 'dataModel'
   | 'editorOverview'
   | 'editorUiEditor'
   | 'preview'
@@ -12,6 +13,7 @@ type PackagesRoute =
 
 const packagesRoutes: Record<PackagesRoute, string> = {
   dashboard: '/dashboard',
+  dataModel: '/editor/{{org}}/{{app}}/data-model',
   editorOverview: '/editor/{{org}}/{{app}}/overview',
   editorUiEditor: '/editor/{{org}}/{{app}}/ui-editor',
   editorPublish: '/editor/{{org}}/{{app}}/deploy',

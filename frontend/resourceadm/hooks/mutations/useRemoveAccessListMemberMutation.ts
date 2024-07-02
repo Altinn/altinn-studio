@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { UseMutationResult } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import type { AccessListOrganizationNumbers, HeaderEtag } from 'app-shared/types/ResourceAdm';
 
 /**
  * Mutation to remove a member from a access list
@@ -13,14 +15,17 @@ export const useRemoveAccessListMemberMutation = (
   org: string,
   listIdentifier: string,
   env: string,
-) => {
+): UseMutationResult<HeaderEtag> => {
   const queryClient = useQueryClient();
   const { removeAccessListMember } = useServicesContext();
 
   return useMutation({
-    mutationFn: (orgnr: string) => removeAccessListMember(org, listIdentifier, orgnr, env),
+    mutationFn: (payload: AccessListOrganizationNumbers) =>
+      removeAccessListMember(org, listIdentifier, env, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QueryKey.AccessList, env, listIdentifier] });
+      queryClient.invalidateQueries({
+        queryKey: [QueryKey.AccessListMembers, env, listIdentifier],
+      });
     },
   });
 };

@@ -1,17 +1,16 @@
 import type { ChangeEvent } from 'react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { StudioCodeFragment, StudioTextarea } from '@studio/components';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useUpsertTextResourcesMutation } from 'app-shared/hooks/mutations';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import type { ITextResource, ITextResources } from 'app-shared/types/global';
+import type { ITextResources } from 'app-shared/types/global';
 import classes from './TextResourceValueEditor.module.css';
 import { Trans, useTranslation } from 'react-i18next';
+import { useUpsertTextResourceMutation } from '../../../../hooks/mutations/useUpsertTextResourceMutation';
 
 export type TextResourceValueEditorProps = {
   textResourceId: string;
-  onReferenceChange: (id: string) => void;
 };
 
 const language = DEFAULT_LANGUAGE;
@@ -22,13 +21,10 @@ const findTextResource = (textResources: ITextResources, id: string) =>
 const getTextResourceValue = (textResources: ITextResources, id: string) =>
   findTextResource(textResources, id)?.value || '';
 
-export const TextResourceValueEditor = ({
-  onReferenceChange,
-  textResourceId,
-}: TextResourceValueEditorProps) => {
-  const { org, app } = useStudioUrlParams();
+export const TextResourceValueEditor = ({ textResourceId }: TextResourceValueEditorProps) => {
+  const { org, app } = useStudioEnvironmentParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
-  const { mutate } = useUpsertTextResourcesMutation(org, app);
+  const { mutate } = useUpsertTextResourceMutation(org, app);
   const value = getTextResourceValue(textResources, textResourceId);
   const [valueState, setValueState] = useState<string>(value);
   const { t } = useTranslation();
@@ -39,8 +35,7 @@ export const TextResourceValueEditor = ({
 
   const handleChange = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>) => {
-      const textResource: ITextResource = { id: textResourceId, value: event.target.value };
-      mutate({ language, textResources: [textResource] });
+      mutate({ textId: textResourceId, language, translation: event.target.value });
     },
     [textResourceId, mutate],
   );

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './DeleteModal.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioModal, StudioSpinner } from '@studio/components';
-import { TrashIcon } from '@navikt/aksel-icons';
+import { TrashIcon } from '@studio/icons';
 import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
 import { toast } from 'react-toastify';
 import { Heading, Paragraph, Textfield } from '@digdir/design-system-react';

@@ -4,7 +4,9 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Infrastructure.Models;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -12,9 +14,9 @@ using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
-using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -32,8 +34,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly HttpContext _httpContext;
         private readonly IApplicationInformationService _applicationInformationService;
         private readonly IEnvironmentsService _environmentsService;
-        private readonly IKubernetesWrapperClient _kubernetesWrapperClient;
         private readonly ILogger<DeploymentService> _logger;
+        private readonly IPublisher _mediatr;
 
         /// <summary>
         /// Constructor
@@ -45,19 +47,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IDeploymentRepository deploymentRepository,
             IReleaseRepository releaseRepository,
             IEnvironmentsService environmentsService,
-            IKubernetesWrapperClient kubernetesWrapperClient,
             IApplicationInformationService applicationInformationService,
-            ILogger<DeploymentService> logger)
+            ILogger<DeploymentService> logger, IPublisher mediatr)
         {
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
             _deploymentRepository = deploymentRepository;
             _releaseRepository = releaseRepository;
             _applicationInformationService = applicationInformationService;
             _environmentsService = environmentsService;
-            _kubernetesWrapperClient = kubernetesWrapperClient;
             _azureDevOpsSettings = azureDevOpsOptions;
             _httpContext = httpContextAccessor.HttpContext;
             _logger = logger;
+            _mediatr = mediatr;
         }
 
         /// <inheritdoc/>
@@ -82,7 +83,33 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Started = queuedBuild.StartTime
             };
 
-            return await _deploymentRepository.Create(deploymentEntity);
+
+            var createdEntity = await _deploymentRepository.Create(deploymentEntity);
+            await PublishAppDeployedEvent(deploymentEntity);
+            return createdEntity;
+        }
+
+        // Publish app deployed event
+        private async Task PublishAppDeployedEvent(DeploymentEntity deploymentEntity)
+        {
+            try
+            {
+                var deploymentEntities = await _deploymentRepository.Get(deploymentEntity.Org, deploymentEntity.App,
+                    new DocumentQueryModel { Top = 1 });
+                bool newApp = !deploymentEntities.Any();
+
+
+                await _mediatr.Publish(new AppDeployedEvent
+                {
+                    EditingContext = AltinnRepoContext.FromOrgRepo(deploymentEntity.Org, deploymentEntity.App),
+                    AppsEnvironment = deploymentEntity.EnvName,
+                    DeployType = newApp ? DeployType.NewApp : DeployType.ExistingApp
+                });
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error publishing AppDeployedEvent for {org}/{app}", deploymentEntity.Org, deploymentEntity.App);
+            }
         }
 
         /// <inheritdoc/>
@@ -92,32 +119,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             cancellationToken.ThrowIfCancellationRequested();
             List<DeploymentEntity> deploymentEntities = (await _deploymentRepository.Get(org, app, query)).ToList();
 
-            var environments = await _environmentsService.GetOrganizationEnvironments(org);
-            foreach (EnvironmentModel env in environments)
-            {
-                try
-                {
-                    IList<Deployment> kubernetesDeploymentsInEnv =
-                        await _kubernetesWrapperClient.GetDeploymentsInEnvAsync(org, env);
+            IEnumerable<EnvironmentModel> environments = await _environmentsService.GetOrganizationEnvironments(org);
+            List<string> environmentNames = environments.Select(environment => environment.Name).ToList();
 
-                    var dbDeploymentEntitiesInEnv = deploymentEntities
-                        .Where(deployment => deployment.EnvName == env.Name)
-                        .ToList();
-
-                    foreach (var deployment in dbDeploymentEntitiesInEnv)
-                    {
-                        deployment.DeployedInEnv = kubernetesDeploymentsInEnv.Any(kubernetesDeployment =>
-                            kubernetesDeployment.Release == $"{deployment.Org}-{deployment.App}" &&
-                            kubernetesDeployment.Version == deployment.TagName);
-                    }
-                }
-                catch (KubernetesWrapperResponseException)
-                {
-                    _logger.LogInformation("Make sure the requested environment, {EnvName}, exists", env.Hostname);
-                }
-            }
-
-            return new SearchResults<DeploymentEntity> { Results = deploymentEntities };
+            return new SearchResults<DeploymentEntity> { Results = deploymentEntities.Where(item => environmentNames.Contains(item.EnvName)).ToList() };
         }
 
         /// <inheritdoc/>

@@ -4,9 +4,11 @@ import {
   addItemOfType,
   addNavigationButtons,
   createEmptyLayout,
+  duplicatedIdsExistsInLayout,
   findParentId,
   getChildIds,
   getDepth,
+  getDuplicatedIds,
   getItem,
   hasMultiPageGroup,
   hasNavigationButtons,
@@ -19,6 +21,7 @@ import {
   removeComponentsByType,
   updateContainer,
   validateDepth,
+  findLayoutsContainingDuplicateComponents,
 } from './formLayoutUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { IInternalLayout } from '../types/global';
@@ -573,6 +576,84 @@ describe('formLayoutUtils', () => {
 
     it('Returns false if the layout does not contain a multi page group', () => {
       expect(hasMultiPageGroup(mockInternal)).toBe(false);
+    });
+  });
+
+  describe('duplicatedIdsExistsInLayout', () => {
+    it('Returns true if the layout contains duplicated ids', () => {
+      const layout = {
+        ...mockInternal,
+        order: {
+          ...mockInternal.order,
+          [groupId]: [paragraphInGroupId, paragraphInGroupId],
+        },
+      };
+      expect(duplicatedIdsExistsInLayout(layout)).toBe(true);
+    });
+
+    it('Returns false if the layout does not contain duplicated ids', () => {
+      expect(duplicatedIdsExistsInLayout(mockInternal)).toBe(false);
+    });
+  });
+
+  describe('getDuplicatedIds', () => {
+    it('Returns the duplicated ids in the layout', () => {
+      const layout = {
+        ...mockInternal,
+        order: {
+          ...mockInternal.order,
+          [groupId]: [paragraphInGroupId, paragraphInGroupId, paragraphInGroupId],
+        },
+      };
+      const duplicatedIds = getDuplicatedIds(layout);
+      expect(duplicatedIds).toEqual([paragraphInGroupId]);
+    });
+  });
+
+  describe('duplicatedIdsExistInAllLayouts', () => {
+    it('Returns an empty array if no layouts contain duplicate components', () => {
+      const layouts: Record<string, IInternalLayout> = {
+        page1: {
+          order: { section1: ['component1'] },
+          components: {},
+          containers: {},
+          customRootProperties: {},
+          customDataProperties: {},
+        },
+        page2: {
+          order: { section1: ['component2'] },
+          components: {},
+          containers: {},
+          customRootProperties: {},
+          customDataProperties: {},
+        },
+      };
+      const duplicatedLayouts = findLayoutsContainingDuplicateComponents(layouts);
+      expect(duplicatedLayouts).toEqual({ duplicateLayouts: [], duplicateComponents: [] });
+    });
+
+    it('Returns the pages and components that contain duplicate ids', () => {
+      const layouts: Record<string, IInternalLayout> = {
+        page1: {
+          order: { section1: ['component1'] },
+          components: {},
+          containers: {},
+          customRootProperties: {},
+          customDataProperties: {},
+        },
+        page2: {
+          order: { section1: ['component1'] },
+          components: {},
+          containers: {},
+          customRootProperties: {},
+          customDataProperties: {},
+        },
+      };
+      const duplicatedLayouts = findLayoutsContainingDuplicateComponents(layouts);
+      expect(duplicatedLayouts).toEqual({
+        duplicateLayouts: ['page2', 'page1'],
+        duplicateComponents: ['component1'],
+      });
     });
   });
 });

@@ -1,7 +1,7 @@
 import React from 'react';
 import type { StudioTreeViewItemProps } from './StudioTreeViewItem';
 import type { ByRoleOptions } from '@testing-library/react';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { StudioTreeViewItem } from './StudioTreeViewItem';
 import type { TreeViewRootContextProps } from '../StudioTreeViewRoot';
 import { StudioTreeViewRootContext } from '../StudioTreeViewRoot';
@@ -91,10 +91,10 @@ describe('StudioTreeViewItem', () => {
   it('Expands the tree item when it is clicked and closes it again when it is clicked again', async () => {
     renderItem({ label, children: <StudioTreeViewItem nodeId='child' label='Test' /> });
     expect(getTreeItem({ name: label, expanded: false })).toBeInTheDocument();
-    await act(() => user.click(getTreeItem()));
+    await user.click(getTreeItem());
     expect(getTreeItem({ name: label, expanded: true })).toBeInTheDocument();
     expect(screen.getByRole('group')).toBeInTheDocument();
-    await act(() => user.click(getTreeItem()));
+    await user.click(getTreeItem());
     expect(getTreeItem({ name: label, expanded: false })).toBeInTheDocument();
     expect(screen.queryByRole('group')).not.toBeInTheDocument();
   });
@@ -116,7 +116,7 @@ describe('StudioTreeViewItem', () => {
 
   it('Calls the `setSelectedId` and `setFocusedId` callbacks with the `nodeId` when clicked', async () => {
     renderItem({ label });
-    await act(() => user.click(getTreeItem({ name: label })));
+    await user.click(getTreeItem({ name: label }));
     expect(setSelectedId).toHaveBeenCalledTimes(1);
     expect(setSelectedId).toHaveBeenCalledWith(nodeId);
     expect(setFocusedId).toHaveBeenCalledTimes(1);
@@ -149,6 +149,22 @@ describe('StudioTreeViewItem', () => {
     const wrapper = screen.getByTestId(labelWrapperTestId);
     expect(wrapper).toBeInTheDocument();
     expect(getTreeItem({ name: label })).toBe(wrapper.querySelector('[role="treeitem"]')); // eslint-disable-line testing-library/no-node-access
+  });
+
+  it('Opens the tree item when a child is selected', async () => {
+    const childLabel = 'directchild';
+    const childId = 'child';
+    renderItem(
+      {
+        label,
+        children: <StudioTreeViewItem nodeId={childId} label={childLabel} />,
+      },
+      { selectedId: childId },
+    );
+    await user.click(getTreeItem({ name: childLabel, hidden: true }));
+    expect(setSelectedId).toHaveBeenCalledTimes(1);
+    expect(setSelectedId).toHaveBeenCalledWith(childId);
+    expect(getTreeItem({ name: label, expanded: true })).toBeInTheDocument();
   });
 
   const getTreeItem = (options: ByRoleOptions = {}) => {

@@ -3,7 +3,7 @@ import type { SchemaModel } from '@altinn/schema-model';
 
 export interface SchemaEditorAppContextProps {
   schemaModel: SchemaModel;
-  save: (datamodel: SchemaModel, saveAfterMs?: number) => void;
+  save: (dataModel: SchemaModel, saveAfterMs?: number) => void;
   selectedTypePointer?: string;
   setSelectedTypePointer: (pointer: string) => void;
   selectedNodePointer?: string;

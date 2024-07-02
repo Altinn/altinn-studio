@@ -1,12 +1,11 @@
-import React, { useMemo } from 'react';
-import cn from 'classnames';
+import React from 'react';
 import classes from './ResourceTable.module.css';
-import { PencilIcon } from '@studio/icons';
+import { PencilIcon, FileImportIcon } from '@studio/icons';
 import { Tag } from '@digdir/design-system-react';
+import { StudioButton, StudioSpinner, StudioTableLocalPagination } from '@studio/components';
+import type { Columns } from '@studio/components';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
-import type { GridRenderCellParams, GridRowParams } from '@mui/x-data-grid';
-import { DataGrid, GridActionsCellItem, GridOverlay } from '@mui/x-data-grid';
 
 export type ResourceTableProps = {
   /**
@@ -19,7 +18,17 @@ export type ResourceTableProps = {
    * @returns void
    */
   onClickEditResource: (id: string) => void;
-  onToggleFavourite?: (id: string) => void;
+  /**
+   * Function to be executed when clicking the import resource button
+   * @param id the id of the resource
+   * @param id all environments the resource with given id exists in
+   * @returns void
+   */
+  onClickImportResource?: (id: string, availableEnvs: string[]) => void;
+  /**
+   * Id of the resource being imported. Only one resource can be imported at the same time
+   */
+  importResourceId?: string;
 };
 
 /**
@@ -34,105 +43,131 @@ export type ResourceTableProps = {
 export const ResourceTable = ({
   list,
   onClickEditResource,
+  onClickImportResource,
+  importResourceId,
 }: ResourceTableProps): React.JSX.Element => {
   const { t, i18n } = useTranslation();
 
-  const listData = useMemo(() => {
-    return list.map((listItem) => {
-      return {
-        ...listItem,
-        title:
-          listItem.title[i18n?.language] ||
-          listItem.title.nb ||
-          t('resourceadm.dashboard_table_row_missing_title'),
-      };
-    });
-  }, [list, i18n?.language, t]);
+  const renderLinkCell = (listItem: ResourceListItem): React.ReactElement => {
+    const existsInGitea = listItem.environments.some((env: string) => env === 'gitea');
+    if (existsInGitea) {
+      return (
+        <StudioButton
+          variant='tertiary'
+          icon={
+            <PencilIcon
+              title={t('resourceadm.dashboard_table_row_edit', {
+                resourceName: getListItemTitle(listItem),
+              })}
+              className={classes.editLink}
+            />
+          }
+          onClick={() => onClickEditResource(listItem.identifier)}
+        />
+      );
+    } else if (!!onClickImportResource && importResourceId === listItem.identifier) {
+      return <StudioSpinner spinnerTitle={t('resourceadm.dashboard_table_row_importing')} />;
+    } else if (!!onClickImportResource) {
+      return (
+        <StudioButton
+          variant='tertiary'
+          icon={
+            <FileImportIcon
+              title={t('resourceadm.dashboard_table_row_import', {
+                resourceName: getListItemTitle(listItem),
+              })}
+              className={classes.editLink}
+            />
+          }
+          onClick={() => onClickImportResource(listItem.identifier, listItem.environments)}
+        />
+      );
+    } else {
+      return null;
+    }
+  };
 
-  const NoResults = () => {
+  const getListItemTitle = (listItem): string => {
     return (
-      <GridOverlay>
-        <p>{t('resourceadm.dashboard_no_resources_result')}</p>
-      </GridOverlay>
+      listItem.title[i18n?.language] ||
+      listItem.title.nb ||
+      t('resourceadm.dashboard_table_row_missing_title')
     );
   };
 
-  const gridStyleOverride = {
-    border: 'none',
-    width: '100%',
-    '.MuiDataGrid-iconSeparator': {
-      visibility: 'hidden',
-    },
-  };
+  const listData = list.map((listItem) => {
+    return {
+      ...listItem,
+      id: listItem.identifier,
+      lastChanged: (listItem.lastChanged ?? '').toString(),
+      title: getListItemTitle(listItem),
 
-  const columns = [
-    {
-      field: 'title',
-      headerName: t('resourceadm.dashboard_table_header_name'),
-      width: 200,
-    },
-    {
-      field: 'createdBy',
-      headerName: t('resourceadm.dashboard_table_header_createdby'),
-      width: 180,
-    },
-    {
-      field: 'lastChanged',
-      headerName: t('resourceadm.dashboard_table_header_last_changed'),
-      width: 120,
-    },
-    {
-      field: 'hasPolicy',
-      headerName: t('resourceadm.dashboard_table_header_policy_rules'),
-      flex: 1,
-      renderCell: (params: GridRenderCellParams) => {
-        return (
-          <Tag color={params.row.hasPolicy ? 'info' : 'danger'} size='small'>
-            {params.row.hasPolicy
-              ? t('resourceadm.dashboard_table_row_has_policy')
-              : t('resourceadm.dashboard_table_row_missing_policy')}
-          </Tag>
-        );
-      },
-    },
-    {
-      field: 'links',
-      width: 50,
-      renderHeader: (): null => null,
-      type: 'actions',
-      getActions: (params: GridRowParams) => {
-        return [
-          <GridActionsCellItem
-            icon={
-              <PencilIcon
-                title={t('resourceadm.dashboard_table_row_edit')}
-                className={cn(classes.editLink)}
-              />
+      environments: (
+        <div className={classes.tagContainer}>
+          {listItem.environments.map((env: string) => {
+            let tagText = env.toUpperCase();
+            if (env === 'prod') {
+              tagText = t('resourceadm.dashboard_table_row_in_prod');
+            } else if (env === 'gitea') {
+              tagText = t('resourceadm.dashboard_table_row_in_gitea');
             }
-            label={t('resourceadm.dashboard_table_row_edit')}
-            key={`dashboard.edit_resource${params.row.identifier}`}
-            onClick={() => onClickEditResource(params.row.identifier)}
-            showInMenu={false}
-          />,
-        ];
-      },
+            return (
+              <Tag key={env} color='info' size='small'>
+                {tagText}
+              </Tag>
+            );
+          })}
+        </div>
+      ),
+      links: <div className={classes.editLinkCell}>{renderLinkCell(listItem)}</div>,
+    };
+  });
+
+  const columns: Columns = [
+    {
+      accessor: 'title',
+      heading: t('resourceadm.dashboard_table_header_name'),
+      sortable: true,
+    },
+    {
+      accessor: 'identifier',
+      heading: t('resourceadm.dashboard_table_header_resourceid'),
+      sortable: true,
+    },
+    {
+      accessor: 'createdBy',
+      heading: t('resourceadm.dashboard_table_header_createdby'),
+      sortable: true,
+    },
+    {
+      accessor: 'lastChanged',
+      heading: t('resourceadm.dashboard_table_header_last_changed'),
+      sortable: true,
+      bodyCellFormatter: (value: string) =>
+        value
+          ? new Date(value).toLocaleDateString('no-NB', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+            })
+          : '',
+    },
+    {
+      accessor: 'environments',
+      heading: t('resourceadm.dashboard_table_header_environment'),
+    },
+    {
+      accessor: 'links',
+      heading: '',
     },
   ];
 
   return (
-    <DataGrid
-      autoHeight
-      rows={listData}
-      getRowId={(row) => row.identifier}
-      disableRowSelectionOnClick
-      disableColumnMenu
-      sx={gridStyleOverride}
-      hideFooterPagination
-      disableVirtualization
+    <StudioTableLocalPagination
       columns={columns}
-      components={{
-        NoRowsOverlay: NoResults,
-      }}
+      rows={listData}
+      size='small'
+      emptyTableFallback={t('resourceadm.dashboard_no_resources_result')}
     />
   );
 };

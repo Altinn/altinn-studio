@@ -1,21 +1,36 @@
-import React from 'react';
-import { useLayoutSetsQuery } from '../../hooks/queries/useLayoutSetsQuery';
+import React, { useEffect } from 'react';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { NativeSelect } from '@digdir/design-system-react';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useText } from '../../hooks';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useText, useAppContext } from '../../hooks';
 import classes from './LayoutSetsContainer.module.css';
-import { useAppContext } from '../../hooks/useAppContext';
 
 export function LayoutSetsContainer() {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const layoutSetsQuery = useLayoutSetsQuery(org, app);
   const layoutSetNames = layoutSetsQuery.data?.sets?.map((set) => set.id);
   const t = useText();
-  const { selectedLayoutSet, setSelectedLayoutSet } = useAppContext();
+  const {
+    selectedFormLayoutSetName,
+    setSelectedFormLayoutSetName,
+    setSelectedFormLayoutName,
+    refetchLayouts,
+    refetchLayoutSettings,
+    onLayoutSetNameChange,
+  } = useAppContext();
 
-  const onLayoutSetClick = (set: string) => {
-    if (selectedLayoutSet !== set) {
-      setSelectedLayoutSet(set);
+  useEffect(() => {
+    onLayoutSetNameChange(selectedFormLayoutSetName);
+  }, [onLayoutSetNameChange, selectedFormLayoutSetName]);
+
+  const onLayoutSetClick = async (set: string) => {
+    if (selectedFormLayoutSetName !== set) {
+      await refetchLayouts(set);
+      await refetchLayoutSettings(set);
+
+      setSelectedFormLayoutSetName(set);
+      setSelectedFormLayoutName(undefined);
+      onLayoutSetNameChange(set);
     }
   };
 
@@ -26,7 +41,7 @@ export function LayoutSetsContainer() {
       <NativeSelect
         label={t('left_menu.layout_dropdown_menu_label')}
         onChange={(event) => onLayoutSetClick(event.target.value)}
-        value={selectedLayoutSet}
+        value={selectedFormLayoutSetName}
         className={classes.layoutSetsDropDown}
       >
         {layoutSetNames.map((set: string) => {

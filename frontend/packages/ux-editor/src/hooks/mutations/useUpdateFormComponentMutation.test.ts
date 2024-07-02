@@ -1,10 +1,15 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { renderHookWithMockStore } from '../../testing/mocks';
+import { renderHookWithProviders } from '../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { UpdateFormComponentMutationArgs } from './useUpdateFormComponentMutation';
 import { useUpdateFormComponentMutation } from './useUpdateFormComponentMutation';
-import { component1IdMock, externalLayoutsMock, layout1NameMock } from '../../testing/layoutMock';
+import {
+  component1IdMock,
+  externalLayoutsMock,
+  layout1NameMock,
+} from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import type {
   FormCheckboxesComponent,
   FormComponent,
@@ -16,12 +21,11 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
 import type { DataModelBindingsSimple } from 'app-shared/types/ComponentSpecificConfig';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const selectedLayoutName = 'Side1';
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutName = layout1NameMock;
+const selectedLayoutSet = layoutSet1NameMock;
 const id = component1IdMock;
 const type = ComponentType.TextArea;
 const dataModelBindings: IDataModelBindings & DataModelBindingsSimple = {
@@ -41,9 +45,9 @@ describe('useUpdateFormComponentMutation', () => {
   it('Saves layout with updated component', async () => {
     renderAndWaitForData();
 
-    const updateFormComponentResult = renderHookWithMockStore()(() =>
+    const updateFormComponentResult = renderHookWithProviders(() =>
       useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
-    ).renderHookResult.result;
+    ).result;
 
     await updateFormComponentResult.current.mutateAsync(defaultArgs);
 
@@ -53,25 +57,28 @@ describe('useUpdateFormComponentMutation', () => {
       app,
       layout1NameMock,
       selectedLayoutSet,
-      expect.objectContaining({
-        data: expect.objectContaining({
-          layout: expect.arrayContaining([
-            {
-              id,
-              type,
-              dataModelBindings,
-            },
-          ]),
+      {
+        componentIdsChange: undefined,
+        layout: expect.objectContaining({
+          data: expect.objectContaining({
+            layout: expect.arrayContaining([
+              {
+                id,
+                type,
+                dataModelBindings,
+              },
+            ]),
+          }),
         }),
-      }),
+      },
     );
   });
 
   it('Does not run attachment metadata queries if the component type is not fileUpload', async () => {
     renderAndWaitForData();
-    const updateFormComponentResult = renderHookWithMockStore()(() =>
+    const updateFormComponentResult = renderHookWithProviders(() =>
       useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
-    ).renderHookResult.result;
+    ).result;
     await updateFormComponentResult.current.mutateAsync(defaultArgs);
     expect(queriesMock.addAppAttachmentMetadata).not.toHaveBeenCalled();
     expect(queriesMock.deleteAppAttachmentMetadata).not.toHaveBeenCalled();
@@ -80,9 +87,9 @@ describe('useUpdateFormComponentMutation', () => {
 
   it('Updates attachment metadata queries if the component type is fileUpload', async () => {
     renderAndWaitForData();
-    const updateFormComponentResult = renderHookWithMockStore()(() =>
+    const updateFormComponentResult = renderHookWithProviders(() =>
       useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
-    ).renderHookResult.result;
+    ).result;
     const newComponent: FormFileUploaderComponent = {
       ...updatedComponent,
       description: 'test',
@@ -103,9 +110,9 @@ describe('useUpdateFormComponentMutation', () => {
 
   it('Does not keep original optionsId and options props from component when updating RadioButtons and CheckBoxes', async () => {
     renderAndWaitForData();
-    const updateFormComponentResult = renderHookWithMockStore()(() =>
+    const updateFormComponentResult = renderHookWithProviders(() =>
       useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
-    ).renderHookResult.result;
+    ).result;
 
     for (const componentType of [ComponentType.RadioButtons, ComponentType.Checkboxes]) {
       for (const optionKind of ['options', 'optionsId']) {
@@ -126,18 +133,21 @@ describe('useUpdateFormComponentMutation', () => {
           app,
           layout1NameMock,
           selectedLayoutSet,
-          expect.objectContaining({
-            data: expect.objectContaining({
-              layout: expect.arrayContaining([
-                {
-                  id,
-                  type: componentType,
-                  dataModelBindings,
-                  ...optionsProp,
-                },
-              ]),
+          {
+            componentIdsChange: undefined,
+            layout: expect.objectContaining({
+              data: expect.objectContaining({
+                layout: expect.arrayContaining([
+                  {
+                    id,
+                    type: componentType,
+                    dataModelBindings,
+                    ...optionsProp,
+                  },
+                ]),
+              }),
             }),
-          }),
+          },
         );
       }
     }
@@ -147,7 +157,7 @@ describe('useUpdateFormComponentMutation', () => {
 const renderAndWaitForData = () => {
   queryClientMock.setQueryData(
     [QueryKey.FormLayouts, org, app, selectedLayoutSet],
-    convertExternalLayoutsToInternalFormat(externalLayoutsMock).convertedLayouts,
+    convertExternalLayoutsToInternalFormat(externalLayoutsMock),
   );
   queryClientMock.setQueryData([QueryKey.RuleConfig, org, app, selectedLayoutSet], ruleConfigMock);
 };

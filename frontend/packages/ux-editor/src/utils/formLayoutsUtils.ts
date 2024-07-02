@@ -62,11 +62,6 @@ export const addOrRemoveNavigationButtons = async (
   return allLayouts;
 };
 
-interface AllLayouts {
-  convertedLayouts: IFormLayouts;
-  invalidLayouts: string[];
-}
-
 /**
  * Converts list of external layouts to internal format.
  * @param layouts List of layouts in external format.
@@ -74,21 +69,16 @@ interface AllLayouts {
  */
 export const convertExternalLayoutsToInternalFormat = (
   layouts: FormLayoutsResponse,
-): AllLayouts => {
+): IFormLayouts => {
   const convertedLayouts: IFormLayouts = {};
-  const invalidLayouts: string[] = [];
   Object.entries(layouts).forEach(([name, layout]) => {
     if (!layout || !layout.data) {
       convertedLayouts[name] = createEmptyLayout();
     } else {
-      try {
-        convertedLayouts[name] = externalLayoutToInternal(layouts[name]);
-      } catch {
-        invalidLayouts.push(name);
-      }
+      convertedLayouts[name] = externalLayoutToInternal(layouts[name]);
     }
   });
-  return { convertedLayouts, invalidLayouts };
+  return convertedLayouts;
 };
 
 /**

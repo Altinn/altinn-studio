@@ -1,7 +1,7 @@
 import React from 'react';
-import { render as rtlRender, screen, act } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -10,6 +10,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { MemoryRouter } from 'react-router-dom';
 import type { LocalChangesModalProps } from './LocalChangesModal';
 import { LocalChangesModal } from './LocalChangesModal';
+import { app, org } from '@studio/testing/testids';
 
 describe('LocalChangesModal', () => {
   const user = userEvent.setup();
@@ -20,7 +21,7 @@ describe('LocalChangesModal', () => {
     const closeButton = screen.getByRole('button', {
       name: textMock('sync_header.close_local_changes_button'),
     });
-    await act(() => user.click(closeButton));
+    await user.click(closeButton);
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
@@ -37,13 +38,11 @@ describe('LocalChangesModal', () => {
 });
 
 const mockOnClose = jest.fn();
-const mockApp: string = 'app';
-const mockOrg: string = 'org';
 const defaultProps: LocalChangesModalProps = {
   isOpen: true,
   onClose: mockOnClose,
-  org: mockOrg,
-  app: mockApp,
+  org,
+  app,
 };
 
 const render = (

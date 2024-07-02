@@ -25,7 +25,6 @@ export {
 } from './lib/utils';
 export * from './lib/mutations/custom-properties';
 export * from './lib/mutations/ui-schema-reducers';
-export { getCapabilities, Capabilites } from './lib/capabilities';
 export { SchemaModel } from './lib/SchemaModel';
 export * from './lib/pointerUtils';
 export { validateTestUiSchema, testSchemaNodes } from '../test/validateTestUiSchema';

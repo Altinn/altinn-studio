@@ -6,6 +6,10 @@ import { ResourceFieldHeader } from './ResourceFieldHeader';
 
 type ResourceTextFieldProps = {
   /**
+   * The field id, used by ErrorSummary
+   */
+  id: string;
+  /**
    * The label of the text field
    */
   label: string;
@@ -44,12 +48,17 @@ type ResourceTextFieldProps = {
    * Whether this field is required or not
    */
   required?: boolean;
+  /**
+   * Whether this field is read only or not
+   */
+  readOnly?: boolean;
 };
 
 /**
  * @component
  *    Displays an input textfield for a resource variable that has language support.
  *
+ * @property {string}[id] - The field id, used by ErrorSummary
  * @property {string}[label] - The label of the text field
  * @property {string}[description] - The description of the text field
  * @property {string}[value] - The value in the field
@@ -59,12 +68,14 @@ type ResourceTextFieldProps = {
  * @property {boolean}[showErrorMessage] - Flag for if the error message should be shown
  * @property {string}[errorText] - The text to be shown
  * @property {boolean}[required] - Whether this field is required or not
+ * @property {boolean}[readOnly] - Whether this field is read only or not
  *
  * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceTextField = forwardRef<HTMLInputElement, ResourceTextFieldProps>(
   (
     {
+      id,
       label,
       description,
       value,
@@ -74,6 +85,7 @@ export const ResourceTextField = forwardRef<HTMLInputElement, ResourceTextFieldP
       showErrorMessage = false,
       errorText,
       required,
+      readOnly,
     },
     ref,
   ): React.JSX.Element => {
@@ -82,6 +94,7 @@ export const ResourceTextField = forwardRef<HTMLInputElement, ResourceTextFieldP
     return (
       <div className={classes.inputWrapper}>
         <Textfield
+          id={id}
           label={<ResourceFieldHeader label={label} required={required} />}
           description={description}
           size='small'
@@ -94,6 +107,7 @@ export const ResourceTextField = forwardRef<HTMLInputElement, ResourceTextFieldP
           ref={ref}
           onBlur={() => onBlur(val)}
           required={required}
+          readOnly={readOnly}
         />
         {showErrorMessage && <InputFieldErrorMessage message={errorText} />}
       </div>

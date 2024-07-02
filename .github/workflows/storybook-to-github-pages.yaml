@@ -1,8 +1,13 @@
-name: Deploy Storybook Production
-# Automatically triggers will be added in a separate PR when the workflow is ready
+name: Deploy Studio Components Storybook Production
+
 on:
   workflow_dispatch:
-
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/libs/studio-components/**'
+      - '.github/workflows/storybook-to-github-pages.yml'
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -24,7 +29,7 @@ jobs:
         run: yarn build-storybook
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           name: github-pages-storybook
           path: frontend/libs/studio-components/storybook-static

@@ -6,6 +6,13 @@
   border: 1px solid #c9c9c9;
   border-radius: 3px;
 }
+
 .buttonContainer {
+  display: flex;
+  flex-direction: row;
   justify-content: flex-end;
+  align-items: center;
+  gap: var(--fds-spacing-3);
+  padding-top: var(--fds-spacing-3);
+  padding-bottom: var(--fds-spacing-3);
 }

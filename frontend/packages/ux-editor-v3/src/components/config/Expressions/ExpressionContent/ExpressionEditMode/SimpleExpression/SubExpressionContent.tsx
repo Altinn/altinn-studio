@@ -7,7 +7,7 @@ import {
   ExpressionFunction,
   expressionFunctionTexts,
 } from '../../../../../../types/Expressions';
-import { TrashIcon } from '@navikt/aksel-icons';
+import { TrashIcon } from '@studio/icons';
 import classes from './SubExpressionContent.module.css';
 import { DataSourceValue } from './DataSourceValue';
 import {

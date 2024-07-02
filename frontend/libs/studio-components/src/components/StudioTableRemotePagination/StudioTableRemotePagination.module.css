@@ -1,0 +1,37 @@
+.componentContainer {
+  margin-bottom: var(--fds-spacing-10);
+}
+
+.table {
+  width: 100%;
+}
+
+.emptyTableFallbackContainer {
+  padding: var(--fds-spacing-4);
+  text-align: center;
+}
+
+.paginationContainer {
+  margin-top: var(--fds-spacing-4);
+  display: flex;
+  justify-content: space-between;
+}
+
+.selectContainer {
+  display: flex;
+  gap: var(--fds-spacing-3);
+}
+
+.select {
+  margin-block: auto;
+}
+
+.selectLabel {
+  margin-block: auto;
+  font-weight: normal !important;
+}
+
+.rowCounter {
+  margin-block: auto;
+  margin-left: var(--fds-spacing-6);
+}

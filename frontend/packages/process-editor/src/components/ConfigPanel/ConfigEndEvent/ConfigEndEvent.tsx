@@ -1,67 +1,64 @@
 import React from 'react';
-import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
-import { StudioSectionHeader, StudioToggleableTextfield } from '@studio/components';
-import { Paragraph } from '@digdir/design-system-react';
-import { PencilWritingIcon } from '@navikt/aksel-icons';
+import { StudioLabelAsParagraph, StudioSectionHeader } from '@studio/components';
+import { Accordion, Link, Paragraph } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import classes from './ConfigEndEvent.module.css';
-import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import { ConfigIcon } from '../ConfigContent/ConfigIcon';
+import { CustomReceiptContent } from './CustomReceiptContent';
+import { altinnDocsUrl } from 'app-shared/ext-urls';
+import { BpmnTypeEnum } from '../../../enum/BpmnTypeEnum';
 
-export interface ConfigEndEventProps {
-  existingCustomReceiptName: string | undefined;
-  onUpdateLayoutSet: (layoutSetIdToUpdate: string, layoutSetConfig: LayoutSetConfig) => void;
-}
-
-export const ConfigEndEvent = ({
-  existingCustomReceiptName,
-  onUpdateLayoutSet,
-}: ConfigEndEventProps) => {
+export const ConfigEndEvent = () => {
   const { t } = useTranslation();
-  const handleUpdateLayoutSet = (layoutSetIdToUpdate: string, customReceiptId: string) => {
-    const customReceiptLayoutSetConfig: LayoutSetConfig = {
-      id: customReceiptId,
-      tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
-    };
-    onUpdateLayoutSet(layoutSetIdToUpdate, customReceiptLayoutSetConfig);
-  };
+
   return (
     <>
       <StudioSectionHeader
-        icon={<ConfigIcon taskType={'endEvent'} />}
+        icon={<ConfigIcon type={BpmnTypeEnum.EndEvent} />}
         heading={{
           text: t('process_editor.configuration_panel_end_event'),
           level: 2,
         }}
-        helpText={{
-          text: t('process_editor.configuration_panel_header_help_text_custom_receipt'),
-          title: t('process_editor.configuration_panel_header_help_text_title'),
-        }}
-        className={classes.endEvent}
       />
-      <div className={classes.container}>
-        <Paragraph size='small'>
-          {existingCustomReceiptName
-            ? t('process_editor.configuration_panel_custom_receipt_name')
-            : t('process_editor.configuration_panel_custom_receipt_add')}
-        </Paragraph>
-        <StudioToggleableTextfield
-          viewProps={{
-            title: t('process_editor.configuration_panel_custom_receipt_add'),
-            children: existingCustomReceiptName,
-            variant: existingCustomReceiptName ? 'tertiary' : 'secondary',
-            fullWidth: true,
-          }}
-          inputProps={{
-            title: t('process_editor.configuration_panel_custom_receipt_add_button_title'),
-            icon: <PencilWritingIcon />,
-            value: existingCustomReceiptName,
-            onBlur: ({ target }) =>
-              handleUpdateLayoutSet(existingCustomReceiptName ?? target.value, target.value),
-            size: 'small',
-          }}
-        />
-      </div>
+      <Accordion color='neutral'>
+        <Accordion.Item>
+          <Accordion.Header>
+            {t('process_editor.configuration_panel_custom_receipt_accordion_header')}
+          </Accordion.Header>
+          <Accordion.Content className={classes.accordionContent}>
+            <div className={classes.container}>
+              <div className={classes.customReceiptText}>
+                <StudioLabelAsParagraph size='small' spacing>
+                  {t('process_editor.configuration_panel_custom_receipt_default_receipt_heading')}
+                </StudioLabelAsParagraph>
+                <Paragraph size='small' className={classes.paragraph}>
+                  {t('process_editor.configuration_panel_custom_receipt_default_receipt_info')}
+                </Paragraph>
+                <Link
+                  href={altinnDocsUrl(
+                    'nb/altinn-studio/reference/configuration/process/customize/#kvittering-receipt',
+                  )}
+                  rel='noopener noreferrer'
+                  target='_newTab'
+                >
+                  {t('process_editor.configuration_panel_custom_receipt_default_receipt_link')}
+                </Link>
+              </div>
+              <div>
+                <div className={classes.customReceiptText}>
+                  <StudioLabelAsParagraph size='small' spacing>
+                    {t('process_editor.configuration_panel_custom_receipt_heading')}
+                  </StudioLabelAsParagraph>
+                  <Paragraph size='small'>
+                    {t('process_editor.configuration_panel_custom_receipt_info')}
+                  </Paragraph>
+                </div>
+                <CustomReceiptContent />
+              </div>
+            </div>
+          </Accordion.Content>
+        </Accordion.Item>
+      </Accordion>
     </>
   );
 };

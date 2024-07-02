@@ -1,4 +1,4 @@
-import type { TextResourceVariable } from '@altinn/text-editor/src/types';
+import type { TextResourceVariable } from '@altinn/text-editor/types';
 
 export interface IFrontEndSettings {
   appUrl?: string;
@@ -22,7 +22,7 @@ export interface IComponentsSettings {
 
 export enum RepositoryType {
   App = 'App',
-  Datamodels = 'Datamodels',
+  DataModels = 'DataModels',
   Unknown = 'Unknown',
 }
 

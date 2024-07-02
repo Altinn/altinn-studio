@@ -4,8 +4,13 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import type { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
-import { useAppContext } from '../useAppContext';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
+import type { ComponentIdsChange, FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
+
+type useFormLayoutMutationPayload = {
+  internalLayout: IInternalLayout;
+  componentIdsChange?: ComponentIdsChange;
+};
 
 export const useFormLayoutMutation = (
   org: string,
@@ -16,14 +21,16 @@ export const useFormLayoutMutation = (
   const previewConnection = usePreviewConnection();
   const { saveFormLayout } = useServicesContext();
   const queryClient = useQueryClient();
-  const { previewIframeRef } = useAppContext();
 
   return useMutation({
-    mutationFn: (layout: IInternalLayout) => {
-      const convertedLayout: ExternalFormLayout = internalLayoutToExternal(layout);
-      return saveFormLayout(org, app, layoutName, layoutSetName, convertedLayout).then(
-        () => layout,
-      );
+    mutationFn: async (payload: useFormLayoutMutationPayload) => {
+      const convertedLayout: ExternalFormLayout = internalLayoutToExternal(payload.internalLayout);
+      const requestPayload: FormLayoutRequest = {
+        layout: convertedLayout,
+        componentIdsChange: payload.componentIdsChange,
+      };
+      await saveFormLayout(org, app, layoutName, layoutSetName, requestPayload);
+      return payload.internalLayout;
     },
     onSuccess: async (savedLayout) => {
       if (previewConnection && previewConnection.state === 'Connected') {
@@ -31,8 +38,6 @@ export const useFormLayoutMutation = (
           return console.error(err.toString());
         });
       }
-
-      previewIframeRef.current?.contentWindow.location.reload();
 
       queryClient.setQueryData(
         [QueryKey.FormLayouts, org, app, layoutSetName],

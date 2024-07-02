@@ -1,26 +1,27 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioButton } from '@studio/components';
-import { UploadIcon } from '@navikt/aksel-icons';
-import * as testids from '../../../../testing/testids';
+import { UploadIcon } from '@studio/icons';
+import { fileSelectorInputId } from '@studio/testing/testids';
+import { toast } from 'react-toastify';
 
 export interface IFileSelectorProps {
-  submitHandler: (file: FormData, fileName: string) => void;
-  busy: boolean;
-  formFileName: string;
   accept?: string;
+  busy: boolean;
   disabled?: boolean;
+  formFileName: string;
   submitButtonRenderer?: (fileInputClickHandler: (event: any) => void) => JSX.Element;
+  submitHandler: (file: FormData, fileName: string) => void;
 }
 
-function FileSelector({
-  accept,
-  formFileName,
+export const FileSelector = ({
+  accept = undefined,
   busy,
   disabled,
-  submitHandler,
+  formFileName,
   submitButtonRenderer,
-}: IFileSelectorProps) {
+  submitHandler,
+}: IFileSelectorProps) => {
   const { t } = useTranslation();
   const defaultSubmitButtonRenderer = (fileInputClickHandler: (event: any) => void) => (
     <StudioButton
@@ -40,6 +41,12 @@ function FileSelector({
   const handleSubmit = (event?: React.FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
     const file = fileInput?.current?.files?.item(0);
+    if (!file.name.match(/^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/)) {
+      toast.error(t('app_data_modelling.upload_xsd_invalid_error'));
+      fileInput.current.value = '';
+      return;
+    }
+
     if (file) {
       const formData = new FormData();
       formData.append(formFileName, file);
@@ -55,7 +62,7 @@ function FileSelector({
   return (
     <form onSubmit={handleSubmit}>
       <input
-        data-testid={testids.fileSelectorInput}
+        data-testid={fileSelectorInputId}
         type='file'
         id='file-upload-picker'
         className='sr-only'
@@ -69,9 +76,4 @@ function FileSelector({
       {(submitButtonRenderer ?? defaultSubmitButtonRenderer)(() => fileInput?.current?.click())}
     </form>
   );
-}
-
-export default FileSelector;
-FileSelector.defaultProps = {
-  accept: undefined,
 };

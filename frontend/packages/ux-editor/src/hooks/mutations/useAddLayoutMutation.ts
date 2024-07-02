@@ -1,7 +1,5 @@
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
-import { useDispatch } from 'react-redux';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { ObjectUtils } from '@studio/pure-functions';
 import { createEmptyLayout } from '../../utils/formLayoutUtils';
 import type { IInternalLayout } from '../../types/global';
@@ -13,6 +11,7 @@ import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuer
 import type { ILayoutSettings } from 'app-shared/types/global';
 import { addOrRemoveNavigationButtons } from '../../utils/formLayoutsUtils';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
+import { useAppContext } from '../../hooks';
 
 export interface AddLayoutMutationArgs {
   layoutName: string;
@@ -24,12 +23,14 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
   const formLayoutsQuery = useFormLayoutsQuery(org, app, layoutSetName);
   const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, layoutSetName);
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
-  const dispatch = useDispatch();
+  const { setSelectedFormLayoutName } = useAppContext();
   const queryClient = useQueryClient();
 
   const save = async (updatedLayoutName: string, updatedLayout: IInternalLayout) => {
     const convertedLayout: ExternalFormLayout = internalLayoutToExternal(updatedLayout);
-    return await saveFormLayout(org, app, updatedLayoutName, layoutSetName, convertedLayout);
+    return await saveFormLayout(org, app, updatedLayoutName, layoutSetName, {
+      layout: convertedLayout,
+    });
   };
 
   return useMutation({
@@ -59,14 +60,9 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
 
       await formLayoutSettingsMutation.mutateAsync(layoutSettings);
 
-      dispatch(
-        FormLayoutActions.addLayoutFulfilled({
-          layoutOrder: order,
-          receiptLayoutName: isReceiptPage ? layoutSettings.receiptLayoutName : undefined,
-        }),
-      );
-
       queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], () => newLayouts);
+
+      setSelectedFormLayoutName(layoutName);
     },
   });
 };

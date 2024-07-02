@@ -1,13 +1,15 @@
 import React from 'react';
-import { render as rtlRender, screen, act } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen } from '@testing-library/react';
 import { Canvas } from './Canvas';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
-import type { BpmnContextProviderProps } from '../../contexts/BpmnContext';
+import { type BpmnContextProviderProps, useBpmnContext } from '../../contexts/BpmnContext';
 import { BpmnContextProvider } from '../../contexts/BpmnContext';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
-const mockOnSave = jest.fn();
+jest.mock('../../contexts/BpmnContext', () => ({
+  ...jest.requireActual('../../contexts/BpmnContext'),
+  useBpmnContext: jest.fn(),
+}));
 
 const mockAppLibVersion8: string = '8.0.1';
 const mockAppLibVersion7: string = '7.0.1';
@@ -18,44 +20,51 @@ const defaultProps: BpmnContextProviderProps = {
   children: null,
 };
 
-const render = (props: Partial<BpmnContextProviderProps> = {}) => {
+jest.mock('./BPMNViewer', () => ({
+  BPMNViewer: () => <div data-testid='bpmn-viewer' />,
+}));
+
+jest.mock('./BPMNEditor', () => ({
+  BPMNEditor: () => <div data-testid='bpmn-editor' />,
+}));
+
+const renderCanvas = (props: Partial<BpmnContextProviderProps> = {}) => {
   const allProps = { ...defaultProps, ...props };
   const router = createMemoryRouter([
     {
       path: '/',
       element: (
         <BpmnContextProvider {...allProps}>
-          <Canvas onSave={mockOnSave} />
+          <Canvas />
         </BpmnContextProvider>
       ),
     },
   ]);
 
-  return rtlRender(<RouterProvider router={router}></RouterProvider>);
+  return render(<RouterProvider router={router}></RouterProvider>);
 };
 
 describe('Canvas', () => {
-  afterEach(jest.clearAllMocks);
-
-  it('hides actionMenu when version is 7 or older', async () => {
-    const user = userEvent.setup();
-    render({ appLibVersion: mockAppLibVersion7 });
-
-    // Fix to remove act error
-    await act(() => user.tab());
-
-    const editButton = screen.queryByRole('button', { name: textMock('process_editor.save') });
-    expect(editButton).not.toBeInTheDocument;
+  it('should render bpmn viewer when app lib version is lower than 8', () => {
+    (useBpmnContext as jest.Mock).mockReturnValue({
+      ...jest.requireActual('../../contexts/BpmnContext'),
+    });
+    renderCanvas({ appLibVersion: mockAppLibVersion7 });
+    screen.queryByTestId('bpmn-viewer');
   });
-
-  it('shows actionMenu when version is 8 or newer', async () => {
-    const user = userEvent.setup();
-    render({ appLibVersion: mockAppLibVersion8 });
-
-    // Fix to remove act error
-    await act(() => user.tab());
-
-    const editButton = screen.getByRole('button', { name: textMock('process_editor.save') });
-    expect(editButton).toBeInTheDocument;
+  it('should render bpmn editor when app lib version is 8 or higher', () => {
+    (useBpmnContext as jest.Mock).mockReturnValue({
+      ...jest.requireActual('../../contexts/BpmnContext'),
+    });
+    renderCanvas({ appLibVersion: mockAppLibVersion8 });
+    screen.queryByTestId('bpmn-editor');
+  });
+  it('displays the alert when the version is 7 or older', async () => {
+    (useBpmnContext as jest.Mock).mockReturnValue({
+      ...jest.requireActual('../../contexts/BpmnContext'),
+    });
+    renderCanvas({ appLibVersion: mockAppLibVersion7 });
+    const tooOldText = screen.getByText(textMock('process_editor.too_old_version_title'));
+    expect(tooOldText).toBeInTheDocument();
   });
 });

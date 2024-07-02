@@ -1,10 +1,10 @@
 import React from 'react';
-import { screen, act } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import type { LandingPagePanelProps } from './LandingPagePanel';
 import { LandingPagePanel } from './LandingPagePanel';
 import userEvent from '@testing-library/user-event';
-import * as testids from '../../../../testing/testids';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { fileSelectorInputId } from '@studio/testing/testids';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithMockStore } from '../../../test/mocks';
 
 const user = userEvent.setup();
@@ -15,7 +15,7 @@ const landingPagePropsMock: LandingPagePanelProps = {
 
 describe('LandingPagePanel', () => {
   it('renders component', async () => {
-    render();
+    renderLandingPagePanel();
 
     expect(
       screen.getByRole('heading', { name: textMock('app_data_modelling.landing_dialog_header') }),
@@ -23,7 +23,7 @@ describe('LandingPagePanel', () => {
     expect(
       screen.getByText(textMock('app_data_modelling.landing_dialog_paragraph')),
     ).toBeInTheDocument();
-    expect(screen.getByTestId(testids.fileSelectorInput)).toBeInTheDocument();
+    expect(screen.getByTestId(fileSelectorInputId)).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: textMock('app_data_modelling.landing_dialog_upload') }),
     ).toBeInTheDocument();
@@ -33,16 +33,16 @@ describe('LandingPagePanel', () => {
   });
 
   it('opens create dialog when clicking create button', async () => {
-    render();
+    renderLandingPagePanel();
 
     const button = screen.getByRole('button', {
       name: textMock('app_data_modelling.landing_dialog_create'),
     });
-    await act(() => user.click(button));
+    await user.click(button);
 
     expect(landingPagePropsMock.openCreateNew).toHaveBeenCalledTimes(1);
   });
 });
 
-const render = (props: Partial<LandingPagePanelProps> = {}) =>
+const renderLandingPagePanel = (props: Partial<LandingPagePanelProps> = {}) =>
   renderWithMockStore()(<LandingPagePanel {...landingPagePropsMock} {...props} />);

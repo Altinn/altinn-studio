@@ -1,4 +1,5 @@
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { generateRandomId } from 'app-shared/utils/generateRandomId';
 
 const supportedEntries = ['create.exclusive-gateway', 'create.start-event', 'create.end-event'];
 
@@ -47,12 +48,49 @@ class SupportedPaletteProvider {
             bpmnFactory.create('altinn:TaskExtension', {
               taskType: taskType,
               actions: bpmnFactory.create('altinn:Actions', {
-                action: ['sign', 'reject'],
+                action: [
+                  bpmnFactory.create('altinn:Action', {
+                    action: 'sign',
+                  }),
+                  bpmnFactory.create('altinn:Action', {
+                    action: 'reject',
+                  }),
+                ],
               }),
               signatureConfig: bpmnFactory.create('altinn:SignatureConfig', {
                 dataTypesToSign: bpmnFactory.create('altinn:DataTypesToSign', {
-                  dataType: ['Model'],
+                  dataTypes: [],
                 }),
+                signatureDataType: `signatureInformation-${generateRandomId(4)}`,
+              }),
+            }),
+          ],
+        });
+
+        modeling.updateProperties(task, {
+          extensionElements,
+        });
+
+        create.start(event, task);
+      };
+    }
+
+    function createCustomConfirmationTask() {
+      const taskType = 'confirmation';
+
+      return function (event) {
+        const task = buildAltinnTask(taskType);
+
+        const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
+          values: [
+            bpmnFactory.create('altinn:TaskExtension', {
+              taskType: taskType,
+              actions: bpmnFactory.create('altinn:Actions', {
+                action: [
+                  bpmnFactory.create('altinn:Action', {
+                    action: 'confirm',
+                  }),
+                ],
               }),
             }),
           ],
@@ -77,12 +115,20 @@ class SupportedPaletteProvider {
             bpmnFactory.create('altinn:TaskExtension', {
               taskType: taskType,
               actions: bpmnFactory.create('altinn:Actions', {
-                action: ['pay', 'reject'],
+                action: [
+                  bpmnFactory.create('altinn:Action', {
+                    action: 'pay',
+                  }),
+                  bpmnFactory.create('altinn:Action', {
+                    action: 'reject',
+                  }),
+                  bpmnFactory.create('altinn:Action', {
+                    action: 'confirm',
+                  }),
+                ],
               }),
               paymentConfig: bpmnFactory.create('altinn:PaymentConfig', {
-                paymentDataType: bpmnFactory.create('altinn:PaymentDataType', {
-                  dataType: ['paymentInformation'],
-                }),
+                paymentDataType: `paymentInformation-${generateRandomId(4)}`,
               }),
             }),
           ],
@@ -117,15 +163,8 @@ class SupportedPaletteProvider {
           className: 'bpmn-icon-task-generic bpmn-icon-data-task',
           title: translate('Create Altinn Data Task'),
           action: {
+            click: createCustomTask('data'),
             dragstart: createCustomTask('data'),
-          },
-        },
-        'create.altinn-confirmation-task': {
-          group: 'activity',
-          title: translate('Create Altinn Confirm Task'),
-          className: 'bpmn-icon-task-generic bpmn-icon-confirmation-task',
-          action: {
-            dragstart: createCustomTask('confirmation'),
           },
         },
         'create.altinn-feedback-task': {
@@ -133,6 +172,7 @@ class SupportedPaletteProvider {
           title: translate('Create Altinn Feedback Task'),
           className: 'bpmn-icon-task-generic bpmn-icon-feedback-task',
           action: {
+            click: createCustomTask('feedback'),
             dragstart: createCustomTask('feedback'),
           },
         },
@@ -141,7 +181,17 @@ class SupportedPaletteProvider {
           className: 'bpmn-icon-task-generic bpmn-icon-signing-task',
           title: translate('Create Altinn signing Task'),
           action: {
+            click: createCustomSigningTask(),
             dragstart: createCustomSigningTask(),
+          },
+        },
+        'create.altinn-confirmation-task': {
+          group: 'activity',
+          className: 'bpmn-icon-task-generic bpmn-icon-confirmation-task',
+          title: translate('Create Altinn Confirm Task'),
+          action: {
+            click: createCustomConfirmationTask(),
+            dragstart: createCustomConfirmationTask(),
           },
         },
         'create.altinn-payment-task': {
@@ -149,6 +199,7 @@ class SupportedPaletteProvider {
           className: `bpmn-icon-task-generic ${shouldDisplayFeature('displayPaymentTaskProcessEditor') ? 'bpmn-icon-payment-task' : 'payment-is-hidden-based-on-feature-toggle'}`,
           title: translate('Payment'),
           action: {
+            click: createCustomPaymentTask(),
             dragstart: createCustomPaymentTask(),
           },
         },

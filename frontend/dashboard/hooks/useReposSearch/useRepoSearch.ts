@@ -1,19 +1,23 @@
 import { useState } from 'react';
-import type { GridSortModel } from '@mui/x-data-grid';
 import { useSearchReposQuery } from '../queries';
 import type { SearchRepositoryResponse } from 'app-shared/types/api/SearchRepositoryResponse';
-import { useSearchParamsState } from '../useSearchParamsState';
+import { useSearchParamsState } from 'app-shared/hooks/useSearchParamsState';
 import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import { DATAGRID_PAGE_SIZE_OPTIONS, DATAGRID_DEFAULT_PAGE_SIZE } from '../../constants';
+
+export enum Direction {
+  Asc = 'asc',
+  Desc = 'desc',
+}
 
 type UseRepoSearchResult = {
   searchResults: SearchRepositoryResponse | undefined;
   isLoadingSearchResults: boolean;
   pageSize: DATAGRID_PAGE_SIZE_TYPE;
-  sortModel: GridSortModel;
-  setSortModel: (selectedSortModel: GridSortModel) => void;
+  pageNumber: number;
   setPageNumber: (pageNumber: number) => void;
   setPageSize: (pageSize: DATAGRID_PAGE_SIZE_TYPE) => void;
+  onSortClick: (columnKey: string) => void;
 };
 
 type UseReposSearchProps = {
@@ -26,7 +30,7 @@ export const useReposSearch = ({
   uid,
   defaultPageSize = DATAGRID_DEFAULT_PAGE_SIZE,
 }: UseReposSearchProps): UseRepoSearchResult => {
-  const [pageNumber, setPageNumber] = useState(0);
+  const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useSearchParamsState<DATAGRID_PAGE_SIZE_TYPE>(
     'pageSize',
     defaultPageSize,
@@ -37,15 +41,31 @@ export const useReposSearch = ({
         : defaultPageSize;
     },
   );
-  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'alpha', sort: 'asc' }]);
+  const [selectedColumn, setSelectedColumn] = useState('name');
+  const [sortDirection, setSortDirection] = useState(Direction.Asc);
+
+  const toggleSortDirection = () => {
+    setSortDirection((prevDirection) =>
+      prevDirection === Direction.Asc ? Direction.Desc : Direction.Asc,
+    );
+  };
+
+  const onSortClick = (columnKey: string) => {
+    if (selectedColumn === columnKey) {
+      toggleSortDirection();
+    } else {
+      setSelectedColumn(columnKey);
+      setSortDirection(Direction.Asc);
+    }
+  };
 
   const filter = {
     uid,
     keyword,
     limit: pageSize,
     page: pageNumber,
-    sortby: sortModel?.[0]?.field,
-    order: sortModel?.[0]?.sort as string,
+    sortby: selectedColumn,
+    order: sortDirection,
   };
 
   const cleanFilter = Object.entries(filter)
@@ -58,10 +78,10 @@ export const useReposSearch = ({
   return {
     searchResults,
     isLoadingSearchResults,
-    sortModel,
-    pageSize,
+    pageNumber,
     setPageNumber,
-    setSortModel,
+    pageSize,
     setPageSize,
+    onSortClick,
   };
 };

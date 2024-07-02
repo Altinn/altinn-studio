@@ -3,7 +3,6 @@ import { Trans, useTranslation } from 'react-i18next';
 import { Textfield, Paragraph } from '@digdir/design-system-react';
 import classes from './RemoveChangesModal.module.css';
 import { Modal } from '../../../components/Modal';
-import { ScreenReaderSpan } from '../../../components/ScreenReaderSpan';
 import { StudioButton } from '@studio/components';
 
 type RemoveChangesModalProps = {
@@ -11,6 +10,10 @@ type RemoveChangesModalProps = {
    * Boolean for if the modal is open
    */
   isOpen: boolean;
+  /**
+   * Boolean for if changes are being removed
+   */
+  isRemovingChanges: boolean;
   /**
    * Function to handle close
    * @returns void
@@ -32,6 +35,7 @@ type RemoveChangesModalProps = {
  *    Content to be displayed inside the modal where the user removes their changes in a merge conflict
  *
  * @property {boolean}[isOpen] - Boolean for if the modal is open
+ * @property {boolean}[isRemovingChanges] - Boolean for if changes are being removed
  * @property {function}[onClose] - Function to handle close
  * @property {function}[handleClickResetRepo] - Function to be executed when the reset repo is clicked
  * @property {string}[repo] - The name of the repo
@@ -40,6 +44,7 @@ type RemoveChangesModalProps = {
  */
 export const RemoveChangesModal = ({
   isOpen,
+  isRemovingChanges,
   onClose,
   handleClickResetRepo,
   repo,
@@ -56,46 +61,38 @@ export const RemoveChangesModal = ({
     onClose();
   };
 
-  /**
-   * Handles the deletion of the changes
-   */
-  const handleDelete = () => {
-    handleClose();
-    handleClickResetRepo();
-  };
+  const isRemoveButtonDisabled = repo !== deleteRepoName || isRemovingChanges;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={t('local_changes.modal_delete_modal_title')}>
-      <Paragraph size='small'>
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={t('local_changes.modal_delete_modal_title')}
+    >
+      <Paragraph size='small' spacing>
         <Trans
-          i18nKey={'local_changes.modal_delete_modal_text'}
+          i18nKey={'overview.reset_repo_confirm_info'}
           values={{ repositoryName: repo }}
           components={{ bold: <strong /> }}
         />
       </Paragraph>
-      <div className={classes.textFieldWrapper}>
-        <Textfield
-          label={t('resourceadm.reset_repo_confirm_repo_name')}
-          value={deleteRepoName}
-          onChange={(e) => setDeleteRepoName(e.target.value)}
-          aria-labelledby='delete-changes'
-        />
-        <ScreenReaderSpan
-          id='delete-changes'
-          label={t('resourceadm.reset_repo_confirm_repo_name')}
-        />
-      </div>
+      <Textfield
+        label={t('resourceadm.reset_repo_confirm_repo_name')}
+        size='small'
+        value={deleteRepoName}
+        onChange={(e) => setDeleteRepoName(e.target.value)}
+      />
       <div className={classes.buttonWrapper}>
         <StudioButton
           color='danger'
-          aria-disabled={repo !== deleteRepoName}
-          onClick={repo === deleteRepoName && handleDelete}
+          aria-disabled={isRemoveButtonDisabled}
+          onClick={() => (!isRemoveButtonDisabled ? handleClickResetRepo() : undefined)}
           variant='secondary'
           size='small'
         >
           {t('local_changes.modal_confirm_delete_button')}
         </StudioButton>
-        <StudioButton color='second' onClick={handleClose} variant='secondary' size='small'>
+        <StudioButton onClick={handleClose} variant='tertiary' size='small'>
           {t('general.cancel')}
         </StudioButton>
       </div>

@@ -1,9 +1,10 @@
-import { useSelectedFormLayoutWithName } from '../useFormLayoutsSelector';
+import { useSelectedFormLayoutWithName } from '../';
 import { useMutation } from '@tanstack/react-query';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { useDeleteAppAttachmentMetadataMutation } from './useDeleteAppAttachmentMetadataMutation';
 import { removeComponent } from '../../utils/formLayoutUtils';
+import type { ComponentIdsChange } from 'app-shared/types/api/FormLayoutRequest';
 
 export const useDeleteFormComponentMutation = (org: string, app: string, layoutSetName: string) => {
   const { layout, layoutName } = useSelectedFormLayoutWithName();
@@ -19,7 +20,15 @@ export const useDeleteFormComponentMutation = (org: string, app: string, layoutS
       ) {
         await deleteAppAttachmentMetadataMutation.mutateAsync(id);
       }
-      return formLayoutsMutation.mutateAsync(updatedLayout);
+
+      const componentIdsChange: ComponentIdsChange = [
+        {
+          oldComponentId: id,
+          newComponentId: undefined,
+        },
+      ];
+
+      return formLayoutsMutation.mutateAsync({ internalLayout: updatedLayout, componentIdsChange });
     },
   });
 };

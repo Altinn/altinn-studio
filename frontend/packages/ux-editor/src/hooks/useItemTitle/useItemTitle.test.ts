@@ -1,6 +1,6 @@
 import { useItemTitle } from './useItemTitle';
-import { renderHookWithMockStore } from '../../testing/mocks';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { renderHookWithProviders } from '../../testing/mocks';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { FormContainer } from '../../types/FormContainer';
 import type { FormComponent } from '../../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -8,10 +8,9 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const title = 'En tittel';
 const titleKey = 'titleKey';
 const titleTextResource: ITextResource = {
@@ -25,7 +24,7 @@ const textResources: ITextResources = {
 describe('useItemTitle', () => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
-  const { result } = renderHookWithMockStore({}, {}, queryClient)(useItemTitle).renderHookResult;
+  const result = renderHookWithProviders(useItemTitle, { queryClient }).result;
 
   it('Returns the correct title when the item is a container', () => {
     const id = '1';

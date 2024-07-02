@@ -35,7 +35,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_RuleConfiguration_NoContent()
         {
-            string dataPathWithData = $"{Org}/{App}/api/resource/RuleConfiguration.json";
+            string dataPathWithData = $"{Org}/{PreviewApp}/api/resource/RuleConfiguration.json";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

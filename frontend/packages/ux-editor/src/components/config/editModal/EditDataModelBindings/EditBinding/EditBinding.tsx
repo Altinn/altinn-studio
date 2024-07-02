@@ -1,6 +1,6 @@
 import React from 'react';
 import { SelectDataModelComponent } from '../../../SelectDataModelComponent';
-import { getDataModelFieldsFilter } from '../../../../../utils/datamodel';
+import { getDataModelFieldsFilter } from '../../../../../utils/dataModel';
 import type { FormItem } from '../../../../../types/FormItem';
 import { StudioButton, StudioDeleteButton } from '@studio/components';
 import { XMarkIcon } from '@studio/icons';
@@ -53,7 +53,7 @@ export const EditBinding = ({
           variant='secondary'
         />
         <StudioDeleteButton
-          confirmMessage={t('right_menu.dataModelBindings_delete_confirm')}
+          confirmMessage={t('right_menu.data_model_bindings_delete_confirm')}
           onDelete={onDelete}
           size='small'
           title={t('general.delete')}

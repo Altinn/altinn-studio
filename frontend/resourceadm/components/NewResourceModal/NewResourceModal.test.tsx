@@ -3,8 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { NewResourceModalProps } from './NewResourceModal';
 import { NewResourceModal } from './NewResourceModal';
-import { act } from 'react-dom/test-utils'; // Import act if needed
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { MemoryRouter } from 'react-router-dom';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -44,7 +43,7 @@ describe('NewResourceModal', () => {
     await renderAndOpenModal();
 
     const closeButton = screen.getByRole('button', { name: textMock('general.cancel') });
-    await act(() => user.click(closeButton));
+    await user.click(closeButton);
 
     expect(mockOnClose).toHaveBeenCalled();
   });
@@ -66,7 +65,7 @@ describe('NewResourceModal', () => {
     const createButton = screen.getByRole('button', {
       name: textMock('resourceadm.dashboard_create_modal_create_button'),
     });
-    await act(() => user.click(createButton));
+    await user.click(createButton);
     expect(createResourceMock).not.toHaveBeenCalled();
   });
 
@@ -77,7 +76,7 @@ describe('NewResourceModal', () => {
     const titleInput = screen.getByLabelText(
       textMock('resourceadm.dashboard_resource_name_and_id_resource_name'),
     );
-    await act(() => user.type(titleInput, 'test'));
+    await user.type(titleInput, 'test');
 
     const createButton = screen.getByRole('button', {
       name: textMock('resourceadm.dashboard_create_modal_create_button'),
@@ -92,13 +91,13 @@ describe('NewResourceModal', () => {
     const titleInput = screen.getByLabelText(
       textMock('resourceadm.dashboard_resource_name_and_id_resource_name'),
     );
-    await act(() => user.type(titleInput, 'test'));
+    await user.type(titleInput, 'test');
 
     const createButton = screen.getByRole('button', {
       name: textMock('resourceadm.dashboard_create_modal_create_button'),
     });
 
-    await act(() => user.click(createButton));
+    await user.click(createButton);
     expect(mockedNavigate).toHaveBeenCalledWith(`/${org}/${org}-resources/resource/test/about`);
   });
 
@@ -113,10 +112,28 @@ describe('NewResourceModal', () => {
     const titleInput = screen.getByLabelText(
       textMock('resourceadm.dashboard_resource_name_and_id_resource_name'),
     );
-    await act(() => user.type(titleInput, 'app_test'));
+    await user.type(titleInput, 'app_test');
 
     expect(
       screen.getByText(textMock('resourceadm.dashboard_resource_id_cannot_be_app')),
+    ).toBeInTheDocument();
+  });
+
+  test('should show error message if resource id starts with se_', async () => {
+    const user = userEvent.setup();
+    await renderAndOpenModal({
+      createResource: jest
+        .fn()
+        .mockImplementation(() => Promise.reject({ response: { status: ServerCodes.Conflict } })),
+    });
+
+    const titleInput = screen.getByLabelText(
+      textMock('resourceadm.dashboard_resource_name_and_id_resource_name'),
+    );
+    await user.type(titleInput, 'se_test');
+
+    expect(
+      screen.getByText(textMock('resourceadm.dashboard_resource_id_cannot_be_se')),
     ).toBeInTheDocument();
   });
 
@@ -131,12 +148,12 @@ describe('NewResourceModal', () => {
     const titleInput = screen.getByLabelText(
       textMock('resourceadm.dashboard_resource_name_and_id_resource_name'),
     );
-    await act(() => user.type(titleInput, 'test'));
+    await user.type(titleInput, 'test');
 
     const createButton = screen.getByRole('button', {
       name: textMock('resourceadm.dashboard_create_modal_create_button'),
     });
-    await act(() => user.click(createButton));
+    await user.click(createButton);
 
     expect(
       screen.getByText(textMock('resourceadm.dashboard_resource_name_and_id_error')),
@@ -163,7 +180,7 @@ const renderAndOpenModal = async (queries: Partial<ServicesContextProps> = {}) =
   renderNewResourceModal(queries);
 
   const openModalButton = screen.getByRole('button', { name: mockButtonText });
-  await act(() => user.click(openModalButton));
+  await user.click(openModalButton);
 };
 
 const TestComponentWithButton = (props: Partial<NewResourceModalProps> = {}) => {

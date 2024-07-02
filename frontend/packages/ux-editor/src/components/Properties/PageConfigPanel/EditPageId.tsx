@@ -1,15 +1,12 @@
 import React from 'react';
 import classes from './EditPageId.module.css';
-import { KeyVerticalIcon } from '@navikt/aksel-icons';
+import { KeyVerticalIcon } from '@studio/icons';
 import { getPageNameErrorKey } from '../../../utils/designViewUtils';
-import { ObjectUtils } from '@studio/pure-functions';
 import { useUpdateLayoutNameMutation } from '../../../hooks/mutations/useUpdateLayoutNameMutation';
 import { StudioToggleableTextfield } from '@studio/components';
-import { useSearchParams } from 'react-router-dom';
 import { useTextIdMutation } from 'app-development/hooks/mutations';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from '../../../hooks/useAppContext';
-import { useText } from '../../../hooks';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useAppContext, useText } from '../../../hooks';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import { Trans } from 'react-i18next';
 
@@ -17,20 +14,33 @@ export interface EditPageIdProps {
   layoutName: string;
 }
 export const EditPageId = ({ layoutName }: EditPageIdProps) => {
-  const { app, org } = useStudioUrlParams();
-  const { selectedLayoutSet } = useAppContext();
+  const { app, org } = useStudioEnvironmentParams();
+  const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
   const { mutate: mutateTextId } = useTextIdMutation(org, app);
-  const { mutate: updateLayoutName } = useUpdateLayoutNameMutation(org, app, selectedLayoutSet);
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { mutate: updateLayoutName } = useUpdateLayoutNameMutation(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
   const t = useText();
 
   const layoutOrder = formLayoutSettings?.pages?.order;
 
   const handleSaveNewName = (newName: string) => {
     if (newName === layoutName) return;
-    updateLayoutName({ oldName: layoutName, newName });
-    setSearchParams({ ...ObjectUtils.deepCopy(searchParams), layout: newName });
+    updateLayoutName(
+      { oldName: layoutName, newName },
+      {
+        onSuccess: async () => {
+          await refetchLayouts(selectedFormLayoutSetName);
+        },
+      },
+    );
     mutateTextId([{ oldId: layoutName, newId: newName }]);
   };
 

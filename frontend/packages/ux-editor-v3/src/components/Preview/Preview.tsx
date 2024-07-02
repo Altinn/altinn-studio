@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './Preview.module.css';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useSelector } from 'react-redux';
 import cn from 'classnames';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
@@ -37,6 +37,7 @@ export const Preview = () => {
   ) : (
     <div className={classes.root}>
       <StudioButton
+        size='small'
         variant='tertiary'
         icon={<ArrowRightIcon aria-hidden />}
         title={t('ux_editor.close_preview')}
@@ -60,11 +61,10 @@ const NoSelectedPageMessage = () => {
 
 // The actual preview frame that displays the selected page
 const PreviewFrame = () => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const [viewportToSimulate, setViewportToSimulate] = useState<SupportedView>('desktop');
-  const { selectedLayoutSet } = useAppContext();
   const { t } = useTranslation();
-  const { previewIframeRef } = useAppContext();
+  const { previewIframeRef, selectedLayoutSet } = useAppContext();
   const layoutName = useSelector(selectedLayoutNameSelector);
 
   useUpdate(() => {

@@ -1,21 +1,22 @@
 import React from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import type { ReceiptContentProps } from './ReceiptContent';
 import { ReceiptContent } from './ReceiptContent';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { FormLayoutPage } from '../../../types/FormLayoutPage';
 import {
   component1Mock,
   component2Mock,
   layout1NameMock,
   layout2NameMock,
-} from '../../../testing/layoutMock';
+} from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import type { IInternalLayout } from '../../../types/global';
 import {
   formLayoutSettingsMock,
-  renderHookWithMockStore,
-  renderWithMockStore,
+  renderHookWithProviders,
+  renderWithProviders,
 } from '../../../testing/mocks';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
@@ -23,10 +24,9 @@ import { DragAndDrop } from 'app-shared/components/dragAndDrop';
 import { FormItemContextProvider } from '../../FormItemContext';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import { app, org } from '@studio/testing/testids';
 
-const mockOrg = 'org';
-const mockApp = 'app';
-const mockSelectedLayoutSet = 'test-layout-set';
+const mockSelectedLayoutSet = layoutSet1NameMock;
 
 const mockPageName1 = layout1NameMock;
 const mockPageName2 = layout2NameMock;
@@ -74,7 +74,7 @@ describe('ReceiptContent', () => {
     await render();
 
     const receiptButton = screen.getByRole('button', { name: mockReceiptName });
-    await act(() => user.click(receiptButton));
+    await user.click(receiptButton);
 
     expect(mockOnClickAccordion).toHaveBeenCalledTimes(1);
   });
@@ -84,7 +84,7 @@ describe('ReceiptContent', () => {
     await render({ selectedAccordion: mockPageName1 });
 
     const receiptButton = screen.getByRole('button', { name: mockReceiptName });
-    await act(() => user.click(receiptButton));
+    await user.click(receiptButton);
 
     expect(mockOnClickAccordion).toHaveBeenCalledTimes(1);
   });
@@ -94,14 +94,13 @@ const waitForData = async () => {
   const getFormLayoutSettings = jest
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
-  const formLayoutsResult = renderHookWithMockStore()(() =>
-    useFormLayoutsQuery(mockOrg, mockApp, mockSelectedLayoutSet),
-  ).renderHookResult.result;
-  const settingsResult = renderHookWithMockStore(
-    {},
-    { getFormLayoutSettings },
-  )(() => useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet)).renderHookResult
-    .result;
+  const formLayoutsResult = renderHookWithProviders(() =>
+    useFormLayoutsQuery(org, app, mockSelectedLayoutSet),
+  ).result;
+  const settingsResult = renderHookWithProviders(
+    () => useFormLayoutSettingsQuery(org, app, mockSelectedLayoutSet),
+    { queries: { getFormLayoutSettings } },
+  ).result;
 
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
@@ -109,7 +108,7 @@ const waitForData = async () => {
 
 const render = async (props: Partial<ReceiptContentProps> = {}) => {
   await waitForData();
-  return renderWithMockStore()(
+  return renderWithProviders(
     <DragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
       <FormItemContextProvider>
         <ReceiptContent {...defaultProps} {...props} />

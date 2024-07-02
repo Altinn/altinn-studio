@@ -1,7 +1,5 @@
 import { PackagesRouter } from './PackagesRouter';
-
-const mockOrg: string = 'org';
-const mockApp: string = 'app';
+import { app, org } from '@studio/testing/testids';
 
 describe('PackagesRouter', () => {
   describe('constructor', () => {
@@ -14,8 +12,8 @@ describe('PackagesRouter', () => {
 
   describe('navigateToPackage', () => {
     it('should navigate to the correct "editor/overview page when the location parameter is set to "editorOverview"', () => {
-      const packagesRouter = new PackagesRouter({ org: mockOrg, app: mockApp });
-      const expectedUrl = `/editor/${mockOrg}/${mockApp}/overview`;
+      const packagesRouter = new PackagesRouter({ org, app });
+      const expectedUrl = `/editor/${org}/${app}/overview`;
 
       // Mock the window.location.assign method
       const assignMock = jest.fn();
@@ -30,10 +28,10 @@ describe('PackagesRouter', () => {
     });
 
     it('should navigate to the correct URL and include queryParams', () => {
-      const packagesRouter = new PackagesRouter({ org: mockOrg, app: mockApp });
+      const packagesRouter = new PackagesRouter({ org, app });
 
       const mockQueryParams = '?layout=123';
-      const expectedUrl = `/editor/${mockOrg}/${mockApp}/ui-editor${mockQueryParams}`;
+      const expectedUrl = `/editor/${org}/${app}/ui-editor${mockQueryParams}`;
 
       const assignMock = jest.fn();
       Object.defineProperty(window, 'location', {
@@ -49,8 +47,8 @@ describe('PackagesRouter', () => {
 
   describe('getPackageNavigationUrl', () => {
     it('should return the correct URL for a package route with placeholders', () => {
-      const packagesRouter = new PackagesRouter({ org: mockOrg, app: mockApp });
-      const expectedUrl = `/editor/${mockOrg}/${mockApp}/deploy`;
+      const packagesRouter = new PackagesRouter({ org, app });
+      const expectedUrl = `/editor/${org}/${app}/deploy`;
 
       const result = packagesRouter.getPackageNavigationUrl('editorPublish');
 
@@ -58,7 +56,7 @@ describe('PackagesRouter', () => {
     });
 
     it('should return the correct URL for a package route without placeholders', () => {
-      const packagesRouter = new PackagesRouter({ org: mockOrg, app: mockApp });
+      const packagesRouter = new PackagesRouter({ org, app });
       const expectedUrl = '/dashboard';
 
       const result = packagesRouter.getPackageNavigationUrl('dashboard');
@@ -69,10 +67,10 @@ describe('PackagesRouter', () => {
 
   describe('replaceOrgAndApp', () => {
     it('should replace {{org}} and {{app}} placeholders in the given URL', () => {
-      const packagesRouter = new PackagesRouter({ org: mockOrg, app: mockApp });
+      const packagesRouter = new PackagesRouter({ org, app });
 
       const mockUrl = '/editor/{{org}}/{{app}}/overview';
-      const expectedUrl = `/editor/${mockOrg}/${mockApp}/overview`;
+      const expectedUrl = `/editor/${org}/${app}/overview`;
 
       const result = packagesRouter['replaceOrgAndApp'](mockUrl);
 

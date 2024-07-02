@@ -5,10 +5,9 @@ const persistFeatureKey = 'persistFeatureFlag';
 
 // All the features that you want to be toggle on/off should be added here. To ensure that we type check the feature name.
 export type SupportedFeatureFlags =
-  | 'customizeEndEvent'
   | 'componentConfigBeta'
   | 'shouldOverrideAppLibCheck'
-  | 'resourceAccessLists'
+  | 'resourceMigration'
   | 'displayPaymentTaskProcessEditor';
 
 /*
@@ -27,7 +26,7 @@ const defaultActiveFeatures: SupportedFeatureFlags[] = [];
  */
 export const shouldDisplayFeature = (featureFlag: SupportedFeatureFlags): boolean => {
   // Check if feature should be persisted in session storage, (url)?persistFeatureFlag=true
-  if (shouldPersistInSession()) {
+  if (shouldPersistInSession() && isFeatureActivatedByUrl(featureFlag)) {
     addFeatureFlagToSessionStorage(featureFlag);
   }
 

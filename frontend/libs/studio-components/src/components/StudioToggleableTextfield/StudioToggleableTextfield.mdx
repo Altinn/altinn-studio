@@ -1,0 +1,14 @@
+import { Canvas, Meta } from '@storybook/blocks';
+import { Heading, Paragraph } from '@digdir/design-system-react';
+import * as StudioToggleableTextfieldStories from './StudioToggleableTextfield.stories';
+
+<Meta of={StudioToggleableTextfieldStories} />
+
+<Heading level={1} size='small'>
+  StudioToggleableTextfield
+</Heading>
+<Paragraph>
+  StudioToggleableTextfield is a component that can be toggled between view and edit mode.
+</Paragraph>
+
+<Canvas of={StudioToggleableTextfieldStories.Preview} />

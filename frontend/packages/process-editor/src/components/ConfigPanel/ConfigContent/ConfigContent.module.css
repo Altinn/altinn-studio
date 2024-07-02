@@ -1,22 +1,13 @@
-.headerWrapper {
-  display: flex;
-  align-items: center;
-  padding: 1rem;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
-}
-
-.configSectionWrapper {
+.configContent {
   display: flex;
   flex-direction: column;
-  padding-inline: 1rem;
-  padding-top: 4px;
-  gap: 1rem;
-  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
+  gap: var(--fds-spacing-2);
 }
 
-.headerTextAndIconWrapper {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+.accordion {
+  padding-inline: 0;
+}
+
+.displayTile {
+  padding-inline: var(--fds-spacing-5);
 }

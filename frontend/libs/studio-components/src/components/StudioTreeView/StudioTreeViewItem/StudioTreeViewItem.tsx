@@ -18,6 +18,7 @@ import { ChevronDownIcon, ChevronRightIcon } from '@studio/icons';
 import { StudioButton } from '../../StudioButton';
 import classes from './StudioTreeViewItem.module.css';
 import cn from 'classnames';
+import { useTreeViewItemOpenOnHierarchySelect } from '../hooks/useTreeViewItemOpenOnHierarchySelect';
 
 export type StudioTreeViewItemProps = {
   as?: ElementType;
@@ -44,6 +45,8 @@ export const StudioTreeViewItem = ({
     useTreeViewRootContext();
   const { level } = useTreeViewItemContext();
   const treeItemRef = useRef<HTMLDivElement>(null);
+
+  useTreeViewItemOpenOnHierarchySelect(rootId, nodeId, selectedId, setOpen);
 
   useEffect(() => {
     if (focusedId === nodeId) {
@@ -101,7 +104,6 @@ export const StudioTreeViewItem = ({
       aria-level={level}
       aria-owns={listId}
       aria-selected={selected}
-      as='div' // Cannot be button because of dragging issues in Firefox
       className={classes.button}
       color='first'
       icon={<Icon customIcon={icon} hasChildren={hasChildren} open={open} />}
@@ -115,6 +117,7 @@ export const StudioTreeViewItem = ({
       tabIndex={focusable ? 0 : -1}
       type='button'
       variant='tertiary'
+      asChild
     >
       <div className={classes.label}>{label}</div>
     </StudioButton>

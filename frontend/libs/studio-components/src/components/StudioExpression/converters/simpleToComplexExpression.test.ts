@@ -15,6 +15,7 @@ import { GeneralRelationOperator } from '../enums/GeneralRelationOperator';
 import { KeyLookupFuncName } from '../enums/KeyLookupFuncName';
 import { InstanceContext } from '../enums/InstanceContext';
 import { SimpleSubexpressionValueType } from '../enums/SimpleSubexpressionValueType';
+import { GatewayActionContext } from '../enums/GatewayActionContext';
 
 describe('simpleToComplexExpression', () => {
   it.each([true, false])('Returns the expression when the expression is %s', (value) => {
@@ -63,7 +64,7 @@ describe('simpleToComplexExpression', () => {
           {
             relationalOperator,
             firstOperand: {
-              type: SimpleSubexpressionValueType.Datamodel,
+              type: SimpleSubexpressionValueType.DataModel,
               path: '#/properties/test',
             },
             secondOperand: { type: SimpleSubexpressionValueType.String, value: 'Lorem ipsum' },
@@ -82,7 +83,7 @@ describe('simpleToComplexExpression', () => {
 
   type SimpleExpressionTestData = {
     subexpressionValue: SimpleSubexpressionValue;
-    expectedResult: DataLookupFunc | KeyLookupFunc | string | number | boolean | null;
+    expectedResult: DataLookupFunc | KeyLookupFunc | string | number | boolean | null | [string];
   };
   const testExpressionValues: {
     [T in SimpleSubexpressionValue['type']]: SimpleExpressionTestData;
@@ -91,12 +92,26 @@ describe('simpleToComplexExpression', () => {
       subexpressionValue: { type: SimpleSubexpressionValueType.Component, id: 'test' },
       expectedResult: [DataLookupFuncName.Component, 'test'],
     },
-    datamodel: {
+    dataModel: {
       subexpressionValue: {
-        type: SimpleSubexpressionValueType.Datamodel,
+        type: SimpleSubexpressionValueType.DataModel,
         path: '#/properties/test',
       },
       expectedResult: [DataLookupFuncName.DataModel, '#/properties/test'],
+    },
+    gatewayAction: {
+      subexpressionValue: {
+        type: SimpleSubexpressionValueType.GatewayAction,
+        value: 'GatewayAction',
+      },
+      expectedResult: [DataLookupFuncName.GatewayAction],
+    },
+    gatewayActionContext: {
+      subexpressionValue: {
+        type: SimpleSubexpressionValueType.GatewayActionContext,
+        key: GatewayActionContext.Sign,
+      },
+      expectedResult: 'sign',
     },
     instanceContext: {
       subexpressionValue: {
@@ -155,7 +170,7 @@ describe('simpleToComplexExpression', () => {
           {
             relationalOperator: GeneralRelationOperator.NotEquals,
             firstOperand: {
-              type: SimpleSubexpressionValueType.Datamodel,
+              type: SimpleSubexpressionValueType.DataModel,
               path: '#/properties/test',
             },
             secondOperand: { type: SimpleSubexpressionValueType.String, value: 'Lorem ipsum' },

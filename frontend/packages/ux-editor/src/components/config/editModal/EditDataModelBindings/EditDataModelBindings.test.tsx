@@ -1,17 +1,23 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
-import { renderWithMockStore } from '../../../../testing/mocks';
+import { screen } from '@testing-library/react';
+import { renderHookWithProviders, renderWithProviders } from '../../../../testing/mocks';
 import { EditDataModelBindings } from './EditDataModelBindings';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
-import type { DatamodelMetadataResponse } from 'app-shared/types/api';
+import type { DataModelMetadataResponse } from 'app-shared/types/api';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { componentMocks } from '../../../../testing/componentMocks';
 import type { FormItem } from '../../../../types/FormItem';
+import { app, org } from '@studio/testing/testids';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { useMutation } from '@tanstack/react-query';
+import { appContextMock } from '@altinn/ux-editor/testing/appContextMock';
 
-const datamodelMetadata: DatamodelMetadataResponse = {
+const dataModelName = undefined;
+
+const dataModelMetadata: DataModelMetadataResponse = {
   elements: {
     testModel: {
       id: 'testModel',
@@ -68,33 +74,45 @@ const datamodelMetadata: DatamodelMetadataResponse = {
   },
 };
 
-const getDatamodelMetadata = () => Promise.resolve(datamodelMetadata);
+const getDataModelMetadata = () => Promise.resolve(dataModelMetadata);
 const defaultComponent = componentMocks[ComponentType.Input];
 const defaultRenderOptions = {
-  uniqueKey: 'someComponentId-datamodel-select',
+  uniqueKey: 'someComponentId-data-model-select',
   key: undefined,
   label: undefined,
 };
 
 const render = ({
   component = defaultComponent,
-  handleComponentChange = jest.fn(),
   renderOptions = defaultRenderOptions,
 }: {
   component?: FormItem;
   handleComponentChange?: () => void;
   renderOptions?: { uniqueKey: string; key: string; label: string };
-}) => {
-  return renderWithMockStore(
-    {},
-    { getDatamodelMetadata },
-  )(
-    <EditDataModelBindings
-      handleComponentChange={handleComponentChange}
-      component={component as FormItem}
-      renderOptions={renderOptions}
-    />,
-  );
+} = {}) => {
+  const handleComponentMutation = renderHookWithProviders(() =>
+    useMutation({
+      mutationFn: () => Promise.resolve(),
+    }),
+  ).result;
+  const mockhHandleComponentChange = jest
+    .fn()
+    .mockImplementation(async (mutationArgs, mutateOptions) => {
+      await handleComponentMutation.current.mutateAsync(mutationArgs, mutateOptions);
+    });
+  return {
+    mockhHandleComponentChange,
+    ...renderWithProviders(
+      <EditDataModelBindings
+        handleComponentChange={mockhHandleComponentChange}
+        component={component as FormItem}
+        renderOptions={renderOptions}
+      />,
+      {
+        queries: { getDataModelMetadata },
+      },
+    ),
+  };
 };
 
 describe('EditDataModelBindings', () => {
@@ -111,7 +129,7 @@ describe('EditDataModelBindings', () => {
     const linkIcon = screen.getByRole('button', {
       name: textMock('ux_editor.component_title.Input'),
     });
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     const combobox = screen.getByRole('combobox', {
       name: textMock('ux_editor.component_title.Input'),
     });
@@ -120,17 +138,17 @@ describe('EditDataModelBindings', () => {
 
   it('should show select with provided data model binding', async () => {
     const user = userEvent.setup();
-    render({});
+    render();
     const linkIcon = screen.getByRole('button', {
       name: textMock('ux_editor.component_title.Input'),
     });
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     screen.getByRole('combobox', { name: textMock('ux_editor.component_title.Input') });
     screen.getByText('testModel.field1');
   });
 
   it('should render link icon', () => {
-    render({});
+    render();
     const linkIcon = screen.getByRole('button', {
       name: textMock('ux_editor.component_title.Input'),
     });
@@ -139,104 +157,116 @@ describe('EditDataModelBindings', () => {
 
   it('should show select when link icon is clicked', async () => {
     const user = userEvent.setup();
-    render({});
+    render();
     const linkIcon = screen.getByRole('button', {
       name: textMock('ux_editor.component_title.Input'),
     });
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     const select = screen.getByRole('combobox');
     expect(select).toBeInTheDocument();
   });
 
   it('should toggle select on link icon click', async () => {
     const user = userEvent.setup();
-    render({});
+    render();
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
     const linkIcon = screen.getByRole('button', {
       name: textMock('ux_editor.component_title.Input'),
     });
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
 
   it('check that handleComponentChange is called', async () => {
     const user = userEvent.setup();
-    const handleComponentChange = jest.fn();
-    render({ handleComponentChange });
+
+    const { mockhHandleComponentChange } = render();
     const linkIcon = screen.getByRole('button', {
       name: textMock('ux_editor.component_title.Input'),
     });
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     const option = screen.getByText('testModel');
-    await act(() => user.click(option));
-    expect(handleComponentChange).toHaveBeenCalledWith({
-      ...defaultComponent,
-      dataModelBindings: { simpleBinding: 'testModel' },
-      maxCount: undefined,
-      required: true,
-      timeStamp: undefined,
-    });
+    await user.click(option);
+    expect(mockhHandleComponentChange).toHaveBeenCalledWith(
+      {
+        ...defaultComponent,
+        dataModelBindings: { simpleBinding: 'testModel' },
+        maxCount: undefined,
+        required: true,
+        timeStamp: undefined,
+      },
+      {
+        onSuccess: expect.any(Function),
+      },
+    );
+    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchLayouts).toHaveBeenCalledWith(layoutSet1NameMock, true);
   });
 
   it('check that handleComponentChange is called with timestamp for DatePicker component', async () => {
     const user = userEvent.setup();
-    const handleComponentChange = jest.fn();
-    render({
-      handleComponentChange,
+    const { mockhHandleComponentChange } = render({
       component: { ...defaultComponent, type: ComponentType.Datepicker },
     });
     const linkIcon = screen.getByRole('button', {
       name: textMock('ux_editor.component_title.Datepicker'),
     });
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     const option = screen.getByText('datePickerField');
-    await act(() => user.click(option));
-    expect(handleComponentChange).toHaveBeenCalledWith({
-      ...defaultComponent,
-      type: ComponentType.Datepicker,
-      dataModelBindings: { simpleBinding: 'datePickerField' },
-      maxCount: undefined,
-      required: true,
-      timeStamp: true,
-    });
+    await user.click(option);
+    expect(mockhHandleComponentChange).toHaveBeenCalledWith(
+      {
+        ...defaultComponent,
+        type: ComponentType.Datepicker,
+        dataModelBindings: { simpleBinding: 'datePickerField' },
+        maxCount: undefined,
+        required: true,
+        timeStamp: true,
+      },
+      {
+        onSuccess: expect.any(Function),
+      },
+    );
+    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchLayouts).toHaveBeenCalledWith(layoutSet1NameMock, true);
   });
 
   it('should render close icon', async () => {
     const user = userEvent.setup();
-    render({});
+    render();
     const linkIcon = screen.getByRole('button', {
       name: textMock('ux_editor.component_title.Input'),
     });
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     const saveButton = screen.getByRole('button', { name: textMock('general.close') });
     expect(saveButton).toBeInTheDocument();
   });
 
   it('should render delete icon', async () => {
     const user = userEvent.setup();
-    render({});
+    render();
     const linkIcon = screen.getByRole('button', {
       name: textMock('ux_editor.component_title.Input'),
     });
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
     expect(deleteButton).toBeInTheDocument();
   });
 
   it('show link data model again when the user clicks on save button and no data model binding is selected', async () => {
     const user = userEvent.setup();
-    render({});
+    render();
     const linkIcon = screen.getByRole('button', {
       name: textMock('ux_editor.component_title.Input'),
     });
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     const combobox = screen.getByRole('combobox', {
       name: textMock('ux_editor.component_title.Input'),
     });
     expect(combobox.getAttribute('value')).toEqual('');
 
     const saveButton = screen.getByRole('button', { name: textMock('general.close') });
-    await act(() => user.click(saveButton));
+    await user.click(saveButton);
 
     expect(
       screen.getByRole('button', { name: textMock('ux_editor.component_title.Input') }),
@@ -246,11 +276,9 @@ describe('EditDataModelBindings', () => {
   it('deletes existing data model link', async () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
-    const handleComponentChange = jest.fn();
     const dataModelBindingKey = 'testModel.field1';
 
-    render({
-      handleComponentChange,
+    const { mockhHandleComponentChange } = render({
       component: {
         ...defaultComponent,
         dataModelBindings: {
@@ -260,20 +288,27 @@ describe('EditDataModelBindings', () => {
     });
 
     const editButton = screen.getByRole('button', {
-      name: textMock('right_menu.dataModelBindings_edit', {
+      name: textMock('right_menu.data_model_bindings_edit', {
         binding: textMock('ux_editor.component_title.Input'),
       }),
     });
-    await act(() => user.click(editButton));
+    await user.click(editButton);
 
     screen.getByText(dataModelBindingKey);
     const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
-    await act(() => user.click(deleteButton));
-    expect(handleComponentChange).toHaveBeenCalledWith({
-      ...defaultComponent,
-      dataModelBindings: { simpleBinding: '' },
-      timeStamp: undefined,
-    });
+    await user.click(deleteButton);
+    expect(mockhHandleComponentChange).toHaveBeenCalledWith(
+      {
+        ...defaultComponent,
+        dataModelBindings: { simpleBinding: '' },
+        timeStamp: undefined,
+      },
+      {
+        onSuccess: expect.any(Function),
+      },
+    );
+    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchLayouts).toHaveBeenCalledWith(layoutSet1NameMock, true);
   });
 
   it('shows edit fieldset when the user clicks on a binding button', async () => {
@@ -287,11 +322,11 @@ describe('EditDataModelBindings', () => {
     });
 
     const editIcon = screen.getByRole('button', {
-      name: textMock('right_menu.dataModelBindings_edit', {
+      name: textMock('right_menu.data_model_bindings_edit', {
         binding: textMock('ux_editor.component_title.Input'),
       }),
     });
-    await act(() => user.click(editIcon));
+    await user.click(editIcon);
 
     expect(screen.getByRole('group', { name: textMock('ux_editor.component_title.Input') }));
     expect(screen.getByRole('combobox').getAttribute('value')).toEqual(dataModelBindingKey);
@@ -299,16 +334,14 @@ describe('EditDataModelBindings', () => {
 
   it('should call "handleComponentUpdate" with maxCount when dataModelBinding is clicked for RepeatingGroup', async () => {
     const user = userEvent.setup();
-    const mockHandleComponentUpdate = jest.fn();
     const dataBindingNameMock = 'element';
     const maxCountMock = 2;
     queryClientMock.setQueryData(
-      [QueryKey.DatamodelMetadata, 'org', 'app', 'test-layout-set'],
+      [QueryKey.DataModelMetadata, org, app, layoutSet1NameMock, dataModelName],
       [{ dataBindingName: dataBindingNameMock, maxOccurs: maxCountMock }],
     );
-    render({
+    const { mockhHandleComponentChange } = render({
       component: componentMocks[ComponentType.RepeatingGroup],
-      handleComponentChange: mockHandleComponentUpdate,
       renderOptions: {
         uniqueKey: 'some-key',
         key: 'group',
@@ -319,33 +352,38 @@ describe('EditDataModelBindings', () => {
     const dataModelBinding = screen.getByRole('button', {
       name: textMock('ux_editor.modal_properties_data_model_label.group'),
     });
-    await act(() => user.click(dataModelBinding));
+    await user.click(dataModelBinding);
     const dataModelBindingSelector = screen.getByRole('combobox', {
       name: textMock(`ux_editor.modal_properties_data_model_label.group`),
     });
-    await act(() => user.click(dataModelBindingSelector));
+    await user.click(dataModelBindingSelector);
     const dataModelOption = screen.getByRole('option', { name: dataBindingNameMock });
-    await act(() => user.click(dataModelOption));
+    await user.click(dataModelOption);
 
-    expect(mockHandleComponentUpdate).toHaveBeenCalled();
-    expect(mockHandleComponentUpdate).toHaveBeenCalledWith(
+    expect(mockhHandleComponentChange).toHaveBeenCalled();
+    expect(mockhHandleComponentChange).toHaveBeenCalledWith(
       expect.objectContaining({
         ...componentMocks[ComponentType.RepeatingGroup],
         maxCount: maxCountMock,
         dataModelBindings: { group: dataBindingNameMock },
       }),
+      {
+        onSuccess: expect.any(Function),
+      },
     );
+    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchLayouts).toHaveBeenCalledWith(layoutSet1NameMock, true);
   });
 
   it('show right data model when switching component', () => {
-    const { renderResult } = render({
+    const { rerender } = render({
       component: {
         ...defaultComponent,
         dataModelBindings: { simpleBinding: 'testModel.field1' },
       },
     });
     screen.getByText('testModel.field1');
-    renderResult.rerender(
+    rerender(
       <EditDataModelBindings
         handleComponentChange={jest.fn()}
         component={{

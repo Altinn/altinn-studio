@@ -1,0 +1,31 @@
+.container {
+  border-bottom: 2px solid #000000;
+}
+
+.header {
+  box-sizing: content-box;
+  border-bottom: 1px solid #c9c9c9;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: var(--fds-spacing-12);
+  overflow: auto;
+  padding: var(--fds-spacing-6);
+}
+
+@media (min-width: 1200px) {
+  .container {
+    display: flex;
+  }
+
+  .header {
+    border-bottom: unset;
+    border-right: 1px solid #c9c9c9;
+
+    max-width: 350px;
+    width: 25%;
+  }
+}

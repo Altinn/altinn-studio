@@ -6,7 +6,10 @@ import { StudioCenter } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useGetAltinn2LinkServicesQuery } from '../../../hooks/queries';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
-import { mapAltinn2LinkServiceToSelectOption } from '../../../utils/mapperUtils';
+import {
+  mapAltinn2LinkServiceToSelectOption,
+  mapSelectOptiontoAltinn2LinkService,
+} from '../../../utils/mapperUtils';
 
 export type ServiceContentProps = {
   selectedContext: string;
@@ -44,16 +47,8 @@ export const ServiceContent = ({
    * Handles the selection of the service
    */
   const handleSelectService = (s: string) => {
-    if (s) {
-      const valueAsArray: string[] = s.split('-');
-      onSelectService({
-        serviceName: valueAsArray[2],
-        externalServiceEditionCode: valueAsArray[1],
-        externalServiceCode: valueAsArray[0],
-      });
-    } else {
-      onSelectService(undefined);
-    }
+    const linkService = s ? mapSelectOptiontoAltinn2LinkService(s) : undefined;
+    onSelectService(linkService);
   };
 
   /**
@@ -96,21 +91,25 @@ export const ServiceContent = ({
         <Combobox
           value={
             selectedService
-              ? mapAltinn2LinkServiceToSelectOption([selectedService]).map((ls) => ls.value)
+              ? [mapAltinn2LinkServiceToSelectOption(selectedService).value]
               : undefined
           }
           label={t('resourceadm.dashboard_import_modal_select_service')}
           onValueChange={(newValue: string[]) => {
             handleSelectService(newValue[0]);
           }}
+          filter={(inputValue: string, option) =>
+            option.label.toLowerCase().indexOf(inputValue?.toLowerCase()) > -1
+          }
         >
-          {mapAltinn2LinkServiceToSelectOption(altinn2LinkServices).map((ls) => {
-            return (
-              <Combobox.Option key={ls.value} value={ls.value}>
-                {ls.label}
-              </Combobox.Option>
-            );
-          })}
+          <Combobox.Empty>
+            {t('resourceadm.dashboard_import_modal_no_services_found')}
+          </Combobox.Empty>
+          {altinn2LinkServices.map(mapAltinn2LinkServiceToSelectOption).map((ls) => (
+            <Combobox.Option key={ls.value} value={ls.value}>
+              {ls.label}
+            </Combobox.Option>
+          ))}
         </Combobox>
       );
     }

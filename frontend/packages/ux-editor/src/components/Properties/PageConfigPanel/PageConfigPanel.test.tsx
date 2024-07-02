@@ -1,20 +1,27 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../../../testing/mocks';
 import { PageConfigPanel } from './PageConfigPanel';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE, DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
-import { formDesignerMock } from '../../../testing/stateMocks';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { IFormLayouts } from '../../../types/global';
-import { layout1NameMock, layoutMock } from '../../../testing/layoutMock';
+import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { app, org } from '@studio/testing/testids';
+import { findLayoutsContainingDuplicateComponents } from '../../../utils/formLayoutUtils';
+
+jest.mock('../../../utils/formLayoutUtils', () => ({
+  ...jest.requireActual('../../../utils/formLayoutUtils'),
+  findLayoutsContainingDuplicateComponents: jest.fn(),
+}));
 
 // Test data
-const app = 'app';
-const org = 'org';
-const layoutSet = 'test-layout-set';
+const layoutSet = layoutSet1NameMock;
+const duplicatedLayout = 'duplicatedLayout';
+const dataModelName = undefined;
 
 const defaultTexts: ITextResources = {
   [DEFAULT_LANGUAGE]: [
@@ -25,10 +32,23 @@ const defaultTexts: ITextResources = {
 };
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
+  [duplicatedLayout]: {
+    components: {},
+    containers: {},
+    order: {
+      ['idContainer']: ['idContainer1', 'idContainer2', 'idContainer3'],
+      ['idContainer1']: ['idContainer', 'idContainer1', 'idContainer2'],
+    },
+    customRootProperties: {},
+    customDataProperties: {},
+  },
 };
 
 describe('PageConfigPanel', () => {
-  it('render heading with "no selected page" message when selected layout is "default"', () => {
+  beforeEach(() => {
+    (findLayoutsContainingDuplicateComponents as jest.Mock).mockReturnValue([]);
+  });
+  it('render heading with "no selected page" message when selected layout is "default"', async () => {
     renderPageConfigPanel();
     screen.getByRole('heading', { name: textMock('right_menu.content_empty') });
   });
@@ -61,6 +81,41 @@ describe('PageConfigPanel', () => {
     screen.getByRole('heading', { name: newVisualPageName });
     screen.getByRole('button', { name: textMock('ux_editor.id_identifier') });
   });
+
+  it('render warning when layout is selected and has duplicated ids', () => {
+    renderPageConfigPanel(duplicatedLayout);
+
+    screen.getByRole('heading', { name: textMock('ux_editor.config.warning_duplicates.heading') });
+  });
+
+  it('should display duplicated ids in the document', () => {
+    renderPageConfigPanel(duplicatedLayout);
+
+    const duplicatedIds = screen.getByText(/<idcontainer1>, <idcontainer2>/i);
+    expect(duplicatedIds).toBeInTheDocument();
+
+    const uniqueIds = screen.queryByText(/<idcontainer>, <idContainer3>/i);
+    expect(uniqueIds).not.toBeInTheDocument();
+  });
+
+  it('should not show warning modal when there are no duplicated ids across layouts', () => {
+    renderPageConfigPanel();
+
+    const modal = screen.queryByRole('dialog');
+
+    expect(modal).not.toBeInTheDocument();
+  });
+
+  it('should show warning modal when there are duplicated ids across layouts', async () => {
+    (findLayoutsContainingDuplicateComponents as jest.Mock).mockReturnValue({
+      duplicateLayouts: [duplicatedLayout],
+    });
+    renderPageConfigPanel();
+    await waitFor(() => {
+      const modal = screen.getByRole('dialog');
+      expect(modal).toBeInTheDocument();
+    });
+  });
 });
 
 const renderPageConfigPanel = (
@@ -69,20 +124,12 @@ const renderPageConfigPanel = (
 ) => {
   queryClientMock.setQueryData([QueryKey.TextResources, org, app], textResources);
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet], layouts);
-  queryClientMock.setQueryData([QueryKey.DatamodelMetadata, org, app, layoutSet], []);
+  queryClientMock.setQueryData(
+    [QueryKey.DataModelMetadata, org, app, layoutSet, dataModelName],
+    [],
+  );
+
   return renderWithProviders(<PageConfigPanel />, {
-    preloadedState: {
-      formDesigner: {
-        ...formDesignerMock,
-        layout: {
-          error: null,
-          saving: false,
-          unSavedChanges: false,
-          selectedLayoutSet: layoutSet,
-          selectedLayout: selectedLayoutName,
-          invalidLayouts: [],
-        },
-      },
-    },
+    appContextProps: { selectedFormLayoutName: selectedLayoutName },
   });
 };

@@ -1,4 +1,16 @@
+.editLinkCell {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .editLink {
   color: #165db8;
-  font-size: 2rem;
+  font-size: 1.7rem;
+}
+
+.tagContainer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--fds-spacing-1);
 }

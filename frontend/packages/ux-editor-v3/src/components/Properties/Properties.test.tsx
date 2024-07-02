@@ -1,22 +1,17 @@
 import React from 'react';
 import { Properties } from './Properties';
-import { render as rtlRender, act, screen, waitFor } from '@testing-library/react';
-import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
+import { render as rtlRender, screen, waitFor } from '@testing-library/react';
 import { FormItemContext } from '../../containers/FormItemContext';
 import userEvent from '@testing-library/user-event';
 import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
 // Test data:
-const contentText = 'Innhold';
-const dynamicsText = 'Dynamikk';
-const calculationsText = 'Beregninger';
-const texts = {
-  'right_menu.content': contentText,
-  'right_menu.dynamics': dynamicsText,
-  'right_menu.calculations': calculationsText,
-};
+const contentText = textMock('right_menu.content');
+const dynamicsText = textMock('right_menu.dynamics');
+const calculationsText = textMock('right_menu.calculations');
 
 const contentTestId = 'content';
 const conditionalRenderingTestId = 'conditional-rendering';
@@ -36,7 +31,6 @@ jest.mock('../config/Expressions', () => ({
 jest.mock('./Calculations', () => ({
   Calculations: () => <div data-testid={calculationsTestId} />,
 }));
-jest.mock('react-i18next', () => ({ useTranslation: () => mockUseTranslation(texts) }));
 
 describe('Properties', () => {
   describe('Content', () => {
@@ -49,9 +43,9 @@ describe('Properties', () => {
     it('Toggles content when clicked', async () => {
       render();
       const button = screen.queryByRole('button', { name: contentText });
-      await act(() => user.click(button));
+      await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'true');
-      await act(() => user.click(button));
+      await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'false');
     });
 
@@ -73,17 +67,19 @@ describe('Properties', () => {
     it('Toggles dynamics when clicked', async () => {
       render();
       const button = screen.queryByRole('button', { name: dynamicsText });
-      await act(() => user.click(button));
+      await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'true');
-      await act(() => user.click(button));
+      await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'false');
     });
 
     it('Shows new dynamics by default', async () => {
       const { rerender } = render();
       rerender(getComponent({ formItemId: 'test' }));
-      const dynamicsButton = screen.queryByRole('button', { name: dynamicsText });
-      await act(() => user.click(dynamicsButton));
+      const dynamicsButton = screen.queryByRole('button', {
+        name: dynamicsText,
+      });
+      await user.click(dynamicsButton);
       const newDynamics = screen.getByTestId(expressionsTestId);
       expect(newDynamics).toBeInTheDocument();
     });
@@ -99,9 +95,9 @@ describe('Properties', () => {
     it('Toggles calculations when clicked', async () => {
       render();
       const button = screen.queryByRole('button', { name: calculationsText });
-      await act(() => user.click(button));
+      await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'true');
-      await act(() => user.click(button));
+      await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'false');
     });
   });

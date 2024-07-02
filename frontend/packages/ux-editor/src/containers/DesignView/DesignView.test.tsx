@@ -1,8 +1,8 @@
 import React from 'react';
-import { formLayoutSettingsMock, renderWithMockStore } from '../../testing/mocks';
+import { formLayoutSettingsMock, renderWithProviders } from '../../testing/mocks';
 import { DesignView } from './DesignView';
-import { act, screen } from '@testing-library/react';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { screen } from '@testing-library/react';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { FormItemContextProvider } from '../FormItemContext';
 import { DragAndDrop } from 'app-shared/components/dragAndDrop';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
@@ -11,27 +11,19 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { externalLayoutsMock } from '../../testing/layoutMock';
+import {
+  externalLayoutsMock,
+  layout1NameMock,
+  layout2NameMock,
+} from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
+import { appContextMock } from '../../testing/appContextMock';
+import { app, org } from '@studio/testing/testids';
 
-const mockOrg = 'org';
-const mockApp = 'app';
-const mockSelectedLayoutSet = 'test-layout-set';
-const mockPageName1: string = formLayoutSettingsMock.pages.order[0];
-const mockPageName2: string = formLayoutSettingsMock.pages.order[1];
-
-const mockSetSearchParams = jest.fn();
-const mockSearchParams = { layout: mockPageName1 };
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({
-    org: mockOrg,
-    app: mockApp,
-  }),
-  useSearchParams: () => {
-    return [new URLSearchParams(mockSearchParams), mockSetSearchParams];
-  },
-}));
+const mockSelectedLayoutSet = layoutSet1NameMock;
+const mockPageName1: string = layout1NameMock;
+const mockPageName2: string = layout2NameMock;
 
 describe('DesignView', () => {
   afterEach(() => {
@@ -47,25 +39,26 @@ describe('DesignView', () => {
     });
   });
 
-  it('calls "setSearchParams" with undefined when current page the accordion is clicked', async () => {
+  it('calls "setSelectedFormLayoutName" with undefined when current page the accordion is clicked', async () => {
     const user = userEvent.setup();
     await render();
 
     const accordionButton1 = screen.getByRole('button', { name: mockPageName1 });
-    await act(() => user.click(accordionButton1));
+    await user.click(accordionButton1);
 
-    expect(mockSetSearchParams).toHaveBeenCalledTimes(1);
-    expect(mockSetSearchParams).toHaveBeenCalledWith(undefined);
+    expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledTimes(1);
+    expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledWith(undefined);
   });
 
-  it('calls "setSearchParams" with the new page when another page accordion is clicked', async () => {
+  it('calls "setSelectedFormLayoutName" with the new page when another page accordion is clicked', async () => {
     const user = userEvent.setup();
     await render();
 
     const accordionButton2 = screen.getByRole('button', { name: mockPageName2 });
-    await act(() => user.click(accordionButton2));
+    await user.click(accordionButton2);
 
-    expect(mockSetSearchParams).toHaveBeenCalledTimes(1);
+    expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledTimes(1);
+    expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledWith(mockPageName2);
   });
 
   it('calls "saveFormLayout" when add page is clicked', async () => {
@@ -73,7 +66,7 @@ describe('DesignView', () => {
     await render();
 
     const addButton = screen.getByRole('button', { name: textMock('ux_editor.pages_add') });
-    await act(() => user.click(addButton));
+    await user.click(addButton);
 
     expect(queriesMock.saveFormLayout).toHaveBeenCalled();
   });
@@ -87,23 +80,22 @@ describe('DesignView', () => {
 const render = async () => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData(
-    [QueryKey.FormLayouts, mockOrg, mockApp, mockSelectedLayoutSet],
-    convertExternalLayoutsToInternalFormat(externalLayoutsMock).convertedLayouts,
+    [QueryKey.FormLayouts, org, app, mockSelectedLayoutSet],
+    convertExternalLayoutsToInternalFormat(externalLayoutsMock),
   );
   queryClient.setQueryData(
-    [QueryKey.FormLayoutSettings, mockOrg, mockApp, mockSelectedLayoutSet],
+    [QueryKey.FormLayoutSettings, org, app, mockSelectedLayoutSet],
     formLayoutSettingsMock,
   );
 
-  return renderWithMockStore(
-    {},
-    {},
-    queryClient,
-  )(
+  return renderWithProviders(
     <DragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
       <FormItemContextProvider>
         <DesignView />
       </FormItemContextProvider>
     </DragAndDrop.Provider>,
+    {
+      queryClient,
+    },
   );
 };

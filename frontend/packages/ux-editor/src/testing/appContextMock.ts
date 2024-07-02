@@ -1,5 +1,7 @@
 import type { AppContextProps } from '../AppContext';
 import type { RefObject } from 'react';
+import { layoutSet1NameMock } from './layoutSetsMock';
+import { layout1NameMock } from './layoutMock';
 
 const previewIframeRefMock: RefObject<HTMLIFrameElement> = {
   current: null,
@@ -7,7 +9,14 @@ const previewIframeRefMock: RefObject<HTMLIFrameElement> = {
 
 export const appContextMock: AppContextProps = {
   previewIframeRef: previewIframeRefMock,
-  selectedLayoutSet: 'test-layout-set',
-  setSelectedLayoutSet: (layoutSet: string) => {},
-  removeSelectedLayoutSet: () => {},
+  selectedFormLayoutSetName: layoutSet1NameMock,
+  setSelectedFormLayoutSetName: jest.fn(),
+  selectedFormLayoutName: layout1NameMock,
+  setSelectedFormLayoutName: jest.fn(),
+  refetchLayouts: jest.fn(),
+  refetchLayoutSettings: jest.fn(),
+  refetchTexts: jest.fn(),
+  shouldReloadPreview: false,
+  previewHasLoaded: jest.fn(),
+  onLayoutSetNameChange: jest.fn(),
 };

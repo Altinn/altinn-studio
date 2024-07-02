@@ -6,6 +6,7 @@ import type {
   OnEntry,
   PartyTypesAllowed,
 } from 'app-shared/types/ApplicationMetadata';
+import { org } from '@studio/testing/testids';
 
 const mockValidFrom: string = '2023-10-13T12:00:00Z';
 const mockValidTo: string = '2023-11-13T12:00:00Z';
@@ -35,7 +36,7 @@ const mockOnEntry: OnEntry = {
 
 export const mockAppMetadata: ApplicationMetadata = {
   id: 'mockId',
-  org: 'org',
+  org,
   partyTypesAllowed: mockPartyTypesAllowed,
   validFrom: mockValidFrom,
   validTo: mockValidTo,

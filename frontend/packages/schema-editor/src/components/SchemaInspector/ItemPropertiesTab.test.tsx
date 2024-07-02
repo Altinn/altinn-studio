@@ -9,7 +9,7 @@ import {
   SchemaModel,
   validateTestUiSchema,
 } from '@altinn/schema-model';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { nodeMockBase, rootNodeMock } from '../../../test/mocks/uiSchemaMock';
 import type { SchemaEditorAppContextProps } from '../../contexts/SchemaEditorAppContext';
@@ -43,7 +43,9 @@ describe('ItemPropertiesTab', () => {
     renderWithProviders({
       appContextProps: { schemaModel: SchemaModel.fromArray(uiSchemaNodes) },
     })(<ItemPropertiesTab selectedItem={uiSchemaNodes[2]} />);
-    expect(screen.getByText(textMock('combination_inline_object_disclaimer'))).toBeDefined();
+    expect(
+      screen.getByText(textMock('schema_editor.combination_inline_object_disclaimer')),
+    ).toBeDefined();
   });
 
   it('Renders a name field when a field node is selected', async () => {

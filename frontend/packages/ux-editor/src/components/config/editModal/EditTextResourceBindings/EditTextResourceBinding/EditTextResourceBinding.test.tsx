@@ -1,26 +1,23 @@
 import React from 'react';
 import type { EditTextResourceBindingProps } from './EditTextResourceBinding';
 import { EditTextResourceBinding } from './EditTextResourceBinding';
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
-  renderHookWithMockStore,
-  renderWithMockStore,
+  renderHookWithProviders,
+  renderWithProviders,
   textLanguagesMock,
 } from '../../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../../hooks/queries/useLayoutSchemaQuery';
 import type { ITextResource, ITextResourcesWithLanguage } from 'app-shared/types/global';
-import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import type { FormComponent } from '../../../../../types/FormComponent';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
-
-// Test data:
-const org = 'org';
-const app = 'app';
 
 describe('EditTextResourceBindings component', () => {
   const mockComponent: FormComponent = {
@@ -59,7 +56,7 @@ describe('EditTextResourceBindings component', () => {
       textKey: 'does-not-exist',
     });
     const button = screen.getByRole('button', { name: textMock('ux_editor.modal_text') });
-    await act(() => user.click(button));
+    await user.click(button);
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
   });
 
@@ -69,13 +66,13 @@ describe('EditTextResourceBindings component', () => {
       handleComponentChange,
     });
     const button = screen.getByRole('button', { name: textMock('ux_editor.modal_text') });
-    await act(() => user.click(button));
+    await user.click(button);
     const searchTabLabel = textMock('ux_editor.text_resource_binding_search');
     const searchTab = screen.getByRole('tab', { name: searchTabLabel });
-    await act(() => user.click(searchTab));
+    await user.click(searchTab);
     const select = screen.getByRole('combobox');
-    await act(() => user.click(select));
-    await act(() => user.click(screen.getByRole('option', { name: textResources[1].id })));
+    await user.click(select);
+    await user.click(screen.getByRole('option', { name: textResources[1].id }));
 
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
     expect(handleComponentChange).toHaveBeenCalledWith({
@@ -96,8 +93,8 @@ describe('EditTextResourceBindings component', () => {
       removeTextResourceBinding,
     });
     const button = screen.getByRole('button', { name: textMock('ux_editor.modal_text') });
-    await act(() => user.click(button));
-    await act(() => user.click(screen.getByRole('button', { name: textMock('general.delete') })));
+    await user.click(button);
+    await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...mockComponent,
@@ -107,11 +104,9 @@ describe('EditTextResourceBindings component', () => {
   });
 
   const waitForData = async () => {
-    const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
-      .renderHookResult.result;
-    const { result } = renderHookWithMockStore(
-      {},
-      {
+    const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
+    const result = renderHookWithProviders(() => useTextResourcesQuery(org, app), {
+      queries: {
         getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
         getTextResources: (_o, _a, lang) =>
           Promise.resolve<ITextResourcesWithLanguage>({
@@ -119,7 +114,7 @@ describe('EditTextResourceBindings component', () => {
             resources: textResources,
           }),
       },
-    )(() => useTextResourcesQuery(org, app)).renderHookResult;
+    }).result;
     await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
   };
@@ -133,7 +128,7 @@ describe('EditTextResourceBindings component', () => {
   }: Partial<EditTextResourceBindingProps>) => {
     await waitForData();
 
-    return renderWithMockStore()(
+    return renderWithProviders(
       <EditTextResourceBinding
         component={component}
         handleComponentChange={handleComponentChange}

@@ -8,12 +8,12 @@ import {
   mockRepository2,
 } from 'app-development/layout/SettingsModalButton/SettingsModal/mocks/repositoryMock';
 import { formatDateToDateAndTimeString } from 'app-development/utils/dateUtils';
-import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const mockAuthorName: string = 'Mock Mockesen';
 
 const defaultProps: CreatedForProps = {
-  repositoryType: RepositoryType.Datamodels,
+  repositoryType: RepositoryType.DataModels,
   repository: mockRepository1,
   authorName: mockAuthorName,
 };

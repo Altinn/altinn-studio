@@ -10,77 +10,75 @@ import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import type { User } from 'app-shared/types/Repository';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { RepositoryType } from 'app-shared/types/global';
+import { useSelectedFormLayoutSetName, useSelectedFormLayoutName } from '@altinn/ux-editor/hooks';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 
 type SubMenuContentProps = {
-  org: string;
-  app: string;
+  hasRepoError?: boolean;
 };
 
-export const subMenuContent = ({ org, app }: SubMenuContentProps) => {
+export const SubMenuContent = ({ hasRepoError }: SubMenuContentProps): React.ReactElement => {
+  const { org, app } = useStudioEnvironmentParams();
   const repositoryType = getRepositoryType(org, app);
+  const { doReloadPreview } = usePreviewContext();
+
   return (
     <GiteaHeader
-      org={org}
-      app={app}
       hasCloneModal
-      leftComponent={
-        repositoryType !== RepositoryType.Datamodels && <SettingsModalButton org={org} app={app} />
-      }
+      leftComponent={repositoryType !== RepositoryType.DataModels && <SettingsModalButton />}
+      hasRepoError={hasRepoError}
+      onPullSuccess={doReloadPreview}
     />
   );
 };
 
-export const buttonActions = (org: string, app: string): AltinnButtonActionItem[] => {
+export const buttonActions = (
+  org: string,
+  app: string,
+  selectedFormLayoutName: string,
+): AltinnButtonActionItem[] => {
   const packagesRouter = new PackagesRouter({ org, app });
 
-  const actions: AltinnButtonActionItem[] = [
+  return [
     {
-      title: 'top_menu.preview',
       menuKey: TopBarMenu.Preview,
-      to: packagesRouter.getPackageNavigationUrl('preview'),
+      to: `${packagesRouter.getPackageNavigationUrl('preview')}${selectedFormLayoutName ? `?layout=${selectedFormLayoutName}` : ''}`,
       isInverted: true,
     },
     {
-      title: 'top_menu.deploy',
       menuKey: TopBarMenu.Deploy,
       to: packagesRouter.getPackageNavigationUrl('editorPublish'),
     },
   ];
-  return actions;
 };
 
 type PageHeaderProps = {
-  org: string;
-  app: string;
   showSubMenu: boolean;
   user: User;
   repoOwnerIsOrg: boolean;
   isRepoError?: boolean;
 };
 
-export const PageHeader = ({
-  org,
-  app,
-  showSubMenu,
-  user,
-  repoOwnerIsOrg,
-  isRepoError,
-}: PageHeaderProps) => {
+export const PageHeader = ({ showSubMenu, user, repoOwnerIsOrg, isRepoError }: PageHeaderProps) => {
+  const { org, app } = useStudioEnvironmentParams();
   const repoType = getRepositoryType(org, app);
   const repository = useAppSelector((state) => state.serviceInformation.repositoryInfo);
   const menuItems = getFilteredTopBarMenu(repoType);
+  const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
+  const { selectedFormLayoutName } = useSelectedFormLayoutName(selectedFormLayoutSetName);
 
   return (
     <AltinnHeader
       menuItems={!isRepoError && menuItems}
-      showSubMenu={showSubMenu && !isRepoError}
-      subMenuContent={!isRepoError && subMenuContent({ org, app })}
+      showSubMenu={showSubMenu || !isRepoError}
+      subMenuContent={<SubMenuContent hasRepoError={isRepoError} />}
       org={org}
       app={!isRepoError && app}
       user={user}
       repository={repository}
       repoOwnerIsOrg={repoOwnerIsOrg}
-      buttonActions={!isRepoError && buttonActions(org, app)}
+      buttonActions={!isRepoError && buttonActions(org, app, selectedFormLayoutName)}
     />
   );
 };

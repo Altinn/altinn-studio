@@ -1,28 +1,27 @@
 import React from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
 import type { IFormComponentProps } from './FormComponent';
 import { FormComponent } from './FormComponent';
 import {
-  renderHookWithMockStore,
-  renderWithMockStore,
+  renderHookWithProviders,
+  renderWithProviders,
   textLanguagesMock,
 } from '../../testing/mocks';
 import { component1IdMock, component1Mock } from '../../testing/layoutMock';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import type { ITextResource } from 'app-shared/types/global';
 import { useDeleteFormComponentMutation } from '../../hooks/mutations/useDeleteFormComponentMutation';
 import type { UseMutationResult } from '@tanstack/react-query';
 import type { IInternalLayout } from '../../types/global';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const testTextResourceKey = 'test-key';
 const testTextResourceValue = 'test-value';
 const emptyTextResourceKey = 'empty-key';
@@ -54,7 +53,7 @@ describe('FormComponent', () => {
     await render();
 
     const component = screen.getByRole('listitem');
-    await act(() => user.click(component));
+    await user.click(component);
 
     expect(handleSaveMock).toHaveBeenCalledTimes(1);
     expect(handleEditMock).toHaveBeenCalledTimes(1);
@@ -67,7 +66,7 @@ describe('FormComponent', () => {
       await render();
 
       const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
-      await act(() => user.click(deleteButton));
+      await user.click(deleteButton);
 
       const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
@@ -88,12 +87,12 @@ describe('FormComponent', () => {
       await render();
 
       const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
-      await act(() => user.click(deleteButton));
+      await user.click(deleteButton);
 
       const confirmButton = screen.getByRole('button', {
         name: textMock('ux_editor.component_deletion_confirm'),
       });
-      await act(() => user.click(confirmButton));
+      await user.click(confirmButton);
 
       expect(mockDeleteFormComponent).toHaveBeenCalledWith(component1IdMock);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
@@ -103,10 +102,10 @@ describe('FormComponent', () => {
       await render();
 
       const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
-      await act(() => user.click(deleteButton));
+      await user.click(deleteButton);
 
       const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
-      await act(() => user.click(cancelButton));
+      await user.click(cancelButton);
 
       expect(mockDeleteFormComponent).toHaveBeenCalledTimes(0);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
@@ -116,12 +115,12 @@ describe('FormComponent', () => {
       await render({ isEditMode: true, handleDiscard: handleDiscardMock });
 
       const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
-      await act(() => user.click(deleteButton));
+      await user.click(deleteButton);
 
       const confirmButton = screen.getByRole('button', {
         name: textMock('ux_editor.component_deletion_confirm'),
       });
-      await act(() => user.click(confirmButton));
+      await user.click(confirmButton);
 
       expect(mockDeleteFormComponent).toHaveBeenCalledTimes(1);
       expect(handleDiscardMock).toHaveBeenCalledTimes(1);
@@ -132,9 +131,9 @@ describe('FormComponent', () => {
       await render();
 
       const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
-      await act(() => user.click(deleteButton));
+      await user.click(deleteButton);
 
-      await act(() => user.click(document.body));
+      await user.click(document.body);
 
       expect(mockDeleteFormComponent).toHaveBeenCalledTimes(0);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
@@ -201,15 +200,14 @@ describe('FormComponent', () => {
 });
 
 const waitForData = async () => {
-  const { result: texts } = renderHookWithMockStore(
-    {},
-    {
+  const { result: texts } = renderHookWithProviders(() => useTextResourcesQuery(org, app), {
+    queries: {
       getTextResources: jest
         .fn()
         .mockImplementation(() => Promise.resolve({ language: 'nb', resources: nbTextResources })),
       getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
     },
-  )(() => useTextResourcesQuery(org, app)).renderHookResult;
+  });
   await waitFor(() => expect(texts.current.isSuccess).toBe(true));
 };
 
@@ -227,7 +225,7 @@ const render = async (props: Partial<IFormComponentProps> = {}) => {
 
   await waitForData();
 
-  return renderWithMockStore()(
+  return renderWithProviders(
     <DndProvider backend={HTML5Backend}>
       <FormComponent {...allProps} />
     </DndProvider>,

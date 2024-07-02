@@ -1,8 +1,8 @@
 import React from 'react';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BPMNViewerErrorAlert } from './BPMNViewerErrorAlert';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('Viewer', () => {
   afterEach(jest.clearAllMocks);
@@ -11,8 +11,7 @@ describe('Viewer', () => {
     const user = userEvent.setup();
     render(<BPMNViewerErrorAlert bpmnViewerError='noDiagram' />);
 
-    // Fix to remove act error
-    await act(() => user.tab());
+    await user.tab();
 
     const heading = screen.getByRole('heading', {
       name: textMock('process_editor.not_found_diagram_heading'),
@@ -27,8 +26,7 @@ describe('Viewer', () => {
     const user = userEvent.setup();
     render(<BPMNViewerErrorAlert bpmnViewerError='noProcess' />);
 
-    // Fix to remove act error
-    await act(() => user.tab());
+    await user.tab();
 
     const heading = screen.getByRole('heading', {
       name: textMock('process_editor.not_found_process_heading'),
@@ -43,8 +41,7 @@ describe('Viewer', () => {
     const user = userEvent.setup();
     render(<BPMNViewerErrorAlert bpmnViewerError='unknown' />);
 
-    // Fix to remove act error
-    await act(() => user.tab());
+    await user.tab();
 
     const heading = screen.getByRole('heading', {
       name: textMock('process_editor.unknown_heading_error_message'),

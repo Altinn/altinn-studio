@@ -9,9 +9,12 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Repository;
+using Altinn.Studio.Designer.Repository.ORMImplementation;
+using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -41,10 +44,20 @@ namespace Altinn.Studio.Designer.Infrastructure
 
             services.AddSingleton(configuration);
 
-            services.AddScoped<IReleaseRepository, ReleaseRepository>();
-            services.AddScoped<IDeploymentRepository, DeploymentRepository>();
+            services.AddDbContext<DesignerdbContext>(options =>
+            {
+                PostgreSQLSettings postgresSettings = configuration.GetSection(nameof(PostgreSQLSettings)).Get<PostgreSQLSettings>();
+                string connectionString = string.Format(
+                    postgresSettings.ConnectionString,
+                    postgresSettings.DesignerDbPwd);
+                options.UseNpgsql(connectionString);
+            });
+
+            services.AddScoped<IReleaseRepository, ORMReleaseRepository>();
+            services.AddScoped<IDeploymentRepository, ORMDeploymentRepository>();
             services.AddTransient<IReleaseService, ReleaseService>();
             services.AddTransient<IDeploymentService, DeploymentService>();
+            services.AddTransient<IKubernetesDeploymentsService, KubernetesDeploymentsService>();
             services.AddTransient<IApplicationInformationService, ApplicationInformationService>();
             services.AddTransient<IApplicationMetadataService, ApplicationMetadataService>();
             services.AddTransient<IAuthorizationPolicyService, AuthorizationPolicyService>();

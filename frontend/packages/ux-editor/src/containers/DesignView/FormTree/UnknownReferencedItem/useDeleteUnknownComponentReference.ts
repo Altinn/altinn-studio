@@ -1,23 +1,29 @@
-﻿import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from '../../../../hooks/useAppContext';
-import { useSelectedFormLayoutWithName } from '../../../../hooks';
+﻿import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useSelectedFormLayoutWithName, useAppContext } from '../../../../hooks';
 import { useFormLayoutMutation } from '../../../../hooks/mutations/useFormLayoutMutation';
 import { removeComponent } from '../../../../utils/formLayoutUtils';
 import type { IInternalLayout } from '../../../../types/global';
 
 export const useDeleteUnknownComponentReference = () => {
-  const { org, app } = useStudioUrlParams();
-  const { selectedLayoutSet } = useAppContext();
+  const { org, app } = useStudioEnvironmentParams();
+  const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
   const { layoutName } = useSelectedFormLayoutWithName();
   const { mutateAsync: updateFormLayoutMutation } = useFormLayoutMutation(
     org,
     app,
     layoutName,
-    selectedLayoutSet,
+    selectedFormLayoutSetName,
   );
 
   return async (layout: IInternalLayout, id: string): Promise<IInternalLayout> => {
     const updatedLayout = removeComponent(layout, id);
-    return await updateFormLayoutMutation(updatedLayout);
+    return await updateFormLayoutMutation(
+      { internalLayout: updatedLayout },
+      {
+        onSuccess: async () => {
+          await refetchLayouts(selectedFormLayoutSetName);
+        },
+      },
+    );
   };
 };

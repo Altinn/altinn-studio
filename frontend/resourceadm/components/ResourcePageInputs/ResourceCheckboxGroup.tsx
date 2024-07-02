@@ -4,8 +4,13 @@ import { Checkbox } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 import { ResourceFieldHeader } from './ResourceFieldHeader';
+import type { ResourceFormError } from 'app-shared/types/ResourceAdm';
 
 type ResourceCheckboxGroupProps = {
+  /**
+   * The field id, used by ErrorSummary
+   */
+  id: string;
   /**
    * The options to display in the checkbox group
    */
@@ -19,9 +24,9 @@ type ResourceCheckboxGroupProps = {
    */
   description: string;
   /**
-   * If the errors should be shown
+   * Field errors
    */
-  showErrors: boolean;
+  errors: ResourceFormError[];
   /**
    * Function to be executed when the field is focused
    * @returns void
@@ -47,10 +52,11 @@ type ResourceCheckboxGroupProps = {
  * @component
  *    Displays the checkbox group in the about resource page
  *
+ * @property {string}[id] - The field id, used by ErrorSummary
  * @property {{value: string, label: string}[]}[options] - The options to display in the checkbox group
  * @property {string}[legend] - The legend of the group
  * @property {string}[description] - The description of the group
- * @property {boolean}[showErrors] - If the errors should be shown
+ * @property {ResourceFormError[]}[errors] -  Field errors
  * @property {function}[onChange] - Fucntion to execute on change
  * @property {function}[onFocus] - Function to be executed when the field is focused
  * @property {string[]}[value] - The selected options
@@ -59,10 +65,11 @@ type ResourceCheckboxGroupProps = {
  * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceCheckboxGroup = ({
+  id,
   options,
   legend,
   description,
-  showErrors,
+  errors,
   onFocus,
   onChange,
   value,
@@ -78,20 +85,18 @@ export const ResourceCheckboxGroup = ({
     ));
   };
 
+  const fieldErrors = errors.map((error, index) => (
+    <InputFieldErrorMessage key={index} message={error.error} />
+  ));
+
   return (
     <div className={classes.inputWrapper}>
       <Checkbox.Group
+        id={id}
         legend={<ResourceFieldHeader label={legend} required={required} />}
-        aria-required={required}
         description={description}
         size='small'
-        error={
-          showErrors && value.length === 0 ? (
-            <InputFieldErrorMessage
-              message={t('resourceadm.about_resource_available_for_error_message')}
-            />
-          ) : undefined
-        }
+        error={fieldErrors.length > 0 ? fieldErrors : undefined}
         onChange={onChange}
         onFocus={onFocus}
         value={value}

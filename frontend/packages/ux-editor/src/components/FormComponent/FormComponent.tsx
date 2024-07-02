@@ -8,16 +8,15 @@ import type { ConnectDragSource } from 'react-dnd';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { DragHandle } from './DragHandle';
 import type { ITextResource } from 'app-shared/types/global';
-import { TrashIcon } from '@navikt/aksel-icons';
+import { TrashIcon } from '@studio/icons';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { getComponentTitleByComponentType, getTextResource, truncate } from '../../utils/language';
 import { textResourcesByLanguageSelector } from '../../selectors/textResourceSelectors';
 import { useDeleteFormComponentMutation } from '../../hooks/mutations/useDeleteFormComponentMutation';
-import { useTextResourcesSelector } from '../../hooks';
+import { useTextResourcesSelector, useAppContext } from '../../hooks';
 import { useTranslation } from 'react-i18next';
 import { AltinnConfirmDialog } from 'app-shared/components';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from '../../hooks/useAppContext';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export interface IFormComponentProps {
   component: IFormComponent;
@@ -40,19 +39,19 @@ export const FormComponent = memo(function FormComponent({
   isEditMode,
 }: IFormComponentProps) {
   const { t } = useTranslation();
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
 
   const textResources: ITextResource[] = useTextResourcesSelector<ITextResource[]>(
     textResourcesByLanguageSelector(DEFAULT_LANGUAGE),
   );
-  const { selectedLayoutSet } = useAppContext();
+  const { selectedFormLayoutSetName } = useAppContext();
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
   const Icon = formItemConfigs[component.type]?.icon;
 
   const { mutate: deleteFormComponent } = useDeleteFormComponentMutation(
     org,
     app,
-    selectedLayoutSet,
+    selectedFormLayoutSetName,
   );
 
   const handleDelete = (): void => {

@@ -1,24 +1,24 @@
 import React from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PanelComponent } from './PanelComponent';
 import type { FormComponent } from '../../../../types/FormComponent';
 import {
   formLayoutSettingsMock,
-  renderHookWithMockStore,
-  renderWithMockStore,
+  renderHookWithProviders,
+  renderWithProviders,
 } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
+import { app, org } from '@studio/testing/testids';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 
 const component: FormComponent<ComponentType.Panel> = {
   id: '',
@@ -37,15 +37,14 @@ const waitForData = async () => {
   const getFormLayoutSettings = jest
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
-  const formLayoutsResult = renderHookWithMockStore()(() =>
+  const formLayoutsResult = renderHookWithProviders(() =>
     useFormLayoutsQuery(org, app, selectedLayoutSet),
-  ).renderHookResult.result;
-  const settingsResult = renderHookWithMockStore(
-    {},
-    { getFormLayoutSettings },
-  )(() => useFormLayoutSettingsQuery(org, app, selectedLayoutSet)).renderHookResult.result;
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
-    .renderHookResult.result;
+  ).result;
+  const settingsResult = renderHookWithProviders(
+    () => useFormLayoutSettingsQuery(org, app, selectedLayoutSet),
+    { queries: { getFormLayoutSettings } },
+  ).result;
+  const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
@@ -53,7 +52,7 @@ const waitForData = async () => {
 
 const render = async () => {
   await waitForData();
-  renderWithMockStore()(
+  renderWithProviders(
     <PanelComponent component={component} handleComponentChange={mockHandleComponentChange} />,
   );
 };
@@ -66,7 +65,7 @@ describe('PanelComponent', () => {
 
     const checkbox = screen.getByLabelText(textMock('ux_editor.show_icon'));
 
-    await act(() => user.click(checkbox));
+    await user.click(checkbox);
 
     expect(mockHandleComponentChange).toHaveBeenCalledTimes(1);
     expect(mockHandleComponentChange).toHaveBeenCalledWith({ ...component, showIcon: true });
@@ -78,8 +77,8 @@ describe('PanelComponent', () => {
     const select = screen.getByRole('combobox', {
       name: textMock('ux_editor.choose_variant'),
     });
-    await act(() => user.click(select));
-    await act(() => user.click(screen.getAllByRole('option')[1]));
+    await user.click(select);
+    await user.click(screen.getAllByRole('option')[1]);
 
     expect(mockHandleComponentChange).toHaveBeenCalledTimes(1);
     expect(mockHandleComponentChange).toHaveBeenCalledWith({

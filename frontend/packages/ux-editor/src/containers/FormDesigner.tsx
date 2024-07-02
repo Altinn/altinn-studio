@@ -1,11 +1,10 @@
-import React, { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import React from 'react';
 import { Properties } from '../components/Properties';
 import { DesignView } from './DesignView';
 import classes from './FormDesigner.module.css';
 import { Elements } from '../components/Elements';
 import { useFormItemContext } from './FormItemContext';
-import { useText } from '../hooks';
+import { useAppContext, useText } from '../hooks';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
 import { useRuleModelQuery } from '../hooks/queries/useRuleModelQuery';
@@ -14,7 +13,7 @@ import { StudioPageSpinner } from '@studio/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { HandleAdd, HandleMove } from 'app-shared/types/dndTypes';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { generateComponentId } from '../utils/generateId';
@@ -27,48 +26,46 @@ import {
 } from '../utils/formLayoutUtils';
 import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
-import { useSearchParams } from 'react-router-dom';
-import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { Preview } from '../components/Preview';
-import { setSelectedLayoutInLocalStorage } from '../utils/localStorageUtils';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 
-export interface FormDesignerProps {
-  selectedLayout: string;
-  selectedLayoutSet: string;
-}
-
-export const FormDesigner = ({
-  selectedLayout,
-  selectedLayoutSet,
-}: FormDesignerProps): JSX.Element => {
-  const dispatch = useDispatch();
-  const { org, app } = useStudioUrlParams();
+export const FormDesigner = (): JSX.Element => {
+  const { org, app } = useStudioEnvironmentParams();
   const { data: instanceId } = useInstanceIdQuery(org, app);
+  const { selectedFormLayoutSetName, selectedFormLayoutName, refetchLayouts } = useAppContext();
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(
     org,
     app,
-    selectedLayoutSet,
+    selectedFormLayoutSetName,
   );
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
-  const { data: ruleModel } = useRuleModelQuery(org, app, selectedLayoutSet);
-  const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(org, app, selectedLayoutSet);
-  const { mutate: addItemToLayout } = useAddItemToLayoutMutation(org, app, selectedLayoutSet);
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
+  const { data: ruleModel } = useRuleModelQuery(org, app, selectedFormLayoutSetName);
+  const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
+  const { mutate: addItemToLayout } = useAddItemToLayoutMutation(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
   const { mutate: updateFormLayout } = useFormLayoutMutation(
     org,
     app,
-    selectedLayout,
-    selectedLayoutSet,
+    selectedFormLayoutName,
+    selectedFormLayoutSetName,
   );
-  const [searchParams] = useSearchParams();
   const { handleEdit } = useFormItemContext();
-
-  const layoutPagesOrder = formLayoutSettings?.pages.order;
 
   const t = useText();
 
   const formLayoutIsReady =
-    selectedLayoutSet &&
+    selectedFormLayoutSetName &&
     instanceId &&
     formLayouts &&
     formLayoutSettings &&
@@ -89,26 +86,6 @@ export const FormDesigner = ({
     }
   };
 
-  /**
-   * Set the correct selected layout based on url parameters
-   */
-  useEffect(() => {
-    const searchParamsLayout = searchParams.get('layout');
-
-    const isValidLayout = (layoutName: string): boolean => {
-      const isExistingLayout = layoutPagesOrder?.includes(layoutName);
-      const isReceipt = formLayoutSettings?.receiptLayoutName === layoutName;
-      return isExistingLayout || isReceipt;
-    };
-
-    if (isValidLayout(searchParamsLayout)) {
-      dispatch(FormLayoutActions.updateSelectedLayout(searchParamsLayout));
-      setSelectedLayoutInLocalStorage(instanceId, searchParamsLayout);
-      dispatch(FormLayoutActions.updateSelectedLayout(searchParamsLayout));
-      return;
-    }
-  }, [dispatch, formLayoutSettings?.receiptLayoutName, instanceId, layoutPagesOrder, searchParams]);
-
   if (layoutFetchedError) {
     const mappedError = mapErrorToDisplayError();
     return <ErrorPage title={mappedError.title} message={mappedError.message} />;
@@ -117,7 +94,7 @@ export const FormDesigner = ({
   if (formLayoutIsReady) {
     const triggerDepthAlert = () => alert(t('schema_editor.depth_error'));
     const triggerInvalidChildAlert = () => alert(t('schema_editor.invalid_child_error'));
-    const layout = formLayouts[selectedLayout];
+    const layout = formLayouts[selectedFormLayoutName];
 
     const addItem: HandleAdd<ComponentType> = (type, { parentId, index }) => {
       const newId = generateComponentId(type, formLayouts);
@@ -131,7 +108,14 @@ export const FormDesigner = ({
         triggerDepthAlert();
         return;
       }
-      addItemToLayout({ componentType: type, newId, parentId, index });
+      addItemToLayout(
+        { componentType: type, newId, parentId, index },
+        {
+          onSuccess: async () => {
+            await refetchLayouts(selectedFormLayoutSetName);
+          },
+        },
+      );
       handleEdit(getItem(updatedLayout, newId));
     };
     const moveItem: HandleMove = (id, { parentId, index }) => {
@@ -145,7 +129,14 @@ export const FormDesigner = ({
         triggerDepthAlert();
         return;
       }
-      updateFormLayout(updatedLayout);
+      updateFormLayout(
+        { internalLayout: updatedLayout },
+        {
+          onSuccess: async () => {
+            await refetchLayouts(selectedFormLayoutSetName);
+          },
+        },
+      );
     };
 
     return (

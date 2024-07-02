@@ -1,14 +1,14 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderHookWithMockStore } from '../../testing/mocks';
+import { renderHookWithProviders } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import { useDeleteFormComponentMutation } from './useDeleteFormComponentMutation';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
-import { component2IdMock, layout1NameMock } from '../../testing/layoutMock';
+import { component2IdMock, layout1NameMock } from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 
 describe('useDeleteFormComponentMutation', () => {
   it('Should save layout without deleted component', async () => {
@@ -20,21 +20,27 @@ describe('useDeleteFormComponentMutation', () => {
       app,
       layout1NameMock,
       selectedLayoutSet,
-      expect.objectContaining({
-        data: expect.objectContaining({
-          layout: expect.not.arrayContaining([expect.objectContaining({ id: component2IdMock })]),
+      {
+        componentIdsChange: [
+          {
+            newComponentId: undefined,
+            oldComponentId: component2IdMock,
+          },
+        ],
+        layout: expect.objectContaining({
+          data: expect.objectContaining({
+            layout: expect.not.arrayContaining([expect.objectContaining({ id: component2IdMock })]),
+          }),
         }),
-      }),
+      },
     );
   });
 });
 
 const renderDeleteFormComponentsMutation = async () => {
-  const formLayoutsResult = renderHookWithMockStore()(() =>
+  const formLayoutsResult = renderHookWithProviders(() =>
     useFormLayoutsQuery(org, app, selectedLayoutSet),
-  ).renderHookResult.result;
+  ).result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
-  return renderHookWithMockStore()(() =>
-    useDeleteFormComponentMutation(org, app, selectedLayoutSet),
-  ).renderHookResult;
+  return renderHookWithProviders(() => useDeleteFormComponentMutation(org, app, selectedLayoutSet));
 };

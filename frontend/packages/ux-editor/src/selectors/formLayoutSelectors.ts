@@ -1,13 +1,9 @@
 import type {
-  AppStateSelector,
   FormLayoutsSelector,
   IFormDesignerComponents,
   IFormDesignerContainers,
   IFormLayoutOrder,
 } from '../types/global';
-
-export const selectedLayoutNameSelector: AppStateSelector<string> = (state) =>
-  state.formDesigner.layout.selectedLayout;
 
 export const getAllLayoutContainers: FormLayoutsSelector<IFormDesignerContainers> = (
   formLayoutsData,

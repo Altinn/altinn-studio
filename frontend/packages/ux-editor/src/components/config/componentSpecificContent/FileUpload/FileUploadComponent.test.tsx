@@ -1,12 +1,12 @@
 import React from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
-import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
+import { renderWithProviders, renderHookWithProviders } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { FileUploadComponent } from './FileUploadComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormFileUploaderComponent } from '../../../../types/FormComponent';
-import { waitFor, screen, act } from '@testing-library/react';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { waitFor, screen } from '@testing-library/react';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 // Test data:
@@ -127,9 +127,7 @@ describe('FileUploadComponent', () => {
     });
     expect(radioButtonForCustomFile).not.toBeChecked();
 
-    await act(async () => {
-      await user.click(radioButtonForCustomFile);
-    });
+    await user.click(radioButtonForCustomFile);
 
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...component,
@@ -139,13 +137,12 @@ describe('FileUploadComponent', () => {
 });
 
 const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
-    .renderHookResult.result;
+  const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
 const render = async (props?: Partial<IGenericEditComponent<ComponentType.FileUpload>>) => {
   await waitForData();
 
-  return renderWithMockStore()(<FileUploadComponent {...defaultProps} {...props} />);
+  return renderWithProviders(<FileUploadComponent {...defaultProps} {...props} />);
 };

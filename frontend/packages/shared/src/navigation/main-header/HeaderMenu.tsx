@@ -8,7 +8,7 @@ import classes from './HeaderMenu.module.css';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
-import * as testids from '../../../../../testing/testids';
+import { orgMenuItemId, userMenuItemId } from '@studio/testing/testids';
 
 export type HeaderMenuProps = {
   org: string;
@@ -39,6 +39,7 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
     post(url).then(() => {
       window.location.assign(`${altinnWindow.location.origin}/Home/Logout`);
     });
+    sessionStorage.clear();
     return true;
   };
 
@@ -94,7 +95,7 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
         {selectableOrgs?.map((selectableOrg) => {
           return (
             <MenuItem
-              data-testid={testids.orgMenuItem(selectableOrg.username)}
+              data-testid={orgMenuItemId(selectableOrg.username)}
               selected={selectedContext === selectableOrg.username}
               key={selectableOrg.id}
               onClick={() => handleSetSelectedContext(selectableOrg.username)}
@@ -104,9 +105,9 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
           );
         })}
         <MenuItem
-          data-testid={testids.userMenuItem}
+          data-testid={userMenuItemId}
           selected={selectedContext === SelectedContextType.Self}
-          onClick={() => handleSetSelectedContext('')}
+          onClick={() => handleSetSelectedContext(SelectedContextType.Self)}
         >
           {user?.full_name || user?.login}
         </MenuItem>

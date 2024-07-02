@@ -1,19 +1,11 @@
 import React from 'react';
-import { act, render as rtlRender, screen } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IProfileMenuComponentProps } from './ProfileMenu';
 import { ProfileMenu } from './ProfileMenu';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
-
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'), // use actual for all non-hook parts
-  useParams: () => ({
-    org: 'company-id1',
-    app: 'app-id1',
-  }),
-}));
 
 const render = (props: Partial<IProfileMenuComponentProps> = {}) => {
   const allProps = {
@@ -54,7 +46,7 @@ describe('ProfileMenu', () => {
       name: textMock('general.profile_icon'),
     });
     expect(profileBtn).toBeInTheDocument();
-    await act(() => user.click(profileBtn));
+    await user.click(profileBtn);
 
     expect(
       screen.getByRole('menuitem', { name: textMock('sync_header.documentation') }),
@@ -83,7 +75,7 @@ describe('ProfileMenu', () => {
     ).not.toBeInTheDocument();
 
     const profileBtn = screen.getByRole('img', { name: textMock('general.profile_icon') });
-    await act(() => user.click(profileBtn));
+    await user.click(profileBtn);
 
     expect(
       screen.getByRole('link', { name: textMock('sync_header.documentation') }),

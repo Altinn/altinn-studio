@@ -1,15 +1,15 @@
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { AccessListDetailProps } from './AccessListDetail';
 import { AccessListDetail } from './AccessListDetail';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 const mockedNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
@@ -27,15 +27,14 @@ const defaultProps: AccessListDetailProps = {
   list: {
     env: testEnv,
     identifier: testListIdentifier,
+    etag: '',
     name: 'Test-list',
     description: 'This is a description',
-    members: [],
   },
   backUrl: '/listadmin',
 };
 
-const updateAccessListMock = jest.fn();
-const addAccessListMemberMock = jest.fn();
+const updateAccessListMock = jest.fn().mockImplementation(() => Promise.resolve({}));
 
 describe('AccessListDetail', () => {
   afterEach(jest.clearAllMocks);
@@ -45,13 +44,31 @@ describe('AccessListDetail', () => {
     renderAccessListDetail({}, { updateAccessList: updateAccessListMock });
 
     const nameField = screen.getByLabelText(textMock('resourceadm.listadmin_list_name'));
-    await act(() => user.type(nameField, ' change'));
-    await act(() => nameField.blur());
+    await user.type(nameField, ' change');
+    await waitFor(() => nameField.blur());
 
     expect(updateAccessListMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, {
       ...defaultProps.list,
       name: 'Test-list change',
     });
+  });
+
+  it('should show error message if call to update name returns http status code 412', async () => {
+    const user = userEvent.setup();
+    const updateMock = jest.fn().mockImplementation(() =>
+      Promise.reject({
+        response: { status: ServerCodes.PreconditionFailed },
+      }),
+    );
+    renderAccessListDetail({}, { updateAccessList: updateMock });
+
+    const nameField = screen.getByLabelText(textMock('resourceadm.listadmin_list_name'));
+    await user.type(nameField, ' change');
+    await waitFor(() => nameField.blur());
+
+    expect(
+      screen.getByText(textMock('resourceadm.listadmin_list_sim_update_error')),
+    ).toBeInTheDocument();
   });
 
   it('should call service to update description', async () => {
@@ -61,8 +78,8 @@ describe('AccessListDetail', () => {
     const descriptionField = screen.getByLabelText(
       textMock('resourceadm.listadmin_list_description'),
     );
-    await act(() => user.type(descriptionField, ' change'));
-    await act(() => descriptionField.blur());
+    await user.type(descriptionField, ' change');
+    await waitFor(() => descriptionField.blur());
 
     expect(updateAccessListMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, {
       ...defaultProps.list,
@@ -77,8 +94,8 @@ describe('AccessListDetail', () => {
     const descriptionField = screen.getByLabelText(
       textMock('resourceadm.listadmin_list_description'),
     );
-    await act(() => user.clear(descriptionField));
-    await act(() => descriptionField.blur());
+    await user.clear(descriptionField);
+    await waitFor(() => descriptionField.blur());
 
     expect(updateAccessListMock).toHaveBeenCalledWith(testOrg, testListIdentifier, testEnv, {
       ...defaultProps.list,
@@ -88,26 +105,46 @@ describe('AccessListDetail', () => {
 
   it('should navigate back after list is deleted', async () => {
     const user = userEvent.setup();
-    renderAccessListDetail({}, { addAccessListMember: addAccessListMemberMock });
+    renderAccessListDetail();
 
     const deleteListButton = screen.getByText(textMock('resourceadm.listadmin_delete_list'));
-    await act(() => user.click(deleteListButton));
+    await user.click(deleteListButton);
 
     const confirmDeleteButton = screen.getAllByText(textMock('resourceadm.listadmin_delete_list'));
-    await act(() => user.click(confirmDeleteButton[0]));
+    await user.click(confirmDeleteButton[0]);
 
     expect(mockedNavigate).toHaveBeenCalledWith('/listadmin');
   });
 
-  it('should close modal on cancel delete', async () => {
+  it('should show error message if call to delete list returns http status code 412', async () => {
     const user = userEvent.setup();
-    renderAccessListDetail({}, { addAccessListMember: addAccessListMemberMock });
+    const deleteMock = jest.fn().mockImplementation(() =>
+      Promise.reject({
+        response: { status: ServerCodes.PreconditionFailed },
+      }),
+    );
+    renderAccessListDetail({}, { deleteAccessList: deleteMock });
 
     const deleteListButton = screen.getByText(textMock('resourceadm.listadmin_delete_list'));
-    await act(() => user.click(deleteListButton));
+    await user.click(deleteListButton);
+
+    const confirmDeleteButton = screen.getAllByText(textMock('resourceadm.listadmin_delete_list'));
+    await user.click(confirmDeleteButton[0]);
+
+    expect(
+      screen.getByText(textMock('resourceadm.listadmin_list_sim_update_error')),
+    ).toBeInTheDocument();
+  });
+
+  it('should close modal on cancel delete', async () => {
+    const user = userEvent.setup();
+    renderAccessListDetail();
+
+    const deleteListButton = screen.getByText(textMock('resourceadm.listadmin_delete_list'));
+    await user.click(deleteListButton);
 
     const cancelDeleteButton = screen.getByText(textMock('general.cancel'));
-    await act(() => user.click(cancelDeleteButton));
+    await user.click(cancelDeleteButton);
 
     expect(
       screen.queryByText(textMock('resourceadm.listadmin_delete_list_header')),

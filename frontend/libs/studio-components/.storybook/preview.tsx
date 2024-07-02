@@ -5,15 +5,17 @@ import { Unstyled } from '@storybook/blocks';
 
 import '@altinn/figma-design-tokens/dist/tokens.css';
 import '@digdir/design-system-tokens/brand/altinn/tokens.css';
+import '@digdir/designsystemet-css';
 
 const preview: Preview = {
   parameters: {
+    layout: 'centered',
+    actions: { argTypesRegex: '^on.*' },
     controls: {
-      matchers: {
-        color: /(background|color)$/i,
-        date: /Date$/i,
-      },
+      default: 'expanded',
+      expanded: true,
     },
+
     docs: {
       container: ({ children, context }) => (
         <DocsContainer context={context}>

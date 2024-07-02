@@ -1,51 +1,48 @@
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 
+const EnvOrder = ['prod', 'tt02', 'at21', 'at22', 'at23', 'at24', 'gitea'];
 /**
- * Maps a string from the format sent from backend, e.g.,
- * '2023-06-14T13:35:00+02:00' to dd.mm.yyyy.
+ * Sorts a resource list by the date so the newest is at the top
  *
- * @param dateString the string to map
+ * @param resourceList the list to sort
  *
- * @returns a formatted date
+ * @returns the sorted list
  */
-const formatDateFromBackendToDDMMYYYY = (dateString: string): string => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString().replaceAll('/', '.');
-};
-
-/**
- * Sorts a resource list by the date so the newest is at the top, then maps
- * the object correctly.
- *
- * @param resourceList the list to sort and map
- *
- * @returns the sorted and mapped list
- */
-export const sortResourceListByDateAndMap = (
-  resourceList: ResourceListItem[],
-): ResourceListItem[] => {
-  const sorted = resourceList.sort((a, b) => {
+export const sortResourceListByDate = (resourceList: ResourceListItem[]): ResourceListItem[] => {
+  const listWithSortedEnvs = resourceList.map((resource) => {
+    return {
+      ...resource,
+      environments: resource.environments.sort((a, b) => EnvOrder.indexOf(a) - EnvOrder.indexOf(b)),
+    };
+  });
+  return listWithSortedEnvs.sort((a, b) => {
     return new Date(b.lastChanged).getTime() - new Date(a.lastChanged).getTime();
   });
-
-  return sorted.map((r) => ({
-    ...r,
-    lastChanged: formatDateFromBackendToDDMMYYYY(r.lastChanged),
-  }));
 };
 
 /**
  * Maps an Altinn2LinkService object to an object with value and label to be
  * used for a Select option.
  *
- * @param linkServices the list of link services from Altinn 2
+ * @param ls the link service from Altinn 2
  *
  * @returns an object that looks like this: { value: string, label: string }
  */
-export const mapAltinn2LinkServiceToSelectOption = (linkServices: Altinn2LinkService[]) => {
-  return linkServices.map((ls: Altinn2LinkService) => ({
-    value: `${ls.externalServiceCode}-${ls.externalServiceEditionCode}-${ls.serviceName}`,
-    label: `${ls.externalServiceCode}-${ls.externalServiceEditionCode}-${ls.serviceName}`,
-  }));
+export const mapAltinn2LinkServiceToSelectOption = (ls: Altinn2LinkService) => {
+  return {
+    value: JSON.stringify(ls),
+    label: `${ls.serviceName} (${ls.externalServiceCode}/${ls.externalServiceEditionCode})`,
+  };
+};
+
+/**
+ * Maps a link service option string back to Altinn2LinkService object
+ *
+ * @param selectOption JSON string of Altinn2LinkService
+ *
+ * @returns a Altinn2LinkService object
+ */
+export const mapSelectOptiontoAltinn2LinkService = (selectOption: string): Altinn2LinkService => {
+  return JSON.parse(selectOption);
 };

@@ -11,11 +11,11 @@ export class DataModelPage extends BasePage {
   }
 
   public async loadDataModelPage(): Promise<void> {
-    await this.page.goto(this.getRoute('editorDatamodel'));
+    await this.page.goto(this.getRoute('editorDataModel'));
   }
 
   public async verifyDataModelPage(): Promise<void> {
-    await this.page.waitForURL(this.getRoute('editorDatamodel'));
+    await this.page.waitForURL(this.getRoute('editorDataModel'));
   }
 
   public async clickOnCreateNewDataModelButton(): Promise<void> {
@@ -113,11 +113,10 @@ export class DataModelPage extends BasePage {
   }
 
   public async checkThatSuccessAlertIsVisibleOnScreen(): Promise<void> {
-    await this.page
-      .getByRole('alert', {
-        name: this.textMock('schema_editor.datamodel_generation_success_message'),
-      })
-      .isVisible();
+    const alert = this.page.getByText(
+      this.textMock('schema_editor.data_model_generation_success_message'),
+    );
+    await expect(alert).toBeVisible();
   }
 
   public async checkThatDataModelOptionExists(option: string): Promise<void> {
@@ -163,7 +162,7 @@ export class DataModelPage extends BasePage {
 
   public async waitForSuccessAlertToDisappear(): Promise<void> {
     const successAlert = this.page.getByRole('alert', {
-      name: this.textMock('schema_editor.datamodel_generation_success_message'),
+      name: this.textMock('schema_editor.data_model_generation_success_message'),
     });
     await expect(successAlert).toBeHidden();
   }

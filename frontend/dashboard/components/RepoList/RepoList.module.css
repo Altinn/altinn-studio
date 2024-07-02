@@ -1,53 +1,20 @@
-.actionLink {
-  align-items: center;
-  display: flex;
-  margin-right: 1rem;
-  min-width: 40px;
+.favoriteIconHeaderCell {
+  font-size: 0; /*Hides text, but keeps it accessible for screen readers*/
+  width: 46px; /*Has to be exactly 46px to make the width the same for empty and filled table columns*/
 }
 
-.actionLink:hover {
-  text-decoration: none;
+.nameHeaderCell {
+  width: 25%;
 }
 
-.actionLink:hover span {
-  text-decoration: underline;
+.createdByHeaderCell {
+  width: 20%;
 }
 
-.dropdownIcon {
-  font-size: 2rem;
+.lastUpdatedHeaderCell {
+  width: 15%;
 }
 
-.editLink {
-  color: #165db8;
-}
-
-.editLink:hover {
-  color: #165db8;
-}
-
-.favoriteIcon {
-  font-size: 26px;
-  color: #000000;
-}
-
-.linkIcon {
-  font-size: 2rem;
-  height: 32px;
-  width: 32px;
-}
-
-.repoLink {
-  color: #57823d;
-}
-
-.repoLink:hover {
-  color: #57823d;
-}
-
-.textWithTooltip {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.columnHeader {
-  background-color: white !important;
+.actionIconsHeaderCell {
+  font-size: 0;
 }

@@ -1,5 +1,5 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderHookWithMockStore } from '../../testing/mocks';
+import { renderHookWithProviders } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { waitFor } from '@testing-library/react';
 import type { AddWidgetMutationArgs } from './useAddWidgetMutation';
@@ -8,11 +8,11 @@ import type { IWidget, IWidgetTexts } from '../../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { ITextResource } from 'app-shared/types/global';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
+import { app, org } from '@studio/testing/testids';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 const displayName = ComponentType.TextArea;
 const language = 'nb';
 const textId = 'testid';
@@ -46,14 +46,11 @@ describe('useAddWidgetMutation', () => {
 });
 
 const renderAddWidgetMutation = async () => {
-  const { result: formLayouts } = renderHookWithMockStore()(() =>
+  const { result: formLayouts } = renderHookWithProviders(() =>
     useFormLayoutsQuery(org, app, selectedLayoutSet),
-  ).renderHookResult;
+  );
   await waitFor(() => expect(formLayouts.current.isSuccess).toBe(true));
-  const { result: texts } = renderHookWithMockStore()(() =>
-    useTextResourcesQuery(org, app),
-  ).renderHookResult;
+  const { result: texts } = renderHookWithProviders(() => useTextResourcesQuery(org, app));
   await waitFor(() => expect(texts.current.isSuccess).toBe(true));
-  return renderHookWithMockStore()(() => useAddWidgetMutation(org, app, selectedLayoutSet))
-    .renderHookResult;
+  return renderHookWithProviders(() => useAddWidgetMutation(org, app, selectedLayoutSet));
 };

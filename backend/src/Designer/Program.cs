@@ -32,10 +32,9 @@ using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.FeatureManagement;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
-using Yuniql.AspNetCore;
-using Yuniql.PostgreSql;
 
 ILogger logger;
 
@@ -254,6 +253,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     // Registers all handlers and the mediator
     services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
     services.AddTransient<IFileSyncHandlerExecutor, FileSyncHandlerExecutor>();
+    services.AddFeatureManagement();
 
     logger.LogInformation("// Program.cs // ConfigureServices // Configuration complete");
 }
@@ -268,26 +268,6 @@ void Configure(IConfiguration configuration)
     else
     {
         app.UseExceptionHandler("/error");
-    }
-
-    if (configuration.GetValue<bool>("PostgreSQLSettings:EnableDBConnection"))
-    {
-        ConsoleTraceService traceService = new() { IsDebugEnabled = true };
-
-        string connectionString = string.Format(
-            configuration.GetValue<string>("PostgreSQLSettings:AdminConnectionString"),
-            configuration.GetValue<string>("PostgreSQLSettings:DesignerDbAdminPwd"));
-        app.UseYuniql(
-            new PostgreSqlDataService(traceService),
-            new PostgreSqlBulkImportService(traceService),
-            traceService,
-            new Yuniql.AspNetCore.Configuration
-            {
-                Workspace = Path.Combine(Environment.CurrentDirectory, configuration.GetValue<string>("PostgreSQLSettings:WorkspacePath")),
-                ConnectionString = connectionString,
-                IsAutoCreateDatabase = false,
-                IsDebug = true
-            });
     }
 
     app.UseDefaultFiles();

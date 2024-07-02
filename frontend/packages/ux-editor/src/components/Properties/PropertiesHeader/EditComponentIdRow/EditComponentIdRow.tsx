@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { StudioToggleableTextfieldSchema, type SchemaValidationError } from '@studio/components';
-import { KeyVerticalIcon } from '@navikt/aksel-icons';
+import { Alert } from '@digdir/design-system-react';
+import { KeyVerticalIcon } from '@studio/icons';
 import classes from './EditComponentIdRow.module.css';
 import { idExists } from '../../../../utils/formLayoutsUtils';
 import { Trans, useTranslation } from 'react-i18next';
 import type { FormItem } from '../../../../types/FormItem';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
-import { useFormLayouts } from '../../../../hooks/useFormLayoutsSelector';
+import { useFormLayouts } from '../../../../hooks';
 
 export interface EditComponentIdRowProps {
   handleComponentUpdate: (component: FormItem) => void;
@@ -23,15 +24,18 @@ export const EditComponentIdRow = ({
   const [{ data: layoutSchema }, , { data: expressionSchema }, { data: numberFormatSchema }] =
     useLayoutSchemaQuery();
 
+  const [isViewMode, setIsViewMode] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(null);
 
   const idInputValue = component.id;
 
   const saveComponentUpdate = (id: string) => {
-    handleComponentUpdate({
-      ...component,
-      id,
-    });
+    if (id !== idInputValue) {
+      handleComponentUpdate({
+        ...component,
+        id,
+      });
+    }
   };
 
   const validateId = (value: string) => {
@@ -78,7 +82,13 @@ export const EditComponentIdRow = ({
         customValidation={(value) => {
           return validateId(value);
         }}
+        onIsViewMode={setIsViewMode}
       />
+      {!isViewMode && (
+        <div className={classes.alert}>
+          <Alert>{t('ux_editor.modal_properties_component_change_id_information')}</Alert>
+        </div>
+      )}
     </div>
   );
 };

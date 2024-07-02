@@ -1,15 +1,15 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { renderWithMockStore } from '../../../testing/mocks';
 import { appDataMock, textResourcesMock } from '../../../testing/stateMocks';
 import type { IAppDataState } from '../../../features/appData/appDataReducers';
 import { EditDataModelBindings } from './EditDataModelBindings';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import userEvent from '@testing-library/user-event';
-import type { DatamodelMetadataResponse } from 'app-shared/types/api';
+import type { DataModelMetadataResponse } from 'app-shared/types/api';
 
-const datamodelMetadata: DatamodelMetadataResponse = {
+const dataModelMetadata: DataModelMetadataResponse = {
   elements: {
     testModel: {
       id: 'testModel',
@@ -48,7 +48,7 @@ const datamodelMetadata: DatamodelMetadataResponse = {
   },
 };
 
-const getDatamodelMetadata = () => Promise.resolve(datamodelMetadata);
+const getDataModelMetadata = () => Promise.resolve(dataModelMetadata);
 
 const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn() } = {}) => {
   const appData: IAppDataState = {
@@ -60,7 +60,7 @@ const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn(
 
   return renderWithMockStore(
     { appData },
-    { getDatamodelMetadata },
+    { getDataModelMetadata },
   )(
     <EditDataModelBindings
       handleComponentChange={handleComponentChange}
@@ -74,7 +74,7 @@ const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn(
         itemType: 'COMPONENT',
       }}
       renderOptions={{
-        uniqueKey: 'someComponentId-datamodel-select',
+        uniqueKey: 'someComponentId-data-model-select',
         key: 'simpleBinding',
       }}
     />,
@@ -88,7 +88,7 @@ describe('EditDataModelBindings', () => {
     const user = userEvent.setup();
     await render();
     const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     expect(
       await screen.findByText(textMock('ux_editor.modal_properties_data_model_helper')),
     ).toBeInTheDocument();
@@ -99,7 +99,7 @@ describe('EditDataModelBindings', () => {
     const user = userEvent.setup();
     await render();
     const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     expect(
       await screen.findByText(textMock('ux_editor.modal_properties_data_model_helper')),
     ).toBeInTheDocument();
@@ -116,7 +116,7 @@ describe('EditDataModelBindings', () => {
     const user = userEvent.setup();
     await render();
     const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     const select = screen.getByRole('combobox');
     expect(select).toBeInTheDocument();
   });
@@ -126,7 +126,7 @@ describe('EditDataModelBindings', () => {
     await render();
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
     const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
 
@@ -135,9 +135,9 @@ describe('EditDataModelBindings', () => {
     const handleComponentChange = jest.fn();
     await render({ handleComponentChange });
     const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     const option = screen.getByText('testModel');
-    await act(() => user.click(option));
+    await user.click(option);
     expect(handleComponentChange).toHaveBeenCalledWith({
       dataModelBindings: { simpleBinding: 'testModel' },
       id: 'someComponentId',
@@ -153,7 +153,7 @@ describe('EditDataModelBindings', () => {
     const user = userEvent.setup();
     await render();
     const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     const saveButton = await screen.findByRole('button', { name: /general.save/i });
     expect(saveButton).toBeInTheDocument();
   });
@@ -162,7 +162,7 @@ describe('EditDataModelBindings', () => {
     const user = userEvent.setup();
     await render();
     const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     const deleteButton = await screen.findByRole('button', { name: /general.delete/i });
     expect(deleteButton).toBeInTheDocument();
   });
@@ -171,14 +171,14 @@ describe('EditDataModelBindings', () => {
     const user = userEvent.setup();
     await render();
     const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
-    await act(() => user.click(linkIcon));
+    await user.click(linkIcon);
     expect(
       await screen.findByText(textMock('ux_editor.modal_properties_data_model_helper')),
     ).toBeInTheDocument();
     expect(screen.getByRole('combobox').getAttribute('value')).toEqual('');
 
     const saveButton = await screen.findByRole('button', { name: /general.save/i });
-    await act(() => user.click(saveButton));
+    await user.click(saveButton);
 
     expect(
       screen.getByText(textMock('ux_editor.modal_properties_data_model_link')),
@@ -195,17 +195,17 @@ describe('EditDataModelBindings', () => {
       dataModelBindings: { simpleBinding: dataModelBindingKey },
     });
 
-    const datamodelText = screen.getByText(dataModelBindingKey);
-    expect(datamodelText).toBeInTheDocument();
+    const dataModelText = screen.getByText(dataModelBindingKey);
+    expect(dataModelText).toBeInTheDocument();
 
-    await act(() => user.hover(datamodelText));
+    await user.hover(dataModelText);
 
     const editIcon = screen.getByRole('button', { name: textMock('general.edit') });
-    await act(() => user.click(editIcon));
+    fireEvent.click(editIcon);
 
     expect(await screen.findByText(dataModelBindingKey)).toBeInTheDocument();
     const deleteButton = await screen.findByRole('button', { name: /general.delete/i });
-    await act(() => user.click(deleteButton));
+    await user.click(deleteButton);
     expect(handleComponentChange).toHaveBeenCalledWith({
       dataModelBindings: { simpleBinding: '' },
       id: 'someComponentId',
@@ -224,18 +224,20 @@ describe('EditDataModelBindings', () => {
       dataModelBindings: { simpleBinding: dataModelBindingKey },
     });
 
-    const datamodelText = screen.getByText(dataModelBindingKey);
-    expect(datamodelText).toBeInTheDocument();
+    const dataModelText = screen.getByText(dataModelBindingKey);
+    expect(dataModelText).toBeInTheDocument();
 
-    await act(() => user.hover(datamodelText));
+    user.hover(dataModelText);
 
-    const editIcon = screen.getByRole('button', { name: textMock('general.edit') });
-    await act(() => user.click(editIcon));
+    const editIcon = await screen.findByRole('button', { name: textMock('general.edit') });
+    expect(editIcon).toBeInTheDocument();
 
-    expect(
-      screen.getByText(textMock('ux_editor.modal_properties_data_model_helper')),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('combobox').getAttribute('value')).toEqual(dataModelBindingKey);
+    fireEvent.click(editIcon);
+    const helperText = screen.queryByText(textMock('ux_editor.modal_properties_data_model_helper'));
+    expect(helperText).toBeInTheDocument();
+
+    const combobox = screen.getByRole('combobox');
+    expect(combobox.getAttribute('value')).toEqual(dataModelBindingKey);
   });
 
   it('show right data model when switching component', async () => {

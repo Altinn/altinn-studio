@@ -1,10 +1,10 @@
 import React, { type ReactNode } from 'react';
 import { render, renderHook, screen, waitFor } from '@testing-library/react';
 import type { ServicesContextProps } from './ServicesContext';
-import { ServicesContextProvider } from './ServicesContext';
+import { ServicesContextProvider, useServicesContext } from './ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { useQuery } from '@tanstack/react-query';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
@@ -57,7 +57,7 @@ describe('ServicesContext', () => {
     expect(await screen.findByText(textMock('api_errors.Unauthorized'))).toBeInTheDocument();
     jest.runAllTimers();
     await waitFor(() => {
-      expect(queriesMock.logout).toHaveBeenCalledTimes(1);
+      expect(queriesMock.logout).toHaveBeenCalled();
     });
 
     expect(mockConsoleError).toHaveBeenCalled();
@@ -94,6 +94,22 @@ describe('ServicesContext', () => {
     expect(await screen.findByText(textMock('api_errors.DM_01'))).toBeInTheDocument();
   });
 
+  it('displays a specific error message if API returns error code DM_03', async () => {
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(422, 'DM_03')),
+          retry: false,
+        }),
+      { wrapper },
+    );
+
+    await waitFor(() => result.current.isError);
+
+    expect(await screen.findByText(textMock('api_errors.DM_03'))).toBeInTheDocument();
+  });
+
   it('displays a specific error message if API returns error code DM_05', async () => {
     const { result } = renderHook(
       () =>
@@ -111,7 +127,7 @@ describe('ServicesContext', () => {
   });
 
   it('displays a default error message if API returns an error code but the error message does not exist', async () => {
-    const {} = renderHook(
+    const { result } = renderHook(
       () =>
         useQuery({
           queryKey: ['fetchData'],
@@ -121,7 +137,13 @@ describe('ServicesContext', () => {
       { wrapper },
     );
 
-    expect(await screen.findByText(textMock('general.error_message'))).toBeInTheDocument();
+    await waitFor(() => result.current.isError);
+
+    expect(
+      await screen.findByText((content, element) =>
+        content.includes(textMock('general.error_message')),
+      ),
+    ).toBeInTheDocument();
   });
 
   it('displays a default error message if an API call fails', async () => {
@@ -146,5 +168,13 @@ describe('ServicesContext', () => {
     expect(screen.getByText(textMock('general.error_message'))).toBeInTheDocument();
     expect(screen.getByText(textMock('general.try_again'))).toBeInTheDocument();
     expect(mockConsoleError).toHaveBeenCalled();
+  });
+
+  it('Throws an error if used outside a ServiceContextProvider', () => {
+    const renderHookFn = () => renderHook(() => useServicesContext());
+    jest.spyOn(console, 'error').mockImplementation();
+    expect(renderHookFn).toThrowError(
+      'useServicesContext must be used within a ServicesContextProvider.',
+    );
   });
 });

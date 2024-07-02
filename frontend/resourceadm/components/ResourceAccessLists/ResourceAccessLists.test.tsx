@@ -2,8 +2,7 @@ import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ResourceAccessListsProps } from './ResourceAccessLists';
 import { ResourceAccessLists } from './ResourceAccessLists';
@@ -37,7 +36,7 @@ const accessListResults = {
       resourceConnections: [{ resourceIdentifier: resourceId }],
     },
   ],
-  nextPage: 1,
+  nextPage: 'http://at22-next-page',
 };
 
 const accessListResultsPage2 = {
@@ -50,7 +49,7 @@ const accessListResultsPage2 = {
       resourceConnections: [],
     },
   ],
-  nextPage: null,
+  nextPage: '',
 };
 
 const defaultProps: ResourceAccessListsProps = {
@@ -105,7 +104,7 @@ describe('ResourceAccessLists', () => {
     await waitForElementToBeRemoved(spinnerTitle);
 
     const createButton = screen.getByText(textMock('resourceadm.listadmin_create_list'));
-    await act(() => user.click(createButton));
+    await user.click(createButton);
 
     expect(
       screen.getByText(
@@ -124,7 +123,7 @@ describe('ResourceAccessLists', () => {
     await waitForElementToBeRemoved(spinnerTitle);
 
     const checkbox1 = screen.getByLabelText(list1Name);
-    await act(() => user.click(checkbox1));
+    await user.click(checkbox1);
 
     expect(checkListMock).toHaveBeenCalledWith(org, resourceId, list1Id, env);
   });
@@ -137,7 +136,7 @@ describe('ResourceAccessLists', () => {
     await waitForElementToBeRemoved(spinnerTitle);
 
     const checkbox2 = screen.getByLabelText(list2Name);
-    await act(() => user.click(checkbox2));
+    await user.click(checkbox2);
 
     expect(uncheckListMock).toHaveBeenCalledWith(org, resourceId, list2Id, env);
   });
@@ -153,20 +152,52 @@ describe('ResourceAccessLists', () => {
     const spinnerTitle = screen.queryByText(textMock('resourceadm.loading_lists'));
     await waitForElementToBeRemoved(spinnerTitle);
 
-    await waitFor(() => screen.findByText(textMock('resourceadm.listadmin_load_more')));
-    await act(() => user.click(screen.getByText(textMock('resourceadm.listadmin_load_more'))));
+    await waitFor(() =>
+      screen.findByText(
+        textMock('resourceadm.listadmin_load_more', {
+          unit: textMock('resourceadm.listadmin_list_unit'),
+        }),
+      ),
+    );
+    await user.click(
+      screen.getByText(
+        textMock('resourceadm.listadmin_load_more', {
+          unit: textMock('resourceadm.listadmin_list_unit'),
+        }),
+      ),
+    );
 
     expect(await screen.findByText(page2ListName)).toBeInTheDocument();
   });
 
   it('should show error when loading fails', async () => {
-    const getResourceAccessListsMock = jest.fn().mockImplementation(() => Promise.reject({}));
+    const getResourceAccessListsMock = jest
+      .fn()
+      .mockImplementation(() => Promise.reject({ response: { status: 500 } }));
     renderResourceAccessLists(getResourceAccessListsMock);
 
     const spinnerTitle = screen.queryByText(textMock('resourceadm.loading_lists'));
     await waitForElementToBeRemoved(spinnerTitle);
 
     expect(screen.getByText(textMock('resourceadm.listadmin_load_list_error'))).toBeInTheDocument();
+  });
+
+  it('should show error when user does not have permission to change access lists', async () => {
+    const getResourceAccessListsMock = jest
+      .fn()
+      .mockImplementation(() => Promise.reject({ response: { status: 403 } }));
+    renderResourceAccessLists(getResourceAccessListsMock);
+
+    const spinnerTitle = screen.queryByText(textMock('resourceadm.loading_lists'));
+    await waitForElementToBeRemoved(spinnerTitle);
+
+    expect(
+      screen.getByText(
+        textMock('resourceadm.loading_access_list_permission_denied', {
+          envName: textMock('resourceadm.deploy_test_env'),
+        }),
+      ),
+    ).toBeInTheDocument();
   });
 });
 
