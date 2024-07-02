@@ -91,7 +91,7 @@ describe('Preview', () => {
     const newSelectedFormLayoutName = 'test';
     appContextMock.selectedFormLayoutName = newSelectedFormLayoutName;
 
-    view.rerender(<Preview />);
+    view.rerender(<Preview collapsed={false} onCollapseToggle={jest.fn()} />);
 
     expect(appContextMock.previewIframeRef?.current?.src).toBe(
       'http://localhost' +
@@ -107,4 +107,4 @@ describe('Preview', () => {
 });
 
 export const render = (options: Partial<ExtendedRenderOptions> = {}) =>
-  renderWithProviders(<Preview />, options);
+  renderWithProviders(<Preview collapsed={false} onCollapseToggle={jest.fn()} />, options);
