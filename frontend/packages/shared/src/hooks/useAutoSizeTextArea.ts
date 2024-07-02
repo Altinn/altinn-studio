@@ -1,10 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useOnWindowSizeChange } from './useOnWindowSizeChange';
 
+export const DEFAULT_MIN_HEIGHT_PX_TEXTAREA = 40;
+export const DEFAULT_MAX_HEIGHT_PX_TEXTAREA = 100;
+
+interface MinAndMaxHeightOptions {
+  minHeightInPx?: number;
+  maxHeightInPx?: number;
+}
+
 export const useAutoSizeTextArea = (
   value: string,
-  minHeightInPx: number = 40,
-  maxHeightInPx: number = 100,
+  {
+    minHeightInPx = DEFAULT_MIN_HEIGHT_PX_TEXTAREA,
+    maxHeightInPx = DEFAULT_MAX_HEIGHT_PX_TEXTAREA,
+  }: MinAndMaxHeightOptions = {},
 ) => {
   const [textAreaRef, setTextAreaRef] = useState<HTMLTextAreaElement>(null);
   const { windowSize } = useOnWindowSizeChange();
@@ -28,7 +38,7 @@ export const useAutoSizeTextArea = (
       }
     }
     // Added windowSize to the dependency array to recalculate the height of the textarea when the window size changes
-  }, [textAreaRef, value, windowSize]);
+  }, [minHeightInPx, maxHeightInPx, textAreaRef, value, windowSize]);
 
   return setTextAreaRef;
 };

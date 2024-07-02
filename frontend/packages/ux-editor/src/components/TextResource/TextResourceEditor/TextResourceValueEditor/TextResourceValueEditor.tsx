@@ -8,7 +8,7 @@ import type { ITextResources } from 'app-shared/types/global';
 import classes from './TextResourceValueEditor.module.css';
 import { Trans, useTranslation } from 'react-i18next';
 import { useUpsertTextResourceMutation } from '../../../../hooks/mutations/useUpsertTextResourceMutation';
-import { useAutoSizeTextArea } from '@altinn/text-editor/hooks/useAutoSizeTextArea'; // Should move this to shared
+import { useAutoSizeTextArea } from 'app-shared/hooks/useAutoSizeTextArea';
 
 export type TextResourceValueEditorProps = {
   textResourceId: string;
@@ -34,7 +34,7 @@ export const TextResourceValueEditor = ({
   const [textEntryValue, setTextEntryValue] = useState(value);
   const minHeightInPx = 100;
   const maxHeightInPx = 400;
-  const textareaRef = useAutoSizeTextArea(textEntryValue, minHeightInPx, maxHeightInPx);
+  const textareaRef = useAutoSizeTextArea(textEntryValue, { minHeightInPx, maxHeightInPx });
   const [valueState, setValueState] = useState<string>(value);
   const { t } = useTranslation();
 
