@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Heading, Link as DigdirLink, ToggleGroup, Button } from '@digdir/design-system-react';
+import { Heading, Link as DigdirLink, ToggleGroup } from '@digdir/design-system-react';
 import { StudioSpinner, StudioButton } from '@studio/components';
 import { PencilWritingIcon, PlusIcon } from '@studio/icons';
 import classes from './ListAdminPage.module.css';
@@ -97,26 +97,28 @@ export const ListAdminPage = (): React.JSX.Element => {
                     <div key={list.identifier} className={classes.tableRowContent}>
                       <div>{list.name}</div>
                       <StudioButton
-                        iconPlacement='right'
                         size='small'
                         variant='tertiary'
-                        icon={<PencilWritingIcon />}
                         aria-label={`${t('resourceadm.listadmin_edit_list')} ${list.name}`}
-                        as={Link}
-                        to={getAccessListPageUrl(
-                          selectedContext,
-                          repo,
-                          selectedEnv,
-                          list.identifier,
-                        )}
+                        asChild
                       >
-                        {t('resourceadm.listadmin_edit_list')}
+                        <Link
+                          to={getAccessListPageUrl(
+                            selectedContext,
+                            repo,
+                            selectedEnv,
+                            list.identifier,
+                          )}
+                        >
+                          {t('resourceadm.listadmin_edit_list')}
+                          <PencilWritingIcon />
+                        </Link>
                       </StudioButton>
                     </div>
                   );
                 })}
                 {hasNextPage && (
-                  <Button
+                  <StudioButton
                     disabled={isFetchingNextPage}
                     size='small'
                     variant='tertiary'
@@ -125,7 +127,7 @@ export const ListAdminPage = (): React.JSX.Element => {
                     {t('resourceadm.listadmin_load_more', {
                       unit: t('resourceadm.listadmin_list_unit'),
                     })}
-                  </Button>
+                  </StudioButton>
                 )}
               </div>
             )}
