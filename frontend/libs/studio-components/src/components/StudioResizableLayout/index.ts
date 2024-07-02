@@ -2,6 +2,7 @@ import {
   StudioResizableLayoutElement,
   type StudioResizableLayoutElementProps,
 } from './StudioResizableLayoutElement/StudioResizableLayoutElement';
+import type { StudioResizableOrientation } from './StudioResizableLayoutContainer/StudioResizableLayoutContainer';
 import { StudioResizableLayoutContainer } from './StudioResizableLayoutContainer/StudioResizableLayoutContainer';
 import { StudioResizableLayoutContext } from './context/StudioResizableLayoutContext';
 
@@ -17,4 +18,4 @@ export const StudioResizableLayout: StudioResizableLayoutComponent = {
   Context: StudioResizableLayoutContext,
 };
 
-export type { StudioResizableLayoutElementProps as StudioResizableLayoutContainerProps };
+export type { StudioResizableLayoutElementProps, StudioResizableOrientation };

@@ -6,7 +6,10 @@ import { useStudioResizableLayoutFunctions } from '../hooks/useStudioResizableFu
 import { useTrackContainerSizes } from '../hooks/useTrackContainerSizes';
 import { StudioResizableLayoutContext } from '../context/StudioResizableLayoutContext';
 
-export type StudioResizableOrientation = 'horizontal' | 'vertical';
+export const ORIENTATIONS = ['horizontal', 'vertical'] as const;
+export type StudioResizableOrientation = (typeof ORIENTATIONS)[number];
+export const horizontal: StudioResizableOrientation = 'horizontal';
+export const vertical: StudioResizableOrientation = 'vertical';
 
 export type StudioResizableLayoutContainerProps = {
   localStorageContext?: string;
