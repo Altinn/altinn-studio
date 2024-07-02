@@ -36,7 +36,6 @@ export const Contact = () => {
           </section>
           <section className={classes.section}>
             <div className={classes.iconContainer}>
-              {/*<Slack />*/}
               <SlackIcon />
             </div>
             <div className={classes.textContainer}>
