@@ -833,6 +833,7 @@
   "process_editor.configuration_panel_policy_title": "Tilganger",
   "process_editor.configuration_panel_select_data_model": "Velg en datamodell",
   "process_editor.configuration_panel_set_data_model": "Datamodell: {{dataModelName}}",
+  "process_editor.configuration_panel_set_data_model_label": "Datamodell:",
   "process_editor.configuration_panel_set_data_model_link": "Legg til datamodell",
   "process_editor.configuration_panel_set_data_types_to_sign": "Datatyper som skal signeres:",
   "process_editor.configuration_panel_signing_task": "Oppgave: Signering",
