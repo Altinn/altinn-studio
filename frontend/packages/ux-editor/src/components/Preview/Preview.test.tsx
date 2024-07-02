@@ -60,18 +60,22 @@ describe('Preview', () => {
 
   it('should be possible to toggle preview window', async () => {
     const user = userEvent.setup();
-    render();
+    const view = render();
 
     const hidePreviewButton = screen.getByRole('button', {
       name: textMock('ux_editor.close_preview'),
     });
     await user.click(hidePreviewButton);
+    expect(collapseToggle).toHaveBeenCalledTimes(1);
+    view.rerender(<Preview collapsed={true} onCollapseToggle={collapseToggle} />);
     expect(hidePreviewButton).not.toBeInTheDocument();
 
     const showPreviewButton = screen.getByRole('button', {
       name: textMock('ux_editor.open_preview'),
     });
     await user.click(showPreviewButton);
+    expect(collapseToggle).toHaveBeenCalledTimes(2);
+    view.rerender(<Preview collapsed={false} onCollapseToggle={collapseToggle} />);
     expect(showPreviewButton).not.toBeInTheDocument();
   });
 
@@ -106,5 +110,11 @@ describe('Preview', () => {
   });
 });
 
-export const render = (options: Partial<ExtendedRenderOptions> = {}) =>
-  renderWithProviders(<Preview collapsed={false} onCollapseToggle={jest.fn()} />, options);
+const collapseToggle = jest.fn();
+
+export const render = (options: Partial<ExtendedRenderOptions> = {}) => {
+  return renderWithProviders(
+    <Preview collapsed={false} onCollapseToggle={collapseToggle} />,
+    options,
+  );
+};
