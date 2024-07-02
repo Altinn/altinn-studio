@@ -296,6 +296,29 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return policy;
         }
 
+        public async Task<DelegationCountOverview> GetDelegationCount(string serviceCode, int serviceEditionCode, string environment)
+        {
+            string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
+            string url = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/delegationcount/?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
+            
+            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadAsAsync<DelegationCountOverview>();
+        }
+        public async Task<ActionResult> StartMigrateDelegations(ExportDelegationsRequestBE delegationRequest, string environment)
+        {
+            string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
+            string url = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/exportdelegations/";
+            
+            string delegationRequestString = JsonSerializer.Serialize(delegationRequest, _serializerOptions);
+            using StringContent httpContent = new(delegationRequestString, Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await _httpClient.PostAsync(url, httpContent);
+            response.EnsureSuccessStatusCode();
+
+            return new StatusCodeResult(201);
+        }
+
         // RRR
         public async Task<AccessList> GetAccessList(
             string org,
