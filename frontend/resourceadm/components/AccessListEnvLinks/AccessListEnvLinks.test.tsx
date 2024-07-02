@@ -45,7 +45,7 @@ const resourcePublishStatus = {
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
-    selectedContext: org,
+    org: org,
     resourceId: resourceId,
   }),
 }));

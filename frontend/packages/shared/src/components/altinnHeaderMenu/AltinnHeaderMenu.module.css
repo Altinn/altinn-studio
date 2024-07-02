@@ -29,3 +29,8 @@
 .menuItem .active {
   border-bottom: 2px solid #fff;
 }
+
+.betaTag {
+  min-height: min-content;
+  padding: 0 var(--fds-spacing-1);
+}

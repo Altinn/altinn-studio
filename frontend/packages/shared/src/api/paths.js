@@ -21,7 +21,6 @@ export const dataModelsPath = (org, app) => `${basePath}/${org}/${app}/datamodel
 export const dataModelsXsdPath = (org, app) => `${basePath}/${org}/${app}/datamodels/all-xsd`; // Get
 export const dataModelsUploadPath = (org, app) => `${basePath}/${org}/${app}/datamodels/upload`; // Post
 export const dataModelAddXsdFromRepoPath = (org, app, filePath) => `${basePath}/${org}/${app}/datamodels/xsd-from-repo?${s({ filePath })}`; // Post
-export const dataModelUploadPagePath = (org, app) => `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/datamodel`;
 
 // Deployment
 // See frontend/app-development/utils/urlHelper.ts Deployments
