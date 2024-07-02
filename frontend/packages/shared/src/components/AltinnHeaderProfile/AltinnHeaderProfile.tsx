@@ -42,8 +42,3 @@ export const AltinnHeaderProfile = ({
     </div>
   );
 };
-
-/*
-Rendre som default,
-ha menu items som props
-*/

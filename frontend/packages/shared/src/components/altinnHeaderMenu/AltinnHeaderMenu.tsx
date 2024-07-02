@@ -31,14 +31,3 @@ export const AltinnHeaderMenu = ({ menuItems }: IAltinnHeaderMenuProps) => {
     </ul>
   );
 };
-
-// Make StudioNavigation av det over
-
-/*
-betaText?: string
-betaText && (
-  <Tag color='info' size='small'>
-    {betaText}
-  </Tag>
-)
-  */
