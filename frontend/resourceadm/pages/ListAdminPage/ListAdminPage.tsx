@@ -100,14 +100,7 @@ export const ListAdminPage = (): React.JSX.Element => {
                         aria-label={`${t('resourceadm.listadmin_edit_list')} ${list.name}`}
                         asChild
                       >
-                        <Link
-                          to={getAccessListPageUrl(
-                            org,
-                            app,
-                            selectedEnv,
-                            list.identifier,
-                          )}
-                        >
+                        <Link to={getAccessListPageUrl(org, app, selectedEnv, list.identifier)}>
                           {t('resourceadm.listadmin_edit_list')}
                           <PencilWritingIcon />
                         </Link>
