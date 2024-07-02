@@ -13,7 +13,12 @@ import { useTranslation } from 'react-i18next';
 import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQuery';
 import { ShrinkIcon } from '@studio/icons';
 
-export const Elements = (): React.ReactElement => {
+export interface ElementsProps {
+  collapsed: boolean;
+  onCollapseToggle: () => void;
+}
+
+export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
@@ -60,6 +65,19 @@ export const Elements = (): React.ReactElement => {
   const shouldShowConfPageToolbar = selectedLayoutIsCustomReceipt || processTaskType === 'payment';
   const confPageToolbarMode = selectedLayoutIsCustomReceipt ? 'receipt' : 'payment';
 
+  if (collapsed) {
+    return (
+      <StudioButton
+        size='small'
+        variant='secondary'
+        className={classes.openElementsButton}
+        onClick={onCollapseToggle}
+      >
+        {t('left_menu.open_components')}
+      </StudioButton>
+    );
+  }
+
   return (
     <div className={classes.root}>
       <div className={classes.componentsHeader}>
@@ -67,8 +85,8 @@ export const Elements = (): React.ReactElement => {
         <StudioButton
           variant='tertiary'
           icon={<ShrinkIcon title='1' fontSize='1.5rem' />}
-          title={t('ux_editor.close_preview')}
-          // onClick={onCollapseToggle}
+          title={t('left_menu.close_components')}
+          onClick={onCollapseToggle}
         ></StudioButton>
       </div>
       {hideComponents ? (

@@ -64,6 +64,7 @@ export const FormDesigner = (): JSX.Element => {
   );
   const { handleEdit } = useFormItemContext();
   const [previewCollapsed, setPreviewCollapsed] = useState<boolean>(true);
+  const [elementsCollapsed, setElementsCollapsed] = useState<boolean>(false);
   const [hidePreview, setHidePreview] = useState<boolean>(false);
 
   const t = useText();
@@ -152,8 +153,16 @@ export const FormDesigner = (): JSX.Element => {
               orientation='horizontal'
               localStorageContext={`form-designer-main:${user.id}:${org}`}
             >
-              <StudioResizableLayout.Element minimumSize={262} maximumSize={300}>
-                <Elements />
+              <StudioResizableLayout.Element
+                collapsed={elementsCollapsed}
+                collapsedSize={49}
+                minimumSize={262}
+                maximumSize={300}
+              >
+                <Elements
+                  collapsed={elementsCollapsed}
+                  onCollapseToggle={() => setElementsCollapsed((prev) => !prev)}
+                />
               </StudioResizableLayout.Element>
               <StudioResizableLayout.Element>
                 <DesignView />
