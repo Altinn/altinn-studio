@@ -46,6 +46,7 @@ export const TextResource = ({
   const prevFormItemId = usePrevious(formItemId);
   const prevFormLayoutName = usePrevious(formLayoutName);
 
+  const [currentValue, setCurrentValue] = useState<string>('');
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const handleOpen = () => {
@@ -53,6 +54,13 @@ export const TextResource = ({
       handleIdChange(generateId(generateIdOptions));
     }
     setIsOpen(true);
+  };
+
+  const handleClose = () => {
+    if (currentValue === '') {
+      handleRemoveTextResource();
+    }
+    setIsOpen(false);
   };
 
   useEffect(() => {
@@ -65,8 +73,9 @@ export const TextResource = ({
     <TextResourceFieldset
       compact={compact}
       legend={label}
-      onClose={() => setIsOpen(false)}
+      onClose={handleClose}
       onDelete={handleRemoveTextResource}
+      onSetCurrentValue={(value: string) => setCurrentValue(value)}
       onReferenceChange={handleIdChange}
       textResourceId={textResourceId}
     />
@@ -86,6 +95,7 @@ type TextResourceFieldsetProps = {
   onClose: () => void;
   onDelete: () => void;
   onReferenceChange: (id: string) => void;
+  onSetCurrentValue: (value: string) => void;
   textResourceId: string;
 };
 
@@ -95,6 +105,7 @@ const TextResourceFieldset = ({
   onClose,
   onDelete,
   onReferenceChange,
+  onSetCurrentValue,
   textResourceId,
 }: TextResourceFieldsetProps) => {
   const { t } = useTranslation();
@@ -127,7 +138,11 @@ const TextResourceFieldset = ({
         </>
       }
     >
-      <TextResourceEditor textResourceId={textResourceId} onReferenceChange={onReferenceChange} />
+      <TextResourceEditor
+        textResourceId={textResourceId}
+        onReferenceChange={onReferenceChange}
+        onSetCurrentValue={onSetCurrentValue}
+      />
     </StudioProperty.Fieldset>
   );
 };
