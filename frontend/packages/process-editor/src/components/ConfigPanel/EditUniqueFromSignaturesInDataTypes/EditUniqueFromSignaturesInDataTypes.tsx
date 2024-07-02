@@ -14,7 +14,7 @@ export const EditUniqueFromSignaturesInDataTypes = () => {
   const selectedDataTypes = getSelectedDataTypes(bpmnDetails);
   const existingDataTypeForTask = selectedDataTypes.length > 0;
 
-  const [dataTypesSelectVisible, setDataTypesSelectVisible] = useState(false);
+  const [isSelectVisible, setIsSelectVisible] = useState(false);
 
   const studioModeler = new StudioModeler();
   const tasks = studioModeler.getAllTasksByType('bpmn:Task');
@@ -28,20 +28,20 @@ export const EditUniqueFromSignaturesInDataTypes = () => {
 
   return (
     <>
-      {!existingDataTypeForTask && !dataTypesSelectVisible ? (
+      {!existingDataTypeForTask && !isSelectVisible ? (
         <StudioProperty.Button
-          onClick={() => setDataTypesSelectVisible(true)}
+          onClick={() => setIsSelectVisible(true)}
           property={t(
             'process_editor.configuration_panel_set_unique_from_signatures_in_data_types_link',
           )}
           size='small'
           icon={<PersonPencilIcon />}
         />
-      ) : dataTypesSelectVisible ? (
-        <SelectUniqueFromSignaturesInDataTypes onClose={() => setDataTypesSelectVisible(false)} />
+      ) : isSelectVisible ? (
+        <SelectUniqueFromSignaturesInDataTypes onClose={() => setIsSelectVisible(false)} />
       ) : (
         <StudioProperty.Button
-          onClick={() => setDataTypesSelectVisible(true)}
+          onClick={() => setIsSelectVisible(true)}
           property={t(
             'process_editor.configuration_panel_set_unique_from_signatures_in_data_types',
           )}

@@ -13,6 +13,11 @@ import {
 } from '../../../../test/mocks/bpmnContextMock';
 import { getMockBpmnElementForTask, mockBpmnDetails } from '../../../../test/mocks/bpmnDetailsMock';
 
+const existingDataTypes = [
+  { id: 'dataType1', name: 'Name 1' },
+  { id: 'dataType2', name: 'Name 2' },
+];
+
 const getExistingDataTypesProps = () => {
   const element = getMockBpmnElementForTask('signing');
   element.businessObject.extensionElements.values[0].signatureConfig.uniqueFromSignaturesInDataTypes =
@@ -67,11 +72,6 @@ jest.mock('../../../utils/bpmn/StudioModeler', () => {
     }),
   };
 });
-
-const existingDataTypes = [
-  { id: 'dataType1', name: 'Name 1' },
-  { id: 'dataType2', name: 'Name 2' },
-];
 
 describe('EditUniqueFromSignaturesInDataTypes', () => {
   afterEach(jest.clearAllMocks);

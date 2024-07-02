@@ -23,6 +23,11 @@ import {
 jest.useFakeTimers({ advanceTimers: true });
 createMock.mockImplementation(() => []);
 
+const existingDataTypes = [
+  { id: 'dataType1', name: 'Name 1' },
+  { id: 'dataType2', name: 'Name 2' },
+];
+
 const defaultSelectDataTypeProps: SelectUniqueFromSignaturesInDataTypesProps = {
   onClose: jest.fn(),
 };
@@ -66,11 +71,6 @@ jest.mock('../../../../utils/bpmn/StudioModeler', () => {
     }),
   };
 });
-
-const existingDataTypes = [
-  { id: 'dataType1', name: 'Name 1' },
-  { id: 'dataType2', name: 'Name 2' },
-];
 
 const element = getMockBpmnElementForTask('signing');
 
