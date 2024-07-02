@@ -22,7 +22,7 @@ export const AltinnHeaderMenu = ({ menuItems }: IAltinnHeaderMenuProps) => {
             {t(item.key)}
           </NavLink>
           {item.isBeta && (
-            <Tag color='info' size='small'>
+            <Tag color='info' size='small' className={classes.betaTag}>
               {t('general.beta')}
             </Tag>
           )}
