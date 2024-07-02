@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Heading, Paragraph, Label, Alert } from '@digdir/design-system-react';
+import { Heading, Paragraph, Alert } from '@digdir/design-system-react';
 import { useNewsListQuery } from 'app-development/hooks/queries/useNewsListQuery';
 import { StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
@@ -30,9 +30,9 @@ export const News = () => {
       <NewsTemplate>
         {newsList.news?.map(({ title, content }) => (
           <div className={classes.newsContent} key={title}>
-            <Label level={3} size='medium'>
+            <Heading level={3} size='xxsmall'>
               {title}
-            </Label>
+            </Heading>
             <Paragraph size='small'>{content}</Paragraph>
           </div>
         ))}

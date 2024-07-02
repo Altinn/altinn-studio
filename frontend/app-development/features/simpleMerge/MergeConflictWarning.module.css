@@ -8,5 +8,11 @@
 }
 
 .buttonContainer {
+  display: flex;
+  flex-direction: row;
   justify-content: flex-end;
+  align-items: center;
+  gap: var(--fds-spacing-3);
+  padding-top: var(--fds-spacing-3);
+  padding-bottom: var(--fds-spacing-3);
 }

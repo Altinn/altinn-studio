@@ -23,7 +23,7 @@ export const FieldWrapper = ({
         {label}
       </Label>
       {description && (
-        <Paragraph id={ariaDescriptionId} short size='small'>
+        <Paragraph id={ariaDescriptionId} variant='short' size='small'>
           {description}
         </Paragraph>
       )}

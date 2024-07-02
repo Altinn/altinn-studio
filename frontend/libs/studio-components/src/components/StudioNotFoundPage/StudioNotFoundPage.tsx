@@ -26,7 +26,7 @@ export const StudioNotFoundPage = forwardRef<HTMLDivElement, StudioNotFoundPageP
               {title}
             </Heading>
             <div className={classes.body}>{body}</div>
-            <Link href={redirectHref} size='small' className={classes.link}>
+            <Link href={redirectHref} className={classes.link}>
               {redirectLinkText}
             </Link>
           </div>

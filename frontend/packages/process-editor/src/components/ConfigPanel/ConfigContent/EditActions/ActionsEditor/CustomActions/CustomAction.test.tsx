@@ -65,6 +65,7 @@ describe('CustomActions', () => {
     const actionTypeSwitch = screen.getByLabelText(
       textMock('process_editor.configuration_panel_actions_set_server_action_label'),
     );
+    expect(actionTypeSwitch).toBeChecked();
     await user.click(actionTypeSwitch);
 
     expect(updateTypeForActionMock).toHaveBeenCalledTimes(1);
