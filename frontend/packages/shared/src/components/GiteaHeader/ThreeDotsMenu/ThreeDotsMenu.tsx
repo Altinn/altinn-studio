@@ -3,7 +3,6 @@ import classes from './ThreeDotsMenu.module.css';
 import { MonitorIcon, TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
-// import { GiteaIcon } from 'app-shared/icons';
 import { LegacyPopover, Link } from '@digdir/design-system-react';
 import { StudioButton, StudioPopover } from '@studio/components';
 import { LocalChangesModal } from './LocalChangesModal';
@@ -89,8 +88,6 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
           <LocalChangesModal
             isOpen={localChangesModalIsOpen}
             onClose={() => setLocalChangesModalIsOpen(false)}
-            org={org}
-            app={app}
           />
         )}
       </ul>
