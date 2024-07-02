@@ -1,6 +1,6 @@
 import React from 'react';
 import { v1 as uuidv1 } from 'uuid';
-import { SelectDataModelComponent } from './SelectDataModelComponent';
+import { SelectDataFieldComponent } from './SelectDataFieldComponent';
 import type { IRuleModelFieldElement } from '../../types/global';
 import { withTranslation } from 'react-i18next';
 import classes from './RuleComponent.module.css';
@@ -176,11 +176,10 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
                             disabled={true}
                           />
                           <div>
-                            <SelectDataModelComponent
+                            <SelectDataFieldComponent
                               label={this.props.t('ux_editor.modal_properties_data_model_helper')}
                               onDataModelChange={this.handleParamDataChange.bind(null, paramName)}
                               selectedElement={this.state.ruleConnection.inputParams[paramName]}
-                              hideRestrictions={true}
                             />
                           </div>
                         </div>
@@ -207,11 +206,10 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
                     disabled={true}
                   />
                   <div>
-                    <SelectDataModelComponent
+                    <SelectDataFieldComponent
                       label={this.props.t('ux_editor.modal_properties_data_model_helper')}
                       onDataModelChange={this.handleOutParamDataChange.bind(null, 'outParam0')}
                       selectedElement={this.state.ruleConnection.outParams.outParam0}
-                      hideRestrictions={true}
                     />
                   </div>
                 </div>
