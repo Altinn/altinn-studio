@@ -679,7 +679,7 @@
   "overview.reset_repo_confirm_info": "Du vil nå slette alle endringer gjort på <bold>{{repositoryName}}</bold>. Endringene kan ikke gjenopprettes.",
   "overview.reset_repo_confirm_repo_name": "Skriv inn navn på appen for å bekrefte",
   "overview.reset_repo_heading": "Slett mine endringer",
-  "overview.reset_repo_loading": "Laster sletting",
+  "overview.reset_repo_loading": "Sletter...",
   "party_selection.binding_word": "eller",
   "party_selection.change_party": "skift aktør her",
   "party_selection.error_caption_prefix": "Feil",
