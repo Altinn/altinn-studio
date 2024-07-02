@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Checkbox, Heading, Link as DigdirLink, Button } from '@digdir/design-system-react';
+import { Checkbox, Heading, Link as DigdirLink } from '@digdir/design-system-react';
 import classes from './ResourceAccessLists.module.css';
 import { StudioSpinner, StudioButton } from '@studio/components';
 import { PencilWritingIcon, PlusIcon } from '@studio/icons';
@@ -125,26 +125,28 @@ export const ResourceAccessLists = ({
                 {list.name}
               </Checkbox>
               <StudioButton
-                iconPlacement='right'
                 size='small'
                 variant='tertiary'
-                icon={<PencilWritingIcon />}
-                as={Link}
+                asChild
                 aria-label={`${t('resourceadm.listadmin_edit_list')} ${list.name}`}
-                to={`${getResourcePageURL(
-                  org,
-                  app,
-                  resourceData.identifier,
-                  'accesslists',
-                )}/${env}/${list.identifier}`}
               >
-                {t('resourceadm.listadmin_edit_list')}
+                <Link
+                  to={`${getResourcePageURL(
+                    org,
+                    app,
+                    resourceData.identifier,
+                    'accesslists',
+                  )}/${env}/${list.identifier}`}
+                >
+                  {t('resourceadm.listadmin_edit_list')}
+                  <PencilWritingIcon />
+                </Link>
               </StudioButton>
             </div>
           );
         })}
         {hasNextPage && (
-          <Button
+          <StudioButton
             disabled={isFetchingNextPage}
             size='small'
             variant='tertiary'
@@ -153,7 +155,7 @@ export const ResourceAccessLists = ({
             {t('resourceadm.listadmin_load_more', {
               unit: t('resourceadm.listadmin_list_unit'),
             })}
-          </Button>
+          </StudioButton>
         )}
       </div>
       <StudioButton

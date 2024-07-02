@@ -133,16 +133,11 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
           })}
         </Heading>
         <div className={classes.topRightWrapper}>
-          <StudioButton
-            as={Link}
-            variant='tertiary'
-            color='second'
-            to={`${getResourceDashboardURL(org, app)}/accesslists`}
-            size='medium'
-            icon={<TasklistIcon />}
-            iconPlacement='right'
-          >
-            <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
+          <StudioButton asChild variant='tertiary' color='second' size='medium'>
+            <Link to={`${getResourceDashboardURL(org, app)}/accesslists`}>
+              <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
+              <TasklistIcon />
+            </Link>
           </StudioButton>
           <div className={classes.verticalDivider} />
           <StudioButton

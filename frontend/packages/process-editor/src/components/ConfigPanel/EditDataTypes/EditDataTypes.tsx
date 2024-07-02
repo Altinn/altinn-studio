@@ -56,7 +56,9 @@ export const EditDataTypes = ({
             dataModelName: existingDataTypeForTask,
           })}
           onClick={() => setDataModelSelectVisible(true)}
-          property={t('process_editor.configuration_panel_set_data_model')}
+          property={t('process_editor.configuration_panel_set_data_model', {
+            dataModelName: '',
+          })}
           value={definedValueWithLinkIcon}
         />
       )}

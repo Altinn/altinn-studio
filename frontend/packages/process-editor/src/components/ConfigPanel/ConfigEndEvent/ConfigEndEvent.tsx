@@ -40,7 +40,6 @@ export const ConfigEndEvent = () => {
                   )}
                   rel='noopener noreferrer'
                   target='_newTab'
-                  size='small'
                 >
                   {t('process_editor.configuration_panel_custom_receipt_default_receipt_link')}
                 </Link>

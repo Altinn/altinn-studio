@@ -1,11 +1,11 @@
 import type { ReactNode, ChangeEvent, KeyboardEvent } from 'react';
 import React, { useState, useRef } from 'react';
 import classes from './InputPopover.module.css';
-import { DropdownMenu, ErrorMessage, Popover, Textfield } from '@digdir/design-system-react';
+import { DropdownMenu, ErrorMessage, Textfield } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { getPageNameErrorKey } from '../../../../../utils/designViewUtils';
 import { PencilIcon } from '@studio/icons';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioPopover } from '@studio/components';
 
 export type InputPopoverProps = {
   disabled: boolean;
@@ -67,54 +67,54 @@ export const InputPopover = ({
   };
 
   return (
-    <>
-      <DropdownMenu.Item
-        onClick={() => setIsEditDialogOpen(true)}
-        id='edit-page-button'
-        disabled={disabled}
-        ref={newNameRef}
-        aria-expanded={isEditDialogOpen}
-      >
-        <PencilIcon />
-        {t('ux_editor.page_menu_edit')}
-      </DropdownMenu.Item>
-      <Popover anchorEl={newNameRef.current} open={isEditDialogOpen} onClose={handleClose}>
-        <Popover.Content>
-          <Textfield
-            label={t('ux_editor.input_popover_label')}
+    <StudioPopover open={isEditDialogOpen} onClose={handleClose}>
+      <StudioPopover.Trigger asChild>
+        <DropdownMenu.Item
+          onClick={() => setIsEditDialogOpen(true)}
+          id='edit-page-button'
+          disabled={disabled}
+          ref={newNameRef}
+          aria-expanded={isEditDialogOpen}
+        >
+          <PencilIcon />
+          {t('ux_editor.page_menu_edit')}
+        </DropdownMenu.Item>
+      </StudioPopover.Trigger>
+      <StudioPopover.Content>
+        <Textfield
+          label={t('ux_editor.input_popover_label')}
+          size='small'
+          onChange={handleOnChange}
+          onKeyDown={handleKeyPress}
+          value={newName}
+          error={errorMessage !== null}
+        />
+        <ErrorMessage className={classes.errorMessage} size='small'>
+          {errorMessage}
+        </ErrorMessage>
+        <div className={classes.buttonContainer}>
+          <StudioButton
+            color='first'
+            variant='primary'
+            onClick={() => saveNewName(newName)}
+            disabled={!shouldSavingBeEnabled}
             size='small'
-            onChange={handleOnChange}
-            onKeyDown={handleKeyPress}
-            value={newName}
-            error={errorMessage !== null}
-          />
-          <ErrorMessage className={classes.errorMessage} size='small'>
-            {errorMessage}
-          </ErrorMessage>
-          <div className={classes.buttonContainer}>
-            <StudioButton
-              color='first'
-              variant='primary'
-              onClick={() => saveNewName(newName)}
-              disabled={!shouldSavingBeEnabled}
-              size='small'
-            >
-              {t('ux_editor.input_popover_save_button')}
-            </StudioButton>
-            <StudioButton
-              color='second'
-              variant='tertiary'
-              onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                event.stopPropagation();
-                handleClose();
-              }}
-              size='small'
-            >
-              {t('general.cancel')}
-            </StudioButton>
-          </div>
-        </Popover.Content>
-      </Popover>
-    </>
+          >
+            {t('ux_editor.input_popover_save_button')}
+          </StudioButton>
+          <StudioButton
+            color='second'
+            variant='tertiary'
+            onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+              event.stopPropagation();
+              handleClose();
+            }}
+            size='small'
+          >
+            {t('general.cancel')}
+          </StudioButton>
+        </div>
+      </StudioPopover.Content>
+    </StudioPopover>
   );
 };

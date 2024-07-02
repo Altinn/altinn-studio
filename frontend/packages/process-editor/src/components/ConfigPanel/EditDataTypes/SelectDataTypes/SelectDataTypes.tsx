@@ -46,7 +46,7 @@ export const SelectDataTypes = ({
     <div className={classes.dataTypeSelectAndButtons}>
       <Combobox
         label={t('process_editor.configuration_panel_set_data_model')}
-        value={currentValue}
+        value={currentValue && dataModelIds.includes(existingDataType) ? currentValue : undefined}
         description={t('process_editor.configuration_panel_data_model_selection_description')}
         size='small'
         className={classes.dataTypeSelect}
