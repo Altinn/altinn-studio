@@ -2,7 +2,6 @@ import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldEleme
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../types/FormItem';
 
-/* UTIL METHODS FOR HANDLING DATA MODEL */
 export function filterDataModelForIntellisense(
   dataModelElements: DataModelFieldElement[],
   filterText: string,

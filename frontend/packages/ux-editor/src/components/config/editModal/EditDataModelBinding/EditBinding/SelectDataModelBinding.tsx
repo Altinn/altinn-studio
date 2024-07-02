@@ -5,7 +5,7 @@ import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { StudioDisplayTile, StudioNativeSelect } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useValidDataModels } from '@altinn/ux-editor/hooks/useValidDataModels';
-import type { InternalBindingFormat } from '@altinn/ux-editor/utils/dataModel';
+import type { InternalBindingFormat } from '@altinn/ux-editor/utils/dataModelUtils';
 
 type SelectDataModelProps = {
   currentDataModel: string;

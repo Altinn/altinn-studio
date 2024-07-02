@@ -9,7 +9,7 @@ import {
   getMaxOccursFromDataModelFields,
   getMinOccursFromDataModelFields,
   getXsdDataTypeFromDataModelFields,
-} from '@altinn/ux-editor/utils/dataModel';
+} from '@altinn/ux-editor/utils/dataModelUtils';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useAppContext } from '@altinn/ux-editor/hooks';

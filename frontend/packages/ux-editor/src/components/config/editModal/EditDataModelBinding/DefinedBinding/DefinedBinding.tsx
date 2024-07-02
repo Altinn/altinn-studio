@@ -7,7 +7,7 @@ import {
   getDataModelFields,
   validateSelectedDataField,
   type InternalBindingFormat,
-} from '@altinn/ux-editor/utils/dataModel';
+} from '@altinn/ux-editor/utils/dataModelUtils';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { useValidDataModels } from '@altinn/ux-editor/hooks/useValidDataModels';
 

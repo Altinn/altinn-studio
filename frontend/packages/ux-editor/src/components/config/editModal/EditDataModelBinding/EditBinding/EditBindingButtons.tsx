@@ -3,7 +3,7 @@ import { StudioButton, StudioDeleteButton } from '@studio/components';
 import { XMarkIcon } from '@studio/icons';
 import classes from './EditBinding.module.css';
 import { useTranslation } from 'react-i18next';
-import type { InternalBindingFormat } from '@altinn/ux-editor/utils/dataModel';
+import type { InternalBindingFormat } from '@altinn/ux-editor/utils/dataModelUtils';
 
 export type EditBindingButtons = {
   handleBindingChange: (binding: InternalBindingFormat) => void;

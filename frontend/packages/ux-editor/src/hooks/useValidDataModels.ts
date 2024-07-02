@@ -2,7 +2,7 @@ import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMeta
 import { useDataModelMetadataQuery } from './queries/useDataModelMetadataQuery';
 import { useAppContext } from './useAppContext';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { getDataModel, validateSelectedDataModel } from '../utils/dataModel';
+import { getDataModel, validateSelectedDataModel } from '../utils/dataModelUtils';
 
 export const useValidDataModels = (currentDataModel: string) => {
   const { selectedFormLayoutSetName } = useAppContext();

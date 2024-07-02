@@ -3,7 +3,7 @@ import {
   getDataModelFields,
   validateSelectedDataField,
   type InternalBindingFormat,
-} from '@altinn/ux-editor/utils/dataModel';
+} from '@altinn/ux-editor/utils/dataModelUtils';
 import { useTranslation } from 'react-i18next';
 import { FormField } from 'app-shared/components/FormField';
 import { StudioNativeSelect } from '@studio/components';

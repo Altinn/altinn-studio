@@ -5,7 +5,7 @@ import { SelectDataFieldComponent } from './SelectDataFieldComponent';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { getDataModelFieldsFilter } from '../../utils/dataModel';
+import { getDataModelFieldsFilter } from '../../utils/dataModelUtils';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
