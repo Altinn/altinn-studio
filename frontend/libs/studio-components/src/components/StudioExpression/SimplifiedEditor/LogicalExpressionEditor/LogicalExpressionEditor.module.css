@@ -1,7 +1,5 @@
 .fieldsetContent {
   align-items: stretch;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: var(--studio-expression-spacing);
 }
