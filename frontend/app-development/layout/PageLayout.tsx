@@ -57,8 +57,6 @@ export const PageLayout = (): React.ReactNode => {
   return (
     <>
       <PageHeader
-        org={org}
-        app={app}
         showSubMenu={!repoStatus?.hasMergeConflict}
         user={user}
         repoOwnerIsOrg={repoOwnerIsOrg}

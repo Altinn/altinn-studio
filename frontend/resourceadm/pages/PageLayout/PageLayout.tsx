@@ -24,7 +24,7 @@ export const PageLayout = (): React.JSX.Element => {
   const { data: user } = useUserQuery();
   const { data: organizations } = useOrganizationsQuery();
 
-  const { selectedContext = SelectedContextType.Self, repo } = useUrlParams();
+  const { selectedContext = SelectedContextType.Self } = useUrlParams();
 
   const navigate = useNavigate();
 
@@ -54,12 +54,7 @@ export const PageLayout = (): React.JSX.Element => {
       <HeaderContext.Provider value={headerContextValue}>
         {/* TODO - Find out if <AppHeader /> should be replaced to be the same as studio */}
         <AppHeader />
-        <GiteaHeader
-          org={selectedContext}
-          app={repo}
-          menuOnlyHasRepository
-          rightContentClassName={classes.extraPadding}
-        />
+        <GiteaHeader menuOnlyHasRepository rightContentClassName={classes.extraPadding} />
       </HeaderContext.Provider>
       <Outlet />
     </>
