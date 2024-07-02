@@ -55,7 +55,9 @@ public class OptionsService : IOptionsService
     {
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-        string payloadString = JsonSerializer.Serialize(payload);
+        var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
+        string payloadString = JsonSerializer.Serialize(payload, jsonOptions);
+
         string updatedOptionsString = await altinnAppGitRepository.CreateOrOverwriteOptions(optionListId, payloadString);
         var updatedOptions = JsonSerializer.Deserialize<List<Option>>(updatedOptionsString);
 

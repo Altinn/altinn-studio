@@ -59,7 +59,7 @@ public class GetTests : DisagnerEndpointsTestsBase<GetTests>, IClassFixture<WebA
         const string repo = "app-with-options";
         const string optionListId = "test-options";
 
-        // This  option list matches the list in 'app-with-options'
+        // This  option list matches the options in 'app-with-options'
         var expectedOptionList = new List<Option>
         {
             new Option

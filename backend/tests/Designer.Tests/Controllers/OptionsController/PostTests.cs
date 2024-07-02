@@ -24,10 +24,10 @@ public class PostTests : DisagnerEndpointsTestsBase<PostTests>, IClassFixture<We
     [Fact]
     public async Task Post_Returns_201Created_When_OptionList_Is_Created()
     {
+        // Arrange
         const string repo = "empty-app";
         const string optionListId = "new-option-list";
 
-        // Arrange
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
 
