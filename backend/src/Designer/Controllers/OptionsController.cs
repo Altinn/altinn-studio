@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -55,18 +56,19 @@ public class OptionsController : ControllerBase
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="repo">Application identifier which is unique within an organisation.</param>
     /// <param name="optionListId">Name of the option list.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpGet]
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [Route("{optionListId}")]
-    public async Task<ActionResult<List<Option>>> GetSingleOptionList(string org, string repo, [FromRoute] string optionListId)
+    public async Task<ActionResult<List<Option>>> GetSingleOptionList(string org, string repo, [FromRoute] string optionListId, CancellationToken cancellationToken = default)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
         try
         {
-            List<Option> optionList = await _optionsService.GetOptions(org, repo, developer, optionListId);
+            List<Option> optionList = await _optionsService.GetOptions(org, repo, developer, optionListId, cancellationToken);
             return Ok(optionList);
         }
         catch (NotFoundException)
@@ -82,23 +84,24 @@ public class OptionsController : ControllerBase
     /// <param name="repo">Application identifier which is unique within an organisation.</param>
     /// <param name="optionListId">Name of the new option list</param>
     /// <param name="payload">The option list contents</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The created option list</returns>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [Route("{optionListId}")]
-    public async Task<ActionResult> Post(string org, string repo, [FromRoute] string optionListId, [FromBody] List<Option> payload)
+    public async Task<ActionResult> Post(string org, string repo, [FromRoute] string optionListId, [FromBody] List<Option> payload, CancellationToken cancellationToken = default)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        bool optionListAlreadyExists = await _optionsService.OptionListExists(org, repo, developer, optionListId);
+        bool optionListAlreadyExists = await _optionsService.OptionListExists(org, repo, developer, optionListId, cancellationToken);
         if (optionListAlreadyExists)
         {
             return Conflict("The option list already exists.");
         }
 
-        var newOptionList = await _optionsService.UpdateOptions(org, repo, developer, optionListId, payload);
+        var newOptionList = await _optionsService.UpdateOptions(org, repo, developer, optionListId, payload, cancellationToken);
         return CreatedAtAction("GetSingleOptionList", new { org, repo, optionListId }, newOptionList);
     }
 
@@ -109,16 +112,17 @@ public class OptionsController : ControllerBase
     /// <param name="repo">Application identifier which is unique within an organisation.</param>
     /// <param name="optionListId">Name of the option list.</param>
     /// <param name="payload">Contents of the option list.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpPut]
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [Route("{optionListId}")]
-    public async Task<ActionResult> Put(string org, string repo, [FromRoute] string optionListId, [FromBody] List<Option> payload)
+    public async Task<ActionResult> Put(string org, string repo, [FromRoute] string optionListId, [FromBody] List<Option> payload, CancellationToken cancellationToken = default)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        var newOptionList = await _optionsService.UpdateOptions(org, repo, developer, optionListId, payload);
+        var newOptionList = await _optionsService.UpdateOptions(org, repo, developer, optionListId, payload, cancellationToken);
 
         return Ok(newOptionList);
     }
@@ -129,16 +133,17 @@ public class OptionsController : ControllerBase
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="repo">Application identifier which is unique within an organisation.</param>
     /// <param name="optionListId">Name of the option list.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpDelete]
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [Route("{optionListId}")]
-    public async Task<ActionResult> Delete(string org, string repo, [FromRoute] string optionListId)
+    public async Task<ActionResult> Delete(string org, string repo, [FromRoute] string optionListId, CancellationToken cancellationToken = default)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        bool optionListExists = await _optionsService.OptionListExists(org, repo, developer, optionListId);
+        bool optionListExists = await _optionsService.OptionListExists(org, repo, developer, optionListId, cancellationToken);
         if (!optionListExists)
         {
             return NotFound($"The options file {optionListId}.json does not exist.");

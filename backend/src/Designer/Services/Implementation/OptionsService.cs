@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -40,25 +41,27 @@ public class OptionsService : IOptionsService
     }
 
     /// <inheritdoc />
-    public async Task<List<Option>> GetOptions(string org, string repo, string developer, string optionListId)
+    public async Task<List<Option>> GetOptions(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-        string optionListString = await altinnAppGitRepository.GetOptions(optionListId);
+        string optionListString = await altinnAppGitRepository.GetOptions(optionListId, cancellationToken);
         var optionList = JsonSerializer.Deserialize<List<Option>>(optionListString);
 
         return optionList;
     }
 
     /// <inheritdoc />
-    public async Task<List<Option>> UpdateOptions(string org, string repo, string developer, string optionListId, List<Option> payload)
+    public async Task<List<Option>> UpdateOptions(string org, string repo, string developer, string optionListId, List<Option> payload, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
         var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
         string payloadString = JsonSerializer.Serialize(payload, jsonOptions);
 
-        string updatedOptionsString = await altinnAppGitRepository.CreateOrOverwriteOptions(optionListId, payloadString);
+        string updatedOptionsString = await altinnAppGitRepository.CreateOrOverwriteOptions(optionListId, payloadString, cancellationToken);
         var updatedOptions = JsonSerializer.Deserialize<List<Option>>(updatedOptionsString);
 
         return updatedOptions;
@@ -73,11 +76,13 @@ public class OptionsService : IOptionsService
     }
 
     /// <inheritdoc />
-    public async Task<bool> OptionListExists(string org, string repo, string developer, string optionListId)
+    public async Task<bool> OptionListExists(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         try
         {
-            await GetOptions(org, repo, developer, optionListId);
+            await GetOptions(org, repo, developer, optionListId, cancellationToken);
             return true;
         }
         catch (NotFoundException)

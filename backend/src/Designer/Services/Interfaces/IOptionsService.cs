@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 
@@ -25,8 +26,9 @@ public interface IOptionsService
     /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="optionListId">Name of the options list to fetch</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The options list as a dictionary</returns>
-    public Task<List<Option>> GetOptions(string org, string repo, string developer, string optionListId);
+    public Task<List<Option>> GetOptions(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a new options file in the app repository.
@@ -37,7 +39,8 @@ public interface IOptionsService
     /// <param name="developer">Username of developer</param>
     /// <param name="optionListId">Name of the new options list</param>
     /// <param name="payload">The options list contents</param>
-    public Task<List<Option>> UpdateOptions(string org, string repo, string developer, string optionListId, List<Option> payload);
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    public Task<List<Option>> UpdateOptions(string org, string repo, string developer, string optionListId, List<Option> payload, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes an options file from the app repository.
@@ -55,5 +58,6 @@ public interface IOptionsService
     /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="optionListId">Name of the options list</param>
-    public Task<bool> OptionListExists(string org, string repo, string developer, string optionListId);
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    public Task<bool> OptionListExists(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken = default);
 }

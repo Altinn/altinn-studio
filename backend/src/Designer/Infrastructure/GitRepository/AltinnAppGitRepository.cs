@@ -713,8 +713,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             {
                 throw new NotFoundException("Options folder not found.");
             }
+
             string[] fileNames = GetFilesByRelativeDirectory(optionsFolder);
-            List<string> optionListIds = new();
+            List<string> optionListIds = [];
             foreach (string fileName in fileNames.Select(Path.GetFileNameWithoutExtension))
             {
                 optionListIds.Add(fileName);
@@ -731,6 +732,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <returns>The options list as a string.</returns>
         public async Task<string> GetOptions(string optionListId, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             string optionsFilePath = Path.Combine(OptionsFolderPath, $"{optionListId}.json");
             if (!FileExistsByRelativePath(optionsFilePath))
             {
@@ -751,6 +754,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <returns>The new options list as a string.</returns>
         public async Task<string> CreateOrOverwriteOptions(string optionListId, string payload, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             string optionsFilePath = Path.Combine(OptionsFolderPath, $"{optionListId}.json");
             await WriteTextByRelativePathAsync(optionsFilePath, payload, true, cancellationToken);
             string fileContent = await ReadTextByRelativePathAsync(optionsFilePath, cancellationToken);
