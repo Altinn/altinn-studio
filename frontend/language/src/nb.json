@@ -646,7 +646,7 @@
   "overview.reset_repo_confirm_info": "Du vil nå slette alle endringer gjort på <bold>{{repositoryName}}</bold>. Endringene kan ikke gjenopprettes.",
   "overview.reset_repo_confirm_repo_name": "Skriv inn navn på appen for å bekrefte",
   "overview.reset_repo_heading": "Slett mine endringer",
-  "overview.reset_repo_loading": "Laster sletting",
+  "overview.reset_repo_loading": "Sletter...",
   "overview.success": "Applikasjonen er tilgjengelig i miljøet.",
   "overview.unavailable": "Applikasjonen er midlertidig utilgjengelig i miljøet.",
   "party_selection.binding_word": "eller",
