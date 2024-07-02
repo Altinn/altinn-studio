@@ -124,10 +124,6 @@ describe('AttachmentListComponent', () => {
       'layoutSetId4',
     );
 
-    // Todo: Combobox onChangeValue trigger on initial render, this can be fixed when we start to use >v0.55.0 of designsystem. Replace value prop with initialValue prop in combobox
-    expect(handleComponentChange).toHaveBeenCalledTimes(1);
-    handleComponentChange.mockClear();
-
     const includePdfCheckbox = screen.getByRole('checkbox', {
       name: textMock('ux_editor.component_properties.select_pdf'),
     });
@@ -177,10 +173,6 @@ describe('AttachmentListComponent', () => {
       'layoutSetId3',
     );
 
-    // Todo: Combobox onChangeValue trigger on initial render, this can be fixed when we start to use >v0.55.0 of designsystem. Replace value prop with initialValue prop in combobox
-    expect(handleComponentChange).toHaveBeenCalledTimes(1);
-    handleComponentChange.mockClear();
-
     const currentTaskCheckbox = screen.getByRole('checkbox', {
       name: textMock('ux_editor.component_properties.current_task'),
     });
@@ -193,7 +185,7 @@ describe('AttachmentListComponent', () => {
       dataTypeIds: ['test4', reservedDataTypes.refDataAsPdf, reservedDataTypes.currentTask],
     });
     // Combobox is also triggered, because current task is set to true and makes the combobox to trigger onChangeValue because of filter update
-    expect(handleComponentChange).toHaveBeenCalledTimes(2);
+    expect(handleComponentChange).toHaveBeenCalledTimes(1);
 
     await user.click(currentTaskCheckbox);
     expect(currentTaskCheckbox).not.toBeChecked();
@@ -201,7 +193,7 @@ describe('AttachmentListComponent', () => {
       ...defaultComponent,
       dataTypeIds: ['test4', reservedDataTypes.refDataAsPdf],
     });
-    expect(handleComponentChange).toHaveBeenCalledTimes(3);
+    expect(handleComponentChange).toHaveBeenCalledTimes(2);
   });
 
   it('should not save to backend when current task is set to true and output is invalid (no selected attachments)', async () => {
@@ -214,10 +206,6 @@ describe('AttachmentListComponent', () => {
       },
       'layoutSetId3',
     );
-
-    // Todo: Combobox onChangeValue trigger on initial render, this can be fixed when we start to use >v0.55.0 of designsystem. Replace value prop with initialValue prop in combobox
-    expect(handleComponentChange).toHaveBeenCalledTimes(1);
-    handleComponentChange.mockClear();
 
     const currentTaskCheckbox = screen.getByRole('checkbox', {
       name: textMock('ux_editor.component_properties.current_task'),
@@ -240,21 +228,18 @@ describe('AttachmentListComponent', () => {
       'layoutSetId3',
     );
 
-    // Todo: Combobox onChangeValue trigger on initial render, this can be fixed when we start to use >v0.55.0 of designsystem. Replace value prop with initialValue prop in combobox
-    expect(handleComponentChange).toHaveBeenCalledTimes(1);
-    handleComponentChange.mockClear();
-
     const selectAllCheckbox = screen.getByRole('checkbox', {
       name: textMock('ux_editor.component_properties.select_all_attachments'),
     });
     await user.click(selectAllCheckbox);
     expect(selectAllCheckbox).toBeChecked();
+
     // Combobox is also triggered, because current task is set to true and makes the combobox to trigger onChangeValue because of filter update
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...defaultComponent,
       dataTypeIds: [],
     });
-    expect(handleComponentChange).toHaveBeenCalledTimes(2);
+    expect(handleComponentChange).toHaveBeenCalledTimes(1);
 
     handleComponentChange.mockClear();
     await user.click(selectAllCheckbox);

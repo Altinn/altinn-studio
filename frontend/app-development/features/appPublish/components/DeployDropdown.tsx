@@ -59,7 +59,7 @@ export const DeployDropdown = ({
       <div>
         <Combobox
           size='small'
-          value={selectedImageTag ? [selectedImageTag] : undefined}
+          value={selectedImageTag && imageOptions?.length > 0 ? [selectedImageTag] : undefined}
           label={t('app_deployment.choose_version')}
           onValueChange={(selectedImageOptions: string[]) =>
             setSelectedImageTag(selectedImageOptions[0])

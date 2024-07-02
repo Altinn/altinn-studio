@@ -207,11 +207,7 @@ export const AccessListMembers = ({
               onChange={() => setIsSubPartySearch((old) => !old)}
               value={isSubPartySearch ? SUBPARTY_SEARCH_TYPE : PARTY_SEARCH_TYPE}
               inline
-              legend={
-                <div className={classes.radioGroupHeader}>
-                  {t('resourceadm.listadmin_search_party_type')}
-                </div>
-              }
+              legend={t('resourceadm.listadmin_search_party_type')}
             >
               <Radio value={PARTY_SEARCH_TYPE}>{t('resourceadm.listadmin_parties')}</Radio>
               <Radio value={SUBPARTY_SEARCH_TYPE}>{t('resourceadm.listadmin_sub_parties')}</Radio>

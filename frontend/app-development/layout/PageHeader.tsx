@@ -11,27 +11,21 @@ import type { User } from 'app-shared/types/Repository';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { RepositoryType } from 'app-shared/types/global';
 import { useSelectedFormLayoutSetName, useSelectedFormLayoutName } from '@altinn/ux-editor/hooks';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import { StudioPageHeader } from '@studio/components';
 
 type SubMenuContentProps = {
-  org: string;
-  app: string;
   hasRepoError?: boolean;
 };
 
-export const SubMenuContent = ({
-  org,
-  app,
-  hasRepoError,
-}: SubMenuContentProps): React.ReactElement => {
+export const SubMenuContent = ({ hasRepoError }: SubMenuContentProps): React.ReactElement => {
+  const { org, app } = useStudioEnvironmentParams();
   const repositoryType = getRepositoryType(org, app);
   const { doReloadPreview } = usePreviewContext();
 
   return (
     <GiteaHeader
-      org={org}
-      app={app}
       hasCloneModal
       leftComponent={repositoryType !== RepositoryType.DataModels && <SettingsModalButton />}
       hasRepoError={hasRepoError}
@@ -61,22 +55,14 @@ export const buttonActions = (
 };
 
 type PageHeaderProps = {
-  org: string;
-  app: string;
   showSubMenu: boolean;
   user: User;
   repoOwnerIsOrg: boolean;
   isRepoError?: boolean;
 };
 
-export const PageHeader = ({
-  org,
-  app,
-  showSubMenu,
-  user,
-  repoOwnerIsOrg,
-  isRepoError,
-}: PageHeaderProps) => {
+export const PageHeader = ({ showSubMenu, user, repoOwnerIsOrg, isRepoError }: PageHeaderProps) => {
+  const { org, app } = useStudioEnvironmentParams();
   const repoType = getRepositoryType(org, app);
   const repository = useAppSelector((state) => state.serviceInformation.repositoryInfo);
   const menuItems = getFilteredTopBarMenu(repoType);
@@ -88,7 +74,7 @@ export const PageHeader = ({
       <AltinnHeader
         menuItems={!isRepoError && menuItems}
         showSubMenu={showSubMenu || !isRepoError}
-        subMenuContent={SubMenuContent({ org, app, hasRepoError: isRepoError })}
+        subMenuContent={<SubMenuContent hasRepoError={isRepoError} />}
         org={org}
         app={!isRepoError && app}
         user={user}
@@ -108,7 +94,7 @@ export const PageHeader = ({
         </StudioPageHeader.Main>
         {(showSubMenu || !isRepoError) && (
           <StudioPageHeader.Sub>
-            {SubMenuContent({ org, app, hasRepoError: isRepoError })}
+            {SubMenuContent({ hasRepoError: isRepoError })}
           </StudioPageHeader.Sub>
         )}
       </StudioPageHeader>
