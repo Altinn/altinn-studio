@@ -27,6 +27,7 @@ const StudioButton: OverridableComponent<StudioButtonProps, HTMLButtonElement> =
   // Information can be found here: https://www.designsystemet.no/bloggen/2024/v1rc1#fargemodus
   const classNames = cn(givenClassName, classes.studioButton, {
     [classes.inverted]: color === 'inverted',
+    [classes.small]: rest.size === 'small',
   });
   const selectedColor = color === 'inverted' ? undefined : color;
 
