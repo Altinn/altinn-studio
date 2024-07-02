@@ -64,6 +64,7 @@ public class OptionsController : ControllerBase
     [Route("{optionListId}")]
     public async Task<ActionResult<List<Option>>> GetSingleOptionList(string org, string repo, [FromRoute] string optionListId, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
         try
@@ -93,6 +94,7 @@ public class OptionsController : ControllerBase
     [Route("{optionListId}")]
     public async Task<ActionResult> Post(string org, string repo, [FromRoute] string optionListId, [FromBody] List<Option> payload, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
         bool optionListAlreadyExists = await _optionsService.OptionListExists(org, repo, developer, optionListId, cancellationToken);
@@ -120,6 +122,7 @@ public class OptionsController : ControllerBase
     [Route("{optionListId}")]
     public async Task<ActionResult> Put(string org, string repo, [FromRoute] string optionListId, [FromBody] List<Option> payload, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
         var newOptionList = await _optionsService.UpdateOptions(org, repo, developer, optionListId, payload, cancellationToken);
@@ -141,6 +144,7 @@ public class OptionsController : ControllerBase
     [Route("{optionListId}")]
     public async Task<ActionResult> Delete(string org, string repo, [FromRoute] string optionListId, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
         bool optionListExists = await _optionsService.OptionListExists(org, repo, developer, optionListId, cancellationToken);
