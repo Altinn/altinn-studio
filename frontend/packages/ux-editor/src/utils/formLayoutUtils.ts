@@ -17,6 +17,7 @@ import type { FormItem } from '../types/FormItem';
 import * as formItemUtils from './formItemUtils';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import { flattenObjectValues } from 'app-shared/utils/objectUtils';
+import type { FormLayoutPage } from '../types/FormLayoutPage';
 
 export const mapComponentToToolbarElement = <T extends ComponentType>(
   c: FormItemConfigs[T],
@@ -423,6 +424,40 @@ export const duplicatedIdsExistsInLayout = (layout: IInternalLayout): boolean =>
   if (!layout?.order) return false;
   const idsInLayout = flattenObjectValues(layout.order);
   return !areItemsUnique(idsInLayout);
+};
+
+/**
+ * Checks if there are component with duplicated ids across all layouts in the layoutset.
+ * @param layouts The layouts to check.
+ * @returns dublicated layouts.
+ */
+export const findLayoutsContainingDuplicateComponents = (
+  layouts: Record<string, IInternalLayout>,
+) => {
+  const componentMap = new Map<string, string>();
+  const duplicateLayouts = new Set<string>();
+  const duplicateComponents = new Set<string>();
+
+  const layoutPages: FormLayoutPage[] = Object.keys(layouts).map((key) => ({
+    page: key,
+    data: layouts[key],
+  }));
+  layoutPages.forEach(({ page, data }) => {
+    const components = flattenObjectValues(data.order);
+    components.forEach((component) => {
+      if (componentMap.has(component)) {
+        duplicateLayouts.add(page);
+        duplicateLayouts.add(componentMap.get(component));
+        duplicateComponents.add(component);
+      } else {
+        componentMap.set(component, page);
+      }
+    });
+  });
+  return {
+    duplicateLayouts: [...duplicateLayouts],
+    duplicateComponents: [...duplicateComponents],
+  };
 };
 
 /**

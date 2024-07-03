@@ -1,45 +1,55 @@
 import React from 'react';
-import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { useTranslation } from 'react-i18next';
 import { StudioProperty } from '@studio/components';
-import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
-import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
-import { addNewActionToTask, getAvailablePredefinedActions } from './ActionsUtils';
-import { EditAction } from './EditAction';
+import { useChecksum } from './useChecksum';
+import { ActionsEditor } from './ActionsEditor';
+import { useBpmnContext } from '../../../../contexts/BpmnContext';
+import { type Action, BpmnActionModeler } from '../../../../utils/bpmn/BpmnActionModeler';
 
-export const EditActions = () => {
+import classes from './EditActions.module.css';
+
+export const EditActions = (): React.ReactElement => {
   const { t } = useTranslation();
-  const { bpmnDetails, modelerRef } = useBpmnContext();
-  const actionElements: ModdleElement[] =
-    bpmnDetails?.element?.businessObject?.extensionElements?.values[0]?.actions?.action ?? [];
-  const modelerInstance = modelerRef.current;
-  const modeling: Modeling = modelerInstance.get('modeling');
-  const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
+  const { bpmnDetails } = useBpmnContext();
+  const bpmnActionModeler = new BpmnActionModeler(bpmnDetails.element);
+  // This is a custom hook that is used to force re-render the component, since the actions from bpmnjs are not reactive
+  const { updateChecksum: forceReRenderComponent } = useChecksum();
+  const actions: Action[] = bpmnActionModeler.actionElements?.action || [];
 
-  const availablePredefinedActions = getAvailablePredefinedActions(
-    bpmnDetails.taskType,
-    actionElements,
-  );
+  const onNewActionAddClicked = (): void => {
+    const shouldUpdateExistingActions = bpmnActionModeler.hasActionsAlready;
+    if (shouldUpdateExistingActions) {
+      const existingActionElement = bpmnActionModeler.actionElements;
 
-  const handleAddNewAction = () => {
-    addNewActionToTask(bpmnFactory, modeling, undefined, bpmnDetails);
+      const newActionElement = bpmnActionModeler.createActionElement(undefined);
+      existingActionElement?.action.push(newActionElement);
+
+      bpmnActionModeler.updateActionNameOnActionElement(
+        bpmnActionModeler.getExtensionElements(),
+        undefined,
+      );
+      forceReRenderComponent();
+      return;
+    }
+    bpmnActionModeler.addNewActionToTask(undefined);
+    forceReRenderComponent();
   };
 
   return (
     <>
-      {actionElements.map((actionElement: ModdleElement, index: number) => (
-        <EditAction
-          key={actionElement.action}
-          actionElementToEdit={actionElement}
-          availablePredefinedActions={availablePredefinedActions}
-          bpmnDetails={bpmnDetails}
-          index={index}
-          modeling={modeling}
-        />
+      {actions.map((actionElement: ModdleElement, index: number) => (
+        // Using the index as key, since we do not have a unique identifier for the action elements
+        <div key={index} className={classes.container}>
+          <ActionsEditor
+            actionElement={actionElement}
+            actionIndex={index}
+            mode={!actionElement.action ? 'edit' : 'view'}
+          />
+        </div>
       ))}
       <StudioProperty.Button
-        onClick={handleAddNewAction}
+        onClick={onNewActionAddClicked}
         property={t('process_editor.configuration_panel_actions_add_new')}
         size='small'
       />

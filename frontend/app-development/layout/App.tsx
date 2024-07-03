@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import postMessages from 'app-shared/utils/postMessages';
-import { AltinnPopoverSimple } from 'app-shared/components/molecules/AltinnPopoverSimple';
 import { HandleServiceInformationActions } from '../features/overview/handleServiceInformationSlice';
 import {
   fetchRemainingSession,
@@ -15,12 +14,13 @@ import { getRepositoryType } from 'app-shared/utils/repository';
 import { RepositoryType } from 'app-shared/types/global';
 import { repoMetaPath, serviceConfigPath, serviceNamePath } from 'app-shared/api/paths';
 import i18next from 'i18next';
-import { initReactI18next, useTranslation } from 'react-i18next';
+import { initReactI18next } from 'react-i18next';
 import nb from '../../language/src/nb.json';
 import en from '../../language/src/en.json';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { appContentWrapperId } from '@studio/testing/testids';
+import { SessionExpiredModal } from './SessionExpiredModal';
 
 const TEN_MINUTES_IN_MILLISECONDS = 600000;
 
@@ -44,7 +44,6 @@ export function App() {
   const app = match?.params?.app ?? '';
 
   const repositoryType = getRepositoryType(org, app);
-  const { t } = useTranslation();
   const { refetch: reFetchRepoStatus } = useRepoStatusQuery(org, app);
   const remainingSessionMinutes = useAppSelector(
     (state) => state.userState.session.remainingMinutes,
@@ -117,35 +116,22 @@ export function App() {
     };
   }, [app, dispatch, lastKeepAliveTimestamp, org, reFetchRepoStatus, remainingSessionMinutes]);
 
-  const handleSessionExpiresClose = useCallback(
-    (action: string) => {
-      if (action === 'close') {
-        // user clicked close button, sign user out
-        dispatch(signOutUser());
-      } else {
-        // user clicked outside the popover or pressed "continue", keep signed in
-        dispatch(keepAliveSession());
-        lastKeepAliveTimestamp.current = Date.now();
-      }
-    },
-    [dispatch],
-  );
+  const handleClickClose = useCallback(() => {
+    dispatch(signOutUser());
+  }, [dispatch]);
+
+  const handleClickContinue = useCallback(() => {
+    dispatch(keepAliveSession());
+    lastKeepAliveTimestamp.current = Date.now();
+  }, [dispatch]);
+
   return (
     <div className={classes.container} ref={sessionExpiredPopoverRef}>
-      <AltinnPopoverSimple
-        anchorEl={sessionExpiredPopoverRef.current}
+      <SessionExpiredModal
         open={remainingSessionMinutes < 11}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-        handleClose={(event: string) => handleSessionExpiresClose(event)}
-        btnCancelText={t('general.sign_out')}
-        btnConfirmText={t('general.continue')}
-        btnClick={handleSessionExpiresClose}
-        paperProps={{ style: { margin: '2.4rem' } }}
-      >
-        <h2>{t('session.expires')}</h2>
-        <p style={{ marginTop: '1.6rem' }}>{t('session.inactive')}</p>
-      </AltinnPopoverSimple>
+        onClose={handleClickClose}
+        onContinue={handleClickContinue}
+      />
       <div data-testid={appContentWrapperId}>
         <Outlet />
       </div>

@@ -25,7 +25,7 @@ jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockedNavigate,
   useParams: () => {
-    return { selectedContext: org };
+    return { org: org };
   },
 }));
 

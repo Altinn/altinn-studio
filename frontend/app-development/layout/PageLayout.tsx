@@ -22,7 +22,7 @@ export const PageLayout = (): React.ReactNode => {
 
   const { data: orgs, isPending: orgsPending } = useOrgListQuery();
   const { data: repository } = useRepoMetadataQuery(org, app);
-  const repoOwnerIsOrg = !orgsPending && Object.keys(orgs).includes(repository?.owner.login);
+  const repoOwnerIsOrg = !orgsPending && Object.keys(orgs).includes(repository?.owner?.login);
 
   const {
     data: repoStatus,
@@ -57,8 +57,6 @@ export const PageLayout = (): React.ReactNode => {
   return (
     <>
       <PageHeader
-        org={org}
-        app={app}
         showSubMenu={!repoStatus?.hasMergeConflict}
         user={user}
         repoOwnerIsOrg={repoOwnerIsOrg}

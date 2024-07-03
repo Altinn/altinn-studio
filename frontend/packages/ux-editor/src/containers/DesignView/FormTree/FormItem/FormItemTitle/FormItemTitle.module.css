@@ -18,3 +18,7 @@
 .root:not(:hover):not(:focus-within) .deleteButton {
   visibility: hidden;
 }
+
+.duplicateComponentIds {
+  background-color: var(--fds-semantic-surface-danger-subtle) !important;
+}

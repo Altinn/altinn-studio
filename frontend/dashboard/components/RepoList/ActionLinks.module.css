@@ -1,0 +1,18 @@
+.actionLinksContainer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--fds-spacing-1);
+}
+
+.giteaButton {
+  margin-right: 0.7rem;
+}
+
+.giteaIcon {
+  font-size: 2rem;
+  color: var(--fds-semantic-text-success-default);
+}
+
+.nativeActionIcon {
+  font-size: 1.7rem;
+}

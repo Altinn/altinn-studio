@@ -32,7 +32,7 @@ import type { EnvId } from '../../utils/resourceUtils';
 import { ResourceAccessLists } from '../../components/ResourceAccessLists';
 import { AccessListDetail } from '../../components/AccessListDetails';
 import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery';
-import { useUrlParams } from '../../hooks/useSelectedContext';
+import { useUrlParams } from '../../hooks/useUrlParams';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 /**
@@ -47,7 +47,7 @@ export const ResourcePage = (): React.JSX.Element => {
   const navigate = useNavigate();
   const autoSaveTimeoutRef = useRef(undefined);
 
-  const { pageType, resourceId, selectedContext, repo, env, accessListId } = useUrlParams();
+  const { pageType, resourceId, org, app, env, accessListId } = useUrlParams();
   const currentPage = pageType as NavigationBarPage;
 
   // Stores the temporary next page
@@ -63,35 +63,24 @@ export const ResourcePage = (): React.JSX.Element => {
   const [policyErrorModalOpen, setPolicyErrorModalOpen] = useState(false);
 
   // Get the metadata for Gitea
-  const { data: repoStatus, refetch: refetchRepoStatus } = useRepoStatusQuery(
-    selectedContext,
-    repo,
-  );
+  const { data: repoStatus, refetch: refetchRepoStatus } = useRepoStatusQuery(org, app);
 
   // Get metadata for policy
-  const { refetch: refetchValidatePolicy } = useValidatePolicyQuery(
-    selectedContext,
-    repo,
-    resourceId,
-  );
+  const { refetch: refetchValidatePolicy } = useValidatePolicyQuery(org, app, resourceId);
 
   // Get metadata for resource
-  const { refetch: refetchValidateResource } = useValidateResourceQuery(
-    selectedContext,
-    repo,
-    resourceId,
-  );
+  const { refetch: refetchValidateResource } = useValidateResourceQuery(org, app, resourceId);
 
   const {
     data: loadedResourceData,
     refetch: refetchResource,
     isPending: resourcePending,
-  } = useSinlgeResourceQuery(selectedContext, repo, resourceId);
+  } = useSinlgeResourceQuery(org, app, resourceId);
 
-  const { data: accessList } = useGetAccessListQuery(selectedContext, accessListId, env);
+  const { data: accessList } = useGetAccessListQuery(org, accessListId, env);
 
   // Mutation function for editing a resource
-  const { mutateAsync: editResource } = useEditResourceMutation(selectedContext, repo, resourceId);
+  const { mutateAsync: editResource } = useEditResourceMutation(org, app, resourceId);
 
   // Set resourceData when loaded from server. Should only be called once
   useEffect(() => {
@@ -124,6 +113,7 @@ export const ResourcePage = (): React.JSX.Element => {
           setShowResourceErrors(false);
           handleNavigation(page);
         } else {
+          window.scrollTo(0, 0);
           setShowResourceErrors(true);
           setNextPage(page);
           setResourceErrorModalOpen(true);
@@ -157,7 +147,7 @@ export const ResourcePage = (): React.JSX.Element => {
     setPolicyErrorModalOpen(false);
     setResourceErrorModalOpen(false);
     refetchRepoStatus();
-    navigate(getResourcePageURL(selectedContext, repo, resourceId, newPage));
+    navigate(getResourcePageURL(org, app, resourceId, newPage));
   };
 
   /**
@@ -200,21 +190,21 @@ export const ResourcePage = (): React.JSX.Element => {
       aboutPageId,
       () => navigateToPage(aboutPageId),
       currentPage,
-      getResourcePageURL(selectedContext, repo, resourceId, 'about'),
+      getResourcePageURL(org, app, resourceId, 'about'),
     ),
     createNavigationTab(
       <GavelSoundBlockIcon className={classes.icon} />,
       policyPageId,
       () => navigateToPage(policyPageId),
       currentPage,
-      getResourcePageURL(selectedContext, repo, resourceId, 'policy'),
+      getResourcePageURL(org, app, resourceId, 'policy'),
     ),
     createNavigationTab(
       <UploadIcon className={classes.icon} />,
       deployPageId,
       () => navigateToPage(deployPageId),
       currentPage,
-      getResourcePageURL(selectedContext, repo, resourceId, 'deploy'),
+      getResourcePageURL(org, app, resourceId, 'deploy'),
     ),
   ];
 
@@ -223,7 +213,7 @@ export const ResourcePage = (): React.JSX.Element => {
     migrationPageId,
     () => navigateToPage(migrationPageId),
     currentPage,
-    getResourcePageURL(selectedContext, repo, resourceId, 'migration'),
+    getResourcePageURL(org, app, resourceId, 'migration'),
   );
 
   /**
@@ -252,7 +242,7 @@ export const ResourcePage = (): React.JSX.Element => {
         <LeftNavigationBar
           upperTab='backButton'
           tabs={getTabs()}
-          backLink={getResourceDashboardURL(selectedContext, repo)}
+          backLink={getResourceDashboardURL(org, app)}
           backLinkText={t('resourceadm.left_nav_bar_back')}
           selectedTab={
             currentPage === migrationPageId && !isMigrateEnabled() ? aboutPageId : currentPage
@@ -305,25 +295,16 @@ export const ResourcePage = (): React.JSX.Element => {
           {currentPage === accessListsPageId && env && accessList && (
             <AccessListDetail
               key={accessList.identifier}
-              org={selectedContext}
+              org={org}
               env={env}
               list={accessList}
-              backUrl={`${getResourcePageURL(
-                selectedContext,
-                repo,
-                resourceId,
-                'accesslists',
-              )}/${env}`}
+              backUrl={`${getResourcePageURL(org, app, resourceId, 'accesslists')}/${env}`}
             />
           )}
         </div>
       )}
       {repoStatus?.hasMergeConflict && (
-        <MergeConflictModal
-          isOpen={repoStatus.hasMergeConflict}
-          org={selectedContext}
-          repo={repo}
-        />
+        <MergeConflictModal isOpen={repoStatus.hasMergeConflict} org={org} repo={app} />
       )}
       {policyErrorModalOpen && (
         <NavigationModal

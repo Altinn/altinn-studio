@@ -7,7 +7,7 @@ import { ArrowRightIcon } from '@studio/icons';
 import { StudioButton } from '@studio/components';
 import { usePublishResourceMutation } from '../../hooks/mutations';
 import { type Environment } from '../../utils/resourceUtils';
-import { useUrlParams } from '../../hooks/useSelectedContext';
+import { useUrlParams } from '../../hooks/useUrlParams';
 import type { ResourceError } from 'app-shared/types/ResourceAdm';
 
 export type ResourceDeployEnvCardProps = {
@@ -38,11 +38,11 @@ export const ResourceDeployEnvCard = ({
   const { t } = useTranslation();
 
   const [hasNoPublishAccess, setHasNoPublishAccess] = useState<boolean>(false);
-  const { selectedContext, repo, resourceId } = useUrlParams();
+  const { org, app, resourceId } = useUrlParams();
 
   // Query function for publishing a resource
   const { mutate: publishResource, isPending: publisingResourcePending } =
-    usePublishResourceMutation(selectedContext, repo, resourceId);
+    usePublishResourceMutation(org, app, resourceId);
 
   const handlePublish = () => {
     publishResource(env.id, {

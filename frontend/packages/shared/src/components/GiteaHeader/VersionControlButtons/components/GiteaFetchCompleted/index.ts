@@ -1,0 +1,1 @@
+export { GiteaFetchCompleted } from './GiteaFetchCompleted';

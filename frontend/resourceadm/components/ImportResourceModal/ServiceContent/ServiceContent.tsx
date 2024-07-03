@@ -12,7 +12,7 @@ import {
 } from '../../../utils/mapperUtils';
 
 export type ServiceContentProps = {
-  selectedContext: string;
+  org: string;
   env: string;
   selectedService: Altinn2LinkService | undefined;
   onSelectService: (altinn2LinkService: Altinn2LinkService | undefined) => void;
@@ -22,7 +22,7 @@ export type ServiceContentProps = {
  * @component
  *    Displays the Service content in the import resource from Altinn 2 modal.
  *
- * @property {string}[selectedContext] - The selected context
+ * @property {string}[org] - The selected org
  * @property {string}[env] - The selected environment
  * @property {Altinn2LinkService | undefined}[selectedService] - The selected service
  * @property {function}[onSelectService] - Function to be executed when selecting the service
@@ -30,7 +30,7 @@ export type ServiceContentProps = {
  * @returns {ReactNode} - The rendered component
  */
 export const ServiceContent = ({
-  selectedContext,
+  org,
   env,
   selectedService,
   onSelectService,
@@ -41,7 +41,7 @@ export const ServiceContent = ({
     data: altinn2LinkServices,
     status: altinn2LinkServicesStatus,
     error: altinn2LinkServicesError,
-  } = useGetAltinn2LinkServicesQuery(selectedContext, env);
+  } = useGetAltinn2LinkServicesQuery(org, env);
 
   /**
    * Handles the selection of the service
@@ -91,21 +91,25 @@ export const ServiceContent = ({
         <Combobox
           value={
             selectedService
-              ? mapAltinn2LinkServiceToSelectOption([selectedService]).map((ls) => ls.value)
+              ? [mapAltinn2LinkServiceToSelectOption(selectedService).value]
               : undefined
           }
           label={t('resourceadm.dashboard_import_modal_select_service')}
           onValueChange={(newValue: string[]) => {
             handleSelectService(newValue[0]);
           }}
+          filter={(inputValue: string, option) =>
+            option.label.toLowerCase().indexOf(inputValue?.toLowerCase()) > -1
+          }
         >
-          {mapAltinn2LinkServiceToSelectOption(altinn2LinkServices).map((ls) => {
-            return (
-              <Combobox.Option key={ls.value} value={ls.value}>
-                {ls.label}
-              </Combobox.Option>
-            );
-          })}
+          <Combobox.Empty>
+            {t('resourceadm.dashboard_import_modal_no_services_found')}
+          </Combobox.Empty>
+          {altinn2LinkServices.map(mapAltinn2LinkServiceToSelectOption).map((ls) => (
+            <Combobox.Option key={ls.value} value={ls.value}>
+              {ls.label}
+            </Combobox.Option>
+          ))}
         </Combobox>
       );
     }

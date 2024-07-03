@@ -1,0 +1,8 @@
+.headingWrapper {
+  display: flex;
+  align-items: center;
+}
+
+.subTitle {
+  margin-bottom: var(--fds-spacing-6);
+}

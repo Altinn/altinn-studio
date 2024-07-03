@@ -1,11 +1,12 @@
 .createServiceContainer {
-  margin-top: 55px;
+  margin-top: var(--fds-spacing-12);
 }
+
 .topBar {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 24px;
   align-items: center;
+  margin-bottom: var(--fds-spacing-10);
 }
 
 .clearIcon {

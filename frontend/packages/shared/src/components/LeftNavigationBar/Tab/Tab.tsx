@@ -55,7 +55,7 @@ export const Tab = ({
       onKeyDown={onKeyDown}
     >
       {tab.icon}
-      <Paragraph asChild size='small' short className={classes.buttonText}>
+      <Paragraph asChild size='small' variant='short' className={classes.buttonText}>
         <span>{t(tab.tabName)}</span>
       </Paragraph>
     </TabContent>

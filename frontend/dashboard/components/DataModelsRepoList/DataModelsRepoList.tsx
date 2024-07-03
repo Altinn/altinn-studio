@@ -10,14 +10,13 @@ import { useSearchReposQuery } from 'dashboard/hooks/queries/useSearchReposQuery
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { Heading } from '@digdir/design-system-react';
 import { useStarredReposQuery } from 'dashboard/hooks/queries';
-import { DATAGRID_DEFAULT_PAGE_SIZE } from 'dashboard/constants';
+import { DATA_MODEL_REPO_IDENTIFIER } from '../../constants';
 
 type DataModelsReposListProps = {
   user: User;
   organizations: Organization[];
 };
 export const DataModelsReposList = ({ user, organizations }: DataModelsReposListProps) => {
-  const { data: starredRepos = [], isPending: areStarredReposPending } = useStarredReposQuery();
   const selectedContext = useSelectedContext();
   const { t } = useTranslation();
 
@@ -27,18 +26,19 @@ export const DataModelsReposList = ({ user, organizations }: DataModelsReposList
     organizations,
   });
 
-  const { data: repos, isPending: isPendingOrgRepos } = useSearchReposQuery({
+  const { data: starredRepos = [], isPending: hasPendingStarredRepos } = useStarredReposQuery();
+  const { data: dataModelRepos, isPending: hasPendingDataModels } = useSearchReposQuery({
     uid: uid as number,
-    keyword: '-datamodels',
-    page: 0,
+    keyword: DATA_MODEL_REPO_IDENTIFIER,
+    page: 1,
   });
 
-  const reposWithStarred = useAugmentReposWithStarred({
-    repos: repos?.data,
+  const dataModelsIncludingStarredData = useAugmentReposWithStarred({
+    repos: dataModelRepos?.data,
     starredRepos,
   });
 
-  if (!reposWithStarred.length) {
+  if (!dataModelsIncludingStarredData.length) {
     return null;
   }
 
@@ -48,10 +48,8 @@ export const DataModelsReposList = ({ user, organizations }: DataModelsReposList
         {getReposLabel({ selectedContext, orgs: organizations, t, isDataModelsRepo: true })}
       </Heading>
       <RepoList
-        repos={reposWithStarred}
-        isLoading={isPendingOrgRepos || areStarredReposPending}
-        rowCount={2}
-        pageSizeOptions={[DATAGRID_DEFAULT_PAGE_SIZE]}
+        repos={dataModelsIncludingStarredData}
+        isLoading={hasPendingDataModels || hasPendingStarredRepos}
       />
     </div>
   );
