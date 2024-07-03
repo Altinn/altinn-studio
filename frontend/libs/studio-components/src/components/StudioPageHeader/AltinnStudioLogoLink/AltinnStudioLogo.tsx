@@ -1,7 +1,6 @@
 import React from 'react';
 
-// TODO DELETE
-export default function AltinnStudioLogo() {
+export const AltinnStudioLogo = () => {
   return (
     <svg
       role='img'
@@ -66,4 +65,4 @@ export default function AltinnStudioLogo() {
       />
     </svg>
   );
-}
+};

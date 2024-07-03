@@ -85,10 +85,7 @@ export const PageHeader = ({ showSubMenu, user, repoOwnerIsOrg, isRepoError }: P
       <div style={{ border: '4px solid black', marginBlock: '10px' }} />
       <StudioPageHeader>
         <StudioPageHeader.Main variant='regular'>
-          <StudioPageHeader.Left>
-            <p>test</p>
-            <p>test</p>
-          </StudioPageHeader.Left>
+          <StudioPageHeader.Left title={app} />
           <StudioPageHeader.Center>Center</StudioPageHeader.Center>
           <StudioPageHeader.Right>Right</StudioPageHeader.Right>
         </StudioPageHeader.Main>

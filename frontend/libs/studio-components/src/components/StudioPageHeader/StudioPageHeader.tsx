@@ -1,6 +1,7 @@
 import React, { type ReactNode } from 'react';
 import classes from './StudioPageHeader.module.css';
 import cn from 'classnames';
+import { AltinnStudioLogoLink } from './AltinnStudioLogoLink';
 
 export type StudioPageHeaderVariant = 'regular' | 'preview';
 
@@ -25,13 +26,24 @@ export const StudioPageHeaderMain = ({
 };
 
 export type StudioPageHeaderComponentProps = {
-  children: ReactNode;
+  children?: ReactNode;
+};
+
+export type StudioPageHeaderLeftProps = {
+  children?: ReactNode;
+  title?: string;
 };
 
 export const StudioPageHeaderLeft = ({
   children,
-}: StudioPageHeaderComponentProps): React.ReactElement => {
-  return <div>{children}</div>;
+  title,
+}: StudioPageHeaderLeftProps): React.ReactElement => {
+  if (children) return <div>{children}</div>;
+  return (
+    <div>
+      <AltinnStudioLogoLink title={title} />
+    </div>
+  );
 };
 
 export const StudioPageHeaderCenter = ({
