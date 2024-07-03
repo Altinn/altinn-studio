@@ -57,6 +57,7 @@ const handleError = (
 
   if (unAuthorizedErrorCode) {
     renderToast(errorCode || 'Unauthorized', {
+      onClose: () => logout().then(() => window.location.assign(userLogoutAfterPath())),
       autoClose: LOG_OUT_TIMER_MS,
     });
     setTimeout(() => {
