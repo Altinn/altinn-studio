@@ -49,7 +49,7 @@ class BpmnModelerMockImpl {
   }
 }
 
-jest.mock('../utils/hookUtils', () => ({
+jest.mock('../utils/bpmnObjectBuilders', () => ({
   getBpmnEditorDetailsFromBusinessObject: jest.fn().mockReturnValue({}),
 }));
 

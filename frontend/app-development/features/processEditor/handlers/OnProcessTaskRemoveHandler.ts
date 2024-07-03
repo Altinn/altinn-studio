@@ -2,11 +2,10 @@ import type { Policy } from 'app-shared/types/Policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
 import { PaymentPolicyBuilder } from '../../../utils/policy';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioModeler';
 import { getLayoutSetIdFromTaskId } from '../bpmnHandlerUtils/bpmnHandlerUtils';
+import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioModeler';
 
 export class OnProcessTaskRemoveHandler {
-  private readonly studioModeler = new StudioModeler();
   constructor(
     private readonly org: string,
     private readonly app: string,
@@ -58,12 +57,13 @@ export class OnProcessTaskRemoveHandler {
    * @private
    */
   private handlePaymentTaskRemove(taskMetadata: OnProcessTaskEvent): void {
-    const dataTypeId = this.studioModeler.getDataTypeIdFromBusinessObject(taskMetadata.taskType);
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element);
+    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(taskMetadata.taskType);
     this.deleteDataTypeFromAppMetadata({
       dataTypeId,
     });
 
-    const receiptPdfDataTypeId = this.studioModeler.getReceiptPdfDataTypeIdFromBusinessObject(
+    const receiptPdfDataTypeId = studioModeler.getReceiptPdfDataTypeIdFromBusinessObject(
       taskMetadata.taskType,
     );
     this.deleteDataTypeFromAppMetadata({
@@ -101,7 +101,8 @@ export class OnProcessTaskRemoveHandler {
    * @private
    */
   private handleSigningTaskRemove(taskMetadata: OnProcessTaskEvent): void {
-    const dataTypeId = this.studioModeler.getDataTypeIdFromBusinessObject(taskMetadata.taskType);
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element);
+    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(taskMetadata.taskType);
     this.deleteDataTypeFromAppMetadata({
       dataTypeId,
     });

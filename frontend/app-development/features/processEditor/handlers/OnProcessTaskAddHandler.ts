@@ -8,7 +8,6 @@ import type {
 import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioModeler';
 
 export class OnProcessTaskAddHandler {
-  private readonly studioModeler = new StudioModeler();
   constructor(
     private readonly org: string,
     private readonly app: string,
@@ -56,13 +55,14 @@ export class OnProcessTaskAddHandler {
   private handlePaymentTaskAdd(taskMetadata: OnProcessTaskEvent): void {
     this.addLayoutSet(this.createLayoutSetConfig(taskMetadata.taskEvent));
 
-    const dataTypeId = this.studioModeler.getDataTypeIdFromBusinessObject(taskMetadata.taskType);
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element);
+    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(taskMetadata.taskType);
     this.addDataTypeToAppMetadata({
       dataTypeId,
       taskId: taskMetadata.taskEvent.element.id,
     });
 
-    const receiptPdfDataTypeId = this.studioModeler.getReceiptPdfDataTypeIdFromBusinessObject(
+    const receiptPdfDataTypeId = studioModeler.getReceiptPdfDataTypeIdFromBusinessObject(
       taskMetadata.taskType,
     );
     this.addDataTypeToAppMetadata({
@@ -88,7 +88,8 @@ export class OnProcessTaskAddHandler {
    * @private
    */
   private handleSigningTaskAdd(taskMetadata: OnProcessTaskEvent): void {
-    const dataTypeId = this.studioModeler.getDataTypeIdFromBusinessObject(taskMetadata.taskType);
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element);
+    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(taskMetadata.taskType);
     this.addDataTypeToAppMetadata({
       dataTypeId,
       taskId: taskMetadata.taskEvent.element.id,

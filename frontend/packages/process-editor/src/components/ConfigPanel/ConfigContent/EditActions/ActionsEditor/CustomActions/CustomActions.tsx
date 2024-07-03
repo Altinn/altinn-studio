@@ -2,7 +2,10 @@ import React from 'react';
 import { StudioTextfield } from '@studio/components';
 import { HelpText, Switch } from '@digdir/design-system-react';
 import { useDebounce } from 'app-shared/hooks/useDebounce';
-import { BpmnActionModeler, ActionType } from '../../../../../../utils/bpmnModeler/BpmnActionModeler';
+import {
+  BpmnActionModeler,
+  ActionType,
+} from '../../../../../../utils/bpmnModeler/BpmnActionModeler';
 import type { Action } from '../../../../../../utils/bpmnModeler/BpmnActionModeler';
 import { useActionHandler } from '../hooks/useOnActionChange';
 import { getPredefinedActions } from '../../../../../../utils/processActions';
