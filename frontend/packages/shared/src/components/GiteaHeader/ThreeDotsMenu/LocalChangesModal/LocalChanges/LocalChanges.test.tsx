@@ -1,6 +1,5 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import type { LocalChangesProps } from './LocalChanges';
 import { LocalChanges } from './LocalChanges';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -11,6 +10,13 @@ import userEvent from '@testing-library/user-event';
 import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
 import { repoDownloadPath } from 'app-shared/api/paths';
 import { app, org } from '@studio/testing/testids';
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => {
+    return { org, app };
+  },
+}));
 
 jest.mock('app-development/hooks/mutations/useResetRepositoryMutation');
 const deleteLocalChangesMutation = jest.fn();
@@ -24,13 +30,8 @@ mockDeleteLocalChangesyMutation.mockReturnValue({
 describe('LocalChanges', () => {
   afterEach(jest.clearAllMocks);
 
-  const defaultProps: LocalChangesProps = {
-    org,
-    app,
-  };
-
   it('renders the component with the href for downloading only files that you have changes', () => {
-    render({}, createQueryClientMock(), defaultProps);
+    render({}, createQueryClientMock());
 
     const hrefToOnlyFilesYouHaveChanged = repoDownloadPath(org, app);
 
@@ -41,7 +42,7 @@ describe('LocalChanges', () => {
   });
 
   it('renders the component with the href for downloading all files in the repo', () => {
-    render({}, createQueryClientMock(), defaultProps);
+    render({}, createQueryClientMock());
 
     const hrefToAllFilesInRepo = repoDownloadPath(org, app, true);
 
@@ -52,7 +53,7 @@ describe('LocalChanges', () => {
   });
 
   it('does not show the delete modal when initially rendering the component', () => {
-    render({}, createQueryClientMock(), defaultProps);
+    render({}, createQueryClientMock());
 
     const deleteModalHeading = screen.queryByRole('heading', {
       name: textMock('local_changes.modal_delete_modal_title'),
@@ -63,7 +64,7 @@ describe('LocalChanges', () => {
 
   it('opens the delete modal when delete button is clicked', async () => {
     const user = userEvent.setup();
-    render({}, createQueryClientMock(), defaultProps);
+    render({}, createQueryClientMock());
 
     const deleteButton = screen.getByRole('button', {
       name: textMock('local_changes.modal_delete_button'),
@@ -79,7 +80,7 @@ describe('LocalChanges', () => {
 
   it('calls the handleDelete function, and closes the modal, when delete button is clicked in delete modal', async () => {
     const user = userEvent.setup();
-    render({}, createQueryClientMock(), defaultProps);
+    render({}, createQueryClientMock());
 
     const deleteButton = screen.getByRole('button', {
       name: textMock('local_changes.modal_delete_button'),
@@ -107,7 +108,7 @@ describe('LocalChanges', () => {
 
   it('closes the delete modal when cancel button is clicked in delete modal', async () => {
     const user = userEvent.setup();
-    render({}, createQueryClientMock(), defaultProps);
+    render({}, createQueryClientMock());
 
     const deleteButton = screen.getByRole('button', {
       name: textMock('local_changes.modal_delete_button'),
@@ -136,11 +137,10 @@ describe('LocalChanges', () => {
 const render = (
   allQueries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
-  props: LocalChangesProps,
 ) => {
   return rtlRender(
     <ServicesContextProvider {...allQueries} client={queryClient}>
-      <LocalChanges {...props} />
+      <LocalChanges />
     </ServicesContextProvider>,
   );
 };

@@ -1,11 +1,11 @@
 import { PaymentPolicyBuilder } from '../../../utils/policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
 import type { Policy } from 'app-shared/types/Policy';
-import { getDataTypeIdFromBusinessObject } from '@altinn/process-editor/utils/hookUtils/hookUtils';
 import type {
   AddLayoutSetMutation,
   AddLayoutSetMutationPayload,
 } from '../../../hooks/mutations/useAddLayoutSetMutation';
+import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioModeler';
 
 export class OnProcessTaskAddHandler {
   constructor(
@@ -55,13 +55,18 @@ export class OnProcessTaskAddHandler {
   private handlePaymentTaskAdd(taskMetadata: OnProcessTaskEvent): void {
     this.addLayoutSet(this.createLayoutSetConfig(taskMetadata.taskEvent));
 
-    const dataTypeId = getDataTypeIdFromBusinessObject(
-      taskMetadata.taskType,
-      taskMetadata.taskEvent.element.businessObject,
-    );
-
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element);
+    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(taskMetadata.taskType);
     this.addDataTypeToAppMetadata({
       dataTypeId,
+      taskId: taskMetadata.taskEvent.element.id,
+    });
+
+    const receiptPdfDataTypeId = studioModeler.getReceiptPdfDataTypeIdFromBusinessObject(
+      taskMetadata.taskType,
+    );
+    this.addDataTypeToAppMetadata({
+      dataTypeId: receiptPdfDataTypeId,
       taskId: taskMetadata.taskEvent.element.id,
     });
 
@@ -83,11 +88,8 @@ export class OnProcessTaskAddHandler {
    * @private
    */
   private handleSigningTaskAdd(taskMetadata: OnProcessTaskEvent): void {
-    const dataTypeId = getDataTypeIdFromBusinessObject(
-      taskMetadata.taskType,
-      taskMetadata.taskEvent.element.businessObject,
-    );
-
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element);
+    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(taskMetadata.taskType);
     this.addDataTypeToAppMetadata({
       dataTypeId,
       taskId: taskMetadata.taskEvent.element.id,

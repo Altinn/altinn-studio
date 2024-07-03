@@ -22,7 +22,7 @@ export const AltinnHeaderMenu = ({ menuItems }: IAltinnHeaderMenuProps) => {
             {t(item.key)}
           </NavLink>
           {item.isBeta && (
-            <Tag color='info' size='small'>
+            <Tag color='info' size='small' className={classes.betaTag}>
               {t('general.beta')}
             </Tag>
           )}
@@ -31,14 +31,3 @@ export const AltinnHeaderMenu = ({ menuItems }: IAltinnHeaderMenuProps) => {
     </ul>
   );
 };
-
-// Make StudioNavigation av det over
-
-/*
-betaText?: string
-betaText && (
-  <Tag color='info' size='small'>
-    {betaText}
-  </Tag>
-)
-  */
