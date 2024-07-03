@@ -222,6 +222,47 @@ describe('EditBinding', () => {
       },
     );
   });
+
+  it('should call handleComponentChange when click on delete button', async () => {
+    window.confirm = jest.fn(() => true);
+    const user = userEvent.setup();
+    const handleComponentChange = jest.fn();
+    renderEditBinding({
+      props: {
+        ...defaultEditBinding,
+        handleComponentChange,
+      },
+      queries: {
+        getAppMetadataModelIds: getAppMetadataModelIdsMock,
+        getDataModelMetadata: getDataModelMetadataMock,
+      },
+    });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
+    );
+
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('general.delete'),
+    });
+    await user.click(deleteButton);
+
+    expect(handleComponentChange).toHaveBeenCalledTimes(1);
+    expect(handleComponentChange).toHaveBeenCalledWith(
+      {
+        ...componentMocks[ComponentType.Input],
+        dataModelBindings: {
+          simpleBinding: '',
+        },
+        maxCount: undefined,
+        required: undefined,
+        timeStamp: undefined,
+      },
+      {
+        onSuccess: expect.any(Function),
+      },
+    );
+  });
 });
 
 describe('EditBinding featureFlag enabled', () => {
