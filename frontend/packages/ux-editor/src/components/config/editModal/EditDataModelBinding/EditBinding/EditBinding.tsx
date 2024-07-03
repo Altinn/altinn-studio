@@ -11,7 +11,6 @@ import {
   getXsdDataTypeFromDataModelFields,
 } from '@altinn/ux-editor/utils/dataModelUtils';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { ComponentType } from 'app-shared/types/ComponentType';
 import { useAppContext } from '@altinn/ux-editor/hooks';
 import type { UpdateFormMutateOptions } from '@altinn/ux-editor/containers/FormItemContext';
 import { EditBindingButtons } from './EditBindingButtons';
@@ -55,18 +54,17 @@ export const EditBinding = ({
             ? updatedBinding
             : selectedDataFieldElement,
         },
-        required:
-          getMinOccursFromDataModelFields(selectedDataFieldElement, dataModelMetaData) > 0 ||
-          undefined,
-        timeStamp:
-          component.type === ComponentType.Datepicker
-            ? getXsdDataTypeFromDataModelFields(selectedDataFieldElement, dataModelMetaData) ===
-              'DateTime'
-            : undefined,
-        maxCount:
-          component.type === ComponentType.RepeatingGroup
-            ? getMaxOccursFromDataModelFields(selectedDataFieldElement, dataModelMetaData)
-            : undefined,
+        required: getMinOccursFromDataModelFields(selectedDataFieldElement, dataModelMetaData),
+        timeStamp: getXsdDataTypeFromDataModelFields(
+          component.type,
+          selectedDataFieldElement,
+          dataModelMetaData,
+        ),
+        maxCount: getMaxOccursFromDataModelFields(
+          component.type,
+          selectedDataFieldElement,
+          dataModelMetaData,
+        ),
       } as FormItem,
       {
         onSuccess: async () => {
