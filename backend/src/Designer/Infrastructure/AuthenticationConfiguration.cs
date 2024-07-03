@@ -86,7 +86,7 @@ namespace Altinn.Studio.Designer.Infrastructure
                 {
                     options.Cookie.HttpOnly = true;
                     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-                    // options.Cookie.SameSite = SameSiteMode.Lax;
+                    options.Cookie.SameSite = SameSiteMode.Strict;
                     options.Cookie.IsEssential = true;
 
                     options.ExpireTimeSpan = TimeSpan.FromSeconds(oidcSettings.CookieExpiryTimeInSeconds);
