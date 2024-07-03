@@ -163,6 +163,7 @@ class SupportedPaletteProvider {
           className: 'bpmn-icon-task-generic bpmn-icon-data-task',
           title: translate('Create Altinn Data Task'),
           action: {
+            click: createCustomTask('data'),
             dragstart: createCustomTask('data'),
           },
         },
@@ -171,6 +172,7 @@ class SupportedPaletteProvider {
           title: translate('Create Altinn Feedback Task'),
           className: 'bpmn-icon-task-generic bpmn-icon-feedback-task',
           action: {
+            click: createCustomTask('feedback'),
             dragstart: createCustomTask('feedback'),
           },
         },
@@ -179,6 +181,7 @@ class SupportedPaletteProvider {
           className: 'bpmn-icon-task-generic bpmn-icon-signing-task',
           title: translate('Create Altinn signing Task'),
           action: {
+            click: createCustomSigningTask(),
             dragstart: createCustomSigningTask(),
           },
         },
@@ -187,6 +190,7 @@ class SupportedPaletteProvider {
           className: 'bpmn-icon-task-generic bpmn-icon-confirmation-task',
           title: translate('Create Altinn Confirm Task'),
           action: {
+            click: createCustomConfirmationTask(),
             dragstart: createCustomConfirmationTask(),
           },
         },
@@ -195,6 +199,7 @@ class SupportedPaletteProvider {
           className: `bpmn-icon-task-generic ${shouldDisplayFeature('displayPaymentTaskProcessEditor') ? 'bpmn-icon-payment-task' : 'payment-is-hidden-based-on-feature-toggle'}`,
           title: translate('Payment'),
           action: {
+            click: createCustomPaymentTask(),
             dragstart: createCustomPaymentTask(),
           },
         },

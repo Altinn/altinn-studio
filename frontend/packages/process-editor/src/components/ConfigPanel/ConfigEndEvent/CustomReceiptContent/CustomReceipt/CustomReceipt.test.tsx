@@ -77,12 +77,14 @@ describe('CustomReceipt', () => {
     renderCustomReceipt();
 
     const propertyButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_set_data_model'),
+      name: textMock('process_editor.configuration_panel_set_data_model', {
+        dataModelName: mockBpmnApiContextValue.layoutSets.sets[0].dataType,
+      }),
     });
     await user.click(propertyButton);
 
     const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_data_model'),
+      name: textMock('process_editor.configuration_panel_set_data_model_label'),
     });
     await user.click(combobox);
     const newOption: string = mockAllDataModelIds[1];

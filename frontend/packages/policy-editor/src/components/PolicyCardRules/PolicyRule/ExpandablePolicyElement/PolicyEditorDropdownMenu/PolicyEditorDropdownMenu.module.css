@@ -5,3 +5,7 @@
 .icon {
   font-size: var(--fds-sizing-5);
 }
+
+.deleteButton {
+  color: var(--fds-semantic-text-danger-default);
+}

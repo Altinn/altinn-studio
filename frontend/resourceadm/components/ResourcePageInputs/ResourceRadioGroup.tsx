@@ -3,8 +3,13 @@ import classes from './ResourcePageInputs.module.css';
 import { Radio } from '@digdir/design-system-react';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 import { ResourceFieldHeader } from './ResourceFieldHeader';
+import type { ResourceFormError } from 'app-shared/types/ResourceAdm';
 
 type ResourceRadioGroupProps = {
+  /**
+   * The field id, used by ErrorSummary
+   */
+  id: string;
   /**
    * The label of the dropdown
    */
@@ -22,10 +27,6 @@ type ResourceRadioGroupProps = {
    */
   options: { value: string; label: string }[];
   /**
-   * If the dropdown has an error
-   */
-  hasError?: boolean;
-  /**
    * Function to be executed when the field is focused
    * @returns void
    */
@@ -37,9 +38,9 @@ type ResourceRadioGroupProps = {
    */
   onChange: (selected: string) => void;
   /**
-   * The error text to be shown
+   * The error texts to be shown
    */
-  errorText?: string;
+  errors?: ResourceFormError[];
   /**
    * Whether this field is required or not
    */
@@ -50,36 +51,35 @@ type ResourceRadioGroupProps = {
  * @component
  *    Displays a dropdown component used on the about resource page
  *
+ * @property {string}[id] - The field id, used by ErrorSummary
  * @property {string}[label] - The label of the dropdown
  * @property {string}[description] - The description of the dropdown
  * @property {string}[value] - The value selected
  * @property {{value: string, lable: string}[]}[options] - List of the options in the dropdown
  * @property {function}[onFocus] - unction to be executed when the field is focused
- * @property {boolean}[hasError] - If the dropdown has an error
  * @property {function}[onChange] - Function to be executed on change
- * @property {string}[errorText] - The error text to be shown
+ * @property {ResourceFormError[]}[errors] - The error texts to be shown
  * @property {boolean}[required] - Whether this field is required or not
  *
  * @returns {React.JSX.Element} - The rendered component
  */
 export const ResourceRadioGroup = ({
+  id,
   label,
   description,
   value,
   options,
-  hasError = false,
   onFocus,
   onChange,
-  errorText,
+  errors,
   required,
 }: ResourceRadioGroupProps): React.JSX.Element => {
   const [selected, setSelected] = useState(value);
 
-  const error = hasError && (selected === null || selected === undefined);
-
   return (
     <div className={classes.inputWrapper}>
       <Radio.Group
+        id={id}
         size='small'
         onChange={(val: string) => {
           setSelected(val);
@@ -89,7 +89,13 @@ export const ResourceRadioGroup = ({
         legend={<ResourceFieldHeader label={label} required={required} />}
         description={description}
         onFocus={onFocus}
-        error={error ? <InputFieldErrorMessage message={errorText} /> : undefined}
+        error={
+          errors.length > 0
+            ? errors.map((error, index) => (
+                <InputFieldErrorMessage key={index} message={error.error} />
+              ))
+            : undefined
+        }
         required={required}
       >
         {options.map((opt) => {

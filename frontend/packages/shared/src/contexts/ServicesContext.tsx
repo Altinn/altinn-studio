@@ -5,6 +5,7 @@ import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@ta
 import type * as queries from '../api/queries';
 import type * as mutations from '../api/mutations';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import type { ToastOptions } from 'react-toastify';
 import { ToastContainer, Slide, toast } from 'react-toastify';
 import { ErrorBoundary } from 'react-error-boundary';
 import type { AxiosError } from 'axios';
@@ -28,7 +29,7 @@ export type ServicesContextProviderProps = ServicesContextProps & {
 
 const LOG_OUT_TIMER_MS = 5000;
 
-const ServicesContext = createContext<ServicesContextProps>(null);
+const ServicesContext = createContext<ServicesContextProps>(undefined);
 
 const handleError = (
   error: AxiosError<ApiError>,
@@ -39,25 +40,33 @@ const handleError = (
 ): void => {
   // TODO : log axios errors
 
-  if (error?.response?.status === ServerCodes.Unauthorized) {
-    const errorMessageKey = 'api_errors.Unauthorized';
+  const renderToast = (key: string, options: ToastOptions = {}) => {
+    const errorMessageKey = `api_errors.${key}`;
     if (i18n.exists(errorMessageKey)) {
-      toast.error(t(errorMessageKey), { toastId: errorMessageKey, autoClose: LOG_OUT_TIMER_MS });
+      toast.error(t(errorMessageKey), {
+        toastId: errorMessageKey,
+        ...options,
+      });
+    } else {
+      renderDefaultToast();
     }
+  };
+
+  const errorCode = error?.response?.data?.errorCode;
+  const unAuthorizedErrorCode = error?.response?.status === ServerCodes.Unauthorized;
+
+  if (unAuthorizedErrorCode) {
+    renderToast(errorCode || 'Unauthorized', {
+      autoClose: LOG_OUT_TIMER_MS,
+    });
     setTimeout(() => {
       logout().then(() => window.location.assign(userLogoutAfterPath()));
     }, LOG_OUT_TIMER_MS);
     return;
   }
 
-  const errorCode = error?.response?.data?.errorCode;
   if (errorCode) {
-    const errorMessageKey = `api_errors.${errorCode}`;
-
-    if (i18n.exists(errorMessageKey)) {
-      toast.error(t(errorMessageKey), { toastId: errorMessageKey });
-      return;
-    }
+    return renderToast(errorCode);
   }
 
   if (
@@ -66,6 +75,10 @@ const handleError = (
   )
     return;
 
+  renderDefaultToast();
+};
+
+const renderDefaultToast = () => {
   toast.error(
     () => (
       <Trans

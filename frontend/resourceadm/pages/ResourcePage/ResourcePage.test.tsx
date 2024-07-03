@@ -30,7 +30,7 @@ const mockResource2: Resource = {
   title: { nb: '', nn: '', en: '' },
 };
 
-const mockSelectedContext: string = 'test';
+const mockOrg: string = 'test';
 const mockedNavigate = jest.fn();
 
 jest.mock('react-router-dom', () => ({
@@ -40,7 +40,7 @@ jest.mock('react-router-dom', () => ({
     return {
       pageType: 'about',
       resourceId: mockResource1.identifier,
-      selectedContext: mockSelectedContext,
+      org: mockOrg,
     };
   }),
 }));
@@ -138,7 +138,7 @@ describe('ResourcePage', () => {
     });
     await user.click(migrationTab);
     expect(mockedNavigate).toHaveBeenCalledWith(
-      `/${mockSelectedContext}/${mockSelectedContext}-resources/resource/${mockResource1.identifier}/migration`,
+      `/${mockOrg}/${mockOrg}-resources/resource/${mockResource1.identifier}/migration`,
     );
   });
 
@@ -193,7 +193,7 @@ describe('ResourcePage', () => {
     });
     await user.click(navigateButton);
     expect(mockedNavigate).toHaveBeenCalledWith(
-      `/${mockSelectedContext}/${mockSelectedContext}-resources/resource/${mockResource1.identifier}/policy`,
+      `/${mockOrg}/${mockOrg}-resources/resource/${mockResource1.identifier}/policy`,
     );
   });
 
@@ -221,7 +221,7 @@ describe('ResourcePage', () => {
 
     await waitFor(() =>
       expect(mockedNavigate).toHaveBeenCalledWith(
-        `/${mockSelectedContext}/${mockSelectedContext}-resources/resource/${mockResource1.identifier}/policy`,
+        `/${mockOrg}/${mockOrg}-resources/resource/${mockResource1.identifier}/policy`,
       ),
     );
   });
@@ -235,7 +235,7 @@ describe('ResourcePage', () => {
     (useParams as jest.Mock).mockReturnValue({
       pageType: 'policy',
       resourceId: mockResource1.identifier,
-      selectedContext: mockSelectedContext,
+      org: mockOrg,
     });
 
     renderResourcePage({ getResource, getValidatePolicy });
@@ -265,7 +265,7 @@ describe('ResourcePage', () => {
     (useParams as jest.Mock).mockReturnValue({
       pageType: 'deploy',
       resourceId: mockResource1.identifier,
-      selectedContext: mockSelectedContext,
+      org: mockOrg,
     });
 
     renderResourcePage({ getResource });

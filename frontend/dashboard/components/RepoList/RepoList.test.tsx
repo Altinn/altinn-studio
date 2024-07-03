@@ -1,28 +1,27 @@
 import React from 'react';
-import { screen, render, within } from '@testing-library/react';
+import { screen, render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MockServicesContextWrapper } from '../../dashboardTestUtils';
 import { searchRepositoryResponseMock } from '../../data-mocks/searchRepositoryResponseMock';
-import type { IRepoListProps } from './RepoList';
+import type { RepoListProps } from './RepoList';
 import { RepoList } from './RepoList';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { repository } from 'app-shared/mocks/mocks';
-import { nbNO } from '@mui/x-data-grid/locales';
-
-const user = userEvent.setup();
 
 const renderWithMockServices = (
-  componentProps: Partial<IRepoListProps>,
+  componentProps: Partial<RepoListProps>,
   services?: Partial<ServicesContextProps>,
 ) => {
   const repos = searchRepositoryResponseMock.data;
   const allComponentProps = {
-    repos,
-    rowCount: repos.length,
+    repos: repos,
     isLoading: false,
     isServerSort: false,
-    onSortModelChange: jest.fn(),
+    totalRows: repos.length,
+    pageNumber: 1,
+    onPageChange: jest.fn(),
+    onPageSizeChange: jest.fn(),
+    onSortClick: jest.fn(),
     ...componentProps,
   };
   render(
@@ -32,117 +31,93 @@ const renderWithMockServices = (
   );
 };
 
-const { localeText } = nbNO.components.MuiDataGrid.defaultProps;
-
 describe('RepoList', () => {
-  test('should display spinner while loading starred repositories', () => {
+  it('should display spinner while loading repositories', () => {
     renderWithMockServices({
-      isLoading: true,
-      rowCount: 5,
-    });
-    expect(screen.getByRole('progressbar')).toBeInTheDocument();
-  });
-
-  test('should display no repos when repos are empty', async () => {
-    renderWithMockServices({
-      isLoading: false,
-      rowCount: 5,
       repos: [],
+      totalRows: 0,
+      isLoading: true,
     });
-    expect(await screen.findByText(textMock('dashboard.no_repos_result'))).toBeInTheDocument();
+
+    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
   });
 
-  test('should not call onSortModelChange when clicking sort button and isServerSort is false', async () => {
-    const handleSortMock = jest.fn();
+  it('should display no repos message when repos are empty', () => {
+    renderWithMockServices({
+      repos: [],
+      totalRows: 5,
+      isLoading: false,
+    });
+
+    expect(screen.getByText(textMock('dashboard.no_repos_result'))).toBeInTheDocument();
+  });
+
+  it('should not call handleSorting when clicking sort button and isServerSort is false', async () => {
+    const user = userEvent.setup();
+    const mockHandleSorting = jest.fn();
     renderWithMockServices({
       isServerSort: false,
-      onSortModelChange: handleSortMock,
+      onSortClick: mockHandleSorting,
     });
-    // eslint-disable-next-line testing-library/no-node-access
-    const sortBtn = document.querySelector(
-      'button[aria-label="' + localeText.columnHeaderSortIconLabel + '"]',
-    );
-    await user.click(sortBtn);
 
-    expect(handleSortMock).not.toHaveBeenCalled();
+    await user.click(screen.getByRole('button', { name: textMock('dashboard.name') }));
+
+    expect(mockHandleSorting).not.toHaveBeenCalled();
   });
 
-  test('should call onSortModelChange when clicking sort button and isServerSort is true', async () => {
-    const handleSortMock = jest.fn();
+  it('should call handleSorting when clicking sort button and isServerSort is true', async () => {
+    const user = userEvent.setup();
+    const handleSorting = jest.fn();
     renderWithMockServices({
       isServerSort: true,
-      onSortModelChange: handleSortMock,
+      onSortClick: handleSorting,
     });
 
-    // eslint-disable-next-line testing-library/no-node-access
-    const sortBtn = document.querySelector(
-      'button[aria-label="' + localeText.columnHeaderSortIconLabel + '"]',
-    );
-    await user.click(sortBtn);
+    await user.click(screen.getByRole('button', { name: textMock('dashboard.name') }));
 
-    expect(handleSortMock).toHaveBeenCalledWith([{ field: 'name', sort: 'asc' }], {
-      reason: undefined,
-    });
+    expect(handleSorting).toHaveBeenCalledWith('name');
   });
 
-  test('Should render GridActionsCellItem', async () => {
-    renderWithMockServices({
-      repos: [
-        {
-          ...repository,
-          hasStarred: true,
-        },
-      ],
-      isServerSort: true,
-    });
-    const unstar = await screen.findByRole('menuitem', {
-      name: textMock('dashboard.unstar', { appName: repository.name }),
-    });
-    const gridActionsCellItem = within(unstar).getByRole('img');
-    expect(gridActionsCellItem).toBeInTheDocument();
-  });
-
-  test('should call onPageSizeChange when navigating to next / previous page', async () => {
+  it('should call onPageChange with an incrementing number when navigating to the next page', async () => {
+    const user = userEvent.setup();
     const onPageChange = jest.fn();
     renderWithMockServices({
+      pageNumber: 1,
       isServerSort: true,
       onPageChange,
     });
 
-    const nextPageButton = screen.getByRole('button', {
-      name: localeText.MuiTablePagination.getItemAriaLabel('next'),
-    });
-    expect(nextPageButton).toBeInTheDocument();
-    await user.click(nextPageButton);
+    await user.click(screen.getByRole('button', { name: textMock('general.next') }));
 
-    expect(onPageChange).toHaveBeenCalledWith(1);
+    expect(onPageChange).toHaveBeenCalledWith(2);
+  });
 
-    const previousPageButton = screen.getByRole('button', {
-      name: localeText.MuiTablePagination.getItemAriaLabel('previous'),
+  it('should call onPageChange with a decrementing number when navigating to the previous page', async () => {
+    const user = userEvent.setup();
+    const onPageChange = jest.fn();
+    renderWithMockServices({
+      pageNumber: 2,
+      isServerSort: true,
+      onPageChange,
     });
-    expect(previousPageButton).toBeInTheDocument();
-    await user.click(previousPageButton);
+
+    await user.click(screen.getByRole('button', { name: textMock('general.previous') }));
 
     expect(onPageChange).toHaveBeenCalledWith(1);
   });
 
-  test('should call onPageSizeChange when selecting a new page size', async () => {
-    const newPageSize = 10;
-
+  it('should call onPageSizeChange when selecting a new page size', async () => {
+    const user = userEvent.setup();
+    const pageSizeOption = '10';
     const onPageSizeChange = jest.fn();
     renderWithMockServices({
       isServerSort: true,
       onPageSizeChange,
     });
 
-    const pageSizeSelect = screen.getByRole('combobox', {
-      name: localeText.MuiTablePagination.labelRowsPerPage.toString(),
-    });
-    await user.click(pageSizeSelect);
+    const select = screen.getByRole('combobox', { name: textMock('dashboard.rows_per_page') });
+    await user.selectOptions(select, pageSizeOption);
 
-    const pageSizeOption = screen.getByRole('option', { name: newPageSize.toString() });
-    await user.click(pageSizeOption);
-
-    expect(onPageSizeChange).toHaveBeenCalledWith(newPageSize);
+    expect(onPageSizeChange).toHaveBeenCalledWith(Number(pageSizeOption));
   });
 });

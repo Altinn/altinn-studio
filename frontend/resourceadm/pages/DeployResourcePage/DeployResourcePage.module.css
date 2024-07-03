@@ -23,10 +23,3 @@
   width: 100%;
   margin-bottom: var(--fds-spacing-10);
 }
-
-p,
-h1,
-h2 {
-  margin: 0;
-  line-height: 24px;
-}
