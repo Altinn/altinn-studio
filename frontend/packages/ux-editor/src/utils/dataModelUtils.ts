@@ -2,71 +2,44 @@ import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldEleme
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../types/FormItem';
 
-export function filterDataModelForIntellisense(
-  dataModelElements: DataModelFieldElement[],
-  filterText: string,
-): DataModelFieldElement[] {
-  if (!dataModelElements) {
-    return [];
-  }
-  const rootElementFilterText = filterText.split('.')[0];
-  const rootElementDataModel = dataModelElements[0].id.split('.')[0];
-  if (rootElementFilterText.toLowerCase() !== rootElementDataModel.toLowerCase()) {
-    filterText = filterText.replace(rootElementFilterText, rootElementDataModel);
-  }
-
-  const parentElement = filterText.substr(0, filterText.lastIndexOf('.')).toLowerCase();
-  const currentElement = filterText.endsWith('.')
-    ? null
-    : filterText.substr(filterText.lastIndexOf('.') + 1, filterText.length).toLowerCase();
-
-  if (currentElement) {
-    return dataModelElements.filter(
-      (element: DataModelFieldElement) =>
-        (element.type === 'Field' || element.type === 'Group') &&
-        element.parentElement &&
-        element.parentElement.toLowerCase() === parentElement &&
-        element.name.toLowerCase().startsWith(currentElement),
-    );
-  }
-
-  return dataModelElements.filter(
-    (element: DataModelFieldElement) =>
-      (element.type === 'Field' || element.type === 'Group') &&
-      element.parentElement &&
-      element.parentElement.toLowerCase() === parentElement,
-  );
-}
-
 export const getMinOccursFromDataModelFields = (
   dataBindingName: string,
   dataModelFields: DataModelFieldElement[],
-): number => {
+): boolean => {
   const element: DataModelFieldElement = dataModelFields.find(
     (e: DataModelFieldElement) => e.dataBindingName === dataBindingName,
   );
-  return element?.minOccurs;
+  return element?.minOccurs > 0 || undefined;
 };
 
 export const getMaxOccursFromDataModelFields = (
+  componentType: ComponentType,
   dataBindingName: string,
   dataModelFields: DataModelFieldElement[],
 ): number => {
-  const element: DataModelFieldElement = dataModelFields.find((e: DataModelFieldElement) => {
-    return e.dataBindingName === dataBindingName;
-  });
-  return element?.maxOccurs;
+  if (componentType === ComponentType.RepeatingGroup) {
+    const element = dataModelFields.find(
+      (e: DataModelFieldElement) => e.dataBindingName === dataBindingName,
+    );
+    return element?.maxOccurs;
+  }
+
+  return undefined;
 };
 
 export const getXsdDataTypeFromDataModelFields = (
+  componentType: ComponentType,
   dataBindingName: string,
   dataModelFields: DataModelFieldElement[],
-): string => {
-  const element: DataModelFieldElement = dataModelFields.find((e: DataModelFieldElement) => {
-    return e.dataBindingName === dataBindingName;
-  });
+): string | undefined => {
+  if (componentType === ComponentType.Datepicker) {
+    const element = dataModelFields.find(
+      (e: DataModelFieldElement) => e.dataBindingName === dataBindingName,
+    );
+    return element?.xsdValueType === 'DateTime' ? 'DateTime' : undefined;
+  }
 
-  return element?.xsdValueType;
+  return undefined;
 };
 
 const generalFilter = (element: DataModelFieldElement) =>
