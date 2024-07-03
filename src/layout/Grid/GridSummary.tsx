@@ -251,8 +251,8 @@ export function GridRowRenderer({ row, mutableColumnSettings, node, currentHeade
           />
         );
       })}
-      {row.header && !isSmall && <Table.HeaderCell />}
-      {!row.header && !isSmall && (
+      {!pdfModeActive && row.header && !isSmall && <Table.HeaderCell />}
+      {!pdfModeActive && !row.header && !isSmall && (
         <Table.Cell align='right'>
           {firstComponentNode && !row.readOnly && (
             <EditButton
