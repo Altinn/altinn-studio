@@ -1,35 +1,43 @@
-import type { MouseEvent } from 'react';
-import React from 'react';
+import React, { useState } from 'react';
 import classes from './ToolbarItemComponent.module.css';
-import { StudioButton } from '@studio/components';
-import { InformationIcon } from '@studio/icons';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
 import type { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
+import { InformationPanelComponent } from './InformationPanelComponent';
 
-export interface IToolbarItemProvidedProps {
+export type ToolbarItemProvidedProps = {
   componentType: ComponentTypeV3;
-  onClick: (type: ComponentTypeV3, event: MouseEvent) => void;
   thirdPartyLabel?: string;
   icon?: string | React.ComponentType;
-}
+};
 
-export const ToolbarItemComponent = (props: IToolbarItemProvidedProps) => {
+export const ToolbarItemComponent = ({
+  componentType,
+  thirdPartyLabel,
+  icon: Icon,
+}: ToolbarItemProvidedProps) => {
   const { t } = useTranslation();
+
+  const [compInfoPanelOpen, setCompInfoPanelOpen] = useState<boolean>(false);
+
+  const handleComponentInformationToggle = () => {
+    setCompInfoPanelOpen((prevState) => !prevState);
+  };
+
   return (
     <div className={classes.toolbarItem}>
-      <div className={classes.componentIcon}>{props.icon && <props.icon />}</div>
+      <div className={classes.componentIcon}>{Icon && <Icon />}</div>
       <div className={classes.componentLabel}>
-        {props.thirdPartyLabel == null
-          ? getComponentTitleByComponentType(props.componentType, t)
-          : props.thirdPartyLabel}
+        {thirdPartyLabel == null
+          ? getComponentTitleByComponentType(componentType, t)
+          : thirdPartyLabel}
       </div>
       <div className={classes.componentHelpIcon}>
-        <StudioButton
-          onClick={(e) => props.onClick(props.componentType, e)}
-          icon={<InformationIcon />}
-          variant='tertiary'
-          size='small'
+        <InformationPanelComponent
+          isOpen={compInfoPanelOpen}
+          onOpen={handleComponentInformationToggle}
+          onClose={handleComponentInformationToggle}
+          selectedComponent={componentType}
         />
       </div>
     </div>

@@ -9,16 +9,17 @@ import { FormLayoutWarning } from './FormLayoutWarning';
 export interface FormLayoutProps {
   layout: IInternalLayout;
   isValid: boolean;
+  duplicateComponents?: string[];
 }
 
-export const FormLayout = ({ layout, isValid }: FormLayoutProps) => {
+export const FormLayout = ({ layout, isValid, duplicateComponents }: FormLayoutProps) => {
   if (!isValid) {
     return <FormLayoutWarning layout={layout} />;
   }
   return (
     <>
       {hasMultiPageGroup(layout) && <MultiPageWarning />}
-      <FormTree layout={layout} />
+      <FormTree duplicateComponents={duplicateComponents} layout={layout} />
     </>
   );
 };

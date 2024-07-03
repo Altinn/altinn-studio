@@ -12,7 +12,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { mapAltinn2LinkServiceToSelectOption } from 'resourceadm/utils/mapperUtils';
 
-const mockSelectedContext: string = 'selectedContext';
+const mockOrg: string = 'org';
 const mockEnv: string = 'env1';
 
 const mockAltinn2LinkService: Altinn2LinkService = {
@@ -39,7 +39,7 @@ const mockHyphenOption: string = mapAltinn2LinkServiceToSelectOption(
 const mockOnSelectService = jest.fn();
 
 const defaultProps: ServiceContentProps = {
-  selectedContext: mockSelectedContext,
+  org: mockOrg,
   env: mockEnv,
   selectedService: undefined,
   onSelectService: mockOnSelectService,

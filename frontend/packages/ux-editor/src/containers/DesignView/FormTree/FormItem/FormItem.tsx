@@ -13,9 +13,10 @@ import { QuestionmarkDiamondIcon } from '@studio/icons';
 export type FormItemProps = {
   layout: IInternalLayout;
   id: string;
+  duplicateComponents?: string[];
 };
 
-export const FormItem = ({ layout, id }: FormItemProps) => {
+export const FormItem = ({ layout, id, duplicateComponents }: FormItemProps) => {
   const itemTitle = useItemTitle();
   const { t } = useTranslation();
 
@@ -32,7 +33,9 @@ export const FormItem = ({ layout, id }: FormItemProps) => {
     : formItemConfigs[formItem.type]?.icon;
 
   const labelWrapper = (label: string) => (
-    <FormItemTitle formItem={formItem}>{label}</FormItemTitle>
+    <FormItemTitle duplicateComponents={duplicateComponents} formItem={formItem}>
+      {label}
+    </FormItemTitle>
   );
 
   return (
@@ -44,7 +47,7 @@ export const FormItem = ({ layout, id }: FormItemProps) => {
       labelWrapper={labelWrapper}
       nodeId={id}
     >
-      {renderItemList(layout, id)}
+      {renderItemList(layout, duplicateComponents, id)}
     </DragAndDropTree.Item>
   );
 };

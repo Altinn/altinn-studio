@@ -63,7 +63,7 @@ jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockedNavigate,
   useParams: () => ({
-    selectedContext: 'ttd',
+    org: 'ttd',
   }),
 }));
 
