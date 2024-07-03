@@ -1,7 +1,7 @@
 import React from 'react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { EditDataModelBinding, type EditDataModelBindingProps } from './EditDataModelBinding';
-import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
