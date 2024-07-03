@@ -137,45 +137,53 @@ describe('EditDataModelBinding', () => {
     expect(definedButton).toBeInTheDocument();
   });
 
-  // it('should remove binding when click on delete button in EditBinding', async () => {
-  //   window.confirm = jest.fn(() => true);
-  //   const label = 'kort svar';
-  //   const binding = 'field1';
-  //   const user = userEvent.setup();
-  //   const labelSpecificText = textMock(`ux_editor.modal_properties_data_model_label.${label}`);
-  //   const definedButtonText = textMock('right_menu.data_model_bindings_edit', {
-  //     binding: labelSpecificText,
-  //   });
-  //   renderEditDataModelBinding({
-  //     props: {
-  //       ...defaultEditDataModelingBinding,
-  //       component: {
-  //         ...componentMocks[ComponentType.Input],
-  //         dataModelBindings: {
-  //           simpleBinding: binding,
-  //         },
-  //       },
-  //       renderOptions: {
-  //         label,
-  //       },
-  //     },
-  //   });
-  //   await waitForElementToBeRemoved(() =>
-  //     screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
-  //   );
+  it('should remove binding when click on delete button in EditBinding', async () => {
+    window.confirm = jest.fn(() => true);
+    const handleComponentChange = jest.fn();
+    const label = 'kort svar';
+    const binding = 'field1';
+    const user = userEvent.setup();
+    const labelSpecificText = textMock(`ux_editor.modal_properties_data_model_label.${label}`);
+    const definedButtonText = textMock('right_menu.data_model_bindings_edit', {
+      binding: labelSpecificText,
+    });
+    renderEditDataModelBinding({
+      props: {
+        ...defaultEditDataModelingBinding,
+        component: {
+          ...componentMocks[ComponentType.Input],
+          dataModelBindings: {
+            simpleBinding: binding,
+          },
+        },
+        renderOptions: {
+          label,
+        },
+        handleComponentChange,
+      },
+    });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
+    );
 
-  //   const definedButton = screen.getByRole('button', { name: definedButtonText });
+    const definedButton = screen.getByRole('button', { name: definedButtonText });
 
-  //   expect(definedButton).toBeInTheDocument();
+    expect(definedButton).toBeInTheDocument();
 
-  //   await navigateToEditBinding(user, definedButtonText);
+    await navigateToEditBinding(user, definedButtonText);
 
-  //   const deleteButton = screen.getByRole('button', {
-  //     name: textMock('general.delete'),
-  //   });
-  //   await user.click(deleteButton);
-
-  //   const undefinedButton = screen.getByRole('button', { name: labelSpecificText });
-  //   expect(undefinedButton).toBeInTheDocument();
-  // });
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('general.delete'),
+    });
+    await user.click(deleteButton);
+    expect(handleComponentChange).toHaveBeenCalledTimes(1);
+    expect(handleComponentChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dataModelBindings: {
+          simpleBinding: '',
+        },
+      }),
+      expect.anything(),
+    );
+  });
 });

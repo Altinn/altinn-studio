@@ -1,5 +1,5 @@
 import React from 'react';
-import { dataModelMetadataMock } from '@altinn/ux-editor/testing/dataModelMock';
+import { dataModelMetadataResponseMock } from '@altinn/ux-editor/testing/dataModelMock';
 import { EditBinding, type EditBindingProps } from './EditBinding';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -10,6 +10,7 @@ import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { typedLocalStorage } from 'app-shared/utils/webStorage';
 import userEvent from '@testing-library/user-event';
+import type { InternalBindingFormat } from '@altinn/ux-editor/utils/dataModelUtils';
 
 const defaultLabel = 'label';
 const defaultBindingKey = 'simpleBinding';
@@ -30,22 +31,50 @@ const defaultEditBinding: EditBindingProps = {
   },
 };
 
+type MockedParentComponentProps = EditBindingProps;
+
+const MockedParentComponent = (props: MockedParentComponentProps) => {
+  const [newInternalBindingFormat, setNewInternalBindingFormat] =
+    React.useState<InternalBindingFormat>(props.internalBindingFormat);
+  return (
+    <EditBinding
+      {...props}
+      handleComponentChange={(formItem) => {
+        setNewInternalBindingFormat((prev) => ({
+          ...prev,
+          field: formItem.dataModelBindings[defaultBindingKey],
+        }));
+      }}
+      internalBindingFormat={newInternalBindingFormat}
+    />
+  );
+};
+
 type RenderEditBinding = {
-  props?: EditBindingProps;
+  editBindingProps?: EditBindingProps;
   queryClient?: ReturnType<typeof createQueryClientMock>;
   queries?: Partial<ServicesContextProps>;
+  shouldRenderWithMockedParent?: boolean;
 };
 
 const renderEditBinding = ({
-  props = defaultEditBinding,
+  editBindingProps = defaultEditBinding,
   queryClient = createQueryClientMock(),
   queries,
+  shouldRenderWithMockedParent = false,
 }: RenderEditBinding) => {
   return {
-    ...renderWithProviders(<EditBinding {...props} />, {
-      queries: { ...queries },
-      queryClient,
-    }),
+    ...renderWithProviders(
+      shouldRenderWithMockedParent ? (
+        <MockedParentComponent {...editBindingProps} />
+      ) : (
+        <EditBinding {...editBindingProps} />
+      ),
+      {
+        queries: { ...queries },
+        queryClient,
+      },
+    ),
   };
 };
 
@@ -54,7 +83,7 @@ const getAppMetadataModelIdsMock = jest
   .mockImplementation(() => Promise.resolve([defaultDataModel, secondDataModel]));
 const getDataModelMetadataMock = jest
   .fn()
-  .mockImplementation(() => Promise.resolve(dataModelMetadataMock));
+  .mockImplementation(() => Promise.resolve(dataModelMetadataResponseMock));
 
 describe('EditBinding', () => {
   it('should render loading spinner', async () => {
@@ -105,7 +134,7 @@ describe('EditBinding', () => {
 
   it('should display default data model and "choose datafield" when no bindings', async () => {
     renderEditBinding({
-      props: {
+      editBindingProps: {
         ...defaultEditBinding,
         internalBindingFormat: {
           field: '',
@@ -132,34 +161,9 @@ describe('EditBinding', () => {
     expect(chooseDataFieldOption.selected).toBe(true);
   });
 
-  it('should render error message when data model field is not valid', async () => {
-    renderEditBinding({
-      props: {
-        ...defaultEditBinding,
-        internalBindingFormat: {
-          field: 'invalidField',
-          dataType: defaultDataModel,
-        },
-      },
-      queries: {
-        getAppMetadataModelIds: getAppMetadataModelIdsMock,
-        getDataModelMetadata: getDataModelMetadataMock,
-      },
-    });
-
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
-    );
-
-    const errorMessage = screen.getByText(
-      textMock('ux_editor.modal_properties_data_model_field_update'),
-    );
-    expect(errorMessage).toBeInTheDocument();
-  });
-
   it('should render error message when data model is not valid', async () => {
     renderEditBinding({
-      props: {
+      editBindingProps: {
         ...defaultEditBinding,
         internalBindingFormat: {
           field: defaultDataModelField,
@@ -182,11 +186,46 @@ describe('EditBinding', () => {
     expect(errorMessage).toBeInTheDocument();
   });
 
+  it('should toggle error message when data model field is not valid', async () => {
+    const user = userEvent.setup();
+    renderEditBinding({
+      editBindingProps: {
+        ...defaultEditBinding,
+        internalBindingFormat: {
+          field: 'invalidField',
+          dataType: defaultDataModel,
+        },
+      },
+      queries: {
+        getAppMetadataModelIds: getAppMetadataModelIdsMock,
+        getDataModelMetadata: getDataModelMetadataMock,
+      },
+      shouldRenderWithMockedParent: true,
+    });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
+    );
+
+    const errorMessage = screen.getByText(
+      textMock('ux_editor.modal_properties_data_model_field_update'),
+    );
+    expect(errorMessage).toBeInTheDocument();
+
+    const dataModelFieldSelector = screen.getByRole('combobox', {
+      name: textMock('ux_editor.modal_properties_data_model_field_binding'),
+    });
+    const option2 = screen.getByRole('option', { name: defaultDataModelField });
+    await user.selectOptions(dataModelFieldSelector, option2);
+
+    expect(errorMessage).not.toBeInTheDocument();
+  });
+
   it('should call handleComponentChange with old binding format when data model field is changed', async () => {
     const user = userEvent.setup();
     const handleComponentChange = jest.fn();
     renderEditBinding({
-      props: {
+      editBindingProps: {
         ...defaultEditBinding,
         handleComponentChange,
       },
@@ -228,7 +267,7 @@ describe('EditBinding', () => {
     const user = userEvent.setup();
     const handleComponentChange = jest.fn();
     renderEditBinding({
-      props: {
+      editBindingProps: {
         ...defaultEditBinding,
         handleComponentChange,
       },
@@ -298,7 +337,7 @@ describe('EditBinding featureFlag enabled', () => {
     const user = userEvent.setup();
     const handleComponentChange = jest.fn();
     renderEditBinding({
-      props: {
+      editBindingProps: {
         ...defaultEditBinding,
         handleComponentChange,
       },

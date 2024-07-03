@@ -1,7 +1,7 @@
 import { useValidDataModels } from './useValidDataModels';
 import { waitFor } from '@testing-library/react';
 import { renderHookWithProviders } from '../testing/mocks';
-import { dataModelMetadataMock } from '../testing/dataModelMock';
+import { dataModelMetadataResponseMock } from '../testing/dataModelMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const defaultDataModel = 'defaultModel';
@@ -12,7 +12,7 @@ const getAppMetadataModelIdsMock = jest
   .mockImplementation(() => Promise.resolve([defaultDataModel, secondDataModel]));
 const getDataModelMetadataMock = jest
   .fn()
-  .mockImplementation(() => Promise.resolve(dataModelMetadataMock));
+  .mockImplementation(() => Promise.resolve(dataModelMetadataResponseMock));
 
 const setupUseValidDataModelsHook = (defaultDataModel: string) => {
   return renderHookWithProviders(() => useValidDataModels(defaultDataModel), {
