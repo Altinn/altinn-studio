@@ -10,7 +10,7 @@ export const useAppMetadataModelIdsQuery = (
 ): UseQueryResult<string[]> => {
   const { getAppMetadataModelIds } = useServicesContext();
   return useQuery<string[]>({
-    queryKey: [QueryKey.AppMetadataModelIds, org, app],
+    queryKey: [QueryKey.AppMetadataModelIds, org, app, onlyUnReferenced],
     queryFn: () => getAppMetadataModelIds(org, app, onlyUnReferenced),
   });
 };
