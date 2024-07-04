@@ -7,7 +7,7 @@ import type ElementRegistry from 'diagram-js/lib/core/ElementRegistry';
 import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
 import { BpmnModelerInstance } from './BpmnModelerInstance';
 import type { BpmnTaskType } from '../../types/BpmnTaskType';
-import { BpmnBusinessObjectEditor } from '../../types/BpmnBusinessObjectEditor';
+import { type BpmnBusinessObjectEditor } from '../../types/BpmnBusinessObjectEditor';
 
 // Short description: This class is used to interact with the bpmn-js modeler instance to create, update and delete elements in the bpmn diagram.
 // We have not written test for this class then we need to mock the BpmnModelerInstance and its methods.
