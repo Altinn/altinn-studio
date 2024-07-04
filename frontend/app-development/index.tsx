@@ -18,7 +18,7 @@ import { AppDevelopmentContextProvider } from './contexts/AppDevelopmentContext'
 const store = setupStore();
 
 const loggerConfig: LoggerConfig = {
-  instrumentationKey: altinnStudioEnvironment.instrumentationKey,
+  connectionString: altinnStudioEnvironment.aiConnectionString,
   enableUnhandledPromiseRejectionTracking: true,
   loggingLevelTelemetry: 2,
 };
