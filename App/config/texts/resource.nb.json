@@ -30,6 +30,10 @@
       "value": "Slik ser det ut i summary 2"
     },
     {
+      "id": "Header.Summary2.Compact",
+      "value": "Slik ser det ut i summary 2 med kompaktvisning"
+    },
+    {
       "id": "InputPage",
       "value": "Kort svar"
     },
