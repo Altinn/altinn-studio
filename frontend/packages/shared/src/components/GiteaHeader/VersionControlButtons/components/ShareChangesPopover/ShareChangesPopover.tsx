@@ -11,6 +11,7 @@ import { useVersionControlButtonsContext } from '../../context';
 import { SyncLoadingIndicator } from '../SyncLoadingIndicator';
 import type { IContentStatus, IGitStatus } from 'app-shared/types/global';
 import { CommitAndPushContent } from './CommitAndPushContent';
+import type { RepoContentStatus } from 'app-shared/types/RepoStatus';
 
 export const ShareChangesPopover = () => {
   const { isLoading, setIsLoading, hasPushRights, hasMergeConflict, repoStatus } =
@@ -26,6 +27,8 @@ export const ShareChangesPopover = () => {
   const fetchCompleted: boolean = !isLoading && !hasChangesToPush;
   const displayNotification: boolean =
     (repoStatus?.contentStatus?.length > 0 ?? false) && !hasMergeConflict;
+
+  const fileChanges: RepoContentStatus[] = repoStatus.contentStatus;
 
   const handleClosePopover = () => setPopoverOpen(false);
 
@@ -65,10 +68,10 @@ export const ShareChangesPopover = () => {
           onClick={handleOpenPopover}
           disabled={!hasPushRights || hasMergeConflict}
           title={renderCorrectTitle()}
-          icon={hasMergeConflict ? <XMarkIcon /> : <UploadIcon />}
+          icon={<UploadIcon />}
         >
-          {hasMergeConflict ? t('sync_header.merge_conflict') : t('sync_header.changes_to_share')}
-          {displayNotification && <Notification numChanges={1} />}
+          {t('sync_header.changes_to_share')}
+          {displayNotification && <Notification />}
         </StudioButton>
       </StudioPopover.Trigger>
       <StudioPopover.Content
@@ -78,7 +81,7 @@ export const ShareChangesPopover = () => {
           <SyncLoadingIndicator heading={t('sync_header.controlling_service_status')} />
         )}
         {!isLoading && hasChangesToPush && (
-          <CommitAndPushContent handleClosePopover={handleClosePopover} />
+          <CommitAndPushContent handleClosePopover={handleClosePopover} fileChanges={fileChanges} />
         )}
         {fetchCompleted && <GiteaFetchCompleted heading={t('sync_header.nothing_to_push')} />}
       </StudioPopover.Content>

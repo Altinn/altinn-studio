@@ -4,16 +4,24 @@ import { useTranslation } from 'react-i18next';
 import { useVersionControlButtonsContext } from '../../../context';
 import { Heading, Paragraph } from '@digdir/design-system-react';
 import { StudioButton, StudioTextarea } from '@studio/components';
+import type { RepoContentStatus } from 'app-shared/types/RepoStatus';
+import { ClockDashedIcon } from '@studio/icons';
+import { FileChangesInfoModal } from './FileChangesInfoModal/FileChangesInfoModal';
 
 export type CommitAndPushContentProps = {
   handleClosePopover: () => void;
+  fileChanges: RepoContentStatus[];
 };
 
-export const CommitAndPushContent = ({ handleClosePopover }: CommitAndPushContentProps) => {
+export const CommitAndPushContent = ({
+  handleClosePopover,
+  fileChanges,
+}: CommitAndPushContentProps) => {
   const { t } = useTranslation();
   const { commitAndPushChanges } = useVersionControlButtonsContext();
 
   const [commitMessage, setCommitMessage] = useState('');
+  const [showFileChangesIsOpen, setShowFileChangesIsOpen] = useState(false);
 
   const handleClickCommitAndPush = async () => {
     await commitAndPushChanges(commitMessage);
@@ -24,6 +32,9 @@ export const CommitAndPushContent = ({ handleClosePopover }: CommitAndPushConten
     setCommitMessage(event.target.value);
   };
 
+  const handleModalClose = () => setShowFileChangesIsOpen(false);
+
+  // Should have a button with `Vis endringer` that opens a modal with all files that are changed and hopefully also an option too see the diff for each file.
   return (
     <>
       <Heading size='xxsmall' className={classes.heading} level={3}>
@@ -35,6 +46,21 @@ export const CommitAndPushContent = ({ handleClosePopover }: CommitAndPushConten
       <Paragraph size='small' spacing>
         {t('sync_header.describe_and_validate_sub_sub_message')}
       </Paragraph>
+      <StudioButton
+        variant='tertiary'
+        onClick={() => setShowFileChangesIsOpen(true)}
+        size='small'
+        icon={<ClockDashedIcon />}
+      >
+        {'Se siste endringer'}
+      </StudioButton>
+      {showFileChangesIsOpen && (
+        <FileChangesInfoModal
+          isOpen={showFileChangesIsOpen}
+          onClose={handleModalClose}
+          fileChanges={fileChanges}
+        />
+      )}
       <StudioTextarea
         label={t('sync_header.describe_changes_made')}
         value={commitMessage}

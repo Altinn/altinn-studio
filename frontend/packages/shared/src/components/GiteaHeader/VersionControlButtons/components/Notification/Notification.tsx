@@ -3,7 +3,7 @@ import classes from './Notification.module.css';
 import { Paragraph } from '@digdir/design-system-react';
 
 export type NotificationProps = {
-  numChanges: number;
+  numChanges?: number;
 };
 
 export const Notification = ({ numChanges }: NotificationProps) => {

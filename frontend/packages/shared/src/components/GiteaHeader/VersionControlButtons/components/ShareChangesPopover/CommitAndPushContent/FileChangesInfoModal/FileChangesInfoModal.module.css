@@ -1,0 +1,18 @@
+.fileChangesContainer {
+  display: flex;
+  flex-direction: column;
+  padding: var(--fds-spacing-10);
+  width: 30vw;
+  max-width: 30vw;
+}
+
+.filePathContainer {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+}
+
+.filePath {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
