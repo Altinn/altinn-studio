@@ -376,4 +376,49 @@ describe('EditBinding featureFlag enabled', () => {
       },
     );
   });
+
+  it('should call handleComponentChange with new binding format when data model is changed', async () => {
+    typedLocalStorage.setItem<string[]>('featureFlags', ['dataModelBindingSelector']);
+    const user = userEvent.setup();
+    const handleComponentChange = jest.fn();
+    renderEditBinding({
+      editBindingProps: {
+        ...defaultEditBinding,
+        handleComponentChange,
+      },
+      queries: {
+        getAppMetadataModelIds: getAppMetadataModelIdsMock,
+        getDataModelMetadata: getDataModelMetadataMock,
+      },
+    });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
+    );
+
+    const dataModelSelector = screen.getByRole('combobox', {
+      name: textMock('ux_editor.modal_properties_data_model'),
+    });
+    const option2 = screen.getByRole('option', { name: secondDataModel });
+    await user.selectOptions(dataModelSelector, option2);
+
+    expect(handleComponentChange).toHaveBeenCalledTimes(1);
+    expect(handleComponentChange).toHaveBeenCalledWith(
+      {
+        ...componentMocks[ComponentType.Input],
+        dataModelBindings: {
+          [defaultEditBinding.bindingKey]: {
+            field: '',
+            dataType: secondDataModel,
+          },
+        },
+        maxCount: undefined,
+        required: undefined,
+        timeStamp: undefined,
+      },
+      {
+        onSuccess: expect.any(Function),
+      },
+    );
+  });
 });

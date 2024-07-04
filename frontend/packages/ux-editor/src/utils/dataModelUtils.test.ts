@@ -77,7 +77,7 @@ describe('getMaxOccursFromDataModelFields', () => {
 });
 
 describe('getXsdDataTypeFromDataModelFields', () => {
-  it('should return "DateTime" xsd data type when selected data model field is a datepicker', () => {
+  it('should return "DateTime" when selected data model field is a datepicker', () => {
     const selectedDataField = 'datePickerField';
     const xsdDataType = getXsdDataTypeFromDataModelFields(
       ComponentType.Datepicker,
@@ -87,12 +87,27 @@ describe('getXsdDataTypeFromDataModelFields', () => {
     expect(xsdDataType).toEqual('DateTime');
   });
 
-  it('should return "string" xsd data type when selected data model field is not a datepicker', () => {
+  it('should return undefined when selected data model field is not a datepicker', () => {
     const selectedDataField = 'field1';
     const xsdDataType = getXsdDataTypeFromDataModelFields(
       ComponentType.Input,
       selectedDataField,
       dataModelMetadataMock,
+    );
+    expect(xsdDataType).toEqual(undefined);
+  });
+
+  it('should return undefined when selected data model field is a datepicker but xsd value type is not "DateTime"', () => {
+    const selectedDataField = 'datePickerField';
+    const testDataModelMetadataMock = [...dataModelMetadataMock];
+    testDataModelMetadataMock[3] = {
+      ...testDataModelMetadataMock[3],
+      xsdValueType: 'SomethingElse',
+    };
+    const xsdDataType = getXsdDataTypeFromDataModelFields(
+      ComponentType.Datepicker,
+      selectedDataField,
+      testDataModelMetadataMock,
     );
     expect(xsdDataType).toEqual(undefined);
   });
