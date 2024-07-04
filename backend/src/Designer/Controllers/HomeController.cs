@@ -83,7 +83,6 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("/{*AllValues:regex(^(?!designer).*$)}")]
         public IActionResult Index()
         {
-            ViewBag.InstrumentationKey = _applicationInsightsSettings.InstrumentationKey;
             ViewBag.AiConnectionString = _applicationInsightsSettings.ConnectionString;
             return View();
         }
@@ -97,7 +96,6 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("/dashboard/{*AllValues}", Name = "DefaultLoggedIn")]
         public ActionResult Dashboard()
         {
-            ViewBag.InstrumentationKey = _applicationInsightsSettings.InstrumentationKey;
             ViewBag.AiConnectionString = _applicationInsightsSettings.ConnectionString;
             return View("Dashboard");
         }

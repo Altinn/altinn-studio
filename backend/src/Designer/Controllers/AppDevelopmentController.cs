@@ -63,7 +63,6 @@ namespace Altinn.Studio.Designer.Controllers
         public IActionResult Index(string org, string app)
         {
             _sourceControl.VerifyCloneExists(org, app);
-            ViewBag.InstrumentationKey = _applicationInsightsSettings.InstrumentationKey;
             ViewBag.AiConnectionString = _applicationInsightsSettings.ConnectionString;
             return View();
         }
