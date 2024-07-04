@@ -1,14 +1,28 @@
 {
-  "ignorePatterns": ["yarn/**", "yarn.lock", "*.css", "*.snap"],
+  "ignorePatterns": [
+    "yarn/**",
+    "yarn.lock",
+    "*.css",
+    "*.snap"
+  ],
   "extends": [
     "plugin:import/typescript",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended"
   ],
-  "plugins": ["jsx-a11y", "react", "react-hooks", "@typescript-eslint", "import"],
+  "plugins": [
+    "jsx-a11y",
+    "react",
+    "react-hooks",
+    "@typescript-eslint",
+    "import"
+  ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "project": "./frontend/tsconfig.json"
+    "project": [
+      "./frontend/tsconfig.json",
+      "./frontend/testing/playwright/tsconfig.json"
+    ]
   },
   "rules": {
     "react/destructuring-assignment": "off",
@@ -20,11 +34,16 @@
     "react/jsx-filename-extension": [
       "warn",
       {
-        "extensions": [".tsx"]
+        "extensions": [
+          ".tsx"
+        ]
       }
     ],
     "prefer-const": "error",
-    "object-curly-spacing": ["error", "always"],
+    "object-curly-spacing": [
+      "error",
+      "always"
+    ],
     "@typescript-eslint/consistent-type-exports": "error",
     "@typescript-eslint/consistent-type-imports": "error",
     "@typescript-eslint/no-use-before-define": "off",
@@ -34,7 +53,9 @@
       {
         "patterns": [
           {
-            "group": ["**/libs/**"],
+            "group": [
+              "**/libs/**"
+            ],
             "message": "Use the package name, not the relative path, when importing from a @studio library."
           }
         ]
@@ -43,7 +64,9 @@
   },
   "overrides": [
     {
-      "files": ["*.tsx"],
+      "files": [
+        "*.tsx"
+      ],
       "rules": {
         "react/react-in-jsx-scope": "off",
         "react/jsx-no-useless-fragment": [
@@ -55,12 +78,19 @@
         "no-use-before-define": "off",
         "no-shadow": "off",
         "react/function-component-definition": "off",
-        "@typescript-eslint/no-shadow": ["error"]
+        "@typescript-eslint/no-shadow": [
+          "error"
+        ]
       }
     },
     {
-      "files": ["*.test.ts", "*.test.tsx"],
-      "extends": ["plugin:testing-library/react"],
+      "files": [
+        "*.test.ts",
+        "*.test.tsx"
+      ],
+      "extends": [
+        "plugin:testing-library/react"
+      ],
       "rules": {
         "testing-library/no-unnecessary-act": "error"
       }
