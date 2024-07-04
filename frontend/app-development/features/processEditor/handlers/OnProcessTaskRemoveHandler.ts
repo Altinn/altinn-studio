@@ -58,13 +58,17 @@ export class OnProcessTaskRemoveHandler {
    */
   private handlePaymentTaskRemove(taskMetadata: OnProcessTaskEvent): void {
     const studioModeler = new StudioModeler(taskMetadata.taskEvent.element);
-    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(taskMetadata.taskType);
+    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
+      taskMetadata.taskType,
+      taskMetadata.taskEvent.element.businessObject,
+    );
     this.deleteDataTypeFromAppMetadata({
       dataTypeId,
     });
 
     const receiptPdfDataTypeId = studioModeler.getReceiptPdfDataTypeIdFromBusinessObject(
       taskMetadata.taskType,
+      taskMetadata.taskEvent.element.businessObject,
     );
     this.deleteDataTypeFromAppMetadata({
       dataTypeId: receiptPdfDataTypeId,
@@ -102,7 +106,10 @@ export class OnProcessTaskRemoveHandler {
    */
   private handleSigningTaskRemove(taskMetadata: OnProcessTaskEvent): void {
     const studioModeler = new StudioModeler(taskMetadata.taskEvent.element);
-    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(taskMetadata.taskType);
+    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
+      taskMetadata.taskType,
+      taskMetadata.taskEvent.element.businessObject,
+    );
     this.deleteDataTypeFromAppMetadata({
       dataTypeId,
     });
