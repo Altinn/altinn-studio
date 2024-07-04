@@ -151,7 +151,7 @@ export class DataModelPage extends BasePage {
     await expect(spinner).toBeHidden();
   }
 
-  public async getDataModelOptionValue(option: string): Promise<string> {
+  public async getDataModelOptionValue(option: string): Promise<string | null> {
     return await this.page.getByRole('option', { name: option }).getAttribute('value');
   }
 
