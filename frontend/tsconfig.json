@@ -4,7 +4,12 @@
     "module": "commonjs",
     "target": "es6",
     "downlevelIteration": true,
-    "lib": ["es6", "dom", "es7", "esnext"],
+    "lib": [
+      "es6",
+      "dom",
+      "es7",
+      "esnext"
+    ],
     "sourceMap": true,
     "allowJs": true,
     "jsx": "react",
@@ -17,19 +22,55 @@
     "baseUrl": ".",
     "skipLibCheck": true,
     "paths": {
-      "@altinn/policy-editor/*": ["./packages/policy-editor/src/*"],
-      "@altinn/process-editor/*": ["./packages/process-editor/src/*"],
-      "@altinn/schema-editor/*": ["./packages/schema-editor/src/*"],
-      "@altinn/schema-model/*": ["./packages/schema-model/src/*"],
-      "app-shared/*": ["./packages/shared/src/*"],
-      "@altinn/text-editor/*": ["./packages/text-editor/src/*"],
-      "@altinn/ux-editor/*": ["./packages/ux-editor/src/*"],
-      "@altinn/ux-editor-v3/*": ["./packages/ux-editor-v3/src/*"],
-      "@studio/testing/*": ["./testing/*"]
+      "@altinn/policy-editor/*": [
+        "./packages/policy-editor/src/*"
+      ],
+      "@altinn/process-editor/*": [
+        "./packages/process-editor/src/*"
+      ],
+      "@altinn/schema-editor/*": [
+        "./packages/schema-editor/src/*"
+      ],
+      "@altinn/schema-model/*": [
+        "./packages/schema-model/src/*"
+      ],
+      "app-shared/*": [
+        "./packages/shared/src/*"
+      ],
+      "@altinn/text-editor/*": [
+        "./packages/text-editor/src/*"
+      ],
+      "@altinn/ux-editor/*": [
+        "./packages/ux-editor/src/*"
+      ],
+      "@altinn/ux-editor-v3/*": [
+        "./packages/ux-editor-v3/src/*"
+      ],
+      "@studio/testing/*": [
+        "./testing/*"
+      ]
     },
-    "plugins": [{ "name": "typescript-plugin-css-modules" }]
+    "plugins": [
+      {
+        "name": "typescript-plugin-css-modules"
+      }
+    ]
   },
-  "files": ["declaration.d.ts"],
-  "include": ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "tmp", "./testing/cypress/**", "./testing/playwright/playwright-report", "dist", "**/prettier.config.js"]
+  "files": [
+    "declaration.d.ts"
+  ],
+  "include": [
+    "**/*.js",
+    "**/*.jsx",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "tmp",
+    "./testing/cypress/**",
+    "./testing/playwright/playwright-report",
+    "dist",
+    "**/prettier.config.js"
+  ]
 }
