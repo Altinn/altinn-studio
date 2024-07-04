@@ -1,5 +1,5 @@
 import { expect, type Page } from '@playwright/test';
-import { BasePage } from '@studio/testing/playwright/helpers/BasePage';
+import { BasePage } from '../../playwright/helpers/BasePage';
 
 export class DataModelConfig extends BasePage {
   constructor(public page: Page) {

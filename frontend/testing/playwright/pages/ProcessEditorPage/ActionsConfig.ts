@@ -1,4 +1,4 @@
-import { BasePage } from '@studio/testing/playwright/helpers/BasePage';
+import { BasePage } from '../../helpers/BasePage';
 import { expect, type Page } from '@playwright/test';
 
 export class ActionsConfig extends BasePage {

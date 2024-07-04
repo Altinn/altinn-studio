@@ -1,12 +1,12 @@
 import { test } from '../../extenders/testExtend';
 import { ProcessEditorPage } from '../../pages/ProcessEditorPage';
-import { BpmnJSQuery } from '@studio/testing/playwright/helpers/BpmnJSQuery';
+import { BpmnJSQuery } from '../../helpers/BpmnJSQuery';
 import { expect, type Page } from '@playwright/test';
-import { Header } from '@studio/testing/playwright/components/Header';
-import { DesignerApi } from '@studio/testing/playwright/helpers/DesignerApi';
-import type { StorageState } from '@studio/testing/playwright/types/StorageState';
-import { Gitea } from '@studio/testing/playwright/helpers/Gitea';
-import { GiteaPage } from '@studio/testing/playwright/pages/GiteaPage';
+import { Header } from '../../components/Header';
+import { DesignerApi } from '../../helpers/DesignerApi';
+import type { StorageState } from '../..//types/StorageState';
+import { Gitea } from '../../helpers/Gitea';
+import { GiteaPage } from '../../pages/GiteaPage';
 
 test.describe.configure({ mode: 'serial' });
 
