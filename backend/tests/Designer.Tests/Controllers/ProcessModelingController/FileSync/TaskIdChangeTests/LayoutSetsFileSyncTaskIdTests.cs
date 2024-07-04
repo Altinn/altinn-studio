@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController.FileSync.TaskIdChangeTests;
 
-public class LayoutSetsFileSyncTaskIdTests : DisagnerEndpointsTestsBase<LayoutSetsFileSyncTaskIdTests>,
+public class LayoutSetsFileSyncTaskIdTests : DesignerEndpointsTestsBase<LayoutSetsFileSyncTaskIdTests>,
     IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) =>
