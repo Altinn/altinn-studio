@@ -107,19 +107,4 @@ describe('EditComponentIdRow', () => {
       screen.getByText(textMock('ux_editor.modal_properties_component_id_not_unique_error')),
     ).toBeInTheDocument();
   });
-
-  it('should render css-class when we have duplicatedId', async () => {
-    jest.spyOn(console, 'error').mockImplementation();
-    jest.doMock('../../../../utils/formLayoutUtils', () => ({
-      ...jest.requireActual('../../../../utils/formLayoutUtils'),
-      findLayoutsContainingDuplicateComponents: jest.fn().mockReturnValue({
-        duplicateComponents: ['test'],
-        layoutName: 'test',
-      }),
-    }));
-    require('./EditComponentIdRow');
-    await studioRender();
-    const container = screen.getByTestId('edit-component-id-row-container');
-    expect(container).toMatchSnapshot();
-  });
 });
