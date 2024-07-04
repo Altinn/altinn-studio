@@ -916,7 +916,6 @@
   "sync_header.fetch_changes": "Fetch",
   "sync_header.fetch_changes_btn": "Fetch",
   "sync_header.fetching_latest_version": "Fetching latest version of your app",
-  "sync_header.merge_conflict": "Mergeconflict",
   "sync_header.nothing_to_push": "Your latest changes are already shared",
   "sync_header.repo_is_offline": "Repo is offline",
   "sync_header.repository": "Repository",

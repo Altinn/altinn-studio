@@ -6,10 +6,12 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { VersionControlButtonsContext } from '../../../context';
 import { mockVersionControlButtonsContextValue } from '../../../test/mocks/versionControlContextMock';
 
-const mockHandleClosePopover = jest.fn();
+const mockOnHidePopover = jest.fn();
+const mockOnClosePopover = jest.fn();
 
 const defaultProps: CommitAndPushContentProps = {
-  handleClosePopover: mockHandleClosePopover,
+  onHidePopover: mockOnHidePopover,
+  onClosePopover: mockOnClosePopover,
   fileChanges: [],
 };
 
@@ -61,7 +63,7 @@ describe('CommitAndPushContent', () => {
     expect(mockVersionControlButtonsContextValue.commitAndPushChanges).toHaveBeenCalledWith(
       commitMessage,
     );
-    expect(mockHandleClosePopover).toHaveBeenCalled();
+    expect(mockOnClosePopover).toHaveBeenCalled();
   });
 
   it('should open fileChangesInfoModal when clicking review changes button', async () => {
@@ -78,6 +80,25 @@ describe('CommitAndPushContent', () => {
 
     const modalAfterClick = screen.getByRole('dialog');
     expect(modalAfterClick).toBeInTheDocument();
+    expect(mockOnHidePopover).toHaveBeenCalledWith(true);
+  });
+
+  it('should close fileChangesInfoModal when clicking close', async () => {
+    const user = userEvent.setup();
+    renderCommitAndPushContent();
+    const reviewChangesButton = screen.getByRole('button', {
+      name: textMock('sync_header.review_file_changes'),
+    });
+    await user.click(reviewChangesButton);
+    const closeModalButton = screen.getByRole('button', {
+      name: textMock('sync_header.show_changes_modal.close_button'),
+    });
+    await user.click(closeModalButton);
+
+    const modalBeforeClick = screen.queryByRole('dialog');
+    expect(modalBeforeClick).not.toBeInTheDocument();
+
+    expect(mockOnHidePopover).toHaveBeenCalledWith(false);
   });
 });
 

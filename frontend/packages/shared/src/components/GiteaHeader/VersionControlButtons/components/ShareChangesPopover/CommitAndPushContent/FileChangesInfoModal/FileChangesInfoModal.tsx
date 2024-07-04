@@ -4,6 +4,7 @@ import { StudioModal } from '@studio/components';
 import { Heading, Table, Tag } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import classes from './FileChangesInfoModal.module.css';
+import { ClockDashedIcon } from '@studio/icons';
 
 export interface FileChangesInfoModalProps {
   isOpen: boolean;
@@ -24,6 +25,17 @@ export const FileChangesInfoModal = ({
   fileChanges,
 }: FileChangesInfoModalProps): React.ReactElement => {
   const { t } = useTranslation();
+
+  const renderModalHeading = (): React.ReactElement => {
+    return (
+      <div className={classes.headingWrapper}>
+        <ClockDashedIcon className={classes.icon} />
+        <Heading level={1} size='small'>
+          {t('sync_header.show_changes_modal.title')}
+        </Heading>
+      </div>
+    );
+  };
 
   const renderFilePath = (filePath: string): React.ReactElement => {
     const fileName = filePath.split('/').pop() || '';
@@ -49,11 +61,7 @@ export const FileChangesInfoModal = ({
     <StudioModal
       isOpen={isOpen}
       onClose={onClose}
-      title={
-        <Heading level={1} size='small'>
-          {t('sync_header.show_changes_modal.title')}
-        </Heading>
-      }
+      title={renderModalHeading()}
       closeButtonLabel={t('sync_header.show_changes_modal.close_button')}
     >
       <div className={classes.fileChangesContainer}>

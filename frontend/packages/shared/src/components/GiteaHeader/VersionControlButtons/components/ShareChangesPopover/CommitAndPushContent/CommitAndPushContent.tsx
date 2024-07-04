@@ -9,12 +9,14 @@ import { ClockDashedIcon } from '@studio/icons';
 import { FileChangesInfoModal } from './FileChangesInfoModal/FileChangesInfoModal';
 
 export type CommitAndPushContentProps = {
-  handleClosePopover: () => void;
+  onHidePopover: (hide: boolean) => void;
+  onClosePopover: () => void;
   fileChanges: RepoContentStatus[];
 };
 
 export const CommitAndPushContent = ({
-  handleClosePopover,
+  onHidePopover,
+  onClosePopover,
   fileChanges,
 }: CommitAndPushContentProps) => {
   const { t } = useTranslation();
@@ -25,16 +27,22 @@ export const CommitAndPushContent = ({
 
   const handleClickCommitAndPush = async () => {
     await commitAndPushChanges(commitMessage);
-    handleClosePopover();
+    onClosePopover();
   };
 
   const handleTextareaChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setCommitMessage(event.target.value);
   };
 
-  const handleModalClose = () => setShowFileChangesIsOpen(false);
+  const handleModalOpen = () => {
+    setShowFileChangesIsOpen(true);
+    onHidePopover(true);
+  };
+  const handleModalClose = () => {
+    setShowFileChangesIsOpen(false);
+    onHidePopover(false);
+  };
 
-  // Should have a button with `Vis endringer` that opens a modal with all files that are changed and hopefully also an option too see the diff for each file.
   return (
     <>
       <Heading size='xxsmall' className={classes.heading} level={3}>
@@ -48,7 +56,7 @@ export const CommitAndPushContent = ({
       </Paragraph>
       <StudioButton
         variant='tertiary'
-        onClick={() => setShowFileChangesIsOpen(true)}
+        onClick={handleModalOpen}
         size='small'
         icon={<ClockDashedIcon />}
       >

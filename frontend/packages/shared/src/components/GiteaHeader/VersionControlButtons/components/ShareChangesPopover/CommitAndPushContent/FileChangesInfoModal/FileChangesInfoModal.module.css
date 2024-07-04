@@ -1,9 +1,18 @@
+.headingWrapper {
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  font-size: 2rem;
+  margin-right: var(--fds-spacing-2);
+}
+
 .fileChangesContainer {
   display: flex;
   flex-direction: column;
-  padding: var(--fds-spacing-10);
-  width: 30vw;
-  max-width: 30vw;
+  padding: var(--fds-spacing-4) var(--fds-spacing-10) var(--fds-spacing-10) var(--fds-spacing-10);
+  width: 50vw;
 }
 
 .filePathContainer {

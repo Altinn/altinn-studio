@@ -8,7 +8,7 @@ export type NotificationProps = {
 
 export const Notification = ({ numChanges }: NotificationProps) => {
   return (
-    <span className={classes.wrapper} aria-hidden>
+    <span className={classes.wrapper} aria-hidden aria-label={'sync_header.notification_label'}>
       <Paragraph asChild size='xsmall' variant='short' className={classes.number}>
         <span>{numChanges}</span>
       </Paragraph>
