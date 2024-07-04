@@ -18,9 +18,9 @@
         "id": "Summary2-previous-process",
         "type": "Summary2",
         "hidden": false,
-        "taskId": "Task_1",
         "target": {
           "type": "page",
+          "taskId": "Task_1",
           "id": "AddressPage"
         }
       }

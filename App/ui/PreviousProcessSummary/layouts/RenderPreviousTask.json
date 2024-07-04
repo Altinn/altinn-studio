@@ -18,8 +18,11 @@
         "id": "Summary2-previous-process",
         "type": "Summary2",
         "hidden": false,
-        "taskId" :"Task_1",
-        "showPageInAccordion": false
+        "target": {
+          "taskId" :"Task_1",
+          "id": "Task_1"
+        },
+        "showPageInAccordion": true
       }
     ]
   }
