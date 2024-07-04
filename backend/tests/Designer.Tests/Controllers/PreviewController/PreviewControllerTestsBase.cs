@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class PreviewControllerTestsBase<TTestClass> : DisagnerEndpointsTestsBase<TTestClass>
+    public class PreviewControllerTestsBase<TTestClass> : DesignerEndpointsTestsBase<TTestClass>
     where TTestClass : class
     {
         protected const string Org = "ttd";
