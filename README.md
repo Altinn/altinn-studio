@@ -21,7 +21,7 @@ See deployment for notes on how to deploy the project on a live system.
 
 ### Prerequisites
 
-1. Newest [.NET 6 SDK][2]
+1. Newest [.NET 8 SDK][2]
 2. [Node.js][3] (version 16.\*)
 3. Newest [Git][4]
 4. A code editor - we like [Visual Studio Code][5]
@@ -183,7 +183,7 @@ See also the [list of contributors](https://github.com/Altinn/altinn-studio/grap
 This project is licensed under the 3-Clause BSD License - see the [LICENSE.md](LICENSE.md) file for details.
 
 [1]: https://docs.altinn.studio/
-[2]: https://dotnet.microsoft.com/download/dotnet/6.0
+[2]: https://dotnet.microsoft.com/download/dotnet/8.0
 [3]: https://nodejs.org
 [4]: https://git-scm.com/downloads
 [5]: https://code.visualstudio.com/Download
