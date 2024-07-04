@@ -18,11 +18,3 @@ export class BpmnJSQuery {
     return elementSelector;
   }
 }
-
-/*
-  public async getTaskIdFromOpenNewlyAddedTask(): Promise<string> {
-    const selector = 'text=ID: Activity_';
-    await this.page.waitForSelector(selector);
-    return await this.getFullIdFromButtonSelector(selector);
-  }
-*/
