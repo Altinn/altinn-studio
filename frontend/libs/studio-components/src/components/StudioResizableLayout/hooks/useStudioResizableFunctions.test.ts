@@ -36,6 +36,16 @@ describe('useStudioResizableLayoutFunctions', () => {
     result.current.resizeDelta(0, 100);
     expect(setContainerSize).toHaveBeenCalled();
   });
+
+  it('should not resize when either element is collapsed', () => {
+    const { result } = renderFunctionsHook(
+      elementRefs,
+      { ...children, 0: { ...children[0], props: { ...children[0].props, collapsed: true } } },
+      setContainerSize,
+    );
+    result.current.resizeTo(0, 100);
+    expect(setContainerSize).not.toHaveBeenCalled();
+  });
 });
 
 function renderFunctionsHook(

@@ -41,11 +41,6 @@ export const useStudioResizableLayoutMouseMovement = (
       startMousePosition.current = lastMousePosition.current;
       window.addEventListener('mousemove', mouseMove);
       window.addEventListener('mouseup', mouseUp);
-
-      return () => {
-        window.removeEventListener('mousemove', mouseMove);
-        window.removeEventListener('mouseup', mouseUp);
-      };
     },
     [mouseMove, mouseUp, orientation],
   );

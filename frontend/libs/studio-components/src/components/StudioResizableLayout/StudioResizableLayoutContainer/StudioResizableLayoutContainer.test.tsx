@@ -33,6 +33,15 @@ describe('StudioResizableLayoutContainer', () => {
     expect(screen.getAllByTestId('resizablelayoutelement')[0].style.flexGrow).toBe('1.75');
     expect(screen.getAllByTestId('resizablelayoutelement')[1].style.flexGrow).toBe('0.25');
   });
+
+  it('should not resize containers above maximum size', () => {
+    renderStudioResizableLayoutContainer(600);
+    const handle = screen.getByRole('separator');
+
+    dragHandle(handle, { clientX: 400 }, { clientX: 800 });
+    expect(screen.getAllByTestId('resizablelayoutelement')[0].style.flexGrow).toBe('1.5');
+    expect(screen.getAllByTestId('resizablelayoutelement')[1].style.flexGrow).toBe('0.5');
+  });
 });
 
 const dragHandle = (
@@ -46,6 +55,8 @@ const dragHandle = (
 };
 
 const renderStudioResizableLayoutContainer = (
+  maximumSize = 800,
+  collapsed = false,
   props: Partial<StudioResizableLayoutContainerProps> = {},
 ) => {
   Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
@@ -57,10 +68,20 @@ const renderStudioResizableLayoutContainer = (
       orientation='horizontal'
       {...props}
     >
-      <StudioResizableLayoutElement minimumSize={100}>
+      <StudioResizableLayoutElement
+        minimumSize={100}
+        maximumSize={maximumSize}
+        collapsed={collapsed}
+        collapsedSize={400}
+      >
         <div>test1</div>
       </StudioResizableLayoutElement>
-      <StudioResizableLayoutElement minimumSize={100}>
+      <StudioResizableLayoutElement
+        minimumSize={100}
+        maximumSize={maximumSize}
+        collapsed={collapsed}
+        collapsedSize={400}
+      >
         <div>test1</div>
       </StudioResizableLayoutElement>
     </StudioResizableLayoutContainer>,

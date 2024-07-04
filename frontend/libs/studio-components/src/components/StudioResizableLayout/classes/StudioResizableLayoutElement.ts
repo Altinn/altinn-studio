@@ -4,14 +4,7 @@ export class StudioResizableLayoutArea {
     public HTMLElementRef: HTMLElement,
     public reactElement: React.ReactElement,
     public orientation: 'horizontal' | 'vertical',
-  ) {
-    if (HTMLElementRef === undefined) {
-      throw new Error('Element is undefined');
-    }
-    if (reactElement === undefined) {
-      throw new Error('React element is undefined');
-    }
-  }
+  ) {}
 
   public get size() {
     return this.orientation === 'vertical'

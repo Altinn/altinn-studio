@@ -1,5 +1,8 @@
 import { act, renderHook } from '@testing-library/react';
-import { horizontal } from '../StudioResizableLayoutContainer/StudioResizableLayoutContainer';
+import {
+  horizontal,
+  vertical,
+} from '../StudioResizableLayoutContainer/StudioResizableLayoutContainer';
 import { useStudioResizableLayoutMouseMovement } from './useStudioResizableLayoutMouseMovement';
 import type React from 'react';
 
@@ -24,6 +27,19 @@ describe('useStudioResizableLayoutMouseMovement', () => {
     const mouseMoveEvent = new MouseEvent('mousemove');
     window.dispatchEvent(mouseMoveEvent);
     expect(onMousePosChange).toHaveBeenCalled();
+  });
+
+  it('should not start resizing if mouse button is not 0/LMB', () => {
+    const onMousePosChange = jest.fn();
+    const { result } = renderHook(() =>
+      useStudioResizableLayoutMouseMovement(horizontal, onMousePosChange),
+    );
+    act(() => {
+      result.current.onMouseDown({ ...mockMouseEvent, button: 1 });
+    });
+    const mouseMoveEvent = new MouseEvent('mousemove');
+    window.dispatchEvent(mouseMoveEvent);
+    expect(onMousePosChange).not.toHaveBeenCalled();
   });
 });
 
