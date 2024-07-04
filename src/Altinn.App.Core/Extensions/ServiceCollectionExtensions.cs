@@ -9,6 +9,7 @@ using Altinn.App.Core.Features.Notifications.Sms;
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Features.PageOrder;
 using Altinn.App.Core.Features.Payment.Processors;
+using Altinn.App.Core.Features.Payment.Processors.FakePaymentProcessor;
 using Altinn.App.Core.Features.Payment.Processors.Nets;
 using Altinn.App.Core.Features.Payment.Services;
 using Altinn.App.Core.Features.Pdf;
@@ -178,7 +179,7 @@ public static class ServiceCollectionExtensions
         AddAppOptions(services);
         AddActionServices(services);
         AddPdfServices(services);
-        AddNetsPaymentServices(services, configuration);
+        AddPaymentServices(services, configuration, env);
         AddSignatureServices(services);
         AddEventServices(services);
         AddNotificationServices(services);
@@ -263,20 +264,30 @@ public static class ServiceCollectionExtensions
 #pragma warning restore CS0618 // Type or member is obsolete
     }
 
-    private static void AddNetsPaymentServices(this IServiceCollection services, IConfiguration configuration)
+    private static void AddPaymentServices(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IHostEnvironment env
+    )
     {
-        IConfigurationSection configurationSection = configuration.GetSection("NetsPaymentSettings");
+        services.AddTransient<IPaymentService, PaymentService>();
+        services.AddTransient<IProcessTask, PaymentProcessTask>();
+        services.AddTransient<IUserAction, PaymentUserAction>();
 
+        // Fake Payment Processor used for automatic frontend tests
+        if (!env.IsProduction())
+        {
+            services.AddTransient<IPaymentProcessor, FakePaymentProcessor>();
+        }
+
+        // Nets Easy
+        IConfigurationSection configurationSection = configuration.GetSection("NetsPaymentSettings");
         if (configurationSection.Exists())
         {
             services.Configure<NetsPaymentSettings>(configurationSection);
             services.AddHttpClient<INetsClient, NetsClient>();
             services.AddTransient<IPaymentProcessor, NetsPaymentProcessor>();
         }
-
-        services.AddTransient<IPaymentService, PaymentService>();
-        services.AddTransient<IProcessTask, PaymentProcessTask>();
-        services.AddTransient<IUserAction, PaymentUserAction>();
     }
 
     private static void AddSignatureServices(IServiceCollection services)
