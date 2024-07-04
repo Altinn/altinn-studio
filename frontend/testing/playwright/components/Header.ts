@@ -15,6 +15,8 @@ type TopMenuName =
   | 'process_editor'
   | 'texts';
 
+const TIMEOUT_FOR_GITEA_TO_DO_THE_PUSH: number = 10000;
+
 export class Header extends BasePage {
   constructor(page: Page, environment?: Environment) {
     super(page, environment);
@@ -50,12 +52,8 @@ export class Header extends BasePage {
   }
 
   public async checkThatUploadSuccessMessageIsVisible(): Promise<void> {
-    await this.page
-      .getByRole('heading', {
-        name: this.textMock('sync_header.sharing_changes_completed'),
-        level: 3,
-      })
-      .isVisible();
+    const heading = this.page.getByText(this.textMock('sync_header.sharing_changes_completed'));
+    await expect(heading).toBeVisible({ timeout: TIMEOUT_FOR_GITEA_TO_DO_THE_PUSH });
   }
 
   public async clickOnLocalChangesButton(): Promise<void> {
@@ -70,7 +68,6 @@ export class Header extends BasePage {
 
   public async waitForPushToGiteaSpinnerToDisappear(): Promise<void> {
     const spinner = this.page.getByTestId(DataTestId.PushToGiteaSpinner);
-    const timeoutForGiteaToDoThePush: number = 10000;
-    await expect(spinner).toBeHidden({ timeout: timeoutForGiteaToDoThePush });
+    await expect(spinner).toBeHidden({ timeout: TIMEOUT_FOR_GITEA_TO_DO_THE_PUSH });
   }
 }
