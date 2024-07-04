@@ -5,3 +5,9 @@
   gap: var(--fds-spacing-1);
   justify-content: flex-start;
 }
+
+.datamodelOutputField {
+  overflow: auto;
+  height: 2em;
+  overflow-y: hidden;
+}

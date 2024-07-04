@@ -12,14 +12,6 @@
   width: 100%;
 }
 
-.componentIdInViewMode {
-  display: flex;
-  flex-direction: column;
-  text-overflow: ellipsis;
-  overflow: auto;
-  overflow-wrap: break-word;
-}
-
 .editIconWrapper {
   flex: 1;
   text-align: right;

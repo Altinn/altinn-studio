@@ -69,6 +69,7 @@ export const EditComponentIdRow = ({
           children: <Trans i18nKey={'ux_editor.id_identifier'} values={{ item: component.id }} />,
           variant: 'tertiary',
           fullWidth: true,
+          className: classes.componentIdViewMode,
         }}
         inputProps={{
           icon: <KeyVerticalIcon />,

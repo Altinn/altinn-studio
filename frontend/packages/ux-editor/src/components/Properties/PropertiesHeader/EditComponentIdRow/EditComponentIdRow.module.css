@@ -6,3 +6,8 @@
 .idInput {
   padding: var(--fds-spacing-5);
 }
+
+.componentIdViewMode {
+  text-overflow: ellipsis;
+  overflow: auto;
+}

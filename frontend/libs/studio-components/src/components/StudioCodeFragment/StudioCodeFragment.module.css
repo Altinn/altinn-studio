@@ -7,9 +7,3 @@
   font-size: 0.8em;
   padding: 0 var(--fds-spacing-1);
 }
-
-.customDatamodelBindingOverflow {
-  overflow: auto;
-  height: 2em;
-  overflow-y: hidden;
-}
