@@ -2,7 +2,7 @@
  * altinnStudioEnvironment is the facade object that should be used to access environment variables.
  */
 type AltinnStudioEnvironment = {
-  instrumentationKey?: string;
+  aiConnectionString?: string;
 };
 
 /*
@@ -13,5 +13,5 @@ const studioWindow: typeof window & AltinnStudioEnvironment = window;
 
 // altinnStudioEnvironment is an object that contains environment specific variables that is set in the index.cshtml file.
 export const altinnStudioEnvironment: AltinnStudioEnvironment = {
-  instrumentationKey: studioWindow.instrumentationKey,
+  aiConnectionString: studioWindow.aiConnectionString,
 };

@@ -56,7 +56,10 @@ export class OnProcessTaskAddHandler {
     this.addLayoutSet(this.createLayoutSetConfig(taskMetadata.taskEvent));
 
     const studioModeler = new StudioModeler(taskMetadata.taskEvent.element);
-    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(taskMetadata.taskType);
+    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
+      taskMetadata.taskType,
+      taskMetadata.taskEvent.element.businessObject,
+    );
     this.addDataTypeToAppMetadata({
       dataTypeId,
       taskId: taskMetadata.taskEvent.element.id,
@@ -64,6 +67,7 @@ export class OnProcessTaskAddHandler {
 
     const receiptPdfDataTypeId = studioModeler.getReceiptPdfDataTypeIdFromBusinessObject(
       taskMetadata.taskType,
+      taskMetadata.taskEvent.element.businessObject,
     );
     this.addDataTypeToAppMetadata({
       dataTypeId: receiptPdfDataTypeId,
@@ -88,8 +92,12 @@ export class OnProcessTaskAddHandler {
    * @private
    */
   private handleSigningTaskAdd(taskMetadata: OnProcessTaskEvent): void {
-    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element);
-    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(taskMetadata.taskType);
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as any);
+    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
+      taskMetadata.taskType,
+      taskMetadata.taskEvent.element.businessObject,
+    );
+
     this.addDataTypeToAppMetadata({
       dataTypeId,
       taskId: taskMetadata.taskEvent.element.id,
