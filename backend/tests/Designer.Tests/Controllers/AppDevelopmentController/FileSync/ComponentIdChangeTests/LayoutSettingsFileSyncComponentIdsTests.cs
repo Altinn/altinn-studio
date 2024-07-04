@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController.FileSync.ComponentIdChangeTests;
 
-public class LayoutSettingsFileSyncComponentIdsTests : DisagnerEndpointsTestsBase<LayoutSettingsFileSyncComponentIdsTests>, IClassFixture<WebApplicationFactory<Program>>
+public class LayoutSettingsFileSyncComponentIdsTests : DesignerEndpointsTestsBase<LayoutSettingsFileSyncComponentIdsTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development/form-layout";
 
