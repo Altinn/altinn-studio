@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StudioButton, StudioPopover } from '@studio/components';
-import { UploadIcon, XMarkIcon } from '@studio/icons';
+import { UploadIcon } from '@studio/icons';
 import classes from './ShareChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';
 import { Notification } from '../Notification';

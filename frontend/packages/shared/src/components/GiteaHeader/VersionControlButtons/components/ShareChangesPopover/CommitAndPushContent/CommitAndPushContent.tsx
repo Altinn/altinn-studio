@@ -52,7 +52,7 @@ export const CommitAndPushContent = ({
         size='small'
         icon={<ClockDashedIcon />}
       >
-        {'Se siste endringer'}
+        {t('sync_header.review_file_changes')}
       </StudioButton>
       {showFileChangesIsOpen && (
         <FileChangesInfoModal

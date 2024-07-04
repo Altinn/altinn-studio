@@ -39,34 +39,36 @@ export const FileChangesInfoModal = ({
 
   const renderFileStatusTag = (fileStatus: string): React.ReactElement => {
     return (
-      <Tag size='medium' color={fileStatusToTagColorMapping[fileStatus]}>
+      <Tag size='small' color={fileStatusToTagColorMapping[fileStatus]}>
         {t(`sync_header.show_changes_modal.file_status_${fileStatus}`)}
       </Tag>
     );
   };
 
-  // Remember to add max-width and overflow handling of filePath --> always show filename at ending but leave out middle or first part of path?
-  // Add scroll if too many files  -->  or pagination? Currently there is a scroll builtin for modal which is okay. But sticky header titles?
   return (
     <StudioModal
       isOpen={isOpen}
       onClose={onClose}
       title={
         <Heading level={1} size='small'>
-          {'Nye endringer siden du sist delte'}
+          {t('sync_header.show_changes_modal.title')}
         </Heading>
       }
-      closeButtonLabel={'Lukk'}
+      closeButtonLabel={t('sync_header.show_changes_modal.close_button')}
     >
       <div className={classes.fileChangesContainer}>
-        <Table size='medium' stickyHeader zebra>
+        <Table stickyHeader zebra>
           <Table.Head>
             <Table.Row>
               <Table.HeaderCell>
-                <Heading size='xxsmall'>{'Filnavn'}</Heading>
+                <Heading size='xxsmall'>
+                  {t('sync_header.show_changes_modal.column_header_file_name')}
+                </Heading>
               </Table.HeaderCell>
               <Table.HeaderCell>
-                <Heading size='xxsmall'>{'Status'}</Heading>
+                <Heading size='xxsmall'>
+                  {t('sync_header.show_changes_modal.column_header_file_status')}
+                </Heading>
               </Table.HeaderCell>
             </Table.Row>
           </Table.Head>
