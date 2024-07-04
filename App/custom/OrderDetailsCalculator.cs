@@ -37,9 +37,9 @@ public class OrderDetailsCalculator : IOrderDetailsCalculator
                 {
                     Id = index.ToString(), Name = $"{x.NiceClassification} - {x.GoodsAndServices}", PriceExVat = GetPriceForNiceClassification(x), Quantity = 1, VatPercent = 25.00M
                 })
-            .ToList() : new List<PaymentOrderLine>();
+            .ToList() : [];
 
-        return new OrderDetails { PaymentProcessorId = "Nets Easy", Currency = "NOK", OrderLines = paymentOrderLines, Receiver = GetReceiverDetails()};
+        return new OrderDetails { PaymentProcessorId = "Fake Payment Processor", Currency = "NOK", OrderLines = paymentOrderLines, Receiver = GetReceiverDetails()};
     }
 
     private async Task<Form> GetFormData(Instance instance)
@@ -51,20 +51,17 @@ public class OrderDetailsCalculator : IOrderDetailsCalculator
             instanceIdentifier.InstanceOwnerPartyId, new Guid(modelData.Id));
     }
 
-    private decimal GetPriceForNiceClassification(InventoryProperties inventoryProperties)
+    private static decimal GetPriceForNiceClassification(InventoryProperties inventoryProperties)
     {
-        switch (inventoryProperties.NiceClassification)
+        return inventoryProperties.NiceClassification switch
         {
-            case "1":
-                return 1000.00M;
-            case "2":
-                return 2000.00M;
-            default:
-                return 500.00M;
-        }
+            "1" => 1000.00M,
+            "2" => 2000.00M,
+            _ => 500.00M
+        };
     }
     
-    private PaymentReceiver GetReceiverDetails()
+    private static PaymentReceiver GetReceiverDetails()
     {
         return new PaymentReceiver
         {
