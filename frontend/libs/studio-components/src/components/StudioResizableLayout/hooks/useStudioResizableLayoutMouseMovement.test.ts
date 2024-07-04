@@ -15,25 +15,29 @@ describe('useStudioResizableLayoutMouseMovement', () => {
     expect(result.current).toHaveProperty('isResizing');
   });
 
-  it('should call onMousePosChange when mouse is moved', () => {
-    const onMousePosChange = jest.fn();
-    const { result } = renderHook(() =>
-      useStudioResizableLayoutMouseMovement(horizontal, onMousePosChange),
-    );
+  it.each([horizontal, vertical])(
+    'should call onMousePosChange when mouse is moved in a %p layout',
+    (orientation) => {
+      const onMousePosChange = jest.fn();
+      const { result } = renderHook(() =>
+        useStudioResizableLayoutMouseMovement(orientation, onMousePosChange),
+      );
 
-    act(() => {
-      result.current.onMouseDown(mockMouseEvent);
-    });
-    const mouseMoveEvent = new MouseEvent('mousemove');
-    window.dispatchEvent(mouseMoveEvent);
-    expect(onMousePosChange).toHaveBeenCalled();
-  });
+      act(() => {
+        result.current.onMouseDown(mockMouseEvent);
+      });
+      const mouseMoveEvent = new MouseEvent('mousemove');
+      window.dispatchEvent(mouseMoveEvent);
+      expect(onMousePosChange).toHaveBeenCalled();
+    },
+  );
 
   it('should not start resizing if mouse button is not 0/LMB', () => {
     const onMousePosChange = jest.fn();
     const { result } = renderHook(() =>
       useStudioResizableLayoutMouseMovement(horizontal, onMousePosChange),
     );
+
     act(() => {
       result.current.onMouseDown({ ...mockMouseEvent, button: 1 });
     });
