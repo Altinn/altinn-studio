@@ -2,10 +2,10 @@ import { type MutableRefObject, useEffect, useCallback, useRef } from 'react';
 import type BpmnModeler from 'bpmn-js/lib/Modeler';
 import { useBpmnContext } from '../contexts/BpmnContext';
 import { useBpmnModeler } from './useBpmnModeler';
-import { getBpmnEditorDetailsFromBusinessObject } from '../utils/hookUtils';
 import { useBpmnConfigPanelFormContext } from '../contexts/BpmnConfigPanelContext';
 import { useBpmnApiContext } from '../contexts/BpmnApiContext';
 import type { TaskEvent } from '../types/TaskEvent';
+import { getBpmnEditorDetailsFromBusinessObject } from '../utils/bpmnObjectBuilders';
 
 // Wrapper around bpmn-js to Reactify it
 

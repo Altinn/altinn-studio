@@ -5,11 +5,11 @@ import { ConfigSequenceFlow } from './ConfigSequenceFlow';
 import { BpmnContext, type BpmnContextProps } from '../../../contexts/BpmnContext';
 import { BpmnApiContextProvider } from '../../../contexts/BpmnApiContext';
 import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { mockBpmnDetails } from '../../../../test/mocks/bpmnDetailsMock';
-import { BpmnExpressionModeler } from '../../../utils/bpmn/BpmnExpressionModeler';
+import { BpmnExpressionModeler } from '../../../utils/bpmnModeler/BpmnExpressionModeler';
 
-jest.mock('../../../utils/bpmn/BpmnExpressionModeler');
+jest.mock('../../../utils/bpmnModeler/BpmnExpressionModeler');
 
 describe('ConfigSequenceFlow', () => {
   afterEach(jest.clearAllMocks);
