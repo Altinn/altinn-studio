@@ -183,34 +183,27 @@ export class UiEditorPage extends BasePage {
     await this.page.getByRole('treeitem', { name }).click();
   }
 
-  public async clickOnDataModelBindingsCombobox(componentType: ComponentType): Promise<void> {
+  public async clickOnDataModelFieldBindingCombobox(): Promise<void> {
     await this.page
-      .getByRole('combobox', { name: this.textMock(dataModelBindingButtonTextMap[componentType]) })
+      .getByRole('combobox', {
+        name: this.textMock('ux_editor.modal_properties_data_model_field_binding'),
+      })
       .click();
   }
 
-  public async verifyThatThereAreNoOptionsInTheDataModelList(): Promise<void> {
-    await this.page
+  public async verifyThatThereAreOptionsInTheDataModelFieldList(): Promise<void> {
+    const options = this.page
       .getByRole('combobox', {
-        name: this.textMock('ux_editor.modal_properties_data_model_helper'),
+        name: this.textMock('ux_editor.modal_properties_data_model_field_binding'),
       })
-      .getByRole('option')
-      .isHidden();
-  }
-
-  public async verifyThatThereAreOptionsInTheDataModelList(
-    componentType: ComponentType,
-  ): Promise<void> {
-    await this.page
-      .getByRole('combobox', {
-        name: this.textMock(dataModelBindingButtonTextMap[componentType]),
-      })
-      .getByRole('option')
-      .isVisible();
+      .locator('option');
+    await expect(options).toHaveCount(4);
   }
 
   public async clickOnDataModelPropertyOption(option: string): Promise<void> {
-    await this.page.getByRole('listbox').getByRole('option', { name: option }).click();
+    await this.page
+      .getByLabel(this.textMock('ux_editor.modal_properties_data_model_field_binding'))
+      .selectOption(option);
   }
 
   public async clickOnSaveDataModel(): Promise<void> {

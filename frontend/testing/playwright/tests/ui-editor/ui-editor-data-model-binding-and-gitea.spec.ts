@@ -59,8 +59,7 @@ test('That it is possible to add a data model binding, and that the files are up
 
   await uiEditorPage.clickOnComponentDataModelBindingConfigAccordion();
   await uiEditorPage.clickOnAddDataModelButton(ComponentType.Input);
-  await uiEditorPage.clickOnDataModelBindingsCombobox(ComponentType.Input);
-  await uiEditorPage.verifyThatThereAreNoOptionsInTheDataModelList();
+  await uiEditorPage.clickOnDataModelFieldBindingCombobox();
 
   await header.clickOnThreeDotsMenu();
   await header.clickOnGoToGiteaRepository();
@@ -91,8 +90,8 @@ test('That it is possible to add a data model binding, and that the files are up
 
   await uiEditorPage.clickOnComponentDataModelBindingConfigAccordion();
   await uiEditorPage.clickOnAddDataModelButton(ComponentType.Input);
-  await uiEditorPage.clickOnDataModelBindingsCombobox(ComponentType.Input);
-  await uiEditorPage.verifyThatThereAreOptionsInTheDataModelList(ComponentType.Input);
+  await uiEditorPage.clickOnDataModelFieldBindingCombobox();
+  await uiEditorPage.verifyThatThereAreOptionsInTheDataModelFieldList();
 
   const dataModelBindingName = 'property1';
   await uiEditorPage.clickOnDataModelPropertyOption(dataModelBindingName);
