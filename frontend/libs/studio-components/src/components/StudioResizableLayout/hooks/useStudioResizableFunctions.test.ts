@@ -47,13 +47,3 @@ function renderFunctionsHook(
     useStudioResizableLayoutFunctions(horizontal, elementRefs, children, setContainerSize),
   );
 }
-
-function newFunction(
-  elementRefs,
-  children: any[],
-  setContainerSize: jest.Mock<any, any, any>,
-): { result: any } {
-  return renderHook(() =>
-    useStudioResizableLayoutFunctions(horizontal, elementRefs, children, setContainerSize),
-  );
-}
