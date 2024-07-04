@@ -22,6 +22,7 @@ export class ResourcePage extends ResourceEnvironment {
   private readonly availableForTypeCheckbox: Locator;
   private readonly categoryTextField: Locator;
   private readonly policyTab: Locator;
+  private readonly ruleHeader: Locator;
   private readonly addPolicyRuleButton: Locator;
   private readonly policyActionDropdown: Locator;
   private readonly policySubjectDropdown: Locator;
@@ -81,6 +82,7 @@ export class ResourcePage extends ResourceEnvironment {
     this.availableForTypeCheckbox = this.page.getByRole('checkbox', {
       name: textMock('resourceadm.about_resource_available_for_type_private'),
     });
+    this.ruleHeader = this.page.getByLabel(textMock('policy_editor.rule'));
     this.categoryTextField = this.page.getByLabel(
       textMock('resourceadm.about_resource_contact_label_category'),
     );
@@ -165,7 +167,9 @@ export class ResourcePage extends ResourceEnvironment {
   }
 
   public async setAvailableForType(): Promise<void> {
-    await this.availableForTypeCheckbox.click();
+    if (!this.availableForTypeCheckbox.isChecked()) {
+      await this.availableForTypeCheckbox.click();
+    }
   }
 
   public async writeCategoryTextField(value: string): Promise<void> {
@@ -176,17 +180,21 @@ export class ResourcePage extends ResourceEnvironment {
     await this.policyTab.click();
   }
 
-  public async clickAddPolicyRule(): Promise<void> {
-    await this.addPolicyRuleButton.click();
+  public async addPolicyRule(): Promise<void> {
+    if (!this.ruleHeader.isVisible()) {
+      await this.addPolicyRuleButton.click();
+      await this.setPolicyAction();
+      await this.setPolicySubject();
+    }
   }
 
-  public async setPolicyAction(): Promise<void> {
+  private async setPolicyAction(): Promise<void> {
     await this.policyActionDropdown.click();
     await this.policyActionDropdown.press('ArrowDown');
     await this.policyActionDropdown.press('Enter');
   }
 
-  public async setPolicySubject(): Promise<void> {
+  private async setPolicySubject(): Promise<void> {
     await this.policySubjectDropdown.click();
     await this.policySubjectDropdown.press('ArrowDown');
     await this.policySubjectDropdown.press('Enter');
