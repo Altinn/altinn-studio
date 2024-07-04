@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.KubernetesDeploymentsController;
 
-public class GetKubernetesDeployments : DisagnerEndpointsTestsBase<GetKubernetesDeployments>, IClassFixture<WebApplicationFactory<Program>>
+public class GetKubernetesDeployments : DesignerEndpointsTestsBase<GetKubernetesDeployments>, IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<IKubernetesDeploymentsService> _kubernetesDeploymentsMock = new Mock<IKubernetesDeploymentsService>();
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/kubernetesdeployments";
