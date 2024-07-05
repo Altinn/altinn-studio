@@ -66,6 +66,57 @@
                 }
             },
             {
+                "id": "RepeatingGroup-With-Group",
+                "type": "RepeatingGroup",
+                "textResourceBindings": {
+                    "title": "Repeterende Gruppe med Gruppe",
+                    "description": "Beskrivelse av repeterende gruppe"
+                },
+                "dataModelBindings": {
+                    "group": "repeatingGroup"
+                },
+                "hidden": false,
+                "children": ["RepeatingGroup-Group"]
+            },
+            {
+                "id": "RepeatingGroup-With-Group-Input-Name",
+                "type": "Input",
+                "textResourceBindings": {
+                    "title": "RepeatingGroup.Name"
+                },
+                "dataModelBindings": {
+                    "simpleBinding": "repeatingGroup.name"
+                }
+            },
+            {
+                "id": "RepeatingGroup-With-Group-Input-Points",
+                "type": "Input",
+                "textResourceBindings": {
+                    "title": "RepeatingGroup.Points"
+                },
+                "dataModelBindings": {
+                    "simpleBinding": "repeatingGroup.points"
+                }
+            },
+            {
+                "id": "RepeatingGroup-With-Group-Input-Date",
+                "type": "Datepicker",
+                "textResourceBindings": {
+                    "title": "RepeatingGroup.Date"
+                },
+                "dataModelBindings": {
+                    "simpleBinding": "repeatingGroup.date"
+                }
+            },
+            {
+                "id": "RepeatingGroup-Group",
+                "type": "Group",
+                "textResourceBindings": {
+                    "title": "A group title"
+                },
+                "children": ["RepeatingGroup-With-Group-Input-Name", "RepeatingGroup-With-Group-Input-Points", "RepeatingGroup-With-Group-Input-Date"]
+            },
+            {
                 "id": "RepeatingGroup-With-RepeatingGroup",
                 "type": "RepeatingGroup",
                 "textResourceBindings": {
