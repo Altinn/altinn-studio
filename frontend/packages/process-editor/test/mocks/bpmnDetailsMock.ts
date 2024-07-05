@@ -6,7 +6,8 @@ import type { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
 export const mockBpmnId: string = 'testId';
 export const mockBpmnName: string = 'testName';
 
-export const mockBpmnElement: ModdleElement = {
+export const mockBpmnElementForDataTask: ModdleElement = {
+  id: 'testElementId',
   businessObject: {
     extensionElements: {
       values: [
@@ -35,7 +36,7 @@ export const mockBpmnElement: ModdleElement = {
 export const getMockBpmnElementForTask = (taskType: BpmnTaskType) => {
   switch (taskType) {
     case 'data':
-      return mockBpmnElement;
+      return mockBpmnElementForDataTask;
     case 'confirmation':
       return {
         businessObject: {
@@ -73,6 +74,7 @@ export const getMockBpmnElementForTask = (taskType: BpmnTaskType) => {
                 actions: paymentActions,
                 paymentConfig: {
                   paymentDataType: 'paymentInformation-1234',
+                  paymentReceiptPdfDataType: 'paymentReceiptPdf-1234',
                 },
               },
             ],
