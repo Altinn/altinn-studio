@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Studio.Designer.Infrastructure
 {
@@ -120,26 +121,11 @@ namespace Altinn.Studio.Designer.Infrastructure
                         options.SaveTokens = true;
                         options.MapInboundClaims = false;
                         options.RequireHttpsMetadata = oidcSettings.RequireHttpsMetadata;
-
-                        options.Events.OnRedirectToIdentityProvider = context =>
+                        options.TokenValidationParameters = new TokenValidationParameters
                         {
-                            // if (!context.Request.Path.StartsWithSegments("/SomeLoginPath"))
-                            // {
-                            //     context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                            //     context.HandleResponse();
-                            // }
-
-                            return Task.CompletedTask;
+                            NameClaimType = "preferred_username"
                         };
 
-                        options.Events.OnTokenValidated = async ctx =>
-                        {
-                            // string accessToken = ctx.ProtocolMessage.AccessToken;
-                            // var giteaClient = ctx.HttpContext.RequestServices.GetService<IGitea>();
-
-                            // Add custom logic here
-                            await Task.CompletedTask;
-                        };
                     });
 
             return services;

@@ -131,8 +131,14 @@ namespace Altinn.Studio.Designer.Controllers
         [Authorize]
         public async Task<IActionResult> Test()
         {
+            var developer = HttpContext.User.Identity.Name;
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
             await Task.CompletedTask;
-            return Ok();
+            return Ok(new
+            {
+                Developer = developer,
+                AccessToken = accessToken
+            });
         }
 
         /// <summary>
