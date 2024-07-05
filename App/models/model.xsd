@@ -29,6 +29,21 @@
       <xs:element minOccurs="0" name="date" type="xs:date" />
     </xs:sequence>
   </xs:complexType>
+  <xs:complexType name="RepeatingGroupWithNestedGroup">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="name" type="xs:string" />
+      <xs:element minOccurs="0" name="points" type="xs:long" />
+      <xs:element minOccurs="0" name="date" type="xs:date" />
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="cars" type="NestedGroup" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="NestedGroup">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="carBrand" type="xs:string" />
+      <xs:element minOccurs="0" name="carModel" type="xs:string" />
+      <xs:element minOccurs="0" name="modelYear" type="xs:long" />
+    </xs:sequence>
+  </xs:complexType>
   <xs:element name="model">
     <xs:complexType>
       <xs:sequence>

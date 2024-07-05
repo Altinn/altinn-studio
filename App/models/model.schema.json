@@ -81,6 +81,41 @@
           "format": "date"
         }
       }
+    },
+    "RepeatingGroupWithNestedGroup": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "points": {
+          "type": "integer"
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "cars": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/NestedGroup"
+          }
+        }
+      }
+    },
+    "NestedGroup": {
+      "type": "object",
+      "properties": {
+        "carBrand": {
+          "type": "string"
+        },
+        "carModel": {
+          "type": "string"
+        },
+        "modelYear": {
+          "type": "integer"
+        }
+      }
     }
   },
   "properties": {
