@@ -1,0 +1,106 @@
+{
+    "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+    "data": {
+        "layout": [
+            {
+                "id": "NavigationBar",
+                "type": "NavigationBar"
+            },
+            {
+                "id": "RepeatingGroup-Header",
+                "type": "Header",
+                "textResourceBindings": {
+                    "title": "RepeatingGroupPage"
+                },
+                "size": "h2"
+            },
+            {
+                "id": "RepeatingGroup-Header-Component",
+                "type": "Header",
+                "textResourceBindings": {
+                    "title": "Header.Component"
+                },
+                "size": "h3"
+            },
+            {
+                "id": "RepeatingGroup-Group",
+                "type": "RepeatingGroup",
+                "textResourceBindings": {
+                    "title": "Gruppetittel",
+                    "description": "Gruppebeskrivelse"
+                },
+                "dataModelBindings": {
+                    "group": "repeatingGroup"
+                },
+                "hidden": false,
+                "children": ["RepeatingGroup-Input-Name", "RepeatingGroup-Input-Points", "RepeatingGroup-Input-Date"]
+            },
+            {
+                "id": "RepeatingGroup-Input-Name",
+                "type": "Input",
+                "textResourceBindings": {
+                    "title": "RepeatingGroup.Name"
+                },
+                "dataModelBindings": {
+                    "simpleBinding": "repeatingGroup.name"
+                }
+            },
+            {
+                "id": "RepeatingGroup-Input-Points",
+                "type": "Input",
+                "textResourceBindings": {
+                    "title": "RepeatingGroup.Points"
+                },
+                "dataModelBindings": {
+                    "simpleBinding": "repeatingGroup.points"
+                }
+            },
+            {
+                "id": "RepeatingGroup-Input-Date",
+                "type": "Datepicker",
+                "textResourceBindings": {
+                    "title": "RepeatingGroup.Date"
+                },
+                "dataModelBindings": {
+                    "simpleBinding": "repeatingGroup.date"
+                }
+            },
+            {
+                "id": "RepeatingGroup-Header-Summary",
+                "type": "Header",
+                "textResourceBindings": {
+                    "title": "Header.Summary"
+                },
+                "size": "h3"
+            },
+            {
+                "id": "RepeatingGroup-Summary",
+                "type": "Summary",
+                "componentRef": "RepeatingGroup-Group"
+            },
+            {
+                "id": "RepeatingGroup-Header-Summary2",
+                "type": "Header",
+                "textResourceBindings": {
+                    "title": "Header.Summary2"
+                },
+                "size": "h3"
+            },
+            {
+                "id": "RepeatingGroup-Summary2",
+                "type": "Summary2",
+                "hidden": false,
+                "target": {
+                    "type": "component",
+                    "id": "RepeatingGroup-Group"
+                }
+            },
+            {
+                "id": "NavigationButtons",
+                "showBackButton": true,
+                "textResourceBindings": {},
+                "type": "NavigationButtons"
+            }
+        ]
+    }
+}

@@ -74,6 +74,18 @@
       "value": "Hva slags kjøretøy har du?"
     },
     {
+      "id": "RepeatingGroup.Name",
+      "value": "Navn"
+    },
+    {
+      "id": "RepeatingGroup.Points",
+      "value": "Poeng"
+    },
+    {
+      "id": "RepeatingGroup.Date",
+      "value": "Dato"
+    },
+    {
       "id": "CheckboxesPage",
       "value": "Avkryssningsbokser"
     },
@@ -92,6 +104,10 @@
     {
       "id": "GroupPage",
       "value": "Gruppe"
+    },
+    {
+      "id": "RepeatingGroupPage",
+      "value": "Repeterende gruppe"
     },
     {
       "id": "GridPage",
