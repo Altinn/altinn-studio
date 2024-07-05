@@ -86,6 +86,22 @@
       "value": "Dato"
     },
     {
+      "id": "RepeatingGroup.Cars",
+      "value": "Biler"
+    },
+    {
+      "id": "RepeatingGroup.CarBrand",
+      "value": "Bilmerke"
+    },
+    {
+      "id": "RepeatingGroup.CarModel",
+      "value": "Modell"
+    },
+    {
+      "id": "RepeatingGroup.ModelYear",
+      "value": "Årsmodell"
+    },
+    {
       "id": "CheckboxesPage",
       "value": "Avkryssningsbokser"
     },

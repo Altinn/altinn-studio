@@ -23,11 +23,11 @@
                 "size": "h3"
             },
             {
-                "id": "RepeatingGroup-Group",
+                "id": "RepeatingGroup",
                 "type": "RepeatingGroup",
                 "textResourceBindings": {
-                    "title": "Gruppetittel",
-                    "description": "Gruppebeskrivelse"
+                    "title": "Repeterende Gruppe",
+                    "description": "Beskrivelse av repeterende gruppe"
                 },
                 "dataModelBindings": {
                     "group": "repeatingGroup"
@@ -66,6 +66,90 @@
                 }
             },
             {
+                "id": "RepeatingGroup-With-RepeatingGroup",
+                "type": "RepeatingGroup",
+                "textResourceBindings": {
+                    "title": "Nøstet Repeterende Gruppe",
+                    "description": "Beskrivelse av repeterende gruppe"
+                },
+                "dataModelBindings": {
+                    "group": "nestedRepeatingGroup"
+                },
+                "hidden": false,
+                "children": ["RepeatingGroup-With-RepeatingGroup-Input-Name", "RepeatingGroup-With-RepeatingGroup-Input-Points", "RepeatingGroup-With-RepeatingGroup-Input-Date", "NestedRepeatingGroup-Cars"]
+            },
+            {
+                "id": "RepeatingGroup-With-RepeatingGroup-Input-Name",
+                "type": "Input",
+                "textResourceBindings": {
+                    "title": "RepeatingGroup.Name"
+                },
+                "dataModelBindings": {
+                    "simpleBinding": "nestedRepeatingGroup.name"
+                }
+            },
+            {
+                "id": "RepeatingGroup-With-RepeatingGroup-Input-Points",
+                "type": "Input",
+                "textResourceBindings": {
+                    "title": "RepeatingGroup.Points"
+                },
+                "dataModelBindings": {
+                    "simpleBinding": "nestedRepeatingGroup.points"
+                }
+            },
+            {
+                "id": "RepeatingGroup-With-RepeatingGroup-Input-Date",
+                "type": "Datepicker",
+                "textResourceBindings": {
+                    "title": "RepeatingGroup.Date"
+                },
+                "dataModelBindings": {
+                    "simpleBinding": "nestedRepeatingGroup.date"
+                }
+            },
+            {
+                "id": "NestedRepeatingGroup-Cars",
+                "type": "RepeatingGroup",
+                "textResourceBindings": {
+                    "title": "RepeatingGroup.Cars"
+                },
+                "dataModelBindings": {
+                    "group": "nestedRepeatingGroup.cars"
+                },
+                "children": ["NestedRepeatingGroup-Input-CarBrand", "RepeatingGroup-With-RepeatingGroup-Input-Model", "RepeatingGroup-With-RepeatingGroup-Input-ModelYear"]
+            },
+            {
+                "id": "NestedRepeatingGroup-Input-CarBrand",
+                "type": "Input",
+                "textResourceBindings": {
+                    "title": "RepeatingGroup.CarBrand"
+                },
+                "dataModelBindings": {
+                    "simpleBinding": "nestedRepeatingGroup.cars.carBrand"
+                }
+            },
+            {
+                "id": "RepeatingGroup-With-RepeatingGroup-Input-Model",
+                "type": "Input",
+                "textResourceBindings": {
+                    "title": "RepeatingGroup.CarModel"
+                },
+                "dataModelBindings": {
+                    "simpleBinding": "nestedRepeatingGroup.cars.carModel"
+                }
+            },
+            {
+                "id": "RepeatingGroup-With-RepeatingGroup-Input-ModelYear",
+                "type": "Input",
+                "textResourceBindings": {
+                    "title": "RepeatingGroup.ModelYear"
+                },
+                "dataModelBindings": {
+                    "simpleBinding": "nestedRepeatingGroup.cars.modelYear"
+                }
+            },
+            {
                 "id": "RepeatingGroup-Header-Summary",
                 "type": "Header",
                 "textResourceBindings": {
@@ -76,7 +160,7 @@
             {
                 "id": "RepeatingGroup-Summary",
                 "type": "Summary",
-                "componentRef": "RepeatingGroup-Group"
+                "componentRef": "RepeatingGroup"
             },
             {
                 "id": "RepeatingGroup-Header-Summary2",
@@ -92,7 +176,7 @@
                 "hidden": false,
                 "target": {
                     "type": "component",
-                    "id": "RepeatingGroup-Group"
+                    "id": "RepeatingGroup"
                 }
             },
             {
