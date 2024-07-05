@@ -65,6 +65,7 @@ describe('OnProcessTaskAddHandler', () => {
     expect(addLayoutSetMock).toHaveBeenCalledWith({
       layoutSetConfig: { id: testElementId, tasks: [testElementId] },
       layoutSetIdToUpdate: testElementId,
+      taskType: 'data',
     });
     expect(addLayoutSetMock).toHaveBeenCalledTimes(1);
     expect(addDataTypeToAppMetadataMock).not.toHaveBeenCalled();
@@ -103,6 +104,7 @@ describe('OnProcessTaskAddHandler', () => {
         tasks: ['testElementId'],
       },
       layoutSetIdToUpdate: 'testElementId',
+      taskType: 'payment',
     });
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledTimes(2);
     expect(addDataTypeToAppMetadataMock).toHaveBeenNthCalledWith(1, {

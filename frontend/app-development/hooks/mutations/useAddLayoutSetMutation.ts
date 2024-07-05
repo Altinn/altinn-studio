@@ -14,7 +14,7 @@ import type {
 
 export type AddLayoutSetMutationPayload = {
   layoutSetIdToUpdate: string;
-  taskType: BpmnTaskType;
+  taskType?: BpmnTaskType;
   layoutSetConfig: LayoutSetConfig;
 };
 export type AddLayoutSetMutation = UseMutateFunction<
