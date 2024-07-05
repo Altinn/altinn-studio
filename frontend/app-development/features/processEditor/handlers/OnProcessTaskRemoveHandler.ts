@@ -128,13 +128,19 @@ export class OnProcessTaskRemoveHandler {
     this.removeDeletedSignatureTypeFromTasks(taskMetadata, studioModeler);
   }
 
+  /**
+   * Removes the deleted signature type from the tasks that are connected to the signature type
+   * @param deletedSigningTask
+   * @param studioModeler
+   * @private
+   */
   private removeDeletedSignatureTypeFromTasks(
-    taskMetadata: OnProcessTaskEvent,
+    deletedSigningTask: OnProcessTaskEvent,
     studioModeler: StudioModeler,
   ): void {
     const signatureDataType =
-      taskMetadata.taskEvent.element.businessObject.extensionElements.values[0].signatureConfig
-        .signatureDataType;
+      deletedSigningTask.taskEvent.element.businessObject.extensionElements.values[0]
+        .signatureConfig.signatureDataType;
 
     const tasks = studioModeler.getAllTasksByType('bpmn:Task');
     const signingTasksToUpdate = tasks.filter(
