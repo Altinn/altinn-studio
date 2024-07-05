@@ -46,6 +46,7 @@ tr > .fullWidthCellLast {
   --cell-width: auto;
   width: var(--cell-width);
   box-sizing: border-box;
+  white-space: pre-wrap;
 }
 
 /* The width here should be: calc(var(--cell-width) + var(--modal-padding-x) - var(--table-input-margin));
