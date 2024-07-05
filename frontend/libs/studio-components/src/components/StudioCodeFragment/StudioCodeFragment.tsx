@@ -3,12 +3,10 @@ import React, { forwardRef } from 'react';
 import cn from 'classnames';
 import classes from './StudioCodeFragment.module.css';
 
-export type StudioCodeFragmentProps = HTMLAttributes<HTMLElement> & {
-  classname?: string;
-};
+export type StudioCodeFragmentProps = HTMLAttributes<HTMLElement>;
 
 const StudioCodeFragment = forwardRef<HTMLElement, StudioCodeFragmentProps>(
-  ({ children, className: givenClass, classname, ...rest }, ref) => {
+  ({ children, className: givenClass, ...rest }, ref) => {
     const className = cn(classes.code, givenClass);
 
     return (

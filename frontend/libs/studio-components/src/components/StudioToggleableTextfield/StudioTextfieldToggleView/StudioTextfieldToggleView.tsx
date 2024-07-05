@@ -18,7 +18,7 @@ export const StudioTextfieldToggleView = ({
     <StudioButton className={className} onClick={onClick} {...rest}>
       <span className={classes.viewModeIconsContainer}>
         <KeyVerticalIcon data-testid='keyIcon' aria-hidden />
-        <div> {children}</div>
+        {children}
       </span>
       <span className={classes.editIconWrapper}>
         <PencilIcon className={classes.editIcon} data-testid='editIcon' aria-hidden />
