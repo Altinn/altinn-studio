@@ -547,6 +547,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="layoutSetName">The name of the layout set where the layout belong</param>
         /// <param name="layoutFileName">The name of layout file</param>
         /// <param name="layout">The actual layout that is saved</param>
+        /// <param name="layoutIsInitialForPaymentTask">Boolean value indicating if the layout to add is initial for a payment task</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         public async Task SaveLayout(string layoutSetName, string layoutFileName, JsonNode layout, bool layoutIsInitialForPaymentTask = false, CancellationToken cancellationToken = default)
         {
