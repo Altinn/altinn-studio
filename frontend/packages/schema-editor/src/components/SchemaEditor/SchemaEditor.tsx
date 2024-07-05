@@ -26,6 +26,7 @@ export const SchemaEditor = () => {
         onMove={moveProperty}
         rootId={ROOT_POINTER}
         itemId={selectedTypePointer ?? null}
+        key={selectedType?.pointer}
       >
         <aside className={classes.inspector}>
           <TypesInspector schemaItems={definitions} />
