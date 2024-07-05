@@ -34,7 +34,7 @@ const tasks = [
   },
 ];
 
-jest.mock('../../../utils/bpmn/StudioModeler', () => {
+jest.mock('../../../utils/bpmnModeler/StudioModeler', () => {
   return {
     StudioModeler: jest.fn().mockImplementation(() => {
       return {

@@ -6,7 +6,7 @@ import { PersonPencilIcon } from '@studio/icons';
 import { SelectUniqueFromSignaturesInDataTypes } from './SelectUniqueFromSignaturesInDataTypes';
 import classes from './EditUniqueFromSignaturesInDataTypes.module.css';
 import { getSelectedDataTypes } from './UniqueFromSignaturesInDataTypesUtils';
-import { StudioModeler } from '../../../utils/bpmn/StudioModeler';
+import { StudioModeler } from '../../../utils/bpmnModeler/StudioModeler';
 
 export const EditUniqueFromSignaturesInDataTypes = () => {
   const { t } = useTranslation();
