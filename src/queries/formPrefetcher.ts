@@ -17,15 +17,14 @@ import {
 } from 'src/features/formData/useFormDataQuery';
 import { useLaxInstance } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
-import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useOrderDetailsQueryDef } from 'src/features/payment/OrderDetailsProvider';
 import { usePaymentInformationQueryDef } from 'src/features/payment/PaymentInformationProvider';
 import { useHasPayment, useIsPayment } from 'src/features/payment/utils';
 import { usePdfFormatQueryDef } from 'src/features/pdf/usePdfFormatQuery';
+import { useShouldValidateInitial } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { useBackendValidationQueryDef } from 'src/features/validation/backendValidation/useBackendValidation';
 import { useIsPdf } from 'src/hooks/useIsPdf';
-import { TaskKeys } from 'src/hooks/useNavigatePage';
 import { getUrlWithLanguage } from 'src/utils/urls/urlHelper';
 
 /**
@@ -48,21 +47,22 @@ export function FormPrefetcher() {
   const options = useFormDataQueryOptions();
   usePrefetchQuery(useFormDataQueryDef(cacheKeyUrl, currentTaskId, url, options));
 
-  const isCustomReceipt = useProcessTaskId() === TaskKeys.CustomReceipt;
-  const isPDF = useIsPdf();
   const currentLanguage = useCurrentLanguage();
   const instanceId = useLaxInstance()?.instanceId;
   const dataGuid = useCurrentDataModelGuid();
+  const shouldValidateInitial = useShouldValidateInitial();
 
   // Prefetch validations if applicable
   usePrefetchQuery(
-    useBackendValidationQueryDef(true, currentLanguage, instanceId, dataGuid),
-    !isPDF && !isCustomReceipt,
+    useBackendValidationQueryDef(true, currentLanguage, instanceId, dataGuid, currentTaskId),
+    shouldValidateInitial,
   );
 
   // Prefetch payment data if applicable
   usePrefetchQuery(usePaymentInformationQueryDef(useIsPayment(), instanceId));
   usePrefetchQuery(useOrderDetailsQueryDef(useHasPayment(), instanceId));
+
+  const isPDF = useIsPdf();
 
   // Prefetch PDF format only if we are in PDF mode
   usePrefetchQuery(usePdfFormatQueryDef(true, instanceId, dataGuid), isPDF);

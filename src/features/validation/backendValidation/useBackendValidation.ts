@@ -15,8 +15,12 @@ import { type QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import { useCurrentDataModelGuid } from 'src/features/datamodel/useBindingSchema';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxInstance } from 'src/features/instance/InstanceContext';
+import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { mapValidationIssueToFieldValidation } from 'src/features/validation/backendValidation/backendValidationUtils';
+import {
+  mapValidationIssueToFieldValidation,
+  useShouldValidateInitial,
+} from 'src/features/validation/backendValidation/backendValidationUtils';
 
 interface RetVal {
   validations: FieldValidations;
@@ -30,10 +34,11 @@ export function useBackendValidationQueryDef(
   currentLanguage: string,
   instanceId?: string,
   currentDataElementId?: string,
+  currentTaskId?: string,
 ): QueryDefinition<BackendValidationIssue[]> {
   const { fetchBackendValidations } = useAppQueries();
   return {
-    queryKey: ['validation', instanceId, currentDataElementId, enabled],
+    queryKey: ['validation', instanceId, currentDataElementId, currentTaskId, enabled],
     queryFn:
       instanceId && currentDataElementId
         ? () => fetchBackendValidations(instanceId, currentDataElementId, currentLanguage)
@@ -43,11 +48,7 @@ export function useBackendValidationQueryDef(
   };
 }
 
-interface UseBackendValidationProps {
-  enabled?: boolean;
-}
-
-export function useBackendValidation({ enabled = true }: UseBackendValidationProps): RetVal {
+export function useBackendValidation(): RetVal {
   const lastSaveValidations = FD.useLastSaveValidationIssues();
   const [validatorGroups, setValidatorGroups] = useImmer<BackendValidatorGroups>({});
   const [initialValidationDone, setInitialValidationDone] = useState(false);
@@ -58,10 +59,12 @@ export function useBackendValidation({ enabled = true }: UseBackendValidationPro
    */
   const instanceId = useLaxInstance()?.instanceId;
   const currentDataElementId = useCurrentDataModelGuid();
+  const currentProcessTaskId = useLaxProcessData()?.currentTask?.elementId;
   const currentLanguage = useCurrentLanguage();
+  const enabled = useShouldValidateInitial();
 
   const { data: initialValidations } = useQuery(
-    useBackendValidationQueryDef(enabled, currentLanguage, instanceId, currentDataElementId),
+    useBackendValidationQueryDef(enabled, currentLanguage, instanceId, currentDataElementId, currentProcessTaskId),
   );
 
   /**

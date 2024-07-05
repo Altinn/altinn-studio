@@ -30,7 +30,7 @@ export function AppPrefetcher() {
   usePrefetchQuery(usePartiesQueryDef(true), Boolean(partyId));
   usePrefetchQuery(useCurrentPartyQueryDef(true), Boolean(partyId));
 
-  usePrefetchQuery(useInstanceDataQueryDef(true, partyId, instanceGuid));
+  usePrefetchQuery(useInstanceDataQueryDef(partyId, instanceGuid));
   usePrefetchQuery(useProcessQueryDef(instanceId));
 
   return null;
