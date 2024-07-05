@@ -44,7 +44,7 @@ export class OnProcessTaskAddHandler {
    * @private
    */
   private handleDataTaskAdd(taskMetadata: OnProcessTaskEvent): void {
-    this.addLayoutSet(this.createLayoutSetConfig(taskMetadata.taskEvent));
+    this.addLayoutSet(this.createLayoutSetConfig(taskMetadata));
   }
 
   /**
@@ -53,7 +53,7 @@ export class OnProcessTaskAddHandler {
    * @private
    */
   private handlePaymentTaskAdd(taskMetadata: OnProcessTaskEvent): void {
-    this.addLayoutSet(this.createLayoutSetConfig(taskMetadata.taskEvent));
+    this.addLayoutSet(this.createLayoutSetConfig(taskMetadata));
 
     const studioModeler = new StudioModeler(taskMetadata.taskEvent.element);
     const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
@@ -109,12 +109,11 @@ export class OnProcessTaskAddHandler {
    * @returns {{layoutSetIdToUpdate: string, layoutSetConfig: LayoutSetConfig}}
    * @private
    */
-  private createLayoutSetConfig(
-    taskEvent: OnProcessTaskEvent['taskEvent'],
-  ): AddLayoutSetMutationPayload {
-    const elementId = taskEvent.element.id;
+  private createLayoutSetConfig(taskMetadata: OnProcessTaskEvent): AddLayoutSetMutationPayload {
+    const elementId = taskMetadata.taskEvent.element.id;
     return {
       layoutSetIdToUpdate: elementId,
+      taskType: taskMetadata.taskType,
       layoutSetConfig: { id: elementId, tasks: [elementId] },
     };
   }

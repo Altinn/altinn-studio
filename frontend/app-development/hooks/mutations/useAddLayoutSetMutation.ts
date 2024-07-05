@@ -1,7 +1,11 @@
 import { type UseMutateFunction, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { LayoutSetConfig, LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type {
+  LayoutSetConfig,
+  LayoutSets,
+  BpmnTaskType,
+} from 'app-shared/types/api/LayoutSetsResponse';
 import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
 import type {
   AddLayoutSetResponse,
@@ -10,6 +14,7 @@ import type {
 
 export type AddLayoutSetMutationPayload = {
   layoutSetIdToUpdate: string;
+  taskType: BpmnTaskType;
   layoutSetConfig: LayoutSetConfig;
 };
 export type AddLayoutSetMutation = UseMutateFunction<
@@ -29,11 +34,13 @@ export const useAddLayoutSetMutation = (org: string, app: string) => {
   const [_, setSelectedLayoutSet] = useLocalStorage<string>('layoutSet/' + app, null);
 
   return useMutation({
-    mutationFn: ({ layoutSetIdToUpdate, layoutSetConfig }: AddLayoutSetMutationPayload) =>
-      addLayoutSet(org, app, layoutSetIdToUpdate, layoutSetConfig).then((layoutSets) => ({
-        layoutSets,
-        layoutSetConfig,
-      })),
+    mutationFn: ({ layoutSetIdToUpdate, taskType, layoutSetConfig }: AddLayoutSetMutationPayload) =>
+      addLayoutSet(org, app, layoutSetIdToUpdate, { taskType, layoutSetConfig }).then(
+        (layoutSets) => ({
+          layoutSets,
+          layoutSetConfig,
+        }),
+      ),
     onSuccess: ({ layoutSets, layoutSetConfig }) => {
       setSelectedLayoutSet(layoutSetConfig.id);
       // Need this check since endpoint might return 200 OK, but with info details
