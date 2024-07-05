@@ -8,6 +8,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import type { FormItem } from '../../../../types/FormItem';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { useFormLayouts } from '../../../../hooks';
+import { findLayoutsContainingDuplicateComponents } from '../../../../utils/formLayoutUtils';
 
 export interface EditComponentIdRowProps {
   handleComponentUpdate: (component: FormItem) => void;
@@ -28,6 +29,9 @@ export const EditComponentIdRow = ({
   const [errorMessage, setErrorMessage] = useState<string | undefined>(null);
 
   const idInputValue = component.id;
+
+  const layoutsWithDuplicateComponents = findLayoutsContainingDuplicateComponents(formLayouts);
+  const duplicatedId = layoutsWithDuplicateComponents.duplicateComponents.includes(idInputValue);
 
   const saveComponentUpdate = (id: string) => {
     if (id !== idInputValue) {
@@ -58,7 +62,7 @@ export const EditComponentIdRow = ({
   };
 
   return (
-    <div className={classes.container}>
+    <div className={duplicatedId ? classes.duplicatedIdField : classes.container}>
       <StudioToggleableTextfieldSchema
         onError={handleValidationError}
         layoutSchema={layoutSchema}
