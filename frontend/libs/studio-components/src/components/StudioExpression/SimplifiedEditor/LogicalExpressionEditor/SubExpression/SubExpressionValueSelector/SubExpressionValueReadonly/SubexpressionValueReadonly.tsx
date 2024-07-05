@@ -45,7 +45,9 @@ const DataModelLookupValue = ({
     <Binding
       name={texts.readonlyDataModelPath}
       binding={
-        <StudioCodeFragment className={classes.codeFragment}>{value.path}</StudioCodeFragment>
+        <StudioCodeFragment title={value.path} className={classes.codeFragment}>
+          {value.path}
+        </StudioCodeFragment>
       }
     />
   );

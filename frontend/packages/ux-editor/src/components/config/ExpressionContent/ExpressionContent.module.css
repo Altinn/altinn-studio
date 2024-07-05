@@ -18,8 +18,9 @@
 
 .legendContent {
   margin-left: var(--studio-expression-spacing);
+  overflow: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
-  overflow: auto;
 }
 
 .deleteButton {
