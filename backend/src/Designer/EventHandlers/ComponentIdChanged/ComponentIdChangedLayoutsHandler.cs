@@ -40,7 +40,7 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
                         var layout = await repository.GetLayout(notification.LayoutSetName, layoutName, cancellationToken);
                         if (TryChangeComponentId(layout, notification.OldComponentId, notification.NewComponentId))
                         {
-                            await repository.SaveLayout(notification.LayoutSetName, layoutName, layout, cancellationToken);
+                            await repository.SaveLayout(notification.LayoutSetName, layoutName, layout, false, cancellationToken);
                             hasChanges = true;
                         }
                     }
