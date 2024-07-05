@@ -166,6 +166,12 @@
       "items": {
         "$ref": "#/$defs/RepeatingGroupExample"
       }
+    },
+    "nestedRepeatingGroup": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/RepeatingGroupWithNestedGroup"
+      }
     }
   }
 }

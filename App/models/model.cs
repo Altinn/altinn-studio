@@ -87,6 +87,11 @@ namespace Altinn.App.Models.model
     [JsonPropertyName("repeatingGroup")]
     public List<RepeatingGroupExample> repeatingGroup { get; set; }
 
+    [XmlElement("nestedRepeatingGroup", Order = 16)]
+    [JsonProperty("nestedRepeatingGroup")]
+    [JsonPropertyName("nestedRepeatingGroup")]
+    public List<RepeatingGroupWithNestedGroup> nestedRepeatingGroup { get; set; }
+
   }
 
   public class GridExample
@@ -187,6 +192,72 @@ namespace Altinn.App.Models.model
     [JsonProperty("date")]
     [JsonPropertyName("date")]
     public string date { get; set; }
+
+  }
+
+  public class RepeatingGroupWithNestedGroup
+  {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
+    [XmlElement("name", Order = 1)]
+    [JsonProperty("name")]
+    [JsonPropertyName("name")]
+    public string name { get; set; }
+
+    [Range(Double.MinValue,Double.MaxValue)]
+    [XmlElement("points", Order = 2)]
+    [JsonProperty("points")]
+    [JsonPropertyName("points")]
+    public decimal? points { get; set; }
+
+    public bool ShouldSerializepoints() => points.HasValue;
+
+    [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$")]
+    [XmlElement("date", Order = 3)]
+    [JsonProperty("date")]
+    [JsonPropertyName("date")]
+    public string date { get; set; }
+
+    [XmlElement("cars", Order = 4)]
+    [JsonProperty("cars")]
+    [JsonPropertyName("cars")]
+    public List<NestedGroup> cars { get; set; }
+
+  }
+
+  public class NestedGroup
+  {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
+    [XmlElement("carBrand", Order = 1)]
+    [JsonProperty("carBrand")]
+    [JsonPropertyName("carBrand")]
+    public string carBrand { get; set; }
+
+    [XmlElement("carModel", Order = 2)]
+    [JsonProperty("carModel")]
+    [JsonPropertyName("carModel")]
+    public string carModel { get; set; }
+
+    [Range(Double.MinValue,Double.MaxValue)]
+    [XmlElement("modelYear", Order = 3)]
+    [JsonProperty("modelYear")]
+    [JsonPropertyName("modelYear")]
+    public decimal? modelYear { get; set; }
+
+    public bool ShouldSerializemodelYear() => modelYear.HasValue;
 
   }
 }

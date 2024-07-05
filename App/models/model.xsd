@@ -62,6 +62,7 @@
         <xs:element minOccurs="0" name="dropdown" type="xs:string" />
         <xs:element minOccurs="0" name="multipleSelect" type="xs:string" />
         <xs:element minOccurs="0" maxOccurs="unbounded" name="repeatingGroup" type="RepeatingGroupExample" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="nestedRepeatingGroup" type="RepeatingGroupWithNestedGroup" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
