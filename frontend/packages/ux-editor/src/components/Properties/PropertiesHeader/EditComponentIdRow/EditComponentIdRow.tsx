@@ -71,7 +71,7 @@ export const EditComponentIdRow = ({
         key={component.id}
         viewProps={{
           children: (
-            <span className={classes.ellipsis}>
+            <span className={classes.ellipsis} title={component.id}>
               <Trans i18nKey={'ux_editor.id_identifier'} values={{ item: component.id }} />
             </span>
           ),
