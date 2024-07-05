@@ -7,7 +7,8 @@
   padding: var(--fds-spacing-5);
 }
 
-.componentIdViewMode {
+.ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
-  overflow: auto;
 }
