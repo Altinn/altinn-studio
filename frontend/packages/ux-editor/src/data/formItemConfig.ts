@@ -32,6 +32,9 @@ import {
   TasklistIcon,
   TitleIcon,
   WalletIcon,
+  Density1Icon,
+  VideoIcon,
+  SpeakerSoundWave2Icon,
 } from '@studio/icons';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import { LayoutItemType } from '../types/global';
@@ -105,6 +108,13 @@ export const formItemConfigs: FormItemConfigs = {
     propertyPath: 'definitions/attachmentListComponent',
     icon: PaperclipIcon,
   },
+  [ComponentType.Audio]: {
+    name: ComponentType.Audio,
+    itemType: LayoutItemType.Component,
+    defaultProperties: {},
+    propertyPath: 'definitions/audio',
+    icon: SpeakerSoundWave2Icon,
+  },
   [ComponentType.Button]: {
     name: ComponentType.Button,
     itemType: LayoutItemType.Component,
@@ -124,6 +134,14 @@ export const formItemConfigs: FormItemConfigs = {
       ComponentType.PrintButton,
       ComponentType.InstantiationButton,
     ],
+  },
+  [ComponentType.Cards]: {
+    name: ComponentType.Cards,
+    itemType: LayoutItemType.Container,
+    defaultProperties: {},
+    propertyPath: 'definitions/cards',
+    icon: Density1Icon,
+    validChildTypes: Object.values(ComponentType),
   },
   [ComponentType.Checkboxes]: {
     name: ComponentType.Checkboxes,
@@ -443,6 +461,13 @@ export const formItemConfigs: FormItemConfigs = {
     propertyPath: 'definitions/textAreaComponent',
     icon: LongTextIcon,
   },
+  [ComponentType.Video]: {
+    name: ComponentType.Video,
+    itemType: LayoutItemType.Component,
+    defaultProperties: {},
+    propertyPath: 'definitions/video',
+    icon: VideoIcon,
+  },
 };
 
 export const advancedItems: FormItemConfigs[ComponentType][] = [
@@ -479,7 +504,10 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.PrintButton],
   formItemConfigs[ComponentType.InstantiationButton],
   formItemConfigs[ComponentType.ActionButton],
+  formItemConfigs[ComponentType.Cards],
   formItemConfigs[ComponentType.Image],
+  formItemConfigs[ComponentType.Video],
+  formItemConfigs[ComponentType.Audio],
   formItemConfigs[ComponentType.Link],
   formItemConfigs[ComponentType.IFrame],
   formItemConfigs[ComponentType.InstanceInformation],

@@ -4,8 +4,10 @@ import AccordionGroupSchema from './schemas/json/component/AccordionGroup.schema
 import ActionButtonSchema from './schemas/json/component/ActionButton.schema.v1.json';
 import AddressSchema from './schemas/json/component/Address.schema.v1.json';
 import AttachmentListSchema from './schemas/json/component/AttachmentList.schema.v1.json';
+import AudioSchema from './schemas/json/component/Audio.schema.v1.json';
 import ButtonSchema from './schemas/json/component/Button.schema.v1.json';
 import ButtonGroupSchema from './schemas/json/component/ButtonGroup.schema.v1.json';
+import CardsSchema from './schemas/json/component/Cards.schema.v1.json';
 import CheckboxesSchema from './schemas/json/component/Checkboxes.schema.v1.json';
 import CustomSchema from './schemas/json/component/Custom.schema.v1.json';
 import CustomButtonSchema from './schemas/json/component/CustomButton.schema.v1.json';
@@ -38,6 +40,7 @@ import RadioButtonsSchema from './schemas/json/component/RadioButtons.schema.v1.
 import RepeatingGroupSchema from './schemas/json/component/RepeatingGroup.schema.v1.json';
 import SummarySchema from './schemas/json/component/Summary.schema.v1.json';
 import TextAreaSchema from './schemas/json/component/TextArea.schema.v1.json';
+import VideoSchema from './schemas/json/component/Video.schema.v1.json';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 
@@ -48,8 +51,10 @@ export const componentSchemaMocks: Record<ComponentType, JsonSchema> = {
   [ComponentType.Address]: AddressSchema,
   [ComponentType.Alert]: AlertSchema,
   [ComponentType.AttachmentList]: AttachmentListSchema,
+  [ComponentType.Audio]: AudioSchema,
   [ComponentType.Button]: ButtonSchema,
   [ComponentType.ButtonGroup]: ButtonGroupSchema,
+  [ComponentType.Cards]: CardsSchema,
   [ComponentType.Checkboxes]: CheckboxesSchema,
   [ComponentType.Custom]: CustomSchema,
   [ComponentType.CustomButton]: CustomButtonSchema,
@@ -82,4 +87,5 @@ export const componentSchemaMocks: Record<ComponentType, JsonSchema> = {
   [ComponentType.RepeatingGroup]: RepeatingGroupSchema,
   [ComponentType.Summary]: SummarySchema,
   [ComponentType.TextArea]: TextAreaSchema,
+  [ComponentType.Video]: VideoSchema,
 };
