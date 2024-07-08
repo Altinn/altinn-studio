@@ -23,15 +23,6 @@ export const SelectUniqueFromSignaturesInDataTypes = ({
   const modelerInstance = modelerRef.current;
   const modeling: Modeling = modelerInstance.get('modeling');
   const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
-  const [value, setValue] = useState<string[]>(() => getSelectedDataTypes(bpmnDetails));
-  const { debounce } = useDebounce({ debounceTimeInMs: AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS });
-  const { t } = useTranslation();
-  const labelId = useId();
-
-  const handleValueChange = (dataTypes: string[]) => {
-    setValue(dataTypes);
-    debounce(() => updateDataTypes(bpmnFactory, modeling, bpmnDetails, dataTypes));
-  };
 
   const studioModeler = new StudioModeler();
   const tasks = studioModeler.getAllTasksByType('bpmn:Task');
@@ -45,6 +36,20 @@ export const SelectUniqueFromSignaturesInDataTypes = ({
       id: item.businessObject.extensionElements?.values[0]?.signatureConfig?.signatureDataType,
       name: item.businessObject.name,
     }));
+
+  const [value, setValue] = useState<string[]>(() =>
+    getSelectedDataTypes(bpmnDetails).filter((item) =>
+      signingTasks.some((task) => task.id === item),
+    ),
+  );
+  const { debounce } = useDebounce({ debounceTimeInMs: AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS });
+  const { t } = useTranslation();
+  const labelId = useId();
+
+  const handleValueChange = (dataTypes: string[]) => {
+    setValue(dataTypes);
+    debounce(() => updateDataTypes(bpmnFactory, modeling, bpmnDetails, dataTypes));
+  };
 
   return (
     <div className={classes.container}>

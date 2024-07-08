@@ -25,6 +25,7 @@ export const ConfigContent = (): React.ReactElement => {
   };
   const layoutSet = layoutSets?.sets.find((set) => set.tasks.includes(bpmnDetails.id));
   const existingDataTypeForTask = layoutSet?.dataType;
+  const isSigningTask = bpmnDetails.taskType === 'signing';
 
   const taskHasConnectedLayoutSet = layoutSets?.sets?.some((set) => set.tasks[0] == bpmnDetails.id);
 
@@ -61,11 +62,13 @@ export const ConfigContent = (): React.ReactElement => {
           existingDataTypeForTask={existingDataTypeForTask}
         />
       )}
-      {bpmnDetails.taskType === 'signing' && (
-        <EditDataTypesToSign key={`${bpmnDetails.id}-dataTypes`} />
-      )}
-      {bpmnDetails.taskType === 'signing' && !isFirstSigningTask && (
-        <EditUniqueFromSignaturesInDataTypes key={`${bpmnDetails.id}-uniqueSignature`} />
+      {isSigningTask && (
+        <>
+          <EditDataTypesToSign key={`${bpmnDetails.id}-dataTypes`} />
+          {!isFirstSigningTask && (
+            <EditUniqueFromSignaturesInDataTypes key={`${bpmnDetails.id}-uniqueSignature`} />
+          )}
+        </>
       )}
       <Accordion color='neutral'>
         <Accordion.Item>
