@@ -11,7 +11,7 @@ import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { useDebounce } from 'app-shared/hooks/useDebounce';
-import { StudioModeler } from '../../../../utils/bpmn/StudioModeler';
+import { StudioModeler } from '../../../../utils/bpmnModeler/StudioModeler';
 
 export interface SelectDataTypesToSignProps {
   onClose: () => void;

@@ -8,7 +8,7 @@ import classes from './ListAdminPage.module.css';
 import { useGetAccessListsQuery } from '../../hooks/queries/useGetAccessListsQuery';
 import { NewAccessListModal } from '../../components/NewAccessListModal';
 import { getAccessListPageUrl, getResourceDashboardURL } from '../../utils/urlUtils';
-import { useUrlParams } from '../../hooks/useSelectedContext';
+import { useUrlParams } from '../../hooks/useUrlParams';
 import type { EnvId } from '../../utils/resourceUtils';
 import { getAvailableEnvironments, getEnvLabel } from '../../utils/resourceUtils';
 import { AccessListErrorMessage } from '../../components/AccessListErrorMessage';
@@ -17,7 +17,7 @@ import type { ResourceError } from 'app-shared/types/ResourceAdm';
 export const ListAdminPage = (): React.JSX.Element => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { selectedContext, repo, env: selectedEnv } = useUrlParams();
+  const { org, app, env: selectedEnv } = useUrlParams();
 
   const {
     data: envListData,
@@ -26,37 +26,35 @@ export const ListAdminPage = (): React.JSX.Element => {
     isFetchingNextPage,
     error: listFetchError,
     fetchNextPage,
-  } = useGetAccessListsQuery(selectedContext, selectedEnv);
+  } = useGetAccessListsQuery(org, selectedEnv);
 
   const navigateToListEnv = useCallback(
     (navigateEnv: EnvId, replace?: boolean) => {
-      navigate(getAccessListPageUrl(selectedContext, repo, navigateEnv), { replace: replace });
+      navigate(getAccessListPageUrl(org, app, navigateEnv), { replace: replace });
     },
-    [selectedContext, repo, navigate],
+    [org, app, navigate],
   );
 
   useEffect(() => {
     if (!selectedEnv) {
-      const availableEnvs = getAvailableEnvironments(selectedContext);
+      const availableEnvs = getAvailableEnvironments(org);
       navigateToListEnv(availableEnvs[0].id, true);
     }
-  }, [selectedContext, selectedEnv, navigateToListEnv]);
+  }, [org, selectedEnv, navigateToListEnv]);
 
   const createAccessListModalRef = useRef<HTMLDialogElement>(null);
 
   return (
     <div className={classes.listAdminPageWrapper}>
       <DigdirLink asChild>
-        <Link to={getResourceDashboardURL(selectedContext, repo)}>
-          {t('resourceadm.listadmin_back')}
-        </Link>
+        <Link to={getResourceDashboardURL(org, app)}>{t('resourceadm.listadmin_back')}</Link>
       </DigdirLink>
       <Heading level={1} size='large'>
         {t('resourceadm.listadmin_header')}
       </Heading>
       <div className={classes.environmentSelectorWrapper}>
         <ToggleGroup size='small' onChange={navigateToListEnv} value={selectedEnv}>
-          {getAvailableEnvironments(selectedContext).map((environment) => {
+          {getAvailableEnvironments(org).map((environment) => {
             return (
               <ToggleGroup.Item key={environment.id} value={environment.id}>
                 {t(environment.label)}
@@ -68,9 +66,9 @@ export const ListAdminPage = (): React.JSX.Element => {
           <>
             <NewAccessListModal
               ref={createAccessListModalRef}
-              org={selectedContext}
+              org={org}
               env={selectedEnv as EnvId}
-              navigateUrl={getAccessListPageUrl(selectedContext, repo, selectedEnv)}
+              navigateUrl={getAccessListPageUrl(org, app, selectedEnv)}
               onClose={() => createAccessListModalRef.current?.close()}
             />
             {listFetchError && (
@@ -102,14 +100,7 @@ export const ListAdminPage = (): React.JSX.Element => {
                         aria-label={`${t('resourceadm.listadmin_edit_list')} ${list.name}`}
                         asChild
                       >
-                        <Link
-                          to={getAccessListPageUrl(
-                            selectedContext,
-                            repo,
-                            selectedEnv,
-                            list.identifier,
-                          )}
-                        >
+                        <Link to={getAccessListPageUrl(org, app, selectedEnv, list.identifier)}>
                           {t('resourceadm.listadmin_edit_list')}
                           <PencilWritingIcon />
                         </Link>

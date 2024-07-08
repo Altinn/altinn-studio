@@ -34,7 +34,7 @@ const defaultProps: ImportResourceModalProps = {
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
-    selectedContext: 'ttd',
+    org: 'ttd',
   }),
 }));
 

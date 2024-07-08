@@ -88,8 +88,6 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
           <LocalChangesModal
             isOpen={localChangesModalIsOpen}
             onClose={() => setLocalChangesModalIsOpen(false)}
-            org={org}
-            app={app}
           />
         )}
       </ul>

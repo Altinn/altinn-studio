@@ -10,12 +10,10 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { MemoryRouter } from 'react-router-dom';
 import type { LocalChangesModalProps } from './LocalChangesModal';
 import { LocalChangesModal } from './LocalChangesModal';
-import { app, org } from '@studio/testing/testids';
 
 describe('LocalChangesModal', () => {
-  const user = userEvent.setup();
-
   it('calls onClose when the close button is clicked', async () => {
+    const user = userEvent.setup();
     render();
 
     const closeButton = screen.getByRole('button', {
@@ -41,8 +39,6 @@ const mockOnClose = jest.fn();
 const defaultProps: LocalChangesModalProps = {
   isOpen: true,
   onClose: mockOnClose,
-  org,
-  app,
 };
 
 const render = (

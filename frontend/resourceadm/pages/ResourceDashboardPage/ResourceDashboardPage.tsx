@@ -15,7 +15,7 @@ import { filterTableData } from '../../utils/resourceListUtils';
 import { useTranslation } from 'react-i18next';
 import { getResourceDashboardURL, getResourcePageURL } from '../../utils/urlUtils';
 import { getReposLabel } from 'dashboard/utils/repoUtils';
-import { useUrlParams } from '../../hooks/useSelectedContext';
+import { useUrlParams } from '../../hooks/useUrlParams';
 import { StudioButton } from '@studio/components';
 import { ImportAltinn3ResourceModal } from '../../components/ImportAltinn3ResourceModal';
 import { useImportResourceFromAltinn3Mutation } from '../../hooks/mutations/useImportResourceFromAltinn3Mutation';
@@ -31,11 +31,11 @@ import type { Resource } from 'app-shared/types/ResourceAdm';
 export const ResourceDashboardPage = (): React.JSX.Element => {
   const createResourceModalRef = useRef<HTMLDialogElement>(null);
   const importAltinn3ResourceModalRef = useRef<HTMLDialogElement>(null);
-  const { selectedContext, repo } = useUrlParams();
+  const { org, app } = useUrlParams();
   const { data: organizations } = useOrganizationsQuery();
 
   const { mutate: importResource, isPending: isImportingResource } =
-    useImportResourceFromAltinn3Mutation(selectedContext);
+    useImportResourceFromAltinn3Mutation(org);
 
   const { t } = useTranslation();
 
@@ -50,17 +50,17 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
   const [importModalOpen, setImportModalOpen] = useState(false);
 
   // Get metadata with queries
-  const { data: repoStatus } = useRepoStatusQuery(selectedContext, repo);
+  const { data: repoStatus } = useRepoStatusQuery(org, app);
   const {
     data: resourceListData,
     isPending: resourceListPending,
     isRefetching: refetchingList,
-  } = useGetResourceListQuery(selectedContext);
+  } = useGetResourceListQuery(org);
 
   const filteredResourceList = filterTableData(searchValue, resourceListData ?? []);
 
   const handleNavigateToResource = (id: string) => {
-    navigate(getResourcePageURL(selectedContext, repo, id, 'about'));
+    navigate(getResourcePageURL(org, app, id, 'about'));
   };
 
   const handleImportResource = (resourceId: string, env: EnvId) => {
@@ -126,7 +126,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
       <div className={classes.topWrapper}>
         <Heading size='large' level={1}>
           {getReposLabel({
-            selectedContext,
+            selectedContext: org,
             orgs: organizations ? organizations : [],
             t,
             isResourcesRepo: true,
@@ -134,7 +134,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
         </Heading>
         <div className={classes.topRightWrapper}>
           <StudioButton asChild variant='tertiary' color='second' size='medium'>
-            <Link to={`${getResourceDashboardURL(selectedContext, repo)}/accesslists`}>
+            <Link to={`${getResourceDashboardURL(org, app)}/accesslists`}>
               <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
               <TasklistIcon />
             </Link>
@@ -166,11 +166,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
       <div className={classes.horizontalDivider} />
       <div className={classes.componentWrapper}>{displayContent()}</div>
       {repoStatus?.hasMergeConflict && (
-        <MergeConflictModal
-          isOpen={repoStatus.hasMergeConflict}
-          org={selectedContext}
-          repo={repo}
-        />
+        <MergeConflictModal isOpen={repoStatus.hasMergeConflict} org={org} repo={app} />
       )}
       <NewResourceModal
         ref={createResourceModalRef}

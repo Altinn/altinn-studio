@@ -140,6 +140,10 @@ export class ProcessEditorPage extends BasePage {
     await expect(heading).toBeVisible();
   }
 
+  public async clickOnTaskTextInBpmnEditor(text: string): Promise<void> {
+    await this.page.getByText(text).click();
+  }
+
   /**
    *
    * Helper methods below this

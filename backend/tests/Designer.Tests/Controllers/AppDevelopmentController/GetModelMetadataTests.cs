@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class GetModelMetadataTests : DisagnerEndpointsTestsBase<GetModelMetadataTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetModelMetadataTests : DesignerEndpointsTestsBase<GetModelMetadataTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
 

@@ -10,16 +10,9 @@ import { LocalChanges } from './LocalChanges/LocalChanges';
 export type LocalChangesModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  org: string;
-  app: string;
 };
 
-export const LocalChangesModal = ({
-  isOpen,
-  onClose,
-  org,
-  app,
-}: LocalChangesModalProps): ReactNode => {
+export const LocalChangesModal = ({ isOpen, onClose }: LocalChangesModalProps): ReactNode => {
   const { t } = useTranslation();
 
   return (
@@ -36,7 +29,7 @@ export const LocalChangesModal = ({
       }
       closeButtonLabel={t('sync_header.close_local_changes_button')}
     >
-      <LocalChanges org={org} app={app} />
+      <LocalChanges />
     </StudioModal>
   );
 };

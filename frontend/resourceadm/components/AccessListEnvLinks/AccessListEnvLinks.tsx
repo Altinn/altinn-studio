@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Alert, List, Paragraph } from '@digdir/design-system-react';
 import { getResourcePageURL } from '../../utils/urlUtils';
-import { useUrlParams } from '../../hooks/useSelectedContext';
+import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';
 import { useResourcePolicyPublishStatusQuery } from '../../hooks/queries';
 import { StudioButton, StudioSpinner } from '@studio/components';
@@ -12,12 +12,12 @@ import classes from './AccessListEnvLinks.module.css';
 
 export const AccessListEnvLinks = (): React.JSX.Element => {
   const { t } = useTranslation();
-  const { resourceId, selectedContext, repo } = useUrlParams();
+  const { resourceId, org, app } = useUrlParams();
 
   const { data: publishStatusData, isLoading: isLoadingPublishStatus } =
-    useResourcePolicyPublishStatusQuery(selectedContext, repo, resourceId);
+    useResourcePolicyPublishStatusQuery(org, app, resourceId);
 
-  const envPublishStatus = getAvailableEnvironments(selectedContext).map((env) => {
+  const envPublishStatus = getAvailableEnvironments(org).map((env) => {
     const isPublishedInEnv = publishStatusData?.publishedVersions.some(
       (version) => version.environment === env.id && version.version,
     );
@@ -56,7 +56,7 @@ export const AccessListEnvLinks = (): React.JSX.Element => {
               return (
                 <StudioButton key={env.id} variant='tertiary' size='small' asChild>
                   <Link
-                    to={`${getResourcePageURL(selectedContext, repo, resourceId, 'accesslists')}/${env.id}/`}
+                    to={`${getResourcePageURL(org, app, resourceId, 'accesslists')}/${env.id}/`}
                   >
                     <ArrowForwardIcon />
                     {t('resourceadm.about_resource_edit_rrr', { env: t(env.label) })}

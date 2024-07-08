@@ -14,7 +14,7 @@ import {
   useResourcePolicyActionsQuery,
   useResourcePolicySubjectsQuery,
 } from 'app-shared/hooks/queries';
-import { useUrlParams } from '../../hooks/useSelectedContext';
+import { useUrlParams } from '../../hooks/useUrlParams';
 
 export type PolicyEditorPageProps = {
   showAllErrors: boolean;
@@ -36,29 +36,22 @@ export const PolicyEditorPage = ({
 }: PolicyEditorPageProps): React.JSX.Element => {
   const { t } = useTranslation();
 
-  const { resourceId, selectedContext, repo } = useUrlParams();
+  const { resourceId, org, app } = useUrlParams();
 
   // Get the data
   const { data: policyData, isPending: isPolicyPending } = useResourcePolicyQuery(
-    selectedContext,
-    repo,
+    org,
+    app,
     resourceId,
   );
-  const { data: actionData, isPending: isActionPending } = useResourcePolicyActionsQuery(
-    selectedContext,
-    repo,
-  );
+  const { data: actionData, isPending: isActionPending } = useResourcePolicyActionsQuery(org, app);
   const { data: subjectData, isPending: isSubjectsPending } = useResourcePolicySubjectsQuery(
-    selectedContext,
-    repo,
+    org,
+    app,
   );
 
   // Mutation function to update policy
-  const { mutate: updatePolicyMutation } = useEditResourcePolicyMutation(
-    selectedContext,
-    repo,
-    resourceId,
-  );
+  const { mutate: updatePolicyMutation } = useEditResourcePolicyMutation(org, app, resourceId);
 
   /**
    * Saves the policy to backend

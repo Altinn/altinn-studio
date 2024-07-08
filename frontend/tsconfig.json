@@ -27,9 +27,20 @@
       "@altinn/ux-editor-v3/*": ["./packages/ux-editor-v3/src/*"],
       "@studio/testing/*": ["./testing/*"]
     },
-    "plugins": [{ "name": "typescript-plugin-css-modules" }]
+    "plugins": [
+      {
+        "name": "typescript-plugin-css-modules"
+      }
+    ]
   },
   "files": ["declaration.d.ts"],
   "include": ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "tmp", "./testing/cypress/**", "dist", "**/prettier.config.js"]
+  "exclude": [
+    "node_modules",
+    "tmp",
+    "./testing/cypress/**",
+    "./testing/playwright/playwright-report",
+    "dist",
+    "**/prettier.config.js"
+  ]
 }
