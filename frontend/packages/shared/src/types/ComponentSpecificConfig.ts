@@ -147,14 +147,22 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
       saveWhileTyping?: number;
     };
   [ComponentType.AttachmentList]: { dataTypeIds?: string[] };
-  [ComponentType.Audio]: { dataTypeIds?: string[] }; // WHAT SHOULD BE THE VALUE HERE?
+  [ComponentType.Audio]: {};
   [ComponentType.Button]: {
     mode?: 'submit' | 'save' | 'go-to-task' | 'instantiate';
     taskId?: string;
     mapping?: KeyValuePairs;
   };
   [ComponentType.ButtonGroup]: SummarizableComponentProps & LabeledComponentProps;
-  [ComponentType.Cards]: { dataTypeIds?: string[] }; // WHAT SHOULD BE THE VALUE HERE?
+  [ComponentType.Cards]: {
+    color: 'neutral' | 'subtle';
+    cards?: {
+      title: string;
+      description: string;
+      media?: string;
+      children?: string[];
+    }[];
+  };
   [ComponentType.Checkboxes]: FormComponentProps &
     SummarizableComponentProps &
     LabeledComponentProps &
@@ -377,5 +385,5 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
       autocomplete?: HTMLAutoCompleteValue;
       maxLength?: number;
     };
-  [ComponentType.Video]: { dataTypeIds?: string[] }; // WHAT SHOULD BE THE VALUE HERE?
+  [ComponentType.Video]: {};
 }[T];

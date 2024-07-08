@@ -137,11 +137,13 @@ export const formItemConfigs: FormItemConfigs = {
   },
   [ComponentType.Cards]: {
     name: ComponentType.Cards,
-    itemType: LayoutItemType.Container,
-    defaultProperties: {},
+    itemType: LayoutItemType.Component,
+    defaultProperties: {
+      color: 'neutral',
+      cards: [],
+    },
     propertyPath: 'definitions/cards',
     icon: Density1Icon,
-    validChildTypes: Object.values(ComponentType),
   },
   [ComponentType.Checkboxes]: {
     name: ComponentType.Checkboxes,
