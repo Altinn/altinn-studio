@@ -1900,7 +1900,7 @@
   "ux_editor.modal_properties_component_id_not_unique_error": "Komponenten må ha en unik ID",
   "ux_editor.modal_properties_component_id_not_valid": "Komponent-ID-en må ha minst 2 tegn. ID-en kan ikke starte med bindestrek (-) eller slutte med bindestrek og tall. Bruk bare tegn fra det engelske alfabetet.",
   "ux_editor.modal_properties_custom_code_list_id": "ID til egendefinert kodeliste",
-  "ux_editor.modal_properties_data_model": "Datamodell",
+  "ux_editor.modal_properties_data_model_binding": "Datamodell",
   "ux_editor.modal_properties_data_model_binding_not_present": "Denne komponenten kan ikke knyttes til et datamodellfelt",
   "ux_editor.modal_properties_data_model_field_binding": "Datamodellknytning",
   "ux_editor.modal_properties_data_model_field_choose": "Velg datafelt",

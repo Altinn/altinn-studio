@@ -36,7 +36,7 @@ export const SelectDataModelBinding = ({
       onChange={handleDataModelChange}
       value={selectedDataModel}
       propertyPath={propertyPath}
-      label={t('ux_editor.modal_properties_data_model')}
+      label={t('ux_editor.modal_properties_data_model_binding')}
       renderField={({ fieldProps }) => (
         <StudioNativeSelect
           {...fieldProps}
@@ -53,7 +53,7 @@ export const SelectDataModelBinding = ({
     />
   ) : (
     <StudioDisplayTile
-      label={t('ux_editor.modal_properties_data_model')}
+      label={t('ux_editor.modal_properties_data_model_binding')}
       value={selectedDataModel}
       className={classes.displayTileContainer}
     />

@@ -183,6 +183,15 @@ export class UiEditorPage extends BasePage {
     await this.page.getByRole('treeitem', { name }).click();
   }
 
+  public async clickOnDataModelBindingCombobox(): Promise<void> {
+    await this.page
+      .getByRole('combobox', {
+        name: this.textMock('ux_editor.modal_properties_data_model_binding'),
+        exact: true,
+      })
+      .click();
+  }
+
   public async clickOnDataModelFieldBindingCombobox(): Promise<void> {
     await this.page
       .getByRole('combobox', {
@@ -200,9 +209,15 @@ export class UiEditorPage extends BasePage {
     await expect(options).toHaveCount(4);
   }
 
-  public async clickOnDataModelPropertyOption(option: string): Promise<void> {
+  public async clickOnDataModelFieldPropertyOption(option: string): Promise<void> {
     await this.page
       .getByLabel(this.textMock('ux_editor.modal_properties_data_model_field_binding'))
+      .selectOption(option);
+  }
+
+  public async clickOnDataModelPropertyOption(option: string): Promise<void> {
+    await this.page
+      .getByLabel(this.textMock('ux_editor.modal_properties_data_model_binding'), { exact: true })
       .selectOption(option);
   }
 

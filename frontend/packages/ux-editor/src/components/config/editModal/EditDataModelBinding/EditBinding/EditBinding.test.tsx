@@ -322,7 +322,7 @@ describe('EditBinding featureFlag enabled', () => {
     );
 
     const dataModelSelector = screen.getByRole('combobox', {
-      name: textMock('ux_editor.modal_properties_data_model'),
+      name: textMock('ux_editor.modal_properties_data_model_binding'),
     });
     expect(dataModelSelector).toBeInTheDocument();
 
@@ -397,7 +397,7 @@ describe('EditBinding featureFlag enabled', () => {
     );
 
     const dataModelSelector = screen.getByRole('combobox', {
-      name: textMock('ux_editor.modal_properties_data_model'),
+      name: textMock('ux_editor.modal_properties_data_model_binding'),
     });
     const option2 = screen.getByRole('option', { name: secondDataModel });
     await user.selectOptions(dataModelSelector, option2);
