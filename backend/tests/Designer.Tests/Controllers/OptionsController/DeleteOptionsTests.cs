@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OptionsController;
 
-public class DeleteOptionsTests : DisagnerEndpointsTestsBase<DeleteOptionsTests>, IClassFixture<WebApplicationFactory<Program>>
+public class DeleteOptionsTests : DesignerEndpointsTestsBase<DeleteOptionsTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     public DeleteOptionsTests(WebApplicationFactory<Program> factory) : base(factory)
     {

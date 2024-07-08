@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OptionsController;
 
-public class UpdateOptionsTests : DisagnerEndpointsTestsBase<UpdateOptionsTests>, IClassFixture<WebApplicationFactory<Program>>
+public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     public UpdateOptionsTests(WebApplicationFactory<Program> factory) : base(factory)
     {

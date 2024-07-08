@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OptionsController;
 
-public class GetOptionsTests : DisagnerEndpointsTestsBase<GetOptionsTests>, IClassFixture<WebApplicationFactory<Program>>
+public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     public GetOptionsTests(WebApplicationFactory<Program> factory) : base(factory)
     {
