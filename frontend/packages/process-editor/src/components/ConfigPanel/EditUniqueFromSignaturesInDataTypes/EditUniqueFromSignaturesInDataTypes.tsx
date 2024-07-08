@@ -24,7 +24,10 @@ export const EditUniqueFromSignaturesInDataTypes = () => {
         item.businessObject.extensionElements?.values[0]?.signatureConfig?.signatureDataType,
       ),
     )
-    .map((item) => item.businessObject.name);
+    .map((item) => ({
+      id: item.businessObject.extensionElements?.values[0]?.signatureConfig?.signatureDataType,
+      name: item.businessObject.name,
+    }));
 
   return (
     <>
@@ -49,8 +52,8 @@ export const EditUniqueFromSignaturesInDataTypes = () => {
           value={
             <>
               {signingTasks?.map((dataType) => (
-                <div key={dataType} className={classes.dataType}>
-                  <PersonPencilIcon /> {dataType}
+                <div key={dataType.id} className={classes.dataType}>
+                  <PersonPencilIcon /> {dataType.name}
                 </div>
               ))}
             </>
