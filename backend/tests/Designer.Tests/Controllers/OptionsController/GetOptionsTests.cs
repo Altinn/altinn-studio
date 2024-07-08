@@ -20,7 +20,7 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
     public async Task GetOptionsListIds_Returns200OK_WithOptionsListIds()
     {
         // Arrange
-        string[] expectedOptionsListIds =  ["other-options", "test-options"];
+        string[] expectedOptionsListIds = ["other-options", "test-options"];
 
         const string repo = "app-with-options";
         string apiUrl = $"/designer/api/ttd/{repo}/options";
