@@ -4980,10 +4980,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@navikt/aksel-icons@npm:^5.12.2, @navikt/aksel-icons@npm:^5.6.1":
+"@navikt/aksel-icons@npm:^5.12.2":
   version: 5.18.3
   resolution: "@navikt/aksel-icons@npm:5.18.3"
   checksum: 10/de01c59ade08d8c4dc54db77131eff8f29f6a1d25e9dfb031bb6280dc853d51a686ae78b845ff2a7d3dc0291f568ec3714076325ccbd65ed829041e300bbd65b
+  languageName: node
+  linkType: hard
+
+"@navikt/aksel-icons@npm:^6.0.0":
+  version: 6.13.0
+  resolution: "@navikt/aksel-icons@npm:6.13.0"
+  checksum: 10/cb1f90e08f546fbe1e8003ad6f2e1accfd8e655c669bf0c59fc75ecc5b23bf55a96978ebe3a0f92ee72f8349f84eb294c5c023bb0c415ba817ce02a8f594476b
   languageName: node
   linkType: hard
 
@@ -6772,7 +6779,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@studio/icons@workspace:frontend/libs/studio-icons"
   dependencies:
-    "@navikt/aksel-icons": "npm:^5.6.1"
+    "@navikt/aksel-icons": "npm:^6.0.0"
     "@testing-library/jest-dom": "npm:6.4.6"
     "@testing-library/react": "npm:16.0.0"
     "@types/jest": "npm:^29.5.5"
