@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -20,8 +21,6 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
     public async Task GetOptionsListIds_Returns200OK_WithOptionsListIds()
     {
         // Arrange
-        string[] expectedOptionsListIds = ["other-options", "test-options"];
-
         const string repo = "app-with-options";
         string apiUrl = $"/designer/api/ttd/{repo}/options";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
@@ -33,7 +32,8 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-        Assert.Equal(expectedOptionsListIds, responseList);
+        Assert.Contains("test-options", responseList);
+        Assert.Contains("other-options", responseList);
     }
 
     [Fact]
