@@ -8,6 +8,7 @@ export type StudioCodeFragmentProps = HTMLAttributes<HTMLElement>;
 const StudioCodeFragment = forwardRef<HTMLElement, StudioCodeFragmentProps>(
   ({ children, className: givenClass, ...rest }, ref) => {
     const className = cn(classes.code, givenClass);
+
     return (
       <code className={className} {...rest} ref={ref}>
         {children}
