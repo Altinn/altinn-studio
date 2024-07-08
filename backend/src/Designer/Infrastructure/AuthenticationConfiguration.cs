@@ -50,6 +50,8 @@ namespace Altinn.Studio.Designer.Infrastructure
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(oidcSettings.CookieExpiryTimeInMinutes);
                     options.SlidingExpiration = true;
 
+                    options.Cookie.Name = Constants.General.DesignerCookieName;
+
                     options.Events.OnRedirectToAccessDenied = context =>
                     {
                         context.Response.StatusCode = StatusCodes.Status403Forbidden;
