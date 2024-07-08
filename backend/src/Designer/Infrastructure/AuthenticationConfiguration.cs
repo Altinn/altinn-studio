@@ -1,7 +1,5 @@
 using System;
 using System.Threading.Tasks;
-
-using Altinn.Studio.Designer.Authorization;
 using Altinn.Studio.Designer.Configuration;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -9,7 +7,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 
@@ -26,54 +23,14 @@ namespace Altinn.Studio.Designer.Infrastructure
         /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
         /// <param name="config">The configuration</param>
         /// <param name="env">The web hosting environment</param>
-        public static IServiceCollection ConfigureAuthentication(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
+        public static IServiceCollection ConfigureAuthentication(this IServiceCollection services,
+            IConfiguration config, IWebHostEnvironment env)
         {
-            GeneralSettings generalSettings = config.GetSection(nameof(GeneralSettings)).Get<GeneralSettings>();
-
-            return generalSettings.UseHackyLoginFlow?
-                AddHackyAuthenticationFlow(services, env, generalSettings)
-                : AddGiteaOidcAuthentication(services, config);
+            return AddGiteaOidcAuthentication(services, config);
         }
 
-        private static IServiceCollection AddHackyAuthenticationFlow(IServiceCollection services, IWebHostEnvironment env,
-            GeneralSettings generalSettings)
-        {
-            string schema = env.IsDevelopment() ? "http://" : "https://";
-            string loginUrl = $"{schema}{generalSettings.HostName}/ Home/Login/";
-
-            // Configure Authentication
-            // Use [Authorize] to require login on MVC Controller Actions
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie(options =>
-                {
-                    options.AccessDeniedPath = "/Home/NotAuthorized/";
-                    options.LogoutPath = "/Home/Logout/";
-                    options.Cookie.Name = Constants.General.DesignerCookieName;
-                    options.Events = new CookieAuthenticationEvents
-                    {
-                        // Add Custom Event handler to be able to redirect users for authentication upgrade
-                        OnRedirectToAccessDenied = NotAuthorizedHandler.RedirectToNotAuthorized,
-                        OnRedirectToLogin = async context =>
-                        {
-                            if (context.Request.Path.Value.Contains("keepalive", System.StringComparison.OrdinalIgnoreCase))
-                            {
-                                context.HttpContext.Response.StatusCode = 401;
-                            }
-                            else
-                            {
-                                context.HttpContext.Response.Redirect(loginUrl);
-                            }
-
-                            await Task.CompletedTask;
-                        }
-                    };
-                });
-
-            return services;
-        }
-
-
-        private static IServiceCollection AddGiteaOidcAuthentication(this IServiceCollection services, IConfiguration configuration)
+        private static IServiceCollection AddGiteaOidcAuthentication(this IServiceCollection services,
+            IConfiguration configuration)
         {
             var oidcSettings = configuration.GetSection(nameof(OidcLoginSettings)).Get<OidcLoginSettings>();
 
@@ -90,7 +47,7 @@ namespace Altinn.Studio.Designer.Infrastructure
                     options.Cookie.SameSite = SameSiteMode.Strict;
                     options.Cookie.IsEssential = true;
 
-                    options.ExpireTimeSpan = TimeSpan.FromSeconds(oidcSettings.CookieExpiryTimeInSeconds);
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(oidcSettings.CookieExpiryTimeInMinutes);
                     options.SlidingExpiration = true;
 
                     options.Events.OnRedirectToAccessDenied = context =>
@@ -126,10 +83,20 @@ namespace Altinn.Studio.Designer.Infrastructure
                             NameClaimType = "preferred_username"
                         };
 
+
+                        // options.Events.OnRedirectToIdentityProvider = context =>
+                        // {
+                        //     if (!context.Request.Path.StartsWithSegments("/login"))
+                        //     {
+                        //         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        //         context.HandleResponse();
+                        //     }
+                        //
+                        //     return Task.CompletedTask;
+                        // };
                     });
 
             return services;
         }
-
     }
 }

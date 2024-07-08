@@ -2,7 +2,9 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using AltinnCore.Authentication.Constants;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Designer.Helpers
@@ -19,21 +21,7 @@ namespace Altinn.Studio.Designer.Helpers
         /// <returns>The developer user name</returns>
         public static string GetDeveloperUserName(HttpContext context)
         {
-            string userName = null;
-
-            if (context.User != null)
-            {
-                foreach (Claim claim in context.User.Claims)
-                {
-                    if (claim.Type.Equals(AltinnCoreClaimTypes.Developer))
-                    {
-                        userName = claim.Value;
-                        break;
-                    }
-                }
-            }
-
-            return userName;
+            return context.User.Identity?.Name;
         }
 
         /// <summary>
@@ -66,20 +54,13 @@ namespace Altinn.Studio.Designer.Helpers
         /// <returns>The developer app token</returns>
         public static string GetDeveloperAppToken(HttpContext context)
         {
-            string accessToken = null;
+            return context.GetTokenAsync("access_token").Result;
+        }
 
-            if (context.User != null)
-            {
-                foreach (Claim claim in context.User.Claims)
-                {
-                    if (claim.Type.Equals(AltinnCoreClaimTypes.DeveloperToken))
-                    {
-                        accessToken = claim.Value;
-                    }
-                }
-            }
 
-            return accessToken;
+        public static async Task<string> GetDeveloperAppTokenAsync(HttpContext context)
+        {
+            return await context.GetTokenAsync("access_token");
         }
 
         /// <summary>

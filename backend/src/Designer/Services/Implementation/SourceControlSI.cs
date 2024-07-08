@@ -638,7 +638,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new LibGit2Sharp.Signature(username, $"{username}@noreply.altinn.studio", DateTime.Now);
         }
 
-        private LibGit2Sharp.Handlers.CredentialsHandler CredentialsProvider() => (url, user, cred) => new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
+        private LibGit2Sharp.Handlers.CredentialsHandler CredentialsProvider() => (url, user, cred) => new UsernamePasswordCredentials { Username = AuthenticationHelper.GetDeveloperAppToken(_httpContextAccessor.HttpContext), Password = GetAppToken() };
 
         private void FetchGitNotes(string localRepositoryPath)
         {
