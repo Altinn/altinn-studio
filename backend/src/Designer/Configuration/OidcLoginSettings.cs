@@ -3,7 +3,7 @@ namespace Altinn.Studio.Designer.Configuration;
 public class OidcLoginSettings
 {
     public bool RequireHttpsMetadata { get; set; } = true;
-    public int CookieExpiryTimeInSeconds { get; set; } = 120;
+    public int CookieExpiryTimeInMinutes { get; set; } = 60;
     public string Authority { get; set; }
     public string ClientId { get; set; }
     public string ClientSecret { get; set; }
