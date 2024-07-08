@@ -65,7 +65,5 @@ namespace Altinn.Studio.Designer.Configuration
         public string EnvironmentsUrl { get; set; }
 
         public string OrganizationsUrl { get; set; }
-
-        public bool UseHackyLoginFlow { get; set; } = true;
     }
 }

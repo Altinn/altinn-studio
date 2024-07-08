@@ -56,6 +56,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddHttpClient<IResourceRegistryOptions, ResourceRegistryOptionsClients>();
             services.AddHttpClient<IAltinn2MetadataClient, Altinn2MetadataClient>();
             services.AddEidLoggerTypedHttpClient(config);
+            services.AddTransient<GiteaTokenDelegatingHandler>();
 
             return services;
         }
@@ -82,23 +83,20 @@ namespace Altinn.Studio.Designer.TypedHttpClients
 
         private static IHttpClientBuilder AddGiteaTypedHttpClient(this IServiceCollection services,
             IConfiguration config)
-            => services.AddHttpClient<IGitea, GiteaAPIWrapper>((sp, httpClient) =>
+            => services.AddHttpClient<IGitea, GiteaAPIWrapper>((_, httpClient) =>
                 {
-                    IHttpContextAccessor httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
                     ServiceRepositorySettings serviceRepoSettings =
-                        config.GetSection("ServiceRepositorySettings").Get<ServiceRepositorySettings>();
+                        config.GetSection(nameof(ServiceRepositorySettings)).Get<ServiceRepositorySettings>();
                     Uri uri = new Uri(serviceRepoSettings.ApiEndPoint);
                     httpClient.BaseAddress = uri;
-                    httpClient.DefaultRequestHeaders.Add(
-                        General.AuthorizationTokenHeaderName,
-                        AuthenticationHelper.GetDeveloperTokenHeaderValue(httpContextAccessor.HttpContext));
                 })
                 .ConfigurePrimaryHttpMessageHandler((sp) =>
                 {
                     var handler = new HttpClientHandler { AllowAutoRedirect = true };
 
                     return new Custom401Handler(handler);
-                });
+                })
+                .AddHttpMessageHandler<GiteaTokenDelegatingHandler>();
 
 
         private static IHttpClientBuilder AddAltinnAuthenticationTypedHttpClient(this IServiceCollection services, IConfiguration config)
