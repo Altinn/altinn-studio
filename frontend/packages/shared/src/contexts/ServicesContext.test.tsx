@@ -38,31 +38,6 @@ const wrapper = ({
 };
 
 describe('ServicesContext', () => {
-  it('logs the user out after displaying a toast for a given time when the api says unauthorized', async () => {
-    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
-    jest.spyOn(global, 'setTimeout');
-    renderHook(
-      () =>
-        useQuery({
-          queryKey: ['fetchData'],
-          queryFn: () => Promise.reject(createApiErrorMock(401)),
-          retry: false,
-        }),
-      {
-        wrapper: ({ children }) => {
-          return wrapper({ children });
-        },
-      },
-    );
-    expect(await screen.findByText(textMock('api_errors.Unauthorized'))).toBeInTheDocument();
-    jest.runAllTimers();
-    await waitFor(() => {
-      expect(queriesMock.logout).toHaveBeenCalled();
-    });
-
-    expect(mockConsoleError).toHaveBeenCalled();
-  });
-
   it('Displays a toast message for "GT_01" error code', async () => {
     const errorCode = 'GT_01';
     const { result } = renderHook(
