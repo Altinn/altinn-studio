@@ -15,42 +15,42 @@ public class OptionsServiceTests
     private const string Developer = "testUser";
 
     [Fact]
-    public async Task GetOptionListIds_ShouldReturnOptionListIds_WhenOptionListsExist()
+    public async Task GetOptionsListIds_ShouldReturnOptionsListIds_WhenOptionsListsExist()
     {
         // Arrange
-        const string repo = "app-with-options"; // Has 2 option lists
+        const string repo = "app-with-options"; // Has 2 options lists
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        string[] optionListIds = optionsService.GetOptionListIds(Org, targetRepository, Developer);
+        string[] optionListIds = optionsService.GetOptionsListIds(Org, targetRepository, Developer);
 
         // Assert
         Assert.Equal(2, optionListIds.Length);
     }
 
     [Fact]
-    public async Task GetOptionListIds_ShouldReturnEmptyArray_WhenOptionListsDoesNotExist()
+    public async Task GetOptionsListIds_ShouldReturnEmptyArray_WhenOptionsListsDoesNotExist()
     {
         // Arrange
-        const string repo = "empty-app"; // Has no option lists
+        const string repo = "empty-app"; // Has no options lists
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        string[] optionListIds = optionsService.GetOptionListIds(Org, targetRepository, Developer);
+        string[] optionListIds = optionsService.GetOptionsListIds(Org, targetRepository, Developer);
 
         // Assert
         Assert.Empty(optionListIds);
     }
 
     [Fact]
-    public async Task GetOptions_ShouldReturnOptions_WhenOptionsExists()
+    public async Task GetOptionsList_ShouldReturnOptionsList_WhenOptionsExists()
     {
         // Arrange
-        // This  option list matches the options in 'app-with-options'
+        // This  options list matches the options in 'app-with-options'
         var expectedOptions = new List<Option>
         {
             new Option
@@ -72,7 +72,7 @@ public class OptionsServiceTests
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        var fetchedOptions = await optionsService.GetOptions(Org, targetRepository, Developer, optionListId);
+        var fetchedOptions = await optionsService.GetOptionsList(Org, targetRepository, Developer, optionListId);
 
         // Assert
         Assert.Equal(expectedOptions.Count, fetchedOptions.Count);
@@ -87,26 +87,23 @@ public class OptionsServiceTests
     }
 
     [Fact]
-    public async Task GetOptions_ShouldThrowNotFoundException_WhenOptionsDoesNotExist()
+    public async Task GetOptionsList_ShouldThrowNotFoundException_WhenOptionsListDoesNotExist()
     {
         // Arrange
-        const string repo = "empty-app"; // Has no option lists
+        const string repo = "empty-app"; // Has no options lists
         const string optionListId = "test-options";
-
-        string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
 
         var optionsService = GetOptionsServiceForTest();
 
         // Act and assert
         await Assert.ThrowsAsync<NotFoundException>(async () =>
         {
-            await optionsService.GetOptions(Org, targetRepository, Developer, optionListId);
+            await optionsService.GetOptionsList(Org, repo, Developer, optionListId);
         });
     }
 
     [Fact]
-    public async Task UpdateOptions_ShouldReturnUpdatedOptions_WhenOptionsDoesNotExist()
+    public async Task CreateOrOverwriteOptionsList_ShouldReturnUpdatedOptionsList_WhenOptionsListDoesNotAlreadyExist()
     {
         // Arrange
         var newOptions = new List<Option>
@@ -123,14 +120,14 @@ public class OptionsServiceTests
             }
         };
 
-        const string repo = "empty-app"; // Has no option lists
+        const string repo = "empty-app"; // Has no options lists
         const string optionListId = "test-options";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        var updatedOptions = await optionsService.UpdateOptions(Org, targetRepository, Developer, optionListId, newOptions);
+        var updatedOptions = await optionsService.CreateOrOverwriteOptionsList(Org, targetRepository, Developer, optionListId, newOptions);
 
         // Assert
         Assert.Equal(newOptions.Count, updatedOptions.Count);
@@ -145,7 +142,7 @@ public class OptionsServiceTests
     }
 
     [Fact]
-    public async Task UpdateOptions_ShouldReturnUpdatedOptions_WhenOptionsAlreadyExist()
+    public async Task CreateOrOverwriteOptionsList_ShouldReturnUpdatedOptionsList_WhenOptionsAlreadyExist()
     {
         // Arrange
         var newOptions = new List<Option>
@@ -163,13 +160,13 @@ public class OptionsServiceTests
         };
 
         const string repo = "app-with-options";
-        const string optionListId = "test-options"; // Name of an existing option list
+        const string optionListId = "test-options"; // Name of an existing options list
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        var updatedOptions = await optionsService.UpdateOptions(Org, targetRepository, Developer, optionListId, newOptions);
+        var updatedOptions = await optionsService.CreateOrOverwriteOptionsList(Org, targetRepository, Developer, optionListId, newOptions);
 
         // Assert
         Assert.Equal(updatedOptions.Count, updatedOptions.Count);
@@ -184,7 +181,7 @@ public class OptionsServiceTests
     }
 
     [Fact]
-    public async Task DeleteOptions_ShouldDeleteOptions_WhenOptionsExist()
+    public async Task DeleteOptionsList_ShouldDeleteOptionsList_WhenOptionsListExist()
     {
         // Arrange
         const string repo = "app-with-options";
@@ -194,7 +191,7 @@ public class OptionsServiceTests
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        optionsService.DeleteOptions(Org, targetRepository, Developer, optionListId);
+        optionsService.DeleteOptionsList(Org, targetRepository, Developer, optionListId);
 
         // Assert
         Assert.True(true); // No exception thrown
@@ -214,12 +211,12 @@ public class OptionsServiceTests
         // Act and assert
         Assert.Throws<NotFoundException>(() =>
         {
-            optionsService.DeleteOptions(Org, targetRepository, Developer, optionListId);
+            optionsService.DeleteOptionsList(Org, targetRepository, Developer, optionListId);
         });
     }
 
     [Fact]
-    public async Task OptionListExists_ShouldReturnTrue_WhenOptionListExists()
+    public async Task OptionsListExists_ShouldReturnTrue_WhenOptionsListExists()
     {
         // Arrange
         const string repo = "app-with-options";
@@ -230,14 +227,14 @@ public class OptionsServiceTests
         var optionsService = GetOptionsServiceForTest();
 
         // Act
-        bool optionListExists = await optionsService.OptionListExists(Org, targetRepository, Developer, optionListId);
+        bool optionListExists = await optionsService.OptionsListExists(Org, targetRepository, Developer, optionListId);
 
         // Assert
         Assert.True(optionListExists);
     }
 
     [Fact]
-    public async Task OptionListExists_ShouldReturnFalse_WhenOptionListDoesNotExist()
+    public async Task OptionListsExists_ShouldReturnFalse_WhenOptionsListDoesNotExist()
     {
         // Arrange
         const string repo = "empty-app";
@@ -248,7 +245,7 @@ public class OptionsServiceTests
         var optionsService = GetOptionsServiceForTest();
 
         // Act
-        bool optionListExists = await optionsService.OptionListExists(Org, targetRepository, Developer, optionListId);
+        bool optionListExists = await optionsService.OptionsListExists(Org, targetRepository, Developer, optionListId);
 
         // Assert
         Assert.False(optionListExists);

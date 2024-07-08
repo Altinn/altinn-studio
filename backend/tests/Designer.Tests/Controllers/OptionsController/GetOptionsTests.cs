@@ -10,16 +10,18 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OptionsController;
 
-public class GetTests : DisagnerEndpointsTestsBase<GetTests>, IClassFixture<WebApplicationFactory<Program>>
+public class GetOptionsTests : DisagnerEndpointsTestsBase<GetOptionsTests>, IClassFixture<WebApplicationFactory<Program>>
 {
-    public GetTests(WebApplicationFactory<Program> factory) : base(factory)
+    public GetOptionsTests(WebApplicationFactory<Program> factory) : base(factory)
     {
     }
 
     [Fact]
-    public async Task GetOptionListIds_Returns_200OK_With_OptionListIds()
+    public async Task GetOptionsListIds_Returns200OK_WithOptionsListIds()
     {
         // Arrange
+        string[] expectedOptionsListIds =  ["other-options", "test-options"];
+
         const string repo = "app-with-options";
         string apiUrl = $"/designer/api/ttd/{repo}/options";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
@@ -31,11 +33,11 @@ public class GetTests : DisagnerEndpointsTestsBase<GetTests>, IClassFixture<WebA
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-        Assert.Equal(2, responseList.Length);
+        Assert.Equal(expectedOptionsListIds, responseList);
     }
 
     [Fact]
-    public async Task GetOptionListIds_Returns_200OK_With_Empty_OptionListId_Array()
+    public async Task GetOptionsListIds_Returns200OK_WithEmptyOptionsListIdArray_WhenAppHasNoOptionsList()
     {
         // Arrange
         const string repo = "empty-app";
@@ -53,28 +55,13 @@ public class GetTests : DisagnerEndpointsTestsBase<GetTests>, IClassFixture<WebA
     }
 
     [Fact]
-    public async Task GetSingleOptionList_Returns_200Ok_With_OptionList()
+    public async Task GetSingleOptionsList_Returns200Ok_WithOptionsList()
     {
         // Arrange
         const string repo = "app-with-options";
-        const string optionListId = "test-options";
+        const string optionsListId = "test-options";
 
-        // This  option list matches the options in 'app-with-options'
-        var expectedOptionList = new List<Option>
-        {
-            new Option
-            {
-                Label = "label1",
-                Value = "value1",
-            },
-            new Option
-            {
-                Label = "label2",
-                Value = "value2",
-            }
-        };
-
-        string apiUrl = $"/designer/api/ttd/{repo}/options/{optionListId}";
+        string apiUrl = $"/designer/api/ttd/{repo}/options/{optionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
 
         // Act
@@ -84,25 +71,23 @@ public class GetTests : DisagnerEndpointsTestsBase<GetTests>, IClassFixture<WebA
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-        Assert.Equal(expectedOptionList.Count, responseList.Count);
+        Assert.Equal(2, responseList.Count);
 
-        for (int i = 0; i < expectedOptionList.Count; i++)
-        {
-            Assert.Equal(expectedOptionList[i].Label, responseList[i].Label);
-            Assert.Equal(expectedOptionList[i].Value, responseList[i].Value);
-            Assert.Equal(expectedOptionList[i].Description, responseList[i].Description);
-            Assert.Equal(expectedOptionList[i].HelpText, responseList[i].HelpText);
-        }
+        Assert.Equal("label1", responseList[0].Label);
+        Assert.Equal("value1", responseList[0].Value);
+
+        Assert.Equal("label2", responseList[1].Label);
+        Assert.Equal("value2", responseList[1].Value);
     }
 
     [Fact]
-    public async Task GetSingleOptionList_Returns_404NotFound_When_OptionList_Does_Not_Exist()
+    public async Task GetSingleOptionsList_Returns404NotFound_WhenOptionsListDoesNotExist()
     {
         // Arrange
         const string repo = "empty-app";
-        const string optionListId = "non-existing-options";
+        const string optionsListId = "non-existing-options";
 
-        string apiUrl = $"/designer/api/ttd/{repo}/options/{optionListId}";
+        string apiUrl = $"/designer/api/ttd/{repo}/options/{optionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
 
         // Act

@@ -9,9 +9,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OptionsController;
 
-public class DeleteTests : DisagnerEndpointsTestsBase<DeleteTests>, IClassFixture<WebApplicationFactory<Program>>
+public class DeleteOptionsTests : DisagnerEndpointsTestsBase<DeleteOptionsTests>, IClassFixture<WebApplicationFactory<Program>>
 {
-    public DeleteTests(WebApplicationFactory<Program> factory) : base(factory)
+    public DeleteOptionsTests(WebApplicationFactory<Program> factory) : base(factory)
     {
     }
 
@@ -19,16 +19,16 @@ public class DeleteTests : DisagnerEndpointsTestsBase<DeleteTests>, IClassFixtur
     private const string Developer = "testUser";
 
     [Fact]
-    public async Task Delete_Returns_200OK_When_Deleting_OptionList()
+    public async Task Delete_Returns_200OK_When_Deleting_OptionsList()
     {
         // Arrange
         const string repo = "app-with-options";
-        const string optionListId = "test-options";
+        const string optionsListId = "test-options";
 
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
 
-        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionListId}";
+        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, apiUrl);
 
         // Act
@@ -38,20 +38,20 @@ public class DeleteTests : DisagnerEndpointsTestsBase<DeleteTests>, IClassFixtur
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-        Assert.Equal($"The options file {optionListId}.json was successfully deleted.", responseDocument.RootElement.ToString());
+        Assert.Equal($"The options file {optionsListId}.json has been deleted.", responseDocument.RootElement.ToString());
     }
 
     [Fact]
-    public async Task Delete_Returns_404NotFound_When_OptionList_Does_Not_Exist()
+    public async Task Delete_Returns_200OK_When_OptionsList_Does_Not_Exist()
     {
         // Arrange
         const string repo = "empty-app";
-        const string optionListId = "non-existing-options";
+        const string optionsListId = "non-existing-options";
 
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
 
-        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionListId}";
+        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, apiUrl);
 
         // Act
@@ -60,7 +60,7 @@ public class DeleteTests : DisagnerEndpointsTestsBase<DeleteTests>, IClassFixtur
         JsonDocument responseDocument = JsonDocument.Parse(responseBody);
 
         // Assert
-        Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
-        Assert.Equal($"The options file {optionListId}.json does not exist.", responseDocument.RootElement.ToString());
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+        Assert.Equal($"The options file {optionsListId}.json has been deleted.", responseDocument.RootElement.ToString());
     }
 }

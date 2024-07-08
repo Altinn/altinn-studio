@@ -260,7 +260,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string optionsId = "test-options";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
-            string options = await altinnAppGitRepository.GetOptions(optionsId);
+            string options = await altinnAppGitRepository.GetOptionsList(optionsId);
             options.Should().NotBeNull();
             var optionsArray = JsonNode.Parse(options).AsArray();
             optionsArray.Count.Should().Be(2);
@@ -277,7 +277,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string optionsId = "non-existing-test-options";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
-            await Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () => await altinnAppGitRepository.GetOptions(optionsId));
+            await Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () => await altinnAppGitRepository.GetOptionsList(optionsId));
         }
 
         [Fact]
@@ -288,7 +288,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string developer = "testUser";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
-            string[] optionListIds = altinnAppGitRepository.GetOptionListIds();
+            string[] optionListIds = altinnAppGitRepository.GetOptionsListIds();
 
             optionListIds.Should().NotBeNull();
             optionListIds.Should().HaveCount(2);
@@ -302,7 +302,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string repository = "empty-app";
             string developer = "testUser";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
-            Assert.Throws<LibGit2Sharp.NotFoundException>(altinnAppGitRepository.GetOptionListIds);
+            Assert.Throws<LibGit2Sharp.NotFoundException>(altinnAppGitRepository.GetOptionsListIds);
             return Task.CompletedTask;
         }
 
@@ -336,7 +336,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string newOptionsListString = JsonSerializer.Serialize(newOptionsList, jsonOptions);
 
             // Act
-            string savedOptionsList = await altinnAppGitRepository.CreateOrOverwriteOptions(newOptionName, newOptionsListString);
+            string savedOptionsList = await altinnAppGitRepository.CreateOrOverwriteOptionsList(newOptionName, newOptionsListString);
 
             // Assert
             Assert.Equal(newOptionsListString, savedOptionsList);
@@ -372,7 +372,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string newOptionsListString = JsonSerializer.Serialize(newOptionsList, jsonOptions);
 
             // Act
-            string savedOptionsList = await altinnAppGitRepository.CreateOrOverwriteOptions(newOptionName, newOptionsListString);
+            string savedOptionsList = await altinnAppGitRepository.CreateOrOverwriteOptionsList(newOptionName, newOptionsListString);
 
             // Assert
             Assert.Equal(newOptionsListString, savedOptionsList);

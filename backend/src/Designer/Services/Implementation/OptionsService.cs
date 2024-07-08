@@ -9,7 +9,7 @@ using LibGit2Sharp;
 namespace Altinn.Studio.Designer.Services.Implementation;
 
 /// <summary>
-/// Service for handling options (code lists).
+/// Service for handling options lists (code lists).
 /// </summary>
 public class OptionsService : IOptionsService
 {
@@ -25,14 +25,14 @@ public class OptionsService : IOptionsService
     }
 
     /// <inheritdoc />
-    public string[] GetOptionListIds(string org, string repo, string developer)
+    public string[] GetOptionsListIds(string org, string repo, string developer)
     {
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
         try
         {
-            string[] optionLists = altinnAppGitRepository.GetOptionListIds();
-            return optionLists;
+            string[] optionsLists = altinnAppGitRepository.GetOptionsListIds();
+            return optionsLists;
         }
         catch (NotFoundException) // Is raised if the Options folder does not exist
         {
@@ -41,19 +41,19 @@ public class OptionsService : IOptionsService
     }
 
     /// <inheritdoc />
-    public async Task<List<Option>> GetOptions(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken = default)
+    public async Task<List<Option>> GetOptionsList(string org, string repo, string developer, string optionsListId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-        string optionListString = await altinnAppGitRepository.GetOptions(optionListId, cancellationToken);
-        var optionList = JsonSerializer.Deserialize<List<Option>>(optionListString);
+        string optionsListString = await altinnAppGitRepository.GetOptionsList(optionsListId, cancellationToken);
+        var optionsList = JsonSerializer.Deserialize<List<Option>>(optionsListString);
 
-        return optionList;
+        return optionsList;
     }
 
     /// <inheritdoc />
-    public async Task<List<Option>> UpdateOptions(string org, string repo, string developer, string optionListId, List<Option> payload, CancellationToken cancellationToken = default)
+    public async Task<List<Option>> CreateOrOverwriteOptionsList(string org, string repo, string developer, string optionsListId, List<Option> payload, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
@@ -61,28 +61,28 @@ public class OptionsService : IOptionsService
         var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
         string payloadString = JsonSerializer.Serialize(payload, jsonOptions);
 
-        string updatedOptionsString = await altinnAppGitRepository.CreateOrOverwriteOptions(optionListId, payloadString, cancellationToken);
+        string updatedOptionsString = await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, payloadString, cancellationToken);
         var updatedOptions = JsonSerializer.Deserialize<List<Option>>(updatedOptionsString);
 
         return updatedOptions;
     }
 
     /// <inheritdoc />
-    public void DeleteOptions(string org, string repo, string developer, string optionListId)
+    public void DeleteOptionsList(string org, string repo, string developer, string optionsListId)
     {
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-        altinnAppGitRepository.DeleteOptions(optionListId);
+        altinnAppGitRepository.DeleteOptionsList(optionsListId);
     }
 
     /// <inheritdoc />
-    public async Task<bool> OptionListExists(string org, string repo, string developer, string optionListId, CancellationToken cancellationToken = default)
+    public async Task<bool> OptionsListExists(string org, string repo, string developer, string optionsListId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         try
         {
-            await GetOptions(org, repo, developer, optionListId, cancellationToken);
+            await GetOptionsList(org, repo, developer, optionsListId, cancellationToken);
             return true;
         }
         catch (NotFoundException)
