@@ -16,9 +16,11 @@ export const StudioNativeSelect = forwardRef<HTMLSelectElement, StudioNativeSele
   ({ children, description, label, id, size, ...rest }, ref): React.JSX.Element => {
     return (
       <div className={classes.wrapper}>
-        <Label size={size} spacing htmlFor={id}>
-          {label}
-        </Label>
+        {label && (
+          <Label size={size} spacing htmlFor={id}>
+            {label}
+          </Label>
+        )}
         {description && (
           <Paragraph
             className={classes.studioNativeSelectDescription}

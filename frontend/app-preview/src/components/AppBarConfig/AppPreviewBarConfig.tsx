@@ -1,7 +1,7 @@
 import React from 'react';
 import { RepositoryType } from 'app-shared/types/global';
 import type { TFunction } from 'i18next';
-import { LegacySelect, LegacyToggleButtonGroup } from '@digdir/design-system-react';
+import { LegacyToggleButtonGroup } from '@digdir/design-system-react';
 import type { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import classes from '../AppPreviewSubMenu.module.css';
 import { ArrowCirclepathIcon, EyeIcon, LinkIcon } from '@studio/icons';
@@ -12,7 +12,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioNativeSelect } from '@studio/components';
 
 export interface AppPreviewMenuItem {
   key: string;
@@ -66,14 +66,16 @@ export const SubPreviewMenuLeftContent = ({
       </div>
       {layoutSets && (
         <div className={classes.layoutSetSelector}>
-          <LegacySelect
+          <StudioNativeSelect
             onChange={(layoutSet) => handleChangeLayoutSet(layoutSet)}
-            options={layoutSets.sets.map((layoutSet) => ({
-              label: layoutSet.id,
-              value: layoutSet.id,
-            }))}
             value={selectedLayoutSet}
-          />
+          >
+            {layoutSets.sets.map((layoutSet) => (
+              <option key={layoutSet.id} value={layoutSet.id}>
+                {layoutSet.id}
+              </option>
+            ))}
+          </StudioNativeSelect>
         </div>
       )}
     </div>
