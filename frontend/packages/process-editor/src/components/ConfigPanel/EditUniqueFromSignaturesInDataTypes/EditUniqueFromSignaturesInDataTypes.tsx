@@ -13,7 +13,6 @@ export const EditUniqueFromSignaturesInDataTypes = () => {
   const { bpmnDetails } = useBpmnContext();
   const selectedDataTypes = getSelectedDataTypes(bpmnDetails);
   const existingDataTypeForTask = selectedDataTypes.length > 0;
-
   const [isSelectVisible, setIsSelectVisible] = useState(false);
 
   const studioModeler = new StudioModeler();
