@@ -1,11 +1,9 @@
 import type { Policy } from 'app-shared/types/Policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
 import { PaymentPolicyBuilder } from '../../../utils/policy';
-import {
-  getDataTypeIdFromBusinessObject,
-  getLayoutSetIdFromTaskId,
-} from '@altinn/process-editor/utils/hookUtils/hookUtils';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import { getLayoutSetIdFromTaskId } from '../bpmnHandlerUtils/bpmnHandlerUtils';
+import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioModeler';
 
 export class OnProcessTaskRemoveHandler {
   constructor(
@@ -59,13 +57,21 @@ export class OnProcessTaskRemoveHandler {
    * @private
    */
   private handlePaymentTaskRemove(taskMetadata: OnProcessTaskEvent): void {
-    const dataTypeId = getDataTypeIdFromBusinessObject(
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element);
+    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
       taskMetadata.taskType,
       taskMetadata.taskEvent.element.businessObject,
     );
-
     this.deleteDataTypeFromAppMetadata({
       dataTypeId,
+    });
+
+    const receiptPdfDataTypeId = studioModeler.getReceiptPdfDataTypeIdFromBusinessObject(
+      taskMetadata.taskType,
+      taskMetadata.taskEvent.element.businessObject,
+    );
+    this.deleteDataTypeFromAppMetadata({
+      dataTypeId: receiptPdfDataTypeId,
     });
 
     const paymentPolicyBuilder = new PaymentPolicyBuilder(this.org, this.app);
@@ -99,11 +105,11 @@ export class OnProcessTaskRemoveHandler {
    * @private
    */
   private handleSigningTaskRemove(taskMetadata: OnProcessTaskEvent): void {
-    const dataTypeId = getDataTypeIdFromBusinessObject(
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element);
+    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
       taskMetadata.taskType,
       taskMetadata.taskEvent.element.businessObject,
     );
-
     this.deleteDataTypeFromAppMetadata({
       dataTypeId,
     });

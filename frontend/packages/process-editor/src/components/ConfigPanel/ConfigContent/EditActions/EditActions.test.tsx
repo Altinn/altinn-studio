@@ -5,10 +5,10 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { EditActions } from './EditActions';
 import { BpmnContext } from '../../../../contexts/BpmnContext';
 import { mockBpmnContextValue } from '../../../../../test/mocks/bpmnContextMock';
-import { type Action, BpmnActionModeler } from '../../../../utils/bpmn/BpmnActionModeler';
+import { type Action, BpmnActionModeler } from '../../../../utils/bpmnModeler/BpmnActionModeler';
 import { BpmnConfigPanelFormContextProvider } from '../../../../contexts/BpmnConfigPanelContext';
 
-jest.mock('../../../../utils/bpmn/BpmnActionModeler');
+jest.mock('../../../../utils/bpmnModeler/BpmnActionModeler');
 
 const actionElementDefaultMock: Action = {
   $type: 'altinn:Action',

@@ -17,7 +17,7 @@ using Xunit;
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
     public class DeleteLayoutSetTests(WebApplicationFactory<Program> factory)
-          : DisagnerEndpointsTestsBase<DeleteLayoutSetTests>(factory), IClassFixture<WebApplicationFactory<Program>>
+          : DesignerEndpointsTestsBase<DeleteLayoutSetTests>(factory), IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) =>
             $"/designer/api/{org}/{repository}/app-development";

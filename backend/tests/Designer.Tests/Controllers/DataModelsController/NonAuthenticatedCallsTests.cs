@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class NonAuthenticatedCallsTests : DisagnerEndpointsTestsBase<NonAuthenticatedCallsTests>, IClassFixture<WebApplicationFactory<Program>>
+public class NonAuthenticatedCallsTests : DesignerEndpointsTestsBase<NonAuthenticatedCallsTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
     private readonly WebApplicationFactory<Program> _factory;
