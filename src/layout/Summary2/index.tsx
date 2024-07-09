@@ -33,7 +33,7 @@ export class Summary2 extends Summary2Def {
     return null;
   }
   shouldRenderInAutomaticPDF() {
-    return false;
+    return true;
   }
 
   getDisplayData(): string {
