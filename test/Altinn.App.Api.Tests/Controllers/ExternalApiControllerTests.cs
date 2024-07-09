@@ -61,10 +61,10 @@ public class ExternalApiControllerTests
         var result = await controller.Get(1, Guid.NewGuid(), externalApiId, queryParams);
 
         // Assert
-        result.Should().BeOfType<NotFoundObjectResult>();
-        var objectResult = result as NotFoundObjectResult;
-        objectResult?.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
-        objectResult?.Value.Should().Be("External api not found.");
+        result.Should().BeOfType<BadRequestObjectResult>();
+        var objectResult = result as BadRequestObjectResult;
+        objectResult?.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
+        objectResult?.Value.Should().Be($"External api with id '{externalApiId}' not found.");
     }
 
     [Fact]

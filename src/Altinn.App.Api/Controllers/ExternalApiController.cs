@@ -57,8 +57,8 @@ public class ExternalApiController : ControllerBase
 
             if (!wasExternalApiFound)
             {
-                _logger.LogWarning("External api not found.");
-                return NotFound("External api not found.");
+                _logger.LogWarning("External api with id '{ExternalApiId}' not found.", externalApiId);
+                return BadRequest($"External api with id '{externalApiId}' not found.");
             }
 
             return Ok(externalApiData);
