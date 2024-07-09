@@ -570,11 +570,13 @@ public class DataController : ControllerBase
                 _logger.LogError(errorMsg);
                 return BadRequest(errorMsg);
             }
-            else if (dataType.AppLogic?.ClassRef is not null)
-            {
-                // trying deleting a form element
-                return BadRequest("Deleting form data is not possible at this moment.");
-            }
+
+            // TODO: Fix this, specify allowable for subform data, while leaving legacy functionality?
+            // else if (dataType.AppLogic?.ClassRef is not null)
+            // {
+            //     // trying deleting a form element
+            //     return BadRequest("Deleting form data is not possible at this moment.");
+            // }
 
             return await DeleteBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
         }
