@@ -1315,7 +1315,7 @@
   "schema_editor.delete": "Slett",
   "schema_editor.delete_data_model": "Slett datamodell",
   "schema_editor.delete_field": "Slett felt",
-  "schema_editor.delete_model_confirm": "Er du sikker på at du vil slette {{schemaName}}?",
+  "schema_editor.delete_model_confirm": "Er du sikker på at du vil slette datamodellen <bold>{{schemaName}}</bold>?",
   "schema_editor.depth_error": "Det er ikke mulig å plassere gruppen her fordi det vil føre til at skjemaet får for mange nivåer.",
   "schema_editor.description": "Tekst",
   "schema_editor.descriptive_fields": "Beskrivende felter",
