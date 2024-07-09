@@ -210,7 +210,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.ConfigureNonMarkedSettings(configuration);
 
     services.RegisterTypedHttpClients(configuration);
-    services.ConfigureAuthentication(configuration, env);
+    services.ConfigureAuthentication(configuration);
 
     services.Configure<CacheSettings>(configuration.GetSection("CacheSettings"));
 

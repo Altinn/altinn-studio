@@ -402,29 +402,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <summary>
-        /// Return the App Token id generated to let AltinnCore contact GITEA on behalf of app developer
-        /// </summary>
-        /// <returns>The app token id</returns>
-        public string GetAppTokenId()
-        {
-            return AuthenticationHelper.GetDeveloperAppTokenId(_httpContextAccessor.HttpContext);
-        }
-
-        /// <summary>
         /// Return the deploy Token generated to let azure devops pipeline clone private GITEA repos on behalf of app developer
         /// </summary>
         /// <returns>The deploy app token</returns>
         public async Task<string> GetDeployToken()
         {
-            string deployToken = string.Empty;
-
-            KeyValuePair<string, string> deployKeyValuePair = await _gitea.GetSessionAppKey("AltinnDeployToken") ?? default(KeyValuePair<string, string>);
-            if (!deployKeyValuePair.Equals(default(KeyValuePair<string, string>)))
-            {
-                deployToken = deployKeyValuePair.Value;
-            }
-
-            return deployToken;
+            return await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
         }
 
         /// <summary>
@@ -638,7 +621,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new LibGit2Sharp.Signature(username, $"{username}@noreply.altinn.studio", DateTime.Now);
         }
 
-        private LibGit2Sharp.Handlers.CredentialsHandler CredentialsProvider() => (url, user, cred) => new UsernamePasswordCredentials { Username = AuthenticationHelper.GetDeveloperAppToken(_httpContextAccessor.HttpContext), Password = GetAppToken() };
+        private LibGit2Sharp.Handlers.CredentialsHandler CredentialsProvider() => (url, user, cred) => new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
+
+        private async Task<LibGit2Sharp.Handlers.CredentialsHandler> GetCredentialsAsync()
+        {
+            string token = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
+            return (url, user, cred) => new UsernamePasswordCredentials { Username = token, Password = string.Empty };
+        }
 
         private void FetchGitNotes(string localRepositoryPath)
         {

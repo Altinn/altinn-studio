@@ -192,20 +192,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public string GetAppTokenId()
-        {
-            try
-            {
-                return _decoratedService.GetAppTokenId();
-            }
-            catch (Exception ex)
-            {
-                LogError(ex, "GetAppTokenId");
-                throw;
-            }
-        }
-
-        /// <inheritdoc/>
         public Task<string> GetDeployToken()
         {
             try
@@ -400,25 +386,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private void LogError(Exception ex, string method, string org, string repository, string destinationPath, string branch)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            var debugInfo = GetDebugInfo();
 
-            _logger.LogError(ex, $"Failed executing method {method} for user {developer} in org {org} / repository {repository}. Destination: {destinationPath}. Branch: {branch}. Debug info: {debugInfo}");
-        }
-
-        private object GetDebugInfo()
-        {
-            var designerSessionTimeOut = AuthenticationHelper.GetRemainingSessionTime(_httpContextAccessor.HttpContext, _generalSettings.SessionTimeoutCookieName);
-            var developerAppTokenId = AuthenticationHelper.GetDeveloperAppTokenId(_httpContextAccessor.HttpContext);
-            var developerAppToken = AuthenticationHelper.GetDeveloperAppToken(_httpContextAccessor.HttpContext);
-
-            var debugInfo = new
-            {
-                DesignerSessionTimeOutSeconds = designerSessionTimeOut.TotalSeconds,
-                DeveloperAppTokenId = developerAppTokenId ?? string.Empty,
-                TokenLength = developerAppToken?.Length ?? 0
-            };
-
-            return System.Text.Json.JsonSerializer.Serialize(debugInfo);
+            _logger.LogError(ex, $"Failed executing method {method} for user {developer} in org {org} / repository {repository}. Destination: {destinationPath}. Branch: {branch}.");
         }
     }
 }
