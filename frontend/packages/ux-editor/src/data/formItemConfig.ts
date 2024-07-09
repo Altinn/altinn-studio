@@ -118,7 +118,12 @@ export const formItemConfigs: FormItemConfigs = {
     defaultProperties: {},
     propertyPath: 'definitions/buttonGroupComponent',
     icon: FingerButtonIcon,
-    validChildTypes: [ComponentType.Button],
+    validChildTypes: [
+      ComponentType.Button,
+      ComponentType.NavigationButtons,
+      ComponentType.PrintButton,
+      ComponentType.InstantiationButton,
+    ],
   },
   [ComponentType.Checkboxes]: {
     name: ComponentType.Checkboxes,
