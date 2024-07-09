@@ -4,7 +4,7 @@ import type { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import classes from './StringRestrictions.module.css';
 import { Fieldset, Label, Switch, Textfield } from '@digdir/designsystemet-react';
-import { LegacyTextField, LegacySelect } from '@digdir/design-system-react';
+import { LegacyTextField } from '@digdir/design-system-react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import { Divider } from 'app-shared/primitives';
@@ -15,6 +15,7 @@ import {
   StringRestrictionsReducerActionType,
 } from './StringRestrictionsReducer';
 import { useTranslation } from 'react-i18next';
+import { StudioNativeSelect } from '@studio/components';
 
 export function StringRestrictions({
   onChangeRestrictionValue,
@@ -65,72 +66,77 @@ export function StringRestrictions({
   const dispatchAction = (type: StringRestrictionsReducerActionType, value: any) =>
     dispatch({ type, value, changeCallback } as StringRestrictionsReducerAction);
 
-  const noFormatOption = { label: t('format_none'), value: '' };
+  const formatOptions = Object.values(StringFormat).map((f) => ({
+    key: f,
+    value: f as string,
+    label: t(`format_${f}`),
+  }));
   const formatMinLangKey = `format_date_after_${formatState.earliestIsInclusive ? 'incl' : 'excl'}`;
   const formatMaxLangKey = `format_date_before_${formatState.latestIsInclusive ? 'incl' : 'excl'}`;
 
   return (
     <>
       <Divider marginless />
-      <LegacySelect
-        inputId='format-select-input'
+      <StudioNativeSelect
+        id='format-select-input'
         label={t('format')}
-        onChange={(value: string) => setRestriction(StrRestrictionKey.format, value)}
-        options={[
-          noFormatOption,
-          ...Object.values(StringFormat).map((f) => ({
-            label: t(`format_${f}`),
-            value: f as string,
-          })),
-        ]}
+        onChange={(event) => setRestriction(StrRestrictionKey.format, event.target.value)}
         value={restrictions[StrRestrictionKey.format] || ''}
-      />
+        size='sm'
+      >
+        <option value=''>{t('format_none')}</option>
+        {formatOptions.map((f) => (
+          <option key={f.key} value={f.value}>
+            {f.label}
+          </option>
+        ))}
+      </StudioNativeSelect>
       {[StringFormat.Date, StringFormat.DateTime, StringFormat.Time].includes(
         restrictions[StrRestrictionKey.format],
       ) && (
-        <>
-          <div>
-            <div className={classes.formatFieldsRowContent}>
-              <Textfield
-                label={t(formatMinLangKey)}
-                onChange={(e) =>
-                  dispatchAction(StringRestrictionsReducerActionType.setEarliest, e.target.value)
-                }
-                value={formatState.earliest}
-              />
-              <Switch
-                size='small'
-                checked={formatState.earliestIsInclusive}
-                onChange={(e) =>
-                  dispatchAction(StringRestrictionsReducerActionType.setMinIncl, e.target.checked)
-                }
-              >
-                {t('format_date_inclusive')}
-              </Switch>
+          <>
+            <div>
+              <div className={classes.formatFieldsRowContent}>
+                <Textfield
+                  label={t(formatMinLangKey)}
+                  onChange={(e) =>
+                    dispatchAction(StringRestrictionsReducerActionType.setEarliest, e.target.value)
+                  }
+                  value={formatState.earliest}
+                />
+                <Switch
+                  size='small'
+                  checked={formatState.earliestIsInclusive}
+                  onChange={(e) =>
+                    dispatchAction(StringRestrictionsReducerActionType.setMinIncl, e.target.checked)
+                  }
+                >
+                  {t('format_date_inclusive')}
+                </Switch>
+              </div>
             </div>
-          </div>
-          <div>
-            <div className={classes.formatFieldsRowContent}>
-              <Textfield
-                label={t(formatMaxLangKey)}
-                onChange={(e) =>
-                  dispatchAction(StringRestrictionsReducerActionType.setLatest, e.target.value)
-                }
-                value={formatState.latest}
-              />
-              <Switch
-                size='small'
-                checked={formatState.latestIsInclusive}
-                onChange={(e) =>
-                  dispatchAction(StringRestrictionsReducerActionType.setMaxIncl, e.target.checked)
-                }
-              >
-                {t('format_date_inclusive')}
-              </Switch>
+            <div>
+              <div className={classes.formatFieldsRowContent}>
+                <Textfield
+                  label={t(formatMaxLangKey)}
+                  onChange={(e) =>
+                    dispatchAction(StringRestrictionsReducerActionType.setLatest, e.target.value)
+                  }
+                  value={formatState.latest}
+                />
+                <Switch
+                  size='small'
+                  checked={formatState.latestIsInclusive}
+                  onChange={(e) =>
+                    dispatchAction(StringRestrictionsReducerActionType.setMaxIncl, e.target.checked)
+                  }
+                >
+                  {t('format_date_inclusive')}
+                </Switch>
+              </div>
             </div>
-          </div>
-        </>
-      )}
+          </>
+        )}
       <div className={classes.lengthFields}>
         <div className={classes.lengthField}>
           <LegacyTextField

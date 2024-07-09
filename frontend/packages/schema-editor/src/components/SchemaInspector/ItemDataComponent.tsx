@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions } from './helpers/options';
 import { Fieldset, Textfield, Switch } from '@digdir/designsystemet-react';
-import { LegacyTextArea, LegacySelect } from '@digdir/design-system-react';
+import { LegacyTextArea } from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
 import type { CombinationKind, UiSchemaNode } from '@altinn/schema-model';
@@ -31,6 +31,7 @@ import { useTranslation } from 'react-i18next';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
 import { NameField } from './NameField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
+import { StudioNativeSelect } from '@studio/components';
 
 export type IItemDataComponentProps = {
   schemaNode: UiSchemaNode;
@@ -140,14 +141,18 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
             </Switch>
           )}
           {isCombination(schemaNode) && (
-            <LegacySelect
+            <StudioNativeSelect
               label={t('schema_editor.type')}
-              onChange={(combination: string) =>
-                onChangeCombinationType(combination as CombinationKind)
-              }
-              options={getCombinationOptions(t)}
+              onChange={(event) => onChangeCombinationType(event.target.value as CombinationKind)}
               value={schemaNode.combinationType}
-            />
+              size='sm'
+            >
+              {getCombinationOptions(t).map((option) => (
+                <option key={option.value} value={option.value}>
+                  {t(option.label)}
+                </option>
+              ))}
+            </StudioNativeSelect>
           )}
           {isCombination(schemaNode) && (
             <Switch
