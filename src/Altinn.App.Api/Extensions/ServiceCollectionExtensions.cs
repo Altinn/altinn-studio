@@ -4,6 +4,7 @@ using Altinn.App.Api.Helpers;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Infrastructure.Health;
 using Altinn.App.Api.Infrastructure.Telemetry;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Maskinporten;
@@ -388,20 +389,28 @@ public static class ServiceCollectionExtensions
 
     private static void AddAuthorizationPolicies(IServiceCollection services)
     {
-        services.AddAuthorization(options =>
-        {
-            options.AddPolicy("InstanceRead", policy => policy.Requirements.Add(new AppAccessRequirement("read")));
-            options.AddPolicy("InstanceWrite", policy => policy.Requirements.Add(new AppAccessRequirement("write")));
-            options.AddPolicy("InstanceDelete", policy => policy.Requirements.Add(new AppAccessRequirement("delete")));
-            options.AddPolicy(
-                "InstanceInstantiate",
+        services
+            .AddAuthorizationBuilder()
+            .AddPolicy(
+                AuthzConstants.POLICY_INSTANCE_READ,
+                policy => policy.Requirements.Add(new AppAccessRequirement("read"))
+            )
+            .AddPolicy(
+                AuthzConstants.POLICY_INSTANCE_WRITE,
+                policy => policy.Requirements.Add(new AppAccessRequirement("write"))
+            )
+            .AddPolicy(
+                AuthzConstants.POLICY_INSTANCE_DELETE,
+                policy => policy.Requirements.Add(new AppAccessRequirement("delete"))
+            )
+            .AddPolicy(
+                AuthzConstants.POLICY_INSTANCE_INSTANTIATE,
                 policy => policy.Requirements.Add(new AppAccessRequirement("instantiate"))
-            );
-            options.AddPolicy(
-                "InstanceComplete",
+            )
+            .AddPolicy(
+                AuthzConstants.POLICY_INSTANCE_COMPLETE,
                 policy => policy.Requirements.Add(new AppAccessRequirement("complete"))
             );
-        });
     }
 
     private static void AddAuthenticationScheme(

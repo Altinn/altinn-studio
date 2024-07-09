@@ -108,7 +108,7 @@ public class DataController : ControllerBase
     /// <summary>
     /// Creates and instantiates a data element of a given element-type. Clients can upload the data element in the request content.
     /// </summary>
-    /// <param name="org">unique identfier of the organisation responsible for the app</param>
+    /// <param name="org">unique identifier of the organisation responsible for the app</param>
     /// <param name="app">application identifier which is unique within an organisation</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that this the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
@@ -273,9 +273,9 @@ public class DataController : ControllerBase
     }
 
     /// <summary>
-    /// Gets a data element from storage and applies business logic if nessesary.
+    /// Gets a data element from storage and applies business logic if necessary.
     /// </summary>
-    /// <param name="org">unique identfier of the organisation responsible for the app</param>
+    /// <param name="org">unique identifier of the organisation responsible for the app</param>
     /// <param name="app">application identifier which is unique within an organisation</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
