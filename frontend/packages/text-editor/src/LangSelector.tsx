@@ -42,7 +42,7 @@ export const LangSelector = ({ onAddLang, options }: ILangSelectorProps) => {
           value={selectedOption.value}
           size='sm'
         >
-          <option value='' disabled selected hidden></option>
+          <option value='' disabled hidden></option>
           {options.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
