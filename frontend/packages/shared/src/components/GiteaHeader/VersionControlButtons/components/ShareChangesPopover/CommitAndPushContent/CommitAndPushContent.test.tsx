@@ -95,8 +95,8 @@ describe('CommitAndPushContent', () => {
     });
     await user.click(closeModalButton);
 
-    const modalBeforeClick = screen.queryByRole('dialog');
-    expect(modalBeforeClick).not.toBeInTheDocument();
+    const modalAfterClose = screen.queryByRole('dialog');
+    expect(modalAfterClose).not.toBeInTheDocument();
 
     expect(mockOnHidePopover).toHaveBeenCalledWith(false);
   });

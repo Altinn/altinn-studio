@@ -34,13 +34,9 @@ export const CommitAndPushContent = ({
     setCommitMessage(event.target.value);
   };
 
-  const handleModalOpen = () => {
-    setShowFileChangesIsOpen(true);
-    onHidePopover(true);
-  };
-  const handleModalClose = () => {
-    setShowFileChangesIsOpen(false);
-    onHidePopover(false);
+  const handleModalToggle = (isOpen: boolean) => {
+    setShowFileChangesIsOpen(isOpen);
+    onHidePopover(isOpen);
   };
 
   return (
@@ -56,7 +52,7 @@ export const CommitAndPushContent = ({
       </Paragraph>
       <StudioButton
         variant='tertiary'
-        onClick={handleModalOpen}
+        onClick={() => handleModalToggle(true)}
         size='small'
         icon={<ClockDashedIcon />}
       >
@@ -65,7 +61,7 @@ export const CommitAndPushContent = ({
       {showFileChangesIsOpen && (
         <FileChangesInfoModal
           isOpen={showFileChangesIsOpen}
-          onClose={handleModalClose}
+          onClose={() => handleModalToggle(false)}
           fileChanges={fileChanges}
         />
       )}
