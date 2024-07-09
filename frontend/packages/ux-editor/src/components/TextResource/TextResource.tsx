@@ -57,7 +57,6 @@ export const TextResource = ({
   };
 
   const handleClose = () => {
-    debugger;
     if (currentValue === '') {
       handleRemoveTextResource();
     }
