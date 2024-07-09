@@ -230,15 +230,15 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>Repo status</returns>
         [HttpGet]
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/pull")]
-        public RepoStatus Pull(string org, string repository)
+        public async Task<RepoStatus> Pull(string org, string repository)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
-            semaphore.Wait();
+            await semaphore.WaitAsync();
 
             try
             {
-                RepoStatus pullStatus = _sourceControl.PullRemoteChanges(org, repository);
+                RepoStatus pullStatus = await _sourceControl.PullRemoteChanges(org, repository);
 
                 RepoStatus status = _sourceControl.RepositoryStatus(org, repository);
 
@@ -506,7 +506,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The result of the cloning</returns>
         [HttpGet]
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/clone")]
-        public string CloneRemoteRepository(string org, string repository)
+        public Task<string> CloneRemoteRepository(string org, string repository)
         {
             return _sourceControl.CloneRemoteRepository(org, repository);
         }
