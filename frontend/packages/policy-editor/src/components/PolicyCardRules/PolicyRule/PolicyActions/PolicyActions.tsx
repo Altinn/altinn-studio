@@ -97,8 +97,9 @@ export const PolicyActions = (): React.ReactElement => {
           error={showAllErrors && policyError.actionsError}
           id={`selectAction-${uniqueId}`}
           size='sm'
+          defaultValue=''
         >
-          <option value='' hidden selected></option>
+          <option value='' hidden></option>
           {actionOptions.map((option) => (
             <option key={option.value} value={option.value}>
               {getTranslationByActionId(option.label)}

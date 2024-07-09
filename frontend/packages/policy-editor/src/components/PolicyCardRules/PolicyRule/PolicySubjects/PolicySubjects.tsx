@@ -92,8 +92,9 @@ export const PolicySubjects = (): React.ReactElement => {
           error={showAllErrors && policyError.subjectsError}
           id={`selectSubject-${uniqueId}`}
           size='sm'
+          defaultValue=''
         >
-          <option hidden selected value=''></option>
+          <option hidden value=''></option>
           {subjectOptions.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
