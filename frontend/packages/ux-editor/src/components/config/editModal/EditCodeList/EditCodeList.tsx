@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Textfield, ErrorMessage } from '@digdir/designsystemet-react';
-import { LegacySelect } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { useOptionListIdsQuery } from '../../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation, Trans } from 'react-i18next';
-import { StudioButton, StudioSpinner } from '@studio/components';
+import { StudioButton, StudioNativeSelect, StudioSpinner } from '@studio/components';
 
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { FormField } from '../../../FormField';
@@ -65,19 +64,27 @@ export function EditCodeList<
 
           {!useCustomCodeList && (
             <FormField
+              key={component.id}
               id={component.id}
               label={t('ux_editor.modal_properties_code_list_id')}
               onChange={handleOptionsIdChange}
               value={component.optionsId}
               propertyPath={`${component.propertyPath}/properties/optionsId`}
               renderField={({ fieldProps }) => (
-                <LegacySelect
-                  {...fieldProps}
-                  options={optionListIds.map((option) => ({
-                    label: option,
-                    value: option,
-                  }))}
-                />
+                <StudioNativeSelect
+                  onChange={(e) => fieldProps.onChange(e.target.value)}
+                  value={fieldProps.value}
+                  defaultValue=''
+                >
+                  <option hidden value=''>
+                    {t('ux_editor.modal_properties_code_list_helper')}
+                  </option>
+                  {optionListIds.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </StudioNativeSelect>
               )}
             />
           )}
