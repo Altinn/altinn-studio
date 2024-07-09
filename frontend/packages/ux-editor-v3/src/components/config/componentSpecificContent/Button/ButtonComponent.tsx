@@ -1,5 +1,5 @@
 import React from 'react';
-import { Fieldset } from '@digdir/design-system-react';
+import { Fieldset } from '@digdir/designsystemet-react';
 import classes from './ButtonComponent.module.css';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { EditSettings } from '../../componentConfig';

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { giteaEditLink, altinnDocsUrl } from 'app-shared/ext-urls';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../hooks';
-import { Link } from '@digdir/design-system-react';
+import { Link } from '@digdir/designsystemet-react';
 
 export const OldDynamicsInfo = () => {
   const { t } = useTranslation();

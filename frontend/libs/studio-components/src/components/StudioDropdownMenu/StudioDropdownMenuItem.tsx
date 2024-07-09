@@ -1,7 +1,7 @@
 import type { ReactNode, MouseEvent } from 'react';
 import React, { forwardRef, useContext } from 'react';
-import { DropdownMenu } from '@digdir/design-system-react';
-import type { DropdownMenuItemProps } from '@digdir/design-system-react';
+import { DropdownMenu } from '@digdir/designsystemet-react';
+import type { DropdownMenuItemProps } from '@digdir/designsystemet-react';
 import type { IconPlacement } from '../../types/IconPlacement';
 import type { OverridableComponent } from '../../types/OverridableComponent';
 import cn from 'classnames';

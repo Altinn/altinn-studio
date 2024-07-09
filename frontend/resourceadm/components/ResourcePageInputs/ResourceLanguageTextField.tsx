@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { Textarea, Textfield } from '@digdir/design-system-react';
+import { Textarea, Textfield } from '@digdir/designsystemet-react';
 import { RightTranslationBar } from '../RightTranslationBar';
 import type { ResourceFormError, SupportedLanguage } from 'app-shared/types/ResourceAdm';
 import { ResourceFieldHeader } from './ResourceFieldHeader';

@@ -1,7 +1,7 @@
 import React, { useContext, useMemo, useRef, useState } from 'react';
 import type { BooleanExpression } from './types/Expression';
 import { isExpressionValid } from './validators/isExpressionValid';
-import { Alert, Tabs } from '@digdir/design-system-react';
+import { Alert, Tabs } from '@digdir/designsystemet-react';
 import { SimplifiedEditor } from './SimplifiedEditor';
 import { ManualEditor } from './ManualEditor';
 import { isExpressionSimple } from './validators/isExpressionSimple';

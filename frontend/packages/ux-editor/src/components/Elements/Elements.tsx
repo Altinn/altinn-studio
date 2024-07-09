@@ -1,7 +1,7 @@
 import React from 'react';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
-import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
+import { Alert, Heading, Paragraph } from '@digdir/designsystemet-react';
 import { useAppContext } from '../../hooks';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
 

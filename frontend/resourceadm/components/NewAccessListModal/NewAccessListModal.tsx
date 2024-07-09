@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { useCreateAccessListMutation } from '../../hooks/mutations/useCreateAccessListMutation';
-import { Modal, Paragraph } from '@digdir/design-system-react';
+import { Modal, Paragraph } from '@digdir/designsystemet-react';
 import { ResourceNameAndId } from '../../components/ResourceNameAndId';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { StudioButton } from '@studio/components';

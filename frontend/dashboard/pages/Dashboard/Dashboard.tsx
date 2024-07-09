@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './Dashboard.module.css';
 import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent } from 'react';
-import { Textfield } from '@digdir/design-system-react';
+import { Textfield } from '@digdir/designsystemet-react';
 import { StudioButton } from '@studio/components';
 import { XMarkIcon } from '@studio/icons';
 import { CenterContainer } from '../../components/CenterContainer';

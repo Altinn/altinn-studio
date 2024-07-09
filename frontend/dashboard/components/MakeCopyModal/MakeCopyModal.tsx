@@ -1,6 +1,6 @@
 import React, { forwardRef, useState } from 'react';
 import { StudioModal } from '@studio/components';
-import { Heading } from '@digdir/design-system-react';
+import { Heading } from '@digdir/designsystemet-react';
 import classes from './MakeCopyModal.module.css';
 import { useTranslation } from 'react-i18next';
 import { useCopyAppMutation } from 'dashboard/hooks/mutations/useCopyAppMutation';

@@ -2,7 +2,7 @@ import type { HTMLAttributes } from 'react';
 import React from 'react';
 import { useOrgListQuery } from 'app-development/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { Alert } from '@digdir/design-system-react';
+import { Alert } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { StudioSpinner } from '@studio/components';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';

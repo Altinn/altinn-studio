@@ -1,5 +1,5 @@
 import type { ExpressionErrorKey } from '../../../../enums/ExpressionErrorKey';
-import { ErrorMessage, List } from '@digdir/design-system-react';
+import { ErrorMessage, List } from '@digdir/designsystemet-react';
 import React from 'react';
 import { useStudioExpressionContext } from '../../../../StudioExpressionContext';
 import classes from './SubexpressionErrors.module.css';

@@ -3,7 +3,7 @@ import classes from './TextRow.module.css';
 import type { TextResourceIdMutation, TextResourceVariable, TextTableRowEntry } from './types';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 import { TrashIcon, PencilIcon } from '@studio/icons';
-import { TableCell, TableRow, Textfield } from '@digdir/design-system-react';
+import { TableCell, TableRow, Textfield } from '@digdir/designsystemet-react';
 
 import { useTranslation } from 'react-i18next';
 import { ButtonContainer } from 'app-shared/primitives';

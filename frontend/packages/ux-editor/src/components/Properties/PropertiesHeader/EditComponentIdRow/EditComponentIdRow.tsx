@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StudioToggleableTextfieldSchema, type SchemaValidationError } from '@studio/components';
-import { Alert } from '@digdir/design-system-react';
+import { Alert } from '@digdir/designsystemet-react';
 import { KeyVerticalIcon } from '@studio/icons';
 import classes from './EditComponentIdRow.module.css';
 import { idExists } from '../../../../utils/formLayoutsUtils';
