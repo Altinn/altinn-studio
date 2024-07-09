@@ -27,7 +27,7 @@ describe('StringRestrictions', () => {
   afterEach(jest.clearAllMocks);
 
   test.each([
-    [StrRestrictionKey.format, 'button'],
+    [StrRestrictionKey.format, 'label'],
     [StrRestrictionKey.minLength, 'textbox'],
     [StrRestrictionKey.maxLength, 'textbox'],
     [StrRestrictionKey.pattern, 'textbox'],
@@ -56,27 +56,30 @@ describe('StringRestrictions', () => {
 
   test('Empty format option is selected by default', async () => {
     renderStringRestrictions();
-    const select = screen.getByRole('combobox', { name: textMock('schema_editor.format') });
-    await user.click(select);
     expect(
-      screen.getByRole('option', { name: textMock('schema_editor.format_none') }),
-    ).toHaveAttribute('aria-selected', 'true');
+      screen.getByRole<HTMLOptionElement>('option', { name: textMock('schema_editor.format_none') })
+        .selected,
+    ).toBe(true);
   });
 
   test('Given format option is selected', async () => {
     const format = StringFormat.Date;
     renderStringRestrictions({ restrictions: { format } });
-    expect(await getFormatSelect()).toHaveValue(textMock(`schema_editor.format_${format}`));
+    expect(
+      screen.getByRole<HTMLOptionElement>('option', {
+        name: textMock(`schema_editor.format_${format}`),
+      }).selected,
+    ).toBe(true);
   });
 
   test('onChangeRestrictions is called with correct input when format is changed', async () => {
     const { rerender } = renderStringRestrictions();
     const formatSelect = await getFormatSelect();
-    await user.click(formatSelect);
-    await user.click(
-      screen.getByRole('option', { name: textMock(`schema_editor.format_${StringFormat.Date}`) }),
-    ),
-      expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
+    await user.selectOptions(
+      formatSelect,
+      screen.getByRole('option', { name: textMock('schema_editor.format_' + StringFormat.Date) }),
+    );
+    expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
       expect.objectContaining({ [StrRestrictionKey.format]: StringFormat.Date }),
@@ -84,7 +87,10 @@ describe('StringRestrictions', () => {
     onChangeRestrictions.mockReset();
     rerender(<StringRestrictions {...defaultProps} />);
     await user.click(formatSelect);
-    await user.click(screen.getByRole('option', { name: textMock('schema_editor.format_none') }));
+    await user.selectOptions(
+      formatSelect,
+      screen.getByRole('option', { name: textMock('schema_editor.format_none') }),
+    );
     expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
     expect(onChangeRestrictions).toHaveBeenCalledWith(
       path,
@@ -313,8 +319,7 @@ describe('StringRestrictions', () => {
   });
 });
 
-const getFormatSelect = () =>
-  screen.findByRole('combobox', { name: textMock('schema_editor.format') });
+const getFormatSelect = () => screen.findByRole('combobox');
 const getInclusiveCheckboxes = () =>
   screen.getAllByLabelText(textMock('schema_editor.format_date_inclusive'));
 const getMinimumInclusiveCheckbox = () => getInclusiveCheckboxes()[0];

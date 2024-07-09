@@ -32,7 +32,6 @@ export const StudioNativeSelect = forwardRef<HTMLSelectElement, StudioNativeSele
         )}
         <NativeSelect
           ref={ref}
-          label={label}
           hideLabel
           size={size}
           id={id}

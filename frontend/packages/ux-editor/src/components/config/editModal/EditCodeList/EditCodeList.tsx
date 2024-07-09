@@ -74,7 +74,6 @@ export function EditCodeList<
                 <StudioNativeSelect
                   onChange={(e) => fieldProps.onChange(e.target.value)}
                   value={fieldProps.value}
-                  defaultValue=''
                 >
                   <option hidden value=''>
                     {t('ux_editor.modal_properties_code_list_helper')}

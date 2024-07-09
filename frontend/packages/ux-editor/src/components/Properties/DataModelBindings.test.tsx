@@ -287,7 +287,6 @@ describe('DataModelBindings', () => {
       name: textMock(`ux_editor.component_title.Input`),
     });
     await user.click(dataModelButton);
-
     const dataModelFieldSelector = screen.getByRole('combobox', {
       name: textMock('ux_editor.modal_properties_data_model_field_binding'),
     });

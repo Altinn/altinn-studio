@@ -23,10 +23,9 @@ export const TextResourcePicker = ({
   return (
     <StudioNativeSelect
       label={t('ux_editor.search_text_resources_label')}
-      onChange={(event) => {
-        console.log('event.target.value', event.target.value);
-        onReferenceChange(event.target.value === '' ? undefined : event.target.value);
-      }}
+      onChange={(event) =>
+        onReferenceChange(event.target.value === '' ? undefined : event.target.value)
+      }
       value={textResourceId}
       size='sm'
     >

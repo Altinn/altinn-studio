@@ -7,7 +7,6 @@ import type { RequiredAuthLevel } from '../../types';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const mockInitialAuthLevelValue: RequiredAuthLevel = '0';
-const mockInitialAuthLevelLabel: string = textMock(authlevelOptions[0].label);
 const mockLabel: string = textMock('policy_editor.select_auth_level_label');
 
 const mockOnSave = jest.fn();
@@ -21,17 +20,15 @@ describe('SelectAuthLevel', () => {
   };
 
   it('updates the selected value when the user changes the selection', async () => {
-    const user = userEvent.setup();
     render(<SecurityLevelSelect {...defaultProps} />);
 
     const [selectElement] = screen.getAllByLabelText(mockLabel);
+    expect(selectElement).toHaveValue(authlevelOptions[0].value);
 
-    expect(selectElement).toHaveValue(mockInitialAuthLevelLabel);
-
-    await user.click(selectElement);
-
-    const mockOption2 = textMock(authlevelOptions[2].label);
-    await user.click(screen.getByRole('option', { name: mockOption2 }));
+    await userEvent.selectOptions(
+      selectElement,
+      screen.getByRole('option', { name: textMock(authlevelOptions[2].label) }),
+    );
 
     expect(mockOnSave).toHaveBeenCalledWith(authlevelOptions[2].value);
   });

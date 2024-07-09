@@ -106,9 +106,7 @@ describe('SelectDataModelComponent', () => {
 
   it('should show select with provided value', async () => {
     await render();
-    const select = screen.getByRole('combobox', {
-      name: textMock(`ux_editor.component_title.${ComponentType.Input}`),
-    });
+    const select = screen.getByRole('combobox');
     await user.click(select);
     expect(screen.getByText('testModel.field1')).toBeInTheDocument();
   });
@@ -133,9 +131,7 @@ describe('SelectDataModelComponent', () => {
     await render({
       componentType: ComponentType.RepeatingGroup,
     });
-    const selectElement = screen.getByRole('combobox', {
-      name: textMock(`ux_editor.component_title.${ComponentType.RepeatingGroup}`),
-    });
+    const selectElement = screen.getByRole('combobox');
     await user.click(selectElement);
     const optionElement1 = screen.queryByText('testModel.field1');
     const optionElement2 = screen.getByText('multipleAnswers');
@@ -150,9 +146,7 @@ describe('SelectDataModelComponent', () => {
       componentType: ComponentType.FileUpload,
       label: 'list',
     });
-    const selectElement = screen.getByRole('combobox', {
-      name: textMock(`ux_editor.component_title.${ComponentType.FileUpload}`),
-    });
+    const selectElement = screen.getByRole('combobox');
     await user.click(selectElement);
     const optionElement1 = screen.queryByText('testModel.field1');
     const optionElement2 = screen.getByText('multipleAnswers');
@@ -167,9 +161,7 @@ describe('SelectDataModelComponent', () => {
       componentType: ComponentType.FileUploadWithTag,
       label: 'list',
     });
-    const selectElement = screen.getByRole('combobox', {
-      name: textMock(`ux_editor.component_title.${ComponentType.FileUploadWithTag}`),
-    });
+    const selectElement = screen.getByRole('combobox');
     await user.click(selectElement);
     const optionElement1 = screen.queryByText('testModel.field1');
     const optionElement2 = screen.getByText('multipleAnswers');
@@ -183,9 +175,7 @@ describe('SelectDataModelComponent', () => {
     await render({
       componentType: ComponentType.FileUpload,
     });
-    const selectElement = screen.getByRole('combobox', {
-      name: textMock(`ux_editor.component_title.${ComponentType.FileUpload}`),
-    });
+    const selectElement = screen.getByRole('combobox');
     await user.click(selectElement);
     const optionElement1 = screen.getByText('testModel.field1');
     const optionElement2 = screen.queryByText('multipleAnswers');
@@ -199,9 +189,7 @@ describe('SelectDataModelComponent', () => {
     await render({
       componentType: ComponentType.FileUploadWithTag,
     });
-    const selectElement = screen.getByRole('combobox', {
-      name: textMock(`ux_editor.component_title.${ComponentType.FileUploadWithTag}`),
-    });
+    const selectElement = screen.getByRole('combobox');
     await user.click(selectElement);
     const optionElement1 = screen.getByText('testModel.field1');
     const optionElement2 = screen.queryByText('multipleAnswers');
