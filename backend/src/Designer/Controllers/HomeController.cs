@@ -127,7 +127,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Authorize]
         public async Task<IActionResult> Test()
         {
-            string developer = HttpContext.User.Identity.Name;
+            string developer = HttpContext.User.Identity!.Name;
             string accessToken = await HttpContext.GetTokenAsync("access_token");
             string refreshToken = await HttpContext.GetTokenAsync("refresh_token");
             await Task.CompletedTask;
@@ -180,20 +180,6 @@ namespace Altinn.Studio.Designer.Controllers
         {
             _sourceControl.StoreAppTokenForUser(appKey.Key);
             return Redirect("/");
-        }
-
-        /// <summary>
-        /// Debug info
-        /// </summary>
-        /// <returns>The debug info you want</returns>
-        public async Task<IActionResult> Debug()
-        {
-            StringBuilder stringBuilder = new();
-            stringBuilder.AppendLine("Debug info");
-            stringBuilder.AppendLine("App token is: " + _sourceControl.GetAppToken());
-            stringBuilder.AppendLine("App token id is " + _sourceControl.GetAppTokenId());
-            stringBuilder.AppendLine("UserName from service: " + await _giteaApi.GetUserNameFromUI());
-            return Content(stringBuilder.ToString());
         }
     }
 }

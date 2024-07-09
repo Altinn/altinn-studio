@@ -396,22 +396,6 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
-        public void DecoratedISourceControlService_GetAppTokenId_LogsErrorWithAdditionalInfo()
-        {
-            (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-
-            try
-            {
-                service.GetAppTokenId();
-            }
-            catch
-            {
-            }
-
-            loggerMock.Verify();
-        }
-
-        [Fact]
         public void DecoratedISourceControlService_GetDeployToken_LogsErrorWithAdditionalInfo()
         {
             (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();

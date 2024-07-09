@@ -21,9 +21,6 @@ public class GetPermissions : DesignerEndpointsTestsBase<GetPermissions>, IClass
     public GetPermissions(WebApplicationFactory<Program> factory) : base(factory)
     {
         _giteaMock = new Mock<IGitea>();
-        _giteaMock.Setup(g => g.GetUserNameFromUI()).ReturnsAsync("testUser");
-        KeyValuePair<string, string>? token = new KeyValuePair<string, string>("asdfasdf", "sadfsdaf");
-        _giteaMock.Setup(g => g.GetSessionAppKey(It.IsAny<string>())).ReturnsAsync(token);
     }
 
     protected override void ConfigureTestServices(IServiceCollection services)

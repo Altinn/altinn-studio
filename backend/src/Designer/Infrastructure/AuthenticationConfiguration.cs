@@ -1,9 +1,9 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,9 +22,8 @@ namespace Altinn.Studio.Designer.Infrastructure
         /// </summary>
         /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
         /// <param name="config">The configuration</param>
-        /// <param name="env">The web hosting environment</param>
         public static IServiceCollection ConfigureAuthentication(this IServiceCollection services,
-            IConfiguration config, IWebHostEnvironment env)
+            IConfiguration config)
         {
             return AddGiteaOidcAuthentication(services, config);
         }
@@ -48,7 +47,7 @@ namespace Altinn.Studio.Designer.Infrastructure
                     options.Cookie.IsEssential = true;
 
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(oidcSettings.CookieExpiryTimeInMinutes);
-                    options.SlidingExpiration = true;
+                    options.SlidingExpiration = false;
 
                     options.Cookie.Name = Constants.General.DesignerCookieName;
 
@@ -86,16 +85,22 @@ namespace Altinn.Studio.Designer.Infrastructure
                         };
 
 
-                        // options.Events.OnRedirectToIdentityProvider = context =>
-                        // {
-                        //     if (!context.Request.Path.StartsWithSegments("/login"))
-                        //     {
-                        //         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                        //         context.HandleResponse();
-                        //     }
-                        //
-                        //     return Task.CompletedTask;
-                        // };
+                        options.Events.OnRedirectToIdentityProvider = context =>
+                        {
+                            // AspNetCore.OpenIdConnect.Nonce being created after each login
+                            // This is a workaround to delete the cookie after each login
+                            // to avoid the cookie from growing too large
+                            var cookiesToDelete = context.HttpContext.Request.Cookies.Keys
+                                .Where(key => key.StartsWith(".AspNetCore.OpenIdConnect.Nonce"))
+                                .ToList();
+
+                            foreach (string cookieName in cookiesToDelete)
+                            {
+                                context.Response.Cookies.Delete(cookieName);
+                            }
+
+                            return Task.CompletedTask;
+                        };
                     });
 
             return services;
