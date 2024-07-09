@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import type { RepoIncludingStarredData } from 'dashboard/utils/repoUtils/repoUtils';
 import { useTranslation } from 'react-i18next';
 import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
@@ -42,6 +42,18 @@ export const RepoList = ({
 }: RepoListProps): React.ReactElement => {
   const { t } = useTranslation();
   const tableSize = 'small';
+
+  const [spinnerHeight, setSpinnerHeight] = React.useState('auto');
+  const tableHeaderHeight = 10;
+  const remotePaginationRef = useRef<HTMLTableElement>(null);
+
+  useEffect(() => {
+    if (remotePaginationRef.current) {
+      setTimeout(() => {
+        setSpinnerHeight(`${remotePaginationRef.current.clientHeight - tableHeaderHeight}px`);
+      }, 1000);
+    }
+  }, [remotePaginationRef]);
 
   const columns: Columns = [
     {
@@ -102,7 +114,7 @@ export const RepoList = ({
   }));
 
   const emptyTableFallback = isLoading ? (
-    <StudioSpinner spinnerTitle={t('general.loading')} />
+    <StudioSpinner style={{ height: spinnerHeight }} spinnerTitle={t('general.loading')} />
   ) : (
     <Paragraph size={tableSize}>{t('dashboard.no_repos_result')}</Paragraph>
   );
@@ -130,6 +142,7 @@ export const RepoList = ({
     <div>
       {isServerSort ? (
         <StudioTableRemotePagination
+          ref={remotePaginationRef}
           columns={remotePaginationColumns}
           rows={rows}
           size={tableSize}
