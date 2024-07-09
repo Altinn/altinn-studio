@@ -45,7 +45,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <returns>True if the reset was successful, otherwise false.</returns>
-        bool ResetLocalRepository(AltinnRepoEditingContext altinnRepoEditingContext);
+        Task<bool> ResetLocalRepository(AltinnRepoEditingContext altinnRepoEditingContext);
 
         /// <summary>
         /// Returns the app texts

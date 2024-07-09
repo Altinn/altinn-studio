@@ -66,7 +66,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public string CloneRemoteRepository(string org, string repository)
+        public Task<string> CloneRemoteRepository(string org, string repository)
         {
             try
             {
@@ -80,7 +80,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public string CloneRemoteRepository(string org, string repository, string destinationPath, string branchName = "")
+        public Task<string> CloneRemoteRepository(string org, string repository, string destinationPath, string branchName = "")
         {
             try
             {
@@ -108,11 +108,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message)
+        public Task CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message)
         {
             try
             {
-                _decoratedService.CommitAndPushChanges(org, repository, branchName, localPath, message);
+                return _decoratedService.CommitAndPushChanges(org, repository, branchName, localPath, message);
             }
             catch (Exception ex)
             {
@@ -164,43 +164,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void FetchRemoteChanges(string org, string repository)
+        public Task FetchRemoteChanges(string org, string repository)
         {
             try
             {
-                _decoratedService.FetchRemoteChanges(org, repository);
+                return _decoratedService.FetchRemoteChanges(org, repository);
             }
             catch (Exception ex)
             {
                 LogError(ex, "FetchRemoteChanges", org, repository);
-                throw;
-            }
-        }
-
-        /// <inheritdoc/>
-        public string GetAppToken()
-        {
-            try
-            {
-                return _decoratedService.GetAppToken();
-            }
-            catch (Exception ex)
-            {
-                LogError(ex, "GetAppToken");
-                throw;
-            }
-        }
-
-        /// <inheritdoc/>
-        public Task<string> GetDeployToken()
-        {
-            try
-            {
-                return _decoratedService.GetDeployToken();
-            }
-            catch (Exception ex)
-            {
-                LogError(ex, "GetDeployToken");
                 throw;
             }
         }
@@ -248,7 +220,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public RepoStatus PullRemoteChanges(string org, string repository)
+        public Task<RepoStatus> PullRemoteChanges(string org, string repository)
         {
             try
             {
@@ -276,11 +248,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void PushChangesForRepository(CommitInfo commitInfo)
+        public Task PushChangesForRepository(CommitInfo commitInfo)
         {
             try
             {
-                _decoratedService.PushChangesForRepository(commitInfo);
+                return _decoratedService.PushChangesForRepository(commitInfo);
             }
             catch (Exception ex)
             {
@@ -360,11 +332,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void VerifyCloneExists(string org, string repository)
+        public Task VerifyCloneExists(string org, string repository)
         {
             try
             {
-                _decoratedService.VerifyCloneExists(org, repository);
+               return _decoratedService.VerifyCloneExists(org, repository);
             }
             catch (Exception ex)
             {

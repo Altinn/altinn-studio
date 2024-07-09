@@ -302,7 +302,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 FireDeletionOfLocalRepo(targetOrg, targetRepository, developer);
             }
 
-            _sourceControl.CloneRemoteRepository(org, sourceRepository, targetRepositoryPath);
+            await _sourceControl.CloneRemoteRepository(org, sourceRepository, targetRepositoryPath);
             var targetAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(targetOrg, targetRepository, developer);
 
             await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{org}/{targetRepository}.git");
@@ -323,7 +323,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string branchCloneName = $"{targetRepository}_{branchName}_{Guid.NewGuid()}";
 
             await _sourceControl.CreateBranch(targetOrg, targetRepository, branchName);
-            _sourceControl.CloneRemoteRepository(targetOrg, targetRepository, _settings.GetServicePath(targetOrg, branchCloneName, developer), branchName);
+            await _sourceControl.CloneRemoteRepository(targetOrg, targetRepository, _settings.GetServicePath(targetOrg, branchCloneName, developer), branchName);
 
             var branchAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(targetOrg, branchCloneName, developer);
 
@@ -338,14 +338,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public bool ResetLocalRepository(AltinnRepoEditingContext altinnRepoEditingContext)
+        public async Task<bool>  ResetLocalRepository(AltinnRepoEditingContext altinnRepoEditingContext)
         {
             string repoPath = _settings.GetServicePath(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
 
             if (Directory.Exists(repoPath))
             {
                 FireDeletionOfLocalRepo(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-                _sourceControl.CloneRemoteRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo);
+                await _sourceControl.CloneRemoteRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo);
                 return true;
             }
 
