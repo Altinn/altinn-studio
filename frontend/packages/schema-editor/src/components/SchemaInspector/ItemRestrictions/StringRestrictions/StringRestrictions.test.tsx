@@ -27,7 +27,7 @@ describe('StringRestrictions', () => {
   afterEach(jest.clearAllMocks);
 
   test.each([
-    [StrRestrictionKey.format, 'label'],
+    [StrRestrictionKey.format, 'combobox'],
     [StrRestrictionKey.minLength, 'textbox'],
     [StrRestrictionKey.maxLength, 'textbox'],
     [StrRestrictionKey.pattern, 'textbox'],
