@@ -1,6 +1,8 @@
+using Altinn.Studio.Designer.Configuration.Marker;
+
 namespace Altinn.Studio.Designer.Configuration;
 
-public class OidcLoginSettings
+public class OidcLoginSettings : ISettingsMarker
 {
     public bool RequireHttpsMetadata { get; set; } = true;
     public int CookieExpiryTimeInMinutes { get; set; } = 60;
