@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net.Http;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Mvc.Testing.Handlers;
 using Microsoft.AspNetCore.TestHost;
@@ -71,6 +72,12 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
         {
             builder.ConfigureAppConfiguration((_, conf) => { conf.AddJsonFile(configPath); });
             builder.ConfigureTestServices(ConfigureTestServices);
+            builder.ConfigureTestServices(services =>
+            {
+                services.AddAuthentication(defaultScheme: TestAuthConstants.TestAuthenticationScheme)
+                    .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
+                        TestAuthConstants.TestAuthenticationScheme, options => { });
+            });
             builder.ConfigureServices(ConfigureTestForSpecificTest);
         }).CreateDefaultClient(new ApiTestsAuthAndCookieDelegatingHandler(), new CookieContainerHandler());
     }
