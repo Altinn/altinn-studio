@@ -4,7 +4,6 @@ import type { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import classes from './StringRestrictions.module.css';
 import { Fieldset, Label, Switch, Textfield } from '@digdir/designsystemet-react';
-import { LegacyTextField } from '@digdir/design-system-react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import { Divider } from 'app-shared/primitives';
@@ -15,7 +14,7 @@ import {
   StringRestrictionsReducerActionType,
 } from './StringRestrictionsReducer';
 import { useTranslation } from 'react-i18next';
-import { StudioNativeSelect } from '@studio/components';
+import { StudioNativeSelect, StudioTextfield } from '@studio/components';
 
 export function StringRestrictions({
   onChangeRestrictionValue,
@@ -139,18 +138,24 @@ export function StringRestrictions({
         )}
       <div className={classes.lengthFields}>
         <div className={classes.lengthField}>
-          <LegacyTextField
-            formatting={{ number: {} }}
+          <StudioTextfield
+            size='sm'
+            type='number'
             label={t(StrRestrictionKey.minLength)}
-            onChange={(e) => setRestriction(StrRestrictionKey.minLength, e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setRestriction(StrRestrictionKey.minLength, e.target.value)
+            }
             value={restrictions[StrRestrictionKey.minLength] || ''}
           />
         </div>
         <div className={classes.lengthField}>
-          <LegacyTextField
-            formatting={{ number: {} }}
+          <StudioTextfield
+            size='sm'
+            type='number'
             label={t(StrRestrictionKey.maxLength)}
-            onChange={(e) => setRestriction(StrRestrictionKey.maxLength, e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setRestriction(StrRestrictionKey.maxLength, e.target.value)
+            }
             value={restrictions[StrRestrictionKey.maxLength] || ''}
           />
         </div>
@@ -187,7 +192,14 @@ export function StringRestrictions({
                 </span>
               ))}
             </div>
-            <LegacyTextField id={fieldId} onChange={handleValueChange} value={regexTestValue} />
+            <StudioTextfield
+              size='sm'
+              id={fieldId}
+              onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                handleValueChange(event.target.value)
+              }
+              value={regexTestValue}
+            />
           </div>
         </div>
       </Fieldset>
