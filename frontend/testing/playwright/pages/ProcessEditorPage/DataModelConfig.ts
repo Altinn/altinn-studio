@@ -18,7 +18,7 @@ export class DataModelConfig extends BasePage {
 
   public async waitForComboboxToBeVisible(): Promise<void> {
     const combobox = this.page.getByRole('combobox', {
-      name: this.textMock('process_editor.configuration_panel_set_data_model'),
+      name: this.textMock('process_editor.configuration_panel_set_data_model_label'),
     });
     await expect(combobox).toBeVisible();
   }
@@ -49,7 +49,7 @@ export class DataModelConfig extends BasePage {
   public async clickOnCombobox(): Promise<void> {
     await this.page
       .getByRole('combobox', {
-        name: this.textMock('process_editor.configuration_panel_set_data_model'),
+        name: this.textMock('process_editor.configuration_panel_set_data_model_label'),
       })
       .click();
   }

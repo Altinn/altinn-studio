@@ -1,1 +1,1 @@
-export { userHasAccessToSelectedContext } from './userUtils';
+export { userHasAccessToOrganization } from './userUtils';

@@ -56,19 +56,19 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
       </Button>
       <Button variant={'tertiary'} icon asChild>
         <a href={editUrl} title={editTextKey}>
-          <PencilIcon />
+          <PencilIcon className={classes.nativeActionIcon} />
         </a>
       </Button>
       <DropdownMenu size={'small'}>
         <DropdownMenu.Trigger
           variant={'tertiary'}
-          asChild
           title={t('dashboard.app_dropdown', {
             appName: repoName,
           })}
+          asChild
         >
           <Button variant={'tertiary'} icon>
-            <MenuElipsisVerticalIcon />
+            <MenuElipsisVerticalIcon className={classes.nativeActionIcon} />
           </Button>
         </DropdownMenu.Trigger>
         <DropdownMenu.Content>

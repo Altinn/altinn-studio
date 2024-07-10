@@ -6,11 +6,14 @@ import { CustomActions, type CustomActionsProps } from './CustomActions';
 import { useActionHandler } from '../hooks/useOnActionChange';
 import { BpmnContext } from '../../../../../../contexts/BpmnContext';
 import { mockBpmnContextValue } from '../../../../../../../test/mocks/bpmnContextMock';
-import { type Action, BpmnActionModeler } from '../../../../../../utils/bpmn/BpmnActionModeler';
+import {
+  type Action,
+  BpmnActionModeler,
+} from '../../../../../../utils/bpmnModeler/BpmnActionModeler';
 import { BpmnConfigPanelFormContextProvider } from '../../../../../../contexts/BpmnConfigPanelContext';
 
 jest.mock('../hooks/useOnActionChange');
-jest.mock('../../../../../../utils/bpmn/BpmnActionModeler');
+jest.mock('../../../../../../utils/bpmnModeler/BpmnActionModeler');
 
 const actionElementMock: Action = {
   $type: 'altinn:Action',
@@ -65,6 +68,7 @@ describe('CustomActions', () => {
     const actionTypeSwitch = screen.getByLabelText(
       textMock('process_editor.configuration_panel_actions_set_server_action_label'),
     );
+    expect(actionTypeSwitch).toBeChecked();
     await user.click(actionTypeSwitch);
 
     expect(updateTypeForActionMock).toHaveBeenCalledTimes(1);

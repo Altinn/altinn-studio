@@ -3,7 +3,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--fds-spacing-3);
-  padding: var(--modal-padding);
+  width: 50vw;
+  padding: var(--fds-spacing-10);
 }
 
 .downloadIcon {

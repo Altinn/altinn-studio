@@ -37,6 +37,7 @@ export const Preview = ({ collapsed, onCollapseToggle, hidePreview }: PreviewPro
   ) : (
     <div className={classes.root}>
       <StudioButton
+        size='small'
         variant='tertiary'
         icon={<ShrinkIcon title='1' fontSize='1.5rem' />}
         title={t('ux_editor.close_preview')}

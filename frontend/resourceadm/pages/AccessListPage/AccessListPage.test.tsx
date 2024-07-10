@@ -11,7 +11,7 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
-    selectedContext: 'org1',
+    org: 'org1',
     env: 'tt02',
     accessListId: 'list1',
   }),

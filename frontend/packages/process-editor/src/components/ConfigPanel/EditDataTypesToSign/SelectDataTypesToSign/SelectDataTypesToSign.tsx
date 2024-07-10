@@ -11,6 +11,7 @@ import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { useDebounce } from 'app-shared/hooks/useDebounce';
+import { StudioModeler } from '../../../../utils/bpmnModeler/StudioModeler';
 
 export interface SelectDataTypesToSignProps {
   onClose: () => void;
@@ -33,6 +34,19 @@ export const SelectDataTypesToSign = ({ onClose }: SelectDataTypesToSignProps) =
     debounce(() => updateDataTypes(bpmnFactory, modeling, bpmnDetails, dataTypes));
   };
 
+  const studioModeler = new StudioModeler();
+  const tasks = studioModeler.getAllTasksByType('bpmn:Task');
+  const signingDataTypeIds = tasks
+    .filter((item) => item.businessObject.extensionElements?.values[0]?.taskType === 'signing')
+    .map(
+      (item) =>
+        item.businessObject.extensionElements?.values[0]?.signatureConfig?.signatureDataType,
+    );
+
+  const filteredDataTypeIds = availableDataTypeIds.filter(
+    (dataTypeId) => !signingDataTypeIds.includes(dataTypeId),
+  );
+
   return (
     <div className={classes.container}>
       <Label size='small' htmlFor={labelId}>
@@ -53,7 +67,7 @@ export const SelectDataTypesToSign = ({ onClose }: SelectDataTypesToSignProps) =
           <Combobox.Empty>
             {t('process_editor.configuration_panel_no_data_types_to_sign_to_select')}
           </Combobox.Empty>
-          {availableDataTypeIds?.map((dataTypeId) => {
+          {filteredDataTypeIds?.map((dataTypeId) => {
             return (
               <Combobox.Option key={dataTypeId} value={dataTypeId}>
                 {dataTypeId}

@@ -1,5 +1,5 @@
 ﻿import type Modeler from 'bpmn-js/lib/Modeler';
-import { BpmnModelerInstance } from '../../utils/bpmn/BpmnModelerInstance';
+import { BpmnModelerInstance } from '../../utils/bpmnModeler/BpmnModelerInstance';
 
 type UseBpmnModelerResult = {
   getModeler: (canvasContainer: HTMLDivElement) => Modeler;

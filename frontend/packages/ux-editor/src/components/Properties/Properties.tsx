@@ -25,7 +25,7 @@ export const Properties = () => {
   };
 
   return (
-    <div className={classes.root}>
+    <div className={classes.root} key={formItemId}>
       {!formItem ? (
         <PageConfigPanel />
       ) : (

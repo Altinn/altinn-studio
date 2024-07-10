@@ -27,8 +27,44 @@ const defaultSelectDataTypeProps: SelectDataTypesToSignProps = {
   onClose: jest.fn(),
 };
 
-const availableDataTypeIds = ['dataType1', 'dataType2', 'dataType3'];
-const existingDataTypeIds = ['dataType1'];
+const signingTasks = [
+  {
+    id: 'task_1',
+    businessObject: {
+      name: 'Name 1',
+      extensionElements: {
+        values: [{ signatureConfig: { signatureDataType: 'dataType1' }, taskType: 'signing' }],
+      },
+    },
+  },
+  {
+    id: 'task_2',
+    businessObject: {
+      name: 'Name 2',
+      extensionElements: {
+        values: [{ signatureConfig: { signatureDataType: 'dataType2' }, taskType: 'signing' }],
+      },
+    },
+  },
+];
+
+jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
+  return {
+    StudioModeler: jest.fn().mockImplementation(() => {
+      return {
+        getAllTasksByType: jest.fn().mockReturnValue(signingTasks),
+      };
+    }),
+  };
+});
+
+const availableDataTypeIds = [
+  signingTasks[0].businessObject.extensionElements.values[0].signatureConfig.signatureDataType,
+  signingTasks[1].businessObject.extensionElements.values[0].signatureConfig.signatureDataType,
+  'dataType3',
+  'ref-data-as-pdf',
+];
+const existingDataTypeIds = ['dataType3'];
 
 const element = getMockBpmnElementForTask('signing');
 
@@ -56,7 +92,7 @@ describe('SelectDataTypesToSign', () => {
     await user.click(combobox);
 
     jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
-    await user.click(screen.getByRole('option', { name: availableDataTypeIds[0] }));
+    await user.click(screen.getByRole('option', { name: availableDataTypeIds[2] }));
 
     await waitFor(() => expect(createMock).toHaveBeenCalledTimes(1));
     expect(updateModdlePropertiesMock).toHaveBeenCalledTimes(1);
@@ -73,6 +109,22 @@ describe('SelectDataTypesToSign', () => {
     const closeButton = screen.getByRole('button', { name: textMock('general.close') });
     await user.click(closeButton);
     expect(defaultSelectDataTypeProps.onClose).toHaveBeenCalled();
+  });
+
+  it('removes signing data types from available data types to sign', async () => {
+    const user = userEvent.setup();
+
+    renderSelectDataTypesToSign(existingDataTypesProps);
+
+    const combobox = screen.getByRole('combobox', {
+      name: textMock('process_editor.configuration_panel_set_data_types_to_sign'),
+    });
+    await user.click(combobox);
+
+    expect(screen.queryByRole('option', { name: availableDataTypeIds[0] })).not.toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: availableDataTypeIds[1] })).not.toBeInTheDocument();
+    expect(screen.getByRole('option', { name: availableDataTypeIds[2] })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: availableDataTypeIds[3] })).toBeInTheDocument();
   });
 });
 

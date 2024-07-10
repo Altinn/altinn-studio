@@ -26,6 +26,7 @@ export const SchemaEditor = () => {
       onMove={moveProperty}
       rootId={ROOT_POINTER}
       itemId={selectedTypePointer ?? null}
+       key={selectedType?.pointer}
     >
       <StudioResizableLayout.Container orientation='horizontal' localStorageContext='datamodel'>
         <StudioResizableLayout.Element minimumSize={100} maximumSize={280}>

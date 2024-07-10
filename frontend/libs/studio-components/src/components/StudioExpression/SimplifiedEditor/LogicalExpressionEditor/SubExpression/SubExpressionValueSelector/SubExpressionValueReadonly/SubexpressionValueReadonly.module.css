@@ -5,3 +5,9 @@
   gap: var(--fds-spacing-1);
   justify-content: flex-start;
 }
+
+.codeFragment {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
