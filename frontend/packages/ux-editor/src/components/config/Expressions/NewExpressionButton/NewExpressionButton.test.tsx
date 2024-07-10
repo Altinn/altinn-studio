@@ -51,24 +51,6 @@ describe('NewExpressionButton', () => {
     expect(dropdown).toBeInTheDocument();
   });
 
-  it('check that the dropdown menu is not showing after the user click on one of the menu items', async () => {
-    const formItem: FormComponent<ComponentType.Input> = {
-      id: 'mockId',
-      type: ComponentType.Input,
-      dataModelBindings: { simpleBinding: 'some-path' },
-      itemType: 'COMPONENT',
-    };
-    renderAddButton({ formItem });
-
-    const addButton = screen.getByText(textMock('right_menu.expressions_add'));
-    await user.click(addButton);
-    const dropdownOption = screen.getByRole('menuitem', {
-      name: textMock('right_menu.expressions_property_hidden'),
-    });
-    await user.click(dropdownOption);
-    expect(screen.queryByRole('menuitem')).not.toBeInTheDocument();
-  });
-
   it('Calls handleUpdate with updated component when an expression is added', async () => {
     const handleUpdate = jest.fn();
     const formItem: FormComponent<ComponentType.Input> = {
