@@ -10,7 +10,7 @@ const StudioCodeFragment = forwardRef<HTMLElement, StudioCodeFragmentProps>(
     const className = cn(classes.code, givenClass);
 
     return (
-      <code className={className} {...rest} ref={ref}>
+      <code className={className} {...rest} ref={ref} title={children.toString()}>
         {children}
       </code>
     );
