@@ -76,7 +76,7 @@ describe('SchemaEditor', () => {
     expect(updatedModel.asArray().length).toBe(uiSchemaNodesMock.length + 1);
   });
 
-  test('should show context menu and trigger correct dispatch when adding field on a specific node', async () => {
+  test('should show context menu and trigger correct dispatch when adding text field on a specific node', async () => {
     const jsonSchema: JsonSchema = {
       [Keyword.Properties]: { mockItem: { [Keyword.Type]: FieldType.Object } },
       [Keyword.Definitions]: {},
@@ -85,7 +85,7 @@ describe('SchemaEditor', () => {
     const schemaModel = SchemaModel.fromArray(uiSchema);
     renderEditor({ appContextProps: { schemaModel } });
     await clickOpenAddNodeButtonInTree();
-    await clickMenuItem(textMock('schema_editor.add_field'));
+    await clickMenuItem(textMock('schema_editor.add') + ' ' + textMock('schema_editor.string'));
     expect(save).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(save);
     expect(updatedModel.asArray().length).toBe(uiSchema.length + 1);
