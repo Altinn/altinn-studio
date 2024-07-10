@@ -60,7 +60,11 @@ const ComponentLookupValue = ({
   return (
     <Binding
       name={texts.readonlyComponentId}
-      binding={<StudioCodeFragment>{value.id}</StudioCodeFragment>}
+      binding={
+        <StudioCodeFragment className={classes.wrapper} title={value.id}>
+          {value.id}
+        </StudioCodeFragment>
+      }
     />
   );
 };

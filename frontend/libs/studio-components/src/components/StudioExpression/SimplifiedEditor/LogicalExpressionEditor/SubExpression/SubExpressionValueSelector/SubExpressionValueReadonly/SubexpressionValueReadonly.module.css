@@ -6,8 +6,15 @@
   justify-content: flex-start;
 }
 
-.codeFragment {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+:root {
+  --overflow: hidden;
+  --white-space: nowrap;
+  --text-overflow: ellipsis;
+}
+
+.codeFragment,
+.wrapper {
+  overflow: var(--overflow);
+  white-space: var(--white-space);
+  text-overflow: var(--text-overflow);
 }
