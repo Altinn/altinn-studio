@@ -29,8 +29,7 @@ export function StringRestrictions({
   const regexTestValueSplitByMatches = splitStringByMatches(pattern, regexTestValue);
   const regexTestValueMatchesRegex = regexTestValueSplitByMatches.some(({ match }) => match);
   const fieldId = makeDomFriendlyID('regextestfield');
-  const handleValueChange = (event: ChangeEvent) => {
-    const value = (event.target as HTMLInputElement)?.value || '';
+  const handleValueChange = (value: string): void => {
     if (regexTestValue !== value) {
       setRegexTestValue(value);
     }
@@ -217,7 +216,7 @@ function splitStringByMatches(pattern: string, value: string): StrPart[] {
   if (!pattern) return defaultResult;
   try {
     const patternRegex = new RegExp(pattern, 'g');
-    let match;
+    let match: RegExpExecArray;
     const strParts: StrPart[] = [];
     let lastIndex = 0;
     while (value && (match = patternRegex.exec(value)) !== null) {
