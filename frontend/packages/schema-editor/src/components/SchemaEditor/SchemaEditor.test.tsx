@@ -85,7 +85,7 @@ describe('SchemaEditor', () => {
     const schemaModel = SchemaModel.fromArray(uiSchema);
     renderEditor({ appContextProps: { schemaModel } });
     await clickOpenAddNodeButtonInTree();
-    await clickMenuItem(textMock('schema_editor.add') + ' ' + textMock('schema_editor.string'));
+    await clickMenuItem(textMock('schema_editor.add.string'));
     expect(save).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(save);
     expect(updatedModel.asArray().length).toBe(uiSchema.length + 1);

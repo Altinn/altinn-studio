@@ -15,7 +15,6 @@ import {
 } from '@studio/icons';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 import type { IconProps } from '@studio/icons';
-import classes from './AddPropertyMenu.module.css';
 
 interface AddPropertyMenuProps {
   pointer: string;
@@ -48,40 +47,30 @@ export const AddPropertyMenu = ({ pointer }: AddPropertyMenuProps) => {
       </DropdownMenu.Trigger>
       <DropdownMenu.Content>
         <DropdownMenu.Group>
-          {fieldTypes.map(({ fieldType, icon: Icon }) => (
-            <DropdownMenu.Item
-              key={fieldType}
-              onClick={() => addPropertyAndClose(ObjectKind.Field, fieldType)}
-            >
+          {propertyItems.map(({ kind, fieldType, icon: Icon }) => (
+            <DropdownMenu.Item key={fieldType} onClick={() => addPropertyAndClose(kind, fieldType)}>
               <Icon />
-              {t('schema_editor.add')}{' '}
-              <span className={classes.fieldType}>{t(`schema_editor.${fieldType}`)}</span>
+              {t(`schema_editor.add_${fieldType || kind}`)}
             </DropdownMenu.Item>
           ))}
-          <DropdownMenu.Item onClick={() => addPropertyAndClose(ObjectKind.Combination)}>
-            <CombinationIcon />
-            {t('schema_editor.add_combination')}
-          </DropdownMenu.Item>
-          <DropdownMenu.Item onClick={() => addPropertyAndClose(ObjectKind.Reference)}>
-            <ReferenceIcon />
-            {t('schema_editor.add_reference')}
-          </DropdownMenu.Item>
         </DropdownMenu.Group>
       </DropdownMenu.Content>
     </DropdownMenu>
   );
 };
 
-type fieldTypesProps = {
-  kind: ObjectKind.Field;
-  fieldType: FieldType;
+type PropertyItems = {
+  kind: ObjectKind;
+  fieldType?: FieldType;
   icon: (IconProps: IconProps) => JSX.Element;
 };
 
-const fieldTypes: fieldTypesProps[] = [
+const propertyItems: PropertyItems[] = [
   { kind: ObjectKind.Field, fieldType: FieldType.Object, icon: ObjectIcon },
   { kind: ObjectKind.Field, fieldType: FieldType.String, icon: StringIcon },
   { kind: ObjectKind.Field, fieldType: FieldType.Integer, icon: NumberIcon },
   { kind: ObjectKind.Field, fieldType: FieldType.Number, icon: NumberIcon },
   { kind: ObjectKind.Field, fieldType: FieldType.Boolean, icon: BooleanIcon },
+  { kind: ObjectKind.Combination, icon: CombinationIcon },
+  { kind: ObjectKind.Reference, icon: ReferenceIcon },
 ];

@@ -763,7 +763,6 @@
   "schema_editor.add_combination": "Add oneOf/allOf/anyOf",
   "schema_editor.add_element": "Add element",
   "schema_editor.add_enum": "Add valid value",
-  "schema_editor.add_field": "Add field",
   "schema_editor.add_property": "Add field",
   "schema_editor.add_reference": "Add reference",
   "schema_editor.add_restriction": "Add restriction",
