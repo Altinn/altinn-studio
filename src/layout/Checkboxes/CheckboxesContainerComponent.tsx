@@ -17,7 +17,8 @@ import type { PropsFromGenericComponent } from 'src/layout';
 export type ICheckboxContainerProps = PropsFromGenericComponent<'Checkboxes'>;
 
 export const CheckboxContainerComponent = ({ node, isValid, overrideDisplay }: ICheckboxContainerProps) => {
-  const { id, layout, readOnly, textResourceBindings, required, labelSettings, alertOnChange } = node.item;
+  const { id, layout, readOnly, textResourceBindings, required, labelSettings, alertOnChange, showLabelsInTable } =
+    node.item;
   const { langAsString } = useLanguage();
 
   const {
@@ -53,7 +54,7 @@ export const CheckboxContainerComponent = ({ node, isValid, overrideDisplay }: I
     layout,
     optionsCount: calculatedOptions.length,
   });
-  const hideLabel = overrideDisplay?.renderedInTable === true && calculatedOptions.length === 1;
+  const hideLabel = overrideDisplay?.renderedInTable === true && calculatedOptions.length === 1 && !showLabelsInTable;
   const ariaLabel = overrideDisplay?.renderedInTable ? langAsString(textResourceBindings?.title) : undefined;
 
   return isFetching ? (

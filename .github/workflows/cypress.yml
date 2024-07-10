@@ -129,7 +129,7 @@ jobs:
         run: "
           npx cypress verify\n
           bash -c 'yarn serve 8080 >/dev/null &'\n
-          bash -c 'yarn run npx cypress run
+         bash -c 'npx cypress run
               --spec \'test/e2e/integration/*/*.ts\'
               --config watchForFileChanges=false
               --env environment=tt02'

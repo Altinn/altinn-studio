@@ -36,6 +36,15 @@ export const Config = new CG.component({
   )
   .addProperty(
     new CG.prop(
+      'showLabelsInTable',
+      new CG.bool()
+        .optional({ default: false })
+        .setTitle('Show label when single option in table')
+        .setDescription('Boolean value indicating if the label should be visible when only one option exists in table'),
+    ),
+  )
+  .addProperty(
+    new CG.prop(
       'showAsCard',
       new CG.bool()
         .optional()
