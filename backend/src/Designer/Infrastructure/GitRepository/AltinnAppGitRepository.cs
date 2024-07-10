@@ -547,34 +547,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="layoutSetName">The name of the layout set where the layout belong</param>
         /// <param name="layoutFileName">The name of layout file</param>
         /// <param name="layout">The actual layout that is saved</param>
-        /// <param name="layoutIsInitialForPaymentTask">Boolean value indicating if the layout to add is initial for a payment task</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        public async Task SaveLayout(string layoutSetName, string layoutFileName, JsonNode layout, bool layoutIsInitialForPaymentTask = false, CancellationToken cancellationToken = default)
+        public async Task SaveLayout(string layoutSetName, string layoutFileName, JsonNode layout, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutFileName);
-            if (layoutIsInitialForPaymentTask)
-            {
-                AddPaymentComponentToInitialLayoutForPaymentTask(layout);
-            }
-
             string serializedLayout = layout.ToJsonString(JsonOptions);
             await WriteTextByRelativePathAsync(layoutFilePath, serializedLayout, true, cancellationToken);
-        }
-
-        private void AddPaymentComponentToInitialLayoutForPaymentTask(JsonNode layout)
-        {
-            var layoutArray = layout["data"]["layout"] as JsonArray;
-            if (layoutArray != null)
-            {
-                var defaultComponent = new JsonObject
-                {
-                    ["id"] = "PaymentComponentId",
-                    ["type"] = "Payment",
-                    ["renderAsSummary"] = true
-                };
-                layoutArray.Add(defaultComponent);
-            }
         }
 
         public void UpdateFormLayoutName(string layoutSetName, string layoutFileName, string newFileName)
