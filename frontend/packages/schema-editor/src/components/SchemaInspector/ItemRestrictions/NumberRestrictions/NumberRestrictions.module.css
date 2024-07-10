@@ -1,5 +1,5 @@
 .formatFieldsRowContent {
-  align-items: flex-end;
+  align-items: center;
   display: flex;
   gap: 1rem;
 }

@@ -56,10 +56,10 @@
 
 .regexTestStyleField {
   color: transparent;
-  font-family: var(--font_family-default, Inter);
+  /* font-family: var(--font_family-default, Inter); */
   left: 14px;
   position: absolute;
-  top: 6px;
+  top: 25px;
   white-space: pre;
   z-index: 0;
 }
