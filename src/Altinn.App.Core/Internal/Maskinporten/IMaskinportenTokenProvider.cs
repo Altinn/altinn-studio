@@ -5,9 +5,6 @@ namespace Altinn.App.Core.Internal.Maskinporten;
 /// The provider is used by client implementations that needs the Maskinporten token in requests
 /// against other systems.
 /// </summary>
-[Obsolete(
-    "Use Altinn.App.Api.ServiceCollectionExtensions.ConfigureMaskinportenClient instead. This interface will be removed in V9."
-)]
 public interface IMaskinportenTokenProvider
 {
     /// <summary>

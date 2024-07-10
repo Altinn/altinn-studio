@@ -9,9 +9,6 @@ namespace Altinn.App.Core.Internal.Maskinporten;
 /// <summary>
 /// Defines the implementation of a Maskinporten token provider using JWK as the authentication method.
 /// </summary>
-[Obsolete(
-    "Use Altinn.App.Api.ServiceCollectionExtensions.ConfigureMaskinportenClient instead. This service will be removed in V9."
-)]
 public class MaskinportenJwkTokenProvider : IMaskinportenTokenProvider
 {
     private readonly IMaskinportenService _maskinportenService;
