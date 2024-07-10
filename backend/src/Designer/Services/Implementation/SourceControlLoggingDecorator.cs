@@ -164,11 +164,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task FetchRemoteChanges(string org, string repository)
+        public async Task FetchRemoteChanges(string org, string repository)
         {
             try
             {
-                return _decoratedService.FetchRemoteChanges(org, repository);
+                await _decoratedService.FetchRemoteChanges(org, repository);
             }
             catch (Exception ex)
             {
@@ -332,11 +332,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task VerifyCloneExists(string org, string repository)
+        public async Task VerifyCloneExists(string org, string repository)
         {
             try
             {
-               return _decoratedService.VerifyCloneExists(org, repository);
+               await _decoratedService.VerifyCloneExists(org, repository);
             }
             catch (Exception ex)
             {

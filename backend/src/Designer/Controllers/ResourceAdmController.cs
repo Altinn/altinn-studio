@@ -1,4 +1,5 @@
-﻿using Altinn.Studio.Designer.Services.Interfaces;
+﻿using System.Threading.Tasks;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Controllers
@@ -17,9 +18,9 @@ namespace Altinn.Studio.Designer.Controllers
 
 
         [Route("/resourceadm/{org}/{repo:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/{*AllValues}")]
-        public IActionResult Index(string org, string repo)
+        public async Task<IActionResult> Index(string org, string repo)
         {
-            _sourceControl.VerifyCloneExists(org, repo);
+            await _sourceControl.VerifyCloneExists(org, repo);
             return View();
         }
     }

@@ -92,13 +92,13 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
-        public void DecoratedISourceControlService_DeleteRepository_LogsErrorWithAdditionalInfo()
+        public async Task DecoratedISourceControlService_DeleteRepository_LogsErrorWithAdditionalInfo()
         {
             (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
 
             try
             {
-                service.DeleteRepository("org_should_not_exists", "repo_should_not_exists");
+                await service.DeleteRepository("org_should_not_exists", "repo_should_not_exists");
             }
             catch
             {
@@ -172,13 +172,13 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
-        public void DecoratedISourceControlService_CommitAndPushChanges_LogsErrorWithAdditionalInfo()
+        public async Task DecoratedISourceControlService_CommitAndPushChanges_LogsErrorWithAdditionalInfo()
         {
             (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
 
             try
             {
-                service.CommitAndPushChanges("org_should_not_exists", "repo_should_not_exists", "non-existing-branch", "non-existing-file", "should_not_be_commited");
+                await service.CommitAndPushChanges("org_should_not_exists", "repo_should_not_exists", "non-existing-branch", "non-existing-file", "should_not_be_commited");
             }
             catch
             {
@@ -220,13 +220,13 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
-        public void DecoratedISourceControlService_FetchRemoteChanges_LogsErrorWithAdditionalInfo()
+        public async Task DecoratedISourceControlService_FetchRemoteChanges_LogsErrorWithAdditionalInfo()
         {
             (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
 
             try
             {
-                service.FetchRemoteChanges("org_should_not_exists", "repo_should_not_exists");
+                await service.FetchRemoteChanges("org_should_not_exists", "repo_should_not_exists");
             }
             catch
             {
@@ -316,13 +316,13 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
-        public void DecoratedISourceControlService_PushChangesForRepository_LogsErrorWithAdditionalInfo()
+        public async Task DecoratedISourceControlService_PushChangesForRepository_LogsErrorWithAdditionalInfo()
         {
             (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
 
             try
             {
-                service.PushChangesForRepository(new CommitInfo() { Org = "org_should_not_exists", Repository = "repo_should_not_exists", Message = "should_not_be_commited" });
+                await service.PushChangesForRepository(new CommitInfo() { Org = "org_should_not_exists", Repository = "repo_should_not_exists", Message = "should_not_be_commited" });
             }
             catch
             {
@@ -364,13 +364,13 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
-        public void DecoratedISourceControlService_VerifyCloneExists_LogsErrorWithAdditionalInfo()
+        public async Task DecoratedISourceControlService_VerifyCloneExists_LogsErrorWithAdditionalInfo()
         {
             (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
 
             try
             {
-                service.VerifyCloneExists("org_should_not_exists", "repo_should_not_exists");
+                await service.VerifyCloneExists("org_should_not_exists", "repo_should_not_exists");
             }
             catch
             {

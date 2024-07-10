@@ -252,7 +252,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     FireDeletionOfLocalRepo(org, serviceConfig.RepositoryName, developer);
                 }
 
-                _sourceControl.CloneRemoteRepository(org, serviceConfig.RepositoryName);
+                await _sourceControl.CloneRemoteRepository(org, serviceConfig.RepositoryName);
 
                 ModelMetadata metadata = new()
                 {
@@ -269,7 +269,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
 
-                _sourceControl.PushChangesForRepository(commitInfo);
+                await _sourceControl.PushChangesForRepository(commitInfo);
             }
 
             return repository;
@@ -316,7 +316,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await targetAppRepository.SaveApplicationMetadata(appMetadata);
 
             CommitInfo commitInfo = new() { Org = targetOrg, Repository = targetRepository, Message = $"App cloned from {sourceRepository} {DateTime.Now.Date.ToShortDateString()}" };
-            _sourceControl.PushChangesForRepository(commitInfo);
+            await _sourceControl.PushChangesForRepository(commitInfo);
 
             // Final changes are made in a seperate branch to be reviewed by developer
             string branchName = "complete_copy_of_app";
@@ -329,7 +329,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await branchAppRepository.SearchAndReplaceInFile("App/config/authorization/policy.xml", $"{sourceRepository}", $"{targetRepository}");
 
-            _sourceControl.CommitAndPushChanges(targetOrg, targetRepository, branchName, branchAppRepository.RepositoryDirectory, "Updated policy.xml");
+            await _sourceControl.CommitAndPushChanges(targetOrg, targetRepository, branchName, branchAppRepository.RepositoryDirectory, "Updated policy.xml");
             await _sourceControl.CreatePullRequest(targetOrg, targetRepository, "master", branchName, "Auto-generated: Final changes for cloning app.");
 
             DirectoryHelper.DeleteFilesAndDirectory(branchAppRepository.RepositoryDirectory);
@@ -381,7 +381,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             // Create the app deployment folder
             Directory.CreateDirectory(targetPath);
 
-            var files = Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories);
+            string[] files = Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories);
 
             // Create all of the directories
             foreach (string dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
