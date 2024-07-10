@@ -1,4 +1,5 @@
 using Altinn.App.Core.Features.Payment.Exceptions;
+using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Features.Payment.Services;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
@@ -69,8 +70,8 @@ public class PaymentProcessTaskTests
             _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
 
             _paymentServiceMock
-                .Setup(x => x.IsPaymentCompleted(It.IsAny<Instance>(), It.IsAny<ValidAltinnPaymentConfiguration>()))
-                .ReturnsAsync(true);
+                .Setup(x => x.GetPaymentStatus(It.IsAny<Instance>(), It.IsAny<ValidAltinnPaymentConfiguration>()))
+                .ReturnsAsync(PaymentStatus.Paid);
 
             // Act
             await _paymentProcessTask.End(taskId, instance);
@@ -90,6 +91,41 @@ public class PaymentProcessTaskTests
         }
 
         [Fact]
+        public async Task End_PaymentSkipped_ShouldNotGeneratePdfReceipt()
+        {
+            Instance instance = CreateInstance();
+            string taskId = instance.Process.CurrentTask.ElementId;
+
+            var altinnTaskExtension = new AltinnTaskExtension { PaymentConfiguration = CreatePaymentConfiguration() };
+            ValidAltinnPaymentConfiguration validPaymentConfiguration =
+                altinnTaskExtension.PaymentConfiguration.Validate();
+
+            _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
+
+            _paymentServiceMock
+                .Setup(x => x.GetPaymentStatus(It.IsAny<Instance>(), It.IsAny<ValidAltinnPaymentConfiguration>()))
+                .ReturnsAsync(PaymentStatus.Skipped);
+
+            // Act
+            await _paymentProcessTask.End(taskId, instance);
+
+            // Assert
+            _pdfServiceMock.Verify(x => x.GeneratePdf(instance, taskId, CancellationToken.None), Times.Never);
+            _dataClientMock.Verify(
+                x =>
+                    x.InsertBinaryData(
+                        instance.Id,
+                        validPaymentConfiguration.PaymentReceiptPdfDataType,
+                        "application/pdf",
+                        "Betalingskvittering.pdf",
+                        It.IsAny<Stream>(),
+                        taskId
+                    ),
+                Times.Never
+            );
+        }
+
+        [Fact]
         public async Task End_PaymentNotCompleted_ShouldThrowException()
         {
             Instance instance = CreateInstance();
@@ -102,8 +138,8 @@ public class PaymentProcessTaskTests
             _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
 
             _paymentServiceMock
-                .Setup(x => x.IsPaymentCompleted(It.IsAny<Instance>(), It.IsAny<ValidAltinnPaymentConfiguration>()))
-                .ReturnsAsync(false);
+                .Setup(x => x.GetPaymentStatus(It.IsAny<Instance>(), It.IsAny<ValidAltinnPaymentConfiguration>()))
+                .ReturnsAsync(PaymentStatus.Created);
 
             // Act and assert
             _pdfServiceMock.Verify(x => x.GeneratePdf(instance, taskId, CancellationToken.None), Times.Never);
@@ -179,8 +215,8 @@ public class PaymentProcessTaskTests
                 .Returns(new AltinnTaskExtension { PaymentConfiguration = CreatePaymentConfiguration() });
 
             _paymentServiceMock
-                .Setup(ps => ps.IsPaymentCompleted(It.IsAny<Instance>(), It.IsAny<ValidAltinnPaymentConfiguration>()))
-                .ReturnsAsync(true);
+                .Setup(ps => ps.GetPaymentStatus(It.IsAny<Instance>(), It.IsAny<ValidAltinnPaymentConfiguration>()))
+                .ReturnsAsync(PaymentStatus.Paid);
 
             using var memoryStream = new MemoryStream();
             _pdfServiceMock

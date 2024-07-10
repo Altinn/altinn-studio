@@ -28,9 +28,9 @@ internal interface IPaymentService
     );
 
     /// <summary>
-    /// Check our internal state to see if payment is complete.
+    /// Get our internal payment status. Will only check the local status and will not get updated status from the payment provider.
     /// </summary>
-    Task<bool> IsPaymentCompleted(Instance instance, ValidAltinnPaymentConfiguration paymentConfiguration);
+    Task<PaymentStatus> GetPaymentStatus(Instance instance, ValidAltinnPaymentConfiguration paymentConfiguration);
 
     /// <summary>
     /// Cancel payment with payment processor and delete internal payment information.
