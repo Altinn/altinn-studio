@@ -30,6 +30,7 @@ export const Preview = ({ collapsed, onCollapseToggle, hidePreview }: PreviewPro
       size='small'
       variant='secondary'
       className={classes.openPreviewButton}
+      title={t('ux_editor.open_preview')}
       onClick={onCollapseToggle}
     >
       {t('ux_editor.open_preview')}

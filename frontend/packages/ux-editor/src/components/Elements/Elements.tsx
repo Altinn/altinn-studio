@@ -72,6 +72,7 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
         variant='secondary'
         className={classes.openElementsButton}
         onClick={onCollapseToggle}
+        title={t('left_menu.open_components')}
       >
         {t('left_menu.open_components')}
       </StudioButton>
