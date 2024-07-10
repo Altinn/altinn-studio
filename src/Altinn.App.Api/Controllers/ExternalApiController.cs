@@ -63,14 +63,18 @@ public class ExternalApiController : ControllerBase
 
             return Ok(externalApiData);
         }
-        catch (HttpRequestException ex)
+        catch (Exception ex)
         {
-            _logger.LogError(ex, "Error when calling external api.");
-            if (ex.StatusCode.HasValue)
+            const string genericErrorDescription = "An error occurred when calling external api";
+            _logger.LogError(ex, genericErrorDescription);
+
+            if (ex is HttpRequestException { StatusCode: not null } httpEx)
             {
-                return StatusCode((int)ex.StatusCode.Value, ex.Message);
+                var errorMessage = !string.IsNullOrWhiteSpace(ex.Message) ? ex.Message : genericErrorDescription;
+                return StatusCode((int)httpEx.StatusCode.Value, errorMessage);
             }
-            return StatusCode((int)HttpStatusCode.InternalServerError, "An error occurred when calling external api.");
+
+            return StatusCode((int)HttpStatusCode.InternalServerError, $"{genericErrorDescription}: {ex.Message}");
         }
     }
 }
