@@ -48,7 +48,7 @@ export const PaymentDetailsTable = ({ orderDetails, tableTitle, description, ...
           <Table.Cell>{orderLine.name}</Table.Cell>
           <Table.Cell align='right'>{orderLine.quantity}</Table.Cell>
           <Table.Cell align='right'>
-            {orderLine.priceExVat} {orderDetails?.currency}
+            {orderLine.priceExVat * orderLine.quantity} {orderDetails?.currency}
           </Table.Cell>
         </Table.Row>
       ))}
