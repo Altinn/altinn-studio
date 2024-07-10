@@ -1,13 +1,13 @@
 import React from 'react';
 import { PlusIcon, XMarkIcon } from '@studio/icons';
-import { LegacyFieldSet, LegacyTextField } from '@digdir/design-system-react';
+import { LegacyFieldSet } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
 import { useText } from '../../../../hooks';
 import { stringToArray, arrayToString } from '../../../../utils/stringUtils';
 import classes from './MapComponent.module.css';
 import type { MapLayer } from 'app-shared/types/MapLayer';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioTextfield } from '@studio/components';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 
 export const MapComponent = ({
@@ -108,8 +108,11 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                 if (errorCode === 'format') return t('validation_errors.value_as_url');
               }}
               renderField={({ fieldProps }) => (
-                <LegacyTextField
-                  {...fieldProps}
+                <StudioTextfield
+                  id={component.id}
+                  label={t('ux_editor.url_label')}
+                  value={fieldProps.value}
+                  size='sm'
                   onChange={(e) => fieldProps.onChange(e.target.value, e)}
                   name='url'
                 />
@@ -124,8 +127,11 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                 onChange={(value, event) => handleOnLayerChange(index, event)}
                 propertyPath={`${component.propertyPath}/properties/layers/properties/attribution`}
                 renderField={({ fieldProps }) => (
-                  <LegacyTextField
-                    {...fieldProps}
+                  <StudioTextfield
+                    id={component.id}
+                    label={t('ux_editor.attribution_label')}
+                    value={fieldProps.value}
+                    size='sm'
                     name='attribution'
                     onChange={(e) => fieldProps.onChange(e.target.value, e)}
                   />
@@ -139,8 +145,9 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                 onChange={(value: string[]) => handleOnSubDomainChange(index, value)}
                 propertyPath={`${component.propertyPath}/properties/layers/properties/subdomains`}
                 renderField={({ fieldProps }) => (
-                  <LegacyTextField
-                    {...fieldProps}
+                  <StudioTextfield
+                    id={component.id}
+                    label={t('ux_editor.subdomains_label')}
                     name='subdomains'
                     placeholder={t('ux_editor.subdomains_placeholder')}
                     onChange={(e) => fieldProps.onChange(stringToArray(e.target.value), e)}
