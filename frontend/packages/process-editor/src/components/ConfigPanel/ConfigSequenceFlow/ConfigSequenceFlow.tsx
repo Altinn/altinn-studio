@@ -79,6 +79,7 @@ export const ConfigSequenceFlow = (): React.ReactElement => {
         {!expression ? (
           <StudioButton
             variant='secondary'
+            size='small'
             icon={<PlusIcon />}
             fullWidth
             onClick={onAddNewExpressionClicked}
