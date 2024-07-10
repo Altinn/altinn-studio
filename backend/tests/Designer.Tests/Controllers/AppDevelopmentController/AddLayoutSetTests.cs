@@ -12,6 +12,7 @@ using Altinn.Studio.Designer.Filters.AppDevelopment;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
+using Altinn.Studio.Designer.Services.Implementation;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
@@ -164,7 +165,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             await CopyRepositoryForTest(org, app, developer, targetRepository);
             var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["NewTask"] };
             LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
-            { TaskType = "payment", LayoutSetConfig = newLayoutSetConfig };
+            { TaskType = AppDevelopmentService.PaymentTaskType, LayoutSetConfig = newLayoutSetConfig };
 
             string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
 
