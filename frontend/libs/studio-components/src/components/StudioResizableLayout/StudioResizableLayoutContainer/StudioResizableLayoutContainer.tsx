@@ -69,12 +69,7 @@ const getValidChildren = (
     string | React.JSXElementConstructor<any>
   >[],
 ) => {
-  return Children.map(children, (child) => {
-    if (!child) {
-      return;
-    }
-    return child;
-  }).filter((child) => !!child);
+  return children.filter((child) => !!child);
 };
 
 StudioResizableLayoutContainer.displayName = 'StudioResizableLayout.Container';
