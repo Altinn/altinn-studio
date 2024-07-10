@@ -10,5 +10,11 @@ export type RepositoryStatus = 'Ok' | 'CheckoutConflict' | 'MergeConflict';
 
 export type RepoContentStatus = {
   filePath: string;
-  fileStatus: string;
+  fileStatus: string | FileStatus;
 };
+
+export type FileStatus =
+  | 'NewInWorkdir'
+  | 'DeletedFromWorkdir'
+  | 'ModifiedInWorkdir'
+  | 'RenamedInWorkdir'; // Do we need more?
