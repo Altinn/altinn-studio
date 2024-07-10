@@ -48,7 +48,10 @@ export const AddPropertyMenu = ({ pointer }: AddPropertyMenuProps) => {
       <DropdownMenu.Content>
         <DropdownMenu.Group>
           {propertyItems.map(({ kind, fieldType, icon: Icon }) => (
-            <DropdownMenu.Item key={fieldType} onClick={() => addPropertyAndClose(kind, fieldType)}>
+            <DropdownMenu.Item
+              key={`${kind}-${fieldType}`}
+              onClick={() => addPropertyAndClose(kind, fieldType)}
+            >
               <Icon />
               {t(`schema_editor.add_${fieldType || kind}`)}
             </DropdownMenu.Item>
