@@ -14,7 +14,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace Altinn.Studio.Designer.Services.Implementation
 {
     /// <summary>
-    /// Interface for dealing with texts in new format in an app repository.
+    /// Service for handling texts in new format in an app repository.
     /// </summary>
     public class TextsService : ITextsService
     {
