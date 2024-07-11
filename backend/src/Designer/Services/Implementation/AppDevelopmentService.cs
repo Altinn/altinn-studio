@@ -26,7 +26,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly ISchemaModelService _schemaModelService;
         private readonly string _layoutSetNameRegEx = "[a-zA-Z0-9-]{2,28}";
-        public static readonly string PaymentTaskType = "payment";
 
         /// <summary>
         /// Constructor
@@ -400,7 +399,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 var defaultComponent = new JsonObject
                 {
                     ["id"] = "PaymentComponentId",
-                    ["type"] = PaymentTaskType,
+                    ["type"] = TaskType.Payment,
                     ["renderAsSummary"] = true
                 };
                 layoutArray.Add(defaultComponent);
