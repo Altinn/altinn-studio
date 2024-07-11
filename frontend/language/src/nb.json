@@ -1239,6 +1239,7 @@
   "sync_header.show_changes_modal.column_header_file_name": "Filnavn",
   "sync_header.show_changes_modal.column_header_file_status": "Status",
   "sync_header.show_changes_modal.file_status_DeletedFromWorkdir": "Slettet",
+  "sync_header.show_changes_modal.file_status_Ignored": "Ignorert",
   "sync_header.show_changes_modal.file_status_ModifiedInWorkdir": "Endret",
   "sync_header.show_changes_modal.file_status_NewInWorkdir": "Ny",
   "sync_header.show_changes_modal.file_status_RenamedInWorkdir": "Navneendring",
