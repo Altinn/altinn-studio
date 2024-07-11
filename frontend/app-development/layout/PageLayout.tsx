@@ -9,6 +9,9 @@ import { useOrgListQuery } from '../hooks/queries';
 import { NotFoundPage } from './NotFoundPage';
 import { useTranslation } from 'react-i18next';
 import { WebSocketSyncWrapper } from '../components';
+import { UserFeedbackImpl } from '../utils/UserFeedback/UserFeedbackImpl';
+import { GitHubUserFeedbackImpl } from '../utils/UserFeedback/GitHubUserFeedbackImpl';
+import { StudioUserFeedbackImpl } from '../utils/UserFeedback/StudioUserFeedback';
 
 /**
  * Displays the layout for the app development pages
@@ -31,6 +34,8 @@ export const PageLayout = (): React.ReactNode => {
   } = useRepoStatusQuery(org, app);
 
   const { data: user, isPending: isUserPending } = useUserQuery();
+
+  const { feedback } = new StudioUserFeedbackImpl();
 
   if (isRepoStatusPending || isUserPending) {
     return (
@@ -56,10 +61,12 @@ export const PageLayout = (): React.ReactNode => {
 
   return (
     <>
+      <button onClick={() => feedback.goToFeedbackUrl('featureRequest')}>Test</button>
       <PageHeader
         showSubMenu={!repoStatus?.hasMergeConflict}
         user={user}
         repoOwnerIsOrg={repoOwnerIsOrg}
+        F
         isRepoError={repoStatusError !== null}
       />
       {renderPages()}
