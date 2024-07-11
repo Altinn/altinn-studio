@@ -1,4 +1,3 @@
-import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
 import React from 'react';
 import { useAppContext } from '../../hooks';
 import { ConfPageToolbar } from './ConfPageToolbar';
@@ -12,6 +11,7 @@ import { ShrinkIcon } from '@studio/icons';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useTranslation } from 'react-i18next';
 import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQuery';
+import { Alert, Heading, Paragraph } from '@digdir/designsystemet-react';
 
 export interface ElementsProps {
   collapsed: boolean;
