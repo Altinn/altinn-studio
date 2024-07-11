@@ -71,7 +71,9 @@ const Placeholder = ({ componentName }: { componentName: string }) => (
     <Trans
       i18nKey={'right_menu.expressions_property_on_component'}
       values={{ componentName }}
-      components={{ bold: <StudioCodeFragment /> }}
+      components={{
+        bold: <StudioCodeFragment className={classes.wrapper} title={componentName} />,
+      }}
     />
   </Paragraph>
 );
