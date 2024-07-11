@@ -2,6 +2,8 @@ import { Label, NativeSelect, Pagination, Paragraph, Table } from '@digdir/desig
 import React, { forwardRef, useEffect, useId } from 'react';
 import type { ReactNode } from 'react';
 import classes from './StudioTableRemotePagination.module.css';
+import { StudioSpinner } from '../StudioSpinner';
+import { useRetainWhileLoading } from '../../hooks';
 
 export type Columns = {
   accessor: string;
@@ -38,6 +40,8 @@ export type StudioTableRemotePaginationProps = {
   rows: Rows;
   emptyTableFallback?: ReactNode;
   size?: 'small' | 'medium' | 'large';
+  isLoading?: boolean;
+  loadingText?: string;
   onSortClick?: (columnKey: string) => void;
   pagination?: RemotePaginationProps;
 };
@@ -47,10 +51,21 @@ export const StudioTableRemotePagination = forwardRef<
   StudioTableRemotePaginationProps
 >(
   (
-    { columns, rows, size = 'medium', emptyTableFallback, onSortClick, pagination },
+    {
+      columns,
+      rows,
+      size = 'medium',
+      isLoading = false,
+      loadingText,
+      emptyTableFallback,
+      onSortClick,
+      pagination,
+    },
     ref,
   ): React.ReactElement => {
     const selectId = useId();
+    const tableBodyRef = React.useRef<HTMLTableSectionElement>(null);
+    const [spinnerHeight, setSpinnerHeight] = React.useState('75px');
 
     const {
       currentPage,
@@ -71,9 +86,19 @@ export const StudioTableRemotePagination = forwardRef<
       numberButtonAriaLabel,
     } = paginationTexts || {};
 
-    const isTableEmpty = rows.length === 0;
+    const isTableEmpty = rows.length === 0 && !isLoading;
     const isSortingActive = !isTableEmpty && onSortClick;
     const isPaginationActive = pagination && totalRows > Math.min(...pageSizeOptions);
+
+    const retainedIsPaginationActive = useRetainWhileLoading(isLoading, isPaginationActive);
+    const retainedTotalPages = useRetainWhileLoading(isLoading, totalPages);
+    const retainedTotalRows = useRetainWhileLoading(isLoading, totalRows);
+
+    useEffect(() => {
+      if (rows.length > 0) {
+        setSpinnerHeight(tableBodyRef.current.clientHeight + 'px');
+      }
+    }, [tableBodyRef, rows.length]);
 
     useEffect(() => {
       const isOutOfRange = totalRows > 0 && isTableEmpty;
@@ -100,7 +125,7 @@ export const StudioTableRemotePagination = forwardRef<
               ))}
             </Table.Row>
           </Table.Head>
-          <Table.Body>
+          <Table.Body ref={tableBodyRef}>
             {rows.map((row) => (
               <Table.Row key={String(row.id)}>
                 {columns.map(({ accessor, bodyCellClass, bodyCellFormatter }) => (
@@ -115,7 +140,10 @@ export const StudioTableRemotePagination = forwardRef<
         {isTableEmpty && (
           <div className={classes.emptyTableFallbackContainer}>{emptyTableFallback}</div>
         )}
-        {isPaginationActive && (
+        {isLoading && (
+          <StudioSpinner style={{ height: spinnerHeight }} spinnerTitle={loadingText} />
+        )}
+        {retainedIsPaginationActive && (
           <div className={classes.paginationContainer}>
             <div className={classes.selectContainer}>
               <Label htmlFor={selectId} size={size} className={classes.selectLabel}>
@@ -135,14 +163,14 @@ export const StudioTableRemotePagination = forwardRef<
                 ))}
               </NativeSelect>
               <Paragraph size={size} className={classes.rowCounter}>
-                {totalRowsText} {totalRows}
+                {totalRowsText} {retainedTotalRows}
               </Paragraph>
             </div>
-            {totalPages > 1 && (
+            {retainedTotalPages > 1 && (
               <Pagination
                 size={size}
                 currentPage={currentPage}
-                totalPages={totalPages}
+                totalPages={retainedTotalPages}
                 onChange={handlePageChange}
                 nextLabel={nextButtonAriaLabel}
                 previousLabel={previousButtonAriaLabel}
