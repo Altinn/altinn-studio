@@ -2,13 +2,8 @@ import type { ChangeEvent } from 'react';
 import React, { useState } from 'react';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions } from './helpers/options';
-import {
-  Fieldset,
-  LegacyTextArea,
-  Textfield,
-  Switch,
-  LegacySelect,
-} from '@digdir/design-system-react';
+import { Fieldset, Textfield, Switch } from '@digdir/designsystemet-react';
+import { LegacyTextArea, LegacySelect } from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
 import type { CombinationKind, UiSchemaNode } from '@altinn/schema-model';

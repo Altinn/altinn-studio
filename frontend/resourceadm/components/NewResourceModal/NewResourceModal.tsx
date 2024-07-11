@@ -1,7 +1,7 @@
 import React, { forwardRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { Paragraph, Modal } from '@digdir/design-system-react';
+import { Paragraph, Modal } from '@digdir/designsystemet-react';
 import { ResourceNameAndId } from '../ResourceNameAndId';
 import { useCreateResourceMutation } from '../../hooks/mutations';
 import type { NewResource } from 'app-shared/types/ResourceAdm';

@@ -8,7 +8,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
 import { useInvalidator } from '../../../hooks/useInvalidator';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { Alert } from '@digdir/design-system-react';
+import { Alert } from '@digdir/designsystemet-react';
 
 export function DeployPage() {
   const { org, app } = useStudioEnvironmentParams();

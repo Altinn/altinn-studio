@@ -1,5 +1,6 @@
 import React from 'react';
-import { LegacySelect, Textfield, Fieldset } from '@digdir/design-system-react';
+import { Textfield, Fieldset } from '@digdir/designsystemet-react';
+import { LegacySelect } from '@digdir/design-system-react';
 import classes from './ImageComponent.module.css';
 import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';

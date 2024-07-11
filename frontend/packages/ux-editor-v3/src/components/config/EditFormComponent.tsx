@@ -3,7 +3,7 @@ import type { EditSettings, IGenericEditComponent } from './componentConfig';
 import { configComponents, componentSpecificEditConfig } from './componentConfig';
 
 import { ComponentSpecificContent } from './componentSpecificContent';
-import { Switch, Fieldset, Heading } from '@digdir/design-system-react';
+import { Switch, Fieldset, Heading } from '@digdir/designsystemet-react';
 import classes from './EditFormComponent.module.css';
 import type { FormComponent } from '../../types/FormComponent';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Combobox } from '@digdir/design-system-react';
+import { Combobox } from '@digdir/designsystemet-react';
 import { StudioButton, StudioDeleteButton } from '@studio/components';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { useTranslation } from 'react-i18next';

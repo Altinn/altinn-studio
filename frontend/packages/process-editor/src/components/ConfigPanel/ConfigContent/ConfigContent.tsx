@@ -8,7 +8,7 @@ import { getConfigTitleKey, getConfigTitleHelpTextKey } from '../../../utils/con
 import { ConfigIcon } from './ConfigIcon';
 import { EditDataTypes } from '../EditDataTypes';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
-import { Accordion } from '@digdir/design-system-react';
+import { Accordion } from '@digdir/designsystemet-react';
 import { EditActions } from './EditActions';
 import { EditPolicy } from './EditPolicy';
 import { EditDataTypesToSign } from '../EditDataTypesToSign';

@@ -1,7 +1,7 @@
 import { LogicalTupleOperator } from '../../../enums/LogicalTupleOperator';
 import React from 'react';
 import { useStudioExpressionContext } from '../../../StudioExpressionContext';
-import { Paragraph, ToggleGroup } from '@digdir/design-system-react';
+import { Paragraph, ToggleGroup } from '@digdir/designsystemet-react';
 import classes from './LogicalOperatorToggle.module.css';
 
 export type LogicalOperatorToggleProps = {

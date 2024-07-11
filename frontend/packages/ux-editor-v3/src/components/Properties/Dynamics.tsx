@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Switch } from '@digdir/design-system-react';
+import { Switch } from '@digdir/designsystemet-react';
 import { ConditionalRendering } from './ConditionalRendering';
 import { Expressions } from '../config/Expressions';
 import { useText } from '../../hooks';

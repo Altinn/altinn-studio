@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './LocalChangesModal.module.css';
-import { Heading } from '@digdir/design-system-react';
+import { Heading } from '@digdir/designsystemet-react';
 import { MonitorIcon } from '@studio/icons';
 import { StudioModal } from '@studio/components';
 import { useTranslation } from 'react-i18next';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { List, Link, Heading } from '@digdir/design-system-react';
+import { List, Link, Heading } from '@digdir/designsystemet-react';
 import { repositoryLayoutPath } from 'app-shared/api/paths';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { getDuplicatedIds } from '../../../utils/formLayoutUtils';

@@ -2,7 +2,7 @@ import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 import type { AltinnHeaderProps } from './AltinnHeader';
 import { AltinnHeader } from './AltinnHeader';
-import { Button } from '@digdir/design-system-react';
+import { Button } from '@digdir/designsystemet-react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { RepositoryType } from 'app-shared/types/global';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';

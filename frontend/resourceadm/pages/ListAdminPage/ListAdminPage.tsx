@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Heading, Link as DigdirLink, ToggleGroup } from '@digdir/design-system-react';
+import { Heading, Link as DigdirLink, ToggleGroup } from '@digdir/designsystemet-react';
 import { StudioSpinner, StudioButton } from '@studio/components';
 import { PencilWritingIcon, PlusIcon } from '@studio/icons';
 import classes from './ListAdminPage.module.css';

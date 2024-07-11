@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Tabs } from '@digdir/design-system-react';
+import { Tabs } from '@digdir/designsystemet-react';
 import { TextResourceValueEditor } from './TextResourceValueEditor';
 import { TextResourcePicker } from './TextResourcePicker';
 import classes from './TextResourceEditor.module.css';

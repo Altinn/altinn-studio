@@ -8,7 +8,7 @@ import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
 import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { RedirectBox } from '../../../../RedirectBox';
-import { Link } from '@digdir/design-system-react';
+import { Link } from '@digdir/designsystemet-react';
 
 export const RedirectToCreatePageButton = (): React.ReactElement => {
   const { t } = useTranslation();
