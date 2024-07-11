@@ -5,12 +5,23 @@
       <xsd:attribute name="rootNode" fixed="" />
     </xs:documentation>
   </xs:annotation>
+  <xs:complexType name="bil">
+    <xs:sequence>
+      <xs:element name="registreringsnummer" type="xs:string" />
+      <xs:element minOccurs="0" name="merke" type="xs:string" />
+      <xs:element minOccurs="0" name="modell" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
   <xs:element name="model">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="property1" type="xs:string" />
-        <xs:element name="property2" type="xs:string" />
-        <xs:element minOccurs="0" name="property3" type="xs:string" />
+        <xs:element minOccurs="0" name="biler">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="bil" type="bil" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
       </xs:sequence>
     </xs:complexType>
   </xs:element>

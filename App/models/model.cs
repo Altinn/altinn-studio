@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -11,20 +12,38 @@ namespace Altinn.App.Models.model
   [XmlRoot(ElementName="model")]
   public class model
   {
-    [XmlElement("property1", Order = 1)]
-    [JsonProperty("property1")]
-    [JsonPropertyName("property1")]
-    public string property1 { get; set; }
+    [XmlElement("biler", Order = 1)]
+    [JsonProperty("biler")]
+    [JsonPropertyName("biler")]
+    public biler biler { get; set; }
 
-    [XmlElement("property2", Order = 2)]
-    [JsonProperty("property2")]
-    [JsonPropertyName("property2")]
-    public string property2 { get; set; }
+  }
 
-    [XmlElement("property3", Order = 3)]
-    [JsonProperty("property3")]
-    [JsonPropertyName("property3")]
-    public string property3 { get; set; }
+  public class biler
+  {
+    [XmlElement("bil", Order = 1)]
+    [JsonProperty("bil")]
+    [JsonPropertyName("bil")]
+    public bil bil { get; set; }
+
+  }
+
+  public class bil
+  {
+    [XmlElement("registreringsnummer", Order = 1)]
+    [JsonProperty("registreringsnummer")]
+    [JsonPropertyName("registreringsnummer")]
+    public string registreringsnummer { get; set; }
+
+    [XmlElement("merke", Order = 2)]
+    [JsonProperty("merke")]
+    [JsonPropertyName("merke")]
+    public string merke { get; set; }
+
+    [XmlElement("modell", Order = 3)]
+    [JsonProperty("modell")]
+    [JsonPropertyName("modell")]
+    public string modell { get; set; }
 
   }
 }
