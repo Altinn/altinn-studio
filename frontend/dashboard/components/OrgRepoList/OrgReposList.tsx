@@ -35,7 +35,6 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
   const { data: dataModelsResults, isPending: hasPendingDataModels } = useSearchReposQuery({
     uid: uid as number,
     keyword: DATA_MODEL_REPO_IDENTIFIER,
-    page: 1,
   });
   const totalRows = repoResults?.totalCount - dataModelsResults?.totalCount ?? 0;
 

@@ -75,6 +75,18 @@ export const useReposSearch = ({
   const { data: searchResults, isPending: isLoadingSearchResults } =
     useSearchReposQuery(cleanFilter);
 
+  const getNextExistingPageNumber = () => {
+    const numberOfPages = Math.ceil(searchResults?.totalCount / pageSize);
+    if (pageNumber + 1 <= numberOfPages) {
+      return pageNumber + 1;
+    } else {
+      return pageNumber;
+    }
+  };
+
+  // Prefetch and cache the next page, if it exists
+  useSearchReposQuery({ ...cleanFilter, page: getNextExistingPageNumber() });
+
   return {
     searchResults,
     isLoadingSearchResults,
