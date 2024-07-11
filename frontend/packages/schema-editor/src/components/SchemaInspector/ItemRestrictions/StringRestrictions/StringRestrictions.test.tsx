@@ -28,8 +28,8 @@ describe('StringRestrictions', () => {
 
   test.each([
     [StrRestrictionKey.format, 'combobox'],
-    [StrRestrictionKey.minLength, 'textbox'],
-    [StrRestrictionKey.maxLength, 'textbox'],
+    [StrRestrictionKey.minLength, 'spinbutton'],
+    [StrRestrictionKey.maxLength, 'spinbutton'],
     [StrRestrictionKey.pattern, 'textbox'],
     ['pattern_test_field', 'textbox'],
   ])('%s %s should appear by default', async (key, role) => {
@@ -274,7 +274,7 @@ describe('StringRestrictions', () => {
     const minLength = 3;
     renderStringRestrictions({ restrictions: { minLength } });
     const minLengthField = await screen.findByLabelText(textMock('schema_editor.minLength'));
-    expect(minLengthField).toHaveValue(minLength.toString());
+    expect(minLengthField).toHaveValue(minLength);
   });
 
   test('onChangeRestrictions is called with correct input when minimum length is changed', async () => {
@@ -291,7 +291,7 @@ describe('StringRestrictions', () => {
     const maxLength = 255;
     renderStringRestrictions({ restrictions: { maxLength } });
     const maxLengthField = await screen.findByLabelText(textMock('schema_editor.maxLength'));
-    expect(maxLengthField).toHaveValue(maxLength.toString());
+    expect(maxLengthField).toHaveValue(maxLength);
   });
 
   test('onChangeRestrictions is called with correct input when maximum length is changed', async () => {

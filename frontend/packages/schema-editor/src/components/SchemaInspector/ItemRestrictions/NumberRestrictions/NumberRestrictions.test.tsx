@@ -98,7 +98,7 @@ describe('NumberRestrictions component', () => {
       isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
-    const textBoxMinimum = screen.getByRole('textbox', {
+    const textBoxMinimum = screen.getByRole('spinbutton', {
       name: textMock('schema_editor.minimum_inclusive'),
     });
     await user.type(textBoxMinimum, '1');
@@ -127,7 +127,7 @@ describe('NumberRestrictions component', () => {
       isInteger: false,
     };
     render(<NumberRestrictions readonly={false} {...props} />);
-    const textBoxMinimum = screen.getByRole('textbox', {
+    const textBoxMinimum = screen.getByRole('spinbutton', {
       name: textMock('schema_editor.minimum_inclusive'),
     });
     await user.type(textBoxMinimum, '0');
