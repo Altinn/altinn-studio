@@ -61,7 +61,13 @@ export const PageLayout = (): React.ReactNode => {
 
   return (
     <>
-      <button onClick={() => feedback.goToFeedbackUrl('featureRequest')}>Test</button>
+      <button
+        onClick={() => {
+          window.location.assign(feedback.getFeedbackUrl('featureRequest'));
+        }}
+      >
+        Test link to github issue as feature request
+      </button>
       <PageHeader
         showSubMenu={!repoStatus?.hasMergeConflict}
         user={user}

@@ -3,7 +3,7 @@
 export class UserFeedbackImpl implements UserFeedback {
   constructor(private userFeedback: UserFeedback) {}
 
-  public goToFeedbackUrl(feedbackType: FeedbackTypes): string {
-    return this.userFeedback.goToFeedbackUrl(feedbackType);
+  public getFeedbackUrl(feedbackType: FeedbackTypes): string {
+    return this.userFeedback.getFeedbackUrl(feedbackType);
   }
 }

@@ -1,4 +1,4 @@
 ﻿export type FeedbackTypes = 'featureRequest';
 export interface UserFeedback {
-  goToFeedbackUrl: (feedbackType: FeedbackTypes) => string;
+  getFeedbackUrl: (feedbackType: FeedbackTypes) => string;
 }

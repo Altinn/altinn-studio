@@ -13,7 +13,7 @@ const feedbackTypeMap: Record<FeedbackTypes, FeedbackConfig> = {
 };
 
 export class GitHubUserFeedbackImpl implements UserFeedback {
-  public goToFeedbackUrl(feedbackType: FeedbackTypes): string {
+  public getFeedbackUrl(feedbackType: FeedbackTypes): string {
     return this.getGitHubIssueUrl + this.optionToUrlParams(feedbackTypeMap[feedbackType]);
   }
 
