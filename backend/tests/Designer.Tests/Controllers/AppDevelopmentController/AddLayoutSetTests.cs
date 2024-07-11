@@ -165,7 +165,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             await CopyRepositoryForTest(org, app, developer, targetRepository);
             var newLayoutSetConfig = new LayoutSetConfig() { Id = layoutSetId, Tasks = ["NewTask"] };
             LayoutSetPayload layoutSetPayload = new LayoutSetPayload()
-            { TaskType = AppDevelopmentService.PaymentTaskType, LayoutSetConfig = newLayoutSetConfig };
+            { TaskType = TaskType.Payment, LayoutSetConfig = newLayoutSetConfig };
 
             string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetId}";
 

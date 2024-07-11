@@ -12,7 +12,6 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
-using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -336,7 +335,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            bool layoutIsInitialForPaymentTask = layoutSetPayload.TaskType == AppDevelopmentService.PaymentTaskType;
+            bool layoutIsInitialForPaymentTask = layoutSetPayload.TaskType == TaskType.Payment;
             LayoutSets layoutSets = await _appDevelopmentService.AddLayoutSet(editingContext, layoutSetPayload.LayoutSetConfig, layoutIsInitialForPaymentTask, cancellationToken);
             return Ok(layoutSets);
         }
