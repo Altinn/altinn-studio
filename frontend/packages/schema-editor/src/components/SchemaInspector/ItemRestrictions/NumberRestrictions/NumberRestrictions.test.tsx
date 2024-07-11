@@ -128,13 +128,13 @@ describe('NumberRestrictions component', () => {
     };
     render(<NumberRestrictions readonly={false} {...props} />);
     const textBoxMinimum = screen.getByRole('spinbutton', {
-      name: textMock('schema_editor.minimum_inclusive'),
+      name: textMock('schema_editor.maximum_inclusive'),
     });
     await user.type(textBoxMinimum, '0');
     const expectedRestrictions = {
-      [IntRestrictionKey.minimum]: 0,
+      [IntRestrictionKey.minimum]: undefined,
       [IntRestrictionKey.exclusiveMinimum]: undefined,
-      [IntRestrictionKey.maximum]: undefined,
+      [IntRestrictionKey.maximum]: 0,
       [IntRestrictionKey.exclusiveMaximum]: undefined,
       [IntRestrictionKey.multipleOf]: undefined,
       [IntRestrictionKey.integer]: undefined,

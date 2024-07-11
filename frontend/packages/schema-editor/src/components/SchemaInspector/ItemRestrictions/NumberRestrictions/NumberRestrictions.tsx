@@ -73,6 +73,7 @@ export function NumberRestrictions({
       valueExists(newValue) ? parseFloat(newValue) : undefined,
     );
   };
+
   const onChangeMaxNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value.trim();
     dispatchAction(
