@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import classes from './ImportResourceModal.module.css';
 import { Modal } from '../Modal';
-import { Combobox, Paragraph, Textfield } from '@digdir/design-system-react';
+import { Combobox, Paragraph, Textfield } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import type { EnvironmentType } from '../../types/EnvironmentType';
 import { useNavigate } from 'react-router-dom';
@@ -12,7 +12,7 @@ import { useImportResourceFromAltinn2Mutation } from '../../hooks/mutations';
 import type { Resource, ResourceError } from 'app-shared/types/ResourceAdm';
 import { getResourcePageURL } from '../../utils/urlUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { useUrlParams } from '../../hooks/useSelectedContext';
+import { useUrlParams } from '../../hooks/useUrlParams';
 import { StudioButton } from '@studio/components';
 import { formatIdString } from '../../utils/stringUtils';
 import {
@@ -45,7 +45,7 @@ export const ImportResourceModal = ({
 }: ImportResourceModalProps): React.JSX.Element => {
   const { t } = useTranslation();
 
-  const { selectedContext, repo } = useUrlParams();
+  const { org, app } = useUrlParams();
 
   const navigate = useNavigate();
 
@@ -55,13 +55,13 @@ export const ImportResourceModal = ({
   const [resourceIdExists, setResourceIdExists] = useState(false);
 
   const { mutate: importResourceFromAltinn2Mutation, isPending: isImportingResource } =
-    useImportResourceFromAltinn2Mutation(selectedContext);
+    useImportResourceFromAltinn2Mutation(org);
 
   const idErrorMessage = getResourceIdentifierErrorMessage(id, resourceIdExists);
   const hasValidValues =
     selectedEnv && selectedService && id.length >= 4 && !idErrorMessage && !isImportingResource;
 
-  const environmentOptions = getAvailableEnvironments(selectedContext);
+  const environmentOptions = getAvailableEnvironments(org);
 
   /**
    * Reset fields on close
@@ -87,7 +87,7 @@ export const ImportResourceModal = ({
       {
         onSuccess: (resource: Resource) => {
           toast.success(t('resourceadm.dashboard_import_success'));
-          navigate(getResourcePageURL(selectedContext, repo, resource.identifier, 'about'));
+          navigate(getResourcePageURL(org, app, resource.identifier, 'about'));
         },
         onError: (error: Error) => {
           if ((error as ResourceError).response?.status === ServerCodes.Conflict) {
@@ -125,7 +125,7 @@ export const ImportResourceModal = ({
       {selectedEnv && (
         <div className={classes.serviceContentWrapper}>
           <ServiceContent
-            selectedContext={selectedContext}
+            org={org}
             env={selectedEnv}
             selectedService={selectedService}
             onSelectService={(altinn2LinkService: Altinn2LinkService) => {

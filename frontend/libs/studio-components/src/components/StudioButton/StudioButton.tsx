@@ -1,5 +1,5 @@
-import { Button } from '@digdir/design-system-react';
-import type { ButtonProps } from '@digdir/design-system-react';
+import { Button } from '@digdir/designsystemet-react';
+import type { ButtonProps } from '@digdir/designsystemet-react';
 import type { ReactNode } from 'react';
 import React, { forwardRef } from 'react';
 import cn from 'classnames';
@@ -27,6 +27,7 @@ const StudioButton: OverridableComponent<StudioButtonProps, HTMLButtonElement> =
   // Information can be found here: https://www.designsystemet.no/bloggen/2024/v1rc1#fargemodus
   const classNames = cn(givenClassName, classes.studioButton, {
     [classes.inverted]: color === 'inverted',
+    [classes.small]: rest.size === 'small',
   });
   const selectedColor = color === 'inverted' ? undefined : color;
 

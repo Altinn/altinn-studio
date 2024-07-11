@@ -1,10 +1,10 @@
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
-import { userHasAccessToSelectedContext } from './index';
+import { userHasAccessToOrganization } from './index';
 
-describe('userHasAccessToSelectedContext', () => {
+describe('userHasAccessToOrganization', () => {
   it('should return true when context is self', () => {
-    const result = userHasAccessToSelectedContext({
-      selectedContext: SelectedContextType.Self,
+    const result = userHasAccessToOrganization({
+      org: SelectedContextType.Self,
       orgs: [],
     });
 
@@ -12,8 +12,8 @@ describe('userHasAccessToSelectedContext', () => {
   });
 
   it('should return true when context is all', () => {
-    const result = userHasAccessToSelectedContext({
-      selectedContext: SelectedContextType.All,
+    const result = userHasAccessToOrganization({
+      org: SelectedContextType.All,
       orgs: [],
     });
 
@@ -21,8 +21,8 @@ describe('userHasAccessToSelectedContext', () => {
   });
 
   it('should return true when context id is present in orgs list', () => {
-    const result = userHasAccessToSelectedContext({
-      selectedContext: 'username1',
+    const result = userHasAccessToOrganization({
+      org: 'username1',
       orgs: [
         {
           avatar_url: 'avatar_url',
@@ -40,8 +40,8 @@ describe('userHasAccessToSelectedContext', () => {
   });
 
   it('should return false when context id is not present in orgs list', () => {
-    const result = userHasAccessToSelectedContext({
-      selectedContext: 'username2',
+    const result = userHasAccessToOrganization({
+      org: 'username2',
       orgs: [
         {
           avatar_url: 'avatar_url',

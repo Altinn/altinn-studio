@@ -2,19 +2,16 @@ import type { ReactNode } from 'react';
 import React, { useState } from 'react';
 import classes from './LocalChanges.module.css';
 import { useTranslation } from 'react-i18next';
-import { Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import { DownloadIcon, TrashIcon } from '@studio/icons';
 import { LocalChangesActionButton } from '../LocalChangesActionButton';
 import { DeleteModal } from '../DeleteModal';
 import { repoDownloadPath } from 'app-shared/api/paths';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
-export type LocalChangesProps = {
-  org: string;
-  app: string;
-};
-
-export const LocalChanges = ({ org, app }: LocalChangesProps): ReactNode => {
+export const LocalChanges = (): ReactNode => {
   const { t } = useTranslation();
+  const { app, org } = useStudioEnvironmentParams();
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 

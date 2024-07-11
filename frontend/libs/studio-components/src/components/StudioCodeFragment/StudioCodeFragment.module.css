@@ -1,4 +1,5 @@
 .code {
+  flex: 1;
   background-color: var(--fds-semantic-surface-neutral-subtle);
   border: 1px solid var(--fds-semantic-border-neutral-subtle);
   border-radius: var(--fds-border_radius-small);

@@ -4,10 +4,11 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { PencilWritingIcon } from '@studio/icons';
 import { StudioButton } from '@studio/components';
-import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
+import { useLocalStorage } from '@studio/components/src/hooks/useLocalStorage';
 import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { RedirectBox } from '../../../../RedirectBox';
+import { Link } from '@digdir/designsystemet-react';
 
 export const RedirectToCreatePageButton = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -26,17 +27,14 @@ export const RedirectToCreatePageButton = (): React.ReactElement => {
       <RedirectBox
         title={t('process_editor.configuration_panel_custom_receipt_navigate_to_lage_title')}
       >
-        <StudioButton
-          asChild
-          size='small'
-          variant='primary'
-          color='second'
-          icon={<PencilWritingIcon />}
-          onClick={handleClick}
-        >
-          <a href={packagesRouter.getPackageNavigationUrl('editorUiEditor')}>
+        <StudioButton asChild size='small' variant='primary' color='second' onClick={handleClick}>
+          <Link
+            href={packagesRouter.getPackageNavigationUrl('editorUiEditor')}
+            className={classes.link}
+          >
+            <PencilWritingIcon />
             {t('process_editor.configuration_panel_custom_receipt_navigate_to_lage_button')}
-          </a>
+          </Link>
         </StudioButton>
       </RedirectBox>
     </div>

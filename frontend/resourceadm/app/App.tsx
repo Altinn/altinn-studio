@@ -41,8 +41,8 @@ export const App = (): React.JSX.Element => {
     );
   }
 
-  // PageLayout banner uses organization, named as selectedContext
-  const basePath = '/:selectedContext/:app';
+  // PageLayout banner uses organization, named as org
+  const basePath = '/:org/:app';
 
   if (componentIsReady) {
     return (
@@ -60,7 +60,7 @@ export const App = (): React.JSX.Element => {
               element={<ResourcePage />}
             />
             <Route path='/' element={<ErrorPage />} />
-            <Route path='/:selectedContext' element={<RedirectPage />} />
+            <Route path='/:org' element={<RedirectPage />} />
           </Route>
         </Routes>
       </div>

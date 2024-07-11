@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import React, { useCallback } from 'react';
 import classes from './PageAccordion.module.css';
 import cn from 'classnames';
-import { Accordion } from '@digdir/design-system-react';
+import { Accordion } from '@digdir/designsystemet-react';
 import { NavigationMenu } from './NavigationMenu';
 import { pageAccordionContentId } from '@studio/testing/testids';
 import { TrashIcon } from '@studio/icons';

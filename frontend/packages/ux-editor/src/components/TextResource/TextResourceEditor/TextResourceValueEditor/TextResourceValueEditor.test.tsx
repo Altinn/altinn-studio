@@ -8,7 +8,7 @@ import { renderWithProviders } from '../../../../testing/mocks';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { typedLocalStorage } from 'app-shared/utils/webStorage';
+import { typedLocalStorage } from '@studio/components/src/hooks/webStorage';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { appContextMock } from '../../../../testing/appContextMock';
@@ -24,7 +24,11 @@ const textResources: ITextResource[] = [
 ];
 
 const textResourceId = textResources[0].id;
-const defaultProps: TextResourceValueEditorProps = { textResourceId };
+const mockOnSetCurrentValue = jest.fn();
+const defaultProps: TextResourceValueEditorProps = {
+  textResourceId,
+  onSetCurrentValue: mockOnSetCurrentValue,
+};
 
 describe('TextResourceValueEditor', () => {
   afterEach(() => {

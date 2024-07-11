@@ -1,11 +1,9 @@
 import React from 'react';
 import classes from './Contact.module.css';
-import { Heading, Link, Paragraph } from '@digdir/design-system-react';
+import { Heading, Link, Paragraph } from '@digdir/designsystemet-react';
 import { Trans, useTranslation } from 'react-i18next';
-import { EnvelopeClosedIcon } from '@studio/icons';
+import { EnvelopeClosedIcon, SlackIcon, GitHubIcon } from '@studio/icons';
 import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
-import Slack from 'app-shared/icons/Slack.svg';
-import GitHub from 'app-shared/icons/GitHub.svg';
 import classNames from 'classnames';
 
 export const Contact = () => {
@@ -38,7 +36,7 @@ export const Contact = () => {
           </section>
           <section className={classes.section}>
             <div className={classes.iconContainer}>
-              <Slack />
+              <SlackIcon />
             </div>
             <div className={classes.textContainer}>
               <Heading level={2} size='xsmall' spacing>
@@ -61,7 +59,7 @@ export const Contact = () => {
           </section>
           <section className={classes.section}>
             <div className={classNames(classes.iconContainer, classes.githubIcon)}>
-              <GitHub />
+              <GitHubIcon />
             </div>
             <div className={classes.textContainer}>
               <Heading level={2} size='xsmall' spacing>

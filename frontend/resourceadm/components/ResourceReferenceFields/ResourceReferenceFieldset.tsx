@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Fieldset, Textfield, NativeSelect } from '@digdir/design-system-react';
+import { Fieldset, Textfield, NativeSelect } from '@digdir/designsystemet-react';
 import type {
   ResourceFormError,
   ResourceReference,

@@ -3,7 +3,7 @@ import classes from './EnumList.module.css';
 import type { FieldNode } from '@altinn/schema-model';
 import { ObjectUtils, ArrayUtils } from '@studio/pure-functions';
 import { EnumField } from './EnumField';
-import { ErrorMessage, Fieldset } from '@digdir/design-system-react';
+import { ErrorMessage, Fieldset } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@studio/icons';
 import { findDuplicateValues } from './utils';

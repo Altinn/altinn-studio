@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Tabs } from '@digdir/design-system-react';
+import { Alert, Tabs } from '@digdir/designsystemet-react';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { isField, isObject } from '@altinn/schema-model';
 import { ItemPropertiesTab } from './ItemPropertiesTab';

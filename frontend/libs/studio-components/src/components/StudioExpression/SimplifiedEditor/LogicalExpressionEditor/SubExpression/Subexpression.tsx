@@ -15,7 +15,7 @@ import cn from 'classnames';
 import type { ExpressionErrorKey } from '../../../enums/ExpressionErrorKey';
 import { findSubexpressionErrors } from './utils/findSubexpressionErrors';
 import { SubexpressionErrors } from './SubExpressionErrors';
-import { Fieldset } from '@digdir/design-system-react';
+import { Fieldset } from '@digdir/designsystemet-react';
 import { useStudioExpressionContext } from '../../../StudioExpressionContext';
 
 export type SubexpressionProps = {

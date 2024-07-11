@@ -1,5 +1,6 @@
 import React from 'react';
-import { Switch, LegacySelect } from '@digdir/design-system-react';
+import { Switch } from '@digdir/designsystemet-react';
+import { LegacySelect } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { useText } from '../../../../hooks';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';

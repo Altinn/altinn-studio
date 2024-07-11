@@ -1,4 +1,4 @@
-import { Button, DropdownMenu } from '@digdir/design-system-react';
+import { Button, DropdownMenu } from '@digdir/designsystemet-react';
 import React, { useRef, useState } from 'react';
 import classes from './ActionLinks.module.css';
 import cn from 'classnames';
@@ -56,19 +56,19 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
       </Button>
       <Button variant={'tertiary'} icon asChild>
         <a href={editUrl} title={editTextKey}>
-          <PencilIcon />
+          <PencilIcon className={classes.nativeActionIcon} />
         </a>
       </Button>
       <DropdownMenu size={'small'}>
         <DropdownMenu.Trigger
           variant={'tertiary'}
-          asChild
           title={t('dashboard.app_dropdown', {
             appName: repoName,
           })}
+          asChild
         >
           <Button variant={'tertiary'} icon>
-            <MenuElipsisVerticalIcon />
+            <MenuElipsisVerticalIcon className={classes.nativeActionIcon} />
           </Button>
         </DropdownMenu.Trigger>
         <DropdownMenu.Content>

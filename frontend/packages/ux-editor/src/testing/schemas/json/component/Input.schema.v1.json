@@ -136,6 +136,16 @@
           "title": "Accessible summary title",
           "description": "Title used for aria-label on the edit button in the summary view (overrides the default and summary title)",
           "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "prefix": {
+          "title": "Prefix",
+          "description": "Prefix shown before the input field",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "suffix": {
+          "title": "Suffix",
+          "description": "Suffix shown after the input field",
+          "$ref": "expression.schema.v1.json#/definitions/string"
         }
       }
     },
@@ -170,7 +180,6 @@
       "properties": {
         "currency": {
           "title": "Language-sensitive currency formatting",
-          "type": "string",
           "description": "Enables currency to be language sensitive based on selected app language. Note: parts that already exist in number property are not overridden by this prop.",
           "enum": [
             "AED",

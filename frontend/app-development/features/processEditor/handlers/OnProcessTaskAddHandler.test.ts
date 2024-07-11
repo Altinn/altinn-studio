@@ -1,10 +1,23 @@
 import type { Policy } from 'app-shared/types/Policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
 import { OnProcessTaskAddHandler } from './OnProcessTaskAddHandler';
-import { BpmnTypeEnum } from '@altinn/process-editor/enum/BpmnTypeEnum';
 import type { TaskEvent } from '@altinn/process-editor/types/TaskEvent';
 import type { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
 import { app, org } from '@studio/testing/testids';
+import { getMockBpmnElementForTask } from '../../../../packages/process-editor/test/mocks/bpmnDetailsMock';
+import type { BpmnBusinessObjectEditor } from '@altinn/process-editor/types/BpmnBusinessObjectEditor';
+
+jest.mock('@altinn/process-editor/utils/bpmnModeler/StudioModeler', () => {
+  const actual = jest.requireActual('@altinn/process-editor/utils/bpmnModeler/StudioModeler');
+  return {
+    ...actual,
+    StudioModeler: jest.fn().mockImplementation((args) => {
+      const instance = new actual.StudioModeler(args);
+      instance.getElement = jest.fn().mockReturnValue(instance.element);
+      return instance;
+    }),
+  };
+});
 
 const currentPolicyMock: Policy = {
   requiredAuthenticationLevelOrg: '3',
@@ -25,14 +38,13 @@ const createOnProcessTaskHandler = () =>
     addDataTypeToAppMetadataMock,
   );
 
-const createTaskEvent = (extensionConfig?: object): TaskEvent =>
+const testElementId = 'testElementId';
+const createTaskEvent = (businessObject?: BpmnBusinessObjectEditor): TaskEvent =>
   ({
     element: {
-      id: 'testId',
+      id: testElementId,
       businessObject: {
-        id: 'testEventId',
-        $type: BpmnTypeEnum.Task,
-        extensionElements: extensionConfig ? { values: [extensionConfig] } : undefined,
+        ...(businessObject || {}),
       },
     },
   }) as TaskEvent;
@@ -46,38 +58,24 @@ describe('OnProcessTaskAddHandler', () => {
     const onProcessTaskAddHandler = createOnProcessTaskHandler();
 
     onProcessTaskAddHandler.handleOnProcessTaskAdd({
-      taskEvent: createTaskEvent(),
+      taskEvent: createTaskEvent(getMockBpmnElementForTask('data').businessObject),
       taskType: 'data',
     });
 
     expect(addLayoutSetMock).toHaveBeenCalledWith({
-      layoutSetConfig: { id: 'testId', tasks: ['testId'] },
-      layoutSetIdToUpdate: 'testId',
+      layoutSetConfig: { id: testElementId, tasks: [testElementId] },
+      layoutSetIdToUpdate: testElementId,
+      taskType: 'data',
     });
     expect(addLayoutSetMock).toHaveBeenCalledTimes(1);
     expect(addDataTypeToAppMetadataMock).not.toHaveBeenCalled();
     expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
   });
 
-  it('should add layoutSet, dataType and default policy when payment task is added', () => {
+  it('should add layoutSet, dataTypes and default policy when payment task is added', () => {
     const taskMetadata: OnProcessTaskEvent = {
       taskType: 'payment',
-      taskEvent: {
-        element: {
-          id: 'testElementId',
-          businessObject: {
-            id: 'testEventId',
-            $type: BpmnTypeEnum.Task,
-            extensionElements: {
-              values: [
-                {
-                  paymentConfig: { paymentDataType: 'paymentInformation' },
-                },
-              ],
-            },
-          },
-        },
-      } as TaskEvent,
+      taskEvent: createTaskEvent(getMockBpmnElementForTask('payment').businessObject),
     };
 
     const expectedResponse: Policy = {
@@ -106,9 +104,15 @@ describe('OnProcessTaskAddHandler', () => {
         tasks: ['testElementId'],
       },
       layoutSetIdToUpdate: 'testElementId',
+      taskType: 'payment',
     });
-    expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
-      dataTypeId: 'paymentInformation',
+    expect(addDataTypeToAppMetadataMock).toHaveBeenCalledTimes(2);
+    expect(addDataTypeToAppMetadataMock).toHaveBeenNthCalledWith(1, {
+      dataTypeId: 'paymentInformation-1234',
+      taskId: 'testElementId',
+    });
+    expect(addDataTypeToAppMetadataMock).toHaveBeenNthCalledWith(2, {
+      dataTypeId: 'paymentReceiptPdf-1234',
       taskId: 'testElementId',
     });
     expect(mutateApplicationPolicyMock).toHaveBeenCalledWith(expectedResponse);
@@ -119,28 +123,13 @@ describe('OnProcessTaskAddHandler', () => {
 
     const taskMetadata: OnProcessTaskEvent = {
       taskType: 'signing',
-      taskEvent: {
-        element: {
-          id: 'testElementId',
-          businessObject: {
-            id: 'testEventId',
-            $type: BpmnTypeEnum.Task,
-            extensionElements: {
-              values: [
-                {
-                  signatureConfig: { signatureDataType: 'signingInformation' },
-                },
-              ],
-            },
-          },
-        },
-      } as TaskEvent,
+      taskEvent: createTaskEvent(getMockBpmnElementForTask('signing').businessObject),
     };
 
     onProcessTaskAddHandler.handleOnProcessTaskAdd(taskMetadata);
 
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
-      dataTypeId: 'signingInformation',
+      dataTypeId: 'signatureInformation-1234',
       taskId: 'testElementId',
     });
     expect(addLayoutSetMock).not.toHaveBeenCalled();

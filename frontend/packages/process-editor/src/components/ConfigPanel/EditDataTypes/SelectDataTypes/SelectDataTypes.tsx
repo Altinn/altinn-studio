@@ -1,5 +1,5 @@
 import React from 'react';
-import { Combobox } from '@digdir/design-system-react';
+import { Combobox } from '@digdir/designsystemet-react';
 import { StudioButton, StudioDeleteButton } from '@studio/components';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { useTranslation } from 'react-i18next';
@@ -45,7 +45,7 @@ export const SelectDataTypes = ({
   return (
     <div className={classes.dataTypeSelectAndButtons}>
       <Combobox
-        label={t('process_editor.configuration_panel_set_data_model')}
+        label={t('process_editor.configuration_panel_set_data_model_label')}
         value={currentValue && dataModelIds.includes(existingDataType) ? currentValue : undefined}
         description={t('process_editor.configuration_panel_data_model_selection_description')}
         size='small'

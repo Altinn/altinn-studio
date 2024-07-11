@@ -1,5 +1,5 @@
 import React, { useId, useState } from 'react';
-import { Combobox, Label } from '@digdir/design-system-react';
+import { Combobox, Label } from '@digdir/designsystemet-react';
 import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
@@ -11,7 +11,7 @@ import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { useDebounce } from 'app-shared/hooks/useDebounce';
-import { StudioModeler } from '../../../../utils/bpmn/StudioModeler';
+import { StudioModeler } from '../../../../utils/bpmnModeler/StudioModeler';
 
 export interface SelectDataTypesToSignProps {
   onClose: () => void;

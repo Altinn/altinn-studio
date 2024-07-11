@@ -4,7 +4,7 @@ import classes from './SetupTabContent.module.css';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { useTranslation } from 'react-i18next';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
-import { Paragraph, Switch } from '@digdir/design-system-react';
+import { Paragraph, Switch } from '@digdir/designsystemet-react';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export type SetupTabContentProps = {

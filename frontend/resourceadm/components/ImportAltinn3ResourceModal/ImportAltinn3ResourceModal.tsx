@@ -1,6 +1,6 @@
 import React, { forwardRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, Radio } from '@digdir/design-system-react';
+import { Modal, Radio } from '@digdir/designsystemet-react';
 import { StudioButton } from '@studio/components';
 import { getEnvLabel } from '../../utils/resourceUtils';
 import type { EnvId } from '../../utils/resourceUtils';

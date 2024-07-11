@@ -1,6 +1,6 @@
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import React, { useEffect, useState } from 'react';
-import { Textfield } from '@digdir/design-system-react';
+import { Textfield } from '@digdir/designsystemet-react';
 import classes from './EnumField.module.css';
 import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';

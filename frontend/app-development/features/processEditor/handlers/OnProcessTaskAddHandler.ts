@@ -1,11 +1,11 @@
 import { PaymentPolicyBuilder } from '../../../utils/policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
 import type { Policy } from 'app-shared/types/Policy';
-import { getDataTypeIdFromBusinessObject } from '@altinn/process-editor/utils/hookUtils/hookUtils';
 import type {
   AddLayoutSetMutation,
   AddLayoutSetMutationPayload,
 } from '../../../hooks/mutations/useAddLayoutSetMutation';
+import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioModeler';
 
 export class OnProcessTaskAddHandler {
   constructor(
@@ -44,7 +44,7 @@ export class OnProcessTaskAddHandler {
    * @private
    */
   private handleDataTaskAdd(taskMetadata: OnProcessTaskEvent): void {
-    this.addLayoutSet(this.createLayoutSetConfig(taskMetadata.taskEvent));
+    this.addLayoutSet(this.createLayoutSetConfig(taskMetadata));
   }
 
   /**
@@ -53,15 +53,24 @@ export class OnProcessTaskAddHandler {
    * @private
    */
   private handlePaymentTaskAdd(taskMetadata: OnProcessTaskEvent): void {
-    this.addLayoutSet(this.createLayoutSetConfig(taskMetadata.taskEvent));
+    this.addLayoutSet(this.createLayoutSetConfig(taskMetadata));
 
-    const dataTypeId = getDataTypeIdFromBusinessObject(
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element);
+    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
       taskMetadata.taskType,
       taskMetadata.taskEvent.element.businessObject,
     );
-
     this.addDataTypeToAppMetadata({
       dataTypeId,
+      taskId: taskMetadata.taskEvent.element.id,
+    });
+
+    const receiptPdfDataTypeId = studioModeler.getReceiptPdfDataTypeIdFromBusinessObject(
+      taskMetadata.taskType,
+      taskMetadata.taskEvent.element.businessObject,
+    );
+    this.addDataTypeToAppMetadata({
+      dataTypeId: receiptPdfDataTypeId,
       taskId: taskMetadata.taskEvent.element.id,
     });
 
@@ -83,7 +92,8 @@ export class OnProcessTaskAddHandler {
    * @private
    */
   private handleSigningTaskAdd(taskMetadata: OnProcessTaskEvent): void {
-    const dataTypeId = getDataTypeIdFromBusinessObject(
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as any);
+    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
       taskMetadata.taskType,
       taskMetadata.taskEvent.element.businessObject,
     );
@@ -99,12 +109,11 @@ export class OnProcessTaskAddHandler {
    * @returns {{layoutSetIdToUpdate: string, layoutSetConfig: LayoutSetConfig}}
    * @private
    */
-  private createLayoutSetConfig(
-    taskEvent: OnProcessTaskEvent['taskEvent'],
-  ): AddLayoutSetMutationPayload {
-    const elementId = taskEvent.element.id;
+  private createLayoutSetConfig(taskMetadata: OnProcessTaskEvent): AddLayoutSetMutationPayload {
+    const elementId = taskMetadata.taskEvent.element.id;
     return {
       layoutSetIdToUpdate: elementId,
+      taskType: taskMetadata.taskType,
       layoutSetConfig: { id: elementId, tasks: [elementId] },
     };
   }

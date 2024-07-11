@@ -1,7 +1,7 @@
 import type { ChangeEvent } from 'react';
 import React from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
-import { NativeSelect } from '@digdir/design-system-react';
+import { NativeSelect } from '@digdir/designsystemet-react';
 import { HTMLAutoCompleteValue } from 'app-shared/types/HTMLAutoCompleteValue';
 import { useTranslation } from 'react-i18next';
 import type { ComponentType } from 'app-shared/types/ComponentType';

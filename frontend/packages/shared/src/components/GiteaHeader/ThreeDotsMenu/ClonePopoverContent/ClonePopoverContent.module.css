@@ -1,0 +1,24 @@
+.modalContainer {
+  padding: var(--fds-spacing-2);
+  cursor: auto;
+}
+
+.link {
+  margin-bottom: var(--fds-spacing-4);
+}
+
+.iconAndText {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-2);
+  margin-bottom: var(--fds-spacing-4);
+}
+
+.infoIcon {
+  font-size: var(--fds-sizing-5);
+  color: var(--fds-semantic-text-action-default);
+}
+
+.button {
+  margin-top: var(--fds-spacing-4);
+}

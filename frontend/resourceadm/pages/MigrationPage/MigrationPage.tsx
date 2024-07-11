@@ -14,10 +14,10 @@ import {
   Label,
   Link,
   Radio,
-} from '@digdir/design-system-react';
+} from '@digdir/designsystemet-react';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import { useTranslation } from 'react-i18next';
-import { useUrlParams } from '../../hooks/useSelectedContext';
+import { useUrlParams } from '../../hooks/useUrlParams';
 import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 import type { EnvId } from '../../utils/resourceUtils';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';
@@ -42,17 +42,17 @@ export const MigrationPage = ({
 }: MigrationPageProps): React.JSX.Element => {
   const { t } = useTranslation();
 
-  const { selectedContext, repo, resourceId } = useUrlParams();
+  const { org, app, resourceId } = useUrlParams();
 
   const { data: validatePolicyData, isPending: isValidatePolicyPending } = useValidatePolicyQuery(
-    selectedContext,
-    repo,
+    org,
+    app,
     resourceId,
   );
   const { data: validateResourceData, isPending: validateResourceLoading } =
-    useValidateResourceQuery(selectedContext, repo, resourceId);
+    useValidateResourceQuery(org, app, resourceId);
   const { isPending: isLoadingPublishStatus, data: publishStatusData } =
-    useResourcePolicyPublishStatusQuery(selectedContext, repo, resourceId);
+    useResourcePolicyPublishStatusQuery(org, app, resourceId);
 
   // TODO - This might be a saved value from backend. Issue: #10715
   const initialDate = new Date().toISOString().split('T')[0];
@@ -62,7 +62,7 @@ export const MigrationPage = ({
   const [numDelegationsA2, setNumDelegationsA2] = useState<number>(undefined);
   const [numDelegationsA3, setNumDelegationsA3] = useState<number>(undefined);
 
-  const envPublishStatus = getAvailableEnvironments(selectedContext).map((env) => {
+  const envPublishStatus = getAvailableEnvironments(org).map((env) => {
     const isPublishedInEnv = publishStatusData?.publishedVersions.some(
       (version) => version.environment === env.id && version.version,
     );

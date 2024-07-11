@@ -1,14 +1,14 @@
 import React, { forwardRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { Paragraph, Modal } from '@digdir/design-system-react';
+import { Paragraph, Modal } from '@digdir/designsystemet-react';
 import { ResourceNameAndId } from '../ResourceNameAndId';
 import { useCreateResourceMutation } from '../../hooks/mutations';
 import type { NewResource } from 'app-shared/types/ResourceAdm';
 import { getResourcePageURL } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { useUrlParams } from '../../hooks/useSelectedContext';
+import { useUrlParams } from '../../hooks/useUrlParams';
 import { StudioButton } from '@studio/components';
 import { getResourceIdentifierErrorMessage } from '../../utils/resourceUtils';
 
@@ -30,7 +30,7 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
 
     const navigate = useNavigate();
 
-    const { selectedContext, repo } = useUrlParams();
+    const { org, app } = useUrlParams();
 
     const [id, setId] = useState('');
     const [title, setTitle] = useState('');
@@ -38,7 +38,7 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
 
     // Mutation function to create new resource
     const { mutate: createNewResource, isPending: isCreatingResource } =
-      useCreateResourceMutation(selectedContext);
+      useCreateResourceMutation(org);
 
     const idErrorMessage = getResourceIdentifierErrorMessage(id, resourceIdExists);
     const hasValidValues =
@@ -64,7 +64,7 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
               resourceName: idAndTitle.title.nb,
             }),
           );
-          navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about'));
+          navigate(getResourcePageURL(org, app, idAndTitle.identifier, 'about'));
         },
 
         onError: (error: any) => {

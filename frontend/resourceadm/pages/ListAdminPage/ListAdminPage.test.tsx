@@ -40,7 +40,7 @@ describe('ListAdminPage', () => {
 
   it('should navigate to first available enviromnent if no environment is selected', async () => {
     (useParams as jest.Mock).mockReturnValue({
-      selectedContext: 'ttd',
+      org: 'ttd',
     });
     renderListAdminPage();
 
@@ -51,7 +51,7 @@ describe('ListAdminPage', () => {
 
   it('should show lists after environment is selected', async () => {
     (useParams as jest.Mock).mockReturnValue({
-      selectedContext: 'ttd',
+      org: 'ttd',
       env: 'tt02',
     });
     renderListAdminPage();
@@ -61,7 +61,7 @@ describe('ListAdminPage', () => {
 
   it('should change environment on toggle button click', async () => {
     (useParams as jest.Mock).mockReturnValue({
-      selectedContext: 'ttd',
+      org: 'ttd',
       env: 'tt02',
     });
     const user = userEvent.setup();
@@ -77,7 +77,7 @@ describe('ListAdminPage', () => {
 
   it('should show create dialog when create new button is clicked', async () => {
     (useParams as jest.Mock).mockReturnValue({
-      selectedContext: 'ttd',
+      org: 'ttd',
       env: 'tt02',
     });
     const user = userEvent.setup();
@@ -97,7 +97,7 @@ describe('ListAdminPage', () => {
 
   it('should load more lists when load more button is clicked', async () => {
     (useParams as jest.Mock).mockReturnValue({
-      selectedContext: 'ttd',
+      org: 'ttd',
       env: 'tt02',
     });
     const user = userEvent.setup();
@@ -123,7 +123,7 @@ describe('ListAdminPage', () => {
 
   it('should show error when user does not have permission to edit access lists', async () => {
     (useParams as jest.Mock).mockReturnValue({
-      selectedContext: 'ttd',
+      org: 'ttd',
       env: 'tt02',
     });
 

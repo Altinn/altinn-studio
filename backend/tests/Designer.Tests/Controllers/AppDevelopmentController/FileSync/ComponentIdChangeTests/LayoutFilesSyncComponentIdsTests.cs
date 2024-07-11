@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController.FileSync.ComponentIdChangeTests;
 
-public class LayoutFilesSyncComponentIdsTests : DisagnerEndpointsTestsBase<LayoutFilesSyncComponentIdsTests>,
+public class LayoutFilesSyncComponentIdsTests : DesignerEndpointsTestsBase<LayoutFilesSyncComponentIdsTests>,
     IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) =>

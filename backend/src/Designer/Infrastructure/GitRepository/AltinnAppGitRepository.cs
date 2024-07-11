@@ -703,17 +703,41 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Gets the options list with the provided id.
-        /// <param name="optionsListId">The id of the options list to fetch.</param>
+        /// Gets a list of file names from the Options folder representing the available options lists.
+        /// </summary>
+        /// <returns>A list of option list names.</returns>
+        public string[] GetOptionsListIds()
+        {
+            string optionsFolder = Path.Combine(OptionsFolderPath);
+            if (!DirectoryExistsByRelativePath(optionsFolder))
+            {
+                throw new NotFoundException("Options folder not found.");
+            }
+
+            string[] fileNames = GetFilesByRelativeDirectory(optionsFolder);
+            List<string> optionsListIds = [];
+            foreach (string fileName in fileNames.Select(Path.GetFileNameWithoutExtension))
+            {
+                optionsListIds.Add(fileName);
+            }
+
+            return optionsListIds.ToArray();
+        }
+
+        /// <summary>
+        /// Gets a specific options list with the provided id.
+        /// </summary>
+        /// <param name="optionsListId">The name of the options list to fetch.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The options list as a string.</returns>
-        /// </summary>
-        public async Task<string> GetOptions(string optionsListId, CancellationToken cancellationToken = default)
+        public async Task<string> GetOptionsList(string optionsListId, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             string optionsFilePath = Path.Combine(OptionsFolderPath, $"{optionsListId}.json");
             if (!FileExistsByRelativePath(optionsFilePath))
             {
-                throw new NotFoundException("Options file not found.");
+                throw new NotFoundException($"Options file {optionsListId}.json was not found.");
             }
             string fileContent = await ReadTextByRelativePathAsync(optionsFilePath, cancellationToken);
 
@@ -721,24 +745,37 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Gets a list of file names from the Options folder representing the available options lists.
-        /// <returns>A list of option list names.</returns>
+        /// Creates or overwrites the options list with the provided id.
+        /// If the options list already exists, it will be overwritten.
         /// </summary>
-        public string[] GetOptionListIds()
+        /// <param name="optionsListId">The name of the options list to create.</param>
+        /// <param name="payload">The contents of the new options list as a string</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>The new options list as a string.</returns>
+        public async Task<string> CreateOrOverwriteOptionsList(string optionsListId, string payload, CancellationToken cancellationToken = default)
         {
-            string optionsFolder = Path.Combine(OptionsFolderPath);
-            if (!DirectoryExistsByRelativePath(optionsFolder))
+            cancellationToken.ThrowIfCancellationRequested();
+
+            string optionsFilePath = Path.Combine(OptionsFolderPath, $"{optionsListId}.json");
+            await WriteTextByRelativePathAsync(optionsFilePath, payload, true, cancellationToken);
+            string fileContent = await ReadTextByRelativePathAsync(optionsFilePath, cancellationToken);
+
+            return fileContent;
+        }
+
+        /// <summary>
+        /// Deletes the option list with the provided id.
+        /// </summary>
+        /// <param name="optionsListId">The name of the option list to create.</param>
+        public void DeleteOptionsList(string optionsListId)
+        {
+            string optionsFilePath = Path.Combine(OptionsFolderPath, $"{optionsListId}.json");
+            if (!FileExistsByRelativePath(optionsFilePath))
             {
-                throw new NotFoundException("Options folder not found.");
-            }
-            string[] fileNames = GetFilesByRelativeDirectory(optionsFolder);
-            List<string> optionListIds = new();
-            foreach (string fileName in fileNames.Select(Path.GetFileNameWithoutExtension))
-            {
-                optionListIds.Add(fileName);
+                throw new NotFoundException($"Options file {optionsListId}.json was not found.");
             }
 
-            return optionListIds.ToArray();
+            DeleteFileByRelativePath(optionsFilePath);
         }
 
         /// <summary>

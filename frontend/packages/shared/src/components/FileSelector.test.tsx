@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import type { IFileSelectorProps } from './FileSelector';
 import { FileSelector } from './FileSelector';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { Button } from '@digdir/design-system-react';
+import { Button } from '@digdir/designsystemet-react';
 import { fileSelectorInputId } from '@studio/testing/testids';
 import { toast } from 'react-toastify';
 
