@@ -77,11 +77,8 @@ export const useReposSearch = ({
 
   const getNextExistingPageNumber = () => {
     const numberOfPages = Math.ceil(searchResults?.totalCount / pageSize);
-    if (pageNumber + 1 <= numberOfPages) {
-      return pageNumber + 1;
-    } else {
-      return pageNumber;
-    }
+    const nextPageNumber = pageNumber + 1;
+    return nextPageNumber <= numberOfPages ? nextPageNumber : pageNumber;
   };
 
   // Prefetch and cache the next page, if it exists
