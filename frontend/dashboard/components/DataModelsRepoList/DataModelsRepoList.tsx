@@ -8,7 +8,7 @@ import type { User } from 'app-shared/types/Repository';
 import type { Organization } from 'app-shared/types/Organization';
 import { useSearchReposQuery } from 'dashboard/hooks/queries/useSearchReposQuery';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
-import { Heading } from '@digdir/design-system-react';
+import { Heading } from '@digdir/designsystemet-react';
 import { useStarredReposQuery } from 'dashboard/hooks/queries';
 import { DATA_MODEL_REPO_IDENTIFIER } from '../../constants';
 

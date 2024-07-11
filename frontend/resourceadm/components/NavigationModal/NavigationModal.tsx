@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './NavigationModal.module.css';
-import { Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import { Modal } from '../Modal';
 import { useTranslation } from 'react-i18next';
 import { StudioButton } from '@studio/components';

@@ -11,7 +11,7 @@ import {
   Link,
   Alert,
   ErrorMessage,
-} from '@digdir/design-system-react';
+} from '@digdir/designsystemet-react';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import type { DeployError } from '../../types/DeployError';
 import {

@@ -1,5 +1,5 @@
 import React, { forwardRef, type HTMLAttributes } from 'react';
-import { Heading, type HeadingProps, HelpText } from '@digdir/design-system-react';
+import { Heading, type HeadingProps, HelpText } from '@digdir/designsystemet-react';
 
 import classes from './StudioSectionHeader.module.css';
 import cn from 'classnames';

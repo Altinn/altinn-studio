@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import { NativeSelect } from '@digdir/design-system-react';
+import { NativeSelect } from '@digdir/designsystemet-react';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useText, useAppContext } from '../../hooks';
 import classes from './LayoutSetsContainer.module.css';

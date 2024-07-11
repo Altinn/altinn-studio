@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { IOption } from '../../../types/global';
-import { Paragraph, Switch, ErrorMessage } from '@digdir/design-system-react';
+import { Paragraph, Switch, ErrorMessage } from '@digdir/designsystemet-react';
 import classes from './EditOptions.module.css';
 import type { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';

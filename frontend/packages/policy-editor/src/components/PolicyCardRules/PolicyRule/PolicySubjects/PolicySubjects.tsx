@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import classes from './PolicySubjects.module.css';
-import { Label, ErrorMessage, Paragraph, LegacySelect, Chip } from '@digdir/design-system-react';
+import { Label, ErrorMessage, Paragraph, Chip } from '@digdir/designsystemet-react';
+import { LegacySelect } from '@digdir/design-system-react';
 import type { PolicySubject } from '../../../../types';
 import { findSubjectByPolicyRuleSubject } from '../../../../utils';
 import { getSubjectOptions, getUpdatedRules } from '../../../../utils/PolicyRuleUtils';

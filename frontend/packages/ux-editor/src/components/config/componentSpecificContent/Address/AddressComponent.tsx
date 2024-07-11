@@ -1,5 +1,5 @@
 import React from 'react';
-import { Switch, Fieldset } from '@digdir/design-system-react';
+import { Switch, Fieldset } from '@digdir/designsystemet-react';
 import classes from './AddressComponent.module.css';
 import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';

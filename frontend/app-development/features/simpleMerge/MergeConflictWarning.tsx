@@ -3,7 +3,7 @@ import classes from './MergeConflictWarning.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioPopover } from '@studio/components';
 import { RemoveChangesPopoverContent } from './RemoveChangesPopoverContent';
-import { Heading, Paragraph } from '@digdir/design-system-react';
+import { Heading, Paragraph } from '@digdir/designsystemet-react';
 import { DownloadRepoPopoverContent } from './DownloadRepoPopoverContent';
 
 export const MergeConflictWarning = () => {

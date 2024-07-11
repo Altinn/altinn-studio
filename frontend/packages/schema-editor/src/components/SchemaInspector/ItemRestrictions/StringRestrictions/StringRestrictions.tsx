@@ -3,14 +3,8 @@ import React, { useReducer, useState } from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import classes from './StringRestrictions.module.css';
-import {
-  Fieldset,
-  LegacyTextField,
-  Label,
-  Switch,
-  Textfield,
-  LegacySelect,
-} from '@digdir/design-system-react';
+import { Fieldset, Label, Switch, Textfield } from '@digdir/designsystemet-react';
+import { LegacyTextField, LegacySelect } from '@digdir/design-system-react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import { Divider } from 'app-shared/primitives';

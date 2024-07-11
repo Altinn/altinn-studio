@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './AccessControlWarningModal.module.css';
-import { Modal, Button } from '@digdir/design-system-react';
+import { Modal, Button } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 
 export interface AccessControlWarningModalProps {

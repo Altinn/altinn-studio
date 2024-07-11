@@ -1,5 +1,5 @@
-import type { ToggleGroupProps } from '@digdir/design-system-react';
-import { ToggleGroup } from '@digdir/design-system-react';
+import type { ToggleGroupProps } from '@digdir/designsystemet-react';
+import { ToggleGroup } from '@digdir/designsystemet-react';
 import React, { forwardRef, useEffect, useState } from 'react';
 
 export type StudioBooleanToggleGroupProps = {

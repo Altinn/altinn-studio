@@ -6,7 +6,7 @@ import { DataLookupFuncName, StudioDeleteButton } from '@studio/components';
 import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useDataModelMetadataQuery } from '../../../hooks/queries/useDataModelMetadataQuery';
-import { Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import classes from './ExpressionContent.module.css';
 import { Expression as ExpressionWithTexts } from 'app-shared/components/Expression';
 import { useText, useAppContext } from '../../../hooks';

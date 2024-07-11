@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import classes from './CreateRelease.module.css';
 import type { ChangeEvent } from 'react';
-import { Textfield, Textarea } from '@digdir/design-system-react';
+import { Textfield, Textarea } from '@digdir/designsystemet-react';
 import { versionNameValid } from './utils';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { useCreateReleaseMutation } from '../../../hooks/mutations';

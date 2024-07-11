@@ -8,10 +8,10 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import classes from './Elements.module.css';
 
 import { StudioButton, StudioSpinner } from '@studio/components';
+import { ShrinkIcon } from '@studio/icons';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useTranslation } from 'react-i18next';
 import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQuery';
-import { ShrinkIcon } from '@studio/icons';
 
 export interface ElementsProps {
   collapsed: boolean;

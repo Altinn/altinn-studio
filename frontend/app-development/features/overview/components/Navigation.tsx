@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './Navigation.module.css';
 import { useTranslation } from 'react-i18next';
-import { Heading, Tag } from '@digdir/design-system-react';
+import { Heading, Tag } from '@digdir/designsystemet-react';
 
 import { getFilteredTopBarMenu } from 'app-development/layout/AppBar/appBarConfig';
 import { Link } from 'react-router-dom';

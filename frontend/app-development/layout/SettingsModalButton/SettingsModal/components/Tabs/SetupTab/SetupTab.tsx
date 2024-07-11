@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppMetadataQuery } from 'app-development/hooks/queries';
 import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';
-import { ErrorMessage } from '@digdir/design-system-react';
+import { ErrorMessage } from '@digdir/designsystemet-react';
 import { TabHeader } from '../../TabHeader';
 import { SetupTabContent } from './SetupTabContent';
 import { TabContent } from '../../TabContent';

@@ -1,4 +1,4 @@
-import { Button, DropdownMenu } from '@digdir/design-system-react';
+import { Button, DropdownMenu } from '@digdir/designsystemet-react';
 import React, { useRef, useState } from 'react';
 import classes from './ActionLinks.module.css';
 import cn from 'classnames';

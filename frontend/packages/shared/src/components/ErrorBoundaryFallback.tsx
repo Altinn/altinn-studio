@@ -2,7 +2,7 @@ import React from 'react';
 import { useErrorBoundary } from 'react-error-boundary';
 import { Trans, useTranslation } from 'react-i18next';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
-import { Alert, ErrorMessage, Link, Paragraph } from '@digdir/design-system-react';
+import { Alert, ErrorMessage, Link, Paragraph } from '@digdir/designsystemet-react';
 import { StudioButton, StudioCenter } from '@studio/components';
 import classes from './ErrorBoundaryFallback.module.css';
 
