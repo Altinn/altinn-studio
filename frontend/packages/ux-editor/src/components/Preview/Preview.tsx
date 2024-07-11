@@ -10,26 +10,28 @@ import { Paragraph } from '@digdir/designsystemet-react';
 import { StudioButton, StudioCenter } from '@studio/components';
 import type { SupportedView } from './ViewToggler/ViewToggler';
 import { ViewToggler } from './ViewToggler/ViewToggler';
-import { ArrowRightIcon } from '@studio/icons';
+import { ShrinkIcon } from '@studio/icons';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
 
-export const Preview = () => {
+export type PreviewProps = {
+  collapsed: boolean;
+  onCollapseToggle: () => void;
+  hidePreview?: boolean;
+};
+
+export const Preview = ({ collapsed, onCollapseToggle, hidePreview }: PreviewProps) => {
   const { t } = useTranslation();
-  const [isPreviewHidden, setIsPreviewHidden] = useState<boolean>(false);
   const { selectedFormLayoutName } = useAppContext();
   const noPageSelected =
     selectedFormLayoutName === 'default' || selectedFormLayoutName === undefined;
 
-  const togglePreview = (): void => {
-    setIsPreviewHidden((prev: boolean) => !prev);
-  };
-
-  return isPreviewHidden ? (
+  return collapsed ? (
     <StudioButton
       size='small'
       variant='secondary'
       className={classes.openPreviewButton}
-      onClick={togglePreview}
+      title={t('ux_editor.open_preview')}
+      onClick={onCollapseToggle}
     >
       {t('ux_editor.open_preview')}
     </StudioButton>
@@ -38,12 +40,30 @@ export const Preview = () => {
       <StudioButton
         size='small'
         variant='tertiary'
-        icon={<ArrowRightIcon aria-hidden />}
+        icon={<ShrinkIcon title='1' fontSize='1.5rem' />}
         title={t('ux_editor.close_preview')}
         className={classes.closePreviewButton}
-        onClick={togglePreview}
+        onClick={onCollapseToggle}
       />
-      {noPageSelected ? <NoSelectedPageMessage /> : <PreviewFrame />}
+      {noPageSelected ? (
+        <NoSelectedPageMessage />
+      ) : (
+        <>
+          {hidePreview && (
+            <div
+              style={{
+                display: 'block',
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                top: 0,
+                left: 0,
+              }}
+            ></div>
+          )}
+          <PreviewFrame />
+        </>
+      )}
     </div>
   );
 };

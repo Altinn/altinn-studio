@@ -6,7 +6,7 @@ import type {
   LayoutSets,
   BpmnTaskType,
 } from 'app-shared/types/api/LayoutSetsResponse';
-import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
+import { useLocalStorage } from '@studio/components/src/hooks/useLocalStorage';
 import type {
   AddLayoutSetResponse,
   LayoutSetsResponse,

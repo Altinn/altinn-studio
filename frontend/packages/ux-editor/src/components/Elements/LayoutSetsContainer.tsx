@@ -37,9 +37,9 @@ export function LayoutSetsContainer() {
   if (!layoutSetNames) return null;
 
   return (
-    <div className={classes.dropDownContainer}>
+    <div>
       <NativeSelect
-        label={t('left_menu.layout_dropdown_menu_label')}
+        aria-label={t('left_menu.layout_dropdown_menu_label')}
         onChange={(event) => onLayoutSetClick(event.target.value)}
         value={selectedFormLayoutSetName}
         className={classes.layoutSetsDropDown}
