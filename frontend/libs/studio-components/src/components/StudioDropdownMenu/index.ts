@@ -1,5 +1,5 @@
 import { StudioDropdownMenu as Root } from './StudioDropdownMenu';
-import { DropdownMenuGroup } from '@digdir/design-system-react';
+import { DropdownMenuGroup } from '@digdir/designsystemet-react';
 import { StudioDropdownMenuItem } from './StudioDropdownMenuItem';
 
 type StudioDropdownMenuComponent = typeof Root & {

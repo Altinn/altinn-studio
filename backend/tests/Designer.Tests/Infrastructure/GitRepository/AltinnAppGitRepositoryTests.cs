@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Designer.Tests.Utils;
 using FluentAssertions;
@@ -249,7 +252,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         }
 
         [Fact]
-        public async Task GetOptions_WithAppThatHasOptions_ShouldReturnSpecifiecOptionsList()
+        public async Task GetOptions_WithAppThatHasOptions_ShouldReturnSpecificOptionsList()
         {
             string org = "ttd";
             string repository = "app-with-options";
@@ -257,7 +260,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string optionsId = "test-options";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
-            string options = await altinnAppGitRepository.GetOptions(optionsId);
+            string options = await altinnAppGitRepository.GetOptionsList(optionsId);
             options.Should().NotBeNull();
             var optionsArray = JsonNode.Parse(options).AsArray();
             optionsArray.Count.Should().Be(2);
@@ -274,7 +277,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string optionsId = "non-existing-test-options";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
-            await Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () => await altinnAppGitRepository.GetOptions(optionsId));
+            await Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () => await altinnAppGitRepository.GetOptionsList(optionsId));
         }
 
         [Fact]
@@ -285,7 +288,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string developer = "testUser";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
 
-            string[] optionListIds = altinnAppGitRepository.GetOptionListIds();
+            string[] optionListIds = altinnAppGitRepository.GetOptionsListIds();
 
             optionListIds.Should().NotBeNull();
             optionListIds.Should().HaveCount(2);
@@ -299,8 +302,80 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string repository = "empty-app";
             string developer = "testUser";
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, repository, developer);
-            Assert.Throws<LibGit2Sharp.NotFoundException>(altinnAppGitRepository.GetOptionListIds);
+            Assert.Throws<LibGit2Sharp.NotFoundException>(altinnAppGitRepository.GetOptionsListIds);
             return Task.CompletedTask;
+        }
+
+        [Fact]
+        public async Task CreateOrOverwriteOptions_WithAppThatHasNoOptionLists_ShouldCreateOptions()
+        {
+            // Arrange
+            string org = "ttd";
+            string repository = "empty-app";
+            string developer = "testUser";
+            string newOptionName = "new-options";
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+
+            await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+
+            var newOptionsList = new List<Option>
+            {
+                new Option
+                {
+                    Label = "label1",
+                    Value = "value1",
+                },
+                new Option
+                {
+                    Label = "label2",
+                    Value = "value2",
+                }
+            };
+            var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
+            string newOptionsListString = JsonSerializer.Serialize(newOptionsList, jsonOptions);
+
+            // Act
+            string savedOptionsList = await altinnAppGitRepository.CreateOrOverwriteOptionsList(newOptionName, newOptionsListString);
+
+            // Assert
+            Assert.Equal(newOptionsListString, savedOptionsList);
+        }
+
+        [Fact]
+        public async Task CreateOrOverwriteOptions_WithAppThatHasOptionLists_ShouldOverwriteOptions()
+        {
+            // Arrange
+            string org = "ttd";
+            string repository = "app-with-options";
+            string developer = "testUser";
+            string newOptionName = "test-options"; // these options already exist in this repo
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+
+            await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+            AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+
+            var newOptionsList = new List<Option>
+            {
+                new Option
+                {
+                    Label = "label1",
+                    Value = "newValue1",
+                },
+                new Option
+                {
+                    Label = "label2",
+                    Value = "newValue2",
+                }
+            };
+            var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
+            string newOptionsListString = JsonSerializer.Serialize(newOptionsList, jsonOptions);
+
+            // Act
+            string savedOptionsList = await altinnAppGitRepository.CreateOrOverwriteOptionsList(newOptionName, newOptionsListString);
+
+            // Assert
+            Assert.Equal(newOptionsListString, savedOptionsList);
         }
 
         private static AltinnAppGitRepository PrepareRepositoryForTest(string org, string repository, string developer)

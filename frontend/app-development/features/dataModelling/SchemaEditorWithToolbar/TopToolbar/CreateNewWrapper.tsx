@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ErrorMessage, Textfield, LegacyPopover } from '@digdir/design-system-react';
+import { ErrorMessage, Textfield } from '@digdir/designsystemet-react';
+import { LegacyPopover } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@studio/icons';
 import { extractModelNamesFromMetadataList } from '../../../../utils/metadataUtils';

@@ -11,7 +11,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { DeploymentEnvironment } from '../components/DeploymentEnvironment';
 import { getAppLink } from 'app-shared/ext-urls';
 import { useTranslation } from 'react-i18next';
-import { Alert } from '@digdir/design-system-react';
+import { Alert } from '@digdir/designsystemet-react';
 import { PROD_ENV_TYPE } from 'app-shared/constants';
 
 export const DeploymentContainer = () => {

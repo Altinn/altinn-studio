@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import { NativeSelect } from '@digdir/design-system-react';
+import { NativeSelect } from '@digdir/designsystemet-react';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useText, useAppContext } from '../../hooks';
 import classes from './LayoutSetsContainer.module.css';
@@ -37,9 +37,9 @@ export function LayoutSetsContainer() {
   if (!layoutSetNames) return null;
 
   return (
-    <div className={classes.dropDownContainer}>
+    <div>
       <NativeSelect
-        label={t('left_menu.layout_dropdown_menu_label')}
+        aria-label={t('left_menu.layout_dropdown_menu_label')}
         onChange={(event) => onLayoutSetClick(event.target.value)}
         value={selectedFormLayoutSetName}
         className={classes.layoutSetsDropDown}

@@ -16,7 +16,7 @@ import { NumberRestrictions } from './NumberRestrictions';
 import { ObjectRestrictions } from './ObjectRestrictions';
 import { StringRestrictions } from './StringRestrictions';
 import classes from './ItemRestrictions.module.css';
-import { Switch } from '@digdir/design-system-react';
+import { Switch } from '@digdir/designsystemet-react';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';

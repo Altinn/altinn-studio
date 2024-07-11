@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './CommitAndPushContent.module.css';
 import { useTranslation } from 'react-i18next';
 import { useVersionControlButtonsContext } from '../../../context';
-import { Heading, Paragraph } from '@digdir/design-system-react';
+import { Heading, Paragraph } from '@digdir/designsystemet-react';
 import { StudioButton, StudioTextarea } from '@studio/components';
 import type { RepoContentStatus } from 'app-shared/types/RepoStatus';
 import { ClockDashedIcon } from '@studio/icons';

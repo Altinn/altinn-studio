@@ -1,7 +1,7 @@
 import React from 'react';
 import { useFormItemContext } from '../../containers/FormItemContext';
 import { useTranslation } from 'react-i18next';
-import { Alert } from '@digdir/design-system-react';
+import { Alert } from '@digdir/designsystemet-react';
 import { EditTextResourceBindings } from '../config/editModal/EditTextResourceBindings/EditTextResourceBindings';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { StudioSpinner } from '@studio/components';

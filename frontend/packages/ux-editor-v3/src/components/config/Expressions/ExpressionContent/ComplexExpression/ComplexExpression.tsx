@@ -1,6 +1,7 @@
 import React from 'react';
 import classes from './ComplexExpression.module.css';
-import { Alert, LegacyTextArea } from '@digdir/design-system-react';
+import { Alert } from '@digdir/designsystemet-react';
+import { LegacyTextArea } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import type { Expression } from '../../../../../types/Expressions';
 import { stringifyData } from '../../../../../utils/jsonUtils';

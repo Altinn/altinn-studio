@@ -4,7 +4,8 @@ import { getActionOptions, getUpdatedRules } from '../../../../utils/PolicyRuleU
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import { useTranslation } from 'react-i18next';
-import { Label, ErrorMessage, Paragraph, LegacySelect, Chip } from '@digdir/design-system-react';
+import { Label, ErrorMessage, Paragraph, Chip } from '@digdir/designsystemet-react';
+import { LegacySelect } from '@digdir/design-system-react';
 
 const wellKnownActionsIds: string[] = [
   'complete',

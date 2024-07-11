@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useAppConfigQuery } from 'app-development/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { Heading } from '@digdir/design-system-react';
+import { Heading } from '@digdir/designsystemet-react';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { StudioSpinner } from '@studio/components';

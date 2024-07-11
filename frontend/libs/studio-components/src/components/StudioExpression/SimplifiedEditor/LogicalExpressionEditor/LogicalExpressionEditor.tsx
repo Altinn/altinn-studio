@@ -20,7 +20,7 @@ import { Subexpression } from './SubExpression';
 import { useStudioExpressionContext } from '../../StudioExpressionContext';
 import { LogicalOperatorToggle } from './LogicalOperatorToggle';
 import { OperatorBetweenSubexpressions } from './OperatorBetweenSubexpressions';
-import { Fieldset } from '@digdir/design-system-react';
+import { Fieldset } from '@digdir/designsystemet-react';
 import { v4 as uuidv4 } from 'uuid';
 import { ArrayUtils } from '@studio/pure-functions';
 

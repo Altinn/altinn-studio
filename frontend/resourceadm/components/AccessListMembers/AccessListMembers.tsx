@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import { Alert, Textfield, Radio } from '@digdir/design-system-react';
+import { Alert, Textfield, Radio } from '@digdir/designsystemet-react';
 import classes from './AccessListMembers.module.css';
 import type { AccessList, AccessListMember, ResourceError } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from '../FieldWrapper';

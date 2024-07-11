@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './RepoNameInput.module.css';
-import type { TextfieldProps } from '@digdir/design-system-react';
-import { Paragraph, Textfield } from '@digdir/design-system-react';
+import type { TextfieldProps } from '@digdir/designsystemet-react';
+import { Paragraph, Textfield } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 
 type RepoNameInputProps = {

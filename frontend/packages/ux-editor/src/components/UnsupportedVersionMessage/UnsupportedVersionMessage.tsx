@@ -1,7 +1,7 @@
 import React from 'react';
 
 import classes from './UnsupportedVersionMessage.module.css';
-import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
+import { Alert, Heading, Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 
 export interface UnsupportedVersionMessageProps {

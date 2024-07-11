@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert } from '@digdir/design-system-react';
+import { Alert } from '@digdir/designsystemet-react';
 import { getEnvLabel } from '../../utils/resourceUtils';
 import { type EnvId } from '../../utils/resourceUtils';
 import type { ResourceError } from 'app-shared/types/ResourceAdm';

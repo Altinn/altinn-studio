@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Expression } from '../types/Expression';
 import { isExpressionSimple } from '../validators/isExpressionSimple';
-import { Alert } from '@digdir/design-system-react';
+import { Alert } from '@digdir/designsystemet-react';
 import { complexToSimpleExpression } from '../converters/complexToSimpleExpression';
 import type { SimplifiedExpression } from '../types/SimplifiedExpression';
 import { simpleToComplexExpression } from '../converters/simpleToComplexExpression';

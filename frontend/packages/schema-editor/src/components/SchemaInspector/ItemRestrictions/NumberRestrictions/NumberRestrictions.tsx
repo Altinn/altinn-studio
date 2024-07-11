@@ -5,7 +5,8 @@ import { IntRestrictionKey } from '@altinn/schema-model';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import classes from './NumberRestrictions.module.css';
-import { ErrorMessage, LegacyTextField, Switch, Label } from '@digdir/design-system-react';
+import { ErrorMessage, Switch, Label } from '@digdir/designsystemet-react';
+import { LegacyTextField } from '@digdir/design-system-react';
 import type {
   NumberRestrictionsReducerAction,
   NumberRestrictionsReducerState,
