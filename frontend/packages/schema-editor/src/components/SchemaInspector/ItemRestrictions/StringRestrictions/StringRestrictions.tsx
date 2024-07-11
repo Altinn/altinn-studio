@@ -92,49 +92,49 @@ export function StringRestrictions({
       {[StringFormat.Date, StringFormat.DateTime, StringFormat.Time].includes(
         restrictions[StrRestrictionKey.format],
       ) && (
-          <>
-            <div>
-              <div className={classes.formatFieldsRowContent}>
-                <Textfield
-                  label={t(formatMinLangKey)}
-                  onChange={(e) =>
-                    dispatchAction(StringRestrictionsReducerActionType.setEarliest, e.target.value)
-                  }
-                  value={formatState.earliest}
-                />
-                <Switch
-                  size='small'
-                  checked={formatState.earliestIsInclusive}
-                  onChange={(e) =>
-                    dispatchAction(StringRestrictionsReducerActionType.setMinIncl, e.target.checked)
-                  }
-                >
-                  {t('format_date_inclusive')}
-                </Switch>
-              </div>
+        <>
+          <div>
+            <div className={classes.formatFieldsRowContent}>
+              <Textfield
+                label={t(formatMinLangKey)}
+                onChange={(e) =>
+                  dispatchAction(StringRestrictionsReducerActionType.setEarliest, e.target.value)
+                }
+                value={formatState.earliest}
+              />
+              <Switch
+                size='small'
+                checked={formatState.earliestIsInclusive}
+                onChange={(e) =>
+                  dispatchAction(StringRestrictionsReducerActionType.setMinIncl, e.target.checked)
+                }
+              >
+                {t('format_date_inclusive')}
+              </Switch>
             </div>
-            <div>
-              <div className={classes.formatFieldsRowContent}>
-                <Textfield
-                  label={t(formatMaxLangKey)}
-                  onChange={(e) =>
-                    dispatchAction(StringRestrictionsReducerActionType.setLatest, e.target.value)
-                  }
-                  value={formatState.latest}
-                />
-                <Switch
-                  size='small'
-                  checked={formatState.latestIsInclusive}
-                  onChange={(e) =>
-                    dispatchAction(StringRestrictionsReducerActionType.setMaxIncl, e.target.checked)
-                  }
-                >
-                  {t('format_date_inclusive')}
-                </Switch>
-              </div>
+          </div>
+          <div>
+            <div className={classes.formatFieldsRowContent}>
+              <Textfield
+                label={t(formatMaxLangKey)}
+                onChange={(e) =>
+                  dispatchAction(StringRestrictionsReducerActionType.setLatest, e.target.value)
+                }
+                value={formatState.latest}
+              />
+              <Switch
+                size='small'
+                checked={formatState.latestIsInclusive}
+                onChange={(e) =>
+                  dispatchAction(StringRestrictionsReducerActionType.setMaxIncl, e.target.checked)
+                }
+              >
+                {t('format_date_inclusive')}
+              </Switch>
             </div>
-          </>
-        )}
+          </div>
+        </>
+      )}
       <div className={classes.lengthFields}>
         <div className={classes.lengthField}>
           <StudioTextfield
