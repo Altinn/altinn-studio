@@ -1,3 +1,3 @@
-﻿export interface ContactProvider {
-  getFeedbackUrl: <T>(feedbackType: T) => string;
+﻿export interface ContactProvider<T> {
+  getFeedbackUrl: (feedbackType: T) => string;
 }

@@ -7,7 +7,7 @@ const emailChannelMap: Record<EmailChannel, string> = {
   serviceOwner: 'mailto:tjenesteeier@altinn.no',
 };
 
-export class EmailContactProvider implements ContactProvider {
+export class EmailContactProvider implements ContactProvider<EmailChannel> {
   public getFeedbackUrl(selectedChannel: EmailChannel): string {
     const defaultChannel = emailChannelMap['serviceOwner'];
     return emailChannelMap[selectedChannel] || defaultChannel;

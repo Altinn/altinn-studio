@@ -14,7 +14,7 @@ const channelMap: Record<GithubChannel, GitHubChannelConfig> = {
   },
 };
 
-export class GitHubIssueContactProvider implements ContactProvider {
+export class GitHubIssueContactProvider implements ContactProvider<GithubChannel> {
   private readonly githubRepoUrl: string = 'https://github.com/Altinn/altinn-studio';
   private readonly githubIssueUrl: string = `${this.githubRepoUrl}/issues/new/`;
 

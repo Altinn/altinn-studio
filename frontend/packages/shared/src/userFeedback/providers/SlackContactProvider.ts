@@ -7,7 +7,7 @@ const slackChannelMap: Record<SlackContactProvider, string> = {
   altinn: 'https://altinn.slack.com',
 };
 
-export class SlackContactProvider implements ContactProvider {
+export class SlackContactProvider implements ContactProvider<SlackChannel> {
   public getFeedbackUrl(selectedChannel: SlackChannel): string {
     const defaultChannel = slackChannelMap['product-altinn-studio'];
     return slackChannelMap[selectedChannel] || defaultChannel;

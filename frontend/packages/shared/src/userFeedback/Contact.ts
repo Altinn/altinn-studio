@@ -1,9 +1,9 @@
 ﻿import { ContactProvider } from './interfaces/ContactProvider';
 
-export class Contact {
-  constructor(private contactProvider: ContactProvider) {}
+export class Contact<T> {
+  constructor(private contactProvider: ContactProvider<T>) {}
 
-  public contactUrl<T>(selectedChannel: T): string {
+  public contactUrl(selectedChannel: T): string {
     return this.contactProvider.getFeedbackUrl(selectedChannel);
   }
 }
