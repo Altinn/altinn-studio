@@ -10,10 +10,7 @@ import { NotFoundPage } from './NotFoundPage';
 import { useTranslation } from 'react-i18next';
 import { WebSocketSyncWrapper } from '../components';
 import { UserFeedbackImpl } from 'app-shared/userFeedback';
-import {
-  GitHubUserFeedbackImpl,
-  type GithubFeedbackTypes,
-} from 'app-shared/userFeedback/integrations';
+import { GitHubUserFeedbackImpl, type GithubFeedbackTypes } from 'app-shared/userFeedback/channels';
 
 /**
  * Displays the layout for the app development pages

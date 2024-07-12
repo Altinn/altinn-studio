@@ -15,16 +15,11 @@ const feedbackTypeMap: Record<GithubFeedbackTypes, FeedbackConfig> = {
 };
 
 export class GitHubUserFeedbackImpl implements UserFeedback {
+  private githubRepoUrl: string = 'https://github.com/Altinn/altinn-studio';
+  private githubIssueUrl: string = `${this.githubRepoUrl}/issues/new/`;
+
   public getFeedbackUrl(feedbackType: GithubFeedbackTypes): string {
-    return this.getGitHubIssueUrl + this.optionToUrlParams(feedbackTypeMap[feedbackType]);
-  }
-
-  private get getGitHubIssueUrl(): string {
-    const gitUrl: string = 'https://github.com';
-    const org: string = 'Altinn';
-    const repo: string = 'altinn-studio';
-
-    return `${gitUrl}/${org}/${repo}/issues/new/`;
+    return this.githubIssueUrl + this.optionToUrlParams(feedbackTypeMap[feedbackType]);
   }
 
   private optionToUrlParams(feedbackType): string {
