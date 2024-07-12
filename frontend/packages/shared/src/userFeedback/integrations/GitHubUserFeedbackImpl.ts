@@ -1,11 +1,13 @@
-﻿import { FeedbackTypes, UserFeedback } from './UserFeedback';
+﻿import { UserFeedback } from '../interfaces/UserFeedback';
+
+export type GithubFeedbackTypes = 'featureRequest';
 
 type FeedbackConfig = {
   labels: Array<string>;
   template: string;
 };
 
-const feedbackTypeMap: Record<FeedbackTypes, FeedbackConfig> = {
+const feedbackTypeMap: Record<GithubFeedbackTypes, FeedbackConfig> = {
   featureRequest: {
     labels: ['kind/feature-request', 'status/triage'],
     template: 'feature_request.yml',
@@ -13,7 +15,7 @@ const feedbackTypeMap: Record<FeedbackTypes, FeedbackConfig> = {
 };
 
 export class GitHubUserFeedbackImpl implements UserFeedback {
-  public getFeedbackUrl(feedbackType: FeedbackTypes): string {
+  public getFeedbackUrl(feedbackType: GithubFeedbackTypes): string {
     return this.getGitHubIssueUrl + this.optionToUrlParams(feedbackTypeMap[feedbackType]);
   }
 

@@ -9,9 +9,11 @@ import { useOrgListQuery } from '../hooks/queries';
 import { NotFoundPage } from './NotFoundPage';
 import { useTranslation } from 'react-i18next';
 import { WebSocketSyncWrapper } from '../components';
-import { UserFeedbackImpl } from '../utils/UserFeedback/UserFeedbackImpl';
-import { GitHubUserFeedbackImpl } from '../utils/UserFeedback/GitHubUserFeedbackImpl';
-import { StudioUserFeedbackImpl } from '../utils/UserFeedback/StudioUserFeedback';
+import { UserFeedbackImpl } from 'app-shared/userFeedback';
+import {
+  GitHubUserFeedbackImpl,
+  type GithubFeedbackTypes,
+} from 'app-shared/userFeedback/integrations';
 
 /**
  * Displays the layout for the app development pages
@@ -35,7 +37,7 @@ export const PageLayout = (): React.ReactNode => {
 
   const { data: user, isPending: isUserPending } = useUserQuery();
 
-  const { feedback } = new StudioUserFeedbackImpl();
+  const githubFeedback = new UserFeedbackImpl(new GitHubUserFeedbackImpl());
 
   if (isRepoStatusPending || isUserPending) {
     return (
@@ -63,7 +65,9 @@ export const PageLayout = (): React.ReactNode => {
     <>
       <button
         onClick={() => {
-          window.location.assign(feedback.getFeedbackUrl('featureRequest'));
+          window.location.assign(
+            githubFeedback.getFeedbackUrl<GithubFeedbackTypes>('featureRequest'),
+          );
         }}
       >
         Test link to github issue as feature request
