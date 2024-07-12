@@ -1,1 +1,1 @@
-﻿export { UserFeedbackImpl } from './UserFeedbackImpl';
+﻿export { Contact } from './Contact';

@@ -9,8 +9,6 @@ import { useOrgListQuery } from '../hooks/queries';
 import { NotFoundPage } from './NotFoundPage';
 import { useTranslation } from 'react-i18next';
 import { WebSocketSyncWrapper } from '../components';
-import { UserFeedbackImpl } from 'app-shared/userFeedback';
-import { GitHubUserFeedbackImpl, type GithubFeedbackTypes } from 'app-shared/userFeedback/channels';
 
 /**
  * Displays the layout for the app development pages
@@ -33,8 +31,6 @@ export const PageLayout = (): React.ReactNode => {
   } = useRepoStatusQuery(org, app);
 
   const { data: user, isPending: isUserPending } = useUserQuery();
-
-  const githubFeedback = new UserFeedbackImpl(new GitHubUserFeedbackImpl());
 
   if (isRepoStatusPending || isUserPending) {
     return (
@@ -60,15 +56,6 @@ export const PageLayout = (): React.ReactNode => {
 
   return (
     <>
-      <button
-        onClick={() => {
-          window.location.assign(
-            githubFeedback.getFeedbackUrl<GithubFeedbackTypes>('featureRequest'),
-          );
-        }}
-      >
-        Test link to github issue as feature request
-      </button>
       <PageHeader
         showSubMenu={!repoStatus?.hasMergeConflict}
         user={user}

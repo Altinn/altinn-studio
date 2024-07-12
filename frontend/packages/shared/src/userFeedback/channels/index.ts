@@ -1,3 +1,3 @@
-﻿export { EmailFeedbackImpl, type EmailFeedbackTypes } from './EmailFeedbackImpl';
-export { GitHubUserFeedbackImpl, type GithubFeedbackTypes } from './GitHubUserFeedbackImpl';
-export { SlackFeedbackImpl, type SlackFeedbackTypes } from './SlackFeedbackImpl';
+﻿export { EmailProvider, type EmailChannel } from './EmailProvider';
+export { GitHubProvider, type GithubChannel } from './GitHubProvider';
+export { SlackProvider, type SlackChannel } from './SlackProvider';
