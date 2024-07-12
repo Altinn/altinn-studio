@@ -84,6 +84,7 @@
                 "textResourceBindings": {
                     "title": "RepeatingGroup.Name"
                 },
+                "maxLength": 10,
                 "dataModelBindings": {
                     "simpleBinding": "repeatingGroup.name"
                 }
@@ -226,8 +227,8 @@
                 "type": "Summary2",
                 "hidden": false,
                 "target": {
-                    "type": "component",
-                    "id": "RepeatingGroup"
+                    "type": "page",
+                    "id": "RepeatingGroupPage"
                 }
             },
             {
