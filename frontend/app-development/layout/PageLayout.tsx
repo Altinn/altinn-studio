@@ -60,7 +60,6 @@ export const PageLayout = (): React.ReactNode => {
         showSubMenu={!repoStatus?.hasMergeConflict}
         user={user}
         repoOwnerIsOrg={repoOwnerIsOrg}
-        F
         isRepoError={repoStatusError !== null}
       />
       {renderPages()}
