@@ -38,6 +38,27 @@ const wrapper = ({
 };
 
 describe('ServicesContext', () => {
+  it('displays a toast and logs the user out when the session is invalid or expired', async () => {
+    const logout = jest.fn().mockImplementation(() => Promise.resolve());
+
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(401, 'GT_03')),
+          retry: false,
+        }),
+      {
+        wrapper: ({ children }) => {
+          return wrapper({ children, queries: { logout } });
+        },
+      },
+    );
+
+    await waitFor(() => result.current.isError);
+    expect(await screen.findByText(textMock('api_errors.GT_03'))).toBeInTheDocument();
+  });
+
   it('Displays a toast message for "GT_01" error code', async () => {
     const errorCode = 'GT_01';
     const { result } = renderHook(
