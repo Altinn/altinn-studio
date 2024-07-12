@@ -7,14 +7,14 @@ import { useTranslation, Trans } from 'react-i18next';
 
 import './App.css';
 import { PageLayout } from '../pages/PageLayout';
-import { Contact } from '../pages/Contact/Contact';
+import { ContactPage } from '../pages/Contact/ContactPage';
 
 export const App = (): JSX.Element => {
   return (
     <div className={classes.root}>
       <Routes>
         <Route element={<PageLayout />}>
-          <Route path='/contact' element={<Contact />} />
+          <Route path='/contact' element={<ContactPage />} />
           <Route path='*' element={<NotFoundPage />} />
         </Route>
       </Routes>

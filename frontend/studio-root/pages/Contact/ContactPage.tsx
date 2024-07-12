@@ -5,9 +5,21 @@ import { Trans, useTranslation } from 'react-i18next';
 import { EnvelopeClosedIcon, SlackIcon, GitHubIcon } from '@studio/icons';
 import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
 import classNames from 'classnames';
+import { Contact } from 'app-shared/userFeedback';
+import {
+  EmailChannel,
+  EmailProvider,
+  GithubChannel,
+  GitHubProvider,
+  SlackChannel,
+  SlackProvider,
+} from 'app-shared/userFeedback/channels';
 
-export const Contact = () => {
+export const ContactPage = (): React.ReactElement => {
   const { t } = useTranslation();
+  const contactByEmail = new Contact(new EmailProvider());
+  const contactBySlack = new Contact(new SlackProvider());
+  const contactByGitHub = new Contact(new GitHubProvider());
 
   return (
     <PageContainer>
@@ -27,11 +39,9 @@ export const Contact = () => {
                 {t('contact.email.heading')}
               </Heading>
               <Paragraph spacing>{t('contact.email.content')}</Paragraph>
-              <Paragraph className={classes.link}>
-                <Trans i18nKey='contact.email.link'>
-                  <Link> </Link>
-                </Trans>
-              </Paragraph>
+              <Link to={contactByEmail.contactUrl<EmailChannel>('serviceDesk')}>
+                servicedesk@altinn.no
+              </Link>
             </div>
           </section>
           <section className={classes.section}>
@@ -50,11 +60,9 @@ export const Contact = () => {
                   </Trans>
                 </ul>
               </Paragraph>
-              <Paragraph className={classes.link}>
-                <Trans i18nKey='contact.slack.link'>
-                  <Link> </Link>
-                </Trans>
-              </Paragraph>
+              <Link to={contactBySlack.contactUrl<SlackChannel>('product-altinn-studio')}>
+                {t('contact.slack.link')}
+              </Link>
             </div>
           </section>
           <section className={classes.section}>
@@ -66,11 +74,9 @@ export const Contact = () => {
                 {t('contact.github_issue.heading')}
               </Heading>
               <Paragraph spacing>{t('contact.github_issue.content')}</Paragraph>
-              <Paragraph className={classes.link}>
-                <Trans i18nKey='contact.github_issue.link'>
-                  <Link> </Link>
-                </Trans>
-              </Paragraph>
+              <Link to={contactByGitHub.contactUrl<GithubChannel>('featureRequest')}>
+                {t('contact.github_issue.link')}
+              </Link>
             </div>
           </section>
         </div>

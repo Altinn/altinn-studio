@@ -55,10 +55,6 @@
   flex: 1;
 }
 
-.link a {
-  font-size: 1rem;
-}
-
 @media (min-width: 768px) {
   .content {
     margin: var(--fds-spacing-18);

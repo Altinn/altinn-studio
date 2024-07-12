@@ -3,7 +3,7 @@
 export class Contact {
   constructor(private contactProvider: ContactProvider) {}
 
-  public getFeedbackUrl<T>(selectedChannel: T): string {
+  public contactUrl<T>(selectedChannel: T): string {
     return this.contactProvider.getFeedbackUrl(selectedChannel);
   }
 }
