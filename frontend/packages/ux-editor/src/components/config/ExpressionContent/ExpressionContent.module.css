@@ -17,6 +17,8 @@
 }
 
 .legendContent {
+  display: flex;
+  gap: var(--fds-spacing-1);
   margin-left: var(--studio-expression-spacing);
   overflow: hidden;
   text-overflow: ellipsis;
