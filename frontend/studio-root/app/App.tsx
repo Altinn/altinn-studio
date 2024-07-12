@@ -8,6 +8,8 @@ import { useTranslation, Trans } from 'react-i18next';
 import './App.css';
 import { PageLayout } from '../pages/PageLayout';
 import { ContactPage } from '../pages/Contact/ContactPage';
+import { EmailContactProvider } from 'app-shared/userFeedback/providers';
+import { Contact } from 'app-shared/userFeedback';
 
 export const App = (): JSX.Element => {
   return (
@@ -25,13 +27,15 @@ export const App = (): JSX.Element => {
 const NotFoundPage = () => {
   const { t } = useTranslation();
 
+  const contactByEmail = new Contact(new EmailContactProvider());
+
   return (
     <StudioNotFoundPage
       title={t('not_found_page.heading')}
       body={
         <Paragraph size='small'>
           <Trans i18nKey='not_found_page.text'>
-            <Link href='mailto:tjenesteeier@altinn.no'>tjenesteeier@altinn.no</Link>
+            <Link href={contactByEmail.url('serviceOwner')}>tjenesteeier@altinn.no</Link>
           </Trans>
         </Paragraph>
       }

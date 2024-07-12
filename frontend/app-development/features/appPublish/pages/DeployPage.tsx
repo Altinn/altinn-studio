@@ -9,6 +9,8 @@ import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnConte
 import { useInvalidator } from '../../../hooks/useInvalidator';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Alert } from '@digdir/designsystemet-react';
+import { Contact } from 'app-shared/userFeedback';
+import { EmailContactProvider } from 'app-shared/userFeedback/providers';
 
 export function DeployPage() {
   const { org, app } = useStudioEnvironmentParams();
@@ -20,6 +22,9 @@ export function DeployPage() {
     isError: permissionsIsError,
   } = useDeployPermissionsQuery(org, app);
   useInvalidator();
+
+  const contactByEmail = new Contact(new EmailContactProvider());
+
   if (orgsIsPending || permissionsIsPending) {
     return (
       <AltinnContentLoader width={1200} height={600} title={t('app_deployment.loading')}>
@@ -43,7 +48,7 @@ export function DeployPage() {
       <InfoCard headerText={t('app_deployment.no_env_title')} shadow={true}>
         <div>
           <Trans i18nKey={'app_deployment.no_env_1'}>
-            <a href='mailto:tjenesteeier@altinn.no' />
+            <a href={contactByEmail.url('serviceOwner')} />
           </Trans>
         </div>
         <div style={{ paddingTop: '2.4rem' }}>

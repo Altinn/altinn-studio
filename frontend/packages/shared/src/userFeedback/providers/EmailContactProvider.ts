@@ -1,4 +1,4 @@
-﻿import { ContactProvider } from '../interfaces/ContactProvider';
+﻿import { type ContactProvider } from '../interfaces/ContactProvider';
 
 type EmailChannel = 'serviceDesk' | 'serviceOwner';
 

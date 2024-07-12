@@ -3,11 +3,13 @@ import { Trans, useTranslation } from 'react-i18next';
 import cn from 'classnames';
 import type { AlertProps } from '@digdir/designsystemet-react';
 import { Alert, Heading, Paragraph } from '@digdir/designsystemet-react';
+import { EmailContactProvider } from 'app-shared/userFeedback/providers';
+import { Contact } from 'app-shared/userFeedback';
 
 type NoEnvironmentsAlertProps = AlertProps;
 export const NoEnvironmentsAlert = ({ ...rest }: NoEnvironmentsAlertProps) => {
   const { t } = useTranslation();
-
+  const contactByEmail = new Contact(new EmailContactProvider());
   return (
     <Alert severity='warning' className={cn(rest.className)} {...rest}>
       <Heading level={2} size='small' spacing>
@@ -15,7 +17,7 @@ export const NoEnvironmentsAlert = ({ ...rest }: NoEnvironmentsAlertProps) => {
       </Heading>
       <Paragraph spacing>
         <Trans i18nKey='app_deployment.no_env_1'>
-          <a href='mailto:tjenesteeier@altinn.no' />
+          <a href={contactByEmail.url('serviceOwner')} />
         </Trans>
       </Paragraph>
       <Paragraph>

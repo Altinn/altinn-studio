@@ -1,4 +1,4 @@
-﻿import { ContactProvider } from '../interfaces/ContactProvider';
+﻿import { type ContactProvider } from '../interfaces/ContactProvider';
 
 type SlackChannel = 'product-altinn-studio' | 'altinn';
 

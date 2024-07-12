@@ -1,4 +1,4 @@
-﻿import { ContactProvider } from './interfaces/ContactProvider';
+﻿import { type ContactProvider } from './interfaces/ContactProvider';
 
 export class Contact<T> {
   constructor(private contactProvider: ContactProvider<T>) {}
