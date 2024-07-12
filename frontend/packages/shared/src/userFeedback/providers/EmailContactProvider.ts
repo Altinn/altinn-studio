@@ -1,6 +1,6 @@
 ﻿import { ContactProvider } from '../interfaces/ContactProvider';
 
-export type EmailChannel = 'serviceDesk' | 'serviceOwner';
+type EmailChannel = 'serviceDesk' | 'serviceOwner';
 
 const emailChannelMap: Record<EmailChannel, string> = {
   serviceDesk: 'mailto:servicedesk@altinn.no',
@@ -8,7 +8,7 @@ const emailChannelMap: Record<EmailChannel, string> = {
 };
 
 export class EmailContactProvider implements ContactProvider<EmailChannel> {
-  public getFeedbackUrl(selectedChannel: EmailChannel): string {
+  public buildContactUrl(selectedChannel: EmailChannel): string {
     const defaultChannel = emailChannelMap['serviceOwner'];
     return emailChannelMap[selectedChannel] || defaultChannel;
   }

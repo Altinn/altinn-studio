@@ -7,11 +7,8 @@ import { PageContainer } from 'app-shared/components/PageContainer/PageContainer
 import classNames from 'classnames';
 import { Contact } from 'app-shared/userFeedback';
 import {
-  EmailChannel,
   EmailContactProvider,
-  GithubChannel,
   GitHubIssueContactProvider,
-  SlackChannel,
   SlackContactProvider,
 } from 'app-shared/userFeedback/providers';
 
@@ -39,7 +36,7 @@ export const ContactPage = (): React.ReactElement => {
                 {t('contact.email.heading')}
               </Heading>
               <Paragraph spacing>{t('contact.email.content')}</Paragraph>
-              <Link to={contactByEmail.contactUrl('serviceDesk')}>servicedesk@altinn.no</Link>
+              <Link href={contactByEmail.url('serviceDesk')}>servicedesk@altinn.no</Link>
             </div>
           </section>
           <section className={classes.section}>
@@ -58,7 +55,7 @@ export const ContactPage = (): React.ReactElement => {
                   </Trans>
                 </ul>
               </Paragraph>
-              <Link to={contactBySlack.contactUrl('product-altinn-studio')}>
+              <Link href={contactBySlack.url('product-altinn-studio')}>
                 {t('contact.slack.link')}
               </Link>
             </div>
@@ -72,7 +69,7 @@ export const ContactPage = (): React.ReactElement => {
                 {t('contact.github_issue.heading')}
               </Heading>
               <Paragraph spacing>{t('contact.github_issue.content')}</Paragraph>
-              <Link to={contactByGitHubIssue.contactUrl('featureRequest')}>
+              <Link href={contactByGitHubIssue.url('featureRequest')}>
                 {t('contact.github_issue.link')}
               </Link>
             </div>

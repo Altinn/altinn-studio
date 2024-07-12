@@ -1,6 +1,6 @@
 ﻿import { ContactProvider } from '../interfaces/ContactProvider';
 
-export type GithubChannel = 'featureRequest';
+type GithubChannel = 'featureRequest' | 'bugReport';
 
 type GitHubChannelConfig = {
   labels: Array<string>;
@@ -12,13 +12,17 @@ const channelMap: Record<GithubChannel, GitHubChannelConfig> = {
     labels: ['kind/feature-request', 'status/triage'],
     template: 'feature_request.yml',
   },
+  bugReport: {
+    labels: ['kind/bug', 'status/triage'],
+    template: 'bug_report.yml',
+  },
 };
 
 export class GitHubIssueContactProvider implements ContactProvider<GithubChannel> {
   private readonly githubRepoUrl: string = 'https://github.com/Altinn/altinn-studio';
   private readonly githubIssueUrl: string = `${this.githubRepoUrl}/issues/new/`;
 
-  public getFeedbackUrl(selectedChannel: GithubChannel): string {
+  public buildContactUrl(selectedChannel: GithubChannel): string {
     const defaultChannel = channelMap['featureRequest'];
     return (
       this.githubIssueUrl + this.optionToUrlParams(channelMap[selectedChannel] || defaultChannel)
@@ -26,7 +30,7 @@ export class GitHubIssueContactProvider implements ContactProvider<GithubChannel
   }
 
   private optionToUrlParams(selectedConfig: GitHubChannelConfig): string {
-    const labels = selectedConfig.labels.join(', ');
+    const labels = selectedConfig.labels.join(',');
     return `?assignees=&labels=${labels}&projects=&template=${selectedConfig.template}`;
   }
 }

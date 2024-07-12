@@ -1,3 +1,3 @@
-﻿export { EmailContactProvider, type EmailChannel } from './EmailContactProvider';
-export { GitHubIssueContactProvider, type GithubChannel } from './GitHubIssueContactProvider';
-export { SlackContactProvider, type SlackChannel } from './SlackContactProvider';
+﻿export { EmailContactProvider } from './EmailContactProvider';
+export { GitHubIssueContactProvider } from './GitHubIssueContactProvider';
+export { SlackContactProvider } from './SlackContactProvider';
