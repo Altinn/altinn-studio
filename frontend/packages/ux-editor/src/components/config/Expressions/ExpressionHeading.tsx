@@ -16,7 +16,7 @@ export const ExpressionHeading = ({ formItem, property }: ExpressionHeadingProps
     values={{ componentName: formItem.id }}
     components={{
       componentName: <span className={classes.componentName} />,
-      string: <span className={classes.string} />,
+      textElement: <span className={classes.textElement} />,
     }}
   />
 );
