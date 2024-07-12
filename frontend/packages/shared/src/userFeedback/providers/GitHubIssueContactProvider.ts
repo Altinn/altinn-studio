@@ -14,12 +14,15 @@ const channelMap: Record<GithubChannel, GitHubChannelConfig> = {
   },
 };
 
-export class GitHubProvider implements ContactProvider {
+export class GitHubIssueContactProvider implements ContactProvider {
   private readonly githubRepoUrl: string = 'https://github.com/Altinn/altinn-studio';
   private readonly githubIssueUrl: string = `${this.githubRepoUrl}/issues/new/`;
 
   public getFeedbackUrl(selectedChannel: GithubChannel): string {
-    return this.githubIssueUrl + this.optionToUrlParams(channelMap[selectedChannel]);
+    const defaultChannel = channelMap['featureRequest'];
+    return (
+      this.githubIssueUrl + this.optionToUrlParams(channelMap[selectedChannel] || defaultChannel)
+    );
   }
 
   private optionToUrlParams(selectedConfig: GitHubChannelConfig): string {

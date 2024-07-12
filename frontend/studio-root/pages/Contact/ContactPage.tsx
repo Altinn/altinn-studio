@@ -8,18 +8,18 @@ import classNames from 'classnames';
 import { Contact } from 'app-shared/userFeedback';
 import {
   EmailChannel,
-  EmailProvider,
+  EmailContactProvider,
   GithubChannel,
-  GitHubProvider,
+  GitHubIssueContactProvider,
   SlackChannel,
-  SlackProvider,
-} from 'app-shared/userFeedback/channels';
+  SlackContactProvider,
+} from 'app-shared/userFeedback/providers';
 
 export const ContactPage = (): React.ReactElement => {
   const { t } = useTranslation();
-  const contactByEmail = new Contact(new EmailProvider());
-  const contactBySlack = new Contact(new SlackProvider());
-  const contactByGitHub = new Contact(new GitHubProvider());
+  const contactByEmail = new Contact(new EmailContactProvider());
+  const contactBySlack = new Contact(new SlackContactProvider());
+  const contactByGitHubIssue = new Contact(new GitHubIssueContactProvider());
 
   return (
     <PageContainer>
@@ -74,7 +74,7 @@ export const ContactPage = (): React.ReactElement => {
                 {t('contact.github_issue.heading')}
               </Heading>
               <Paragraph spacing>{t('contact.github_issue.content')}</Paragraph>
-              <Link to={contactByGitHub.contactUrl<GithubChannel>('featureRequest')}>
+              <Link to={contactByGitHubIssue.contactUrl<GithubChannel>('featureRequest')}>
                 {t('contact.github_issue.link')}
               </Link>
             </div>
