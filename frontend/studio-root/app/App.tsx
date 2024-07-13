@@ -8,8 +8,8 @@ import { useTranslation, Trans } from 'react-i18next';
 import './App.css';
 import { PageLayout } from '../pages/PageLayout';
 import { ContactPage } from '../pages/Contact/ContactPage';
-import { EmailContactProvider } from 'app-shared/userFeedback/providers';
-import { Contact } from 'app-shared/userFeedback';
+import { EmailContactProvider } from 'app-shared/getInTouch/providers';
+import { Contact } from 'app-shared/getInTouch';
 
 export const App = (): JSX.Element => {
   return (

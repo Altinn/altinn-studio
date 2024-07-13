@@ -1,9 +1,9 @@
-﻿import { Contact } from 'app-shared/userFeedback/Contact';
+﻿import { Contact } from 'app-shared/getInTouch/Contact';
 import {
   EmailContactProvider,
   GitHubIssueContactProvider,
   SlackContactProvider,
-} from 'app-shared/userFeedback/providers';
+} from 'app-shared/getInTouch/providers';
 
 describe('Contact', () => {
   it('should be high-level module that support low-level module', () => {

@@ -9,8 +9,8 @@ import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnConte
 import { useInvalidator } from '../../../hooks/useInvalidator';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Alert } from '@digdir/designsystemet-react';
-import { Contact } from 'app-shared/userFeedback';
-import { EmailContactProvider } from 'app-shared/userFeedback/providers';
+import { Contact } from 'app-shared/getInTouch';
+import { EmailContactProvider } from 'app-shared/getInTouch/providers';
 
 export function DeployPage() {
   const { org, app } = useStudioEnvironmentParams();

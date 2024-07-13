@@ -1,4 +1,4 @@
-﻿import { GitHubIssueContactProvider } from 'app-shared/userFeedback/providers/GitHubIssueContactProvider';
+﻿import { GitHubIssueContactProvider } from 'app-shared/getInTouch/providers/GitHubIssueContactProvider';
 
 describe('GitHubIssuesContactProvider', () => {
   it('should return correct link based on selected issue type', () => {

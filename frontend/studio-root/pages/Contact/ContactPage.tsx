@@ -5,12 +5,12 @@ import { Trans, useTranslation } from 'react-i18next';
 import { EnvelopeClosedIcon, SlackIcon, GitHubIcon } from '@studio/icons';
 import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
 import classNames from 'classnames';
-import { Contact } from 'app-shared/userFeedback';
+import { Contact } from 'app-shared/getInTouch';
 import {
   EmailContactProvider,
   GitHubIssueContactProvider,
   SlackContactProvider,
-} from 'app-shared/userFeedback/providers';
+} from 'app-shared/getInTouch/providers';
 
 export const ContactPage = (): React.ReactElement => {
   const { t } = useTranslation();

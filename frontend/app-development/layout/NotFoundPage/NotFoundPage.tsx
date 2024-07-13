@@ -2,8 +2,8 @@ import React from 'react';
 import { StudioNotFoundPage } from '@studio/components';
 import { Paragraph, Link } from '@digdir/designsystemet-react';
 import { useTranslation, Trans } from 'react-i18next';
-import { Contact } from 'app-shared/userFeedback';
-import { EmailContactProvider } from 'app-shared/userFeedback/providers';
+import { Contact } from 'app-shared/getInTouch';
+import { EmailContactProvider } from 'app-shared/getInTouch/providers';
 
 export const NotFoundPage = () => {
   const { t } = useTranslation();

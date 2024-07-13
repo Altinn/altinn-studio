@@ -3,8 +3,8 @@ import { Trans, useTranslation } from 'react-i18next';
 import cn from 'classnames';
 import type { AlertProps } from '@digdir/designsystemet-react';
 import { Alert, Heading, Paragraph } from '@digdir/designsystemet-react';
-import { EmailContactProvider } from 'app-shared/userFeedback/providers';
-import { Contact } from 'app-shared/userFeedback';
+import { EmailContactProvider } from 'app-shared/getInTouch/providers';
+import { Contact } from 'app-shared/getInTouch';
 
 type NoEnvironmentsAlertProps = AlertProps;
 export const NoEnvironmentsAlert = ({ ...rest }: NoEnvironmentsAlertProps) => {

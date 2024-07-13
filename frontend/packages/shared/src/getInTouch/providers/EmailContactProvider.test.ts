@@ -1,4 +1,4 @@
-﻿import { EmailContactProvider } from 'app-shared/userFeedback/providers/EmailContactProvider';
+﻿import { EmailContactProvider } from 'app-shared/getInTouch/providers/EmailContactProvider';
 
 describe('EmailContactProvider', () => {
   it('should return correct email based on selectedChannel', () => {
