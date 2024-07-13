@@ -41,7 +41,7 @@ describe('ContactPage', () => {
     ).toBeInTheDocument();
     expect(screen.getByText(textMock('contact.github_issue.content'))).toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: textMock('contact.github_issue.link') }),
+      screen.getByRole('link', { name: textMock('contact.github_issue.link_label') }),
     ).toBeInTheDocument();
   });
 });
