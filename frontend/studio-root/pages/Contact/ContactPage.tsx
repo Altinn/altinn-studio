@@ -36,7 +36,9 @@ export const ContactPage = (): React.ReactElement => {
                 {t('contact.email.heading')}
               </Heading>
               <Paragraph spacing>{t('contact.email.content')}</Paragraph>
-              <Link href={contactByEmail.url('serviceDesk')}>servicedesk@altinn.no</Link>
+              <Link href={contactByEmail.url('serviceDesk')}>
+                {t('general.service_desk.email')}
+              </Link>
             </div>
           </section>
           <section className={classes.section}>
