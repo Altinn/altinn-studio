@@ -9,7 +9,6 @@ const emailChannelMap: Record<EmailChannel, string> = {
 
 export class EmailContactProvider implements ContactProvider<EmailChannel> {
   public buildContactUrl(selectedChannel: EmailChannel): string {
-    const defaultChannel = emailChannelMap['serviceOwner'];
-    return emailChannelMap[selectedChannel] || defaultChannel;
+    return emailChannelMap[selectedChannel];
   }
 }

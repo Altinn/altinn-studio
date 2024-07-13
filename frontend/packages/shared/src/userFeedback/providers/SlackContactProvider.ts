@@ -9,7 +9,6 @@ const slackChannelMap: Record<SlackChannel, string> = {
 
 export class SlackContactProvider implements ContactProvider<SlackChannel> {
   public buildContactUrl(selectedChannel: SlackChannel): string {
-    const defaultChannel = slackChannelMap['product-altinn-studio'];
-    return slackChannelMap[selectedChannel] || defaultChannel;
+    return slackChannelMap[selectedChannel];
   }
 }

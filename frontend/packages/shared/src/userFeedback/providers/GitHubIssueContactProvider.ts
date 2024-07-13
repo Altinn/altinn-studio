@@ -20,14 +20,10 @@ const gitHubIssueType: Record<GitHubIssueTypes, GitHubChannelConfig> = {
 
 export class GitHubIssueContactProvider implements ContactProvider<GitHubIssueTypes> {
   private readonly githubRepoUrl: string = 'https://github.com/Altinn/altinn-studio';
-  private readonly githubIssueUrl: string = `${this.githubRepoUrl}/issues/new/`;
+  private readonly githubIssueUrl: string = `${this.githubRepoUrl}/issues/new`;
 
   public buildContactUrl(selectedIssueType: GitHubIssueTypes): string {
-    const defaultIssueType = gitHubIssueType['featureRequest'];
-    return (
-      this.githubIssueUrl +
-      this.optionToUrlParams(gitHubIssueType[selectedIssueType] || defaultIssueType)
-    );
+    return this.githubIssueUrl + this.optionToUrlParams(gitHubIssueType[selectedIssueType]);
   }
 
   private optionToUrlParams(selectedConfig: GitHubChannelConfig): string {
