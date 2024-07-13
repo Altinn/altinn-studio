@@ -9,7 +9,7 @@ import './App.css';
 import { PageLayout } from '../pages/PageLayout';
 import { ContactPage } from '../pages/Contact/ContactPage';
 import { EmailContactProvider } from 'app-shared/getInTouch/providers';
-import { Contact } from 'app-shared/getInTouch';
+import { GetInTouchWith } from 'app-shared/getInTouch';
 
 export const App = (): JSX.Element => {
   return (
@@ -27,7 +27,7 @@ export const App = (): JSX.Element => {
 const NotFoundPage = () => {
   const { t } = useTranslation();
 
-  const contactByEmail = new Contact(new EmailContactProvider());
+  const contactByEmail = new GetInTouchWith(new EmailContactProvider());
 
   return (
     <StudioNotFoundPage

@@ -9,7 +9,7 @@ import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnConte
 import { useInvalidator } from '../../../hooks/useInvalidator';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Alert } from '@digdir/designsystemet-react';
-import { Contact } from 'app-shared/getInTouch';
+import { GetInTouchWith } from 'app-shared/getInTouch';
 import { EmailContactProvider } from 'app-shared/getInTouch/providers';
 
 export function DeployPage() {
@@ -23,7 +23,7 @@ export function DeployPage() {
   } = useDeployPermissionsQuery(org, app);
   useInvalidator();
 
-  const contactByEmail = new Contact(new EmailContactProvider());
+  const contactByEmail = new GetInTouchWith(new EmailContactProvider());
 
   if (orgsIsPending || permissionsIsPending) {
     return (

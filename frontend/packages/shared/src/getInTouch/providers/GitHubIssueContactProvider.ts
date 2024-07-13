@@ -1,4 +1,4 @@
-﻿import { type ContactProvider } from '../interfaces/ContactProvider';
+﻿import { type GetInTouchProvider } from '../interfaces/GetInTouchProvider';
 
 type GitHubIssueTypes = 'featureRequest' | 'bugReport';
 
@@ -18,7 +18,7 @@ const gitHubIssueType: Record<GitHubIssueTypes, GitHubChannelConfig> = {
   },
 };
 
-export class GitHubIssueContactProvider implements ContactProvider<GitHubIssueTypes> {
+export class GitHubIssueContactProvider implements GetInTouchProvider<GitHubIssueTypes> {
   private readonly githubRepoUrl: string = 'https://github.com/Altinn/altinn-studio';
   private readonly githubIssueUrl: string = `${this.githubRepoUrl}/issues/new`;
 

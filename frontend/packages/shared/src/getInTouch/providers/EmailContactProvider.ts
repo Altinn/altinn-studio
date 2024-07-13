@@ -1,4 +1,4 @@
-﻿import { type ContactProvider } from '../interfaces/ContactProvider';
+﻿import { type GetInTouchProvider } from '../interfaces/GetInTouchProvider';
 
 type EmailChannel = 'serviceDesk' | 'serviceOwner';
 
@@ -7,7 +7,7 @@ const emailChannelMap: Record<EmailChannel, string> = {
   serviceOwner: 'mailto:tjenesteeier@altinn.no',
 };
 
-export class EmailContactProvider implements ContactProvider<EmailChannel> {
+export class EmailContactProvider implements GetInTouchProvider<EmailChannel> {
   public buildContactUrl(selectedChannel: EmailChannel): string {
     return emailChannelMap[selectedChannel];
   }

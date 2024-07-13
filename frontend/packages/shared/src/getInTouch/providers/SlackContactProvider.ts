@@ -1,4 +1,4 @@
-﻿import { type ContactProvider } from '../interfaces/ContactProvider';
+﻿import { type GetInTouchProvider } from '../interfaces/GetInTouchProvider';
 
 type SlackChannel = 'product-altinn-studio' | 'altinn';
 
@@ -7,7 +7,7 @@ const slackChannelMap: Record<SlackChannel, string> = {
   altinn: 'https://altinn.slack.com',
 };
 
-export class SlackContactProvider implements ContactProvider<SlackChannel> {
+export class SlackContactProvider implements GetInTouchProvider<SlackChannel> {
   public buildContactUrl(selectedChannel: SlackChannel): string {
     return slackChannelMap[selectedChannel];
   }

@@ -5,7 +5,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import { EnvelopeClosedIcon, SlackIcon, GitHubIcon } from '@studio/icons';
 import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
 import classNames from 'classnames';
-import { Contact } from 'app-shared/getInTouch';
+import { GetInTouchWith } from 'app-shared/getInTouch';
 import {
   EmailContactProvider,
   GitHubIssueContactProvider,
@@ -14,9 +14,9 @@ import {
 
 export const ContactPage = (): React.ReactElement => {
   const { t } = useTranslation();
-  const contactByEmail = new Contact(new EmailContactProvider());
-  const contactBySlack = new Contact(new SlackContactProvider());
-  const contactByGitHubIssue = new Contact(new GitHubIssueContactProvider());
+  const contactByEmail = new GetInTouchWith(new EmailContactProvider());
+  const contactBySlack = new GetInTouchWith(new SlackContactProvider());
+  const contactByGitHubIssue = new GetInTouchWith(new GitHubIssueContactProvider());
 
   return (
     <PageContainer>

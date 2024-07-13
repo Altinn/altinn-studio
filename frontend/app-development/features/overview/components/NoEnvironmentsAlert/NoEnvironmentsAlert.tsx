@@ -4,12 +4,12 @@ import cn from 'classnames';
 import type { AlertProps } from '@digdir/designsystemet-react';
 import { Alert, Heading, Paragraph } from '@digdir/designsystemet-react';
 import { EmailContactProvider } from 'app-shared/getInTouch/providers';
-import { Contact } from 'app-shared/getInTouch';
+import { GetInTouchWith } from 'app-shared/getInTouch';
 
 type NoEnvironmentsAlertProps = AlertProps;
 export const NoEnvironmentsAlert = ({ ...rest }: NoEnvironmentsAlertProps) => {
   const { t } = useTranslation();
-  const contactByEmail = new Contact(new EmailContactProvider());
+  const contactByEmail = new GetInTouchWith(new EmailContactProvider());
   return (
     <Alert severity='warning' className={cn(rest.className)} {...rest}>
       <Heading level={2} size='small' spacing>
