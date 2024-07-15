@@ -8,6 +8,7 @@
 }
 
 .tabs {
+  flex-wrap: wrap;
   overflow: scroll;
   --scroll-bar-color: white;
 }
