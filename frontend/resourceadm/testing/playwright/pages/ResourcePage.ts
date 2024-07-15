@@ -167,7 +167,8 @@ export class ResourcePage extends ResourceEnvironment {
   }
 
   public async setAvailableForType(): Promise<void> {
-    if (!this.availableForTypeCheckbox.isChecked()) {
+    const isAvailableForChecked = await this.availableForTypeCheckbox.isChecked();
+    if (!isAvailableForChecked) {
       await this.availableForTypeCheckbox.click();
     }
   }
@@ -181,7 +182,8 @@ export class ResourcePage extends ResourceEnvironment {
   }
 
   public async addPolicyRule(): Promise<void> {
-    if (!this.ruleHeader.isVisible()) {
+    const isPolicyRuleVisible = await this.ruleHeader.isVisible();
+    if (!isPolicyRuleVisible) {
       await this.addPolicyRuleButton.click();
       await this.setPolicyAction();
       await this.setPolicySubject();
