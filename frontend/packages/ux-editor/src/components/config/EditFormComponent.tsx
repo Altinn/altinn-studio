@@ -1,6 +1,6 @@
 import React from 'react';
 import { ComponentSpecificContent } from './componentSpecificContent';
-import { Fieldset } from '@digdir/design-system-react';
+import { Fieldset } from '@digdir/designsystemet-react';
 import classes from './EditFormComponent.module.css';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { StudioSpinner } from '@studio/components';

@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Alert } from '@digdir/design-system-react';
+import { Alert } from '@digdir/designsystemet-react';
 import { ExpressionContent } from './ExpressionContent';
 import { useText } from '../../../hooks';
 import type { ExpressionProperty } from '../../../types/Expressions';

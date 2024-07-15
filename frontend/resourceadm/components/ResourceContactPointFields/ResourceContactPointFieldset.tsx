@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { ResourceContactPoint, ResourceFormError } from 'app-shared/types/ResourceAdm';
-import { Fieldset, HelpText, Textfield } from '@digdir/design-system-react';
+import { Fieldset, HelpText, Textfield } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { InputFieldErrorMessage } from '../ResourcePageInputs/InputFieldErrorMessage';
 import { ResourceFieldHeader } from '../ResourcePageInputs/ResourceFieldHeader';

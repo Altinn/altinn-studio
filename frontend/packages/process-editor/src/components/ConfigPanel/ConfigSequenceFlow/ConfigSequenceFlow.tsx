@@ -8,7 +8,7 @@ import {
 } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
-import { Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import { BpmnExpressionModeler } from '../../../utils/bpmnModeler/BpmnExpressionModeler';
 import { useExpressionTexts } from 'app-shared/components/Expression/useExpressionTexts';
 import { useTranslation } from 'react-i18next';
@@ -79,6 +79,7 @@ export const ConfigSequenceFlow = (): React.ReactElement => {
         {!expression ? (
           <StudioButton
             variant='secondary'
+            size='small'
             icon={<PlusIcon />}
             fullWidth
             onClick={onAddNewExpressionClicked}

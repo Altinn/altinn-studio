@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import React, { useState } from 'react';
 import classes from './LocalChanges.module.css';
 import { useTranslation } from 'react-i18next';
-import { Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import { DownloadIcon, TrashIcon } from '@studio/icons';
 import { LocalChangesActionButton } from '../LocalChangesActionButton';
 import { DeleteModal } from '../DeleteModal';

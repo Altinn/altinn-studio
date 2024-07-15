@@ -1,5 +1,5 @@
 import { getRepoEditUrl } from '../../utils/urlUtils';
-import { Link } from '@digdir/design-system-react';
+import { Link } from '@digdir/designsystemet-react';
 import classes from './RepoNameWithLink.module.css';
 import React from 'react';
 import { useTranslation } from 'react-i18next';

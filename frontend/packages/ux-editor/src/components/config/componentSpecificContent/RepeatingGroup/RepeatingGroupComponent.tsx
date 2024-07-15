@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import classes from './RepeatingGroupComponent.module.css';
-import { Checkbox, LegacyFieldSet, LegacyTextField } from '@digdir/design-system-react';
+import { Checkbox } from '@digdir/designsystemet-react';
+import { LegacyFieldSet, LegacyTextField } from '@digdir/design-system-react';
 import { FormField } from '../../../FormField';
 import { getTextResource } from '../../../../utils/language';
 import {

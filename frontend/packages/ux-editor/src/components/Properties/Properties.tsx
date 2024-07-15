@@ -2,7 +2,7 @@ import React from 'react';
 import { Calculations } from './Calculations';
 import { Text } from './Text';
 import { useTranslation } from 'react-i18next';
-import { Accordion } from '@digdir/design-system-react';
+import { Accordion } from '@digdir/designsystemet-react';
 import { useFormItemContext } from '../../containers/FormItemContext';
 import classes from './Properties.module.css';
 import { Dynamics } from './Dynamics';
@@ -25,7 +25,7 @@ export const Properties = () => {
   };
 
   return (
-    <div className={classes.root}>
+    <div className={classes.root} key={formItemId}>
       {!formItem ? (
         <PageConfigPanel />
       ) : (

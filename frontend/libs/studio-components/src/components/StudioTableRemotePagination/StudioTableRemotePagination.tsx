@@ -1,4 +1,4 @@
-import { Label, NativeSelect, Pagination, Paragraph, Table } from '@digdir/design-system-react';
+import { Label, NativeSelect, Pagination, Paragraph, Table } from '@digdir/designsystemet-react';
 import React, { forwardRef, useEffect, useId } from 'react';
 import type { ReactNode } from 'react';
 import classes from './StudioTableRemotePagination.module.css';

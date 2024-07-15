@@ -1,5 +1,5 @@
 import React from 'react';
-import { Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import classes from './EmptyList.module.css';
 
 export interface EmptyListProps {
