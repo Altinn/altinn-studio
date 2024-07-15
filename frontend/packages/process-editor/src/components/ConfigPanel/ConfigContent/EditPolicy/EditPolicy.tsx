@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert } from '@digdir/design-system-react';
+import { Alert } from '@digdir/designsystemet-react';
 import { StudioButton } from '@studio/components';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { useTranslation } from 'react-i18next';

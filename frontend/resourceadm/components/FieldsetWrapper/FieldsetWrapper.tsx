@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal } from '@digdir/design-system-react';
+import { Modal } from '@digdir/designsystemet-react';
 import classes from './FieldsetWrapper.module.css';
 import { StudioButton } from '@studio/components';
 import { TrashIcon, PlusIcon } from '@studio/icons';

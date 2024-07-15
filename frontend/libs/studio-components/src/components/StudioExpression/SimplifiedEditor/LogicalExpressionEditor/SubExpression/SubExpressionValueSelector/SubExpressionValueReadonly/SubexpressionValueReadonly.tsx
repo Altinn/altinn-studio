@@ -1,7 +1,7 @@
 import type { SimpleSubexpressionValue } from '../../../../../types/SimpleSubexpressionValue';
 import type { ReactNode } from 'react';
 import React from 'react';
-import { Paragraph, Tag } from '@digdir/design-system-react';
+import { Paragraph, Tag } from '@digdir/designsystemet-react';
 import { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSubexpressionValueType';
 import classes from './SubexpressionValueReadonly.module.css';
 import { StudioCodeFragment } from '../../../../../../StudioCodeFragment';
@@ -44,7 +44,11 @@ const DataModelLookupValue = ({
   return (
     <Binding
       name={texts.readonlyDataModelPath}
-      binding={<StudioCodeFragment>{value.path}</StudioCodeFragment>}
+      binding={
+        <StudioCodeFragment title={value.path} className={classes.codeFragment}>
+          {value.path}
+        </StudioCodeFragment>
+      }
     />
   );
 };

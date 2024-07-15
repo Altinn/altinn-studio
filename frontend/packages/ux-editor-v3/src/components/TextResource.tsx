@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { LegacySingleSelectOption } from '@digdir/design-system-react';
-import { LegacySelect, Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/designsystemet-react';
+import { LegacySelect } from '@digdir/design-system-react';
 import { MagnifyingGlassIcon, PencilIcon, PlusIcon, TrashIcon, XMarkIcon } from '@studio/icons';
 import classes from './TextResource.module.css';
 import { useDispatch, useSelector } from 'react-redux';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Tag } from '@digdir/design-system-react';
+import { Tag } from '@digdir/designsystemet-react';
 import classes from './ResourcePageInputs.module.css';
 
 interface ResourceFieldHeaderProps {

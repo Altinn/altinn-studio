@@ -9,7 +9,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { StudioLabelAsParagraph, StudioPopover } from '@studio/components';
 import { InformationIcon } from '@studio/icons';
-import { Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 
 export type InformationPanelProvidedProps = {
   isOpen: boolean;

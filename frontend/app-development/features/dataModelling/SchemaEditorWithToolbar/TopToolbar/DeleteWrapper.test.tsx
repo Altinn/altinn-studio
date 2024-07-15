@@ -5,7 +5,6 @@ import type { DeleteWrapperProps } from './DeleteWrapper';
 import { DeleteWrapper } from './DeleteWrapper';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import {
-  dataModel1NameMock,
   jsonMetadata1Mock,
   jsonMetadata2Mock,
 } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
@@ -22,9 +21,7 @@ const user = userEvent.setup();
 const deleteText = textMock('schema_editor.delete_data_model');
 const continueText = textMock('schema_editor.confirm_deletion');
 const cancelText = textMock('general.cancel');
-const confirmText = textMock('schema_editor.delete_model_confirm', {
-  schemaName: dataModel1NameMock,
-});
+const confirmText = textMock('schema_editor.delete_model_confirm');
 
 const selectedOption = convertMetadataToOption(jsonMetadata1Mock);
 const defaultProps: DeleteWrapperProps = { selectedOption };

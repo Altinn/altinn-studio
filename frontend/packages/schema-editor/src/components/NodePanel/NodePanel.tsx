@@ -1,6 +1,6 @@
 import React from 'react';
 import { SchemaTree } from '../SchemaTree';
-import { Link } from '@digdir/design-system-react';
+import { Link } from '@digdir/designsystemet-react';
 import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
 import { ArrowLeftIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';

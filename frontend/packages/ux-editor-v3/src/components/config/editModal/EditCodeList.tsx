@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { LegacySelect, Textfield, ErrorMessage } from '@digdir/design-system-react';
+import { Textfield, ErrorMessage } from '@digdir/designsystemet-react';
+import { LegacySelect } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useOptionListIdsQuery } from '../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation, Trans } from 'react-i18next';

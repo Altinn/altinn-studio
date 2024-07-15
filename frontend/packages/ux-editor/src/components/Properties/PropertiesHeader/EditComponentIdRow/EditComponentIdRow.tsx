@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StudioToggleableTextfieldSchema, type SchemaValidationError } from '@studio/components';
-import { Alert } from '@digdir/design-system-react';
+import { Alert } from '@digdir/designsystemet-react';
 import { KeyVerticalIcon } from '@studio/icons';
 import classes from './EditComponentIdRow.module.css';
 import { idExists } from '../../../../utils/formLayoutsUtils';
@@ -70,7 +70,11 @@ export const EditComponentIdRow = ({
         propertyPath='definitions/component/properties/id'
         key={component.id}
         viewProps={{
-          children: <Trans i18nKey={'ux_editor.id_identifier'} values={{ item: component.id }} />,
+          children: (
+            <span className={classes.ellipsis} title={component.id}>
+              <Trans i18nKey={'ux_editor.id_identifier'} values={{ item: component.id }} />
+            </span>
+          ),
           variant: 'tertiary',
           fullWidth: true,
         }}

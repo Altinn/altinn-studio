@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useStudioExpressionContext } from '../../../../../StudioExpressionContext';
 import { ExpressionErrorKey } from '../../../../../enums/ExpressionErrorKey';
 import { DataLookupFuncName } from '../../../../../enums/DataLookupFuncName';
-import { Combobox } from '@digdir/design-system-react';
+import { Combobox } from '@digdir/designsystemet-react';
 
 export const ComponentIdSelector = ({
   value,

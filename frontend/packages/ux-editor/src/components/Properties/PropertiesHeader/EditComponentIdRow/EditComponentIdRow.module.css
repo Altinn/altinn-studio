@@ -7,6 +7,12 @@
   padding: var(--fds-spacing-5);
 }
 
+.ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 .duplicatedIdField {
   background-color: var(--fds-semantic-surface-danger-subtle) !important;
 }

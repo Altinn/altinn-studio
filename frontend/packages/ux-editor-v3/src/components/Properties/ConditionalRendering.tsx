@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert } from '@digdir/design-system-react';
+import { Alert } from '@digdir/designsystemet-react';
 import classes from './ConditionalRendering.module.css';
 import { PlusIcon } from '@studio/icons';
 import { ConditionalRenderingModal } from '../toolbar/ConditionalRenderingModal';

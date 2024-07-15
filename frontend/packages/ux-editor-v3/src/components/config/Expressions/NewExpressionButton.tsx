@@ -1,5 +1,5 @@
 import React from 'react';
-import { DropdownMenu } from '@digdir/design-system-react';
+import { DropdownMenu } from '@digdir/designsystemet-react';
 import { PlusIcon } from '@studio/icons';
 import { useText } from '../../../hooks';
 import type { ExpressionProperty } from '../../../types/Expressions';

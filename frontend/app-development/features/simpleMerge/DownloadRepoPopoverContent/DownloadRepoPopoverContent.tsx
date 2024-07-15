@@ -4,7 +4,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import { StudioButton } from '@studio/components';
 import { repoDownloadPath } from 'app-shared/api/paths';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { Heading, Link, Paragraph } from '@digdir/design-system-react';
+import { Heading, Link, Paragraph } from '@digdir/designsystemet-react';
 
 export type DownloadRepoPopoverContentProps = {
   onClose: () => void;

@@ -4,7 +4,7 @@ import type { ChangeEvent } from 'react';
 import React from 'react';
 import { useStudioExpressionContext } from '../../../../../StudioExpressionContext';
 import { InstanceContext } from '../../../../../enums/InstanceContext';
-import { NativeSelect } from '@digdir/design-system-react';
+import { NativeSelect } from '@digdir/designsystemet-react';
 
 export const InstanceContextKeySelector = ({
   value,

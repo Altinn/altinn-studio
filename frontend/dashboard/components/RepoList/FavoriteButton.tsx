@@ -1,5 +1,5 @@
 import { StarFillIcon, StarIcon } from '@navikt/aksel-icons';
-import { Button } from '@digdir/design-system-react';
+import { Button } from '@digdir/designsystemet-react';
 import React from 'react';
 import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from '../../hooks/mutations';
 import type { RepoIncludingStarredData } from '../../utils/repoUtils/repoUtils';
