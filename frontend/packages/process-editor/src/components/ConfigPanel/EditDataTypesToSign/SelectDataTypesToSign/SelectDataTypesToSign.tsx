@@ -23,7 +23,9 @@ export const SelectDataTypesToSign = ({ onClose }: SelectDataTypesToSignProps) =
   const modelerInstance = modelerRef.current;
   const modeling: Modeling = modelerInstance.get('modeling');
   const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
-  const [value, setValue] = useState<string[]>(() => getSelectedDataTypes(bpmnDetails));
+  const [value, setValue] = useState<string[]>(() =>
+    getSelectedDataTypes(bpmnDetails).filter((item) => availableDataTypeIds.includes(item)),
+  );
   const { debounce } = useDebounce({ debounceTimeInMs: AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS });
 
   const { t } = useTranslation();

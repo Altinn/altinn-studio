@@ -6,11 +6,15 @@ import { LinkIcon } from '@studio/icons';
 import { SelectDataTypesToSign } from './SelectDataTypesToSign';
 import classes from './EditDataTypesToSign.module.css';
 import { getSelectedDataTypes } from './DataTypesToSignUtils';
+import { useBpmnApiContext } from '@altinn/process-editor/contexts/BpmnApiContext';
 
 export const EditDataTypesToSign = () => {
+  const { availableDataTypeIds } = useBpmnApiContext();
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
-  const selectedDataTypes = getSelectedDataTypes(bpmnDetails);
+  const selectedDataTypes = getSelectedDataTypes(bpmnDetails).filter((item) =>
+    availableDataTypeIds.includes(item),
+  );
 
   const [dataTypesToSignSelectVisible, setDataTypesToSignSelectVisible] = useState(
     !selectedDataTypes.length,

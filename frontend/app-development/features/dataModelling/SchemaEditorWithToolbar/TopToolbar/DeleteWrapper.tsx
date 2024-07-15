@@ -5,7 +5,8 @@ import { TrashIcon } from '@studio/icons';
 import { useDeleteDataModelMutation } from '../../../../hooks/mutations';
 import type { MetadataOption } from '../../../../types/MetadataOption';
 import { AltinnConfirmDialog } from 'app-shared/components';
-
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useRemoveDataTypesToSignFromSigningTasks } from '@altinn/ux-editor/hooks/mutations/useRemoveDataTypesToSignFromSigningTasks';
 export interface DeleteWrapperProps {
   selectedOption: MetadataOption | null;
 }
@@ -14,6 +15,8 @@ export function DeleteWrapper({ selectedOption }: DeleteWrapperProps) {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const { t } = useTranslation();
   const { mutate } = useDeleteDataModelMutation();
+  const { org, app } = useStudioEnvironmentParams();
+  const removeDataTypesToSignFromSigningTasks = useRemoveDataTypesToSignFromSigningTasks(org, app);
 
   const modelPath = selectedOption?.value.repositoryRelativeUrl;
 
@@ -21,8 +24,12 @@ export function DeleteWrapper({ selectedOption }: DeleteWrapperProps) {
 
   const schemaName = selectedOption?.value && selectedOption?.label;
   const onDeleteClick = () => setDialogOpen(true);
-  const onDeleteConfirmClick = () => {
-    mutate(modelPath);
+  const onDeleteConfirmClick = async () => {
+    mutate(modelPath, {
+      onSuccess: async () => {
+        await removeDataTypesToSignFromSigningTasks([schemaName]);
+      },
+    });
     setDialogOpen(false);
   };
 
