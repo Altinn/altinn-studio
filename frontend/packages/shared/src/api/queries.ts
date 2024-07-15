@@ -48,6 +48,7 @@ import {
   layoutNamesPath,
   appMetadataModelIdsPath,
   processTaskTypePath,
+  altinn2DelegationsCountPath,
 } from './paths';
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
@@ -132,6 +133,7 @@ export const getAccessListMembers = (org: string, listId: string, environment: s
 export const getResourceAccessLists = (org: string, resourceId: string, environment: string, page?: string) => get<AccessListsResponse>(resourceAccessListsPath(org, resourceId, environment, page));
 export const getParties = (url: string) => get<BrregPartySearchResult>(url);
 export const getSubParties = (url: string) => get<BrregSubPartySearchResult>(url);
+export const getAltinn2DelegationsCount = (org: string, serviceCode: string, serviceEdition: string, env: string) => get<number>(altinn2DelegationsCountPath(org, serviceCode, serviceEdition, env));
 
 // ProcessEditor
 export const getBpmnFile = (org: string, app: string) => get<string>(processEditorPath(org, app));

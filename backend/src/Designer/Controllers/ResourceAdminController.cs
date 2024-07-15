@@ -456,7 +456,7 @@ namespace Altinn.Studio.Designer.Controllers
 
                 if (OrgUtil.IsTestEnv(org))
                 {
-                    linkServices = unfiltered.Where(a => a.ServiceOwnerCode.ToLower().Equals(org.ToLower()) || a.ServiceOwnerCode.ToLower().Equals("acn")).ToList();
+                    linkServices = unfiltered.Where(a => a.ServiceOwnerCode.ToLower().Equals(org.ToLower())).ToList();
                 }
                 else
                 {

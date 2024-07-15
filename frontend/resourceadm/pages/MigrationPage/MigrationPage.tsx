@@ -21,10 +21,13 @@ import { useUrlParams } from '../../hooks/useUrlParams';
 import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 import type { EnvId } from '../../utils/resourceUtils';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';
+import { useGetAltinn2DelegationsCount } from 'resourceadm/hooks/queries/useGetAltinn2DelegationCount';
 
 export type MigrationPageProps = {
   navigateToPageWithError: (page: NavigationBarPage) => void;
   id: string;
+  serviceCode: string;
+  serviceEdition: string;
 };
 
 /**
@@ -39,10 +42,20 @@ export type MigrationPageProps = {
 export const MigrationPage = ({
   navigateToPageWithError,
   id,
+  serviceCode,
+  serviceEdition,
 }: MigrationPageProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const { org, app, resourceId } = useUrlParams();
+
+  // TODO - This might be a saved value from backend. Issue: #10715
+  const initialDate = new Date().toISOString().split('T')[0];
+  const [migrationDate, setMigrationDate] = useState(initialDate);
+  const [migrationTime, setMigrationTime] = useState('00:00');
+  const [selectedEnv, setSelectedEnv] = useState<EnvId | ''>('');
+  const [numDelegationsA2, setNumDelegationsA2] = useState<number>(undefined);
+  const [numDelegationsA3, setNumDelegationsA3] = useState<number>(undefined);
 
   const { data: validatePolicyData, isPending: isValidatePolicyPending } = useValidatePolicyQuery(
     org,
@@ -54,13 +67,12 @@ export const MigrationPage = ({
   const { isPending: isLoadingPublishStatus, data: publishStatusData } =
     useResourcePolicyPublishStatusQuery(org, app, resourceId);
 
-  // TODO - This might be a saved value from backend. Issue: #10715
-  const initialDate = new Date().toISOString().split('T')[0];
-  const [migrationDate, setMigrationDate] = useState(initialDate);
-  const [migrationTime, setMigrationTime] = useState('00:00');
-  const [selectedEnv, setSelectedEnv] = useState<EnvId | '-'>('-');
-  const [numDelegationsA2, setNumDelegationsA2] = useState<number>(undefined);
-  const [numDelegationsA3, setNumDelegationsA3] = useState<number>(undefined);
+  const { data: numberOfA2Delegations } = useGetAltinn2DelegationsCount(
+    org,
+    serviceCode,
+    serviceEdition,
+    selectedEnv,
+  );
 
   const envPublishStatus = getAvailableEnvironments(org).map((env) => {
     const isPublishedInEnv = publishStatusData?.publishedVersions.some(
@@ -148,14 +160,14 @@ export const MigrationPage = ({
           <Radio.Group
             hideLegend
             onChange={(newEnv: EnvId) => setSelectedEnv(newEnv)}
-            value={selectedEnv}
+            value={selectedEnv || '-'}
             legend={t('resourceadm.migration_select_environment_header')}
             description={t('resourceadm.migration_select_environment_body')}
           >
             {envPublishStatus.map((env) => {
               const isPublishedInEnv = env.isResourcePublished;
               return (
-                <Radio key={env.id} value={env.label} readOnly={!isPublishedInEnv}>
+                <Radio key={env.id} value={env.id}>
                   {`${t(env.label)} ${!isPublishedInEnv ? t('resourceadm.migration_environment_not_published') : ''}`}
                 </Radio>
               );

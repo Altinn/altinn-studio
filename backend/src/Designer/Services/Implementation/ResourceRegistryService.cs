@@ -298,10 +298,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         public async Task<DelegationCountOverview> GetDelegationCount(string serviceCode, int serviceEditionCode, string environment)
         {
-            string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
-            string url = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/delegationcount/?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
-            
-            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            HttpRequestMessage request = await CreateAccessListRequest(environment, HttpMethod.Get, $"/resourceregistry/api/v1/altinn2export/delegationcount/?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}");
+            HttpResponseMessage response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
 
             return await response.Content.ReadAsAsync<DelegationCountOverview>();
@@ -633,9 +631,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
             //Checks if not tested locally by passing dev as env parameter
             string baseUrl = !env.ToLower().Equals("dev")
-                ? $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryAccessListUrl}"
-                : $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryAccessListUrl}";
+                ? $"{GetResourceRegistryBaseUrl(env)}"
+                : $"{_platformSettings.ResourceRegistryDefaultBaseUrl}";
 
+            Console.WriteLine($"{baseUrl}{relativeUrl}");
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}{relativeUrl}");
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
             if (!string.IsNullOrEmpty(eTag))
