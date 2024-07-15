@@ -3,13 +3,12 @@ import type { StudioResizableOrientation } from '../StudioResizableLayoutContain
 
 export const useStudioResizableLayoutMouseMovement = (
   orientation: StudioResizableOrientation,
-  onMousePosChange: (delta: number, position: number) => void,
+  onMousePosChange: (delta: number) => void,
 ): {
   onMouseDown: (event: React.MouseEvent<HTMLDivElement>) => () => void;
   isResizing: boolean;
 } => {
   const lastMousePosition = useRef<number>(0);
-  const startMousePosition = useRef<number>(0);
   const [isResizing, setIsResizing] = useState(false);
 
   // throttle mouseMove events to avoid calculating new size before last rerender
@@ -24,9 +23,8 @@ export const useStudioResizableLayoutMouseMovement = (
       if (update.current === lastEventUpdate.current) return;
       lastEventUpdate.current = update.current;
       const mousePos = orientation === 'horizontal' ? event.clientX : event.clientY;
-      const mouseTotalDelta = mousePos - startMousePosition.current;
       const mouseDelta = mousePos - lastMousePosition.current;
-      onMousePosChange(mouseDelta, mouseTotalDelta);
+      onMousePosChange(mouseDelta);
       lastMousePosition.current = mousePos;
     },
     [orientation, onMousePosChange],
@@ -49,7 +47,6 @@ export const useStudioResizableLayoutMouseMovement = (
       event.preventDefault();
       setIsResizing(true);
       lastMousePosition.current = orientation === 'horizontal' ? event.clientX : event.clientY;
-      startMousePosition.current = lastMousePosition.current;
       window.addEventListener('mousemove', mouseMove);
       window.addEventListener('mouseup', mouseUp);
     },
