@@ -10,10 +10,6 @@
   position: absolute;
 }
 
-.resizeHandle:hover:after {
-  background-color: rgba(0, 0, 0, 0.1);
-}
-
 .resizeHandleH {
   cursor: col-resize;
 }
