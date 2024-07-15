@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Paragraph, Link } from '@digdir/design-system-react';
+import { Paragraph, Link } from '@digdir/designsystemet-react';
 import { ExpressionContent } from '../ExpressionContent';
 import classes from './Expressions.module.css';
 import { FormItemContext } from '../../../containers/FormItemContext';

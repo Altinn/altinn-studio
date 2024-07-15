@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Accordion } from '@digdir/design-system-react';
+import { Accordion } from '@digdir/designsystemet-react';
 import { FileIcon } from '@studio/icons';
 import { StudioSectionHeader } from '@studio/components';
 import { useText, useTextResourcesSelector, useAppContext, useFormLayouts } from '../../../hooks';

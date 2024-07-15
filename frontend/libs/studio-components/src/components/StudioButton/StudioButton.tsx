@@ -1,5 +1,5 @@
-import { Button } from '@digdir/design-system-react';
-import type { ButtonProps } from '@digdir/design-system-react';
+import { Button } from '@digdir/designsystemet-react';
+import type { ButtonProps } from '@digdir/designsystemet-react';
 import type { ReactNode } from 'react';
 import React, { forwardRef } from 'react';
 import cn from 'classnames';

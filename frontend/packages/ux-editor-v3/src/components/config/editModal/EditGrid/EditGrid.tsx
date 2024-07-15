@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import React, { useState } from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
-import { Tabs } from '@digdir/design-system-react';
+import { Tabs } from '@digdir/designsystemet-react';
 import classes from './EditGrid.module.css';
 import { EditGridForGivenViewSize } from './EditGridForGivenViewSize';
 import { LaptopIcon, MobileIcon, MobileSmallIcon, MonitorIcon, TabletIcon } from '@studio/icons';

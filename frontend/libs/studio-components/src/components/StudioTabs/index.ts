@@ -1,1 +1,4 @@
-export { Tabs as StudioTabs, type TabsProps as StudioTabsProps } from '@digdir/design-system-react';
+export {
+  Tabs as StudioTabs,
+  type TabsProps as StudioTabsProps,
+} from '@digdir/designsystemet-react';

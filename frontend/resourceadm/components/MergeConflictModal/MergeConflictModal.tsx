@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import classes from './MergeConflictModal.module.css';
 import { useTranslation } from 'react-i18next';
-import { Link, Paragraph, Label } from '@digdir/design-system-react';
+import { Link, Paragraph, Label } from '@digdir/designsystemet-react';
 import { repoDownloadPath } from 'app-shared/api/paths';
 import { RemoveChangesModal } from './RemoveChangesModal';
 import { Modal } from '../Modal';

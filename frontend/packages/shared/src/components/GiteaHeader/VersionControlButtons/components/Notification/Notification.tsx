@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './Notification.module.css';
-import { Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 
 export type NotificationProps = {
   numChanges?: number;

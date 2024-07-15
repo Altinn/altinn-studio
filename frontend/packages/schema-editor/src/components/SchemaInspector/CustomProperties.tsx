@@ -1,5 +1,6 @@
 import React from 'react';
-import { Fieldset, HelpText, LegacyTextField, Switch } from '@digdir/design-system-react';
+import { Fieldset, HelpText, Switch } from '@digdir/designsystemet-react';
+import { LegacyTextField } from '@digdir/design-system-react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import {
   CustomPropertyType,

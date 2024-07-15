@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { Label, type LabelProps } from '@digdir/design-system-react';
+import { Label, type LabelProps } from '@digdir/designsystemet-react';
 
 type StudioLabelAsParagraphProps = Omit<LabelProps, 'asChild'>;
 

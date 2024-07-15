@@ -9,7 +9,7 @@ import { useAppPolicyMutation } from 'app-development/hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
 import { useAppPolicyQuery } from 'app-development/hooks/queries';
-import { ErrorMessage } from '@digdir/design-system-react';
+import { ErrorMessage } from '@digdir/designsystemet-react';
 import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';
 import {

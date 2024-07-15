@@ -3397,19 +3397,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-react@npm:0.53.12":
-  version: 0.53.12
-  resolution: "@digdir/design-system-react@npm:0.53.12"
+"@digdir/design-system-react@npm:0.54.0":
+  version: 0.54.0
+  resolution: "@digdir/design-system-react@npm:0.54.0"
   dependencies:
     "@altinn/figma-design-tokens": "npm:^6.0.1"
-    "@digdir/designsystemet-react": "npm:^0.62.0"
+    "@digdir/designsystemet-theme": "npm:0.15.3"
     "@floating-ui/react": "npm:0.26.4"
     "@navikt/aksel-icons": "npm:^5.12.2"
     react-number-format: "npm:5.3.1"
   peerDependencies:
     react: ">=18.3.1"
     react-dom: ">=18.3.1"
-  checksum: 10/72d40ab401b1e627820c6a22644d3a6617ae208ec28622c489f56127b0a5c661c84d057d44eeb653493f76de453ef09bf7f6d9551db998f7b1a47fac6ae79734
+  checksum: 10/d2311330f2cd4c9ccb5cc593cfdedf2b546316c49a92ae9d8db67059d12298f533377258d8554484d4154ffc78b0a9ff9df34ac656d8f0af236fa947a9ffaf31
   languageName: node
   linkType: hard
 
@@ -3446,21 +3446,6 @@ __metadata:
     react: ">=18.3.1"
     react-dom: ">=18.3.1"
   checksum: 10/e89be514d4d4270b2704e75eb57bc1c92f5b7a651287d11c75ab8bbda4d819c5431662095ecad38701c8e6c2741560f1a1b7738ba3aa6b72fb130afd155fb96b
-  languageName: node
-  linkType: hard
-
-"@digdir/designsystemet-react@npm:^0.62.0":
-  version: 0.62.0
-  resolution: "@digdir/designsystemet-react@npm:0.62.0"
-  dependencies:
-    "@floating-ui/react": "npm:0.26.12"
-    "@navikt/aksel-icons": "npm:^5.12.2"
-    "@radix-ui/react-slot": "npm:^1.0.2"
-    "@tanstack/react-virtual": "npm:^3.2.0"
-  peerDependencies:
-    react: ">=18.3.1"
-    react-dom: ">=18.3.1"
-  checksum: 10/c1f488c482a5358c9b6d4fd9a15390bbe923cba824cd6dddb47cbbf55e7be07fd4e2e4358767498995d95209352890a1a662a2cc748e37ed005a07ae9e35303f
   languageName: node
   linkType: hard
 
@@ -8946,7 +8931,7 @@ __metadata:
   dependencies:
     "@altinn/altinn-design-system": "npm:0.30.0"
     "@altinn/figma-design-tokens": "npm:6.0.1"
-    "@digdir/design-system-react": "npm:0.53.12"
+    "@digdir/design-system-react": "npm:0.54.0"
     "@digdir/design-system-tokens": "npm:0.13.0"
     "@digdir/designsystemet-css": "npm:0.10.0"
     "@digdir/designsystemet-react": "npm:0.63.0"

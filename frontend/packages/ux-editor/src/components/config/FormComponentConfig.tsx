@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Card, Heading, Paragraph } from '@digdir/design-system-react';
+import { Alert, Card, Heading, Paragraph } from '@digdir/designsystemet-react';
 import type { FormComponent } from '../../types/FormComponent';
 import { EditBooleanValue } from './editModal/EditBooleanValue';
 import { EditNumberValue } from './editModal/EditNumberValue';

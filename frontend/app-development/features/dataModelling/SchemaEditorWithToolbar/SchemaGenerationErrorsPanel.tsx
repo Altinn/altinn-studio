@@ -1,6 +1,6 @@
 import classes from './SchemaGenerationErrorsPanel.module.css';
 import React from 'react';
-import { Alert, ErrorMessage, Paragraph } from '@digdir/design-system-react';
+import { Alert, ErrorMessage, Paragraph } from '@digdir/designsystemet-react';
 import { Trans, useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
 import { StudioButton } from '@studio/components';

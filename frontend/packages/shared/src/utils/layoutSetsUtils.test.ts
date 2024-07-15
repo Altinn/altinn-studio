@@ -43,4 +43,16 @@ describe('getLayoutSetNameForCustomReceipt', () => {
     };
     expect(getLayoutSetNameForCustomReceipt(layoutSetsWithEmptySets)).toBeUndefined();
   });
+
+  it('should return undefined if layoutSets has a set with no task ids', () => {
+    const layoutSetsWithUndefinedTasks: LayoutSets = {
+      sets: [
+        {
+          id: layoutSetName,
+          tasks: null,
+        },
+      ],
+    };
+    expect(getLayoutSetNameForCustomReceipt(layoutSetsWithUndefinedTasks)).toBeUndefined();
+  });
 });

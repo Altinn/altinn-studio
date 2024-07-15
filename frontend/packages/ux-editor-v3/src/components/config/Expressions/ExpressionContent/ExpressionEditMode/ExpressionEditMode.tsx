@@ -14,7 +14,7 @@ import {
 } from '../../../../../utils/expressionsUtils';
 import { ComplexExpression } from '../ComplexExpression';
 import { SimpleExpression } from './SimpleExpression';
-import { Switch } from '@digdir/design-system-react';
+import { Switch } from '@digdir/designsystemet-react';
 import { CheckmarkIcon, PlusCircleIcon, TrashIcon } from '@studio/icons';
 import { Trans } from 'react-i18next';
 import classes from '../ExpressionContent.module.css';

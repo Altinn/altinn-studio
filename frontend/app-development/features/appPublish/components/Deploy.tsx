@@ -4,7 +4,7 @@ import { useCreateDeploymentMutation } from '../../../hooks/mutations';
 import { Trans, useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { toast } from 'react-toastify';
-import { Alert, Link } from '@digdir/design-system-react';
+import { Alert, Link } from '@digdir/designsystemet-react';
 import { useDeployPermissionsQuery } from 'app-development/hooks/queries';
 import { StudioSpinner } from '@studio/components';
 

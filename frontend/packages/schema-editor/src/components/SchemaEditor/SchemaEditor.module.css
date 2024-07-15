@@ -11,6 +11,7 @@
   background-color: #f7f7f7;
   overflow-x: clip;
   overflow-y: auto;
+  width: 100%;
 }
 
 .typeInfo {

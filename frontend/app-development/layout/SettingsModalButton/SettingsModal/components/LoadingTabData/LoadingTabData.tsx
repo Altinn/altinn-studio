@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioCenter } from '@studio/components';
-import { Spinner } from '@digdir/design-system-react';
+import { Spinner } from '@digdir/designsystemet-react';
 
 export const LoadingTabData = (): ReactNode => {
   const { t } = useTranslation();

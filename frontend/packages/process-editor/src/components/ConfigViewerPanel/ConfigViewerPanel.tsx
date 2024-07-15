@@ -4,7 +4,7 @@ import { useBpmnContext } from '../../contexts/BpmnContext';
 import { ConfigIcon } from '../ConfigPanel/ConfigContent/ConfigIcon';
 import { getConfigTitleHelpTextKey, getConfigTitleKey } from '../../utils/configPanelUtils';
 import { useTranslation } from 'react-i18next';
-import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
+import { Alert, Heading, Paragraph } from '@digdir/designsystemet-react';
 import { ConfigSurface } from '../ConfigSurface/ConfigSurface';
 
 export const ConfigViewerPanel = (): React.ReactElement => {

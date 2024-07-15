@@ -1,4 +1,4 @@
-import { Spinner } from '@digdir/design-system-react';
+import { Spinner } from '@digdir/designsystemet-react';
 import { CogIcon } from '@studio/icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
