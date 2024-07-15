@@ -4,6 +4,7 @@ import type { IGenericEditComponent } from '../componentConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { MapComponent } from './Map';
 import { AttachmentListComponent } from './AttachmentList';
+import { CardsComponent } from '@altinn/ux-editor/components/config/componentSpecificContent/Cards/CardsComponent';
 
 export function ComponentSpecificContent({
   component,
@@ -31,6 +32,10 @@ export function ComponentSpecificContent({
           handleComponentChange={handleComponentChange}
         />
       );
+    }
+
+    case ComponentType.Cards: {
+      return <CardsComponent component={component} handleComponentChange={handleComponentChange} />;
     }
 
     default: {

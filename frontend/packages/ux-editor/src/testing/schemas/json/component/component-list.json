@@ -3,8 +3,10 @@
   "ActionButton",
   "AddressComponent",
   "AttachmentList",
+  "Audio",
   "Button",
   "ButtonGroup",
+  "Cards",
   "Checkboxes",
   "Custom",
   "Datepicker",
@@ -31,5 +33,6 @@
   "PrintButton",
   "RadioButtons",
   "Summary",
-  "TextArea"
+  "TextArea",
+  "Video"
 ]

@@ -49,6 +49,7 @@ export const FormComponentConfig = ({
     'grid',
     'children',
     'dataTypeIds',
+    'cards',
   ];
 
   const booleanPropertyKeys: string[] = getSupportedPropertyKeysForPropertyType(

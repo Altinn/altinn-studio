@@ -5,8 +5,10 @@ export enum ComponentType {
   Address = 'Address',
   Alert = 'Alert',
   AttachmentList = 'AttachmentList',
+  Audio = 'Audio',
   Button = 'Button',
   ButtonGroup = 'ButtonGroup',
+  Cards = 'Cards',
   Checkboxes = 'Checkboxes',
   Custom = 'Custom',
   CustomButton = 'CustomButton',
@@ -39,4 +41,5 @@ export enum ComponentType {
   RepeatingGroup = 'RepeatingGroup',
   Summary = 'Summary',
   TextArea = 'TextArea',
+  Video = 'Video',
 }
