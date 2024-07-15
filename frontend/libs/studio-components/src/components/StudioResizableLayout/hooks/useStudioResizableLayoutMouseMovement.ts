@@ -1,4 +1,4 @@
-import { useRef, useCallback, useState } from 'react';
+import { useRef, useCallback, useState, useEffect } from 'react';
 import type { StudioResizableOrientation } from '../StudioResizableLayoutContainer/StudioResizableLayoutContainer';
 
 export const useStudioResizableLayoutMouseMovement = (
@@ -12,8 +12,17 @@ export const useStudioResizableLayoutMouseMovement = (
   const startMousePosition = useRef<number>(0);
   const [isResizing, setIsResizing] = useState(false);
 
+  // throttle mouseMove events to avoid calculating new size before last rerender
+  const update = useRef<number>(1);
+  const lastEventUpdate = useRef<number>(0);
+  useEffect(() => {
+    update.current++;
+  });
+
   const mouseMove = useCallback(
     (event: MouseEvent): void => {
+      if (update.current === lastEventUpdate.current) return;
+      lastEventUpdate.current = update.current;
       const mousePos = orientation === 'horizontal' ? event.clientX : event.clientY;
       const mouseTotalDelta = mousePos - startMousePosition.current;
       const mouseDelta = mousePos - lastMousePosition.current;
@@ -25,6 +34,8 @@ export const useStudioResizableLayoutMouseMovement = (
 
   const mouseUp = useCallback(
     (_: MouseEvent): void => {
+      update.current = 1;
+      lastEventUpdate.current = 0;
       setIsResizing(false);
       window.removeEventListener('mousemove', mouseMove);
       window.removeEventListener('mouseup', mouseUp);
