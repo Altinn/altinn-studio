@@ -13,7 +13,7 @@ export class StudioResizableLayoutArea {
   }
 
   public get flexGrow() {
-    return this.reactElement.props.flexGrow || 1;
+    return parseFloat(this.HTMLElementRef.style.flexGrow || '1');
   }
 
   public get minimumSize() {
