@@ -15,7 +15,7 @@ export function CreateRelease() {
   const [tagName, setTagName] = useState<string>('');
   const [body, setBody] = useState<string>('');
   const { data: releases = [] } = useAppReleasesQuery(org, app);
-  const { data: masterBranchStatus } = useBranchStatusQuery(org, app, 'master');
+  const { refetch: getMasterBranchStatus } = useBranchStatusQuery(org, app, 'master');
   const { t } = useTranslation();
 
   const handleTagNameChange = (e: ChangeEvent<HTMLInputElement>) =>
@@ -24,13 +24,14 @@ export function CreateRelease() {
   const handleBodyChange = (e: ChangeEvent<HTMLTextAreaElement>) => setBody(e.currentTarget.value);
 
   const mutation = useCreateReleaseMutation(org, app);
-  const handleBuildVersionClick = () => {
+  const handleBuildVersionClick = async () => {
     if (versionNameValid(releases, tagName) && tagName !== '') {
+      const { data: newMasterBranchStatus } = await getMasterBranchStatus();
       mutation.mutate({
         tagName,
         name: tagName,
         body,
-        targetCommitish: masterBranchStatus.commit.id,
+        targetCommitish: newMasterBranchStatus.commit.id,
       });
       setTagName('');
       setBody('');
@@ -44,19 +45,20 @@ export function CreateRelease() {
         customValidationRules={(value: string) => {
           const trimmedValue = value.trim().toLowerCase();
           if (releases.some((release) => release.tagName.toLowerCase() === trimmedValue)) {
-            return t('app_create_release.release_versionnumber_already_exists');
+            return t('app_create_release.release_version_number_already_exists');
           }
           return versionNameValid(releases, trimmedValue)
             ? ''
-            : t('app_create_release.release_versionnumber_validation');
+            : t('app_create_release.release_version_number_validation');
         }}
         customValidationMessages={(errorCode) => errorCode}
         renderField={({ fieldProps }) => (
           <div className={classes.releaseVersionInput}>
             <Textfield
               {...fieldProps}
-              label={t('app_create_release.release_versionnumber')}
+              label={t('app_create_release.release_version_number')}
               onChange={handleTagNameChange}
+              size='small'
             />
           </div>
         )}
@@ -70,6 +72,7 @@ export function CreateRelease() {
             value={body}
             onChange={handleBodyChange}
             rows={4}
+            size='small'
           />
         )}
       />
