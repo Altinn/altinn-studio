@@ -18,15 +18,30 @@ export const EditUniqueFromSignaturesInDataTypes = () => {
   const studioModeler = new StudioModeler();
   const tasks = studioModeler.getAllTasksByType('bpmn:Task');
   const signingTasks = tasks
-    .filter((item) =>
-      selectedDataTypes.includes(
-        item.businessObject.extensionElements?.values[0]?.signatureConfig?.signatureDataType,
-      ),
+    .filter(
+      ({
+        businessObject: {
+          extensionElements: { values },
+        },
+      }) => {
+        const { signatureConfig } = values[0] || {};
+        return selectedDataTypes.includes(signatureConfig?.signatureDataType);
+      },
     )
-    .map((item) => ({
-      id: item.businessObject.extensionElements?.values[0]?.signatureConfig?.signatureDataType,
-      name: item.businessObject.name,
-    }));
+    .map(
+      ({
+        businessObject: {
+          name,
+          extensionElements: { values },
+        },
+      }) => {
+        const { signatureConfig } = values[0] || {};
+        return {
+          id: signatureConfig?.signatureDataType,
+          name,
+        };
+      },
+    );
 
   return (
     <>

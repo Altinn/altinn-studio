@@ -144,11 +144,19 @@ export class OnProcessTaskRemoveHandler {
 
     const tasks = studioModeler.getAllTasksByType('bpmn:Task');
     const signingTasksToUpdate = tasks.filter(
-      (item) =>
-        item.businessObject.extensionElements.values[0].taskType === 'signing' &&
-        item.businessObject.extensionElements.values[0].signatureConfig?.uniqueFromSignaturesInDataTypes?.dataTypes?.some(
-          (dataType) => dataType.dataType === signatureDataType,
-        ),
+      ({
+        businessObject: {
+          extensionElements: { values },
+        },
+      }) => {
+        const { taskType, signatureConfig } = values[0];
+        return (
+          taskType === 'signing' &&
+          signatureConfig?.uniqueFromSignaturesInDataTypes?.dataTypes?.some(
+            ({ dataType }) => dataType === signatureDataType,
+          )
+        );
+      },
     );
 
     signingTasksToUpdate.forEach((element) => {
