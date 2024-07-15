@@ -43,6 +43,7 @@ export function LayoutSetsContainer() {
         onChange={(event) => onLayoutSetClick(event.target.value)}
         value={selectedFormLayoutSetName}
         className={classes.layoutSetsDropDown}
+        size='small'
       >
         {layoutSetNames.map((set: string) => {
           return (
