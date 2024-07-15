@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import classes from './ImportResourceModal.module.css';
 import { Modal } from '../Modal';
-import { Combobox, Paragraph, Textfield } from '@digdir/design-system-react';
+import { Combobox, Paragraph, Textfield } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import type { EnvironmentType } from '../../types/EnvironmentType';
 import { useNavigate } from 'react-router-dom';

@@ -3,7 +3,7 @@ import React from 'react';
 import classes from './AccessControlTab.module.css';
 import { Trans, useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
-import { ErrorMessage, HelpText, Link, Paragraph } from '@digdir/design-system-react';
+import { ErrorMessage, HelpText, Link, Paragraph } from '@digdir/designsystemet-react';
 import { useAppMetadataQuery } from 'app-development/hooks/queries';
 import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';

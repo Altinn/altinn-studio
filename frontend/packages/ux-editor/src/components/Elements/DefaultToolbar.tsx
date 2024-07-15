@@ -7,7 +7,7 @@ import classes from './DefaultToolbar.module.css';
 import { useTranslation } from 'react-i18next';
 import { schemaComponents, textComponents, advancedItems } from '../../data/formItemConfig';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { Accordion } from '@digdir/design-system-react';
+import { Accordion } from '@digdir/designsystemet-react';
 import {
   getCollapsableMenuTitleByType,
   getComponentTitleByComponentType,

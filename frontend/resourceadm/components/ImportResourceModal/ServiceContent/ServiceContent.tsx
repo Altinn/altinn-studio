@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './ServiceContent.module.css';
-import { Alert, ErrorMessage, Combobox, Paragraph, Spinner } from '@digdir/design-system-react';
+import { Alert, ErrorMessage, Combobox, Paragraph, Spinner } from '@digdir/designsystemet-react';
 import { StudioCenter } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useGetAltinn2LinkServicesQuery } from '../../../hooks/queries';

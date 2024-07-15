@@ -118,6 +118,6 @@ export class DashboardPage extends BasePage {
   }
 
   public async clickOnLogOutButton(): Promise<void> {
-    await this.page.getByRole('menuitem', { name: this.textMock('dashboard.logout') }).click();
+    await this.page.getByRole('menuitem', { name: this.textMock('shared.header_logout') }).click();
   }
 }

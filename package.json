@@ -3,16 +3,16 @@
   "dependencies": {
     "@altinn/altinn-design-system": "0.30.0",
     "@altinn/figma-design-tokens": "6.0.1",
-    "@digdir/design-system-react": "0.53.12",
+    "@digdir/design-system-react": "0.54.0",
     "@digdir/design-system-tokens": "0.13.0",
     "@digdir/designsystemet-css": "0.10.0",
     "@digdir/designsystemet-react": "0.63.0",
     "@digdir/designsystemet-theme": "0.15.3",
-    "@microsoft/applicationinsights-react-js": "17.2.0",
+    "@microsoft/applicationinsights-react-js": "17.3.0",
     "@microsoft/applicationinsights-web": "3.3.0",
     "@microsoft/signalr": "8.0.0",
-    "@tanstack/react-query": "5.49.2",
-    "@tanstack/react-query-devtools": "5.49.2",
+    "@tanstack/react-query": "5.50.1",
+    "@tanstack/react-query-devtools": "5.50.1",
     "ajv": "8.16.0",
     "ajv-formats": "3.0.1",
     "i18next": "23.11.5",
@@ -20,16 +20,16 @@
     "react-dom": "18.3.1",
     "react-error-boundary": "4.0.13",
     "react-i18next": "14.1.2",
-    "react-router-dom": "6.24.0",
+    "react-router-dom": "6.24.1",
     "react-toastify": "10.0.5"
   },
   "devDependencies": {
     "@emotion/react": "11.11.4",
     "@emotion/styled": "11.11.5",
     "@svgr/webpack": "8.1.0",
-    "@swc/core": "1.6.6",
+    "@swc/core": "1.6.7",
     "@swc/jest": "0.2.36",
-    "@testing-library/dom": "10.2.0",
+    "@testing-library/dom": "10.3.0",
     "@testing-library/jest-dom": "6.4.6",
     "@testing-library/react": "16.0.0",
     "@testing-library/user-event": "14.5.2",
@@ -70,7 +70,7 @@
     "whatwg-fetch": "3.6.20"
   },
   "resolutions": {
-    "@testing-library/dom": "10.2.0",
+    "@testing-library/dom": "10.3.0",
     "@babel/traverse": "7.24.7"
   },
   "lint-staged": {
@@ -96,7 +96,7 @@
     "syncpack": "npx syncpack fix-mismatches && npx syncpack format && npx syncpack set-semver-ranges",
     "test": "jest --maxWorkers=50% --config=frontend/jest.config.js",
     "test:ci": "jest --ci --coverage --max-workers=2 --cacheDirectory=$(yarn config get cacheFolder) --config=frontend/jest.config.js",
-    "typecheck": "yarn workspaces foreach -A run typecheck",
+    "typecheck": "tsc --noEmit -p frontend",
     "playwright:test:all": "yarn workspace playwright-studio test:all",
     "playwright:test:ui": "yarn workspace playwright-studio test:ui",
     "resourceadm:playwright:test:ui": "yarn workspace playwright-resourceadm resourceadm:test:ui",

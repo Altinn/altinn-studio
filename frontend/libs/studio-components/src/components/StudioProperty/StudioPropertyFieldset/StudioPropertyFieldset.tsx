@@ -1,5 +1,5 @@
-import type { FieldsetProps } from '@digdir/design-system-react';
-import { Fieldset } from '@digdir/design-system-react';
+import type { FieldsetProps } from '@digdir/designsystemet-react';
+import { Fieldset } from '@digdir/designsystemet-react';
 import type { ReactNode } from 'react';
 import React, { forwardRef } from 'react';
 import cn from 'classnames';

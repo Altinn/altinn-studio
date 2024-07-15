@@ -2,7 +2,7 @@ import React from 'react';
 import { RepoList } from '../RepoList';
 import { useTranslation } from 'react-i18next';
 import { useStarredReposQuery } from '../../hooks/queries';
-import { Heading } from '@digdir/design-system-react';
+import { Heading } from '@digdir/designsystemet-react';
 
 export const FavoriteReposList = () => {
   const { t } = useTranslation();

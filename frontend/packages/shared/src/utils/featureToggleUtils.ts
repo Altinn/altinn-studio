@@ -1,4 +1,4 @@
-import { typedLocalStorage, typedSessionStorage } from 'app-shared/utils/webStorage';
+import { typedLocalStorage, typedSessionStorage } from '@studio/components/src/hooks/webStorage';
 
 const featureFlagKey = 'featureFlags';
 const persistFeatureKey = 'persistFeatureFlag';

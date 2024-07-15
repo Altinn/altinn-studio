@@ -1,4 +1,4 @@
-import { Paragraph, Textfield } from '@digdir/design-system-react';
+import { Paragraph, Textfield } from '@digdir/designsystemet-react';
 import { StudioButton } from '@studio/components';
 import { CheckmarkIcon, MultiplyIcon, PencilWritingIcon } from '@studio/icons';
 import React, { useEffect, useState } from 'react';

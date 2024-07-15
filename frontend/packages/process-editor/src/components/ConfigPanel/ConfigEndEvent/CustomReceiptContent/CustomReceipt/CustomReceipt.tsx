@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { EditDataTypes } from '../../../EditDataTypes';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import { getLayoutSetIdValidationErrorKey } from 'app-shared/utils/layoutSetsUtils';
-import { Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 
 export const CustomReceipt = (): React.ReactElement => {
   const { t } = useTranslation();

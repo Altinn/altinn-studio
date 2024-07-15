@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
-import { ErrorSummary, Heading } from '@digdir/design-system-react';
+import { ErrorSummary, Heading } from '@digdir/designsystemet-react';
 import type { Translation } from '../../types/Translation';
 import type {
   Resource,

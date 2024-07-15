@@ -3,7 +3,7 @@ import classes from './TextEditor.module.css';
 import type { LangCode, TextResourceEntryDeletion, TextResourceIdMutation } from './types';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 import { SearchField } from '@altinn/altinn-design-system';
-import { Chip } from '@digdir/design-system-react';
+import { Chip } from '@digdir/designsystemet-react';
 import { ArrowsUpDownIcon } from '@studio/icons';
 import { StudioButton } from '@studio/components';
 import { RightMenu } from './RightMenu';

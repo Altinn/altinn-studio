@@ -1,7 +1,7 @@
 import React from 'react';
 import type { IInternalLayout } from '../../types/global';
 import { getDuplicatedIds } from '../../utils/formLayoutUtils';
-import { Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './FormLayoutWarning.module.css';
 

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './Modal.module.css';
 import cn from 'classnames';
-import { Heading } from '@digdir/design-system-react';
+import { Heading } from '@digdir/designsystemet-react';
 import { StudioModal } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 

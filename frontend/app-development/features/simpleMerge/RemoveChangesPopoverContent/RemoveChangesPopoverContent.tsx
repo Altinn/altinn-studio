@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './RemoveChangesPopoverContent.module.css';
-import { Heading, Paragraph } from '@digdir/design-system-react';
+import { Heading, Paragraph } from '@digdir/designsystemet-react';
 import { StudioTextfield, StudioButton, StudioSpinner } from '@studio/components';
 import { useTranslation, Trans } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';

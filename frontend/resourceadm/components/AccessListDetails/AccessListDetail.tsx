@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import { Textfield, Modal, Heading, Link as DigdirLink } from '@digdir/design-system-react';
+import { Textfield, Modal, Heading, Link as DigdirLink } from '@digdir/designsystemet-react';
 import classes from './AccessListDetail.module.css';
 import type { AccessList, ResourceError } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from '../FieldWrapper';

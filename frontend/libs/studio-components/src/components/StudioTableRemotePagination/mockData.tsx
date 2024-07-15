@@ -1,4 +1,4 @@
-import { Button } from '@digdir/design-system-react';
+import { Button } from '@digdir/designsystemet-react';
 import { StarFillIcon, StarIcon } from '@navikt/aksel-icons';
 import React from 'react';
 import type { PaginationTexts, Rows } from './StudioTableRemotePagination';

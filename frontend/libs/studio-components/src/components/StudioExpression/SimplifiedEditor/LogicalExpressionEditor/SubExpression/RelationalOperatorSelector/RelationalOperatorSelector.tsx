@@ -1,7 +1,7 @@
 import type { RelationalOperator } from '../../../../types/RelationalOperator';
 import { NumberRelationOperator } from '../../../../enums/NumberRelationOperator';
 import { GeneralRelationOperator } from '../../../../enums/GeneralRelationOperator';
-import { NativeSelect, Paragraph } from '@digdir/design-system-react';
+import { NativeSelect, Paragraph } from '@digdir/designsystemet-react';
 import React from 'react';
 import { useStudioExpressionContext } from '../../../../StudioExpressionContext';
 

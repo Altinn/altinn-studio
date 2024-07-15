@@ -20,6 +20,7 @@ export * from './StudioParagraph';
 export * from './StudioPageSpinner';
 export * from './StudioPopover';
 export * from './StudioProperty';
+export * from './StudioResizableLayout';
 export * from './StudioSectionHeader';
 export * from './StudioSpinner';
 export * from './StudioTableRemotePagination';

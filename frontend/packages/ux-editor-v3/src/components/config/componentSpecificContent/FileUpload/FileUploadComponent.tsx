@@ -1,5 +1,6 @@
 import React from 'react';
-import { Fieldset, LegacyTextField, Radio, Textfield } from '@digdir/design-system-react';
+import { Fieldset, Radio, Textfield } from '@digdir/designsystemet-react';
+import { LegacyTextField } from '@digdir/design-system-react';
 import classes from './FileUploadComponent.module.css';
 import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';

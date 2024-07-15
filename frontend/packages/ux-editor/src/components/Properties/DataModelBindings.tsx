@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { EditDataModelBinding } from '../config/editModal/EditDataModelBinding/EditDataModelBinding';
 import { StudioProperty, StudioSpinner } from '@studio/components';
-import { Alert, Switch } from '@digdir/design-system-react';
+import { Alert, Switch } from '@digdir/designsystemet-react';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { useFormItemContext } from '../../containers/FormItemContext';
 import { useText, useSelectedFormLayout } from '../../hooks';
