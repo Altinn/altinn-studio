@@ -1,4 +1,3 @@
-import { act, waitFor } from '@testing-library/react';
 import { useRemoveDataTypesToSignFromSigningTasks } from './useRemoveDataTypesToSignFromSigningTasks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
@@ -58,11 +57,9 @@ describe('useRemoveDataTypesToSignFromSigningTasks', () => {
       },
     );
 
-    await act(async () => {
-      await result.current(['dataType1']);
-    });
+    await result.current(['dataType1']);
 
-    await waitFor(() => expect(moddle.fromXML).toHaveBeenCalledWith(mockBPMNXML));
+    expect(moddle.fromXML).toHaveBeenCalledWith(mockBPMNXML);
 
     const updatedDefinitions = JSON.parse(JSON.stringify(mockDefinitions));
     updatedDefinitions.rootElements[0].flowElements[0].extensionElements.values[0].$children[0].$children[0].$children =

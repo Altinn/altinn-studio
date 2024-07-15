@@ -14,6 +14,8 @@ import { convertMetadataToOption } from '../../../../utils/metadataUtils';
 import { renderWithMockStore } from '../../../../test/mocks';
 import type { QueryClient } from '@tanstack/react-query';
 import { app, org } from '@studio/testing/testids';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 const user = userEvent.setup();
 
@@ -26,15 +28,63 @@ const confirmText = textMock('schema_editor.delete_model_confirm');
 const selectedOption = convertMetadataToOption(jsonMetadata1Mock);
 const defaultProps: DeleteWrapperProps = { selectedOption };
 
+const mockDefinitions = {
+  rootElements: [
+    {
+      flowElements: [
+        {
+          $type: 'bpmn:Task',
+          extensionElements: {
+            values: [
+              {
+                $type: 'altinn:taskExtension',
+                $children: [
+                  {
+                    $type: 'altinn:signatureConfig',
+                    $children: [
+                      {
+                        $type: 'altinn:dataTypesToSign',
+                        $children: [
+                          { $type: 'altinn:dataType', $body: 'dataModel1' },
+                          { $type: 'altinn:dataType', $body: 'dataModel2' },
+                          { $type: 'altinn:dataType', $body: 'dataModel3' },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      ],
+    },
+  ],
+};
+
+const moddle = {
+  fromXML: jest.fn().mockResolvedValue({ rootElement: mockDefinitions }),
+  toXML: jest.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
+};
+
+jest.mock('bpmn-moddle', () => jest.fn(() => moddle));
+
+const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
+
 const render = (
   props: Partial<DeleteWrapperProps> = {},
+  queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
   queryClient.setQueryData(
     [QueryKey.DataModelsMetadata, org, app],
     [jsonMetadata1Mock, jsonMetadata2Mock],
   );
-  return renderWithMockStore({}, {}, queryClient)(<DeleteWrapper {...defaultProps} {...props} />);
+  return renderWithMockStore(
+    {},
+    queries,
+    queryClient,
+  )(<DeleteWrapper {...defaultProps} {...props} />);
 };
 
 describe('DeleteWrapper', () => {
@@ -66,6 +116,28 @@ describe('DeleteWrapper', () => {
     expect(getDeleteMessage()).toBeInTheDocument();
     await user.click(getCancelButton());
     expect(queryDeleteMessage()).not.toBeInTheDocument();
+  });
+
+  it('should remove deleted data types from signing tasks', async () => {
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.DataModelsJson, org, app], []);
+    queryClient.setQueryData([QueryKey.DataModelsXsd, org, app], []);
+    render(
+      {},
+      {
+        getBpmnFile: jest.fn().mockImplementation(() => Promise.resolve(mockBPMNXML)),
+      },
+      queryClient,
+    );
+    await user.click(getDeleteButton());
+    await user.click(getContinueButton());
+    expect(queryDeleteMessage()).not.toBeInTheDocument();
+    expect(queriesMock.deleteDataModel).toHaveBeenCalledWith(
+      org,
+      app,
+      jsonMetadata1Mock.repositoryRelativeUrl,
+    );
+    expect(queriesMock.updateBpmnXml).toHaveBeenCalled();
   });
 });
 
