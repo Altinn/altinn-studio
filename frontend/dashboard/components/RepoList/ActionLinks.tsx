@@ -1,4 +1,3 @@
-import { DropdownMenu } from '@digdir/design-system-react';
 import { StudioButton, StudioDropdownMenu } from '@studio/components';
 import type { StudioButtonProps } from '@studio/components';
 import React, { useRef, useState } from 'react';
@@ -78,14 +77,14 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
         icon={editIconWithLink}
       />
       <StudioDropdownMenu size={'small'} anchorButtonProps={dropdownAnchorButtonProps}>
-        <DropdownMenu.Item onClick={() => handleOpenCopyModal(repoFullName)}>
+        <StudioDropdownMenu.Item onClick={() => handleOpenCopyModal(repoFullName)}>
           {<FilesIcon />}
           {t('dashboard.make_copy')}
-        </DropdownMenu.Item>
-        <DropdownMenu.Item onClick={() => window.open(editUrl, '_blank')}>
+        </StudioDropdownMenu.Item>
+        <StudioDropdownMenu.Item onClick={() => window.open(editUrl, '_blank')}>
           {<ExternalLinkIcon />}
           {t('dashboard.open_in_new')}
-        </DropdownMenu.Item>
+        </StudioDropdownMenu.Item>
       </StudioDropdownMenu>
       {copyCurrentRepoName && (
         <MakeCopyModal
