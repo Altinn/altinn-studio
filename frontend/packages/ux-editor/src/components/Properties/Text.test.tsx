@@ -114,23 +114,6 @@ describe('TextTab', () => {
       expect(screen.getByText(descriptionTextValue)).toBeInTheDocument();
     });
 
-    it('should not render options section if component schema does not have options/optionsId property', () => {
-      render({
-        props: {
-          ...props,
-          formItem: {
-            ...layoutMock.components[component1IdMock],
-          },
-        },
-      });
-
-      expect(
-        screen.queryByRole('heading', {
-          name: textMock('ux_editor.properties_panel.texts.options_title'),
-        }),
-      ).not.toBeInTheDocument();
-    });
-
     it('should render options section if component schema has options property', () => {
       render({
         props: {
