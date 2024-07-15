@@ -44,8 +44,8 @@ jobs:
           az acr login --name ${{ env.REGISTRY }} --expose-token --output tsv --query accessToken --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }} --only-show-errors | helm registry login ${{ env.REGISTRY }} --username 00000000-0000-0000-0000-000000000000 --password-stdin
       - name: Helm build
         run: |
-          helm package charts/eid-logger --version ${{ github.sha }}
+          helm package charts/eid-logger --version 0.1.0_${{ github.sha }}
       - name: Helm push
         run: |
-          helm push eid-logger-${{ github.sha }}.tgz oci://${{ env.REGISTRY }}/charts
+          helm push eid-logger-0.1.0_${{ github.sha }}.tgz oci://${{ env.REGISTRY }}/charts
 
