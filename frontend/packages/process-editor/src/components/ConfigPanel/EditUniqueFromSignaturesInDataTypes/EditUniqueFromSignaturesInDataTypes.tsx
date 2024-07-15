@@ -24,7 +24,7 @@ export const EditUniqueFromSignaturesInDataTypes = () => {
           extensionElements: { values },
         },
       }) => {
-        const { signatureConfig } = values[0] || {};
+        const { signatureConfig } = values[0];
         return selectedDataTypes.includes(signatureConfig?.signatureDataType);
       },
     )
@@ -35,7 +35,7 @@ export const EditUniqueFromSignaturesInDataTypes = () => {
           extensionElements: { values },
         },
       }) => {
-        const { signatureConfig } = values[0] || {};
+        const { signatureConfig } = values[0];
         return {
           id: signatureConfig?.signatureDataType,
           name,
