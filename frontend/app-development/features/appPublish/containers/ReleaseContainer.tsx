@@ -101,20 +101,16 @@ export function ReleaseContainer() {
       latestRelease.build.status === BuildStatus.completed &&
       latestRelease.build.result === BuildResult.succeeded
     ) {
-      return <>{t('app_create_release.no_changes_on_current_release')}</>;
+      return t('app_create_release.no_changes_on_current_release');
     }
     if (
       latestRelease &&
       latestRelease.targetCommitish === masterBranchStatus.commit.id &&
       latestRelease.build.status !== BuildStatus.completed
     ) {
-      return (
-        <>
-          {t('app_create_release.still_building_release', {
-            version: latestRelease.targetCommitish,
-          })}
-        </>
-      );
+      return t('app_create_release.still_building_release', {
+        version: latestRelease.targetCommitish,
+      });
     }
     return <CreateRelease />;
   }
