@@ -839,6 +839,8 @@
   "process_editor.configuration_panel_set_data_model_label": "Datamodell:",
   "process_editor.configuration_panel_set_data_model_link": "Legg til datamodell",
   "process_editor.configuration_panel_set_data_types_to_sign": "Datatyper som skal signeres:",
+  "process_editor.configuration_panel_set_unique_from_signatures_in_data_types": "Samme person kan ikke signere både denne oppgaven og:",
+  "process_editor.configuration_panel_set_unique_from_signatures_in_data_types_link": "Bruk unik signatur på denne oppgaven",
   "process_editor.configuration_panel_signing_task": "Oppgave: Signering",
   "process_editor.configuration_view_panel_id_label": "ID: {{id}}",
   "process_editor.configuration_view_panel_name_label": "Navn: ",
