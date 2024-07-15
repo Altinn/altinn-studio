@@ -29,10 +29,10 @@ export const SelectDataFieldBinding = ({
   const propertyPath = `definitions/component/properties/dataModelBindings/properties/${bindingKey}`;
 
   const { dataType: currentDataModel, field: currentDataModelField } = internalBindingFormat;
-  const { dataModelMetaData, isDataModelValid, selectedDataModel } =
+  const { dataModelMetadata, isDataModelValid, selectedDataModel } =
     useValidDataModels(currentDataModel);
 
-  const dataModelFields = getDataModelFields({ componentType, bindingKey, dataModelMetaData });
+  const dataModelFields = getDataModelFields({ componentType, bindingKey, dataModelMetadata });
   const isDataModelFieldValid = validateSelectedDataField(currentDataModelField, dataModelFields);
 
   // Validate datamodel as well: fallbacks to default if invalid, then user must update datafield

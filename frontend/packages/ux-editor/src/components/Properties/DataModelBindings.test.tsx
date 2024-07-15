@@ -17,19 +17,21 @@ import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 import type { DataModelMetadataResponse } from 'app-shared/types/api';
 
+const defaultModel = 'testModel';
+
 const dataModelMetadata: DataModelMetadataResponse = {
   elements: {
     testModel: {
-      id: 'testModel',
+      id: defaultModel,
       type: 'ComplexType',
-      dataBindingName: 'testModel',
-      displayString: 'testModel',
+      dataBindingName: defaultModel,
+      displayString: defaultModel,
       isReadOnly: false,
       isTagContent: false,
       jsonSchemaPointer: '#/definitions/testModel',
       maxOccurs: 1,
       minOccurs: 1,
-      name: 'testModel',
+      name: defaultModel,
       parentElement: null,
       restrictions: [],
       texts: [],
@@ -289,7 +291,7 @@ describe('DataModelBindings', () => {
     const dataModelFieldSelector = screen.getByRole('combobox', {
       name: textMock('ux_editor.modal_properties_data_model_field_binding'),
     });
-    const option = screen.getByRole('option', { name: 'testModel' });
+    const option = screen.getByRole('option', { name: defaultModel });
     await user.selectOptions(dataModelFieldSelector, option);
 
     expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalledTimes(1);

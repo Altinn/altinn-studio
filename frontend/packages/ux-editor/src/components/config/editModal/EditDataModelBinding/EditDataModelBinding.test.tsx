@@ -16,7 +16,6 @@ const defaultEditDataModelingBinding: EditDataModelBindingProps<any> = {
     label: undefined,
     returnValue: 'returnValue',
     key: 'key',
-    uniqueKey: 'uniqueKey',
   },
   helpText: 'helpText',
 };
@@ -41,7 +40,7 @@ const renderEditDataModelBinding = ({
 };
 
 describe('EditDataModelBinding', () => {
-  const navigateToEditBinding = async (user: UserEvent, label: string) => {
+  const navigateAndVerifyEditBinding = async (user: UserEvent, label: string) => {
     const bindingButton = screen.getByRole('button', { name: label });
     expect(bindingButton).toBeInTheDocument();
 
@@ -86,7 +85,7 @@ describe('EditDataModelBinding', () => {
 
     const type = textMock(`ux_editor.component_title.${[ComponentType.Input]}`);
 
-    await navigateToEditBinding(user, type);
+    await navigateAndVerifyEditBinding(user, type);
   });
 
   it('should close EditBinding when click on close button', async () => {
@@ -95,7 +94,7 @@ describe('EditDataModelBinding', () => {
 
     const type = textMock(`ux_editor.component_title.${[ComponentType.Input]}`);
 
-    await navigateToEditBinding(user, type);
+    await navigateAndVerifyEditBinding(user, type);
 
     const closeButton = screen.getByRole('button', {
       name: textMock('general.close'),
@@ -170,7 +169,7 @@ describe('EditDataModelBinding', () => {
 
     expect(definedButton).toBeInTheDocument();
 
-    await navigateToEditBinding(user, definedButtonText);
+    await navigateAndVerifyEditBinding(user, definedButtonText);
 
     const deleteButton = screen.getByRole('button', {
       name: textMock('general.delete'),
@@ -180,7 +179,7 @@ describe('EditDataModelBinding', () => {
     expect(handleComponentChange).toHaveBeenCalledWith(
       expect.objectContaining({
         dataModelBindings: {
-          simpleBinding: '',
+          simpleBinding: undefined,
         },
       }),
       expect.anything(),

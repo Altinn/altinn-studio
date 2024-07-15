@@ -30,7 +30,7 @@ export const SelectDataModelBinding = ({
     handleBindingChange(dataModelBinding);
   };
 
-  return shouldDisplayFeature('dataModelBindingSelector') ? (
+  return shouldDisplayFeature('multipleDataModelsPerTask') ? (
     <FormField
       id={selectedDataModel}
       onChange={handleDataModelChange}

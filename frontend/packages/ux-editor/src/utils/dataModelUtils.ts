@@ -85,16 +85,16 @@ export const filterDataModelFields = (
 type DataModelFields = {
   componentType: ComponentType;
   bindingKey: string;
-  dataModelMetaData: DataModelFieldElement[];
+  dataModelMetadata: DataModelFieldElement[];
 };
 
 export const getDataModelFields = ({
   componentType,
   bindingKey,
-  dataModelMetaData,
+  dataModelMetadata,
 }: DataModelFields): DataModelField[] => {
   const filter = getDataModelFieldsFilter(componentType, bindingKey === 'list');
-  return filterDataModelFields(filter, dataModelMetaData);
+  return filterDataModelFields(filter, dataModelMetadata);
 };
 
 export type InternalBindingFormat = {
@@ -111,10 +111,10 @@ export const convertDataBindingToInternalFormat = (
       ? component.dataModelBindings[bindingKey]
       : undefined;
 
-  const isOldOrNotSetFormat =
+  const isOldFormatOrNotSet =
     typeof dataModelBinding === 'string' || typeof dataModelBinding === 'undefined';
 
-  if (isOldOrNotSetFormat) {
+  if (isOldFormatOrNotSet) {
     return {
       field: dataModelBinding,
       dataType: undefined,
@@ -140,13 +140,13 @@ export const validateSelectedDataField = (
 
 export const getDataModel = (
   isDataModelValid: boolean,
-  dataModelMetaData?: DataModelFieldElement[],
+  dataModelMetadata?: DataModelFieldElement[],
   currentDataModel?: string,
 ): string => {
-  if (dataModelMetaData) {
+  if (dataModelMetadata) {
     return isDataModelValid && currentDataModel !== undefined
       ? currentDataModel
-      : dataModelMetaData[0]?.id;
+      : dataModelMetadata[0]?.id;
   }
   return currentDataModel;
 };

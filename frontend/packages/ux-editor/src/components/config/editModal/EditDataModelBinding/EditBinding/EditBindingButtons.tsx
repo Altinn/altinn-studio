@@ -7,29 +7,29 @@ import type { InternalBindingFormat } from '@altinn/ux-editor/utils/dataModelUti
 
 export type EditBindingButtons = {
   handleBindingChange: (binding: InternalBindingFormat) => void;
-  setDataModelSelectVisible: (visible: boolean) => void;
+  onSetDataModelSelectVisible: (visible: boolean) => void;
 };
 
 export const EditBindingButtons = ({
   handleBindingChange,
-  setDataModelSelectVisible,
+  onSetDataModelSelectVisible,
 }: EditBindingButtons) => {
   const { t } = useTranslation();
 
   const handleDelete = () => {
     const updatedDataModelBinding = {
-      field: '',
+      field: undefined,
       dataType: undefined,
     };
     handleBindingChange(updatedDataModelBinding);
-    setDataModelSelectVisible(false);
+    onSetDataModelSelectVisible(false);
   };
 
   return (
     <div className={classes.buttons}>
       <StudioButton
         icon={<XMarkIcon />}
-        onClick={() => setDataModelSelectVisible(false)}
+        onClick={() => onSetDataModelSelectVisible(false)}
         size='small'
         title={t('general.close')}
         variant='secondary'

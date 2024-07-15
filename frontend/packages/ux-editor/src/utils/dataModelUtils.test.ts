@@ -116,13 +116,13 @@ describe('getXsdDataTypeFromDataModelFields', () => {
 describe('getDataModelFields', () => {
   const componentType = ComponentType.Input;
   const bindingKey = 'simpleBinding';
-  const dataModelMetaData = dataModelMetadataMock;
+  const dataModelMetadata = dataModelMetadataMock;
 
-  it('should return data model fields when dataModelMetaData is defined', () => {
+  it('should return data model fields when dataModelMetadata is defined', () => {
     const dataModelFields = getDataModelFields({
       componentType,
       bindingKey,
-      dataModelMetaData,
+      dataModelMetadata,
     });
 
     expect(dataModelFields).toEqual([
@@ -132,11 +132,11 @@ describe('getDataModelFields', () => {
     ]);
   });
 
-  it('should return empty array when dataModelMetaData is undefined', () => {
+  it('should return empty array when dataModelMetadata is undefined', () => {
     const dataModelFields = getDataModelFields({
       componentType,
       bindingKey,
-      dataModelMetaData: undefined,
+      dataModelMetadata: undefined,
     });
     expect(dataModelFields).toEqual([]);
   });
@@ -180,24 +180,24 @@ describe('convertDataBindingToInternalFormat', () => {
   });
 });
 
-describe('validateSelectedDataField', () => {
+describe('validateSelectedDataModel', () => {
   const dataModels = ['model1', 'model2'];
 
-  it('should return true when selected data model is valid', () => {
-    const selectedDataField = 'model2';
-    const isValid = validateSelectedDataModel(selectedDataField, dataModels);
+  it('should return true when selected data model exist', () => {
+    const selectedDataModel = 'model2';
+    const isValid = validateSelectedDataModel(selectedDataModel, dataModels);
     expect(isValid).toBeTruthy();
   });
 
-  it('should return false when selected data model is invalid', () => {
-    const selectedDataField = 'model3';
-    const isValid = validateSelectedDataModel(selectedDataField, dataModels);
+  it('should return false when selected data model does no longer exist', () => {
+    const selectedDataModel = 'model3';
+    const isValid = validateSelectedDataModel(selectedDataModel, dataModels);
     expect(isValid).toBeFalsy();
   });
 
   it('should return true when selected data model is not defined', () => {
-    const selectedDataField = undefined;
-    const isValid = validateSelectedDataModel(selectedDataField, dataModels);
+    const selectedDataModel = undefined;
+    const isValid = validateSelectedDataModel(selectedDataModel, dataModels);
     expect(isValid).toBeTruthy();
   });
 });
@@ -249,36 +249,36 @@ describe('getDataModel', () => {
   it('should return default data model when it is defined but invalid', () => {
     const isDataModelValid = false;
     const currentDataModel = 'currentDataModel';
-    const dataModelMetaData = dataModelMetadataMock;
+    const dataModelMetadata = dataModelMetadataMock;
 
-    const dataModel = getDataModel(isDataModelValid, dataModelMetaData, currentDataModel);
+    const dataModel = getDataModel(isDataModelValid, dataModelMetadata, currentDataModel);
     expect(dataModel).toEqual(defaultModel);
   });
 
   it('should return default data model when it is undefined and invalid', () => {
     const isDataModelValid = false;
     const currentDataModel = undefined;
-    const dataModelMetaData = dataModelMetadataMock;
+    const dataModelMetadata = dataModelMetadataMock;
 
-    const dataModel = getDataModel(isDataModelValid, dataModelMetaData, currentDataModel);
+    const dataModel = getDataModel(isDataModelValid, dataModelMetadata, currentDataModel);
     expect(dataModel).toEqual(defaultModel);
   });
 
   it('should return current data model when it is defined and valid', () => {
     const isDataModelValid = true;
     const currentDataModel = 'currentDataModel';
-    const dataModelMetaData = dataModelMetadataMock;
+    const dataModelMetadata = dataModelMetadataMock;
 
-    const dataModel = getDataModel(isDataModelValid, dataModelMetaData, currentDataModel);
+    const dataModel = getDataModel(isDataModelValid, dataModelMetadata, currentDataModel);
     expect(dataModel).toEqual(currentDataModel);
   });
 
   it('should return current data model if metadata is undefined', () => {
     const isDataModelValid = true;
     const currentDataModel = 'currentDataModel';
-    const dataModelMetaData = undefined;
+    const dataModelMetadata = undefined;
 
-    const dataModel = getDataModel(isDataModelValid, dataModelMetaData, currentDataModel);
+    const dataModel = getDataModel(isDataModelValid, dataModelMetadata, currentDataModel);
     expect(dataModel).toEqual(currentDataModel);
   });
 });

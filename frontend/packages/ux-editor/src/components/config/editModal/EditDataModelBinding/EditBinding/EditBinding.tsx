@@ -24,7 +24,7 @@ export type EditBindingProps = {
   helpText: string;
   label: string;
   handleComponentChange: (component: FormItem, mutateOptions?: UpdateFormMutateOptions) => void;
-  setDataModelSelectVisible: (visible: boolean) => void;
+  onSetDataModelSelectVisible: (visible: boolean) => void;
   internalBindingFormat: InternalBindingFormat;
 };
 
@@ -34,12 +34,12 @@ export const EditBinding = ({
   helpText,
   label,
   handleComponentChange,
-  setDataModelSelectVisible,
+  onSetDataModelSelectVisible,
   internalBindingFormat,
 }: EditBindingProps) => {
   const { t } = useTranslation();
   const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
-  const { dataModelMetaData, isLoadingDataModels } = useValidDataModels(
+  const { dataModelMetadata, isLoadingDataModels } = useValidDataModels(
     internalBindingFormat.dataType,
   );
 
@@ -50,20 +50,20 @@ export const EditBinding = ({
         ...component,
         dataModelBindings: {
           ...component.dataModelBindings,
-          [bindingKey]: shouldDisplayFeature('dataModelBindingSelector')
+          [bindingKey]: shouldDisplayFeature('multipleDataModelsPerTask')
             ? updatedBinding
             : selectedDataFieldElement,
         },
-        required: getMinOccursFromDataModelFields(selectedDataFieldElement, dataModelMetaData),
+        required: getMinOccursFromDataModelFields(selectedDataFieldElement, dataModelMetadata),
         timeStamp: getXsdDataTypeFromDataModelFields(
           component.type,
           selectedDataFieldElement,
-          dataModelMetaData,
+          dataModelMetadata,
         ),
         maxCount: getMaxOccursFromDataModelFields(
           component.type,
           selectedDataFieldElement,
-          dataModelMetaData,
+          dataModelMetadata,
         ),
       } as FormItem,
       {
@@ -97,7 +97,7 @@ export const EditBinding = ({
           />
           <EditBindingButtons
             handleBindingChange={handleBindingChange}
-            setDataModelSelectVisible={setDataModelSelectVisible}
+            onSetDataModelSelectVisible={onSetDataModelSelectVisible}
           />
         </>
       )}

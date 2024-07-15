@@ -14,7 +14,6 @@ export interface EditDataModelBindingProps<T extends ComponentType>
     label?: string;
     returnValue?: any;
     key?: string;
-    uniqueKey?: any;
   };
   helpText?: string;
 }
@@ -25,7 +24,7 @@ export const EditDataModelBinding = <T extends ComponentType>({
   renderOptions,
   helpText,
 }: EditDataModelBindingProps<T>) => {
-  const { uniqueKey, key, label } = renderOptions || {};
+  const { key, label } = renderOptions || {};
   const bindingKey = key || 'simpleBinding';
   const { t } = useTranslation();
   const [dataModelSelectVisible, setDataModelSelectVisible] = useState(false);
@@ -37,7 +36,7 @@ export const EditDataModelBinding = <T extends ComponentType>({
     : t(`ux_editor.component_title.${component.type}`);
 
   return (
-    <div key={uniqueKey || ''} className={classes.wrapper}>
+    <div key={key || ''} className={classes.wrapper}>
       {!internalBindingFormat.field && !dataModelSelectVisible ? (
         <UndefinedBinding
           onClick={() => setDataModelSelectVisible(true)}
@@ -50,7 +49,7 @@ export const EditDataModelBinding = <T extends ComponentType>({
           helpText={helpText}
           label={labelSpecificText}
           handleComponentChange={handleComponentChange}
-          setDataModelSelectVisible={setDataModelSelectVisible}
+          onSetDataModelSelectVisible={setDataModelSelectVisible}
           internalBindingFormat={internalBindingFormat}
         />
       ) : (

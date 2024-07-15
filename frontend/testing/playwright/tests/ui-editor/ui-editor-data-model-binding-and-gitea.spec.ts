@@ -124,7 +124,7 @@ test('That is possible to select a different data model binding, and that the fi
   const app = getAppTestName(testAppName);
   const header = new Header(page, { app });
   const dataModelPage = new DataModelPage(page, { app });
-  const uiEditorPage = await setupAndVerifyUiEditorPage(page, app, ['dataModelBindingSelector']);
+  const uiEditorPage = await setupAndVerifyUiEditorPage(page, app, ['multipleDataModelsPerTask']);
   const pageName: string = 'Side1';
   const giteaPage = new GiteaPage(page, { app });
 

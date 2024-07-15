@@ -41,7 +41,7 @@ describe('useValidDataModels', () => {
     expect(dataModels).toEqual([defaultDataModel, secondDataModel]);
   });
 
-  it('should return the default data model from the metadata if current data model is invalid', async () => {
+  it('should return the default data model from metadata when the current selected data model no longer exists', async () => {
     const { result } = setupUseValidDataModelsHook('invalidModel');
 
     expect(result.current.isLoadingDataModels).toBe(true);

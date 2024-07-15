@@ -16,7 +16,7 @@ export const useValidDataModels = (currentDataModel: string) => {
 
   const isDataModelValid = validateSelectedDataModel(currentDataModel, dataModels);
 
-  const { data: dataModelMetaData, isPending: dataModelMetaDataIsPending } =
+  const { data: dataModelMetadata, isPending: dataModelMetaDataIsPending } =
     useDataModelMetadataQuery(
       org,
       app,
@@ -27,8 +27,8 @@ export const useValidDataModels = (currentDataModel: string) => {
 
   return {
     dataModels,
-    selectedDataModel: getDataModel(isDataModelValid, dataModelMetaData, currentDataModel),
-    dataModelMetaData,
+    selectedDataModel: getDataModel(isDataModelValid, dataModelMetadata, currentDataModel),
+    dataModelMetadata,
     isLoadingDataModels: dataModelsIsPending || dataModelMetaDataIsPending,
     isDataModelValid,
   };

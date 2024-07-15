@@ -29,7 +29,7 @@ export const DefinedBinding = ({
   const { t } = useTranslation();
   const title = t('right_menu.data_model_bindings_edit', { binding: label });
   const { field: currentDataModelField, dataType: currentDataModel } = internalBindingFormat;
-  const { dataModelMetaData, isDataModelValid, isLoadingDataModels } =
+  const { dataModelMetadata, isDataModelValid, isLoadingDataModels } =
     useValidDataModels(currentDataModel);
 
   if (isLoadingDataModels) {
@@ -41,7 +41,7 @@ export const DefinedBinding = ({
     );
   }
 
-  const dataModelFields = getDataModelFields({ componentType, bindingKey, dataModelMetaData });
+  const dataModelFields = getDataModelFields({ componentType, bindingKey, dataModelMetadata });
   const isFieldValid = validateSelectedDataField(currentDataModelField, dataModelFields);
 
   const isBindingError = !isFieldValid || !isDataModelValid;

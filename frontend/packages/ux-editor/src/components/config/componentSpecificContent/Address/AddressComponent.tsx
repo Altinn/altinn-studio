@@ -61,7 +61,6 @@ export const AddressComponent = ({
                 label: getTextResourceByAddressKey(value, t),
                 returnValue: value,
                 key: value,
-                uniqueKey: index,
               }}
             />
           );

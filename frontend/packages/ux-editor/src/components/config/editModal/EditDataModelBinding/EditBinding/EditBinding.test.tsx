@@ -24,7 +24,7 @@ const defaultEditBinding: EditBindingProps = {
   helpText: undefined,
   label: defaultLabel,
   handleComponentChange: jest.fn(),
-  setDataModelSelectVisible: jest.fn(),
+  onSetDataModelSelectVisible: jest.fn(),
   internalBindingFormat: {
     field: defaultDataModelField,
     dataType: defaultDataModel,
@@ -85,7 +85,7 @@ const getDataModelMetadataMock = jest
   .fn()
   .mockImplementation(() => Promise.resolve(dataModelMetadataResponseMock));
 
-describe('EditBinding', () => {
+describe('EditBinding without featureFlag', () => {
   it('should render loading spinner', async () => {
     renderEditBinding({});
 
@@ -124,7 +124,11 @@ describe('EditBinding', () => {
     expect(label).toBeInTheDocument();
 
     const selectedModel = screen.getByText(defaultDataModel);
+    const noneExistingDataModelSelector = screen.queryByRole('combobox', {
+      name: textMock('ux_editor.modal_properties_data_model_binding'),
+    });
     expect(selectedModel).toBeInTheDocument();
+    expect(noneExistingDataModelSelector).not.toBeInTheDocument();
 
     const selectedField = screen.getByRole('combobox', {
       name: textMock('ux_editor.modal_properties_data_model_field_binding'),
@@ -157,7 +161,7 @@ describe('EditBinding', () => {
       name: textMock('ux_editor.modal_properties_data_model_field_choose'),
     });
 
-    expect(chooseDataFieldOption).toHaveAttribute('value', '');
+    expect(chooseDataFieldOption).toHaveValue('');
     expect(chooseDataFieldOption.selected).toBe(true);
   });
 
@@ -167,7 +171,7 @@ describe('EditBinding', () => {
         ...defaultEditBinding,
         internalBindingFormat: {
           field: defaultDataModelField,
-          dataType: 'invalidModel',
+          dataType: 'nonExistingModelName',
         },
       },
       queries: {
@@ -291,7 +295,7 @@ describe('EditBinding', () => {
       {
         ...componentMocks[ComponentType.Input],
         dataModelBindings: {
-          simpleBinding: '',
+          simpleBinding: undefined,
         },
         maxCount: undefined,
         required: undefined,
@@ -304,12 +308,12 @@ describe('EditBinding', () => {
   });
 });
 
-describe('EditBinding featureFlag enabled', () => {
+describe('EditBinding with featureFlag', () => {
   beforeEach(() => {
     typedLocalStorage.removeItem('featureFlags');
   });
   it('should display two selectors: data model and a data model field, when the feature flag is enabled', async () => {
-    typedLocalStorage.setItem<string[]>('featureFlags', ['dataModelBindingSelector']);
+    typedLocalStorage.setItem<string[]>('featureFlags', ['multipleDataModelsPerTask']);
     renderEditBinding({
       queries: {
         getAppMetadataModelIds: getAppMetadataModelIdsMock,
@@ -333,7 +337,7 @@ describe('EditBinding featureFlag enabled', () => {
   });
 
   it('should call handleComponentChange with new binding format when data model field is changed', async () => {
-    typedLocalStorage.setItem<string[]>('featureFlags', ['dataModelBindingSelector']);
+    typedLocalStorage.setItem<string[]>('featureFlags', ['multipleDataModelsPerTask']);
     const user = userEvent.setup();
     const handleComponentChange = jest.fn();
     renderEditBinding({
@@ -378,7 +382,7 @@ describe('EditBinding featureFlag enabled', () => {
   });
 
   it('should call handleComponentChange with new binding format when data model is changed', async () => {
-    typedLocalStorage.setItem<string[]>('featureFlags', ['dataModelBindingSelector']);
+    typedLocalStorage.setItem<string[]>('featureFlags', ['multipleDataModelsPerTask']);
     const user = userEvent.setup();
     const handleComponentChange = jest.fn();
     renderEditBinding({
