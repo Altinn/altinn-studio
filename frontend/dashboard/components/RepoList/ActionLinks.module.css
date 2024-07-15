@@ -5,12 +5,13 @@
 }
 
 .giteaButton {
-  margin-right: 0.55rem;
+  margin-right: 0.45rem;
 }
 
 .giteaIcon {
   font-size: 2rem;
   padding-top: 0.1rem;
+  padding-right: 0.1rem;
   color: var(--fds-semantic-text-success-default);
 }
 
@@ -18,7 +19,7 @@
   padding-top: 0.4rem;
 }
 
-.nativeActionIcon {
+.nativeIcon {
   font-size: 1.7rem;
   color: var(--fds-semantic-text-action-default);
 }

@@ -14,7 +14,6 @@ import { useTranslation } from 'react-i18next';
 import { getRepoEditUrl } from '../../utils/urlUtils';
 import type { Repository } from 'app-shared/types/Repository';
 import { MakeCopyModal } from '../MakeCopyModal';
-import { DATA_MODEL_REPO_IDENTIFIER } from '../../constants';
 
 type ActionLinksProps = {
   repo: Repository;
@@ -41,30 +40,20 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
   const editUrl = getRepoEditUrl({ org, repo: repoName });
 
   const giteaIconWithLink = (
-    <a
-      href={repo.html_url}
-      title={t('dashboard.show_repo', {
-        appName: repoName,
-      })}
-    >
+    <a href={repo.html_url}>
       <span className={cn('fa fa-gitea', classes.giteaIcon)} />
     </a>
   );
 
   const editIconWithLink = (
-    <a
-      href={editUrl}
-      title={t('dashboard.edit_app', {
-        appName: repoName,
-      })}
-    >
-      <PencilIcon className={classes.nativeActionIcon} />
+    <a href={editUrl}>
+      <PencilIcon className={classes.nativeIcon} />
     </a>
   );
 
   const dropdownAnchorButtonProps = {
     variant: 'tertiary' as StudioButtonProps['variant'],
-    icon: <MenuElipsisVerticalIcon className={classes.nativeActionIcon} />,
+    icon: <MenuElipsisVerticalIcon className={classes.nativeIcon} />,
     title: t('dashboard.app_dropdown', {
       appName: repoName,
     }),
@@ -73,16 +62,20 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
   return (
     <div className={classes.actionLinksContainer} ref={copyModalAnchorRef}>
       <StudioButton
+        title={t('dashboard.show_repo', {
+          appName: repoName,
+        })}
         variant={'tertiary'}
         className={classes.giteaButton}
         icon={giteaIconWithLink}
-        asChild
       />
       <StudioButton
+        title={t('dashboard.edit_app', {
+          appName: repoName,
+        })}
         variant={'tertiary'}
         className={classes.editButton}
         icon={editIconWithLink}
-        asChild
       />
       <StudioDropdownMenu size={'small'} anchorButtonProps={dropdownAnchorButtonProps}>
         <DropdownMenu.Item onClick={() => handleOpenCopyModal(repoFullName)}>

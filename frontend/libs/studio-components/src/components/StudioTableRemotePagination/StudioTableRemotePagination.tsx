@@ -90,6 +90,7 @@ export const StudioTableRemotePagination = forwardRef<
     const isSortingActive = !isTableEmpty && onSortClick;
     const isPaginationActive = pagination && totalRows > Math.min(...pageSizeOptions);
 
+    // Keep these values in memory when loading. Needed in order to show the pagination information below the spinner.
     const retainedIsPaginationActive = useRetainWhileLoading(isLoading, isPaginationActive);
     const retainedTotalPages = useRetainWhileLoading(isLoading, totalPages);
     const retainedTotalRows = useRetainWhileLoading(isLoading, totalRows);
