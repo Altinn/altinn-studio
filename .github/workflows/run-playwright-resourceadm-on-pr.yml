@@ -1,23 +1,12 @@
-name: Playwright tests on pr
+name: Resource admin playwright tests on pr
 on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
     paths:
-      - 'frontend/**'
-      - '!frontend/stats/**'
-      - 'backend/**'
-      - '.github/workflows/run-playwright-on-pr.yaml'
-      - 'docker-compose.yml'
-      - 'Dockerfile'
-      - 'gitea/**'
-      - 'package.json'
-      - 'development/**'
+      - 'frontend/resourceadm/**'
+      - '.github/workflows/run-playwright-resourceadm-on-pr.yaml'
   workflow_dispatch:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   playwright-tests:
@@ -26,13 +15,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 'Checking Out Code'
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: 'Installing Dependencies'
-        uses: ./.github/actions/yarn-install
 
       - name: Generate .env file
         run: |
@@ -51,21 +36,36 @@ jobs:
           echo COMMIT= >> .env
           echo IGNORE_DOCKER_DNS_LOOKUP=true >> .env
 
+      - name: Build all images
+        run: |
+          docker compose build --no-cache
+
+      - name: Install node
+        uses: actions/setup-node@v4
+        with:
+          cache: 'yarn'
+
       - name: Run setup.js script
         run: |
           node ./development/setup.js
 
-      - name: Playwright run
-        working-directory: frontend/testing/playwright
+      - name: Playwright resourceadm run
+        working-directory: frontend/resourceadm/testing/playwright
         env:
           environment: local
         run: |
-          yarn setup:playwright
-          yarn playwright:test:all
+          yarn
+          yarn playwright install --with-deps
+          yarn resourceadm:setup:playwright
+          yarn resourceadm:playwright:test:all
+
+      - name: Stop compose file
+        if: always()
+        run: docker-compose down
 
       - name: Store artifacts
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: playwright-screenshots
+          name: playwright-resourceadm-screenshots
           path: frontend/testing/playwright/test-results
