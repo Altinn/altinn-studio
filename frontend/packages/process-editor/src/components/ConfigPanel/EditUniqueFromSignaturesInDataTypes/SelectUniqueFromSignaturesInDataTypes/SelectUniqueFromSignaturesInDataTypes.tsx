@@ -28,14 +28,30 @@ export const SelectUniqueFromSignaturesInDataTypes = ({
   const tasks = studioModeler.getAllTasksByType('bpmn:Task');
   const signingTasks = tasks
     .filter(
-      (item) =>
-        item.businessObject.extensionElements?.values[0]?.taskType === 'signing' &&
-        item.id !== bpmnDetails.id,
+      ({
+        businessObject: {
+          extensionElements: { values },
+        },
+        id,
+      }) => {
+        const { taskType } = values[0];
+        return taskType === 'signing' && id !== bpmnDetails.id;
+      },
     )
-    .map((item) => ({
-      id: item.businessObject.extensionElements?.values[0]?.signatureConfig?.signatureDataType,
-      name: item.businessObject.name,
-    }));
+    .map(
+      ({
+        businessObject: {
+          name,
+          extensionElements: { values },
+        },
+      }) => {
+        const { signatureConfig } = values[0];
+        return {
+          id: signatureConfig?.signatureDataType,
+          name,
+        };
+      },
+    );
 
   const [value, setValue] = useState<string[]>(() =>
     getSelectedDataTypes(bpmnDetails).filter((item) =>
