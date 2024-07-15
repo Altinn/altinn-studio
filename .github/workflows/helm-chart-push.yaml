@@ -4,7 +4,7 @@ on:
     branches: [ main ]
     paths:
       - 'eidlogger/**'
-      - '.github/workflows/heml-chart-push.yaml'
+      - '.github/workflows/helm-chart-push.yaml'
       - 'charts/eid-logger/**'
   workflow_dispatch:
 
