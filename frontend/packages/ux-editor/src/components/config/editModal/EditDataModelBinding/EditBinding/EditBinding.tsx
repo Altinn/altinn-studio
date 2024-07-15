@@ -1,7 +1,7 @@
 import React from 'react';
 import type { FormItem } from '../../../../../types/FormItem';
 import classes from './EditBinding.module.css';
-import { Fieldset } from '@digdir/design-system-react';
+import { Fieldset } from '@digdir/designsystemet-react';
 import { SelectDataModelBinding } from './SelectDataModelBinding';
 import { SelectDataFieldBinding } from './SelectDataFieldBinding';
 import {

@@ -8,7 +8,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { typedLocalStorage } from 'app-shared/utils/webStorage';
+import { typedLocalStorage } from '@studio/components/src/hooks/webStorage';
 import userEvent from '@testing-library/user-event';
 import type { InternalBindingFormat } from '@altinn/ux-editor/utils/dataModelUtils';
 
