@@ -13,6 +13,8 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 const defaultProps: MigrationPageProps = {
   navigateToPageWithError: jest.fn(),
   id: 'migration_page',
+  serviceCode: '1',
+  serviceEdition: '2',
 };
 
 describe('MigrationPage', () => {
