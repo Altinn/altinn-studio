@@ -54,8 +54,7 @@ export const MigrationPage = ({
   const [migrationDate, setMigrationDate] = useState(initialDate);
   const [migrationTime, setMigrationTime] = useState('00:00');
   const [selectedEnv, setSelectedEnv] = useState<EnvId | ''>('');
-  const [numDelegationsA2, setNumDelegationsA2] = useState<number>(undefined);
-  const [numDelegationsA3, setNumDelegationsA3] = useState<number>(undefined);
+  const [isDelegationCountEnabled, setIsDelegationCountEnabled] = useState<boolean>(false);
 
   const { data: validatePolicyData, isPending: isValidatePolicyPending } = useValidatePolicyQuery(
     org,
@@ -67,12 +66,14 @@ export const MigrationPage = ({
   const { isPending: isLoadingPublishStatus, data: publishStatusData } =
     useResourcePolicyPublishStatusQuery(org, app, resourceId);
 
-  const { data: numberOfA2Delegations } = useGetAltinn2DelegationsCount(
-    org,
-    serviceCode,
-    serviceEdition,
-    selectedEnv,
-  );
+  const { data: numberOfA2Delegations, refetch: refetchNumberOfA2Delegations } =
+    useGetAltinn2DelegationsCount(
+      org,
+      serviceCode,
+      serviceEdition,
+      selectedEnv,
+      !isDelegationCountEnabled,
+    );
 
   const envPublishStatus = getAvailableEnvironments(org).map((env) => {
     const isPublishedInEnv = publishStatusData?.publishedVersions.some(
@@ -159,7 +160,10 @@ export const MigrationPage = ({
           <Paragraph size='small'>{t('resourceadm.migration_select_environment_body')}</Paragraph>
           <Radio.Group
             hideLegend
-            onChange={(newEnv: EnvId) => setSelectedEnv(newEnv)}
+            onChange={(newEnv: EnvId) => {
+              setSelectedEnv(newEnv);
+              setIsDelegationCountEnabled(false);
+            }}
             value={selectedEnv || '-'}
             legend={t('resourceadm.migration_select_environment_header')}
             description={t('resourceadm.migration_select_environment_body')}
@@ -205,29 +209,32 @@ export const MigrationPage = ({
                 <StudioLabelAsParagraph size='medium' spacing>
                   {t('resourceadm.migration_number_of_delegations')}
                 </StudioLabelAsParagraph>
-                <StudioButton
-                  onClick={() => {
-                    // TODO - replace with API call
-                    setNumDelegationsA2(1000);
-                    setNumDelegationsA3(1000);
-                  }}
-                  className={classes.button}
-                  size='small'
-                >
-                  {t('resourceadm.migration_get_number_of_delegations')}
-                </StudioButton>
-                {numDelegationsA2 && numDelegationsA3 && (
-                  <div className={classes.delegations}>
-                    <Paragraph size='small'>
-                      {t('resourceadm.migration_altinn_2')}: <strong>{numDelegationsA2}</strong>{' '}
-                      {t('resourceadm.migration_delegations')}
-                    </Paragraph>
-                    <Paragraph size='small'>
-                      {t('resourceadm.migration_altinn_3')}: <strong>{numDelegationsA3}</strong>{' '}
-                      {t('resourceadm.migration_delegations')}
-                    </Paragraph>
-                  </div>
-                )}
+                <div>
+                  {isDelegationCountEnabled && numberOfA2Delegations && (
+                    <div className={classes.delegations}>
+                      <Paragraph size='small'>
+                        {t('resourceadm.migration_altinn_2')}:{' '}
+                        <strong>{numberOfA2Delegations.numberOfDelegations}</strong>{' '}
+                        {t('resourceadm.migration_delegations')}
+                      </Paragraph>
+                      <Paragraph size='small'>
+                        {t('resourceadm.migration_altinn_3')}: <strong>{1000}</strong>{' '}
+                        {t('resourceadm.migration_delegations')}
+                      </Paragraph>
+                    </div>
+                  )}
+                  <StudioButton
+                    onClick={() =>
+                      isDelegationCountEnabled
+                        ? refetchNumberOfA2Delegations()
+                        : setIsDelegationCountEnabled(true)
+                    }
+                    className={classes.button}
+                    size='small'
+                  >
+                    {t('resourceadm.migration_get_number_of_delegations')}
+                  </StudioButton>
+                </div>
               </div>
               <StudioLabelAsParagraph size='medium' spacing>
                 {t('resourceadm.migration_finish_migration')}
