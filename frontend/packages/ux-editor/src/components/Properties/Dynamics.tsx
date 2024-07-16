@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Switch } from '@digdir/designsystemet-react';
-import { ConditionalRendering } from './ConditionalRendering';
 import { Expressions } from '../config/Expressions';
 import { useText } from '../../hooks';
 import type { WindowWithRuleModel } from '../../hooks/queries/useRuleModelQuery';
 import { useFormItemContext } from '../../containers/FormItemContext';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';
+import { DeprecatedConditionalRenderingInfo } from '@altinn/ux-editor/components/Properties/DeprecatedConditionalRenderingInfo';
+import classes from './Dynamics.module.css';
 
 export const Dynamics = () => {
   const { formItemId: formId, formItem: form } = useFormItemContext();
@@ -28,13 +29,14 @@ export const Dynamics = () => {
 
   return (
     <>
-      {showOldExpressions ? <ConditionalRendering /> : <Expressions key={formId} />}
+      {showOldExpressions ? <DeprecatedConditionalRenderingInfo /> : <Expressions key={formId} />}
       {conditionalRulesExist && (
         <Switch
           name={'new-dynamics-switch'}
           onChange={handleToggleOldDynamics}
           checked={showOldExpressions}
           size={'small'}
+          className={classes.oldDynamicsToggle}
         >
           {t('right_menu.show_old_dynamics')}
         </Switch>

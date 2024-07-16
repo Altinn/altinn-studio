@@ -10,6 +10,9 @@ import { Trans } from 'react-i18next';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { StudioButton } from '@studio/components';
 
+/**
+ * @deprecated This component is deprecated and will be removed in a future release.
+ */
 export const ConditionalRendering = () => {
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const t = useText();
