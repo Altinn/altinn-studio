@@ -65,11 +65,9 @@ export class GiteaPage extends BasePage {
     await this.page.getByText(giteaPageTexts['dataModelBindings']).isHidden();
   }
 
-  public async verifyThatDataModelBindingsAreVisible(dataModelBindingName: string): Promise<void> {
+  public async verifyThatDataModelBindingsAreVisible(dataModelBinding: string): Promise<void> {
     await this.page.getByText(giteaPageTexts['dataModelBindings']).isVisible();
-    await this.page
-      .getByText(`"simpleBinding": "${dataModelBindingName}"`, { exact: true })
-      .isVisible();
+    await this.page.getByText(dataModelBinding, { exact: true }).isVisible();
   }
 
   public async verifyThatComponentIdIsVisible(id: string): Promise<void> {

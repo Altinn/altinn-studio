@@ -184,34 +184,42 @@ export class UiEditorPage extends BasePage {
     await this.page.getByRole('treeitem', { name }).click();
   }
 
-  public async clickOnDataModelBindingsCombobox(componentType: ComponentType): Promise<void> {
+  public async clickOnDataModelBindingCombobox(): Promise<void> {
     await this.page
-      .getByRole('combobox', { name: this.textMock(dataModelBindingButtonTextMap[componentType]) })
+      .getByRole('combobox', {
+        name: this.textMock('ux_editor.modal_properties_data_model_binding'),
+        exact: true,
+      })
       .click();
   }
 
-  public async verifyThatThereAreNoOptionsInTheDataModelList(): Promise<void> {
+  public async clickOnDataModelFieldBindingCombobox(): Promise<void> {
     await this.page
       .getByRole('combobox', {
-        name: this.textMock('ux_editor.modal_properties_data_model_helper'),
+        name: this.textMock('ux_editor.modal_properties_data_model_field_binding'),
       })
-      .getByRole('option')
-      .isHidden();
+      .click();
   }
 
-  public async verifyThatThereAreOptionsInTheDataModelList(
-    componentType: ComponentType,
-  ): Promise<void> {
-    await this.page
+  public async verifyThatThereAreOptionsInTheDataModelFieldList(): Promise<void> {
+    const options = this.page
       .getByRole('combobox', {
-        name: this.textMock(dataModelBindingButtonTextMap[componentType]),
+        name: this.textMock('ux_editor.modal_properties_data_model_field_binding'),
       })
-      .getByRole('option')
-      .isVisible();
+      .locator('option');
+    await expect(options).toHaveCount(4);
+  }
+
+  public async clickOnDataModelFieldPropertyOption(option: string): Promise<void> {
+    await this.page
+      .getByLabel(this.textMock('ux_editor.modal_properties_data_model_field_binding'))
+      .selectOption(option);
   }
 
   public async clickOnDataModelPropertyOption(option: string): Promise<void> {
-    await this.page.getByRole('listbox').getByRole('option', { name: option }).click();
+    await this.page
+      .getByLabel(this.textMock('ux_editor.modal_properties_data_model_binding'), { exact: true })
+      .selectOption(option);
   }
 
   public async clickOnSaveDataModel(): Promise<void> {
