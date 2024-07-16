@@ -113,7 +113,7 @@ export class DataModelPage extends BasePage {
   }
 
   public async checkThatTypeComboboxVisible(): Promise<boolean> {
-    return this.getTypeCombobox().isVisible();
+     await expect(this.getTypeCombobox()).isVisible();
   }
 
   public async checkThatCorrectValueIsSelected(value: string): Promise<void> {
