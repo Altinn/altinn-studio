@@ -1,5 +1,5 @@
 import { Label, NativeSelect, Pagination, Paragraph, Table } from '@digdir/designsystemet-react';
-import React, { forwardRef, useEffect, useId } from 'react';
+import React, { forwardRef, useEffect, useId, useRef } from 'react';
 import type { ReactNode } from 'react';
 import classes from './StudioTableRemotePagination.module.css';
 import { StudioSpinner } from '../StudioSpinner';
@@ -64,7 +64,7 @@ export const StudioTableRemotePagination = forwardRef<
     ref,
   ): React.ReactElement => {
     const selectId = useId();
-    const tableBodyRef = React.useRef<HTMLTableSectionElement>(null);
+    const tableBodyRef = useRef<HTMLTableSectionElement>(null);
     const [spinnerHeight, setSpinnerHeight] = React.useState('75px');
 
     const {

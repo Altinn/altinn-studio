@@ -27,21 +27,13 @@ export const FavoriteButton = ({ repo }: FavoriteButtonProps): React.ReactElemen
     appName: repo.name,
   });
 
-  return repo.hasStarred ? (
-    <StudioButton
-      title={title}
-      onClick={handleToggleFav}
-      variant='tertiary'
-      icon={<StarFillIcon className={classes.favoriteIcon} />}
-    />
+  const icon = repo.hasStarred ? (
+    <StarFillIcon className={classes.favoriteIcon} />
   ) : (
-    <StudioButton
-      title={title}
-      onClick={handleToggleFav}
-      variant='tertiary'
-      icon={<StarIcon className={classes.favoriteIcon} />}
-    />
+    <StarIcon className={classes.favoriteIcon} />
   );
+
+  return <StudioButton title={title} onClick={handleToggleFav} variant='tertiary' icon={icon} />;
 };
 
 FavoriteButton.displayName = 'FavoriteButton';

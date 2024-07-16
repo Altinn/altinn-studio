@@ -2,13 +2,13 @@ import { StudioButton, StudioDropdownMenu } from '@studio/components';
 import type { StudioButtonProps } from '@studio/components';
 import React, { useRef, useState } from 'react';
 import classes from './ActionLinks.module.css';
-import cn from 'classnames';
 import {
   ExternalLinkIcon,
   FilesIcon,
+  GiteaIcon,
   MenuElipsisVerticalIcon,
   PencilIcon,
-} from '@navikt/aksel-icons';
+} from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { getRepoEditUrl } from '../../utils/urlUtils';
 import type { Repository } from 'app-shared/types/Repository';
@@ -40,19 +40,19 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
 
   const giteaIconWithLink = (
     <a href={repo.html_url}>
-      <span className={cn('fa fa-gitea', classes.giteaIcon)} />
+      <GiteaIcon className={classes.giteaIcon} />
     </a>
   );
 
   const editIconWithLink = (
     <a href={editUrl}>
-      <PencilIcon className={classes.nativeIcon} />
+      <PencilIcon className={classes.akselIcon} />
     </a>
   );
 
-  const dropdownAnchorButtonProps = {
-    variant: 'tertiary' as StudioButtonProps['variant'],
-    icon: <MenuElipsisVerticalIcon className={classes.nativeIcon} />,
+  const dropdownAnchorButtonProps: StudioButtonProps = {
+    variant: 'tertiary',
+    icon: <MenuElipsisVerticalIcon className={classes.akselIcon} />,
     title: t('dashboard.app_dropdown', {
       appName: repoName,
     }),
@@ -64,7 +64,7 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
         title={t('dashboard.show_repo', {
           appName: repoName,
         })}
-        variant={'tertiary'}
+        variant='tertiary'
         className={classes.giteaButton}
         icon={giteaIconWithLink}
       />
@@ -72,17 +72,17 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
         title={t('dashboard.edit_app', {
           appName: repoName,
         })}
-        variant={'tertiary'}
+        variant='tertiary'
         className={classes.editButton}
         icon={editIconWithLink}
       />
-      <StudioDropdownMenu size={'small'} anchorButtonProps={dropdownAnchorButtonProps}>
+      <StudioDropdownMenu size='small' anchorButtonProps={dropdownAnchorButtonProps}>
         <StudioDropdownMenu.Item onClick={() => handleOpenCopyModal(repoFullName)}>
-          {<FilesIcon />}
+          <FilesIcon />
           {t('dashboard.make_copy')}
         </StudioDropdownMenu.Item>
         <StudioDropdownMenu.Item onClick={() => window.open(editUrl, '_blank')}>
-          {<ExternalLinkIcon />}
+          <ExternalLinkIcon />
           {t('dashboard.open_in_new')}
         </StudioDropdownMenu.Item>
       </StudioDropdownMenu>

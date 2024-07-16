@@ -5,21 +5,20 @@
 }
 
 .giteaButton {
-  margin-right: 0.45rem;
+  margin-right: var(--fds-spacing-2);
 }
 
 .giteaIcon {
-  font-size: 2rem;
-  padding-top: 0.1rem;
-  padding-right: 0.1rem;
+  font-size: var(--fds-sizing-8);
+  padding-top: var(--fds-spacing-1);
   color: var(--fds-semantic-text-success-default);
 }
 
 .editButton {
-  padding-top: 0.4rem;
+  padding-top: var(--fds-spacing-2);
 }
 
-.nativeIcon {
-  font-size: 1.7rem;
+.akselIcon {
+  font-size: var(--fds-sizing-7);
   color: var(--fds-semantic-text-action-default);
 }
