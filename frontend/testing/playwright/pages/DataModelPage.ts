@@ -117,7 +117,7 @@ export class DataModelPage extends BasePage {
   }
 
   public async checkThatCorrectValueIsSelected(value: string): Promise<void> {
-    return expect(value).toEqual(this.textMock('schema_editor.any_of'));
+    await expect(value).toEqual(this.textMock('schema_editor.any_of'));
   }
 
   public async checkThatSuccessAlertIsVisibleOnScreen(): Promise<void> {
