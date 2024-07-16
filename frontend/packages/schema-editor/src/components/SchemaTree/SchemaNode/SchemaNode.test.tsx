@@ -35,16 +35,16 @@ describe('SchemaNode', () => {
     expect(screen.getByRole('treeitem', { name })).toBeInTheDocument();
   });
 
-  it('Saves the model correctly when a field node is added', async () => {
+  it('Saves the model correctly when a text node is added', async () => {
     const { pointer } = objectNodeMock;
     const schemaModel = setupSchemaModel();
     const save = jest.fn();
     const numberOfChildren = objectNodeMock.children.length;
     render({ schemaModel, save, pointer });
     await user.click(getAddButton());
-    const addFieldButtonName = textMock('schema_editor.add_field');
-    const addFieldButton = screen.getByRole('menuitem', { name: addFieldButtonName });
-    await user.click(addFieldButton);
+    const addTextButtonName = textMock('schema_editor.add_string');
+    const addTextButton = screen.getByRole('menuitem', { name: addTextButtonName });
+    await user.click(addTextButton);
     expect(save).toHaveBeenCalledTimes(1);
     const savedModel = getSavedModel(save);
     const updatedNode = savedModel.getNode(pointer) as FieldNode;
@@ -170,9 +170,9 @@ describe('SchemaNode', () => {
     const save = jest.fn();
     render({ schemaModel, save, pointer });
     await user.click(getAddButton());
-    const addFieldButtonName = textMock('schema_editor.add_field');
-    const addFieldButton = screen.getByRole('menuitem', { name: addFieldButtonName });
-    await user.click(addFieldButton);
+    const addTextButtonName = textMock('schema_editor.add_string');
+    const addTextButton = screen.getByRole('menuitem', { name: addTextButtonName });
+    await user.click(addTextButton);
     const savedModel = getSavedModel(save);
     const updatedNode = savedModel.getNode(pointer) as FieldNode;
     expect(updatedNode.pointer).toEqual(pointer);
