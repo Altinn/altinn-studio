@@ -112,12 +112,12 @@ export class DataModelPage extends BasePage {
     await expect(typeCombobox).toBeHidden();
   }
 
-  public async checkThatTypeComboboxVisible(): Promise<boolean> {
-     await expect(this.getTypeCombobox()).isVisible();
+  public async checkThatTypeComboboxVisible(): Promise<void> {
+    await expect(this.getTypeCombobox()).toBeVisible();
   }
 
   public async checkThatCorrectValueIsSelected(value: string): Promise<void> {
-    await expect(value).toEqual(this.textMock('schema_editor.any_of'));
+    expect(value).toEqual(this.textMock('schema_editor.any_of'));
   }
 
   public async checkThatSuccessAlertIsVisibleOnScreen(): Promise<void> {
