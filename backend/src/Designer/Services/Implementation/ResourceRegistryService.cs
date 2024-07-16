@@ -305,13 +305,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
         public async Task<ActionResult> StartMigrateDelegations(ExportDelegationsRequestBE delegationRequest, string environment)
         {
-            string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
-            string url = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/exportdelegations/";
-            
-            string delegationRequestString = JsonSerializer.Serialize(delegationRequest, _serializerOptions);
-            using StringContent httpContent = new(delegationRequestString, Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await _httpClient.PostAsync(url, httpContent);
-            response.EnsureSuccessStatusCode();
+            // TODO
 
             return new StatusCodeResult(201);
         }
