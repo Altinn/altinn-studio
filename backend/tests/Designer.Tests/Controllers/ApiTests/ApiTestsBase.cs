@@ -77,6 +77,7 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
                 services.AddAuthentication(defaultScheme: TestAuthConstants.TestAuthenticationScheme)
                     .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
                         TestAuthConstants.TestAuthenticationScheme, options => { });
+                services.AddTransient<IAuthenticationSchemeProvider, TestSchemeProvider>();
             });
             builder.ConfigureServices(ConfigureTestForSpecificTest);
         }).CreateDefaultClient(new ApiTestsAuthAndCookieDelegatingHandler(), new CookieContainerHandler());
