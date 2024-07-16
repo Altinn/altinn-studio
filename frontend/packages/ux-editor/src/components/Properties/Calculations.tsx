@@ -12,8 +12,6 @@ import { UnknownComponentAlert } from '../UnknownComponentAlert';
 
 /**
  * @deprecated This component is deprecated and will be removed in a future release.
- *//**
- * @deprecated This component is deprecated and will be removed in a future release.
  */
 export const Calculations = () => {
   const { formItem: form } = useFormItemContext();
