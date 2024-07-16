@@ -13,7 +13,7 @@ const removeDataTypesToSignFromSigningTasks = async (
   const { rootElement: definitions } = await moddle.fromXML(bpmnXml);
 
   definitions.rootElements[0].flowElements
-    .filter((flowElement) => flowElement.$type !== 'bpmn:Task')
+    .filter((flowElement) => flowElement.$type === 'bpmn:Task')
     .forEach((flowElement) => {
       flowElement.extensionElements.values[0].$children
         .filter((child) => child.$type === 'altinn:signatureConfig')
