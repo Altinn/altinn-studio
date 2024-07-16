@@ -109,7 +109,7 @@ export class DataModelPage extends BasePage {
 
   public async checkThatTypeComboboxIsHidden(): Promise<void> {
     const typeCombobox = this.getTypeCombobox();
-    return await expect(typeCombobox).toBeHidden();
+    await expect(typeCombobox).toBeHidden();
   }
 
   public async checkThatTypeComboboxVisible(): Promise<boolean> {
