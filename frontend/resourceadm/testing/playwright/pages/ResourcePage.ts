@@ -182,6 +182,7 @@ export class ResourcePage extends ResourceEnvironment {
   }
 
   public async addPolicyRule(): Promise<void> {
+    await expect(this.addPolicyRuleButton).toBeVisible(); // wait for policy page to be displayed
     const isPolicyRuleVisible = await this.ruleHeader.isVisible();
     if (!isPolicyRuleVisible) {
       await this.addPolicyRuleButton.click();
