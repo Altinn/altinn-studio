@@ -67,6 +67,8 @@ export const layoutMock: IInternalLayout = {
     [component1IdMock]: component1Mock,
     [component2IdMock]: component2Mock,
     [component3IdMock]: component3Mock,
+    [componentMocks[ComponentType.FileUploadWithTag].id]:
+      componentMocks[ComponentType.FileUploadWithTag],
     ComponentWithOptionsMock: componentWithOptionsMock,
   },
   containers: {
