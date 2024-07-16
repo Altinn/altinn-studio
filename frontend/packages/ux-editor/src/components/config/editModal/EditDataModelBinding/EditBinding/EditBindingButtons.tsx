@@ -18,8 +18,8 @@ export const EditBindingButtons = ({
 
   const handleDelete = () => {
     const updatedDataModelBinding = {
-      field: undefined,
-      dataType: undefined,
+      field: '',
+      dataType: '',
     };
     handleBindingChange(updatedDataModelBinding);
     onSetDataModelSelectVisible(false);

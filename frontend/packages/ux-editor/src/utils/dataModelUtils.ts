@@ -117,7 +117,7 @@ export const convertDataBindingToInternalFormat = (
   if (isOldFormatOrNotSet) {
     return {
       field: dataModelBinding,
-      dataType: undefined,
+      dataType: '',
     };
   }
   return dataModelBinding;
@@ -128,6 +128,7 @@ export const validateSelectedDataModel = (
   dataModels: string[],
 ): boolean =>
   dataModels?.some((dataModel) => dataModel === selectedDataModel) ||
+  selectedDataModel === '' ||
   selectedDataModel === undefined;
 
 export const validateSelectedDataField = (
