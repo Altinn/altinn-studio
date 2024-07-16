@@ -10,61 +10,25 @@ import {
 } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { componentMocks } from '../../testing/componentMocks';
 import type { FormLayoutsResponse } from 'app-shared/types/api';
+import { getDataTypesToSignMock } from '../../testing/bpmnDefinitionsMock';
 
 // Test data:
 const selectedLayoutSet = layoutSet1NameMock;
 
-const mockDefinitions = {
-  rootElements: [
-    {
-      flowElements: [
-        {
-          $type: 'bpmn:Task',
-          extensionElements: {
-            values: [
-              {
-                $type: 'altinn:taskExtension',
-                $children: [
-                  {
-                    $type: 'altinn:signatureConfig',
-                    $children: [
-                      {
-                        $type: 'altinn:dataTypesToSign',
-                        $children: [
-                          {
-                            $type: 'altinn:dataType',
-                            $body: componentMocks[ComponentType.FileUpload].id,
-                          },
-                          {
-                            $type: 'altinn:dataType',
-                            $body: componentMocks[ComponentType.FileUploadWithTag].id,
-                          },
-                        ],
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
-        },
-      ],
-    },
-  ],
-};
-
-const moddle = {
-  fromXML: jest.fn().mockResolvedValue({ rootElement: mockDefinitions }),
-  toXML: jest.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
-};
-
-jest.mock('bpmn-moddle', () => jest.fn(() => moddle));
-
-const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
+jest.mock('bpmn-moddle', () =>
+  jest.fn(() => ({
+    fromXML: jest.fn().mockResolvedValue({
+      rootElement: getDataTypesToSignMock([
+        componentMocks[ComponentType.FileUpload].id,
+        componentMocks[ComponentType.FileUploadWithTag].id,
+      ]),
+    }),
+    toXML: jest.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
+  })),
+);
 
 describe('useDeleteFormComponentMutation', () => {
   afterEach(jest.clearAllMocks);
@@ -99,11 +63,7 @@ describe('useDeleteFormComponentMutation', () => {
 
     componentTypes.forEach((componentType) => {
       it(`Should remove ${componentType} data type from signing tasks`, async () => {
-        const { result } = await renderDeleteFormComponentsMutation({
-          queries: {
-            getBpmnFile: jest.fn().mockImplementation(() => Promise.resolve(mockBPMNXML)),
-          },
-        });
+        const { result } = await renderDeleteFormComponentsMutation();
 
         const componentIdToDelete = componentMocks[componentType].id;
         await result.current.mutateAsync(componentIdToDelete);
@@ -137,11 +97,7 @@ describe('useDeleteFormComponentMutation', () => {
   });
 });
 
-const renderDeleteFormComponentsMutation = async ({
-  queries = {},
-}: {
-  queries?: Partial<ServicesContextProps>;
-} = {}) => {
+const renderDeleteFormComponentsMutation = async () => {
   const getFormLayouts = jest
     .fn()
     .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
@@ -150,10 +106,5 @@ const renderDeleteFormComponentsMutation = async ({
     { queries: { getFormLayouts } },
   ).result;
   await waitFor(() => expect(formLayoutsResult.current.isSuccess).toBe(true));
-  return renderHookWithProviders(
-    () => useDeleteFormComponentMutation(org, app, selectedLayoutSet),
-    {
-      queries,
-    },
-  );
+  return renderHookWithProviders(() => useDeleteFormComponentMutation(org, app, selectedLayoutSet));
 };

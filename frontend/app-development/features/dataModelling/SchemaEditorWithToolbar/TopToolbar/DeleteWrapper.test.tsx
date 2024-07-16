@@ -16,6 +16,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { app, org } from '@studio/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { getDataTypesToSignMock } from '@altinn/ux-editor/testing/bpmnDefinitionsMock';
 
 const user = userEvent.setup();
 
@@ -28,48 +29,14 @@ const confirmText = textMock('schema_editor.delete_model_confirm');
 const selectedOption = convertMetadataToOption(jsonMetadata1Mock);
 const defaultProps: DeleteWrapperProps = { selectedOption };
 
-const mockDefinitions = {
-  rootElements: [
-    {
-      flowElements: [
-        {
-          $type: 'bpmn:Task',
-          extensionElements: {
-            values: [
-              {
-                $type: 'altinn:taskExtension',
-                $children: [
-                  {
-                    $type: 'altinn:signatureConfig',
-                    $children: [
-                      {
-                        $type: 'altinn:dataTypesToSign',
-                        $children: [
-                          { $type: 'altinn:dataType', $body: 'dataModel1' },
-                          { $type: 'altinn:dataType', $body: 'dataModel2' },
-                          { $type: 'altinn:dataType', $body: 'dataModel3' },
-                        ],
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
-        },
-      ],
-    },
-  ],
-};
-
-const moddle = {
-  fromXML: jest.fn().mockResolvedValue({ rootElement: mockDefinitions }),
-  toXML: jest.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
-};
-
-jest.mock('bpmn-moddle', () => jest.fn(() => moddle));
-
-const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
+jest.mock('bpmn-moddle', () =>
+  jest.fn(() => ({
+    fromXML: jest.fn().mockResolvedValue({
+      rootElement: getDataTypesToSignMock(['dataModel1', 'dataModel2', 'dataModel3']),
+    }),
+    toXML: jest.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
+  })),
+);
 
 const render = (
   props: Partial<DeleteWrapperProps> = {},
@@ -122,13 +89,7 @@ describe('DeleteWrapper', () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.DataModelsJson, org, app], []);
     queryClient.setQueryData([QueryKey.DataModelsXsd, org, app], []);
-    render(
-      {},
-      {
-        getBpmnFile: jest.fn().mockImplementation(() => Promise.resolve(mockBPMNXML)),
-      },
-      queryClient,
-    );
+    render({}, {}, queryClient);
     await user.click(getDeleteButton());
     await user.click(getContinueButton());
     expect(queryDeleteMessage()).not.toBeInTheDocument();

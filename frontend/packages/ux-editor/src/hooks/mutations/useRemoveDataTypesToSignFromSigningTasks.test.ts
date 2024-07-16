@@ -2,45 +2,15 @@ import { useRemoveDataTypesToSignFromSigningTasks } from './useRemoveDataTypesTo
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { app, org } from '@studio/testing/testids';
+import { getDataTypesToSignMock } from '@altinn/ux-editor/testing/bpmnDefinitionsMock';
 
-const mockDefinitions = {
-  rootElements: [
-    {
-      flowElements: [
-        {
-          $type: 'bpmn:Task',
-          extensionElements: {
-            values: [
-              {
-                $type: 'altinn:taskExtension',
-                $children: [
-                  {
-                    $type: 'altinn:signatureConfig',
-                    $children: [
-                      {
-                        $type: 'altinn:dataTypesToSign',
-                        $children: [
-                          { $type: 'altinn:dataType', $body: 'dataType1' },
-                          { $type: 'altinn:dataType', $body: 'dataType2' },
-                        ],
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
-        },
-      ],
-    },
-  ],
-};
-
+const dataTypesToSignMock = getDataTypesToSignMock(['dataType1', 'dataType2']);
 const moddle = {
-  fromXML: jest.fn().mockResolvedValue({ rootElement: mockDefinitions }),
+  fromXML: jest.fn().mockResolvedValue({
+    rootElement: dataTypesToSignMock,
+  }),
   toXML: jest.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
 };
-
 jest.mock('bpmn-moddle', () => jest.fn(() => moddle));
 
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
@@ -62,7 +32,7 @@ describe('useRemoveDataTypesToSignFromSigningTasks', () => {
 
     expect(moddle.fromXML).toHaveBeenCalledWith(mockBPMNXML);
 
-    const updatedDefinitions = JSON.parse(JSON.stringify(mockDefinitions));
+    const updatedDefinitions = JSON.parse(JSON.stringify(dataTypesToSignMock));
     updatedDefinitions.rootElements[0].flowElements[0].extensionElements.values[0].$children[0].$children[0].$children =
       updatedDefinitions.rootElements[0].flowElements[0].extensionElements.values[0].$children[0].$children[0].$children.filter(
         (dataType) => dataType.$body !== 'dataType1',
