@@ -3,14 +3,16 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
 import type { FormContainer } from '../types/FormContainer';
 
-const commonProps: Pick<FormComponentBase, 'id' | 'itemType' | 'dataModelBindings'> = {
-  id: 'test',
+const commonProps = <T extends ComponentType>(
+  type: T,
+): Pick<FormComponentBase, 'id' | 'itemType' | 'dataModelBindings'> & { type: T } => ({
+  id: type.toString(),
   itemType: 'COMPONENT',
   dataModelBindings: {},
-};
+  type,
+});
 const checkboxesComponent: FormComponent<ComponentType.Checkboxes> = {
-  ...commonProps,
-  type: ComponentType.Checkboxes,
+  ...commonProps(ComponentType.Checkboxes),
   dataModelBindings: { simpleBinding: '' },
   options: [
     { label: 'Option 1', value: 'option1' },
@@ -20,8 +22,7 @@ const checkboxesComponent: FormComponent<ComponentType.Checkboxes> = {
   optionsId: '',
 };
 const radiosComponent: FormComponent<ComponentType.RadioButtons> = {
-  ...commonProps,
-  type: ComponentType.RadioButtons,
+  ...commonProps(ComponentType.RadioButtons),
   dataModelBindings: { simpleBinding: '' },
   options: [
     { label: 'Option 1', value: 'option1' },
@@ -31,43 +32,36 @@ const radiosComponent: FormComponent<ComponentType.RadioButtons> = {
   optionsId: '',
 };
 const inputComponent: FormComponent<ComponentType.Input> = {
-  ...commonProps,
-  type: ComponentType.Input,
+  ...commonProps(ComponentType.Input),
   dataModelBindings: { simpleBinding: '' },
 };
 const headerComponent: FormComponent<ComponentType.Header> = {
-  ...commonProps,
-  type: ComponentType.Header,
+  ...commonProps(ComponentType.Header),
   size: 'medium',
 };
 const paragraphComponent: FormComponent<ComponentType.Paragraph> = {
-  ...commonProps,
-  type: ComponentType.Paragraph,
+  ...commonProps(ComponentType.Paragraph),
 };
 const imageComponent: FormComponent<ComponentType.Image> = {
-  ...commonProps,
-  type: ComponentType.Image,
+  ...commonProps(ComponentType.Image),
 };
 const datePickerComponent: FormComponent<ComponentType.Datepicker> = {
-  ...commonProps,
-  type: ComponentType.Datepicker,
+  ...commonProps(ComponentType.Datepicker),
   dataModelBindings: { simpleBinding: '' },
   timeStamp: true,
 };
 const dropdownComponent: FormComponent<ComponentType.Dropdown> = {
-  ...commonProps,
+  ...commonProps(ComponentType.Dropdown),
   type: ComponentType.Dropdown,
   dataModelBindings: { simpleBinding: '' },
   optionsId: '',
 };
 const textareaComponent: FormComponent<ComponentType.TextArea> = {
-  ...commonProps,
-  type: ComponentType.TextArea,
+  ...commonProps(ComponentType.TextArea),
   dataModelBindings: { simpleBinding: '' },
 };
-const fileUploaderComponent: FormComponent<ComponentType.FileUpload> = {
-  ...commonProps,
-  type: ComponentType.FileUpload,
+const fileUploadComponent: FormComponent<ComponentType.FileUpload> = {
+  ...commonProps(ComponentType.FileUpload),
   dataModelBindings: { simpleBinding: '' },
   description: 'test',
   displayMode: 'list',
@@ -76,9 +70,8 @@ const fileUploaderComponent: FormComponent<ComponentType.FileUpload> = {
   maxNumberOfAttachments: 1,
   minNumberOfAttachments: 1,
 };
-const fileUploaderWithTagComponent: FormComponent<ComponentType.FileUploadWithTag> = {
-  ...commonProps,
-  type: ComponentType.FileUploadWithTag,
+const fileUploadWithTagComponent: FormComponent<ComponentType.FileUploadWithTag> = {
+  ...commonProps(ComponentType.FileUploadWithTag),
   dataModelBindings: { simpleBinding: '' },
   description: 'test',
   displayMode: 'list',
@@ -89,13 +82,11 @@ const fileUploaderWithTagComponent: FormComponent<ComponentType.FileUploadWithTa
   optionsId: '',
 };
 const buttonComponent: FormComponent<ComponentType.Button> = {
-  ...commonProps,
-  type: ComponentType.Button,
+  ...commonProps(ComponentType.Button),
   onClickAction: jest.fn(),
 };
 const addressComponent: FormComponent<ComponentType.Address> = {
-  ...commonProps,
-  type: ComponentType.Address,
+  ...commonProps(ComponentType.Address),
   dataModelBindings: {
     address: 'some-address',
     zipCode: 'some-zip',
@@ -104,28 +95,23 @@ const addressComponent: FormComponent<ComponentType.Address> = {
   simplified: true,
 };
 const navigationBarComponent: FormComponent<ComponentType.NavigationBar> = {
-  ...commonProps,
-  type: ComponentType.NavigationBar,
+  ...commonProps(ComponentType.NavigationBar),
 };
 const attachmentListComponent: FormComponent<ComponentType.AttachmentList> = {
-  ...commonProps,
-  type: ComponentType.AttachmentList,
+  ...commonProps(ComponentType.AttachmentList),
 };
 const thirdPartyComponent: FormComponent<ComponentType.Custom> = {
-  ...commonProps,
-  type: ComponentType.Custom,
+  ...commonProps(ComponentType.Custom),
   tagName: 'test',
   framework: 'test',
 };
 const panelComponent: FormComponent<ComponentType.Panel> = {
-  ...commonProps,
-  type: ComponentType.Panel,
+  ...commonProps(ComponentType.Panel),
   variant: FormPanelVariant.Info,
   showIcon: true,
 };
 const mapComponent: FormComponent<ComponentType.Map> = {
-  ...commonProps,
-  type: ComponentType.Map,
+  ...commonProps(ComponentType.Map),
   dataModelBindings: { simpleBinding: '' },
   centerLocation: {
     latitude: 0,
@@ -134,29 +120,24 @@ const mapComponent: FormComponent<ComponentType.Map> = {
   zoom: 1,
 };
 const accordionContainer: FormContainer<ComponentType.Accordion> = {
-  ...commonProps,
+  ...commonProps(ComponentType.Accordion),
   itemType: 'CONTAINER',
-  type: ComponentType.Accordion,
 };
 const accordionGroupContainer: FormContainer<ComponentType.AccordionGroup> = {
-  ...commonProps,
+  ...commonProps(ComponentType.AccordionGroup),
   itemType: 'CONTAINER',
-  type: ComponentType.AccordionGroup,
 };
 const buttonGroupContainer: FormContainer<ComponentType.ButtonGroup> = {
-  ...commonProps,
+  ...commonProps(ComponentType.ButtonGroup),
   itemType: 'CONTAINER',
-  type: ComponentType.ButtonGroup,
 };
 const groupContainer: FormContainer<ComponentType.Group> = {
-  ...commonProps,
+  ...commonProps(ComponentType.Group),
   itemType: 'CONTAINER',
-  type: ComponentType.Group,
 };
 const repeatingGroupContainer: FormContainer<ComponentType.RepeatingGroup> = {
-  ...commonProps,
+  ...commonProps(ComponentType.RepeatingGroup),
   itemType: 'CONTAINER',
-  type: ComponentType.RepeatingGroup,
   dataModelBindings: { group: '' },
 };
 
@@ -170,8 +151,8 @@ export const componentMocks = {
   [ComponentType.Checkboxes]: checkboxesComponent,
   [ComponentType.Datepicker]: datePickerComponent,
   [ComponentType.Dropdown]: dropdownComponent,
-  [ComponentType.FileUploadWithTag]: fileUploaderWithTagComponent,
-  [ComponentType.FileUpload]: fileUploaderComponent,
+  [ComponentType.FileUploadWithTag]: fileUploadWithTagComponent,
+  [ComponentType.FileUpload]: fileUploadComponent,
   [ComponentType.Group]: groupContainer,
   [ComponentType.Header]: headerComponent,
   [ComponentType.Image]: imageComponent,

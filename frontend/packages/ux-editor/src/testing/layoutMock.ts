@@ -7,11 +7,12 @@ import type {
   ExternalFormLayout,
   FormLayoutsResponse,
 } from 'app-shared/types/api/FormLayoutsResponse';
+import { componentMocks } from './componentMocks';
 
 export const layout1NameMock = 'Side1';
 export const layout2NameMock = 'Side2';
 export const baseContainerIdMock = BASE_CONTAINER_ID;
-export const component1IdMock = 'Component-1';
+export const component1IdMock = componentMocks[ComponentType.Input].id;
 export const component1TypeMock = ComponentType.Input;
 export const component1Mock: FormComponent<ComponentType.Input> = {
   id: component1IdMock,
@@ -21,7 +22,7 @@ export const component1Mock: FormComponent<ComponentType.Input> = {
   propertyPath: 'definitions/inputComponent',
   pageIndex: null,
 };
-export const component2IdMock = 'Component-2';
+export const component2IdMock = componentMocks[ComponentType.Paragraph].id;
 export const component2TypeMock = ComponentType.Paragraph;
 export const component2Mock: FormComponent<ComponentType.Paragraph> = {
   id: component2IdMock,
@@ -29,10 +30,9 @@ export const component2Mock: FormComponent<ComponentType.Paragraph> = {
   itemType: 'COMPONENT',
   pageIndex: null,
 };
-export const component3IdMock = 'fileUploadComponentIdMock';
+export const component3IdMock = componentMocks[ComponentType.FileUpload].id;
 export const component3Mock: FormComponent = {
-  id: component3IdMock,
-  type: ComponentType.FileUpload,
+  ...componentMocks[ComponentType.FileUpload],
   itemType: 'COMPONENT',
   description: 'test',
   displayMode: 'list',
@@ -96,7 +96,11 @@ export const layoutMock: IInternalLayout = {
   order: {
     [baseContainerIdMock]: [container1IdMock, container2IdMock, 'ComponentWithOptionsMock'],
     [container1IdMock]: [component1IdMock],
-    [container2IdMock]: [component2IdMock, component3IdMock],
+    [container2IdMock]: [
+      component2IdMock,
+      component3IdMock,
+      componentMocks[ComponentType.FileUploadWithTag].id,
+    ],
   },
   customRootProperties: customRootPropertiesMock,
   customDataProperties: customDataPropertiesMock,
@@ -114,7 +118,11 @@ export const layout1Mock: ExternalFormLayout = {
       {
         id: container2IdMock,
         type: ComponentType.RepeatingGroup,
-        children: [component2IdMock, component3IdMock],
+        children: [
+          component2IdMock,
+          component3IdMock,
+          componentMocks[ComponentType.FileUploadWithTag].id,
+        ],
         dataModelBindings: { group: 'some-path' },
       },
       {
@@ -126,16 +134,8 @@ export const layout1Mock: ExternalFormLayout = {
         id: component2IdMock,
         type: component2TypeMock,
       },
-      {
-        id: component3IdMock,
-        type: ComponentType.FileUpload,
-        description: 'test',
-        displayMode: 'list',
-        hasCustomFileEndings: false,
-        maxFileSizeInMB: 1,
-        maxNumberOfAttachments: 1,
-        minNumberOfAttachments: 1,
-      },
+      componentMocks[ComponentType.FileUpload],
+      componentMocks[ComponentType.FileUploadWithTag],
       {
         id: 'ComponentWithOptionsMock',
         type: ComponentType.Checkboxes,
