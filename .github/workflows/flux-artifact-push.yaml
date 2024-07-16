@@ -5,7 +5,7 @@ on:
     paths:
       - 'eidlogger/**'
       - '.github/workflows/flux-artifact-push.yaml'
-      - '.deploy/eid-logger/**'
+      - 'charts/eid-logger-config/**'
   workflow_dispatch:
 
 permissions:
