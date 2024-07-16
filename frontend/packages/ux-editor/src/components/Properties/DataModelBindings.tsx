@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { EditDataModelBindings } from '../config/editModal/EditDataModelBindings/EditDataModelBindings';
+import { EditDataModelBinding } from '../config/editModal/EditDataModelBinding/EditDataModelBinding';
 import { StudioProperty, StudioSpinner } from '@studio/components';
 import { Alert, Switch } from '@digdir/designsystemet-react';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
@@ -15,6 +15,7 @@ export const DataModelBindings = (): React.JSX.Element => {
   const { formItemId, formItem, handleUpdate, debounceSave } = useFormItemContext();
   const { data: schema } = useComponentSchemaQuery(formItem.type);
   const [multipleAttachments, setMultipleAttachments] = useState<boolean>(false);
+
   const t = useText();
 
   React.useEffect(() => {
@@ -87,7 +88,7 @@ export const DataModelBindings = (): React.JSX.Element => {
                 className={classes.dataModelBindings}
                 key={`${formItem.id}-data-model-${propertyKey}`}
               >
-                <EditDataModelBindings
+                <EditDataModelBinding
                   component={formItem}
                   handleComponentChange={async (updatedComponent, mutateOptions) => {
                     handleUpdate(updatedComponent);
