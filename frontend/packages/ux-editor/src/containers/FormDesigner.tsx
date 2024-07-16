@@ -9,7 +9,7 @@ import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
 import { useRuleModelQuery } from '../hooks/queries/useRuleModelQuery';
 import { ErrorPage } from '../components/ErrorPage';
-import { StudioPageSpinner, StudioResizableLayout } from '@studio/components';
+import { StudioPageSpinner, StudioResizableLayout, useLocalStorage } from '@studio/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery, useUserQuery } from 'app-shared/hooks/queries';
@@ -63,8 +63,14 @@ export const FormDesigner = (): JSX.Element => {
     selectedFormLayoutSetName,
   );
   const { handleEdit } = useFormItemContext();
-  const [previewCollapsed, setPreviewCollapsed] = useState<boolean>(true);
-  const [elementsCollapsed, setElementsCollapsed] = useState<boolean>(false);
+  const [previewCollapsed, setPreviewCollapsed] = useLocalStorage<boolean>(
+    `form-designer-main:previewCollapsed:${user.id}:${org}`,
+    false,
+  );
+  const [elementsCollapsed, setElementsCollapsed] = useLocalStorage<boolean>(
+    `form-designer-main:elementsCollapsed:${user.id}:${org}`,
+    false,
+  );
   const [hidePreview, setHidePreview] = useState<boolean>(false);
 
   const t = useText();
@@ -161,13 +167,16 @@ export const FormDesigner = (): JSX.Element => {
               >
                 <Elements
                   collapsed={elementsCollapsed}
-                  onCollapseToggle={() => setElementsCollapsed((prev) => !prev)}
+                  onCollapseToggle={() => setElementsCollapsed(!elementsCollapsed)}
                 />
               </StudioResizableLayout.Element>
-              <StudioResizableLayout.Element>
+              <StudioResizableLayout.Element minimumSize={250}>
                 <DesignView />
               </StudioResizableLayout.Element>
-              <StudioResizableLayout.Element onResizing={(resizing) => setHidePreview(resizing)}>
+              <StudioResizableLayout.Element
+                minimumSize={250}
+                onResizing={(resizing) => setHidePreview(resizing)}
+              >
                 <Properties />
               </StudioResizableLayout.Element>
               <StudioResizableLayout.Element
@@ -177,7 +186,7 @@ export const FormDesigner = (): JSX.Element => {
               >
                 <Preview
                   collapsed={previewCollapsed}
-                  onCollapseToggle={() => setPreviewCollapsed((prev) => !prev)}
+                  onCollapseToggle={() => setPreviewCollapsed(!previewCollapsed)}
                   hidePreview={hidePreview}
                 />
               </StudioResizableLayout.Element>

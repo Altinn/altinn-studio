@@ -20,7 +20,7 @@ export const StudioResizableLayoutHandle = ({
   const { resizeDelta, containerSize } = useStudioResizableLayoutContext(index);
   const { onMouseDown, isResizing } = useStudioResizableLayoutMouseMovement(
     orientation,
-    (delta, _) => {
+    (delta) => {
       resizeDelta(index, delta);
     },
   );
