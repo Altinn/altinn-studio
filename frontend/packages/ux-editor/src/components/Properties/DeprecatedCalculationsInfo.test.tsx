@@ -18,7 +18,8 @@ describe('DeprecatedCalculationsInfo', () => {
   afterEach(() => {
     delete window.ruleHandlerObject;
   });
-  it('should render alert saying that calculations is deprecated with a documentation link ', () => {
+ 
+   it('should render alert saying that calculations is deprecated with a documentation link ', () => {
     renderDeprecatedCalculationsInfo();
     const alert = screen.getByText(textMock('right_menu.rules_calculations_deprecated_info'));
     const linkToDocs = screen.getByRole('link', { name: textMock('right_menu.dynamics_link') });
