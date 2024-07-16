@@ -64,7 +64,7 @@ export const propertyTypeMatcher = (property: KeyValuePairs, propertyType: Prope
       // Currently only supporting array of strings with specified enum values
       return baseMatch && !!property.items?.enum;
     case PropertyTypes.object:
-      // Currently only supporting object with specifiec properties and no additional properties
+      // Currently only supporting object with specific properties and no additional properties
       return baseMatch && !!property.properties && !property.additionalProperties;
     default:
       return baseMatch;
@@ -192,6 +192,7 @@ const supportedPropertyRefs = supportedPropertyTypes
  * @returns A boolean indicating if the property is supported.
  */
 export const isPropertyTypeSupported = (property: KeyValuePairs) => {
+  if (property.enum) return true;
   if (property?.$ref) {
     return supportedPropertyRefs.includes(property.$ref);
   }
