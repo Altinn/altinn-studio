@@ -22,7 +22,6 @@ const mockDefinitions = {
                         $children: [
                           { $type: 'altinn:dataType', $body: 'dataType1' },
                           { $type: 'altinn:dataType', $body: 'dataType2' },
-                          { $type: 'altinn:dataType', $body: 'dataType3' },
                         ],
                       },
                     ],
@@ -47,7 +46,9 @@ jest.mock('bpmn-moddle', () => jest.fn(() => moddle));
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 
 describe('useRemoveDataTypesToSignFromSigningTasks', () => {
-  it('should call refetchBpmn and mutateBpmn with correct data', async () => {
+  afterEach(jest.clearAllMocks);
+
+  it('update the bpmn file if the deleted data types are present', async () => {
     const { result } = renderHookWithProviders(
       () => useRemoveDataTypesToSignFromSigningTasks(org, app),
       {
@@ -70,5 +71,23 @@ describe('useRemoveDataTypesToSignFromSigningTasks', () => {
     expect(moddle.toXML).toHaveBeenCalledWith(updatedDefinitions, { format: true });
 
     expect(queriesMock.updateBpmnXml).toHaveBeenCalled();
+  });
+
+  it('does not update the bpmn file if the deleted data types are not present', async () => {
+    const { result } = renderHookWithProviders(
+      () => useRemoveDataTypesToSignFromSigningTasks(org, app),
+      {
+        queries: {
+          getBpmnFile: jest.fn().mockImplementation(() => Promise.resolve(mockBPMNXML)),
+        },
+      },
+    );
+
+    await result.current(['dataType3']);
+
+    expect(moddle.fromXML).toHaveBeenCalledWith(mockBPMNXML);
+
+    expect(moddle.toXML).not.toHaveBeenCalled();
+    expect(queriesMock.updateBpmnXml).not.toHaveBeenCalled();
   });
 });
