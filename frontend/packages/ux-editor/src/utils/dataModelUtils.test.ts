@@ -166,7 +166,7 @@ describe('convertDataBindingToInternalFormat', () => {
   it('should return correct format when it has old format', () => {
     const bindingKey = 'simpleBinding';
     const internalFormat = convertDataBindingToInternalFormat(testComponent, bindingKey);
-    expect(internalFormat).toEqual({ dataType: undefined, field: '' });
+    expect(internalFormat).toEqual({ dataType: '', field: '' });
   });
 
   it('should return correct format when dataModelBindings and bindingKey is not defined', () => {
@@ -176,7 +176,7 @@ describe('convertDataBindingToInternalFormat', () => {
     };
     const bindingKey = undefined;
     const internalFormat = convertDataBindingToInternalFormat(component, bindingKey);
-    expect(internalFormat).toEqual({ dataType: undefined, field: undefined });
+    expect(internalFormat).toEqual({ dataType: '', field: undefined });
   });
 });
 
