@@ -1,14 +1,14 @@
 import React from 'react';
 import { Alert, Heading, Link } from '@digdir/designsystemet-react';
 import { ExternalLinkIcon } from '@studio/icons';
-import { useAppContext, useText } from '../../hooks';
+import { useAppContext } from '../../hooks';
 import classes from './Calculations.module.css';
 import { altinnDocsUrl, giteaEditLink } from 'app-shared/ext-urls';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { Trans } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
 export const DeprecatedConditionalRenderingInfo = () => {
-  const t = useText();
+  const { t } = useTranslation();
   const { app, org } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
   const ruleHandlerLocation = `App/ui/${selectedFormLayoutSetName}/RuleHandler.js`;

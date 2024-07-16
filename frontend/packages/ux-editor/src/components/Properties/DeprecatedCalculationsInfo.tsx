@@ -2,14 +2,15 @@ import React from 'react';
 import { Alert, Heading, Link } from '@digdir/designsystemet-react';
 import { ExternalLinkIcon } from '@studio/icons';
 import { StudioParagraph } from '@studio/components';
-import { useAppContext, useText } from '../../hooks';
+import { useAppContext } from '../../hooks';
 import classes from './Calculations.module.css';
 import { altinnDocsUrl, giteaEditLink } from 'app-shared/ext-urls';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { WindowWithRuleModel } from '@altinn/ux-editor/hooks/queries/useRuleModelQuery';
+import { useTranslation } from 'react-i18next';
 
 export const DeprecatedCalculationsInfo = () => {
-  const t = useText();
+  const { t } = useTranslation();
   const { app, org } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
   const calculationsLocation = `App/ui/${selectedFormLayoutSetName}/RuleHandler.js`;
