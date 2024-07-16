@@ -8,15 +8,15 @@ export const useValidDataModels = (currentDataModel: string) => {
   const { selectedFormLayoutSetName } = useAppContext();
   const { org, app } = useStudioEnvironmentParams();
 
-  const { data: dataModels, isPending: dataModelsIsPending } = useAppMetadataModelIdsQuery(
-    org,
-    app,
-    false,
-  );
+  const {
+    data: dataModels,
+    isPending: isPendingDataModels,
+    isRefetching: isFetchingDataModels,
+  } = useAppMetadataModelIdsQuery(org, app, false);
 
   const isDataModelValid = validateSelectedDataModel(currentDataModel, dataModels);
 
-  const { data: dataModelMetadata, isPending: dataModelMetaDataIsPending } =
+  const { data: dataModelMetadata, isPending: isPendingDataModelMetadata } =
     useDataModelMetadataQuery(
       {
         org,
@@ -24,14 +24,14 @@ export const useValidDataModels = (currentDataModel: string) => {
         layoutSetName: selectedFormLayoutSetName,
         dataModelName: isDataModelValid ? currentDataModel : '',
       },
-      { enabled: !dataModelsIsPending },
+      { enabled: !isPendingDataModels && !isFetchingDataModels },
     );
 
   return {
     dataModels,
     selectedDataModel: getDataModel(isDataModelValid, dataModelMetadata, currentDataModel),
     dataModelMetadata,
-    isLoadingDataModels: dataModelsIsPending || dataModelMetaDataIsPending,
+    isLoadingDataModels: isPendingDataModels || isPendingDataModelMetadata,
     isDataModelValid,
   };
 };
