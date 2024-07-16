@@ -1045,6 +1045,7 @@
   "schema_editor.add_reference": "Legg til referanse",
   "schema_editor.add_reference.prompt": "Oppgi navnet på typen det skal refereres til.",
   "schema_editor.add_reference.type_does_not_exist": "Typen {{reference}} eksisterer ikke.",
+  "schema_editor.add_string": "Legg til tekst",
   "schema_editor.all_of": "Alle i",
   "schema_editor.any_of": "Noen av",
   "schema_editor.array": "Liste",

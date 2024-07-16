@@ -4,7 +4,6 @@ import { DataModelPage } from '../../pages/DataModelPage';
 import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
 import { Gitea } from '../../helpers/Gitea';
-import type { TextKey } from '../../helpers/BasePage';
 
 // Before the tests starts, we need to create the data model app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
@@ -65,31 +64,31 @@ test('Allows to add a data model, include an object with properties and a combin
   await dataModelPage.clickOnTreeItemProperty(treeItemTestName);
 
   // Helper function to add a new property to the test object added
-  const addPropertyToTheObjectNode = async (propertyName: TextKey) => {
+  const addPropertyToTheObjectNode = async (property: 'string' | 'number') => {
     await dataModelPage.focusOnTreeItemProperty(treeItemTestName);
     await dataModelPage.clickOnObjectAddPropertyButton();
-    await dataModelPage.clickOnAddPropertyToObjectButton(propertyName);
+    await dataModelPage.clickOnAddPropertyToObjectButton(property);
   };
 
   // Add 'text' property to the object
-  await addPropertyToTheObjectNode('schema_editor.add_string');
+  await addPropertyToTheObjectNode('string');
   await replaceName0WithNewTextValue('text1');
-  expect(await dataModelPage.isTypeComboboxVisible()).toBeFalsy();
+  await dataModelPage.checkThatTypeComboboxIsHidden();
 
   // Add 'number' property to the object
-  await addPropertyToTheObjectNode('schema_editor.add_number');
+  await addPropertyToTheObjectNode('number');
   await dataModelPage.checkThatTreeItemPropertyExistsOnScreen(name0);
   await dataModelPage.clickOnTreeItemProperty(name0);
   await replaceName0WithNewTextValue('number1');
-  expect(await dataModelPage.isTypeComboboxVisible()).toBeFalsy();
+  await dataModelPage.checkThatTypeComboboxIsHidden();
 
   // Add 'combo' combination property to the object
   await dataModelPage.clickOnAddPropertyButton();
   await dataModelPage.clickOnCombinationPropertyMenuItem();
-  expect(await dataModelPage.isTypeComboboxVisible()).toBeTruthy();
+  await dataModelPage.checkThatTypeComboboxVisible();
   await dataModelPage.clickOnTypeCombobox();
   const typeValue = await dataModelPage.getTypeComboboxValue();
-  expect(typeValue).toEqual('any_of');
+  await dataModelPage.checkThatCorrectValueIsSelected(typeValue);
 
   // Generate the data model
   await dataModelPage.clickOnGenerateDataModelButton();

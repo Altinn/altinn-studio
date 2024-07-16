@@ -1,4 +1,4 @@
-import { BasePage, type TextKey } from '../helpers/BasePage';
+import { BasePage } from '../helpers/BasePage';
 import type { Locator, Page } from '@playwright/test';
 import type { Environment } from '../helpers/StudioEnvironment';
 import path from 'path';
@@ -85,16 +85,12 @@ export class DataModelPage extends BasePage {
     await this.page.getByRole('treeitem', { name }).focus();
   }
 
-  public async clickOnAddPropertyToObjectButton(propertyName: TextKey): Promise<void> {
+  public async clickOnAddPropertyToObjectButton(property: 'string' | 'number'): Promise<void> {
     await this.page
       .getByRole('menuitem', {
-        name: this.textMock(propertyName),
+        name: this.textMock(`schema_editor.add_${property}`),
       })
       .click();
-  }
-
-  public async isTypeComboboxVisible(): Promise<boolean> {
-    return this.getTypeCombobox().isVisible();
   }
 
   public async clickOnTypeCombobox(): Promise<void> {
@@ -109,6 +105,19 @@ export class DataModelPage extends BasePage {
     await this.page
       .getByRole('button', { name: this.textMock('schema_editor.generate_model_files') })
       .click();
+  }
+
+  public async checkThatTypeComboboxIsHidden(): Promise<void> {
+    const typeCombobox = this.getTypeCombobox();
+    return await expect(typeCombobox).toBeHidden();
+  }
+
+  public async checkThatTypeComboboxVisible(): Promise<boolean> {
+    return this.getTypeCombobox().isVisible();
+  }
+
+  public async checkThatCorrectValueIsSelected(value: string): Promise<void> {
+    return expect(value).toEqual(this.textMock('schema_editor.any_of'));
   }
 
   public async checkThatSuccessAlertIsVisibleOnScreen(): Promise<void> {
