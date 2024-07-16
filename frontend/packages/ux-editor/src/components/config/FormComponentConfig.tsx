@@ -14,6 +14,7 @@ import { EditGrid } from './editModal/EditGrid';
 import type { FormItem } from '../../types/FormItem';
 import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
 import { useComponentPropertyDescription } from '../../hooks/useComponentPropertyDescription';
+import classes from './FormComponentConfig.module.css';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -196,7 +197,7 @@ export const FormComponentConfig = ({
       {/** Object properties */}
       {objectPropertyKeys.map((propertyKey) => {
         return (
-          <Card key={propertyKey}>
+          <Card key={propertyKey} className={classes.objectPropertyContainer}>
             <Heading level={3} size='xxsmall'>
               {componentPropertyLabel(propertyKey)}
             </Heading>
