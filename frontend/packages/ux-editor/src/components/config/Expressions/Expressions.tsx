@@ -67,7 +67,7 @@ const ReadMoreLink = () => {
 };
 
 const Placeholder = ({ componentName }: { componentName: string }) => (
-  <Paragraph size='small'>
+  <Paragraph size='small' className={classes.placeHolder}>
     <Trans
       i18nKey={'right_menu.expressions_property_on_component'}
       values={{ componentName }}
