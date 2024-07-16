@@ -12,25 +12,25 @@ const removeDataTypesToSignFromSigningTasks = async (
 
   const { rootElement: definitions } = await moddle.fromXML(bpmnXml);
 
-  definitions.rootElements[0].flowElements.forEach((flowElement) => {
-    if (flowElement.$type !== 'bpmn:Task') return;
-
-    flowElement.extensionElements.values[0].$children.forEach((child) => {
-      if (child.$type === 'altinn:signatureConfig') {
-        child.$children?.forEach((subChild) => {
-          if (subChild.$type === 'altinn:dataTypesToSign') {
-            const filteredChildren = subChild.$children?.filter(
-              (item) => !dataTypeIds.includes(item.$body),
-            );
-            if (filteredChildren.length !== subChild.$children.length) {
-              hasChanged = true;
-              subChild.$children = filteredChildren;
-            }
-          }
+  definitions.rootElements[0].flowElements
+    .filter((flowElement) => flowElement.$type !== 'bpmn:Task')
+    .forEach((flowElement) => {
+      flowElement.extensionElements.values[0].$children
+        .filter((child) => child.$type === 'altinn:signatureConfig')
+        .forEach((child) => {
+          child.$children
+            ?.filter((subChild) => subChild.$type === 'altinn:dataTypesToSign')
+            .forEach((subChild) => {
+              const filteredChildren = subChild.$children?.filter(
+                (item) => !dataTypeIds.includes(item.$body),
+              );
+              if (filteredChildren.length !== subChild.$children.length) {
+                hasChanged = true;
+                subChild.$children = filteredChildren;
+              }
+            });
         });
-      }
     });
-  });
 
   if (hasChanged) {
     const { xml } = await moddle.toXML(definitions, { format: true });
