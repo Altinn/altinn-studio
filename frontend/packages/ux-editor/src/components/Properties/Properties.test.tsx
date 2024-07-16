@@ -239,7 +239,9 @@ describe('Properties', () => {
     expect(screen.getByTestId(DataModelBindingsTestId)).toBeInTheDocument();
     expect(screen.getByTestId(editFormComponentTestId)).toBeInTheDocument();
     expect(screen.getByTestId(expressionsTestId)).toBeInTheDocument();
-    expect(screen.getByTestId(calculationsTestId)).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('right_menu.rules_calculations_deprecated_info_title')),
+    ).toBeInTheDocument();
   });
 });
 

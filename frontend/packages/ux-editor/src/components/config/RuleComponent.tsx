@@ -9,6 +9,9 @@ import type { RuleConnection, RuleConnections } from 'app-shared/types/RuleConfi
 import type i18next from 'i18next';
 import { Buldings2Icon } from '@studio/icons';
 
+/**
+ * @deprecated This component is deprecated and will be removed in a future release.
+ */
 export interface IRuleComponentProps {
   connectionId?: string;
   cancelEdit: () => void;

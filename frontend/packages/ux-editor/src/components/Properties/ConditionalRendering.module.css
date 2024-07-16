@@ -9,9 +9,5 @@
   display: flex;
   flex-direction: row;
   gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.dynamicsVersionCheckBox {
-  z-index: 1;
+  margin-bottom: var(--fds-spacing-2);
 }
