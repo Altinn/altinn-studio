@@ -4,14 +4,23 @@ import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldEleme
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
+type UseDataModelMetadataQuery = {
+  org: string;
+  app: string;
+  layoutSetName: string;
+  dataModelName?: string;
+};
+
+type QueryOptions = {
+  enabled?: boolean;
+};
+
 export const useDataModelMetadataQuery = (
-  org: string,
-  app: string,
-  layoutSetName: string,
-  dataModelName: string,
-  enabled?: boolean,
+  { org, app, layoutSetName, dataModelName }: UseDataModelMetadataQuery,
+  options: QueryOptions = {},
 ): UseQueryResult<DataModelFieldElement[]> => {
   const { getDataModelMetadata } = useServicesContext();
+
   return useQuery<DataModelFieldElement[]>({
     queryKey: [QueryKey.DataModelMetadata, org, app, layoutSetName, dataModelName],
     queryFn: () =>
@@ -25,6 +34,6 @@ export const useDataModelMetadataQuery = (
         });
         return dataModelFields;
       }),
-    enabled,
+    ...options,
   });
 };

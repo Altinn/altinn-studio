@@ -18,11 +18,13 @@ export const useValidDataModels = (currentDataModel: string) => {
 
   const { data: dataModelMetadata, isPending: dataModelMetaDataIsPending } =
     useDataModelMetadataQuery(
-      org,
-      app,
-      selectedFormLayoutSetName,
-      isDataModelValid ? currentDataModel : undefined,
-      !dataModelsIsPending,
+      {
+        org,
+        app,
+        layoutSetName: selectedFormLayoutSetName,
+        dataModelName: isDataModelValid ? currentDataModel : '',
+      },
+      { enabled: !dataModelsIsPending },
     );
 
   return {
