@@ -104,7 +104,7 @@ describe('useDeleteFormContainerMutation', () => {
     );
   });
 
-  it('Should remove deleted data types from signing tasks', async () => {
+  it('Should remove FileUpload and FileUploadWithTag data types from signing tasks', async () => {
     const { result } = await renderDeleteFormContainerMutation({
       queries: {
         getBpmnFile: jest.fn().mockImplementation(() => Promise.resolve(mockBPMNXML)),
