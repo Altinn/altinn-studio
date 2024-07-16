@@ -18,7 +18,6 @@ import type { FormLayoutsResponse } from 'app-shared/types/api';
 import { app, org } from '@studio/testing/testids';
 import { componentMocks } from '../../testing/componentMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { getDataTypesToSignMock } from '../../testing/bpmnDefinitionsMock';
 
 // Test data:
