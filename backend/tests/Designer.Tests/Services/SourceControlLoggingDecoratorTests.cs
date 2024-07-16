@@ -560,6 +560,11 @@ namespace Designer.Tests.Services
             throw new NotImplementedException();
         }
 
+        public Dictionary<string, string> GetChangedContent(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<bool> Push(string org, string repository)
         {
             throw new NotImplementedException();

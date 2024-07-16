@@ -255,12 +255,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return repoContent;
         }
 
-        /// <summary>
-        /// Gives the complete repository status
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The name of repository</param>
-        /// <returns>The repository status</returns>
+        /// <inheritdoc/>
         public RepoStatus RepositoryStatus(string org, string repository)
         {
             RepoStatus repoStatus = new();
@@ -292,6 +287,32 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return repoStatus;
+        }
+
+        /// <inheritdoc/>
+        public Dictionary<string, string> GetChangedContent(string org, string repository)
+        {
+            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            Dictionary<string, string> fileDiffs = new Dictionary<string, string>();
+            using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
+            {
+                var branch = repo.Head;
+                var commit = branch.Tip;
+                var parentCommit = commit.Parents.FirstOrDefault();
+                if (parentCommit == null)
+                {
+                    return fileDiffs;
+                }
+
+                var changes = repo.Diff.Compare<TreeChanges>(parentCommit.Tree, DiffTargets.WorkingDirectory);
+                foreach (var change in changes.Where(change => change.Status is ChangeKind.Modified or ChangeKind.Added))
+                {
+                    Patch patch = repo.Diff.Compare<Patch>(parentCommit.Tree, DiffTargets.WorkingDirectory, new[] { change.Path });
+                    fileDiffs[change.Path] = patch.Content;
+                }
+
+                return fileDiffs;
+            }
         }
 
         /// <summary>

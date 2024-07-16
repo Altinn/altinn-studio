@@ -223,6 +223,30 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// This method returns the git diff between the local WIP commit and the latest remote commit on main for a given repository
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The repository</param>
+        /// <returns>A dictionary of modified or new files and the git diff</returns>
+        [HttpGet]
+        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/diff")]
+        public Dictionary<string, string> RepoDiff(string org, string repository)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
+            semaphore.Wait();
+            try
+            {
+                _sourceControl.FetchRemoteChanges(org, repository);
+                return _sourceControl.GetChangedContent(org, repository);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
+
+        /// <summary>
         /// Pull remote changes for a given repo
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>

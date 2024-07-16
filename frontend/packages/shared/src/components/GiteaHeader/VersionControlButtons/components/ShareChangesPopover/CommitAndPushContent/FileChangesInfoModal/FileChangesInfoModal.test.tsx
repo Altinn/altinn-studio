@@ -4,12 +4,24 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { FileChangesInfoModalProps } from './FileChangesInfoModal';
 import { FileChangesInfoModal } from './FileChangesInfoModal';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import {
+  type ServicesContextProps,
+  ServicesContextProvider,
+} from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const fileNameMock = 'fileName.json';
 const filePathWithoutNameMock = 'mock/file/path/to';
 const filePathMock = `${filePathWithoutNameMock}/${fileNameMock}`;
 const fileStatusMock = 'ModifiedInWorkdir';
-
+const someDiffContent = '@@ -2,6 +2,30 @@\n- old line\n+ new line';
+const repoDiffMock = {
+  'mock/file/path/to/fileName.json': someDiffContent,
+  'mock/file/path/to/addedFile.json': someDiffContent,
+  'mock/file/path/to/deletedFile.json': someDiffContent,
+};
+const mockGetRepoDiff = jest.fn();
 const mockOnClose = jest.fn();
 const defaultProps: FileChangesInfoModalProps = {
   isOpen: true,
@@ -78,8 +90,59 @@ describe('FileChangesInfoModal', () => {
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
+
+  it('should render filePath as clickable when fileStatus is ModifiedInWorkdir or NewInWorkdir, but not DeletedFromWorkdir', async () => {
+    const user = userEvent.setup();
+    const addedFilePath = `${filePathWithoutNameMock}/addedFile.json`;
+    const deletedFilePath = `${filePathWithoutNameMock}/deletedFile.json`;
+    const displayedDiffContent = '+ new line';
+    renderFileChangesInfoModal({
+      ...defaultProps,
+      fileChanges: [
+        {
+          filePath: filePathMock,
+          fileStatus: fileStatusMock,
+        },
+        {
+          filePath: addedFilePath,
+          fileStatus: 'NewInWorkdir',
+        },
+        {
+          filePath: deletedFilePath,
+          fileStatus: 'DeletedFromWorkdir',
+        },
+      ],
+    });
+    const modifiedFilePathElement = screen.getByTitle(filePathMock);
+    await user.click(modifiedFilePathElement);
+    const diffContent = screen.getByText(displayedDiffContent);
+    expect(diffContent).toBeInTheDocument();
+    await user.click(modifiedFilePathElement); // Remove displayedDiffContent
+
+    const addedFilePathElement = screen.getByTitle(addedFilePath);
+    await user.click(addedFilePathElement);
+    const diffContent2 = screen.getByText(displayedDiffContent);
+    expect(diffContent2).toBeInTheDocument();
+    await user.click(addedFilePathElement); // Remove displayedDiffContent
+
+    const deletedFilePathElement = screen.getByTitle(deletedFilePath);
+    await user.click(deletedFilePathElement);
+    const diffContent3 = screen.queryByText(displayedDiffContent);
+    expect(diffContent3).not.toBeInTheDocument();
+
+    expect(mockGetRepoDiff).toHaveBeenCalledTimes(1);
+  });
 });
 
-const renderFileChangesInfoModal = () => {
-  return render(<FileChangesInfoModal {...defaultProps} />);
+const renderFileChangesInfoModal = (props: FileChangesInfoModalProps = defaultProps) => {
+  const getRepoDiff = mockGetRepoDiff.mockImplementation(() => Promise.resolve(repoDiffMock));
+  const allQueries: ServicesContextProps = {
+    ...queriesMock,
+    getRepoDiff,
+  };
+  return render(
+    <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
+      <FileChangesInfoModal {...props} />
+    </ServicesContextProvider>,
+  );
 };

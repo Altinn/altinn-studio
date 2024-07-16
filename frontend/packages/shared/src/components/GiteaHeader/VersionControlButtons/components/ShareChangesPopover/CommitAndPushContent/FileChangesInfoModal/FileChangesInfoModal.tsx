@@ -5,6 +5,7 @@ import { Heading, Table, Tag } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './FileChangesInfoModal.module.css';
 import { ClockDashedIcon } from '@studio/icons';
+import { FilePath } from './FilePath/FilePath';
 
 export interface FileChangesInfoModalProps {
   isOpen: boolean;
@@ -33,18 +34,6 @@ export const FileChangesInfoModal = ({
         <Heading level={1} size='small'>
           {t('sync_header.show_changes_modal.title')}
         </Heading>
-      </div>
-    );
-  };
-
-  const renderFilePath = (filePath: string): React.ReactElement => {
-    const fileName = filePath.split('/').pop() || '';
-    const filePathWithoutName = filePath.slice(0, filePath.lastIndexOf('/' + fileName));
-    return (
-      <div className={classes.filePathContainer} title={filePath}>
-        <div className={classes.filePath}>{filePathWithoutName}</div>
-        {'/'}
-        <strong>{fileName}</strong>
       </div>
     );
   };
@@ -82,10 +71,17 @@ export const FileChangesInfoModal = ({
           </Table.Head>
           <Table.Body>
             {fileChanges.map((fileChange) => {
+              const enableFileDiff =
+                fileChange.fileStatus === 'ModifiedInWorkdir' ||
+                fileChange.fileStatus === 'NewInWorkdir';
               return (
                 <Table.Row key={fileChange.filePath}>
-                  <Table.Cell>{renderFilePath(fileChange.filePath)}</Table.Cell>
-                  <Table.Cell>{renderFileStatusTag(fileChange.fileStatus)}</Table.Cell>
+                  <Table.Cell className={classes.filePath}>
+                    <FilePath enableFileDiff={enableFileDiff} filePath={fileChange.filePath} />
+                  </Table.Cell>
+                  <Table.Cell className={classes.fileStatus}>
+                    {renderFileStatusTag(fileChange.fileStatus)}
+                  </Table.Cell>
                 </Table.Row>
               );
             })}

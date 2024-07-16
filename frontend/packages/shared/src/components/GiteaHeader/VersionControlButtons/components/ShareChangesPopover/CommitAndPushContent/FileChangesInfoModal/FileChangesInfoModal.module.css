@@ -15,13 +15,12 @@
   width: 50vw;
 }
 
-.filePathContainer {
-  display: grid;
-  grid-template-columns: auto auto 1fr;
+.filePath {
+  padding: var(--fds-spacing-3);
 }
 
-.filePath {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.fileStatus {
+  align-content: flex-start;
+  min-width: 5vw;
+  width: 5vw;
 }
