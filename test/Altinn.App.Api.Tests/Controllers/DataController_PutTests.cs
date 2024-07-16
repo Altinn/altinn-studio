@@ -33,7 +33,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         string app = "contributer-restriction";
         int instanceOwnerPartyId = 501337;
         HttpClient client = GetRootedClient(org, app);
-        string token = PrincipalUtil.GetToken(1337, null);
+        string token = PrincipalUtil.GetToken(1337, null, org: "abc");
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         // Create instance
@@ -137,7 +137,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         string app = "contributer-restriction";
         int instanceOwnerPartyId = 501337;
         HttpClient client = GetRootedClient(org, app);
-        string token = PrincipalUtil.GetToken(1337, null);
+        string token = PrincipalUtil.GetToken(1337, null, org: "abc");
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         // Create instance

@@ -39,7 +39,8 @@
       "EnableFileScan": false,
       "ValidationErrorOnPendingFileScan": false,
       "EnabledFileAnalysers": [],
-      "EnabledFileValidators": []
+      "EnabledFileValidators": [],
+      "AllowedKeysForUserDefinedMetadata": null
     },
     {
       "Id": "ref-data-as-pdf",
@@ -58,7 +59,8 @@
       "EnableFileScan": false,
       "ValidationErrorOnPendingFileScan": false,
       "EnabledFileAnalysers": [],
-      "EnabledFileValidators": []
+      "EnabledFileValidators": [],
+      "AllowedKeysForUserDefinedMetadata": null
     }
   ],
   "PartyTypesAllowed": {
@@ -73,6 +75,7 @@
   "EFormidling": null,
   "MessageBoxConfig": null,
   "CopyInstanceSettings": null,
+  "DisallowUserInstantiation": false,
   "Created": "2019-09-16T22:22:22",
   "CreatedBy": "username",
   "LastChanged": null,
