@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { NameError } from '../../types';
-import type { TextfieldProps } from '@digdir/design-system-react';
+import type { TextfieldProps } from '@digdir/designsystemet-react';
 import { StudioTextfield } from '@studio/components';
 import { extractNameFromPointer, replaceLastPointerSegment } from '@altinn/schema-model';
 import { isValidName } from '../../utils/ui-schema-utils';

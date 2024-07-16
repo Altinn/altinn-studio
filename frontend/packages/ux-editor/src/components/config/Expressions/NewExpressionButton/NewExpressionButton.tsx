@@ -1,5 +1,4 @@
 import React from 'react';
-import { DropdownMenu } from '@digdir/design-system-react';
 import { PlusIcon } from '@studio/icons';
 import { useText } from '../../../../hooks';
 import { StudioDropdownMenu } from '@studio/components';
@@ -48,7 +47,7 @@ const MenuItem = ({ property }: { property: FormItemProperty }) => {
     await debounceSave(); // Todo: handleSave does not work here. Will probably be fixed by https://github.com/Altinn/altinn-studio/issues/12383.
   };
 
-  return <DropdownMenu.Item onClick={handleAddExpression}>{text}</DropdownMenu.Item>;
+  return <StudioDropdownMenu.Item onClick={handleAddExpression}>{text}</StudioDropdownMenu.Item>;
 };
 
 const useAddExpressionText = (property: FormItemProperty) => {

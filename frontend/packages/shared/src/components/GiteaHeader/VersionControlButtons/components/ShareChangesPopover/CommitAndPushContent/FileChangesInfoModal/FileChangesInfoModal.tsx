@@ -1,7 +1,7 @@
 import React from 'react';
 import type { FileStatus, RepoContentStatus } from 'app-shared/types/RepoStatus';
 import { StudioModal } from '@studio/components';
-import { Heading, Table, Tag } from '@digdir/design-system-react';
+import { Heading, Table, Tag } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './FileChangesInfoModal.module.css';
 import { ClockDashedIcon } from '@studio/icons';

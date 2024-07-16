@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import React from 'react';
-import { Alert, Paragraph } from '@digdir/design-system-react';
+import { Alert, Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { StudioCenter } from '@studio/components';
 

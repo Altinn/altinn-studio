@@ -16,20 +16,44 @@ import { getSavedModel } from '../../../test/test-utils';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { typeItemId } from '@studio/testing/testids';
 import { uiSchemaNodesMock } from '../../../test/mocks/uiSchemaMock';
+import { organization } from 'app-shared/mocks/mocks';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { MockServicesContextWrapper } from 'dashboard/dashboardTestUtils';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 const user = userEvent.setup();
 
 // Mocks:
 const save = jest.fn();
 
-const renderEditor = (data: Partial<RenderWithProvidersData> = {}) => {
+const renderEditor = (
+  data: Partial<RenderWithProvidersData> = {},
+  services?: Partial<ServicesContextProps>,
+) => {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData(
+    [QueryKey.Organizations],
+    [
+      {
+        ...organization,
+        username: 'ttd',
+      },
+    ],
+  );
+  queryClient.setQueryData([QueryKey.CurrentUser], user);
+
   return renderWithProviders({
     appContextProps: {
       schemaModel: SchemaModel.fromArray(uiSchemaNodesMock).deepClone(),
       save,
       ...data.appContextProps,
     },
-  })(<SchemaEditor />);
+  })(
+    <MockServicesContextWrapper customServices={services} client={queryClient}>
+      <SchemaEditor />
+    </MockServicesContextWrapper>,
+  );
 };
 
 const clickMenuItem = async (name: string) => {

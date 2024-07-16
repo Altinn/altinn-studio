@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAddProperty } from '../../../../hooks/useAddProperty';
 import { FieldType, ObjectKind } from '@altinn/schema-model';
 import { ActionButton } from './ActionButton';
-import { DropdownMenu } from '@digdir/design-system-react';
+import { DropdownMenu } from '@digdir/designsystemet-react';
 import {
   CombinationIcon,
   ReferenceIcon,

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './DeployDropdown.module.css';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { StudioButton, StudioSpinner } from '@studio/components';
-import { Alert, Combobox, Spinner } from '@digdir/design-system-react';
+import { Alert, Combobox, Spinner } from '@digdir/designsystemet-react';
 import type { ImageOption } from './ImageOption';
 import { useTranslation } from 'react-i18next';
 import { useAppReleasesQuery } from 'app-development/hooks/queries';

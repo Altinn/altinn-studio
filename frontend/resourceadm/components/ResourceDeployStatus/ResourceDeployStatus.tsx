@@ -4,7 +4,7 @@ import classes from './ResourceDeployStatus.module.css';
 import { ArrowRightIcon } from '@studio/icons';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import type { DeployError } from '../../types/DeployError';
-import { Alert, Paragraph } from '@digdir/design-system-react';
+import { Alert, Paragraph } from '@digdir/designsystemet-react';
 import { LinkButton } from '../LinkButton';
 import { StudioLabelAsParagraph } from '@studio/components';
 

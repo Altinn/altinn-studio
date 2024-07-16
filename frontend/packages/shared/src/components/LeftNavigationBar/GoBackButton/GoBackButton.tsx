@@ -3,7 +3,7 @@ import React from 'react';
 import classes from './GoBackButton.module.css';
 import cn from 'classnames';
 import { ArrowLeftIcon } from '@studio/icons';
-import { Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import { NavLink } from 'react-router-dom';
 
 export type GoBackButtonProps = {

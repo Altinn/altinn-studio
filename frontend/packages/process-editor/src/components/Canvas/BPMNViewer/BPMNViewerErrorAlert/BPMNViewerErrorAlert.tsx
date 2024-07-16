@@ -3,7 +3,7 @@ import React from 'react';
 import classes from './BPMNViewerErrorAlert.module.css';
 import type { BpmnViewerError } from '../../../../types/BpmnViewerError';
 import { useTranslation } from 'react-i18next';
-import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
+import { Alert, Heading, Paragraph } from '@digdir/designsystemet-react';
 
 interface ErrorMessage {
   heading: string;

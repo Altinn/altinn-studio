@@ -3,7 +3,7 @@ import React from 'react';
 import classes from './Tab.module.css';
 import cn from 'classnames';
 import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
-import { Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { TabContent } from './TabContent';
 

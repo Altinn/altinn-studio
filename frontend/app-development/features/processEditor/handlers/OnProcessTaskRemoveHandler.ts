@@ -124,5 +124,49 @@ export class OnProcessTaskRemoveHandler {
         layoutSetIdToUpdate: layoutSetId,
       });
     }
+
+    this.removeDeletedSignatureTypeFromTasks(taskMetadata, studioModeler);
+  }
+
+  /**
+   * Removes the deleted signature type from the tasks that are connected to the signature type
+   * @param deletedSigningTask
+   * @param studioModeler
+   * @private
+   */
+  private removeDeletedSignatureTypeFromTasks(
+    deletedSigningTask: OnProcessTaskEvent,
+    studioModeler: StudioModeler,
+  ): void {
+    const signatureDataType =
+      deletedSigningTask.taskEvent.element.businessObject.extensionElements.values[0]
+        .signatureConfig.signatureDataType;
+
+    const tasks = studioModeler.getAllTasksByType('bpmn:Task');
+    const signingTasksToUpdate = tasks.filter(
+      ({
+        businessObject: {
+          extensionElements: { values },
+        },
+      }) => {
+        const { taskType, signatureConfig } = values[0];
+        return (
+          taskType === 'signing' &&
+          signatureConfig?.uniqueFromSignaturesInDataTypes?.dataTypes?.some(
+            ({ dataType }) => dataType === signatureDataType,
+          )
+        );
+      },
+    );
+
+    signingTasksToUpdate.forEach((element) => {
+      const uniqueFromSignaturesInDataTypes =
+        element.businessObject.extensionElements.values[0].signatureConfig
+          .uniqueFromSignaturesInDataTypes;
+
+      uniqueFromSignaturesInDataTypes.dataTypes = uniqueFromSignaturesInDataTypes.dataTypes.filter(
+        (dataType) => dataType.dataType !== signatureDataType,
+      );
+    });
   }
 }

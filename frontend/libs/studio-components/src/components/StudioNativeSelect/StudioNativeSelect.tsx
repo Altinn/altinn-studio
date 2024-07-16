@@ -5,7 +5,7 @@ import {
   Paragraph,
   NativeSelect,
   type NativeSelectProps,
-} from '@digdir/design-system-react';
+} from '@digdir/designsystemet-react';
 
 export type StudioNativeSelectProps = {
   description?: string;

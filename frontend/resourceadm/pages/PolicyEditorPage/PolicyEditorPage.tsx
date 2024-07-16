@@ -6,7 +6,7 @@ import {
   mergeSubjectsFromPolicyWithSubjectOptions,
 } from '@altinn/policy-editor';
 import type { Policy } from '@altinn/policy-editor';
-import { Spinner, Heading } from '@digdir/design-system-react';
+import { Spinner, Heading } from '@digdir/designsystemet-react';
 import { useResourcePolicyQuery } from '../../hooks/queries';
 import { useEditResourcePolicyMutation } from '../../hooks/mutations';
 import { useTranslation } from 'react-i18next';

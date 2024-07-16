@@ -1,7 +1,7 @@
 import React, { forwardRef, type HTMLAttributes } from 'react';
 import { PadlockLockedFillIcon } from '@studio/icons';
 import cn from 'classnames';
-import { Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import classes from './StudioDisplayTile.module.css';
 
 export type StudioDisplayTileProps = {

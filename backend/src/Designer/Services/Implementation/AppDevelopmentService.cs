@@ -286,7 +286,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         /// <inheritdoc />
         public async Task<LayoutSets> AddLayoutSet(AltinnRepoEditingContext altinnRepoEditingContext,
-            LayoutSetConfig newLayoutSet, CancellationToken cancellationToken = default)
+            LayoutSetConfig newLayoutSet, bool layoutIsInitialForPaymentTask = false, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             AltinnAppGitRepository altinnAppGitRepository =
@@ -310,7 +310,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 throw new NonUniqueTaskForLayoutSetException($"Layout set with task, {newLayoutSet.Tasks[0]}, already exists.");
             }
 
-            return await AddNewLayoutSet(altinnAppGitRepository, layoutSets, newLayoutSet);
+            return await AddNewLayoutSet(altinnAppGitRepository, layoutSets, newLayoutSet, layoutIsInitialForPaymentTask);
         }
 
         /// <inheritdoc />
@@ -376,15 +376,34 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return layoutSets;
         }
 
-        private static async Task<LayoutSets> AddNewLayoutSet(AltinnAppGitRepository altinnAppGitRepository, LayoutSets layoutSets, LayoutSetConfig layoutSet)
+        private static async Task<LayoutSets> AddNewLayoutSet(AltinnAppGitRepository altinnAppGitRepository, LayoutSets layoutSets, LayoutSetConfig layoutSet, bool layoutIsInitialForPaymentTask = false)
         {
             layoutSets.Sets.Add(layoutSet);
+            if (layoutIsInitialForPaymentTask)
+            {
+                AddPaymentComponentToInitialLayoutForPaymentTask(altinnAppGitRepository.InitialLayout);
+            }
             await altinnAppGitRepository.SaveLayout(layoutSet.Id, AltinnAppGitRepository.InitialLayoutFileName,
                 altinnAppGitRepository.InitialLayout);
             await altinnAppGitRepository.SaveLayoutSettings(layoutSet.Id,
                 altinnAppGitRepository.InitialLayoutSettings);
             await altinnAppGitRepository.SaveLayoutSets(layoutSets);
             return layoutSets;
+        }
+
+        private static void AddPaymentComponentToInitialLayoutForPaymentTask(JsonNode layout)
+        {
+            var layoutArray = layout["data"]["layout"] as JsonArray;
+            if (layoutArray != null)
+            {
+                var defaultComponent = new JsonObject
+                {
+                    ["id"] = "PaymentComponentId",
+                    ["type"] = TaskType.Payment,
+                    ["renderAsSummary"] = true
+                };
+                layoutArray.Add(defaultComponent);
+            }
         }
 
         private async Task<LayoutSets> UpdateLayoutSetName(AltinnAppGitRepository altinnAppGitRepository, LayoutSets layoutSets, string oldLayoutSetName, string newLayoutSetName)

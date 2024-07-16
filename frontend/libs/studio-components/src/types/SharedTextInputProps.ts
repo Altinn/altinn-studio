@@ -1,5 +1,5 @@
 import type { HTMLAttributes, ReactNode } from 'react';
-import type { TextareaProps, TextfieldProps } from '@digdir/design-system-react';
+import type { TextareaProps, TextfieldProps } from '@digdir/designsystemet-react';
 
 export type SharedTextInputProps<E extends HTMLTextAreaElement | HTMLInputElement> =
   HTMLAttributes<E> & DesignSystemProps<E> & AdditionalProps;
