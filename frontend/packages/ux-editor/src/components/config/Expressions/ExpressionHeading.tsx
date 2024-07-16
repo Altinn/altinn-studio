@@ -3,6 +3,7 @@ import type { FormItemProperty } from '../../../types/FormItemProperty';
 import React from 'react';
 import type { TranslationKey } from '@altinn-studio/language/type';
 import { Trans } from 'react-i18next';
+import classes from './ExpressionHeading.module.css';
 
 export type ExpressionHeadingProps = {
   formItem: FormItem;
@@ -13,7 +14,10 @@ export const ExpressionHeading = ({ formItem, property }: ExpressionHeadingProps
   <Trans
     i18nKey={makeTextKeyFromProperty(property)}
     values={{ componentName: formItem.id }}
-    components={{ bold: <strong /> }}
+    components={{
+      componentName: <span className={classes.componentName} />,
+      textElement: <span className={classes.textElement} />,
+    }}
   />
 );
 

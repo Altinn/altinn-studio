@@ -1,11 +1,20 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAddProperty } from '../../../../hooks/useAddProperty';
-import { ObjectKind } from '@altinn/schema-model';
+import { FieldType, ObjectKind } from '@altinn/schema-model';
 import { ActionButton } from './ActionButton';
 import { DropdownMenu } from '@digdir/designsystemet-react';
-import { CombinationIcon, PropertyIcon, ReferenceIcon, PlusIcon } from '@studio/icons';
+import {
+  CombinationIcon,
+  ReferenceIcon,
+  PlusIcon,
+  ObjectIcon,
+  StringIcon,
+  BooleanIcon,
+  NumberIcon,
+} from '@studio/icons';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
+import type { IconProps } from '@studio/icons';
 
 interface AddPropertyMenuProps {
   pointer: string;
@@ -17,12 +26,8 @@ export const AddPropertyMenu = ({ pointer }: AddPropertyMenuProps) => {
   const [isAddDropdownOpen, setIsAddDropdownOpen] = useState(false);
   const addProperty = useAddProperty();
 
-  const addField = () => addPropertyAndClose(ObjectKind.Field);
-  const addCombination = () => addPropertyAndClose(ObjectKind.Combination);
-  const addReference = () => addPropertyAndClose(ObjectKind.Reference);
-
-  const addPropertyAndClose = (kind: ObjectKind) => {
-    const childPointer = addProperty(kind, undefined, pointer);
+  const addPropertyAndClose = (kind: ObjectKind, fieldType?: FieldType) => {
+    const childPointer = addProperty(kind, fieldType, pointer);
     setSelectedNodePointer(childPointer);
     closeDropdown();
   };
@@ -42,20 +47,33 @@ export const AddPropertyMenu = ({ pointer }: AddPropertyMenuProps) => {
       </DropdownMenu.Trigger>
       <DropdownMenu.Content>
         <DropdownMenu.Group>
-          <DropdownMenu.Item onClick={addField}>
-            <PropertyIcon />
-            {t('schema_editor.add_field')}
-          </DropdownMenu.Item>
-          <DropdownMenu.Item onClick={addCombination}>
-            <CombinationIcon />
-            {t('schema_editor.add_combination')}
-          </DropdownMenu.Item>
-          <DropdownMenu.Item onClick={addReference}>
-            <ReferenceIcon />
-            {t('schema_editor.add_reference')}
-          </DropdownMenu.Item>
+          {propertyItems.map(({ kind, fieldType, icon: Icon }) => (
+            <DropdownMenu.Item
+              key={`${kind}-${fieldType}`}
+              onClick={() => addPropertyAndClose(kind, fieldType)}
+            >
+              <Icon />
+              {t(`schema_editor.add_${fieldType || kind}`)}
+            </DropdownMenu.Item>
+          ))}
         </DropdownMenu.Group>
       </DropdownMenu.Content>
     </DropdownMenu>
   );
 };
+
+type PropertyItems = {
+  kind: ObjectKind;
+  fieldType?: FieldType;
+  icon: (IconProps: IconProps) => JSX.Element;
+};
+
+const propertyItems: PropertyItems[] = [
+  { kind: ObjectKind.Field, fieldType: FieldType.Object, icon: ObjectIcon },
+  { kind: ObjectKind.Field, fieldType: FieldType.String, icon: StringIcon },
+  { kind: ObjectKind.Field, fieldType: FieldType.Integer, icon: NumberIcon },
+  { kind: ObjectKind.Field, fieldType: FieldType.Number, icon: NumberIcon },
+  { kind: ObjectKind.Field, fieldType: FieldType.Boolean, icon: BooleanIcon },
+  { kind: ObjectKind.Combination, icon: CombinationIcon },
+  { kind: ObjectKind.Reference, icon: ReferenceIcon },
+];
