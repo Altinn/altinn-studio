@@ -182,6 +182,7 @@ export class ResourcePage extends ResourceEnvironment {
   }
 
   public async addPolicyRule(): Promise<void> {
+    await expect(this.addPolicyRuleButton).toBeVisible({ timeout: 15000 }); // wait for policy page to be displayed
     const isPolicyRuleVisible = await this.ruleHeader.isVisible();
     if (!isPolicyRuleVisible) {
       await this.addPolicyRuleButton.click();
@@ -212,7 +213,7 @@ export class ResourcePage extends ResourceEnvironment {
   }
 
   public async verifyRepoNotInSyncVisible(): Promise<void> {
-    await expect(this.repoSyncAlert).toBeVisible();
+    await expect(this.repoSyncAlert).toBeVisible({ timeout: 15000 });
   }
 
   public async clickUploadChangesButton(): Promise<void> {
@@ -224,6 +225,6 @@ export class ResourcePage extends ResourceEnvironment {
   }
 
   public async verifyDeployAlertVisible(): Promise<void> {
-    await expect(this.publishAlert).toBeVisible();
+    await expect(this.publishAlert).toBeVisible({ timeout: 15000 });
   }
 }

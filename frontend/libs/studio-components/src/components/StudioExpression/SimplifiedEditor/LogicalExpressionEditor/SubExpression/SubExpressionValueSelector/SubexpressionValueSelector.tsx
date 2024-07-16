@@ -23,7 +23,7 @@ export const SubexpressionValueSelector = ({
   onChange,
   value,
 }: SubexpressionValueSelectorProps) => (
-  <div className={className}>
+  <div className={`${className} ${classes.wrapper}`}>
     {isInEditMode ? (
       <EditMode value={value} onChange={onChange} legend={legend} />
     ) : (

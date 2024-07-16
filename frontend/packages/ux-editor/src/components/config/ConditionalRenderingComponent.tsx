@@ -2,7 +2,7 @@ import React from 'react';
 import { v1 as uuidv1 } from 'uuid';
 import Modal from 'react-modal';
 import { getComponentTitleByComponentType } from '../../utils/language';
-import { SelectDataModelComponent } from './SelectDataModelComponent';
+import { SelectDataFieldComponent } from './SelectDataFieldComponent';
 import type {
   IFormDesignerComponents,
   IFormDesignerContainers,
@@ -332,13 +332,12 @@ class ConditionalRendering extends React.Component<
                           />
 
                           <div>
-                            <SelectDataModelComponent
+                            <SelectDataFieldComponent
                               label={this.props.t('ux_editor.modal_properties_data_model_helper')}
                               onDataModelChange={this.handleParamDataChange.bind(null, paramName)}
                               selectedElement={
                                 this.state.conditionalRendering.inputParams[paramName]
                               }
-                              hideRestrictions={true}
                             />
                           </div>
                         </div>

@@ -12,6 +12,10 @@ import { addRuleConnection, deleteRuleConnection } from '../../utils/ruleConfigU
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../hooks';
 
+/**
+ * @deprecated This component is deprecated and will be removed in a future release.
+ */
+
 export interface IRuleModalProps {
   modalOpen: boolean;
   handleClose: () => void;

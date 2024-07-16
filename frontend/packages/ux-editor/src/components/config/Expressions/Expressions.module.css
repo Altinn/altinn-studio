@@ -7,3 +7,14 @@
 .expressionsAlert {
   z-index: 1;
 }
+
+.wrapper {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.placeHolder {
+  display: grid;
+}

@@ -1,0 +1,10 @@
+.textElement {
+  white-space: nowrap;
+}
+
+.componentName {
+  font-weight: bold;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
