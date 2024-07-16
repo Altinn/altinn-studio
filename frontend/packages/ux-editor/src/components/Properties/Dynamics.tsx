@@ -28,6 +28,7 @@ export const Dynamics = () => {
 
   return (
     <>
+      {showOldExpressions ? <ConditionalRendering /> : <Expressions key={formId} />}
       {conditionalRulesExist && (
         <Switch
           name={'new-dynamics-switch'}
@@ -38,7 +39,6 @@ export const Dynamics = () => {
           {t('right_menu.show_old_dynamics')}
         </Switch>
       )}
-      {showOldExpressions ? <ConditionalRendering /> : <Expressions key={formId} />}
     </>
   );
 };
