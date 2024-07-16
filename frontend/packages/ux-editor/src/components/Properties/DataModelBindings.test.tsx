@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DataModelBindings } from './DataModelBindings';
 import { FormItemContext } from '../../containers/FormItemContext';
@@ -17,19 +17,21 @@ import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 import type { DataModelMetadataResponse } from 'app-shared/types/api';
 
+const defaultModel = 'testModel';
+
 const dataModelMetadata: DataModelMetadataResponse = {
   elements: {
     testModel: {
-      id: 'testModel',
+      id: defaultModel,
       type: 'ComplexType',
-      dataBindingName: 'testModel',
-      displayString: 'testModel',
+      dataBindingName: defaultModel,
+      displayString: defaultModel,
       isReadOnly: false,
       isTagContent: false,
       jsonSchemaPointer: '#/definitions/testModel',
       maxOccurs: 1,
       minOccurs: 1,
-      name: 'testModel',
+      name: defaultModel,
       parentElement: null,
       restrictions: [],
       texts: [],
@@ -115,7 +117,7 @@ describe('DataModelBindings', () => {
     },
   );
 
-  it('should render already existing bindings in previewMode with label', () => {
+  it('should render already existing bindings in previewMode with label', async () => {
     render({
       props: {
         formItem: {
@@ -130,6 +132,10 @@ describe('DataModelBindings', () => {
         formItemId: componentMocks[ComponentType.Address].id,
       },
     });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryAllByTitle(textMock('ux_editor.modal_properties_loading')),
+    );
 
     ['address', 'careOf'].forEach((prop) => {
       const dataModelButton = screen.getByText(
@@ -281,8 +287,13 @@ describe('DataModelBindings', () => {
       name: textMock(`ux_editor.component_title.Input`),
     });
     await user.click(dataModelButton);
-    const option = screen.getByText('testModel');
-    await user.click(option);
+
+    const dataModelFieldSelector = screen.getByRole('combobox', {
+      name: textMock('ux_editor.modal_properties_data_model_field_binding'),
+    });
+    const option = screen.getByRole('option', { name: defaultModel });
+    await user.selectOptions(dataModelFieldSelector, option);
+
     expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalledTimes(1);
     expect(formItemContextProviderMock.debounceSave).toHaveBeenCalledTimes(1);
   });

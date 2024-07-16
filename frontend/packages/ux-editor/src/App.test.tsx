@@ -9,6 +9,8 @@ import type { AppContextProps } from './AppContext';
 import ruleHandlerMock from './testing/ruleHandlerMock';
 import { layoutSetsMock } from './testing/layoutSetsMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { user as userMock } from 'app-shared/mocks/mocks';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 const mockQueries: Partial<ServicesContextProps> = {
   getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve('test')),
@@ -24,6 +26,7 @@ const renderApp = (
   appContextProps: Partial<AppContextProps> = {},
 ) => {
   const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.CurrentUser], [userMock]);
   return renderWithProviders(<App />, {
     queries,
     appContextProps,
