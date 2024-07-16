@@ -1,12 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Xml;
-using Altinn.Authorization.ABAC.Utils;
-using Altinn.Authorization.ABAC.Xacml;
-using Altinn.ResourceRegistry.Core.Models.Altinn2;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Microsoft.Extensions.Options;
@@ -32,8 +26,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2DelegationMigration
                 ? $"{GetResourceRegistryBaseUrl(environment)}"
                 : $"{_platformSettings.ResourceRegistryDefaultBaseUrl}";
 
-            string relativeUrl =  $"/resourceregistry/api/v1/altinn2export/delegationcount/?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}{relativeUrl}"); 
+            string relativeUrl = $"/resourceregistry/api/v1/altinn2export/delegationcount/?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}{relativeUrl}");
             HttpResponseMessage response = await _httpClient.SendAsync(request);
 
             return await response.Content.ReadAsAsync<DelegationCountOverview>();

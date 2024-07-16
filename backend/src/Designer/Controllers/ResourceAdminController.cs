@@ -346,7 +346,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/altinn2/delegationcount/{serviceCode}/{serviceEdition}/{env}")]
         public async Task<DelegationCountOverview> GetDelegationCount(string serviceCode, int serviceEdition, string env)
         {
-           return await _resourceRegistry.GetDelegationCount(serviceCode, serviceEdition, env);
+            return await _resourceRegistry.GetDelegationCount(serviceCode, serviceEdition, env);
         }
 
         [HttpPost]
