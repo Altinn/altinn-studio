@@ -20,7 +20,7 @@ const updateBpmn = async (
     const { xml } = await moddle.toXML(definitions, { format: true });
 
     const formData = new FormData();
-    formData.append('content', new Blob([xml]), 'process.bpmn');
+    formData.append('content', new Blob([xml]));
 
     saveBpmnXml({ form: formData });
   }

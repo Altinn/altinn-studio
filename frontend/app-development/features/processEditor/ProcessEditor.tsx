@@ -74,7 +74,7 @@ export const ProcessEditor = (): React.ReactElement => {
 
   const saveBpmnXml = async (xml: string, metadata?: MetadataForm): Promise<void> => {
     const formData = new FormData();
-    formData.append('content', new Blob([xml]), 'process.bpmn');
+    formData.append('content', new Blob([xml]));
     formData.append('metadata', JSON.stringify(metadata));
 
     mutateBpmn(
