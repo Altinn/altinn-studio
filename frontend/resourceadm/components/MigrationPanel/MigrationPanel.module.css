@@ -1,0 +1,15 @@
+.migrationPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--fds-spacing-4);
+}
+
+.datePickers {
+  display: flex;
+  gap: var(--fds-spacing-4);
+}
+
+.numDelegations {
+  margin-bottom: var(--fds-spacing-7);
+}

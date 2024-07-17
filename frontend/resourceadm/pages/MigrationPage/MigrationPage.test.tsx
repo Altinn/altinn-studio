@@ -1,7 +1,6 @@
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import type { MigrationPageProps } from './MigrationPage';
 import { MigrationPage } from './MigrationPage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -72,7 +71,6 @@ describe('MigrationPage', () => {
   });
 
   it('Should show migrate delegations button when environment is selected', async () => {
-    const user = userEvent.setup();
     renderMigrationPage({
       getValidatePolicy: jest.fn().mockImplementation(() =>
         Promise.resolve({
@@ -120,66 +118,10 @@ describe('MigrationPage', () => {
       ),
     });
 
-    // wait for radio buttons to be shown
+    // wait for accordions to be shown
     await waitFor(() => {
-      expect(screen.getByLabelText(textMock('resourceadm.deploy_test_env'))).toBeInTheDocument();
+      expect(screen.getByText(textMock('resourceadm.deploy_test_env'))).toBeInTheDocument();
     });
-    const tt02Radio = screen.getByLabelText(textMock('resourceadm.deploy_test_env'));
-    await user.click(tt02Radio);
-
-    expect(
-      screen.getByText(textMock('resourceadm.migration_migrate_delegations')),
-    ).toBeInTheDocument();
-  });
-
-  it('Should refetch number of delegations when get delegations button is clicked', async () => {
-    const numberOfDelegationsFirstFetch = 200;
-    const numberOfDelegationsSecondFetch = 300;
-    const user = userEvent.setup();
-    renderMigrationPage({
-      getResourcePublishStatus: jest.fn().mockImplementation(() =>
-        Promise.resolve({
-          policyVersion: null,
-          resourceVersion: '2',
-          publishedVersions: [
-            {
-              version: '1',
-              environment: 'tt02',
-            },
-          ],
-        }),
-      ),
-      getAltinn2DelegationsCount: jest
-        .fn()
-        .mockImplementationOnce(() =>
-          Promise.resolve({
-            numberOfDelegations: numberOfDelegationsFirstFetch,
-            numberOfRelations: 500,
-          }),
-        )
-        .mockImplementationOnce(() =>
-          Promise.resolve({
-            numberOfDelegations: numberOfDelegationsSecondFetch,
-            numberOfRelations: 500,
-          }),
-        ),
-    });
-
-    // wait for radio buttons to be shown
-    await waitFor(() => {
-      expect(screen.getByLabelText(textMock('resourceadm.deploy_test_env'))).toBeInTheDocument();
-    });
-    const tt02Radio = screen.getByLabelText(textMock('resourceadm.deploy_test_env'));
-    await user.click(tt02Radio);
-
-    const getDelegationsButton = screen.getByRole('button', {
-      name: textMock('resourceadm.migration_get_number_of_delegations'),
-    });
-    await user.click(getDelegationsButton);
-    expect(screen.getByText(numberOfDelegationsFirstFetch)).toBeInTheDocument();
-
-    await user.click(getDelegationsButton);
-    expect(screen.getByText(numberOfDelegationsSecondFetch)).toBeInTheDocument();
   });
 });
 

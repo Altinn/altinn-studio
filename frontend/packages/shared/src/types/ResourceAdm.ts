@@ -190,3 +190,10 @@ export interface DelegationCountOverview {
   numberOfDelegations: number;
   numberOfRelations: number;
 }
+
+export interface MigrateDelegationsRequest {
+  serviceCode: string;
+  serviceEditionCode: number;
+  resourceId: string;
+  dateTimeForExport: Date;
+}
