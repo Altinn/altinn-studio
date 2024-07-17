@@ -73,11 +73,11 @@ resources: {}
 
 livenessProbe:
   httpGet:
-    path: /swagger-ui/index.html
+    path: /actuator/health
     port: http
 readinessProbe:
   httpGet:
-    path: /swagger-ui/index.html
+    path: /actuator/health
     port: http
 
 autoscaling:
