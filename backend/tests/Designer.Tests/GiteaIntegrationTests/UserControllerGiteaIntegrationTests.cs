@@ -13,10 +13,10 @@ using Xunit;
 
 namespace Designer.Tests.GiteaIntegrationTests
 {
-    public class UserControllerGiteaIntegrationTests : GiteaIntegrationTestsBase<UserControllerGiteaIntegrationTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class UserControllerGiteaIntegrationTests : GiteaIntegrationTestsBase<UserControllerGiteaIntegrationTests>, IClassFixture<GiteaWebAppApplicationFactoryFixture<Program>>
     {
 
-        public UserControllerGiteaIntegrationTests(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture) : base(factory, giteaFixture)
+        public UserControllerGiteaIntegrationTests(GiteaWebAppApplicationFactoryFixture<Program> factory, GiteaFixture giteaFixture) : base(factory, giteaFixture)
         {
         }
 

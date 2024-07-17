@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,8 +33,24 @@ namespace Designer.Tests.Fixtures
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            using HttpResponseMessage authorizedGiteaResponse = await GetAuthorizedGiteaResponse(cancellationToken);
-            return await LoginToDesignerAndProxyRequest(authorizedGiteaResponse, request, cancellationToken);
+            var response = await base.SendAsync(request, cancellationToken);
+
+            if(response.StatusCode == HttpStatusCode.Redirect)
+            {
+                string redirectUrl = response.Headers.Location.ToString();
+                // redirect to new url
+                using var redirectRequest = new HttpRequestMessage(HttpMethod.Get, redirectUrl);
+
+                var newResponse = await base.SendAsync(redirectRequest, cancellationToken);
+            }
+
+
+            int stop = 1;
+
+
+            return response;
+            // using HttpResponseMessage authorizedGiteaResponse = await GetAuthorizedGiteaResponse(cancellationToken);
+            // return await LoginToDesignerAndProxyRequest(authorizedGiteaResponse, request, cancellationToken);
         }
 
         private async Task<HttpResponseMessage> GetAuthorizedGiteaResponse(CancellationToken cancellationToken)
