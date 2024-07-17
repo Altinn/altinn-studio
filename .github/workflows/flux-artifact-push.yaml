@@ -1,4 +1,4 @@
-name: Eid logger helm config build and push
+name: Eid logger flux config push
 on:
   push:
     branches: [ main ]
@@ -56,12 +56,12 @@ jobs:
 
       - name: Push config artifact
         run: |
-          flux push artifact oci://${{ env.REGISTRY }}/charts/configs/eid-logger-${{ matrix.environment }}:${{ github.sha }} \
+          flux push artifact oci://${{ env.REGISTRY }}/configs/eid-logger-${{ matrix.environment }}:${{ github.sha }} \
           --path="./eid-logger-config" \
           --source="$(git config --get remote.origin.url)" \
           --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
 
       - name: Tag artifact as latest
         run: |
-          flux tag artifact oci://${{ env.REGISTRY }}/charts/configs/eid-logger-${{ matrix.environment }}:${{ github.sha }} --tag latest
+          flux tag artifact oci://${{ env.REGISTRY }}/configs/eid-logger-${{ matrix.environment }}:${{ github.sha }} --tag latest
 
