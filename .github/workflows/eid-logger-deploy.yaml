@@ -96,7 +96,8 @@ jobs:
     needs: [docker-build-push, helm-build-push]
     strategy:
       matrix:
-        environment: [staging] # add dev and production later on
+        environment: [dev, staging] # add production later on
+    environment: ${{ matrix.environment }}
     env:
       SHORT_SHA: ${{ needs.docker-build-push.outputs.short_sha }}
     steps:
