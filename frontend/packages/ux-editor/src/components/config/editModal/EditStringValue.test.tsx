@@ -85,7 +85,9 @@ describe('EditStringValue', () => {
     });
 
     await user.click(screen.getByRole('combobox'));
-    await user.click(screen.getByRole('option', { name: 'one' }));
+    await user.click(
+      screen.getByRole('option', { name: textMock('ux_editor.component_properties.enum_one') }),
+    );
 
     await waitFor(() => {
       //await user.selectOptions(screen.getByRole('listbox'), screen.getByRole('option', { name: "one" }));
@@ -101,7 +103,9 @@ describe('EditStringValue', () => {
       });
     });
 
-    await user.click(screen.getByRole('option', { name: 'two' }));
+    await user.click(
+      screen.getByRole('option', { name: textMock('ux_editor.component_properties.enum_two') }),
+    );
     await waitFor(() => {
       expect(handleComponentChange).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -110,7 +114,9 @@ describe('EditStringValue', () => {
       );
     });
 
-    await user.click(screen.getByRole('option', { name: 'one' }));
+    await user.click(
+      screen.getByRole('option', { name: textMock('ux_editor.component_properties.enum_one') }),
+    );
     await waitFor(() => {
       expect(handleComponentChange).toHaveBeenCalledWith(
         expect.objectContaining({

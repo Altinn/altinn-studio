@@ -40,6 +40,8 @@ export const SelectDataModelBinding = ({
       renderField={({ fieldProps }) => (
         <StudioNativeSelect
           {...fieldProps}
+          label={t('ux_editor.modal_properties_data_model_binding')}
+          id={selectedDataModel}
           onChange={(e) => fieldProps.onChange(e.target.value)}
           size='small'
         >

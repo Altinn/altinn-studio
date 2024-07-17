@@ -77,6 +77,7 @@ const render = async ({
   renderWithProviders(
     <SelectDataFieldComponent
       label={textMock(`ux_editor.component_title.${componentType}`)}
+      inputId='inputId'
       onDataModelChange={handleComponentChange}
       dataModelFieldsFilter={getDataModelFieldsFilter(componentType, label)}
       selectedElement={undefined}
@@ -117,9 +118,7 @@ describe('SelectDataModelComponent', () => {
       handleComponentChange,
     });
 
-    const selectElement = screen.getByRole('combobox', {
-      name: textMock(`ux_editor.component_title.${ComponentType.Input}`),
-    });
+    const selectElement = screen.getByRole('combobox');
     const optionElement = screen.getByRole('option', { name: 'testModel.field1' });
     await user.selectOptions(selectElement, optionElement);
 
