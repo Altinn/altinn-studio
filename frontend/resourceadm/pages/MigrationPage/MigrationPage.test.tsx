@@ -132,7 +132,9 @@ describe('MigrationPage', () => {
     ).toBeInTheDocument();
   });
 
-  it('Should refetch number of delegations', async () => {
+  it('Should refetch number of delegations when get delegations button is clicked', async () => {
+    const numberOfDelegationsFirstFetch = 200;
+    const numberOfDelegationsSecondFetch = 300;
     const user = userEvent.setup();
     renderMigrationPage({
       getResourcePublishStatus: jest.fn().mockImplementation(() =>
@@ -151,13 +153,13 @@ describe('MigrationPage', () => {
         .fn()
         .mockImplementationOnce(() =>
           Promise.resolve({
-            numberOfDelegations: 200,
+            numberOfDelegations: numberOfDelegationsFirstFetch,
             numberOfRelations: 500,
           }),
         )
         .mockImplementationOnce(() =>
           Promise.resolve({
-            numberOfDelegations: 300,
+            numberOfDelegations: numberOfDelegationsSecondFetch,
             numberOfRelations: 500,
           }),
         ),
@@ -174,10 +176,10 @@ describe('MigrationPage', () => {
       name: textMock('resourceadm.migration_get_number_of_delegations'),
     });
     await user.click(getDelegationsButton);
-    expect(screen.getByText(200)).toBeInTheDocument();
+    expect(screen.getByText(numberOfDelegationsFirstFetch)).toBeInTheDocument();
 
     await user.click(getDelegationsButton);
-    expect(screen.getByText(300)).toBeInTheDocument();
+    expect(screen.getByText(numberOfDelegationsSecondFetch)).toBeInTheDocument();
   });
 });
 
