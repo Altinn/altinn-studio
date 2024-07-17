@@ -123,6 +123,12 @@ namespace Altinn.Studio.Designer.Controllers
             return View();
         }
 
+        public async Task<IActionResult> Yes()
+        {
+            await Task.CompletedTask;
+            return Ok(new { Status = "Up" });
+        }
+
 
         [Authorize]
         public async Task<IActionResult> Test()

@@ -8,6 +8,7 @@ using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Fixtures;
 using DotNet.Testcontainers.Builders;
 using FluentAssertions;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Mvc.Testing.Handlers;
 using Microsoft.AspNetCore.TestHost;
@@ -71,6 +72,7 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
 
     protected GiteaIntegrationTestsBase(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture) : base(factory)
     {
+
         GiteaFixture = giteaFixture;
     }
 
@@ -78,16 +80,32 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
     {
         string configPath = GetConfigPath();
 
+
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddJsonFile(configPath)
+            .AddJsonStream(GenerateGiteaOverrideConfigStream())
+            .Build();
+
+
+        var oidcSettings = configuration.GetSection("OidcLoginSettings");
+
         var client = Factory.WithWebHostBuilder(builder =>
         {
-            builder.ConfigureAppConfiguration((_, conf) =>
+            builder.UseConfiguration(configuration);
+            builder.ConfigureAppConfiguration((t, conf) =>
             {
                 conf.AddJsonFile(configPath);
                 conf.AddJsonStream(GenerateGiteaOverrideConfigStream());
             });
 
             builder.ConfigureTestServices(ConfigureTestServices);
-        }).CreateDefaultClient(new GiteaAuthDelegatingHandler(GiteaFixture.GiteaUrl), new CookieContainerHandler(CookieContainer));
+        }).CreateDefaultClient(new GiteaAuthDelegatingHandler(GiteaFixture.GiteaUrl), new RedirectHandler()
+        {
+            InnerHandler = new HttpClientHandler
+            {
+                AllowAutoRedirect = true
+            }
+        }, new CookieContainerHandler(CookieContainer));
         return client;
     }
 
@@ -109,7 +127,28 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
                         ""TemplateLocation"": ""{templateLocation}"",
                         ""DeploymentLocation"": ""{templateLocation}/deployment"",
                         ""AppLocation"": ""{templateLocation}/App""
-                    }}
+                    }},
+                    ""OidcLoginSettings"": {{
+                    ""ClientId"": ""{GiteaFixture.OAuthApplicationClientId}"",
+                    ""ClientSecret"": ""{GiteaFixture.OAuthApplicationClientSecret}"",
+                    ""Authority"": ""{GiteaFixture.GiteaUrl}"",
+                    ""RedirectUri"": ""http://localhost/signin-oidc"",
+                    ""Scopes"": [
+                        ""openid"",
+                        ""profile"",
+                        ""write:activitypub"",
+                        ""write:admin"",
+                        ""write:issue"",
+                        ""write:misc"",
+                        ""write:notification"",
+                        ""write:organization"",
+                        ""write:package"",
+                        ""write:repository"",
+                        ""write:user""
+                    ],
+                    ""RequireHttpsMetadata"": false,
+                    ""CookieExpiryTimeInMinutes"" : 59
+                }}
               }}
             ";
         var configStream = new MemoryStream(Encoding.UTF8.GetBytes(configOverride));
