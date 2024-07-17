@@ -16,7 +16,7 @@ spec:
       retries: 1
   chart:
     spec:
-      version: "{{ .Values.gitSha }}"
+      version: "0.1.0+{{ .Values.gitSha }}"
       chart: eid-logger
       sourceRef:
         kind: HelmRepository
