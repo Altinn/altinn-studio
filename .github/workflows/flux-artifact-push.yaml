@@ -49,10 +49,6 @@ jobs:
       - name: Setup Flux CLI
         uses: fluxcd/flux2/action@v2.3.0
 
-      - name: Install Flux
-        run: |
-          flux install
-
       - name: Generate cofiguration file
         run: |
           mkdir eid-logger-config
