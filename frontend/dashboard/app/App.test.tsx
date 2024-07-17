@@ -25,7 +25,7 @@ describe('App', () => {
     expect(
       await screen.findByRole('heading', {
         level: 1,
-        name: 'Feil oppstod ved innlasting av brukerdata',
+        name: textMock("dashboard.error_getting_user_data.title"),
       }),
     ).toBeInTheDocument();
   });
@@ -36,7 +36,7 @@ describe('App', () => {
     expect(
       await screen.findByRole('heading', {
         level: 1,
-        name: 'Feil oppstod ved innlasting av organisasjoner',
+        name: textMock("dashboard.error_getting_organization_data.title"),
       }),
     );
   });
