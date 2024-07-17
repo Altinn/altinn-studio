@@ -18,6 +18,7 @@ env:
   REPOSITORY: eid-logger
   AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID_FC }}
   AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID_FC }}
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
 jobs:
   docker-build-push:
