@@ -20,7 +20,7 @@
         ]
       },
       {
-        "id": "sendInButton",
+        "id": "sendInButtonOnTaskChooser",
         "type": "Button",
         "textResourceBindings": {
           "title": "Gå til"
