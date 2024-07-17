@@ -3,7 +3,7 @@ import { useUpdateBpmn } from './useUpdateBpmn';
 import { queriesMock } from '../mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
 import { getDataTypesToSignMock } from '../mocks/bpmnDefinitionsMock';
-import { removeDataTypesToSignFromSigningTasks } from '../utils/bpmnUtils';
+import { removeDataTypeIdsToSign, updateDataTypeIdsToSign } from '../utils/bpmnUtils';
 import type { ServicesContextProps } from '../contexts/ServicesContext';
 import { ServicesContextProvider } from '../contexts/ServicesContext';
 import { renderHook } from '@testing-library/react';
@@ -20,34 +20,61 @@ jest.mock('bpmn-moddle', () => jest.fn(() => moddle));
 const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 
 describe('useUpdateBpmn', () => {
-  describe('removeDataTypesToSignFromSigningTasks', () => {
-    afterEach(jest.clearAllMocks);
+  afterEach(jest.clearAllMocks);
 
-    it('update the bpmn file if the deleted data types are present', async () => {
+  describe('removeDataTypeIdsToSign', () => {
+    it('update the bpmn file if the deleted data type ids are present', async () => {
       const { result } = renderUpdateBpmnHook();
 
-      await result.current(removeDataTypesToSignFromSigningTasks(['dataType1']));
+      await result.current(removeDataTypeIdsToSign(['dataType1']));
 
       expect(moddle.fromXML).toHaveBeenCalledWith(mockBPMNXML);
-
-      const updatedDefinitions = JSON.parse(JSON.stringify(dataTypesToSignMock));
-      updatedDefinitions.rootElements[0].flowElements[0].extensionElements.values[0].$children[0].$children[0].$children =
-        updatedDefinitions.rootElements[0].flowElements[0].extensionElements.values[0].$children[0].$children[0].$children.filter(
-          (dataType) => dataType.$body !== 'dataType1',
-        );
-
-      expect(moddle.toXML).toHaveBeenCalledWith(updatedDefinitions, { format: true });
-
+      expect(moddle.toXML).toHaveBeenCalledWith(dataTypesToSignMock, { format: true });
+      expect(
+        dataTypesToSignMock.rootElements[0].flowElements[0].extensionElements.values[0].$children[0]
+          .$children[0].$children[0].$body,
+      ).not.toEqual('dataType1');
       expect(queriesMock.updateBpmnXml).toHaveBeenCalled();
     });
 
-    it('does not update the bpmn file if the deleted data types are not present', async () => {
+    it('does not update the bpmn file if the deleted data type ids are not present', async () => {
       const { result } = renderUpdateBpmnHook();
 
-      await result.current(removeDataTypesToSignFromSigningTasks(['dataType3']));
+      await result.current(removeDataTypeIdsToSign(['dataType3']));
 
       expect(moddle.fromXML).toHaveBeenCalledWith(mockBPMNXML);
+      expect(moddle.toXML).not.toHaveBeenCalled();
+      expect(queriesMock.updateBpmnXml).not.toHaveBeenCalled();
+    });
+  });
 
+  describe('updateDataTypeIdsToSign', () => {
+    afterEach(jest.clearAllMocks);
+
+    it('update the bpmn file if the updated data type ids are present', async () => {
+      const { result } = renderUpdateBpmnHook();
+
+      await result.current(
+        updateDataTypeIdsToSign([{ oldId: 'dataType2', newId: 'dataType2_new' }]),
+      );
+
+      expect(moddle.fromXML).toHaveBeenCalledWith(mockBPMNXML);
+      expect(moddle.toXML).toHaveBeenCalledWith(dataTypesToSignMock, { format: true });
+      expect(
+        dataTypesToSignMock.rootElements[0].flowElements[0].extensionElements.values[0].$children[0]
+          .$children[0].$children[0].$body,
+      ).toEqual('dataType2_new');
+      expect(queriesMock.updateBpmnXml).toHaveBeenCalled();
+    });
+
+    it('does not update the bpmn file if the updated data type ids are not present', async () => {
+      const { result } = renderUpdateBpmnHook();
+
+      await result.current(
+        updateDataTypeIdsToSign([{ oldId: 'dataType3', newId: 'dataType3_new' }]),
+      );
+
+      expect(moddle.fromXML).toHaveBeenCalledWith(mockBPMNXML);
       expect(moddle.toXML).not.toHaveBeenCalled();
       expect(queriesMock.updateBpmnXml).not.toHaveBeenCalled();
     });

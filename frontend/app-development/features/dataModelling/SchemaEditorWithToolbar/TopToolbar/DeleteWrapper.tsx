@@ -7,7 +7,7 @@ import type { MetadataOption } from '../../../../types/MetadataOption';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useUpdateBpmn } from 'app-shared/hooks/useUpdateBpmn';
-import { removeDataTypesToSignFromSigningTasks } from 'app-shared/utils/bpmnUtils';
+import { removeDataTypeIdsToSign } from 'app-shared/utils/bpmnUtils';
 export interface DeleteWrapperProps {
   selectedOption: MetadataOption | null;
 }
@@ -28,7 +28,7 @@ export function DeleteWrapper({ selectedOption }: DeleteWrapperProps) {
   const onDeleteConfirmClick = async () => {
     mutate(modelPath, {
       onSuccess: async () => {
-        await updateBpmn(removeDataTypesToSignFromSigningTasks([schemaName]));
+        await updateBpmn(removeDataTypeIdsToSign([schemaName]));
       },
     });
     setDialogOpen(false);

@@ -7,15 +7,11 @@ const updateBpmn = async (
   saveBpmnXml: (data: { form: FormData }) => void,
   updateCriteria: (definitions) => boolean,
 ) => {
-  let hasChanged = false;
   const moddle = new BpmnModdle();
 
   const { rootElement: definitions } = await moddle.fromXML(bpmnXml);
 
-  if (updateCriteria(definitions)) {
-    hasChanged = true;
-  }
-
+  const hasChanged = updateCriteria(definitions);
   if (hasChanged) {
     const { xml } = await moddle.toXML(definitions, { format: true });
 

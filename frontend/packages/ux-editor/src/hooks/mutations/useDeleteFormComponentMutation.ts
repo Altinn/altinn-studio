@@ -6,7 +6,7 @@ import { useDeleteAppAttachmentMetadataMutation } from './useDeleteAppAttachment
 import { removeComponent } from '../../utils/formLayoutUtils';
 import type { ComponentIdsChange } from 'app-shared/types/api/FormLayoutRequest';
 import { useUpdateBpmn } from 'app-shared/hooks/useUpdateBpmn';
-import { removeDataTypesToSignFromSigningTasks } from 'app-shared/utils/bpmnUtils';
+import { removeDataTypeIdsToSign } from 'app-shared/utils/bpmnUtils';
 
 export const useDeleteFormComponentMutation = (org: string, app: string, layoutSetName: string) => {
   const { layout, layoutName } = useSelectedFormLayoutWithName();
@@ -22,7 +22,7 @@ export const useDeleteFormComponentMutation = (org: string, app: string, layoutS
         component?.type === ComponentType.FileUploadWithTag
       ) {
         await deleteAppAttachmentMetadataMutation.mutateAsync(id);
-        await updateBpmn(removeDataTypesToSignFromSigningTasks([id]));
+        await updateBpmn(removeDataTypeIdsToSign([id]));
       }
 
       const componentIdsChange: ComponentIdsChange = [

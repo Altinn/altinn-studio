@@ -6,7 +6,7 @@ import { ObjectUtils } from '@studio/pure-functions';
 import type { ComponentIdsChange } from 'app-shared/types/api/FormLayoutRequest';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useUpdateBpmn } from 'app-shared/hooks/useUpdateBpmn';
-import { removeDataTypesToSignFromSigningTasks } from 'app-shared/utils/bpmnUtils';
+import { removeDataTypeIdsToSign } from 'app-shared/utils/bpmnUtils';
 
 export const useDeleteFormContainerMutation = (org: string, app: string, layoutSetName: string) => {
   const { layout, layoutName } = useSelectedFormLayoutWithName();
@@ -27,7 +27,7 @@ export const useDeleteFormContainerMutation = (org: string, app: string, layoutS
       );
 
       if (fileUploadComponentIds.length > 0) {
-        await updateBpmn(removeDataTypesToSignFromSigningTasks(fileUploadComponentIds));
+        await updateBpmn(removeDataTypeIdsToSign(fileUploadComponentIds));
       }
 
       // Delete child components:
