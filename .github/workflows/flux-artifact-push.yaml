@@ -52,7 +52,7 @@ jobs:
       - name: Generate cofiguration file
         run: |
           mkdir eid-logger-config
-          helm template eid-logger-config --set gitSha=${{ github.sha }} > eid-logger-config/helm-release.yaml
+          helm template charts/eid-logger-config --set gitSha=${{ github.sha }} > eid-logger-config/helm-release.yaml
 
       - name: Push config artifact
         run: |
