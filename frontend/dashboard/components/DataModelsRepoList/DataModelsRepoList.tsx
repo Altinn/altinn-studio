@@ -30,7 +30,6 @@ export const DataModelsReposList = ({ user, organizations }: DataModelsReposList
   const { data: dataModelRepos, isPending: hasPendingDataModels } = useSearchReposQuery({
     uid: uid as number,
     keyword: DATA_MODEL_REPO_IDENTIFIER,
-    page: 1,
   });
 
   const dataModelsIncludingStarredData = useAugmentReposWithStarred({
