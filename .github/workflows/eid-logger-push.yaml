@@ -34,13 +34,18 @@ jobs:
             client-id: ${{ env.AZURE_CLIENT_ID }}
             tenant-id: ${{ env.AZURE_TENANT_ID }}
             subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Set short SHA
+        id: vars
+        run: echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
       - name: Log in to Container registry
         run: |
           az acr login --name ${{ env.REGISTRY }} --expose-token --output tsv --query accessToken --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }} --only-show-errors | docker login ${{ env.REGISTRY }} --username 00000000-0000-0000-0000-000000000000 --password-stdin
       - name: Docker build
         run: |
-          docker build eidlogger --build-arg GITHUB_USER=${{ env.ACTION_USER }} --build-arg GITHUB_PASSWORD=${{ env.ACTION_PAT }} -t ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ github.sha }} -t ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:latest
+          docker build eidlogger --build-arg GITHUB_USER=${{ env.ACTION_USER }} --build-arg GITHUB_PASSWORD=${{ env.ACTION_PAT }} -t ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ env.SHORT_SHA }} -t ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:latest
       - name: Docker push
         run: |
-          docker push ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ github.sha }} && docker push ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:latest
+          docker push ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ env.SHORT_SHA }} && docker push ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:latest
 
