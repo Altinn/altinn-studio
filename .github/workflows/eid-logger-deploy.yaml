@@ -1,0 +1,140 @@
+name: Eid logger deploy
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'eidlogger/**'
+      - '.github/workflows/eid-logger-deploy.yaml'
+      - 'charts/eid-logger-config/**'
+      - 'charts/eid-logger/**'
+  workflow_dispatch:
+
+permissions:
+      id-token: write
+      contents: read
+
+env:
+  REGISTRY: altinntjenestercontainerregistry.azurecr.io
+  REPOSITORY: eid-logger
+  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID_FC }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID_FC }}
+
+jobs:
+  docker-build-push:
+    name: Build and push eid logger image
+    runs-on: ubuntu-latest
+    env:
+      ACTION_USER: ${{ secrets.ACTION_USER }}
+      ACTION_PAT: ${{ secrets.ACTION_PAT }}
+    outputs:
+      short_sha: ${{ steps.set_short_sha.outputs.short_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: 'Azure login'
+        uses: azure/login@v2
+        with:
+            client-id: ${{ env.AZURE_CLIENT_ID }}
+            tenant-id: ${{ env.AZURE_TENANT_ID }}
+            subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Set short SHA
+        id: set_short_sha
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_ENV
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+
+      - name: Log in to Container registry
+        run: |
+          az acr login --name ${{ env.REGISTRY }} --expose-token --output tsv --query accessToken --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }} --only-show-errors | docker login ${{ env.REGISTRY }} --username 00000000-0000-0000-0000-000000000000 --password-stdin
+      - name: Docker build
+        run: |
+          docker build eidlogger --build-arg GITHUB_USER=${{ env.ACTION_USER }} --build-arg GITHUB_PASSWORD=${{ env.ACTION_PAT }} -t ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ env.SHORT_SHA }} -t ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:latest
+      - name: Docker push
+        run: |
+          docker push ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ env.SHORT_SHA }} && docker push ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:latest
+
+  helm-build-push:
+    name: Helm build and push
+    runs-on: ubuntu-latest
+    needs: docker-build-push
+    env:
+      SHORT_SHA: ${{ needs.docker-build-push.outputs.short_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: 'Azure login'
+        uses: azure/login@v2
+        with:
+            client-id: ${{ env.AZURE_CLIENT_ID }}
+            tenant-id: ${{ env.AZURE_TENANT_ID }}
+            subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: 'Install helm'
+        uses: azure/setup-helm@v4.2.0
+        with:
+          version: '3.15.3'
+        id: install
+
+      - name: Log in to Container registry
+        run: |
+          az acr login --name ${{ env.REGISTRY }} --expose-token --output tsv --query accessToken --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }} --only-show-errors | helm registry login ${{ env.REGISTRY }} --username 00000000-0000-0000-0000-000000000000 --password-stdin
+      - name: Helm build
+        run: |
+          helm package charts/eid-logger --version 0.1.0+${{ env.SHORT_SHA }}
+      - name: Helm push
+        run: |
+          helm push eid-logger-0.1.0+${{ env.SHORT_SHA }}.tgz oci://${{ env.REGISTRY }}/charts
+
+  oci-config-artifact-push:
+    name: Flux config push
+    runs-on: ubuntu-latest
+    needs: [docker-build-push, helm-build-push]
+    strategy:
+      matrix:
+        environment: [staging] # add dev and production later on
+    env:
+      SHORT_SHA: ${{ needs.docker-build-push.outputs.short_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: 'Azure login'
+        uses: azure/login@v2
+        with:
+            client-id: ${{ env.AZURE_CLIENT_ID }}
+            tenant-id: ${{ env.AZURE_TENANT_ID }}
+            subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: 'Install helm'
+        uses: azure/setup-helm@v4.2.0
+        with:
+          version: '3.15.3'
+        id: install
+
+      - name: Log in to Container registry
+        run: |
+          az acr login --name ${{ env.REGISTRY }} --expose-token --output tsv --query accessToken --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }} --only-show-errors | docker login ${{ env.REGISTRY }} --username 00000000-0000-0000-0000-000000000000 --password-stdin
+
+      - name: Setup Flux CLI
+        uses: fluxcd/flux2/action@v2.3.0
+
+      - name: Generate cofiguration file
+        run: |
+          mkdir eid-logger-config
+          helm template charts/eid-logger-config --set gitSha=${{ env.SHORT_SHA }} > eid-logger-config/helm-release.yaml
+
+      - name: Push config artifact
+        run: |
+          flux push artifact oci://${{ env.REGISTRY }}/configs/eid-logger-${{ matrix.environment }}:${{ env.SHORT_SHA }} \
+          --path="./eid-logger-config" \
+          --source="$(git config --get remote.origin.url)" \
+          --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
+
+      - name: Tag artifact as latest
+        run: |
+          flux tag artifact oci://${{ env.REGISTRY }}/configs/eid-logger-${{ matrix.environment }}:${{ env.SHORT_SHA }} --tag latest
+
