@@ -5,6 +5,7 @@ on:
     paths:
       - 'eidlogger/**'
       - '.github/workflows/eid-logger-push.yaml'
+      - 'charts/eid-logger/**'
   workflow_dispatch:
 
 permissions:
