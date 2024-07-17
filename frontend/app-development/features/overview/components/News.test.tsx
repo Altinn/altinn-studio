@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from 'app-development/test/testUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { News } from './News';
@@ -50,6 +50,27 @@ describe('News', () => {
     render(newsList);
 
     await screen.findByText(textMock('overview.fetch_news_loading_message'));
+  });
+
+  it('does not list a news if the date in the news is in the future', async () => {
+    const newsList: NewsList = {
+      news: [
+        {
+          title: 'title',
+          content: 'News content',
+          date: '3021-01-01',
+        },
+      ],
+    };
+
+    await render(newsList);
+
+    await waitFor(() => {
+      screen.queryByText('News content');
+    });
+
+    const news = screen.queryByText('News content');
+    expect(news).not.toBeInTheDocument();
   });
 
   it('error message is shown when content fails to load', async () => {

@@ -20,6 +20,7 @@ import { formItemContextProviderMock } from '../testing/formItemContextMocks';
 import { appContextMock } from '../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
 import userEvent from '@testing-library/user-event';
+import { user as userMock } from 'app-shared/mocks/mocks';
 
 // Test data:
 const defaultTexts: ITextResources = {
@@ -43,6 +44,7 @@ const render = () => {
     [],
   );
   queryClient.setQueryData([QueryKey.TextResources, org, app], defaultTexts);
+  queryClient.setQueryData([QueryKey.CurrentUser], [userMock]);
   return renderWithProviders(
     <FormItemContext.Provider
       value={{
@@ -154,10 +156,10 @@ describe('FormDesigner', () => {
       expect(screen.queryByText(textMock('ux_editor.loading_form_layout'))).not.toBeInTheDocument(),
     );
 
-    await user.click(screen.getByTitle(textMock('ux_editor.open_preview')));
-    expect(screen.getByTitle(textMock('ux_editor.close_preview'))).toBeInTheDocument();
-
     await user.click(screen.getByTitle(textMock('ux_editor.close_preview')));
     expect(screen.getByTitle(textMock('ux_editor.open_preview'))).toBeInTheDocument();
+
+    await user.click(screen.getByTitle(textMock('ux_editor.open_preview')));
+    expect(screen.getByTitle(textMock('ux_editor.close_preview'))).toBeInTheDocument();
   });
 });

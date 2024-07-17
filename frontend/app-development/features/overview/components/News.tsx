@@ -8,6 +8,8 @@ import classes from './News.module.css';
 export const News = () => {
   const { data: newsList, isPending, isError } = useNewsListQuery();
   const { t } = useTranslation();
+  const today = new Date();
+  const formattedToday = today.toISOString().split('T')[0];
 
   if (isPending) {
     return (
@@ -28,14 +30,18 @@ export const News = () => {
   return (
     <div>
       <NewsTemplate>
-        {newsList.news?.map(({ title, content }) => (
-          <div className={classes.newsContent} key={title}>
-            <Heading level={3} size='xxsmall'>
-              {title}
-            </Heading>
-            <Paragraph size='small'>{content}</Paragraph>
-          </div>
-        ))}
+        {newsList.news?.map(({ title, content, date }) => {
+          return (
+            formattedToday >= date && (
+              <div className={classes.newsContent} key={title}>
+                <Heading level={3} size='xxsmall'>
+                  {title}
+                </Heading>
+                <Paragraph size='small'>{content}</Paragraph>
+              </div>
+            )
+          );
+        })}
       </NewsTemplate>
     </div>
   );

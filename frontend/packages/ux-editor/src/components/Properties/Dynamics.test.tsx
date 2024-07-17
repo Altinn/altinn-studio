@@ -50,7 +50,7 @@ describe('Dynamics', () => {
     expect(oldDynamicsSwitch).not.toBeChecked();
   });
 
-  it('should render old dynamics when enabling switch if ruleHandler is found', async () => {
+  it('should render depreacated old dynamics when enabling switch if ruleHandler is found', async () => {
     (window as WindowWithRuleModel).conditionalRuleHandlerObject = {};
     await render();
     const oldDynamicsSwitch = screen.getByRole('checkbox', {
@@ -58,7 +58,9 @@ describe('Dynamics', () => {
     });
     await user.click(oldDynamicsSwitch);
     expect(screen.queryByTestId(expressionsTestId)).not.toBeInTheDocument();
-    expect(screen.getByTestId(conditionalRenderingTestId)).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('right_menu.rules_conditional_rendering_deprecated_info_title')),
+    ).toBeInTheDocument();
   });
 
   it('should render unknown component alert when component is unknown for Studio', async () => {
