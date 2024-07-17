@@ -1,7 +1,8 @@
 import React from 'react';
 import { ProcessEditor as ProcessEditorImpl } from '@altinn/process-editor';
-import { useAppPolicyMutation, useBpmnMutation } from '../../hooks/mutations';
-import { useBpmnQuery } from '../../hooks/queries/useBpmnQuery';
+import { useAppPolicyMutation } from '../../hooks/mutations';
+import { useBpmnMutation } from 'app-shared/hooks/mutations/useBpmnMutation';
+import { useBpmnQuery } from 'app-shared/hooks/queries/useBpmnQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { toast } from 'react-toastify';
 import { StudioPageSpinner } from '@studio/components';

@@ -1,11 +1,11 @@
 import React from 'react';
 import { useUpdateBpmn } from './useUpdateBpmn';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { queriesMock } from '../mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
 import { getDataTypesToSignMock } from '../mocks/bpmnDefinitionsMock';
-import { removeDataTypesToSignFromSigningTasks } from 'app-shared/utils/bpmnUtils';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { removeDataTypesToSignFromSigningTasks } from '../utils/bpmnUtils';
+import type { ServicesContextProps } from '../contexts/ServicesContext';
+import { ServicesContextProvider } from '../contexts/ServicesContext';
 import { renderHook } from '@testing-library/react';
 
 const dataTypesToSignMock = getDataTypesToSignMock(['dataType1', 'dataType2']);

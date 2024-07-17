@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { QueryKey } from 'app-shared/types/QueryKey';
+import { useServicesContext } from '../../contexts/ServicesContext';
+import { QueryKey } from '../../types/QueryKey';
 
 export const useBpmnQuery = (org: string, repo: string, enabled: boolean = true) => {
   const { getBpmnFile } = useServicesContext();

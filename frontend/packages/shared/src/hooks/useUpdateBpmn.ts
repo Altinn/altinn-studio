@@ -1,6 +1,6 @@
 import BpmnModdle from 'bpmn-moddle';
-import { useBpmnQuery } from 'app-development/hooks/queries/useBpmnQuery';
-import { useBpmnMutation } from 'app-development/hooks/mutations';
+import { useBpmnQuery } from './queries/useBpmnQuery';
+import { useBpmnMutation } from './mutations/useBpmnMutation';
 
 const updateBpmn = async (
   bpmnXml: string,
