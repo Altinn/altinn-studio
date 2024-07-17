@@ -305,9 +305,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
         public async Task<ActionResult> StartMigrateDelegations(ExportDelegationsRequestBE delegationRequest, string environment)
         {
-            // TODO
-
-            return new StatusCodeResult(201);
+            return await _altinn2DelegationMigrationClient.StartMigrateDelegations(delegationRequest, environment);
         }
 
         // RRR
