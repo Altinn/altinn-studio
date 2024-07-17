@@ -28,12 +28,11 @@ export const ExpressionContent = ({
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
   const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
-  const { data: dataModelMetadata } = useDataModelMetadataQuery(
+  const { data: dataModelMetadata } = useDataModelMetadataQuery({
     org,
     app,
-    selectedFormLayoutSetName,
-    undefined,
-  );
+    layoutSetName: selectedFormLayoutSetName,
+  });
   const dataLookupOptions: Partial<DataLookupOptions> = useMemo(
     () => ({
       [DataLookupFuncName.Component]: getComponentIds(formLayoutsData),

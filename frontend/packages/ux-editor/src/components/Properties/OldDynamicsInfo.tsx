@@ -7,6 +7,9 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAppContext } from '../../hooks';
 import { Link } from '@digdir/designsystemet-react';
 
+/**
+ * @deprecated This component is deprecated and will be removed in a future release.
+ */
 export const OldDynamicsInfo = () => {
   const { t } = useTranslation();
   const { selectedFormLayoutSetName } = useAppContext();

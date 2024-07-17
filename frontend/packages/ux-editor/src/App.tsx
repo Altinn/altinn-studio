@@ -21,7 +21,11 @@ export function App() {
   const { selectedFormLayoutSetName } = useAppContext();
   const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
   const { isSuccess: isDataModelFetched, isError: dataModelFetchedError } =
-    useDataModelMetadataQuery(org, app, selectedFormLayoutSetName, undefined);
+    useDataModelMetadataQuery({
+      org,
+      app,
+      layoutSetName: selectedFormLayoutSetName,
+    });
   const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
 
   const componentIsReady = areWidgetsFetched && isDataModelFetched && areTextResourcesFetched;
