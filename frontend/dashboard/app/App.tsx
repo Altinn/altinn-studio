@@ -23,23 +23,21 @@ export const App = (): JSX.Element => {
   const componentHasError = isUserError || isOrganizationsError;
 
   const getErrorMessage = (): { title: string; message: string } => {
-    const defaultTitle = 'Feil oppstod ved innlasting av';
-    const defaultMessage = 'Vi beklager men en feil oppstod ved henting av';
     if (isUserError) {
       return {
-        title: `${defaultTitle} brukerdata`,
-        message: `${defaultMessage} dine brukerdata.`,
+        title: t('dashboard.error_getting_user_data.title'), 
+        message: t('dashboard.error_getting_user_data.message'),
       };
     }
     if (isOrganizationsError) {
       return {
-        title: `${defaultTitle} organisasjoner`,
-        message: `${defaultMessage} organisasjoner som kreves for å kjøre applikasjonen.`,
+        title: t('dashboard.error_getting_organization_data.title'), 
+        message: t('dashboard.error_getting_organization_data.message'),
       };
     }
     return {
-      title: 'Ukjent feil oppstod',
-      message: 'Vi beklager men en ukjent feil, vennligst prøv igjen senere.',
+      title: t('dashboard.error_unknown.title'),
+      message: t('dashboard.error_unknown.message'),
     };
   };
 
