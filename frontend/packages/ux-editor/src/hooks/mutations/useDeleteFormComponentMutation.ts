@@ -5,13 +5,14 @@ import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { useDeleteAppAttachmentMetadataMutation } from './useDeleteAppAttachmentMetadataMutation';
 import { removeComponent } from '../../utils/formLayoutUtils';
 import type { ComponentIdsChange } from 'app-shared/types/api/FormLayoutRequest';
-import { useRemoveDataTypesToSignFromSigningTasks } from './useRemoveDataTypesToSignFromSigningTasks';
+import { useUpdateBpmn } from 'app-shared/hooks/useUpdateBpmn';
+import { removeDataTypesToSignFromSigningTasks } from 'app-shared/utils/bpmnUtils';
 
 export const useDeleteFormComponentMutation = (org: string, app: string, layoutSetName: string) => {
   const { layout, layoutName } = useSelectedFormLayoutWithName();
   const formLayoutsMutation = useFormLayoutMutation(org, app, layoutName, layoutSetName);
   const deleteAppAttachmentMetadataMutation = useDeleteAppAttachmentMetadataMutation(org, app);
-  const removeDataTypesToSignFromSigningTasks = useRemoveDataTypesToSignFromSigningTasks(org, app);
+  const updateBpmn = useUpdateBpmn(org, app);
   return useMutation({
     mutationFn: async (id: string) => {
       const component = layout.components[id];
@@ -21,7 +22,7 @@ export const useDeleteFormComponentMutation = (org: string, app: string, layoutS
         component?.type === ComponentType.FileUploadWithTag
       ) {
         await deleteAppAttachmentMetadataMutation.mutateAsync(id);
-        await removeDataTypesToSignFromSigningTasks([id]);
+        await updateBpmn(removeDataTypesToSignFromSigningTasks([id]));
       }
 
       const componentIdsChange: ComponentIdsChange = [

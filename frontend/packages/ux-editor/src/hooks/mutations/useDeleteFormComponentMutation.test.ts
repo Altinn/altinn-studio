@@ -3,17 +3,13 @@ import { renderHookWithProviders } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import { useDeleteFormComponentMutation } from './useDeleteFormComponentMutation';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
-import {
-  component2IdMock,
-  externalLayoutsMock,
-  layout1NameMock,
-} from '@altinn/ux-editor/testing/layoutMock';
+import { component2IdMock, externalLayoutsMock, layout1NameMock } from '../../testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { componentMocks } from '../../testing/componentMocks';
 import type { FormLayoutsResponse } from 'app-shared/types/api';
-import { getDataTypesToSignMock } from '../../testing/bpmnDefinitionsMock';
+import { getDataTypesToSignMock } from 'app-shared/mocks/bpmnDefinitionsMock';
 
 // Test data:
 const selectedLayoutSet = layoutSet1NameMock;

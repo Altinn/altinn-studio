@@ -18,7 +18,7 @@ import type { FormLayoutsResponse } from 'app-shared/types/api';
 import { app, org } from '@studio/testing/testids';
 import { componentMocks } from '../../testing/componentMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { getDataTypesToSignMock } from '../../testing/bpmnDefinitionsMock';
+import { getDataTypesToSignMock } from 'app-shared/mocks/bpmnDefinitionsMock';
 
 // Test data:
 const selectedLayoutSet = layoutSet1NameMock;

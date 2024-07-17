@@ -16,7 +16,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { app, org } from '@studio/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { getDataTypesToSignMock } from '@altinn/ux-editor/testing/bpmnDefinitionsMock';
+import { getDataTypesToSignMock } from 'app-shared/mocks/bpmnDefinitionsMock';
 
 const user = userEvent.setup();
 
