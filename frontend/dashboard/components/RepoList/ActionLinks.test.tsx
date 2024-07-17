@@ -32,10 +32,10 @@ describe('ActionLinks', () => {
   it('should render the three buttons', () => {
     render(<ActionLinks repo={repo} />);
 
-    const giteaButton = screen.getByRole('link', {
+    const giteaButton = screen.getByRole('button', {
       name: textMock('dashboard.show_repo', { appName: repoName }),
     });
-    const editButton = screen.getByRole('link', {
+    const editButton = screen.getByRole('button', {
       name: textMock('dashboard.edit_app', { appName: repoName }),
     });
     const dropdownButton = screen.getByRole('button', {
