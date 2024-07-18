@@ -82,6 +82,7 @@ export const ItemFieldsTableRow = ({
       <td className={cn(classes.tableColumnType, classes.tableCell)}>
         {isField(fieldNode) && (
           <TypeSelect
+            id={fieldNode.pointer + '-type'}
             onChange={(fieldType) => onTypeChange(fullPath, fieldType)}
             value={fieldNode.fieldType as FieldType}
           />
@@ -127,17 +128,18 @@ export const ItemFieldsTableRow = ({
 };
 
 interface TypeSelectProps {
+  id: string;
   onChange: (type: FieldType) => void;
   value: FieldType;
 }
 
-const TypeSelect = ({ onChange, value }: TypeSelectProps) => {
+const TypeSelect = ({ id, onChange, value }: TypeSelectProps) => {
   const typeOptions = useTypeOptions();
   const { t } = useTranslation();
   return (
     <NativeSelect
       hideLabel
-      id='fieldTypeSelect'
+      id={id}
       label={t('schema_editor.type')}
       onChange={(event) => onChange(event.target.value as FieldType)}
       value={value}
