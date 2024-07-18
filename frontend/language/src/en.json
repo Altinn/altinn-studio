@@ -78,7 +78,7 @@
   "dashboard.error_getting_organization_data.title": "An error occurred while loading organizations",
   "dashboard.error_getting_user_data.message": "We apologize, but an error occurred when retrieving your user data.",
   "dashboard.error_getting_user_data.title": "An error occurred when loading user data",
-  "dashboard.error_unknown.message": "We are sorry but an unknown error occurred, please try again later.",
+  "dashboard.error_unknown.message": "We are sorry, but an unknown error occurred. Please try again later.",
   "dashboard.error_unknown.title": "An unknown error occurred",
   "dashboard.favorite_status": "Favorite status",
   "dashboard.favourites": "Favourites",
