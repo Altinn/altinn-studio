@@ -38,10 +38,31 @@ const wrapper = ({
 };
 
 describe('ServicesContext', () => {
-  it('logs the user out after displaying a toast for a given time when the api says unauthorized', async () => {
-    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
-    jest.spyOn(global, 'setTimeout');
-    renderHook(
+  it('displays the api error when the session is invalid or expired', async () => {
+    const logout = jest.fn().mockImplementation(() => Promise.resolve());
+
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(401, 'GT_03')),
+          retry: false,
+        }),
+      {
+        wrapper: ({ children }) => {
+          return wrapper({ children, queries: { logout } });
+        },
+      },
+    );
+
+    await waitFor(() => result.current.isError);
+    expect(await screen.findByText(textMock('api_errors.GT_03'))).toBeInTheDocument();
+  });
+
+  it('displays the default unuauthorized error when the session is invalid or expired', async () => {
+    const logout = jest.fn().mockImplementation(() => Promise.resolve());
+
+    const { result } = renderHook(
       () =>
         useQuery({
           queryKey: ['fetchData'],
@@ -50,17 +71,13 @@ describe('ServicesContext', () => {
         }),
       {
         wrapper: ({ children }) => {
-          return wrapper({ children });
+          return wrapper({ children, queries: { logout } });
         },
       },
     );
-    expect(await screen.findByText(textMock('api_errors.Unauthorized'))).toBeInTheDocument();
-    jest.runAllTimers();
-    await waitFor(() => {
-      expect(queriesMock.logout).toHaveBeenCalled();
-    });
 
-    expect(mockConsoleError).toHaveBeenCalled();
+    await waitFor(() => result.current.isError);
+    expect(await screen.findByText(textMock('api_errors.Unauthorized'))).toBeInTheDocument();
   });
 
   it('Displays a toast message for "GT_01" error code', async () => {
