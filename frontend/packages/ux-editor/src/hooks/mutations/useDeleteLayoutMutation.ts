@@ -38,12 +38,7 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
     mutationFn: async (layoutName: string) => {
       let layouts = ObjectUtils.deepCopy(formLayouts);
       delete layouts[layoutName];
-      layouts = await addOrRemoveNavigationButtons(
-        layouts,
-        saveLayout,
-        undefined,
-        formLayoutSettings.receiptLayoutName,
-      );
+      layouts = await addOrRemoveNavigationButtons(layouts, saveLayout, undefined);
       await deleteFormLayout(org, app, layoutName, layoutSetName);
       return { layoutName, layouts };
     },
@@ -55,9 +50,7 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
       if (order.includes(layoutName)) {
         order.splice(order.indexOf(layoutName), 1);
       }
-      if (layoutSettings.receiptLayoutName === layoutName) {
-        layoutSettings.receiptLayoutName = undefined;
-      }
+
       formLayoutSettingsMutation.mutate(layoutSettings);
 
       const layoutPagesOrder = formLayoutSettings?.pages.order;

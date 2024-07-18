@@ -34,19 +34,13 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
 
   return useMutation({
     mutationFn: async ({ layoutName }: AddLayoutMutationArgs) => {
-      const layoutSettings: ILayoutSettings = formLayoutSettingsQuery.data;
       const layouts = formLayoutsQuery.data;
 
       if (Object.keys(layouts).indexOf(layoutName) !== -1) throw Error('Layout already exists');
       let newLayouts = ObjectUtils.deepCopy(layouts);
 
       newLayouts[layoutName] = createEmptyLayout();
-      newLayouts = await addOrRemoveNavigationButtons(
-        newLayouts,
-        save,
-        layoutName,
-        layoutSettings.receiptLayoutName,
-      );
+      newLayouts = await addOrRemoveNavigationButtons(newLayouts, save, layoutName);
       return { newLayouts, layoutName };
     },
 

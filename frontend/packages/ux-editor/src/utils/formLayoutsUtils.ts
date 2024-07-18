@@ -19,13 +19,11 @@ import { externalLayoutToInternal } from '../converters/formLayoutConverters';
  * @param layouts All layouts.
  * @param callback Callback to be called for each layout if there are changes or if the layout is the one specified by the currentLayoutName parameter.
  * @param currentLayoutName The name of the current layout. Callback will always be called for this layout if set.
- * @param receiptLayoutName The name of the receipt layout. Ensures that receipt layout is ignored when adding/deleting navigation buttons.
  */
 export const addOrRemoveNavigationButtons = async (
   layouts: IFormLayouts,
   callback: (layoutName: string, layout: IInternalLayout) => Promise<void>,
   currentLayoutName?: string,
-  receiptLayoutName?: string,
 ): Promise<IFormLayouts> => {
   if (currentLayoutName && !layouts[currentLayoutName]) {
     throw new Error(`Layout with name ${currentLayoutName} does not exist.`);
@@ -36,18 +34,14 @@ export const addOrRemoveNavigationButtons = async (
 
   // Update layouts to have navigation buttons if there are multiple layouts, or remove them if there is only one.
   const allLayoutNames = Object.keys(layouts);
-  const layoutsThatShouldHaveNavigationButtons = allLayoutNames.filter(
-    (name) => name !== receiptLayoutName,
-  );
-  if (layoutsThatShouldHaveNavigationButtons.length === 1) {
-    // There is only one layout
-    const name = layoutsThatShouldHaveNavigationButtons[0];
+  if (allLayoutNames.length === 1) {
+    const name = allLayoutNames[0];
     const layout = removeComponentsByType(layouts[name], ComponentType.NavigationButtons);
     layouts[name] !== layout && layoutsToUpdate.push(name);
     allLayouts[name] = layout;
   } else {
     // There are multiple layouts
-    for (const name of layoutsThatShouldHaveNavigationButtons) {
+    for (const name of allLayoutNames) {
       const layout = layouts[name];
       if (!hasNavigationButtons(layout)) {
         const navButtonsId = generateComponentId(ComponentType.NavigationButtons, layouts);
