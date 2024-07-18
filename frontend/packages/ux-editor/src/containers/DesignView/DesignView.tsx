@@ -83,7 +83,7 @@ export const DesignView = (): ReactNode => {
       newLayoutName = `${t('ux_editor.page')}${newNum}`;
     }
     addLayoutMutation(
-      { layoutName: newLayoutName, isReceiptPage: false },
+      { layoutName: newLayoutName },
       {
         onSuccess: async () => {
           await refetchLayouts(selectedFormLayoutSetName);

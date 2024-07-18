@@ -15,7 +15,6 @@ import { useAppContext } from '../../hooks';
 
 export interface AddLayoutMutationArgs {
   layoutName: string;
-  isReceiptPage?: boolean;
 }
 
 export const useAddLayoutMutation = (org: string, app: string, layoutSetName: string) => {
@@ -34,7 +33,7 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
   };
 
   return useMutation({
-    mutationFn: async ({ layoutName, isReceiptPage }: AddLayoutMutationArgs) => {
+    mutationFn: async ({ layoutName }: AddLayoutMutationArgs) => {
       const layoutSettings: ILayoutSettings = formLayoutSettingsQuery.data;
       const layouts = formLayoutsQuery.data;
 
@@ -46,17 +45,16 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
         newLayouts,
         save,
         layoutName,
-        isReceiptPage ? layoutName : layoutSettings.receiptLayoutName,
+        layoutSettings.receiptLayoutName,
       );
-      return { newLayouts, layoutName, isReceiptPage };
+      return { newLayouts, layoutName };
     },
 
-    onSuccess: async ({ newLayouts, layoutName, isReceiptPage }) => {
+    onSuccess: async ({ newLayouts, layoutName }) => {
       const layoutSettings: ILayoutSettings = ObjectUtils.deepCopy(formLayoutSettingsQuery.data);
       const { order } = layoutSettings?.pages;
 
-      if (isReceiptPage) layoutSettings.receiptLayoutName = layoutName;
-      else order.push(layoutName);
+      order.push(layoutName);
 
       await formLayoutSettingsMutation.mutateAsync(layoutSettings);
 

@@ -49,39 +49,6 @@ describe('useAddLayoutMutation', () => {
       },
     );
   });
-
-  it('Calls saveFormLayout with new layout for receiptPage', async () => {
-    await renderAndWaitForData();
-
-    const addLayoutResult = renderHookWithProviders(() =>
-      useAddLayoutMutation(org, app, selectedLayoutSet),
-    ).result;
-
-    addLayoutResult.current.mutate({
-      layoutName: formLayoutSettingsMock.receiptLayoutName,
-      isReceipt: true,
-    });
-
-    await waitFor(() => expect(addLayoutResult.current.isSuccess).toBe(true));
-
-    expect(queriesMock.saveFormLayout).toHaveBeenLastCalledWith(
-      org,
-      app,
-      formLayoutSettingsMock.receiptLayoutName,
-      selectedLayoutSet,
-      {
-        componentIdsChange: undefined,
-        layout: {
-          $schema:
-            'https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json',
-          data: {
-            layout: [],
-            hidden: undefined,
-          },
-        },
-      },
-    );
-  });
 });
 
 const renderAndWaitForData = async () => {

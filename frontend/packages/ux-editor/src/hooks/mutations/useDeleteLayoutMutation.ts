@@ -65,7 +65,7 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
       // Make sure to create a new page when the last one is deleted!
       if (!selectedFormLayoutName && layoutPagesOrder.length === 0) {
         const layoutName = t('general.page') + (layoutPagesOrder.length + 1);
-        addLayoutMutation.mutate({ layoutName, isReceiptPage: false });
+        addLayoutMutation.mutate({ layoutName });
       }
 
       queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], () => layouts);
