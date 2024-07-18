@@ -40,4 +40,4 @@ describe('useSchemaMutation', () => {
 const render = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
-) => renderHookWithMockStore({}, queries, queryClient)(() => useSchemaMutation());
+) => renderHookWithMockStore(queries, queryClient)(() => useSchemaMutation());

@@ -53,7 +53,7 @@ const renderToolbar = (
     return <TopToolbar {...defaultProps} {...props} />;
   };
 
-  return renderWithMockStore({}, { ...servicesContextProps })(<TopToolbarWithInitData />);
+  return renderWithMockStore({ ...servicesContextProps })(<TopToolbarWithInitData />);
 };
 
 describe('TopToolbar', () => {

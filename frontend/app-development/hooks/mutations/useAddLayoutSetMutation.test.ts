@@ -62,7 +62,6 @@ describe('useAddLayoutSetMutation', () => {
       .fn()
       .mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets));
     const addLayoutSetResult = renderHookWithMockStore(
-      {},
       { addLayoutSet: addLayoutSetMock },
       queryClientMock,
     )(() => useAddLayoutSetMutation(org, app)).renderHookResult.result;
@@ -85,7 +84,6 @@ describe('useAddLayoutSetMutation', () => {
       .mockImplementation(() => Promise.resolve('Layout set already exist error'));
     const queryClientMock = createQueryClientMock();
     const addLayoutSetResult = renderHookWithMockStore(
-      {},
       { addLayoutSet: addLayoutSetMock },
       queryClientMock,
     )(() => useAddLayoutSetMutation(org, app)).renderHookResult.result;
@@ -106,7 +104,6 @@ describe('useAddLayoutSetMutation', () => {
     const addLayoutSetMock = jest.fn().mockImplementation(() => Promise.resolve({}));
     const queryClientMock = createQueryClientMock();
     const addLayoutSetResult = renderHookWithMockStore(
-      {},
       { addLayoutSet: addLayoutSetMock },
       queryClientMock,
     )(() => useAddLayoutSetMutation(org, app)).renderHookResult.result;

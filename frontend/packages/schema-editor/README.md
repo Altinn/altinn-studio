@@ -25,10 +25,8 @@ Builds the app as a package for production to the `dist` folder.\
 ### Schema editor example
 
 ```tsx
-import { Provider } from 'react-redux';
 import '../App.css';
 import { SchemaEditor } from './SchemaEditor';
-import { store } from '../redux/store';
 import { dataMock } from '../mockData';
 
 function saveSchema(schema) {

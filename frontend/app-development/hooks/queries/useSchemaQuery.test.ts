@@ -18,7 +18,6 @@ describe('useSchemaQuery', () => {
       renderHookResult: { result },
     } = renderHookWithMockStore(
       {},
-      {},
       createQueryClientMock(),
     )(() => useSchemaQuery(jsonModelPathWithSlash));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -31,7 +30,6 @@ describe('useSchemaQuery', () => {
     const {
       renderHookResult: { result },
     } = renderHookWithMockStore(
-      {},
       {},
       createQueryClientMock(),
     )(() => useSchemaQuery(xsdModelPathWithSlash));

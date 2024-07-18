@@ -17,7 +17,6 @@ const renderHook = async ({
 } = {}) => {
   const uploadDataModelResult = renderHookWithMockStore(
     {},
-    {},
     queryClient,
   )(() => useUploadDataModelMutation()).renderHookResult.result;
   await waitFor(() => uploadDataModelResult.current.mutate(file));

@@ -2,7 +2,6 @@ import React from 'react';
 import { AltinnHeader } from 'app-shared/components/altinnHeader/AltinnHeader';
 import { getFilteredTopBarMenu } from './AppBar/appBarConfig';
 import { getRepositoryType } from 'app-shared/utils/repository';
-import { useAppSelector } from 'app-development/hooks';
 import type { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { SettingsModalButton } from './SettingsModalButton';
@@ -13,6 +12,7 @@ import { RepositoryType } from 'app-shared/types/global';
 import { useSelectedFormLayoutSetName, useSelectedFormLayoutName } from '@altinn/ux-editor/hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
+import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 
 type SubMenuContentProps = {
   hasRepoError?: boolean;
@@ -63,7 +63,8 @@ type PageHeaderProps = {
 export const PageHeader = ({ showSubMenu, user, repoOwnerIsOrg, isRepoError }: PageHeaderProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const repoType = getRepositoryType(org, app);
-  const repository = useAppSelector((state) => state.serviceInformation.repositoryInfo);
+  const { data: repository } = useRepoMetadataQuery(org, app);
+
   const menuItems = getFilteredTopBarMenu(repoType);
   const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
   const { selectedFormLayoutName } = useSelectedFormLayoutName(selectedFormLayoutSetName);

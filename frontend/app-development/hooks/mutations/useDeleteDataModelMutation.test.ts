@@ -67,4 +67,4 @@ describe('useDeleteDataModelMutation', () => {
 const render = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
-) => renderHookWithMockStore({}, queries, queryClient)(() => useDeleteDataModelMutation());
+) => renderHookWithMockStore(queries, queryClient)(() => useDeleteDataModelMutation());

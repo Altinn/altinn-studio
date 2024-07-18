@@ -23,7 +23,6 @@ const renderHook = async ({
 } = {}) => {
   const updateProcessDataTypesResult = renderHookWithMockStore(
     {},
-    {},
     queryClient,
   )(() => useUpdateProcessDataTypesMutation(org, app)).renderHookResult.result;
   await waitFor(() => updateProcessDataTypesResult.current.mutateAsync(metadata));

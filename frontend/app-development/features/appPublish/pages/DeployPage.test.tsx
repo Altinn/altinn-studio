@@ -71,5 +71,5 @@ describe('DeployPage', () => {
 });
 
 const render = (queries?: Partial<ServicesContextProps>) => {
-  return renderWithMockStore({}, queries)(<DeployPage />);
+  return renderWithMockStore(queries)(<DeployPage />);
 };

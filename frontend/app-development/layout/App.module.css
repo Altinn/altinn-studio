@@ -19,20 +19,3 @@
     --header-height: calc(var(--toolbar-height) + var(--header-border-bottom-width));
   }
 }
-
-.contentWrapper {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-}
-
-.mergeConflictApp {
-  height: 100%;
-  width: 100%;
-}
-
-.appSpinner {
-  height: 100vh;
-  justify-content: center;
-  align-items: center;
-}

@@ -77,4 +77,4 @@ describe('SchemaGenerationErrorsPanel', () => {
 const render = (
   queries: Partial<ServicesContextProps> = {},
   props: Partial<SchemaGenerationErrorsPanelProps> = {},
-) => renderWithMockStore({}, queries)(<SchemaGenerationErrorsPanel {...defaultProps} {...props} />);
+) => renderWithMockStore(queries)(<SchemaGenerationErrorsPanel {...defaultProps} {...props} />);

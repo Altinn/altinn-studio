@@ -184,7 +184,6 @@ const render = (
     [model1MetadataXsd, model2MetadataXsd],
   );
   return renderWithMockStore(
-    {},
     queries,
     queryClient,
   )(<SelectedSchemaEditor {...defaultProps} {...props} />);

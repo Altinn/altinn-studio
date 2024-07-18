@@ -8,7 +8,6 @@ const {
   userCurrentPath,
   dataModelsPath,
   createDataModelPath,
-  remainingSessionTimePath,
   branchStatusPath,
   repoStatusPath,
   frontendLangPath,
@@ -33,7 +32,6 @@ module.exports = (middlewares, devServer) => {
   app.get(dataModelsPath(':org', ':app'), require('./routes/get-datamodels'));
   //prettier-ignore
   app.get(frontendLangPath(':locale'), (req, res) => res.json(require(`../../../language/src/${req.params.locale}.json`)));
-  app.get(remainingSessionTimePath(), (req, res) => res.send('9999'));
   app.get(repoMetaPath(':org', ':app'), require('./routes/get-repo-data'));
   app.get(branchStatusPath(':org', ':app', 'branch'), require('./routes/get-branch'));
   app.get(repoStatusPath(':org', ':app'), fixtureRoute('status'));

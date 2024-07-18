@@ -157,7 +157,6 @@ The current build is deployed in Kubernetes on Azure. Automated CI/CD using Azur
 
 ## Built With
 
-- [React](https://reactjs.org/)/[Redux](https://redux.js.org/) - The front-end framework
 - [.NET Core](https://docs.microsoft.com/en-us/dotnet/core/)/[C#](https://docs.microsoft.com/en-us/dotnet/csharp/) - The back-end framework
 - [yarn](https://yarnpkg.com/) - Package management
 - [Docker](https://www.docker.com/) - Container platform
@@ -193,7 +192,6 @@ This project is licensed under the 3-Clause BSD License - see the [LICENSE.md](L
 [9]: https://github.com/Altinn/altinn-studio
 [10]: http://studio.localhost
 [11]: https://reactjs.org/
-[12]: https://redux.js.org/
 [13]: https://docs.microsoft.com/en-us/dotnet/core/
 [14]: https://docs.microsoft.com/en-us/dotnet/csharp/
 [15]: https://yarnpkg.com/
