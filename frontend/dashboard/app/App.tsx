@@ -25,13 +25,13 @@ export const App = (): JSX.Element => {
   const getErrorMessage = (): { title: string; message: string } => {
     if (isUserError) {
       return {
-        title: t('dashboard.error_getting_user_data.title'), 
+        title: t('dashboard.error_getting_user_data.title'),
         message: t('dashboard.error_getting_user_data.message'),
       };
     }
     if (isOrganizationsError) {
       return {
-        title: t('dashboard.error_getting_organization_data.title'), 
+        title: t('dashboard.error_getting_organization_data.title'),
         message: t('dashboard.error_getting_organization_data.message'),
       };
     }
