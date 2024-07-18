@@ -37,6 +37,7 @@ export const LangSelector = ({ onAddLang, options }: ILangSelectorProps) => {
     <div className={classes.languageSelector}>
       <div className={classes.selectWrapper}>
         <StudioNativeSelect
+          id='lang-select'
           label={t('schema_editor.language_add_language')}
           onChange={handleSelectOnChange}
           value={selectedOption.value}
