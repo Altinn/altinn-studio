@@ -60,6 +60,27 @@ describe('MigrationPanel', () => {
     expect(screen.getByText(textMock('resourceadm.migration_no_migration_access')));
   });
 
+  it('should show error when get number of delegations fails', async () => {
+    const user = userEvent.setup();
+    renderMigrationPanel(
+      {},
+      {
+        getAltinn2DelegationsCount: jest.fn().mockImplementation(() => {
+          return Promise.reject({});
+        }),
+      },
+    );
+
+    const getNumberOfDelegationsButton = screen.getByRole('button', {
+      name: textMock('resourceadm.migration_get_number_of_delegations', {
+        env: textMock(defaultProps.env.label),
+      }),
+    });
+    await user.click(getNumberOfDelegationsButton);
+
+    expect(screen.getByText(textMock('resourceadm.migration_get_number_of_delegations_failed')));
+  });
+
   it('Should refetch number of delegations when get delegations button is clicked', async () => {
     const numberOfDelegationsFirstFetch = 200;
     const numberOfDelegationsSecondFetch = 300;
@@ -114,6 +135,26 @@ describe('MigrationPanel', () => {
     await user.click(migrationButton);
 
     expect(screen.getByText(textMock('resourceadm.migration_no_migration_access')));
+  });
+
+  it('should show error when migrate delegations fails', async () => {
+    const user = userEvent.setup();
+    renderMigrationPanel(
+      {},
+      {
+        migrateDelegations: jest.fn().mockImplementation(() => {
+          return Promise.reject({});
+        }),
+      },
+    );
+    const migrationButton = screen.getByRole('button', {
+      name: textMock('resourceadm.migration_migrate_delegations', {
+        env: textMock(defaultProps.env.label),
+      }),
+    });
+    await user.click(migrationButton);
+
+    expect(screen.getByText(textMock('resourceadm.migration_post_migration_failed')));
   });
 
   it('Should show toast when migrate delegations button is clicked', async () => {
