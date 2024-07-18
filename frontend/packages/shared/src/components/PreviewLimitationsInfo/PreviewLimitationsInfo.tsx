@@ -3,10 +3,9 @@ import classes from './PreviewLimitationsInfo.module.css';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { Alert } from '@digdir/designsystemet-react';
-import { LegacyPopover } from '@digdir/design-system-react';
 import { XMarkIcon } from '@studio/icons';
 import { typedLocalStorage } from '@studio/components/src/hooks/webStorage';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioPopover } from '@studio/components';
 
 export const PreviewLimitationsInfo = () => {
   const { t } = useTranslation();
@@ -34,18 +33,16 @@ export const PreviewLimitationsInfo = () => {
     <Alert severity='info'>
       <div className={classes.alert}>
         {t('preview.limitations_info')}
-        <LegacyPopover
-          trigger={
+        <StudioPopover open={openSaveChoiceInSession}>
+          <StudioPopover.Trigger asChild>
             <StudioButton
               onClick={() => setOpenShowSaveChoiceInSession(!openSaveChoiceInSession)}
               size='small'
               variant='tertiary'
               icon={<XMarkIcon />}
             />
-          }
-          open={openSaveChoiceInSession}
-        >
-          <div className={classes.popoverContent}>
+          </StudioPopover.Trigger>
+          <StudioPopover.Content className={classes.popoverContent}>
             <p className={classes.message}>{t('session.reminder')}</p>
             <StudioButton
               className={cn(classes.yesButton, classes.button)}
@@ -63,8 +60,8 @@ export const PreviewLimitationsInfo = () => {
             >
               {t('session.dont_show_again')}
             </StudioButton>
-          </div>
-        </LegacyPopover>
+          </StudioPopover.Content>
+        </StudioPopover>
       </div>
     </Alert>
   );
