@@ -137,6 +137,7 @@ const TypeSelect = ({ onChange, value }: TypeSelectProps) => {
   return (
     <NativeSelect
       hideLabel
+      id='fieldTypeSelect'
       label={t('schema_editor.type')}
       onChange={(event) => onChange(event.target.value as FieldType)}
       value={value}
