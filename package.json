@@ -90,6 +90,7 @@
     "start-app-development": "yarn workspace app-development start",
     "start-app-preview": "yarn workspace app-preview start",
     "start-dashboard": "yarn workspace dashboard start",
+    "start-preview": "yarn workspace app-preview start",
     "start-resourceadm": "yarn workspace resourceadm start",
     "start-studio-root": "yarn workspace studio-root start",
     "stats": "node frontend/stats.js",

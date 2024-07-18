@@ -38,6 +38,12 @@
   padding: 0 0.5rem;
 }
 
+.heading {
+  padding-left: 1rem;
+  color: #fff;
+  font-size: 1.125rem;
+}
+
 .altinnHeaderBar .rightContent {
   align-items: center;
   display: flex;

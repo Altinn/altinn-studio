@@ -543,7 +543,7 @@
   "policy_editor.verification_modal_text": "Are you sure want to delete this rule?",
   "popover.popover_button_help_text": "Click here for help text popover",
   "popover.popover_open": "Popover open",
-  "preview.iframe_title": "Preview",
+  "preview.title": "Preview",
   "process_editor-view_mode": "View mode",
   "process_editor.edit_mode": "Edit mode",
   "process_editor.fetch_bpmn_error_message": "The BPMN file you're looking for could not be found. You might want to consider refreshing the page to attempting to refetch the BPMN file.",

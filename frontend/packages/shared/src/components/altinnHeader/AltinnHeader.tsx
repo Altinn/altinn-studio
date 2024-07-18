@@ -14,9 +14,11 @@ import { getRepositoryType } from 'app-shared/utils/repository';
 import { RepositoryType } from 'app-shared/types/global';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { useTranslation } from 'react-i18next';
+import { Heading } from '@digdir/designsystemet-react';
 
 export interface AltinnHeaderProps {
-  menuItems: TopBarMenuItem[];
+  heading?: string;
+  menuItems?: TopBarMenuItem[];
   showSubMenu: boolean;
   subMenuContent?: JSX.Element;
   repository: Repository;
@@ -29,6 +31,7 @@ export interface AltinnHeaderProps {
 }
 
 export const AltinnHeader = ({
+  heading,
   menuItems,
   showSubMenu,
   repository,
@@ -58,7 +61,8 @@ export const AltinnHeader = ({
             </>
           )}
         </div>
-        <AltinnHeaderMenu menuItems={menuItems} />
+        {heading && <Heading className={classes.heading}>{heading}</Heading>}
+        {menuItems && <AltinnHeaderMenu menuItems={menuItems} />}
         <div className={classes.rightContent}>
           {buttonActions && (
             <div className={classes.rightContentButtons}>
