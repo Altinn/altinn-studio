@@ -114,7 +114,7 @@
   "dashboard.error_getting_organization_data.title": "Feil oppstod ved innlasting av organisasjoner",
   "dashboard.error_getting_user_data.message": "Vi beklager men en feil oppstod ved henting av dine brukerdata.",
   "dashboard.error_getting_user_data.title": "Feil oppstod ved innlasting av brukerdata",
-  "dashboard.error_unknown.message": "Vi beklager men en ukjent feil, vennligst prøv igjen senere.",
+  "dashboard.error_unknown.message": "Vi beklager men en ukjent feil oppstod, vennligst prøv igjen senere.",
   "dashboard.error_unknown.title": "Ukjent feil oppstod",
   "dashboard.favorite_status": "Favorittstatus",
   "dashboard.favourites": "Favoritter",
