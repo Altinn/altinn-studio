@@ -33,7 +33,7 @@ export const MigrationPanel = ({
   const initialDate = new Date().toISOString().split('T')[0];
   const [migrationDate, setMigrationDate] = useState(initialDate);
   const [migrationTime, setMigrationTime] = useState('00:00');
-  const [hasNoMigrationAccess, setHasNoMigrationAccess] = useState<boolean>(false);
+  const [migrateDelegationsError, setMigrateDelegationsError] = useState<Error | null>(null);
   const [isDelegationCountEnabled, setIsDelegationCountEnabled] = useState<boolean>(false);
 
   const { mutate: migrateDelegations } = useMigrateDelegationsMutation(org, env.id);
@@ -50,7 +50,12 @@ export const MigrationPanel = ({
     !isDelegationCountEnabled,
   );
 
-  const startMigrateDelegations = (): void => {
+  const isErrorForbidden = (error: Error) => {
+    return (error as ResourceError)?.response?.status === ServerCodes.Forbidden;
+  };
+
+  const postMigrateDelegations = (): void => {
+    setMigrateDelegationsError(null);
     const date = new Date(migrationDate);
     const [hours, minutes] = migrationTime.split(':');
     date.setHours(parseInt(hours), parseInt(minutes));
@@ -67,9 +72,7 @@ export const MigrationPanel = ({
           toast.success(t('resourceadm.migration_migration_success', { env: t(env.label) }));
         },
         onError: (error: Error) => {
-          if ((error as ResourceError).response?.status === ServerCodes.Forbidden) {
-            setHasNoMigrationAccess(true);
-          }
+          setMigrateDelegationsError(error);
         },
       },
     );
@@ -108,6 +111,13 @@ export const MigrationPanel = ({
           </StudioButton>
         </div>
       </div>
+      {getNumberOfDelegationsError && (
+        <Alert severity='danger' size='small'>
+          {isErrorForbidden(getNumberOfDelegationsError)
+            ? t('resourceadm.migration_no_migration_access')
+            : t('resourceadm.migration_get_number_of_delegations_failed')}
+        </Alert>
+      )}
       <StudioLabelAsParagraph size='medium' spacing>
         {t('resourceadm.migration_select_migration_time_header')}
       </StudioLabelAsParagraph>
@@ -128,11 +138,11 @@ export const MigrationPanel = ({
           size='small'
         />
       </div>
-      {(hasNoMigrationAccess ||
-        (getNumberOfDelegationsError as ResourceError)?.response?.status ===
-          ServerCodes.Forbidden) && (
+      {migrateDelegationsError && (
         <Alert severity='danger' size='small'>
-          {t('resourceadm.migration_no_migration_access')}
+          {isErrorForbidden(migrateDelegationsError)
+            ? t('resourceadm.migration_no_migration_access')
+            : t('resourceadm.migration_post_migration_failed')}
         </Alert>
       )}
       {!isPublishedInEnv && (
@@ -144,7 +154,7 @@ export const MigrationPanel = ({
         aria-disabled={!isMigrationReady || !isPublishedInEnv}
         onClick={() => {
           if (isMigrationReady && isPublishedInEnv) {
-            startMigrateDelegations();
+            postMigrateDelegations();
           }
         }}
         size='small'
