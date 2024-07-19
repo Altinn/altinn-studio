@@ -13,7 +13,6 @@ const {
   frontendLangPath,
   repoMetaPath,
   serviceConfigPath,
-  serviceNamePath,
 } = require('../../../packages/shared/src/api/paths');
 
 module.exports = (middlewares, devServer) => {
@@ -37,7 +36,6 @@ module.exports = (middlewares, devServer) => {
   app.get(repoStatusPath(':org', ':app'), fixtureRoute('status'));
   app.get(serviceConfigPath(':org', ':app'), (req, res) => res.sendStatus(204));
   //prettier-ignore
-  app.get(serviceNamePath(':org', ':app'), (req, res) => res.send(req.params.repo.toUpperCase()));
   app.get(userCurrentPath(), require('./routes/user-current'));
   app.post(createDataModelPath(':org', ':app'), require('./routes/create-model'));
   app.put(dataModelsPath(':org', ':app'), require('./routes/put-datamodel'));

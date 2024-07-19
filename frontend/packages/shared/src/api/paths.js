@@ -105,7 +105,6 @@ export const stageFilePath = (org, app, filename) => `${basePath}/repos/repo/${o
 // Text - old
 export const textLanguagesPath = (org, app) => `${basePath}/${org}/${app}/text/languages`; // Get
 export const textResourcesPath = (org, app, langCode) => `${basePath}/${org}/${app}/text/language/${langCode}`; // Get, Post, Put, Delete
-export const serviceNamePath = (org, app) => `${basePath}/${org}/${app}/text/service-name`; // Get
 export const textResourceIdsPath = (org, app) => `${basePath}/${org}/${app}/text/keys`; // Put
 
 // Text - new

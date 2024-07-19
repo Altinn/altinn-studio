@@ -271,36 +271,5 @@ namespace Altinn.Studio.Designer.Controllers
             string schema = System.IO.File.ReadAllText(_hostingEnvironment.WebRootPath + "/designer/json/schema/resource-schema.json");
             return Content(schema, "application/json", Encoding.UTF8);
         }
-
-        /// <summary>
-        /// Method to retrieve service name from textresources file
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The service name of the service</returns>
-        [HttpGet]
-        [Route("service-name")]
-        public IActionResult GetServiceName(string org, string app)
-        {
-            string defaultLang = "nb";
-            string filename = $"resource.{defaultLang}.json";
-            string serviceResourceDirectoryPath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
-
-            try
-            {
-                if (System.IO.File.Exists(serviceResourceDirectoryPath))
-                {
-                    string textResource = System.IO.File.ReadAllText(serviceResourceDirectoryPath, Encoding.UTF8);
-                    ResourceCollection textResourceObject = JsonConvert.DeserializeObject<ResourceCollection>(textResource);
-                    return Content(textResourceObject?.Resources?.FirstOrDefault(r => r.Id == "appName" || r.Id == "ServiceName")?.Value ?? string.Empty);
-                }
-
-                return Problem($"Working directory does not exist for {org}/{app}");
-            }
-            catch (JsonException ex)
-            {
-                return Problem(title: $"Failed to parse App/config/texts/{filename} as JSON", instance: $"App/config/texts/{filename}", detail: $"Failed to parse App/config/texts/{filename} as JSON\n" + ex.Message);
-            }
-        }
     }
 }
