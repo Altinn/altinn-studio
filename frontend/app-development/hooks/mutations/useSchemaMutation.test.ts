@@ -1,4 +1,4 @@
-import { renderHookWithMockStore } from '../../test/mocks';
+import { renderHookWithProviders } from '../../test/mocks';
 import { useSchemaMutation } from './useSchemaMutation';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
@@ -40,4 +40,4 @@ describe('useSchemaMutation', () => {
 const render = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
-) => renderHookWithMockStore(queries, queryClient)(() => useSchemaMutation());
+) => renderHookWithProviders(queries, queryClient)(() => useSchemaMutation());

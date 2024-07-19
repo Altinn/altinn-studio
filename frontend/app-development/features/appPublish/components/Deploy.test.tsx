@@ -3,7 +3,7 @@ import type { DeployProps } from './Deploy';
 import { Deploy } from './Deploy';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithMockStore } from 'app-development/test/mocks';
+import { renderWithProviders } from 'app-development/test/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { AppRelease } from 'app-shared/types/AppRelease';
@@ -60,7 +60,7 @@ const imageOptions = [
 ];
 
 const render = (props?: Partial<DeployProps>, queries?: Partial<ServicesContextProps>) => {
-  return renderWithMockStore({
+  return renderWithProviders({
     getDeployPermissions: jest.fn().mockImplementation(() => Promise.resolve(['tt02'])),
     getAppReleases: jest.fn().mockImplementation(() =>
       Promise.resolve({

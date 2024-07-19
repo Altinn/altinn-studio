@@ -1,5 +1,5 @@
 import React from 'react';
-import { renderWithMockStore } from '../../../test/mocks';
+import { renderWithProviders } from '../../../test/mocks';
 import type { SchemaGenerationErrorsPanelProps } from './SchemaGenerationErrorsPanel';
 import { SchemaGenerationErrorsPanel } from './SchemaGenerationErrorsPanel';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -77,4 +77,4 @@ describe('SchemaGenerationErrorsPanel', () => {
 const render = (
   queries: Partial<ServicesContextProps> = {},
   props: Partial<SchemaGenerationErrorsPanelProps> = {},
-) => renderWithMockStore(queries)(<SchemaGenerationErrorsPanel {...defaultProps} {...props} />);
+) => renderWithProviders(queries)(<SchemaGenerationErrorsPanel {...defaultProps} {...props} />);

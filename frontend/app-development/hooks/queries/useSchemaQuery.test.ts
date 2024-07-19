@@ -1,7 +1,7 @@
 import { waitFor } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { useSchemaQuery } from './useSchemaQuery';
-import { renderHookWithMockStore } from '../../test/mocks';
+import { renderHookWithProviders } from '../../test/mocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
 
@@ -16,7 +16,7 @@ describe('useSchemaQuery', () => {
   it('Calls getDataModel with correct arguments when Json Schema', async () => {
     const {
       renderHookResult: { result },
-    } = renderHookWithMockStore(
+    } = renderHookWithProviders(
       {},
       createQueryClientMock(),
     )(() => useSchemaQuery(jsonModelPathWithSlash));
@@ -29,7 +29,7 @@ describe('useSchemaQuery', () => {
   it('Calls addXsdFromRepo with correct arguments when XSD', async () => {
     const {
       renderHookResult: { result },
-    } = renderHookWithMockStore(
+    } = renderHookWithProviders(
       {},
       createQueryClientMock(),
     )(() => useSchemaQuery(xsdModelPathWithSlash));

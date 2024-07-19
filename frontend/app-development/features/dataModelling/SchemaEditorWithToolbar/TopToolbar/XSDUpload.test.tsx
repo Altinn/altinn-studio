@@ -6,7 +6,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { fileSelectorInputId } from '@studio/testing/testids';
-import { renderWithMockStore } from '../../../../test/mocks';
+import { renderWithProviders } from '../../../../test/mocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
@@ -33,7 +33,7 @@ const render = ({
 }: {
   queryClient?: QueryClient;
   queries?: Partial<ServicesContextProps>;
-} = {}) => renderWithMockStore(queries, queryClient)(<XSDUpload />);
+} = {}) => renderWithProviders(queries, queryClient)(<XSDUpload />);
 
 describe('XSDUpload', () => {
   afterEach(jest.restoreAllMocks);

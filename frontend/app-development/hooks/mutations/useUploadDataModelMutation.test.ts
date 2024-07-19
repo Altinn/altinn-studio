@@ -1,5 +1,5 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderHookWithMockStore } from '../../test/mocks';
+import { renderHookWithProviders } from '../../test/mocks';
 import { useUploadDataModelMutation } from './useUploadDataModelMutation';
 import { waitFor } from '@testing-library/react';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -15,7 +15,7 @@ const renderHook = async ({
 }: {
   queryClient?: QueryClient;
 } = {}) => {
-  const uploadDataModelResult = renderHookWithMockStore(
+  const uploadDataModelResult = renderHookWithProviders(
     {},
     queryClient,
   )(() => useUploadDataModelMutation()).renderHookResult.result;

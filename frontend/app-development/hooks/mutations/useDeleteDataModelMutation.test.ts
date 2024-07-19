@@ -1,4 +1,4 @@
-import { renderHookWithMockStore } from '../../test/mocks';
+import { renderHookWithProviders } from '../../test/mocks';
 import { useDeleteDataModelMutation } from './useDeleteDataModelMutation';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
@@ -67,4 +67,4 @@ describe('useDeleteDataModelMutation', () => {
 const render = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
-) => renderHookWithMockStore(queries, queryClient)(() => useDeleteDataModelMutation());
+) => renderHookWithProviders(queries, queryClient)(() => useDeleteDataModelMutation());

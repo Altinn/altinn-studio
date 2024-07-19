@@ -1,5 +1,5 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderHookWithMockStore } from '../../test/mocks';
+import { renderHookWithProviders } from '../../test/mocks';
 import { waitFor } from '@testing-library/react';
 import { useAddLayoutSetMutation } from './useAddLayoutSetMutation';
 import type { LayoutSetConfig, LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
@@ -19,7 +19,7 @@ describe('useAddLayoutSetMutation', () => {
   afterEach(jest.clearAllMocks);
 
   it('Calls useAddLayoutSetMutation with correct arguments and payload', async () => {
-    const addLayoutSetResult = renderHookWithMockStore()(() => useAddLayoutSetMutation(org, app))
+    const addLayoutSetResult = renderHookWithProviders()(() => useAddLayoutSetMutation(org, app))
       .renderHookResult.result;
     await waitFor(() =>
       addLayoutSetResult.current.mutateAsync({
@@ -38,7 +38,7 @@ describe('useAddLayoutSetMutation', () => {
   });
 
   it('Calls useAddLayoutSetMutation with correct arguments and payload also when taskType is not provided', async () => {
-    const addLayoutSetResult = renderHookWithMockStore()(() => useAddLayoutSetMutation(org, app))
+    const addLayoutSetResult = renderHookWithProviders()(() => useAddLayoutSetMutation(org, app))
       .renderHookResult.result;
     await waitFor(() =>
       addLayoutSetResult.current.mutateAsync({
@@ -61,7 +61,7 @@ describe('useAddLayoutSetMutation', () => {
     const addLayoutSetMock = jest
       .fn()
       .mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets));
-    const addLayoutSetResult = renderHookWithMockStore(
+    const addLayoutSetResult = renderHookWithProviders(
       { addLayoutSet: addLayoutSetMock },
       queryClientMock,
     )(() => useAddLayoutSetMutation(org, app)).renderHookResult.result;
@@ -83,7 +83,7 @@ describe('useAddLayoutSetMutation', () => {
       .fn()
       .mockImplementation(() => Promise.resolve('Layout set already exist error'));
     const queryClientMock = createQueryClientMock();
-    const addLayoutSetResult = renderHookWithMockStore(
+    const addLayoutSetResult = renderHookWithProviders(
       { addLayoutSet: addLayoutSetMock },
       queryClientMock,
     )(() => useAddLayoutSetMutation(org, app)).renderHookResult.result;
@@ -103,7 +103,7 @@ describe('useAddLayoutSetMutation', () => {
   it('does not set queryData if response is not of type LayoutSets', async () => {
     const addLayoutSetMock = jest.fn().mockImplementation(() => Promise.resolve({}));
     const queryClientMock = createQueryClientMock();
-    const addLayoutSetResult = renderHookWithMockStore(
+    const addLayoutSetResult = renderHookWithProviders(
       { addLayoutSet: addLayoutSetMock },
       queryClientMock,
     )(() => useAddLayoutSetMutation(org, app)).renderHookResult.result;

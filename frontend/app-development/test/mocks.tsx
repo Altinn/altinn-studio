@@ -12,7 +12,7 @@ import { queryClientConfigMock } from 'app-shared/mocks/queryClientMock';
 
 export const textLanguagesMock = ['nb', 'nn', 'en'];
 
-export const renderWithMockStore =
+export const renderWithProviders =
   (queries: Partial<ServicesContextProps> = {}, queryClient?: QueryClient) =>
   (component: ReactNode) => {
     const renderResult = render(
@@ -43,7 +43,7 @@ export const renderWithMockStore =
     return { renderResult: { ...renderResult, rerender } };
   };
 
-export const renderHookWithMockStore =
+export const renderHookWithProviders =
   (queries: Partial<ServicesContextProps> = {}, queryClient?: QueryClient) =>
   (hook: () => any) => {
     const renderHookResult = renderHook(hook, {

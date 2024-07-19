@@ -5,7 +5,7 @@ import type { DeployDropdownProps } from './DeployDropdown';
 import { DeployDropdown } from './DeployDropdown';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { renderWithMockStore } from 'app-development/test/mocks';
+import { renderWithProviders } from 'app-development/test/mocks';
 import type { AppRelease } from 'app-shared/types/AppRelease';
 import { BuildResult } from 'app-shared/types/Build';
 import { appRelease } from 'app-shared/mocks/mocks';
@@ -304,7 +304,7 @@ describe('DeployDropdown', () => {
 });
 
 const render = (props?: Partial<DeployDropdownProps>, queries?: Partial<ServicesContextProps>) => {
-  return renderWithMockStore({
+  return renderWithProviders({
     getAppReleases: jest.fn().mockImplementation(() =>
       Promise.resolve({
         results: appReleases,
