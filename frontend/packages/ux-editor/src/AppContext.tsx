@@ -1,8 +1,10 @@
 import type { MutableRefObject } from 'react';
 import React, { useMemo, useRef, createContext, useCallback } from 'react';
 import type { QueryClient, QueryKey } from '@tanstack/react-query';
-import { useSelectedFormLayoutName, useSelectedFormLayoutSetName } from './hooks';
-
+import { useSelectedFormLayoutName } from './hooks';
+import { useLocalStorage } from '@studio/components/src/hooks/useLocalStorage';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 export interface WindowWithQueryClient extends Window {
   queryClient?: QueryClient;
 }
@@ -37,10 +39,14 @@ export const AppContextProvider = ({
   onLayoutSetNameChange,
 }: AppContextProviderProps): React.JSX.Element => {
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
-  const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } =
-    useSelectedFormLayoutSetName();
+  const { org, app } = useStudioEnvironmentParams();
+  const [selectedFormLayoutSetName, setSelectedFormLayoutSetName] = useLocalStorage<string>(
+    'layoutSet/' + app,
+  );
+  const { data: layoutSets } = useLayoutSetsQuery(org, app);
+  const resolvedLayoutSetName = selectedFormLayoutSetName || layoutSets?.sets[0]?.id || '';
   const { selectedFormLayoutName, setSelectedFormLayoutName } =
-    useSelectedFormLayoutName(selectedFormLayoutSetName);
+    useSelectedFormLayoutName(resolvedLayoutSetName);
 
   const refetch = useCallback(
     async (queryKey: QueryKey, resetQueries: boolean = false): Promise<void> => {
@@ -81,7 +87,7 @@ export const AppContextProvider = ({
   const value = useMemo(
     () => ({
       previewIframeRef,
-      selectedFormLayoutSetName,
+      selectedFormLayoutSetName: resolvedLayoutSetName,
       setSelectedFormLayoutSetName,
       selectedFormLayoutName,
       setSelectedFormLayoutName,
@@ -93,7 +99,7 @@ export const AppContextProvider = ({
       onLayoutSetNameChange,
     }),
     [
-      selectedFormLayoutSetName,
+      resolvedLayoutSetName,
       setSelectedFormLayoutSetName,
       selectedFormLayoutName,
       setSelectedFormLayoutName,

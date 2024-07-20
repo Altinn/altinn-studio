@@ -17,11 +17,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { previewPage } from 'app-shared/api/paths';
 import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
-import {
-  useSelectedFormLayoutName,
-  useSelectedFormLayoutSetName,
-  useSelectedTaskId,
-} from '@altinn/ux-editor/hooks';
+import { useSelectedFormLayoutName, useSelectedTaskId } from '@altinn/ux-editor/hooks';
 
 export interface LandingPageProps {
   variant?: AltinnHeaderVariant;
@@ -36,8 +32,9 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const { data: user } = useUserQuery();
   const { data: repository } = useRepoMetadataQuery(org, app);
   const { data: instanceId } = useInstanceIdQuery(org, app);
-  const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } =
-    useSelectedFormLayoutSetName();
+  const [selectedFormLayoutSetName, setSelectedFormLayoutSetName] = useLocalStorage<string>(
+    'layoutSet/' + app,
+  );
   const { selectedFormLayoutName } = useSelectedFormLayoutName(selectedFormLayoutSetName);
   const [previewViewSize, setPreviewViewSize] = useLocalStorage<PreviewAsViewSize>(
     'viewSize',

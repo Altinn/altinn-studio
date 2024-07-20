@@ -10,9 +10,10 @@ import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import type { User } from 'app-shared/types/Repository';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { RepositoryType } from 'app-shared/types/global';
-import { useSelectedFormLayoutSetName, useSelectedFormLayoutName } from '@altinn/ux-editor/hooks';
+import { useSelectedFormLayoutName } from '@altinn/ux-editor/hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
+import { useLocalStorage } from '@studio/components/src/hooks/useLocalStorage';
 
 type SubMenuContentProps = {
   hasRepoError?: boolean;
@@ -65,7 +66,7 @@ export const PageHeader = ({ showSubMenu, user, repoOwnerIsOrg, isRepoError }: P
   const repoType = getRepositoryType(org, app);
   const repository = useAppSelector((state) => state.serviceInformation.repositoryInfo);
   const menuItems = getFilteredTopBarMenu(repoType);
-  const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
+  const [selectedFormLayoutSetName, _] = useLocalStorage<string>('layoutSet/' + app);
   const { selectedFormLayoutName } = useSelectedFormLayoutName(selectedFormLayoutSetName);
 
   return (
