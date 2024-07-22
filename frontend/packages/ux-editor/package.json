@@ -4,7 +4,7 @@
   "version": "1.0.1",
   "author": "Altinn",
   "dependencies": {
-    "@mui/material": "5.16.1",
+    "@mui/material": "5.16.4",
     "@studio/icons": "workspace:^",
     "classnames": "2.5.1",
     "react": "18.3.1",
