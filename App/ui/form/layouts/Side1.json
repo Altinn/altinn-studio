@@ -58,6 +58,10 @@
         "textResourceBindings": {
           "title": "Side1.Button-SWe731.title"
         }
+      },
+      {
+        "id": "NavigationButtons-LiTLl4",
+        "type": "NavigationButtons"
       }
     ]
   }
