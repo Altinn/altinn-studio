@@ -48,7 +48,7 @@ test('That it is possible to add and delete form components', async ({
 
   await uiEditorPage.verifyThatPageIsEmpty();
 
-  await uiEditorPage.dragComponentInToDroppableList(ComponentType.Input);
+  await uiEditorPage.dragComponentIntoDroppableList(ComponentType.Input);
   await uiEditorPage.waitForComponentTreeItemToBeVisibleInDroppableList(ComponentType.Input);
   await uiEditorPage.verifyThatPageEmptyMessageIsHidden();
 });
@@ -88,7 +88,7 @@ test('That it is possible to add a Header component to the page when there is al
   await uiEditorPage.openTextComponentSection();
   await uiEditorPage.waitForDraggableToolbarItemToBeVisible(ComponentType.Header);
 
-  await uiEditorPage.dragComponentInToDroppableListItem({
+  await uiEditorPage.dragComponentIntoDroppableListItem({
     componentToDrag: ComponentType.Header,
     componentToDropOn: ComponentType.Input,
   });
