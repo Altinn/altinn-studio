@@ -1,7 +1,6 @@
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import { useEffect, useState } from 'react';
-import { typedLocalStorage } from '@studio/components/src/hooks/webStorage';
+import { useLocalStorage } from '@studio/components/src/hooks/useLocalStorage';
 
 export type UseSelectedFormLayoutSetNameResult = {
   selectedFormLayoutSetName: string;
@@ -11,29 +10,17 @@ export type UseSelectedFormLayoutSetNameResult = {
 export const useSelectedFormLayoutSetName = (): UseSelectedFormLayoutSetNameResult => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
+  const defaultLayoutSet = layoutSets?.sets[0]?.id;
 
-  const storageKey: string = 'selectedFormLayoutSetName';
-  const [selectedFormLayoutSetNameState, setSelectedFormLayoutSetName] = useState(
-    typedLocalStorage.getItem<string>(storageKey),
+  const [selectedFormLayoutSetName, setSelectedFormLayoutSetName] = useLocalStorage<string>(
+    'layoutSet/' + app,
+    defaultLayoutSet,
   );
 
-  useEffect(() => {
-    if (selectedFormLayoutSetNameState)
-      typedLocalStorage.setItem<string>(storageKey, selectedFormLayoutSetNameState);
-  }, [selectedFormLayoutSetNameState]);
-
-  let selectedFormLayoutSetName: string;
-
-  if (layoutSets?.sets.length > 0) {
-    if (layoutSets.sets.find((item) => item.id === selectedFormLayoutSetNameState)) {
-      selectedFormLayoutSetName = selectedFormLayoutSetNameState;
-    } else {
-      selectedFormLayoutSetName = layoutSets.sets[0].id;
-    }
-  }
+  const layoutSetExists = layoutSets?.sets.some((set) => set.id === selectedFormLayoutSetName);
 
   return {
-    selectedFormLayoutSetName,
+    selectedFormLayoutSetName: layoutSetExists ? selectedFormLayoutSetName : defaultLayoutSet,
     setSelectedFormLayoutSetName,
   };
 };
