@@ -20,8 +20,10 @@ spec:
       chart: eid-logger
       sourceRef:
         kind: HelmRepository
-        name: eid-logger
+        name: studio-charts
         namespace: default
   values:
     image:
       tag: "{{ .Values.gitSha }}"
+    env:
+      environmentName: "{{ .Values.environmentName }}"
