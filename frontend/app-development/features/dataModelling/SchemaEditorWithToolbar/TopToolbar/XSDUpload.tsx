@@ -6,17 +6,22 @@ import { useUploadDataModelMutation } from '../../../../hooks/mutations/useUploa
 import type { AxiosError } from 'axios';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
+import type { MetadataOption } from '../../../../types/MetadataOption';
 
 export interface XSDUploadProps {
   disabled?: boolean;
   submitButtonRenderer?: (fileInputClickHandler: (event: any) => void) => JSX.Element;
+  selectedOption?: MetadataOption;
 }
 
-export const XSDUpload = ({ disabled, submitButtonRenderer }: XSDUploadProps) => {
+export const XSDUpload = ({ disabled, submitButtonRenderer, selectedOption }: XSDUploadProps) => {
   const { t } = useTranslation();
-  const { mutate: uploadDataModel, isPending: uploading } = useUploadDataModelMutation({
-    hideDefaultError: true,
-  });
+  const { mutate: uploadDataModel, isPending: uploading } = useUploadDataModelMutation(
+    selectedOption?.value?.repositoryRelativeUrl,
+    {
+      hideDefaultError: true,
+    },
+  );
 
   const uploadButton = React.useRef(null);
 

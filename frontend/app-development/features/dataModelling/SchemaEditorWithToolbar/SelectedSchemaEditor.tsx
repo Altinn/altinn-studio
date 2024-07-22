@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSchemaQuery } from '../../../hooks/queries';
 import { useSchemaMutation } from '../../../hooks/mutations';
 import { StudioCenter, StudioPageSpinner } from '@studio/components';
@@ -64,6 +64,10 @@ const SchemaEditorWithDebounce = ({ jsonSchema, modelPath }: SchemaEditorWithDeb
   const [model, setModel] = useState<JsonSchema>(jsonSchema);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const updatedModel = useRef<JsonSchema>(jsonSchema);
+
+  useEffect(() => {
+    setModel(jsonSchema);
+  }, [jsonSchema]);
 
   const saveFunction = useCallback(
     () => mutate({ modelPath, model: updatedModel.current }),
