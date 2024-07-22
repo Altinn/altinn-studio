@@ -37,6 +37,25 @@
       "validationErrorOnPendingFileScan": false,
       "enabledFileAnalysers": [],
       "enabledFileValidators": []
+    },
+    {
+      "id": "moped",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.moped.moped",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false
+      },
+      "maxCount": 1,
+      "minCount": 1,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
     }
   ],
   "partyTypesAllowed": {

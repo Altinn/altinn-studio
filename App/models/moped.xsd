@@ -5,11 +5,13 @@
       <xsd:attribute name="rootNode" fixed="" />
     </xs:documentation>
   </xs:annotation>
-  <xs:element name="model">
+  <xs:element name="moped">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" name="Navn" type="xs:string" />
-        <xs:element minOccurs="0" name="Alder" type="xs:long" />
+        <xs:element name="RegNo" type="xs:string" />
+        <xs:element name="Merke" type="xs:string" />
+        <xs:element name="Modell" type="xs:string" />
+        <xs:element name="Produksjonsaar" type="xs:long" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

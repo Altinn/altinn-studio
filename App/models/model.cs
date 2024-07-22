@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -11,20 +12,18 @@ namespace Altinn.App.Models.model
   [XmlRoot(ElementName="model")]
   public class model
   {
-    [XmlElement("property1", Order = 1)]
-    [JsonProperty("property1")]
-    [JsonPropertyName("property1")]
-    public string property1 { get; set; }
+    [XmlElement("Navn", Order = 1)]
+    [JsonProperty("Navn")]
+    [JsonPropertyName("Navn")]
+    public string Navn { get; set; }
 
-    [XmlElement("property2", Order = 2)]
-    [JsonProperty("property2")]
-    [JsonPropertyName("property2")]
-    public string property2 { get; set; }
+    [Range(Double.MinValue,Double.MaxValue)]
+    [XmlElement("Alder", Order = 2)]
+    [JsonProperty("Alder")]
+    [JsonPropertyName("Alder")]
+    public decimal? Alder { get; set; }
 
-    [XmlElement("property3", Order = 3)]
-    [JsonProperty("property3")]
-    [JsonPropertyName("property3")]
-    public string property3 { get; set; }
+    public bool ShouldSerializeAlder() => Alder.HasValue;
 
   }
 }
