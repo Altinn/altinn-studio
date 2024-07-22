@@ -1,10 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import classes from './AltinnConfirmDialog.module.css';
-import type { LegacyPopoverProps } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 import { StudioButton, StudioPopover } from '@studio/components';
-import type { StudioButtonProps } from '@studio/components';
+import type { StudioButtonProps, StudioPopoverProps } from '@studio/components';
 
 export type AltinnConfirmDialogProps = {
   confirmText?: string;
@@ -12,7 +11,9 @@ export type AltinnConfirmDialogProps = {
   cancelText?: string;
   onConfirm: (event: React.MouseEvent<HTMLButtonElement>) => void;
   onClose: (event: React.MouseEvent<HTMLButtonElement> | MouseEvent) => void;
-} & Partial<Pick<LegacyPopoverProps, 'open' | 'trigger' | 'placement' | 'children' | 'className'>>;
+  trigger?: React.ReactNode;
+  className?: string;
+} & Partial<Pick<StudioPopoverProps, 'open' | 'placement' | 'children'>>;
 
 export function AltinnConfirmDialog({
   confirmText,
