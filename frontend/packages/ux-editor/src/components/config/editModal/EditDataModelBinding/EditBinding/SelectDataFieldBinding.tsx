@@ -9,6 +9,7 @@ import { FormField } from 'app-shared/components/FormField';
 import { StudioNativeSelect } from '@studio/components';
 import { useValidDataModels } from '@altinn/ux-editor/hooks/useValidDataModels';
 import type { ComponentType } from 'app-shared/types/ComponentType';
+import classes from './SelectDataFieldBinding.module.css';
 
 type SelectDataFieldProps = {
   internalBindingFormat: InternalBindingFormat;
@@ -60,6 +61,7 @@ export const SelectDataFieldBinding = ({
       label={t('ux_editor.modal_properties_data_model_field_binding')}
       renderField={({ fieldProps }) => (
         <StudioNativeSelect
+          className={classes.selectedDatafieldBinding}
           {...fieldProps}
           onChange={(e) => fieldProps.onChange(e.target.value)}
           error={isBindingError && t('ux_editor.modal_properties_data_model_field_update')}
