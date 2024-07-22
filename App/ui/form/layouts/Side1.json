@@ -15,8 +15,7 @@
         "id": "Paragraph-kuSAR3",
         "type": "Paragraph",
         "textResourceBindings": {
-          "title": "Side1.Paragraph-kuSAR3.title",
-          "help": "Side1.Paragraph-kuSAR3.help"
+          "title": "Side1.Paragraph-kuSAR3.title"
         }
       },
       {
@@ -35,7 +34,8 @@
         "type": "Input",
         "textResourceBindings": {
           "title": "Side1.Input-JQDlSQ.title"
-        }
+        },
+        "required": true
       },
       {
         "dataModelBindings": {
@@ -48,7 +48,30 @@
         },
         "formatting": {
           "unit": "year"
-        }
+        },
+        "required": true
+      },
+      {
+        "id": "subform-mopeder",
+        "type": "SubForm",
+        "textResourceBindings": {
+          "title": "subform-moped.title",
+          "addButton": "subform-moped.add"
+        },
+        "layoutSet": "moped-subform",
+        "dataType": "moped",
+        "showAddButton": true,
+        "showDeleteButton": true,
+        "tableColumns" : [
+          {
+            "headerContent": "subform-moped.regno",
+            "cellContent": "RegNo"
+          },
+          {
+            "headerContent": "subform-moped.merke",
+            "cellContent": "Merke"
+          }
+        ]
       },
       {
         "id": "Button-SWe731",
@@ -58,10 +81,6 @@
         "textResourceBindings": {
           "title": "Side1.Button-SWe731.title"
         }
-      },
-      {
-        "id": "NavigationButtons-LiTLl4",
-        "type": "NavigationButtons"
       }
     ]
   }

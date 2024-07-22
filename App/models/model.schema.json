@@ -17,6 +17,10 @@
   },
   "@xsdRootElement": "model",
   "type": "object",
+  "required": [
+    "Navn",
+    "Alder"
+  ],
   "description": "",
   "title": "Datamodell for hovedskjema",
   "properties": {

@@ -47,7 +47,9 @@
         "autoCreate": true,
         "classRef": "Altinn.App.Models.moped.moped",
         "allowAnonymousOnStateless": false,
-        "autoDeleteOnProcessEnd": false
+        "autoDeleteOnProcessEnd": false,
+        "allowUserDelete": true,
+        "allowUserCreate": true
       },
       "maxCount": 1,
       "minCount": 1,

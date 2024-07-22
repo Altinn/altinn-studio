@@ -2,6 +2,10 @@
   "language": "nb",
   "resources": [
     {
+      "id": "appName",
+      "value": "subform-test-ds"
+    },
+    {
       "id": "Side1.Button-SWe731.title",
       "value": "Send inn"
     },
@@ -26,8 +30,48 @@
       "value": "Fancy app med sub-form komponent"
     },
     {
-      "id": "appName",
-      "value": "subform-test-ds"
+      "id": "moped-header.title",
+      "value": "Mopedregistrering"
+    },
+    {
+      "id": "moped-blurb.title",
+      "value": "Fyll inn dette skjemaet for å registrere en moped."
+    },
+    {
+      "id": "moped-regno.title",
+      "value": "Registreringsnummer"
+    },
+    {
+      "id": "moped-produksjonsaar.title",
+      "value": "Produksjonsår"
+    },
+    {
+      "id": "moped-merke.title",
+      "value": "Merke"
+    },
+    {
+      "id": "moped-modell.title",
+      "value": "Modell"
+    },
+    {
+      "id": "subform-moped.title",
+      "value": "Dine mopeder"
+    },
+    {
+      "id": "subform-moped.add",
+      "value": "Legg til moped"
+    },
+    {
+      "id": "subform-moped.regno",
+      "value": "Regnummer"
+    },
+    {
+      "id": "subform-moped.merke",
+      "value": "Merke"
+    },
+    {
+      "id": "subform-backbutton.title",
+      "value": "Tilbake"
     }
   ]
 }
