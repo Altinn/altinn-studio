@@ -25,3 +25,5 @@ spec:
   values:
     image:
       tag: "{{ .Values.gitSha }}"
+    env:
+      environmentName: "{{ .Values.environmentName }}"
