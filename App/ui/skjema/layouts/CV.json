@@ -7,7 +7,7 @@
         "type": "NavigationBar"
       },
       {
-        "id": "tittel",
+        "id": "tittel2",
         "type": "Header",
         "size": "L",
         "textResourceBindings": {
