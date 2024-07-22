@@ -44,9 +44,7 @@ export const LangSelector = ({ onAddLang, options }: ILangSelectorProps) => {
         />
       </div>
       <div>
-        <StudioButton {...addButtonProps} size='small'>
-          {t('general.add')}
-        </StudioButton>
+        <StudioButton {...addButtonProps}>{t('general.add')}</StudioButton>
       </div>
     </div>
   );

@@ -171,7 +171,6 @@ export const AccessListMembers = ({
       {hasNextPage && (
         <StudioButton
           disabled={isFetchingNextPage}
-          size='small'
           variant='tertiary'
           onClick={() => fetchNextPage()}
         >

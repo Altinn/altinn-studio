@@ -218,7 +218,6 @@ export function ReleaseContainer() {
               tabIndex={0}
               onKeyUp={handlePopoverKeyPress}
               icon={renderStatusIcon()}
-              size='small'
               variant='tertiary'
             />
           }

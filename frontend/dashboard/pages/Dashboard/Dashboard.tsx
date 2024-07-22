@@ -66,7 +66,6 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                   onClick={handleClearSearch}
                   icon={<XMarkIcon />}
                   variant='tertiary'
-                  size='small'
                 />
               )}
             </div>
@@ -90,17 +89,11 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
             <SearchResultReposList searchValue={debouncedSearchText} />
           ) : (
             <>
-              <ErrorBoundary
-                fallback={
-                  <SafeErrorView
-                    heading={t('dashboard.favourites')}
-                    title={t('dashboard.view_favorites_error_title')}
-                    message={t('dashboard.view_table_error_message')}
-                  />
-                }
-              >
-                <FavoriteReposList />
-              </ErrorBoundary>
+              <SafeErrorView
+                heading={t('dashboard.favourites')}
+                title={t('dashboard.view_favorites_error_title')}
+                message={t('dashboard.view_table_error_message')}
+              />
               <div>
                 <ErrorBoundary
                   fallback={
