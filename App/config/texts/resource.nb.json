@@ -2,6 +2,30 @@
   "language": "nb",
   "resources": [
     {
+      "id": "Side1.Button-SWe731.title",
+      "value": "Send inn"
+    },
+    {
+      "id": "Side1.Input-kcxhAS.title",
+      "value": "Alder"
+    },
+    {
+      "id": "Side1.Input-JQDlSQ.title",
+      "value": "Navn"
+    },
+    {
+      "id": "Side1.Header-Bnv9wp.title",
+      "value": "Men først, litt personalia:"
+    },
+    {
+      "id": "Side1.Paragraph-kuSAR3.title",
+      "value": "Som beskrevet i tittelen, er dette en app som tar i bruk sub-form komponenten for testing."
+    },
+    {
+      "id": "Side1.Header-wtBlvU.title",
+      "value": "Fancy app med sub-form komponent"
+    },
+    {
       "id": "appName",
       "value": "subform-test-ds"
     }
