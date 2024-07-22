@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions } from './helpers/options';
 import { Fieldset, Textfield, Switch } from '@digdir/designsystemet-react';
-import { LegacyTextArea } from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
 import type { CombinationKind, UiSchemaNode } from '@altinn/schema-model';
@@ -31,7 +30,7 @@ import { useTranslation } from 'react-i18next';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
 import { NameField } from './NameField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { StudioNativeSelect } from '@studio/components';
+import { StudioNativeSelect, StudioTextarea } from '@studio/components';
 
 export type IItemDataComponentProps = {
   schemaNode: UiSchemaNode;
@@ -187,7 +186,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
           />
         </div>
         <div>
-          <LegacyTextArea
+          <StudioTextarea
             id={descriptionId}
             aria-label={t('schema_editor.description')}
             label={t('schema_editor.description')}
