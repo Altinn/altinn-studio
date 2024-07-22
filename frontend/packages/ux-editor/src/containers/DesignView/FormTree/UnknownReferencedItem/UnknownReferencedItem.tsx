@@ -30,7 +30,6 @@ export const UnknownReferencedItem = ({ id, layout }: UnknownReferencedItemProps
           color='danger'
           icon={<TrashIcon />}
           onClick={handleDelete}
-          size='small'
           title={t('general.delete')}
           variant='tertiary'
         />

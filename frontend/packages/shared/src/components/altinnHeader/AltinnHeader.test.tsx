@@ -20,17 +20,33 @@ const mockAction: AltinnButtonActionItem = {
 describe('AltinnHeader', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should render AltinnHeaderMenu', () => {
+  it('should render heading when provided', () => {
+    const heading: string = 'Test heading';
+    render({ heading });
+    expect(screen.getByText(heading)).toBeInTheDocument();
+  });
+
+  it('should not render heading when not provided', () => {
+    render();
+    expect(screen.queryByRole('heading')).not.toBeInTheDocument();
+  });
+
+  it('should render AltinnHeaderMenu when provided', () => {
     render({
       menuItems: [
         {
-          key: TopBarMenu.About,
+          key: TopBarMenu.Preview,
           link: 'Link1',
           repositoryTypes: [RepositoryType.App, RepositoryType.DataModels],
         },
       ],
     });
-    expect(screen.getByTitle('Altinn logo')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: textMock('top_menu.preview') })).toBeInTheDocument();
+  });
+
+  it('should not render AltinnHeaderMenu when not provided', () => {
+    render();
+    expect(screen.getAllByRole('link').length).toBe(1); // Only dashboard link
   });
 
   it('should render AltinnHeaderMenu with only data models menu item when repositoryType is data models', () => {

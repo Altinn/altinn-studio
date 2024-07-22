@@ -89,7 +89,6 @@ export const TextRow = ({
                 variant='tertiary'
                 onClick={() => setIsConfirmDeleteDialogOpen((prevState) => !prevState)}
                 aria-label={t('schema_editor.delete')}
-                size='small'
               >
                 {t('schema_editor.delete')}
               </StudioButton>
@@ -142,7 +141,6 @@ export const TextRow = ({
               aria-label={t('text_editor.toggle_edit_mode', { textKey: textIdValue })}
               icon={<PencilIcon />}
               variant='tertiary'
-              size='small'
               onClick={() => setTextIdEditOpen(!textIdEditOpen)}
             />
           )}

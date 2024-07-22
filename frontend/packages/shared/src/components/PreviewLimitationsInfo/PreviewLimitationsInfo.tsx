@@ -37,7 +37,6 @@ export const PreviewLimitationsInfo = () => {
           <StudioPopover.Trigger asChild>
             <StudioButton
               onClick={() => setOpenShowSaveChoiceInSession(!openSaveChoiceInSession)}
-              size='small'
               variant='tertiary'
               icon={<XMarkIcon />}
             />
@@ -47,7 +46,6 @@ export const PreviewLimitationsInfo = () => {
             <StudioButton
               className={cn(classes.yesButton, classes.button)}
               onClick={handleHidePreviewLimitations}
-              size='small'
               variant='secondary'
             >
               {t('session.do_show_again')}
@@ -55,7 +53,6 @@ export const PreviewLimitationsInfo = () => {
             <StudioButton
               className={cn(classes.noButton, classes.button)}
               onClick={handleRememberChoiceForSession}
-              size='small'
               variant='secondary'
             >
               {t('session.dont_show_again')}

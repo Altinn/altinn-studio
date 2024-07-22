@@ -6,16 +6,10 @@ import { useInstanceIdQuery, useRepoMetadataQuery, useUserQuery } from 'app-shar
 import { useLocalStorage } from '@studio/components/src/hooks/useLocalStorage';
 import { AltinnHeader } from 'app-shared/components/altinnHeader';
 import type { AltinnHeaderVariant } from 'app-shared/components/altinnHeader/types';
-import { getRepositoryType } from 'app-shared/utils/repository';
-import {
-  getTopBarAppPreviewMenu,
-  appPreviewButtonActions,
-} from '../components/AppBarConfig/AppPreviewBarConfig';
-
+import { appPreviewButtonActions } from '../components/AppBarConfig/AppPreviewBarConfig';
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { previewPage } from 'app-shared/api/paths';
-import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
 import {
   useSelectedFormLayoutName,
@@ -44,9 +38,6 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
     'desktop',
   );
   const taskId = useSelectedTaskId(selectedFormLayoutSetName);
-
-  const repoType = getRepositoryType(org, app);
-  const menuItems: TopBarMenuItem[] = getTopBarAppPreviewMenu(org, app, repoType, t);
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
 
@@ -73,7 +64,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
     <>
       <div className={classes.header}>
         <AltinnHeader
-          menuItems={menuItems}
+          heading={t('preview.title')}
           showSubMenu={true}
           org={org}
           app={app}
@@ -95,7 +86,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
         <PreviewLimitationsInfo />
         <div className={classes.iframeContainer}>
           <iframe
-            title={t('preview.iframe_title')}
+            title={t('preview.title')}
             id='app-frontend-react-iframe'
             src={previewPage(org, app, selectedFormLayoutSetName, taskId, selectedFormLayoutName)}
             className={previewViewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile}

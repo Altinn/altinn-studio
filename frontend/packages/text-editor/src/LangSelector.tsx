@@ -52,9 +52,7 @@ export const LangSelector = ({ onAddLang, options }: ILangSelectorProps) => {
         </StudioNativeSelect>
       </div>
       <div>
-        <StudioButton {...addButtonProps} size='sm'>
-          {t('general.add')}
-        </StudioButton>
+        <StudioButton {...addButtonProps}>{t('general.add')}</StudioButton>
       </div>
     </div>
   );

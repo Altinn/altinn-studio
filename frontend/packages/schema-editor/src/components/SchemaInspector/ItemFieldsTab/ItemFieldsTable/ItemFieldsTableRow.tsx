@@ -114,7 +114,6 @@ export const ItemFieldsTableRow = ({
                 onClick={() => setIsConfirmDeleteDialogOpen((prevState) => !prevState)}
                 color='danger'
                 variant='tertiary'
-                size='small'
               />
             }
           >

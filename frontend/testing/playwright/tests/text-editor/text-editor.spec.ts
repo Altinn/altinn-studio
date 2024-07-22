@@ -57,7 +57,7 @@ test('That it is possible to create a text at the ux-editor page, and that the t
   const uiEditorPage = new UiEditorPage(page, { app: testAppName });
 
   await navigateToUiEditorAndVerifyPage(header, uiEditorPage);
-  await uiEditorPage.dragComponentInToDroppableList(ComponentType.Input);
+  await uiEditorPage.dragComponentIntoDroppableList(ComponentType.Input);
 
   await uiEditorPage.deleteOldComponentId();
   await uiEditorPage.writeNewComponentId(COMPONENT_ID);

@@ -52,11 +52,11 @@ spec:
           {{- end }}
           env:
             - name: DIGDIR_EVENT_LOGGING_FEATUREENABLED
-              value: {{ .Values.env.enableLogging }}
+              value: {{ quote .Values.env.enableLogging }}
             - name: DIGDIR_EVENT_LOGGING_ENVIRONMENTNAME
-              value: {{ .Values.env.environmentName }}
-            - name: SPRING_CLOUD_AZURE_KEYVAULT_SECRET_ENABLED
-              value: {{ .Values.env.sourceFromKeyvault }}
+              value: {{ quote .Values.env.environmentName }}
+            - name: SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCE_ENABLED
+              value: {{ quote .Values.env.sourceFromKeyvault }}
           envFrom:
             - secretRef:
                 name: {{ .Values.env.sourceSecretName }}

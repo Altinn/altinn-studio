@@ -28,7 +28,6 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
         <StudioButton
           color='inverted'
           icon={<MenuElipsisVerticalIcon />}
-          size='small'
           title={t('sync_header.gitea_menu')}
           variant='tertiary'
         />
