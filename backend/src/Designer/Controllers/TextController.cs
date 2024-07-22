@@ -30,7 +30,6 @@ namespace Altinn.Studio.Designer.Controllers
     {
         private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly IRepository _repository;
-        private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger _logger;
         private readonly ITextsService _textsService;
@@ -40,15 +39,13 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="hostingEnvironment">The hosting environment service.</param>
         /// <param name="repositoryService">The app repository service.</param>
-        /// <param name="repositorySettings">The repository settings.</param>
         /// <param name="httpContextAccessor">The http context accessor.</param>
         /// <param name="logger">the log handler.</param>
         /// <param name="textsService">The texts service</param>
-        public TextController(IWebHostEnvironment hostingEnvironment, IRepository repositoryService, ServiceRepositorySettings repositorySettings, IHttpContextAccessor httpContextAccessor, ILogger<TextController> logger, ITextsService textsService)
+        public TextController(IWebHostEnvironment hostingEnvironment, IRepository repositoryService, IHttpContextAccessor httpContextAccessor, ILogger<TextController> logger, ITextsService textsService)
         {
             _hostingEnvironment = hostingEnvironment;
             _repository = repositoryService;
-            _settings = repositorySettings;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
             _textsService = textsService;
