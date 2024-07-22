@@ -30,10 +30,10 @@ describe('useUpdateBpmn', () => {
 
       expect(moddle.fromXML).toHaveBeenCalledWith(mockBPMNXML);
       expect(moddle.toXML).toHaveBeenCalledWith(dataTypesToSignMock, { format: true });
-      expect(
+      const firstDataTypeId =
         dataTypesToSignMock.rootElements[0].flowElements[0].extensionElements.values[0].$children[0]
-          .$children[0].$children[0].$body,
-      ).not.toEqual('dataType1');
+          .$children[0].$children[0].$body;
+      expect(firstDataTypeId).not.toEqual('dataType1');
       expect(queriesMock.updateBpmnXml).toHaveBeenCalled();
     });
 
@@ -60,10 +60,11 @@ describe('useUpdateBpmn', () => {
 
       expect(moddle.fromXML).toHaveBeenCalledWith(mockBPMNXML);
       expect(moddle.toXML).toHaveBeenCalledWith(dataTypesToSignMock, { format: true });
-      expect(
+
+      const firstDataTypeId =
         dataTypesToSignMock.rootElements[0].flowElements[0].extensionElements.values[0].$children[0]
-          .$children[0].$children[0].$body,
-      ).toEqual('dataType2_new');
+          .$children[0].$children[0].$body;
+      expect(firstDataTypeId).toEqual('dataType2_new');
       expect(queriesMock.updateBpmnXml).toHaveBeenCalled();
     });
 
