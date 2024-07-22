@@ -133,7 +133,6 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
             <StudioButton
               role='option'
               key={option}
-              size='small'
               color='second'
               variant='tertiary'
               onMouseDown={() => handleWordClick(option)}
