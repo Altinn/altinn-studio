@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+
+  <title>@ViewBag.Org- @ViewBag.App</title>
+  <link rel="icon" href="https://altinncdn.no/favicon.ico">
+
+  <!-- Runtime CSS -->
+  <link rel="stylesheet" type="text/css" href="https://altinncdn.no/toolkits/altinn-app-frontend/4/altinn-app-frontend.css">
+</head>
+<body>
+  <div id="root"></div>
+  <script>
+      const appId = window.location.pathname.split('/');
+      window.org = appId[1];
+      window.app = appId[2];
+  </script>
+  <script src="https://altinncdn.no/toolkits/altinn-app-frontend/4/altinn-app-frontend.js"></script>
+</body>
+</html>
