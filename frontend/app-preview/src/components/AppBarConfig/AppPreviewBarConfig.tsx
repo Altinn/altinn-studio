@@ -1,7 +1,6 @@
 import React from 'react';
 import { RepositoryType } from 'app-shared/types/global';
 import type { TFunction } from 'i18next';
-import { LegacyToggleButtonGroup } from '@digdir/design-system-react';
 import type { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import classes from '../AppPreviewSubMenu.module.css';
 import { ArrowCirclepathIcon, EyeIcon, LinkIcon } from '@studio/icons';
@@ -13,6 +12,7 @@ import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { StudioButton, StudioNativeSelect } from '@studio/components';
+import { ToggleGroup } from '@digdir/designsystemet-react';
 
 export interface AppPreviewMenuItem {
   key: string;
@@ -49,20 +49,14 @@ export const SubPreviewMenuLeftContent = ({
   return (
     <div className={classes.leftSubHeaderComponents}>
       <div className={classes.viewSizeButtons}>
-        <LegacyToggleButtonGroup
-          items={[
-            {
-              label: t('preview.view_size_desktop'),
-              value: 'desktop',
-            },
-            {
-              label: t('preview.view_size_mobile'),
-              value: 'mobile',
-            },
-          ]}
+        <ToggleGroup
           onChange={setViewSize}
-          selectedValue={viewSize === 'desktop' ? 'desktop' : 'mobile'}
-        />
+          value={viewSize === 'desktop' ? 'desktop' : 'mobile'}
+          size='sm'
+        >
+          <ToggleGroup.Item value='desktop'>{t('preview.view_size_desktop')}</ToggleGroup.Item>
+          <ToggleGroup.Item value='mobile'>{t('preview.view_size_mobile')}</ToggleGroup.Item>
+        </ToggleGroup>
       </div>
       {layoutSets && (
         <div className={classes.layoutSetSelector}>
