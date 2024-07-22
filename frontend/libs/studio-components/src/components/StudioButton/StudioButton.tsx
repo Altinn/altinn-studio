@@ -44,7 +44,14 @@ const StudioButton: OverridableComponent<StudioButtonProps, HTMLButtonElement> =
     const selectedColor = color === 'inverted' ? undefined : color;
 
     return (
-      <Button {...rest} color={selectedColor} className={classNames} icon={!children} ref={ref}>
+      <Button
+        {...rest}
+        color={selectedColor}
+        className={classNames}
+        icon={!children}
+        size={size}
+        ref={ref}
+      >
         {icon ? (
           <span className={classes.innerContainer}>
             {iconPlacement === 'left' && iconComponent}
