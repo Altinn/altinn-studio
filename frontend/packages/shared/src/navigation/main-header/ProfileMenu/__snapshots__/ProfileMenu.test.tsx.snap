@@ -3,13 +3,16 @@
 exports[`ProfileMenu should match snapshot 1`] = `
 <button
   aria-haspopup="true"
-  class="fds-btn fds-focus fds-btn--md fds-btn--tertiary fds-btn--first"
+  class="fds-btn fds-focus fds-btn--sm fds-btn--tertiary fds-btn--first studioButton inverted small"
   data-testid="profileButton"
   type="button"
 >
-  <span />
+  <span
+    class="userOrgNames"
+  />
   <img
     alt="[mockedText(general.profile_icon)]"
+    class="userAvatar"
     title="[mockedText(shared.header_profile_icon_text)]"
   />
 </button>
@@ -18,13 +21,16 @@ exports[`ProfileMenu should match snapshot 1`] = `
 exports[`ProfileMenu should match snapshot with logout text 1`] = `
 <button
   aria-haspopup="true"
-  class="fds-btn fds-focus fds-btn--md fds-btn--tertiary fds-btn--first"
+  class="fds-btn fds-focus fds-btn--sm fds-btn--tertiary fds-btn--first studioButton inverted small"
   data-testid="profileButton"
   type="button"
 >
-  <span />
+  <span
+    class="userOrgNames"
+  />
   <img
     alt="[mockedText(general.profile_icon)]"
+    class="userAvatar"
     title="[mockedText(shared.header_profile_icon_text)]"
   />
 </button>
