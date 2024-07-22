@@ -50,6 +50,16 @@ spec:
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          env:
+            - name: DIGDIR_EVENT_LOGGING_FEATUREENABLED
+              value: {{ quote .Values.env.enableLogging }}
+            - name: DIGDIR_EVENT_LOGGING_ENVIRONMENTNAME
+              value: {{ quote .Values.env.environmentName }}
+            - name: SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCE_ENABLED
+              value: {{ quote .Values.env.sourceFromKeyvault }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.env.sourceSecretName }}
       {{- with .Values.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}
