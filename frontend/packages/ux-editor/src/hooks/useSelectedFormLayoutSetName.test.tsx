@@ -41,28 +41,26 @@ const wrapper = ({
 describe('useSelectedFormLayoutSetName', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should return undefined when the select layout set is invalid', async () => {
+  it('should return undefined when there are no layout sets', async () => {
     const { result } = renderHook(() => useSelectedFormLayoutSetName(), { wrapper });
     expect(result.current.selectedFormLayoutSetName).toEqual(undefined);
   });
 
-  it('should return selected layout when the selected layout set is valid', async () => {
+  it('should return default layout set when selected does not exist', async () => {
     const client = createQueryClientMock();
-    client.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
-
-    const { result } = renderHook(() => useSelectedFormLayoutSetName(), {
-      wrapper: ({ children }) => {
-        return wrapper({ children, client });
-      },
-    });
-
-    expect(result.current.selectedFormLayoutSetName).toEqual(selectedLayoutSet);
-  });
-
-  it('Should initialize state with local storage value', async () => {
     const storageKey = 'layoutSet/' + app;
-    typedLocalStorage.setItem(storageKey, selectedLayoutSet);
+    typedLocalStorage.setItem(storageKey, 'nonExistingLayoutSet');
 
+    client.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
+    const { result } = renderHook(() => useSelectedFormLayoutSetName(), {
+      wrapper: ({ children }) => {
+        return wrapper({ children, client });
+      },
+    });
+    expect(result.current.selectedFormLayoutSetName).toEqual(layoutSetsMock.sets[0].id);
+  });
+
+  it('should return selected layout set when selected does exist', async () => {
     const client = createQueryClientMock();
     client.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
 
@@ -74,24 +72,4 @@ describe('useSelectedFormLayoutSetName', () => {
 
     expect(result.current.selectedFormLayoutSetName).toEqual(selectedLayoutSet);
   });
-
-  // it('Should update local storage based on the state', async () => {
-  //   const storageKey = 'layoutSet/' + app;
-  //   const newLayoutSetName = 'newLayoutSet';
-
-  //   const client = createQueryClientMock();
-  //   client.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
-
-  //   const { result } = renderHook(() => useSelectedFormLayoutSetName(), {
-  //     wrapper: ({ children }) => {
-  //       return wrapper({ children, client });
-  //     },
-  //   });
-
-  //   await waitFor(() => {
-  //     result.current.setSelectedFormLayoutSetName(newLayoutSetName);
-  //   });
-
-  //   expect(typedLocalStorage.getItem(storageKey)).toEqual(newLayoutSetName);
-  // });
 });
