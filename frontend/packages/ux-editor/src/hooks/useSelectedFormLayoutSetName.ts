@@ -14,7 +14,6 @@ export const useSelectedFormLayoutSetName = (): UseSelectedFormLayoutSetNameResu
 
   const [selectedFormLayoutSetName, setSelectedFormLayoutSetName] = useLocalStorage<string>(
     'layoutSet/' + app,
-    defaultLayoutSet,
   );
 
   const layoutSetExists = layoutSets?.sets.some((set) => set.id === selectedFormLayoutSetName);
