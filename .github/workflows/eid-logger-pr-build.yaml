@@ -5,7 +5,7 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - 'eidlogger/**'
-      - '.github/workflows/build-eid-logger-image.yaml'
+      - '.github/workflows/eid-logger-pr-build.yaml'
   workflow_dispatch:
 
 jobs:
