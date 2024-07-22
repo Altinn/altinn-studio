@@ -281,4 +281,13 @@ describe('getDataModel', () => {
     const dataModel = getDataModel(isDataModelValid, dataModelMetadata, currentDataModel);
     expect(dataModel).toEqual(currentDataModel);
   });
+
+  it('should return default data model if current data model is empty string', () => {
+    const isDataModelValid = true;
+    const currentDataModel = '';
+    const dataModelMetadata = dataModelMetadataMock;
+
+    const dataModel = getDataModel(isDataModelValid, dataModelMetadata, currentDataModel);
+    expect(dataModel).toEqual(defaultModel);
+  });
 });

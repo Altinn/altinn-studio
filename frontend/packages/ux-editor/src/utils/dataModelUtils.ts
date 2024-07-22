@@ -145,7 +145,7 @@ export const getDataModel = (
   currentDataModel?: string,
 ): string => {
   if (dataModelMetadata) {
-    return isDataModelValid && currentDataModel !== undefined
+    return isDataModelValid && currentDataModel !== undefined && currentDataModel !== ''
       ? currentDataModel
       : dataModelMetadata[0]?.id;
   }
