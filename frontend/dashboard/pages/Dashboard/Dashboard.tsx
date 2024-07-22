@@ -89,11 +89,17 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
             <SearchResultReposList searchValue={debouncedSearchText} />
           ) : (
             <>
-              <SafeErrorView
-                heading={t('dashboard.favourites')}
-                title={t('dashboard.view_favorites_error_title')}
-                message={t('dashboard.view_table_error_message')}
-              />
+              <ErrorBoundary
+                fallback={
+                  <SafeErrorView
+                    heading={t('dashboard.favourites')}
+                    title={t('dashboard.view_favorites_error_title')}
+                    message={t('dashboard.view_table_error_message')}
+                  />
+                }
+              >
+                <FavoriteReposList />
+              </ErrorBoundary>
               <div>
                 <ErrorBoundary
                   fallback={
