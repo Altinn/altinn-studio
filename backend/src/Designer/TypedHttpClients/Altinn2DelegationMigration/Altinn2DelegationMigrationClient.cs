@@ -54,7 +54,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2DelegationMigration
 
             using HttpResponseMessage response = await _httpClient.SendAsync(request);
 
-            return await response.Content.ReadAsAsync<DelegationCountOverview>();
+            response.EnsureSuccessStatusCode();
+            return new StatusCodeResult(201);
         }
 
         private string GetResourceRegistryBaseUrl(string env)
