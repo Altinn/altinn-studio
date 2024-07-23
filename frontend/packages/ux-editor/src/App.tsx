@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FormDesigner } from './containers/FormDesigner';
 import { useText, useAppContext } from './hooks';
-import { StudioPageSpinner } from '@studio/components';
+import { cleanupStaleLocalStorageKeys, StudioPageSpinner } from '@studio/components';
 import { ErrorPage } from './components/ErrorPage';
 import { useDataModelMetadataQuery } from './hooks/queries/useDataModelMetadataQuery';
 import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
@@ -16,6 +16,11 @@ import { FormItemContextProvider } from './containers/FormItemContext';
  */
 
 export function App() {
+  // Remove local storage keys that are no longer supported
+  useEffect(() => {
+    cleanupStaleLocalStorageKeys();
+  }, []);
+
   const t = useText();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();

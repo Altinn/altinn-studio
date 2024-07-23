@@ -1,5 +1,5 @@
 import { renderHook, waitFor } from '@testing-library/react';
-import { useLocalStorage } from './useLocalStorage';
+import { cleanupStaleLocalStorageKeys, useLocalStorage } from './useLocalStorage';
 import { typedLocalStorage } from './webStorage';
 
 describe('useLocalStorage', () => {
@@ -37,5 +37,27 @@ describe('useLocalStorage', () => {
     await waitFor(() => result.current[2]());
     expect(typedLocalStorage.getItem(key)).toBeUndefined();
     expect(result.current[0]).toBeUndefined();
+  });
+});
+
+describe('cleanupStaleLocalStorageKeys', () => {
+  it('Removes the selectedFormLayoutSetName key from local storage', () => {
+    const unsupportedKey = 'selectedFormLayoutSetName';
+    const value = 'value';
+    typedLocalStorage.setItem(unsupportedKey, value);
+
+    cleanupStaleLocalStorageKeys();
+
+    expect(typedLocalStorage.getItem(unsupportedKey)).toBeUndefined();
+  });
+
+  it('Does not remove other keys from local storage', () => {
+    const supportedKey = 'supportedKey';
+    const value = 'value';
+    typedLocalStorage.setItem(supportedKey, value);
+
+    cleanupStaleLocalStorageKeys();
+
+    expect(typedLocalStorage.getItem(supportedKey)).toBe(value);
   });
 });
