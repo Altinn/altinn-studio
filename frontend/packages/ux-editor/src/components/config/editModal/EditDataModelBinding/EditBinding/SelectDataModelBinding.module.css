@@ -6,3 +6,7 @@
 .displayTileContainer > div {
   display: block;
 }
+
+.selectDataModel {
+  width: 100%;
+}

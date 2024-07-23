@@ -48,7 +48,7 @@ export const DefinedBinding = ({
 
   const value = (
     <span className={classes.selectedOption}>
-      <LinkIcon /> {currentDataModelField}
+      <LinkIcon /> <span className={classes.currentLinkedDataModel}>{currentDataModelField}</span>
     </span>
   );
 
