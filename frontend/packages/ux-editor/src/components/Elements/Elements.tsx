@@ -87,6 +87,7 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
           icon={<ShrinkIcon title='1' fontSize='1.5rem' />}
           title={t('left_menu.close_components')}
           onClick={onCollapseToggle}
+          size='medium'
         ></StudioButton>
       </div>
       {hideComponents ? (

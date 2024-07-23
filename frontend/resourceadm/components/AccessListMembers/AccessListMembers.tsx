@@ -231,6 +231,7 @@ export const AccessListMembers = ({
             icon={<PlusIcon />}
             iconPlacement='left'
             onClick={() => setIsAddMode(true)}
+            size='medium'
           >
             {t('resourceadm.listadmin_search_add_more')}
           </StudioButton>
