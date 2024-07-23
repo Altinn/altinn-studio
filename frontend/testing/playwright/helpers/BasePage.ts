@@ -1,6 +1,6 @@
 ﻿import * as nbTexts from '@altinn-studio/language/src/nb.json';
 import * as enTexts from '@altinn-studio/language/src/en.json';
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { RouterRoute } from './RouterRoute';
 import type { Environment } from './StudioEnvironment';
 
@@ -41,5 +41,14 @@ export class BasePage extends RouterRoute {
         return resolve('');
       }, milliseconds),
     );
+  }
+
+  // Use this in favor of Playwright's dragTo method when the exact element that is supposed to listen to the drop event is unknown (i.e. if it may be a child element of the target)
+  public async dragAndDropManually(source: Locator, target: Locator): Promise<void> {
+    await source.hover();
+    await this.page.mouse.down();
+    const numberOfTimesToHover: number = 5; // Target must be hovered multiple times - see https://playwright.dev/docs/input#dragging-manually
+    for (let i = 0; i < numberOfTimesToHover; i++) await target.hover();
+    await this.page.mouse.up();
   }
 }
