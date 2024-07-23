@@ -52,7 +52,7 @@ namespace Designer.Tests.Fixtures
 
         public int GiteaPort;
 
-        public string GiteaUrl => $"http://localhost:{GiteaPort}/";
+        public string GiteaUrl => $"http://studio.localhost/repos/";
 
         public string OAuthApplicationClientId { get; private set; }
         public string OAuthApplicationClientSecret { get; private set; }
@@ -88,6 +88,7 @@ namespace Designer.Tests.Fixtures
             await BuildAndStartPostgreSqlContainerAsync();
             await BuildAndStartAltinnGiteaAsync();
             await BuildAndStartLoadBalancerAsync();
+            await ConfigureGitea();
         }
 
         public async Task DisposeAsync()
@@ -129,13 +130,17 @@ namespace Designer.Tests.Fixtures
                     {"GITEA__database__NAME", "gitea"},
                     {"GITEA__database__USER", "gitea"},
                     {"GITEA__database__PASSWD", "gitea"},
-                    {"GITEA__server__ROOT_URL", $"http://localhost:{GiteaPort}/"},
+                    {"GITEA__server__ROOT_URL", $"http://studio.localhost/repos"},
                     {"USER_GID", "1000"},
                     {"USER_UID", "1000"}
                 })
                 .Build();
             await _giteaContainer.StartAsync();
 
+        }
+
+        private async Task ConfigureGitea()
+        {
             await CreateGiteaUsers();
             await CreateTestOrg();
             await CreateTestOrg(GiteaConstants.SecondaryTestOrgUsername, GiteaConstants.SecondaryTestOrgName, GiteaConstants.SecondaryTestOrgDescription);
@@ -247,7 +252,7 @@ namespace Designer.Tests.Fixtures
         {
             var applicationContent =
                 new StringContent(
-                    @"{""name"":""altinn-studio"",""redirect_uris"":[""http://localhost/signin-oidc""],""trusted"":true}",
+                    @"{""name"":""altinn-studio"",""redirect_uris"":[""http://studio.localhost/signin-oidc""],""trusted"":true}",
                     Encoding.UTF8, MediaTypeNames.Application.Json);
 
             HttpResponseMessage addApplicationResponse = await GiteaClientRetryPolicy.ExecuteAsync(async _ => await GiteaClient.Value.PostAsync("user/applications/oauth2", applicationContent, _), CancellationToken.None);
@@ -257,7 +262,6 @@ namespace Designer.Tests.Fixtures
             JsonNode addApplicationResponseJson = JsonNode.Parse(addApplicationResponseContent);
             OAuthApplicationClientId = addApplicationResponseJson["client_id"].GetValue<string>();
             OAuthApplicationClientSecret = addApplicationResponseJson["client_secret"].GetValue<string>();
-
         }
     }
 

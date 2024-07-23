@@ -35,18 +35,54 @@ namespace Designer.Tests.Fixtures
         {
             var response = await base.SendAsync(request, cancellationToken);
 
-            if(response.StatusCode == HttpStatusCode.Redirect)
-            {
-                string redirectUrl = response.Headers.Location.ToString();
-                // redirect to new url
-                using var redirectRequest = new HttpRequestMessage(HttpMethod.Get, redirectUrl);
+            var redirectResponse = await base.SendAsync(new HttpRequestMessage(HttpMethod.Get, response.Headers.Location), cancellationToken);
 
-                var newResponse = await base.SendAsync(redirectRequest, cancellationToken);
+            var loginRedirectResponse = await base.SendAsync(new HttpRequestMessage(HttpMethod.Get, "http://studio.localhost" + redirectResponse.Headers.Location), cancellationToken);
+
+            var loginPageContent = await loginRedirectResponse.Content.ReadAsStringAsync(cancellationToken);
+
+
+            var redirectToCookie = redirectResponse.Headers.GetValues("Set-Cookie").Where(x => x.Contains("redirect_to"));
+
+            {
+                List<KeyValuePair<string, string>> formValues = new()
+                {
+                    new KeyValuePair<string, string>("user_name", GiteaConstants.TestUser),
+                    new KeyValuePair<string, string>("password", GiteaConstants.TestUserPassword),
+                    new KeyValuePair<string, string>("_csrf", GetStringFromHtmlContent(loginPageContent, "<input type=\"hidden\" name=\"_csrf\" value=\"", "\"")),
+                };
+
+                using FormUrlEncodedContent content = new(formValues);
+
+                using var giteaPostLoginMessage = new HttpRequestMessage(HttpMethod.Post, loginRedirectResponse.RequestMessage.RequestUri)
+                {
+                    Content = content
+                };
+
+                giteaPostLoginMessage.Headers.Add("Cookie", GetGiteaAuthCookiesFromResponseMessage(loginRedirectResponse));
+                giteaPostLoginMessage.Headers.Add("Cookie", redirectToCookie);
+                var loginResponse = await base.SendAsync(giteaPostLoginMessage, cancellationToken);
+
+
+                var authorizeRequest = new HttpRequestMessage(HttpMethod.Get,"http://studio.localhost" + loginResponse.Headers.Location);
+                authorizeRequest.Headers.Add("Cookie", GetGiteaAuthCookiesFromResponseMessage(loginResponse));
+                var autorizeRedirectResponse = await base.SendAsync(authorizeRequest, cancellationToken);
+
+
+                var stop = true;
+
             }
 
 
-            int stop = 1;
 
+            // if(response.StatusCode == HttpStatusCode.Redirect)
+            // {
+            //     string redirectUrl = response.Headers.Location.ToString();
+            //     // redirect to new url
+            //     using var redirectRequest = new HttpRequestMessage(HttpMethod.Get, redirectUrl);
+            //
+            //     var newResponse = await base.SendAsync(redirectRequest, cancellationToken);
+            // }
 
             return response;
             // using HttpResponseMessage authorizedGiteaResponse = await GetAuthorizedGiteaResponse(cancellationToken);

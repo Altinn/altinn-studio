@@ -27,6 +27,10 @@ namespace Designer.Tests.GiteaIntegrationTests
             string requestUrl = "designer/api/user/current";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, requestUrl);
 
+            var client = HttpClient;
+
+            // System.Threading.Thread.Sleep(10000000);
+
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
