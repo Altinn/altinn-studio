@@ -42,6 +42,8 @@ test('That it is possible to add and delete form components', async ({
   page,
   testAppName,
 }): Promise<void> => {
+  expect(1).toBe(2);
+
   const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
 
   await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, PAGE_1);
