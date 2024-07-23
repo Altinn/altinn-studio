@@ -70,6 +70,26 @@ describe('MigrationPage', () => {
     await screen.findByText(textMock('resourceadm.migration_publish_warning'));
   });
 
+  it('Should show error message for resource data and policy data when resource is not ready to be migrated', async () => {
+    renderMigrationPage({
+      getValidatePolicy: jest.fn().mockImplementation(() =>
+        Promise.resolve({
+          status: 404,
+          errors: {},
+        }),
+      ),
+      getValidateResource: jest.fn().mockImplementation(() =>
+        Promise.resolve({
+          status: 400,
+          errors: {},
+        }),
+      ),
+    });
+
+    await screen.findByText(textMock('resourceadm.migration_step_about_resource_errors'));
+    await screen.findByText(textMock('resourceadm.migration_no_access_rules'));
+  });
+
   it('Should show migrate delegations button when environment is selected', async () => {
     renderMigrationPage({
       getValidatePolicy: jest.fn().mockImplementation(() =>
