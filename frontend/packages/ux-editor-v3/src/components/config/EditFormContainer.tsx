@@ -6,7 +6,6 @@ import { getTextResource } from '../../utils/language';
 import { idExists } from '../../utils/formLayoutUtils';
 import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
 import { Alert, Switch, Checkbox, Paragraph } from '@digdir/designsystemet-react';
-import { LegacyFieldSet, LegacyTextField } from '@digdir/design-system-react';
 import classes from './EditFormContainer.module.css';
 import { TextResource } from '../TextResource';
 import { useDataModelMetadataQuery } from '../../hooks/queries/useDataModelMetadataQuery';
@@ -22,6 +21,7 @@ import type { FormContainer } from '../../types/FormContainer';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../hooks/useAppContext';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
+import { StudioProperty, StudioTextfield } from '@studio/components';
 
 export interface IEditFormContainerProps {
   editFormId: string;
@@ -133,10 +133,10 @@ export const EditFormContainer = ({
   };
 
   return container.type === ComponentTypeV3.Group ? (
-    <LegacyFieldSet className={classes.fieldset}>
+    <StudioProperty.Fieldset className={classes.fieldset} legend={''}>
       <FormField
-        id={container.id}
         label={t('ux_editor.modal_properties_group_change_id')}
+        id={container.id}
         value={container.id}
         propertyPath='definitions/component/properties/id'
         customValidationRules={(value: string) => {
@@ -154,7 +154,7 @@ export const EditFormContainer = ({
         }}
         onChange={handleIdChange}
         renderField={({ fieldProps }) => (
-          <LegacyTextField
+          <StudioTextfield
             {...fieldProps}
             name={`group-id${container.id}`}
             onChange={(e) => fieldProps.onChange(e.target.value, e)}
@@ -189,11 +189,11 @@ export const EditFormContainer = ({
             value={container.maxCount}
             propertyPath={`${container.propertyPath}/properties/maxCount`}
             renderField={({ fieldProps }) => (
-              <LegacyTextField
+              <StudioTextfield
                 {...fieldProps}
                 id='modal-properties-maximum-files'
                 disabled={!!container.dataModelBindings?.group}
-                formatting={{ number: {} }}
+                type='number'
                 onChange={(e) => fieldProps.onChange(parseInt(e.target.value), e)}
               />
             )}
@@ -239,7 +239,7 @@ export const EditFormContainer = ({
           )}
         </>
       )}
-    </LegacyFieldSet>
+    </StudioProperty.Fieldset>
   ) : (
     <Alert severity='info'>
       <Paragraph size='small'>{t('ux_editor.container_not_editable_info')}</Paragraph>

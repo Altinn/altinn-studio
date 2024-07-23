@@ -1,8 +1,8 @@
 import React from 'react';
-import { LegacySelect } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import { FormField } from '../../FormField';
+import { StudioNativeSelect } from '@studio/components';
 
 enum HeaderSize {
   S = 'h4',
@@ -21,10 +21,10 @@ export const EditHeaderSize = ({ handleComponentChange, component }: IGenericEdi
   const selectedHeaderSize =
     HeaderSize[component.size as keyof typeof HeaderSize] || component.size;
 
-  const onSizeChange = (size: string) => {
+  const onSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     handleComponentChange({
       ...component,
-      size,
+      size: event.target.value,
     });
   };
 
@@ -39,7 +39,15 @@ export const EditHeaderSize = ({ handleComponentChange, component }: IGenericEdi
             ?.value
         }
         propertyPath={`${component.propertyPath}/properties/size`}
-        renderField={({ fieldProps }) => <LegacySelect {...fieldProps} options={sizes} />}
+        renderField={({ fieldProps }) => (
+          <StudioNativeSelect id={component.id} {...fieldProps}>
+            {sizes.map((size) => (
+              <option key={size.value} value={size.value}>
+                {size.label}
+              </option>
+            ))}
+          </StudioNativeSelect>
+        )}
       />
     </div>
   );

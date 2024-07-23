@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { Textfield, ErrorMessage } from '@digdir/designsystemet-react';
-import { LegacySelect } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useOptionListIdsQuery } from '../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation, Trans } from 'react-i18next';
-import { StudioButton, StudioSpinner } from '@studio/components';
+import { StudioButton, StudioNativeSelect, StudioSpinner } from '@studio/components';
 
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { FormField } from '../../FormField';
@@ -16,10 +15,10 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
 
   const { data: optionListIds, isPending, isError, error } = useOptionListIdsQuery(org, app);
   const [useCustomCodeList, setUseCustomCodeList] = useState<boolean>(optionListIds?.length === 0);
-  const handleOptionsIdChange = (optionsId: string) => {
+  const handleOptionsIdChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
     handleComponentChange({
       ...component,
-      optionsId,
+      optionsId: e.target.value,
     });
   };
 
@@ -56,13 +55,13 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
               value={component.optionsId}
               propertyPath={`${component.propertyPath}/properties/optionsId`}
               renderField={({ fieldProps }) => (
-                <LegacySelect
-                  {...fieldProps}
-                  options={optionListIds.map((option) => ({
-                    label: option,
-                    value: option,
-                  }))}
-                />
+                <StudioNativeSelect {...fieldProps}>
+                  {optionListIds.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </StudioNativeSelect>
               )}
             />
           )}
@@ -74,7 +73,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
             <Textfield
               type='text'
               label={t('ux_editor.modal_properties_custom_code_list_id')}
-              onChange={(event) => handleOptionsIdChange(event.target.value)}
+              onChange={(event) => handleOptionsIdChange(event)}
               value={component.optionsId}
             />
           )}

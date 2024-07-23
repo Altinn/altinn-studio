@@ -78,7 +78,7 @@ describe('EditTextResourceBindings component', () => {
     let options = screen.getAllByRole('option');
     expect(options.length).toBe(3);
 
-    await userEvent.click(options[0]); // eslint-disable-line testing-library/no-unnecessary-act
+    await userEvent.selectOptions(selectTextResourcesCombobox, options[0]);
     await userEvent.click(selectTextResourcesCombobox); // eslint-disable-line testing-library/no-unnecessary-act
     options = screen.getAllByRole('option');
     expect(options.length).toBe(2);
