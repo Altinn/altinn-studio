@@ -44,49 +44,74 @@ namespace Designer.Tests.Fixtures
 
             var redirectToCookie = redirectResponse.Headers.GetValues("Set-Cookie").Where(x => x.Contains("redirect_to"));
 
+            List<KeyValuePair<string, string>> loginFormValues = new()
             {
-                List<KeyValuePair<string, string>> formValues = new()
-                {
-                    new KeyValuePair<string, string>("user_name", GiteaConstants.TestUser),
-                    new KeyValuePair<string, string>("password", GiteaConstants.TestUserPassword),
-                    new KeyValuePair<string, string>("_csrf", GetStringFromHtmlContent(loginPageContent, "<input type=\"hidden\" name=\"_csrf\" value=\"", "\"")),
-                };
+                new KeyValuePair<string, string>("user_name", GiteaConstants.TestUser),
+                new KeyValuePair<string, string>("password", GiteaConstants.TestUserPassword),
+                new KeyValuePair<string, string>("_csrf", GetStringFromHtmlContent(loginPageContent, "<input type=\"hidden\" name=\"_csrf\" value=\"", "\"")),
+            };
 
-                using FormUrlEncodedContent content = new(formValues);
+            using FormUrlEncodedContent content = new(loginFormValues);
 
-                using var giteaPostLoginMessage = new HttpRequestMessage(HttpMethod.Post, loginRedirectResponse.RequestMessage.RequestUri)
-                {
-                    Content = content
-                };
+            using var giteaPostLoginMessage = new HttpRequestMessage(HttpMethod.Post, loginRedirectResponse.RequestMessage.RequestUri)
+            {
+                Content = content
+            };
 
-                giteaPostLoginMessage.Headers.Add("Cookie", GetGiteaAuthCookiesFromResponseMessage(loginRedirectResponse));
-                giteaPostLoginMessage.Headers.Add("Cookie", redirectToCookie);
-                var loginResponse = await base.SendAsync(giteaPostLoginMessage, cancellationToken);
+            giteaPostLoginMessage.Headers.Add("Cookie", GetGiteaAuthCookiesFromResponseMessage(loginRedirectResponse));
+            giteaPostLoginMessage.Headers.Add("Cookie", redirectToCookie);
+            var loginResponse = await base.SendAsync(giteaPostLoginMessage, cancellationToken);
 
 
-                var authorizeRequest = new HttpRequestMessage(HttpMethod.Get,"http://studio.localhost" + loginResponse.Headers.Location);
-                authorizeRequest.Headers.Add("Cookie", GetGiteaAuthCookiesFromResponseMessage(loginResponse));
-                var autorizeRedirectResponse = await base.SendAsync(authorizeRequest, cancellationToken);
+            var authorizeRequest = new HttpRequestMessage(HttpMethod.Get,"http://studio.localhost" + loginResponse.Headers.Location);
+            authorizeRequest.Headers.Add("Cookie", GetGiteaAuthCookiesFromResponseMessage(loginResponse));
+            var autorizeRedirectResponse = await base.SendAsync(authorizeRequest, cancellationToken);
+            var authorizePageContent = await autorizeRedirectResponse.Content.ReadAsStringAsync(cancellationToken);
+
+            List<KeyValuePair<string, string>> grantFormValues = new()
+            {
+                new KeyValuePair<string, string>("_csrf", GetStringFromHtmlContent(authorizePageContent, "<input type=\"hidden\" name=\"_csrf\" value=\"", "\"")),
+                new KeyValuePair<string, string>("client_id", GetStringFromHtmlContent(authorizePageContent, "<input type=\"hidden\" name=\"client_id\" value=\"", "\"")),
+                new KeyValuePair<string, string>("state", GetStringFromHtmlContent(authorizePageContent, "<input type=\"hidden\" name=\"state\" value=\"", "\"")),
+                new KeyValuePair<string, string>("scope", GetStringFromHtmlContent(authorizePageContent, "<input type=\"hidden\" name=\"scope\" value=\"", "\"")),
+                new KeyValuePair<string, string>("nonce", GetStringFromHtmlContent(authorizePageContent, "<input type=\"hidden\" name=\"nonce\" value=\"", "\"")),
+                new KeyValuePair<string, string>("redirect_uri", GetStringFromHtmlContent(authorizePageContent, "<input type=\"hidden\" name=\"redirect_uri\" value=\"", "\"")),
+            };
+
+            using FormUrlEncodedContent grantContent = new(grantFormValues);
+
+            var grantUrl = GetStringFromHtmlContent(authorizePageContent, "<form method=\"post\" action=\"", "\">");
+            using var grantRequest = new HttpRequestMessage(HttpMethod.Post, "http://studio.localhost" + grantUrl)
+            {
+                Content = grantContent
+            };
+
+            grantRequest.Headers.Add("Cookie", GetGiteaAuthCookiesFromResponseMessage(loginResponse));
+            var grantResponse = await base.SendAsync(grantRequest, cancellationToken);
 
 
-                var stop = true;
+            var designerSignInRequeset = new HttpRequestMessage(HttpMethod.Get, grantResponse.Headers.Location);
 
+            // add cookies from response that contain ".AspNetCore."
+            var cookies = response.Headers.GetValues("Set-Cookie").Where(x => x.Contains(".AspNetCore."));
+            foreach (var cookie in cookies)
+            {
+                designerSignInRequeset.Headers.Add("Cookie", cookie);
             }
 
+            var designerSignInResponse = await base.SendAsync(designerSignInRequeset, cancellationToken);
 
 
-            // if(response.StatusCode == HttpStatusCode.Redirect)
-            // {
-            //     string redirectUrl = response.Headers.Location.ToString();
-            //     // redirect to new url
-            //     using var redirectRequest = new HttpRequestMessage(HttpMethod.Get, redirectUrl);
-            //
-            //     var newResponse = await base.SendAsync(redirectRequest, cancellationToken);
-            // }
+            var finalRedirectRequest = new HttpRequestMessage(HttpMethod.Get, "http://studio.localhost" + designerSignInResponse.Headers.Location);
+            // add cookies from designerSignInResponse that contain "AltinnStudioDesigner"
+            var designerCookies = designerSignInResponse.Headers.GetValues("Set-Cookie").Where(x => x.Contains("AltinnStudioDesigner"));
+            foreach (var cookie in designerCookies)
+            {
+                finalRedirectRequest.Headers.Add("Cookie", cookie);
+            }
 
-            return response;
-            // using HttpResponseMessage authorizedGiteaResponse = await GetAuthorizedGiteaResponse(cancellationToken);
-            // return await LoginToDesignerAndProxyRequest(authorizedGiteaResponse, request, cancellationToken);
+            var finalRedirectResponse = await base.SendAsync(finalRedirectRequest, cancellationToken);
+            return finalRedirectResponse;
         }
 
         private async Task<HttpResponseMessage> GetAuthorizedGiteaResponse(CancellationToken cancellationToken)

@@ -34,7 +34,7 @@ namespace Designer.Tests.GiteaIntegrationTests
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            response.Headers.First(h => h.Key == "Set-Cookie").Value.Should().Satisfy(e => e.Contains("XSRF-TOKEN"));
+            response.Headers.First(h => h.Key == "Set-Cookie").Value.Should().Contain(e => e.Contains("XSRF-TOKEN"));
             string content = await response.Content.ReadAsStringAsync();
             var user = JsonSerializer.Deserialize<User>(content, new JsonSerializerOptions
             {
