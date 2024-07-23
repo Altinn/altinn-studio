@@ -20,8 +20,7 @@ export const useSelectedFormLayoutName = (
 
   const isValidLayout = (layoutName: string): boolean => {
     const isExistingLayout = layoutPagesOrder?.includes(layoutName);
-    const isReceipt = formLayoutSettings?.receiptLayoutName === layoutName;
-    return isExistingLayout || isReceipt;
+    return isExistingLayout;
   };
 
   const [selectedFormLayoutName, setSelectedFormLayoutName] = useSearchParamsState<string>(

@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './PageAccordion.module.css';
-import cn from 'classnames';
 import { Accordion } from '@digdir/designsystemet-react';
 import { NavigationMenu } from './NavigationMenu';
 import { pageAccordionContentId } from '@studio/testing/testids';
@@ -17,7 +16,6 @@ export type PageAccordionProps = {
   children: ReactNode;
   isOpen: boolean;
   onClick: () => void;
-  pageIsReceipt?: boolean;
   isValid?: boolean;
   hasUniqueIds?: boolean;
 };
@@ -31,7 +29,6 @@ export type PageAccordionProps = {
  * @property {ReactNode}[children] - The children of the component
  * @property {boolean}[isOpen] - If the accordion is open or not
  * @property {function}[onClick] - Function to execute when the accordion is clicked
- * @property {boolean}[pageIsReceipt] - If the page is receipt or not
  *
  * @returns {ReactNode} - The rendered component
  */
@@ -40,7 +37,6 @@ export const PageAccordion = ({
   children,
   isOpen,
   onClick,
-  pageIsReceipt,
   isValid,
   hasUniqueIds,
 }: PageAccordionProps): ReactNode => {
@@ -65,10 +61,7 @@ export const PageAccordion = ({
   };
 
   return (
-    <Accordion.Item
-      className={cn(classes.accordionItem, pageIsReceipt && classes.receiptItem)}
-      open={isOpen}
-    >
+    <Accordion.Item className={classes.accordionItem} open={isOpen}>
       <div className={classes.accordionHeaderRow}>
         <Accordion.Header
           className={
@@ -80,7 +73,7 @@ export const PageAccordion = ({
           {pageName}
         </Accordion.Header>
         <div className={classes.navigationMenu}>
-          <NavigationMenu pageName={pageName} pageIsReceipt={pageIsReceipt} />
+          <NavigationMenu pageName={pageName} />
           <StudioButton
             color='danger'
             icon={<TrashIcon aria-hidden />}
