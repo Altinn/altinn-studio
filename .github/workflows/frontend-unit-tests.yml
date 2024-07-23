@@ -95,7 +95,7 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             git fetch origin ${{ github.event.pull_request.base.ref }}
-            yarn test:ci --changedSince=origin/${{ github.event.pull_request.base.ref }}
+            yarn test:ci
           else
             yarn test:ci
           fi
