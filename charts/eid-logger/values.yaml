@@ -5,8 +5,8 @@
 env:
   environmentName: dev
   sourceSecretName: eid-logger-secret
-  enableLogging: "true"
-  sourceFromKeyvault: "true"
+  enableLogging: true
+  sourceFromKeyvault: true
 
 replicaCount: 1
 
