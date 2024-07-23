@@ -52,8 +52,6 @@ const getDataModelMetadata = () =>
     },
   });
 
-const user = userEvent.setup();
-
 const waitForData = async () => {
   const dataModelMetadataResult = renderHookWithMockStore(
     {},
