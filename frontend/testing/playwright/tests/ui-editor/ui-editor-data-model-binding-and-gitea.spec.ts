@@ -59,7 +59,7 @@ test('That it is possible to add a data model binding, and that the files are up
   await uiEditorPage.verifyThatPageIsEmpty();
 
   const newInputLabel: string = 'Input Label 1';
-  await uiEditorPage.dragComponentInToDroppableList(ComponentType.Input);
+  await uiEditorPage.dragComponentIntoDroppableList(ComponentType.Input);
   await uiEditorPage.waitForComponentTreeItemToBeVisibleInDroppableList(ComponentType.Input);
   await addNewLabelToTreeItemComponent(uiEditorPage, newInputLabel);
 
@@ -143,7 +143,7 @@ test('That is possible to select a different data model binding, and that the fi
   await uiEditorPage.verifyUiEditorPage();
   await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, pageName);
 
-  await uiEditorPage.dragComponentInToDroppableList(ComponentType.Input);
+  await uiEditorPage.dragComponentIntoDroppableList(ComponentType.Input);
   await uiEditorPage.waitForComponentTreeItemToBeVisibleInDroppableList(ComponentType.Input);
 
   await uiEditorPage.clickOnComponentDataModelBindingConfigAccordion();

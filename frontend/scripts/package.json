@@ -4,12 +4,12 @@
     "axios": "1.7.2"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "7.16.0",
-    "@typescript-eslint/parser": "7.16.0",
+    "@typescript-eslint/eslint-plugin": "7.16.1",
+    "@typescript-eslint/parser": "7.16.1",
     "eslint": "8.57.0",
     "eslint-plugin-import": "2.29.1",
     "glob": "10.4.5",
-    "husky": "9.0.11",
+    "husky": "9.1.1",
     "jsonpointer": "5.0.1",
     "lint-staged": "15.2.7",
     "prettier": "^3.0.3",
