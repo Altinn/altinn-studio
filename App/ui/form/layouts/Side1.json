@@ -19,14 +19,6 @@
         }
       },
       {
-        "size": "S",
-        "id": "Header-Bnv9wp",
-        "type": "Header",
-        "textResourceBindings": {
-          "title": "Side1.Header-Bnv9wp.title"
-        }
-      },
-      {
         "dataModelBindings": {
           "simpleBinding": "Navn"
         },
