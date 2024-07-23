@@ -1,13 +1,14 @@
 import React, { useEffect } from 'react';
 import { FormDesigner } from './containers/FormDesigner';
 import { useText, useAppContext } from './hooks';
-import { cleanupStaleLocalStorageKeys, StudioPageSpinner } from '@studio/components';
+import { StudioPageSpinner } from '@studio/components';
 import { ErrorPage } from './components/ErrorPage';
 import { useDataModelMetadataQuery } from './hooks/queries/useDataModelMetadataQuery';
 import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { FormItemContextProvider } from './containers/FormItemContext';
+import { cleanupStaleLocalStorageKeys } from './utils/localStorageUtils';
 
 /**
  * This is the main React component responsible for controlling
