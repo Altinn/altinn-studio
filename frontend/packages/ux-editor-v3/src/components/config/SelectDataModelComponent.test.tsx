@@ -7,7 +7,6 @@ import type { IAppDataState } from '../../features/appData/appDataReducers';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useDataModelMetadataQuery } from '../../hooks/queries/useDataModelMetadataQuery';
-import userEvent from '@testing-library/user-event';
 import { dataModelNameMock, layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import type { DataModelMetadataResponse } from 'app-shared/types/api';
 import { app, org } from '@studio/testing/testids';
