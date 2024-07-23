@@ -103,10 +103,24 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
         {
             InnerHandler = new HttpClientHandler
             {
-                AllowAutoRedirect = true
+                AllowAutoRedirect = false
             }
         }, new CookieContainerHandler(CookieContainer));
-        return client;
+
+
+        var localhostHttpClient =
+            new HttpClient(new GiteaAuthDelegatingHandler(GiteaFixture.GiteaUrl, GiteaFixture.GiteaUrl)
+            {
+                // InnerHandler = new RedirectHandler()
+                // {
+                    InnerHandler = new CookieContainerHandler(CookieContainer)
+                    {
+                        InnerHandler = new HttpClientHandler { AllowAutoRedirect = false, }
+                    }
+                // }
+            }) { BaseAddress = new Uri("http://studio.localhost") };
+
+        return localhostHttpClient;
     }
 
     protected Stream GenerateGiteaOverrideConfigStream()
@@ -132,7 +146,7 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
                     ""ClientId"": ""{GiteaFixture.OAuthApplicationClientId}"",
                     ""ClientSecret"": ""{GiteaFixture.OAuthApplicationClientSecret}"",
                     ""Authority"": ""{GiteaFixture.GiteaUrl}"",
-                    ""RedirectUri"": ""http://localhost/signin-oidc"",
+                    ""RedirectUri"": ""http://studio.localhost/signin-oidc"",
                     ""Scopes"": [
                         ""openid"",
                         ""profile"",
