@@ -44,7 +44,7 @@ namespace Designer.Tests.Fixtures
                 InnerHandler = new HttpClientHandler(),
             })
             {
-                BaseAddress = new Uri(GiteaUrl + "api/v1/"),
+                BaseAddress = new Uri(DirectGiteaUrl + "api/v1/"),
                 DefaultRequestHeaders = { Authorization = new BasicAuthenticationHeaderValue(GiteaConstants.AdminUser, GiteaConstants.AdminPassword) }
             });
         }
@@ -53,6 +53,7 @@ namespace Designer.Tests.Fixtures
         public int GiteaPort;
 
         public string GiteaUrl => $"http://studio.localhost/repos/";
+        private string DirectGiteaUrl => $"http://localhost:{GiteaPort}/";
 
         public string OAuthApplicationClientId { get; private set; }
         public string OAuthApplicationClientSecret { get; private set; }

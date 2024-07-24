@@ -8,7 +8,6 @@ using Altinn.Studio.Designer.RepositoryClient.Model;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
 namespace Designer.Tests.GiteaIntegrationTests
