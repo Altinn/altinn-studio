@@ -2,16 +2,6 @@ name: Frontend Tests
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - 'frontend/**'
-      - '!frontend/testing/cypress/**'
-      - '!frontend/stats/**'
-      - 'testdata/**'
-      - '.github/workflows/frontend-unit-tests.yml'
-      - 'package.json'
-  pull_request:
     paths:
       - 'frontend/**'
       - '!frontend/testing/cypress/**'
@@ -92,13 +82,7 @@ jobs:
         uses: ./.github/actions/yarn-install
 
       - name: 'Running Unit Tests'
-        run: |
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            git fetch origin ${{ github.event.pull_request.base.ref }}
-            yarn test:ci --changedSince=origin/${{ github.event.pull_request.base.ref }}
-          else
-            yarn test:ci
-          fi
+        run: yarn test:ci
 
       - name: 'Upload coverage reports to Codecov'
         uses: codecov/codecov-action@v4

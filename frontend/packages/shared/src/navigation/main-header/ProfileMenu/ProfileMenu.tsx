@@ -87,6 +87,7 @@ export const ProfileMenu = ({
       data-testid={profileButtonId}
       aria-haspopup
       ref={menuRef}
+      size='medium'
     >
       <span className={classes.userOrgNames}>{userNameAndOrg}</span>
       <img

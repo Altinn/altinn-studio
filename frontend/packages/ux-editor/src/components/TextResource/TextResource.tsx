@@ -125,7 +125,6 @@ const TextResourceFieldset = ({
           <StudioButton
             icon={<XMarkIcon />}
             onClick={onClose}
-            size='small'
             title={t('general.close')}
             variant='secondary'
           />

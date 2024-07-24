@@ -130,7 +130,6 @@ export const TextResource = ({
             onClick={() => setIsSearchMode(false)}
             title={t('ux_editor.search_text_resources_close')}
             variant='tertiary'
-            size='small'
           />
         </span>
       )}
@@ -152,7 +151,6 @@ export const TextResource = ({
                 onClick={handleEditButtonClick}
                 title={t(getTextKeyForButton('edit', generateIdOptions?.textResourceKey))}
                 variant='tertiary'
-                size='small'
               />
             ) : (
               <StudioButton
@@ -164,7 +162,6 @@ export const TextResource = ({
                 onClick={handleEditButtonClick}
                 title={t(getTextKeyForButton('add', generateIdOptions?.textResourceKey))}
                 variant='tertiary'
-                size='small'
               />
             )}
             <StudioButton
@@ -176,7 +173,6 @@ export const TextResource = ({
               onClick={() => setIsSearchMode(true)}
               title={t(getTextKeyForButton('search', generateIdOptions?.textResourceKey))}
               variant='tertiary'
-              size='small'
             />
             <AltinnConfirmDialog
               open={isConfirmDeleteDialogOpen}
@@ -196,7 +192,6 @@ export const TextResource = ({
                   onClick={() => setIsConfirmDeleteDialogOpen(true)}
                   title={t(getTextKeyForButton('delete', generateIdOptions?.textResourceKey))}
                   variant='tertiary'
-                  size='small'
                 />
               }
             >

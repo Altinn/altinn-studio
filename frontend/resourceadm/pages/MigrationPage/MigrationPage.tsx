@@ -230,7 +230,6 @@ export const MigrationPage = ({
                         : setIsDelegationCountEnabled(true)
                     }
                     className={classes.button}
-                    size='small'
                   >
                     {t('resourceadm.migration_get_number_of_delegations')}
                   </StudioButton>
@@ -257,7 +256,6 @@ export const MigrationPage = ({
                       : undefined
                   }
                   className={classes.button}
-                  size='small'
                 >
                   {t('resourceadm.migration_migrate_delegations')}
                 </StudioButton>
@@ -265,7 +263,6 @@ export const MigrationPage = ({
                   aria-disabled // Remember to do same check for aria-disabled as fot button below
                   onClick={() => {}}
                   className={classes.button}
-                  size='small'
                 >
                   {t('resourceadm.migration_turn_off_altinn_2_service')}
                 </StudioButton>

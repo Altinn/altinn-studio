@@ -79,7 +79,6 @@ export const EnumList = ({ schemaNode }: EnumListProps): JSX.Element => {
           icon={<PlusIcon />}
           id='add-enum-button'
           onClick={handleAddEnum}
-          size='small'
           variant='secondary'
         >
           {t('schema_editor.add_enum')}
