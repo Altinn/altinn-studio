@@ -171,6 +171,14 @@ public class DataController : ControllerBase
                     return BadRequest($"Element type `{dataType}` cannot be manually created.");
                 }
 
+                int existingElements = instance.Data.Count(d => d.DataType == dataTypeFromMetadata.Id);
+                if (dataTypeFromMetadata.MaxCount > 0 && existingElements >= dataTypeFromMetadata.MaxCount)
+                {
+                    return Conflict(
+                        $"Element type `{dataType}` has reached its maximum allowed count ({dataTypeFromMetadata.MaxCount})"
+                    );
+                }
+
                 return await CreateAppModelData(org, app, instance, dataType);
             }
 
