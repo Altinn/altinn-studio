@@ -24,7 +24,6 @@ const StudioDeleteButton: OverridableComponent<StudioDeleteButtonProps, HTMLButt
           icon={<TrashIcon />}
           onClick={handleClick}
           variant='secondary'
-          size='small'
           {...rest}
           ref={ref}
         />

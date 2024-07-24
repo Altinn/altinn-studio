@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './PolicyEditorDropdownMenu.module.css';
-import { DropdownMenu } from '@digdir/design-system-react';
+import { DropdownMenu } from '@digdir/designsystemet-react';
 import { MenuElipsisVerticalIcon, TabsIcon, TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { StudioButton } from '@studio/components';
@@ -34,7 +34,6 @@ export const PolicyEditorDropdownMenu = ({
           color={isError ? 'danger' : 'second'}
           icon={<MenuElipsisVerticalIcon fontSize='1.8rem' />}
           onClick={handleClickMoreIcon}
-          size='small'
           title={t('policy_editor.more')}
           variant='tertiary'
         />

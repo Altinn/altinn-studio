@@ -1,6 +1,6 @@
 ﻿import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { HelpText } from '@digdir/design-system-react';
+import { HelpText } from '@digdir/designsystemet-react';
 import { StudioButton } from '@studio/components';
 import { QuestionmarkDiamondIcon, TrashIcon } from '@studio/icons';
 import type { IInternalLayout } from '../../../../types/global';
@@ -30,7 +30,6 @@ export const UnknownReferencedItem = ({ id, layout }: UnknownReferencedItemProps
           color='danger'
           icon={<TrashIcon />}
           onClick={handleDelete}
-          size='small'
           title={t('general.delete')}
           variant='tertiary'
         />

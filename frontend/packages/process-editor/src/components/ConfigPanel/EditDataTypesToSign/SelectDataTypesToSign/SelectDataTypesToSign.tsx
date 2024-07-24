@@ -1,5 +1,5 @@
 import React, { useId, useState } from 'react';
-import { Combobox, Label } from '@digdir/design-system-react';
+import { Combobox, Label } from '@digdir/designsystemet-react';
 import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
@@ -78,7 +78,6 @@ export const SelectDataTypesToSign = ({ onClose }: SelectDataTypesToSignProps) =
         <StudioButton
           icon={<XMarkIcon />}
           onClick={onClose}
-          size='small'
           title={t('general.close')}
           variant='secondary'
           disabled={!value.length}

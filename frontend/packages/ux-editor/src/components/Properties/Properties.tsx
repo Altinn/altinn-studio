@@ -1,8 +1,7 @@
 import React from 'react';
-import { Calculations } from './Calculations';
 import { Text } from './Text';
 import { useTranslation } from 'react-i18next';
-import { Accordion } from '@digdir/design-system-react';
+import { Accordion } from '@digdir/designsystemet-react';
 import { useFormItemContext } from '../../containers/FormItemContext';
 import classes from './Properties.module.css';
 import { Dynamics } from './Dynamics';
@@ -10,6 +9,7 @@ import { PropertiesHeader } from './PropertiesHeader';
 import { EditFormComponent } from '../config/EditFormComponent';
 import { DataModelBindings } from './DataModelBindings';
 import { PageConfigPanel } from './PageConfigPanel';
+import { DeprecatedCalculationsInfo } from '@altinn/ux-editor/components/Properties/DeprecatedCalculationsInfo';
 
 export const Properties = () => {
   const { t } = useTranslation();
@@ -25,7 +25,7 @@ export const Properties = () => {
   };
 
   return (
-    <div className={classes.root}>
+    <div className={classes.root} key={formItemId}>
       {!formItem ? (
         <PageConfigPanel />
       ) : (
@@ -85,7 +85,7 @@ export const Properties = () => {
                 {t('right_menu.calculations')}
               </Accordion.Header>
               <Accordion.Content>
-                <Calculations />
+                <DeprecatedCalculationsInfo />
               </Accordion.Content>
             </Accordion.Item>
           </Accordion>

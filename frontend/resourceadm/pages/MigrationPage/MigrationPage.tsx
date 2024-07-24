@@ -14,7 +14,7 @@ import {
   Label,
   Link,
   Radio,
-} from '@digdir/design-system-react';
+} from '@digdir/designsystemet-react';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import { useTranslation } from 'react-i18next';
 import { useUrlParams } from '../../hooks/useUrlParams';
@@ -200,7 +200,6 @@ export const MigrationPage = ({
                     setNumDelegationsA3(1000);
                   }}
                   className={classes.button}
-                  size='small'
                 >
                   {t('resourceadm.migration_get_number_of_delegations')}
                 </StudioButton>
@@ -238,7 +237,6 @@ export const MigrationPage = ({
                       : undefined
                   }
                   className={classes.button}
-                  size='small'
                 >
                   {t('resourceadm.migration_migrate_delegations')}
                 </StudioButton>
@@ -246,7 +244,6 @@ export const MigrationPage = ({
                   aria-disabled // Remember to do same check for aria-disabled as fot button below
                   onClick={() => {}}
                   className={classes.button}
-                  size='small'
                 >
                   {t('resourceadm.migration_turn_off_altinn_2_service')}
                 </StudioButton>

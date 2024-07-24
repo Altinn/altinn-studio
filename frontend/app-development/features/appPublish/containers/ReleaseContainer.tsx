@@ -25,11 +25,11 @@ export function ReleaseContainer() {
 
   const { data: releases = [] } = useAppReleasesQuery(org, app);
   const { data: repoStatus, isPending: isRepoStatusPending } = useRepoStatusQuery(org, app);
-  const { data: masterBranchStatus, isPending: masterBranchStatusIsPending } = useBranchStatusQuery(
-    org,
-    app,
-    'master',
-  );
+  const {
+    data: masterBranchStatus,
+    isPending: masterBranchStatusIsPending,
+    refetch: getMasterBranchStatus,
+  } = useBranchStatusQuery(org, app, 'master');
 
   const latestRelease: AppReleaseType = releases && releases[0] ? releases[0] : null;
 
@@ -61,15 +61,15 @@ export function ReleaseContainer() {
   function renderCreateRelease() {
     if (isRepoStatusPending || masterBranchStatusIsPending) {
       return (
-        <div style={{ padding: '2rem' }}>
+        <>
           <div>
             <StudioSpinner
               showSpinnerTitle={false}
               spinnerTitle={t('app_create_release.loading')}
             />
           </div>
-          <div style={{ padding: '1.2rem' }}>{t('app_create_release.check_status')}</div>
-        </div>
+          {t('app_create_release.check_status')}
+        </>
       );
     }
     if (!masterBranchStatus || !repoStatus) {
@@ -101,24 +101,16 @@ export function ReleaseContainer() {
       latestRelease.build.status === BuildStatus.completed &&
       latestRelease.build.result === BuildResult.succeeded
     ) {
-      return (
-        <div style={{ padding: '2rem' }}>
-          {t('app_create_release.no_changes_on_current_release')}
-        </div>
-      );
+      return t('app_create_release.no_changes_on_current_release');
     }
     if (
       latestRelease &&
       latestRelease.targetCommitish === masterBranchStatus.commit.id &&
       latestRelease.build.status !== BuildStatus.completed
     ) {
-      return (
-        <div style={{ padding: '2rem' }}>
-          {t('app_create_release.still_building_release', {
-            version: latestRelease.targetCommitish,
-          })}
-        </div>
-      );
+      return t('app_create_release.still_building_release', {
+        version: latestRelease.targetCommitish,
+      });
     }
     return <CreateRelease />;
   }
@@ -145,7 +137,7 @@ export function ReleaseContainer() {
       !repoStatus?.contentStatus.length ||
       !releases.length
     ) {
-      return 'Ok';
+      return t('app_create_release.ok');
     }
     if (!releases || !releases.length) {
       return null;
@@ -160,6 +152,17 @@ export function ReleaseContainer() {
   }
 
   function renderCreateReleaseTitle() {
+    const handleLinkClick = async (event) => {
+      event.preventDefault(); // Prevent default link behavior
+      const url = await getLatestCommitOnMaster();
+      window.open(url, '#', 'noopener,noreferrer');
+    };
+
+    const getLatestCommitOnMaster = async () => {
+      const { data: newMasterBranchStatus } = await getMasterBranchStatus();
+      return gitCommitPath(org, app, newMasterBranchStatus.commit.id);
+    };
+
     if (!masterBranchStatus || !repoStatus?.contentStatus) {
       return null;
     }
@@ -171,12 +174,8 @@ export function ReleaseContainer() {
     ) {
       return (
         <>
-          {t('app_release.release_title')} &nbsp;
-          <a
-            href={gitCommitPath(org, app, masterBranchStatus.commit.id)}
-            target='_blank'
-            rel='noopener noreferrer'
-          >
+          {t('app_release.release_title')}
+          <a href='#' onClick={handleLinkClick}>
             {t('app_release.release_title_link')}
           </a>
         </>
@@ -185,14 +184,13 @@ export function ReleaseContainer() {
     if (latestRelease.targetCommitish === masterBranchStatus.commit.id) {
       return (
         <>
-          {t('general.version')}
-          &nbsp;
-          {latestRelease.tagName}
-          &nbsp;
-          {t('general.contains')}
-          &nbsp;
-          <a href={gitCommitPath(org, app, masterBranchStatus.commit.id)}>
-            {t('app_release.release_title_link')}
+          {t('app_release.release_built_on_version', { version: latestRelease.tagName })}
+          <a
+            href={gitCommitPath(org, app, masterBranchStatus.commit.id)}
+            target='_blank'
+            rel='noopener noreferrer'
+          >
+            {t('app_release.release_built_on_version_link')}
           </a>
         </>
       );
@@ -212,6 +210,7 @@ export function ReleaseContainer() {
           open={popoverOpenClick || popoverOpenHover}
           trigger={
             <StudioButton
+              title={t('app_create_release.status_popover')}
               className={classes.appCreateReleaseStatusButton}
               onClick={handlePopoverOpenClicked}
               onMouseOver={handlePopoverOpenHover}
@@ -219,7 +218,6 @@ export function ReleaseContainer() {
               tabIndex={0}
               onKeyUp={handlePopoverKeyPress}
               icon={renderStatusIcon()}
-              size='small'
               variant='tertiary'
             />
           }

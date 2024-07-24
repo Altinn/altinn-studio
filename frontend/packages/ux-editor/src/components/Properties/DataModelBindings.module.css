@@ -12,3 +12,12 @@
   flex-direction: column;
   align-items: flex-start;
 }
+
+.alert {
+  margin: 0 var(--fds-spacing-5);
+}
+
+.wrapper {
+  text-overflow: ellipsis;
+  overflow: hidden;
+}

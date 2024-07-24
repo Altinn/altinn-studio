@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Table, Checkbox } from '@digdir/design-system-react';
+import { Table, Checkbox } from '@digdir/designsystemet-react';
 import type { ApplicationMetadata, PartyTypesAllowed } from 'app-shared/types/ApplicationMetadata';
 import classes from './SelectAllowedPartyTypes.module.css';
 import { useTranslation } from 'react-i18next';

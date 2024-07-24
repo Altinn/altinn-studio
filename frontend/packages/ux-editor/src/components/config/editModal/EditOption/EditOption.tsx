@@ -118,7 +118,6 @@ const OptionMenu = ({ onClose, onDelete }: OptionMenuProps) => {
       <StudioButton
         icon={<XMarkIcon />}
         onClick={onClose}
-        size='small'
         title={t('general.close')}
         variant='secondary'
       />

@@ -5,7 +5,7 @@ import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { Accordion } from '@digdir/design-system-react';
+import { Accordion } from '@digdir/designsystemet-react';
 import type { IFormLayouts } from '../../types/global';
 import type { FormLayoutPage } from '../../types/FormLayoutPage';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
@@ -168,7 +168,6 @@ export const DesignView = (): ReactNode => {
         <StudioButton
           icon={<PlusIcon />}
           onClick={() => handleAddPage(false)}
-          size='small'
           className={classes.button}
         >
           {t('ux_editor.pages_add')}

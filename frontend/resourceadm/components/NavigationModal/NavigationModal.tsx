@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './NavigationModal.module.css';
-import { Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import { Modal } from '../Modal';
 import { useTranslation } from 'react-i18next';
 import { StudioButton } from '@studio/components';
@@ -37,10 +37,10 @@ export const NavigationModal = ({
         {t('resourceadm.resource_navigation_modal_text')}
       </Paragraph>
       <div className={classes.buttonWrapper}>
-        <StudioButton onClick={onClose} color='first' variant='tertiary' size='small'>
+        <StudioButton onClick={onClose} color='first' variant='tertiary'>
           {t('resourceadm.resource_navigation_modal_button_stay')}
         </StudioButton>
-        <StudioButton onClick={onNavigate} color='first' size='small'>
+        <StudioButton onClick={onNavigate} color='first'>
           {t('resourceadm.resource_navigation_modal_button_move_on')}
         </StudioButton>
       </div>

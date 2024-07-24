@@ -2,13 +2,8 @@ import type { ChangeEvent } from 'react';
 import React, { useState } from 'react';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions } from './helpers/options';
-import {
-  Fieldset,
-  LegacyTextArea,
-  Textfield,
-  Switch,
-  LegacySelect,
-} from '@digdir/design-system-react';
+import { Fieldset, Textfield, Switch } from '@digdir/designsystemet-react';
+import { LegacyTextArea, LegacySelect } from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
 import type { CombinationKind, UiSchemaNode } from '@altinn/schema-model';
@@ -21,7 +16,6 @@ import {
   setPropertyName,
   setRef,
   setTitle,
-  setType,
   toggleArrayField,
   isField,
   isReference,
@@ -37,7 +31,6 @@ import { useTranslation } from 'react-i18next';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
 import { NameField } from './NameField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { useTypeOptions } from './hooks/useTypeOptions';
 
 export type IItemDataComponentProps = {
   schemaNode: UiSchemaNode;
@@ -48,7 +41,6 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
   const { schemaModel, save, setSelectedTypePointer, setSelectedNodePointer } =
     useSchemaEditorAppContext();
   const { t } = useTranslation();
-  const typeOptions = useTypeOptions();
 
   const [itemTitle, setItemItemTitle] = useState<string>(title);
   const [itemDescription, setItemItemDescription] = useState<string>(description);
@@ -58,9 +50,6 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
     pointer && pointer.endsWith(nodeName) ? schemaModel.getChildNodes(pointer) : [];
 
   const onChangeRef = (path: string, ref: string) => save(setRef(schemaModel, { path, ref }));
-
-  const onChangeFieldType = (type: FieldType) =>
-    save(setType(schemaModel, { path: pointer, type }));
 
   const onChangeNullable = (event: ChangeEvent<HTMLInputElement>): void => {
     const isChecked = event.target.checked;
@@ -129,14 +118,6 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
               handleSave={handleChangeNodeName}
               pointer={pointer}
               size='small'
-            />
-          )}
-          {isField(schemaNode) && (
-            <LegacySelect
-              label={t('schema_editor.type')}
-              onChange={(type: FieldType) => onChangeFieldType(type)}
-              options={typeOptions}
-              value={schemaNode.fieldType as string}
             />
           )}
           {isReference(schemaNode) && (

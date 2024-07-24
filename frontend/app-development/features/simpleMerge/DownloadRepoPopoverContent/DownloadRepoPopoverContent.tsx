@@ -4,7 +4,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import { StudioButton } from '@studio/components';
 import { repoDownloadPath } from 'app-shared/api/paths';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { Heading, Link, Paragraph } from '@digdir/design-system-react';
+import { Heading, Link, Paragraph } from '@digdir/designsystemet-react';
 
 export type DownloadRepoPopoverContentProps = {
   onClose: () => void;
@@ -31,7 +31,7 @@ export const DownloadRepoPopoverContent = ({
         {t('overview.download_repo_full')}
       </Link>
       <div className={classes.buttonContainer}>
-        <StudioButton color='second' onClick={onClose} variant='secondary' size='small'>
+        <StudioButton color='second' onClick={onClose} variant='secondary'>
           {t('general.cancel')}
         </StudioButton>
       </div>

@@ -1,0 +1,12 @@
+.displayTileContainer {
+  padding: 0;
+  padding-right: var(--fds-spacing-1);
+}
+
+.displayTileContainer > div {
+  display: block;
+}
+
+.selectDataModel {
+  width: 100%;
+}

@@ -1,19 +1,24 @@
 import React from 'react';
+import { useAppContext } from '../../hooks';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
-import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
-import { useAppContext } from '../../hooks';
-import { LayoutSetsContainer } from './LayoutSetsContainer';
 
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import classes from './Elements.module.css';
 
+import { StudioButton, StudioSpinner } from '@studio/components';
+import { ShrinkIcon } from '@studio/icons';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
-import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQuery';
-import { StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
+import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQuery';
+import { Alert, Heading, Paragraph } from '@digdir/designsystemet-react';
 
-export const Elements = (): React.ReactElement => {
+export interface ElementsProps {
+  collapsed: boolean;
+  onCollapseToggle: () => void;
+}
+
+export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
@@ -42,7 +47,6 @@ export const Elements = (): React.ReactElement => {
   if (hasProcessTaskTypeError) {
     return (
       <div>
-        <LayoutSetsContainer />
         <div className={classes.errorMessage}>
           <Alert severity='danger'>
             <Heading level={3} size='xsmall' spacing>
@@ -61,12 +65,30 @@ export const Elements = (): React.ReactElement => {
   const shouldShowConfPageToolbar = selectedLayoutIsCustomReceipt || processTaskType === 'payment';
   const confPageToolbarMode = selectedLayoutIsCustomReceipt ? 'receipt' : 'payment';
 
+  if (collapsed) {
+    return (
+      <StudioButton
+        variant='secondary'
+        className={classes.openElementsButton}
+        onClick={onCollapseToggle}
+        title={t('left_menu.open_components')}
+      >
+        {t('left_menu.open_components')}
+      </StudioButton>
+    );
+  }
+
   return (
     <div className={classes.root}>
-      <LayoutSetsContainer />
-      <Heading size='xxsmall' className={classes.componentsHeader}>
-        {t('left_menu.components')}
-      </Heading>
+      <div className={classes.componentsHeader}>
+        <Heading size='xxsmall'>{t('left_menu.components')}</Heading>
+        <StudioButton
+          variant='tertiary'
+          icon={<ShrinkIcon title='1' fontSize='1.5rem' />}
+          title={t('left_menu.close_components')}
+          onClick={onCollapseToggle}
+        ></StudioButton>
+      </div>
       {hideComponents ? (
         <Paragraph className={classes.noPageSelected} size='small'>
           {t('left_menu.no_components_selected')}

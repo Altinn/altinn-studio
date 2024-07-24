@@ -11,37 +11,6 @@ import type { FormItem } from '../types/FormItem';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { FilterKeysOfType } from 'app-shared/types/FilterKeysOfType';
 
-export function getTextResourceByAddressKey(key: AddressKeys, t: (key: string) => string): string {
-  switch (key) {
-    case AddressKeys.address: {
-      return t('ux_editor.modal_configure_address_component_address');
-    }
-    case AddressKeys.zipCode: {
-      return t('ux_editor.modal_configure_address_component_zip_code');
-    }
-    case AddressKeys.houseNumber: {
-      return t('ux_editor.modal_configure_address_component_house_number');
-    }
-    case AddressKeys.careOf: {
-      return t('ux_editor.modal_configure_address_component_care_of');
-    }
-    case AddressKeys.postPlace: {
-      return t('ux_editor.modal_configure_address_component_post_place');
-    }
-    default: {
-      return '';
-    }
-  }
-}
-
-export enum AddressKeys {
-  address = 'address',
-  zipCode = 'zipCode',
-  postPlace = 'postPlace',
-  careOf = 'careOf',
-  houseNumber = 'houseNumber',
-}
-
 export enum PropertyTypes {
   boolean = 'boolean',
   number = 'number',
@@ -95,7 +64,7 @@ export const propertyTypeMatcher = (property: KeyValuePairs, propertyType: Prope
       // Currently only supporting array of strings with specified enum values
       return baseMatch && !!property.items?.enum;
     case PropertyTypes.object:
-      // Currently only supporting object with specifiec properties and no additional properties
+      // Currently only supporting object with specific properties and no additional properties
       return baseMatch && !!property.properties && !property.additionalProperties;
     default:
       return baseMatch;
@@ -223,6 +192,7 @@ const supportedPropertyRefs = supportedPropertyTypes
  * @returns A boolean indicating if the property is supported.
  */
 export const isPropertyTypeSupported = (property: KeyValuePairs) => {
+  if (property.enum) return true;
   if (property?.$ref) {
     return supportedPropertyRefs.includes(property.$ref);
   }

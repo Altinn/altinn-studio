@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ErrorMessage, HelpText } from '@digdir/design-system-react';
+import { ErrorMessage, HelpText } from '@digdir/designsystemet-react';
 import classes from './FormField.module.css';
 import { useTranslation } from 'react-i18next';
 import { validateProperty, isPropertyRequired } from '../../utils/formValidationUtils';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { StudioButton } from '@studio/components';
 import { TrashIcon } from '@studio/icons';
 import { useDeleteDataModelMutation } from '../../../../hooks/mutations';
@@ -40,13 +40,18 @@ export function DeleteWrapper({ selectedOption }: DeleteWrapperProps) {
           color='danger'
           icon={<TrashIcon />}
           variant='tertiary'
-          size='small'
         >
           {t('schema_editor.delete_data_model')}
         </StudioButton>
       }
     >
-      <p>{t('schema_editor.delete_model_confirm', { schemaName })}</p>
+      <p>
+        <Trans
+          i18nKey={'schema_editor.delete_model_confirm'}
+          values={{ schemaName }}
+          components={{ bold: <strong /> }}
+        />
+      </p>
     </AltinnConfirmDialog>
   );
 }

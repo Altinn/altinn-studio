@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Fieldset, Switch } from '@digdir/design-system-react';
+import { Fieldset, Switch } from '@digdir/designsystemet-react';
 import { AttachmentListContent } from './AttachmentListContent';
 import { useTranslation } from 'react-i18next';
 import { extractCurrentAvailableAttachments, isSelectionValid } from './attachmentListUtils';

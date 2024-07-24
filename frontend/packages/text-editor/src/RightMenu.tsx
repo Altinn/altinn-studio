@@ -3,7 +3,7 @@ import classes from './RightMenu.module.css';
 import type { LangCode } from './types';
 import { LangSelector } from './LangSelector';
 import { getLangName, langOptions } from './utils';
-import { Checkbox, Fieldset, Heading } from '@digdir/design-system-react';
+import { Checkbox, Fieldset, Heading } from '@digdir/designsystemet-react';
 import { defaultLangCode } from './constants';
 import { useTranslation } from 'react-i18next';
 import { AltinnConfirmDialog } from 'app-shared/components';
@@ -82,7 +82,6 @@ export const RightMenu = ({
                           }
                           disabled={!canDeleteLang(langCode)}
                           aria-label={t('schema_editor.language_delete_button')}
-                          size='small'
                         >
                           {t('schema_editor.language_delete_button')}
                         </StudioButton>

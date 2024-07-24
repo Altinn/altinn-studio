@@ -20,13 +20,7 @@ export const ReferenceButton = ({ node }: ReferenceButtonProps) => {
   const handleClick = () => setSelectedTypePointer(reference);
 
   return (
-    <StudioButton
-      className={classes.root}
-      color='second'
-      onClick={handleClick}
-      size='small'
-      variant='secondary'
-    >
+    <StudioButton className={classes.root} color='second' onClick={handleClick} variant='secondary'>
       {name}
     </StudioButton>
   );

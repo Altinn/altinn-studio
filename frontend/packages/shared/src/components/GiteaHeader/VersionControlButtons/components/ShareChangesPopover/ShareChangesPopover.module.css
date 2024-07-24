@@ -12,3 +12,11 @@
   width: 445px;
   max-width: 100%;
 }
+
+.hidePopover {
+  visibility: hidden;
+}
+
+.showPopover {
+  display: grid;
+}

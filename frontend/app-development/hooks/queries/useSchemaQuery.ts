@@ -20,5 +20,6 @@ export const useSchemaQuery = (
       isXsdFile(modelPath)
         ? addXsdFromRepo(org, app, StringUtils.removeStart(modelPath, '/'))
         : getDataModel(org, app, modelPath),
+    structuralSharing: false,
   });
 };

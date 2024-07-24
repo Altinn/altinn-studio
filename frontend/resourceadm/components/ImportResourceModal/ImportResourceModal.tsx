@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import classes from './ImportResourceModal.module.css';
 import { Modal } from '../Modal';
-import { Combobox, Paragraph, Textfield } from '@digdir/design-system-react';
+import { Combobox, Paragraph, Textfield } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import type { EnvironmentType } from '../../types/EnvironmentType';
 import { useNavigate } from 'react-router-dom';
@@ -156,12 +156,11 @@ export const ImportResourceModal = ({
         <StudioButton
           onClick={() => (hasValidValues ? handleImportResource() : undefined)}
           color='first'
-          size='small'
           aria-disabled={!hasValidValues}
         >
           {t('resourceadm.dashboard_import_modal_import_button')}
         </StudioButton>
-        <StudioButton onClick={handleClose} color='first' variant='tertiary' size='small'>
+        <StudioButton onClick={handleClose} color='first' variant='tertiary'>
           {t('general.cancel')}
         </StudioButton>
       </div>

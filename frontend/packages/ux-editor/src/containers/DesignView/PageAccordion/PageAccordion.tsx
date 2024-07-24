@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './PageAccordion.module.css';
 import cn from 'classnames';
-import { Accordion } from '@digdir/design-system-react';
+import { Accordion } from '@digdir/designsystemet-react';
 import { NavigationMenu } from './NavigationMenu';
 import { pageAccordionContentId } from '@studio/testing/testids';
 import { TrashIcon } from '@studio/icons';
@@ -87,7 +87,6 @@ export const PageAccordion = ({
             onClick={handleConfirmDelete}
             title={t('general.delete_item', { item: pageName })}
             variant='tertiary'
-            size='small'
             disabled={isPending}
           />
         </div>

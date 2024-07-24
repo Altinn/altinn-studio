@@ -46,6 +46,7 @@ export const TextResource = ({
   const prevFormItemId = usePrevious(formItemId);
   const prevFormLayoutName = usePrevious(formLayoutName);
 
+  const [currentValue, setCurrentValue] = useState<string>('');
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const handleOpen = () => {
@@ -53,6 +54,18 @@ export const TextResource = ({
       handleIdChange(generateId(generateIdOptions));
     }
     setIsOpen(true);
+  };
+
+  const handleClose = () => {
+    if (currentValue === '') {
+      handleRemoveTextResource();
+    }
+    setIsOpen(false);
+  };
+
+  const handleDelete = () => {
+    handleRemoveTextResource();
+    setIsOpen(false);
   };
 
   useEffect(() => {
@@ -65,8 +78,9 @@ export const TextResource = ({
     <TextResourceFieldset
       compact={compact}
       legend={label}
-      onClose={() => setIsOpen(false)}
-      onDelete={handleRemoveTextResource}
+      onClose={handleClose}
+      onDelete={handleRemoveTextResource ? handleDelete : undefined}
+      onSetCurrentValue={setCurrentValue}
       onReferenceChange={handleIdChange}
       textResourceId={textResourceId}
     />
@@ -86,6 +100,7 @@ type TextResourceFieldsetProps = {
   onClose: () => void;
   onDelete: () => void;
   onReferenceChange: (id: string) => void;
+  onSetCurrentValue: (value: string) => void;
   textResourceId: string;
 };
 
@@ -95,14 +110,10 @@ const TextResourceFieldset = ({
   onClose,
   onDelete,
   onReferenceChange,
+  onSetCurrentValue,
   textResourceId,
 }: TextResourceFieldsetProps) => {
   const { t } = useTranslation();
-
-  const handleDelete = () => {
-    onDelete?.();
-    onClose();
-  };
 
   return (
     <StudioProperty.Fieldset
@@ -114,20 +125,23 @@ const TextResourceFieldset = ({
           <StudioButton
             icon={<XMarkIcon />}
             onClick={onClose}
-            size='small'
             title={t('general.close')}
             variant='secondary'
           />
           <StudioDeleteButton
             confirmMessage={t('ux_editor.text_resource_bindings.delete_confirm_question')}
             disabled={!onDelete}
-            onDelete={handleDelete}
+            onDelete={() => onDelete?.()}
             title={t('general.delete')}
           />
         </>
       }
     >
-      <TextResourceEditor textResourceId={textResourceId} onReferenceChange={onReferenceChange} />
+      <TextResourceEditor
+        textResourceId={textResourceId}
+        onReferenceChange={onReferenceChange}
+        onSetCurrentValue={onSetCurrentValue}
+      />
     </StudioProperty.Fieldset>
   );
 };

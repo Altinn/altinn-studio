@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import classes from './TextResourceEdit.module.css';
 import type { ITextResource } from 'app-shared/types/global';
-import { Fieldset, LegacyTextArea } from '@digdir/design-system-react';
+import { Fieldset } from '@digdir/designsystemet-react';
+import { LegacyTextArea } from '@digdir/design-system-react';
 import { XMarkIcon } from '@studio/icons';
 import { getAllLanguages, getCurrentEditId } from '../selectors/textResourceSelectors';
 import { setCurrentEditId } from '../features/appData/textResources/textResourcesSlice';
@@ -47,7 +48,6 @@ export const TextResourceEdit = () => {
           icon={<XMarkIcon />}
           onClick={() => setEditId(undefined)}
           variant='primary'
-          size='small'
         >
           {t('general.close')}
         </StudioButton>

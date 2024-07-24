@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { IOption } from '../../../types/global';
-import { Fieldset, Radio, Textfield, ErrorMessage } from '@digdir/design-system-react';
+import { Fieldset, Radio, Textfield, ErrorMessage } from '@digdir/designsystemet-react';
 import classes from './EditOptions.module.css';
 import type { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';
@@ -169,7 +169,6 @@ export function EditOptions({
                         icon={<XMarkIcon />}
                         onClick={removeItem}
                         variant='tertiary'
-                        size='small'
                       />
                     </div>
                   </div>
@@ -188,7 +187,6 @@ export function EditOptions({
             icon={<PlusIcon />}
             onClick={handleAddOption}
             variant='secondary'
-            size='small'
           >
             {t('ux_editor.modal_new_option')}
           </StudioButton>

@@ -5,6 +5,11 @@ import { jsonMetadataMock } from 'app-shared/mocks/dataModelMetadataMocks';
 import { jsonSchemaMock } from '../test/mocks/jsonSchemaMock';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { organization, user as mockUser } from 'app-shared/mocks/mocks';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { MockServicesContextWrapper } from 'dashboard/dashboardTestUtils';
 
 // Mocks:
 const saveMock = jest.fn();
@@ -16,7 +21,25 @@ const initialProps = {
   name: 'Test',
 };
 
-export const render = () => rtlRender(<SchemaEditorApp {...initialProps} />);
+export const render = (services?: Partial<ServicesContextProps>) => {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData(
+    [QueryKey.Organizations],
+    [
+      {
+        ...organization,
+        username: 'ttd',
+      },
+    ],
+  );
+  queryClient.setQueryData([QueryKey.CurrentUser], mockUser);
+
+  rtlRender(
+    <MockServicesContextWrapper customServices={services} client={queryClient}>
+      <SchemaEditorApp {...initialProps} />
+    </MockServicesContextWrapper>,
+  );
+};
 
 describe('SchemaEditorApp', () => {
   afterEach(jest.clearAllMocks);

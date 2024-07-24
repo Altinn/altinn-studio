@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Paragraph, Link } from '@digdir/design-system-react';
+import { Alert, Paragraph, Link } from '@digdir/designsystemet-react';
 import { Trans, useTranslation } from 'react-i18next';
 import classes from './RepoOwnedByPersonInfo.module.css';
 

@@ -10,6 +10,9 @@ import { useFormItemContext } from '../../containers/FormItemContext';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';
 
+/**
+ * @deprecated This component is deprecated and will be removed in a future release.
+ */
 export const Calculations = () => {
   const { formItem: form } = useFormItemContext();
 
@@ -31,7 +34,6 @@ export const Calculations = () => {
             icon={<PlusIcon />}
             onClick={() => setModalOpen(true)}
             variant='tertiary'
-            size='small'
           />
         </div>
         <RuleModal

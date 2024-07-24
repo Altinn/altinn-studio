@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../../hooks/useAppContext';
 import { useUpdate } from 'app-shared/hooks/useUpdate';
 import { previewPage } from 'app-shared/api/paths';
-import { Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import { StudioButton, StudioCenter } from '@studio/components';
 import type { SupportedView } from './ViewToggler/ViewToggler';
 import { ViewToggler } from './ViewToggler/ViewToggler';
@@ -26,18 +26,12 @@ export const Preview = () => {
   };
 
   return isPreviewHidden ? (
-    <StudioButton
-      size='small'
-      variant='secondary'
-      className={classes.openPreviewButton}
-      onClick={togglePreview}
-    >
+    <StudioButton variant='secondary' className={classes.openPreviewButton} onClick={togglePreview}>
       {t('ux_editor.open_preview')}
     </StudioButton>
   ) : (
     <div className={classes.root}>
       <StudioButton
-        size='small'
         variant='tertiary'
         icon={<ArrowRightIcon aria-hidden />}
         title={t('ux_editor.close_preview')}

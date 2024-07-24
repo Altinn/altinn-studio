@@ -3,7 +3,7 @@ import React from 'react';
 import classes from './ReceiptContent.module.css';
 import type { FormLayoutPage } from '../../../types/FormLayoutPage';
 import { PageAccordion } from '../PageAccordion';
-import { Accordion } from '@digdir/design-system-react';
+import { Accordion } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { FormTree } from '../FormTree';
 import { StudioButton } from '@studio/components';
@@ -79,7 +79,7 @@ export const ReceiptContent = ({
   }
   return (
     <div className={classes.button}>
-      <StudioButton variant='tertiary' onClick={onClickAddPage} size='small'>
+      <StudioButton variant='tertiary' onClick={onClickAddPage}>
         {t('receipt.create')}
       </StudioButton>
     </div>

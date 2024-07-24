@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './SessionExpiredModal.module.css';
 import { StudioButton, StudioModal } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { Heading, Paragraph } from '@digdir/design-system-react';
+import { Heading, Paragraph } from '@digdir/designsystemet-react';
 
 export type SessionExpiredModalProps = {
   open: boolean;
@@ -33,10 +33,10 @@ export const SessionExpiredModal = ({
           {t('session.inactive')}
         </Paragraph>
         <div className={classes.buttonWrapper}>
-          <StudioButton color='first' onClick={onContinue} size='small'>
+          <StudioButton color='first' onClick={onContinue}>
             {t('general.continue')}
           </StudioButton>
-          <StudioButton color='inverted' onClick={onClose} size='small'>
+          <StudioButton color='inverted' onClick={onClose}>
             {t('general.sign_out')}
           </StudioButton>
         </div>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { LegacySelect, Textfield, ErrorMessage } from '@digdir/design-system-react';
+import { Textfield, ErrorMessage } from '@digdir/designsystemet-react';
+import { LegacySelect } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useOptionListIdsQuery } from '../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation, Trans } from 'react-i18next';
@@ -41,7 +42,6 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
             <StudioButton
               variant='tertiary'
               onClick={() => setUseCustomCodeList(!useCustomCodeList)}
-              size='small'
             >
               {optionListIds?.length > 0 && useCustomCodeList && <>Bytt til statisk kodeliste</>}
               {!useCustomCodeList && <>Bytt til egendefinert kodeliste</>}

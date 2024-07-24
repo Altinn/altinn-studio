@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ErrorMessage, Textfield, LegacyPopover } from '@digdir/design-system-react';
+import { ErrorMessage, Textfield } from '@digdir/designsystemet-react';
+import { LegacyPopover } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@studio/icons';
 import { extractModelNamesFromMetadataList } from '../../../../utils/metadataUtils';
@@ -86,7 +87,6 @@ export function CreateNewWrapper({
           icon={<PlusIcon />}
           variant='tertiary'
           onClick={() => setCreateNewOpen(!createNewOpen)}
-          size='small'
         >
           {t('general.create_new')}
         </StudioButton>
@@ -105,7 +105,6 @@ export function CreateNewWrapper({
         onClick={onCreateConfirmClick}
         style={{ marginTop: 22 }}
         variant='secondary'
-        size='small'
       >
         {t('schema_editor.create_model_confirm_button')}
       </StudioButton>

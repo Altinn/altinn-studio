@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import classes from './PreviewLimitationsInfo.module.css';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
-import { Alert, LegacyPopover } from '@digdir/design-system-react';
+import { Alert } from '@digdir/designsystemet-react';
+import { LegacyPopover } from '@digdir/design-system-react';
 import { XMarkIcon } from '@studio/icons';
-import { typedLocalStorage } from 'app-shared/utils/webStorage';
+import { typedLocalStorage } from '@studio/components/src/hooks/webStorage';
 import { StudioButton } from '@studio/components';
 
 export const PreviewLimitationsInfo = () => {
@@ -37,7 +38,6 @@ export const PreviewLimitationsInfo = () => {
           trigger={
             <StudioButton
               onClick={() => setOpenShowSaveChoiceInSession(!openSaveChoiceInSession)}
-              size='small'
               variant='tertiary'
               icon={<XMarkIcon />}
             />
@@ -49,7 +49,6 @@ export const PreviewLimitationsInfo = () => {
             <StudioButton
               className={cn(classes.yesButton, classes.button)}
               onClick={handleHidePreviewLimitations}
-              size='small'
               variant='secondary'
             >
               {t('session.do_show_again')}
@@ -57,7 +56,6 @@ export const PreviewLimitationsInfo = () => {
             <StudioButton
               className={cn(classes.noButton, classes.button)}
               onClick={handleRememberChoiceForSession}
-              size='small'
               variant='secondary'
             >
               {t('session.dont_show_again')}

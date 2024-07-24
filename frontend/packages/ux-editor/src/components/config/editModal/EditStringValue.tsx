@@ -2,8 +2,10 @@ import React from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useTranslation } from 'react-i18next';
 import { FormField } from '../../FormField';
-import { LegacySelect, Textfield } from '@digdir/design-system-react';
+import { Textfield } from '@digdir/designsystemet-react';
+import { LegacySelect } from '@digdir/design-system-react';
 import { useComponentPropertyLabel } from '../../../hooks/useComponentPropertyLabel';
+import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks/useComponentPropertyEnumValue';
 
 export interface EditStringValueProps extends IGenericEditComponent {
   propertyKey: string;
@@ -22,6 +24,7 @@ export const EditStringValue = ({
 }: EditStringValueProps) => {
   const { t } = useTranslation();
   const componentPropertyLabel = useComponentPropertyLabel();
+  const componentEnumValue = useComponentPropertyEnumValue();
 
   const handleValueChange = (newValue: string) => {
     handleComponentChange({
@@ -48,7 +51,7 @@ export const EditStringValue = ({
           <LegacySelect
             {...fieldProps}
             options={enumValues.map((value) => ({
-              label: value,
+              label: componentEnumValue(value),
               value: value,
             }))}
             onChange={(e: any) => fieldProps.onChange(e)}

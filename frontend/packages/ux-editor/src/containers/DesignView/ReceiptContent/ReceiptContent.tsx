@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './ReceiptContent.module.css';
 import type { FormLayoutPage } from '../../../types/FormLayoutPage';
 import { PageAccordion } from '../PageAccordion';
-import { Accordion } from '@digdir/design-system-react';
+import { Accordion } from '@digdir/designsystemet-react';
 import { FormTree } from '../FormTree';
 
 export type ReceiptContentProps = {

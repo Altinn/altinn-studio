@@ -3,7 +3,7 @@ import classes from './TextRow.module.css';
 import type { TextResourceIdMutation, TextResourceVariable, TextTableRowEntry } from './types';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 import { TrashIcon, PencilIcon } from '@studio/icons';
-import { TableCell, TableRow, Textfield } from '@digdir/design-system-react';
+import { TableCell, TableRow, Textfield } from '@digdir/designsystemet-react';
 
 import { useTranslation } from 'react-i18next';
 import { ButtonContainer } from 'app-shared/primitives';
@@ -89,7 +89,6 @@ export const TextRow = ({
                 variant='tertiary'
                 onClick={() => setIsConfirmDeleteDialogOpen((prevState) => !prevState)}
                 aria-label={t('schema_editor.delete')}
-                size='small'
               >
                 {t('schema_editor.delete')}
               </StudioButton>
@@ -142,7 +141,6 @@ export const TextRow = ({
               aria-label={t('text_editor.toggle_edit_mode', { textKey: textIdValue })}
               icon={<PencilIcon />}
               variant='tertiary'
-              size='small'
               onClick={() => setTextIdEditOpen(!textIdEditOpen)}
             />
           )}

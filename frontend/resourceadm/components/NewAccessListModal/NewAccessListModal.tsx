@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import { useCreateAccessListMutation } from '../../hooks/mutations/useCreateAccessListMutation';
-import { Modal, Paragraph } from '@digdir/design-system-react';
+import { Modal, Paragraph } from '@digdir/designsystemet-react';
 import { ResourceNameAndId } from '../../components/ResourceNameAndId';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { StudioButton } from '@studio/components';
@@ -88,7 +88,6 @@ export const NewAccessListModal = forwardRef<HTMLDialogElement, NewAccessListMod
         </Modal.Content>
         <Modal.Footer>
           <StudioButton
-            size='small'
             aria-disabled={isSaveButtonDisabled}
             onClick={() => {
               if (!isSaveButtonDisabled) {
@@ -98,7 +97,7 @@ export const NewAccessListModal = forwardRef<HTMLDialogElement, NewAccessListMod
           >
             {t('resourceadm.listadmin_confirm_create_list')}
           </StudioButton>
-          <StudioButton size='small' variant='tertiary' onClick={onCloseModal}>
+          <StudioButton variant='tertiary' onClick={onCloseModal}>
             {t('general.cancel')}
           </StudioButton>
         </Modal.Footer>

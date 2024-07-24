@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './CreatedFor.module.css';
-import { Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { RepositoryType } from 'app-shared/types/global';
 import type { Repository } from 'app-shared/types/Repository';

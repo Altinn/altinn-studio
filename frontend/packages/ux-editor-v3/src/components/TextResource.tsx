@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { LegacySingleSelectOption } from '@digdir/design-system-react';
-import { LegacySelect, Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/designsystemet-react';
+import { LegacySelect } from '@digdir/design-system-react';
 import { MagnifyingGlassIcon, PencilIcon, PlusIcon, TrashIcon, XMarkIcon } from '@studio/icons';
 import classes from './TextResource.module.css';
 import { useDispatch, useSelector } from 'react-redux';
@@ -129,7 +130,6 @@ export const TextResource = ({
             onClick={() => setIsSearchMode(false)}
             title={t('ux_editor.search_text_resources_close')}
             variant='tertiary'
-            size='small'
           />
         </span>
       )}
@@ -151,7 +151,6 @@ export const TextResource = ({
                 onClick={handleEditButtonClick}
                 title={t(getTextKeyForButton('edit', generateIdOptions?.textResourceKey))}
                 variant='tertiary'
-                size='small'
               />
             ) : (
               <StudioButton
@@ -163,7 +162,6 @@ export const TextResource = ({
                 onClick={handleEditButtonClick}
                 title={t(getTextKeyForButton('add', generateIdOptions?.textResourceKey))}
                 variant='tertiary'
-                size='small'
               />
             )}
             <StudioButton
@@ -175,7 +173,6 @@ export const TextResource = ({
               onClick={() => setIsSearchMode(true)}
               title={t(getTextKeyForButton('search', generateIdOptions?.textResourceKey))}
               variant='tertiary'
-              size='small'
             />
             <AltinnConfirmDialog
               open={isConfirmDeleteDialogOpen}
@@ -195,7 +192,6 @@ export const TextResource = ({
                   onClick={() => setIsConfirmDeleteDialogOpen(true)}
                   title={t(getTextKeyForButton('delete', generateIdOptions?.textResourceKey))}
                   variant='tertiary'
-                  size='small'
                 />
               }
             >
