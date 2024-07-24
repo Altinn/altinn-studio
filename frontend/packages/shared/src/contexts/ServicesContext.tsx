@@ -38,8 +38,6 @@ const handleError = (
   meta: QueryMeta | MutationMeta,
   logout: () => Promise<void>,
 ): void => {
-  // TODO : log axios errors
-
   const renderToast = (key: string, options: ToastOptions = {}) => {
     const errorMessageKey = `api_errors.${key}`;
     if (i18n.exists(errorMessageKey)) {
@@ -68,15 +66,15 @@ const handleError = (
     return;
   }
 
-  if (errorCode) {
-    return renderToast(errorCode);
-  }
-
   if (
     meta?.hideDefaultError === true ||
     (meta?.hideDefaultError instanceof Function && meta?.hideDefaultError?.(error))
   )
     return;
+
+  if (errorCode) {
+    return renderToast(errorCode);
+  }
 
   renderDefaultToast();
 };

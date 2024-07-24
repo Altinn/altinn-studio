@@ -42,30 +42,19 @@ export const VersionControlButtonsContextProvider = ({
   const { hasMergeConflict, setHasMergeConflict } = useHasMergeConflict(repoStatus);
 
   const { refetch: fetchPullData } = useRepoPullQuery(org, app, true);
-  const { mutateAsync: repoCommitAndPushMutation } = useRepoCommitAndPushMutation(org, app);
+  const { mutate: repoCommitAndPushMutation } = useRepoCommitAndPushMutation(org, app);
 
   const [isLoading, setIsLoading] = useState(false);
 
   const commitAndPushChanges = async (commitMessage: string) => {
-    setIsLoading(true);
-
-    try {
-      await repoCommitAndPushMutation({ commitMessage });
-    } catch (error) {
-      console.error(error);
-      const { data: result } = await fetchPullData();
-      if (result.hasMergeConflict || result.repositoryStatus === 'CheckoutConflict') {
-        // if pull resulted in a merge conflict, show merge conflict message
-        forceRepoStatusCheck();
-        setIsLoading(false);
-        setHasMergeConflict(true);
-      }
-      return;
-    }
+    repoCommitAndPushMutation({ commitMessage });
 
     const { data: result } = await fetchPullData();
     if (result.repositoryStatus === 'Ok') {
       toast.success(t('sync_header.sharing_changes_completed'));
+    } else if (result.repositoryStatus === 'CheckoutConflict' || result.hasMergeConflict) {
+      setIsLoading(false);
+      setHasMergeConflict(true);
     }
   };
 
@@ -96,5 +85,3 @@ export const useVersionControlButtonsContext = (): Partial<VersionControlButtons
   }
   return context;
 };
-
-const forceRepoStatusCheck = () => window.postMessage('forceRepoStatusCheck', window.location.href);
