@@ -1,10 +1,22 @@
+.selectDataModel {
+  width: 100%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
 .displayTileContainer {
   padding: 0;
   padding-right: var(--fds-spacing-1);
 }
 
 .displayTileContainer > div {
-  display: block;
+  display: grid;
+}
+
+.displayTileContainer > div > p {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .selectDataModel {
