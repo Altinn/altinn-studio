@@ -66,7 +66,6 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                   onClick={handleClearSearch}
                   icon={<XMarkIcon />}
                   variant='tertiary'
-                  size='small'
                 />
               )}
             </div>

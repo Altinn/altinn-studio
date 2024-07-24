@@ -31,7 +31,7 @@ export const DownloadRepoPopoverContent = ({
         {t('overview.download_repo_full')}
       </Link>
       <div className={classes.buttonContainer}>
-        <StudioButton color='second' onClick={onClose} variant='secondary' size='small'>
+        <StudioButton color='second' onClick={onClose} variant='secondary'>
           {t('general.cancel')}
         </StudioButton>
       </div>

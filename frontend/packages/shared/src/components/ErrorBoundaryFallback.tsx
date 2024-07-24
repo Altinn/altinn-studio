@@ -25,9 +25,7 @@ export const ErrorBoundaryFallback = ({ error }: ErrorBoundaryFallbackProps) => 
         </Paragraph>
         {!_useIsProdHack && <ErrorMessage>{error.message}</ErrorMessage>}
         <StudioCenter>
-          <StudioButton onClick={resetBoundary} size='small'>
-            {t('general.try_again')}
-          </StudioButton>
+          <StudioButton onClick={resetBoundary}>{t('general.try_again')}</StudioButton>
         </StudioCenter>
       </Alert>
     </StudioCenter>
