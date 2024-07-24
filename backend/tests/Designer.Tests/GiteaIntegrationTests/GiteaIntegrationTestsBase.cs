@@ -9,7 +9,6 @@ using Designer.Tests.Fixtures;
 using DotNet.Testcontainers.Builders;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Mvc.Testing.Handlers;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
@@ -90,9 +89,12 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
 
         string configPath = GetConfigPath();
 
+        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Test");
+
         IConfiguration configuration = new ConfigurationBuilder()
-            .AddJsonFile(configPath)
+            .AddJsonFile(configPath, false, false)
             .AddJsonStream(GenerateGiteaOverrideConfigStream())
+            .AddEnvironmentVariables()
             .Build();
 
         Factory.WithWebHostBuilder(builder =>
@@ -100,8 +102,9 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
             builder.UseConfiguration(configuration);
             builder.ConfigureAppConfiguration((t, conf) =>
             {
-                conf.AddJsonFile(configPath);
+                conf.AddJsonFile(configPath, false, false);
                 conf.AddJsonStream(GenerateGiteaOverrideConfigStream());
+                conf.AddEnvironmentVariables();
             });
 
             builder.ConfigureTestServices(ConfigureTestServices);
@@ -165,6 +168,7 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
         configStream.Seek(0, SeekOrigin.Begin);
         return configStream;
     }
+
     protected async Task CreateAppUsingDesigner(string org, string repoName)
     {
         CreatedFolderPath = $"{TestRepositoriesLocation}/{GiteaConstants.TestUser}/{org}/{repoName}";
