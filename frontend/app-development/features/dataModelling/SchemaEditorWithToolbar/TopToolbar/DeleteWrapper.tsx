@@ -40,7 +40,6 @@ export function DeleteWrapper({ selectedOption }: DeleteWrapperProps) {
           color='danger'
           icon={<TrashIcon />}
           variant='tertiary'
-          size='small'
         >
           {t('schema_editor.delete_data_model')}
         </StudioButton>

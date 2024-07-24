@@ -64,7 +64,6 @@ export function AltinnConfirmDialog({
               onConfirm(event);
               onClose(event);
             }}
-            size='small'
           >
             {confirmText || t('general.yes')}
           </StudioButton>
@@ -75,7 +74,6 @@ export function AltinnConfirmDialog({
               event.stopPropagation();
               onClose(event);
             }}
-            size='small'
           >
             {cancelText || t('general.cancel')}
           </StudioButton>

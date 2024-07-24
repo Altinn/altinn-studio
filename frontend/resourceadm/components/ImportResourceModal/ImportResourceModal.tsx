@@ -156,12 +156,11 @@ export const ImportResourceModal = ({
         <StudioButton
           onClick={() => (hasValidValues ? handleImportResource() : undefined)}
           color='first'
-          size='small'
           aria-disabled={!hasValidValues}
         >
           {t('resourceadm.dashboard_import_modal_import_button')}
         </StudioButton>
-        <StudioButton onClick={handleClose} color='first' variant='tertiary' size='small'>
+        <StudioButton onClick={handleClose} color='first' variant='tertiary'>
           {t('general.cancel')}
         </StudioButton>
       </div>

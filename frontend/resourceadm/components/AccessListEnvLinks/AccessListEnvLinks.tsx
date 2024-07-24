@@ -54,7 +54,7 @@ export const AccessListEnvLinks = (): React.JSX.Element => {
             .filter((env) => env.isResourcePublished)
             .map((env) => {
               return (
-                <StudioButton key={env.id} variant='tertiary' size='small' asChild>
+                <StudioButton key={env.id} variant='tertiary' asChild>
                   <Link
                     to={`${getResourcePageURL(org, app, resourceId, 'accesslists')}/${env.id}/`}
                   >

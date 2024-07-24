@@ -34,7 +34,6 @@ export const PolicyEditorDropdownMenu = ({
           color={isError ? 'danger' : 'second'}
           icon={<MenuElipsisVerticalIcon fontSize='1.8rem' />}
           onClick={handleClickMoreIcon}
-          size='small'
           title={t('policy_editor.more')}
           variant='tertiary'
         />

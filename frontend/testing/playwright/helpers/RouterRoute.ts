@@ -18,7 +18,7 @@ type RouterRoutes = Record<SupportedRoutes, string>;
 
 const routerRoutes: RouterRoutes = {
   altinnLoginPage: '/',
-  dashboard: '/dashboard',
+  dashboard: '/dashboard/self',
   dashboardCreateApp: '/dashboard/self/new',
   deploy: '/editor/{{org}}/{{app}}/deploy',
   editorOverview: '/editor/{{org}}/{{app}}/overview',

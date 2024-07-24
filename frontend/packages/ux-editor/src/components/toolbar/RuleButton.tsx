@@ -9,7 +9,7 @@ export interface IRuleButtonProps {
 
 export default function RuleButton(props: IRuleButtonProps) {
   return (
-    <StudioButton icon={<CogIcon />} onClick={props.onClick} variant='secondary' size='small'>
+    <StudioButton icon={<CogIcon />} onClick={props.onClick} variant='secondary'>
       {props.text}
     </StudioButton>
   );

@@ -96,10 +96,10 @@ export const CreateCustomReceiptForm = ({
         onChange={() => setDataModelError(null)}
       />
       <div className={classes.buttonWrapper}>
-        <StudioButton disabled={allDataModelIdsEmpty} size='small' type='submit' variant='primary'>
+        <StudioButton disabled={allDataModelIdsEmpty} type='submit' variant='primary'>
           {t('process_editor.configuration_panel_custom_receipt_create_button')}
         </StudioButton>
-        <StudioButton size='small' onClick={onCloseForm} variant='secondary'>
+        <StudioButton onClick={onCloseForm} variant='secondary'>
           {t('process_editor.configuration_panel_custom_receipt_cancel_button')}
         </StudioButton>
       </div>

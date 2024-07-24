@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FormDesigner } from './containers/FormDesigner';
 import { useText, useAppContext } from './hooks';
 import { StudioPageSpinner } from '@studio/components';
@@ -8,6 +8,7 @@ import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { FormItemContextProvider } from './containers/FormItemContext';
+import { cleanupStaleLocalStorageKeys } from './utils/localStorageUtils';
 
 /**
  * This is the main React component responsible for controlling
@@ -16,6 +17,11 @@ import { FormItemContextProvider } from './containers/FormItemContext';
  */
 
 export function App() {
+  // Remove local storage keys that are no longer supported
+  useEffect(() => {
+    cleanupStaleLocalStorageKeys();
+  }, []);
+
   const t = useText();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
