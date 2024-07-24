@@ -19,7 +19,7 @@ using Xunit;
 namespace Designer.Tests.GiteaIntegrationTests;
 
 [Trait("Category", "GiteaIntegrationTest")]
-[Collection(nameof(GiteaCollection))]
+[Collection(nameof(GiteaIntegrationTestsCollection))]
 public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<TControllerTest>
     where TControllerTest : class
 {
@@ -27,7 +27,7 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
 
     protected string CreatedFolderPath { get; set; }
 
-    private CookieContainer CookieContainer { get; } = new CookieContainer();
+    private CookieContainer CookieContainer { get; } = new();
 
     /// On some systems path too long error occurs if repo is nested deep in file system.
     protected override string TestRepositoriesLocation =>
@@ -65,31 +65,37 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
         directory.Delete(true);
     }
 
-    protected override void ConfigureTestServices(IServiceCollection services)
+    protected sealed override void ConfigureTestServices(IServiceCollection services)
     {
 
     }
 
-    protected GiteaIntegrationTestsBase(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture) : base(factory)
+    protected GiteaIntegrationTestsBase(GiteaWebAppApplicationFactoryFixture<Program> factory, GiteaFixture giteaFixture, SharedDesignerHttpClientProvider sharedDesignerHttpClientProvider) : base(factory)
     {
 
         GiteaFixture = giteaFixture;
+        _sharedDesignerHttpClientProvider = sharedDesignerHttpClientProvider;
+
     }
 
+    private readonly SharedDesignerHttpClientProvider _sharedDesignerHttpClientProvider;
+
+    // Only ones per collection the http client will be created and it will be used for all integration tests
     protected override HttpClient GetTestClient()
     {
-        string configPath = GetConfigPath();
+        if (_sharedDesignerHttpClientProvider.SharedHttpClient is not null)
+        {
+            return _sharedDesignerHttpClientProvider.SharedHttpClient;
+        }
 
+        string configPath = GetConfigPath();
 
         IConfiguration configuration = new ConfigurationBuilder()
             .AddJsonFile(configPath)
             .AddJsonStream(GenerateGiteaOverrideConfigStream())
             .Build();
 
-
-        var oidcSettings = configuration.GetSection("OidcLoginSettings");
-
-        var client = Factory.WithWebHostBuilder(builder =>
+        Factory.WithWebHostBuilder(builder =>
         {
             builder.UseConfiguration(configuration);
             builder.ConfigureAppConfiguration((t, conf) =>
@@ -99,16 +105,9 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
             });
 
             builder.ConfigureTestServices(ConfigureTestServices);
-        }).CreateDefaultClient(new GiteaAuthDelegatingHandler(), new RedirectHandler()
-        {
-            InnerHandler = new HttpClientHandler
-            {
-                AllowAutoRedirect = false
-            }
-        }, new CookieContainerHandler(CookieContainer));
+        }).CreateDefaultClient();
 
-
-        var localhostHttpClient =
+        _sharedDesignerHttpClientProvider.SharedHttpClient =
             new HttpClient(new GiteaAuthDelegatingHandler()
             {
                 InnerHandler = new CookieContainerHandler(CookieContainer)
@@ -117,7 +116,7 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
                 }
             }) { BaseAddress = new Uri("http://studio.localhost") };
 
-        return localhostHttpClient;
+        return _sharedDesignerHttpClientProvider.SharedHttpClient;
     }
 
     protected Stream GenerateGiteaOverrideConfigStream()

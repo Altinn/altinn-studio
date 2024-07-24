@@ -12,10 +12,10 @@ using Xunit;
 
 namespace Designer.Tests.GiteaIntegrationTests
 {
-    public class UserControllerGiteaIntegrationTests : GiteaIntegrationTestsBase<UserControllerGiteaIntegrationTests>, IClassFixture<GiteaWebAppApplicationFactoryFixture<Program>>
+    public class UserControllerGiteaIntegrationTests : GiteaIntegrationTestsBase<UserControllerGiteaIntegrationTests>
     {
 
-        public UserControllerGiteaIntegrationTests(GiteaWebAppApplicationFactoryFixture<Program> factory, GiteaFixture giteaFixture) : base(factory, giteaFixture)
+        public UserControllerGiteaIntegrationTests(GiteaWebAppApplicationFactoryFixture<Program> factory, GiteaFixture giteaFixture, SharedDesignerHttpClientProvider sharedDesignerHttpClientProvider) : base(factory, giteaFixture, sharedDesignerHttpClientProvider)
         {
         }
 
@@ -25,10 +25,6 @@ namespace Designer.Tests.GiteaIntegrationTests
         {
             string requestUrl = "designer/api/user/current";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, requestUrl);
-
-            var client = HttpClient;
-
-            // System.Threading.Thread.Sleep(10000000);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
