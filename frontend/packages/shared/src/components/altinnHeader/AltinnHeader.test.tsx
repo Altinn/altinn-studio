@@ -21,8 +21,9 @@ describe('AltinnHeader', () => {
   afterEach(jest.clearAllMocks);
 
   it('should render heading when provided', () => {
-    render({ heading: 'Test heading' });
-    expect(screen.getByRole('heading', { name: 'Test heading' })).toBeInTheDocument();
+    const heading: string = 'Test heading';
+    render({ heading });
+    expect(screen.getByText(heading)).toBeInTheDocument();
   });
 
   it('should not render heading when not provided', () => {
