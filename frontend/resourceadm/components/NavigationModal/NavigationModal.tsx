@@ -37,10 +37,10 @@ export const NavigationModal = ({
         {t('resourceadm.resource_navigation_modal_text')}
       </Paragraph>
       <div className={classes.buttonWrapper}>
-        <StudioButton onClick={onClose} color='first' variant='tertiary' size='small'>
+        <StudioButton onClick={onClose} color='first' variant='tertiary'>
           {t('resourceadm.resource_navigation_modal_button_stay')}
         </StudioButton>
-        <StudioButton onClick={onNavigate} color='first' size='small'>
+        <StudioButton onClick={onNavigate} color='first'>
           {t('resourceadm.resource_navigation_modal_button_move_on')}
         </StudioButton>
       </div>

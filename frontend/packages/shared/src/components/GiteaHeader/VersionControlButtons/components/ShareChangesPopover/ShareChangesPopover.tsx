@@ -61,7 +61,6 @@ export const ShareChangesPopover = () => {
     <div>
       <StudioButton
         color='inverted'
-        size='small'
         variant='tertiary'
         onClick={handleOpenPopover}
         disabled={!hasPushRights || hasMergeConflict}

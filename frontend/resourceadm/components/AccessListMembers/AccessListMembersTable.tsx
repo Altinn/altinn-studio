@@ -58,7 +58,6 @@ export const AccessListMembersTable = ({
           (disabledItems && disabledItems.some((existingItem) => existingItem.orgNr === item.orgNr))
         }
         variant='tertiary'
-        size='small'
       >
         {buttonText}
         {buttonIcon}

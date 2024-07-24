@@ -53,7 +53,6 @@ export const CommitAndPushContent = ({
       <StudioButton
         variant='tertiary'
         onClick={() => handleModalToggle(true)}
-        size='small'
         icon={<ClockDashedIcon />}
       >
         {t('sync_header.review_file_changes')}
@@ -76,7 +75,6 @@ export const CommitAndPushContent = ({
         color='first'
         onClick={handleClickCommitAndPush}
         id='share_changes_modal_button'
-        size='small'
         fullWidth
         className={classes.commitAndPushButton}
       >

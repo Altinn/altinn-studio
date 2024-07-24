@@ -80,11 +80,10 @@ export const RemoveChangesPopoverContent = ({
             id='confirm-reset-repo-button'
             onClick={onResetWrapper}
             variant='secondary'
-            size='small'
           >
             {t('overview.reset_repo_button')}
           </StudioButton>
-          <StudioButton color='second' onClick={onCloseWrapper} variant='secondary' size='small'>
+          <StudioButton color='second' onClick={onCloseWrapper} variant='secondary'>
             {t('general.cancel')}
           </StudioButton>
         </div>

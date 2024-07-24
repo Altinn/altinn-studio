@@ -64,7 +64,6 @@ export const NavigationMenu = ({ pageName, pageIsReceipt }: NavigationMenuProps)
             aria-haspopup='menu'
             variant='tertiary'
             title={t('general.options')}
-            size='small'
           />
         </DropdownMenu.Trigger>
         <DropdownMenu.Content>
