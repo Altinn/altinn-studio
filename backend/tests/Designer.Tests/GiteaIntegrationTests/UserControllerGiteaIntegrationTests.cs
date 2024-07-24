@@ -28,7 +28,7 @@ namespace Designer.Tests.GiteaIntegrationTests
 
             var client = HttpClient;
 
-            System.Threading.Thread.Sleep(10000000);
+            // System.Threading.Thread.Sleep(10000000);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
