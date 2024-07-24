@@ -31,7 +31,6 @@ export const Calculations = () => {
             icon={<PlusIcon />}
             onClick={() => setModalOpen(true)}
             variant='tertiary'
-            size='small'
           />
         </div>
         <RuleModal

@@ -73,7 +73,7 @@ export const MergeConflictModal = ({
             {t('merge_conflict.download_entire_repo')}
           </Link>
         </div>
-        <StudioButton onClick={() => setResetModalOpen(true)} size='small'>
+        <StudioButton onClick={() => setResetModalOpen(true)}>
           {t('merge_conflict.remove_my_changes')}
         </StudioButton>
         <RemoveChangesModal

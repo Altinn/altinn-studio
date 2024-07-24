@@ -15,7 +15,7 @@
 }
 
 .resizeHandleH:after {
-  inset: 0px -6px;
+  inset: 0 -5px 0 0;
 }
 
 .resizeHandleV {
@@ -23,7 +23,7 @@
 }
 
 .resizeHandleV:after {
-  inset: -6px 0px;
+  inset: 0 0 -5px 0;
 }
 
 .hideLeftSide {

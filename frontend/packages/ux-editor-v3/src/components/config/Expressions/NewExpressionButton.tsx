@@ -31,7 +31,6 @@ export const NewExpressionButton = ({ options, onAddExpression }: NewExpressionB
           fullWidth
           icon={<PlusIcon />}
           onClick={() => setShowDropdown(!showDropdown)}
-          size='small'
           title={t('right_menu.expressions_add')}
           variant='secondary'
         >

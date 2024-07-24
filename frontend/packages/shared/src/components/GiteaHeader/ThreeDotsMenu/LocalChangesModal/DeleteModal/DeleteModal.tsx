@@ -79,11 +79,10 @@ export const DeleteModal = ({ isOpen, onClose, app, org }: DeleteModalProps): JS
                 color='danger'
                 onClick={handleDelete}
                 disabled={app !== nameToDelete}
-                size='small'
               >
                 {t('local_changes.modal_confirm_delete_button')}
               </StudioButton>
-              <StudioButton variant='secondary' onClick={handleClose} size='small'>
+              <StudioButton variant='secondary' onClick={handleClose}>
                 {t('general.cancel')}
               </StudioButton>
             </>

@@ -92,7 +92,6 @@ export const SelectUniqueFromSignaturesInDataTypes = ({
         <StudioButton
           icon={<XMarkIcon />}
           onClick={onClose}
-          size='small'
           title={t('general.close')}
           variant='secondary'
         />
