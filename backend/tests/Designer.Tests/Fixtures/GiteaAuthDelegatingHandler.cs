@@ -83,10 +83,23 @@ namespace Designer.Tests.Fixtures
 
             var designerSignInResponse = await base.SendAsync(designerSignInRequeset, cancellationToken);
 
+            var finalRedirectRequest = new HttpRequestMessage(request.Method, "http://studio.localhost" + designerSignInResponse.Headers.Location)
+            {
+                Content = request.Content
+            };
 
-            var finalRedirectRequest = new HttpRequestMessage(HttpMethod.Get, "http://studio.localhost" + designerSignInResponse.Headers.Location);
+
+            // Call the /designer/api/user/current and extract the XSRF-TOKEN but attach cookies that contain "AltinnStudioDesigner"
+            string xsrfUrl = "http://studio.localhost/designer/api/user/current";
+            var httpRequestMessageXsrf = new HttpRequestMessage(HttpMethod.Get, xsrfUrl);
+            httpRequestMessageXsrf.AddCookies(designerSignInResponse.GetCookies("AltinnStudioDesigner"));
+            var xsrfResponse = await base.SendAsync(httpRequestMessageXsrf, cancellationToken);
+            string xsrfToken = AuthenticationUtil.GetXsrfTokenFromCookie(xsrfResponse.GetCookies());
+
+
             // add cookies from designerSignInResponse that contain "AltinnStudioDesigner"
             finalRedirectRequest.AddCookies(designerSignInResponse.GetCookies("AltinnStudioDesigner"));
+            finalRedirectRequest.AddXsrfToken(xsrfToken);
 
             var finalRedirectResponse = await base.SendAsync(finalRedirectRequest, cancellationToken);
             return finalRedirectResponse;

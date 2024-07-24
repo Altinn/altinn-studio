@@ -9,6 +9,7 @@ const loginPageTexts: Record<string, string> = {
   password: 'Passord',
   error_message: 'Ugyldig brukernavn eller passord.',
   links: 'Links',
+  authorize: 'Authorize',
 };
 
 export class LoginPage extends BasePage {
@@ -40,6 +41,10 @@ export class LoginPage extends BasePage {
 
   public async clickLoginButton(): Promise<void> {
     return await this.page.getByRole('button', { name: loginPageTexts['login'] }).click();
+  }
+
+  public async clickAuthorizeButton(): Promise<void> {
+    return await this.page.getByRole('button', { name: loginPageTexts['authorize'] }).click();
   }
 
   public async confirmSuccessfulLogin(): Promise<void> {

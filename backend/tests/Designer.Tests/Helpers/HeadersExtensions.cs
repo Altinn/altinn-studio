@@ -10,13 +10,13 @@ public static class HeadersExtensions
     {
         foreach (string cookie in cookies)
         {
-            request.Headers.Add("Cookie", cookie);
+            request.Headers.Add(Microsoft.Net.Http.Headers.HeaderNames.Cookie, cookie);
         }
     }
 
     public static IEnumerable<string> GetCookies(this HttpResponseMessage response)
     {
-        return response.Headers.TryGetValues("Set-Cookie", out IEnumerable<string> values)
+        return response.Headers.TryGetValues(Microsoft.Net.Http.Headers.HeaderNames.SetCookie, out IEnumerable<string> values)
             ? values
             : new List<string>();
     }
@@ -31,5 +31,11 @@ public static class HeadersExtensions
     {
         return response.GetCookies().Where(x => x.Contains(searchTerm));
     }
+
+    public static void AddXsrfToken(this HttpRequestMessage request, string xsrfToken)
+    {
+        request.Headers.Add("X-XSRF-TOKEN", xsrfToken);
+    }
+
 }
 

@@ -111,13 +111,10 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
         var localhostHttpClient =
             new HttpClient(new GiteaAuthDelegatingHandler()
             {
-                // InnerHandler = new RedirectHandler()
-                // {
-                    InnerHandler = new CookieContainerHandler(CookieContainer)
-                    {
-                        InnerHandler = new HttpClientHandler { AllowAutoRedirect = false, }
-                    }
-                // }
+                InnerHandler = new CookieContainerHandler(CookieContainer)
+                {
+                    InnerHandler = new HttpClientHandler { AllowAutoRedirect = false, }
+                }
             }) { BaseAddress = new Uri("http://studio.localhost") };
 
         return localhostHttpClient;
