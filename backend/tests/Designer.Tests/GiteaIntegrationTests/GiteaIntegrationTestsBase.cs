@@ -99,7 +99,7 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
             });
 
             builder.ConfigureTestServices(ConfigureTestServices);
-        }).CreateDefaultClient(new GiteaAuthDelegatingHandler(GiteaFixture.GiteaUrl), new RedirectHandler()
+        }).CreateDefaultClient(new GiteaAuthDelegatingHandler(), new RedirectHandler()
         {
             InnerHandler = new HttpClientHandler
             {
@@ -109,7 +109,7 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
 
 
         var localhostHttpClient =
-            new HttpClient(new GiteaAuthDelegatingHandler(GiteaFixture.GiteaUrl, GiteaFixture.GiteaUrl)
+            new HttpClient(new GiteaAuthDelegatingHandler()
             {
                 // InnerHandler = new RedirectHandler()
                 // {
