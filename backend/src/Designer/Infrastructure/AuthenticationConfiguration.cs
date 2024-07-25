@@ -33,6 +33,11 @@ namespace Altinn.Studio.Designer.Infrastructure
         {
             var oidcSettings = configuration.GetSection(nameof(OidcLoginSettings)).Get<OidcLoginSettings>();
 
+            if (string.IsNullOrWhiteSpace(oidcSettings.ClientId) || string.IsNullOrWhiteSpace(oidcSettings.ClientSecret))
+            {
+                throw new ArgumentException("ClientId or ClientSecret is missing in the configuration");
+            }
+
             services
                 .AddAuthentication(options =>
                 {
