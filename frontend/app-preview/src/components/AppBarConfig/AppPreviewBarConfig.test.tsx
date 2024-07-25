@@ -1,22 +1,9 @@
-import { RepositoryType } from 'app-shared/types/global';
-import type { AppPreviewMenuItem } from './AppPreviewBarConfig';
-import { mockUseTranslation, textMock } from '@studio/testing/mocks/i18nMock';
-import { getTopBarAppPreviewMenu, menu, SubPreviewMenuRightContent } from './AppPreviewBarConfig';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+import { SubPreviewMenuRightContent } from './AppPreviewBarConfig';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { app, org } from '@studio/testing/testids';
 
-describe('getTopBarAppPreviewMenu', () => {
-  const { t } = mockUseTranslation();
-  it('should return all items when provided repository type is "App"', () => {
-    expect(getTopBarAppPreviewMenu(org, app, RepositoryType.App, t)).toHaveLength(menu.length);
-  });
-
-  it('should return empty list when provided repo type is "Unknown"', () => {
-    const expected: AppPreviewMenuItem[] = [];
-    expect(getTopBarAppPreviewMenu(org, app, RepositoryType.Unknown, t)).toEqual(expected);
-  });
-
+describe('AppPreviewBarConfig', () => {
   it('should render all buttons on right side', () => {
     render(<SubPreviewMenuRightContent />);
 
