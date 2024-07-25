@@ -147,8 +147,6 @@ namespace Designer.Tests.Fixtures
 
         private async Task BuildAndStartLoadBalancerAsync()
         {
-            // Build and run nginx load balancer which will proxy /repo url to gitea container
-            // and / to localhost:5000 but to the host localhost. Maybe host.docker.internal will needs to be resolved in the configuration.
             string loadBalancerDockerFilePath = Path.Combine(CommonDirectoryPath.GetProjectDirectory().DirectoryPath, "Fixtures", "Nginx");
             var loadBalancerImage = new ImageFromDockerfileBuilder()
                 .WithDockerfileDirectory(loadBalancerDockerFilePath)
@@ -164,12 +162,7 @@ namespace Designer.Tests.Fixtures
                 .WithImagePullPolicy(PullPolicy.Never)
                 .WithNetwork(_giteaNetwork)
                 .WithName("loadbalancer")
-                .WithPortBinding(80, 80)
-                .WithEnvironment(new Dictionary<string, string>
-                {
-                    {"NGINX_HOST", "localhost"},
-                    {"NGINX_PORT", "80"}
-                })
+                .WithPortBinding(TestUrlsProvider.Instance.LoadBalancerPort, 80)
                 .WithExtraHost("host.docker.internal", "host-gateway")
                 .Build();
 
