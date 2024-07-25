@@ -15,8 +15,7 @@ export const PanelComponent = ({ component, handleComponentChange }: IGenericEdi
     handleComponentChange({ ...component, showIcon });
   };
 
-  const handleVariantClick = (event: ChangeEvent<HTMLSelectElement>) => {
-    const variant = event.target.value as FormPanelVariant;
+  const handleVariantClick = (variant: FormPanelVariant) => {
     handleComponentChange({ ...component, variant });
   };
 
@@ -47,10 +46,10 @@ export const PanelComponent = ({ component, handleComponentChange }: IGenericEdi
       />
 
       <FormField
-        id={component.id}
+        id={`variant-${component.id}`}
         label={t('ux_editor.choose_variant')}
         value={component.variant || 'info'}
-        onChange={handleVariantClick}
+        onChange={(value) => handleVariantClick(value as FormPanelVariant)}
         propertyPath={`${component.propertyPath}/properties/variant`}
         renderField={({ fieldProps }) => (
           <StudioNativeSelect id={component.id} {...fieldProps}>

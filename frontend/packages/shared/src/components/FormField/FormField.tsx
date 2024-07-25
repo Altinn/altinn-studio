@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, type ChangeEvent } from 'react';
 import { ErrorMessage, HelpText } from '@digdir/designsystemet-react';
 import classes from './FormField.module.css';
 import { useTranslation } from 'react-i18next';
@@ -15,7 +15,7 @@ export type RenderFieldArgs<TT> = {
 export type FormFieldChildProps<TT> = {
   value: any;
   label: string;
-  onChange: (value: TT, event?: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (value: TT, event?: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   'aria-errormessage'?: string;
   'aria-invalid'?: boolean;
 };
@@ -99,6 +99,9 @@ export const FormField = <T extends unknown, TT extends unknown>({
   }, [customRequired, schema, propertyPath]);
 
   const handleOnChange = (newValue: TT, event?: React.ChangeEvent<HTMLInputElement>): void => {
+    if (!event) {
+      newValue = (newValue as ChangeEvent<HTMLSelectElement>).target.value as unknown as TT;
+    }
     const errCode = validate(newValue);
     setErrorCode(errCode);
     setTmpValue(newValue);
