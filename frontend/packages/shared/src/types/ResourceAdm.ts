@@ -185,3 +185,8 @@ export interface ResourceFormError {
   index?: number | keyof SupportedLanguage;
   error: string;
 }
+
+export interface DelegationCountOverview {
+  numberOfDelegations: number;
+  numberOfRelations: number;
+}

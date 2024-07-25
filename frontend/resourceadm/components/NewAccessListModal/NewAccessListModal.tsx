@@ -88,7 +88,6 @@ export const NewAccessListModal = forwardRef<HTMLDialogElement, NewAccessListMod
         </Modal.Content>
         <Modal.Footer>
           <StudioButton
-            size='small'
             aria-disabled={isSaveButtonDisabled}
             onClick={() => {
               if (!isSaveButtonDisabled) {
@@ -98,7 +97,7 @@ export const NewAccessListModal = forwardRef<HTMLDialogElement, NewAccessListMod
           >
             {t('resourceadm.listadmin_confirm_create_list')}
           </StudioButton>
-          <StudioButton size='small' variant='tertiary' onClick={onCloseModal}>
+          <StudioButton variant='tertiary' onClick={onCloseModal}>
             {t('general.cancel')}
           </StudioButton>
         </Modal.Footer>

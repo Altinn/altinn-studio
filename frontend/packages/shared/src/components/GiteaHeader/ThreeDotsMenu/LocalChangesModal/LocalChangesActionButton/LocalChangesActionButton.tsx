@@ -110,7 +110,6 @@ export const LocalChangesActionButton = ({
             onClick={action.onClick}
             icon={icon}
             iconPlacement='right'
-            size='small'
           >
             {text}
           </StudioButton>

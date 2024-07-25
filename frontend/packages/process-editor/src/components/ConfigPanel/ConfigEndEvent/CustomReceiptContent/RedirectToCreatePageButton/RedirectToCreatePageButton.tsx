@@ -27,7 +27,7 @@ export const RedirectToCreatePageButton = (): React.ReactElement => {
       <RedirectBox
         title={t('process_editor.configuration_panel_custom_receipt_navigate_to_lage_title')}
       >
-        <StudioButton asChild size='small' variant='primary' color='second' onClick={handleClick}>
+        <StudioButton asChild variant='primary' color='second' onClick={handleClick}>
           <Link
             href={packagesRouter.getPackageNavigationUrl('editorUiEditor')}
             className={classes.link}

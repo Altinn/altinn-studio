@@ -102,7 +102,6 @@ export const PolicyResourceFields = ({
             hidden={!canEditTypeAndId}
             icon={<MultiplyIcon />}
             onClick={handleRemoveNarrowingResource}
-            size='small'
             title={t('policy_editor.narrowing_list_field_delete')}
             variant='tertiary'
           />

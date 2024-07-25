@@ -138,7 +138,6 @@ export const DesignView = (): ReactNode => {
         <StudioButton
           icon={<PlusIcon aria-hidden />}
           onClick={() => handleAddPage()}
-          size='small'
           className={classes.button}
           disabled={isAddLayoutMutationPending}
         >

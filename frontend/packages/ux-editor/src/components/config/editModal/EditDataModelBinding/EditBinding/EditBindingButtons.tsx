@@ -30,7 +30,6 @@ export const EditBindingButtons = ({
       <StudioButton
         icon={<XMarkIcon />}
         onClick={() => onSetDataModelSelectVisible(false)}
-        size='small'
         title={t('general.close')}
         variant='secondary'
       />
