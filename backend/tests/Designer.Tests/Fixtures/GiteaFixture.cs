@@ -31,9 +31,6 @@ namespace Designer.Tests.Fixtures
 
         private IContainer _giteaContainer;
 
-
-        private IContainer _loadBalancerContainer;
-
         private Lazy<HttpClient> _giteaClient;
         public Lazy<HttpClient> GiteaClient
         {
@@ -42,13 +39,10 @@ namespace Designer.Tests.Fixtures
                 InnerHandler = new HttpClientHandler(),
             })
             {
-                BaseAddress = new Uri(DirectGiteaUrl + "api/v1/"),
+                BaseAddress = new Uri(TestUrlsProvider.Instance.GiteaUrl + "/api/v1/"),
                 DefaultRequestHeaders = { Authorization = new BasicAuthenticationHeaderValue(GiteaConstants.AdminUser, GiteaConstants.AdminPassword) }
             });
         }
-
-        public string GiteaUrl => $"{TestUrlsProvider.Instance.TestDomainUrl}/repos/";
-        private string DirectGiteaUrl => $"http://localhost:{ TestUrlsProvider.Instance.GiteaPort}/";
 
         public string OAuthApplicationClientId { get; private set; }
         public string OAuthApplicationClientSecret { get; private set; }
@@ -83,7 +77,6 @@ namespace Designer.Tests.Fixtures
             await BuildAndCreateGiteaNetworkAsync();
             await BuildAndStartPostgreSqlContainerAsync();
             await BuildAndStartAltinnGiteaAsync();
-            await BuildAndStartLoadBalancerAsync();
             await ConfigureGitea();
         }
 
@@ -91,7 +84,6 @@ namespace Designer.Tests.Fixtures
         {
             await _postgreSqlContainer.DisposeAsync();
             await _giteaContainer.DisposeAsync();
-            await _loadBalancerContainer.DisposeAsync();
             await _giteaNetwork.DeleteAsync();
             if (GiteaClient.IsValueCreated)
             {
@@ -124,7 +116,7 @@ namespace Designer.Tests.Fixtures
                     {"GITEA__database__NAME", "gitea"},
                     {"GITEA__database__USER", "gitea"},
                     {"GITEA__database__PASSWD", "gitea"},
-                    {"GITEA__server__ROOT_URL", $"{TestUrlsProvider.Instance.TestDomainUrl}/repos"},
+                    {"GITEA__server__ROOT_URL", $"{TestUrlsProvider.Instance.GiteaUrl}"},
                     {"USER_GID", "1000"},
                     {"USER_UID", "1000"}
                 })
@@ -143,31 +135,6 @@ namespace Designer.Tests.Fixtures
             await AddUserToTeams(GiteaConstants.TestOrgUsername, "Owners", "Deploy-TT02", "Devs", "Deploy-AT21", "Deploy-AT22");
             await AddUserToTeams(GiteaConstants.SecondaryTestOrgUsername, "Owners", "Deploy-TT02", "Devs", "Deploy-AT21", "Deploy-AT22");
             await GenerateApplicationClientIdAndClientSecretInGitea();
-        }
-
-        private async Task BuildAndStartLoadBalancerAsync()
-        {
-            string loadBalancerDockerFilePath = Path.Combine(CommonDirectoryPath.GetProjectDirectory().DirectoryPath, "Fixtures", "Nginx");
-            var loadBalancerImage = new ImageFromDockerfileBuilder()
-                .WithDockerfileDirectory(loadBalancerDockerFilePath)
-                .WithDockerfile("Dockerfile")
-                .WithBuildArgument("DOMAIN", TestUrlsProvider.Instance.TestDomain)
-                .WithBuildArgument("DESIGNER_PORT", TestUrlsProvider.Instance.DesignerPort.ToString())
-                .WithName("loadbalancer:latest")
-                .Build();
-
-            await loadBalancerImage.CreateAsync();
-
-            _loadBalancerContainer = new ContainerBuilder().WithImage(loadBalancerImage.FullName)
-                .WithImagePullPolicy(PullPolicy.Never)
-                .WithNetwork(_giteaNetwork)
-                .WithName("loadbalancer")
-                .WithPortBinding(TestUrlsProvider.Instance.LoadBalancerPort, 80)
-                .WithExtraHost("host.docker.internal", "host-gateway")
-                .Build();
-
-            await _loadBalancerContainer.StartAsync();
-
         }
 
         private async Task CreateGiteaUsers()
@@ -232,7 +199,7 @@ namespace Designer.Tests.Fixtures
         {
             var applicationContent =
                 new StringContent(
-                    $@"{{""name"":""altinn-studio"",""redirect_uris"":[""{TestUrlsProvider.Instance.TestDomainUrl}/signin-oidc""],""trusted"":true}}",
+                    $@"{{""name"":""altinn-studio"",""redirect_uris"":[""{TestUrlsProvider.Instance.DesignerUrl}/signin-oidc""],""trusted"":true}}",
                     Encoding.UTF8, MediaTypeNames.Application.Json);
 
             HttpResponseMessage addApplicationResponse = await GiteaClientRetryPolicy.ExecuteAsync(async _ => await GiteaClient.Value.PostAsync("user/applications/oauth2", applicationContent, _), CancellationToken.None);

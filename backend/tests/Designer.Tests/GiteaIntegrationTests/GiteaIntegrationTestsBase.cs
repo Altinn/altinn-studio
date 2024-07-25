@@ -118,7 +118,7 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
                     InnerHandler = new HttpClientHandler { AllowAutoRedirect = false, }
                 }
             })
-            { BaseAddress = new Uri(TestUrlsProvider.Instance.TestDomainUrl) };
+            { BaseAddress = new Uri(TestUrlsProvider.Instance.DesignerUrl) };
 
         return _sharedDesignerHttpClientProvider.SharedHttpClient;
     }
@@ -133,9 +133,9 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
                     ""ServiceRepositorySettings"": {{
                         ""RepositoryLocation"": ""{reposLocation}"",
                         ""ApiEndPointHost"": ""localhost"",
-                        ""GiteaLoginUrl"": ""{GiteaFixture.GiteaUrl + "user/login"}"",
-                        ""ApiEndPoint"": ""{GiteaFixture.GiteaUrl + "api/v1/"}"",
-                        ""RepositoryBaseURL"": ""{GiteaFixture.GiteaUrl[..^1]}""
+                        ""GiteaLoginUrl"": ""{TestUrlsProvider.Instance.GiteaUrl + "/user/login"}"",
+                        ""ApiEndPoint"": ""{TestUrlsProvider.Instance.GiteaUrl + "/api/v1/"}"",
+                        ""RepositoryBaseURL"": ""{TestUrlsProvider.Instance.GiteaUrl}""
                     }},
                     ""GeneralSettings"": {{
                         ""TemplateLocation"": ""{templateLocation}"",
@@ -145,8 +145,8 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
                     ""OidcLoginSettings"": {{
                     ""ClientId"": ""{GiteaFixture.OAuthApplicationClientId}"",
                     ""ClientSecret"": ""{GiteaFixture.OAuthApplicationClientSecret}"",
-                    ""Authority"": ""{GiteaFixture.GiteaUrl}"",
-                    ""RedirectUri"": ""{TestUrlsProvider.Instance.TestDomainUrl}/signin-oidc"",
+                    ""Authority"": ""{TestUrlsProvider.Instance.GiteaUrl}"",
+                    ""RedirectUri"": ""{TestUrlsProvider.Instance.DesignerUrl}/signin-oidc"",
                     ""Scopes"": [
                         ""openid"",
                         ""profile"",

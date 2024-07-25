@@ -11,19 +11,18 @@ namespace Designer.Tests.Fixtures
         public static TestUrlsProvider Instance => _instance.Value;
 
         public int DesignerPort { get; }
-        public int LoadBalancerPort { get; }
         public int GiteaPort { get; }
 
-        public string TestDomain { get; }
-        public string TestDomainUrl { get; }
+        public string DesignerUrl { get; }
+        public string GiteaUrl { get; }
 
         private TestUrlsProvider()
         {
             DesignerPort = GetRandomAvailablePort();
-            LoadBalancerPort = GetRandomAvailablePort();
             GiteaPort = GetRandomAvailablePort();
-            TestDomain = "localhost";
-            TestDomainUrl = $"http://{TestDomain}:{LoadBalancerPort}";
+            DesignerUrl = $"http://localhost:{DesignerPort}";
+            GiteaUrl = $"http://localhost:{GiteaPort}";
+
         }
 
         private static int GetRandomAvailablePort()
