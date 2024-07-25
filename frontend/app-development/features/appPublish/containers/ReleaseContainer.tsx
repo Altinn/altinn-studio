@@ -204,25 +204,21 @@ export function ReleaseContainer() {
       </div>
       <div className={classes.versionSubHeader}>
         <div className={classes.appCreateReleaseTitle}>{renderCreateReleaseTitle()}</div>
-        <LegacyPopover
-          className={classes.popover}
-          open={popoverOpenClick || popoverOpenHover}
-          trigger={
-            <StudioButton
-              title={t('app_create_release.status_popover')}
-              className={classes.appCreateReleaseStatusButton}
-              onClick={handlePopoverOpenClicked}
-              onMouseOver={handlePopoverOpenHover}
-              onMouseLeave={handlePopoverClose}
-              tabIndex={0}
-              onKeyUp={handlePopoverKeyPress}
-              icon={renderStatusIcon()}
-              variant='tertiary'
-            />
-          }
-        >
-          {renderStatusMessage()}
-        </LegacyPopover>
+        <StudioPopover open={popoverOpenClick || popoverOpenHover}>
+          <StudioPopover.Trigger
+            title={t('app_create_release.status_popover')}
+            className={classes.appCreateReleaseStatusButton}
+            onClick={handlePopoverOpenClicked}
+            onMouseOver={handlePopoverOpenHover}
+            onMouseLeave={handlePopoverClose}
+            tabIndex={0}
+            onKeyUp={handlePopoverKeyPress}
+            variant='tertiary'
+          >
+            {renderStatusIcon()}
+          </StudioPopover.Trigger>
+          <StudioPopover.Content>{renderStatusMessage()}</StudioPopover.Content>
+        </StudioPopover>
       </div>
       <div className={classes.appReleaseCreateRelease}>{renderCreateRelease()}</div>
       <div className={classes.appReleaseHistoryTitle}>{t('app_release.earlier_releases')}</div>
