@@ -438,3 +438,15 @@ export const validateResource = (
 
   return errors;
 };
+
+export const getAltinn2Reference = (
+  resource: Resource,
+): [serviceCode: string, serviceEdition: string] | null => {
+  const serviceCode = resource?.resourceReferences?.find(
+    (ref) => ref.referenceSource === 'Altinn2' && ref.referenceType === 'ServiceCode',
+  )?.reference;
+  const serviceEdition = resource?.resourceReferences?.find(
+    (ref) => ref.referenceSource === 'Altinn2' && ref.referenceType === 'ServiceEditionCode',
+  )?.reference;
+  return serviceCode && serviceEdition ? [serviceCode, serviceEdition] : null;
+};
