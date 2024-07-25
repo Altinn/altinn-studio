@@ -38,12 +38,7 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
     mutationFn: async (layoutName: string) => {
       let layouts = ObjectUtils.deepCopy(formLayouts);
       delete layouts[layoutName];
-      layouts = await addOrRemoveNavigationButtons(
-        layouts,
-        saveLayout,
-        undefined,
-        formLayoutSettings.receiptLayoutName,
-      );
+      layouts = await addOrRemoveNavigationButtons(layouts, saveLayout);
       await deleteFormLayout(org, app, layoutName, layoutSetName);
       return { layoutName, layouts };
     },
@@ -55,9 +50,7 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
       if (order.includes(layoutName)) {
         order.splice(order.indexOf(layoutName), 1);
       }
-      if (layoutSettings.receiptLayoutName === layoutName) {
-        layoutSettings.receiptLayoutName = undefined;
-      }
+
       formLayoutSettingsMutation.mutate(layoutSettings);
 
       const layoutPagesOrder = formLayoutSettings?.pages.order;
@@ -65,7 +58,7 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
       // Make sure to create a new page when the last one is deleted!
       if (!selectedFormLayoutName && layoutPagesOrder.length === 0) {
         const layoutName = t('general.page') + (layoutPagesOrder.length + 1);
-        addLayoutMutation.mutate({ layoutName, isReceiptPage: false });
+        addLayoutMutation.mutate({ layoutName });
       }
 
       queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], () => layouts);
