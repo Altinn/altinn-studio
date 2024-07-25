@@ -87,7 +87,6 @@ export const DeployDropdown = ({
             <StudioButton
               disabled={!selectedImageTag || disabled}
               onClick={() => setIsConfirmDeployDialogOpen((prevState) => !prevState)}
-              size='small'
             >
               {isPending && (
                 <Spinner

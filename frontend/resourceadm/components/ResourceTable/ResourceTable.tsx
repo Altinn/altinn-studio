@@ -63,6 +63,7 @@ export const ResourceTable = ({
             />
           }
           onClick={() => onClickEditResource(listItem.identifier)}
+          size='medium'
         />
       );
     } else if (!!onClickImportResource && importResourceId === listItem.identifier) {
@@ -80,6 +81,7 @@ export const ResourceTable = ({
             />
           }
           onClick={() => onClickImportResource(listItem.identifier, listItem.environments)}
+          size='medium'
         />
       );
     } else {

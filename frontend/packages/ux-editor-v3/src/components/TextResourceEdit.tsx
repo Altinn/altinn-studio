@@ -48,7 +48,6 @@ export const TextResourceEdit = () => {
           icon={<XMarkIcon />}
           onClick={() => setEditId(undefined)}
           variant='primary'
-          size='small'
         >
           {t('general.close')}
         </StudioButton>

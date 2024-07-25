@@ -97,7 +97,6 @@ export const CustomProperties = ({ path }: CustomPropertiesProps) => {
             icon={<TrashIcon />}
             onClick={() => deleteCustomProperty(key)}
             title={t('general.delete')}
-            size='small'
           />
         </div>
       ))}

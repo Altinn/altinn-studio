@@ -26,7 +26,6 @@ export const EditPolicy = () => {
           icon={<ShieldLockIcon />}
           iconPlacement='left'
           className={classes.policyEditorButton}
-          size='small'
         >
           {t('process_editor.configuration_panel.edit_policy_open_policy_editor_button')}
         </StudioButton>

@@ -98,7 +98,6 @@ export const InputPopover = ({
             variant='primary'
             onClick={() => saveNewName(newName)}
             disabled={!shouldSavingBeEnabled}
-            size='small'
           >
             {t('ux_editor.input_popover_save_button')}
           </StudioButton>
@@ -109,7 +108,6 @@ export const InputPopover = ({
               event.stopPropagation();
               handleClose();
             }}
-            size='small'
           >
             {t('general.cancel')}
           </StudioButton>

@@ -30,7 +30,6 @@ export const FileSelector = ({
       onClick={fileInputClickHandler}
       disabled={disabled}
       variant='tertiary'
-      size='small'
     >
       {t('app_data_modelling.upload_xsd')}
     </StudioButton>

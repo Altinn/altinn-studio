@@ -66,7 +66,8 @@ export class GiteaPage extends BasePage {
   }
 
   public async verifyThatDataModelBindingsAreVisible(dataModelBinding: string): Promise<void> {
-    await this.page.getByText(giteaPageTexts['dataModelBindings']).isVisible();
+    // Todo: Check the JSON structure directly instead: https://github.com/Altinn/altinn-studio/issues/13216
+    await this.page.getByText(giteaPageTexts['dataModelBindings']).first().isVisible();
     await this.page.getByText(dataModelBinding, { exact: true }).isVisible();
   }
 

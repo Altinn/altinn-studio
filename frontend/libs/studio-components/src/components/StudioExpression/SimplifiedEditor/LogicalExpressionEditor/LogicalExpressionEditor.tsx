@@ -75,12 +75,7 @@ export const LogicalExpressionEditor = ({
           onChange={handleSubexpressionsChange}
         />
         {showAddSubexpression && (
-          <StudioButton
-            icon={<PlusIcon />}
-            onClick={handleAddSubexpression}
-            size='small'
-            variant='secondary'
-          >
+          <StudioButton icon={<PlusIcon />} onClick={handleAddSubexpression} variant='secondary'>
             {texts.addSubexpression}
           </StudioButton>
         )}
