@@ -1225,7 +1225,7 @@
   "shared.header_logout": "Logg ut",
   "shared.header_profile_icon_text": "Åpne profilmenyen",
   "shared.header_user_for_org": "{{user}}\n for {{org}}",
-  "sync_header.changes_to_share": "Del endringer",
+  "sync_header.changes_to_share": "Del dine endringer",
   "sync_header.clone": "Klone",
   "sync_header.clone_https": "Klone med HTTPS",
   "sync_header.clone_https_button": "Kopier Lenke",
