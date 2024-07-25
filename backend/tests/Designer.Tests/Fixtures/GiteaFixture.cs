@@ -16,7 +16,6 @@ using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
 using DotNet.Testcontainers.Images;
 using DotNet.Testcontainers.Networks;
-using Microsoft.Extensions.Configuration;
 using Polly;
 using Polly.Retry;
 using Testcontainers.PostgreSql;
@@ -52,7 +51,7 @@ namespace Designer.Tests.Fixtures
 
         public int GiteaPort;
 
-        public string GiteaUrl => $"http://studio.localhost/repos/";
+        public string GiteaUrl => $"{GiteaIntegrationTestsUtils.TestDomainUrl}/repos/";
         private string DirectGiteaUrl => $"http://localhost:{GiteaPort}/";
 
         public string OAuthApplicationClientId { get; private set; }
@@ -131,7 +130,7 @@ namespace Designer.Tests.Fixtures
                     {"GITEA__database__NAME", "gitea"},
                     {"GITEA__database__USER", "gitea"},
                     {"GITEA__database__PASSWD", "gitea"},
-                    {"GITEA__server__ROOT_URL", $"http://studio.localhost/repos"},
+                    {"GITEA__server__ROOT_URL", $"{GiteaIntegrationTestsUtils.TestDomainUrl}/repos"},
                     {"USER_GID", "1000"},
                     {"USER_UID", "1000"}
                 })
@@ -156,10 +155,12 @@ namespace Designer.Tests.Fixtures
         {
             // Build and run nginx load balancer which will proxy /repo url to gitea container
             // and / to localhost:5000 but to the host localhost. Maybe host.docker.internal will needs to be resolved in the configuration.
-            string loadBalancerDockerFilePath = Path.Combine(CommonDirectoryPath.GetProjectDirectory().DirectoryPath, "Fixtures", "GiteaFixture");
+            string loadBalancerDockerFilePath = Path.Combine(CommonDirectoryPath.GetProjectDirectory().DirectoryPath, "Fixtures", "Nginx");
             var loadBalancerImage = new ImageFromDockerfileBuilder()
                 .WithDockerfileDirectory(loadBalancerDockerFilePath)
                 .WithDockerfile("Dockerfile")
+                .WithBuildArgument("DOMAIN", GiteaIntegrationTestsUtils.TestDomain)
+                .WithBuildArgument("DESIGNER_PORT", 5000.ToString())
                 .WithName("loadbalancer:latest")
                 .Build();
 
@@ -253,7 +254,7 @@ namespace Designer.Tests.Fixtures
         {
             var applicationContent =
                 new StringContent(
-                    @"{""name"":""altinn-studio"",""redirect_uris"":[""http://studio.localhost/signin-oidc""],""trusted"":true}",
+                    $@"{{""name"":""altinn-studio"",""redirect_uris"":[""{GiteaIntegrationTestsUtils.TestDomainUrl}/signin-oidc""],""trusted"":true}}",
                     Encoding.UTF8, MediaTypeNames.Application.Json);
 
             HttpResponseMessage addApplicationResponse = await GiteaClientRetryPolicy.ExecuteAsync(async _ => await GiteaClient.Value.PostAsync("user/applications/oauth2", applicationContent, _), CancellationToken.None);

@@ -21,7 +21,7 @@ http {
 
 	server {
 
-		server_name studio.localhost;
+		server_name [[DOMAIN]];
 
 		proxy_cookie_path ~*^/.* /;
 		proxy_redirect off;
@@ -31,7 +31,7 @@ http {
 
         location / {
             add_header X-Dashboard-Source dotnetRoot;
-            proxy_pass http://host.docker.internal:5000;
+            proxy_pass http://host.docker.internal:[[DESIGNER_PORT]];
         }
 
 		location /repos/ {
