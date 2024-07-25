@@ -9,8 +9,6 @@ import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { addOrRemoveNavigationButtons, firstAvailableLayout } from '../../utils/formLayoutsUtils';
 import type { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
-import { useAddLayoutMutation } from './useAddLayoutMutation';
-import { useText } from '../useText';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
 import { useAppContext } from '../';
 
@@ -22,8 +20,6 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
   const { selectedFormLayoutName, setSelectedFormLayoutName } = useAppContext();
 
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
-  const addLayoutMutation = useAddLayoutMutation(org, app, layoutSetName);
-  const t = useText();
   const queryClient = useQueryClient();
   const layoutOrder = formLayoutSettings?.pages?.order;
 
@@ -49,7 +45,6 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
     },
     onSuccess: async ({ layoutName, layouts }) => {
       const layoutSettings: ILayoutSettings = ObjectUtils.deepCopy(formLayoutSettings);
-
       const { order } = layoutSettings?.pages;
 
       if (order.includes(layoutName)) {
@@ -59,14 +54,6 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
         layoutSettings.receiptLayoutName = undefined;
       }
       formLayoutSettingsMutation.mutate(layoutSettings);
-
-      const layoutPagesOrder = formLayoutSettings?.pages.order;
-
-      // Make sure to create a new page when the last one is deleted!
-      if (!selectedFormLayoutName && layoutPagesOrder.length === 0) {
-        const layoutName = t('general.page') + (layoutPagesOrder.length + 1);
-        addLayoutMutation.mutate({ layoutName, isReceiptPage: false });
-      }
 
       queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], () => layouts);
 
