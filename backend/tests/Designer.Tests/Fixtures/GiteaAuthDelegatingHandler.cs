@@ -83,7 +83,7 @@ namespace Designer.Tests.Fixtures
         private async Task<string> CallUserCurrentEndpointAndExtractAntiForgeryToken(IEnumerable<string> cookies,
             CancellationToken cancellationToken)
         {
-            string xsrfUrl = $"{GiteaIntegrationTestsUtils.TestDomainUrl}/designer/api/user/current";
+            string xsrfUrl = $"{TestUrlsProvider.Instance.TestDomainUrl}/designer/api/user/current";
             using var httpRequestMessageXsrf = new HttpRequestMessage(HttpMethod.Get, xsrfUrl);
             httpRequestMessageXsrf.AddCookies(cookies);
             using var xsrfResponse = await base.SendAsync(httpRequestMessageXsrf, cancellationToken);
@@ -126,7 +126,7 @@ namespace Designer.Tests.Fixtures
                 WebScrapingUtils.ExtractTextBetweenMarkers(authorizePageContent, "<form method=\"post\" action=\"",
                     "\">");
             using var grantRequest =
-                new HttpRequestMessage(HttpMethod.Post, GiteaIntegrationTestsUtils.TestDomainUrl + grantUrl)
+                new HttpRequestMessage(HttpMethod.Post, TestUrlsProvider.Instance.TestDomainUrl + grantUrl)
                 {
                     Content = grantContent
                 };
@@ -173,7 +173,7 @@ namespace Designer.Tests.Fixtures
         {
             var redirectUrl = redirectUri.IsAbsoluteUri
                 ? redirectUri
-                : new Uri(GiteaIntegrationTestsUtils.TestDomainUrl + redirectUri);
+                : new Uri(TestUrlsProvider.Instance.TestDomainUrl + redirectUri);
             var redirectRequest = new HttpRequestMessage(HttpMethod.Get, redirectUrl);
             if (cookies != null)
             {

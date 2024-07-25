@@ -7,7 +7,7 @@ namespace Designer.Tests.Fixtures;
 // Class will actually spin up a web host which will be used for integration tests.
 public class GiteaWebAppApplicationFactoryFixture<TEntryPoint> : WebApplicationFactory<TEntryPoint> where TEntryPoint : class
 {
-    public string HostUrl => "http://localhost:5000";
+    public string HostUrl => $"http://localhost:{TestUrlsProvider.Instance.DesignerPort}";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Net.Sockets;
@@ -48,11 +47,8 @@ namespace Designer.Tests.Fixtures
             });
         }
 
-
-        public int GiteaPort;
-
-        public string GiteaUrl => $"{GiteaIntegrationTestsUtils.TestDomainUrl}/repos/";
-        private string DirectGiteaUrl => $"http://localhost:{GiteaPort}/";
+        public string GiteaUrl => $"{TestUrlsProvider.Instance.TestDomainUrl}/repos/";
+        private string DirectGiteaUrl => $"http://localhost:{ TestUrlsProvider.Instance.GiteaPort}/";
 
         public string OAuthApplicationClientId { get; private set; }
         public string OAuthApplicationClientSecret { get; private set; }
@@ -114,13 +110,11 @@ namespace Designer.Tests.Fixtures
 
             await altinnGiteaImage.CreateAsync();
 
-            GiteaPort = GetRandomAvailablePort();
-
             _giteaContainer = new ContainerBuilder().WithImage(altinnGiteaImage.FullName)
                 .WithImagePullPolicy(PullPolicy.Never)
                 .WithNetwork(_giteaNetwork)
                 .WithName("gitea")
-                .WithPortBinding(GiteaPort, 3000)
+                .WithPortBinding( TestUrlsProvider.Instance.GiteaPort, 3000)
                 .WithPortBinding(22, true)
                 .WithEnvironment(new Dictionary<string, string>
                 {
@@ -130,7 +124,7 @@ namespace Designer.Tests.Fixtures
                     {"GITEA__database__NAME", "gitea"},
                     {"GITEA__database__USER", "gitea"},
                     {"GITEA__database__PASSWD", "gitea"},
-                    {"GITEA__server__ROOT_URL", $"{GiteaIntegrationTestsUtils.TestDomainUrl}/repos"},
+                    {"GITEA__server__ROOT_URL", $"{TestUrlsProvider.Instance.TestDomainUrl}/repos"},
                     {"USER_GID", "1000"},
                     {"USER_UID", "1000"}
                 })
@@ -159,8 +153,8 @@ namespace Designer.Tests.Fixtures
             var loadBalancerImage = new ImageFromDockerfileBuilder()
                 .WithDockerfileDirectory(loadBalancerDockerFilePath)
                 .WithDockerfile("Dockerfile")
-                .WithBuildArgument("DOMAIN", GiteaIntegrationTestsUtils.TestDomain)
-                .WithBuildArgument("DESIGNER_PORT", 5000.ToString())
+                .WithBuildArgument("DOMAIN", TestUrlsProvider.Instance.TestDomain)
+                .WithBuildArgument("DESIGNER_PORT", TestUrlsProvider.Instance.DesignerPort.ToString())
                 .WithName("loadbalancer:latest")
                 .Build();
 
@@ -181,15 +175,6 @@ namespace Designer.Tests.Fixtures
 
             await _loadBalancerContainer.StartAsync();
 
-        }
-
-        private int GetRandomAvailablePort()
-        {
-            TcpListener listener = new TcpListener(IPAddress.Loopback, 0);
-            listener.Start();
-            int port = ((IPEndPoint)listener.LocalEndpoint).Port;
-            listener.Stop();
-            return port;
         }
 
         private async Task CreateGiteaUsers()
@@ -254,7 +239,7 @@ namespace Designer.Tests.Fixtures
         {
             var applicationContent =
                 new StringContent(
-                    $@"{{""name"":""altinn-studio"",""redirect_uris"":[""{GiteaIntegrationTestsUtils.TestDomainUrl}/signin-oidc""],""trusted"":true}}",
+                    $@"{{""name"":""altinn-studio"",""redirect_uris"":[""{TestUrlsProvider.Instance.TestDomainUrl}/signin-oidc""],""trusted"":true}}",
                     Encoding.UTF8, MediaTypeNames.Application.Json);
 
             HttpResponseMessage addApplicationResponse = await GiteaClientRetryPolicy.ExecuteAsync(async _ => await GiteaClient.Value.PostAsync("user/applications/oauth2", applicationContent, _), CancellationToken.None);

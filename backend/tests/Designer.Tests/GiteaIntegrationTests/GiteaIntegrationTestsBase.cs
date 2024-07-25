@@ -118,7 +118,7 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
                     InnerHandler = new HttpClientHandler { AllowAutoRedirect = false, }
                 }
             })
-            { BaseAddress = new Uri(GiteaIntegrationTestsUtils.TestDomainUrl) };
+            { BaseAddress = new Uri(TestUrlsProvider.Instance.TestDomainUrl) };
 
         return _sharedDesignerHttpClientProvider.SharedHttpClient;
     }
@@ -146,7 +146,7 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
                     ""ClientId"": ""{GiteaFixture.OAuthApplicationClientId}"",
                     ""ClientSecret"": ""{GiteaFixture.OAuthApplicationClientSecret}"",
                     ""Authority"": ""{GiteaFixture.GiteaUrl}"",
-                    ""RedirectUri"": ""{GiteaIntegrationTestsUtils.TestDomainUrl}/signin-oidc"",
+                    ""RedirectUri"": ""{TestUrlsProvider.Instance.TestDomainUrl}/signin-oidc"",
                     ""Scopes"": [
                         ""openid"",
                         ""profile"",
