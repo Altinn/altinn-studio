@@ -33,10 +33,10 @@ export const SessionExpiredModal = ({
           {t('session.inactive')}
         </Paragraph>
         <div className={classes.buttonWrapper}>
-          <StudioButton color='first' onClick={onContinue} size='small'>
+          <StudioButton color='first' onClick={onContinue}>
             {t('general.continue')}
           </StudioButton>
-          <StudioButton color='inverted' onClick={onClose} size='small'>
+          <StudioButton color='inverted' onClick={onClose}>
             {t('general.sign_out')}
           </StudioButton>
         </div>

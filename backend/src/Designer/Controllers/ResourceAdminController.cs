@@ -342,6 +342,22 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = AltinnPolicy.MustHaveGiteaPublishResourcePermission)]
+        [Route("designer/api/{org}/resources/altinn2/delegationcount/{serviceCode}/{serviceEdition}/{env}")]
+        public async Task<DelegationCountOverview> GetDelegationCount(string serviceCode, int serviceEdition, string env)
+        {
+            return await _resourceRegistry.GetDelegationCount(serviceCode, serviceEdition, env);
+        }
+
+        [HttpPost]
+        [Authorize(Policy = AltinnPolicy.MustHaveGiteaPublishResourcePermission)]
+        [Route("designer/api/{org}/resources/altinn2/exportdelegations/{env}")]
+        public async Task<ActionResult> ExportDelegations([FromBody] ExportDelegationsRequestBE delegationRequest, string environment)
+        {
+            return await _resourceRegistry.StartMigrateDelegations(delegationRequest, environment);
+        }
+
+        [HttpGet]
         [Route("designer/api/{org}/resources/sectors")]
         public async Task<ActionResult<List<DataTheme>>> GetSectors(CancellationToken cancellationToken)
         {

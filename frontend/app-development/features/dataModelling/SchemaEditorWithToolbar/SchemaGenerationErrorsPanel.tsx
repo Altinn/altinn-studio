@@ -55,6 +55,7 @@ export const SchemaGenerationErrorsPanel = ({
           onClick={onCloseErrorsPanel}
           variant='tertiary'
           icon={<XMarkIcon aria-hidden />}
+          size='medium'
         >
           {t('general.close')}
         </StudioButton>

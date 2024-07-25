@@ -51,7 +51,6 @@ export function EditCodeList<
             <StudioButton
               variant='tertiary'
               onClick={() => setUseCustomCodeList(!useCustomCodeList)}
-              size='small'
               className={classes.customOrStaticButton}
             >
               {optionListIds?.length > 0 && useCustomCodeList && (

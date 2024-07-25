@@ -59,7 +59,6 @@ export const SubResources = (): React.ReactElement => {
           type='button'
           onClick={handleClickAddResource}
           color='second'
-          size='small'
           fullWidth
           icon={<PlusIcon fontSize='1.5rem' />}
         >

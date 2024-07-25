@@ -88,11 +88,10 @@ export const RemoveChangesModal = ({
           aria-disabled={isRemoveButtonDisabled}
           onClick={() => (!isRemoveButtonDisabled ? handleClickResetRepo() : undefined)}
           variant='secondary'
-          size='small'
         >
           {t('local_changes.modal_confirm_delete_button')}
         </StudioButton>
-        <StudioButton onClick={handleClose} variant='tertiary' size='small'>
+        <StudioButton onClick={handleClose} variant='tertiary'>
           {t('general.cancel')}
         </StudioButton>
       </div>

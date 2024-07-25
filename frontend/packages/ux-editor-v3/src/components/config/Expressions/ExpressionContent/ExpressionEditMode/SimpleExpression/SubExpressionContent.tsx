@@ -63,7 +63,6 @@ export const SubExpressionContent = ({
           color='danger'
           onClick={() => onRemoveSubExpression(subExpression)}
           variant='tertiary'
-          size='small'
           icon={<TrashIcon />}
         />
       </div>

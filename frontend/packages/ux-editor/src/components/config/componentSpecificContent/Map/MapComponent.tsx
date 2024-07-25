@@ -94,7 +94,6 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                 icon={<XMarkIcon title={t('general.delete')} />}
                 onClick={(): void => handleOnDeleteLayer(index)}
                 variant='tertiary'
-                size='small'
               />
             </div>
 
@@ -158,7 +157,6 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
         onClick={handleAddLayer}
         disabled={component.layers?.some((layer) => !layer.url)}
         fullWidth
-        size='small'
       >
         {t('ux_editor.add_map_layer')}
       </StudioButton>

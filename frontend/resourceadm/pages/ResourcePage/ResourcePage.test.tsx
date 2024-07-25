@@ -22,7 +22,10 @@ const mockResource1: Resource = {
     { language: 'nb', word: 'Key 2' },
   ],
   visible: false,
-  resourceReferences: [{ reference: 'ref', referenceType: 'Default', referenceSource: 'Altinn2' }],
+  resourceReferences: [
+    { reference: '1', referenceType: 'ServiceCode', referenceSource: 'Altinn2' },
+    { reference: '2', referenceType: 'ServiceEditionCode', referenceSource: 'Altinn2' },
+  ],
 };
 
 const mockResource2: Resource = {
