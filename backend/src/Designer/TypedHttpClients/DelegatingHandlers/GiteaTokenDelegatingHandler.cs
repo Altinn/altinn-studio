@@ -21,13 +21,6 @@ public class GiteaTokenDelegatingHandler : DelegatingHandler
         string initToken = await _httpContextAccessor.HttpContext!.GetTokenAsync("access_token");
         request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("token", initToken);
 
-        HttpResponseMessage response = await base.SendAsync(request, cancellationToken);
-
-        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-        {
-
-        }
-
-        return response;
+        return await base.SendAsync(request, cancellationToken);
     }
 }

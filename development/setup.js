@@ -80,25 +80,28 @@ const createOidcClientIfNotExists = async (env) => {
   });
 
   const shouldCreateClient = !clients.some((app) => app.name === 'LocalTestOidcClient');
-
-  if (shouldCreateClient) {
-    var createdClient = await giteaApi({
-      path: `/repos/api/v1/user/applications/oauth2`,
-      method: 'POST',
-      user: env.GITEA_ADMIN_USER,
-      pass: env.GITEA_ADMIN_PASS,
-      body: {
-        confidential_client: true,
-        name: 'LocalTestOidcClient',
-        redirect_uris: ['http://studio.localhost/signin-oidc'],
-      },
-    });
-
-    env.CLIENT_ID = createdClient.client_id;
-    env.CLIENT_SECRET = createdClient.client_secret;
+  if (!shouldCreateClient) {
+    return;
   }
 
+  var createdClient = await giteaApi({
+    path: `/repos/api/v1/user/applications/oauth2`,
+    method: 'POST',
+    user: env.GITEA_ADMIN_USER,
+    pass: env.GITEA_ADMIN_PASS,
+    body: {
+      confidential_client: true,
+      name: 'LocalTestOidcClient',
+      redirect_uris: ['http://studio.localhost/signin-oidc'],
+    },
+  });
+
+  env.CLIENT_ID = createdClient.client_id;
+  env.CLIENT_SECRET = createdClient.client_secret;
+
   writeEnvFile(env);
+  // reload designer with new clientid and secret
+  startingDockerCompose();
 };
 
 const addUserToSomeTestDepTeams = async (env) => {

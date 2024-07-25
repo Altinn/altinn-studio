@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Designer.Tests.Helpers;
 using Designer.Tests.Utils;
 
 namespace Designer.Tests.Controllers.ApiTests;
@@ -32,12 +33,12 @@ internal class ApiTestsAuthAndCookieDelegatingHandler : DelegatingHandler
         }
 
         string xsrfUrl = $"{_baseAddress}/designer/api/user/current";
-        var httpRequestMessageXsrf = new HttpRequestMessage(HttpMethod.Get, xsrfUrl);
+        using var httpRequestMessageXsrf = new HttpRequestMessage(HttpMethod.Get, xsrfUrl);
 
-        var xsrfResponse = await base.SendAsync(httpRequestMessageXsrf, cancellationToken);
+        using var xsrfResponse = await base.SendAsync(httpRequestMessageXsrf, cancellationToken);
 
         string xsrfToken = AuthenticationUtil.GetXsrfTokenFromCookie(xsrfResponse.Headers.GetValues(Microsoft.Net.Http.Headers.HeaderNames.SetCookie));
-        request.Headers.Add("X-XSRF-TOKEN", xsrfToken);
+        request.AddXsrfToken(xsrfToken);
 
         return await base.SendAsync(request, cancellationToken);
     }

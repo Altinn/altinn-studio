@@ -37,28 +37,28 @@ namespace Designer.Tests.Fixtures
         private async Task<HttpResponseMessage> LoginAndRetryRequest(HttpRequestMessage request, HttpResponseMessage initialResponse,
             CancellationToken cancellationToken)
         {
-            var redirectedToLoginAuthorizeResponse =
+            using var redirectedToLoginAuthorizeResponse =
                 await base.SendAsync(new HttpRequestMessage(HttpMethod.Get, initialResponse.Headers.Location),
                     cancellationToken);
 
-            var authorizeRedirectedToLoginResponse =
+            using var authorizeRedirectedToLoginResponse =
                 await Redirect(redirectedToLoginAuthorizeResponse.Headers.Location, cancellationToken);
 
-            HttpResponseMessage loginToGiteaResponse = await LoginToGitea(authorizeRedirectedToLoginResponse,
+            using HttpResponseMessage loginToGiteaResponse = await LoginToGitea(authorizeRedirectedToLoginResponse,
                 redirectedToLoginAuthorizeResponse, cancellationToken);
 
-            HttpResponseMessage loginToAuthorizeRedirectedResponse = await Redirect(
+            using HttpResponseMessage loginToAuthorizeRedirectedResponse = await Redirect(
                 loginToGiteaResponse.Headers.Location, cancellationToken, loginToGiteaResponse.GetGiteaAuthCookies());
             var designerSignInUrl = loginToAuthorizeRedirectedResponse.Headers.Location;
 
             if (loginToAuthorizeRedirectedResponse.StatusCode == HttpStatusCode.OK)
             {
-                HttpResponseMessage grantResponse = await GrantAuthorization(loginToAuthorizeRedirectedResponse,
+                using HttpResponseMessage grantResponse = await GrantAuthorization(loginToAuthorizeRedirectedResponse,
                     loginToGiteaResponse, cancellationToken);
                 designerSignInUrl = grantResponse.Headers.Location;
             }
 
-            HttpResponseMessage designerSignInResponse =
+            using HttpResponseMessage designerSignInResponse =
                 await Redirect(designerSignInUrl, cancellationToken, initialResponse.GetCookies(".AspNetCore."));
             var designerAuthCookies = designerSignInResponse.GetCookies("AltinnStudioDesigner");
 
@@ -71,25 +71,22 @@ namespace Designer.Tests.Fixtures
         private async Task<HttpResponseMessage> RetryInitialRequestAfterSigningIn(HttpRequestMessage request,
             IEnumerable<string> authCookies, string xsrfToken, CancellationToken cancellationToken)
         {
-            var finalRedirectRequest = new HttpRequestMessage(request.Method, request.RequestUri)
-            {
-                Content = request.Content
-            };
+            using var finalRedirectRequest = new HttpRequestMessage(request.Method, request.RequestUri);
+            finalRedirectRequest.Content = request.Content;
 
             finalRedirectRequest.AddCookies(authCookies);
             finalRedirectRequest.AddXsrfToken(xsrfToken);
 
-            var finalRedirectResponse = await base.SendAsync(finalRedirectRequest, cancellationToken);
-            return finalRedirectResponse;
+            return await base.SendAsync(finalRedirectRequest, cancellationToken);
         }
 
         private async Task<string> CallUserCurrentEndpointAndExtractAntiForgeryToken(IEnumerable<string> cookies,
             CancellationToken cancellationToken)
         {
             string xsrfUrl = "http://studio.localhost/designer/api/user/current";
-            var httpRequestMessageXsrf = new HttpRequestMessage(HttpMethod.Get, xsrfUrl);
+            using var httpRequestMessageXsrf = new HttpRequestMessage(HttpMethod.Get, xsrfUrl);
             httpRequestMessageXsrf.AddCookies(cookies);
-            var xsrfResponse = await base.SendAsync(httpRequestMessageXsrf, cancellationToken);
+            using var xsrfResponse = await base.SendAsync(httpRequestMessageXsrf, cancellationToken);
             string xsrfToken = AuthenticationUtil.GetXsrfTokenFromCookie(xsrfResponse.GetCookies());
             return xsrfToken;
         }
