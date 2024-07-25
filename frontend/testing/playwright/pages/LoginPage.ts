@@ -9,7 +9,7 @@ const loginPageTexts: Record<string, string> = {
   password: 'Passord',
   error_message: 'Ugyldig brukernavn eller passord.',
   links: 'Links',
-  authorize: 'Authorize',
+  authorize: 'Authorize Application',
 };
 
 export class LoginPage extends BasePage {
@@ -29,6 +29,7 @@ export class LoginPage extends BasePage {
 
   public async goToGiteaLoginPage(): Promise<void> {
     await this.page.getByRole('button', { name: loginPageTexts['login'] }).click();
+    await this.page.waitForURL('/repos/user/login');
   }
 
   public async writeUsername(username: string): Promise<void> {
@@ -44,7 +45,8 @@ export class LoginPage extends BasePage {
   }
 
   public async clickAuthorizeButton(): Promise<void> {
-    return await this.page.getByRole('button', { name: loginPageTexts['authorize'] }).click();
+    // here it should be the check. Not every time authorize page will be shown
+    await this.page.getByRole('button', { name: loginPageTexts['authorize'] }).click();
   }
 
   public async confirmSuccessfulLogin(): Promise<void> {
