@@ -13,6 +13,8 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 const defaultProps: MigrationPageProps = {
   navigateToPageWithError: jest.fn(),
   id: 'migration_page',
+  serviceCode: '1',
+  serviceEdition: '2',
 };
 
 describe('MigrationPage', () => {
@@ -128,6 +130,56 @@ describe('MigrationPage', () => {
     expect(
       screen.getByText(textMock('resourceadm.migration_migrate_delegations')),
     ).toBeInTheDocument();
+  });
+
+  it('Should refetch number of delegations when get delegations button is clicked', async () => {
+    const numberOfDelegationsFirstFetch = 200;
+    const numberOfDelegationsSecondFetch = 300;
+    const user = userEvent.setup();
+    renderMigrationPage({
+      getResourcePublishStatus: jest.fn().mockImplementation(() =>
+        Promise.resolve({
+          policyVersion: null,
+          resourceVersion: '2',
+          publishedVersions: [
+            {
+              version: '1',
+              environment: 'tt02',
+            },
+          ],
+        }),
+      ),
+      getAltinn2DelegationsCount: jest
+        .fn()
+        .mockImplementationOnce(() =>
+          Promise.resolve({
+            numberOfDelegations: numberOfDelegationsFirstFetch,
+            numberOfRelations: 500,
+          }),
+        )
+        .mockImplementationOnce(() =>
+          Promise.resolve({
+            numberOfDelegations: numberOfDelegationsSecondFetch,
+            numberOfRelations: 500,
+          }),
+        ),
+    });
+
+    // wait for radio buttons to be shown
+    await waitFor(() => {
+      expect(screen.getByLabelText(textMock('resourceadm.deploy_test_env'))).toBeInTheDocument();
+    });
+    const tt02Radio = screen.getByLabelText(textMock('resourceadm.deploy_test_env'));
+    await user.click(tt02Radio);
+
+    const getDelegationsButton = screen.getByRole('button', {
+      name: textMock('resourceadm.migration_get_number_of_delegations'),
+    });
+    await user.click(getDelegationsButton);
+    expect(screen.getByText(numberOfDelegationsFirstFetch)).toBeInTheDocument();
+
+    await user.click(getDelegationsButton);
+    expect(screen.getByText(numberOfDelegationsSecondFetch)).toBeInTheDocument();
   });
 });
 
