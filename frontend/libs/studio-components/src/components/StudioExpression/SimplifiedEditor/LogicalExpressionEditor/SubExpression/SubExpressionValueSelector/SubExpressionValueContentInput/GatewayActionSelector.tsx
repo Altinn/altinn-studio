@@ -19,7 +19,6 @@ export const GatewayActionSelector = ({
       size='small'
       onChange={handleChange}
       label={texts.gatewayActionKey}
-      id='gateway-action-key'
       defaultValue={value.key}
     >
       {options.map((option) => (

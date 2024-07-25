@@ -65,7 +65,6 @@ export const SubExpressionContent = (
         />
       </div>
       <StudioNativeSelect // TODO: Consider only representing the function selection between the data source dropdowns - where it is actually used. Issue: #10858
-        id={`subexpfunc-${subExpression.comparableValue}`}
         label={t('right_menu.expressions_function')}
         onChange={(event: ChangeEvent<HTMLSelectElement>) => addFunction(event.target.value)}
         value={subExpression.function || 'default'}
@@ -80,7 +79,6 @@ export const SubExpressionContent = (
       {allowToSpecifyExpression && (
         <div className={classes.subExpression}>
           <StudioNativeSelect
-            id={`subexp-${subExpression.comparableValue}`}
             label={t('right_menu.expressions_data_source')}
             onChange={(event: ChangeEvent<HTMLSelectElement>) =>
               addDataSource(event.target.value, false)
@@ -108,7 +106,6 @@ export const SubExpressionContent = (
             {expressionFunctionTexts(t)[subExpression.function]}
           </p>
           <StudioNativeSelect
-            id={`subexpcomparable-${subExpression.comparableValue}`}
             label={t('right_menu.expressions_comparable_data_source')}
             onChange={(event: ChangeEvent<HTMLSelectElement>) =>
               addDataSource(event.target.value, true)

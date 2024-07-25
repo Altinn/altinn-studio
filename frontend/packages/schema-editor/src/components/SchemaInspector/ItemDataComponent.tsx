@@ -141,7 +141,6 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
           )}
           {isCombination(schemaNode) && (
             <StudioNativeSelect
-              id='combinationTypeSelect'
               label={t('schema_editor.type')}
               onChange={(event) => onChangeCombinationType(event.target.value as CombinationKind)}
               value={schemaNode.combinationType}
