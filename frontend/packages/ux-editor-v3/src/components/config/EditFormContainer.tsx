@@ -133,7 +133,7 @@ export const EditFormContainer = ({
   };
 
   return container.type === ComponentTypeV3.Group ? (
-    <StudioProperty.Fieldset className={classes.fieldset} legend={''}>
+    <StudioProperty.Group className={classes.fieldset}>
       <FormField
         label={t('ux_editor.modal_properties_group_change_id')}
         id={container.id}
@@ -239,7 +239,7 @@ export const EditFormContainer = ({
           )}
         </>
       )}
-    </StudioProperty.Fieldset>
+    </StudioProperty.Group>
   ) : (
     <Alert severity='info'>
       <Paragraph size='small'>{t('ux_editor.container_not_editable_info')}</Paragraph>

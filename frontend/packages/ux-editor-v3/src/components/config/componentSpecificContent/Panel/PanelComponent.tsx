@@ -1,4 +1,3 @@
-import type { ChangeEvent } from 'react';
 import React from 'react';
 import { Switch } from '@digdir/designsystemet-react';
 import type { IGenericEditComponent } from '../../componentConfig';

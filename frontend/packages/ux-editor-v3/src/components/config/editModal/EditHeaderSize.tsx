@@ -21,10 +21,10 @@ export const EditHeaderSize = ({ handleComponentChange, component }: IGenericEdi
   const selectedHeaderSize =
     HeaderSize[component.size as keyof typeof HeaderSize] || component.size;
 
-  const onSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const onSizeChange = (size) => {
     handleComponentChange({
       ...component,
-      size: event.target.value,
+      size: size,
     });
   };
 

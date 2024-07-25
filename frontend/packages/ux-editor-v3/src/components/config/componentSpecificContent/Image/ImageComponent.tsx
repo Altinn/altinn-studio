@@ -1,4 +1,4 @@
-import React, { type ChangeEvent } from 'react';
+import React from 'react';
 import { Textfield, Fieldset } from '@digdir/designsystemet-react';
 import classes from './ImageComponent.module.css';
 import { TextResource } from '../../../TextResource';
@@ -31,9 +31,9 @@ export const ImageComponent = ({
   const selectedPlacement = alignOptions.filter((x) => x.value === component.image?.align);
   const nbSrc = component.image?.src?.nb;
 
-  const handlePlacementChange = (event: ChangeEvent<HTMLSelectElement>) => {
+  const handlePlacementChange = (value) => {
     const updatedComponent = { ...component };
-    updatedComponent.image.align = event.target.value;
+    updatedComponent.image.align = value;
 
     handleComponentChange(updatedComponent);
   };

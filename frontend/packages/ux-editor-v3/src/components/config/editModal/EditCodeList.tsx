@@ -15,10 +15,10 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
 
   const { data: optionListIds, isPending, isError, error } = useOptionListIdsQuery(org, app);
   const [useCustomCodeList, setUseCustomCodeList] = useState<boolean>(optionListIds?.length === 0);
-  const handleOptionsIdChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
+  const handleOptionsIdChange = (e) => {
     handleComponentChange({
       ...component,
-      optionsId: e.target.value,
+      optionsId: e,
     });
   };
 

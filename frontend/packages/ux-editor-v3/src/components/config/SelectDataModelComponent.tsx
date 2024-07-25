@@ -51,7 +51,7 @@ export const SelectDataModelComponent = ({
   }, [data, selectGroup]);
 
   const onChangeSelectedBinding = (e: any) => {
-    onDataModelChange(e.target.value);
+    onDataModelChange(e);
   };
 
   return (
