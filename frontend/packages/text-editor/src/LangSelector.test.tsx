@@ -29,12 +29,12 @@ it('fires onAddLang when add button is clicked', async () => {
   const addBtn = screen.getByRole<HTMLButtonElement>('button', {
     name: textMock('general.add'),
   });
-  expect(addBtn.disabled).toBe(true);
+  expect(addBtn).toBeDisabled();
   const select = screen.getByRole('combobox');
 
   await user.selectOptions(select, 'nordsamisk');
 
-  expect(addBtn.disabled).toBe(false);
+  expect(addBtn).not.toBeDisabled();
   await user.click(addBtn);
 
   expect(handleAddLang).toHaveBeenCalledWith('se');
