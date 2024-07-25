@@ -10,7 +10,6 @@ import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSet
 import { PlusIcon } from '@studio/icons';
 import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
 import { PageAccordion } from './PageAccordion';
-import { ReceiptContent } from './ReceiptContent';
 import { useAppContext, useFormLayouts } from '../../hooks';
 import { FormLayout } from './FormLayout';
 import { StudioButton } from '@studio/components';
@@ -54,7 +53,6 @@ export const DesignView = (): ReactNode => {
     app,
     selectedFormLayoutSetName,
   );
-  const receiptName = formLayoutSettings?.receiptLayoutName;
   const layoutOrder = formLayoutSettings?.pages?.order;
 
   const { t } = useTranslation();
@@ -83,7 +81,7 @@ export const DesignView = (): ReactNode => {
       newLayoutName = `${t('ux_editor.page')}${newNum}`;
     }
     addLayoutMutation(
-      { layoutName: newLayoutName, isReceiptPage: false },
+      { layoutName: newLayoutName },
       {
         onSuccess: async () => {
           await refetchLayouts(selectedFormLayoutSetName);
@@ -131,18 +129,10 @@ export const DesignView = (): ReactNode => {
 
   return (
     <div className={classes.root}>
-      <div>
-        <div className={classes.wrapper}>
-          <div className={classes.accordionWrapper}>
-            <Accordion color='neutral'>{displayPageAccordions}</Accordion>
-          </div>
+      <div className={classes.wrapper}>
+        <div className={classes.accordionWrapper}>
+          <Accordion color='neutral'>{displayPageAccordions}</Accordion>
         </div>
-        <ReceiptContent
-          receiptName={receiptName}
-          selectedAccordion={selectedFormLayoutName}
-          formLayoutData={formLayoutData}
-          onClickAccordion={() => handleClickAccordion(receiptName)}
-        />
       </div>
       <div className={classes.buttonContainer}>
         <StudioButton
