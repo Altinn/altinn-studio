@@ -40,6 +40,7 @@ export class Header extends BasePage {
   public async clickOnUploadLocalChangesButton(): Promise<void> {
     await this.page
       .getByRole('button', { name: this.textMock('sync_header.changes_to_share') })
+      .last()
       .click();
   }
 
