@@ -110,7 +110,7 @@
   "dashboard.data_models": "Datamodeller",
   "dashboard.description": "Beskrivelse",
   "dashboard.edit_app": "Endre {{appName}} i Studio",
-  "dashboard.error_getting_organization_data.message": "Det oppsto en feil da vi skulle hente de organisasjonene som trengs for å kjøre applikasjonen.",
+  "dashboard.error_getting_organization_data.message": "Det oppsto en feil da vi skulle hente de organisasjonene som trengs for å kjøre appen.",
   "dashboard.error_getting_organization_data.title": "Kunne ikke laste inn organisasjoner",
   "dashboard.error_getting_user_data.message": "Det oppsto en feil da vi skulle hente brukerdataene dine.",
   "dashboard.error_getting_user_data.title": "Det oppsto en feil da vi skulle laste inn brukerdata",
