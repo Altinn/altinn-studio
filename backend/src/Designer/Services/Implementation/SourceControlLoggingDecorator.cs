@@ -336,7 +336,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             try
             {
-               await _decoratedService.VerifyCloneExists(org, repository);
+                await _decoratedService.VerifyCloneExists(org, repository);
             }
             catch (Exception ex)
             {

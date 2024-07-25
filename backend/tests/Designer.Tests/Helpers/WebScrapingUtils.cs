@@ -16,14 +16,20 @@ public static class WebScrapingUtils
     public static string ExtractTextBetweenMarkers(string htmlContent, string beforeText, string afterText)
     {
         int start = htmlContent.IndexOf(beforeText, StringComparison.InvariantCulture);
-        if (start == -1) return null;
+        if (start == -1)
+        {
+            return null;
+        }
 
         // Adjust the start index to the end of 'inputSearchTextBefore'
         start += beforeText.Length;
 
         // Find the ending index of the text before the 'inputSearchTextAfter' marker
         int stop = htmlContent.IndexOf(afterText, start, StringComparison.InvariantCulture);
-        if (stop == -1) return null;
+        if (stop == -1)
+        {
+            return null;
+        }
 
         if (stop > start)
         {

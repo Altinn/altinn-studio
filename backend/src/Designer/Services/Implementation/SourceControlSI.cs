@@ -82,7 +82,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<RepoStatus>  PullRemoteChanges(string org, string repository)
+        public async Task<RepoStatus> PullRemoteChanges(string org, string repository)
         {
             RepoStatus status = new();
             using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository)))

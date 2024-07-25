@@ -20,7 +20,7 @@ public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions
         var claims = new[] { new Claim(ClaimTypes.Name, "testUser") };
         var identity = new ClaimsIdentity(claims, "testUser");
         var principal = new ClaimsPrincipal(identity);
-        var ticket = new AuthenticationTicket(principal,  TestAuthConstants.TestAuthenticationScheme);
+        var ticket = new AuthenticationTicket(principal, TestAuthConstants.TestAuthenticationScheme);
 
         var result = AuthenticateResult.Success(ticket);
 

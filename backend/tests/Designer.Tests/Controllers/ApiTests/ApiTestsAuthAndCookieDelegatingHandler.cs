@@ -27,7 +27,7 @@ internal class ApiTestsAuthAndCookieDelegatingHandler : DelegatingHandler
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        if(request.Headers.TryGetValues("X-XSRF-TOKEN", out IEnumerable<string> _) )
+        if (request.Headers.TryGetValues("X-XSRF-TOKEN", out IEnumerable<string> _))
         {
             return await base.SendAsync(request, cancellationToken);
         }

@@ -338,7 +338,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<bool>  ResetLocalRepository(AltinnRepoEditingContext altinnRepoEditingContext)
+        public async Task<bool> ResetLocalRepository(AltinnRepoEditingContext altinnRepoEditingContext)
         {
             string repoPath = _settings.GetServicePath(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
 

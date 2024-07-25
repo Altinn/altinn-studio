@@ -117,7 +117,8 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
                 {
                     InnerHandler = new HttpClientHandler { AllowAutoRedirect = false, }
                 }
-            }) { BaseAddress = new Uri("http://studio.localhost") };
+            })
+            { BaseAddress = new Uri("http://studio.localhost") };
 
         return _sharedDesignerHttpClientProvider.SharedHttpClient;
     }

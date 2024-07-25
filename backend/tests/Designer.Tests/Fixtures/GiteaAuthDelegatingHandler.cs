@@ -24,7 +24,7 @@ namespace Designer.Tests.Fixtures
             CancellationToken cancellationToken)
         {
             var response = await base.SendAsync(request, cancellationToken);
-            if(response.StatusCode != HttpStatusCode.Redirect)
+            if (response.StatusCode != HttpStatusCode.Redirect)
             {
                 return response;
             }

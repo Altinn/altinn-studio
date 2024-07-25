@@ -175,7 +175,7 @@ namespace Designer.Tests.Fixtures
                     {"NGINX_HOST", "localhost"},
                     {"NGINX_PORT", "80"}
                 })
-                .WithExtraHost("host.docker.internal","host-gateway")
+                .WithExtraHost("host.docker.internal", "host-gateway")
                 .Build();
 
             await _loadBalancerContainer.StartAsync();
