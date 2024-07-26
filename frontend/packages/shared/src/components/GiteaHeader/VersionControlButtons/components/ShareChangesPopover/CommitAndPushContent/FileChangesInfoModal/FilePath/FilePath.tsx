@@ -3,6 +3,7 @@ import classes from './FilePath.module.css';
 import { useRepoDiffQuery } from 'app-shared/hooks/queries/useRepoDiffQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import cn from 'classnames';
+import { convertPureGitDiffToUserFriendlyDiff } from 'app-shared/components/GiteaHeader/VersionControlButtons/components/ShareChangesPopover/CommitAndPushContent/FileChangesInfoModal/FilePath/FilePathUtils';
 
 export interface FilePathProps {
   enableFileDiff: boolean;
@@ -14,21 +15,10 @@ export const FilePath = ({ enableFileDiff, filePath }: FilePathProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: repoDiff, isPending: repoDiffIsPending } = useRepoDiffQuery(org, app);
 
-  debugger;
-
   let linesToRender: string[];
 
   if (enableFileDiff && !repoDiffIsPending && Object.keys(repoDiff).includes(filePath)) {
-    const lines = repoDiff[filePath].split('\n');
-    // Following code cleans up diff response that will be interpreted as noise for most end users
-    let showLine = false;
-    linesToRender = lines.filter((line) => {
-      if (showLine) return line;
-      if (line.startsWith('@@')) showLine = true;
-    });
-    if (linesToRender[linesToRender.length - 1].includes('No newline at end of file'))
-      linesToRender.splice(linesToRender.length - 1);
-    // End of cleanup
+    linesToRender = convertPureGitDiffToUserFriendlyDiff(repoDiff[filePath]);
   }
 
   const fileName = filePath.split('/').pop() || '';

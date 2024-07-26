@@ -34,14 +34,14 @@
   white-space: pre-wrap;
 }
 
-.removedLine,
-.diffLine {
-  background-color: var(--fds-semantic-surface-danger-no_fill-active);
-  color: red;
+.removedLine {
+  composes: diffLine;
+  background-color: var(--fds-semantic-surface-danger-subtle);
+  color: var(--fds-semantic-text-danger-default);
 }
 
-.addedLine,
-.diffLine {
-  background-color: var(--fds-semantic-surface-success-no_fill-active);
-  color: green;
+.addedLine {
+  composes: diffLine;
+  background-color: var(--fds-semantic-surface-success-subtle);
+  color: var(--fds-semantic-text-success-default);
 }
