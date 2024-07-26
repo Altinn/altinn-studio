@@ -26,9 +26,6 @@ describe('CommitAndPushContent', () => {
       screen.getByText(textMock('sync_header.describe_and_validate_sub_message')),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(textMock('sync_header.describe_and_validate_sub_sub_message')),
-    ).toBeInTheDocument();
-    expect(
       screen.getByLabelText(textMock('sync_header.describe_changes_made')),
     ).toBeInTheDocument();
     expect(
