@@ -12,14 +12,16 @@ const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
 
 const renderHook = async ({
   queryClient,
+  modelPath,
 }: {
   queryClient?: QueryClient;
+  modelPath?: string;
 } = {}) => {
   const uploadDataModelResult = renderHookWithMockStore(
     {},
     {},
     queryClient,
-  )(() => useUploadDataModelMutation()).renderHookResult.result;
+  )(() => useUploadDataModelMutation(modelPath)).renderHookResult.result;
   await waitFor(() => uploadDataModelResult.current.mutate(file));
   expect(uploadDataModelResult.current.isSuccess).toBe(true);
 };
@@ -47,6 +49,19 @@ describe('useUploadDataModelMutation', () => {
     });
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({
       queryKey: [QueryKey.AppMetadataModelIds, org, app],
+    });
+  });
+
+  it('invalidates json schema metadata when upload is successful and a modelPath is provided', async () => {
+    const queryClient = createQueryClientMock();
+    const mockModelPath = '/App/models/mockModel.schema.json';
+    const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
+
+    await renderHook({ queryClient, modelPath: mockModelPath });
+
+    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(4);
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [QueryKey.JsonSchema, org, app, mockModelPath],
     });
   });
 });
