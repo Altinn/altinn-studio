@@ -44,6 +44,22 @@
         "required": true
       },
       {
+        "id": "attachments",
+        "type": "FileUpload",
+        "textResourceBindings": {
+          "title": "attachments.title"
+        },
+        "maxFileSizeInMB": 10,
+        "maxNumberOfAttachments": 2,
+        "minNumberOfAttachments": 0,
+        "displayMode": "list",
+        "hasCustomFileEndings": true,
+        "validFileEndings": ".png",
+        "dataModelBindings": {
+          "list": "AttachmentId"
+        }
+      },
+      {
         "id": "subform-mopeder",
         "type": "SubForm",
         "textResourceBindings": {

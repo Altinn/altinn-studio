@@ -68,6 +68,10 @@
     {
       "id": "subform-backbutton.title",
       "value": "Tilbake"
+    },
+    {
+      "id": "attachments.title",
+      "value": "Vedlegg"
     }
   ]
 }

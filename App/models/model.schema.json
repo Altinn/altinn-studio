@@ -29,6 +29,12 @@
     },
     "Alder": {
       "type": "integer"
+    },
+    "AttachmentId": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   }
 }

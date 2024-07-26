@@ -7,32 +7,32 @@ using System.Text.Json.Serialization;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
+
 namespace Altinn.App.Models.moped
 {
-  [XmlRoot(ElementName="moped")]
-  public class moped
-  {
-    [XmlElement("RegNo", Order = 1)]
-    [JsonProperty("RegNo")]
-    [JsonPropertyName("RegNo")]
-    public string RegNo { get; set; }
+    [XmlRoot(ElementName = "moped")]
+    public class moped
+    {
+        [XmlElement("RegNo", Order = 1)]
+        [JsonProperty("RegNo")]
+        [JsonPropertyName("RegNo")]
+        public string RegNo { get; set; }
 
-    [XmlElement("Merke", Order = 2)]
-    [JsonProperty("Merke")]
-    [JsonPropertyName("Merke")]
-    public string Merke { get; set; }
+        [XmlElement("Merke", Order = 2)]
+        [JsonProperty("Merke")]
+        [JsonPropertyName("Merke")]
+        public string Merke { get; set; }
 
-    [XmlElement("Modell", Order = 3)]
-    [JsonProperty("Modell")]
-    [JsonPropertyName("Modell")]
-    public string Modell { get; set; }
+        [XmlElement("Modell", Order = 3)]
+        [JsonProperty("Modell")]
+        [JsonPropertyName("Modell")]
+        public string Modell { get; set; }
 
-    [Range(Double.MinValue,Double.MaxValue)]
-    [XmlElement("Produksjonsaar", Order = 4)]
-    [JsonProperty("Produksjonsaar")]
-    [JsonPropertyName("Produksjonsaar")]
-    [Required]
-    public decimal? Produksjonsaar { get; set; }
-
-  }
+        [Range(Double.MinValue, Double.MaxValue)]
+        [XmlElement("Produksjonsaar", Order = 4)]
+        [JsonProperty("Produksjonsaar")]
+        [JsonPropertyName("Produksjonsaar")]
+        [Required]
+        public decimal? Produksjonsaar { get; set; }
+    }
 }

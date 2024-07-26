@@ -7,23 +7,28 @@ using System.Text.Json.Serialization;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
+
 namespace Altinn.App.Models.model
 {
-  [XmlRoot(ElementName="model")]
-  public class model
-  {
-    [XmlElement("Navn", Order = 1)]
-    [JsonProperty("Navn")]
-    [JsonPropertyName("Navn")]
-    public string Navn { get; set; }
+    [XmlRoot(ElementName = "model")]
+    public class model
+    {
+        [XmlElement("Navn", Order = 1)]
+        [JsonProperty("Navn")]
+        [JsonPropertyName("Navn")]
+        public string Navn { get; set; }
 
-    [Range(Double.MinValue,Double.MaxValue)]
-    [XmlElement("Alder", Order = 2)]
-    [JsonProperty("Alder")]
-    [JsonPropertyName("Alder")]
-    public decimal? Alder { get; set; }
+        [Range(Double.MinValue, Double.MaxValue)]
+        [XmlElement("Alder", Order = 2)]
+        [JsonProperty("Alder")]
+        [JsonPropertyName("Alder")]
+        public decimal? Alder { get; set; }
 
-    public bool ShouldSerializeAlder() => Alder.HasValue;
+        [XmlElement("AttachmentId", Order = 3)]
+        [JsonProperty("AttachmentId")]
+        [JsonPropertyName("AttachmentId")]
+        public List<string> AttachmentId { get; set; }
 
-  }
+        public bool ShouldSerializeAlder() => Alder.HasValue;
+    }
 }

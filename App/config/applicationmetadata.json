@@ -58,6 +58,17 @@
       "validationErrorOnPendingFileScan": false,
       "enabledFileAnalysers": [],
       "enabledFileValidators": []
+    },
+    {
+      "id": "attachments",
+      "taskId": "Task_1",
+      "allowedContentTypes": ["image/png"],
+      "maxSize": 10,
+      "maxCount": 2,
+      "minCount": 0,
+      "enablePdfCreation": false,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false
     }
   ],
   "partyTypesAllowed": {
