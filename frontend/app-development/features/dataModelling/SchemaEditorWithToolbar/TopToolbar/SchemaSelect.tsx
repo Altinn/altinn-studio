@@ -36,6 +36,7 @@ export const SchemaSelect = ({
       disabled={disabled}
       onChange={(e) => handleChange(e.target.value)}
       value={selectedOption?.value.repositoryRelativeUrl}
+      size='small'
     >
       {optionGroups.map((group) => (
         <optgroup label={group.label} key={group.label}>
