@@ -2,7 +2,6 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;

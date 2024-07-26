@@ -109,7 +109,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             return services;
         }
 
-        private static OidcLoginSettings FetchOidcSettingsFromConfiguration( IConfiguration configuration, IWebHostEnvironment env)
+        private static OidcLoginSettings FetchOidcSettingsFromConfiguration(IConfiguration configuration, IWebHostEnvironment env)
         {
             var oidcSettings = configuration.GetSection(nameof(OidcLoginSettings)).Get<OidcLoginSettings>();
             if (!string.IsNullOrWhiteSpace(oidcSettings.ClientId) && !string.IsNullOrWhiteSpace(oidcSettings.ClientSecret))

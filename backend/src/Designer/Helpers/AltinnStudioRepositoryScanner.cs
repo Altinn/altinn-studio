@@ -6,7 +6,7 @@ namespace Altinn.Studio.Designer.Helpers;
 
 public static class AltinnStudioRepositoryScanner
 {
-    public  static string FindRootDotEnvFilePath()
+    public static string FindRootDotEnvFilePath()
     {
         return Path.Combine(FindRootDirectoryPath(), ".env");
     }
