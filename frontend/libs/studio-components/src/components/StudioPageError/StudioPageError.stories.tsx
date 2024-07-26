@@ -8,5 +8,12 @@ const meta: Meta = {
   title: 'Studio/StudioPageError',
   component: StudioPageError,
 };
-export const Preview: Story = (args): React.ReactElement => <StudioPageError {...args} />;
+export const Preview: Story = (args): React.ReactElement => {
+  return <StudioPageError {...args} />;
+};
+
+Preview.args = {
+  title: 'Alert title',
+  message: 'Alert message',
+};
 export default meta;
