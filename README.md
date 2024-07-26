@@ -99,11 +99,10 @@ DEVELOP_STUDIO_ROOT=0
 Navigate to the designer backend folder `cd backend/src/Designer`. The first time running, or after any package changes,
 get the latest packages.
 
-- On MacOS you need one extra step before running .NET:
-  Change location where the application stores the DataProtectionKeys
-  ```bash
-  export ALTINN_KEYS_DIRECTORY=/Users/<yourname>/studio/keys
-  ```
+Backend is using OIDC login flow with Gitea as identity provider. Client id and client secret in configuration are needed.
+When running backend locally, .env file will be used for fetching client id and secret if already is not set in configuration.
+If setup-script is run OAuth2 application will be created in gitea and, CLIENT_ID and CLIENT_SECRET values will be set in .env file.
+Alternatively you can setup OAuth2 application yourself in gitea and set the client id and client secret values in the configuration.
 
 If you want to work on creating apps locally, the [app-template-dotnet](https://github.com/Altinn/app-template-dotnet) repo
 should be cloned. If the templates repo is cloned in the same folder as altinn-studio, no changes needs to be done,

@@ -36,8 +36,8 @@ public class OidcLoginSettings : ISettingsMarker
 
     /// <summary>
     /// If set to true, the client ID and secret will be fetched from the root .env file.
-    /// This should be set to true only when running the application locally.
-    /// If the client id and secrets are set in configuration, f.ex. in user secrets, .env file will be ignored.
+    /// This should be set to true only when running the application locally, and it will be only considered if ASPNETCORE_ENVIRONMENT is set to Development.
+    /// If the client id and secrets are set in configuration, f.ex. in user secrets or in application.json, .env file will be ignored.
     /// </summary>
     public bool FetchClientIdAndSecretFromRootEnvFile { get; set; }
 }
