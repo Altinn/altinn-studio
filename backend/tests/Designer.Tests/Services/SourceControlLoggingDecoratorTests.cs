@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
@@ -8,9 +9,11 @@ using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using AltinnCore.Authentication.Constants;
 using FluentAssertions;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -424,6 +427,8 @@ namespace Designer.Tests.Services
 
             Mock<IHttpContextAccessor> httpContextAccessorMock = new Mock<IHttpContextAccessor>();
             httpContextAccessorMock.Setup(s => s.HttpContext).Returns(httpContext);
+            Environment.SetEnvironmentVariable("OidcLoginSettings__ClientId", "test");
+            Environment.SetEnvironmentVariable("OidcLoginSettings__ClientSecret", "test");
 
             var services = _webApplicationFactory.WithWebHostBuilder(builder =>
             {
@@ -444,6 +449,7 @@ namespace Designer.Tests.Services
         {
             var claims = new List<Claim>();
             claims.Add(new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, "altinn.no"));
+            claims.Add(new Claim(ClaimTypes.Name, userName));
             ClaimsIdentity identity = new ClaimsIdentity("TestUserLogin");
             identity.AddClaims(claims);
 
