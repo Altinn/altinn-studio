@@ -21,6 +21,7 @@ export class LoginPage extends BasePage {
 
   public async verifyLoginPage(): Promise<void> {
     await this.page.waitForURL(this.getRoute('altinnLoginPage'));
+    await this.page.getByRole('button', { name: loginPageTexts['login'] }).isVisible();
   }
 
   public async goToAltinnLoginPage(): Promise<void> {
