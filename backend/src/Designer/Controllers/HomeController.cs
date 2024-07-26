@@ -122,28 +122,6 @@ namespace Altinn.Studio.Designer.Controllers
             return View();
         }
 
-        public async Task<IActionResult> Yes()
-        {
-            await Task.CompletedTask;
-            return Ok(new { Status = "Up" });
-        }
-
-
-        [Authorize]
-        public async Task<IActionResult> Test()
-        {
-            string developer = HttpContext.User.Identity!.Name;
-            string accessToken = await HttpContext.GetTokenAsync("access_token");
-            string refreshToken = await HttpContext.GetTokenAsync("refresh_token");
-            await Task.CompletedTask;
-            return Ok(new
-            {
-                Developer = developer,
-                AccessToken = accessToken,
-                RefreshToken = refreshToken
-            });
-        }
-
         /// <summary>
         /// Login
         /// </summary>

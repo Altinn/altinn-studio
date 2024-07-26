@@ -1,6 +1,7 @@
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Helpers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
@@ -18,7 +19,7 @@ public class GiteaTokenDelegatingHandler : DelegatingHandler
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        string initToken = await _httpContextAccessor.HttpContext!.GetTokenAsync("access_token");
+        string initToken = await _httpContextAccessor.HttpContext!.GetDeveloperAppTokenAsync();
         request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("token", initToken);
 
         return await base.SendAsync(request, cancellationToken);
