@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { Heading, Paragraph, Alert } from '@digdir/designsystemet-react';
+import { Heading, Paragraph } from '@digdir/designsystemet-react';
 import { useNewsListQuery } from 'app-development/hooks/queries/useNewsListQuery';
-import { StudioSpinner } from '@studio/components';
+import { StudioPageError, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './News.module.css';
 
@@ -22,7 +22,10 @@ export const News = () => {
   if (isError) {
     return (
       <NewsTemplate>
-        <Alert severity='danger'>{t('overview.fetch_news_error_message')}</Alert>
+        <StudioPageError
+          title={t('overview.news_error_title')}
+          message={t('overview.fetch_news_error_message')}
+        />
       </NewsTemplate>
     );
   }

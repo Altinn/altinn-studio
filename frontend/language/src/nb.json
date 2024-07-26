@@ -518,6 +518,7 @@
   "overview.go_to_publish": "Gå til <0>Publiser</0>.",
   "overview.header_loading": "Laster inn navnet på applikasjonen",
   "overview.navigation_title": "Bygg applikasjonen med våre verktøy",
+  "overview.news_error_title": "En feil oppstod ved innlasting av nyheter",
   "overview.news_title": "Nyheter",
   "overview.no_activity": "Ingen aktivitet eller versjoner er publisert",
   "overview.reset_repo_button": "Slett mine endringer",
