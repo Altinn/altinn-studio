@@ -73,9 +73,18 @@ export class LoginPage extends BasePage {
   }
 
   public async addSessionToSharableStorage() {
-    // Waiting for the page to load all cookies
-    await this.waitFor(1000);
+    await this.removeSecureFlagOnCookies(); // This is necessary because secure cookies won't be added on requests that don't use HTTPS
     return await this.page.context().storageState({ path: this.authStorageFile });
+  }
+
+  private async removeSecureFlagOnCookies(): Promise<void> {
+    const context = this.page.context();
+    const cookies = await context.cookies();
+    cookies.forEach((cookie) => {
+      cookie.secure = false;
+    });
+    await context.clearCookies();
+    await context.addCookies(cookies);
   }
 
   private async waitFor(timeout: number): Promise<void> {
