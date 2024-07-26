@@ -50,8 +50,8 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
 
       queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], () => layouts);
 
-      const layoutToSelect = firstAvailableLayout(layoutName, layoutOrder);
       if (selectedFormLayoutName === layoutName) {
+        const layoutToSelect = firstAvailableLayout(layoutName, layoutOrder);
         setSelectedFormLayoutName(layoutToSelect);
       }
     },
