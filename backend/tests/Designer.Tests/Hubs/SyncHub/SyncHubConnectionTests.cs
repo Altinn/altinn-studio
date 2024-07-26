@@ -1,3 +1,5 @@
+using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Hubs.Auth;
@@ -36,11 +38,18 @@ public class SyncHubConnectionTests : DesignerEndpointsTestsBase<SyncHubConnecti
             {
                 o.HttpMessageHandlerFactory = h => new HubAuthDelegatingHandler(client)
                 {
-                    InnerHandler = Factory.Server.CreateHandler()
+                    InnerHandler = GetHandler(client)
                 };
             }).Build();
 
         await HubConnection.StartAsync();
+    }
+
+
+    private static HttpMessageHandler GetHandler(HttpClient client)
+    {
+        var handlerField = client.GetType().BaseType!.GetField("_handler", BindingFlags.NonPublic | BindingFlags.Instance);
+        return handlerField!.GetValue(client) as HttpMessageHandler;
     }
 
 }
