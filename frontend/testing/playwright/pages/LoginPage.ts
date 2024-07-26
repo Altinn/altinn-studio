@@ -86,12 +86,4 @@ export class LoginPage extends BasePage {
     await context.clearCookies();
     await context.addCookies(cookies);
   }
-
-  private async waitFor(timeout: number): Promise<void> {
-    await new Promise((resolve) =>
-      setTimeout(() => {
-        return resolve('');
-      }, timeout),
-    );
-  }
 }
