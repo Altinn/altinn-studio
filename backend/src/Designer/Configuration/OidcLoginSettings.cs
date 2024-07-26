@@ -4,10 +4,40 @@ namespace Altinn.Studio.Designer.Configuration;
 
 public class OidcLoginSettings : ISettingsMarker
 {
-    public bool RequireHttpsMetadata { get; set; } = true;
+    /// <summary>
+    /// Sets the cookie expiry time in minutes.
+    /// </summary>
     public int CookieExpiryTimeInMinutes { get; set; } = 60;
+
+    /// <summary>
+    /// Authority for the OpenID Connect provider.
+    /// </summary>
     public string Authority { get; set; }
+
+    /// <summary>
+    /// Client ID for the OpenID Connect provider.
+    /// </summary>
     public string ClientId { get; set; }
+
+    /// <summary>
+    /// Client secret for the OpenID Connect provider.
+    /// </summary>
     public string ClientSecret { get; set; }
+
+    /// <summary>
+    /// Scopes for the OpenID Connect provider.
+    /// </summary>
     public string[] Scopes { get; set; }
+
+    /// <summary>
+    /// Flag to indicate if HTTPS metadata is required. In non-local environments this should be true.
+    /// </summary>
+    public bool RequireHttpsMetadata { get; set; } = true;
+
+    /// <summary>
+    /// If set to true, the client ID and secret will be fetched from the root .env file.
+    /// This should be set to true only when running the application locally.
+    /// If the client id and secrets are set in configuration, f.ex. in user secrets, .env file will be ignored.
+    /// </summary>
+    public bool FetchClientIdAndSecretFromRootEnvFile { get; set; }
 }

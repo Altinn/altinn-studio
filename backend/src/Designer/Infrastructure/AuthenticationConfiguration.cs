@@ -2,11 +2,14 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Helpers;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 
@@ -23,20 +26,15 @@ namespace Altinn.Studio.Designer.Infrastructure
         /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
         /// <param name="config">The configuration</param>
         public static IServiceCollection ConfigureAuthentication(this IServiceCollection services,
-            IConfiguration config)
+            IConfiguration config, IWebHostEnvironment env)
         {
-            return AddGiteaOidcAuthentication(services, config);
+            return AddGiteaOidcAuthentication(services, config, env);
         }
 
         private static IServiceCollection AddGiteaOidcAuthentication(this IServiceCollection services,
-            IConfiguration configuration)
+            IConfiguration configuration, IWebHostEnvironment env)
         {
-            var oidcSettings = configuration.GetSection(nameof(OidcLoginSettings)).Get<OidcLoginSettings>();
-
-            if (string.IsNullOrWhiteSpace(oidcSettings.ClientId) || string.IsNullOrWhiteSpace(oidcSettings.ClientSecret))
-            {
-                throw new ArgumentException("ClientId or ClientSecret is missing in the configuration");
-            }
+            var oidcSettings = FetchOidcSettingsFromConfiguration(configuration, env);
 
             services
                 .AddAuthentication(options =>
@@ -109,6 +107,43 @@ namespace Altinn.Studio.Designer.Infrastructure
                     });
 
             return services;
+        }
+
+        private static OidcLoginSettings FetchOidcSettingsFromConfiguration( IConfiguration configuration, IWebHostEnvironment env)
+        {
+            var oidcSettings = configuration.GetSection(nameof(OidcLoginSettings)).Get<OidcLoginSettings>();
+            if (!string.IsNullOrWhiteSpace(oidcSettings.ClientId) && !string.IsNullOrWhiteSpace(oidcSettings.ClientSecret))
+            {
+                return oidcSettings;
+            }
+
+            if (env.IsDevelopment() && oidcSettings.FetchClientIdAndSecretFromRootEnvFile)
+            {
+                TryGetClientSecretFromRootDotEnvFile(out string clientId, out string clientSecret);
+                oidcSettings.ClientId = clientId;
+                oidcSettings.ClientSecret = clientSecret;
+            }
+
+            if (string.IsNullOrWhiteSpace(oidcSettings.ClientId) || string.IsNullOrWhiteSpace(oidcSettings.ClientSecret))
+            {
+                throw new ArgumentException("ClientId or ClientSecret is missing in the configuration");
+            }
+
+            return oidcSettings;
+        }
+
+
+        private static bool TryGetClientSecretFromRootDotEnvFile(out string clientId, out string clientSecret)
+        {
+            clientId = null;
+            clientSecret = null;
+            var keys = DotNetEnv.Env.Load(AltinnStudioRepositoryScanner.FindRootDotEnvFilePath(),
+                new DotNetEnv.LoadOptions(false, false, false)).ToList();
+
+            clientId = keys.FirstOrDefault(k => k.Key == "CLIENT_ID").Value;
+            clientSecret = keys.FirstOrDefault(k => k.Key == "CLIENT_SECRET").Value;
+
+            return !string.IsNullOrWhiteSpace(clientId) && !string.IsNullOrWhiteSpace(clientSecret);
         }
     }
 }
