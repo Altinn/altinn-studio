@@ -1,0 +1,31 @@
+name: Publish to CDN
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/app-development/features/overview/components/News/NewsContentCDN/*'
+
+jobs:
+  publish-news-to-cdn:
+    runs-on: ubuntu-latest
+    name: 'Publish news to CDN'
+    steps:
+      - name: 'Checkout Altinn-CDN repository'
+        uses: actions/checkout@v4
+        with:
+          repository: 'Altinn/altinn-cdn'
+          token: ${{secrets.ALTINN_CDN_TOKEN}}
+          path: cdn
+      
+      - name: 'Run publish script'
+        run: |
+            bash .github/scripts/publishNews.sh \
+             --news frontend/app-development/features/overview/components/News/NewsContentCDN/news.nb.json \
+             --news-schema frontend/app-development/features/overview/components/News/NewsContentCDN/news.schema.json \
+             --cdn ../cdn \
+             --commit \
+
+      - name: Push to CDN
+        working-directory: cdn
+        run: git push

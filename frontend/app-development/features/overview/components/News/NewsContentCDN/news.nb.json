@@ -1,0 +1,35 @@
+{
+  "$schema": "news.schema.json",
+  "news": [
+    {
+      "date": "2024-07-18",
+      "title": "Vi har fjernet regler for beregninger og betingede visninger",
+      "content": "Verktøyene er utdaterte, så vi har tatt de bort fra Lage-siden. Du kan fortsatt lage regler for beregninger og betingede visninger i koden, men vi anbefaler å heller bruke dynamiske uttrykk."
+    },
+    {
+      "date": "2024-04-24",
+      "title": "Automatisk lagring i prosessvising",
+      "content": "Prosess nå lagres automatisk ved endringer. Legger man til en ny oppgave for utfylling (Altinn 'data'-task) opprettes tilhørende sidegruppe (for oppsett av skjema) nå automatisk."
+    },
+    {
+      "date": "2024-04-10",
+      "title": "Ny publiseringsside",
+      "content": "Nå har vi lansert en oppdatert publiserings-side med nytt design. Oversikt over tjenesten i de forskjellige miljøene er oppdatert, og status på tjenesten i miljøene er nå helt oppdatert til en hver tid."
+    },
+    {
+      "date": "2024-01-16",
+      "title": "Prosessvisning",
+      "content": "Nå er prosess-siden tilgjengelig i BETA! I første omgang blir det mulig å se prosessen sin. Når versjon 8 av støttebibliotekene til applikasjonene er publisert kan de som oppgrader til disse også få mulighet til å redigere prosessen. Nye detaljer og redigeringsmuligheter publiseres fortløpende."
+    },
+    {
+      "date": "2023-12-11",
+      "title": "Mer kompakt sidevisning i skjemabyggeren",
+      "content": "Nå har vi oppdatert sidevisningen i skjemabyggeren til å bli mer kompakt! Dra-og-slipp og valg av komponent for å konfigurere fungerer akkurat som før."
+    },
+    {
+      "date": "2023-10-20",
+      "title": "Ny oversikts-side",
+      "content": "Nå har vi fått en ny oversiktsside i Altinn Studio. Her kan du navigere deg videre rundt i Studio, finne lenker til dokumentasjon, og se status på tjenesten i de forskjellige miljøene. Feltene som tidligere ble vist på denne siden finner du under \"Innstillinger\"-menyen til venstre i toppmenyen."
+    }
+  ]
+}
