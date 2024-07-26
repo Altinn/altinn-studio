@@ -145,3 +145,16 @@ services:
       - ./development/db/init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./development/db/data.sql:/data.sql
       - pgdata:/var/lib/postgresql/data
+
+  database_migrations:
+    container_name: db-database_migrations
+    depends_on:
+      - studio_db
+    build:
+      context: backend
+      dockerfile: Migrations.Dockerfile
+    environment:
+      - CONNECTION=Host=studio_db;Port=5432;Username=designer_admin;Password=${POSTGRES_PASSWORD};Database=designerdb
+      - OidcLoginSettings:FetchClientIdAndSecretFromRootEnvFile=false
+      - OidcLoginSettings:ClientId=dummyRequired
+      - OidcLoginSettings:ClientSecret=dummyRequired
