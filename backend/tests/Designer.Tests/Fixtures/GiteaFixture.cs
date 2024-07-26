@@ -106,7 +106,7 @@ namespace Designer.Tests.Fixtures
                 .WithImagePullPolicy(PullPolicy.Never)
                 .WithNetwork(_giteaNetwork)
                 .WithName("gitea")
-                .WithPortBinding( TestUrlsProvider.Instance.GiteaPort, 3000)
+                .WithPortBinding(TestUrlsProvider.Instance.GiteaPort, 3000)
                 .WithPortBinding(22, true)
                 .WithEnvironment(new Dictionary<string, string>
                 {
@@ -197,12 +197,12 @@ namespace Designer.Tests.Fixtures
 
         private async Task GenerateApplicationClientIdAndClientSecretInGitea()
         {
-            var applicationContent =
+            using var applicationContent =
                 new StringContent(
                     $@"{{""name"":""altinn-studio"",""redirect_uris"":[""{TestUrlsProvider.Instance.DesignerUrl}/signin-oidc""],""trusted"":true}}",
                     Encoding.UTF8, MediaTypeNames.Application.Json);
 
-            HttpResponseMessage addApplicationResponse = await GiteaClientRetryPolicy.ExecuteAsync(async _ => await GiteaClient.Value.PostAsync("user/applications/oauth2", applicationContent, _), CancellationToken.None);
+            using HttpResponseMessage addApplicationResponse = await GiteaClientRetryPolicy.ExecuteAsync(async _ => await GiteaClient.Value.PostAsync("user/applications/oauth2", applicationContent, _), CancellationToken.None);
             addApplicationResponse.EnsureSuccessStatusCode();
 
             string addApplicationResponseContent = await addApplicationResponse.Content.ReadAsStringAsync();

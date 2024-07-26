@@ -37,15 +37,16 @@ namespace Designer.Tests.Fixtures
         private async Task<HttpResponseMessage> LoginAndRetryRequest(HttpRequestMessage request, HttpResponseMessage initialResponse,
             CancellationToken cancellationToken)
         {
-            using var redirectedToLoginAuthorizeResponse =
-                await base.SendAsync(new HttpRequestMessage(HttpMethod.Get, initialResponse.Headers.Location),
-                    cancellationToken);
+            using var redirectToAuthorizeRequest =
+                new HttpRequestMessage(HttpMethod.Get, initialResponse.Headers.Location);
+            using var redirectToAuthorizeResponse =
+                await base.SendAsync(redirectToAuthorizeRequest, cancellationToken);
 
             using var authorizeRedirectedToLoginResponse =
-                await Redirect(redirectedToLoginAuthorizeResponse.Headers.Location, cancellationToken);
+                await Redirect(redirectToAuthorizeResponse.Headers.Location, cancellationToken);
 
             using HttpResponseMessage loginToGiteaResponse = await LoginToGitea(authorizeRedirectedToLoginResponse,
-                redirectedToLoginAuthorizeResponse, cancellationToken);
+                redirectToAuthorizeResponse, cancellationToken);
 
             using HttpResponseMessage loginToAuthorizeRedirectedResponse = await Redirect(
                 loginToGiteaResponse.Headers.Location, cancellationToken, loginToGiteaResponse.GetGiteaAuthCookies());
@@ -174,7 +175,7 @@ namespace Designer.Tests.Fixtures
             var redirectUrl = redirectUri.IsAbsoluteUri
                 ? redirectUri
                 : new Uri(TestUrlsProvider.Instance.GiteaUrl + redirectUri);
-            var redirectRequest = new HttpRequestMessage(HttpMethod.Get, redirectUrl);
+            using var redirectRequest = new HttpRequestMessage(HttpMethod.Get, redirectUrl);
             if (cookies != null)
             {
                 redirectRequest.AddCookies(cookies);

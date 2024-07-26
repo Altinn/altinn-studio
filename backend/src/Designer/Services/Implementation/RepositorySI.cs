@@ -381,8 +381,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             // Create the app deployment folder
             Directory.CreateDirectory(targetPath);
 
-            string[] files = Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories);
-
             // Create all of the directories
             foreach (string dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
             {
