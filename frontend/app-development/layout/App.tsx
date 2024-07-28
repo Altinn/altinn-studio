@@ -6,7 +6,6 @@ import {
   keepAliveSession,
   signOutUser,
 } from '../sharedResources/user/userSlice';
-import './App.css';
 import { Outlet, matchPath, useLocation } from 'react-router-dom';
 import classes from './App.module.css';
 import { useAppDispatch, useAppSelector } from '../hooks';

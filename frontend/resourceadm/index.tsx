@@ -12,7 +12,7 @@ import type { QueryClientConfig } from '@tanstack/react-query';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import * as queries from 'app-shared/api/queries';
 import * as mutations from 'app-shared/api/mutations';
-import 'app-shared/design-tokens';
+import 'app-shared/bootstrap';
 
 i18next.use(initReactI18next).init({
   lng: DEFAULT_LANGUAGE,

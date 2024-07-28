@@ -7,7 +7,7 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import * as queries from 'app-shared/api/queries';
 import * as mutations from 'app-shared/api/mutations';
 import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewConnectionContext';
-import 'app-shared/design-tokens';
+import 'app-shared/bootstrap';
 import type { LoggerConfig } from 'app-shared/contexts/LoggerContext';
 import { LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
 import { altinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';

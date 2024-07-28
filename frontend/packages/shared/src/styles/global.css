@@ -1,5 +1,6 @@
 :root {
   --studio-font-family: 'Inter', sans-serif;
+  --studio-app-background: var(--fds-semantic-surface-neutral-default);
 }
 
 html,
@@ -8,7 +9,7 @@ body {
   padding: 0;
   font-family: Roboto, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   height: 100%;
-  background: #fff;
+  background: var(--studio-app-background);
   font-size: 1rem;
 }
 
@@ -19,12 +20,23 @@ h3 {
 }
 
 a {
+  color: var(--fds-semantic-text-action-default);
   text-decoration: none;
 }
 
-::-webkit-scrollbar {
-  width: 5px;
+a.fds-link--inverted {
+  color: var(--fds-link--inverted);
+  text-decoration: underline;
 }
+
+button[class*='Button-module_small__'] svg {
+  --fdsc-icon-size: var(--fds-sizing-5);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
 ::-webkit-scrollbar-thumb {
   background: darkgray;
   border-radius: 5px;
