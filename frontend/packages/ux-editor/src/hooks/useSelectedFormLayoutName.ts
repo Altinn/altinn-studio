@@ -16,12 +16,10 @@ export const useSelectedFormLayoutName = (
     app,
     selectedFormLayoutSetName,
   );
-  const layoutPagesOrder = formLayoutSettings?.pages?.order;
 
   const isValidLayout = (layoutName: string): boolean => {
-    const isExistingLayout = layoutPagesOrder?.includes(layoutName);
-    const isReceipt = formLayoutSettings?.receiptLayoutName === layoutName;
-    return isExistingLayout || isReceipt;
+    const layoutPagesOrder = formLayoutSettings?.pages?.order;
+    return layoutPagesOrder?.includes(layoutName);
   };
 
   const [selectedFormLayoutName, setSelectedFormLayoutName] = useSearchParamsState<string>(

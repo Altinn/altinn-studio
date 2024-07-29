@@ -169,7 +169,6 @@ export function EditOptions({
                         icon={<XMarkIcon />}
                         onClick={removeItem}
                         variant='tertiary'
-                        size='small'
                       />
                     </div>
                   </div>
@@ -188,7 +187,6 @@ export function EditOptions({
             icon={<PlusIcon />}
             onClick={handleAddOption}
             variant='secondary'
-            size='small'
           >
             {t('ux_editor.modal_new_option')}
           </StudioButton>

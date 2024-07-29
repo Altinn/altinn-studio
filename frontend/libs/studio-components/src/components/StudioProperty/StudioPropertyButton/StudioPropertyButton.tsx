@@ -53,7 +53,6 @@ const StudioPropertyButton = forwardRef<HTMLButtonElement, StudioPropertyButtonP
         fullWidth
         icon={icon}
         ref={ref}
-        size='small'
         title={property}
         variant='tertiary'
         {...rest}

@@ -1,10 +1,4 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { EditCodeList } from './editModal/EditCodeList';
-import { EditHeaderSize } from './editModal/EditHeaderSize';
-import { EditPreselectedIndex } from './editModal/EditPreselectedIndex';
-import { EditReadOnly } from './editModal/EditReadOnly';
-import { EditRequired } from './editModal/EditRequired';
-import { EditAutoComplete } from './editModal/EditAutoComplete';
 import type { FormItem } from '../../types/FormItem';
 import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
 
@@ -36,10 +30,6 @@ export interface IComponentEditConfig {
   [id: string]: EditSettings[];
 }
 
-interface IConfigComponents {
-  [id: string]: ({ component, handleComponentChange }: IGenericEditComponent) => JSX.Element;
-}
-
 export const componentSpecificEditConfig: IComponentEditConfig = {
   [ComponentType.Header]: [EditSettings.Size],
   [ComponentType.Input]: [...editBoilerPlate, EditSettings.AutoComplete],
@@ -53,13 +43,4 @@ export const componentSpecificEditConfig: IComponentEditConfig = {
     EditSettings.AutoComplete,
   ],
   [ComponentType.Map]: [...editBoilerPlate],
-};
-
-export const configComponents: IConfigComponents = {
-  [EditSettings.Size]: EditHeaderSize,
-  [EditSettings.ReadOnly]: EditReadOnly,
-  [EditSettings.Required]: EditRequired,
-  [EditSettings.CodeList]: EditCodeList,
-  [EditSettings.PreselectedIndex]: EditPreselectedIndex,
-  [EditSettings.AutoComplete]: EditAutoComplete,
 };

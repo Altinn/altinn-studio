@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import type { LegacySingleSelectOption } from '@digdir/design-system-react';
 import { Paragraph } from '@digdir/designsystemet-react';
-import { LegacySelect } from '@digdir/design-system-react';
 import { MagnifyingGlassIcon, PencilIcon, PlusIcon, TrashIcon, XMarkIcon } from '@studio/icons';
 import classes from './TextResource.module.css';
 import { useDispatch, useSelector } from 'react-redux';
@@ -15,7 +13,6 @@ import {
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import { generateTextResourceId } from '../utils/generateId';
 import { useText, useTextResourcesSelector } from '../hooks';
-import { prepend } from 'app-shared/utils/arrayUtils';
 import cn from 'classnames';
 import type { ITextResource } from 'app-shared/types/global';
 
@@ -23,7 +20,7 @@ import { FormField } from './FormField';
 import { AltinnConfirmDialog } from 'app-shared/components/AltinnConfirmDialog';
 import { useTranslation } from 'react-i18next';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioNativeSelect } from '@studio/components';
 
 export interface TextResourceProps {
   description?: string;
@@ -90,16 +87,6 @@ export const TextResource = ({
     handleRemoveTextResource();
   };
 
-  const searchOptions: LegacySingleSelectOption[] = prepend<LegacySingleSelectOption>(
-    textResources.map((tr) => ({
-      label: tr.id,
-      value: tr.id,
-      formattedLabel: <TextResourceOption textResource={tr} />,
-      keywords: [tr.id, tr.value],
-    })),
-    { label: t('ux_editor.search_text_resources_none'), value: '' },
-  );
-
   const renderTextResource = () => (
     <span
       className={cn(
@@ -114,13 +101,21 @@ export const TextResource = ({
       {isSearchMode && (
         <span className={classes.searchContainer}>
           <span className={classes.select}>
-            <LegacySelect
-              hideLabel={true}
+            <StudioNativeSelect
+              id='text-resource-search-select'
               label={t('ux_editor.search_text_resources_label')}
-              onChange={(id) => handleIdChange(id === '' ? undefined : id)}
-              options={searchOptions}
+              onChange={(event) =>
+                handleIdChange(event.target.value === '' ? undefined : event.target.value)
+              }
               value={textResource?.id ?? ''}
-            />
+            >
+              <option value=''>{t('ux_editor.search_text_resources_none')}</option>
+              {textResources.map((option) => (
+                <option key={option.id} value={option.id}>
+                  <TextResourceOption textResource={option} />
+                </option>
+              ))}
+            </StudioNativeSelect>
           </span>
           <StudioButton
             aria-label={t('ux_editor.search_text_resources_close')}
@@ -130,7 +125,6 @@ export const TextResource = ({
             onClick={() => setIsSearchMode(false)}
             title={t('ux_editor.search_text_resources_close')}
             variant='tertiary'
-            size='small'
           />
         </span>
       )}
@@ -152,7 +146,6 @@ export const TextResource = ({
                 onClick={handleEditButtonClick}
                 title={t(getTextKeyForButton('edit', generateIdOptions?.textResourceKey))}
                 variant='tertiary'
-                size='small'
               />
             ) : (
               <StudioButton
@@ -164,7 +157,6 @@ export const TextResource = ({
                 onClick={handleEditButtonClick}
                 title={t(getTextKeyForButton('add', generateIdOptions?.textResourceKey))}
                 variant='tertiary'
-                size='small'
               />
             )}
             <StudioButton
@@ -176,7 +168,6 @@ export const TextResource = ({
               onClick={() => setIsSearchMode(true)}
               title={t(getTextKeyForButton('search', generateIdOptions?.textResourceKey))}
               variant='tertiary'
-              size='small'
             />
             <AltinnConfirmDialog
               open={isConfirmDeleteDialogOpen}
@@ -196,7 +187,6 @@ export const TextResource = ({
                   onClick={() => setIsConfirmDeleteDialogOpen(true)}
                   title={t(getTextKeyForButton('delete', generateIdOptions?.textResourceKey))}
                   variant='tertiary'
-                  size='small'
                 />
               }
             >
@@ -229,14 +219,7 @@ export interface TextResourceOptionProps {
 
 export const TextResourceOption = ({ textResource }: TextResourceOptionProps) => {
   const t = useText();
-  return (
-    <span className={classes.textOption}>
-      <span className={classes.textOptionId}>{textResource.id}</span>
-      <span className={cn(classes.textOptionValue, !textResource.value && classes.empty)}>
-        {textResource.value || t('ux_editor.no_text')}
-      </span>
-    </span>
-  );
+  return `${textResource.id}: ${textResource.value || t('ux_editor.no_text')}`;
 };
 
 type Action = 'add' | 'edit' | 'delete' | 'search';

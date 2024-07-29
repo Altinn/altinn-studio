@@ -156,22 +156,20 @@ describe('TextResource', () => {
 
   it('Calls handleIdChange when selection in search section is changed', async () => {
     await renderAndOpenSearchSection();
-    await user.click(
-      screen.getByRole('combobox', { name: textMock('ux_editor.search_text_resources_label') }),
-    );
-    await user.click(screen.getByRole('option', { name: textResources[1].id }));
+    const combobox = screen.getByRole('combobox', {
+      name: textMock('ux_editor.search_text_resources_label'),
+    });
+    await user.selectOptions(combobox, textResources[1].id);
     expect(handleIdChange).toHaveBeenCalledTimes(1);
     expect(handleIdChange).toHaveBeenCalledWith(textResources[1].id);
   });
 
   it('Calls handleIdChange with undefined when "none" is selected', async () => {
     await renderAndOpenSearchSection();
-    await user.click(
-      screen.getByRole('combobox', { name: textMock('ux_editor.search_text_resources_label') }),
-    );
-    await user.click(
-      screen.getByRole('option', { name: textMock('ux_editor.search_text_resources_none') }),
-    );
+    const combobox = screen.getByRole('combobox', {
+      name: textMock('ux_editor.search_text_resources_label'),
+    });
+    await user.selectOptions(combobox, '');
     expect(handleIdChange).toHaveBeenCalledTimes(1);
     expect(handleIdChange).toHaveBeenCalledWith(undefined);
   });

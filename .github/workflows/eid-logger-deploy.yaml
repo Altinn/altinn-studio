@@ -31,8 +31,6 @@ jobs:
       short_sha: ${{ steps.set_short_sha.outputs.short_sha }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: 'Azure login'
         uses: azure/login@v2
         with:
@@ -65,8 +63,6 @@ jobs:
       SHORT_SHA: ${{ needs.docker-build-push.outputs.short_sha }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: 'Azure login'
         uses: azure/login@v2
         with:
@@ -96,13 +92,12 @@ jobs:
     needs: [docker-build-push, helm-build-push]
     strategy:
       matrix:
-        environment: [staging] # add dev and production later on
+        environment: [dev, staging, prod]
+    environment: ${{ matrix.environment }}
     env:
       SHORT_SHA: ${{ needs.docker-build-push.outputs.short_sha }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: 'Azure login'
         uses: azure/login@v2
         with:
@@ -126,7 +121,9 @@ jobs:
       - name: Generate cofiguration file
         run: |
           mkdir eid-logger-config
-          helm template charts/eid-logger-config --set gitSha=${{ env.SHORT_SHA }} > eid-logger-config/helm-release.yaml
+          helm template charts/eid-logger-config \
+          --set gitSha=${{ env.SHORT_SHA }} \
+          --set environmentName=${{ matrix.environment }} > eid-logger-config/helm-release.yaml
 
       - name: Push config artifact
         run: |

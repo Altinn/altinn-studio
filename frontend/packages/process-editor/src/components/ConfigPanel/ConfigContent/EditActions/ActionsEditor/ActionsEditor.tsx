@@ -123,7 +123,6 @@ const ActionEditable = ({
           aria-label={t('general.close_item', {
             item: actionElement.action,
           })}
-          size='small'
           variant='secondary'
           color='success'
           icon={<CheckmarkIcon />}

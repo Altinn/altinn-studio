@@ -21,7 +21,6 @@ h3 {
 }
 
 a {
-  color: var(--studio-link-color);
   text-decoration: none;
 }
 
@@ -30,8 +29,9 @@ button[class*='Button-module_small__'] svg {
 }
 
 ::-webkit-scrollbar {
-  width: 5px;
+  width: 6px;
 }
+
 ::-webkit-scrollbar-thumb {
   background: darkgray;
   border-radius: 5px;

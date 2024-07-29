@@ -47,13 +47,9 @@ export const CommitAndPushContent = ({
       <Paragraph size='small' spacing>
         {t('sync_header.describe_and_validate_sub_message')}
       </Paragraph>
-      <Paragraph size='small' spacing>
-        {t('sync_header.describe_and_validate_sub_sub_message')}
-      </Paragraph>
       <StudioButton
         variant='tertiary'
         onClick={() => handleModalToggle(true)}
-        size='small'
         icon={<ClockDashedIcon />}
       >
         {t('sync_header.review_file_changes')}
@@ -76,7 +72,6 @@ export const CommitAndPushContent = ({
         color='first'
         onClick={handleClickCommitAndPush}
         id='share_changes_modal_button'
-        size='small'
         fullWidth
         className={classes.commitAndPushButton}
       >

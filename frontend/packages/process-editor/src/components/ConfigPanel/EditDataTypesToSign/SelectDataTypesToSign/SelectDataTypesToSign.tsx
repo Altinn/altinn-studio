@@ -80,7 +80,6 @@ export const SelectDataTypesToSign = ({ onClose }: SelectDataTypesToSignProps) =
         <StudioButton
           icon={<XMarkIcon />}
           onClick={onClose}
-          size='small'
           title={t('general.close')}
           variant='secondary'
           disabled={!value.length}

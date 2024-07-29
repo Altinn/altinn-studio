@@ -1,10 +1,10 @@
-import React, { useCallback, useEffect, useState } from 'react';
 import { ErrorMessage, HelpText } from '@digdir/designsystemet-react';
-import classes from './FormField.module.css';
-import { useTranslation } from 'react-i18next';
-import { validateProperty, isPropertyRequired } from '../../utils/formValidationUtils';
-import type { TranslationKey } from 'language/type';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
+import type { TranslationKey } from 'language/type';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { isPropertyRequired, validateProperty } from '../../utils/formValidationUtils';
+import classes from './FormField.module.css';
 
 export type RenderFieldArgs<TT> = {
   errorCode: string;
@@ -15,7 +15,7 @@ export type RenderFieldArgs<TT> = {
 export type FormFieldChildProps<TT> = {
   value: any;
   label: string;
-  onChange: (value: TT, event?: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (value: TT, event?: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   'aria-errormessage'?: string;
   'aria-invalid'?: boolean;
 };
@@ -98,7 +98,11 @@ export const FormField = <T extends unknown, TT extends unknown>({
     setIsRequired(customRequired || isPropertyRequired(schema, propertyPath));
   }, [customRequired, schema, propertyPath]);
 
-  const handleOnChange = (newValue: TT, event?: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleOnChange = (newValue: any, event?: React.ChangeEvent<HTMLInputElement>): void => {
+    // hacky fix to solve for mix of new and old eventhandling after upgrading designsystemet-react
+    if (newValue instanceof Object && 'target' in newValue && 'value' in newValue.target) {
+      newValue = newValue.target.value;
+    }
     const errCode = validate(newValue);
     setErrorCode(errCode);
     setTmpValue(newValue);

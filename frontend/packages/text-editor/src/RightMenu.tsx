@@ -82,7 +82,6 @@ export const RightMenu = ({
                           }
                           disabled={!canDeleteLang(langCode)}
                           aria-label={t('schema_editor.language_delete_button')}
-                          size='small'
                         >
                           {t('schema_editor.language_delete_button')}
                         </StudioButton>

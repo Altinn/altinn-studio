@@ -26,18 +26,12 @@ export const Preview = () => {
   };
 
   return isPreviewHidden ? (
-    <StudioButton
-      size='small'
-      variant='secondary'
-      className={classes.openPreviewButton}
-      onClick={togglePreview}
-    >
+    <StudioButton variant='secondary' className={classes.openPreviewButton} onClick={togglePreview}>
       {t('ux_editor.open_preview')}
     </StudioButton>
   ) : (
     <div className={classes.root}>
       <StudioButton
-        size='small'
         variant='tertiary'
         icon={<ArrowRightIcon aria-hidden />}
         title={t('ux_editor.close_preview')}

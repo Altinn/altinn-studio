@@ -49,14 +49,12 @@ export const ExpressionPreview = ({
           icon={<TrashIcon />}
           onClick={() => onDeleteExpression(expression)}
           variant='tertiary'
-          size='small'
         />
         <StudioButton
           title={t('right_menu.expression_edit')}
           icon={<PencilIcon />}
           onClick={() => onSetEditMode(true)}
           variant='tertiary'
-          size='small'
         />
       </div>
     </div>
