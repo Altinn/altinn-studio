@@ -8,5 +8,8 @@ RUN dotnet build src/Designer/Designer.csproj -c Release
 
 RUN dotnet tool install --version 8.0.7 --global dotnet-ef
 ENV PATH="$PATH:/root/.dotnet/tools"
+ENV OidcLoginSettings__FetchClientIdAndSecretFromRootEnvFile=false
+ENV OidcLoginSettings__ClientId=dummyRequired
+ENV OidcLoginSettings__ClientSecret=dummyRequired
 
 ENTRYPOINT ["sh", "-c", "dotnet ef database update --no-build --project src/Designer/Designer.csproj --connection \"$CONNECTION\""]

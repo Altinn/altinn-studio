@@ -155,6 +155,3 @@ services:
       dockerfile: Migrations.Dockerfile
     environment:
       - CONNECTION=Host=studio_db;Port=5432;Username=designer_admin;Password=${POSTGRES_PASSWORD};Database=designerdb
-      - OidcLoginSettings:FetchClientIdAndSecretFromRootEnvFile=false
-      - OidcLoginSettings:ClientId=dummyRequired
-      - OidcLoginSettings:ClientSecret=dummyRequired
