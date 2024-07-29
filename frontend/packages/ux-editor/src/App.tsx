@@ -8,6 +8,8 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResources
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { FormItemContextProvider } from './containers/FormItemContext';
 import { cleanupStaleLocalStorageKeys } from './utils/localStorageUtils';
+import { FormDesignerToolbar } from '@altinn/ux-editor/containers/FormDesignerToolbar';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 
 /**
  * This is the main React component responsible for controlling
@@ -25,17 +27,20 @@ export function App() {
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
   const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
+  const { data: layoutSets, isError: layoutSetsFetchedError } = useLayoutSetsQuery(org, app);
   const { isSuccess: isDataModelFetched, isError: dataModelFetchedError } =
     useDataModelMetadataQuery({
       org,
       app,
       layoutSetName: selectedFormLayoutSetName,
+      dataModelName: layoutSets?.sets?.find((set) => set.id === selectedFormLayoutSetName)
+        ?.dataType,
     });
   const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
 
   const componentIsReady = areWidgetsFetched && isDataModelFetched && areTextResourcesFetched;
 
-  const componentHasError = dataModelFetchedError || widgetFetchedError;
+  const componentHasError = layoutSetsFetchedError || dataModelFetchedError || widgetFetchedError;
 
   const mapErrorToDisplayError = (): { title: string; message: string } => {
     const defaultTitle = t('general.fetch_error_title');
@@ -45,6 +50,10 @@ export function App() {
       title: `${defaultTitle} ${resource}`,
       message: defaultMessage,
     });
+
+    if (layoutSetsFetchedError) {
+      return createErrorMessage(t('general.layout_sets'));
+    }
 
     if (dataModelFetchedError) {
       return createErrorMessage(t('general.data_model'));
@@ -56,17 +65,33 @@ export function App() {
     return createErrorMessage(t('general.unknown_error'));
   };
 
-  if (componentHasError) {
+  if (layoutSetsFetchedError) {
     const mappedError = mapErrorToDisplayError();
     return <StudioPageError title={mappedError.title} message={mappedError.message} />;
   }
 
-  if (componentIsReady) {
+  const renderApp = () => {
+    if (componentHasError) {
+      const mappedError = mapErrorToDisplayError();
+      return <ErrorPage title={mappedError.title} message={mappedError.message} />;
+    }
+
+    if (componentIsReady) {
+      return (
+        <FormItemContextProvider>
+          <FormDesigner />
+        </FormItemContextProvider>
+      );
+    }
     return (
-      <FormItemContextProvider>
-        <FormDesigner />
-      </FormItemContextProvider>
+      <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('ux_editor.loading_page')} />
     );
-  }
-  return <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('ux_editor.loading_page')} />;
+  };
+
+  return (
+    <>
+      <FormDesignerToolbar />
+      {renderApp()}
+    </>
+  );
 }

@@ -49,6 +49,42 @@ describe('App', () => {
     renderApp(mockQueries);
     await waitForLoadingToFinish();
   });
+
+  it('should render layoutSetsSelector when component has errors', async () => {
+    const mockGetDataModelMetadata = jest.fn().mockImplementation(() => Promise.reject());
+    renderApp({ ...mockQueries, getDataModelMetadata: mockGetDataModelMetadata });
+    await waitForLoadingToFinish();
+    const layoutSetsContainer = screen.getByRole('combobox', {
+      name: textMock('left_menu.layout_dropdown_menu_label'),
+    });
+    expect(layoutSetsContainer).toBeInTheDocument();
+  });
+
+  it.each(['layout_sets', 'data_model', 'widget'])(
+    'should render errorPage for %s when component has errors',
+    async (resource) => {
+      let errorQuery;
+      if (resource === 'layout_sets') {
+        errorQuery = { getLayoutSets: jest.fn().mockImplementation(() => Promise.reject()) };
+      }
+      if (resource === 'data_model') {
+        errorQuery = { getDataModelMetadata: jest.fn().mockImplementation(() => Promise.reject()) };
+      }
+      if (resource === 'widget') {
+        errorQuery = { getWidgetSettings: jest.fn().mockImplementation(() => Promise.reject()) };
+      }
+
+      renderApp({ ...mockQueries, ...errorQuery });
+      await waitForLoadingToFinish();
+
+      expect(
+        screen.getByText(
+          textMock('general.fetch_error_title') + ' ' + textMock(`general.${resource}`),
+        ),
+      ).toBeInTheDocument();
+      expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
+    },
+  );
 });
 
 const waitForLoadingToFinish = async () =>
