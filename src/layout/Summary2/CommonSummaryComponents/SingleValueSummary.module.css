@@ -1,3 +1,23 @@
+.inputSummaryItem {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.labelValueWrapper:not(.compact) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-2);
+}
+
+.labelValueWrapper.compact {
+  display: inline-block;
+}
+
+.labelValueWrapper.compact label {
+  margin-right: var(--fds-spacing-2);
+}
+
 .formValue {
   font-weight: 500;
 }
@@ -7,20 +27,8 @@
   font-style: italic;
 }
 
-.inputSummaryItem {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-}
-
 .error {
   border-bottom: var(--fds-semantic-border-danger-default) solid 2px;
-}
-
-.labelValueWrapper {
-  display: flex;
-  flex-direction: column;
-  gap: var(--fds-spacing-2);
 }
 
 .editButton {

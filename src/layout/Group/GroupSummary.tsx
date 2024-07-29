@@ -43,9 +43,11 @@ const RenderChildComponents = ({ componentNode, hierarchyLevel, summaryOverrides
             componentNode={child as LayoutNode<'Group'>}
             hierarchyLevel={hierarchyLevel ? hierarchyLevel + 1 : 1}
             key={componentNode.item.id}
+            summaryOverrides={summaryOverrides as CompGroupInternal['summaryProps']}
           />
         );
       } else {
+        const isCompact = summaryOverrides?.['isCompact'];
         return (
           <div
             key={child?.item?.id}
@@ -53,7 +55,7 @@ const RenderChildComponents = ({ componentNode, hierarchyLevel, summaryOverrides
           >
             <ComponentSummary
               componentNode={child}
-              summaryOverrides={summaryOverrides as CompSummary2Internal['overrides']}
+              isCompact={isCompact}
             />
           </div>
         );
@@ -68,6 +70,7 @@ export const GroupSummary = ({ componentNode, hierarchyLevel = 0, summaryOverrid
   const headingLevel = getHeadingLevel(hierarchyLevel);
   const isGroup = componentNode.item.type === 'Group';
   const isNestedGroup = isGroup && hierarchyLevel > 0;
+
   return (
     <section className={isNestedGroup ? cn(classes.groupContainer, classes.nested) : cn(classes.groupContainer)}>
       <div className={cn(classes.groupHeading)}>

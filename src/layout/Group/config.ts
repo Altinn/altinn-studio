@@ -1,11 +1,20 @@
 import { CG, Variant } from 'src/codegen/CG';
 import { CompCategory } from 'src/layout/common';
 
-export const GROUP_SUMMARY_PROPS = new CG.obj()
+export const GROUP_SUMMARY_PROPS = new CG.obj(
+  new CG.prop(
+    'isCompact',
+    new CG.bool()
+      .optional()
+      .setTitle('Compact summary')
+      .setDescription('Boolean value indicating if the summary should be compact'),
+  ),
+)
   .extends(CG.common('ISummaryOverridesCommon'))
   .optional()
   .setTitle('Summary properties')
-  .setDescription('Properties for how to display the summary of the component');
+  .setDescription('Properties for how to display the summary of the component')
+  .exportAs('GroupSummaryOverrideProps');
 
 export const Config = new CG.component({
   category: CompCategory.Container,

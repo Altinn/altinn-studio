@@ -37,6 +37,7 @@ export class RadioButtons extends RadioButtonsDef {
   renderSummary2(
     componentNode: LayoutNode<'RadioButtons'>,
     summaryOverrides?: RadioSummaryOverrideProps,
+    isCompact?: boolean,
   ): JSX.Element | null {
     const displayData = this.useDisplayData(componentNode);
     return (
@@ -44,6 +45,7 @@ export class RadioButtons extends RadioButtonsDef {
         componentNode={componentNode}
         summaryOverrides={summaryOverrides}
         displayData={displayData}
+        isCompact={isCompact}
       />
     );
   }

@@ -12,17 +12,18 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 interface ComponentSummaryProps {
   componentNode: LayoutNode;
   summaryOverrides?: CompSummary2Internal['overrides'];
+  isCompact?: boolean;
 }
 
 interface ResolveComponentProps {
   summaryProps: CompSummary2External;
   summaryOverrides?: CompSummary2Internal['overrides'];
 }
-export function ComponentSummary({ componentNode, summaryOverrides }: ComponentSummaryProps) {
+export function ComponentSummary({ componentNode, summaryOverrides, isCompact }: ComponentSummaryProps) {
   const override = summaryOverrides?.find((override) => override.componentId === componentNode.item.id);
 
   const renderedComponent = componentNode.def.renderSummary2
-    ? componentNode.def.renderSummary2(componentNode as LayoutNode<any>, override)
+    ? componentNode.def.renderSummary2(componentNode as LayoutNode<any>, override, isCompact)
     : null;
 
   if (!renderedComponent) {

@@ -19,6 +19,7 @@ type MultipleValueSummaryProps = {
   title: React.ReactNode;
   componentNode: LayoutNode;
   showAsList?: boolean;
+  isCompact?: boolean;
 };
 
 function getSummaryData(
@@ -36,7 +37,21 @@ function getSummaryData(
   return getCommaSeparatedOptionsToText(value, optionList, langTools);
 }
 
-export const MultipleValueSummary = ({ title, componentNode, showAsList }: MultipleValueSummaryProps) => {
+function getDisplayType(
+  displayValues: string[],
+  showAsList?: boolean,
+  compact?: boolean,
+): 'list' | 'inline' | 'empty' | null {
+  if (!displayValues || displayValues?.length < 1) {
+    return 'empty';
+  }
+  if (compact || !showAsList) {
+    return 'inline';
+  }
+  return 'list';
+}
+
+export const MultipleValueSummary = ({ title, componentNode, showAsList, isCompact }: MultipleValueSummaryProps) => {
   const formDataSelector = FD.useDebouncedSelector();
 
   const langTools = useLanguage();
@@ -47,11 +62,15 @@ export const MultipleValueSummary = ({ title, componentNode, showAsList }: Multi
   const validations = useUnifiedValidationsForNode(componentNode);
   const errors = validationsOfSeverity(validations, 'error');
 
+  const displayType = getDisplayType(displayValues, showAsList, isCompact);
+
   return (
     <div className={classes.checkboxSummaryItem}>
-      <div className={cn(classes.labelValueWrapper, { [classes.error]: errors.length > 0 })}>
+      <div
+        className={cn(classes.labelValueWrapper, { [classes.error]: errors.length > 0, [classes.compact]: isCompact })}
+      >
         <Label weight={'regular'}>{title}</Label>
-        {displayValues?.length > 0 && showAsList && (
+        {displayType === 'list' && (
           <List.Root>
             <List.Unordered>
               {displayValues?.map((item) => (
@@ -65,7 +84,7 @@ export const MultipleValueSummary = ({ title, componentNode, showAsList }: Multi
             </List.Unordered>
           </List.Root>
         )}
-        {displayValues?.length > 0 && !showAsList && (
+        {displayType === 'inline' && (
           <Paragraph
             asChild
             className={classes.formValue}
@@ -73,17 +92,16 @@ export const MultipleValueSummary = ({ title, componentNode, showAsList }: Multi
             <span>{displayValues.join(', ')}</span>
           </Paragraph>
         )}
-        {!displayValues ||
-          (displayValues?.length < 1 && (
-            <Paragraph
-              asChild
-              className={classes.emptyValue}
-            >
-              <span>
-                <Lang id={'general.empty_summary'}></Lang>
-              </span>
-            </Paragraph>
-          ))}
+        {displayType === 'empty' && (
+          <Paragraph
+            asChild
+            className={classes.emptyValue}
+          >
+            <span>
+              <Lang id={'general.empty_summary'}></Lang>
+            </span>
+          </Paragraph>
+        )}
         {errors.length > 0 &&
           errors.map(({ message }) => (
             <ErrorMessage key={message.key}>
