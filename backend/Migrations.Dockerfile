@@ -4,12 +4,17 @@ WORKDIR /app
 
 COPY . .
 
-RUN dotnet build src/Designer/Designer.csproj -c Release
-
 RUN dotnet tool install --version 8.0.7 --global dotnet-ef
 ENV PATH="$PATH:/root/.dotnet/tools"
+
 ENV OidcLoginSettings__FetchClientIdAndSecretFromRootEnvFile=false
 ENV OidcLoginSettings__ClientId=dummyRequired
 ENV OidcLoginSettings__ClientSecret=dummyRequired
 
-ENTRYPOINT ["sh", "-c", "dotnet ef database update --no-build --project src/Designer/Designer.csproj --connection \"$CONNECTION\""]
+RUN dotnet ef migrations script --project src/Designer/Designer.csproj -o /app/migrations.sql
+
+FROM alpine:3.20.2 AS final
+COPY --from=build /app/migrations.sql migrations.sql
+RUN apk --no-cache add postgresql-client
+
+ENTRYPOINT ["sh", "-c", "psql -h $PGHOST -p $PGPORT -U $PGUSER -d $PGDATABASE -f migrations.sql"]

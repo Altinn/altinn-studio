@@ -154,4 +154,9 @@ services:
       context: backend
       dockerfile: Migrations.Dockerfile
     environment:
-      - CONNECTION=Host=studio_db;Port=5432;Username=designer_admin;Password=${POSTGRES_PASSWORD};Database=designerdb
+      - PGHOST=studio_db
+      - PGPORT=5432
+      - PGUSER=designer_admin
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+      - PGDATABASE=designerdb
+
