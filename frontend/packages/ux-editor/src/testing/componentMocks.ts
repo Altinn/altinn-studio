@@ -5,7 +5,7 @@ import type { FormContainer } from '../types/FormContainer';
 
 const commonProps = <T extends ComponentType>(
   type: T,
-): Pick<FormComponentBase, 'id' | 'itemType' | 'dataModelBindings'> & { type: T } => ({
+): Pick<FormComponentBase<T>, 'id' | 'itemType' | 'dataModelBindings' | 'type'> => ({
   id: type.toString(),
   itemType: 'COMPONENT',
   dataModelBindings: {},

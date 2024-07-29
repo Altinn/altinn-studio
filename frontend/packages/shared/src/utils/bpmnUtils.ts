@@ -1,13 +1,18 @@
-const updateDataTypesToSign = (definitions, callback) => {
+import type { Definitions, FlowElement, ModdleElement } from 'bpmn-moddle';
+
+const updateDataTypesToSign = (
+  definitions: Definitions,
+  callback: (element: ModdleElement) => void,
+) => {
   definitions.rootElements[0].flowElements
-    .filter((flowElement) => flowElement.$type === 'bpmn:Task')
-    .forEach((flowElement) => {
+    .filter((flowElement: FlowElement) => flowElement.$type === 'bpmn:Task')
+    .forEach((flowElement: FlowElement) => {
       flowElement.extensionElements.values[0].$children
-        .filter((child) => child.$type === 'altinn:signatureConfig')
-        .forEach((child) => {
+        .filter((child: ModdleElement) => child.$type === 'altinn:signatureConfig')
+        .forEach((child: ModdleElement) => {
           child.$children
-            ?.filter((subChild) => subChild.$type === 'altinn:dataTypesToSign')
-            .forEach((subChild) => {
+            ?.filter((subChild: ModdleElement) => subChild.$type === 'altinn:dataTypesToSign')
+            .forEach((subChild: ModdleElement) => {
               callback(subChild);
             });
         });
@@ -15,12 +20,12 @@ const updateDataTypesToSign = (definitions, callback) => {
 };
 
 export const removeDataTypeIdsToSign = (dataTypeIds: string[]) => {
-  return (definitions) => {
+  return (definitions: Definitions) => {
     let hasChanged = false;
 
-    updateDataTypesToSign(definitions, (dataTypeToSign) => {
+    updateDataTypesToSign(definitions, (dataTypeToSign: ModdleElement) => {
       const filteredChildren = dataTypeToSign.$children?.filter(
-        (item) => !dataTypeIds.includes(item.$body),
+        (item: ModdleElement) => !dataTypeIds.includes(item.$body),
       );
       if (filteredChildren?.length !== dataTypeToSign.$children?.length) {
         hasChanged = true;
@@ -38,16 +43,16 @@ export const updateDataTypeIdsToSign = (
     newId: string;
   }[],
 ) => {
-  return (definitions) => {
+  return (definitions: Definitions) => {
     let hasChanged = false;
 
-    updateDataTypesToSign(definitions, (dataTypeToSign) => {
-      const filteredChildren = dataTypeToSign.$children?.filter((item) =>
+    updateDataTypesToSign(definitions, (dataTypeToSign: ModdleElement) => {
+      const filteredChildren = dataTypeToSign.$children?.filter((item: ModdleElement) =>
         dataTypeIds.some((dataTypeId) => dataTypeId.oldId === item.$body),
       );
       if (filteredChildren?.length > 0) {
         hasChanged = true;
-        dataTypeToSign.$children = dataTypeToSign.$children?.map((item) => {
+        dataTypeToSign.$children = dataTypeToSign.$children?.map((item: ModdleElement) => {
           const dataTypeId = dataTypeIds.find((dataTypeId) => dataTypeId.oldId === item.$body);
           if (dataTypeId) {
             hasChanged = true;

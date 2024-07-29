@@ -1,20 +1,14 @@
 import React, { useState } from 'react';
-import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { LinkIcon } from '@studio/icons';
 import { SelectDataTypesToSign } from './SelectDataTypesToSign';
 import classes from './EditDataTypesToSign.module.css';
-import { getSelectedDataTypes } from './DataTypesToSignUtils';
-import { useBpmnApiContext } from '@altinn/process-editor/contexts/BpmnApiContext';
+import { useGetDataTypesToSign } from '../../../hooks/dataTypesToSign/useGetDataTypesToSign';
 
 export const EditDataTypesToSign = () => {
-  const { availableDataTypeIds } = useBpmnApiContext();
   const { t } = useTranslation();
-  const { bpmnDetails } = useBpmnContext();
-  const selectedDataTypes = getSelectedDataTypes(bpmnDetails).filter((item) =>
-    availableDataTypeIds.includes(item),
-  );
+  const selectedDataTypes = useGetDataTypesToSign();
 
   const [dataTypesToSignSelectVisible, setDataTypesToSignSelectVisible] = useState(
     !selectedDataTypes.length,

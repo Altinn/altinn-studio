@@ -170,8 +170,9 @@ describe('useUpdateFormComponentMutation', () => {
   describe('Update FileUpload and FileUploadWithTag components', () => {
     const componentTypes = [ComponentType.FileUpload, ComponentType.FileUploadWithTag];
 
-    componentTypes.forEach((componentType) => {
-      it(`Updates the layout and the bpmn file when updating the id of a ${componentType} component`, async () => {
+    it.each(componentTypes)(
+      `Updates the layout and the bpmn file when updating the id of a %s component`,
+      async (componentType) => {
         const oldId = componentMocks[componentType].id;
         const newId = 'newId';
 
@@ -215,8 +216,8 @@ describe('useUpdateFormComponentMutation', () => {
         );
 
         expect(queriesMock.updateBpmnXml).toHaveBeenCalledTimes(1);
-      });
-    });
+      },
+    );
   });
 });
 
