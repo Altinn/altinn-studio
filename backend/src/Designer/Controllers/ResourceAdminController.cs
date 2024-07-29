@@ -351,10 +351,10 @@ namespace Altinn.Studio.Designer.Controllers
 
         [HttpPost]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaPublishResourcePermission)]
-        [Route("designer/api/{org}/resources/altinn2/exportdelegations/{env}")]
-        public async Task<ActionResult> ExportDelegations([FromBody] ExportDelegationsRequestBE delegationRequest, string environment)
+        [Route("designer/api/{org}/resources/altinn2/delegationmigration/{env}")]
+        public async Task<ActionResult> MigrateDelegations([FromBody] ExportDelegationsRequestBE delegationRequest, string env)
         {
-            return await _resourceRegistry.StartMigrateDelegations(delegationRequest, environment);
+            return await _resourceRegistry.StartMigrateDelegations(delegationRequest, env);
         }
 
         [HttpGet]

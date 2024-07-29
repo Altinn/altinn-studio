@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import classes from './MigrationPage.module.css';
 import {
   useResourcePolicyPublishStatusQuery,
@@ -6,21 +6,12 @@ import {
   useValidateResourceQuery,
 } from '../../hooks/queries';
 import { MigrationStep } from '../../components/MigrationStep';
-import {
-  Textfield,
-  Heading,
-  Paragraph,
-  Spinner,
-  Label,
-  Link,
-  Radio,
-} from '@digdir/designsystemet-react';
+import { Heading, Paragraph, Spinner, Label, Link, Accordion } from '@digdir/designsystemet-react';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import { useTranslation } from 'react-i18next';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
-import type { EnvId } from '../../utils/resourceUtils';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';
+import { MigrationPanel } from '../../components/MigrationPanel';
 import { useGetAltinn2DelegationsCount } from 'resourceadm/hooks/queries/useGetAltinn2DelegationCount';
 
 export type MigrationPageProps = {
@@ -103,9 +94,10 @@ export const MigrationPage = ({
           {t('resourceadm.migration_header')}
         </Heading>
         <div className={classes.contentWrapper}>
-          <Paragraph size='small'>
-            {t('resourceadm.migration_ingress')}
+          <Paragraph size='small' spacing>
+            {t('resourceadm.migration_ingress')}{' '}
             <Link
+              className={classes.migrationLink}
               href='https://docs.altinn.studio/authorization/modules/resourceregistry/'
               rel='noopener noreferrer'
               target='_blank'
@@ -127,7 +119,7 @@ export const MigrationPage = ({
           <MigrationStep
             title={t('resourceadm.migration_step_access_rules_header')}
             text={
-              validatePolicyData === undefined
+              validatePolicyData.status === 404
                 ? 'resourceadm.migration_no_access_rules'
                 : validatePolicyData.status === 200
                   ? 'resourceadm.migration_access_rules_ready_for_migration'
@@ -158,117 +150,29 @@ export const MigrationPage = ({
             {t('resourceadm.migration_select_environment_header')}
           </Label>
           <Paragraph size='small'>{t('resourceadm.migration_select_environment_body')}</Paragraph>
-          <Radio.Group
-            hideLegend
-            onChange={(newEnv: EnvId) => {
-              setSelectedEnv(newEnv);
-              setIsDelegationCountEnabled(false);
-            }}
-            value={selectedEnv || '-'}
-            legend={t('resourceadm.migration_select_environment_header')}
-            description={t('resourceadm.migration_select_environment_body')}
-          >
+          <div>
             {envPublishStatus.map((env) => {
               const isPublishedInEnv = env.isResourcePublished;
               return (
-                <Radio key={env.id} value={env.id}>
-                  {`${t(env.label)} ${!isPublishedInEnv ? t('resourceadm.migration_environment_not_published') : ''}`}
-                </Radio>
+                <Accordion key={env.id}>
+                  <Accordion.Item>
+                    <Accordion.Header>{t(env.label)}</Accordion.Header>
+                    <Accordion.Content>
+                      <MigrationPanel
+                        serviceCode={serviceCode}
+                        serviceEdition={serviceEdition}
+                        env={env}
+                        isMigrationReady={
+                          validateResourceData.status === 200 && validatePolicyData?.status === 200
+                        }
+                        isPublishedInEnv={isPublishedInEnv}
+                      />
+                    </Accordion.Content>
+                  </Accordion.Item>
+                </Accordion>
               );
             })}
-          </Radio.Group>
-          {selectedEnv && (
-            <>
-              <StudioLabelAsParagraph size='medium' spacing>
-                {t('resourceadm.migration_select_migration_time_header')}
-              </StudioLabelAsParagraph>
-              <Paragraph size='small'>
-                {t('resourceadm.migration_select_migration_time_body')}
-              </Paragraph>
-              <div className={classes.datePickers}>
-                <div className={classes.datePickerWrapper}>
-                  <Textfield
-                    type='date'
-                    value={migrationDate}
-                    onChange={(e) => setMigrationDate(e.target.value)}
-                    label={t('resourceadm.migration_migration_date')}
-                    size='small'
-                  />
-                </div>
-                <div className={classes.datePickerWrapper}>
-                  <Textfield
-                    type='time'
-                    value={migrationTime}
-                    onChange={(e) => setMigrationTime(e.target.value)}
-                    label={t('resourceadm.migration_migration_time')}
-                    size='small'
-                  />
-                </div>
-              </div>
-              <div className={classes.numDelegations}>
-                <StudioLabelAsParagraph size='medium' spacing>
-                  {t('resourceadm.migration_number_of_delegations')}
-                </StudioLabelAsParagraph>
-                <div>
-                  {isDelegationCountEnabled && numberOfA2Delegations && (
-                    <div className={classes.delegations}>
-                      <Paragraph size='small'>
-                        {t('resourceadm.migration_altinn_2')}:{' '}
-                        <strong>{numberOfA2Delegations.numberOfDelegations}</strong>{' '}
-                        {t('resourceadm.migration_delegations')}
-                      </Paragraph>
-                      <Paragraph size='small'>
-                        {t('resourceadm.migration_altinn_3')}: <strong>{1000}</strong>{' '}
-                        {t('resourceadm.migration_delegations')}
-                      </Paragraph>
-                    </div>
-                  )}
-                  <StudioButton
-                    onClick={() =>
-                      isDelegationCountEnabled
-                        ? refetchNumberOfA2Delegations()
-                        : setIsDelegationCountEnabled(true)
-                    }
-                    className={classes.button}
-                  >
-                    {t('resourceadm.migration_get_number_of_delegations')}
-                  </StudioButton>
-                </div>
-              </div>
-              <StudioLabelAsParagraph size='medium' spacing>
-                {t('resourceadm.migration_finish_migration')}
-              </StudioLabelAsParagraph>
-              <Paragraph size='small'>{t('resourceadm.migration_delegation_info')}</Paragraph>
-              <div className={classes.buttonWrapper}>
-                <StudioButton
-                  aria-disabled={
-                    !(
-                      validateResourceData.status === 200 &&
-                      validatePolicyData?.status === 200 &&
-                      deployOK
-                    )
-                  }
-                  onClick={
-                    validateResourceData.status === 200 &&
-                    validatePolicyData?.status === 200 &&
-                    deployOK
-                      ? () => {} // TODO
-                      : undefined
-                  }
-                  className={classes.button}
-                >
-                  {t('resourceadm.migration_migrate_delegations')}
-                </StudioButton>
-                <StudioButton
-                  aria-disabled // Remember to do same check for aria-disabled as fot button below
-                  onClick={() => {}}
-                  className={classes.button}
-                >
-                  {t('resourceadm.migration_turn_off_altinn_2_service')}
-                </StudioButton>
-              </div>
-            </>
-          )}
+          </div>
         </div>
       </>
     );

@@ -1,7 +1,6 @@
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import type { MigrationPageProps } from './MigrationPage';
 import { MigrationPage } from './MigrationPage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -71,8 +70,27 @@ describe('MigrationPage', () => {
     await screen.findByText(textMock('resourceadm.migration_publish_warning'));
   });
 
+  it('Should show error message for resource data and policy data when resource is not ready to be migrated', async () => {
+    renderMigrationPage({
+      getValidatePolicy: jest.fn().mockImplementation(() =>
+        Promise.resolve({
+          status: 404,
+          errors: {},
+        }),
+      ),
+      getValidateResource: jest.fn().mockImplementation(() =>
+        Promise.resolve({
+          status: 400,
+          errors: {},
+        }),
+      ),
+    });
+
+    await screen.findByText(textMock('resourceadm.migration_step_about_resource_errors'));
+    await screen.findByText(textMock('resourceadm.migration_no_access_rules'));
+  });
+
   it('Should show migrate delegations button when environment is selected', async () => {
-    const user = userEvent.setup();
     renderMigrationPage({
       getValidatePolicy: jest.fn().mockImplementation(() =>
         Promise.resolve({
@@ -120,16 +138,10 @@ describe('MigrationPage', () => {
       ),
     });
 
-    // wait for radio buttons to be shown
+    // wait for accordions to be shown
     await waitFor(() => {
-      expect(screen.getByLabelText(textMock('resourceadm.deploy_test_env'))).toBeInTheDocument();
+      expect(screen.getByText(textMock('resourceadm.deploy_test_env'))).toBeInTheDocument();
     });
-    const tt02Radio = screen.getByLabelText(textMock('resourceadm.deploy_test_env'));
-    await user.click(tt02Radio);
-
-    expect(
-      screen.getByText(textMock('resourceadm.migration_migrate_delegations')),
-    ).toBeInTheDocument();
   });
 
   it('Should refetch number of delegations when get delegations button is clicked', async () => {
