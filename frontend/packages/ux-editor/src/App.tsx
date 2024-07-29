@@ -9,6 +9,7 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResources
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { FormItemContextProvider } from './containers/FormItemContext';
 import { cleanupStaleLocalStorageKeys } from './utils/localStorageUtils';
+import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 
 /**
  * This is the main React component responsible for controlling
@@ -32,7 +33,16 @@ export function App() {
       app,
       layoutSetName: selectedFormLayoutSetName,
     });
-  const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
+  const { isSuccess: areTextResourcesFetched, data: textResources } = useTextResourcesQuery(
+    org,
+    app,
+  );
+
+  const { doReloadPreview } = usePreviewContext();
+  useEffect(() => {
+    doReloadPreview();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [textResources]);
 
   const componentIsReady = areWidgetsFetched && isDataModelFetched && areTextResourcesFetched;
 
