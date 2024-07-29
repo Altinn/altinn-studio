@@ -157,11 +157,10 @@ describe('ExpressionEditMode', () => {
     const functionDropDown = screen.getByRole('combobox', {
       name: textMock('right_menu.expressions_function'),
     });
-    await user.click(functionDropDown);
     const functionOption = screen.getByRole('option', {
       name: textMock('right_menu.expressions_function_less_than'),
     });
-    await user.click(functionOption);
+    await user.selectOptions(functionDropDown, functionOption);
     const simpleInternalExpressionCopy = ObjectUtils.deepCopy(simpleInternalExpression);
     simpleInternalExpressionCopy.subExpressions[0].function = ExpressionFunction.LessThan;
     expect(mockOnSetExpression).toHaveBeenCalledWith(simpleInternalExpressionCopy);
@@ -194,7 +193,7 @@ describe('ExpressionEditMode', () => {
         onSetExpression: mockOnSetExpression,
       },
     });
-    const andOperatorToggleButton = screen.getByRole('button', {
+    const andOperatorToggleButton = screen.getByRole('radio', {
       name: textMock('right_menu.expressions_operator_and'),
     });
     await user.click(andOperatorToggleButton);

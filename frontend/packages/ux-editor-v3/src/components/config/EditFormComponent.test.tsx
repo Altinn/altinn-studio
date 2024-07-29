@@ -131,50 +131,6 @@ describe('EditFormComponent', () => {
     labels.map((label) => expect(screen.getByLabelText(label)));
   });
 
-  test('should call handleComponentUpdate with max number of attachments to 1 when clearing max number of attachments', async () => {
-    const handleUpdate = jest.fn();
-    const { allComponentProps } = await render({
-      componentProps: {
-        maxNumberOfAttachments: 3,
-        type: ComponentTypeV3.FileUpload,
-      },
-      handleComponentUpdate: handleUpdate,
-    });
-
-    const maxFilesInput = screen.getByLabelText(
-      textMock('ux_editor.modal_properties_maximum_files'),
-    );
-
-    await user.clear(maxFilesInput);
-    expect(handleUpdate).toHaveBeenCalledWith({
-      ...allComponentProps,
-      maxNumberOfAttachments: 1,
-    });
-  });
-
-  test('should call handleComponentUpdate with required: false when min number of attachments is set to 0', async () => {
-    const handleUpdate = jest.fn();
-    const { allComponentProps } = await render({
-      componentProps: {
-        required: true,
-        minNumberOfAttachments: 1,
-        type: ComponentTypeV3.FileUpload,
-      },
-      handleComponentUpdate: handleUpdate,
-    });
-
-    const minFilesInput = screen.getByLabelText(
-      textMock('ux_editor.modal_properties_minimum_files'),
-    );
-
-    await user.clear(minFilesInput);
-    expect(handleUpdate).toHaveBeenCalledWith({
-      ...allComponentProps,
-      required: false,
-      minNumberOfAttachments: 0,
-    });
-  });
-
   test('should return button specific content when type button', async () => {
     await render({
       componentProps: {

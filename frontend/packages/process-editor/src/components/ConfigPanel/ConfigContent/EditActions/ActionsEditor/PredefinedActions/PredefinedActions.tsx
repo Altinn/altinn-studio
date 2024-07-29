@@ -33,6 +33,7 @@ export const PredefinedActions = ({
 
   return (
     <StudioNativeSelect
+      id='predefined-action-select'
       size='small'
       label={t('process_editor.configuration_panel_actions_action_selector_label')}
       onChange={handleOnActionChange}

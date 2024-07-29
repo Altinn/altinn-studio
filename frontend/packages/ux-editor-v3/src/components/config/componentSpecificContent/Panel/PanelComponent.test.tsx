@@ -21,7 +21,7 @@ import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock'
 const selectedLayoutSet = layoutSet1NameMock;
 
 const component: FormComponent<ComponentTypeV3.Panel> = {
-  id: '',
+  id: 'testid',
   itemType: 'COMPONENT',
   type: ComponentTypeV3.Panel,
   dataModelBindings: {},
@@ -78,8 +78,7 @@ describe('PanelComponent', () => {
     const select = screen.getByRole('combobox', {
       name: textMock('ux_editor.choose_variant'),
     });
-    await user.click(select);
-    await user.click(screen.getAllByRole('option')[1]);
+    await user.selectOptions(select, screen.getAllByRole('option')[1]);
 
     expect(mockHandleComponentChange).toHaveBeenCalledTimes(1);
     expect(mockHandleComponentChange).toHaveBeenCalledWith({

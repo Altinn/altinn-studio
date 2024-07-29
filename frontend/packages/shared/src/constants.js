@@ -9,6 +9,7 @@ export const DEFAULT_LANGUAGE = 'nb';
 export const BASE_CONTAINER_ID = '__base__';
 export const DEPLOYMENTS_REFETCH_INTERVAL = 15000;
 export const AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS = 400;
+export const NEWS_EXPIRATION_TIME_IN_DAYS = 30;
 export const APP_NAME = 'appName';
 export const DEFAULT_SELECTED_LAYOUT_NAME = 'default';
 export const TASKID_FOR_STATELESS_APPS = 'Task_1';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { LegacyTextField } from '@digdir/design-system-react';
+import { StudioTextfield } from '@studio/components';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FormField } from './FormField';
@@ -38,7 +38,7 @@ const render = async (props: Partial<FormFieldProps<string, string>> = {}) => {
     <FormField
       {...allProps}
       renderField={({ fieldProps }) => (
-        <LegacyTextField
+        <StudioTextfield
           {...fieldProps}
           onChange={(event) => fieldProps.onChange(event.target.value, event)}
         />

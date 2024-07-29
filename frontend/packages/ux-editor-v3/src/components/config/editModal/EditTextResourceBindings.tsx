@@ -1,10 +1,11 @@
+import type { ChangeEvent } from 'react';
 import React, { useMemo } from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { EditTextResourceBinding } from './EditTextResourceBinding';
 import classes from './EditTextResourceBindings.module.css';
 import type { TranslationKey } from 'language/type';
 import { useTranslation } from 'react-i18next';
-import { LegacySelect } from '@digdir/design-system-react';
+import { StudioNativeSelect } from '@studio/components';
 
 export type TextResourceBindingKey = 'description' | 'title' | 'help' | 'body';
 
@@ -26,13 +27,13 @@ export const EditTextResourceBindings = ({
     [keysSet, textResourceBindingKeys],
   );
 
-  const handleAddKey = (key: string) => {
-    setKeysSet([...keysSet, key]);
+  const handleAddKey = (event: ChangeEvent<HTMLSelectElement>) => {
+    setKeysSet([...keysSet, event.target.value]);
     handleComponentChange({
       ...component,
       textResourceBindings: {
         ...component.textResourceBindings,
-        [key]: '',
+        [event.target.value]: '',
       },
     });
   };
@@ -58,14 +59,17 @@ export const EditTextResourceBindings = ({
       ))}
       {keysToAdd.length > 0 && (
         <div className={classes.addContainer}>
-          <LegacySelect
-            options={keysToAdd.map((key) => ({
-              label: t(`ux_editor.modal_properties_textResourceBindings_${key}`),
-              value: key,
-            }))}
-            onChange={(value) => handleAddKey(value)}
+          <StudioNativeSelect
+            id={component.id}
+            onChange={handleAddKey}
             label={t('ux_editor.text_resource_bindings.add_label')}
-          />
+          >
+            {keysToAdd.map((key) => (
+              <option key={key} value={key}>
+                {t(`ux_editor.modal_properties_textResourceBindings_${key}`)}
+              </option>
+            ))}
+          </StudioNativeSelect>
         </div>
       )}
     </div>

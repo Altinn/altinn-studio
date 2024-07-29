@@ -1,6 +1,5 @@
 import React from 'react';
 import { Fieldset, Radio, Textfield } from '@digdir/designsystemet-react';
-import { LegacyTextField } from '@digdir/design-system-react';
 import classes from './FileUploadComponent.module.css';
 import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
@@ -10,6 +9,7 @@ import type {
 } from '../../../../types/FormComponent';
 import { FormField } from '../../../FormField';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
+import { StudioTextfield } from '@studio/components';
 
 export const FileUploadComponent = ({
   component,
@@ -132,10 +132,10 @@ export const FileUploadComponent = ({
         value={fileUploaderComponent.minNumberOfAttachments || 0}
         propertyPath={`${component.propertyPath}/properties/minNumberOfAttachments`}
         renderField={({ fieldProps }) => (
-          <LegacyTextField
+          <StudioTextfield
             {...fieldProps}
             name={`modal-properties-minimum-files-input-${fileUploaderComponent.id}`}
-            formatting={{ number: {} }}
+            type='number'
             onChange={(e) => fieldProps.onChange(parseInt(e.target.value, 10), e)}
           />
         )}
@@ -148,10 +148,10 @@ export const FileUploadComponent = ({
         value={fileUploaderComponent.maxNumberOfAttachments || 1}
         propertyPath={`${component.propertyPath}/properties/maxNumberOfAttachments`}
         renderField={({ fieldProps }) => (
-          <LegacyTextField
+          <StudioTextfield
             {...fieldProps}
             name={`modal-properties-maximum-files-input-${fileUploaderComponent.id}`}
-            formatting={{ number: {} }}
+            type='number'
             onChange={(e) => fieldProps.onChange(parseInt(e.target.value, 10), e)}
           />
         )}
@@ -166,10 +166,10 @@ export const FileUploadComponent = ({
         value={fileUploaderComponent.maxFileSizeInMB || 0}
         propertyPath={`${component.propertyPath}/properties/maxFileSizeInMB`}
         renderField={({ fieldProps }) => (
-          <LegacyTextField
+          <StudioTextfield
             {...fieldProps}
             name='modal-properties-file-size'
-            formatting={{ number: {} }}
+            type='number'
             onChange={(e) => fieldProps.onChange(parseInt(e.target.value, 10), e)}
           />
         )}

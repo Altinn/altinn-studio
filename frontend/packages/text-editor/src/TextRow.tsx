@@ -3,7 +3,7 @@ import classes from './TextRow.module.css';
 import type { TextResourceIdMutation, TextResourceVariable, TextTableRowEntry } from './types';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 import { PencilIcon } from '@studio/icons';
-import { TableCell, TableRow, Textfield } from '@digdir/designsystemet-react';
+import { Table, Textfield } from '@digdir/designsystemet-react';
 
 import { useTranslation } from 'react-i18next';
 import { ButtonContainer } from 'app-shared/primitives';
@@ -72,8 +72,8 @@ export const TextRow = ({
   };
 
   return (
-    <TableRow>
-      <TableCell>
+    <Table.Row>
+      <Table.Cell>
         {showDeleteButton && (
           <StudioDeleteButton
             confirmMessage={t('schema_editor.textRow-deletion-text')}
@@ -81,8 +81,7 @@ export const TextRow = ({
             title={t('general.delete')}
           />
         )}
-      </TableCell>
-
+      </Table.Cell>
       {selectedLanguages.map((lang) => {
         let translation = textRowEntries.find((e) => e.lang === lang);
         if (!translation) {
@@ -92,7 +91,7 @@ export const TextRow = ({
           };
         }
         return (
-          <TableCell
+          <Table.Cell
             key={translation.lang + '-' + textId}
             className={`${classes.textAreaCell} ${classes.cellContent}`}
           >
@@ -102,10 +101,10 @@ export const TextRow = ({
               textId={textId}
               className={classes.textEntryComponent}
             />
-          </TableCell>
+          </Table.Cell>
         );
       })}
-      <TableCell className={classes.cellContent}>
+      <Table.Cell className={classes.cellContent}>
         <ButtonContainer className={classes.textIdContainer}>
           {textIdEditOpen ? (
             <Textfield
@@ -130,10 +129,10 @@ export const TextRow = ({
             />
           )}
         </ButtonContainer>
-      </TableCell>
-      <TableCell>
+      </Table.Cell>
+      <Table.Cell>
         <Variables variables={textVariables} />
-      </TableCell>
-    </TableRow>
+      </Table.Cell>
+    </Table.Row>
   );
 };

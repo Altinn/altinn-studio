@@ -48,7 +48,7 @@ describe('ArrayRestrictions', () => {
       expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(
         pathMock,
         ArrRestrictionKey.minItems,
-        '12',
+        '100',
       ),
     );
   });
@@ -67,7 +67,7 @@ describe('ArrayRestrictions', () => {
       expect(onChangeRestrictionValueMock).toHaveBeenCalledWith(
         pathMock,
         ArrRestrictionKey.maxItems,
-        '12',
+        '100',
       ),
     );
   });

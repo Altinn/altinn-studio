@@ -25,23 +25,23 @@ describe('SimpleExpression', () => {
 
   it('displays two data source selector components from subExpressionContent when there are two subExpressions in the expression', () => {
     render({});
-    const subExpressionDataSourceSelectors = screen.queryAllByRole('combobox', {
-      name: textMock('right_menu.expressions_data_source'),
-    });
+    const subExpressionDataSourceSelectors = screen.queryAllByLabelText(
+      textMock('right_menu.expressions_data_source'),
+    );
     expect(subExpressionDataSourceSelectors).toHaveLength(2);
   });
   it('displays one addSubExpressionButton and one toggleButtonGroup with OR operator pressed', () => {
     render({});
-    const operatorToggleGroupOr = screen.getByRole('button', {
+    const operatorToggleGroupOr = screen.getByRole('radio', {
       name: textMock('right_menu.expressions_operator_or'),
     });
-    const operatorToggleGroupAnd = screen.getByRole('button', {
+    const operatorToggleGroupAnd = screen.getByRole('radio', {
       name: textMock('right_menu.expressions_operator_and'),
     });
     expect(operatorToggleGroupOr).toBeInTheDocument();
-    expect(operatorToggleGroupOr).toHaveAttribute('aria-pressed', 'true');
+    expect(operatorToggleGroupOr).toHaveAttribute('aria-checked', 'true');
     expect(operatorToggleGroupAnd).toBeInTheDocument();
-    expect(operatorToggleGroupAnd).toHaveAttribute('aria-pressed', 'false');
+    expect(operatorToggleGroupAnd).toHaveAttribute('aria-checked', 'false');
   });
 });
 

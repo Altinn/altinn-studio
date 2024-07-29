@@ -108,6 +108,14 @@ export class TextEditorPage extends BasePage {
       .fill(newValue);
   }
 
+  public async selectLanguageFromCombobox(lang: LanguageCode): Promise<void> {
+    await this.page
+      .getByRole('combobox', {
+        name: this.textMock('schema_editor.language_add_language'),
+      })
+      .selectOption(lang);
+  }
+
   public async openSelectLanguageCombobox(): Promise<void> {
     await this.page
       .getByRole('combobox', {

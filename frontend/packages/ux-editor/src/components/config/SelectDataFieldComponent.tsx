@@ -65,7 +65,11 @@ export const SelectDataFieldComponent = ({
       helpText={helpText}
       label={label}
       renderField={({ fieldProps }) => (
-        <StudioNativeSelect {...fieldProps} onChange={(e) => fieldProps.onChange(e.target.value)}>
+        <StudioNativeSelect
+          id={inputId}
+          {...fieldProps}
+          onChange={(e) => fieldProps.onChange(e.target.value)}
+        >
           {dataModelElementNames.map((element) => (
             <option key={element.value} value={element.value}>
               {element.label}

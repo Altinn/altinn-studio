@@ -22,6 +22,8 @@ import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsU
 import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
 import type { DataModelBindingsSimple } from 'app-shared/types/ComponentSpecificConfig';
 import { app, org } from '@studio/testing/testids';
+import { componentMocks } from '../../testing/componentMocks';
+import { getDataTypesToSignMock } from 'app-shared/mocks/bpmnDefinitionsMock';
 
 // Test data:
 const selectedLayoutName = layout1NameMock;
@@ -38,6 +40,18 @@ const updatedComponent: FormComponent = {
   dataModelBindings,
 };
 const defaultArgs: UpdateFormComponentMutationArgs = { id, updatedComponent };
+
+jest.mock('bpmn-moddle', () =>
+  jest.fn(() => ({
+    fromXML: jest.fn().mockResolvedValue({
+      rootElement: getDataTypesToSignMock([
+        componentMocks[ComponentType.FileUpload].id,
+        componentMocks[ComponentType.FileUploadWithTag].id,
+      ]),
+    }),
+    toXML: jest.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
+  })),
+);
 
 describe('useUpdateFormComponentMutation', () => {
   afterEach(jest.clearAllMocks);
@@ -151,6 +165,59 @@ describe('useUpdateFormComponentMutation', () => {
         );
       }
     }
+  });
+
+  describe('Update FileUpload and FileUploadWithTag components', () => {
+    const componentTypes = [ComponentType.FileUpload, ComponentType.FileUploadWithTag];
+
+    it.each(componentTypes)(
+      `Updates the layout and the bpmn file when updating the id of a %s component`,
+      async (componentType) => {
+        const oldId = componentMocks[componentType].id;
+        const newId = 'newId';
+
+        renderAndWaitForData();
+
+        const updateFormComponentResult = renderHookWithProviders(() =>
+          useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
+        ).result;
+
+        await updateFormComponentResult.current.mutateAsync({
+          id: oldId,
+          updatedComponent: {
+            ...componentMocks[componentType],
+            id: newId,
+          },
+        });
+
+        expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);
+        expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
+          org,
+          app,
+          layout1NameMock,
+          selectedLayoutSet,
+          {
+            componentIdsChange: [
+              {
+                newComponentId: newId,
+                oldComponentId: oldId,
+              },
+            ],
+            layout: expect.objectContaining({
+              data: expect.objectContaining({
+                layout: expect.arrayContaining([
+                  expect.objectContaining({
+                    id: newId,
+                  }),
+                ]),
+              }),
+            }),
+          },
+        );
+
+        expect(queriesMock.updateBpmnXml).toHaveBeenCalledTimes(1);
+      },
+    );
   });
 });
 

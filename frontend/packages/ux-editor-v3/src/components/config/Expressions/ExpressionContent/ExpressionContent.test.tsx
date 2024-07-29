@@ -85,7 +85,7 @@ describe('ExpressionContent', () => {
     });
     expect(comparableDataSourceSelectComponent).toHaveLength(3);
     const comparableDataSourceValueSelectComponent = screen.queryAllByRole('textbox');
-    expect(comparableDataSourceValueSelectComponent).toHaveLength(2);
+    expect(comparableDataSourceValueSelectComponent).toHaveLength(1);
     const saveExpressionButton = screen.getByRole('button', {
       name: textMock('right_menu.expression_save'),
     });

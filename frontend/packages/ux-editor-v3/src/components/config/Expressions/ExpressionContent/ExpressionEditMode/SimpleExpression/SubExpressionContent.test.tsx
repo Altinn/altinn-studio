@@ -60,12 +60,8 @@ describe('SubExpressionContent', () => {
     });
     expect(dataSourceSelectElement).toBeInTheDocument();
     expect(comparableDataSourceSelectElement).toBeInTheDocument();
-    expect(dataSourceSelectElement).toHaveValue(
-      textMock('right_menu.expressions_data_source_select'),
-    );
-    expect(comparableDataSourceSelectElement).toHaveValue(
-      textMock('right_menu.expressions_data_source_select'),
-    );
+    expect(dataSourceSelectElement).toHaveValue('default');
+    expect(comparableDataSourceSelectElement).toHaveValue('default');
   });
   it('calls onUpdateSubExpression when subExpression had existing value and dataSource is changed to DataSource.DataModel', async () => {
     const onUpdateSubExpression = jest.fn();
@@ -84,19 +80,15 @@ describe('SubExpressionContent', () => {
     const selectDataSourceComponent = screen.getByRole('combobox', {
       name: textMock('right_menu.expressions_data_source'),
     });
-    expect(selectDataSourceComponent).toHaveValue(
-      textMock('right_menu.expressions_data_source_component'),
-    );
+    expect(selectDataSourceComponent).toHaveValue('component');
     const referenceSelector = screen.getByRole('combobox', {
       name: textMock('right_menu.expressions_data_source_value'),
     });
     expect(referenceSelector).toHaveValue(subExpression0.value as string);
     // Click component/dataSource dropdown
-    await user.click(selectDataSourceComponent);
-    await user.click(
-      screen.getByRole('option', {
-        name: textMock('right_menu.expressions_data_source_data_model'),
-      }),
+    await user.selectOptions(
+      selectDataSourceComponent,
+      textMock('right_menu.expressions_data_source_data_model'),
     );
     expect(onUpdateSubExpression).toHaveBeenCalledTimes(1);
     expect(onUpdateSubExpression).toHaveBeenCalledWith({
@@ -122,9 +114,7 @@ describe('SubExpressionContent', () => {
     const selectDataSourceComponent = screen.getByRole('combobox', {
       name: textMock('right_menu.expressions_comparable_data_source'),
     });
-    expect(selectDataSourceComponent).toHaveValue(
-      textMock('right_menu.expressions_data_source_string'),
-    );
+    expect(selectDataSourceComponent).toHaveValue('string');
     const comparableValueInputField = screen.getByRole('textbox', {
       name: textMock('right_menu.expressions_data_source_comparable_value'),
     });
@@ -152,13 +142,9 @@ describe('SubExpressionContent', () => {
       name: textMock('right_menu.expressions_comparable_data_source'),
     });
     const selectComparableValueComponent = screen.getByRole('textbox');
-    expect(selectDataSourceComponent).toHaveValue(
-      textMock('right_menu.expressions_data_source_component'),
-    );
+    expect(selectDataSourceComponent).toHaveValue('component');
     expect(selectValueComponent).toHaveValue(subExpression0.value as string);
-    expect(selectComparableDataSourceComponent).toHaveValue(
-      textMock('right_menu.expressions_data_source_string'),
-    );
+    expect(selectComparableDataSourceComponent).toHaveValue('string');
     expect(selectComparableValueComponent).toHaveValue(subExpression0.comparableValue as string);
   });
   it('removes subExpression from expression object and renders nothing when remove-sub-expression is clicked', async () => {

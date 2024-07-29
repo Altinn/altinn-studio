@@ -67,7 +67,7 @@ describe('CustomProperties', () => {
 
   it('Renders a number input with correct value for number properties', () => {
     render();
-    expect(screen.getByLabelText(numberPropKey)).toHaveValue(numberPropValue.toString());
+    expect(screen.getByLabelText(numberPropKey)).toHaveValue(numberPropValue);
   });
 
   it('Renders a checkbox with correct value for boolean properties', () => {

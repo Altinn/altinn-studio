@@ -40,7 +40,7 @@ export const castRestrictionType = (key: string, value?: string | boolean) => {
       StrRestrictionKey.minLength,
     ].includes(key as ArrRestrictionKey & StrRestrictionKey & IntRestrictionKey)
   ) {
-    return parseInt(value.toString());
+    return parseFloat(value.toString());
   } else {
     return value;
   }

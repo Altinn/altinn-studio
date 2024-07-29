@@ -15,14 +15,12 @@ const noTextText = textMock('ux_editor.no_text');
 describe('TextResourceOption', () => {
   it('Renders id and value', () => {
     render();
-    expect(screen.getByText(id)).toBeInTheDocument();
-    expect(screen.getByText(value)).toBeInTheDocument();
+    expect(screen.getByText(`${id}: ${value}`)).toBeInTheDocument();
   });
 
   it('Renders "no text" text when there is no text value', () => {
     render({ textResource: { id, value: '' } });
-    expect(screen.getByText(id)).toBeInTheDocument();
-    expect(screen.getByText(noTextText)).toBeInTheDocument();
+    expect(screen.getByText(`${id}: ${noTextText}`)).toBeInTheDocument();
   });
 });
 

@@ -46,7 +46,7 @@ describe('PolicySubjects', () => {
     expect(optionSubject2).toBeInTheDocument();
     expect(optionSubject3).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('option', { name: mockSubjectTitle2 }));
+    await user.selectOptions(subjectSelect, mockSubjectTitle2);
 
     expect(mockPolicyEditorContextValue.setPolicyRules).toHaveBeenCalledTimes(1);
 
@@ -84,8 +84,10 @@ describe('PolicySubjects', () => {
     const user = userEvent.setup();
     renderPolicySubjects();
 
-    const chipElement = screen.getByText(mockSubjectTitle2);
-    await user.click(chipElement);
+    await user.selectOptions(
+      screen.getByLabelText(textMock('policy_editor.rule_card_subjects_title')),
+      mockSubjectTitle2,
+    );
 
     expect(mockPolicyEditorContextValue.setPolicyRules).toHaveBeenCalledTimes(1);
     expect(mockPolicyEditorContextValue.savePolicy).toHaveBeenCalledTimes(1);

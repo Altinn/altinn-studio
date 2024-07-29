@@ -11,6 +11,8 @@ import { useFormLayout, useSelectedTaskId } from '../';
 import { ObjectUtils } from '@studio/pure-functions';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import type { FormComponent, FormFileUploaderComponent } from '../../types/FormComponent';
+import { useUpdateBpmn } from 'app-shared/hooks/useUpdateBpmn';
+import { updateDataTypeIdsToSign } from 'app-shared/utils/bpmnUtils';
 
 export interface UpdateFormComponentMutationArgs {
   updatedComponent: FormComponent;
@@ -31,6 +33,7 @@ export const useUpdateFormComponentMutation = (
   const updateAppAttachmentMetadata = useUpdateAppAttachmentMetadataMutation(org, app);
   const taskId = useSelectedTaskId(layoutSetName);
   const { mutateAsync: saveRuleConfig } = useRuleConfigMutation(org, app, layoutSetName);
+  const updateBpmn = useUpdateBpmn(org, app);
   return useMutation({
     mutationFn: ({ updatedComponent, id }: UpdateFormComponentMutationArgs) => {
       const updatedLayout: IInternalLayout = ObjectUtils.deepCopy(layout);
@@ -87,6 +90,14 @@ export const useUpdateFormComponentMutation = (
                   minCount: minNumberOfAttachments,
                 })
                 .then(() => deleteAppAttachmentMetadataMutation.mutateAsync(id));
+              await updateBpmn(
+                updateDataTypeIdsToSign([
+                  {
+                    oldId: id,
+                    newId: updatedComponent.id,
+                  },
+                ]),
+              );
             } else {
               await updateAppAttachmentMetadata.mutateAsync({
                 fileType: validFileEndings,

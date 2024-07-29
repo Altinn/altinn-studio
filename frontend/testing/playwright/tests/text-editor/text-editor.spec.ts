@@ -123,8 +123,7 @@ test('That it is possible to add a new text, edit the id, and add a new language
     TEXT_VALUE_IN_TEXTAREA,
   );
 
-  await textEditorPage.openSelectLanguageCombobox();
-  await textEditorPage.selectOptionFromLanguageCombobox(LanguageCode.En);
+  await textEditorPage.selectLanguageFromCombobox(LanguageCode.En);
   await textEditorPage.clickOnAddLanguageButton();
   await textEditorPage.waitForLanguageCheckboxToAppear(LanguageCode.En);
 

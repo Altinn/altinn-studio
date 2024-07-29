@@ -102,7 +102,7 @@ describe('EditComponentIdRow', () => {
       name: textMock('ux_editor.modal_properties_component_change_id'),
     });
     await user.clear(textField);
-    await user.type(textField, 'fileUploadComponentIdMock');
+    await user.type(textField, 'FileUpload');
     expect(
       screen.getByText(textMock('ux_editor.modal_properties_component_id_not_unique_error')),
     ).toBeInTheDocument();

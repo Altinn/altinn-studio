@@ -244,7 +244,7 @@ describe('SubexpressionValueSelector', () => {
         onChange,
       });
       const newKey = GatewayActionContext.Sign;
-      const select = screen.getByRole('combobox', { name: texts.gatewayActionKey });
+      const select = screen.getByLabelText(texts.gatewayActionKey);
       await user.selectOptions(select, newKey);
       expect(onChange).toHaveBeenCalledWith({ ...gatewayContextValue, key: newKey });
     });

@@ -3,18 +3,12 @@ import { TextRow } from './TextRow';
 import type { TextResourceEntryDeletion, TextResourceIdMutation, TextTableRow } from './types';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 import { filterFunction, getLangName } from './utils';
-
-import {
-  LegacyTable,
-  LegacyTableBody,
-  LegacyTableCell,
-  LegacyTableHeader,
-  LegacyTableRow,
-} from '@digdir/design-system-react';
+import classes from './TextList.module.css';
 import { useTranslation } from 'react-i18next';
 import { APP_NAME } from 'app-shared/constants';
 import { useLayoutNamesQuery } from './hooks/useLayoutNamesQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { Table } from '@digdir/designsystemet-react';
 
 export type TextListProps = {
   resourceRows: TextTableRow[];
@@ -39,23 +33,23 @@ export const TextList = ({
   const getTableHeaderCellId = (language: string): string => `header-lang${language}`;
 
   return (
-    <LegacyTable>
-      <LegacyTableHeader>
-        <LegacyTableRow>
-          <LegacyTableCell />
+    <Table className={classes.textListTable}>
+      <Table.Head>
+        <Table.Row>
+          <Table.HeaderCell />
           {selectedLanguages.map((language) => (
-            <LegacyTableCell
+            <Table.HeaderCell
               id={getTableHeaderCellId(language)}
               key={getTableHeaderCellId(language)}
             >
               {getLangName({ code: language })}
-            </LegacyTableCell>
+            </Table.HeaderCell>
           ))}
-          <LegacyTableCell>{t('text_editor.table_header_text_key')}</LegacyTableCell>
-          <LegacyTableCell>{t('text_editor.table_header_variables')}</LegacyTableCell>
-        </LegacyTableRow>
-      </LegacyTableHeader>
-      <LegacyTableBody>
+          <Table.HeaderCell>{t('text_editor.table_header_text_key')}</Table.HeaderCell>
+          <Table.HeaderCell>{t('text_editor.table_header_variables')}</Table.HeaderCell>
+        </Table.Row>
+      </Table.Head>
+      <Table.Body>
         {resourceRows
           .filter((row) => filterFunction(row.textKey, row.translations, searchQuery))
           .map((row) => {
@@ -75,7 +69,7 @@ export const TextList = ({
               />
             );
           })}
-      </LegacyTableBody>
-    </LegacyTable>
+      </Table.Body>
+    </Table>
   );
 };

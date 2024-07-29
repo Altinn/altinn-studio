@@ -11,7 +11,6 @@ import { mockPolicyRules } from '../test/mocks/policyRuleMocks';
 import { mockResourecId1 } from '../test/mocks/policySubResourceMocks';
 
 const mockRequiredAuthLevel: RequiredAuthLevel = '3';
-const mockRequiredAuthLevelLabel: string = textMock(authlevelOptions[3].label);
 
 const mockPolicy: Policy = {
   rules: mockPolicyRules,
@@ -43,17 +42,17 @@ describe('PolicyEditor', () => {
     const [selectElement] = screen.getAllByLabelText(
       textMock('policy_editor.select_auth_level_label'),
     );
-    expect(selectElement).toHaveValue(mockRequiredAuthLevelLabel);
+    expect(selectElement).toHaveValue(mockRequiredAuthLevel);
 
-    await user.click(selectElement);
-
-    const mockOption2 = textMock(authlevelOptions[2].label);
-    await user.click(screen.getByRole('option', { name: mockOption2 }));
-
-    const [selectElementAfter] = screen.getAllByLabelText(
-      textMock('policy_editor.select_auth_level_label'),
+    await user.selectOptions(
+      selectElement,
+      screen.getByRole('option', { name: textMock(authlevelOptions[3].label) }),
     );
-    expect(selectElementAfter).toHaveValue(mockOption2);
+
+    expect(
+      screen.getByRole<HTMLOptionElement>('option', { name: textMock(authlevelOptions[3].label) })
+        .selected,
+    ).toBe(true);
   });
 
   it('calls "onSave" when the auth level changes', async () => {
@@ -66,7 +65,7 @@ describe('PolicyEditor', () => {
     await user.click(selectElement);
 
     const mockOption2 = textMock(authlevelOptions[2].label);
-    await user.click(screen.getByRole('option', { name: mockOption2 }));
+    await user.selectOptions(selectElement, screen.getByRole('option', { name: mockOption2 }));
     await user.tab();
 
     expect(mockOnSave).toHaveBeenCalledTimes(1);

@@ -3,8 +3,8 @@ import type { ReferenceNode, UiSchemaNode } from '@altinn/schema-model';
 import { makeDomFriendlyID } from '../../utils/ui-schema-utils';
 import { Keyword } from '@altinn/schema-model';
 import classes from './ReferenceSelectionComponent.module.css';
-import { LegacySelect } from '@digdir/design-system-react';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
+import { StudioNativeSelect } from '@studio/components';
 
 export interface IReferenceSelectionProps {
   buttonText: string;
@@ -26,16 +26,19 @@ export function ReferenceSelectionComponent({
   const selectId = makeDomFriendlyID(selectedNode.pointer, { suffix: 'ref-select' });
   return (
     <div>
-      <LegacySelect
-        inputId={selectId}
+      <StudioNativeSelect
+        id={selectId}
         label={label}
-        onChange={(value: string) => onChangeRef(selectedNode.pointer, value)}
-        options={definitions.map(({ pointer }) => ({
-          value: pointer,
-          label: pointer.replace(`#/${Keyword.Definitions}/`, ''),
-        }))}
+        onChange={(event) => onChangeRef(selectedNode.pointer, event.target.value)}
         value={selectedNode.reference || ''}
-      />
+        size='sm'
+      >
+        {definitions.map(({ pointer }) => (
+          <option key={pointer} value={pointer}>
+            {pointer.replace(`#/${Keyword.Definitions}/`, '')}
+          </option>
+        ))}
+      </StudioNativeSelect>
       <button type='button' className={classes.navButton} onClick={onGoToDefButtonClick}>
         {buttonText}
       </button>

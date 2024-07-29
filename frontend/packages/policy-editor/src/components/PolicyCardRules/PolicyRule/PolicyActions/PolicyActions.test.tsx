@@ -58,7 +58,7 @@ describe('PolicyActions', () => {
     expect(optionAction3).toBeInTheDocument();
     expect(optionAction4).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('option', { name: mockActionOption3 }));
+    await user.selectOptions(actionSelect, mockActionOption3);
 
     expect(mockPolicyEditorContextValue.setPolicyRules).toHaveBeenCalledTimes(1);
     expect(

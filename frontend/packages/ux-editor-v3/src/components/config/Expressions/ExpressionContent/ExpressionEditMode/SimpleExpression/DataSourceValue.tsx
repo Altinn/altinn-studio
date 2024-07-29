@@ -1,10 +1,4 @@
-import React from 'react';
-import type { LegacySingleSelectOption } from '@digdir/design-system-react';
-import {
-  LegacySelect,
-  LegacyToggleButtonGroup,
-  LegacyTextField,
-} from '@digdir/design-system-react';
+import React, { type ChangeEvent } from 'react';
 import type { SubExpression } from '../../../../../../types/Expressions';
 import { DataSource } from '../../../../../../types/Expressions';
 import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
@@ -17,6 +11,8 @@ import {
 import { useText } from '../../../../../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../../../../hooks/useAppContext';
+import { StudioNativeSelect, StudioTextfield } from '@studio/components';
+import { ToggleGroup } from '@digdir/designsystemet-react';
 
 export interface DataSourceValueProps {
   subExpression: SubExpression;
@@ -42,7 +38,9 @@ export const DataSourceValue = ({
   const currentValue = isComparableValue ? subExpression.comparableValue : subExpression.value;
   const selectedValueForDisplayIfBoolean = currentValue ? 'true' : 'false';
 
-  const getCorrespondingDataSourceValues = (dataSource: DataSource): LegacySingleSelectOption[] => {
+  const getCorrespondingDataSourceValues = (
+    dataSource: DataSource,
+  ): { value: string; label: string }[] => {
     switch (dataSource) {
       case DataSource.Component:
         return getComponentIds(formLayoutsData);
@@ -67,58 +65,68 @@ export const DataSourceValue = ({
     case DataSource.InstanceContext:
     case DataSource.ApplicationSettings:
       return (
-        <LegacySelect
+        <StudioNativeSelect
+          id={`data-source-value-select${currentDataSource}`}
           label={
             isComparableValue
               ? t('right_menu.expressions_data_source_comparable_value')
               : t('right_menu.expressions_data_source_value')
           }
-          hideLabel={true}
-          onChange={(dataSourceValue: string) =>
-            specifyDataSourceValue(dataSourceValue, isComparableValue)
+          onChange={(event: ChangeEvent<HTMLSelectElement>) =>
+            specifyDataSourceValue(event.target.value, isComparableValue)
           }
-          options={[
-            { label: t('right_menu.expressions_data_source_select'), value: 'default' },
-          ].concat(getCorrespondingDataSourceValues(currentDataSource))}
           value={(currentValue as string) || 'default'}
-        />
+        >
+          <option key={''} value={'default'}>
+            {t('right_menu.expressions_data_source_select')}
+          </option>
+          {getCorrespondingDataSourceValues(currentDataSource).map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </StudioNativeSelect>
       );
     case DataSource.String:
       return (
-        <LegacyTextField
+        <StudioTextfield
           label={
             isComparableValue
               ? t('right_menu.expressions_data_source_comparable_value')
               : t('right_menu.expressions_data_source_value')
           }
-          onChange={(e) => specifyDataSourceValue(e.target.value, isComparableValue)}
+          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+            specifyDataSourceValue(e.target.value, isComparableValue)
+          }
           value={currentValue as string}
         />
       );
     case DataSource.Number:
       return (
-        <LegacyTextField
+        <StudioTextfield
           label={
             isComparableValue
               ? t('right_menu.expressions_data_source_comparable_value')
               : t('right_menu.expressions_data_source_value')
           }
-          formatting={{ number: {} }}
+          type='number'
           inputMode='numeric'
-          onChange={(e) => specifyDataSourceValue(e.target.value, isComparableValue)}
+          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+            specifyDataSourceValue(e.target.value, isComparableValue)
+          }
           value={currentValue as string}
         />
       );
     case DataSource.Boolean:
       return (
-        <LegacyToggleButtonGroup
-          items={[
-            { label: t('general.true'), value: 'true' },
-            { label: t('general.false'), value: 'false' },
-          ]}
+        <ToggleGroup
           onChange={(value) => specifyDataSourceValue(value, isComparableValue)}
-          selectedValue={selectedValueForDisplayIfBoolean}
-        />
+          value={selectedValueForDisplayIfBoolean}
+          size='sm'
+        >
+          <ToggleGroup.Item value='true'>{t('general.true')}</ToggleGroup.Item>
+          <ToggleGroup.Item value='false'>{t('general.false')}</ToggleGroup.Item>
+        </ToggleGroup>
       );
     default:
       return null;
