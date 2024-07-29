@@ -46,12 +46,12 @@ export class LoginPage extends BasePage {
   }
 
   public async clickAuthorizeButtonIfLoaded(): Promise<void> {
-    await this.waitForMainFrameNavigation();
-    const url = this.page.mainFrame().url();
-    if (url.endsWith('/dashboard') || url.endsWith(this.getRoute('dashboard'))) {
-      // Dashboard is already loaded, no need to authorize
-      return;
-    }
+    // await this.waitForMainFrameNavigation();
+    // const url = this.page.mainFrame().url();
+    // if (url.endsWith('/dashboard') || url.endsWith(this.getRoute('dashboard'))) {
+    //   // Dashboard is already loaded, no need to authorize
+    //   return;
+    // }
     await this.page.getByRole('button', { name: loginPageTexts['authorize'] }).click();
   }
 
