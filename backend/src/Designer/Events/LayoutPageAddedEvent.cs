@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Altinn.Studio.Designer.Models;
 using MediatR;
 
