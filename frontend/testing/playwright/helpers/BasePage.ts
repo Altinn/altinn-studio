@@ -51,12 +51,4 @@ export class BasePage extends RouterRoute {
     for (let i = 0; i < numberOfTimesToHover; i++) await target.hover();
     await this.page.mouse.up();
   }
-
-  public async waitForMainFrameNavigation(): Promise<void> {
-    return new Promise<void>((resolve) => {
-      this.page.on('framenavigated', (frame) => {
-        if (frame === this.page.mainFrame()) resolve();
-      });
-    });
-  }
 }
