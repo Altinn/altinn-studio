@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './TextRow.module.css';
 import type { TextResourceIdMutation, TextResourceVariable, TextTableRowEntry } from './types';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
-import { TrashIcon, PencilIcon } from '@studio/icons';
+import { PencilIcon } from '@studio/icons';
 import { TableCell, TableRow, Textfield } from '@digdir/designsystemet-react';
 
 import { useTranslation } from 'react-i18next';
@@ -11,8 +11,7 @@ import { ButtonContainer } from 'app-shared/primitives';
 import { validateTextId } from './utils';
 import { TextEntry } from './TextEntry';
 import { Variables } from './Variables';
-import { AltinnConfirmDialog } from 'app-shared/components';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioDeleteButton } from '@studio/components';
 
 export interface TextRowProps {
   idExists: (textResourceId: string) => boolean;
@@ -44,7 +43,6 @@ export const TextRow = ({
   const [textVariables] = useState(variables);
   const [keyError, setKeyError] = useState('');
   const { t } = useTranslation();
-  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
   const handleTextIdChange = (newTextId: string): void => {
     const error = validateNewTextId(newTextId);
@@ -77,27 +75,14 @@ export const TextRow = ({
     <TableRow>
       <TableCell>
         {showDeleteButton && (
-          <AltinnConfirmDialog
-            open={isConfirmDeleteDialogOpen}
-            confirmText={t('schema_editor.textRow-deletion-confirm')}
-            onConfirm={handleDeleteClick}
-            onClose={() => setIsConfirmDeleteDialogOpen(false)}
-            trigger={
-              <StudioButton
-                className={classes.deleteButton}
-                icon={<TrashIcon title={`Slett ${textId}`} />}
-                variant='tertiary'
-                onClick={() => setIsConfirmDeleteDialogOpen((prevState) => !prevState)}
-                aria-label={t('schema_editor.delete')}
-              >
-                {t('schema_editor.delete')}
-              </StudioButton>
-            }
-          >
-            <p>{t('schema_editor.textRow-deletion-text')}</p>
-          </AltinnConfirmDialog>
+          <StudioDeleteButton
+            confirmMessage={t('schema_editor.textRow-deletion-text')}
+            onDelete={handleDeleteClick}
+            title={t('general.delete')}
+          />
         )}
       </TableCell>
+
       {selectedLanguages.map((lang) => {
         let translation = textRowEntries.find((e) => e.lang === lang);
         if (!translation) {

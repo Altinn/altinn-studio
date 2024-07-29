@@ -2,7 +2,7 @@ import React from 'react';
 import type { TextRowProps } from './TextRow';
 import userEvent from '@testing-library/user-event';
 import { TextRow } from './TextRow';
-import { screen, render as rtlRender, waitFor } from '@testing-library/react';
+import { screen, render as rtlRender } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { TextTableRowEntry } from './types';
 import { Table, TableBody } from '@digdir/designsystemet-react';
@@ -67,7 +67,7 @@ describe('TextRow', () => {
   test('renders button to delete text and button to edit text key by default', () => {
     renderTextRow();
     screen.getByRole('button', { name: textMock('text_editor.toggle_edit_mode', { textKey }) });
-    screen.getByRole('button', { name: textMock('schema_editor.delete') });
+    screen.getByRole('button', { name: textMock('general.delete') });
   });
 
   test('does not show button to delete text when showDeleteButton is false', () => {
@@ -81,7 +81,6 @@ describe('TextRow', () => {
 
   test('does not show button to edit text key when showEditButton is false', () => {
     renderTextRow({ showEditButton: false });
-    screen.getByRole('button', { name: textMock('schema_editor.delete') });
     const editButton = screen.queryByRole('button', {
       name: textMock('text_editor.toggle_edit_mode', { textKey }),
     });
@@ -132,71 +131,32 @@ describe('TextRow', () => {
     afterEach(jest.clearAllMocks);
 
     it('should open the confirmation dialog when clicking the delete button', async () => {
+      jest.spyOn(window, 'confirm').mockReturnValue(true);
       const user = userEvent.setup();
       renderTextRow();
-
-      const deleteButton = screen.getByRole('button', { name: textMock('schema_editor.delete') });
+      const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
       await user.click(deleteButton);
-
-      const dialog = screen.getByRole('dialog');
-      expect(dialog).toBeInTheDocument();
-
-      const text = await screen.findByText(textMock('schema_editor.textRow-deletion-text'));
-      expect(text).toBeInTheDocument();
-
-      const confirmButton = screen.getByRole('button', {
-        name: textMock('schema_editor.textRow-deletion-confirm'),
-      });
-      expect(confirmButton).toBeInTheDocument();
-
-      const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
-      expect(cancelButton).toBeInTheDocument();
+      expect(window.confirm).toHaveBeenCalledWith(textMock('schema_editor.textRow-deletion-text'));
     });
 
-    it('should confirm and close the dialog when clicking the confirm button', async () => {
+    it('Calls onDelete when the user clicks the delete button and confirms', async () => {
+      jest.spyOn(window, 'confirm').mockReturnValue(true);
       const user = userEvent.setup();
       const removeEntry = jest.fn();
       renderTextRow({ removeEntry });
-
-      const deleteButton = screen.getByRole('button', { name: textMock('schema_editor.delete') });
+      const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
       await user.click(deleteButton);
-
-      const confirmButton = screen.getByRole('button', {
-        name: textMock('schema_editor.textRow-deletion-confirm'),
-      });
-      await user.click(confirmButton);
-
       expect(removeEntry).toHaveBeenCalledWith({ textId: 'key1' });
-      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
 
-    it('should close the confirmation dialog when clicking the cancel button', async () => {
+    it('Should not call onDelete when clicking Cancel in confirm window', async () => {
+      jest.spyOn(window, 'confirm').mockReturnValue(false);
       const user = userEvent.setup();
       const removeEntry = jest.fn();
       renderTextRow({ removeEntry });
-
-      const deleteButton = screen.getByRole('button', { name: textMock('schema_editor.delete') });
+      const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
       await user.click(deleteButton);
-
-      const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
-      await user.click(cancelButton);
-
       expect(removeEntry).toHaveBeenCalledTimes(0);
-      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-    });
-
-    it('should close when clicking outside the popover', async () => {
-      const user = userEvent.setup();
-      const removeEntry = jest.fn();
-      renderTextRow({ removeEntry });
-
-      const deleteButton = screen.getByRole('button', { name: textMock('schema_editor.delete') });
-      await user.click(deleteButton);
-
-      await user.click(document.body);
-
-      expect(removeEntry).toHaveBeenCalledTimes(0);
-      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
   });
 });
