@@ -1,7 +1,6 @@
 .filePathWithDiffContainer {
   color: var(--fds-semantic-surface-action-default);
   text-decoration: underline;
-  cursor: pointer;
 }
 
 .filePathWithDiffContainer:hover {
@@ -20,13 +19,34 @@
   white-space: nowrap;
 }
 
+summary {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+.summaryContent::after {
+  content: '▶';
+  font-size: var(--fds-sizing-3);
+  margin-left: var(--fds-spacing-2);
+  transform: rotate(0deg);
+  transition: transform 0.2s ease-in-out;
+}
+
+details[open] .summaryContent::after {
+  transform: rotate(90deg);
+}
+
 .gitDiffViewer {
   padding: var(--fds-spacing-4);
   border-radius: var(--fds-sizing-2);
   margin-top: var(--fds-spacing-2);
   background-color: var(--fds-semantic-surface-action-first-no_fill);
   font-family: monospace;
-  cursor: pointer;
   font-size: small;
 }
 

@@ -1255,6 +1255,7 @@
   "sync_header.show_changes_modal.close_button": "Lukk",
   "sync_header.show_changes_modal.column_header_file_name": "Filnavn",
   "sync_header.show_changes_modal.column_header_file_status": "Status",
+  "sync_header.show_changes_modal.file_diff_title": "Gitdifferansen for {{fileName}}",
   "sync_header.show_changes_modal.file_status_DeletedFromWorkdir": "Slettet",
   "sync_header.show_changes_modal.file_status_Ignored": "Ignorert",
   "sync_header.show_changes_modal.file_status_ModifiedInWorkdir": "Endret",

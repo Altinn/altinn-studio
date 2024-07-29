@@ -296,18 +296,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
             Dictionary<string, string> fileDiffs = new Dictionary<string, string>();
             using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
-                var branch = repo.Head;
-                var commit = branch.Tip;
-                var parentCommit = commit.Parents.FirstOrDefault();
-                if (parentCommit == null)
+                FetchRemoteChanges(org, repository);
+                var remoteMainBranch = repo.Branches["refs/remotes/origin/master"];
+                if (remoteMainBranch == null || remoteMainBranch.Tip == null)
                 {
                     return fileDiffs;
                 }
+                var remoteMainCommit = remoteMainBranch.Tip;
 
-                var changes = repo.Diff.Compare<TreeChanges>(parentCommit.Tree, DiffTargets.WorkingDirectory);
+                var changes = repo.Diff.Compare<TreeChanges>(remoteMainCommit.Tree, DiffTargets.WorkingDirectory);
                 foreach (var change in changes.Where(change => change.Status is ChangeKind.Modified or ChangeKind.Added))
                 {
-                    Patch patch = repo.Diff.Compare<Patch>(parentCommit.Tree, DiffTargets.WorkingDirectory, new[] { change.Path });
+                    Patch patch = repo.Diff.Compare<Patch>(remoteMainCommit.Tree, DiffTargets.WorkingDirectory, new[] { change.Path });
                     fileDiffs[change.Path] = patch.Content;
                 }
 

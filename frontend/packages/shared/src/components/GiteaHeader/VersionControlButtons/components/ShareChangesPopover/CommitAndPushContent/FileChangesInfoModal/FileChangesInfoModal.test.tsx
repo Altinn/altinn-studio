@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { FileChangesInfoModalProps } from './FileChangesInfoModal';
@@ -19,7 +19,6 @@ const someDiffContent = '@@ -2,6 +2,30 @@\n- old line\n+ new line';
 const repoDiffMock = {
   'mock/file/path/to/fileName.json': someDiffContent,
   'mock/file/path/to/addedFile.json': someDiffContent,
-  'mock/file/path/to/deletedFile.json': someDiffContent,
 };
 const mockGetRepoDiff = jest.fn();
 const mockOnClose = jest.fn();
@@ -63,8 +62,8 @@ describe('FileChangesInfoModal', () => {
     expect(table).toHaveClass('fds-table--sticky-header');
   });
 
-  it('should render the filePath and fileStatus correct', () => {
-    renderFileChangesInfoModal();
+  it('should render the filePath and fileStatus correct', async () => {
+    await renderFileChangesInfoModalAndWaitForSpinnersToResolve();
     const filePathToolTip = screen.getByTitle(filePathMock);
     expect(filePathToolTip).toBeInTheDocument();
 
@@ -95,8 +94,7 @@ describe('FileChangesInfoModal', () => {
     const user = userEvent.setup();
     const addedFilePath = `${filePathWithoutNameMock}/addedFile.json`;
     const deletedFilePath = `${filePathWithoutNameMock}/deletedFile.json`;
-    const displayedDiffContent = '+ new line';
-    renderFileChangesInfoModal({
+    await renderFileChangesInfoModalAndWaitForSpinnersToResolve({
       ...defaultProps,
       fileChanges: [
         {
@@ -114,21 +112,31 @@ describe('FileChangesInfoModal', () => {
       ],
     });
     const modifiedFilePathElement = screen.getByTitle(filePathMock);
+    const modifiedDiffContentElement = screen.getByRole('group', {
+      name: textMock('sync_header.show_changes_modal.file_diff_title', { fileName: fileNameMock }),
+    });
+    expect(modifiedDiffContentElement).not.toHaveAttribute('open');
     await user.click(modifiedFilePathElement);
-    const diffContent = screen.getByText(displayedDiffContent);
-    expect(diffContent).toBeInTheDocument();
-    await user.click(modifiedFilePathElement); // Remove displayedDiffContent
+    expect(modifiedDiffContentElement).toHaveAttribute('open');
 
     const addedFilePathElement = screen.getByTitle(addedFilePath);
+    const addedDiffContentElement = screen.getByRole('group', {
+      name: textMock('sync_header.show_changes_modal.file_diff_title', {
+        fileName: 'addedFile.json',
+      }),
+    });
+    expect(addedDiffContentElement).not.toHaveAttribute('open');
     await user.click(addedFilePathElement);
-    const diffContent2 = screen.getByText(displayedDiffContent);
-    expect(diffContent2).toBeInTheDocument();
-    await user.click(addedFilePathElement); // Remove displayedDiffContent
+    expect(addedDiffContentElement).toHaveAttribute('open');
 
     const deletedFilePathElement = screen.getByTitle(deletedFilePath);
     await user.click(deletedFilePathElement);
-    const diffContent3 = screen.queryByText(displayedDiffContent);
-    expect(diffContent3).not.toBeInTheDocument();
+    const deletedDiffContentElement = screen.queryByRole('group', {
+      name: textMock('sync_header.show_changes_modal.file_diff_title', {
+        fileName: 'removedFile.json',
+      }),
+    });
+    expect(deletedDiffContentElement).not.toBeInTheDocument();
 
     expect(mockGetRepoDiff).toHaveBeenCalledTimes(1);
   });
@@ -145,4 +153,11 @@ const renderFileChangesInfoModal = (props: FileChangesInfoModalProps = defaultPr
       <FileChangesInfoModal {...props} />
     </ServicesContextProvider>,
   );
+};
+
+const renderFileChangesInfoModalAndWaitForSpinnersToResolve = async (
+  props: FileChangesInfoModalProps = defaultProps,
+) => {
+  renderFileChangesInfoModal(props);
+  await waitForElementToBeRemoved(() => screen.queryAllByTitle(textMock('general.loading')));
 };

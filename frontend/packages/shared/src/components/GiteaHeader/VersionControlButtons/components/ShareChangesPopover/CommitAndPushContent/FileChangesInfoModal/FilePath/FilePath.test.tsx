@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { FilePathProps } from './FilePath';
 import { FilePath } from './FilePath';
@@ -9,6 +9,7 @@ import {
 } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const fileNameMock = 'fileName.json';
 const filePathWithoutNameMock = 'mock/file/path/to';
@@ -28,8 +29,8 @@ const mockGetRepoDiff = jest.fn();
 describe('FilePath', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should render the file path and name correctly', () => {
-    renderFilePath();
+  it('should render the file path and name correctly', async () => {
+    await renderFilePathAndWaitForSpinnerToResolve();
 
     const filePathElement = screen.getByText(filePathWithoutNameMock);
     const fileNameElement = screen.getByText(fileNameMock, { selector: 'strong' });
@@ -40,35 +41,21 @@ describe('FilePath', () => {
 
   it('should toggle diff view on file path click', async () => {
     const user = userEvent.setup();
-    renderFilePath();
+    await renderFilePathAndWaitForSpinnerToResolve();
 
     const filePathElement = screen.getByTitle(filePathMock);
     await user.click(filePathElement);
 
     const diffLineElement = screen.getByText('+ new line');
-    expect(diffLineElement).toBeInTheDocument();
+    expect(diffLineElement).toBeVisible();
 
     await user.click(filePathElement);
-    expect(diffLineElement).not.toBeInTheDocument();
-  });
-
-  it('should toggle diff view on git diff click', async () => {
-    const user = userEvent.setup();
-    renderFilePath();
-
-    const filePathElement = screen.getByTitle(filePathMock);
-    await user.click(filePathElement);
-
-    const diffLineElement = screen.getByText('+ new line');
-    expect(diffLineElement).toBeInTheDocument();
-
-    await user.click(diffLineElement);
-    expect(diffLineElement).not.toBeInTheDocument();
+    expect(diffLineElement).not.toBeVisible();
   });
 
   it('should remove "No newline at end of file" from diff lines', async () => {
     const user = userEvent.setup();
-    renderFilePath();
+    await renderFilePathAndWaitForSpinnerToResolve();
 
     const filePathElement = screen.getByTitle(filePathMock);
     await user.click(filePathElement);
@@ -90,7 +77,7 @@ describe('FilePath', () => {
 
   it('should not render first part of git diff that is metadata', async () => {
     const user = userEvent.setup();
-    renderFilePath();
+    await renderFilePathAndWaitForSpinnerToResolve();
 
     const filePathElement = screen.getByTitle(filePathMock);
     await user.click(filePathElement);
@@ -124,4 +111,9 @@ const renderFilePath = (props: Partial<FilePathProps> = {}) => {
       <FilePath {...defaultProps} />
     </ServicesContextProvider>,
   );
+};
+
+const renderFilePathAndWaitForSpinnerToResolve = async () => {
+  renderFilePath();
+  await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
 };

@@ -14,5 +14,6 @@ export const useRepoDiffQuery = (
   return useQuery<RepoDiff, AxiosError>({
     queryKey: [QueryKey.RepoDiff, owner, app],
     queryFn: () => getRepoDiff(owner, app),
+    staleTime: 0,
   });
 };
