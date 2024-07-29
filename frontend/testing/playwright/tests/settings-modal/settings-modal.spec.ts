@@ -87,19 +87,11 @@ test('That it is possible to edit security level on "Policy editor" tab, and tha
   const policyEditor = new PolicyEditor(page, { app: testAppName });
 
   const securityLevel2 = 2;
-  const securityLevel2Text = policyEditor.getSecurityLevelByTextByLevel(securityLevel2);
-
-  const securityValueInitial = await policyEditor.getSelectedSecurityLevel();
-  expect(securityValueInitial).toBe(securityLevel2Text);
-
-  await policyEditor.clickOnSecurityLevelSelect();
-  await policyEditor.clickOnSecurityLevelSelectOption(3);
+  policyEditor.verifySelectedSecurityLevel(securityLevel2);
 
   const securityLevel3 = 3;
-  const securityLevel3Text = policyEditor.getSecurityLevelByTextByLevel(securityLevel3);
-
-  const securityValueAfterChange = await policyEditor.getSelectedSecurityLevel();
-  expect(securityValueAfterChange).toBe(securityLevel3Text);
+  await policyEditor.selectSecurityLevel(securityLevel3);
+  policyEditor.verifySelectedSecurityLevel(securityLevel3);
 
   // In dev, the API call to save the policy takes some time, and therefore we add functionality to wait for a while to wait for the save to happen
   await settingsModal.waitForXAmountOfMilliseconds(4000);
@@ -110,8 +102,7 @@ test('That it is possible to edit security level on "Policy editor" tab, and tha
 
   await settingsModal.navigateToTab('policy');
 
-  const securityValueAfterNavigation = await policyEditor.getSelectedSecurityLevel();
-  expect(securityValueAfterNavigation).toBe(securityLevel3Text);
+  policyEditor.verifySelectedSecurityLevel(securityLevel3);
 });
 
 test('That it is possible to change tab to "Access control" tab', async ({ page, testAppName }) => {

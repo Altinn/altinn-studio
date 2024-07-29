@@ -1,5 +1,4 @@
 import React from 'react';
-import { LegacySelect, LegacyToggleButtonGroup } from '@digdir/design-system-react';
 import type { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import classes from '../AppPreviewSubMenu.module.css';
 import { ArrowCirclepathIcon, EyeIcon, LinkIcon } from '@studio/icons';
@@ -9,7 +8,8 @@ import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery'
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioNativeSelect } from '@studio/components';
+import { ToggleGroup } from '@digdir/designsystemet-react';
 
 export const SubPreviewMenuLeftContent = ({
   viewSize,
@@ -24,31 +24,27 @@ export const SubPreviewMenuLeftContent = ({
   return (
     <div className={classes.leftSubHeaderComponents}>
       <div className={classes.viewSizeButtons}>
-        <LegacyToggleButtonGroup
-          items={[
-            {
-              label: t('preview.view_size_desktop'),
-              value: 'desktop',
-            },
-            {
-              label: t('preview.view_size_mobile'),
-              value: 'mobile',
-            },
-          ]}
+        <ToggleGroup
           onChange={setViewSize}
-          selectedValue={viewSize === 'desktop' ? 'desktop' : 'mobile'}
-        />
+          value={viewSize === 'desktop' ? 'desktop' : 'mobile'}
+          size='sm'
+        >
+          <ToggleGroup.Item value='desktop'>{t('preview.view_size_desktop')}</ToggleGroup.Item>
+          <ToggleGroup.Item value='mobile'>{t('preview.view_size_mobile')}</ToggleGroup.Item>
+        </ToggleGroup>
       </div>
       {layoutSets && (
         <div className={classes.layoutSetSelector}>
-          <LegacySelect
+          <StudioNativeSelect
             onChange={(layoutSet) => handleChangeLayoutSet(layoutSet)}
-            options={layoutSets.sets.map((layoutSet) => ({
-              label: layoutSet.id,
-              value: layoutSet.id,
-            }))}
             value={selectedLayoutSet}
-          />
+          >
+            {layoutSets.sets.map((layoutSet) => (
+              <option key={layoutSet.id} value={layoutSet.id}>
+                {layoutSet.id}
+              </option>
+            ))}
+          </StudioNativeSelect>
         </div>
       )}
     </div>

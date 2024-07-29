@@ -130,9 +130,7 @@ describe('EditBinding without featureFlag', () => {
     expect(selectedModel).toBeInTheDocument();
     expect(noneExistingDataModelSelector).not.toBeInTheDocument();
 
-    const selectedField = screen.getByRole('combobox', {
-      name: textMock('ux_editor.modal_properties_data_model_field_binding'),
-    });
+    const selectedField = screen.getByRole('combobox');
     expect(selectedField).toBeInTheDocument();
   });
 
@@ -216,9 +214,7 @@ describe('EditBinding without featureFlag', () => {
     );
     expect(errorMessage).toBeInTheDocument();
 
-    const dataModelFieldSelector = screen.getByRole('combobox', {
-      name: textMock('ux_editor.modal_properties_data_model_field_binding'),
-    });
+    const dataModelFieldSelector = screen.getByRole('combobox');
     const option2 = screen.getByRole('option', { name: defaultDataModelField });
     await user.selectOptions(dataModelFieldSelector, option2);
 
@@ -243,9 +239,7 @@ describe('EditBinding without featureFlag', () => {
       screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
     );
 
-    const dataModelFieldSelector = screen.getByRole('combobox', {
-      name: textMock('ux_editor.modal_properties_data_model_field_binding'),
-    });
+    const dataModelFieldSelector = screen.getByRole('combobox');
     const option2 = screen.getByRole('option', { name: 'field2' });
     await user.selectOptions(dataModelFieldSelector, option2);
 
