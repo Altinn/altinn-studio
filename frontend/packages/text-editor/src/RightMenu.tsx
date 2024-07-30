@@ -6,9 +6,8 @@ import { getLangName, langOptions } from './utils';
 import { Checkbox, Fieldset, Heading } from '@digdir/designsystemet-react';
 import { defaultLangCode } from './constants';
 import { useTranslation } from 'react-i18next';
-import { AltinnConfirmDialog } from 'app-shared/components';
 import { deleteButtonId } from '@studio/testing/testids';
-import { StudioButton } from '@studio/components';
+import { StudioDeleteButton } from '@studio/components';
 import { ArrayUtils } from '@studio/pure-functions';
 
 export interface RightMenuProps {
@@ -65,30 +64,19 @@ export const RightMenu = ({
                     >
                       {getLangName({ code: langCode })}
                     </Checkbox>
-                    <AltinnConfirmDialog
+                    <StudioDeleteButton
+                      data-testid={deleteButtonId(langCode)}
                       open={langCode === langCodeToDelete}
-                      confirmText={t('schema_editor.language_confirm_deletion')}
-                      onConfirm={() => handleDeleteLanguage(langCode)}
-                      onClose={() => setLangCodeToDelete(undefined)}
-                      trigger={
-                        <StudioButton
-                          variant={canDeleteLang(langCode) ? 'primary' : 'secondary'}
-                          data-testid={deleteButtonId(langCode)}
-                          color='danger'
-                          onClick={() =>
-                            setLangCodeToDelete((prevState) =>
-                              prevState === langCode ? undefined : langCode,
-                            )
-                          }
-                          disabled={!canDeleteLang(langCode)}
-                          aria-label={t('schema_editor.language_delete_button')}
-                        >
-                          {t('schema_editor.language_delete_button')}
-                        </StudioButton>
+                      confirmMessage={t('schema_editor.language_display_confirm_delete')}
+                      disabled={!canDeleteLang(langCode)}
+                      onDelete={() => handleDeleteLanguage(langCode)}
+                      onClick={() =>
+                        setLangCodeToDelete((prevState) =>
+                          prevState === langCode ? undefined : langCode,
+                        )
                       }
-                    >
-                      <p>{t('schema_editor.language_display_confirm_delete')}</p>
-                    </AltinnConfirmDialog>
+                      title={t('general.delete')}
+                    />
                   </div>
                 </div>
               );
