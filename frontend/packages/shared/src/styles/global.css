@@ -1,6 +1,7 @@
 :root {
   --studio-font-family: 'Inter', sans-serif;
   --studio-app-background: var(--fds-semantic-surface-neutral-default);
+  --studio-link-color: var(--fds-semantic-text-action-default);
 }
 
 html,
@@ -20,7 +21,7 @@ h3 {
 }
 
 a {
-  color: var(--fds-semantic-text-action-default);
+  color: var(--studio-link-color);
   text-decoration: none;
 }
 
