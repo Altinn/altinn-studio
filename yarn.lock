@@ -3387,13 +3387,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/design-system-tokens@npm:0.13.0":
-  version: 0.13.0
-  resolution: "@digdir/design-system-tokens@npm:0.13.0"
-  checksum: 10/1564c638807b6bb4706ae893ecc6142f0aa8816f9915a0d43aa08c121a6a8810501b3d7857067df4151c67d372c9443123924351efcc8f490aecf65bc135d7d3
-  languageName: node
-  linkType: hard
-
 "@digdir/design-system-tokens@npm:^0.1.4":
   version: 0.1.7
   resolution: "@digdir/design-system-tokens@npm:0.1.7"
@@ -8110,7 +8103,6 @@ __metadata:
   dependencies:
     "@altinn/altinn-design-system": "npm:0.30.0"
     "@altinn/figma-design-tokens": "npm:6.0.1"
-    "@digdir/design-system-tokens": "npm:0.13.0"
     "@digdir/designsystemet-css": "npm:0.10.0"
     "@digdir/designsystemet-react": "npm:0.63.0"
     "@digdir/designsystemet-theme": "npm:0.15.3"
