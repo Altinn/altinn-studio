@@ -1,10 +1,10 @@
 import React from 'react';
 import classes from './ComplexExpression.module.css';
 import { Alert } from '@digdir/designsystemet-react';
-import { LegacyTextArea } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import type { Expression } from '../../../../../types/Expressions';
 import { stringifyData } from '../../../../../utils/jsonUtils';
+import { StudioTextarea } from '@studio/components';
 
 export type ComplexExpressionProps = {
   disabled?: boolean;
@@ -22,7 +22,7 @@ export const ComplexExpression = ({
   const { t } = useTranslation();
   return (
     <div className={classes.root}>
-      <LegacyTextArea
+      <StudioTextarea
         disabled={disabled}
         onChange={(event) => onChange?.(event.target.value)}
         value={stringifyData(expression.complexExpression)}

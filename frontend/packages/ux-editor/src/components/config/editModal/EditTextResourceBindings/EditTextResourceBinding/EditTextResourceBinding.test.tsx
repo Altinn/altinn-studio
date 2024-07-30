@@ -71,8 +71,7 @@ describe('EditTextResourceBindings component', () => {
     const searchTab = screen.getByRole('tab', { name: searchTabLabel });
     await user.click(searchTab);
     const select = screen.getByRole('combobox');
-    await user.click(select);
-    await user.click(screen.getByRole('option', { name: textResources[1].id }));
+    await user.selectOptions(select, textResources[1].id);
 
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
     expect(handleComponentChange).toHaveBeenCalledWith({
