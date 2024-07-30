@@ -268,6 +268,8 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         {
             options.ForwardedHeaders =
                 ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            options.KnownNetworks.Clear();
+            options.KnownProxies.Clear();
         });
     }
 
