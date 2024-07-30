@@ -880,7 +880,6 @@
   "schema_editor.restrictions": "Restrictions",
   "schema_editor.save_data_model": "Save",
   "schema_editor.string": "Text",
-  "schema_editor.textRow-deletion-confirm": "Yes, delete row",
   "schema_editor.textRow-deletion-text": "Are you sure you want to delete this row?",
   "schema_editor.title": "Title",
   "schema_editor.type": "Type",

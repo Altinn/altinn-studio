@@ -1170,7 +1170,6 @@
   "schema_editor.regex": "Regex",
   "schema_editor.required": "Påkrevd",
   "schema_editor.string": "Tekst",
-  "schema_editor.textRow-deletion-confirm": "Ja, slett raden",
   "schema_editor.textRow-deletion-text": "Er du sikker på at du vil slette denne raden?",
   "schema_editor.title": "Tittel",
   "schema_editor.tree.combination_child_title": "Element nummer {{index}}",

@@ -115,17 +115,14 @@ describe('TextEditor', () => {
   });
 
   it('deletes text id when clicking delete button', async () => {
+    jest.spyOn(window, 'confirm').mockReturnValue(true);
     const user = userEvent.setup();
 
     renderTextEditor();
 
-    const deleteButton = screen.getByRole('button', { name: textMock('schema_editor.delete') });
+    const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
     await waitFor(() => deleteButton.click());
-
-    const confirmButton = await screen.findByRole('button', {
-      name: textMock('schema_editor.textRow-deletion-confirm'),
-    });
-    await user.click(confirmButton);
+    await user.click(deleteButton);
 
     expect(queriesMock.updateTextId).toHaveBeenCalledWith(org, app, [
       { oldId: testTextResourceKey },

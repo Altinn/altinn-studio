@@ -187,22 +187,16 @@ describe('TextEditor', () => {
 
   describe('text-id mutation', () => {
     const deleteSomething = async (onTextIdChange = jest.fn()) => {
+      jest.spyOn(window, 'confirm').mockReturnValue(true);
       renderTextEditor({
         updateTextId: onTextIdChange,
       });
       const result = screen.getAllByRole('button', {
-        name: textMock('schema_editor.delete'),
+        name: textMock('general.delete'),
       });
       expect(result).toHaveLength(2);
 
       await user.click(result[0]);
-      await screen.findByRole('dialog');
-      await user.click(
-        screen.getByRole('button', {
-          name: textMock('schema_editor.textRow-deletion-confirm'),
-        }),
-      );
-
       await expect(onTextIdChange).toHaveBeenCalledWith({ oldId: nb[0].id });
     };
 
@@ -266,7 +260,7 @@ describe('TextEditor', () => {
       await deleteSomething(onTextIdChange);
       expect(error).toHaveBeenCalledWith('Deleting text failed:\n', 'some error');
       const resultAfter = screen.getAllByRole('button', {
-        name: textMock('schema_editor.delete'),
+        name: textMock('general.delete'),
       });
       expect(resultAfter).toHaveLength(2);
     });
