@@ -13,19 +13,19 @@ public static class AltinnStudioRepositoryScanner
 
     public static string FindRootDirectoryPath([CallerFilePath] string filePath = "")
     {
-        return GetDirectoryPath(Path.GetDirectoryName(filePath), ".github");
+        return GetDirectoryPathBySearchPattern(Path.GetDirectoryName(filePath), ".github");
     }
 
-    private static string GetDirectoryPath(string path, string searchPattern)
+    private static string GetDirectoryPathBySearchPattern(string path, string searchPattern)
     {
-        return GetDirectoryPath(Directory.Exists(path) ? new DirectoryInfo(path) : null, searchPattern);
+        return GetDirectoryPathBySearchPattern(Directory.Exists(path) ? new DirectoryInfo(path) : null, searchPattern);
     }
 
-    private static string GetDirectoryPath(DirectoryInfo path, string searchPattern)
+    private static string GetDirectoryPathBySearchPattern(DirectoryInfo path, string searchPattern)
     {
         if (path != null)
         {
-            return path.EnumerateFileSystemInfos(searchPattern, SearchOption.TopDirectoryOnly).Any() ? path.FullName : GetDirectoryPath(path.Parent, searchPattern);
+            return path.EnumerateFileSystemInfos(searchPattern, SearchOption.TopDirectoryOnly).Any() ? path.FullName : GetDirectoryPathBySearchPattern(path.Parent, searchPattern);
         }
 
         string message = $"Cannot find '{searchPattern}' and resolve the base directory in the directory tree.";

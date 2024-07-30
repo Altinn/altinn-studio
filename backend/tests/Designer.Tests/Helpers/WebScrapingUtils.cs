@@ -5,7 +5,7 @@ namespace Designer.Tests.Helpers;
 public static class WebScrapingUtils
 {
     /// <summary>
-    /// Find the value of a form input element in a html content based on the search strings.
+    /// Find the value of a form input element in an HTML content based on the search strings.
     /// </summary>
     /// <param name="htmlContent">The HTML content from which the substring will be extracted.</param>
     /// <param name="beforeText">The text that appears immediately before the desired substring. If there are multiple matches, only first will be considered.</param>

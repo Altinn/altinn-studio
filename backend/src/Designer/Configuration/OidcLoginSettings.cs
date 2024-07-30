@@ -7,10 +7,10 @@ public class OidcLoginSettings : ISettingsMarker
     /// <summary>
     /// Sets the cookie expiry time in minutes.
     /// </summary>
-    public int CookieExpiryTimeInMinutes { get; set; } = 60;
+    public int CookieExpiryTimeInMinutes { get; set; } = 59;
 
     /// <summary>
-    /// Authority for the OpenID Connect provider.
+    /// Url of the identity provider.
     /// </summary>
     public string Authority { get; set; }
 
