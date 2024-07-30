@@ -2,9 +2,11 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
@@ -19,6 +21,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
         private readonly GeneralSettings _generalSettings;
         private readonly ISourceControl _sourceControl;
         private readonly ILogger<AzureDevOpsBuildClient> _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
         /// Constructor
@@ -31,12 +34,13 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
             HttpClient httpClient,
             GeneralSettings generalSettingsOptions,
             ISourceControl sourceControl,
-            ILogger<AzureDevOpsBuildClient> logger)
+            ILogger<AzureDevOpsBuildClient> logger, IHttpContextAccessor httpContextAccessor)
         {
             _generalSettings = generalSettingsOptions;
             _httpClient = httpClient;
             _sourceControl = sourceControl;
             _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <inheritdoc/>
@@ -45,7 +49,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
             int buildDefinitionId)
         {
             queueBuildParameters.GiteaEnvironment = $"{_generalSettings.HostName}/repos";
-            queueBuildParameters.AppDeployToken = await _sourceControl.GetDeployToken();
+            queueBuildParameters.AppDeployToken = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
             queueBuildParameters.AltinnStudioHostname = _generalSettings.HostName;
 
             QueueBuildRequest queueBuildRequest = CreateBuildRequest(queueBuildParameters, buildDefinitionId);
