@@ -80,7 +80,6 @@ services:
       - OidcLoginSettings:ClientId=${CLIENT_ID}
       - OidcLoginSettings:ClientSecret=${CLIENT_SECRET}
       - OidcLoginSettings:Authority=http://studio.localhost/repos/
-      - OidcLoginSettings:RedirectUri=http://studio.localhost/signin-oidc
       - OidcLoginSettings:RequireHttpsMetadata=false
       - OidcLoginSettings:CookieExpiryTimeInMinutes=59
     ports:

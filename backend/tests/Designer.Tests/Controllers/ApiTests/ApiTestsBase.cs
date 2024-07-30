@@ -123,7 +123,6 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
                         ""ClientId"": ""{Guid.NewGuid()}"",
                         ""ClientSecret"": ""{Guid.NewGuid()}"",
                         ""Authority"": ""http://studio.localhost/repos/"",
-                        ""RedirectUri"": ""http://studio.localhost/signin-oidc"",
                         ""Scopes"": [
                             ""openid"",
                             ""profile"",

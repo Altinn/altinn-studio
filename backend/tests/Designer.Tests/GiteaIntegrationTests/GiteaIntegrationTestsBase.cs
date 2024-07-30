@@ -146,7 +146,6 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
                     ""ClientId"": ""{GiteaFixture.OAuthApplicationClientId}"",
                     ""ClientSecret"": ""{GiteaFixture.OAuthApplicationClientSecret}"",
                     ""Authority"": ""{TestUrlsProvider.Instance.GiteaUrl}"",
-                    ""RedirectUri"": ""{TestUrlsProvider.Instance.DesignerUrl}/signin-oidc"",
                     ""Scopes"": [
                         ""openid"",
                         ""profile"",
