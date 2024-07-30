@@ -168,7 +168,6 @@ export const DesignView = (): ReactNode => {
         <StudioButton
           icon={<PlusIcon />}
           onClick={() => handleAddPage(false)}
-          size='small'
           className={classes.button}
         >
           {t('ux_editor.pages_add')}

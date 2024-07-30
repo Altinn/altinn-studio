@@ -4,7 +4,7 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
-export const useUploadDataModelMutation = (meta?: MutationMeta) => {
+export const useUploadDataModelMutation = (modelPath?: string, meta?: MutationMeta) => {
   const { uploadDataModel } = useServicesContext();
   const { org, app } = useStudioEnvironmentParams();
   const queryClient = useQueryClient();
@@ -15,6 +15,8 @@ export const useUploadDataModelMutation = (meta?: MutationMeta) => {
         queryClient.invalidateQueries({ queryKey: [QueryKey.DataModelsJson, org, app] }),
         queryClient.invalidateQueries({ queryKey: [QueryKey.DataModelsXsd, org, app] }),
         queryClient.invalidateQueries({ queryKey: [QueryKey.AppMetadataModelIds, org, app] }),
+        modelPath &&
+          queryClient.invalidateQueries({ queryKey: [QueryKey.JsonSchema, org, app, modelPath] }),
       ]);
     },
     meta,

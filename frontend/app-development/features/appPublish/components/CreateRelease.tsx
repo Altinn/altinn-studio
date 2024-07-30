@@ -80,7 +80,6 @@ export function CreateRelease() {
         <StudioButton
           onClick={handleBuildVersionClick}
           disabled={!versionNameValid(releases, tagName) || !tagName}
-          size='small'
         >
           {t('app_create_release.build_version')}
         </StudioButton>

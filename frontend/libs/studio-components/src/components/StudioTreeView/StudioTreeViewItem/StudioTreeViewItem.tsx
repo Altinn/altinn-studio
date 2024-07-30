@@ -113,7 +113,6 @@ export const StudioTreeViewItem = ({
       onKeyDown={handleKeyDown}
       ref={treeItemRef}
       role='treeitem'
-      size='small'
       tabIndex={focusable ? 0 : -1}
       type='button'
       variant='tertiary'

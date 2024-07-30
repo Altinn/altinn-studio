@@ -55,7 +55,7 @@ export function TopToolbar({
         handleCreateSchema={handleCreateSchema}
         createPathOption={createPathOption}
       />
-      <XSDUpload disabled={false} />
+      <XSDUpload disabled={false} selectedOption={selectedOption} />
       <SchemaSelect
         dataModels={dataModels}
         disabled={false}

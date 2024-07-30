@@ -1,11 +1,11 @@
 import React from 'react';
 import { Switch } from '@digdir/designsystemet-react';
-import { LegacySelect } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { useText } from '../../../../hooks';
 import { EditTextResourceBinding } from '../../editModal/EditTextResourceBinding';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
 import { FormField } from '../../../FormField';
+import { StudioNativeSelect } from '@studio/components';
 
 export const PanelComponent = ({ component, handleComponentChange }: IGenericEditComponent) => {
   const t = useText();
@@ -45,19 +45,19 @@ export const PanelComponent = ({ component, handleComponentChange }: IGenericEdi
       />
 
       <FormField
-        id={component.id}
+        id={`variant-${component.id}`}
         label={t('ux_editor.choose_variant')}
         value={component.variant || 'info'}
-        onChange={handleVariantClick}
+        onChange={(value) => handleVariantClick(value as FormPanelVariant)}
         propertyPath={`${component.propertyPath}/properties/variant`}
         renderField={({ fieldProps }) => (
-          <LegacySelect
-            {...fieldProps}
-            options={Object.values(FormPanelVariant).map((value: FormPanelVariant) => ({
-              label: t(`ux_editor.${value}`),
-              value,
-            }))}
-          />
+          <StudioNativeSelect id={component.id} {...fieldProps}>
+            {Object.values(FormPanelVariant).map((value: FormPanelVariant) => (
+              <option key={value} value={value}>
+                {t(`ux_editor.${value}`)}
+              </option>
+            ))}
+          </StudioNativeSelect>
         )}
       />
     </>

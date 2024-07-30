@@ -67,6 +67,7 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
         variant='tertiary'
         className={classes.giteaButton}
         icon={giteaIconWithLink}
+        size='medium'
       />
       <StudioButton
         title={t('dashboard.edit_app', {
@@ -75,6 +76,7 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
         variant='tertiary'
         className={classes.editButton}
         icon={editIconWithLink}
+        size='medium'
       />
       <StudioDropdownMenu size='small' anchorButtonProps={dropdownAnchorButtonProps}>
         <StudioDropdownMenu.Item onClick={() => handleOpenCopyModal(repoFullName)}>

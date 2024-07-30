@@ -126,19 +126,6 @@ describe('ConfigContent', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should render helpText for selected task', async () => {
-    const user = userEvent.setup();
-    renderConfigContent();
-    const helpTextButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_header_help_text_title'),
-    });
-    await user.click(helpTextButton);
-
-    expect(
-      screen.getByText(textMock('process_editor.configuration_panel_header_help_text_data')),
-    ).toBeInTheDocument();
-  });
-
   it('should display the connected data model as selected by default when data type is connected to task', () => {
     const connectedDataType = mockBpmnApiContextValue.layoutSets.sets[0].dataType;
     renderConfigContent();

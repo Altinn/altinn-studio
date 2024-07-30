@@ -1,7 +1,4 @@
 import React from 'react';
-import { RepositoryType } from 'app-shared/types/global';
-import type { TFunction } from 'i18next';
-import { LegacySelect, LegacyToggleButtonGroup } from '@digdir/design-system-react';
 import type { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import classes from '../AppPreviewSubMenu.module.css';
 import { ArrowCirclepathIcon, EyeIcon, LinkIcon } from '@studio/icons';
@@ -10,31 +7,9 @@ import type { AppPreviewSubMenuProps } from '../AppPreviewSubMenu';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
-import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
-import { StudioButton } from '@studio/components';
-
-export interface AppPreviewMenuItem {
-  key: string;
-  link: JSX.Element;
-}
-
-export const menu: TopBarMenuItem[] = [
-  {
-    key: TopBarMenu.Preview,
-    link: '/:org/:app',
-    repositoryTypes: [RepositoryType.App],
-  },
-];
-
-export const getTopBarAppPreviewMenu = (
-  org: string,
-  app: string,
-  repositoryType: RepositoryType,
-  t: TFunction,
-): TopBarMenuItem[] => {
-  return menu.filter((menuItem) => menuItem.repositoryTypes.includes(repositoryType));
-};
+import { StudioButton, StudioNativeSelect } from '@studio/components';
+import { ToggleGroup } from '@digdir/designsystemet-react';
 
 export const SubPreviewMenuLeftContent = ({
   viewSize,
@@ -49,31 +24,27 @@ export const SubPreviewMenuLeftContent = ({
   return (
     <div className={classes.leftSubHeaderComponents}>
       <div className={classes.viewSizeButtons}>
-        <LegacyToggleButtonGroup
-          items={[
-            {
-              label: t('preview.view_size_desktop'),
-              value: 'desktop',
-            },
-            {
-              label: t('preview.view_size_mobile'),
-              value: 'mobile',
-            },
-          ]}
+        <ToggleGroup
           onChange={setViewSize}
-          selectedValue={viewSize === 'desktop' ? 'desktop' : 'mobile'}
-        />
+          value={viewSize === 'desktop' ? 'desktop' : 'mobile'}
+          size='sm'
+        >
+          <ToggleGroup.Item value='desktop'>{t('preview.view_size_desktop')}</ToggleGroup.Item>
+          <ToggleGroup.Item value='mobile'>{t('preview.view_size_mobile')}</ToggleGroup.Item>
+        </ToggleGroup>
       </div>
       {layoutSets && (
         <div className={classes.layoutSetSelector}>
-          <LegacySelect
+          <StudioNativeSelect
             onChange={(layoutSet) => handleChangeLayoutSet(layoutSet)}
-            options={layoutSets.sets.map((layoutSet) => ({
-              label: layoutSet.id,
-              value: layoutSet.id,
-            }))}
             value={selectedLayoutSet}
-          />
+          >
+            {layoutSets.sets.map((layoutSet) => (
+              <option key={layoutSet.id} value={layoutSet.id}>
+                {layoutSet.id}
+              </option>
+            ))}
+          </StudioNativeSelect>
         </div>
       )}
     </div>
@@ -84,13 +55,13 @@ export const SubPreviewMenuRightContent = () => {
   const { t } = useTranslation();
   return (
     <div className={classes.rightSubHeaderButtons}>
-      <StudioButton icon={<ArrowCirclepathIcon />} variant='tertiary' size='small' color='inverted'>
+      <StudioButton icon={<ArrowCirclepathIcon />} variant='tertiary' color='inverted'>
         {t('preview.subheader.restart')}
       </StudioButton>
-      <StudioButton icon={<EyeIcon />} variant='tertiary' size='small' color='inverted'>
+      <StudioButton icon={<EyeIcon />} variant='tertiary' color='inverted'>
         {t('preview.subheader.showas')}
       </StudioButton>
-      <StudioButton icon={<LinkIcon />} variant='tertiary' size='small' color='inverted'>
+      <StudioButton icon={<LinkIcon />} variant='tertiary' color='inverted'>
         {t('preview.subheader.sharelink')}
       </StudioButton>
     </div>

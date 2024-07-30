@@ -2,139 +2,186 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Designer.Tests.Helpers;
 using Designer.Tests.Utils;
 
 namespace Designer.Tests.Fixtures
 {
 
     /// <summary>
-    /// Used for authorize httpclient and to add xsrfToken as a cookie for tests.
-    /// Logic for setting cookie is ported from <see cref="AuthenticationUtil"/>
+    /// Authenticates to Designer using OIDC flow with Gitea as the identity provider.
+    /// Attaches the necessary cookies and XSRF token to the request.
+    ///
     /// </summary>
     [ExcludeFromCodeCoverage]
     internal class GiteaAuthDelegatingHandler : DelegatingHandler
     {
-        private readonly string _giteaBaseAddress;
-        private readonly string _baseAddress;
-
-        public GiteaAuthDelegatingHandler(string giteaBaseAddress) : this(giteaBaseAddress, "http://localhost")
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+            CancellationToken cancellationToken)
         {
-        }
-
-        public GiteaAuthDelegatingHandler(string giteaBaseAddress, string baseAddress)
-        {
-            _giteaBaseAddress = giteaBaseAddress;
-            _baseAddress = baseAddress;
-        }
-
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-        {
-            using HttpResponseMessage authorizedGiteaResponse = await GetAuthorizedGiteaResponse(cancellationToken);
-            return await LoginToDesignerAndProxyRequest(authorizedGiteaResponse, request, cancellationToken);
-        }
-
-        private async Task<HttpResponseMessage> GetAuthorizedGiteaResponse(CancellationToken cancellationToken)
-        {
-            string giteaLoginUrl = $"{_giteaBaseAddress}user/login";
-            using var giteaClient = new HttpClient(new HttpClientHandler
+            var response = await base.SendAsync(request, cancellationToken);
+            if (response.StatusCode != HttpStatusCode.Redirect)
             {
-                AllowAutoRedirect = false
-            });
+                return response;
+            }
 
-            using var giteaGetLoginResponse = await giteaClient.GetAsync(giteaLoginUrl, cancellationToken);
-            string htmlContent = await giteaGetLoginResponse.Content.ReadAsStringAsync(cancellationToken);
-            List<KeyValuePair<string, string>> formValues = new()
+            return await LoginAndRetryRequest(request, response, cancellationToken);
+
+        }
+
+
+        private async Task<HttpResponseMessage> LoginAndRetryRequest(HttpRequestMessage request, HttpResponseMessage initialResponse,
+            CancellationToken cancellationToken)
+        {
+            using var redirectToAuthorizeRequest =
+                new HttpRequestMessage(HttpMethod.Get, initialResponse.Headers.Location);
+            using var redirectToAuthorizeResponse =
+                await base.SendAsync(redirectToAuthorizeRequest, cancellationToken);
+
+            using var authorizeRedirectedToLoginResponse =
+                await Redirect(redirectToAuthorizeResponse.Headers.Location, cancellationToken);
+
+            using HttpResponseMessage loginToGiteaResponse = await LoginToGitea(authorizeRedirectedToLoginResponse,
+                redirectToAuthorizeResponse, cancellationToken);
+
+            using HttpResponseMessage loginToAuthorizeRedirectedResponse = await Redirect(
+                loginToGiteaResponse.Headers.Location, cancellationToken, loginToGiteaResponse.GetGiteaAuthCookies());
+            var designerSignInUrl = loginToAuthorizeRedirectedResponse.Headers.Location;
+
+            if (loginToAuthorizeRedirectedResponse.StatusCode == HttpStatusCode.OK)
+            {
+                using HttpResponseMessage grantResponse = await GrantAuthorization(loginToAuthorizeRedirectedResponse,
+                    loginToGiteaResponse, cancellationToken);
+                designerSignInUrl = grantResponse.Headers.Location;
+            }
+
+            using HttpResponseMessage designerSignInResponse =
+                await Redirect(designerSignInUrl, cancellationToken, initialResponse.GetCookies(".AspNetCore."));
+            var designerAuthCookies = designerSignInResponse.GetCookies("AltinnStudioDesigner");
+
+            string xsrfToken =
+                await CallUserCurrentEndpointAndExtractAntiForgeryToken(designerAuthCookies, cancellationToken);
+
+            return await RetryInitialRequestAfterSigningIn(request, designerAuthCookies, xsrfToken, cancellationToken);
+        }
+
+        private async Task<HttpResponseMessage> RetryInitialRequestAfterSigningIn(HttpRequestMessage request,
+            IEnumerable<string> authCookies, string xsrfToken, CancellationToken cancellationToken)
+        {
+            using var finalRedirectRequest = new HttpRequestMessage(request.Method, request.RequestUri);
+            finalRedirectRequest.Content = request.Content;
+
+            finalRedirectRequest.AddCookies(authCookies);
+            finalRedirectRequest.AddXsrfToken(xsrfToken);
+
+            return await base.SendAsync(finalRedirectRequest, cancellationToken);
+        }
+
+        private async Task<string> CallUserCurrentEndpointAndExtractAntiForgeryToken(IEnumerable<string> cookies,
+            CancellationToken cancellationToken)
+        {
+            string xsrfUrl = $"{TestUrlsProvider.Instance.DesignerUrl}/designer/api/user/current";
+            using var httpRequestMessageXsrf = new HttpRequestMessage(HttpMethod.Get, xsrfUrl);
+            httpRequestMessageXsrf.AddCookies(cookies);
+            using var xsrfResponse = await base.SendAsync(httpRequestMessageXsrf, cancellationToken);
+            string xsrfToken = AuthenticationUtil.GetXsrfTokenFromCookie(xsrfResponse.GetCookies());
+            return xsrfToken;
+        }
+
+        private async Task<HttpResponseMessage> GrantAuthorization(
+            HttpResponseMessage loginToAuthorizeRedirectedResponse,
+            HttpResponseMessage loginToGiteaResponse, CancellationToken cancellationToken)
+        {
+            string authorizePageContent =
+                await loginToAuthorizeRedirectedResponse.Content.ReadAsStringAsync(cancellationToken);
+
+            List<KeyValuePair<string, string>> grantFormValues = new()
+            {
+                new KeyValuePair<string, string>("_csrf",
+                    WebScrapingUtils.ExtractTextBetweenMarkers(authorizePageContent,
+                        "<input type=\"hidden\" name=\"_csrf\" value=\"", "\"")),
+                new KeyValuePair<string, string>("client_id",
+                    WebScrapingUtils.ExtractTextBetweenMarkers(authorizePageContent,
+                        "<input type=\"hidden\" name=\"client_id\" value=\"", "\"")),
+                new KeyValuePair<string, string>("state",
+                    WebScrapingUtils.ExtractTextBetweenMarkers(authorizePageContent,
+                        "<input type=\"hidden\" name=\"state\" value=\"", "\"")),
+                new KeyValuePair<string, string>("scope",
+                    WebScrapingUtils.ExtractTextBetweenMarkers(authorizePageContent,
+                        "<input type=\"hidden\" name=\"scope\" value=\"", "\"")),
+                new KeyValuePair<string, string>("nonce",
+                    WebScrapingUtils.ExtractTextBetweenMarkers(authorizePageContent,
+                        "<input type=\"hidden\" name=\"nonce\" value=\"", "\"")),
+                new KeyValuePair<string, string>("redirect_uri",
+                    WebScrapingUtils.ExtractTextBetweenMarkers(authorizePageContent,
+                        "<input type=\"hidden\" name=\"redirect_uri\" value=\"", "\"")),
+            };
+
+            using FormUrlEncodedContent grantContent = new(grantFormValues);
+
+            string grantUrl =
+                WebScrapingUtils.ExtractTextBetweenMarkers(authorizePageContent, "<form method=\"post\" action=\"",
+                    "\">");
+            using var grantRequest =
+                new HttpRequestMessage(HttpMethod.Post, TestUrlsProvider.Instance.GiteaUrl + grantUrl)
+                {
+                    Content = grantContent
+                };
+
+            grantRequest.AddCookies(loginToGiteaResponse.GetGiteaAuthCookies());
+
+            var grantResponse = await base.SendAsync(grantRequest, cancellationToken);
+            return grantResponse;
+        }
+
+        private async Task<HttpResponseMessage> LoginToGitea(HttpResponseMessage loginRedirectResponse,
+            HttpResponseMessage redirectResponse, CancellationToken cancellationToken)
+        {
+            string loginPageContent = await loginRedirectResponse.Content.ReadAsStringAsync(cancellationToken);
+
+
+            List<KeyValuePair<string, string>> loginFormValues = new()
             {
                 new KeyValuePair<string, string>("user_name", GiteaConstants.TestUser),
                 new KeyValuePair<string, string>("password", GiteaConstants.TestUserPassword),
-                new KeyValuePair<string, string>("_csrf", GetStringFromHtmlContent(htmlContent, "<input type=\"hidden\" name=\"_csrf\" value=\"", "\"")),
+                new KeyValuePair<string, string>("_csrf",
+                    WebScrapingUtils.ExtractTextBetweenMarkers(loginPageContent,
+                        "<input type=\"hidden\" name=\"_csrf\" value=\"", "\"")),
             };
 
-            using FormUrlEncodedContent content = new(formValues);
+            using FormUrlEncodedContent content = new(loginFormValues);
 
-            using var giteaPostLoginMessage = new HttpRequestMessage(HttpMethod.Post, giteaLoginUrl)
-            {
-                Content = content
-            };
+            using var giteaPostLoginMessage =
+                new HttpRequestMessage(HttpMethod.Post, loginRedirectResponse.RequestMessage.RequestUri)
+                {
+                    Content = content
+                };
 
-            giteaPostLoginMessage.Headers.Add("Cookie", GetGiteaAuthCookiesFromResponseMessage(giteaGetLoginResponse));
+            giteaPostLoginMessage.AddCookies(loginRedirectResponse.GetGiteaAuthCookies()
+                .Union(redirectResponse.GetCookies("redirect_to")));
 
-            return await giteaClient.SendAsync(giteaPostLoginMessage, cancellationToken);
+            var loginResponse = await base.SendAsync(giteaPostLoginMessage, cancellationToken);
+            return loginResponse;
         }
 
-        private async Task<HttpResponseMessage> LoginToDesignerAndProxyRequest(HttpResponseMessage giteaAuthorizedResponse, HttpRequestMessage request, CancellationToken cancellationToken)
+
+        private async Task<HttpResponseMessage> Redirect(Uri redirectUri, CancellationToken cancellationToken,
+            IEnumerable<string> cookies = null)
         {
-            string loginUrl = $"{_baseAddress}/Login";
-            using var httpRequestMessageLogin = new HttpRequestMessage(HttpMethod.Get, loginUrl);
-            SetCookies(httpRequestMessageLogin, GetGiteaAuthCookiesFromResponseMessage(giteaAuthorizedResponse));
-
-            using var loginResponse = await base.SendAsync(httpRequestMessageLogin, cancellationToken);
-
-            string xsrfUrl = $"{_baseAddress}/designer/api/user/current";
-            using var httpRequestMessageXsrf = new HttpRequestMessage(HttpMethod.Get, xsrfUrl);
-            SetCookies(httpRequestMessageXsrf, GetGiteaAuthCookiesFromResponseMessage(loginResponse));
-
-            IEnumerable<string> cookies = null;
-            if (loginResponse.Headers.Contains("Set-Cookie"))
+            var redirectUrl = redirectUri.IsAbsoluteUri
+                ? redirectUri
+                : new Uri(TestUrlsProvider.Instance.GiteaUrl + redirectUri);
+            using var redirectRequest = new HttpRequestMessage(HttpMethod.Get, redirectUrl);
+            if (cookies != null)
             {
-                cookies = loginResponse.Headers.GetValues("Set-Cookie");
-                AuthenticationUtil.SetAltinnStudioCookieFromResponseHeader(httpRequestMessageXsrf, cookies);
+                redirectRequest.AddCookies(cookies);
             }
 
-            var xsrfResponse = await base.SendAsync(httpRequestMessageXsrf, cancellationToken);
-
-            var xsrfcookies = xsrfResponse.Headers.Contains("Set-Cookie") ? xsrfResponse.Headers.GetValues("Set-Cookie") : xsrfResponse.RequestMessage.Headers.GetValues("Cookie");
-            string xsrfToken = AuthenticationUtil.GetXsrfTokenFromCookie(xsrfcookies);
-            AuthenticationUtil.SetAltinnStudioCookieFromResponseHeader(request, cookies, xsrfToken);
-            SetCookies(request, GetGiteaAuthCookiesFromResponseMessage(xsrfResponse));
-
-            return await base.SendAsync(request, cancellationToken);
-        }
-
-        private static string GetStringFromHtmlContent(string htmlContent, string inputSearchTextBefore, string inputSearchTextAfter)
-        {
-            int start = htmlContent.IndexOf(inputSearchTextBefore, StringComparison.InvariantCulture);
-
-            // Add the lengt of the search string to find the start place for form vlaue
-            start += inputSearchTextBefore.Length;
-
-            // Find the end of the input value content in html (input element with " as end)
-            int stop = htmlContent.IndexOf(inputSearchTextAfter, start, StringComparison.InvariantCulture);
-
-            if (start > 0 && stop > 0 && stop > start)
-            {
-                string formValue = htmlContent.Substring(start, stop - start);
-                return formValue;
-            }
-
-            return null;
-        }
-
-        private static IEnumerable<string> GetGiteaAuthCookiesFromResponseMessage(HttpResponseMessage responseMessage)
-        {
-            if (responseMessage.Headers.Contains("Set-Cookie"))
-            {
-                return responseMessage.Headers.GetValues("Set-Cookie").Where(x => x.Contains("i_like_gitea") || x.Contains("_flash")).ToList();
-            }
-
-            if (responseMessage.RequestMessage.Headers.Contains("Cookie"))
-            {
-                return responseMessage.RequestMessage.Headers.GetValues("Cookie")
-                    .Where(x => x.Contains("i_like_gitea") || x.Contains("_flash")).ToList();
-            }
-
-            throw new ArgumentException("Response message does not contain any cookies");
-        }
-
-        private static void SetCookies(HttpRequestMessage message, IEnumerable<string> cookies)
-        {
-            foreach (string cookie in cookies)
-            {
-                message.Headers.Add("Cookie", cookie);
-            }
+            return await base.SendAsync(redirectRequest, cancellationToken);
         }
     }
 }

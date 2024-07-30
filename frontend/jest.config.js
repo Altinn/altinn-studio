@@ -40,7 +40,7 @@ const config = {
   moduleNameMapper: {
     // prettier-ignore
     '\\.(jpg|jpeg|png|gif|eot|otf|svg|webp|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': path.join(__dirname, 'testing/mocks/fileMock.js'),
-    '\\.(css|less)$': path.join(__dirname, 'testing/mocks/styleMock.js'),
+    '\\.(css|less)$': 'identity-obj-proxy',
     '^preact(/(.*)|$)': 'preact$1',
     '^@altinn/policy-editor/(.*)': path.join(__dirname, 'packages/policy-editor/src/$1'),
     '^@altinn/process-editor/(.*)': path.join(__dirname, 'packages/process-editor/src/$1'),

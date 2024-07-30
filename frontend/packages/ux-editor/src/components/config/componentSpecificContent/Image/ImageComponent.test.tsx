@@ -71,8 +71,10 @@ describe('ImageComponent', () => {
       name: textMock('ux_editor.modal_properties_image_placement_label'),
     });
 
-    await user.type(placementInput, 'L'); // Type something to trigger showing Select options
-    await user.click(screen.getByText(textMock('ux_editor.modal_properties_image_placement_left')));
+    await user.selectOptions(
+      placementInput,
+      textMock('ux_editor.modal_properties_image_placement_left'),
+    );
 
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentData,

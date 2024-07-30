@@ -47,7 +47,6 @@ export const GenerateModelsButton = ({
           onClick={handleGenerateButtonClick}
           icon={<CogIcon />}
           variant='tertiary'
-          size='small'
         >
           {t('schema_editor.generate_model_files')}
         </StudioButton>
