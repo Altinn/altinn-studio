@@ -26,7 +26,6 @@ export class SyncSuccessQueriesInvalidator extends Queue {
     'layout-sets.json': [QueryKey.LayoutSets, '[org]', '[app]'],
     'policy.xml': [QueryKey.AppPolicy, '[org]', '[app]'],
     'Settings.json': [QueryKey.FormLayoutSettings, '[org]', '[app]', '[layoutSetName]'],
-    'resource.nb.json': [QueryKey.TextResources, '[org]', '[app]', '[layoutSetName]'],
   };
 
   // Maps folder names to their cache keys for invalidation upon sync success - can be extended to include more folders
