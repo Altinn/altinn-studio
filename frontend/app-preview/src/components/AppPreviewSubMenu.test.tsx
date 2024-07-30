@@ -26,23 +26,23 @@ describe('AppPreviewSubMenu', () => {
   it('renders the component with desktop viewSize', () => {
     setQueryData(null);
     renderWithProviders(<AppPreviewSubMenu {...props} />);
-    const desktopButton = screen.getByRole('button', {
+    const desktopButton = screen.getByRole('radio', {
       name: textMock('preview.view_size_desktop'),
     });
-    const mobileButton = screen.getByRole('button', { name: textMock('preview.view_size_mobile') });
-    expect(desktopButton).toHaveAttribute('aria-pressed', 'true');
-    expect(mobileButton).toHaveAttribute('aria-pressed', 'false');
+    const mobileButton = screen.getByRole('radio', { name: textMock('preview.view_size_mobile') });
+    expect(desktopButton).toHaveAttribute('aria-checked', 'true');
+    expect(mobileButton).toHaveAttribute('aria-checked', 'false');
   });
 
   it('renders the component with mobile viewSize', () => {
     setQueryData(null);
     renderWithProviders(<AppPreviewSubMenu {...props} viewSize='mobile' />);
-    const desktopButton = screen.getByRole('button', {
+    const desktopButton = screen.getByRole('radio', {
       name: textMock('preview.view_size_desktop'),
     });
-    const mobileButton = screen.getByRole('button', { name: textMock('preview.view_size_mobile') });
-    expect(desktopButton).toHaveAttribute('aria-pressed', 'false');
-    expect(mobileButton).toHaveAttribute('aria-pressed', 'true');
+    const mobileButton = screen.getByRole('radio', { name: textMock('preview.view_size_mobile') });
+    expect(mobileButton).toHaveAttribute('aria-checked', 'true');
+    expect(desktopButton).toHaveAttribute('aria-checked', 'false');
   });
 
   it('renders the component with layout sets in select list', async () => {

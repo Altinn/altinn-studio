@@ -29,8 +29,8 @@
 }
 
 .content {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: auto auto;
   gap: var(--fds-spacing-10);
 }
 
@@ -84,18 +84,10 @@
   .divider {
     display: block;
   }
-
-  .footer {
-    width: calc(100% - 275px - var(--fds-spacing-10));
-  }
 }
 
 @media (min-width: 1200px) {
   .aside {
     width: 350px;
-  }
-
-  .footer {
-    width: calc(100% - 350px - var(--fds-spacing-10));
   }
 }

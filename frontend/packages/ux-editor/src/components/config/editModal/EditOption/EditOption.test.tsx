@@ -139,9 +139,7 @@ describe('EditOption', () => {
       const searchTab = within(textResourceFieldset).getByRole('tab', { name: searchTabLabel });
       await user.click(searchTab);
       const searchInput = within(textResourceFieldset).getByRole('combobox');
-      await user.click(searchInput);
-      const newOptionOption = screen.getByRole('option', { name: textResources[1].id });
-      await user.click(newOptionOption);
+      await user.selectOptions(searchInput, textResources[1].id);
       expect(onChange).toHaveBeenCalledTimes(1);
       expect(onChange).toHaveBeenCalledWith({ ...testOption, [key]: textResources[1].id });
     },

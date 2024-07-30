@@ -77,7 +77,7 @@ describe('EditFormContainer', () => {
   it('should update form when editing field', async () => {
     await render();
 
-    const containerIdInput = screen.getByLabelText(
+    const containerIdInput = screen.getByText(
       textMock('ux_editor.modal_properties_group_change_id'),
     );
     await user.type(containerIdInput, 'test');
@@ -87,7 +87,7 @@ describe('EditFormContainer', () => {
   it('should display an error when containerId is invalid', async () => {
     await render();
 
-    const containerIdInput = screen.getByLabelText(
+    const containerIdInput = screen.getByText(
       textMock('ux_editor.modal_properties_group_change_id'),
     );
     await user.type(containerIdInput, 'test@');
