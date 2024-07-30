@@ -27,7 +27,6 @@ module.exports = (middlewares, devServer) => {
 
   app.delete(dataModelPath(':org', ':app'), require('./routes/del-datamodel'));
   app.get('/', require('./routes/root-redirect'));
-  app.get('/editor/:owner/:repo', require('./routes/get-index-html'));
   //prettier-ignore
   app.get(dataModelPath(':org', ':app', '/App/models/:filename'), require('./routes/get-datamodel'));
   app.get(dataModelsPath(':org', ':app'), require('./routes/get-datamodels'));
