@@ -14,11 +14,15 @@ import { Trans, useTranslation } from 'react-i18next';
 import { ErrorBoundaryFallback } from '../components/ErrorBoundaryFallback';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 
-import 'react-toastify/dist/ReactToastify.css';
-import 'app-shared/styles/toast.css';
 import { userLogoutAfterPath } from 'app-shared/api/paths';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { Link } from '@digdir/designsystemet-react';
+
+import 'react-toastify/dist/ReactToastify.css';
+import '@digdir/designsystemet-theme/brand/altinn/tokens.css';
+import '@digdir/designsystemet-css';
+import './styles/toast.css';
+import './styles/global.css';
 
 export type ServicesContextProps = typeof queries & typeof mutations;
 export type ServicesContextProviderProps = ServicesContextProps & {
