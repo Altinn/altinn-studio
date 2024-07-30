@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import postMessages from 'app-shared/utils/postMessages';
 import { HandleServiceInformationActions } from '../features/overview/handleServiceInformationSlice';
 import {
   fetchRemainingSession,
@@ -18,7 +17,6 @@ import { initReactI18next } from 'react-i18next';
 import nb from '../../language/src/nb.json';
 import en from '../../language/src/en.json';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { appContentWrapperId } from '@studio/testing/testids';
 import { SessionExpiredModal } from './SessionExpiredModal';
 
@@ -44,7 +42,6 @@ export function App() {
   const app = match?.params?.app ?? '';
 
   const repositoryType = getRepositoryType(org, app);
-  const { refetch: reFetchRepoStatus } = useRepoStatusQuery(org, app);
   const remainingSessionMinutes = useAppSelector(
     (state) => state.userState.session.remainingMinutes,
   );
@@ -91,11 +88,6 @@ export function App() {
         ),
       );
     };
-    const windowEventReceived = async (event: any) => {
-      if (event.data === postMessages.forceRepoStatusCheck) {
-        await reFetchRepoStatus();
-      }
-    };
     const keepAliveSessionState = () => {
       const timeNow = Date.now();
       if (
@@ -109,12 +101,10 @@ export function App() {
     };
 
     setEventListeners(true);
-    window.addEventListener('message', windowEventReceived);
     return function cleanup() {
-      window.removeEventListener('message', windowEventReceived);
       setEventListeners(false);
     };
-  }, [app, dispatch, lastKeepAliveTimestamp, org, reFetchRepoStatus, remainingSessionMinutes]);
+  }, [app, dispatch, lastKeepAliveTimestamp, org, remainingSessionMinutes]);
 
   const handleClickClose = useCallback(() => {
     dispatch(signOutUser());
