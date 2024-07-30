@@ -19,6 +19,7 @@ export enum QueryKey {
   FormLayoutSettings = 'FormLayoutSettings',
   FormLayouts = 'FormLayouts',
   FrontEndSettings = 'FrontEndSettings',
+  ImageFileNames = 'ImageFileNames',
   InstanceId = 'InstanceId',
   JsonSchema = 'JsonSchema',
   LayoutNames = 'LayoutNames',

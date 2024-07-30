@@ -1,0 +1,26 @@
+.previewContainer {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--fds-spacing-2);
+  align-items: center;
+  margin: 0 var(--fds-spacing-5);
+}
+
+.fileDescription,
+.fileName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fileName {
+  font-weight: bold;
+}
+
+.fileInfoContainer {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fileIcon {
+  font-size: var(--fds-sizing-5);
+}
