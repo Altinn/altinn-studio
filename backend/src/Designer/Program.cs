@@ -314,9 +314,9 @@ void Configure(IConfiguration configuration)
 
     if (!app.Environment.IsDevelopment())
     {
+        app.UseForwardedHeaders();
         app.UseHsts();
         app.UseHttpsRedirection();
-        app.UseForwardedHeaders();
     }
 
     app.UseAuthentication();
