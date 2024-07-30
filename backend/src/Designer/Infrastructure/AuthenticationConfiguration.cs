@@ -20,11 +20,14 @@ namespace Altinn.Studio.Designer.Infrastructure
     /// </summary>
     public static class AuthenticationConfiguration
     {
+        private const string GiteaUserNameClaim = "preferred_username";
+
         /// <summary>
         /// Extension method that configures authentication
         /// </summary>
         /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
         /// <param name="config">The configuration</param>
+        /// <param name="env">The web hosting environment</param>
         public static IServiceCollection ConfigureAuthentication(this IServiceCollection services,
             IConfiguration config, IWebHostEnvironment env)
         {
@@ -63,7 +66,7 @@ namespace Altinn.Studio.Designer.Infrastructure
                 .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme,
                     options =>
                     {
-                        options.Authority = oidcSettings!.Authority;
+                        options.Authority = oidcSettings.Authority;
                         options.ClientId = oidcSettings.ClientId;
                         options.ClientSecret = oidcSettings.ClientSecret;
 
@@ -84,7 +87,7 @@ namespace Altinn.Studio.Designer.Infrastructure
                         options.RequireHttpsMetadata = oidcSettings.RequireHttpsMetadata;
                         options.TokenValidationParameters = new TokenValidationParameters
                         {
-                            NameClaimType = "preferred_username"
+                            NameClaimType = GiteaUserNameClaim
                         };
 
 

@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
 
+/// <summary>
+/// Adds the authorization token to the request header.
+/// </summary>
 public class GiteaTokenDelegatingHandler : DelegatingHandler
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
