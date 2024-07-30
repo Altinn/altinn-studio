@@ -302,16 +302,6 @@ src/AltinnRepositories/gitea-data/gitea/*
 src/Altinn.Platform/Altinn.Platform.Receipt/Receipt/wwwroot/receipt/js/react
 src/Altinn.Platform/Altinn.Platform.Receipt/Receipt/wwwroot/receipt/css
 
-######### Built react apps for designer ###########
-src/studio/src/designer/backend/wwwroot/designer/css/react
-src/studio/src/designer/backend/wwwroot/designer/js/react
-src/studio/src/designer/backend/wwwroot/designer/js/lib
-src/studio/src/designer/backend/wwwroot/designer/css/lib
-src/studio/src/designer/backend/wwwroot/designer/css/font-awesome
-src/studio/src/designer/backend/wwwroot/designer/css/fonts
-src/studio/src/designer/backend/wwwroot/designer/css/bootstrap*.css
-src/studio/src/designer/backend/wwwroot/designer/frontend
-
 ######### Testdata created by testrun #########
 src/Altinn.Platform/Altinn.Platform.Authorization/IntegrationTests/Data/blobs/output/
 
@@ -383,7 +373,6 @@ backend/src/Designer/wwwroot/designer/css/react
 backend/src/Designer/wwwroot/designer/js/react
 backend/src/Designer/wwwroot/designer/js/lib
 backend/src/Designer/wwwroot/designer/css/lib
-backend/src/Designer/wwwroot/designer/css/font-awesome
 backend/src/Designer/wwwroot/designer/css/fonts
 backend/src/Designer/wwwroot/designer/css/bootstrap*.css
 backend/src/Designer/wwwroot/designer/frontend
