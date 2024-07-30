@@ -3,8 +3,7 @@ import type { Preview } from '@storybook/react';
 import { DocsContainer } from '@storybook/addon-docs';
 import { Unstyled } from '@storybook/blocks';
 
-import '@altinn/figma-design-tokens/dist/tokens.css';
-import '@digdir/design-system-tokens/brand/altinn/tokens.css';
+import '@digdir/designsystemet-theme/brand/altinn/tokens.css';
 import '@digdir/designsystemet-css';
 
 const preview: Preview = {
