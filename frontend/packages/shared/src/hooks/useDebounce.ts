@@ -15,5 +15,9 @@ export const useDebounce = ({ debounceTimeInMs }: UseDebounceOptions) => {
     [debounceTimeInMs],
   );
 
+  useEffect(() => {
+    return () => clearTimeout(debounceRef.current);
+  }, []);
+
   return { debounce };
 };
