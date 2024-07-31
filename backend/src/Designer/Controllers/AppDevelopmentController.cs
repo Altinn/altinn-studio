@@ -60,9 +60,9 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <returns>default view for the app builder.</returns>
         [Route("/editor/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/{*AllValues}")]
-        public IActionResult Index(string org, string app)
+        public async Task<IActionResult> Index(string org, string app)
         {
-            _sourceControl.VerifyCloneExists(org, app);
+            await _sourceControl.VerifyCloneExists(org, app);
             ViewBag.AiConnectionString = _applicationInsightsSettings.ConnectionString;
             return View();
         }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { renderWithMockStore } from '../../../test/mocks';
+import { renderWithProviders } from '../../../test/mocks';
 import type { SelectedSchemaEditorProps } from './SelectedSchemaEditor';
 import { SelectedSchemaEditor } from './SelectedSchemaEditor';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -183,8 +183,7 @@ const render = (
     [QueryKey.DataModelsXsd, org, app],
     [model1MetadataXsd, model2MetadataXsd],
   );
-  return renderWithMockStore(
-    {},
+  return renderWithProviders(
     queries,
     queryClient,
   )(<SelectedSchemaEditor {...defaultProps} {...props} />);

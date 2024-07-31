@@ -52,24 +52,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository</param>
         /// <returns>The result of the cloning</returns>
-        public string CloneRemoteRepository(string org, string repository)
+        public async Task<string> CloneRemoteRepository(string org, string repository)
         {
             string remoteRepo = FindRemoteRepoLocation(org, repository);
             CloneOptions cloneOptions = new();
-            cloneOptions.FetchOptions.CredentialsProvider = CredentialsProvider();
+            cloneOptions.FetchOptions.CredentialsProvider = await GetCredentialsAsync();
             string localPath = FindLocalRepoLocation(org, repository);
             string cloneResult = LibGit2Sharp.Repository.Clone(remoteRepo, localPath, cloneOptions);
 
-            FetchGitNotes(localPath);
+            await FetchGitNotes(localPath);
             return cloneResult;
         }
 
         /// <inheritdoc />
-        public string CloneRemoteRepository(string org, string repository, string destinationPath, string branchName = "")
+        public async Task<string> CloneRemoteRepository(string org, string repository, string destinationPath, string branchName = "")
         {
             string remoteRepo = FindRemoteRepoLocation(org, repository);
             CloneOptions cloneOptions = new();
-            cloneOptions.FetchOptions.CredentialsProvider = CredentialsProvider();
+            cloneOptions.FetchOptions.CredentialsProvider = await GetCredentialsAsync();
 
             if (!string.IsNullOrEmpty(branchName))
             {
@@ -77,12 +77,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             string cloneResult = LibGit2Sharp.Repository.Clone(remoteRepo, destinationPath, cloneOptions);
-            FetchGitNotes(destinationPath);
+            await FetchGitNotes(destinationPath);
             return cloneResult;
         }
 
         /// <inheritdoc />
-        public RepoStatus PullRemoteChanges(string org, string repository)
+        public async Task<RepoStatus> PullRemoteChanges(string org, string repository)
         {
             RepoStatus status = new();
             using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository)))
@@ -95,7 +95,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     },
                 };
                 pullOptions.FetchOptions = new FetchOptions();
-                pullOptions.FetchOptions.CredentialsProvider = CredentialsProvider();
+                pullOptions.FetchOptions.CredentialsProvider = await GetCredentialsAsync();
 
                 try
                 {
@@ -129,13 +129,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository.</param>
-        public void FetchRemoteChanges(string org, string repository)
+        public async Task FetchRemoteChanges(string org, string repository)
         {
             string logMessage = string.Empty;
             using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository)))
             {
                 FetchOptions fetchOptions = new();
-                fetchOptions.CredentialsProvider = CredentialsProvider();
+                fetchOptions.CredentialsProvider = await GetCredentialsAsync();
 
                 foreach (Remote remote in repo?.Network?.Remotes)
                 {
@@ -146,19 +146,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message)
+        public async Task CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message)
         {
-            CommitAndPushToBranch(org, repository, branchName, localPath, message);
+            await CommitAndPushToBranch(org, repository, branchName, localPath, message);
         }
 
         /// <summary>
         /// Add all changes in app repo and push to remote
         /// </summary>
         /// <param name="commitInfo">the commit information for the app</param>
-        public void PushChangesForRepository(CommitInfo commitInfo)
+        public async Task PushChangesForRepository(CommitInfo commitInfo)
         {
             string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            CommitAndPushToBranch(commitInfo.Org, commitInfo.Repository, "master", localServiceRepoFolder, commitInfo.Message);
+            await CommitAndPushToBranch(commitInfo.Org, commitInfo.Repository, "master", localServiceRepoFolder, commitInfo.Message);
         }
 
         /// <summary>
@@ -189,12 +189,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     pushSuccess = false;
                 }
             };
-            options.CredentialsProvider = CredentialsProvider();
+            options.CredentialsProvider = await GetCredentialsAsync();
 
             repo.Network.Push(remote, @"refs/heads/master", options);
             repo.Network.Push(remote, "refs/notes/commits", options);
 
-            return await Task.FromResult(pushSuccess);
+            return pushSuccess;
         }
 
         /// <summary>
@@ -393,41 +393,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <summary>
-        /// Return the App Token generated to let AltinnCore contact GITEA on behalf of app developer
-        /// </summary>
-        /// <returns>The app token</returns>
-        public string GetAppToken()
-        {
-            return AuthenticationHelper.GetDeveloperAppToken(_httpContextAccessor.HttpContext);
-        }
-
-        /// <summary>
-        /// Return the App Token id generated to let AltinnCore contact GITEA on behalf of app developer
-        /// </summary>
-        /// <returns>The app token id</returns>
-        public string GetAppTokenId()
-        {
-            return AuthenticationHelper.GetDeveloperAppTokenId(_httpContextAccessor.HttpContext);
-        }
-
-        /// <summary>
-        /// Return the deploy Token generated to let azure devops pipeline clone private GITEA repos on behalf of app developer
-        /// </summary>
-        /// <returns>The deploy app token</returns>
-        public async Task<string> GetDeployToken()
-        {
-            string deployToken = string.Empty;
-
-            KeyValuePair<string, string> deployKeyValuePair = await _gitea.GetSessionAppKey("AltinnDeployToken") ?? default(KeyValuePair<string, string>);
-            if (!deployKeyValuePair.Equals(default(KeyValuePair<string, string>)))
-            {
-                deployToken = deployKeyValuePair.Value;
-            }
-
-            return deployToken;
-        }
-
-        /// <summary>
         /// Verifies if there exist a developer folder
         /// </summary>
         private void CheckAndCreateDeveloperFolder()
@@ -455,14 +420,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public void VerifyCloneExists(string org, string repository)
+        public async Task VerifyCloneExists(string org, string repository)
         {
             string repoLocation = FindLocalRepoLocation(org, repository);
             if (!Directory.Exists(repoLocation))
             {
                 try
                 {
-                    CloneRemoteRepository(org, repository);
+                    await CloneRemoteRepository(org, repository);
                 }
                 catch (Exception e)
                 {
@@ -471,7 +436,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        private void CommitAndPushToBranch(string org, string repository, string branchName, string localPath, string message)
+        private async Task CommitAndPushToBranch(string org, string repository, string branchName, string localPath, string message)
         {
             using LibGit2Sharp.Repository repo = new(localPath);
             // Restrict users from empty commit
@@ -495,7 +460,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 notes.Add(commit.Id, "studio-commit", signature, signature, notes.DefaultNamespace);
 
                 PushOptions options = new();
-                options.CredentialsProvider = CredentialsProvider();
+                options.CredentialsProvider = await GetCredentialsAsync();
 
                 if (branchName == "master")
                 {
@@ -638,14 +603,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new LibGit2Sharp.Signature(username, $"{username}@noreply.altinn.studio", DateTime.Now);
         }
 
-        private LibGit2Sharp.Handlers.CredentialsHandler CredentialsProvider() => (url, user, cred) => new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
+        private async Task<LibGit2Sharp.Handlers.CredentialsHandler> GetCredentialsAsync()
+        {
+            string token = await _httpContextAccessor.HttpContext.GetDeveloperAppTokenAsync();
+            return (url, user, cred) => new UsernamePasswordCredentials { Username = token, Password = string.Empty };
+        }
 
-        private void FetchGitNotes(string localRepositoryPath)
+        private async Task FetchGitNotes(string localRepositoryPath)
         {
             using var repo = new LibGit2Sharp.Repository(localRepositoryPath);
             var options = new FetchOptions()
             {
-                CredentialsProvider = CredentialsProvider()
+                CredentialsProvider = await GetCredentialsAsync()
             };
             Commands.Fetch(repo, "origin", new List<string> { "refs/notes/*:refs/notes/*" }, options, "fetch notes");
         }

@@ -5,18 +5,17 @@ using System.Threading.Tasks;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
 namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
 {
-    public class CopyAppGiteaIntegrationTests : GiteaIntegrationTestsBase<CopyAppGiteaIntegrationTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class CopyAppGiteaIntegrationTests : GiteaIntegrationTestsBase<CopyAppGiteaIntegrationTests>
     {
 
         private string CopyRepoName { get; set; }
         private string TargetCopyOrg { get; set; }
 
-        public CopyAppGiteaIntegrationTests(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture) : base(factory, giteaFixture)
+        public CopyAppGiteaIntegrationTests(GiteaWebAppApplicationFactoryFixture<Program> factory, GiteaFixture giteaFixture, SharedDesignerHttpClientProvider sharedDesignerHttpClientProvider) : base(factory, giteaFixture, sharedDesignerHttpClientProvider)
         {
         }
 

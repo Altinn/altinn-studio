@@ -1,4 +1,4 @@
-import { renderHookWithMockStore } from '../../test/mocks';
+import { renderHookWithProviders } from '../../test/mocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { waitFor } from '@testing-library/react';
 import { useAddDataTypeToAppMetadata } from './useAddDataTypeToAppMetadata';
@@ -9,7 +9,7 @@ const taskId = 'task_1';
 
 describe('useAddDataTypeToAppMetadata', () => {
   it('Calls addDataTypeToAppMetadata with correct arguments and payload', async () => {
-    const addDataTypeToAppMetadata = renderHookWithMockStore()(() =>
+    const addDataTypeToAppMetadata = renderHookWithProviders()(() =>
       useAddDataTypeToAppMetadata(org, app),
     ).renderHookResult.result;
     await addDataTypeToAppMetadata.current.mutateAsync({

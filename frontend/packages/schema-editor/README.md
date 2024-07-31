@@ -25,9 +25,7 @@ Builds the app as a package for production to the `dist` folder.\
 ### Schema editor example
 
 ```tsx
-import { Provider } from 'react-redux';
 import { SchemaEditor } from './SchemaEditor';
-import { store } from '../redux/store';
 import { dataMock } from '../mockData';
 
 function saveSchema(schema) {
@@ -47,9 +45,7 @@ const language = {
     minHeight: 1350,
     flex: '1 1 auto'
 }}>
-    <Provider store={store}>
-        <SchemaEditor schema={dataMock} onSaveSchema={saveSchema} name='melding' language={language}/>
-    </Provider>
+    <SchemaEditor schema={dataMock} onSaveSchema={saveSchema} name='melding' language={language}/>
 </div>
 ```
 
