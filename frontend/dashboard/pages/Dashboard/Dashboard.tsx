@@ -3,7 +3,7 @@ import classes from './Dashboard.module.css';
 import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { Textfield } from '@digdir/designsystemet-react';
-import { StudioButton } from '@studio/components';
+import { StudioButton, useDebounce } from '@studio/components';
 import { XMarkIcon } from '@studio/icons';
 import { CenterContainer } from '../../components/CenterContainer';
 import { DataModelsReposList } from '../../components/DataModelsRepoList';
@@ -20,7 +20,6 @@ import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { ResourcesRepoList } from 'dashboard/components/ResourcesRepoList/ResourcesRepoList';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { SafeErrorView } from '../../components/SafeErrorView';
-import { useDebounce } from 'app-shared/hooks/useDebounce';
 
 type DashboardProps = {
   user: User;
