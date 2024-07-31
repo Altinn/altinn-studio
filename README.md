@@ -61,6 +61,7 @@ The development environment consist of several services defined in [compose.yaml
 - `studio-designer` which is the actual build artifact with the .NET backend and the react-apps.
 - `studio-repos` which is [gitea][20] with some custom config. More [here](gitea/README.md).
 - `studio-db` which is a postgres database used by both `studio-designer` and `studio-repos`.
+- `database_migrations` which is a one-time task container designed to perform and complete database migrations before exiting.
 
 Run all parts of the solution in containers (Make sure docker is running), with docker compose as follows:
 
