@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Alert, Card, Heading, Link, Paragraph } from '@digdir/designsystemet-react';
+import { Card, Heading, Link, Paragraph } from '@digdir/designsystemet-react';
 import { useNewsListQuery } from 'app-development/hooks/queries/useNewsListQuery';
 import { StudioPageError, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
