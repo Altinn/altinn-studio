@@ -20,9 +20,9 @@ import { Link } from '@digdir/designsystemet-react';
 
 import 'react-toastify/dist/ReactToastify.css';
 import '@digdir/designsystemet-theme/brand/altinn/tokens.css';
-import '@digdir/designsystemet-css';
-import './styles/toast.css';
-import './styles/global.css';
+import '@digdir/designsystemet-css/index.css';
+import '../styles/toast.css';
+import '../styles/global.css';
 
 export type ServicesContextProps = typeof queries & typeof mutations;
 export type ServicesContextProviderProps = ServicesContextProps & {
