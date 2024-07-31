@@ -12,7 +12,6 @@ import { SearchResultReposList } from '../../components/SearchResultReposList';
 import { FavoriteReposList } from '../../components/FavoriteReposList';
 import { Footer } from '../../components/Footer';
 import { Link } from 'react-router-dom';
-import { useDebounce } from 'react-use';
 import { useTranslation } from 'react-i18next';
 import { ErrorBoundary } from 'react-error-boundary';
 import type { User } from 'app-shared/types/Repository';
@@ -21,6 +20,7 @@ import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { ResourcesRepoList } from 'dashboard/components/ResourcesRepoList/ResourcesRepoList';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { SafeErrorView } from '../../components/SafeErrorView';
+import { useDebounce } from 'app-shared/hooks/useDebounce';
 
 type DashboardProps = {
   user: User;
@@ -34,7 +34,8 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
   const [searchText, setSearchText] = useState('');
   const [isNewLinkFocused, setIsNewLinkFocused] = useState(false);
   const [debouncedSearchText, setDebouncedSearchText] = useState('');
-  useDebounce(() => setDebouncedSearchText(searchText), disableDebounce ? 1 : 500, [searchText]);
+  const { debounce } = useDebounce({ debounceTimeInMs: disableDebounce ? 1 : 500 });
+  debounce(() => setDebouncedSearchText(searchText));
 
   const handleChangeSearch = (event: ChangeEvent<HTMLInputElement>) =>
     setSearchText(event.target.value);
