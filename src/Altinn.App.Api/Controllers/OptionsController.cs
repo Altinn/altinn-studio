@@ -1,3 +1,4 @@
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Models;
@@ -66,7 +67,7 @@ public class OptionsController : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [Authorize(Policy = "InstanceRead")]
+    [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
     [Route("/{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/options/{optionsId}")]
     public async Task<IActionResult> Get(
         [FromRoute] string org,

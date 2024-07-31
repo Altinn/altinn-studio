@@ -44,7 +44,7 @@ public class LayoutEvaluatorState
     }
 
     /// <summary>
-    /// Get a hierarcy of the different contexts in the component model (remember to iterate <see cref="ComponentContext.ChildContexts" />)
+    /// Get a hierarchy of the different contexts in the component model (remember to iterate <see cref="ComponentContext.ChildContexts" />)
     /// </summary>
     public IEnumerable<ComponentContext> GetComponentContexts()
     {

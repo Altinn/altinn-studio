@@ -22,7 +22,7 @@ public interface IDataModelAccessor
     int? GetModelDataCount(string key, ReadOnlySpan<int> indicies = default);
 
     /// <summary>
-    /// Get all of the resoved keys (including all possible indexes) from a data model key
+    /// Get all of the resolved keys (including all possible indexes) from a data model key
     /// </summary>
     string[] GetResolvedKeys(string key);
 

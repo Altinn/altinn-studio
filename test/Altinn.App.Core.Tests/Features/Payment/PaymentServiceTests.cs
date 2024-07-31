@@ -459,14 +459,14 @@ public class PaymentServiceTests
             .ReturnsAsync((Guid.NewGuid(), null));
 
         // Act
-        Func<Task> act = async () => await _paymentService.IsPaymentCompleted(instance, paymentConfiguration);
+        Func<Task> act = async () => await _paymentService.GetPaymentStatus(instance, paymentConfiguration);
 
         // Assert
         await act.Should().ThrowAsync<PaymentException>().WithMessage("Payment information not found.");
     }
 
     [Fact]
-    public async Task IsPaymentCompleted_ShouldReturnTrue_WhenPaymentStatusIsPaidOrSkipped()
+    public async Task GetPaymentStatus_ShouldReturn_CorrectStatus()
     {
         // Arrange
         Instance instance = CreateInstance();
@@ -483,33 +483,10 @@ public class PaymentServiceTests
             .ReturnsAsync((Guid.NewGuid(), paymentInformation));
 
         // Act
-        bool result = await _paymentService.IsPaymentCompleted(instance, paymentConfiguration);
+        PaymentStatus result = await _paymentService.GetPaymentStatus(instance, paymentConfiguration);
 
         // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task IsPaymentCompleted_ShouldReturnFalse_WhenPaymentStatusIsNotPaidOrSkipped()
-    {
-        // Arrange
-        Instance instance = CreateInstance();
-        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
-        PaymentInformation paymentInformation = CreatePaymentInformation();
-
-        string paymentDataType =
-            paymentConfiguration.PaymentDataType
-            ?? throw new Exception("PaymentDataType should not be null. Fix test.");
-
-        _dataService
-            .Setup(ds => ds.GetByType<PaymentInformation>(instance, paymentDataType))
-            .ReturnsAsync((Guid.NewGuid(), paymentInformation));
-
-        // Act
-        var result = await _paymentService.IsPaymentCompleted(instance, paymentConfiguration);
-
-        // Assert
-        result.Should().BeFalse();
+        result.Should().Be(PaymentStatus.Paid);
     }
 
     private static PaymentInformation CreatePaymentInformation()

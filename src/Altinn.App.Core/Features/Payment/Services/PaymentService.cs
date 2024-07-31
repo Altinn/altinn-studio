@@ -198,7 +198,10 @@ internal class PaymentService : IPaymentService
     }
 
     /// <inheritdoc/>
-    public async Task<bool> IsPaymentCompleted(Instance instance, ValidAltinnPaymentConfiguration paymentConfiguration)
+    public async Task<PaymentStatus> GetPaymentStatus(
+        Instance instance,
+        ValidAltinnPaymentConfiguration paymentConfiguration
+    )
     {
         string dataTypeId = paymentConfiguration.PaymentDataType;
         (Guid _, PaymentInformation? paymentInformation) = await _dataService.GetByType<PaymentInformation>(
@@ -211,7 +214,7 @@ internal class PaymentService : IPaymentService
             throw new PaymentException("Payment information not found.");
         }
 
-        return paymentInformation.Status is PaymentStatus.Paid or PaymentStatus.Skipped;
+        return paymentInformation.Status;
     }
 
     /// <inheritdoc/>

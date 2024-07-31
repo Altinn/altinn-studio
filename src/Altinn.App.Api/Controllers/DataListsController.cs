@@ -1,3 +1,4 @@
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.DataLists;
 using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -52,13 +53,13 @@ public class DataListsController : ControllerBase
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="id">The datalistId</param>
-    /// <param name="queryParams">Query parameteres supplied</param>
+    /// <param name="queryParams">Query parameters supplied</param>
     /// <param name="language">The language selected by the user.</param>
     /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [Authorize(Policy = "InstanceRead")]
+    [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
     [Route("/{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/datalists/{id}")]
     public async Task<IActionResult> Get(
         [FromRoute] int instanceOwnerPartyId,

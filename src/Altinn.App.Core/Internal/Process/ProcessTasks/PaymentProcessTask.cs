@@ -1,4 +1,5 @@
 using Altinn.App.Core.Features.Payment.Exceptions;
+using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Features.Payment.Services;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
@@ -52,7 +53,12 @@ internal sealed class PaymentProcessTask : IProcessTask
     {
         AltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId);
 
-        if (!await _paymentService.IsPaymentCompleted(instance, paymentConfiguration.Validate()))
+        PaymentStatus paymentStatus = await _paymentService.GetPaymentStatus(instance, paymentConfiguration.Validate());
+
+        if (paymentStatus == PaymentStatus.Skipped)
+            return;
+
+        if (paymentStatus != PaymentStatus.Paid)
             throw new PaymentException("The payment is not completed.");
 
         Stream pdfStream = await _pdfService.GeneratePdf(instance, taskId, CancellationToken.None);

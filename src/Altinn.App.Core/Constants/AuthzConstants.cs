@@ -25,5 +25,10 @@ public static class AuthzConstants
     /// Policy tag for authorizing client scope.
     /// </summary>
     public const string POLICY_INSTANCE_COMPLETE = "InstanceComplete";
+
+    /// <summary>
+    /// Policy tag for instantiating instance.
+    /// </summary>
+    public const string POLICY_INSTANCE_INSTANTIATE = "InstanceInstantiate";
 #pragma warning restore CA1707 // Identifiers should not contain underscores
 }

@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Net;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Models;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
@@ -71,7 +72,7 @@ public class ProcessController : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [Authorize(Policy = "InstanceRead")]
+    [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
     public async Task<ActionResult<AppProcessState>> GetProcessState(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -113,7 +114,7 @@ public class ProcessController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    [Authorize(Policy = "InstanceInstantiate")]
+    [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_INSTANTIATE)]
     public async Task<ActionResult<AppProcessState>> StartProcess(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -176,7 +177,7 @@ public class ProcessController : ControllerBase
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <returns>list of next process element identifiers (tasks or events)</returns>
-    [Authorize(Policy = "InstanceRead")]
+    [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
     [HttpGet("next")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -555,7 +556,7 @@ public class ProcessController : ControllerBase
     /// </summary>
     /// <returns>Returns a list of the process events.</returns>
     [HttpGet("history")]
-    [Authorize(Policy = "InstanceRead")]
+    [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> GetProcessHistory(
         [FromRoute] int instanceOwnerPartyId,
