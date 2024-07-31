@@ -1,20 +1,33 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 
+import { useQuery } from '@tanstack/react-query';
 import cn from 'classnames';
 
 import { AltinnLogo, LogoColor } from 'src/components/logo/AltinnLogo';
+import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
+import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { useLaxApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { createFooterComponent } from 'src/features/footer';
 import classes from 'src/features/footer/Footer.module.css';
-import { useFooterLayout } from 'src/features/footer/FooterLayoutProvider';
 
 export const Footer = () => {
-  const footerLayout = useFooterLayout();
+  const { fetchFooterLayout } = useAppQueries();
+  const { data, error: footerLayoutError } = useQuery({
+    queryKey: ['fetchFooterLayout'],
+    queryFn: fetchFooterLayout,
+    staleTime: 1000 * 60 * 60 * 24, // 24 hours
+  });
+
   const application = useLaxApplicationMetadata();
+
+  if (footerLayoutError) {
+    return <DisplayError error={footerLayoutError} />;
+  }
+
   const shouldUseOrgLogo = application !== ContextNotProvided && application.logo != null;
 
-  const components = useMemo(() => footerLayout.map((props) => createFooterComponent(props)), [footerLayout]);
+  const components = data?.footer?.map((props) => createFooterComponent(props)) ?? [];
   if (!components.length && !shouldUseOrgLogo) {
     return null;
   }

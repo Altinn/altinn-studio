@@ -3,7 +3,6 @@ import { matchPath } from 'react-router-dom';
 import { usePrefetchQuery } from 'src/core/queries/usePrefetchQuery';
 import { useApplicationMetadataQueryDef } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useApplicationSettingsQueryDef } from 'src/features/applicationSettings/ApplicationSettingsProvider';
-import { useFooterLayoutQueryDef } from 'src/features/footer/FooterLayoutProvider';
 import { useLayoutSetsQueryDef } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useInstanceDataQueryDef } from 'src/features/instance/InstanceContext';
 import { useProcessQueryDef } from 'src/features/instance/ProcessContext';
@@ -26,7 +25,6 @@ export function AppPrefetcher() {
   usePrefetchQuery(useProfileQueryDef(true), Boolean(partyId));
   usePrefetchQuery(useOrgsQueryDef());
   usePrefetchQuery(useApplicationSettingsQueryDef());
-  usePrefetchQuery(useFooterLayoutQueryDef());
   usePrefetchQuery(usePartiesQueryDef(true), Boolean(partyId));
   usePrefetchQuery(useCurrentPartyQueryDef(true), Boolean(partyId));
 

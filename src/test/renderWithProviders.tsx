@@ -25,7 +25,6 @@ import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
 import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
-import { FooterLayoutProvider } from 'src/features/footer/FooterLayoutProvider';
 import { FormProvider } from 'src/features/form/FormContext';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
@@ -284,9 +283,7 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
                             <ProfileProvider>
                               <PartyProvider>
                                 <TextResourcesProvider>
-                                  <FooterLayoutProvider>
-                                    <InstantiationProvider>{children}</InstantiationProvider>
-                                  </FooterLayoutProvider>
+                                  <InstantiationProvider>{children}</InstantiationProvider>
                                 </TextResourcesProvider>
                               </PartyProvider>
                             </ProfileProvider>
