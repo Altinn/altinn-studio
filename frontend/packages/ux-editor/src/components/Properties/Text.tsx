@@ -12,7 +12,7 @@ import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecific
 import { useAppContext } from '../../hooks';
 
 export const Text = () => {
-  const { formItemId: formId, formItem: form, handleUpdate, debounceSave } = useFormItemContext();
+  const { formItemId: formId, formItem: form, setFormItem, setFormItemId } = useFormItemContext();
   const { t } = useTranslation();
 
   const { data: schema } = useComponentSchemaQuery(form.type);
@@ -37,8 +37,8 @@ export const Text = () => {
         <EditTextResourceBindings
           component={form}
           handleComponentChange={async (updatedComponent) => {
-            handleUpdate(updatedComponent);
-            debounceSave(formId, updatedComponent);
+            setFormItem(updatedComponent);
+            setFormItemId(formId);
           }}
           textResourceBindingKeys={Object.keys(schema.properties.textResourceBindings.properties)}
           editFormId={formId}
@@ -55,8 +55,8 @@ export const Text = () => {
                   ComponentSpecificConfig<ComponentType.RadioButtons>)
           }
           handleComponentChange={async (updatedComponent) => {
-            handleUpdate(updatedComponent);
-            debounceSave(formId, updatedComponent);
+            setFormItem(updatedComponent);
+            setFormItemId(formId);
           }}
           editFormId={formId}
           layoutName={selectedFormLayoutName}

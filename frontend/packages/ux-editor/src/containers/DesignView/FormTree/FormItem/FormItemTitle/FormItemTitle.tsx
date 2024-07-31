@@ -22,7 +22,7 @@ export const FormItemTitle = ({ children, formItem, duplicateComponents }: FormI
   const { t } = useTranslation();
   const deleteItem = useDeleteItem(formItem);
   const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
-  const { handleDiscard } = useFormItemContext();
+  const { setFormItemId, setFormItem } = useFormItemContext();
 
   const handleDelete = useCallback(() => {
     const confirmMessage = isContainer(formItem)
@@ -33,11 +33,20 @@ export const FormItemTitle = ({ children, formItem, duplicateComponents }: FormI
       deleteItem(formItem.id, {
         onSuccess: async () => {
           await refetchLayouts(selectedFormLayoutSetName, true);
-          handleDiscard();
+          setFormItem(undefined);
+          setFormItemId(undefined);
         },
       });
     }
-  }, [formItem, t, deleteItem, refetchLayouts, selectedFormLayoutSetName, handleDiscard]);
+  }, [
+    formItem,
+    t,
+    deleteItem,
+    refetchLayouts,
+    selectedFormLayoutSetName,
+    setFormItem,
+    setFormItemId,
+  ]);
 
   return (
     <div

@@ -7,6 +7,7 @@ import { useRuleConfigQuery } from '../queries/useRuleConfigQuery';
 import { useRuleConfigMutation } from './useRuleConfigMutation';
 import type { FormContainer } from '../../types/FormContainer';
 import { updateContainer } from '../../utils/formLayoutUtils';
+import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 
 export interface UpdateFormContainerMutationArgs {
   updatedContainer: FormContainer;
@@ -23,6 +24,7 @@ export const useUpdateFormContainerMutation = (
   const { data: ruleConfig } = useRuleConfigQuery(org, app, layoutSetName);
   const { mutateAsync: saveLayout } = useFormLayoutMutation(org, app, layoutName, layoutSetName);
   const { mutateAsync: saveRuleConfig } = useRuleConfigMutation(org, app, layoutSetName);
+  const previewConnection = usePreviewConnection();
 
   return useMutation({
     mutationFn: ({ updatedContainer, id }: UpdateFormContainerMutationArgs) => {
@@ -36,6 +38,11 @@ export const useUpdateFormContainerMutation = (
     },
     onSuccess: async ({ currentId, newId }) => {
       await switchSelectedFieldId(ruleConfig, currentId, newId, saveRuleConfig);
+      if (previewConnection && previewConnection.state === 'Connected') {
+        await previewConnection.send('sendMessage', 'reload-layouts').catch(function (err) {
+          return console.error(err.toString());
+        });
+      }
     },
   });
 };

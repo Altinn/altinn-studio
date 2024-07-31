@@ -13,7 +13,7 @@ import { DeprecatedCalculationsInfo } from '@altinn/ux-editor/components/Propert
 
 export const Properties = () => {
   const { t } = useTranslation();
-  const { formItemId, formItem, handleUpdate, debounceSave } = useFormItemContext();
+  const { formItemId, formItem, setFormItem } = useFormItemContext();
   const [openList, setOpenList] = React.useState<string[]>([]);
 
   const toggleOpen = (id: string) => {
@@ -33,8 +33,7 @@ export const Properties = () => {
           <PropertiesHeader
             formItem={formItem}
             handleComponentUpdate={async (updatedComponent) => {
-              handleUpdate(updatedComponent);
-              debounceSave(formItemId, updatedComponent);
+              setFormItem(updatedComponent);
             }}
           />
           <Accordion color='subtle'>
@@ -66,8 +65,7 @@ export const Properties = () => {
                   editFormId={formItemId}
                   component={formItem}
                   handleComponentUpdate={async (updatedComponent, mutateOptions) => {
-                    handleUpdate(updatedComponent);
-                    debounceSave(formItemId, updatedComponent, mutateOptions);
+                    setFormItem(updatedComponent);
                   }}
                 />
               </Accordion.Content>

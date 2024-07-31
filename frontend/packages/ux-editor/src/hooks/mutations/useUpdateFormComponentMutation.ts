@@ -1,5 +1,5 @@
 import type { IInternalLayout } from '../../types/global';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';
 import { useDeleteAppAttachmentMetadataMutation } from './useDeleteAppAttachmentMetadataMutation';
@@ -34,6 +34,7 @@ export const useUpdateFormComponentMutation = (
   const taskId = useSelectedTaskId(layoutSetName);
   const { mutateAsync: saveRuleConfig } = useRuleConfigMutation(org, app, layoutSetName);
   const updateBpmn = useUpdateBpmn(org, app);
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ updatedComponent, id }: UpdateFormComponentMutationArgs) => {
       const updatedLayout: IInternalLayout = ObjectUtils.deepCopy(layout);
