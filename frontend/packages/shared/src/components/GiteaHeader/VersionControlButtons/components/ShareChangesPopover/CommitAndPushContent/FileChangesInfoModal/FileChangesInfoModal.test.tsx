@@ -62,8 +62,8 @@ describe('FileChangesInfoModal', () => {
     expect(table).toHaveClass('fds-table--sticky-header');
   });
 
-  it('should render the filePath and fileStatus correct', async () => {
-    await renderFileChangesInfoModalAndWaitForSpinnersToResolve();
+  it('should render the filePath and fileStatus correct', () => {
+    renderFileChangesInfoModal();
     const filePathToolTip = screen.getByTitle(filePathMock);
     expect(filePathToolTip).toBeInTheDocument();
 
@@ -94,7 +94,7 @@ describe('FileChangesInfoModal', () => {
     const user = userEvent.setup();
     const addedFilePath = `${filePathWithoutNameMock}/addedFile.json`;
     const deletedFilePath = `${filePathWithoutNameMock}/deletedFile.json`;
-    await renderFileChangesInfoModalAndWaitForSpinnersToResolve({
+    await renderFileChangesInfoModalAndWaitForData({
       ...defaultProps,
       fileChanges: [
         {
@@ -155,9 +155,11 @@ const renderFileChangesInfoModal = (props: FileChangesInfoModalProps = defaultPr
   );
 };
 
-const renderFileChangesInfoModalAndWaitForSpinnersToResolve = async (
+const renderFileChangesInfoModalAndWaitForData = async (
   props: FileChangesInfoModalProps = defaultProps,
 ) => {
   renderFileChangesInfoModal(props);
-  await waitForElementToBeRemoved(() => screen.queryAllByTitle(textMock('general.loading')));
+  await waitForElementToBeRemoved(() =>
+    screen.queryByText(textMock('sync_header.show_changes_modal.repo_diff_pending_title')),
+  );
 };

@@ -12,18 +12,10 @@ unchanged line
 
 describe('FilePathUtils', () => {
   describe('convertPureGitDiffToUserFriendlyDiff', () => {
-    afterEach(jest.clearAllMocks);
     it('removes all metadata including line with double @ in the diff string', () => {
       const userFriendlyDiff: string[] = convertPureGitDiffToUserFriendlyDiff(diffStringMock);
 
-      expect(userFriendlyDiff).not.toContain('diff --git a/fileName.json b/fileName.json');
-      expect(userFriendlyDiff).not.toContain('index 0909a03..527e226 100644');
-      expect(userFriendlyDiff).not.toContain('--- a/fileName.json');
-      expect(userFriendlyDiff).not.toContain('+++ b/fileName.json');
-      expect(userFriendlyDiff).not.toContain('@@ -2,6 +2,30 @@');
-      expect(userFriendlyDiff).toContain('- old line');
-      expect(userFriendlyDiff).toContain('+ new line');
-      expect(userFriendlyDiff).toContain('unchanged line');
+      expect(userFriendlyDiff).toEqual(['- old line', '+ new line', 'unchanged line']);
     });
 
     it('removes last metadata line if it exists', () => {
@@ -36,9 +28,19 @@ describe('FilePathUtils', () => {
       diffStringMock.replace(' No newline at end of file', '');
       const userFriendlyDiff: string[] = convertPureGitDiffToUserFriendlyDiff(diffStringMock);
 
-      expect(userFriendlyDiff).not.toContain('No newline at end of file');
-      expect(userFriendlyDiff).toContain('+ new line');
-      expect(userFriendlyDiff).toContain('unchanged line');
+      expect(userFriendlyDiff).toEqual(['- old line', '+ new line', 'unchanged line']);
+    });
+
+    it('handles binary diff changes metadata', () => {
+      const binaryGitDiffString = `diff --git a/App/wwwroot/image.png b/App/wwwroot/image.png
+      new file mode 100644
+      index 0000000..48550ba
+      Binary files /dev/null and b/App/wwwroot/image.png differ`;
+      const userFriendlyDiff: string[] = convertPureGitDiffToUserFriendlyDiff(binaryGitDiffString);
+
+      expect(userFriendlyDiff).toEqual([
+        '      Binary files /dev/null and b/App/wwwroot/image.png differ',
+      ]); // Includes whitespaces
     });
   });
 });

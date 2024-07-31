@@ -1,35 +1,33 @@
 import React from 'react';
 import classes from './FilePath.module.css';
-import { useRepoDiffQuery } from 'app-shared/hooks/queries/useRepoDiffQuery';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import cn from 'classnames';
-import { convertPureGitDiffToUserFriendlyDiff } from 'app-shared/components/GiteaHeader/VersionControlButtons/components/ShareChangesPopover/CommitAndPushContent/FileChangesInfoModal/FilePath/FilePathUtils';
-import { StudioSpinner } from '@studio/components';
+import { convertPureGitDiffToUserFriendlyDiff } from './FilePathUtils';
 import { useTranslation } from 'react-i18next';
+import { extractFilename, removeFileNameFromPath } from 'app-shared/utils/filenameUtils';
 
 export interface FilePathProps {
   enableFileDiff: boolean;
   filePath: string;
+  diff?: string; // Might be null for deleted files
+  repoDiffStatus: 'success' | 'error' | 'pending';
 }
 
-export const FilePath = ({ enableFileDiff, filePath }: FilePathProps) => {
+export const FilePath = ({ enableFileDiff, filePath, diff, repoDiffStatus }: FilePathProps) => {
   const { t } = useTranslation();
-  const { org, app } = useStudioEnvironmentParams();
-  const { data: repoDiff, isPending: repoDiffIsPending } = useRepoDiffQuery(org, app);
 
   let linesToRender: string[];
 
-  if (enableFileDiff && !repoDiffIsPending && Object.keys(repoDiff).includes(filePath)) {
-    linesToRender = convertPureGitDiffToUserFriendlyDiff(repoDiff[filePath]);
+  if (enableFileDiff && !!diff) {
+    linesToRender = convertPureGitDiffToUserFriendlyDiff(diff);
   }
 
-  const fileName = filePath.split('/').pop() || '';
-  const filePathWithoutName = filePath.slice(0, filePath.lastIndexOf('/' + fileName));
+  const fileName = extractFilename(filePath);
+  const filePathWithoutName = removeFileNameFromPath(filePath, true);
 
-  const renderFilePath = () => {
+  const renderFilePath = (asButton: boolean) => {
     return (
       <div
-        className={enableFileDiff ? classes.filePathWithDiffContainer : classes.filePathContainer}
+        className={asButton ? classes.filePathWithDiffContainer : classes.filePathContainer}
         title={filePath}
       >
         <div className={classes.filePath}>{filePathWithoutName}</div>
@@ -39,23 +37,22 @@ export const FilePath = ({ enableFileDiff, filePath }: FilePathProps) => {
     );
   };
 
-  if (!enableFileDiff) {
-    return renderFilePath();
+  if (!enableFileDiff || repoDiffStatus !== 'success') {
+    return renderFilePath(false);
   }
-
-  if (repoDiffIsPending || !Object.keys(repoDiff).includes(filePath)) {
-    return <StudioSpinner spinnerTitle={t('general.loading')} />;
-  }
-
   return (
-    <details title={t('sync_header.show_changes_modal.file_diff_title', { fileName })}>
-      <summary className={classes.summaryContent}>{renderFilePath()}</summary>
+    <details
+      className={classes.details}
+      title={t('sync_header.show_changes_modal.file_diff_title', { fileName })}
+    >
+      <summary className={classes.summaryContent}>{renderFilePath(true)}</summary>
       <div className={classes.gitDiffViewer}>
         {linesToRender.map((line, index) => {
           return (
             <div
               key={index}
               className={cn(
+                classes.diffLine,
                 line.startsWith('-') && classes.removedLine,
                 line.startsWith('+') && classes.addedLine,
               )}

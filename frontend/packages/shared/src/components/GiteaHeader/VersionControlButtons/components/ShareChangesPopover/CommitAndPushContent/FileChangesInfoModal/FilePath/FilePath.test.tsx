@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { FilePathProps } from './FilePath';
 import { FilePath } from './FilePath';
@@ -9,28 +9,25 @@ import {
 } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const fileNameMock = 'fileName.json';
 const filePathWithoutNameMock = 'mock/file/path/to';
 const filePathMock = `${filePathWithoutNameMock}/${fileNameMock}`;
-const repoDiffMock = {
-  'mock/file/path/to/fileName.json': `diff --git a/fileName.json b/fileName.json
+const repoDiffMock = `diff --git a/fileName.json b/fileName.json
 index 0909a03..527e226 100644
 --- a/fileName.json
 +++ b/fileName.json
 @@ -2,6 +2,30 @@
 - old line
 + new line
-\ No newline at end of file`,
-};
+\ No newline at end of file`;
 const mockGetRepoDiff = jest.fn();
 
 describe('FilePath', () => {
   afterEach(jest.clearAllMocks);
 
   it('should render the file path and name correctly', async () => {
-    await renderFilePathAndWaitForSpinnerToResolve();
+    await renderFilePath();
 
     const filePathElement = screen.getByText(filePathWithoutNameMock);
     const fileNameElement = screen.getByText(fileNameMock, { selector: 'strong' });
@@ -41,7 +38,7 @@ describe('FilePath', () => {
 
   it('should toggle diff view on file path click', async () => {
     const user = userEvent.setup();
-    await renderFilePathAndWaitForSpinnerToResolve();
+    await renderFilePath();
 
     const filePathElement = screen.getByTitle(filePathMock);
     await user.click(filePathElement);
@@ -55,11 +52,13 @@ describe('FilePath', () => {
 
   it('should remove "No newline at end of file" from diff lines', async () => {
     const user = userEvent.setup();
-    await renderFilePathAndWaitForSpinnerToResolve();
+    await renderFilePath();
 
     const filePathElement = screen.getByTitle(filePathMock);
     await user.click(filePathElement);
 
+    const diffLineElement = screen.getByText('+ new line');
+    expect(diffLineElement).toBeInTheDocument();
     const noNewlineElement = screen.queryByText('No newline at end of file');
     expect(noNewlineElement).not.toBeInTheDocument();
   });
@@ -75,9 +74,31 @@ describe('FilePath', () => {
     expect(diffLineElement).not.toBeInTheDocument();
   });
 
+  it('should not render filePath as button when repoDiffStatus is error', async () => {
+    const user = userEvent.setup();
+    renderFilePath({ repoDiffStatus: 'error' });
+
+    const filePathElement = screen.getByTitle(filePathMock);
+    await user.click(filePathElement);
+
+    const diffLineElement = screen.queryByText('+ new line');
+    expect(diffLineElement).not.toBeInTheDocument();
+  });
+
+  it('should not render filePath as button when repoDiffStatus is pending', async () => {
+    const user = userEvent.setup();
+    renderFilePath({ repoDiffStatus: 'pending' });
+
+    const filePathElement = screen.getByTitle(filePathMock);
+    await user.click(filePathElement);
+
+    const diffLineElement = screen.queryByText('+ new line');
+    expect(diffLineElement).not.toBeInTheDocument();
+  });
+
   it('should not render first part of git diff that is metadata', async () => {
     const user = userEvent.setup();
-    await renderFilePathAndWaitForSpinnerToResolve();
+    await renderFilePath();
 
     const filePathElement = screen.getByTitle(filePathMock);
     await user.click(filePathElement);
@@ -92,6 +113,8 @@ describe('FilePath', () => {
     expect(diffLineMetadata3).not.toBeInTheDocument();
     expect(diffLineMetadata4).not.toBeInTheDocument();
     expect(diffLineMetadata5).not.toBeInTheDocument();
+    const diffLineElement = screen.getByText('+ new line');
+    expect(diffLineElement).toBeInTheDocument();
   });
 });
 
@@ -99,6 +122,8 @@ const renderFilePath = (props: Partial<FilePathProps> = {}) => {
   const defaultProps: FilePathProps = {
     filePath: filePathMock,
     enableFileDiff: true,
+    diff: repoDiffMock,
+    repoDiffStatus: 'success',
     ...props,
   };
   const getRepoDiff = mockGetRepoDiff.mockImplementation(() => Promise.resolve(repoDiffMock));
@@ -111,9 +136,4 @@ const renderFilePath = (props: Partial<FilePathProps> = {}) => {
       <FilePath {...defaultProps} />
     </ServicesContextProvider>,
   );
-};
-
-const renderFilePathAndWaitForSpinnerToResolve = async () => {
-  renderFilePath();
-  await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
 };

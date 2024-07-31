@@ -68,7 +68,7 @@ import {
 } from './mocks';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
-import type { RepoDiff } from 'app-shared/hooks/queries/useRepoDiffQuery';
+import type { RepoDiff } from 'app-shared/types/api/RepoDiff';
 
 export const queriesMock: ServicesContextProps = {
   // Queries

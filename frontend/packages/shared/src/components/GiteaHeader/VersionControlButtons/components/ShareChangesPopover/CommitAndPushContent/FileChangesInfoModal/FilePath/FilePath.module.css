@@ -19,13 +19,13 @@
   white-space: nowrap;
 }
 
-summary {
+.details summary {
   display: flex;
   align-items: center;
   cursor: pointer;
 }
 
-summary::-webkit-details-marker {
+.details summary::-webkit-details-marker {
   display: none;
 }
 
@@ -55,13 +55,11 @@ details[open] .summaryContent::after {
 }
 
 .removedLine {
-  composes: diffLine;
   background-color: var(--fds-semantic-surface-danger-subtle);
   color: var(--fds-semantic-text-danger-default);
 }
 
 .addedLine {
-  composes: diffLine;
   background-color: var(--fds-semantic-surface-success-subtle);
   color: var(--fds-semantic-text-success-default);
 }

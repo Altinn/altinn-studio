@@ -1262,6 +1262,8 @@
   "sync_header.show_changes_modal.file_status_NewInWorkdir": "Ny",
   "sync_header.show_changes_modal.file_status_RenamedInWorkdir": "Navneendring",
   "sync_header.show_changes_modal.title": "Filer som er endret siden siste deling",
+  "sync_header.show_changes_modal.repo_diff_error_title": "Kunne ikke hente gitdifferansen.",
+  "sync_header.show_changes_modal.repo_diff_pending_title": "Venter på at gitdifferensen skal lastes inn...",
   "sync_modal.loading": "Laster synkronisering",
   "text_editor.key.edit": "Rediger tekstnøkkel {{textKey}}",
   "text_editor.key.error_duplicate": "Det finnes allerede en tekst med denne nøkkelen",
