@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Headers;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
@@ -259,6 +260,19 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddTransient<IFileSyncHandlerExecutor, FileSyncHandlerExecutor>();
     services.AddFeatureManagement();
 
+
+    if (!env.IsDevelopment())
+    {
+        // https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/proxy-load-balancer?view=aspnetcore-8.0
+        builder.Services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders =
+                ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            options.KnownNetworks.Clear();
+            options.KnownProxies.Clear();
+        });
+    }
+
     logger.LogInformation("// Program.cs // ConfigureServices // Configuration complete");
 }
 
@@ -302,6 +316,7 @@ void Configure(IConfiguration configuration)
 
     if (!app.Environment.IsDevelopment())
     {
+        app.UseForwardedHeaders();
         app.UseHsts();
         app.UseHttpsRedirection();
     }

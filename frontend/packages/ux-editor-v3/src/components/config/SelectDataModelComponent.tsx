@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
-import { LegacySelect } from '@digdir/design-system-react';
 import { useDataModelMetadataQuery } from '../../hooks/queries/useDataModelMetadataQuery';
 import { FormField } from '../FormField';
 import type { Option } from '@altinn/text-editor/types';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../hooks/useAppContext';
+import { StudioNativeSelect } from '@studio/components';
 
 export interface ISelectDataModelProps {
   inputId?: string;
@@ -64,11 +64,14 @@ export const SelectDataModelComponent = ({
       helpText={helpText}
       label={label}
       renderField={({ fieldProps }) => (
-        <LegacySelect
-          {...fieldProps}
-          onChange={(e: any) => fieldProps.onChange(e)}
-          options={dataModelElementNames}
-        />
+        <StudioNativeSelect {...fieldProps} onChange={(e: any) => fieldProps.onChange(e)}>
+          <option value=''></option>
+          {dataModelElementNames.map((element) => (
+            <option key={element.value} value={element.value}>
+              {element.label}
+            </option>
+          ))}
+        </StudioNativeSelect>
       )}
     />
   );
