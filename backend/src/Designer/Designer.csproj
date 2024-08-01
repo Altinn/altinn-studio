@@ -52,8 +52,8 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink" />
     <PackageReference Include="HtmlAgilityPack" />
     <PackageReference Include="Microsoft.DiaSymReader.Native" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="NuGet.Versioning" />
     <PackageReference Include="Polly" />
     <PackageReference Include="Scrutor" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
