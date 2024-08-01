@@ -82,12 +82,14 @@
         ]
       },
       {
-        "id": "Button-SWe731",
-        "type": "Button",
-        "mode": "submit",
-        "hidden": false,
+        "id": "hovedskjema-nextButton",
+        "type": "NavigationButtons",
         "textResourceBindings": {
-          "title": "Side1.Button-SWe731.title"
+          "next": "general.next"
+        },
+        "validateOnNext": {
+          "page": "current",
+          "show": ["All"]
         }
       }
     ]

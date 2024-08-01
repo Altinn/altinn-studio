@@ -1,0 +1,58 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": false,
+    "layout": [
+      {
+        "id": "hovedskjema-detaljer",
+        "type": "Group",
+        "textResourceBindings": {
+          "title": "Hovedskjemadetaljer"
+        },
+        "children": ["summary1", "summary2", "summary3", "summary4"]
+      },
+      {
+        "id": "summary1",
+        "type": "Summary",
+        "componentRef": "Input-JQDlSQ"
+      },
+      {
+        "id": "summary2",
+        "type": "Summary",
+        "componentRef": "Input-kcxhAS"
+      },
+      {
+        "id": "summary3",
+        "type": "Summary",
+        "componentRef": "attachments"
+      },
+      {
+        "id": "summary4",
+        "type": "Summary",
+        "componentRef": "subform-mopeder"
+      },
+      {
+        "id": "button-group1",
+        "type": "ButtonGroup",
+        "children": ["hovedskjema-backButton", "hovedskjema-submitButton"]
+      },
+      {
+        "id": "hovedskjema-backButton",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "back": "general.back"
+        },
+        "showBackButton": true
+      },
+      {
+        "id": "hovedskjema-submitButton",
+        "type": "Button",
+        "mode": "submit",
+        "hidden": false,
+        "textResourceBindings": {
+          "title": "general.submit"
+        }
+      }
+    ]
+  }
+}

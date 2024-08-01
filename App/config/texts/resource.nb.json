@@ -6,10 +6,6 @@
       "value": "subform-test-ds"
     },
     {
-      "id": "Side1.Button-SWe731.title",
-      "value": "Send inn"
-    },
-    {
       "id": "Side1.Input-kcxhAS.title",
       "value": "Alder"
     },
@@ -64,10 +60,6 @@
     {
       "id": "subform-moped.merke",
       "value": "Merke"
-    },
-    {
-      "id": "subform-backbutton.title",
-      "value": "Tilbake"
     },
     {
       "id": "attachments.title",
