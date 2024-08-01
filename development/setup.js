@@ -27,6 +27,7 @@ const ensureUserPassword = (username, password) =>
       `docker exec studio-repositories gitea admin user change-password`,
       `--username ${username}`,
       `--password ${password}`,
+      `--must-change-password=false`,
     ].join(' '),
   );
 

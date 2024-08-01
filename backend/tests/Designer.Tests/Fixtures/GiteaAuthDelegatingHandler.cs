@@ -119,6 +119,7 @@ namespace Designer.Tests.Fixtures
                 new KeyValuePair<string, string>("redirect_uri",
                     WebScrapingUtils.ExtractTextBetweenMarkers(authorizePageContent,
                         "<input type=\"hidden\" name=\"redirect_uri\" value=\"", "\"")),
+                new KeyValuePair<string, string>("granted", "true"),
             };
 
             using FormUrlEncodedContent grantContent = new(grantFormValues);
