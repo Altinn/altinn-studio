@@ -1,5 +1,5 @@
 import { Meta, Canvas, Story } from '@storybook/blocks';
-import { Heading, Paragraph } from '@digdir/designsystemet-react';
+import { Heading, Paragraph, Table } from '@digdir/designsystemet-react';
 import * as StudioPageErrorStories from './StudioPageError.stories';
 
 <Meta of={StudioPageErrorStories} />
@@ -15,8 +15,24 @@ import * as StudioPageErrorStories from './StudioPageError.stories';
 <Heading level={2} size='small'>
   Props
 </Heading>
-<Paragraph>`StudioPageError` component has tow props:</Paragraph>
-<Paragraph>- `title`: A string representing the title of the error message.</Paragraph>
-<Paragraph>- `message`: A string representing the error message content.</Paragraph>
+<Paragraph>`StudioPageError` component has two props:</Paragraph>
+<Table size='sm'>
+  <Table.Head>
+    <Table.Row>
+      <Table.HeaderCell>Name</Table.HeaderCell>
+      <Table.HeaderCell>Description</Table.HeaderCell>
+    </Table.Row>
+  </Table.Head>
+  <Table.Body>
+    <Table.Row>
+      <Table.Cell>`title`</Table.Cell>
+      <Table.Cell>A string representing the title of the error message.</Table.Cell>
+    </Table.Row>
+    <Table.Row>
+      <Table.Cell>`message`</Table.Cell>
+      <Table.Cell>A string representing the error message content.</Table.Cell>
+    </Table.Row>
+  </Table.Body>
+</Table>
 
 <Canvas of={StudioPageErrorStories.Preview} />
