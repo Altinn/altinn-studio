@@ -48,8 +48,8 @@
             "id": "previousPage"
           }
         ],
-        "buttonStyle": "primary",
-        "buttonColor": "first",
+        "buttonStyle": "secondary",
+        "buttonColor": "second",
         "buttonSize": "sm"
       },
       {
