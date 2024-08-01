@@ -12,7 +12,7 @@ import type { FormItem } from '../../types/FormItem';
 
 export const DataModelBindings = (): React.JSX.Element => {
   const layout = useSelectedFormLayout();
-  const { formItemId, formItem, setFormItem, setFormItemId } = useFormItemContext();
+  const { formItemId, formItem, handleUpdate, debounceSave } = useFormItemContext();
   const { data: schema } = useComponentSchemaQuery(formItem.type);
   const [multipleAttachments, setMultipleAttachments] = useState<boolean>(false);
 
@@ -57,11 +57,13 @@ export const DataModelBindings = (): React.JSX.Element => {
         list: updatedValue ? '' : undefined,
       },
     };
-    // TODO: only uses formItem
-    setFormItem(
+    handleUpdate(
       updatedComponent as FormItem<ComponentType.FileUpload | ComponentType.FileUploadWithTag>,
     );
-    setFormItemId(formItemId);
+    debounceSave(
+      formItemId,
+      updatedComponent as FormItem<ComponentType.FileUpload | ComponentType.FileUploadWithTag>,
+    );
   };
 
   return (
@@ -95,8 +97,8 @@ export const DataModelBindings = (): React.JSX.Element => {
                   <EditDataModelBinding
                     component={formItem}
                     handleComponentChange={async (updatedComponent, mutateOptions) => {
-                      setFormItem(updatedComponent);
-                      setFormItemId(formItemId);
+                      handleUpdate(updatedComponent);
+                      debounceSave(formItemId, updatedComponent, mutateOptions);
                     }}
                     editFormId={formItemId}
                     helpText={dataModelBindingsProperties[propertyKey]?.description}

@@ -66,7 +66,7 @@ export const FormDesigner = (): JSX.Element => {
     selectedFormLayoutName,
     selectedFormLayoutSetName,
   );
-  const { setFormItem, setFormItemId } = useFormItemContext();
+  const { handleEdit } = useFormItemContext();
   const [previewCollapsed, setPreviewCollapsed] = useLocalStorage<boolean>(
     `form-designer-main:previewCollapsed:${user.id}:${org}`,
     false,
@@ -131,9 +131,7 @@ export const FormDesigner = (): JSX.Element => {
           },
         },
       );
-      // TODO: only used formItem
-      setFormItemId(newId);
-      setFormItem(getItem(updatedLayout, newId));
+      handleEdit(getItem(updatedLayout, newId));
     };
     const moveItem: HandleMove = (id, { parentId, index }) => {
       const type = getItem(layout, id).type;

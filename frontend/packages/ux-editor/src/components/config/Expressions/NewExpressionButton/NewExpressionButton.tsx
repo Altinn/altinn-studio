@@ -38,14 +38,13 @@ export const NewExpressionButton = () => {
 };
 
 const MenuItem = ({ property }: { property: FormItemProperty }) => {
-  const { formItem, setFormItem, setFormItemId } = useFormItemContext();
+  const { formItem, handleUpdate, debounceSave } = useFormItemContext();
   const text = useAddExpressionText(property);
 
   const handleAddExpression = async () => {
     const newFormItem = addExpressionToFormItem(formItem, property);
-    // TODO: only uses
-    setFormItem(newFormItem);
-    setFormItemId(newFormItem.id);
+    handleUpdate(newFormItem);
+    await debounceSave(); // Todo: handleSave does not work here. Will probably be fixed by https://github.com/Altinn/altinn-studio/issues/12383.
   };
 
   return <StudioDropdownMenu.Item onClick={handleAddExpression}>{text}</StudioDropdownMenu.Item>;

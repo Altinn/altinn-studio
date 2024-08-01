@@ -20,12 +20,11 @@ import { StudioCodeFragment } from '@studio/components';
 import { useText } from '../../../hooks';
 
 export const Expressions = () => {
-  const { formItem, setFormItem, setFormItemId } = useContext(FormItemContext);
+  const { formItem, handleUpdate, debounceSave } = useContext(FormItemContext);
 
   const updateAndSave = async (newFormItem: FormItem) => {
-    //TODO: Only uses formItem
-    setFormItem(newFormItem);
-    setFormItemId(newFormItem.id);
+    handleUpdate(newFormItem);
+    await debounceSave(); // Todo: Make the function synchronous: https://github.com/Altinn/altinn-studio/issues/12383
   };
 
   const handleExpressionChange = (property: FormItemProperty, newExpression: BooleanExpression) => {

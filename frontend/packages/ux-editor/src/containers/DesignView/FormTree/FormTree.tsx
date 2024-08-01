@@ -13,14 +13,10 @@ export type FormTreeProps = {
 };
 
 export const FormTree = ({ layout, duplicateComponents }: FormTreeProps) => {
-  const { setFormItemId, setFormItem, formItemId: formId } = useFormItemContext();
+  const { handleEdit, formItemId: formId } = useFormItemContext();
   const { t } = useTranslation();
 
-  const handleSelect = async (id: string) => {
-    // TODO: only used formItem
-    setFormItemId(id);
-    setFormItem(getItem(layout, id));
-  };
+  const handleSelect = async (id: string) => handleEdit(getItem(layout, id));
 
   return (
     <DragAndDropTree.Root
