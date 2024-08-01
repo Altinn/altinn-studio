@@ -11,7 +11,7 @@ describe('StudioPageError', () => {
 
     const heading = screen.getByRole('heading', {
       name: title,
-      level: 2,
+      level: 1,
     });
     expect(heading).toBeInTheDocument();
 

@@ -11,7 +11,7 @@ export const StudioPageError = ({ message, title }: StudioPageErrorProps) => {
   return (
     <div className={classes.container}>
       <Alert className={classes.alertContent} severity='danger'>
-        <Heading level={2} size='xs' spacing>
+        <Heading level={1} size='xs' spacing>
           {title}
         </Heading>
         <Paragraph>{message}</Paragraph>

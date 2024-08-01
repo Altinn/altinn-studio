@@ -22,18 +22,23 @@ describe('App', () => {
 
   test('should display error when failing to fetch current user', async () => {
     renderWithMockServices({ getUser: () => Promise.reject() });
-    const errorMessageTitle = await screen.findByText(
-      textMock('dashboard.error_getting_user_data.title'),
-    );
-    expect(errorMessageTitle).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', {
+        level: 1,
+        name: textMock('dashboard.error_getting_user_data.title'),
+      }),
+    ).toBeInTheDocument();
   });
 
   test('should display error when failing to fetch organizations', async () => {
     renderWithMockServices({ getOrganizations: () => Promise.reject() });
-    const errorMessageTitle = await screen.findByText(
-      textMock('dashboard.error_getting_organization_data.title'),
+
+    expect(
+      await screen.findByRole('heading', {
+        level: 1,
+        name: textMock('dashboard.error_getting_organization_data.title'),
+      }),
     );
-    expect(errorMessageTitle).toBeInTheDocument();
   });
 
   test('should display dashboard page if successfully loading data', async () => {
