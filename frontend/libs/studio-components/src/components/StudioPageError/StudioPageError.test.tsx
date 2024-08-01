@@ -6,7 +6,7 @@ const title: string = 'title';
 const message: string = 'message';
 
 describe('StudioPageError', () => {
-  it('renders correctly', () => {
+  it('Renders correctly', () => {
     render(<StudioPageError title={title} message={message} />);
 
     const heading = screen.getByRole('heading', {
