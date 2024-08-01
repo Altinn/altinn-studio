@@ -1,13 +1,12 @@
-import React from 'react';
+import React, { type ChangeEvent } from 'react';
 import { PlusIcon, XMarkIcon } from '@studio/icons';
-import { LegacyFieldSet, LegacyTextField } from '@digdir/design-system-react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
 import { useText } from '../../../../hooks';
 import { stringToArray, arrayToString } from '../../../../utils/stringUtils';
 import classes from './MapComponent.module.css';
 import type { MapLayer } from 'app-shared/types/MapLayer';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioProperty, StudioTextfield } from '@studio/components';
 
 export const MapComponent = ({
   component,
@@ -30,7 +29,7 @@ export const MapComponent = ({
   };
 
   return (
-    <LegacyFieldSet className={classes.fieldSetContent}>
+    <StudioProperty.Fieldset legend={''} className={classes.fieldSetContent}>
       <div>
         <h2 className={classes.subTitle}>{t('ux_editor.center_location')}</h2>
         <div className={classes.formGroup}>
@@ -44,10 +43,12 @@ export const MapComponent = ({
               if (errorCode === 'type') return t('validation_errors.numbers_only');
             }}
             renderField={({ fieldProps }) => (
-              <LegacyTextField
+              <StudioTextfield
                 {...fieldProps}
-                formatting={{ number: {} }}
-                onChange={(e) => fieldProps.onChange(parseInt(e.target.value, 10), e)}
+                type='number'
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  fieldProps.onChange(parseInt(e.target.value, 10), e)
+                }
               />
             )}
           />
@@ -62,10 +63,12 @@ export const MapComponent = ({
               if (errorCode === 'type') return t('validation_errors.numbers_only');
             }}
             renderField={({ fieldProps }) => (
-              <LegacyTextField
+              <StudioTextfield
                 {...fieldProps}
-                formatting={{ number: {} }}
-                onChange={(e) => fieldProps.onChange(parseInt(e.target.value, 10), e)}
+                type='number'
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  fieldProps.onChange(parseInt(e.target.value, 10), e)
+                }
               />
             )}
           />
@@ -83,10 +86,12 @@ export const MapComponent = ({
             if (errorCode === 'type') return t('validation_errors.numbers_only');
           }}
           renderField={({ fieldProps }) => (
-            <LegacyTextField
+            <StudioTextfield
               {...fieldProps}
-              formatting={{ number: {} }}
-              onChange={(e) => fieldProps.onChange(parseInt(e.target.value, 10), e)}
+              type='number'
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                fieldProps.onChange(parseInt(e.target.value, 10), e)
+              }
             />
           )}
         />
@@ -95,7 +100,7 @@ export const MapComponent = ({
         <h2 className={classes.subTitle}>{t('ux_editor.add_map_layer')}</h2>
         <AddMapLayer component={component} handleComponentChange={handleComponentChange} />
       </div>
-    </LegacyFieldSet>
+    </StudioProperty.Fieldset>
   );
 };
 
@@ -156,34 +161,38 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
   return (
     <>
       {component.layers?.map(
-        (layer, index): JSX.Element => (
+        (
+          layer: { url: string; attribution: string; subdomains: string },
+          index: number,
+        ): JSX.Element => (
           // Find a way to avoid using index as key
-          <LegacyFieldSet key={index}>
-            <div className={classes.layerHeaderContainer}>
-              <p className={classes.numericLayerText}>
-                {t('ux_editor.map_layer')} {index + 1}
-              </p>
+          <StudioProperty.Fieldset
+            legend={t('ux_editor.map_layer') + (index + 1)}
+            key={index}
+            menubar={
               <StudioButton
                 color='danger'
                 icon={<XMarkIcon title={t('general.delete')} />}
                 onClick={(): void => handleOnDeleteLayer(index)}
                 variant='tertiary'
               />
-            </div>
-
+            }
+          >
             <FormField
               id={component.id}
               label={t('ux_editor.url_label')}
               value={layer.url || ''}
-              onChange={(value, event) => handleOnLayerChange(index, event)}
+              onChange={(_value, event): void => handleOnLayerChange(index, event)}
               propertyPath={`${component.propertyPath}/properties/layers/properties/url`}
               customValidationMessages={(errorCode: string) => {
                 if (errorCode === 'format') return t('validation_errors.value_as_url');
               }}
               renderField={({ fieldProps }) => (
-                <LegacyTextField
+                <StudioTextfield
                   {...fieldProps}
-                  onChange={(e) => fieldProps.onChange(e.target.value, e)}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    fieldProps.onChange(e.target.value, e)
+                  }
                   name='url'
                 />
               )}
@@ -194,13 +203,15 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                 id={component.id}
                 label={t('ux_editor.attribution_label')}
                 value={layer.attribution || ''}
-                onChange={(value, event) => handleOnLayerChange(index, event)}
+                onChange={(_value, event) => handleOnLayerChange(index, event)}
                 propertyPath={`${component.propertyPath}/properties/layers/properties/attribution`}
                 renderField={({ fieldProps }) => (
-                  <LegacyTextField
+                  <StudioTextfield
                     {...fieldProps}
                     name='attribution'
-                    onChange={(e) => fieldProps.onChange(e.target.value, e)}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                      fieldProps.onChange(e.target.value, e)
+                    }
                   />
                 )}
               />
@@ -212,24 +223,26 @@ const AddMapLayer = ({ component, handleComponentChange }: AddMapLayerProps): JS
                 onChange={(value: string[]) => handleOnSubDomainChange(index, value)}
                 propertyPath={`${component.propertyPath}/properties/layers/properties/subdomains`}
                 renderField={({ fieldProps }) => (
-                  <LegacyTextField
+                  <StudioTextfield
                     {...fieldProps}
                     name='subdomains'
                     placeholder={t('ux_editor.subdomains_placeholder')}
-                    onChange={(e) => fieldProps.onChange(stringToArray(e.target.value), e)}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                      fieldProps.onChange(stringToArray(e.target.value), e)
+                    }
                     value={arrayToString(fieldProps.value) || ''}
                   />
                 )}
               />
             </div>
-          </LegacyFieldSet>
+          </StudioProperty.Fieldset>
         ),
       )}
       <StudioButton
         icon={<PlusIcon title={t('general.add')} />}
         variant='secondary'
         onClick={handleAddLayer}
-        disabled={component.layers?.some((layer) => !layer.url)}
+        disabled={component.layers?.some((layer: { url: string }): boolean => !layer.url)}
         fullWidth
       >
         {t('ux_editor.add_map_layer')}

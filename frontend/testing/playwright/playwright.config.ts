@@ -133,8 +133,7 @@ export default defineConfig<ExtendedTestOptions>({
       },
     },
     {
-      name: TestNames.LOGOUT_AND_INVALID_LOGIN_ONLY,
-      // Add ALL other test names here to make sure that the log out test is the last test to be executed
+      name: TestNames.LOGOUT,
       dependencies: [
         TestNames.SETUP,
         TestNames.CREATE_APP_ONLY,
@@ -146,15 +145,22 @@ export default defineConfig<ExtendedTestOptions>({
         TestNames.SETTINGS_MODAL,
         TestNames.TEXT_EDITOR,
         TestNames.PROCESS_EDITOR,
-        ...Object.values(TestNames).filter(
-          (testName) => testName !== TestNames.LOGOUT_AND_INVALID_LOGIN_ONLY,
-        ),
       ],
-      testDir: './tests/logout-and-invalid-login-only/',
+      testDir: './tests/logout/',
       testMatch: '*.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
         storageState: '.playwright/auth/user.json',
+        headless: true,
+      },
+    },
+    {
+      name: TestNames.INVALID_LOGIN,
+      dependencies: [TestNames.LOGOUT],
+      testDir: './tests/invalid-login/',
+      testMatch: '*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
         headless: true,
       },
     },

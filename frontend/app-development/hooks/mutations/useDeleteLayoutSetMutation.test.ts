@@ -1,5 +1,5 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderHookWithMockStore } from '../../test/mocks';
+import { renderHookWithProviders } from '../../test/mocks';
 import { waitFor } from '@testing-library/react';
 import { useDeleteLayoutSetMutation } from './useDeleteLayoutSetMutation';
 import { app, org } from '@studio/testing/testids';
@@ -9,7 +9,7 @@ const layoutSetToDeleteId = 'oldLayoutSetName';
 
 describe('useDeleteLayoutSetMutation', () => {
   it('Calls deleteLayoutSetMutation with correct arguments and payload', async () => {
-    const deleteLayoutSetResult = renderHookWithMockStore()(() =>
+    const deleteLayoutSetResult = renderHookWithProviders()(() =>
       useDeleteLayoutSetMutation(org, app),
     ).renderHookResult.result;
     await deleteLayoutSetResult.current.mutateAsync({

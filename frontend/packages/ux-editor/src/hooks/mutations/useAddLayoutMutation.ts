@@ -15,7 +15,6 @@ import { useAppContext } from '../../hooks';
 
 export interface AddLayoutMutationArgs {
   layoutName: string;
-  isReceiptPage?: boolean;
 }
 
 export const useAddLayoutMutation = (org: string, app: string, layoutSetName: string) => {
@@ -34,29 +33,22 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
   };
 
   return useMutation({
-    mutationFn: async ({ layoutName, isReceiptPage }: AddLayoutMutationArgs) => {
-      const layoutSettings: ILayoutSettings = formLayoutSettingsQuery.data;
+    mutationFn: async ({ layoutName }: AddLayoutMutationArgs) => {
       const layouts = formLayoutsQuery.data;
 
       if (Object.keys(layouts).indexOf(layoutName) !== -1) throw Error('Layout already exists');
       let newLayouts = ObjectUtils.deepCopy(layouts);
 
       newLayouts[layoutName] = createEmptyLayout();
-      newLayouts = await addOrRemoveNavigationButtons(
-        newLayouts,
-        save,
-        layoutName,
-        isReceiptPage ? layoutName : layoutSettings.receiptLayoutName,
-      );
-      return { newLayouts, layoutName, isReceiptPage };
+      newLayouts = await addOrRemoveNavigationButtons(newLayouts, save, layoutName);
+      return { newLayouts, layoutName };
     },
 
-    onSuccess: async ({ newLayouts, layoutName, isReceiptPage }) => {
+    onSuccess: async ({ newLayouts, layoutName }) => {
       const layoutSettings: ILayoutSettings = ObjectUtils.deepCopy(formLayoutSettingsQuery.data);
       const { order } = layoutSettings?.pages;
 
-      if (isReceiptPage) layoutSettings.receiptLayoutName = layoutName;
-      else order.push(layoutName);
+      order.push(layoutName);
 
       await formLayoutSettingsMutation.mutateAsync(layoutSettings);
 

@@ -27,7 +27,7 @@ import {
   UploadIcon,
 } from '@studio/icons';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
-import { createNavigationTab, deepCompare } from '../../utils/resourceUtils';
+import { createNavigationTab, deepCompare, getAltinn2Reference } from '../../utils/resourceUtils';
 import type { EnvId } from '../../utils/resourceUtils';
 import { ResourceAccessLists } from '../../components/ResourceAccessLists';
 import { AccessListDetail } from '../../components/AccessListDetails';
@@ -168,14 +168,12 @@ export const ResourcePage = (): React.JSX.Element => {
     handleNavigation(page);
   };
 
+  const altinn2References = getAltinn2Reference(resourceData);
   /**
    * Decide if the migration page should be accessible or not
    */
   const isMigrateEnabled = (): boolean => {
-    const hasAltinn2ReferenceSource = resourceData?.resourceReferences?.some(
-      (ref) => ref.referenceSource === 'Altinn2',
-    );
-    return hasAltinn2ReferenceSource && shouldDisplayFeature('resourceMigration');
+    return !!altinn2References && shouldDisplayFeature('resourceMigration');
   };
 
   const aboutPageId = 'about';
@@ -287,6 +285,8 @@ export const ResourcePage = (): React.JSX.Element => {
             <MigrationPage
               navigateToPageWithError={navigateToPageWithError}
               id='page-content-migration'
+              serviceCode={altinn2References[0]}
+              serviceEdition={altinn2References[1]}
             />
           )}
           {currentPage === accessListsPageId && env && !accessListId && (

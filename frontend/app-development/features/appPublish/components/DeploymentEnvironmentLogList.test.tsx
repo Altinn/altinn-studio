@@ -2,7 +2,7 @@ import React from 'react';
 import type { DeploymentEnvironmentLogListProps } from './DeploymentEnvironmentLogList';
 import { DeploymentEnvironmentLogList } from './DeploymentEnvironmentLogList';
 import { screen } from '@testing-library/react';
-import { renderWithMockStore } from 'app-development/test/mocks';
+import { renderWithProviders } from 'app-development/test/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
@@ -34,10 +34,9 @@ const render = (
   props?: Partial<DeploymentEnvironmentLogListProps>,
   queries?: Partial<ServicesContextProps>,
 ) => {
-  return renderWithMockStore(
-    {},
-    queries,
-  )(<DeploymentEnvironmentLogList {...defaultProps} {...props} />);
+  return renderWithProviders(queries)(
+    <DeploymentEnvironmentLogList {...defaultProps} {...props} />,
+  );
 };
 describe('DeploymentEnvironmentLogList', () => {
   it('renders with no history', () => {

@@ -25,6 +25,11 @@ a {
   text-decoration: none;
 }
 
+a.fds-link--inverted {
+  color: var(--fds-link--inverted);
+  text-decoration: underline;
+}
+
 button[class*='Button-module_small__'] svg {
   --fdsc-icon-size: var(--fds-sizing-5);
 }

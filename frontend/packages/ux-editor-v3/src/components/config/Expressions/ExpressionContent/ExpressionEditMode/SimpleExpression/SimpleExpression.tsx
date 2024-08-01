@@ -2,9 +2,9 @@ import React from 'react';
 import type { Expression, SubExpression } from '../../../../../../types/Expressions';
 import { Operator } from '../../../../../../types/Expressions';
 import { SubExpressionContent } from './SubExpressionContent';
-import { LegacyToggleButtonGroup } from '@digdir/design-system-react';
 import { useText } from '../../../../../../hooks';
 import { Divider } from 'app-shared/primitives';
+import { ToggleGroup } from '@digdir/designsystemet-react';
 
 export type SimpleExpressionProps = {
   expression: Expression;
@@ -22,28 +22,33 @@ export const SimpleExpression = ({
   const t = useText();
   return (
     <>
-      {expression.subExpressions?.map((subExp: SubExpression, index: number) => (
-        <React.Fragment key={index}>
-          <Divider marginless />
-          <SubExpressionContent
-            subExpression={subExp}
-            onUpdateSubExpression={(subExpression: SubExpression) =>
-              onUpdateSubExpression(index, subExpression)
-            }
-            onRemoveSubExpression={() => onRemoveSubExpression(subExp)}
-          />
-          {index !== expression.subExpressions.length - 1 && (
-            <LegacyToggleButtonGroup
-              items={[
-                { label: t('right_menu.expressions_operator_and'), value: Operator.And },
-                { label: t('right_menu.expressions_operator_or'), value: Operator.Or },
-              ]}
-              onChange={(value) => onUpdateExpressionOperator(value as Operator)}
-              selectedValue={expression.operator || Operator.And}
+      {expression.subExpressions?.map((subExp: SubExpression, index: number) => {
+        return (
+          <React.Fragment key={index}>
+            <Divider marginless />
+            <SubExpressionContent
+              subExpression={subExp}
+              onUpdateSubExpression={(subExpression: SubExpression) =>
+                onUpdateSubExpression(index, subExpression)
+              }
+              onRemoveSubExpression={() => onRemoveSubExpression(subExp)}
             />
-          )}
-        </React.Fragment>
-      ))}
+            {index !== expression.subExpressions.length - 1 && (
+              <ToggleGroup
+                onChange={(value) => onUpdateExpressionOperator(value as Operator)}
+                value={expression.operator || Operator.And}
+              >
+                <ToggleGroup.Item value={Operator.And}>
+                  {t('right_menu.expressions_operator_and')}
+                </ToggleGroup.Item>
+                <ToggleGroup.Item value={Operator.Or}>
+                  {t('right_menu.expressions_operator_or')}
+                </ToggleGroup.Item>
+              </ToggleGroup>
+            )}
+          </React.Fragment>
+        );
+      })}
     </>
   );
 };

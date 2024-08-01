@@ -92,7 +92,7 @@ describe('EditDataModelBindings', () => {
     expect(
       await screen.findByText(textMock('ux_editor.modal_properties_data_model_helper')),
     ).toBeInTheDocument();
-    expect(screen.getByRole('combobox').getAttribute('value')).toEqual('');
+    expect(screen.getByRole<HTMLSelectElement>('combobox').value).toEqual('');
   });
 
   it('should show select with provided data model binding', async () => {
@@ -137,7 +137,7 @@ describe('EditDataModelBindings', () => {
     const linkIcon = screen.getByText(textMock('ux_editor.modal_properties_data_model_link'));
     await user.click(linkIcon);
     const option = screen.getByText('testModel');
-    await user.click(option);
+    await user.selectOptions(screen.getByRole('combobox'), option);
     expect(handleComponentChange).toHaveBeenCalledWith({
       dataModelBindings: { simpleBinding: 'testModel' },
       id: 'someComponentId',
@@ -175,7 +175,7 @@ describe('EditDataModelBindings', () => {
     expect(
       await screen.findByText(textMock('ux_editor.modal_properties_data_model_helper')),
     ).toBeInTheDocument();
-    expect(screen.getByRole('combobox').getAttribute('value')).toEqual('');
+    expect(screen.getByRole<HTMLSelectElement>('combobox').value).toEqual('');
 
     const saveButton = await screen.findByRole('button', { name: /general.save/i });
     await user.click(saveButton);
@@ -236,8 +236,8 @@ describe('EditDataModelBindings', () => {
     const helperText = screen.queryByText(textMock('ux_editor.modal_properties_data_model_helper'));
     expect(helperText).toBeInTheDocument();
 
-    const combobox = screen.getByRole('combobox');
-    expect(combobox.getAttribute('value')).toEqual(dataModelBindingKey);
+    const combobox = screen.getByRole<HTMLSelectElement>('combobox');
+    expect(combobox.value).toEqual(dataModelBindingKey);
   });
 
   it('show right data model when switching component', async () => {

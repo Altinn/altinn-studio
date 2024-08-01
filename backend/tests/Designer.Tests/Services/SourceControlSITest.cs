@@ -77,6 +77,7 @@ namespace Designer.Tests.Services
         {
             List<Claim> claims = new();
             claims.Add(new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, "altinn.no"));
+            claims.Add(new Claim(ClaimTypes.Name, userName, ClaimValueTypes.String, "altinn.no"));
             ClaimsIdentity identity = new("TestUserLogin");
             identity.AddClaims(claims);
 

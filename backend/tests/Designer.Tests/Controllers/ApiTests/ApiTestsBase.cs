@@ -2,6 +2,11 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net.Http;
+using System.Text;
+using Designer.Tests.Fixtures;
+using DotNet.Testcontainers.Builders;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Mvc.Testing.Handlers;
 using Microsoft.AspNetCore.TestHost;
@@ -67,10 +72,28 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
     protected virtual HttpClient GetTestClient()
     {
         string configPath = GetConfigPath();
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddJsonFile(configPath, false, false)
+            .AddJsonStream(GenerateOidcConfigJsonConfig())
+            .AddEnvironmentVariables()
+            .Build();
+
         return Factory.WithWebHostBuilder(builder =>
         {
-            builder.ConfigureAppConfiguration((_, conf) => { conf.AddJsonFile(configPath); });
+            builder.UseConfiguration(configuration);
+            builder.ConfigureAppConfiguration((_, conf) =>
+            {
+                conf.AddJsonFile(configPath);
+                conf.AddJsonStream(GenerateOidcConfigJsonConfig());
+            });
             builder.ConfigureTestServices(ConfigureTestServices);
+            builder.ConfigureTestServices(services =>
+            {
+                services.AddAuthentication(defaultScheme: TestAuthConstants.TestAuthenticationScheme)
+                    .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
+                        TestAuthConstants.TestAuthenticationScheme, options => { });
+                services.AddTransient<IAuthenticationSchemeProvider, TestSchemeProvider>();
+            });
             builder.ConfigureServices(ConfigureTestForSpecificTest);
         }).CreateDefaultClient(new ApiTestsAuthAndCookieDelegatingHandler(), new CookieContainerHandler());
     }
@@ -90,5 +113,36 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
     }
     protected virtual void Dispose(bool disposing)
     {
+    }
+
+    protected Stream GenerateOidcConfigJsonConfig()
+    {
+        string configOverride = $@"
+              {{
+                    ""OidcLoginSettings"": {{
+                        ""ClientId"": ""{Guid.NewGuid()}"",
+                        ""ClientSecret"": ""{Guid.NewGuid()}"",
+                        ""Authority"": ""http://studio.localhost/repos/"",
+                        ""Scopes"": [
+                            ""openid"",
+                            ""profile"",
+                            ""write:activitypub"",
+                            ""write:admin"",
+                            ""write:issue"",
+                            ""write:misc"",
+                            ""write:notification"",
+                            ""write:organization"",
+                            ""write:package"",
+                            ""write:repository"",
+                            ""write:user""
+                        ],
+                        ""RequireHttpsMetadata"": false,
+                        ""CookieExpiryTimeInMinutes"" : 59
+                    }}
+              }}
+            ";
+        var configStream = new MemoryStream(Encoding.UTF8.GetBytes(configOverride));
+        configStream.Seek(0, SeekOrigin.Begin);
+        return configStream;
     }
 }
