@@ -62,9 +62,8 @@
         },
         "formatting": {
           "number": {
-            "thousandSeparator": ""
-          },
-          "align": "right"
+            "format": "####"
+          }
         },
         "required": true
       },
