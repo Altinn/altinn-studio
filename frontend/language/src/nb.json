@@ -491,7 +491,7 @@
   "local_changes_modal.download_all_button": "Last ned en zip-fil av hele repoet",
   "local_changes_modal.download_all_files_description": "Du kan laste ned hele repoet, inkludert alle filene du har gjort endringer på fra din lokale maskin.",
   "merge_conflict.body1": "Det finnes endringer i denne appen som er i konflikt med dine siste endringer.",
-  "merge_conflict.body2": "Måten å løse konflikten på er å fjerne dine siste endringer. Dersom du vil finne tilbake til endringene du nå mister, kan du laste ned siste versjon som zip-fil.",
+  "merge_conflict.body2": "For å løse konflikten må du fjerne dine siste endringer. Dersom du vil finne tilbake til endringene du nå mister, kan du laste ned siste versjon som zip-fil.",
   "merge_conflict.download": "Last ned",
   "merge_conflict.download_edited_files": "Last ned endret fil(er)",
   "merge_conflict.download_entire_repo": "Last ned hele repoet",
