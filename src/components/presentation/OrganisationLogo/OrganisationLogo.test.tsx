@@ -1,19 +1,24 @@
 import React from 'react';
 
+import { expect } from '@jest/globals';
 import { screen } from '@testing-library/react';
+import type { jest } from '@jest/globals';
 
-import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
+import { fetchApplicationMetadata } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { IApplicationMetadata } from 'src/features/applicationMetadata';
+import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
 
-const render = async (logo: IApplicationMetadata['logo']) =>
-  await renderWithInstanceAndLayout({
+const render = async (logo: IncomingApplicationMetadata['logo']) => {
+  (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementation(() =>
+    Promise.resolve(getIncomingApplicationMetadataMock({ logo })),
+  );
+
+  return await renderWithInstanceAndLayout({
     renderer: () => <OrganisationLogo />,
-    queries: {
-      fetchApplicationMetadata: () => Promise.resolve(getApplicationMetadataMock({ logo })),
-    },
   });
+};
 
 describe('OrganisationLogo', () => {
   it('Should get img src from organisations when logo.source is set to "org" in applicationMetadata', async () => {

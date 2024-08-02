@@ -1,10 +1,12 @@
 import React from 'react';
 
+import { expect, jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
-import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { AttachmentListComponent } from 'src/layout/AttachmentList/AttachmentListComponent';
+import { fetchApplicationMetadata } from 'src/queries/queries';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { IData } from 'src/types/shared';
 
@@ -56,8 +58,22 @@ describe('AttachmentListComponent', () => {
   });
 });
 
-const render = async (ids?: string[]) =>
-  await renderGenericComponentTest({
+const render = async (ids?: string[]) => {
+  (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementationOnce(() =>
+    Promise.resolve(
+      getIncomingApplicationMetadataMock((a) => {
+        a.dataTypes.push(
+          generateDataType({ id: 'not-ref-data-as-pdf', dataType: 'text/plain', taskId: 'Task_1' }),
+          generateDataType({
+            id: 'different-process-task',
+            dataType: 'text/plain',
+            taskId: 'Task_2',
+          }),
+        );
+      }),
+    ),
+  );
+  return await renderGenericComponentTest({
     type: 'AttachmentList',
     renderer: (props) => <AttachmentListComponent {...props} />,
     component: {
@@ -90,19 +106,9 @@ const render = async (ids?: string[]) =>
             }),
           );
         }),
-      fetchApplicationMetadata: async () =>
-        getApplicationMetadataMock((a) => {
-          a.dataTypes.push(
-            generateDataType({ id: 'not-ref-data-as-pdf', dataType: 'text/plain', taskId: 'Task_1' }),
-            generateDataType({
-              id: 'different-process-task',
-              dataType: 'text/plain',
-              taskId: 'Task_2',
-            }),
-          );
-        }),
     },
   });
+};
 
 interface GenerateDataElementProps {
   id: string;

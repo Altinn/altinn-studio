@@ -46,7 +46,7 @@ export const InstanceSelectionWrapper = () => (
 function InstanceSelection() {
   const _instances = useActiveInstances();
   const applicationMetadata = useApplicationMetadata();
-  const instanceSelectionOptions = applicationMetadata?.onEntry?.instanceSelection;
+  const instanceSelectionOptions = applicationMetadata?.onEntry.instanceSelection;
   const selectedIndex = instanceSelectionOptions?.defaultSelectedOption;
   const { langAsString, language } = useLanguage();
   const mobileView = useIsMobileOrTablet();

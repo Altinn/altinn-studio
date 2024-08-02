@@ -25,7 +25,7 @@ export const Footer = () => {
     return <DisplayError error={footerLayoutError} />;
   }
 
-  const shouldUseOrgLogo = application !== ContextNotProvided && application.logo != null;
+  const shouldUseOrgLogo = application !== ContextNotProvided && application.logoOptions != null;
 
   const components = data?.footer?.map((props) => createFooterComponent(props)) ?? [];
   if (!components.length && !shouldUseOrgLogo) {

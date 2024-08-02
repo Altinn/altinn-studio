@@ -18,8 +18,7 @@ import {
 import { useProfile } from 'src/features/profile/ProfileProvider';
 import { useAllowAnonymousIs } from 'src/features/stateless/getAllowAnonymous';
 import { PresentationType } from 'src/types';
-import { useIsStatelessApp } from 'src/utils/useIsStatelessApp';
-import type { ShowTypes } from 'src/features/applicationMetadata';
+import type { ShowTypes } from 'src/features/applicationMetadata/types';
 
 const RenderStateless = () => (
   <FormProvider>
@@ -43,7 +42,7 @@ const RenderStateless = () => (
 );
 
 const ShowOrInstantiate: React.FC<{ show: ShowTypes }> = ({ show }) => {
-  const isStateless = useIsStatelessApp();
+  const isStateless = useApplicationMetadata().isStatelessApp;
 
   if (isStateless) {
     return <RenderStateless />;
@@ -68,15 +67,17 @@ const ShowOrInstantiate: React.FC<{ show: ShowTypes }> = ({ show }) => {
 };
 
 export const Entrypoint = () => {
-  const applicationMetadata = useApplicationMetadata();
-  const show: ShowTypes = applicationMetadata.onEntry?.show ?? 'new-instance';
-  const validParties = useValidParties();
+  const {
+    onEntry: { show },
+    isStatelessApp: isStateless,
+    promptForParty,
+  } = useApplicationMetadata();
   const profile = useProfile();
-  const partyIsValid = useCurrentPartyIsValid();
-  const isStateless = useIsStatelessApp();
   const party = useCurrentParty();
-  const allowAnonymous = useAllowAnonymousIs(true);
+  const validParties = useValidParties();
+  const partyIsValid = useCurrentPartyIsValid();
   const userHasSelectedParty = useHasSelectedParty();
+  const allowAnonymous = useAllowAnonymousIs(true);
 
   if (isStateless && allowAnonymous && !party) {
     return <RenderStateless />;
@@ -104,7 +105,7 @@ export const Entrypoint = () => {
       return <ShowOrInstantiate show={show} />;
     }
 
-    if (applicationMetadata.promptForParty === 'always') {
+    if (promptForParty === 'always') {
       return (
         <Navigate
           to={'/party-selection/explained'}
@@ -113,7 +114,7 @@ export const Entrypoint = () => {
       );
     }
 
-    if (applicationMetadata.promptForParty === 'never') {
+    if (promptForParty === 'never') {
       return <ShowOrInstantiate show={show} />;
     }
 

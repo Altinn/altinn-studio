@@ -9,8 +9,6 @@
     "id",
     "title",
     "org",
-    "created",
-    "createdBy",
     "partyTypesAllowed",
     "dataTypes"
   ],

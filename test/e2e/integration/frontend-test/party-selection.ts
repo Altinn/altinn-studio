@@ -2,7 +2,7 @@ import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
 import { PartyType } from 'src/types/shared';
-import type { IApplicationMetadata } from 'src/features/applicationMetadata';
+import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IParty } from 'src/types/shared';
 
 const appFrontend = new AppFrontend();
@@ -95,8 +95,8 @@ interface Mockable {
   currentParty?: IParty;
   allowedToInstantiate?: IParty[] | ((parties: IParty[]) => IParty[]);
   doNotPromptForParty?: boolean;
-  appPromptForPartyOverride?: IApplicationMetadata['promptForParty'];
-  partyTypesAllowed?: IApplicationMetadata['partyTypesAllowed'];
+  appPromptForPartyOverride?: IncomingApplicationMetadata['promptForParty'];
+  partyTypesAllowed?: IncomingApplicationMetadata['partyTypesAllowed'];
 }
 
 function mockResponses(whatToMock: Mockable) {

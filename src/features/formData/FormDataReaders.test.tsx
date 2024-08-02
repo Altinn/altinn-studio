@@ -1,13 +1,15 @@
 import React from 'react';
 
+import { expect, jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 import { v4 as uuidv4 } from 'uuid';
 
-import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
 import { Lang } from 'src/features/language/Lang';
+import { fetchApplicationMetadata } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IRawTextResource } from 'src/features/language/textResources';
 import type { IData, IDataType } from 'src/types/shared';
@@ -40,6 +42,14 @@ function TestComponent({ ids }: TestProps) {
 }
 
 async function render(props: TestProps) {
+  (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementationOnce(() =>
+    Promise.resolve(
+      getIncomingApplicationMetadataMock((a) => {
+        a.dataTypes = a.dataTypes.filter((dt) => !dt.appLogic?.classRef);
+        a.dataTypes.push(...generateDataTypes());
+      }),
+    ),
+  );
   const dataModelNames = Object.keys(props.dataModels);
   const idToNameMap: { [id: string]: string } = {};
 
@@ -102,11 +112,6 @@ async function render(props: TestProps) {
       </>
     ),
     queries: {
-      fetchApplicationMetadata: async () =>
-        getApplicationMetadataMock((a) => {
-          a.dataTypes = a.dataTypes.filter((dt) => !dt.appLogic?.classRef);
-          a.dataTypes.push(...generateDataTypes());
-        }),
       fetchInstanceData: async () => instanceData,
       fetchLayoutSets: async () => {
         const mock = getLayoutSetsMock();

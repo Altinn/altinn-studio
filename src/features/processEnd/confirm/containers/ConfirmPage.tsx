@@ -11,14 +11,14 @@ import {
   filterDisplayPdfAttachments,
   getAttachmentGroupings,
 } from 'src/utils/attachmentsUtils';
-import type { IApplicationMetadata } from 'src/features/applicationMetadata';
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IInstance, IParty } from 'src/types/shared';
 
 export interface IConfirmPageProps {
   instance: IInstance | undefined;
   parties: IParty[] | undefined;
   appName?: string;
-  applicationMetadata: IApplicationMetadata | null;
+  applicationMetadata: ApplicationMetadata | null;
 }
 
 export const ConfirmPage = ({ instance, parties, appName, applicationMetadata }: IConfirmPageProps) => {

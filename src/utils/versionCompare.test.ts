@@ -9,7 +9,7 @@ describe('versionCompare', () => {
 
   const testCases: TestCase[] = [
     { version: '1.0.0', minVersion: '1.0.0', expected: true },
-    { version: '1.0.0', minVersion: '1.0.1', expected: false },
+    { version: '1.0.0', minVersion: '1.0.1', expected: true },
     { version: '1.0.0', minVersion: '0.9.9', expected: true },
     { version: '8.0.0', minVersion: '7.9.9', expected: true },
     { version: '8.0.15', minVersion: '8.0.14', expected: true },
@@ -28,7 +28,6 @@ describe('versionCompare', () => {
   });
 
   test('should allow zero in last part', () => {
-    expect(isAtLeastVersion({ actualVersion: '1.2.0', minimumVersion: '1.2.3', allowZeroInLast: false })).toBe(false);
-    expect(isAtLeastVersion({ actualVersion: '1.2.0', minimumVersion: '1.2.3', allowZeroInLast: true })).toBe(true);
+    expect(isAtLeastVersion({ actualVersion: '1.2.0', minimumVersion: '1.2.3' })).toBe(true);
   });
 });

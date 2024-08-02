@@ -1,14 +1,17 @@
 import React from 'react';
 
+import { expect } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { v4 as uuidv4 } from 'uuid';
+import type { jest } from '@jest/globals';
 import type { AxiosResponse } from 'axios';
 
-import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
+import { fetchApplicationMetadata } from 'src/queries/queries';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { IGetAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
 import type { IRawOption } from 'src/layout/common.generated';
@@ -346,6 +349,18 @@ async function renderAbstract<T extends Types>({
   genericProps,
   attachments: attachmentsGenerator = (dataType) => getDataElements({ dataType }),
 }: Props<T>) {
+  (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementationOnce(() =>
+    Promise.resolve(
+      getIncomingApplicationMetadataMock((a) => {
+        a.dataTypes.push({
+          id,
+          allowedContentTypes: ['image/png'],
+          maxCount: 4,
+          minCount: 1,
+        });
+      }),
+    ),
+  );
   const id = uuidv4();
   const attachments = attachmentsGenerator(id);
 
@@ -372,15 +387,6 @@ async function renderAbstract<T extends Types>({
       ...genericProps,
     },
     queries: {
-      fetchApplicationMetadata: async () =>
-        getApplicationMetadataMock((a) => {
-          a.dataTypes.push({
-            id,
-            allowedContentTypes: ['image/png'],
-            maxCount: 4,
-            minCount: 1,
-          });
-        }),
       fetchInstanceData: async () =>
         getInstanceDataMock((i) => {
           i.data.push(...attachments);

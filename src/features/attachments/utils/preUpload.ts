@@ -121,10 +121,10 @@ export const usePreUpload = () => {
  * @see useAttachmentsUploader
  */
 const useUpload = (dispatch: Dispatch) => {
-  const { changeData: changeInstanceData } = useLaxInstance() || {};
+  const { changeData: changeInstanceData } = useLaxInstance() ?? {};
   const { mutateAsync } = useAttachmentsUploadMutation();
   const { langAsString, lang } = useLanguage();
-  const backendFeatures = useApplicationMetadata().features || {};
+  const backendFeatures = useApplicationMetadata().features;
 
   return async (action: RawAttachmentAction<AttachmentActionUpload>) => {
     const { node, file } = action;
@@ -157,7 +157,7 @@ const useUpload = (dispatch: Dispatch) => {
     } catch (err) {
       dispatch({ action: 'remove', node, temporaryId, result: false });
 
-      if (backendFeatures.jsonObjectInDataResponse && isAxiosError(err) && err.response?.data) {
+      if (backendFeatures?.jsonObjectInDataResponse && isAxiosError(err) && err.response?.data) {
         const validationIssues: BackendValidationIssue[] = err.response.data;
         const message = validationIssues
           .map((issue) => getValidationIssueMessage(issue))

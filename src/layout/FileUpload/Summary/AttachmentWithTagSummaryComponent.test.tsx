@@ -1,10 +1,13 @@
 import React from 'react';
 
+import { expect } from '@jest/globals';
 import { screen } from '@testing-library/react';
+import type { jest } from '@jest/globals';
 
-import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { AttachmentSummaryComponent } from 'src/layout/FileUpload/Summary/AttachmentSummaryComponent';
+import { fetchApplicationMetadata } from 'src/queries/queries';
 import { renderWithNode } from 'src/test/renderWithProviders';
 import type { CompFileUploadWithTagExternal } from 'src/layout/FileUploadWithTag/config.generated';
 import type { IData } from 'src/types/shared';
@@ -102,20 +105,24 @@ const render = async ({ component, addAttachment = true }: RenderProps) => {
     created: '2021-09-08T12:00:00',
   };
 
-  const application = getApplicationMetadataMock();
-  application.dataTypes.push({
-    id: 'myComponent',
-    allowedContentTypes: ['application/pdf'],
-    maxCount: 4,
-    minCount: 1,
-  });
+  (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementationOnce(() =>
+    Promise.resolve(
+      getIncomingApplicationMetadataMock((appMetadata) => {
+        appMetadata.dataTypes.push({
+          id: 'myComponent',
+          allowedContentTypes: ['application/pdf'],
+          maxCount: 4,
+          minCount: 1,
+        });
+      }),
+    ),
+  );
 
   return await renderWithNode<true, LayoutNode<'FileUploadWithTag'>>({
     nodeId: 'myComponent',
     renderer: ({ node }) => <AttachmentSummaryComponent targetNode={node} />,
     inInstance: true,
     queries: {
-      fetchApplicationMetadata: async () => application,
       fetchInstanceData: async () => ({
         ...getInstanceDataMock((i) => {
           addAttachment && i.data.push(attachment);

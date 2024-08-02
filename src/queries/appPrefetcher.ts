@@ -1,7 +1,7 @@
 import { matchPath } from 'react-router-dom';
 
 import { usePrefetchQuery } from 'src/core/queries/usePrefetchQuery';
-import { useApplicationMetadataQueryDef } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadataQueryDef } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useApplicationSettingsQueryDef } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { useLayoutSetsQueryDef } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useInstanceDataQueryDef } from 'src/features/instance/InstanceContext';
@@ -20,7 +20,7 @@ export function AppPrefetcher() {
     matchPath({ path: '/instance/:partyId/:instanceGuid/*' }, window.location.hash.slice(1))?.params ?? {};
   const instanceId = partyId && instanceGuid ? `${partyId}/${instanceGuid}` : undefined;
 
-  usePrefetchQuery(useApplicationMetadataQueryDef());
+  usePrefetchQuery(getApplicationMetadataQueryDef());
   usePrefetchQuery(useLayoutSetsQueryDef());
   usePrefetchQuery(useProfileQueryDef(true), Boolean(partyId));
   usePrefetchQuery(useOrgsQueryDef());

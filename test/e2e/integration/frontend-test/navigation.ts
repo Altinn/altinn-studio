@@ -1,4 +1,4 @@
-import type { IApplicationMetadata } from 'src/features/applicationMetadata';
+import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
 
 describe('Navigation', () => {
   it('Should redirect to the current task and the first page of that task when navigating directly to the instance', () => {
@@ -62,7 +62,7 @@ describe('Navigation', () => {
   it('should not focus main-content when loading the page in the browser and there is no instance selector', () => {
     cy.intercept('**/applicationmetadata', (req) => {
       req.on('response', (res) => {
-        const body = res.body as IApplicationMetadata;
+        const body = res.body as IncomingApplicationMetadata;
         body.onEntry = undefined;
         res.send(body);
       });

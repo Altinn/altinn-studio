@@ -169,13 +169,13 @@
     {
       "files": ["**/*.ts", "**/*.tsx"],
       "parserOptions": {
-        "project": "tsconfig.json"
+        "project": "./tsconfig.json"
       }
     },
     {
       "files": ["test/**/*.ts"],
       "parserOptions": {
-        "project": "test/tsconfig.json"
+        "project": "./test/tsconfig.json"
       }
     },
     {

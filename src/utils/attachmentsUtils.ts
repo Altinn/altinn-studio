@@ -1,4 +1,4 @@
-import type { IApplicationMetadata } from 'src/features/applicationMetadata';
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { IAttachmentGrouping, IData, IDataType, IDisplayAttachment } from 'src/types/shared';
 
@@ -39,7 +39,7 @@ export const getDisplayAttachments = (data: IData[]): IDisplayAttachment[] =>
  */
 export const getAttachmentGroupings = (
   attachments: IDisplayAttachment[] | undefined,
-  applicationMetadata: IApplicationMetadata | null,
+  applicationMetadata: ApplicationMetadata | null,
   langTools: IUseLanguage,
 ): IAttachmentGrouping => {
   const attachmentGroupings: IAttachmentGrouping = {};
@@ -67,7 +67,7 @@ export const getAttachmentGroupings = (
  */
 export const getGroupingForAttachment = (
   attachment: IDisplayAttachment,
-  applicationMetadata: IApplicationMetadata,
+  applicationMetadata: ApplicationMetadata,
 ): string => {
   if (!applicationMetadata || !applicationMetadata.dataTypes || !attachment) {
     return 'null';

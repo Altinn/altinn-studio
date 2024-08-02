@@ -6,23 +6,34 @@ type ILogoOptions = {
   size?: 'small' | 'medium' | 'large';
 };
 
-export interface IApplicationMetadata {
-  altinnNugetVersion?: string;
-  createdBy: string;
-  created: string;
-  dataTypes: IDataType[];
+export interface IncomingApplicationMetadata {
   id: string;
-  lastChangedBy: string;
-  lastChanged: string;
+  title: ITitle;
   org: string;
   partyTypesAllowed: IPartyTypesAllowed;
-  title: ITitle;
+  dataTypes: IDataType[];
+  altinnNugetVersion?: string;
   autoDeleteOnProcessEnd: boolean;
   onEntry?: IOnEntry;
   features?: Partial<IBackendFeaturesState>;
   promptForParty?: 'always' | 'never';
   logo?: ILogoOptions;
 }
+
+export type ApplicationMetadata = {
+  isValidVersion: boolean;
+  dataTypes: IDataType[]; // TODO: next step
+  id: string;
+  org: string;
+  partyTypesAllowed: IPartyTypesAllowed; // FIXME: needs improvement
+  title: ITitle;
+  autoDeleteOnProcessEnd: boolean;
+  isStatelessApp: boolean;
+  onEntry: IOnEntry;
+  features?: Partial<IBackendFeaturesState>;
+  promptForParty?: 'always' | 'never';
+  logoOptions?: ILogoOptions;
+};
 
 export interface IOnEntry {
   show: ShowTypes;
@@ -45,7 +56,7 @@ interface IPartyTypesAllowed {
 }
 
 export interface IGetApplicationMetadataFulfilled {
-  applicationMetadata: IApplicationMetadata;
+  applicationMetadata: ApplicationMetadata;
 }
 
 export interface IBackendFeaturesState {

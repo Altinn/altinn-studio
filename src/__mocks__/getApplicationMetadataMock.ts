@@ -1,17 +1,16 @@
-import { MINIMUM_APPLICATION_VERSION } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import type { IApplicationMetadata } from 'src/features/applicationMetadata';
+import type { ApplicationMetadata, IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
 
-export const getApplicationMetadataMock = (
-  overrides: Partial<IApplicationMetadata> | ((application: IApplicationMetadata) => void) = {},
-): IApplicationMetadata => {
-  const out: IApplicationMetadata = {
+export const getIncomingApplicationMetadataMock = (
+  overrides: Partial<IncomingApplicationMetadata> | ((application: IncomingApplicationMetadata) => void) = {},
+): IncomingApplicationMetadata => {
+  const out: IncomingApplicationMetadata = {
     id: 'mockOrg/test-app',
     org: 'mockOrg',
     title: {
       nb: 'Test App',
     },
-    altinnNugetVersion: MINIMUM_APPLICATION_VERSION.build,
     autoDeleteOnProcessEnd: false,
+    altinnNugetVersion: '8.0.0.108',
     dataTypes: [
       {
         id: 'test-data-model',
@@ -72,10 +71,7 @@ export const getApplicationMetadataMock = (
       person: true,
       subUnit: false,
     },
-    created: '2020-06-29T08:47:12.425551Z',
-    createdBy: 'test testesen',
-    lastChanged: '2020-06-29T08:47:12.4255537Z',
-    lastChangedBy: 'test testesen',
+    onEntry: { show: 'new-instance' },
     ...overrides,
   };
 
@@ -86,4 +82,18 @@ export const getApplicationMetadataMock = (
   }
 
   return out;
+};
+
+export const getApplicationMetadataMock = (
+  overrides: Partial<ApplicationMetadata> | ((application: ApplicationMetadata) => void) = {},
+): ApplicationMetadata => {
+  const incomingAppMetadata = getIncomingApplicationMetadataMock();
+  return {
+    ...incomingAppMetadata,
+    isValidVersion: true,
+    isStatelessApp: false,
+    logoOptions: incomingAppMetadata.logo,
+    onEntry: { show: 'new-instance' },
+    ...overrides,
+  };
 };

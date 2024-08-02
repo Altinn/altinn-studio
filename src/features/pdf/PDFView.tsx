@@ -63,7 +63,7 @@ export const PDFView = () => {
   const { langAsString } = useLanguage();
 
   const isPayment = useIsPayment();
-  const enableOrgLogo = Boolean(useApplicationMetadata().logo);
+  const enableOrgLogo = Boolean(useApplicationMetadata().logoOptions);
 
   if (!pdfPage) {
     return null;

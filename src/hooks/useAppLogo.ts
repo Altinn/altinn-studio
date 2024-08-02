@@ -7,7 +7,7 @@ export function useAppLogoUrl() {
   const application = useApplicationMetadata();
   const org = application?.org;
 
-  const useOrgAsSource = (application.logo?.source ?? 'org') === 'org';
+  const useOrgAsSource = (application.logoOptions?.source ?? 'org') === 'org';
   const fromOrg = useOrgAsSource && orgs && org ? orgs[org]?.logo : undefined;
   const fromTextResources = useTextResourceOr('appLogo.url', undefined);
 
@@ -16,12 +16,12 @@ export function useAppLogoUrl() {
 
 export function useDisplayAppOwnerNameInHeader() {
   const application = useApplicationMetadata();
-  return application.logo?.displayAppOwnerNameInHeader ?? true;
+  return application.logoOptions?.displayAppOwnerNameInHeader ?? true;
 }
 
 export function useAppLogoSize() {
   const application = useApplicationMetadata();
-  const size = application.logo?.size;
+  const size = application.logoOptions?.size;
 
   if (size !== 'small' && size !== 'medium' && size !== 'large') {
     return 'small';

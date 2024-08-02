@@ -1,16 +1,28 @@
 import React from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
+import { expect } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import type { jest } from '@jest/globals';
 
-import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { InstantiationButtonComponent } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
+import { fetchApplicationMetadata } from 'src/queries/queries';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 
-const render = async () =>
-  await renderGenericComponentTest({
+const render = async () => {
+  (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementationOnce(() =>
+    Promise.resolve(
+      getIncomingApplicationMetadataMock({
+        onEntry: {
+          show: 'stateless',
+        },
+      }),
+    ),
+  );
+  return await renderGenericComponentTest({
     type: 'InstantiationButton',
     component: {
       textResourceBindings: {
@@ -36,15 +48,8 @@ const render = async () =>
       </MemoryRouter>
     ),
     renderer: (props) => <InstantiationButtonComponent {...props} />,
-    queries: {
-      fetchApplicationMetadata: async () => ({
-        ...getApplicationMetadataMock(),
-        onEntry: {
-          show: 'stateless',
-        },
-      }),
-    },
   });
+};
 
 describe('InstantiationButton', () => {
   it('should show button and it should be possible to click and start loading', async () => {

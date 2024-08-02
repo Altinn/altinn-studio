@@ -5,6 +5,7 @@ import type { NavigateOptions } from 'react-router-dom';
 import { create } from 'zustand';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import {
   useHiddenPages,
   useSetReturnToView,
@@ -14,7 +15,6 @@ import { useLaxLayoutSettings, usePageSettings } from 'src/features/form/layoutS
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxProcessData, useTaskType } from 'src/features/instance/ProcessContext';
 import { ProcessTaskType } from 'src/types';
-import { useIsStatelessApp } from 'src/utils/useIsStatelessApp';
 
 type NavigateToPageOptions = {
   replace?: boolean;
@@ -89,7 +89,7 @@ export const useOrder = () => {
 };
 
 export const useNavigatePage = () => {
-  const isStatelessApp = useIsStatelessApp();
+  const isStatelessApp = useApplicationMetadata().isStatelessApp;
   const currentTaskId = useLaxProcessData()?.currentTask?.elementId;
   const processTasks = useLaxProcessData()?.processTasks;
   const lastTaskId = processTasks?.slice(-1)[0]?.elementId;

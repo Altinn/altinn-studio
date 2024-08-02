@@ -44,8 +44,8 @@ describe('Stateless', () => {
   it('is possible to start app instance from stateless app', () => {
     const userFirstName = Cypress.env('defaultFirstName');
     cy.startStatefulFromStateless();
-    cy.get(appFrontend.stateless.name).should('have.value', userFirstName);
-    cy.get(appFrontend.stateless.idnumber).should('have.value', '1364');
-    cy.get(appFrontend.sendinButton).should('be.visible');
+    cy.findByRole('textbox', { name: /navn/i }).should('have.value', userFirstName);
+    cy.findByRole('textbox', { name: /id/i }).should('have.value', '1364');
+    cy.findByRole('button', { name: /send inn/i }).should('be.visible');
   });
 });

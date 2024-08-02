@@ -10,7 +10,6 @@ import type { RenderOptions, waitForOptions } from '@testing-library/react';
 import type { AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 
-import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getLogoMock } from 'src/__mocks__/getLogoMock';
@@ -122,7 +121,6 @@ export const makeMutationMocks = <T extends (name: keyof AppMutations) => any>(
 
 const defaultQueryMocks: AppQueries = {
   fetchLogo: async () => getLogoMock(),
-  fetchApplicationMetadata: async () => getApplicationMetadataMock(),
   fetchActiveInstances: async () => [],
   fetchCurrentParty: async () => getPartyMock(),
   fetchApplicationSettings: async () => ({}),

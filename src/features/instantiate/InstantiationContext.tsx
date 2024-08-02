@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
@@ -37,22 +37,30 @@ const { Provider, useCtx } = createContext<InstantiationContext>({ name: 'Instan
 
 function useInstantiateMutation() {
   const { doInstantiate } = useAppMutations();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (instanceOwnerPartyId: number) => doInstantiate(instanceOwnerPartyId),
     onError: (error: HttpClientError) => {
       window.logError('Instantiation failed:\n', error);
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fetchApplicationMetadata'] });
+    },
   });
 }
 
 function useInstantiateWithPrefillMutation() {
   const { doInstantiateWithPrefill } = useAppMutations();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (instantiation: Instantiation) => doInstantiateWithPrefill(instantiation),
     onError: (error: HttpClientError) => {
       window.logError('Instantiation with prefill failed:\n', error);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fetchApplicationMetadata'] });
     },
   });
 }

@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
-import type { IApplicationMetadata } from 'src/features/applicationMetadata';
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { ILayoutFileExternal, ILayoutSet, ILayoutSets } from 'src/layout/common.generated';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { IDataType } from 'src/types/shared';
@@ -20,7 +20,7 @@ interface AppLayoutSet {
 interface AppLayoutSetWithDataModelSchema extends AppLayoutSet {
   modelPath: string;
   dataType: string;
-  appMetadata: IApplicationMetadata;
+  appMetadata: ApplicationMetadata;
   dataTypeDef: IDataType | undefined;
 }
 
@@ -152,7 +152,7 @@ export function getAllLayoutSetsWithDataModelSchema(dir: string): {
 
 function getApplicationMetaData(appRoot: string) {
   const appJson = fs.readFileSync(path.join(appRoot, 'App/config/applicationmetadata.json'), 'utf-8');
-  return parseJsonTolerantly<IApplicationMetadata>(appJson);
+  return parseJsonTolerantly<ApplicationMetadata>(appJson);
 }
 
 /**

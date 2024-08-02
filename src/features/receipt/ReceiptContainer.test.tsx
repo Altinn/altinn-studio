@@ -1,14 +1,17 @@
 import React from 'react';
 
+import { expect } from '@jest/globals';
 import { screen } from '@testing-library/react';
+import type { jest } from '@jest/globals';
 
-import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
 import { getSummaryDataObject, ReceiptContainer } from 'src/features/receipt/ReceiptContainer';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
+import { fetchApplicationMetadata } from 'src/queries/queries';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import { PartyType } from 'src/types/shared';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
@@ -74,8 +77,15 @@ const buildInstance = (hasPdf = true) =>
     });
   });
 
-const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender = {}) =>
-  await renderWithoutInstanceAndLayout({
+const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender = {}) => {
+  (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementationOnce(() =>
+    Promise.resolve(
+      getIncomingApplicationMetadataMock((a) => {
+        a.autoDeleteOnProcessEnd = autoDeleteOnProcessEnd;
+      }),
+    ),
+  );
+  return await renderWithoutInstanceAndLayout({
     renderer: () => (
       <InstanceProvider>
         <ReceiptContainer />
@@ -91,10 +101,6 @@ const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender
       </InstanceRouter>
     ),
     queries: {
-      fetchApplicationMetadata: async () =>
-        getApplicationMetadataMock((a) => {
-          a.autoDeleteOnProcessEnd = autoDeleteOnProcessEnd;
-        }),
       fetchOrgs: async () => ({
         orgs: {
           brg: {
@@ -119,6 +125,7 @@ const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender
       fetchFormData: async () => ({}),
     },
   });
+};
 
 describe('ReceiptContainer', () => {
   it('should show download link to pdf when all data is loaded, and data includes pdf', async () => {

@@ -184,7 +184,7 @@ export const PartySelection = () => {
       3. sub unit
       4. bankruptcy state
     */
-    const { partyTypesAllowed } = appMetadata || {};
+    const { partyTypesAllowed } = appMetadata ?? {};
     const partyTypes: string[] = [];
 
     let returnString = '';

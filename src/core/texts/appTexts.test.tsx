@@ -1,11 +1,14 @@
 import React from 'react';
 
+import { expect } from '@jest/globals';
 import { screen } from '@testing-library/react';
+import type { jest } from '@jest/globals';
 
-import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
+import { fetchApplicationMetadata } from 'src/queries/queries';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { IApplicationMetadata } from 'src/features/applicationMetadata';
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IRawTextResource } from 'src/features/language/textResources';
 import type { IAltinnOrg, IAltinnOrgs } from 'src/types/shared';
 
@@ -22,19 +25,19 @@ function AppTextsRenderer() {
 
 interface RenderProps {
   textResources?: IRawTextResource[];
-  applicationMetadata?: IApplicationMetadata;
+  applicationMetadata?: ApplicationMetadata;
   orgs?: IAltinnOrgs;
+  nbTitle?: string;
 }
 
-async function render({
-  textResources = [],
-  applicationMetadata = getApplicationMetadataMock(),
-  orgs = {},
-}: RenderProps) {
+async function render({ nbTitle, textResources = [], orgs = {} }: RenderProps) {
+  const overrides = nbTitle ? { title: { nb: nbTitle } } : {};
+  (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementation(() =>
+    Promise.resolve(getIncomingApplicationMetadataMock(overrides)),
+  );
   return await renderWithoutInstanceAndLayout({
     renderer: () => <AppTextsRenderer />,
     queries: {
-      fetchApplicationMetadata: async () => applicationMetadata,
       fetchTextResources: async () => ({
         language: 'nb',
         resources: textResources,
@@ -72,14 +75,7 @@ describe('appTexts', () => {
     });
 
     it('should return appName if defined in applicationMetadata and not by text resource keys', async () => {
-      await render({
-        applicationMetadata: {
-          ...getApplicationMetadataMock(),
-          title: {
-            nb: 'SomeAppName',
-          },
-        },
-      });
+      await render({ nbTitle: 'SomeAppName' });
 
       expect(screen.getByTestId('appName')).toHaveTextContent('SomeAppName');
     });
@@ -92,12 +88,7 @@ describe('appTexts', () => {
             value: 'AppNameFromTextResource',
           },
         ],
-        applicationMetadata: {
-          ...getApplicationMetadataMock(),
-          title: {
-            nb: 'AppNameFromMetadata',
-          },
-        },
+        nbTitle: 'AppNameFromMetadata',
       });
 
       expect(screen.getByTestId('appName')).toHaveTextContent('AppNameFromTextResource');
@@ -111,12 +102,7 @@ describe('appTexts', () => {
             value: 'AppNameFromTextResource',
           },
         ],
-        applicationMetadata: {
-          ...getApplicationMetadataMock(),
-          title: {
-            nb: 'AppNameFromMetadata',
-          },
-        },
+        nbTitle: 'AppNameFromMetadata',
       });
 
       expect(screen.getByTestId('appName')).toHaveTextContent('AppNameFromTextResource');
@@ -124,12 +110,7 @@ describe('appTexts', () => {
 
     it('should fall back to nb-key from appMetadata if userLanguage is not present in application.title and no text resources exist', async () => {
       await render({
-        applicationMetadata: {
-          ...getApplicationMetadataMock(),
-          title: {
-            nb: 'NorwegianName',
-          },
-        },
+        nbTitle: 'NorwegianName',
       });
 
       expect(screen.getByTestId('appName')).toHaveTextContent('NorwegianName');

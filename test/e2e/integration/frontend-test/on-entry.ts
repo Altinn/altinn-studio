@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
-import type { IApplicationMetadata } from 'src/features/applicationMetadata';
+import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
 
 const appFrontend = new AppFrontend();
 
@@ -32,7 +32,7 @@ describe('On Entry', () => {
   function interceptAppMetadata(defaultSelectedOption: number) {
     cy.intercept('**/applicationmetadata', (req) => {
       req.on('response', (res) => {
-        const body = res.body as IApplicationMetadata;
+        const body = res.body as IncomingApplicationMetadata;
         body.onEntry = {
           show: 'select-instance',
           instanceSelection: {

@@ -16,7 +16,7 @@ export const ConfirmButton = (props: IConfirmButtonProps) => {
 
   const handleConfirmClick = () => {
     if (!disabled && nodeId) {
-      next && next({ action: 'confirm', nodeId });
+      next?.({ action: 'confirm', nodeId });
     }
   };
 

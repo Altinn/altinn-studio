@@ -1,6 +1,6 @@
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { useLaxApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { getDataTypeByLayoutSetId, isStatelessApp } from 'src/features/applicationMetadata/appMetadataUtils';
+import { getDataTypeByLayoutSetId } from 'src/features/applicationMetadata/appMetadataUtils';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 
 export const useAllowAnonymous = () => {
@@ -11,12 +11,12 @@ export const useAllowAnonymous = () => {
     return false;
   }
 
-  if (!isStatelessApp(application)) {
+  if (!application.isStatelessApp) {
     return false;
   }
 
   const dataTypeId = getDataTypeByLayoutSetId({
-    layoutSetId: application.onEntry?.show,
+    layoutSetId: application.onEntry.show,
     layoutSets,
     appMetaData: application,
   });
