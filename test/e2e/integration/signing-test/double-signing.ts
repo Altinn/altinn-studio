@@ -102,7 +102,7 @@ describe('Double signing', () => {
     cy.snapshot('signing:auditor');
   });
 
-  it.skip('manager -> manager -> auditor', () => {
+  it('manager -> manager -> auditor', () => {
     login('manager');
 
     cy.get(appFrontend.signingTest.incomeField).type('4567');
