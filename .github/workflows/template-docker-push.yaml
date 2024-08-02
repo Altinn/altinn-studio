@@ -38,22 +38,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # - name: 'Azure login'
-      #   uses: azure/login@v2
-      #   with:
-      #       client-id: ${{ secrets.client-id }}
-      #       tenant-id: ${{ secrets.tenant-id }}
-      #       subscription-id: ${{ secrets.subscription-id }}
+      - name: 'Azure login'
+        uses: azure/login@v2
+        with:
+            client-id: ${{ secrets.client-id }}
+            tenant-id: ${{ secrets.tenant-id }}
+            subscription-id: ${{ secrets.subscription-id }}
 
-      # - name: Log in to Container registry
-      #   run: |
-      #     az acr login --name ${{ inputs.registry-name }} \
-      #     --expose-token --output tsv \
-      #     --query accessToken \
-      #     --subscription ${{ secrets.subscription-id }} \
-      #     --only-show-errors |  docker login ${{ inputs.registry-name }} \
-      #                           --username 00000000-0000-0000-0000-000000000000 \
-      #                           --password-stdin
+      - name: Log in to Container registry
+        run: |
+          az acr login --name ${{ inputs.registry-name }} \
+          --expose-token --output tsv \
+          --query accessToken \
+          --subscription ${{ secrets.subscription-id }} \
+          --only-show-errors |  docker login ${{ inputs.registry-name }} \
+                                --username 00000000-0000-0000-0000-000000000000 \
+                                --password-stdin
 
       - name: Docker build
         run: |
