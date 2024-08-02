@@ -8,8 +8,12 @@ import { useAppContext, useText } from '../hooks';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
 import { useRuleModelQuery } from '../hooks/queries/useRuleModelQuery';
-import { ErrorPage } from '../components/ErrorPage';
-import { StudioPageSpinner, StudioResizableLayout, useLocalStorage } from '@studio/components';
+import {
+  StudioPageError,
+  StudioPageSpinner,
+  StudioResizableLayout,
+  useLocalStorage,
+} from '@studio/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery, useUserQuery } from 'app-shared/hooks/queries';
@@ -99,7 +103,7 @@ export const FormDesigner = (): JSX.Element => {
 
   if (layoutFetchedError) {
     const mappedError = mapErrorToDisplayError();
-    return <ErrorPage title={mappedError.title} message={mappedError.message} />;
+    return <StudioPageError title={mappedError.title} message={mappedError.message} />;
   }
 
   if (formLayoutIsReady) {

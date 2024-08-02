@@ -32,3 +32,4 @@ export * from './StudioToggleableTextfieldSchema';
 export * from './StudioTreeView';
 export * from './StudioTabs';
 export * from './StudioDivider';
+export * from './StudioPageError';

@@ -1,8 +1,7 @@
 import React, { useEffect } from 'react';
 import { FormDesigner } from './containers/FormDesigner';
 import { useText, useAppContext } from './hooks';
-import { StudioPageSpinner } from '@studio/components';
-import { ErrorPage } from './components/ErrorPage';
+import { StudioPageSpinner, StudioPageError } from '@studio/components';
 import { useDataModelMetadataQuery } from './hooks/queries/useDataModelMetadataQuery';
 import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
@@ -59,7 +58,7 @@ export function App() {
 
   if (componentHasError) {
     const mappedError = mapErrorToDisplayError();
-    return <ErrorPage title={mappedError.title} message={mappedError.message} />;
+    return <StudioPageError title={mappedError.title} message={mappedError.message} />;
   }
 
   if (componentIsReady) {
