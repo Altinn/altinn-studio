@@ -2,7 +2,6 @@ import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import classes from './App.module.css';
-import './App.css';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useOrganizationsQuery } from '../hooks/queries';
 import { StudioPageSpinner } from '@studio/components';

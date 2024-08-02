@@ -25,7 +25,6 @@ Builds the app as a package for production to the `dist` folder.\
 ### Schema editor example
 
 ```tsx
-import '../App.css';
 import { SchemaEditor } from './SchemaEditor';
 import { dataMock } from '../mockData';
 

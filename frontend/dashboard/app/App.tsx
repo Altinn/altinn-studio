@@ -7,7 +7,6 @@ import { Route, Routes } from 'react-router-dom';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useOrganizationsQuery } from '../hooks/queries';
 
-import './App.css';
 import { PageLayout } from 'dashboard/pages/PageLayout';
 import { useTranslation } from 'react-i18next';
 import { DASHBOARD_ROOT_ROUTE } from 'app-shared/constants';
