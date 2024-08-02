@@ -25,7 +25,7 @@ jobs:
     with:
       tags: ${{ needs.get-short-sha.outputs.short-sha }},latest
       registry-name: altinntjenestercontainerregistry.azurecr.io
-      repository-name: altinn-designer
+      repository-name: altinn-core
     secrets:
       client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
       tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
