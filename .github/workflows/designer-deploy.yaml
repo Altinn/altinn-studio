@@ -1,0 +1,24 @@
+name: Designer deploy
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/workflows/deploy-workflow-template.yaml'
+      - '.github/workflows/designer-deploy.yaml'
+  workflow_dispatch:
+
+permissions:
+      id-token: write
+      contents: read
+
+env:
+  REGISTRY: altinntjenestercontainerregistry.azurecr.io
+
+jobs:
+  deploy-designer:
+    uses: ./.github/workflows/deploy-workflow-template.yaml
+    with:
+      tag: {{ github.sha ::7 }}
+    secrets:
+      testSecret: ${{ env.REGISTRY }}

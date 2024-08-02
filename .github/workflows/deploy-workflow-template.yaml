@@ -1,0 +1,24 @@
+name: Deploy workflow
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+    secrets:
+      testSecret:
+        required: true
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: ouput tag name
+        run: |
+          echo {{ inputs.tag }}
+
+      - name: try ouput secret
+        run: |
+          echo {{ secrets.testSecret }}
