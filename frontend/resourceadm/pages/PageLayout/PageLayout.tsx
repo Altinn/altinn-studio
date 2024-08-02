@@ -12,6 +12,9 @@ import { useOrganizationsQuery } from '../../hooks/queries';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { useUrlParams } from '../../hooks/useUrlParams';
+import { StudioPageSpinner } from '@studio/components';
+import { ErrorMessage } from '../../components/ErrorMessage';
+import { useTranslation } from 'react-i18next';
 
 /**
  * @component
@@ -21,8 +24,13 @@ import { useUrlParams } from '../../hooks/useUrlParams';
  */
 export const PageLayout = (): React.JSX.Element => {
   const { pathname } = useLocation();
-  const { data: user } = useUserQuery();
-  const { data: organizations } = useOrganizationsQuery();
+  const { t } = useTranslation();
+  const { data: user, isPending: isUserPending, isError: isUserError } = useUserQuery();
+  const {
+    data: organizations,
+    isPending: isOrganizationsPending,
+    isError: isOrganizationsError,
+  } = useOrganizationsQuery();
 
   const { org = SelectedContextType.Self } = useUrlParams();
 
@@ -46,14 +54,40 @@ export const PageLayout = (): React.JSX.Element => {
     [organizations, user],
   );
 
+  const componentIsPending = isUserPending || isOrganizationsPending;
+  if (componentIsPending) {
+    return (
+      <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('resourceadm.loading_app')} />
+    );
+  }
+
+  if (isUserError || isOrganizationsError) {
+    return (
+      <div>
+        {isUserError && (
+          <ErrorMessage
+            title={t('resourceadm.dashboard_userdata_error_header')}
+            message={t('resourceadm.dashboard_userdata_error_body')}
+          />
+        )}
+        {isOrganizationsError && (
+          <ErrorMessage
+            title={t('resourceadm.dashboard_organizationdata_error_header')}
+            message={t('resourceadm.dashboard_organizationdata_error_body')}
+          />
+        )}
+      </div>
+    );
+  }
+
   return (
-    <>
+    <div className={classes.root}>
       <HeaderContext.Provider value={headerContextValue}>
         {/* TODO - Find out if <AppHeader /> should be replaced to be the same as studio */}
         <AppHeader />
         <GiteaHeader menuOnlyHasRepository rightContentClassName={classes.extraPadding} />
       </HeaderContext.Provider>
       <Outlet />
-    </>
+    </div>
   );
 };
