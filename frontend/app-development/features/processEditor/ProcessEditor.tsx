@@ -29,7 +29,7 @@ export const ProcessEditor = (): React.ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: currentPolicy, isPending: isPendingCurrentPolicy } = useAppPolicyQuery(org, app);
   const { mutate: mutateApplicationPolicy } = useAppPolicyMutation(org, app);
-  const { setSettingsModalOpen, setSettingsModalSelectedTab } = useSettingsModalContext();
+  const { settingsRef } = useSettingsModalContext();
   const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
   const { data: appLibData, isLoading: appLibDataLoading } = useAppVersionQuery(org, app);
   const { mutate: mutateBpmn, isPending: mutateBpmnPending } = useBpmnMutation(org, app);
@@ -133,8 +133,7 @@ export const ProcessEditor = (): React.ReactElement => {
       mutateDataTypes={mutateDataTypes}
       saveBpmn={saveBpmnXml}
       openPolicyEditor={() => {
-        setSettingsModalSelectedTab('policy');
-        setSettingsModalOpen(true);
+        settingsRef.current?.openSettings('policy');
       }}
       onProcessTaskAdd={onProcessTaskAdd}
       onProcessTaskRemove={onProcessTaskRemove}

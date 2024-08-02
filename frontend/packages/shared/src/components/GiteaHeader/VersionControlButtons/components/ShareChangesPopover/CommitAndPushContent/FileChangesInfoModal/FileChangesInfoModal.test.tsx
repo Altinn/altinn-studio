@@ -23,8 +23,6 @@ const repoDiffMock = {
 const mockGetRepoDiff = jest.fn();
 const mockOnClose = jest.fn();
 const defaultProps: FileChangesInfoModalProps = {
-  isOpen: true,
-  onClose: mockOnClose,
   fileChanges: [
     {
       filePath: filePathMock,

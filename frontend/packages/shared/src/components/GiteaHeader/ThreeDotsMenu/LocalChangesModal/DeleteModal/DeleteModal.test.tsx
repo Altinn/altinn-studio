@@ -16,7 +16,6 @@ const mockOrg: string = 'TestOrg';
 const mockOnClose = jest.fn();
 
 const defaultProps: DeleteModalProps = {
-  isOpen: true,
   onClose: mockOnClose,
   app: mockApp,
   org: mockOrg,

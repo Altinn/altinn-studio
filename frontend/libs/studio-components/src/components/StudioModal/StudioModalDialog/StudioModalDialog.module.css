@@ -1,0 +1,23 @@
+.dialog {
+  overflow: hidden; /* Avoid double scrollbars; overflow is handled by Modal.Content */
+  display: flex;
+  flex-direction: column;
+}
+
+.dialog .heading {
+  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
+  padding: var(--studio-modal-spacing);
+}
+
+.icon {
+  margin-right: var(--studio-modal-spacing);
+}
+
+.dialog .content {
+  padding: 0;
+  flex: 1;
+}
+
+.dialog.withContentPadding .content {
+  padding: var(--studio-modal-spacing);
+}

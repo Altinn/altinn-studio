@@ -45,7 +45,6 @@ jest.mock('react-router-dom', () => ({
 const mockOnClose = jest.fn();
 
 const defaultProps: MakeCopyModalProps = {
-  open: true,
   onClose: mockOnClose,
   serviceFullName: mockServiceFullName,
 };

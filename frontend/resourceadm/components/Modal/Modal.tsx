@@ -3,7 +3,7 @@ import React from 'react';
 import classes from './Modal.module.css';
 import cn from 'classnames';
 import { Heading } from '@digdir/designsystemet-react';
-import { StudioModal } from '@studio/components';
+import { ResourceadmModal } from './ResourceadmModal';
 import { useTranslation } from 'react-i18next';
 
 type ModalProps = {
@@ -40,7 +40,7 @@ export const Modal = ({
 }: ModalProps): React.JSX.Element => {
   const { t } = useTranslation();
   return (
-    <StudioModal
+    <ResourceadmModal
       isOpen={isOpen}
       onClose={onClose}
       title={
@@ -53,6 +53,6 @@ export const Modal = ({
       closeButtonLabel={t('resourceadm.close_modal')}
     >
       <div className={cn(classes.content, contentClassName)}>{children}</div>
-    </StudioModal>
+    </ResourceadmModal>
   );
 };

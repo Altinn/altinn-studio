@@ -1,5 +1,5 @@
 .policyEditor {
-  --policy-editor-width: 595px;
+  --policy-editor-width: 100%;
 
   width: var(--policy-editor-width);
   min-width: var(--policy-editor-width);

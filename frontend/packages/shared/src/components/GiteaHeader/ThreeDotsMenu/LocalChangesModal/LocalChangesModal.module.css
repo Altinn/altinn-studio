@@ -1,9 +1,0 @@
-.headingWrapper {
-  display: flex;
-  align-items: center;
-}
-
-.icon {
-  font-size: 2rem;
-  margin-right: var(--fds-spacing-2);
-}

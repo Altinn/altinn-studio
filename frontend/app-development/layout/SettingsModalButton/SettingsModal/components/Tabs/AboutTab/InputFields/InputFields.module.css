@@ -1,7 +1,8 @@
 .wrapper {
-  max-width: 500px;
-}
+  --field-spacing: var(--studio-modal-spacing);
 
-.fieldBottomSpacing {
-  margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--field-spacing);
+  padding-bottom: var(--field-spacing);
 }

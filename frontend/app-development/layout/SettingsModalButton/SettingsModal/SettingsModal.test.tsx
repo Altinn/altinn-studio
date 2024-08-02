@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { SettingsModalProps } from './SettingsModal';
 import { SettingsModal } from './SettingsModal';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -32,13 +31,8 @@ describe('SettingsModal', () => {
 
   const mockOnClose = jest.fn();
 
-  const defaultProps: SettingsModalProps = {
-    isOpen: true,
-    onClose: mockOnClose,
-  };
-
   it('closes the modal when the close button is clicked', async () => {
-    renderSettingsModal(defaultProps);
+    renderSettingsModal();
 
     const closeButton = screen.getByRole('button', {
       name: textMock('settings_modal.close_button_label'),

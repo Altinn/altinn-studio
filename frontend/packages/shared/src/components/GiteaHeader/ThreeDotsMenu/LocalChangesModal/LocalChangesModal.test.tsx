@@ -25,19 +25,18 @@ describe('LocalChangesModal', () => {
   });
 
   it('Does not display the modal when isOpen is false', () => {
-    render({ isOpen: false });
+    render();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('Displays the modal when isOpen is true', () => {
-    render({ isOpen: true });
+    render();
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 });
 
 const mockOnClose = jest.fn();
 const defaultProps: LocalChangesModalProps = {
-  isOpen: true,
   onClose: mockOnClose,
 };
 

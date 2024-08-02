@@ -12,15 +12,6 @@ export type InputFieldsProps = {
   onSave: (appConfig: AppConfig) => void;
 };
 
-/**
- * @component
- *    Displays the input fields used in the About Tab in the Settings Modal
- *
- * @property {AppConfig}[appConfig] - The app configuration data
- * @property {function}[onSave] - Function to save the updated data
- *
- * @returns {ReactNode} - The rendered component
- */
 export const InputFields = ({ appConfig, onSave }: InputFieldsProps): ReactNode => {
   const { t } = useTranslation();
 
@@ -49,7 +40,6 @@ export const InputFields = ({ appConfig, onSave }: InputFieldsProps): ReactNode 
   return (
     <form className={classes.wrapper} onBlur={handleAppConfigFormBlur}>
       <Textfield
-        className={classes.fieldBottomSpacing}
         label={t('settings_modal.about_tab_repo_label')}
         description={t('settings_modal.about_tab_repo_description')}
         size='small'
@@ -57,7 +47,6 @@ export const InputFields = ({ appConfig, onSave }: InputFieldsProps): ReactNode 
         readOnly
       />
       <Textfield
-        className={classes.fieldBottomSpacing}
         label={t('settings_modal.about_tab_name_label')}
         description={t('settings_modal.about_tab_name_description')}
         size='small'
@@ -66,7 +55,6 @@ export const InputFields = ({ appConfig, onSave }: InputFieldsProps): ReactNode 
         defaultValue={appConfig.serviceName}
       />
       <Textfield
-        className={classes.fieldBottomSpacing}
         label={t('settings_modal.about_tab_alt_id_label')}
         description={t('settings_modal.about_tab_alt_id_description')}
         size='small'
