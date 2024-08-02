@@ -66,4 +66,4 @@ jobs:
             arguments+=" --build-arg $buildarg"
           done
 
-          echo "docker build ${{ inputs.context }} -f ${{ inputs.dockerfile }} $arguments" | eval
+          docker build ${{ inputs.context }} -f ${{ inputs.dockerfile }} $arguments
