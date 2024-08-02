@@ -43,7 +43,7 @@ jobs:
       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
   flux-config-push:
-    needs: get-short-sha
+    needs: [get-short-sha, docker-build-push, helm-push]
     strategy:
       matrix:
         environment: [dev, staging, prod]
