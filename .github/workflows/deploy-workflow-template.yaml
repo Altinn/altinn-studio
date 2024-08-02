@@ -12,7 +12,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     steps:
       - name: ouput tag name
@@ -22,3 +21,10 @@ jobs:
       - name: try ouput secret
         run: |
           echo ${{ secrets.testSecret }}
+
+  other_job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ouput tag name job 2
+        run: |
+          echo ${{ inputs.tag }}
