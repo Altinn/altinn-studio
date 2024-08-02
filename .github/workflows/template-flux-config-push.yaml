@@ -33,7 +33,7 @@ jobs:
   oci-config-artifact-push:
     name: Flux config push
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    # environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
 
