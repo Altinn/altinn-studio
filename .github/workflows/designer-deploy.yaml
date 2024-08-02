@@ -15,6 +15,6 @@ jobs:
   deploy-designer:
     uses: ./.github/workflows/deploy-workflow-template.yaml
     with:
-      tag: ${{ github.sha ::7 }}
+      tag: ${{ github.sha }}
     secrets:
       testSecret: ${{ env.REGISTRY }}
