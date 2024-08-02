@@ -17,4 +17,4 @@ jobs:
     with:
       tag: ${{ github.sha }}
     secrets:
-      testSecret: ${{ env.REGISTRY }}
+      testSecret: altinntjenestercontainerregistry.azurecr.io
