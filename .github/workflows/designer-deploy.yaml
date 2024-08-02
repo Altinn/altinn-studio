@@ -15,7 +15,6 @@ env:
 jobs:
   get-short-sha:
     uses: ./.github/workflows/template-short-sha.yaml
-    id: short-sha
 
   helm-push:
     needs: get-short-sha
