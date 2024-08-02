@@ -32,6 +32,46 @@
         "componentRef": "subform-mopeder"
       },
       {
+        "id": "hovedskjema-detaljer2",
+        "type": "Group",
+        "textResourceBindings": {
+          "title": "Hovedskjemadetaljer2"
+        },
+        "children": ["summary1b", "summary2b", "summary3b", "summary4b"]
+      },
+      {
+        "id": "summary1b",
+        "type": "Summary2",
+        "target": {
+          "id": "Input-JQDlSQ",
+          "type": "component"
+        }
+      },
+      {
+        "id": "summary2b",
+        "type": "Summary2",
+        "target": {
+          "id": "Input-kcxhAS",
+          "type": "component"
+        }
+      },
+      {
+        "id": "summary3b",
+        "type": "Summary2",
+        "target": {
+          "id": "attachments",
+          "type": "component"
+        }
+      },
+      {
+        "id": "summary4b",
+        "type": "Summary2",
+        "target": {
+          "id": "subform-mopeder",
+          "type": "component"
+        }
+      },
+      {
         "id": "button-group1",
         "type": "ButtonGroup",
         "children": ["hovedskjema-backButton", "hovedskjema-submitButton"]
