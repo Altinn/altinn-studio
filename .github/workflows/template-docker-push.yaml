@@ -1,0 +1,60 @@
+name: Docker build and push
+
+on:
+  workflow_call:
+    inputs:
+      tags:
+        required: true
+        type: string
+      context:
+        required: true
+        type: string
+        default: '.'
+      registry-name:
+        required: true
+        type: string
+      repository-name:
+        required: true
+        type: string
+
+    secrets:
+      client-id:
+        required: true
+      tenant-id:
+        required: true
+      subscription-id:
+        required: true
+
+jobs:
+  docker-build-push:
+    name: Build and push docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 'Azure login'
+        uses: azure/login@v2
+        with:
+            client-id: ${{ secrets.client-id }}
+            tenant-id: ${{ secrets.tenant-id }}
+            subscription-id: ${{ secrets.subscription-id }}
+
+      # - name: Log in to Container registry
+      #   run: |
+      #     az acr login --name ${{ inputs.registry-name }} \
+      #     --expose-token --output tsv \
+      #     --query accessToken \
+      #     --subscription ${{ secrets.subscription-id }} \
+      #     --only-show-errors |  docker login ${{ inputs.registry-name }} \
+      #                           --username 00000000-0000-0000-0000-000000000000 \
+      #                           --password-stdin
+
+      - name: Docker build
+        run: |
+           # Concatenate the -t options for each tag
+          command=""
+          for tag in $(echo ${{ inputs.tags }} | tr ',' '\n'); do
+            command+=" -t ${{ inputs.registry-name }}/${{ inputs.repository-name }}:$tag"
+          done
+
+          echo "docker build ${{ inputs.context }} $command"
