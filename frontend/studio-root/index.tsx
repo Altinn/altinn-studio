@@ -1,17 +1,10 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
 import { STUDIO_ROOT_BASENAME } from 'app-shared/constants';
 import { AppShell } from 'app-shared/AppShell';
-import { App } from './app/App';
+import { routes } from './routes/routes';
 
 const container = document.getElementById('root');
 const root = createRoot(container);
 
-root.render(
-  <AppShell>
-    <BrowserRouter basename={STUDIO_ROOT_BASENAME}>
-      <App />
-    </BrowserRouter>
-  </AppShell>,
-);
+root.render(<AppShell basename={STUDIO_ROOT_BASENAME} routes={routes}></AppShell>);
