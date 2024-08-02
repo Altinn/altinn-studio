@@ -8,10 +8,6 @@ on:
       - '.github/workflows/designer-deploy.yaml'
   workflow_dispatch:
 
-permissions:
-      id-token: write
-      contents: read
-
 env:
   REGISTRY: altinntjenestercontainerregistry.azurecr.io
 
