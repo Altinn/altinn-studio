@@ -1,0 +1,227 @@
+replicaCount: 1
+
+environment: dev
+
+image:
+  repository: altinntjenestercontainerregistry.azurecr.io/altinn-core
+  containerPort: 5000
+  imagePullSecret: acrsecret
+
+hosts:
+  dev: dev.altinn.studio
+  staging: staging.altinn.studio
+  production: altinn.studio
+
+service:
+  externalPort: 3000
+  internalPort: 5000
+
+environmentVariables:
+  dev:
+    - name: ASPNETCORE_ENVIRONMENT
+      value: Staging
+    - name: ASPNETCORE_URLS
+      value: http://+:5000
+    - name: GeneralSettings__HostName
+      value: dev.altinn.studio
+    - name: GeneralSettings__TemplateLocation
+      value: Templates/AspNet
+    - name: GeneralSettings__DeploymentLocation
+      value: Templates/AspNet/deployment
+    - name: GeneralSettings__AppLocation
+      value: Templates/AspNet/App
+    - name: GeneralSettings__CheckTeamMembershipForDeploy
+      value: true    
+    - name: ServiceRepositorySettings__ApiEndPointHost
+      value: altinn-repositories
+    - name: ServiceRepositorySettings__ApiEndPoint
+      value: http://altinn-repositories:3000/api/v1/
+    - name: ServiceRepositorySettings__GiteaLoginUrl
+      value: https://dev.altinn.studio/repos/user/login
+    - name: ServiceRepositorySettings__RepositoryLocation
+      value: /AltinnCore/Repos/
+    - name: ServiceRepositorySettings__RepositoryBaseURL
+      value: http://altinn-repositories:3000
+    - name: PlatformSettings__SubscriptionKeyAT05
+      value: b6c187a3d02b4c7e88eac759c547f520
+    - name: PlatformSettings__SubscriptionKeyAT21
+      value: 9ce03ab9ce754b058217f3879aa65db2
+    - name: PlatformSettings__SubscriptionKeyAT22
+      value: fe3643e1e24f409d98412e62c8dcac37
+    - name: PlatformSettings__SubscriptionKeyAT23
+      value: 2621afa4ecfc45c6a78c7eb6839837d2
+    - name: PlatformSettings__SubscriptionKeyAT24
+      value: 57293e7795de4801866136db75989a4e
+    - name: PlatformSettings__SubscriptionKeyTT02
+      value: 3c36605558524707aa41588db9099cac
+    - name: PlatformSettings__SubscriptionKeyYT01
+      value: d01ead3a595a4c5492b3e0e83f76e187
+    - name: PlatformSettings__SubscriptionKeyProd
+      value: bd1ac008cb91485a97dcccc09335ba28
+    - name: PostgreSQLSettings__AdminConnectionString
+      value: Host=altinn-studio-dev-postgres.altinn.studio;Port=5432;Username=designer_admin;Password={0};Database=designerdb;SslMode=Require;Trust Server Certificate=true;
+    - name: PostgreSQLSettings__ConnectionString
+      value: Host=altinn-studio-dev-postgres.altinn.studio;Port=5432;Username=designer;Password={0};Database=designerdb;SslMode=Require;Trust Server Certificate=true;     
+    - name: PostgreSQLSettings__EnableDBConnection
+      value: "false"
+    - name: OidcLoginSettings__Authority
+      value: https://dev.altinn.studio/repos/
+    - name: OidcLoginSettings__RequireHttpsMetadata
+      value: "true"
+    - name: OidcLoginSettings__CookieExpiryTimeInMinutes
+      value: 59
+  staging:
+    - name: ASPNETCORE_ENVIRONMENT
+      value: Staging
+    - name: ASPNETCORE_URLS
+      value: http://+:5000
+    - name: GeneralSettings__HostName
+      value: staging.altinn.studio
+    - name: GeneralSettings__TemplateLocation
+      value: Templates/AspNet
+    - name: GeneralSettings__DeploymentLocation
+      value: Templates/AspNet/deployment
+    - name: GeneralSettings__AppLocation
+      value: Templates/AspNet/App
+    - name: GeneralSettings__CheckTeamMembershipForDeploy
+      value: true
+    - name: ServiceRepositorySettings__ApiEndPointHost
+      value: altinn-repositories
+    - name: ServiceRepositorySettings__ApiEndPoint
+      value: http://altinn-repositories:3000/api/v1/
+    - name: ServiceRepositorySettings__GiteaLoginUrl
+      value: https://staging.altinn.studio/repos/user/login
+    - name: ServiceRepositorySettings__RepositoryLocation
+      value: /AltinnCore/Repos/
+    - name: ServiceRepositorySettings__RepositoryBaseURL
+      value: http://altinn-repositories:3000
+    - name: PlatformSettings__SubscriptionKeyAT05
+      value: b6c187a3d02b4c7e88eac759c547f520
+    - name: PlatformSettings__SubscriptionKeyAT21
+      value: 9ce03ab9ce754b058217f3879aa65db2
+    - name: PlatformSettings__SubscriptionKeyAT22
+      value: fe3643e1e24f409d98412e62c8dcac37
+    - name: PlatformSettings__SubscriptionKeyAT23
+      value: 2621afa4ecfc45c6a78c7eb6839837d2
+    - name: PlatformSettings__SubscriptionKeyAT24
+      value: 57293e7795de4801866136db75989a4e
+    - name: PlatformSettings__SubscriptionKeyTT02
+      value: 3c36605558524707aa41588db9099cac
+    - name: PlatformSettings__SubscriptionKeyYT01
+      value: d01ead3a595a4c5492b3e0e83f76e187
+    - name: PlatformSettings__SubscriptionKeyProd
+      value: bd1ac008cb91485a97dcccc09335ba28
+    - name: PostgreSQLSettings__AdminConnectionString
+      value: Host=altinn-studio-staging-postgres.altinn.studio;Port=5432;Username=designer_admin;Password={0};Database=designerdb;SslMode=Require;Trust Server Certificate=true;
+    - name: PostgreSQLSettings__ConnectionString
+      value: Host=altinn-studio-staging-postgres.altinn.studio;Port=5432;Username=designer;Password={0};Database=designerdb;SslMode=Require;Trust Server Certificate=true;
+    - name: PostgreSQLSettings__EnableDBConnection
+      value: "false"
+    - name: OidcLoginSettings__Authority
+      value: https://staging.altinn.studio/repos/
+    - name: OidcLoginSettings__RequireHttpsMetadata
+      value: "true"
+    - name: OidcLoginSettings__CookieExpiryTimeInMinutes
+      value: 59
+  production:
+    - name: ASPNETCORE_ENVIRONMENT
+      value: Production
+    - name: ASPNETCORE_URLS
+      value: http://+:5000
+    - name: GeneralSettings__HostName
+      value: altinn.studio
+    - name: GeneralSettings__TemplateLocation
+      value: Templates/AspNet
+    - name: GeneralSettings__DeploymentLocation
+      value: Templates/AspNet/deployment
+    - name: GeneralSettings__AppLocation
+      value: Templates/AspNet/App
+    - name: ServiceRepositorySettings__ApiEndPointHost
+      value: altinn-repositories
+    - name: ServiceRepositorySettings__ApiEndPoint
+      value: http://altinn-repositories:3000/api/v1/
+    - name: ServiceRepositorySettings__GiteaLoginUrl
+      value: https://altinn.studio/repos/user/login
+    - name: ServiceRepositorySettings__RepositoryLocation
+      value: /AltinnCore/Repos/
+    - name: ServiceRepositorySettings__RepositoryBaseURL
+      value: http://altinn-repositories:3000
+    - name: PlatformSettings__SubscriptionKeyAT05
+      value: b6c187a3d02b4c7e88eac759c547f520
+    - name: PlatformSettings__SubscriptionKeyAT21
+      value: 9ce03ab9ce754b058217f3879aa65db2
+    - name: PlatformSettings__SubscriptionKeyAT22
+      value: fe3643e1e24f409d98412e62c8dcac37
+    - name: PlatformSettings__SubscriptionKeyAT23
+      value: 2621afa4ecfc45c6a78c7eb6839837d2
+    - name: PlatformSettings__SubscriptionKeyAT24
+      value: 57293e7795de4801866136db75989a4e
+    - name: PlatformSettings__SubscriptionKeyTT02
+      value: 3c36605558524707aa41588db9099cac
+    - name: PlatformSettings__SubscriptionKeyYT01
+      value: d01ead3a595a4c5492b3e0e83f76e187
+    - name: PlatformSettings__SubscriptionKeyProd
+      value: bd1ac008cb91485a97dcccc09335ba28
+    - name: PostgreSQLSettings__AdminConnectionString
+      value: Host=altinn-studio-prod-postgres.altinn.studio;Port=5432;Username=designer_admin;Password={0};Database=designerdb;SslMode=Require;Trust Server Certificate=true;
+    - name: PostgreSQLSettings__ConnectionString
+      value: Host=altinn-studio-prod-postgres.altinn.studio;Port=5432;Username=designer;Password={0};Database=designerdb;SslMode=Require;Trust Server Certificate=true;
+    - name: PostgreSQLSettings__EnableDBConnection
+      value: "false"
+    - name: OidcLoginSettings__Authority
+      value: https://altinn.studio/repos/
+    - name: OidcLoginSettings__RequireHttpsMetadata
+      value: "true"
+    - name: OidcLoginSettings__CookieExpiryTimeInMinutes
+      value: 59
+
+volumeMounts:
+  - name: altinn-repo-storage
+    mountPath: "/AltinnCore/Repos"
+  - name: altinn-appsettings
+    mountPath: "/app/altinn-appsettings"
+  - name: datakeys
+    mountPath: /mnt/keys
+  - name: accesstoken
+    mountPath: "/accesstoken"
+
+volumes:
+  - name: altinn-repo-storage
+    persistentVolumeClaim:
+      claimName: altinn-storage-repo-premium-volume-claim
+  - name: altinn-appsettings
+    secret:
+      secretName: altinn-appsettings-secret
+  - name: accesstoken
+    secret:
+      secretName: accesstoken
+  - name : datakeys
+    persistentVolumeClaim:
+      claimName: keys
+      
+ingress:
+  - metadata:
+      name: altinn-designer-base-path
+      annotations:
+        traefik.ingress.kubernetes.io/rule-type: Path
+        traefik.frontend.priority: "1000"
+    paths:
+      - path: /
+  - metadata:
+      name: altinn-designer-home-path
+      annotations:
+        traefik.frontend.priority: "800"
+    paths:
+      - path: /Home/
+  - metadata:
+      name: altinn-designer-designer-path
+      annotations:
+        traefik.frontend.priority: "700"
+    paths:
+      - path: /designer/
+  - metadata:
+      name: altinn-designer-designerapi-path
+      annotations:
+        traefik.frontend.priority: "600"
+    paths:
+      - path: /designerapi/

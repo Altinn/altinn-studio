@@ -4,7 +4,7 @@ on:
     branches: [ main ]
     types: [opened, synchronize, reopened]
     paths:
-      - '.github/workflows/deploy-workflow-template.yaml'
+      - '.github/workflows/template-helm-push.yaml'
       - '.github/workflows/designer-deploy.yaml'
   workflow_dispatch:
 
@@ -12,9 +12,13 @@ env:
   REGISTRY: altinntjenestercontainerregistry.azurecr.io
 
 jobs:
-  deploy-designer:
-    uses: ./.github/workflows/deploy-workflow-template.yaml
+  helm-push:
+    uses: ./.github/workflows/template-helm-push.yaml
     with:
-      tag: ${{ github.sha }}
+      tag: 0.1.0
+      chart-name: altinn-designer
+      registry-name: altinntjenestercontainerregistry.azurecr.io
     secrets:
-      testSecret: ${{ secrets.TEST_SECRET }}
+      client-id: ${{ secrets.TEST_SECRET }}
+      tenant-id:
+      subscription-id:
