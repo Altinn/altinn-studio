@@ -1,13 +1,18 @@
 name: Designer deploy
 on:
-  pull_request:
+  push:
     branches: [ main ]
-    types: [opened, synchronize, reopened]
     paths:
+      - '.github/workflows/designer-deploy.yaml'
+      - '.github/workflows/template-docker-push.yaml'
+      - '.github/workflows/template-flux-config-push.yaml'
       - '.github/workflows/template-helm-push.yaml'
       - '.github/workflows/template-short-sha.yaml'
-      - '.github/workflows/template-flux-config-push.yaml'
-      - '.github/workflows/designer-deploy.yaml'
+      - 'backend/**'
+      - 'frontend/**'
+      - 'Dockefile'
+      - 'package.json'
+
 
   workflow_dispatch:
 
@@ -34,7 +39,7 @@ jobs:
     needs: get-short-sha
     uses: ./.github/workflows/template-helm-push.yaml
     with:
-      tag: 0.1.0+${{ needs.get-short-sha.outputs.short-sha }}
+      tag: 0.1.0+${{ needs.get-short-sha.outputs.short-sha }} # Helm version needs to be valid sematic version
       chart-name: altinn-designer
       registry-name: altinntjenestercontainerregistry.azurecr.io
     secrets:
