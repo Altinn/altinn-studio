@@ -55,7 +55,7 @@ jobs:
         run: |
           helm package charts/${{ inputs.chart-name }} --version ${{ inputs.tag }}
 
-      - name: Helm push
-        run: |
-          helm push ${{ inputs.chart-name }}-${{ inputs.tag }}.tgz oci://${{ inputs.registry-name }}/charts
+      # - name: Helm push
+      #   run: |
+      #     helm push ${{ inputs.chart-name }}-${{ inputs.tag }}.tgz oci://${{ inputs.registry-name }}/charts
 
