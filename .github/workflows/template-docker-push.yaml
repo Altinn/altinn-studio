@@ -7,7 +7,7 @@ on:
         required: true
         type: string
       context:
-        required: true
+        required: false
         type: string
         default: '.'
       registry-name:
