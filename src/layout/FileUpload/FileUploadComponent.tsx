@@ -54,9 +54,12 @@ export function FileUploadComponent({ node }: IFileUploadWithTagProps): React.JS
     dataModelBindings: undefined,
   });
 
+  const canUploadMoreAttachments = attachments.length < maxNumberOfAttachments;
+  const isComplexMode = displayMode !== 'simple';
+  const isSimpleModeWithNoAttachments = displayMode === 'simple' && attachments.length === 0;
+
   const shouldShowFileUpload =
-    !(attachments.length >= maxNumberOfAttachments) &&
-    (displayMode !== 'simple' || attachments.length === 0 || showFileUpload);
+    canUploadMoreAttachments && (isComplexMode || isSimpleModeWithNoAttachments || showFileUpload);
 
   const renderAddMoreAttachmentsButton = (): JSX.Element | null => {
     const canShowButton =
