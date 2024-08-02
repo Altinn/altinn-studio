@@ -17,8 +17,8 @@ jobs:
     steps:
       - name: ouput tag name
         run: |
-          echo {{ inputs.tag }}
+          echo ${{ inputs.tag }}
 
       - name: try ouput secret
         run: |
-          echo {{ secrets.testSecret }}
+          echo ${{ secrets.testSecret }}
