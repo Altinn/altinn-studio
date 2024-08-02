@@ -1,0 +1,29 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: {{ .Values.chartName }}
+  namespace: default
+spec:
+  releaseName: {{ .Values.chartName }}
+  targetNamespace: default
+  interval: 5m
+  install:
+    remediation:
+      retries: 1
+  upgrade:
+    remediation:
+      retries: 1
+  chart:
+    spec:
+      version: "0.1.0+{{ .Values.tagName }}"
+      chart: {{ .Values.chartName }}
+      sourceRef:
+        kind: HelmRepository
+        name: studio-charts
+        namespace: default
+  values:
+    image:
+      tag: "{{ .Values.tagName }}"
+    env:
+      environment: "{{ .Values.environmentName }}"
