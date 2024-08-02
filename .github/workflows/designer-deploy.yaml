@@ -42,20 +42,20 @@ jobs:
   #     tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
   #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
-  # flux-config-push:
-  #   needs: get-short-sha
-  #   strategy:
-  #   matrix:
-  #     environment: [dev, staging, prod]
-  #   uses: ./.github/workflows/template-flux-config-push.yaml
-  #   with:
-  #     tag: ${{ needs.get-short-sha.outputs.short-sha }}
-  #     registry-name: altinntjenestercontainerregistry.azurecr.io
-  #     environment: ${{ matrix.environment }}
-  #     config-chart-name: altinn-designer-config
-  #     artifact-name: altinn-designer
-  #   secrets:
-  #     client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
-  #     tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
-  #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
-  #     flux-set-arguments: environment=${{ matrix.environment }},tag=${{ needs.get-short-sha.outputs.short-sha }}
+  flux-config-push:
+    needs: get-short-sha
+    strategy:
+    matrix:
+      environment: [dev, staging, prod]
+    uses: ./.github/workflows/template-flux-config-push.yaml
+    with:
+      tag: ${{ needs.get-short-sha.outputs.short-sha }}
+      registry-name: altinntjenestercontainerregistry.azurecr.io
+      environment: ${{ matrix.environment }}
+      config-chart-name: altinn-designer-config
+      artifact-name: altinn-designer
+    secrets:
+      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+      flux-set-arguments: environment=${{ matrix.environment }},chartVersion=0.1.0+${{ needs.get-short-sha.outputs.short-sha }},imageTag=${{ needs.get-short-sha.outputs.short-sha }}
