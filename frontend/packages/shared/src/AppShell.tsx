@@ -26,13 +26,16 @@ import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { userLogoutAfterPath } from 'app-shared/api/paths';
 
+import type { ApiError } from './types/api/ApiError';
+import { Link } from '@digdir/designsystemet-react';
+import { Routes } from './Routes';
+import { combineComponents } from './contexts/combineComponents';
+
 import 'react-toastify/dist/ReactToastify.css';
 import '@digdir/designsystemet-theme/brand/altinn/tokens.css';
 import '@digdir/designsystemet-css/index.css';
-import '../styles/toast.css';
-import '../styles/global.css';
-import type { ApiError } from './types/api/ApiError';
-import { Link } from '@digdir/designsystemet-react';
+import './styles/toast.css';
+import './styles/global.css';
 
 i18next.use(initReactI18next).init({
   lng: DEFAULT_LANGUAGE,
@@ -133,12 +136,20 @@ const renderDefaultToast = () => {
 };
 
 type AppShellProps = {
-  children: ReactNode;
+  basename: string;
+  providers?: (({ children }: Partial<any>) => JSX.Element)[];
+  routes: ReactNode;
   client?: QueryClient; // TODO : #10913 should probably be removed to force the use of QueryCache and MutationCache
   clientConfig?: QueryClientConfig;
 };
 
-export const AppShell = ({ children, client, clientConfig = queryClientConfig }: AppShellProps) => {
+export const AppShell = ({
+  basename,
+  providers,
+  routes,
+  client,
+  clientConfig = queryClientConfig,
+}: AppShellProps) => {
   const { t, i18n } = useTranslation();
 
   const [queryClient] = useState(
@@ -157,6 +168,11 @@ export const AppShell = ({ children, client, clientConfig = queryClientConfig }:
       }),
   );
 
+  const Providers =
+    providers && providers.length > 0
+      ? combineComponents(...providers)
+      : ({ children }: { children?: ReactNode }) => <>{children}</>;
+
   return (
     <ErrorBoundary
       FallbackComponent={ErrorBoundaryFallback}
@@ -173,7 +189,9 @@ export const AppShell = ({ children, client, clientConfig = queryClientConfig }:
         />
         <QueryClientProvider client={queryClient}>
           <ServicesContextProvider {...queries} {...mutations}>
-            {children}
+            <Providers>
+              <Routes basename={basename} routes={routes} />
+            </Providers>
           </ServicesContextProvider>
           <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>

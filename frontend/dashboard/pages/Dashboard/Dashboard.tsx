@@ -15,20 +15,21 @@ import { Link } from 'react-router-dom';
 import { useDebounce } from 'react-use';
 import { useTranslation } from 'react-i18next';
 import { ErrorBoundary } from 'react-error-boundary';
-import type { User } from 'app-shared/types/Repository';
-import type { Organization } from 'app-shared/types/Organization';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { ResourcesRepoList } from 'dashboard/components/ResourcesRepoList/ResourcesRepoList';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { SafeErrorView } from '../../components/SafeErrorView';
+import { useUserQuery } from 'app-shared/hooks/queries';
+import { useOrganizationsQuery } from 'dashboard/hooks/queries';
 
 type DashboardProps = {
-  user: User;
-  organizations: Organization[];
   disableDebounce?: boolean;
 };
 
-export const Dashboard = ({ user, organizations, disableDebounce }: DashboardProps) => {
+export const Dashboard = ({ disableDebounce }: DashboardProps) => {
+  const { data: user, isError: isUserError } = useUserQuery();
+  const { data: organizations, isError: isOrganizationsError } = useOrganizationsQuery();
+
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
   const [searchText, setSearchText] = useState('');

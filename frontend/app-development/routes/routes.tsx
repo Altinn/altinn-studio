@@ -12,25 +12,10 @@ import { useAppVersionQuery } from 'app-shared/hooks/queries';
 import React from 'react';
 import { usePreviewContext } from '../contexts/PreviewContext';
 import { useLayoutContext } from '../contexts/LayoutContext';
+import { Navigate, Route } from 'react-router-dom';
+import { PageLayout } from 'app-development/layout/PageLayout';
 
-interface IRouteProps {
-  headerTextKey?: string;
-  subtext1TextKey?: string;
-  subtext2TextKey?: string;
-  linkTextKey?: string;
-  urlKey?: string;
-  imageSource?: string;
-  shadow?: boolean;
-  iframeEndingUrl?: string;
-  filePath?: string;
-  language?: any;
-}
-
-interface RouterRoute {
-  path: RoutePaths;
-  subapp: any;
-  props?: IRouteProps;
-}
+const BASE_PATH = '/:org/:app';
 
 const latestFrontendVersion = '4';
 const isLatestFrontendVersion = (version: AppVersion): boolean =>
@@ -55,29 +40,15 @@ const UiEditor = () => {
   );
 };
 
-export const routerRoutes: RouterRoute[] = [
-  {
-    path: RoutePaths.UIEditor,
-    subapp: UiEditor,
-  },
-  {
-    path: RoutePaths.Overview,
-    subapp: Overview,
-  },
-  {
-    path: RoutePaths.DataModel,
-    subapp: DataModellingContainer,
-  },
-  {
-    path: RoutePaths.Deploy,
-    subapp: DeployPage,
-  },
-  {
-    path: RoutePaths.Text,
-    subapp: TextEditor,
-  },
-  {
-    path: RoutePaths.ProcessEditor,
-    subapp: ProcessEditor,
-  },
-];
+export const routes = (
+  <Route path={BASE_PATH} element={<PageLayout />}>
+    {/* Redirects from /:org/:app to child route /overview */}
+    <Route path={RoutePaths.Root} element={<Navigate to={RoutePaths.Overview} />} />
+    <Route path={RoutePaths.Overview} element={<Overview />} />
+    <Route path={RoutePaths.UIEditor} element={<UiEditor />} />
+    <Route path={RoutePaths.DataModel} element={<DataModellingContainer />} />
+    <Route path={RoutePaths.Deploy} element={<DeployPage />} />
+    <Route path={RoutePaths.Text} element={<TextEditor />} />
+    <Route path={RoutePaths.ProcessEditor} element={<ProcessEditor />} />
+  </Route>
+);

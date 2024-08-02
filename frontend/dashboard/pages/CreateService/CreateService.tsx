@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import classes from './CreateService.module.css';
 import { useTranslation } from 'react-i18next';
-import type { Organization } from 'app-shared/types/Organization';
-import type { User } from 'app-shared/types/Repository';
 import { useAddRepoMutation } from '../../hooks/mutations/useAddRepoMutation';
 import { DataModelFormat } from 'app-shared/types/DataModelFormat';
 import type { AxiosError } from 'axios';
@@ -10,20 +8,20 @@ import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { NewApplicationForm } from '../../components/NewApplicationForm';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { type NewAppForm } from '../../types/NewAppForm';
-import { DASHBOARD_ROOT_ROUTE } from 'app-shared/constants';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
+import { useUserQuery } from 'app-shared/hooks/queries';
+import { useOrganizationsQuery } from 'dashboard/hooks/queries';
 
 const initialFormError: NewAppForm = {
   org: '',
   repoName: '',
 };
 
-type CreateServiceProps = {
-  user: User;
-  organizations: Organization[];
-};
-export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.Element => {
+export const CreateService = (): JSX.Element => {
+  const { data: user } = useUserQuery();
+  const { data: organizations } = useOrganizationsQuery();
+
   const dataModellingPreference: DataModelFormat.XSD = DataModelFormat.XSD;
 
   const { t } = useTranslation();
@@ -88,7 +86,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
         setFormError={setFormError}
         actionableElement={{
           type: 'link',
-          href: `${DASHBOARD_ROOT_ROUTE}${selectedContext === SelectedContextType.Self ? '' : selectedContext}`,
+          href: `/${selectedContext === SelectedContextType.Self ? '' : selectedContext}`,
         }}
       />
     </div>
