@@ -29,3 +29,14 @@ jobs:
       - name: ouput tag name job 2
         run: |
           echo ${{ inputs.tag }}
+
+  matrix_env_job:
+    needs: [build, other_job]
+    strategy:
+      matrix:
+        environment: [dev, staging, prod]
+    steps:
+      - name: ouput environment name
+        run: |
+          echo ${{ matrix.environment }}
+
