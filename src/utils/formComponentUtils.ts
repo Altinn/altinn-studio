@@ -151,12 +151,12 @@ export const pageBreakStyles = (pageBreak: IPageBreakInternal | undefined) => {
   }
 
   return {
-    [printStyles['break-before-auto']]: pageBreak.breakBefore === 'auto',
-    [printStyles['break-before-always']]: pageBreak.breakBefore === 'always',
-    [printStyles['break-before-avoid']]: pageBreak.breakBefore === 'avoid',
-    [printStyles['break-after-auto']]: pageBreak.breakAfter === 'auto',
-    [printStyles['break-after-always']]: pageBreak.breakAfter === 'always',
-    [printStyles['break-after-avoid']]: pageBreak.breakAfter === 'avoid',
+    [printStyles.breakBeforeAuto]: pageBreak.breakBefore === 'auto',
+    [printStyles.breakBeforeAlways]: pageBreak.breakBefore === 'always',
+    [printStyles.breakBeforeAvoid]: pageBreak.breakBefore === 'avoid',
+    [printStyles.breakAfterAuto]: pageBreak.breakAfter === 'auto',
+    [printStyles.breakAfterAlways]: pageBreak.breakAfter === 'always',
+    [printStyles.breakAfterAvoid]: pageBreak.breakAfter === 'avoid',
   };
 };
 

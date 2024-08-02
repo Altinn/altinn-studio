@@ -33,6 +33,11 @@ module.exports = {
             loader: 'css-loader',
             options: {
               url: false,
+              modules: {
+                namedExport: false,
+                auto: true,
+                exportLocalsConvention: 'camel-case',
+              },
             },
           },
         ],

@@ -71,7 +71,21 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        use: [MiniCssExtractPlugin.loader, 'css-loader'],
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader,
+          },
+          {
+            loader: 'css-loader',
+            options: {
+              modules: {
+                namedExport: false,
+                auto: true,
+                exportLocalsConvention: 'camel-case',
+              },
+            },
+          },
+        ],
       },
       {
         test: /\.png$/,

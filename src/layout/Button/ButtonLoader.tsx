@@ -23,7 +23,7 @@ export const ButtonLoader = ({ children, isLoading, ...containerProps }: ButtonL
       {isLoading && (
         <AltinnLoader
           id={'altinn-button-loader'}
-          className={classes['button-loader']}
+          className={classes.buttonLoader}
           srContent={langAsString('general.loading')}
         />
       )}

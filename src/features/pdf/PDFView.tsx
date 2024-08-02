@@ -72,7 +72,7 @@ export const PDFView = () => {
   return (
     <div
       id='pdfView'
-      className={classes['pdf-wrapper']}
+      className={classes.pdfWrapper}
     >
       {appOwner && <span role='doc-subtitle'>{appOwner}</span>}
 

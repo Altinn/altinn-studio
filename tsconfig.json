@@ -36,7 +36,13 @@
     "noImplicitOverride": false,
     "noImplicitThis": false,
     "noUncheckedIndexedAccess": false,
-    "noUnusedParameters": false
+    "noUnusedParameters": false,
+    "plugins": [
+      {
+        "name": "typescript-plugin-css-modules",
+        "options": { "classnameTransform": "camelCase", "namedExports": false }
+      }
+    ]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "scripts/**/*.ts"],
   "exclude": ["node_modules/cypress"]
