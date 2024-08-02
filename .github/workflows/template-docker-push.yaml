@@ -56,4 +56,4 @@ jobs:
             command+=" -t ${{ inputs.registry-name }}/${{ inputs.repository-name }}:$tag"
           done
 
-          echo "docker build ${{ inputs.context }} $command"
+          eval "docker build ${{ inputs.context }} $command"
