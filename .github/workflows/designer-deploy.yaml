@@ -21,7 +21,6 @@ jobs:
     uses: ./.github/workflows/template-docker-push.yaml
     with:
       tags: ${{ needs.get-short-sha.outputs.short-sha }},latest
-      chart-name: altinn-designer
       registry-name: altinntjenestercontainerregistry.azurecr.io
       repository-name: altinn-designer
     secrets:
