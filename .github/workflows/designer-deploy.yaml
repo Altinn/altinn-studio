@@ -18,29 +18,29 @@ jobs:
   get-short-sha:
     uses: ./.github/workflows/template-short-sha.yaml
 
-  # docker-build-push:
-  #   needs: get-short-sha
-  #   uses: ./.github/workflows/template-docker-push.yaml
-  #   with:
-  #     tags: ${{ needs.get-short-sha.outputs.short-sha }},latest
-  #     registry-name: altinntjenestercontainerregistry.azurecr.io
-  #     repository-name: altinn-designer
-  #   secrets:
-  #     client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
-  #     tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
-  #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+  docker-build-push:
+    needs: get-short-sha
+    uses: ./.github/workflows/template-docker-push.yaml
+    with:
+      tags: ${{ needs.get-short-sha.outputs.short-sha }},latest
+      registry-name: altinntjenestercontainerregistry.azurecr.io
+      repository-name: altinn-designer
+    secrets:
+      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
-  # helm-push:
-  #   needs: get-short-sha
-  #   uses: ./.github/workflows/template-helm-push.yaml
-  #   with:
-  #     tag: 0.1.0+${{ needs.get-short-sha.outputs.short-sha }}
-  #     chart-name: altinn-designer
-  #     registry-name: altinntjenestercontainerregistry.azurecr.io
-  #   secrets:
-  #     client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
-  #     tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
-  #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+  helm-push:
+    needs: get-short-sha
+    uses: ./.github/workflows/template-helm-push.yaml
+    with:
+      tag: 0.1.0+${{ needs.get-short-sha.outputs.short-sha }}
+      chart-name: altinn-designer
+      registry-name: altinntjenestercontainerregistry.azurecr.io
+    secrets:
+      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
   flux-config-push:
     needs: get-short-sha

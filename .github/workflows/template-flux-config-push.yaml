@@ -30,30 +30,29 @@ on:
         required: false
 
 jobs:
-  oci-config-artifact-push:
+  config-oci-artifact-push:
     name: Flux config push
     runs-on: ubuntu-latest
-    # environment: ${{ inputs.environment }}
+    environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
 
+      - name: 'Azure login'
+        uses: azure/login@v2
+        with:
+            client-id: ${{ secrets.client-id }}
+            tenant-id: ${{ secrets.tenant-id }}
+            subscription-id: ${{ secrets.subscription-id }}
 
-      # - name: 'Azure login'
-      #   uses: azure/login@v2
-      #   with:
-      #       client-id: ${{ secrets.client-id }}
-      #       tenant-id: ${{ secrets.tenant-id }}
-      #       subscription-id: ${{ secrets.subscription-id }}
-
-      # - name: Log in to Container registry
-      #   run: |
-      #     az acr login --name ${{ inputs.registry-name }} \
-      #     --expose-token --output tsv \
-      #     --query accessToken \
-      #     --subscription ${{ secrets.subscription-id }} \
-      #     --only-show-errors |  docker login ${{ inputs.registry-name }} \
-      #                           --username 00000000-0000-0000-0000-000000000000 \
-      #                           --password-stdin
+      - name: Log in to Container registry
+        run: |
+          az acr login --name ${{ inputs.registry-name }} \
+          --expose-token --output tsv \
+          --query accessToken \
+          --subscription ${{ secrets.subscription-id }} \
+          --only-show-errors |  docker login ${{ inputs.registry-name }} \
+                                --username 00000000-0000-0000-0000-000000000000 \
+                                --password-stdin
 
       - name: Setup Flux CLI
         uses: fluxcd/flux2/action@v2.3.0
@@ -69,16 +68,15 @@ jobs:
           done
 
           helm template charts/${{ inputs.config-chart-name }} $arguments > ${{ inputs.config-chart-name }}-rendered/helm-release.yaml
-          cat ${{ inputs.config-chart-name }}-rendered/helm-release.yaml
 
-      # - name: Push config artifact
-      #   run: |
-      #     flux push artifact oci://${{ inputs.registry-name }}/configs/${{ inputs.artifact-name }}-${{ inputs.environment }}:${{ inputs.tag }} \
-      #     --path="./${{ inputs.config-chart-name }}-rendered" \
-      #     --source="$(git config --get remote.origin.url)" \
-      #     --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
+      - name: Push config artifact
+        run: |
+          flux push artifact oci://${{ inputs.registry-name }}/configs/${{ inputs.artifact-name }}-${{ inputs.environment }}:${{ inputs.tag }} \
+          --path="./${{ inputs.config-chart-name }}-rendered" \
+          --source="$(git config --get remote.origin.url)" \
+          --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
 
-      # - name: Tag artifact as latest
-      #   run: |
-      #     flux tag artifact oci://${{ inputs.registry-name }}/configs/${{ inputs.artifact-name }}-${{ inputs.environment }}:${{ inputs.tag }} --tag latest
+      - name: Tag artifact as latest
+        run: |
+          flux tag artifact oci://${{ inputs.registry-name }}/configs/${{ inputs.artifact-name }}-${{ inputs.environment }}:${{ inputs.tag }} --tag latest
 
