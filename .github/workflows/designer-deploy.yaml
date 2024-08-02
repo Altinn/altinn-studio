@@ -20,7 +20,7 @@ jobs:
     needs: get-short-sha
     uses: ./.github/workflows/template-helm-push.yaml
     with:
-      tag: ${{ needs.get-short-sha.outputs.short-sha }}
+      tag: 0.1.0+${{ needs.get-short-sha.outputs.short-sha }}
       chart-name: altinn-designer
       registry-name: altinntjenestercontainerregistry.azurecr.io
     secrets:
