@@ -10,6 +10,10 @@ on:
         required: false
         type: string
         default: '.'
+      dockerfile:
+        required: false
+        type: string
+        default: 'Dockerfile'
       registry-name:
         required: true
         type: string
@@ -53,13 +57,13 @@ jobs:
 
       - name: Docker build
         run: |
-          command=""
+          arguments=""
           for tag in $(echo ${{ inputs.tags }} | tr ',' '\n'); do
-            command+=" -t ${{ inputs.registry-name }}/${{ inputs.repository-name }}:$tag"
+            arguments+=" -t ${{ inputs.registry-name }}/${{ inputs.repository-name }}:$tag"
           done
 
           for buildarg in $(echo ${{ secrets.build-args }} | tr ',' '\n'); do
-            command+=" --build-arg $buildarg"
+            arguments+=" --build-arg $buildarg"
           done
 
-          echo "docker build ${{ inputs.context }} $command"
+          eval "docker build ${{ inputs.context }} -f ${{ inputs.dockerfile }} $arguments"
