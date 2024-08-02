@@ -24,6 +24,10 @@ on:
         required: true
       subscription-id:
         required: true
+      build-args:
+        required: false
+        type: string
+        default: ''
 
 jobs:
   docker-build-push:
@@ -56,4 +60,8 @@ jobs:
             command+=" -t ${{ inputs.registry-name }}/${{ inputs.repository-name }}:$tag"
           done
 
-          eval "docker build ${{ inputs.context }} $command"
+          for buildarg in $(echo ${{ secrets.build-args }} | tr ',' '\n'); do
+            command+=" --build-arg $buildarg"
+          done
+
+          echo "docker build ${{ inputs.context }} $command"
