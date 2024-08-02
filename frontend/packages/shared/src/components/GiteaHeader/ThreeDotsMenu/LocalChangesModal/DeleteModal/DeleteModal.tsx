@@ -1,59 +1,56 @@
-import React, { useState } from 'react';
+import React, { forwardRef, useState } from 'react';
 import classes from './DeleteModal.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioModal, StudioSpinner } from '@studio/components';
+import { StudioButton, StudioModal, StudioSpinner, useForwardedRef } from '@studio/components';
 import { TrashIcon } from '@studio/icons';
 import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
 import { toast } from 'react-toastify';
-import { Heading, Paragraph, Textfield } from '@digdir/designsystemet-react';
+import { Paragraph, Textfield } from '@digdir/designsystemet-react';
 import { useQueryClient } from '@tanstack/react-query';
 
 export type DeleteModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
   org: string;
   app: string;
 };
 
-export const DeleteModal = ({ isOpen, onClose, app, org }: DeleteModalProps): JSX.Element => {
-  const { t } = useTranslation();
+export const DeleteModal = forwardRef<HTMLDialogElement, DeleteModalProps>(
+  ({ app, org }, ref): JSX.Element => {
+    const { t } = useTranslation();
+    const dialogRef = useForwardedRef<HTMLDialogElement>(ref);
 
-  const { mutate: deleteLocalChanges, isPending: isPendingDeleteLocalChanges } =
-    useResetRepositoryMutation(org, app);
+    const { mutate: deleteLocalChanges, isPending: isPendingDeleteLocalChanges } =
+      useResetRepositoryMutation(org, app);
 
-  const [nameToDelete, setNameToDelete] = useState('');
-  const queryClient = useQueryClient();
+    const [nameToDelete, setNameToDelete] = useState('');
+    const queryClient = useQueryClient();
 
-  const handleClose = () => {
-    setNameToDelete('');
-    onClose();
-  };
+    const handleCloseButtonClick = () => {
+      dialogRef.current?.close();
+      handleClose();
+    };
 
-  const handleDelete = () => {
-    deleteLocalChanges(undefined, {
-      onSuccess: () => {
-        handleClose();
-        toast.success(t('local_changes.modal_deleted_success'));
-        queryClient.invalidateQueries();
-      },
-    });
-  };
+    const handleClose = () => {
+      setNameToDelete('');
+    };
 
-  return (
-    <StudioModal
-      isOpen={isOpen}
-      onClose={handleClose}
-      title={
-        <div className={classes.titleWrapper}>
-          <TrashIcon className={classes.modalIcon} />
-          <Heading level={1} size='xsmall'>
-            {t('local_changes.modal_delete_modal_title')}
-          </Heading>
-        </div>
-      }
-      closeButtonLabel={t('local_changes.modal_close_delete_modal')}
-    >
-      <div className={classes.contentWrapper}>
+    const handleDelete = () => {
+      deleteLocalChanges(undefined, {
+        onSuccess: async () => {
+          handleClose();
+          toast.success(t('local_changes.modal_deleted_success'));
+          await queryClient.invalidateQueries();
+        },
+      });
+    };
+
+    return (
+      <StudioModal.Dialog
+        closeButtonTitle={t('local_changes.modal_close_delete_modal')}
+        heading={t('local_changes.modal_delete_modal_title')}
+        icon={<TrashIcon />}
+        onClose={handleClose}
+        ref={dialogRef}
+      >
         <Paragraph size='small' spacing>
           {t('local_changes.modal_delete_modal_text')}
         </Paragraph>
@@ -82,13 +79,15 @@ export const DeleteModal = ({ isOpen, onClose, app, org }: DeleteModalProps): JS
               >
                 {t('local_changes.modal_confirm_delete_button')}
               </StudioButton>
-              <StudioButton variant='secondary' onClick={handleClose}>
+              <StudioButton variant='secondary' onClick={handleCloseButtonClick}>
                 {t('general.cancel')}
               </StudioButton>
             </>
           )}
         </div>
-      </div>
-    </StudioModal>
-  );
-};
+      </StudioModal.Dialog>
+    );
+  },
+);
+
+DeleteModal.displayName = 'DeleteModal';

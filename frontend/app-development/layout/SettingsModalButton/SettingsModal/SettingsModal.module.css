@@ -1,29 +1,25 @@
+.settingsModal[open] {
+  height: 80vh;
+  max-width: unset;
+  width: 80vw;
+}
+
 .modalContent {
+  align-items: stretch;
   display: flex;
-  height: var(--modal-content-max-height);
-  width: 70vw;
-  overflow-y: auto;
+  overflow: hidden;
+  max-height: 100%;
 }
 
 .leftNavWrapper {
   height: 100%;
-  top: 0;
-  position: sticky;
   overflow-y: auto;
 }
 
 .contentWrapper {
-  height: 100%;
   flex: 1;
-}
-
-.headingWrapper {
-  display: flex;
-  align-items: center;
-}
-
-.headingWrapper > :first-child {
-  margin-right: 10px;
+  overflow: auto;
+  padding: var(--studio-modal-spacing);
 }
 
 .icon {

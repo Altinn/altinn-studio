@@ -22,7 +22,7 @@ export class SettingsModal extends BasePage {
   public async clickOnCloseSettingsModalButton(): Promise<void> {
     await this.page
       .getByRole('button', {
-        name: this.textMock('settings_modal.close_button_label'),
+        name: 'close modal', // Todo: Replace with this.textMock('settings_modal.close_button_label') when https://github.com/digdir/designsystemet/issues/2195 is fixed
         exact: true,
       })
       .click();

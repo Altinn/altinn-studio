@@ -44,7 +44,7 @@ export class PolicyConfig extends BasePage {
   public async closePolicyEditor(): Promise<void> {
     await this.page
       .getByRole('button', {
-        name: this.textMock('settings_modal.close_button_label'),
+        name: 'close modal', // Todo: Replace 'close modal' with this.textMock('settings_modal.close_button_label') when https://github.com/digdir/designsystemet/issues/2195 is fixed
       })
       .click();
   }

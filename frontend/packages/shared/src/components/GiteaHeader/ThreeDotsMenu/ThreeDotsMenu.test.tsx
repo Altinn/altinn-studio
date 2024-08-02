@@ -8,9 +8,9 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 const localChangesModalMockTestId = 'LocalChangesModal';
 
 jest.mock(
-  'app-shared/components/GiteaHeader/ThreeDotsMenu/LocalChangesModal/LocalChangesModal',
+  'app-shared/components/GiteaHeader/ThreeDotsMenu/LocalChangesModal/LocalChanges/LocalChanges',
   () => ({
-    LocalChangesModal: () => <div data-testid={localChangesModalMockTestId} />,
+    LocalChanges: () => <div data-testid={localChangesModalMockTestId} />,
   }),
 );
 
@@ -35,10 +35,10 @@ describe('ThreeDotsMenu', () => {
     const repoText = screen.getByRole('link', { name: textMock('sync_header.repository') });
     expect(repoText).toBeInTheDocument();
 
-    const localchangeText = screen.getByRole('button', {
+    const localchangeButton = screen.getByRole('button', {
       name: textMock('sync_header.local_changes'),
     });
-    expect(localchangeText).toBeInTheDocument();
+    expect(localchangeButton).toBeInTheDocument();
   });
 
   it('should not show the clone option when onlyShowRepository is true', async () => {

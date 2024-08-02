@@ -1,4 +1,5 @@
 import React from 'react';
+import type { ByRoleOptions } from '@testing-library/react';
 import { render as rtlRender, screen } from '@testing-library/react';
 import { LocalChanges } from './LocalChanges';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -54,12 +55,7 @@ describe('LocalChanges', () => {
 
   it('does not show the delete modal when initially rendering the component', () => {
     render({}, createQueryClientMock());
-
-    const deleteModalHeading = screen.queryByRole('heading', {
-      name: textMock('local_changes.modal_delete_modal_title'),
-      level: 1,
-    });
-    expect(deleteModalHeading).not.toBeInTheDocument();
+    expect(queryDeleteModalHeading()).not.toBeInTheDocument();
   });
 
   it('opens the delete modal when delete button is clicked', async () => {
@@ -70,12 +66,7 @@ describe('LocalChanges', () => {
       name: textMock('local_changes.modal_delete_button'),
     });
     await user.click(deleteButton);
-
-    const deleteModalHeading = screen.getByRole('heading', {
-      name: textMock('local_changes.modal_delete_modal_title'),
-      level: 1,
-    });
-    expect(deleteModalHeading).toBeInTheDocument();
+    expect(getDeleteModalHeading()).toBeInTheDocument();
   });
 
   it('calls the handleDelete function, and closes the modal, when delete button is clicked in delete modal', async () => {
@@ -115,23 +106,21 @@ describe('LocalChanges', () => {
     });
     await user.click(deleteButton);
 
-    const deleteModalHeading = screen.getByRole('heading', {
-      name: textMock('local_changes.modal_delete_modal_title'),
-      level: 1,
-    });
-    expect(deleteModalHeading).toBeInTheDocument();
+    expect(getDeleteModalHeading()).toBeInTheDocument();
 
     const deleteModalCancelButton = screen.getByRole('button', {
       name: textMock('general.cancel'),
     });
     await user.click(deleteModalCancelButton);
-
-    const deleteModalHeadingAfterClose = screen.queryByRole('heading', {
-      name: textMock('local_changes.modal_delete_modal_title'),
-      level: 1,
-    });
-    expect(deleteModalHeadingAfterClose).not.toBeInTheDocument();
+    expect(queryDeleteModalHeading()).not.toBeInTheDocument();
   });
+
+  const getDeleteModalHeading = () => screen.getByRole('heading', deleteModalHeadingOptions);
+  const queryDeleteModalHeading = () => screen.queryByRole('heading', deleteModalHeadingOptions);
+  const deleteModalHeadingOptions: ByRoleOptions = {
+    name: textMock('local_changes.modal_delete_modal_title'),
+    level: 2,
+  };
 });
 
 const render = (

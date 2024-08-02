@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import React, { useState } from 'react';
+import React from 'react';
 import classes from './LocalChanges.module.css';
 import { useTranslation } from 'react-i18next';
 import { Paragraph } from '@digdir/designsystemet-react';
@@ -12,8 +12,11 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 export const LocalChanges = (): ReactNode => {
   const { t } = useTranslation();
   const { app, org } = useStudioEnvironmentParams();
+  const deleteDialogRef = React.useRef<HTMLDialogElement>(null);
 
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const openDeleteDialog = () => {
+    deleteDialogRef.current?.showModal();
+  };
 
   return (
     <div className={classes.contentWrapper}>
@@ -38,14 +41,9 @@ export const LocalChanges = (): ReactNode => {
         color='danger'
         icon={<TrashIcon />}
         text={t('local_changes.modal_delete_button')}
-        action={{ type: 'button', onClick: () => setDeleteModalOpen(true) }}
+        action={{ type: 'button', onClick: openDeleteDialog }}
       />
-      <DeleteModal
-        isOpen={deleteModalOpen}
-        onClose={() => setDeleteModalOpen(false)}
-        app={app}
-        org={org}
-      />
+      <DeleteModal app={app} org={org} ref={deleteDialogRef} />
     </div>
   );
 };
