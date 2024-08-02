@@ -32,12 +32,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: 'Azure login'
-        uses: azure/login@v2
-        with:
-            client-id: ${{ secrets.client-id }}
-            tenant-id: ${{ secrets.tenant-id }}
-            subscription-id: ${{ secrets.subscription-id }}
+      # - name: 'Azure login'
+      #   uses: azure/login@v2
+      #   with:
+      #       client-id: ${{ secrets.client-id }}
+      #       tenant-id: ${{ secrets.tenant-id }}
+      #       subscription-id: ${{ secrets.subscription-id }}
 
       # - name: Log in to Container registry
       #   run: |
@@ -51,7 +51,6 @@ jobs:
 
       - name: Docker build
         run: |
-           # Concatenate the -t options for each tag
           command=""
           for tag in $(echo ${{ inputs.tags }} | tr ',' '\n'); do
             command+=" -t ${{ inputs.registry-name }}/${{ inputs.repository-name }}:$tag"
