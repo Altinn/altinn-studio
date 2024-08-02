@@ -67,3 +67,9 @@ jobs:
           done
 
           docker build ${{ inputs.context }} -f ${{ inputs.dockerfile }} $arguments
+
+      - name: Docker push
+        run: |
+          for tag in $(echo ${{ inputs.tags }} | tr ',' '\n'); do
+            docker push ${{ inputs.registry-name }}/${{ inputs.repository-name }}:$tag
+          done
