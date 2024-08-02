@@ -27,7 +27,6 @@ on:
       build-args:
         required: false
         type: string
-        default: ''
 
 jobs:
   docker-build-push:
