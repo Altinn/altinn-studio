@@ -34,7 +34,7 @@
         "saveWhileTyping": 400,
         "id": "AddressPage-Address",
         "type": "Address",
-        "required": false
+        "required": true
       },
       {
         "size": "h3",
