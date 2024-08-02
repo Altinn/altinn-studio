@@ -13,11 +13,7 @@ on:
       - 'Dockefile'
       - 'package.json'
 
-
   workflow_dispatch:
-
-env:
-  REGISTRY: altinntjenestercontainerregistry.azurecr.io
 
 jobs:
   get-short-sha:
