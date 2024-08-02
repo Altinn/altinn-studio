@@ -23,6 +23,7 @@ jobs:
           echo ${{ secrets.testSecret }}
 
   other_job:
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: ouput tag name job 2
