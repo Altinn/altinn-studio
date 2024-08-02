@@ -18,6 +18,9 @@ on:
       artifact-name:
         required: true
         type: string
+      helm-set-arguments:
+        required: false
+        type: string
 
     secrets:
       client-id:
@@ -26,8 +29,6 @@ on:
         required: true
       subscription-id:
         required: true
-      flux-set-arguments:
-        required: false
 
 jobs:
   config-oci-artifact-push:
@@ -63,7 +64,7 @@ jobs:
 
           arguments=""
 
-          for setarg in $(echo ${{ secrets.flux-set-arguments }} | tr ',' '\n'); do
+          for setarg in $(echo ${{ inputs.helm-set-arguments }} | tr ',' '\n'); do
             arguments+=" --set $setarg"
           done
 
