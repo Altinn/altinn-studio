@@ -12,6 +12,8 @@ on:
       - 'frontend/**'
       - 'Dockefile'
       - 'package.json'
+      - 'charts/altinn-designer/**'
+      - 'charts/altinn-designer-config/**'
 
   workflow_dispatch:
 
