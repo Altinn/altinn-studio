@@ -2,7 +2,7 @@ import type { SimpleLogicalExpression } from '../../../types/SimplifiedExpressio
 import React from 'react';
 import { useStudioExpressionContext } from '../../../StudioExpressionContext';
 import { LogicalTupleOperator } from '../../../enums/LogicalTupleOperator';
-import { Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import classes from './OperatorBetweenSubexpressions.module.css';
 
 export type OperatorBetweenSubexpressionsProps = {

@@ -14,17 +14,20 @@ import {
   Label,
   Link,
   Radio,
-} from '@digdir/design-system-react';
+} from '@digdir/designsystemet-react';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import { useTranslation } from 'react-i18next';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 import type { EnvId } from '../../utils/resourceUtils';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';
+import { useGetAltinn2DelegationsCount } from 'resourceadm/hooks/queries/useGetAltinn2DelegationCount';
 
 export type MigrationPageProps = {
   navigateToPageWithError: (page: NavigationBarPage) => void;
   id: string;
+  serviceCode: string;
+  serviceEdition: string;
 };
 
 /**
@@ -39,10 +42,19 @@ export type MigrationPageProps = {
 export const MigrationPage = ({
   navigateToPageWithError,
   id,
+  serviceCode,
+  serviceEdition,
 }: MigrationPageProps): React.JSX.Element => {
   const { t } = useTranslation();
 
   const { org, app, resourceId } = useUrlParams();
+
+  // TODO - This might be a saved value from backend. Issue: #10715
+  const initialDate = new Date().toISOString().split('T')[0];
+  const [migrationDate, setMigrationDate] = useState(initialDate);
+  const [migrationTime, setMigrationTime] = useState('00:00');
+  const [selectedEnv, setSelectedEnv] = useState<EnvId | ''>('');
+  const [isDelegationCountEnabled, setIsDelegationCountEnabled] = useState<boolean>(false);
 
   const { data: validatePolicyData, isPending: isValidatePolicyPending } = useValidatePolicyQuery(
     org,
@@ -54,13 +66,14 @@ export const MigrationPage = ({
   const { isPending: isLoadingPublishStatus, data: publishStatusData } =
     useResourcePolicyPublishStatusQuery(org, app, resourceId);
 
-  // TODO - This might be a saved value from backend. Issue: #10715
-  const initialDate = new Date().toISOString().split('T')[0];
-  const [migrationDate, setMigrationDate] = useState(initialDate);
-  const [migrationTime, setMigrationTime] = useState('00:00');
-  const [selectedEnv, setSelectedEnv] = useState<EnvId | '-'>('-');
-  const [numDelegationsA2, setNumDelegationsA2] = useState<number>(undefined);
-  const [numDelegationsA3, setNumDelegationsA3] = useState<number>(undefined);
+  const { data: numberOfA2Delegations, refetch: refetchNumberOfA2Delegations } =
+    useGetAltinn2DelegationsCount(
+      org,
+      serviceCode,
+      serviceEdition,
+      selectedEnv,
+      !isDelegationCountEnabled,
+    );
 
   const envPublishStatus = getAvailableEnvironments(org).map((env) => {
     const isPublishedInEnv = publishStatusData?.publishedVersions.some(
@@ -147,15 +160,18 @@ export const MigrationPage = ({
           <Paragraph size='small'>{t('resourceadm.migration_select_environment_body')}</Paragraph>
           <Radio.Group
             hideLegend
-            onChange={(newEnv: EnvId) => setSelectedEnv(newEnv)}
-            value={selectedEnv}
+            onChange={(newEnv: EnvId) => {
+              setSelectedEnv(newEnv);
+              setIsDelegationCountEnabled(false);
+            }}
+            value={selectedEnv || '-'}
             legend={t('resourceadm.migration_select_environment_header')}
             description={t('resourceadm.migration_select_environment_body')}
           >
             {envPublishStatus.map((env) => {
               const isPublishedInEnv = env.isResourcePublished;
               return (
-                <Radio key={env.id} value={env.label} readOnly={!isPublishedInEnv}>
+                <Radio key={env.id} value={env.id}>
                   {`${t(env.label)} ${!isPublishedInEnv ? t('resourceadm.migration_environment_not_published') : ''}`}
                 </Radio>
               );
@@ -193,29 +209,31 @@ export const MigrationPage = ({
                 <StudioLabelAsParagraph size='medium' spacing>
                   {t('resourceadm.migration_number_of_delegations')}
                 </StudioLabelAsParagraph>
-                <StudioButton
-                  onClick={() => {
-                    // TODO - replace with API call
-                    setNumDelegationsA2(1000);
-                    setNumDelegationsA3(1000);
-                  }}
-                  className={classes.button}
-                  size='small'
-                >
-                  {t('resourceadm.migration_get_number_of_delegations')}
-                </StudioButton>
-                {numDelegationsA2 && numDelegationsA3 && (
-                  <div className={classes.delegations}>
-                    <Paragraph size='small'>
-                      {t('resourceadm.migration_altinn_2')}: <strong>{numDelegationsA2}</strong>{' '}
-                      {t('resourceadm.migration_delegations')}
-                    </Paragraph>
-                    <Paragraph size='small'>
-                      {t('resourceadm.migration_altinn_3')}: <strong>{numDelegationsA3}</strong>{' '}
-                      {t('resourceadm.migration_delegations')}
-                    </Paragraph>
-                  </div>
-                )}
+                <div>
+                  {isDelegationCountEnabled && numberOfA2Delegations && (
+                    <div className={classes.delegations}>
+                      <Paragraph size='small'>
+                        {t('resourceadm.migration_altinn_2')}:{' '}
+                        <strong>{numberOfA2Delegations.numberOfDelegations}</strong>{' '}
+                        {t('resourceadm.migration_delegations')}
+                      </Paragraph>
+                      <Paragraph size='small'>
+                        {t('resourceadm.migration_altinn_3')}: <strong>{1000}</strong>{' '}
+                        {t('resourceadm.migration_delegations')}
+                      </Paragraph>
+                    </div>
+                  )}
+                  <StudioButton
+                    onClick={() =>
+                      isDelegationCountEnabled
+                        ? refetchNumberOfA2Delegations()
+                        : setIsDelegationCountEnabled(true)
+                    }
+                    className={classes.button}
+                  >
+                    {t('resourceadm.migration_get_number_of_delegations')}
+                  </StudioButton>
+                </div>
               </div>
               <StudioLabelAsParagraph size='medium' spacing>
                 {t('resourceadm.migration_finish_migration')}
@@ -238,7 +256,6 @@ export const MigrationPage = ({
                       : undefined
                   }
                   className={classes.button}
-                  size='small'
                 >
                   {t('resourceadm.migration_migrate_delegations')}
                 </StudioButton>
@@ -246,7 +263,6 @@ export const MigrationPage = ({
                   aria-disabled // Remember to do same check for aria-disabled as fot button below
                   onClick={() => {}}
                   className={classes.button}
-                  size='small'
                 >
                   {t('resourceadm.migration_turn_off_altinn_2_service')}
                 </StudioButton>

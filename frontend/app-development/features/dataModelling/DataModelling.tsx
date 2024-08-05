@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioPageSpinner, StudioCenter } from '@studio/components';
-import { Alert, ErrorMessage, Paragraph } from '@digdir/design-system-react';
+import { Alert, ErrorMessage, Paragraph } from '@digdir/designsystemet-react';
 import { SchemaEditorWithToolbar } from './SchemaEditorWithToolbar';
 import { useDataModelsJsonQuery, useDataModelsXsdQuery } from 'app-shared/hooks/queries';
 import { useParams } from 'react-router-dom';

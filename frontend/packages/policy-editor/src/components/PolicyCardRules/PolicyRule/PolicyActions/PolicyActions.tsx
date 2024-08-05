@@ -4,7 +4,8 @@ import { getActionOptions, getUpdatedRules } from '../../../../utils/PolicyRuleU
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import { useTranslation } from 'react-i18next';
-import { Label, ErrorMessage, Paragraph, LegacySelect, Chip } from '@digdir/design-system-react';
+import { Label, ErrorMessage, Paragraph, Chip } from '@digdir/designsystemet-react';
+import { StudioNativeSelect } from '@studio/components';
 
 const wellKnownActionsIds: string[] = [
   'complete',
@@ -88,16 +89,23 @@ export const PolicyActions = (): React.ReactElement => {
           : t('policy_editor.rule_card_actions_select_add')}
       </Paragraph>
       <div className={classes.dropdownWrapper}>
-        <LegacySelect
-          options={actionOptions.map((option) => ({
-            ...option,
-            label: getTranslationByActionId(option.label),
-          }))}
-          onChange={(value: string) => value !== null && handleClickActionInList(value)}
+        <StudioNativeSelect
+          onChange={(event) =>
+            event.target.value !== null && handleClickActionInList(event.target.value)
+          }
           disabled={actionOptions.length === 0}
           error={showAllErrors && policyError.actionsError}
-          inputId={`selectAction-${uniqueId}`}
-        />
+          id={`selectAction-${uniqueId}`}
+          size='sm'
+          defaultValue=''
+        >
+          <option value='' hidden></option>
+          {actionOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {getTranslationByActionId(option.label)}
+            </option>
+          ))}
+        </StudioNativeSelect>
       </div>
       <div className={classes.chipWrapper}>{displayActions}</div>
       {showAllErrors && policyError.actionsError && (

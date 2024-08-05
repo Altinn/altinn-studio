@@ -19,12 +19,15 @@ import { FormItemContext } from './FormItemContext';
 import { formItemContextProviderMock } from '../testing/formItemContextMocks';
 import { appContextMock } from '../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
+import userEvent from '@testing-library/user-event';
+import { user as userMock } from 'app-shared/mocks/mocks';
 
 // Test data:
 const defaultTexts: ITextResources = {
   [DEFAULT_LANGUAGE]: [],
 };
 const dataModelName = undefined;
+const user = userEvent.setup();
 
 const render = () => {
   const queryClient = createQueryClientMock();
@@ -41,6 +44,7 @@ const render = () => {
     [],
   );
   queryClient.setQueryData([QueryKey.TextResources, org, app], defaultTexts);
+  queryClient.setQueryData([QueryKey.CurrentUser], [userMock]);
   return renderWithProviders(
     <FormItemContext.Provider
       value={{
@@ -127,5 +131,35 @@ describe('FormDesigner', () => {
     );
     expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
     expect(appContextMock.refetchLayouts).toHaveBeenCalledWith('test-layout-set');
+  });
+
+  it('should be able to collapse and uncollapse components', async () => {
+    await waitForData();
+    render();
+
+    await waitFor(() =>
+      expect(screen.queryByText(textMock('ux_editor.loading_form_layout'))).not.toBeInTheDocument(),
+    );
+
+    await user.click(screen.getByTitle(textMock('left_menu.close_components')));
+    expect(screen.getByTitle(textMock('left_menu.open_components'))).toBeInTheDocument();
+
+    await user.click(screen.getByTitle(textMock('left_menu.open_components')));
+    expect(screen.getByTitle(textMock('left_menu.close_components'))).toBeInTheDocument();
+  });
+
+  it('should be able to collapse and uncollapse preview', async () => {
+    await waitForData();
+    render();
+
+    await waitFor(() =>
+      expect(screen.queryByText(textMock('ux_editor.loading_form_layout'))).not.toBeInTheDocument(),
+    );
+
+    await user.click(screen.getByTitle(textMock('ux_editor.close_preview')));
+    expect(screen.getByTitle(textMock('ux_editor.open_preview'))).toBeInTheDocument();
+
+    await user.click(screen.getByTitle(textMock('ux_editor.open_preview')));
+    expect(screen.getByTitle(textMock('ux_editor.close_preview'))).toBeInTheDocument();
   });
 });

@@ -6,7 +6,7 @@ import {
   useOrgListQuery,
 } from 'app-development/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { Alert } from '@digdir/design-system-react';
+import { Alert } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { DeploymentStatusList } from './DeploymentStatusList';
 import { DeploymentLogList } from './DeploymentLogList';

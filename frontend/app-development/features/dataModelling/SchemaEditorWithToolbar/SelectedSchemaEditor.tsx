@@ -1,8 +1,8 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSchemaQuery } from '../../../hooks/queries';
 import { useSchemaMutation } from '../../../hooks/mutations';
 import { StudioCenter, StudioPageSpinner } from '@studio/components';
-import { Alert, ErrorMessage, Paragraph } from '@digdir/design-system-react';
+import { Alert, ErrorMessage, Paragraph } from '@digdir/designsystemet-react';
 import { SchemaEditorApp } from '@altinn/schema-editor/SchemaEditorApp';
 import { useTranslation } from 'react-i18next';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
@@ -64,6 +64,10 @@ const SchemaEditorWithDebounce = ({ jsonSchema, modelPath }: SchemaEditorWithDeb
   const [model, setModel] = useState<JsonSchema>(jsonSchema);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const updatedModel = useRef<JsonSchema>(jsonSchema);
+
+  useEffect(() => {
+    setModel(jsonSchema);
+  }, [jsonSchema]);
 
   const saveFunction = useCallback(
     () => mutate({ modelPath, model: updatedModel.current }),

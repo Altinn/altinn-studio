@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import { Textfield, Modal, Heading, Link as DigdirLink } from '@digdir/design-system-react';
+import { Textfield, Modal, Heading, Link as DigdirLink } from '@digdir/designsystemet-react';
 import classes from './AccessListDetail.module.css';
 import type { AccessList, ResourceError } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from '../FieldWrapper';
@@ -87,10 +87,10 @@ export const AccessListDetail = ({
         <Modal.Header>{t('resourceadm.listadmin_delete_list_header')}</Modal.Header>
         <Modal.Content>{t('resourceadm.listadmin_delete_list_description')}</Modal.Content>
         <Modal.Footer>
-          <StudioButton color='danger' onClick={() => handleDelete()}>
+          <StudioButton color='danger' onClick={() => handleDelete()} size='medium'>
             {t('resourceadm.listadmin_delete_list')}
           </StudioButton>
-          <StudioButton variant='tertiary' onClick={closeModal}>
+          <StudioButton variant='tertiary' onClick={closeModal} size='medium'>
             {t('general.cancel')}
           </StudioButton>
         </Modal.Footer>
@@ -152,6 +152,7 @@ export const AccessListDetail = ({
           iconPlacement='right'
           onClick={() => deleteWarningModalRef.current?.showModal()}
           disabled={isDeletingAccessList}
+          size='medium'
         >
           {t('resourceadm.listadmin_delete_list')}
         </StudioButton>

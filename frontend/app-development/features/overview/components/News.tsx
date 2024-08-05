@@ -1,13 +1,32 @@
 import * as React from 'react';
-import { Heading, Paragraph, Alert } from '@digdir/design-system-react';
+import { Card, Heading, Link, Paragraph } from '@digdir/designsystemet-react';
 import { useNewsListQuery } from 'app-development/hooks/queries/useNewsListQuery';
-import { StudioSpinner } from '@studio/components';
+import { StudioPageError, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './News.module.css';
+import { NEWS_EXPIRATION_TIME_IN_DAYS } from 'app-shared/constants';
+import { gitHubRoadMapUrl } from 'app-shared/ext-urls';
 
 export const News = () => {
-  const { data: newsList, isPending, isError } = useNewsListQuery();
+  const { data: newsList, isPending, isError, isSuccess } = useNewsListQuery();
   const { t } = useTranslation();
+  const today = new Date();
+
+  const showNews = (date: string): boolean => {
+    const publishDate = new Date(date);
+    const publishDatePlus30Days = new Date(publishDate);
+    publishDatePlus30Days.setDate(publishDate.getDate() + NEWS_EXPIRATION_TIME_IN_DAYS);
+    return publishDate <= today && today <= publishDatePlus30Days;
+  };
+
+  const thereAreRelevantNews =
+    isSuccess && newsList.news.filter((news) => showNews(news.date)).length > 0;
+
+  const formatDateToText = (date: string) => {
+    // Date comes in this format: YYYY-MM-DD
+    const [year, month, day] = date.split('-');
+    return `${day}.${month}.${year}`;
+  };
 
   if (isPending) {
     return (
@@ -20,7 +39,10 @@ export const News = () => {
   if (isError) {
     return (
       <NewsTemplate>
-        <Alert severity='danger'>{t('overview.fetch_news_error_message')}</Alert>
+        <StudioPageError
+          title={t('overview.news_error_title')}
+          message={t('overview.fetch_news_error_message')}
+        />
       </NewsTemplate>
     );
   }
@@ -28,14 +50,44 @@ export const News = () => {
   return (
     <div>
       <NewsTemplate>
-        {newsList.news?.map(({ title, content }) => (
-          <div className={classes.newsContent} key={title}>
-            <Heading level={3} size='xxsmall'>
-              {title}
-            </Heading>
-            <Paragraph size='small'>{content}</Paragraph>
-          </div>
-        ))}
+        {thereAreRelevantNews ? (
+          newsList.news?.map(({ title, content, date }) => {
+            return (
+              showNews(date) && (
+                <Card className={classes.newsContent} key={title}>
+                  <Card.Header>
+                    <Heading level={3} size='xxsmall'>
+                      {title}
+                    </Heading>
+                  </Card.Header>
+                  <Card.Content>
+                    <Paragraph size='xsmall'>
+                      {t('overview.news_date', { date: formatDateToText(date) })}
+                    </Paragraph>
+                  </Card.Content>
+                  <Card.Content>
+                    <Paragraph size='small'>{content}</Paragraph>
+                  </Card.Content>
+                </Card>
+              )
+            );
+          })
+        ) : (
+          <Card color='subtle' className={classes.noNews}>
+            <Card.Header>
+              <Heading level={3} size='xxsmall'>
+                {t('overview.no_news_title')}
+              </Heading>
+            </Card.Header>
+            <Card.Content>
+              <Paragraph size='small'>
+                <Link href={gitHubRoadMapUrl} rel='noopener noreferrer' target='_newTab'>
+                  {t('overview.no_news_content')}
+                </Link>
+              </Paragraph>
+            </Card.Content>
+          </Card>
+        )}
       </NewsTemplate>
     </div>
   );

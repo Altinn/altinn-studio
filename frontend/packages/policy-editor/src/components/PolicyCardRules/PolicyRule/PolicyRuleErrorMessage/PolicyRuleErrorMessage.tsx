@@ -1,7 +1,7 @@
 import React from 'react';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import { useTranslation } from 'react-i18next';
-import { ErrorMessage } from '@digdir/design-system-react';
+import { ErrorMessage } from '@digdir/designsystemet-react';
 
 export const PolicyRuleErrorMessage = (): React.ReactElement => {
   const { t } = useTranslation();

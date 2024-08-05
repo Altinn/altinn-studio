@@ -3,7 +3,7 @@ import classes from './AltinnHeaderMenu.module.css';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
-import { Tag } from '@digdir/design-system-react';
+import { Tag } from '@digdir/designsystemet-react';
 
 export interface IAltinnHeaderMenuProps {
   menuItems: TopBarMenuItem[];

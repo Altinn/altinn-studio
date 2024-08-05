@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Paragraph, Link } from '@digdir/design-system-react';
+import { Paragraph, Link } from '@digdir/designsystemet-react';
 import { ExpressionContent } from '../ExpressionContent';
 import classes from './Expressions.module.css';
 import { FormItemContext } from '../../../containers/FormItemContext';
@@ -67,11 +67,13 @@ const ReadMoreLink = () => {
 };
 
 const Placeholder = ({ componentName }: { componentName: string }) => (
-  <Paragraph size='small'>
+  <Paragraph size='small' className={classes.placeHolder}>
     <Trans
       i18nKey={'right_menu.expressions_property_on_component'}
       values={{ componentName }}
-      components={{ bold: <StudioCodeFragment /> }}
+      components={{
+        bold: <StudioCodeFragment className={classes.wrapper} title={componentName} />,
+      }}
     />
   </Paragraph>
 );

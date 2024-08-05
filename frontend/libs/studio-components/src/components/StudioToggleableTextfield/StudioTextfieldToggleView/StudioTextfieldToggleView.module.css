@@ -6,9 +6,12 @@
 }
 
 .viewModeIconsContainer {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  text-align: left;
   align-items: center;
   color: var(--fds-semantic-text-neutral-default);
+  width: 100%;
 }
 
 .editIconWrapper {

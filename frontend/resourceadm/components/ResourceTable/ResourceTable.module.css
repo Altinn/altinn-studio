@@ -4,8 +4,8 @@
 }
 
 .editLink {
-  color: #165db8;
-  font-size: 1.7rem;
+  color: var(--fds-semantic-text-action-default);
+  font-size: var(--fds-sizing-7);
 }
 
 .tagContainer {

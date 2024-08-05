@@ -45,7 +45,7 @@ describe('DataSourceValue', () => {
       },
     });
 
-    const textFieldElement = screen.getByRole('textbox');
+    const textFieldElement = screen.getByRole('spinbutton');
     expect(textFieldElement).toHaveAttribute('inputmode', 'numeric');
     expect(textFieldElement).toBeInTheDocument();
   });
@@ -56,8 +56,8 @@ describe('DataSourceValue', () => {
       },
     });
 
-    const trueButton = screen.getByRole('button', { name: textMock('general.true') });
-    const falseButton = screen.getByRole('button', { name: textMock('general.false') });
+    const trueButton = screen.getByRole('radio', { name: textMock('general.true') });
+    const falseButton = screen.getByRole('radio', { name: textMock('general.false') });
     expect(trueButton).toBeInTheDocument();
     expect(falseButton).toBeInTheDocument();
   });

@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import classes from './PolicySubjects.module.css';
-import { Label, ErrorMessage, Paragraph, LegacySelect, Chip } from '@digdir/design-system-react';
+import { Label, ErrorMessage, Paragraph, Chip } from '@digdir/designsystemet-react';
 import type { PolicySubject } from '../../../../types';
 import { findSubjectByPolicyRuleSubject } from '../../../../utils';
 import { getSubjectOptions, getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
 import { useTranslation } from 'react-i18next';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
+import { StudioNativeSelect } from '@studio/components';
 
 export const PolicySubjects = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -83,13 +84,23 @@ export const PolicySubjects = (): React.ReactElement => {
           : t('policy_editor.rule_card_subjects_select_add')}
       </Paragraph>
       <div className={classes.dropdownWrapper}>
-        <LegacySelect
-          options={subjectOptions}
-          onChange={(value: string) => value !== null && handleClickSubjectInList(value)}
+        <StudioNativeSelect
+          onChange={(event) =>
+            event.target.value !== null && handleClickSubjectInList(event.target.value)
+          }
           disabled={subjectOptions.length === 0}
           error={showAllErrors && policyError.subjectsError}
-          inputId={`selectSubject-${uniqueId}`}
-        />
+          id={`selectSubject-${uniqueId}`}
+          size='sm'
+          defaultValue=''
+        >
+          <option hidden value=''></option>
+          {subjectOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </StudioNativeSelect>
       </div>
       <div className={classes.chipWrapper}>{displaySubjects}</div>
       {showAllErrors && policyError.subjectsError && (

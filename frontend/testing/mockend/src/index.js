@@ -8,13 +8,11 @@ const {
   userCurrentPath,
   dataModelsPath,
   createDataModelPath,
-  remainingSessionTimePath,
   branchStatusPath,
   repoStatusPath,
   frontendLangPath,
   repoMetaPath,
   serviceConfigPath,
-  serviceNamePath,
 } = require('../../../packages/shared/src/api/paths');
 
 module.exports = (middlewares, devServer) => {
@@ -33,13 +31,11 @@ module.exports = (middlewares, devServer) => {
   app.get(dataModelsPath(':org', ':app'), require('./routes/get-datamodels'));
   //prettier-ignore
   app.get(frontendLangPath(':locale'), (req, res) => res.json(require(`../../../language/src/${req.params.locale}.json`)));
-  app.get(remainingSessionTimePath(), (req, res) => res.send('9999'));
   app.get(repoMetaPath(':org', ':app'), require('./routes/get-repo-data'));
   app.get(branchStatusPath(':org', ':app', 'branch'), require('./routes/get-branch'));
   app.get(repoStatusPath(':org', ':app'), fixtureRoute('status'));
   app.get(serviceConfigPath(':org', ':app'), (req, res) => res.sendStatus(204));
   //prettier-ignore
-  app.get(serviceNamePath(':org', ':app'), (req, res) => res.send(req.params.repo.toUpperCase()));
   app.get(userCurrentPath(), require('./routes/user-current'));
   app.post(createDataModelPath(':org', ':app'), require('./routes/create-model'));
   app.put(dataModelsPath(':org', ':app'), require('./routes/put-datamodel'));

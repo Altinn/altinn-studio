@@ -64,7 +64,8 @@ public class PreviewHubTests
     {
         List<Claim> claims = new()
         {
-            new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, "altinn.no")
+            new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, "altinn.no"),
+            new Claim(ClaimTypes.Name, "testUser")
         };
         ClaimsIdentity identity = new("TestUserLogin");
         identity.AddClaims(claims);

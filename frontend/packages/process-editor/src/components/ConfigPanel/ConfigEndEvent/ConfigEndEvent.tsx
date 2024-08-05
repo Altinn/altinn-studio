@@ -1,6 +1,6 @@
 import React from 'react';
 import { StudioLabelAsParagraph, StudioSectionHeader } from '@studio/components';
-import { Accordion, Link, Paragraph } from '@digdir/design-system-react';
+import { Accordion, Link, Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './ConfigEndEvent.module.css';
 import { ConfigIcon } from '../ConfigContent/ConfigIcon';

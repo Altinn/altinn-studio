@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heading } from '@digdir/design-system-react';
+import { Heading } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { StudioSpinner } from '@studio/components';
 

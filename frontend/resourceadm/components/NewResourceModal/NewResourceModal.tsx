@@ -1,7 +1,7 @@
 import React, { forwardRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { Paragraph, Modal } from '@digdir/design-system-react';
+import { Paragraph, Modal } from '@digdir/designsystemet-react';
 import { ResourceNameAndId } from '../ResourceNameAndId';
 import { useCreateResourceMutation } from '../../hooks/mutations';
 import type { NewResource } from 'app-shared/types/ResourceAdm';
@@ -109,12 +109,11 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
           <StudioButton
             onClick={() => (hasValidValues ? handleCreateNewResource() : undefined)}
             color='first'
-            size='small'
             aria-disabled={!hasValidValues}
           >
             {t('resourceadm.dashboard_create_modal_create_button')}
           </StudioButton>
-          <StudioButton onClick={handleClose} color='first' variant='tertiary' size='small'>
+          <StudioButton onClick={handleClose} color='first' variant='tertiary'>
             {t('general.cancel')}
           </StudioButton>
         </Modal.Footer>

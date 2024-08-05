@@ -70,17 +70,17 @@ describe('PolicyRule', () => {
     const [actionSelect] = screen.getAllByLabelText(
       textMock('policy_editor.rule_card_actions_title'),
     );
-    await user.click(actionSelect);
-
     const actionOption: string = textMock(`policy_editor.action_${mockActionId3}`);
-    await user.click(screen.getByRole('option', { name: actionOption }));
+    await user.selectOptions(actionSelect, screen.getByRole('option', { name: actionOption }));
     await user.tab();
 
     const [subjectSelect] = screen.getAllByLabelText(
       textMock('policy_editor.rule_card_subjects_title'),
     );
-    await user.click(subjectSelect);
-    await user.click(screen.getByRole('option', { name: mockSubjectTitle2 }));
+    await user.selectOptions(
+      subjectSelect,
+      screen.getByRole('option', { name: mockSubjectTitle2 }),
+    );
     await user.tab();
 
     const [descriptionField] = screen.getAllByLabelText(

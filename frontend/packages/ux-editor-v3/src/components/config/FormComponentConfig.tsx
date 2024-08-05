@@ -1,6 +1,6 @@
 import React from 'react';
 import { EditComponentId } from './editModal/EditComponentId';
-import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
+import { Alert, Heading, Paragraph } from '@digdir/designsystemet-react';
 import type { FormComponent } from '../../types/FormComponent';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { EditDataModelBindings } from './editModal/EditDataModelBindings';

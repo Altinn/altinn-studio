@@ -1,6 +1,6 @@
 import React from 'react';
 import { Trans } from 'react-i18next';
-import { Alert, Paragraph } from '@digdir/design-system-react';
+import { Alert, Paragraph } from '@digdir/designsystemet-react';
 import { LinkButton } from '../LinkButton';
 import { StudioLabelAsParagraph } from '@studio/components';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Textfield } from '@digdir/design-system-react';
+import { Textfield } from '@digdir/designsystemet-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';

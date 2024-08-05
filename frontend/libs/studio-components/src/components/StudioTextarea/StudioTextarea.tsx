@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
-import type { TextareaProps } from '@digdir/design-system-react';
-import { Textarea } from '@digdir/design-system-react';
+import type { TextareaProps } from '@digdir/designsystemet-react';
+import { Textarea } from '@digdir/designsystemet-react';
 import { useTextInputProps } from '../../hooks/useTextInputProps';
 import type { SharedTextInputProps } from '../../types/SharedTextInputProps';
 

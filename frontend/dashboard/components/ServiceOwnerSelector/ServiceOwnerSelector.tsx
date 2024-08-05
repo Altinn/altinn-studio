@@ -1,5 +1,5 @@
 import React, { useId } from 'react';
-import { NativeSelect } from '@digdir/design-system-react';
+import { NativeSelect } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import type { Organization } from 'app-shared/types/Organization';
 import type { User } from 'app-shared/types/Repository';

@@ -7,7 +7,7 @@ import type { User } from 'app-shared/types/Repository';
 import type { Organization } from 'app-shared/types/Organization';
 import { useReposSearch } from 'dashboard/hooks/useReposSearch';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
-import { Heading } from '@digdir/design-system-react';
+import { Heading } from '@digdir/designsystemet-react';
 import { DATA_MODEL_REPO_IDENTIFIER, DATAGRID_DEFAULT_PAGE_SIZE } from 'dashboard/constants';
 import { useAugmentReposWithStarred } from 'dashboard/hooks/useAugmentReposWithStarred';
 import { useSearchReposQuery, useStarredReposQuery } from 'dashboard/hooks/queries';
@@ -35,7 +35,6 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
   const { data: dataModelsResults, isPending: hasPendingDataModels } = useSearchReposQuery({
     uid: uid as number,
     keyword: DATA_MODEL_REPO_IDENTIFIER,
-    page: 1,
   });
   const totalRows = repoResults?.totalCount - dataModelsResults?.totalCount ?? 0;
 

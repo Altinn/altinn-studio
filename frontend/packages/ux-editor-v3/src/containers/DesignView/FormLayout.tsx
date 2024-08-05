@@ -3,7 +3,7 @@ import { FormTree } from './FormTree';
 import React from 'react';
 import { hasMultiPageGroup } from '../../utils/formLayoutUtils';
 import { useTranslation } from 'react-i18next';
-import { Alert, Paragraph } from '@digdir/design-system-react';
+import { Alert, Paragraph } from '@digdir/designsystemet-react';
 
 export interface FormLayoutProps {
   layout: IInternalLayout;

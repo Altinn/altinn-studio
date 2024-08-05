@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Accordion } from '@digdir/design-system-react';
+import { Accordion } from '@digdir/designsystemet-react';
 import { FileIcon } from '@studio/icons';
 import { StudioSectionHeader } from '@studio/components';
 import { useText, useTextResourcesSelector, useAppContext, useFormLayouts } from '../../../hooks';
@@ -34,7 +34,7 @@ export const PageConfigPanel = () => {
   const layoutNameText = layoutNameTextResource?.value;
   const headingTitle = !layoutIsSelected
     ? t('right_menu.content_empty')
-    : layoutNameText ?? selectedFormLayoutName;
+    : (layoutNameText ?? selectedFormLayoutName);
 
   const layouts: Record<string, IInternalLayout> = useFormLayouts();
   const layout = layouts[selectedFormLayoutName];

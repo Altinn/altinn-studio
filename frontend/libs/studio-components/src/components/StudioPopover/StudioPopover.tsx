@@ -4,7 +4,7 @@ import {
   Popover,
   type PopoverTriggerProps,
   type PopoverContentProps,
-} from '@digdir/design-system-react';
+} from '@digdir/designsystemet-react';
 
 const StudioPopoverTrigger = ({ ...rest }: PopoverTriggerProps): React.ReactElement => {
   return <Popover.Trigger {...rest} />;

@@ -16,7 +16,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">Name of the repository</param>
         /// <returns>The result of the cloning</returns>
-        string CloneRemoteRepository(string org, string repository);
+        Task<string> CloneRemoteRepository(string org, string repository);
 
         /// <summary>
         /// Clone repository to specified destination
@@ -26,7 +26,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="destinationPath">Path of destination folder</param>
         /// <param name="branchName">The name of the branch to clone</param>
         /// <returns>Path of the cloned repository</returns>
-        string CloneRemoteRepository(string org, string repository, string destinationPath, string branchName = "");
+        Task<string> CloneRemoteRepository(string org, string repository, string destinationPath, string branchName = "");
 
         /// <summary>
         /// Stores a App token for user
@@ -35,28 +35,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         void StoreAppTokenForUser(string token);
 
         /// <summary>
-        /// Returns the App token for the repository
-        /// </summary>
-        /// <returns>The token</returns>
-        string GetAppToken();
-
-        /// <summary>
-        /// Returns the App token id for the repository
-        /// </summary>
-        /// <returns>The token id</returns>
-        string GetAppTokenId();
-
-        /// <summary>
-        /// Returns the deploy token for the repository
-        /// </summary>
-        /// <returns>The token</returns>
-        Task<string> GetDeployToken();
-
-        /// <summary>
         /// Add all changes in app repo and push to remote
         /// </summary>
         /// <param name="commitInfo">the commit information for the app</param>
-        void PushChangesForRepository(CommitInfo commitInfo);
+        Task PushChangesForRepository(CommitInfo commitInfo);
 
         /// <summary>
         /// Commits all changes in repo and pushe them to the provided branch
@@ -66,7 +48,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="branchName">The name of the branch to push changes to</param>
         /// <param name="localPath">Path to local clone of repository</param>
         /// <param name="message">Commit message</param>
-        void CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message);
+        Task CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message);
 
         /// <summary>
         /// Pull remote changes
@@ -74,14 +56,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">name of the repository</param>
         /// <returns>The repo status</returns>
-        RepoStatus PullRemoteChanges(string org, string repository);
+        Task<RepoStatus> PullRemoteChanges(string org, string repository);
 
         /// <summary>
         /// Pull remote changes
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">name of the repository</param>
-        void FetchRemoteChanges(string org, string repository);
+        Task FetchRemoteChanges(string org, string repository);
 
         /// <summary>
         /// List Git status for an app repo
@@ -173,7 +155,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
         /// <param name="repository">The name of the repository</param>
-        void VerifyCloneExists(string org, string repository);
+        Task VerifyCloneExists(string org, string repository);
 
         /// <summary>
         /// Creates a new branch in the given repository.

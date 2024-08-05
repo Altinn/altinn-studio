@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { Checkbox } from '@digdir/design-system-react';
+import { Checkbox } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { InputFieldErrorMessage } from './InputFieldErrorMessage';
 import { ResourceFieldHeader } from './ResourceFieldHeader';

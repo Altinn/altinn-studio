@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heading } from '@digdir/design-system-react';
+import { Heading } from '@digdir/designsystemet-react';
 import type {
   PolicyAction,
   Policy,

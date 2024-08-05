@@ -3,14 +3,7 @@ import React, { useReducer, useState } from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import classes from './StringRestrictions.module.css';
-import {
-  Fieldset,
-  LegacyTextField,
-  Label,
-  Switch,
-  Textfield,
-  LegacySelect,
-} from '@digdir/design-system-react';
+import { Fieldset, Label, Switch, Textfield } from '@digdir/designsystemet-react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import { Divider } from 'app-shared/primitives';
@@ -21,6 +14,7 @@ import {
   StringRestrictionsReducerActionType,
 } from './StringRestrictionsReducer';
 import { useTranslation } from 'react-i18next';
+import { StudioNativeSelect, StudioTextfield } from '@studio/components';
 
 export function StringRestrictions({
   onChangeRestrictionValue,
@@ -35,8 +29,7 @@ export function StringRestrictions({
   const regexTestValueSplitByMatches = splitStringByMatches(pattern, regexTestValue);
   const regexTestValueMatchesRegex = regexTestValueSplitByMatches.some(({ match }) => match);
   const fieldId = makeDomFriendlyID('regextestfield');
-  const handleValueChange = (event: ChangeEvent) => {
-    const value = (event.target as HTMLInputElement)?.value || '';
+  const handleValueChange = (value: string): void => {
     if (regexTestValue !== value) {
       setRegexTestValue(value);
     }
@@ -71,26 +64,31 @@ export function StringRestrictions({
   const dispatchAction = (type: StringRestrictionsReducerActionType, value: any) =>
     dispatch({ type, value, changeCallback } as StringRestrictionsReducerAction);
 
-  const noFormatOption = { label: t('format_none'), value: '' };
+  const formatOptions = Object.values(StringFormat).map((f) => ({
+    key: f,
+    value: f as string,
+    label: t(`format_${f}`),
+  }));
   const formatMinLangKey = `format_date_after_${formatState.earliestIsInclusive ? 'incl' : 'excl'}`;
   const formatMaxLangKey = `format_date_before_${formatState.latestIsInclusive ? 'incl' : 'excl'}`;
 
   return (
     <>
       <Divider marginless />
-      <LegacySelect
-        inputId='format-select-input'
+      <StudioNativeSelect
+        id='format-select-input'
         label={t('format')}
-        onChange={(value: string) => setRestriction(StrRestrictionKey.format, value)}
-        options={[
-          noFormatOption,
-          ...Object.values(StringFormat).map((f) => ({
-            label: t(`format_${f}`),
-            value: f as string,
-          })),
-        ]}
+        onChange={(event) => setRestriction(StrRestrictionKey.format, event.target.value)}
         value={restrictions[StrRestrictionKey.format] || ''}
-      />
+        size='sm'
+      >
+        <option value=''>{t('format_none')}</option>
+        {formatOptions.map((f) => (
+          <option key={f.key} value={f.value}>
+            {f.label}
+          </option>
+        ))}
+      </StudioNativeSelect>
       {[StringFormat.Date, StringFormat.DateTime, StringFormat.Time].includes(
         restrictions[StrRestrictionKey.format],
       ) && (
@@ -139,18 +137,24 @@ export function StringRestrictions({
       )}
       <div className={classes.lengthFields}>
         <div className={classes.lengthField}>
-          <LegacyTextField
-            formatting={{ number: {} }}
+          <StudioTextfield
+            size='sm'
+            type='number'
             label={t(StrRestrictionKey.minLength)}
-            onChange={(e) => setRestriction(StrRestrictionKey.minLength, e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setRestriction(StrRestrictionKey.minLength, e.target.value)
+            }
             value={restrictions[StrRestrictionKey.minLength] || ''}
           />
         </div>
         <div className={classes.lengthField}>
-          <LegacyTextField
-            formatting={{ number: {} }}
+          <StudioTextfield
+            size='sm'
+            type='number'
             label={t(StrRestrictionKey.maxLength)}
-            onChange={(e) => setRestriction(StrRestrictionKey.maxLength, e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setRestriction(StrRestrictionKey.maxLength, e.target.value)
+            }
             value={restrictions[StrRestrictionKey.maxLength] || ''}
           />
         </div>
@@ -187,7 +191,14 @@ export function StringRestrictions({
                 </span>
               ))}
             </div>
-            <LegacyTextField id={fieldId} onChange={handleValueChange} value={regexTestValue} />
+            <StudioTextfield
+              size='sm'
+              id={fieldId}
+              onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                handleValueChange(event.target.value)
+              }
+              value={regexTestValue}
+            />
           </div>
         </div>
       </Fieldset>
@@ -205,7 +216,7 @@ function splitStringByMatches(pattern: string, value: string): StrPart[] {
   if (!pattern) return defaultResult;
   try {
     const patternRegex = new RegExp(pattern, 'g');
-    let match;
+    let match: RegExpExecArray;
     const strParts: StrPart[] = [];
     let lastIndex = 0;
     while (value && (match = patternRegex.exec(value)) !== null) {
