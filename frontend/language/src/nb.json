@@ -613,6 +613,7 @@
   "process_editor.configuration_panel_custom_receipt_heading": "Opprett din egen kvittering",
   "process_editor.configuration_panel_custom_receipt_info": "Hvis du heller vil lage din egen kvittering, kan du opprette den her. Kvitteringen du lager selv vil overstyre standardkvitteringen.",
   "process_editor.configuration_panel_custom_receipt_layout_set_name": "Navn på sidegruppe: ",
+  "process_editor.configuration_panel_custom_receipt_layout_set_name_validation": "Navnet må ha minst 2 tegn",
   "process_editor.configuration_panel_custom_receipt_navigate_to_lage_button": "Gå til Lage",
   "process_editor.configuration_panel_custom_receipt_navigate_to_lage_title": "Gå til Lage for å utforme kvitteringen din",
   "process_editor.configuration_panel_custom_receipt_select_data_model_label": "Datamodellknytning",
