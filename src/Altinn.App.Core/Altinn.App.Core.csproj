@@ -19,6 +19,7 @@
     <PackageReference Include="JsonPatch.Net" Version="3.1.0" />
     <PackageReference Include="JWTCookieAuthentication" Version="3.0.1" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="[9.0.0-preview.6.24328.4]" NoWarn="NU5104" />
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="3.3.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NetEscapades.EnumGenerators" Version="1.0.0-beta09" PrivateAssets="all" ExcludeAssets="runtime" />
