@@ -11,7 +11,7 @@ import {
   Link,
   Alert,
   ErrorMessage,
-} from '@digdir/design-system-react';
+} from '@digdir/designsystemet-react';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import type { DeployError } from '../../types/DeployError';
 import {
@@ -22,7 +22,7 @@ import {
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useTranslation, Trans } from 'react-i18next';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
-import { useUrlParams } from '../../hooks/useSelectedContext';
+import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';
 
 export type DeployResourcePageProps = {
@@ -51,27 +51,27 @@ export const DeployResourcePage = ({
 }: DeployResourcePageProps): React.JSX.Element => {
   const { t } = useTranslation();
 
-  const { selectedContext, repo, resourceId } = useUrlParams();
+  const { org, app, resourceId } = useUrlParams();
 
   const [newVersionText, setNewVersionText] = useState(resourceVersionText);
 
   // Queries to get metadata
-  const { data: repoStatus } = useRepoStatusQuery(selectedContext, repo);
+  const { data: repoStatus } = useRepoStatusQuery(org, app);
   const {
     status: publishStatusStatus,
     data: publishStatusData,
     error: publishStatusError,
-  } = useResourcePolicyPublishStatusQuery(selectedContext, repo, resourceId);
+  } = useResourcePolicyPublishStatusQuery(org, app, resourceId);
   const {
     status: validatePolicyStatus,
     data: validatePolicyData,
     error: validatePolicyError,
-  } = useValidatePolicyQuery(selectedContext, repo, resourceId);
+  } = useValidatePolicyQuery(org, app, resourceId);
   const {
     status: validateResourceStatus,
     data: validateResourceData,
     error: validateResourceError,
-  } = useValidateResourceQuery(selectedContext, repo, resourceId);
+  } = useValidateResourceQuery(org, app, resourceId);
 
   const isLocalRepoInSync =
     repoStatus &&
@@ -247,7 +247,7 @@ export const DeployResourcePage = ({
                 {t('resourceadm.deploy_select_env_label')}
               </Label>
               <div className={classes.environmentWrapper}>
-                {getAvailableEnvironments(selectedContext).map((env) => {
+                {getAvailableEnvironments(org).map((env) => {
                   const versionString = getVersionString(env.id);
                   return (
                     <ResourceDeployEnvCard

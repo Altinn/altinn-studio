@@ -2,7 +2,7 @@ import React from 'react';
 import { useText } from '../../../../hooks';
 import type { GridSize } from '@studio/components';
 import { StudioGridSelector } from '@studio/components';
-import { Paragraph, Switch } from '@digdir/design-system-react';
+import { Paragraph, Switch } from '@digdir/designsystemet-react';
 import { PadlockLockedFillIcon } from '@studio/icons';
 import classes from './EditGridForGivenViewSize.module.css';
 import { ObjectUtils } from '@studio/pure-functions';
@@ -44,7 +44,7 @@ export const EditGridForGivenViewSize = ({
     <>
       <div className={classes.lockIcon}>
         <Paragraph size='small'>{t('ux_editor.modal_properties_grid')}</Paragraph>
-        {!gridValues[viewSize] && <PadlockLockedFillIcon title='lockIcon' fontSize='1.5rem' />}
+        {!gridValues[viewSize] && <PadlockLockedFillIcon title='lockIcon' />}
       </div>
       <StudioGridSelector
         disabled={!gridValues[viewSize]}

@@ -1,7 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
-import { StudioPageSpinner } from '@studio/components';
+import { StudioPageError, StudioPageSpinner } from '@studio/components';
 import { Canvas } from './components/Canvas';
 import { BpmnContextProvider, useBpmnContext } from './contexts/BpmnContext';
 import { ConfigPanel } from './components/ConfigPanel';
@@ -102,11 +101,9 @@ const BpmnCanvas = (): React.ReactElement | null => {
 const NoBpmnFoundAlert = (): React.ReactElement => {
   const { t } = useTranslation();
   return (
-    <Alert severity='danger' style={{ height: 'min-content' }}>
-      <Heading size='medium' level={2}>
-        {t('process_editor.fetch_bpmn_error_title')}
-      </Heading>
-      <Paragraph>{t('process_editor.fetch_bpmn_error_message')}</Paragraph>
-    </Alert>
+    <StudioPageError
+      title={t('process_editor.fetch_bpmn_error_title')}
+      message={t('process_editor.fetch_bpmn_error_message')}
+    />
   );
 };

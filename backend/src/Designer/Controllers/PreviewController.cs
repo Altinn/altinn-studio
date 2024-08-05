@@ -854,7 +854,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-                string options = await altinnAppGitRepository.GetOptions(optionListId, cancellationToken);
+                string options = await altinnAppGitRepository.GetOptionsList(optionListId, cancellationToken);
                 return Ok(options);
             }
             catch (NotFoundException)
@@ -883,7 +883,7 @@ namespace Altinn.Studio.Designer.Controllers
                 // TODO: Need code to get dynamic options list based on language and source?
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-                string options = await altinnAppGitRepository.GetOptions(optionListId, cancellationToken);
+                string options = await altinnAppGitRepository.GetOptionsList(optionListId, cancellationToken);
                 return Ok(options);
             }
             catch (NotFoundException)

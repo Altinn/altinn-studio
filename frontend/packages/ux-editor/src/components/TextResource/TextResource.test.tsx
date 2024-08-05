@@ -8,7 +8,7 @@ import { renderWithProviders } from '../../testing/mocks';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { typedLocalStorage } from 'app-shared/utils/webStorage';
+import { typedLocalStorage } from '@studio/components/src/hooks/webStorage';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { appContextMock } from '../../testing/appContextMock';
@@ -118,21 +118,20 @@ describe('TextResource', () => {
 
   it('Calls handleIdChange when selection in search section is changed', async () => {
     await renderAndOpenSearchSection();
-    await user.click(
-      screen.getByRole('combobox', { name: textMock('ux_editor.search_text_resources_label') }),
+
+    await user.selectOptions(
+      screen.getByRole('combobox'),
+      screen.getByRole('option', { name: textResources[1].id }),
     );
 
-    await user.click(screen.getByRole('option', { name: textResources[1].id }));
     expect(handleIdChange).toHaveBeenCalledTimes(1);
     expect(handleIdChange).toHaveBeenCalledWith(textResources[1].id);
   });
 
   it('Calls handleIdChange with undefined when "none" is selected', async () => {
     await renderAndOpenSearchSection();
-    await user.click(
-      screen.getByRole('combobox', { name: textMock('ux_editor.search_text_resources_label') }),
-    );
-    await user.click(
+    await user.selectOptions(
+      screen.getByRole('combobox'),
       screen.getByRole('option', { name: textMock('ux_editor.search_text_resources_none') }),
     );
     expect(handleIdChange).toHaveBeenCalledTimes(1);
@@ -198,6 +197,31 @@ describe('TextResource', () => {
     });
     expect(appContextMock.refetchTexts).toHaveBeenCalledTimes(1);
     expect(appContextMock.refetchTexts).toHaveBeenCalledWith(DEFAULT_LANGUAGE);
+  });
+
+  it('Does not mutate text resource when value is cleared and close button is clicked', async () => {
+    const label = 'Test';
+    const textResourceId = textResources[0].id;
+    const upsertTextResources = jest.fn().mockImplementation(() => Promise.resolve());
+    renderTextResource({ label, textResourceId }, textResources, { upsertTextResources });
+    await user.click(screen.getByRole('button', { name: label }));
+    const textboxLabel = textMock('ux_editor.text_resource_binding_text');
+    const textbox = screen.getByRole('textbox', { name: textboxLabel });
+    await user.clear(textbox);
+    await user.click(screen.getByRole('button', { name: textMock('general.close') }));
+    expect(handleRemoveTextResource).toHaveBeenCalledTimes(1);
+  });
+
+  it('Does not show scrollbar when text content is shorter than default min height', async () => {
+    const label = 'Test';
+    const textResourceId = textResources[0].id;
+    const upsertTextResources = jest.fn().mockImplementation(() => Promise.resolve());
+    renderTextResource({ label, textResourceId }, textResources, { upsertTextResources });
+    await user.click(screen.getByRole('button', { name: label }));
+    const textboxLabel = textMock('ux_editor.text_resource_binding_text');
+    const textbox = screen.getByRole('textbox', { name: textboxLabel });
+    expect(textbox.style.height).toBe('100px'); // the min height passed to the useAutoSizeTextArea hook from TextResourceValueEditor
+    expect(textbox.style.overflow).toBe('hidden');
   });
 });
 

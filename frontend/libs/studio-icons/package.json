@@ -7,12 +7,12 @@
     "test": "jest"
   },
   "dependencies": {
-    "@navikt/aksel-icons": "^5.6.1",
+    "@navikt/aksel-icons": "^6.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "6.4.6",
+    "@testing-library/jest-dom": "6.4.8",
     "@testing-library/react": "16.0.0",
     "@types/jest": "^29.5.5",
     "jest": "^29.7.0",

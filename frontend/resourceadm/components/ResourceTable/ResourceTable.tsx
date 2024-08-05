@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './ResourceTable.module.css';
 import { PencilIcon, FileImportIcon } from '@studio/icons';
-import { Tag } from '@digdir/design-system-react';
+import { Tag } from '@digdir/designsystemet-react';
 import { StudioButton, StudioSpinner, StudioTableLocalPagination } from '@studio/components';
 import type { Columns } from '@studio/components';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
@@ -63,6 +63,7 @@ export const ResourceTable = ({
             />
           }
           onClick={() => onClickEditResource(listItem.identifier)}
+          size='medium'
         />
       );
     } else if (!!onClickImportResource && importResourceId === listItem.identifier) {
@@ -80,6 +81,7 @@ export const ResourceTable = ({
             />
           }
           onClick={() => onClickImportResource(listItem.identifier, listItem.environments)}
+          size='medium'
         />
       );
     } else {

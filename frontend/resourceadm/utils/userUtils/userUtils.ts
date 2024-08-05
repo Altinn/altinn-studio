@@ -1,16 +1,16 @@
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import type { Organization } from 'app-shared/types/Organization';
 
-export const userHasAccessToSelectedContext = ({
-  selectedContext,
+export const userHasAccessToOrganization = ({
+  org,
   orgs,
 }: {
-  selectedContext: string | SelectedContextType;
+  org: string | SelectedContextType;
   orgs: Organization[];
 }): boolean => {
-  if (selectedContext == SelectedContextType.Self || selectedContext == SelectedContextType.All) {
+  if (org == SelectedContextType.Self || org == SelectedContextType.All) {
     return true;
   }
 
-  return Boolean(orgs.find((org) => org.username === selectedContext));
+  return Boolean(orgs.find((x) => x.username === org));
 };

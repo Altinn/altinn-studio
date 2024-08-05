@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal } from '@digdir/design-system-react';
+import { Modal } from '@digdir/designsystemet-react';
 import classes from './FieldsetWrapper.module.css';
 import { StudioButton } from '@studio/components';
 import { TrashIcon, PlusIcon } from '@studio/icons';
@@ -116,7 +116,6 @@ export const FieldsetWrapper = <T,>({
         {listItems.length > 1 && (
           <div className={classes.buttonWrapper}>
             <StudioButton
-              size='small'
               color='danger'
               variant='secondary'
               icon={<TrashIcon />}
@@ -140,17 +139,16 @@ export const FieldsetWrapper = <T,>({
         <Modal.Header>{t(translations.deleteHeader)}</Modal.Header>
         <Modal.Content>{t(translations.deleteConfirmation)}</Modal.Content>
         <Modal.Footer>
-          <StudioButton color='danger' size='small' onClick={handleClickRemoveButton}>
+          <StudioButton color='danger' onClick={handleClickRemoveButton}>
             {t(translations.deleteConfirmationButton)}
           </StudioButton>
-          <StudioButton size='small' variant='tertiary' onClick={onCloseDeleteModal}>
+          <StudioButton variant='tertiary' onClick={onCloseDeleteModal}>
             {t('general.cancel')}
           </StudioButton>
         </Modal.Footer>
       </Modal>
       {displayFields}
       <StudioButton
-        size='small'
         variant='secondary'
         icon={<PlusIcon />}
         iconPlacement='left'

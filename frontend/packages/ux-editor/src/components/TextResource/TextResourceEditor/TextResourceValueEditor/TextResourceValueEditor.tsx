@@ -8,9 +8,11 @@ import type { ITextResources } from 'app-shared/types/global';
 import classes from './TextResourceValueEditor.module.css';
 import { Trans, useTranslation } from 'react-i18next';
 import { useUpsertTextResourceMutation } from '../../../../hooks/mutations/useUpsertTextResourceMutation';
+import { useAutoSizeTextArea } from 'app-shared/hooks/useAutoSizeTextArea';
 
 export type TextResourceValueEditorProps = {
   textResourceId: string;
+  onSetCurrentValue: (value: string) => void;
 };
 
 const language = DEFAULT_LANGUAGE;
@@ -21,17 +23,27 @@ const findTextResource = (textResources: ITextResources, id: string) =>
 const getTextResourceValue = (textResources: ITextResources, id: string) =>
   findTextResource(textResources, id)?.value || '';
 
-export const TextResourceValueEditor = ({ textResourceId }: TextResourceValueEditorProps) => {
+export const TextResourceValueEditor = ({
+  textResourceId,
+  onSetCurrentValue,
+}: TextResourceValueEditorProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
   const { mutate } = useUpsertTextResourceMutation(org, app);
   const value = getTextResourceValue(textResources, textResourceId);
+  const [textEntryValue, setTextEntryValue] = useState(value);
+  const minHeightInPx = 100;
+  const maxHeightInPx = 400;
+  const textareaRef = useAutoSizeTextArea(textEntryValue, { minHeightInPx, maxHeightInPx });
   const [valueState, setValueState] = useState<string>(value);
   const { t } = useTranslation();
 
   useEffect(() => {
     setValueState(value);
   }, [value]);
+
+  const handleTextEntryChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
+    setTextEntryValue(e.currentTarget.value);
 
   const handleChange = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>) => {
@@ -40,12 +52,19 @@ export const TextResourceValueEditor = ({ textResourceId }: TextResourceValueEdi
     [textResourceId, mutate],
   );
 
+  const handleBlur = (event: ChangeEvent<HTMLTextAreaElement>) => {
+    onSetCurrentValue(event.target.value);
+    handleChange(event);
+  };
+
   return (
     <div className={classes.root}>
       <StudioTextarea
         label={t('ux_editor.text_resource_binding_text')}
-        onBlur={handleChange}
+        onBlur={handleBlur}
         value={valueState}
+        onChange={handleTextEntryChange}
+        ref={textareaRef}
       />
       <div className={classes.id}>
         <Trans

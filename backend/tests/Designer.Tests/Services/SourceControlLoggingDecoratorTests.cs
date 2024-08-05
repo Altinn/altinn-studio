@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
@@ -8,9 +9,11 @@ using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using AltinnCore.Authentication.Constants;
 using FluentAssertions;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -60,13 +63,13 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
-        public void DecoratedISourceControlService_CloneRemoteRepository1_LogsErrorWithAdditionalInfo()
+        public async Task DecoratedISourceControlService_CloneRemoteRepository1_LogsErrorWithAdditionalInfo()
         {
             (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
 
             try
             {
-                service.CloneRemoteRepository("org_should_not_exists", "repo_should_not_exists");
+                await service.CloneRemoteRepository("org_should_not_exists", "repo_should_not_exists");
             }
             catch
             {
@@ -76,13 +79,13 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
-        public void DecoratedISourceControlService_CloneRemoteRepository2_LogsErrorWithAdditionalInfo()
+        public async Task DecoratedISourceControlService_CloneRemoteRepository2_LogsErrorWithAdditionalInfo()
         {
             (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
 
             try
             {
-                service.CloneRemoteRepository("org_should_not_exists", "repo_should_not_exists", "destination_path_should_not_exists", "branch_name_should_not_exists");
+                await service.CloneRemoteRepository("org_should_not_exists", "repo_should_not_exists", "destination_path_should_not_exists", "branch_name_should_not_exists");
             }
             catch
             {
@@ -92,13 +95,13 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
-        public void DecoratedISourceControlService_DeleteRepository_LogsErrorWithAdditionalInfo()
+        public async Task DecoratedISourceControlService_DeleteRepository_LogsErrorWithAdditionalInfo()
         {
             (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
 
             try
             {
-                service.DeleteRepository("org_should_not_exists", "repo_should_not_exists");
+                await service.DeleteRepository("org_should_not_exists", "repo_should_not_exists");
             }
             catch
             {
@@ -172,13 +175,13 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
-        public void DecoratedISourceControlService_CommitAndPushChanges_LogsErrorWithAdditionalInfo()
+        public async Task DecoratedISourceControlService_CommitAndPushChanges_LogsErrorWithAdditionalInfo()
         {
             (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
 
             try
             {
-                service.CommitAndPushChanges("org_should_not_exists", "repo_should_not_exists", "non-existing-branch", "non-existing-file", "should_not_be_commited");
+                await service.CommitAndPushChanges("org_should_not_exists", "repo_should_not_exists", "non-existing-branch", "non-existing-file", "should_not_be_commited");
             }
             catch
             {
@@ -220,13 +223,13 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
-        public void DecoratedISourceControlService_FetchRemoteChanges_LogsErrorWithAdditionalInfo()
+        public async Task DecoratedISourceControlService_FetchRemoteChanges_LogsErrorWithAdditionalInfo()
         {
             (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
 
             try
             {
-                service.FetchRemoteChanges("org_should_not_exists", "repo_should_not_exists");
+                await service.FetchRemoteChanges("org_should_not_exists", "repo_should_not_exists");
             }
             catch
             {
@@ -316,13 +319,13 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
-        public void DecoratedISourceControlService_PushChangesForRepository_LogsErrorWithAdditionalInfo()
+        public async Task DecoratedISourceControlService_PushChangesForRepository_LogsErrorWithAdditionalInfo()
         {
             (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
 
             try
             {
-                service.PushChangesForRepository(new CommitInfo() { Org = "org_should_not_exists", Repository = "repo_should_not_exists", Message = "should_not_be_commited" });
+                await service.PushChangesForRepository(new CommitInfo() { Org = "org_should_not_exists", Repository = "repo_should_not_exists", Message = "should_not_be_commited" });
             }
             catch
             {
@@ -364,61 +367,13 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
-        public void DecoratedISourceControlService_VerifyCloneExists_LogsErrorWithAdditionalInfo()
+        public async Task DecoratedISourceControlService_VerifyCloneExists_LogsErrorWithAdditionalInfo()
         {
             (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
 
             try
             {
-                service.VerifyCloneExists("org_should_not_exists", "repo_should_not_exists");
-            }
-            catch
-            {
-            }
-
-            loggerMock.Verify();
-        }
-
-        [Fact]
-        public void DecoratedISourceControlService_GetAppToken_LogsErrorWithAdditionalInfo()
-        {
-            (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-
-            try
-            {
-                service.GetAppToken();
-            }
-            catch
-            {
-            }
-
-            loggerMock.Verify();
-        }
-
-        [Fact]
-        public void DecoratedISourceControlService_GetAppTokenId_LogsErrorWithAdditionalInfo()
-        {
-            (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-
-            try
-            {
-                service.GetAppTokenId();
-            }
-            catch
-            {
-            }
-
-            loggerMock.Verify();
-        }
-
-        [Fact]
-        public void DecoratedISourceControlService_GetDeployToken_LogsErrorWithAdditionalInfo()
-        {
-            (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-
-            try
-            {
-                service.GetDeployToken();
+                await service.VerifyCloneExists("org_should_not_exists", "repo_should_not_exists");
             }
             catch
             {
@@ -472,6 +427,8 @@ namespace Designer.Tests.Services
 
             Mock<IHttpContextAccessor> httpContextAccessorMock = new Mock<IHttpContextAccessor>();
             httpContextAccessorMock.Setup(s => s.HttpContext).Returns(httpContext);
+            Environment.SetEnvironmentVariable("OidcLoginSettings__ClientId", "test");
+            Environment.SetEnvironmentVariable("OidcLoginSettings__ClientSecret", "test");
 
             var services = _webApplicationFactory.WithWebHostBuilder(builder =>
             {
@@ -492,6 +449,7 @@ namespace Designer.Tests.Services
         {
             var claims = new List<Claim>();
             claims.Add(new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, "altinn.no"));
+            claims.Add(new Claim(ClaimTypes.Name, userName));
             ClaimsIdentity identity = new ClaimsIdentity("TestUserLogin");
             identity.AddClaims(claims);
 
@@ -522,12 +480,12 @@ namespace Designer.Tests.Services
             throw new NotImplementedException();
         }
 
-        public string CloneRemoteRepository(string org, string repository)
+        public Task<string> CloneRemoteRepository(string org, string repository)
         {
             throw new NotImplementedException();
         }
 
-        public string CloneRemoteRepository(string org, string repository, string destinationPath, string branchName = "")
+        public Task<string> CloneRemoteRepository(string org, string repository, string destinationPath, string branchName = "")
         {
             throw new NotImplementedException();
         }
@@ -537,7 +495,7 @@ namespace Designer.Tests.Services
             throw new NotImplementedException();
         }
 
-        public void CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message)
+        public Task CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message)
         {
             throw new NotImplementedException();
         }
@@ -557,7 +515,7 @@ namespace Designer.Tests.Services
             throw new NotImplementedException();
         }
 
-        public void FetchRemoteChanges(string org, string repository)
+        public Task FetchRemoteChanges(string org, string repository)
         {
             throw new NotImplementedException();
         }
@@ -597,7 +555,7 @@ namespace Designer.Tests.Services
             throw new NotImplementedException();
         }
 
-        public RepoStatus PullRemoteChanges(string org, string repository)
+        public Task<RepoStatus> PullRemoteChanges(string org, string repository)
         {
             throw new NotImplementedException();
         }
@@ -607,7 +565,7 @@ namespace Designer.Tests.Services
             throw new NotImplementedException();
         }
 
-        public void PushChangesForRepository(CommitInfo commitInfo)
+        public Task PushChangesForRepository(CommitInfo commitInfo)
         {
             throw new NotImplementedException();
         }
@@ -637,7 +595,7 @@ namespace Designer.Tests.Services
             throw new NotImplementedException();
         }
 
-        public void VerifyCloneExists(string org, string repository)
+        public Task VerifyCloneExists(string org, string repository)
         {
             throw new NotImplementedException();
         }

@@ -1,5 +1,5 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderHookWithMockStore } from '../../test/mocks';
+import { renderHookWithProviders } from '../../test/mocks';
 import { waitFor } from '@testing-library/react';
 import { useAddLayoutSetMutation } from './useAddLayoutSetMutation';
 import type { LayoutSetConfig, LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
@@ -9,25 +9,50 @@ import { app, org } from '@studio/testing/testids';
 
 // Test data:
 const layoutSetIdToUpdate = 'oldLayoutSetName';
-const layoutSet: LayoutSetConfig = {
+const taskType = 'data';
+const layoutSetConfig: LayoutSetConfig = {
   id: 'newLayoutSetName',
   tasks: ['task_2'],
 };
 
 describe('useAddLayoutSetMutation', () => {
+  afterEach(jest.clearAllMocks);
+
   it('Calls useAddLayoutSetMutation with correct arguments and payload', async () => {
-    const addLayoutSetResult = renderHookWithMockStore()(() => useAddLayoutSetMutation(org, app))
+    const addLayoutSetResult = renderHookWithProviders()(() => useAddLayoutSetMutation(org, app))
       .renderHookResult.result;
     await waitFor(() =>
       addLayoutSetResult.current.mutateAsync({
-        layoutSetIdToUpdate: layoutSetIdToUpdate,
-        layoutSetConfig: layoutSet,
+        layoutSetIdToUpdate,
+        taskType,
+        layoutSetConfig,
       }),
     );
     expect(addLayoutSetResult.current.isSuccess).toBe(true);
 
     expect(queriesMock.addLayoutSet).toHaveBeenCalledTimes(1);
-    expect(queriesMock.addLayoutSet).toHaveBeenCalledWith(org, app, layoutSetIdToUpdate, layoutSet);
+    expect(queriesMock.addLayoutSet).toHaveBeenCalledWith(org, app, layoutSetIdToUpdate, {
+      layoutSetConfig,
+      taskType,
+    });
+  });
+
+  it('Calls useAddLayoutSetMutation with correct arguments and payload also when taskType is not provided', async () => {
+    const addLayoutSetResult = renderHookWithProviders()(() => useAddLayoutSetMutation(org, app))
+      .renderHookResult.result;
+    await waitFor(() =>
+      addLayoutSetResult.current.mutateAsync({
+        layoutSetIdToUpdate,
+        layoutSetConfig,
+      }),
+    );
+    expect(addLayoutSetResult.current.isSuccess).toBe(true);
+
+    expect(queriesMock.addLayoutSet).toHaveBeenCalledTimes(1);
+    expect(queriesMock.addLayoutSet).toHaveBeenCalledWith(org, app, layoutSetIdToUpdate, {
+      layoutSetConfig,
+      undefined,
+    });
   });
 
   it('Sets queryData if response is of type LayoutSets', async () => {
@@ -36,15 +61,15 @@ describe('useAddLayoutSetMutation', () => {
     const addLayoutSetMock = jest
       .fn()
       .mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets));
-    const addLayoutSetResult = renderHookWithMockStore(
-      {},
+    const addLayoutSetResult = renderHookWithProviders(
       { addLayoutSet: addLayoutSetMock },
       queryClientMock,
     )(() => useAddLayoutSetMutation(org, app)).renderHookResult.result;
     await waitFor(() =>
       addLayoutSetResult.current.mutateAsync({
-        layoutSetIdToUpdate: layoutSetIdToUpdate,
-        layoutSetConfig: layoutSet,
+        layoutSetIdToUpdate,
+        taskType,
+        layoutSetConfig,
       }),
     );
     expect(addLayoutSetResult.current.isSuccess).toBe(true);
@@ -58,15 +83,15 @@ describe('useAddLayoutSetMutation', () => {
       .fn()
       .mockImplementation(() => Promise.resolve('Layout set already exist error'));
     const queryClientMock = createQueryClientMock();
-    const addLayoutSetResult = renderHookWithMockStore(
-      {},
+    const addLayoutSetResult = renderHookWithProviders(
       { addLayoutSet: addLayoutSetMock },
       queryClientMock,
     )(() => useAddLayoutSetMutation(org, app)).renderHookResult.result;
     await waitFor(() =>
       addLayoutSetResult.current.mutateAsync({
         layoutSetIdToUpdate: layoutSetIdToUpdate,
-        layoutSetConfig: layoutSet,
+        taskType,
+        layoutSetConfig,
       }),
     );
     expect(addLayoutSetResult.current.isSuccess).toBe(true);
@@ -78,15 +103,15 @@ describe('useAddLayoutSetMutation', () => {
   it('does not set queryData if response is not of type LayoutSets', async () => {
     const addLayoutSetMock = jest.fn().mockImplementation(() => Promise.resolve({}));
     const queryClientMock = createQueryClientMock();
-    const addLayoutSetResult = renderHookWithMockStore(
-      {},
+    const addLayoutSetResult = renderHookWithProviders(
       { addLayoutSet: addLayoutSetMock },
       queryClientMock,
     )(() => useAddLayoutSetMutation(org, app)).renderHookResult.result;
     await waitFor(() =>
       addLayoutSetResult.current.mutateAsync({
         layoutSetIdToUpdate: layoutSetIdToUpdate,
-        layoutSetConfig: layoutSet,
+        taskType,
+        layoutSetConfig,
       }),
     );
     expect(addLayoutSetResult.current.isSuccess).toBe(true);

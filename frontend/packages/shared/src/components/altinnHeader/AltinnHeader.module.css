@@ -38,6 +38,11 @@
   padding: 0 0.5rem;
 }
 
+.headingMenuItem {
+  padding-left: var(--fds-spacing-8);
+  color: var(--fds-semantic-background-default);
+}
+
 .altinnHeaderBar .rightContent {
   align-items: center;
   display: flex;

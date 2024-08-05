@@ -7,6 +7,21 @@ import type { TaskEvent } from '@altinn/process-editor/types/TaskEvent';
 import type { BpmnBusinessObjectEditor } from '@altinn/process-editor/types/BpmnBusinessObjectEditor';
 import { app, org } from '@studio/testing/testids';
 import type { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
+import { getMockBpmnElementForTask } from '../../../../packages/process-editor/test/mocks/bpmnDetailsMock';
+import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioModeler';
+
+jest.mock('@altinn/process-editor/utils/bpmnModeler/StudioModeler', () => {
+  const actual = jest.requireActual('@altinn/process-editor/utils/bpmnModeler/StudioModeler');
+  return {
+    ...actual,
+    StudioModeler: jest.fn().mockImplementation((args) => {
+      const instance = new actual.StudioModeler(args);
+      instance.getElement = jest.fn().mockReturnValue(instance.element);
+      instance.getAllTasksByType = jest.fn().mockReturnValue(signingTasks);
+      return instance;
+    }),
+  };
+});
 
 const currentPolicyMock: Policy = {
   requiredAuthenticationLevelOrg: '3',
@@ -19,7 +34,7 @@ const layoutSetsMock = {
 
 const mutateApplicationPolicyMock = jest.fn();
 const deleteDataTypeFromAppMetadataMock = jest.fn();
-const deletelayoutSetMock = jest.fn();
+const deleteLayoutSetMock = jest.fn();
 
 const createTaskMetadataMock = (
   taskType: string,
@@ -36,6 +51,33 @@ const createTaskMetadataMock = (
   } as TaskEvent,
 });
 
+const createSigningTask = (id: string, signatureDataType: string, dataTypes: string[]) => {
+  return {
+    ...getMockBpmnElementForTask('signing'),
+    id,
+    businessObject: {
+      extensionElements: {
+        values: [
+          {
+            signatureConfig: {
+              signatureDataType,
+              uniqueFromSignaturesInDataTypes: {
+                dataTypes: dataTypes.map((dataType) => ({ dataType })),
+              },
+            },
+            taskType: 'signing',
+          },
+        ],
+      },
+    },
+  };
+};
+
+const signingTasks = [
+  createSigningTask('task_1', 'dataType1', []),
+  createSigningTask('task_2', 'dataType2', ['dataType1']),
+];
+
 const createOnRemoveProcessTaskHandler = ({ currentPolicy, layoutSets }: any) => {
   return new OnProcessTaskRemoveHandler(
     org,
@@ -44,13 +86,13 @@ const createOnRemoveProcessTaskHandler = ({ currentPolicy, layoutSets }: any) =>
     layoutSets || layoutSetsMock,
     mutateApplicationPolicyMock,
     deleteDataTypeFromAppMetadataMock,
-    deletelayoutSetMock,
+    deleteLayoutSetMock,
   );
 };
 
 describe('OnProcessTaskRemoveHandler', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   it('should remove layoutSet when data-task is deleted', () => {
@@ -69,7 +111,7 @@ describe('OnProcessTaskRemoveHandler', () => {
     });
 
     onProcessTaskRemoveHandler.handleOnProcessTaskRemove(taskMetadata);
-    expect(deletelayoutSetMock).toHaveBeenCalledWith({ layoutSetIdToUpdate: 'testLayoutSetId' });
+    expect(deleteLayoutSetMock).toHaveBeenCalledWith({ layoutSetIdToUpdate: 'testLayoutSetId' });
     expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
     expect(deleteDataTypeFromAppMetadataMock).not.toHaveBeenCalled();
   });
@@ -113,11 +155,13 @@ describe('OnProcessTaskRemoveHandler', () => {
     const onProcessTaskRemoveHandler = createOnRemoveProcessTaskHandler({
       currentPolicy,
     });
-    onProcessTaskRemoveHandler.handleOnProcessTaskRemove(createTaskMetadataMock('payment'));
+    onProcessTaskRemoveHandler.handleOnProcessTaskRemove(
+      createTaskMetadataMock('payment', getMockBpmnElementForTask('payment').businessObject),
+    );
 
     expect(mutateApplicationPolicyMock).toHaveBeenCalledWith(expectedResponse);
     expect(mutateApplicationPolicyMock).toHaveBeenCalledTimes(1);
-    expect(deletelayoutSetMock).not.toHaveBeenCalled();
+    expect(deleteLayoutSetMock).not.toHaveBeenCalled();
   });
 
   it('should delete layoutSet for payment-task if layoutSet exists', () => {
@@ -125,18 +169,17 @@ describe('OnProcessTaskRemoveHandler', () => {
       sets: [{ id: 'testLayoutSetId', dataType: 'payment', tasks: ['testElementId'] }],
     };
 
-    const taskMetadata = createTaskMetadataMock('payment', {
-      id: 'testEventId',
-      $type: BpmnTypeEnum.Task,
-      extensionElements: undefined,
-    });
+    const taskMetadata = createTaskMetadataMock(
+      'payment',
+      getMockBpmnElementForTask('payment').businessObject,
+    );
 
     const onProcessTaskRemoveHandler = createOnRemoveProcessTaskHandler({
       layoutSets,
     });
 
     onProcessTaskRemoveHandler.handleOnProcessTaskRemove(taskMetadata);
-    expect(deletelayoutSetMock).toHaveBeenCalledWith({ layoutSetIdToUpdate: 'testLayoutSetId' });
+    expect(deleteLayoutSetMock).toHaveBeenCalledWith({ layoutSetIdToUpdate: 'testLayoutSetId' });
   });
 
   it('should remove datatype from app metadata and delete layoutSet when the signing task is deleted', () => {
@@ -144,11 +187,10 @@ describe('OnProcessTaskRemoveHandler', () => {
       sets: [{ id: 'testLayoutSetId', dataType: 'signing', tasks: ['testElementId'] }],
     };
 
-    const taskMetadata = createTaskMetadataMock('signing', {
-      id: 'testEventId',
-      $type: BpmnTypeEnum.Task,
-      extensionElements: undefined,
-    });
+    const taskMetadata = createTaskMetadataMock(
+      'signing',
+      getMockBpmnElementForTask('signing').businessObject,
+    );
 
     const onProcessTaskRemoveHandler = createOnRemoveProcessTaskHandler({
       layoutSets,
@@ -156,7 +198,49 @@ describe('OnProcessTaskRemoveHandler', () => {
 
     onProcessTaskRemoveHandler.handleOnProcessTaskRemove(taskMetadata);
     expect(deleteDataTypeFromAppMetadataMock).toHaveBeenCalled();
-    expect(deletelayoutSetMock).toHaveBeenCalledWith({ layoutSetIdToUpdate: 'testLayoutSetId' });
+    expect(deleteLayoutSetMock).toHaveBeenCalledWith({ layoutSetIdToUpdate: 'testLayoutSetId' });
+    expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
+  });
+
+  it('should remove both dataTypes from app metadata and delete layoutSet when the payment task is deleted', () => {
+    const layoutSets: LayoutSets = {
+      sets: [{ id: 'testLayoutSetId', dataType: 'payment', tasks: ['testElementId'] }],
+    };
+
+    const taskMetadata = createTaskMetadataMock(
+      'payment',
+      getMockBpmnElementForTask('payment').businessObject,
+    );
+
+    const onProcessTaskRemoveHandler = createOnRemoveProcessTaskHandler({
+      layoutSets,
+    });
+
+    onProcessTaskRemoveHandler.handleOnProcessTaskRemove(taskMetadata);
+    expect(deleteDataTypeFromAppMetadataMock).toHaveBeenCalledTimes(2);
+    expect(deleteLayoutSetMock).toHaveBeenCalledWith({ layoutSetIdToUpdate: 'testLayoutSetId' });
+    expect(mutateApplicationPolicyMock).toHaveBeenCalled();
+  });
+
+  it('should remove signature type from tasks when the signing task is deleted', () => {
+    const deletedSigningTask = createTaskMetadataMock('signing', signingTasks[0].businessObject);
+
+    const onProcessTaskRemoveHandler = createOnRemoveProcessTaskHandler({});
+    const studioModeler = new StudioModeler(deletedSigningTask);
+
+    expect(
+      studioModeler.getAllTasksByType('bpmn:Task').find((item) => item.id === 'task_2')
+        .businessObject.extensionElements.values[0].signatureConfig.uniqueFromSignaturesInDataTypes
+        .dataTypes[0].dataType,
+    ).toBe('dataType1');
+
+    onProcessTaskRemoveHandler.handleOnProcessTaskRemove(deletedSigningTask);
+
+    expect(
+      studioModeler.getAllTasksByType('bpmn:Task').find((item) => item.id === 'task_2')
+        .businessObject.extensionElements.values[0].signatureConfig.uniqueFromSignaturesInDataTypes
+        .dataTypes,
+    ).toHaveLength(0);
     expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
   });
 });

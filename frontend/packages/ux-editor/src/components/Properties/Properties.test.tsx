@@ -8,6 +8,12 @@ import { formItemContextProviderMock } from '../../testing/formItemContextMocks'
 import { renderWithProviders } from '../../testing/mocks';
 import { componentMocks } from '../../testing/componentMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { app, org } from '@studio/testing/testids';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
+import type { IFormLayouts } from '@altinn/ux-editor/types/global';
 
 // Test data:
 const pageConfigPanelTestId = 'pageConfigPanel';
@@ -17,6 +23,11 @@ const editFormComponentTestId = 'content';
 const conditionalRenderingTestId = 'conditionalRendering';
 const expressionsTestId = 'expressions';
 const calculationsTestId = 'calculations';
+
+const layoutSetName = layoutSet1NameMock;
+const layouts: IFormLayouts = {
+  [layout1NameMock]: layoutMock,
+};
 
 // Mocks:
 jest.mock('../config/EditFormComponent', () => ({
@@ -52,30 +63,6 @@ describe('Properties', () => {
     jest.clearAllMocks();
   });
 
-  describe('Text', () => {
-    it('Toggles text when clicked', async () => {
-      const user = userEvent.setup();
-      renderProperties();
-      const button = screen.queryByRole('button', { name: textMock('right_menu.text') });
-      await user.click(button);
-      expect(button).toHaveAttribute('aria-expanded', 'true');
-      await user.click(button);
-      expect(button).toHaveAttribute('aria-expanded', 'false');
-    });
-  });
-  describe('DataModelBindings', () => {
-    it('Toggles dataModelBindings when clicked', async () => {
-      const user = userEvent.setup();
-      renderProperties();
-      const button = screen.queryByRole('button', {
-        name: textMock('right_menu.data_model_bindings'),
-      });
-      await user.click(button);
-      expect(button).toHaveAttribute('aria-expanded', 'true');
-      await user.click(button);
-      expect(button).toHaveAttribute('aria-expanded', 'false');
-    });
-  });
   describe('Page config', () => {
     it('shows page config when formItem is undefined', () => {
       renderProperties({ formItem: undefined });
@@ -84,6 +71,17 @@ describe('Properties', () => {
     });
   });
   describe('Component ID Config', () => {
+    it('saves the component when changes are made in the component', async () => {
+      const user = userEvent.setup();
+      renderProperties();
+      const button = screen.queryByRole('button', { name: textMock('right_menu.content') });
+      await user.click(button);
+      const readOnly = screen.getByText(textMock('ux_editor.component_properties.readOnly'));
+      await user.click(readOnly);
+      expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalledTimes(1);
+      expect(formItemContextProviderMock.debounceSave).toHaveBeenCalledTimes(1);
+    });
+
     it('saves the component when changes are made in the properties header', async () => {
       const user = userEvent.setup();
       renderProperties();
@@ -103,17 +101,6 @@ describe('Properties', () => {
       const validId = 'valid-id';
       await user.type(textbox, validId);
       await user.click(document.body);
-      expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalledTimes(1);
-      expect(formItemContextProviderMock.debounceSave).toHaveBeenCalledTimes(1);
-    });
-
-    it('saves the component when changes are made in the component', async () => {
-      const user = userEvent.setup();
-      renderProperties();
-      const button = screen.queryByRole('button', { name: textMock('right_menu.content') });
-      await user.click(button);
-      const readOnly = screen.getByText(textMock('ux_editor.component_properties.readOnly'));
-      await user.click(readOnly);
       expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalledTimes(1);
       expect(formItemContextProviderMock.debounceSave).toHaveBeenCalledTimes(1);
     });
@@ -151,6 +138,32 @@ describe('Properties', () => {
         name: textMock('right_menu.calculations'),
       });
       expect(calculationsAccordion).toHaveAttribute('aria-expanded', 'false');
+    });
+  });
+
+  describe('Text', () => {
+    it('Toggles text when clicked', async () => {
+      const user = userEvent.setup();
+      renderProperties();
+      const button = screen.queryByRole('button', { name: textMock('right_menu.text') });
+      await user.click(button);
+      expect(button).toHaveAttribute('aria-expanded', 'true');
+      await user.click(button);
+      expect(button).toHaveAttribute('aria-expanded', 'false');
+    });
+  });
+
+  describe('DataModelBindings', () => {
+    it('Toggles dataModelBindings when clicked', async () => {
+      const user = userEvent.setup();
+      renderProperties();
+      const button = screen.queryByRole('button', {
+        name: textMock('right_menu.data_model_bindings'),
+      });
+      await user.click(button);
+      expect(button).toHaveAttribute('aria-expanded', 'true');
+      await user.click(button);
+      expect(button).toHaveAttribute('aria-expanded', 'false');
     });
   });
 
@@ -226,7 +239,9 @@ describe('Properties', () => {
     expect(screen.getByTestId(DataModelBindingsTestId)).toBeInTheDocument();
     expect(screen.getByTestId(editFormComponentTestId)).toBeInTheDocument();
     expect(screen.getByTestId(expressionsTestId)).toBeInTheDocument();
-    expect(screen.getByTestId(calculationsTestId)).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('right_menu.rules_calculations_deprecated_info_title')),
+    ).toBeInTheDocument();
   });
 });
 
@@ -251,4 +266,11 @@ const renderProperties = (
     formItem: componentMocks[ComponentType.Input],
     formItemId: componentMocks[ComponentType.Input].id,
   },
-) => renderWithProviders(getComponent(formItemContextProps));
+) => {
+  const queryClientMock = createQueryClientMock();
+  queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
+
+  return renderWithProviders(getComponent(formItemContextProps), {
+    queryClient: queryClientMock,
+  });
+};

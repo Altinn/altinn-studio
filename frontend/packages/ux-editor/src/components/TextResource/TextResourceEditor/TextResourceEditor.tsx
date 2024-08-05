@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Tabs } from '@digdir/design-system-react';
+import { Tabs } from '@digdir/designsystemet-react';
 import { TextResourceValueEditor } from './TextResourceValueEditor';
 import { TextResourcePicker } from './TextResourcePicker';
 import classes from './TextResourceEditor.module.css';
 import { useTranslation } from 'react-i18next';
 
 export interface TextResourceProps {
-  onReferenceChange: (id: string) => void;
   textResourceId: string;
+  onReferenceChange: (id: string) => void;
+  onSetCurrentValue: (value: string) => void;
 }
 
 enum TextResourceTab {
@@ -15,7 +16,11 @@ enum TextResourceTab {
   Search = 'search',
 }
 
-export const TextResourceEditor = ({ onReferenceChange, textResourceId }: TextResourceProps) => {
+export const TextResourceEditor = ({
+  textResourceId,
+  onReferenceChange,
+  onSetCurrentValue,
+}: TextResourceProps) => {
   const [tab, setTab] = useState<string>(TextResourceTab.Type);
   const { t } = useTranslation();
 
@@ -30,7 +35,10 @@ export const TextResourceEditor = ({ onReferenceChange, textResourceId }: TextRe
         </Tabs.Tab>
       </Tabs.List>
       <Tabs.Content value={TextResourceTab.Type} className={classes.tabContent}>
-        <TextResourceValueEditor textResourceId={textResourceId} />
+        <TextResourceValueEditor
+          textResourceId={textResourceId}
+          onSetCurrentValue={onSetCurrentValue}
+        />
       </Tabs.Content>
       <Tabs.Content value={TextResourceTab.Search}>
         <TextResourcePicker onReferenceChange={onReferenceChange} textResourceId={textResourceId} />

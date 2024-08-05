@@ -21,11 +21,11 @@ See deployment for notes on how to deploy the project on a live system.
 
 ### Prerequisites
 
-1. Newest [.NET 6 SDK][2]
+1. Newest [.NET 8 SDK][2]
 2. [Node.js][3] (version 16.\*)
 3. Newest [Git][4]
 4. A code editor - we like [Visual Studio Code][5]
-   - Also install [recommended extensions][6] (f.ex. [C#][7])
+   - Also install [recommended extensions][6] (f.ex. [C# Dev Kit][7])
 5. [Docker Desktop][8]
 6. If you are running Docker Desktop in Hyper-V mode you need to make sure your C drive is shared with Docker, Docker
    Settings -> Shared Drives The File sharing tab is only available in Hyper-V mode, because in WSL 2 mode and Windows
@@ -61,6 +61,7 @@ The development environment consist of several services defined in [compose.yaml
 - `studio-designer` which is the actual build artifact with the .NET backend and the react-apps.
 - `studio-repos` which is [gitea][20] with some custom config. More [here](gitea/README.md).
 - `studio-db` which is a postgres database used by both `studio-designer` and `studio-repos`.
+- `database_migrations` which is a one-time task container designed to perform and complete database migrations before exiting.
 
 Run all parts of the solution in containers (Make sure docker is running), with docker compose as follows:
 
@@ -99,11 +100,11 @@ DEVELOP_STUDIO_ROOT=0
 Navigate to the designer backend folder `cd backend/src/Designer`. The first time running, or after any package changes,
 get the latest packages.
 
-- On MacOS you need one extra step before running .NET:
-  Change location where the application stores the DataProtectionKeys
-  ```bash
-  export ALTINN_KEYS_DIRECTORY=/Users/<yourname>/studio/keys
-  ```
+The backend uses the OIDC login flow with Gitea as the identity provider. The client ID and client secret are required in the configuration.
+
+When running the backend locally, the .env file will be used to fetch the client ID and secret if they are not already set in the configuration.
+
+If the setup script is run, an OAuth2 application will be created in Gitea, and the CLIENT_ID and CLIENT_SECRET values will be set in the .env file. Alternatively, you can set up the OAuth2 application yourself in Gitea and manually set the client ID and client secret values in the configuration.
 
 If you want to work on creating apps locally, the [app-template-dotnet](https://github.com/Altinn/app-template-dotnet) repo
 should be cloned. If the templates repo is cloned in the same folder as altinn-studio, no changes needs to be done,
@@ -157,7 +158,7 @@ The current build is deployed in Kubernetes on Azure. Automated CI/CD using Azur
 
 ## Built With
 
-- [React](https://reactjs.org/)/[Redux](https://redux.js.org/) - The front-end framework
+- [React](https://reactjs.org/) - The front-end framework
 - [.NET Core](https://docs.microsoft.com/en-us/dotnet/core/)/[C#](https://docs.microsoft.com/en-us/dotnet/csharp/) - The back-end framework
 - [yarn](https://yarnpkg.com/) - Package management
 - [Docker](https://www.docker.com/) - Container platform
@@ -183,17 +184,16 @@ See also the [list of contributors](https://github.com/Altinn/altinn-studio/grap
 This project is licensed under the 3-Clause BSD License - see the [LICENSE.md](LICENSE.md) file for details.
 
 [1]: https://docs.altinn.studio/
-[2]: https://dotnet.microsoft.com/download/dotnet/6.0
+[2]: https://dotnet.microsoft.com/download/dotnet/8.0
 [3]: https://nodejs.org
 [4]: https://git-scm.com/downloads
 [5]: https://code.visualstudio.com/Download
 [6]: https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions
-[7]: https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp
+[7]: https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csdevkit
 [8]: https://www.docker.com/products/docker-desktop
 [9]: https://github.com/Altinn/altinn-studio
 [10]: http://studio.localhost
 [11]: https://reactjs.org/
-[12]: https://redux.js.org/
 [13]: https://docs.microsoft.com/en-us/dotnet/core/
 [14]: https://docs.microsoft.com/en-us/dotnet/csharp/
 [15]: https://yarnpkg.com/

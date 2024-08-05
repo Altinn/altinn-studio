@@ -1,5 +1,4 @@
 .inverted {
-  padding: var(--fds-spacing-3);
   color: var(--fds-semantic-text-neutral-on_inverted);
   border-color: var(--fds-semantic-text-neutral-on_inverted);
 }

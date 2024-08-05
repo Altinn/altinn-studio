@@ -65,11 +65,10 @@ export class GiteaPage extends BasePage {
     await this.page.getByText(giteaPageTexts['dataModelBindings']).isHidden();
   }
 
-  public async verifyThatDataModelBindingsAreVisible(dataModelBindingName: string): Promise<void> {
-    await this.page.getByText(giteaPageTexts['dataModelBindings']).isVisible();
-    await this.page
-      .getByText(`"simpleBinding": "${dataModelBindingName}"`, { exact: true })
-      .isVisible();
+  public async verifyThatDataModelBindingsAreVisible(dataModelBinding: string): Promise<void> {
+    // Todo: Check the JSON structure directly instead: https://github.com/Altinn/altinn-studio/issues/13216
+    await this.page.getByText(giteaPageTexts['dataModelBindings']).first().isVisible();
+    await this.page.getByText(dataModelBinding, { exact: true }).isVisible();
   }
 
   public async verifyThatComponentIdIsVisible(id: string): Promise<void> {

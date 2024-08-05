@@ -252,6 +252,12 @@
       },
       "required": ["simpleBinding"],
       "additionalProperties": false
+    },
+    "alertOnChange": {
+      "title": "Alert on change",
+      "description": "Boolean value indicating if the component should alert on change",
+      "default": false,
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
     }
   },
   "required": ["id", "type", "dataModelBindings"],

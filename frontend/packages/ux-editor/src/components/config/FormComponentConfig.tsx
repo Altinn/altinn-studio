@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Card, Heading, Paragraph } from '@digdir/design-system-react';
+import { Alert, Card, Heading, Paragraph } from '@digdir/designsystemet-react';
 import type { FormComponent } from '../../types/FormComponent';
 import { EditBooleanValue } from './editModal/EditBooleanValue';
 import { EditNumberValue } from './editModal/EditNumberValue';
@@ -14,6 +14,7 @@ import { EditGrid } from './editModal/EditGrid';
 import type { FormItem } from '../../types/FormItem';
 import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
 import { useComponentPropertyDescription } from '../../hooks/useComponentPropertyDescription';
+import classes from './FormComponentConfig.module.css';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -196,7 +197,7 @@ export const FormComponentConfig = ({
       {/** Object properties */}
       {objectPropertyKeys.map((propertyKey) => {
         return (
-          <Card key={propertyKey}>
+          <Card key={propertyKey} className={classes.objectPropertyContainer}>
             <Heading level={3} size='xxsmall'>
               {componentPropertyLabel(propertyKey)}
             </Heading>

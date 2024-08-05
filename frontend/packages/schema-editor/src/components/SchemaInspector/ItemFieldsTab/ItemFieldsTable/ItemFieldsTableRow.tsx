@@ -6,7 +6,7 @@ import type { FieldType, UiSchemaNode } from '@altinn/schema-model';
 import { deleteNode, setType, isField, setRequired, setPropertyName } from '@altinn/schema-model';
 import { NameField } from '../../NameField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { NativeSelect, Switch } from '@digdir/design-system-react';
+import { NativeSelect, Switch } from '@digdir/designsystemet-react';
 import { AltinnConfirmDialog } from 'app-shared/components';
 
 import { useTranslation } from 'react-i18next';
@@ -113,7 +113,6 @@ export const ItemFieldsTableRow = ({
                 onClick={() => setIsConfirmDeleteDialogOpen((prevState) => !prevState)}
                 color='danger'
                 variant='tertiary'
-                size='small'
               />
             }
           >

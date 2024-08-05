@@ -1,1 +1,1 @@
-export { Paragraph as StudioParagraph } from '@digdir/design-system-react';
+export { Paragraph as StudioParagraph } from '@digdir/designsystemet-react';

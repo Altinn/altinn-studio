@@ -14,7 +14,7 @@ import {
 } from '../../../../../utils/expressionsUtils';
 import { ComplexExpression } from '../ComplexExpression';
 import { SimpleExpression } from './SimpleExpression';
-import { Switch } from '@digdir/design-system-react';
+import { Switch } from '@digdir/designsystemet-react';
 import { CheckmarkIcon, PlusCircleIcon, TrashIcon } from '@studio/icons';
 import { Trans } from 'react-i18next';
 import classes from '../ExpressionContent.module.css';
@@ -112,7 +112,6 @@ export const ExpressionEditMode = ({
           icon={<TrashIcon />}
           onClick={() => onDeleteExpression(expression)}
           variant='tertiary'
-          size='small'
         />
       </div>
       {complexExpressionIsSet(expression.complexExpression) ? (
@@ -133,7 +132,6 @@ export const ExpressionEditMode = ({
           />
           <StudioButton
             variant='tertiary'
-            size='small'
             onClick={() => addSubExpression(expression.operator || Operator.And)}
             icon={<PlusCircleIcon />}
           >
@@ -149,7 +147,6 @@ export const ExpressionEditMode = ({
           onSaveExpression(expression);
         }}
         variant='primary'
-        size='small'
         disabled={!allowToSaveExpression}
       >
         {t('right_menu.expression_save')}

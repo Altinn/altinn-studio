@@ -1,4 +1,6 @@
 .container {
+  display: flex;
+  flex-direction: column;
   margin: 100px auto auto;
   background-color: white;
   padding: 50px 100px;
@@ -14,5 +16,9 @@
   align-items: center;
   gap: var(--fds-spacing-3);
   padding-top: var(--fds-spacing-3);
+  padding-bottom: var(--fds-spacing-3);
+}
+
+.link {
   padding-bottom: var(--fds-spacing-3);
 }

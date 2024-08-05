@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './RemoveChangesPopoverContent.module.css';
-import { Heading, Paragraph } from '@digdir/design-system-react';
+import { Heading, Paragraph } from '@digdir/designsystemet-react';
 import { StudioTextfield, StudioButton, StudioSpinner } from '@studio/components';
 import { useTranslation, Trans } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
@@ -80,11 +80,10 @@ export const RemoveChangesPopoverContent = ({
             id='confirm-reset-repo-button'
             onClick={onResetWrapper}
             variant='secondary'
-            size='small'
           >
             {t('overview.reset_repo_button')}
           </StudioButton>
-          <StudioButton color='second' onClick={onCloseWrapper} variant='secondary' size='small'>
+          <StudioButton color='second' onClick={onCloseWrapper} variant='secondary'>
             {t('general.cancel')}
           </StudioButton>
         </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './Overview.module.css';
-import { Link } from '@digdir/design-system-react';
+import { Link } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { Documentation } from './Documentation';
 import { Navigation } from './Navigation';

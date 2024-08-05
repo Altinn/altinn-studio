@@ -26,7 +26,7 @@ export const BooleanEditor = ({ expression, onChange }: BooleanEditorProps) => {
         trueLabel={texts.true}
         value={expression}
       />
-      <StudioButton variant='secondary' size='small' onClick={handleSwitchToLogical}>
+      <StudioButton variant='secondary' onClick={handleSwitchToLogical}>
         {texts.transformToLogical}
       </StudioButton>
     </div>

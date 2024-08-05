@@ -1,11 +1,11 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useId } from 'react';
 import classes from './StudioNativeSelect.module.css';
 import {
   Label,
   Paragraph,
   NativeSelect,
   type NativeSelectProps,
-} from '@digdir/design-system-react';
+} from '@digdir/designsystemet-react';
 
 export type StudioNativeSelectProps = {
   description?: string;
@@ -14,11 +14,15 @@ export type StudioNativeSelectProps = {
 //TODO - Add label and description to NativeSelect when this issue is solved in the design system: https://github.com/Altinn/altinn-studio/issues/12725
 export const StudioNativeSelect = forwardRef<HTMLSelectElement, StudioNativeSelectProps>(
   ({ children, description, label, id, size, ...rest }, ref): React.JSX.Element => {
+    const defaultId = useId();
+    id = id ?? defaultId;
     return (
       <div className={classes.wrapper}>
-        <Label size={size} spacing htmlFor={id}>
-          {label}
-        </Label>
+        {label && (
+          <Label size={size} spacing htmlFor={id}>
+            {label}
+          </Label>
+        )}
         {description && (
           <Paragraph
             className={classes.studioNativeSelectDescription}
@@ -30,7 +34,6 @@ export const StudioNativeSelect = forwardRef<HTMLSelectElement, StudioNativeSele
         )}
         <NativeSelect
           ref={ref}
-          label={label}
           hideLabel
           size={size}
           id={id}

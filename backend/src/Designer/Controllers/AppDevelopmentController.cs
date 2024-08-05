@@ -60,10 +60,10 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <returns>default view for the app builder.</returns>
         [Route("/editor/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/{*AllValues}")]
-        public IActionResult Index(string org, string app)
+        public async Task<IActionResult> Index(string org, string app)
         {
-            _sourceControl.VerifyCloneExists(org, app);
-            ViewBag.InstrumentationKey = _applicationInsightsSettings.InstrumentationKey;
+            await _sourceControl.VerifyCloneExists(org, app);
+            ViewBag.AiConnectionString = _applicationInsightsSettings.ConnectionString;
             return View();
         }
 
@@ -326,16 +326,17 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="layoutSet">The config needed for the layout set to be added to layout-sets.json</param>
+        /// <param name="layoutSetPayload">Includes the connected taskType and the actual config needed for the layout set to be added to layout-sets.json.</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         [HttpPost]
         [UseSystemTextJson]
         [Route("layout-set/{layoutSetIdToUpdate}")]
-        public async Task<ActionResult> AddLayoutSet(string org, string app, [FromBody] LayoutSetConfig layoutSet, CancellationToken cancellationToken)
+        public async Task<ActionResult> AddLayoutSet(string org, string app, [FromBody] LayoutSetPayload layoutSetPayload, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            LayoutSets layoutSets = await _appDevelopmentService.AddLayoutSet(editingContext, layoutSet, cancellationToken);
+            bool layoutIsInitialForPaymentTask = layoutSetPayload.TaskType == TaskType.Payment;
+            LayoutSets layoutSets = await _appDevelopmentService.AddLayoutSet(editingContext, layoutSetPayload.LayoutSetConfig, layoutIsInitialForPaymentTask, cancellationToken);
             return Ok(layoutSets);
         }
 
@@ -515,7 +516,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-                string[] optionListIds = altinnAppGitRepository.GetOptionListIds();
+                string[] optionListIds = altinnAppGitRepository.GetOptionsListIds();
                 return Ok(optionListIds);
             }
             catch (LibGit2Sharp.NotFoundException)

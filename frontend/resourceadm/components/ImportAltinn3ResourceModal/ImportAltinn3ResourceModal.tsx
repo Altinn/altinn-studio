@@ -1,6 +1,6 @@
 import React, { forwardRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, Radio } from '@digdir/design-system-react';
+import { Modal, Radio } from '@digdir/designsystemet-react';
 import { StudioButton } from '@studio/components';
 import { getEnvLabel } from '../../utils/resourceUtils';
 import type { EnvId } from '../../utils/resourceUtils';
@@ -46,10 +46,15 @@ export const ImportAltinn3ResourceModal = forwardRef<
         </Radio.Group>
       </Modal.Content>
       <Modal.Footer>
-        <StudioButton variant='primary' disabled={!selectedEnv} onClick={onImportResource}>
+        <StudioButton
+          variant='primary'
+          disabled={!selectedEnv}
+          onClick={onImportResource}
+          size='medium'
+        >
           {t('resourceadm.dashboard_import_environment_confirm')}
         </StudioButton>
-        <StudioButton variant='tertiary' onClick={onCloseModal}>
+        <StudioButton variant='tertiary' onClick={onCloseModal} size='medium'>
           {t('general.cancel')}
         </StudioButton>
       </Modal.Footer>

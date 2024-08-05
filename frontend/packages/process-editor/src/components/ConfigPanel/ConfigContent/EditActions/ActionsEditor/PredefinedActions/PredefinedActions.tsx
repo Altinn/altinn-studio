@@ -4,7 +4,10 @@ import { StudioNativeSelect } from '@studio/components';
 import { useActionHandler } from '../hooks/useOnActionChange';
 import { useBpmnContext } from '../../../../../../contexts/BpmnContext';
 import { getPredefinedActions, isActionAvailable } from '../../../../../../utils/processActions';
-import { type Action, BpmnActionModeler } from '../../../../../../utils/bpmn/BpmnActionModeler';
+import {
+  type Action,
+  BpmnActionModeler,
+} from '../../../../../../utils/bpmnModeler/BpmnActionModeler';
 
 type PredefinedActionsProps = {
   actionElement: Action;
@@ -30,6 +33,7 @@ export const PredefinedActions = ({
 
   return (
     <StudioNativeSelect
+      id='predefined-action-select'
       size='small'
       label={t('process_editor.configuration_panel_actions_action_selector_label')}
       onChange={handleOnActionChange}

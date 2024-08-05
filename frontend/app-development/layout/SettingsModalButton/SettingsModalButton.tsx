@@ -15,7 +15,6 @@ export const SettingsModalButton = (): ReactNode => {
     <>
       <StudioButton
         onClick={() => setSettingsModalOpen(true)}
-        size='small'
         variant='tertiary'
         color='inverted'
         icon={<CogIcon />}

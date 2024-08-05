@@ -98,7 +98,7 @@ export class DashboardPage extends BasePage {
 
   public async clickOnTestAppGiteaButton(appName: string): Promise<void> {
     await this.page
-      .getByRole('link', {
+      .getByRole('button', {
         name: this.textMock('dashboard.show_repo', { appName }),
         exact: true,
       })
@@ -111,13 +111,13 @@ export class DashboardPage extends BasePage {
 
   public async clickOnTestAppEditButton(appName: string): Promise<void> {
     await this.page
-      .getByRole('link', {
+      .getByRole('button', {
         name: this.textMock('dashboard.edit_app', { appName }),
       })
       .click();
   }
 
   public async clickOnLogOutButton(): Promise<void> {
-    await this.page.getByRole('menuitem', { name: this.textMock('dashboard.logout') }).click();
+    await this.page.getByRole('menuitem', { name: this.textMock('shared.header_logout') }).click();
   }
 }

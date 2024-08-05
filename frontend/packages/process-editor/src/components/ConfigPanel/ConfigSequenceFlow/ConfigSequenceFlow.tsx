@@ -8,8 +8,8 @@ import {
 } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
-import { Paragraph } from '@digdir/design-system-react';
-import { BpmnExpressionModeler } from '../../../utils/bpmn/BpmnExpressionModeler';
+import { Paragraph } from '@digdir/designsystemet-react';
+import { BpmnExpressionModeler } from '../../../utils/bpmnModeler/BpmnExpressionModeler';
 import { useExpressionTexts } from 'app-shared/components/Expression/useExpressionTexts';
 import { useTranslation } from 'react-i18next';
 import classes from './ConfigSequenceFlow.module.css';

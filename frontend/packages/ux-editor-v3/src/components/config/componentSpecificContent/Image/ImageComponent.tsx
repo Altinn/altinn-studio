@@ -1,11 +1,11 @@
 import React from 'react';
-import { LegacySelect, Textfield, Fieldset } from '@digdir/design-system-react';
-
+import { Textfield, Fieldset } from '@digdir/designsystemet-react';
 import classes from './ImageComponent.module.css';
 import { TextResource } from '../../../TextResource';
 import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
+import { StudioNativeSelect } from '@studio/components';
 
 export const ImageComponent = ({
   component,
@@ -31,9 +31,9 @@ export const ImageComponent = ({
   const selectedPlacement = alignOptions.filter((x) => x.value === component.image?.align);
   const nbSrc = component.image?.src?.nb;
 
-  const handlePlacementChange = (align: string) => {
+  const handlePlacementChange = (value) => {
     const updatedComponent = { ...component };
-    updatedComponent.image.align = align;
+    updatedComponent.image.align = value;
 
     handleComponentChange(updatedComponent);
   };
@@ -118,7 +118,13 @@ export const ImageComponent = ({
           value={selectedPlacement?.[0]?.value}
           propertyPath={`${component.propertyPath}/properties/image/properties/align`}
           renderField={({ fieldProps }) => (
-            <LegacySelect {...fieldProps} options={alignOptions} inputId={placementSelectId} />
+            <StudioNativeSelect {...fieldProps} id={placementSelectId}>
+              {alignOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </StudioNativeSelect>
           )}
         />
       </div>

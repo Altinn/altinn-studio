@@ -1,13 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FormDesigner } from './containers/FormDesigner';
 import { useText, useAppContext } from './hooks';
-import { StudioPageSpinner } from '@studio/components';
-import { ErrorPage } from './components/ErrorPage';
+import { StudioPageSpinner, StudioPageError } from '@studio/components';
 import { useDataModelMetadataQuery } from './hooks/queries/useDataModelMetadataQuery';
 import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { FormItemContextProvider } from './containers/FormItemContext';
+import { cleanupStaleLocalStorageKeys } from './utils/localStorageUtils';
 
 /**
  * This is the main React component responsible for controlling
@@ -16,12 +16,21 @@ import { FormItemContextProvider } from './containers/FormItemContext';
  */
 
 export function App() {
+  // Remove local storage keys that are no longer supported
+  useEffect(() => {
+    cleanupStaleLocalStorageKeys();
+  }, []);
+
   const t = useText();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
   const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
   const { isSuccess: isDataModelFetched, isError: dataModelFetchedError } =
-    useDataModelMetadataQuery(org, app, selectedFormLayoutSetName, undefined);
+    useDataModelMetadataQuery({
+      org,
+      app,
+      layoutSetName: selectedFormLayoutSetName,
+    });
   const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
 
   const componentIsReady = areWidgetsFetched && isDataModelFetched && areTextResourcesFetched;
@@ -49,7 +58,7 @@ export function App() {
 
   if (componentHasError) {
     const mappedError = mapErrorToDisplayError();
-    return <ErrorPage title={mappedError.title} message={mappedError.message} />;
+    return <StudioPageError title={mappedError.title} message={mappedError.message} />;
   }
 
   if (componentIsReady) {

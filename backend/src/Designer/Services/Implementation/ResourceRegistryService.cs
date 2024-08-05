@@ -19,6 +19,7 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.Altinn2DelegationMigration;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -33,6 +34,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly PlatformSettings _platformSettings;
         private readonly ResourceRegistryIntegrationSettings _resourceRegistrySettings;
         private readonly ResourceRegistryMaskinportenIntegrationSettings _maskinportenIntegrationSettings;
+        private readonly IAltinn2DelegationMigrationClient _altinn2DelegationMigrationClient;
         private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase, WriteIndented = true };
 
         public ResourceRegistryService()
@@ -40,7 +42,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         }
 
-        public ResourceRegistryService(HttpClient httpClient, IHttpClientFactory httpClientFactory, IMaskinportenService maskinportenService, IClientDefinition maskinPortenClientDefinition, PlatformSettings platformSettings, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IOptions<ResourceRegistryMaskinportenIntegrationSettings> maskinportenIntegrationSettings)
+        public ResourceRegistryService(HttpClient httpClient, IHttpClientFactory httpClientFactory, IMaskinportenService maskinportenService, IClientDefinition maskinPortenClientDefinition, PlatformSettings platformSettings, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IOptions<ResourceRegistryMaskinportenIntegrationSettings> maskinportenIntegrationSettings, IAltinn2DelegationMigrationClient altinn2DelegationMigrationClient)
         {
             _httpClient = httpClient;
             _httpClientFactory = httpClientFactory;
@@ -49,6 +51,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _platformSettings = platformSettings;
             _resourceRegistrySettings = resourceRegistryEnvironment.Value;
             _maskinportenIntegrationSettings = maskinportenIntegrationSettings.Value;
+            _altinn2DelegationMigrationClient = altinn2DelegationMigrationClient;
         }
 
         public async Task<ActionResult> PublishServiceResource(ServiceResource serviceResource, string env, string policyPath = null)
@@ -294,6 +297,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return policy;
+        }
+
+        public async Task<DelegationCountOverview> GetDelegationCount(string serviceCode, int serviceEditionCode, string environment)
+        {
+            return await _altinn2DelegationMigrationClient.GetNumberOfDelegations(serviceCode, serviceEditionCode, environment);
+        }
+        public async Task<ActionResult> StartMigrateDelegations(ExportDelegationsRequestBE delegationRequest, string environment)
+        {
+            // TODO
+
+            return new StatusCodeResult(201);
         }
 
         // RRR

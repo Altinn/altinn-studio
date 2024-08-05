@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './ServiceContent.module.css';
-import { Alert, ErrorMessage, Combobox, Paragraph, Spinner } from '@digdir/design-system-react';
+import { Alert, ErrorMessage, Combobox, Paragraph, Spinner } from '@digdir/designsystemet-react';
 import { StudioCenter } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useGetAltinn2LinkServicesQuery } from '../../../hooks/queries';
@@ -12,7 +12,7 @@ import {
 } from '../../../utils/mapperUtils';
 
 export type ServiceContentProps = {
-  selectedContext: string;
+  org: string;
   env: string;
   selectedService: Altinn2LinkService | undefined;
   onSelectService: (altinn2LinkService: Altinn2LinkService | undefined) => void;
@@ -22,7 +22,7 @@ export type ServiceContentProps = {
  * @component
  *    Displays the Service content in the import resource from Altinn 2 modal.
  *
- * @property {string}[selectedContext] - The selected context
+ * @property {string}[org] - The selected org
  * @property {string}[env] - The selected environment
  * @property {Altinn2LinkService | undefined}[selectedService] - The selected service
  * @property {function}[onSelectService] - Function to be executed when selecting the service
@@ -30,7 +30,7 @@ export type ServiceContentProps = {
  * @returns {ReactNode} - The rendered component
  */
 export const ServiceContent = ({
-  selectedContext,
+  org,
   env,
   selectedService,
   onSelectService,
@@ -41,7 +41,7 @@ export const ServiceContent = ({
     data: altinn2LinkServices,
     status: altinn2LinkServicesStatus,
     error: altinn2LinkServicesError,
-  } = useGetAltinn2LinkServicesQuery(selectedContext, env);
+  } = useGetAltinn2LinkServicesQuery(org, env);
 
   /**
    * Handles the selection of the service
