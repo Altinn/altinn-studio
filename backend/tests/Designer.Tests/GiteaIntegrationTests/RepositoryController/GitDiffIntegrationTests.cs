@@ -1,49 +1,56 @@
+using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Designer.Tests.Fixtures;
+using Designer.Tests.Services;
 using Designer.Tests.Utils;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
+using SharedResources.Tests;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Designer.Tests.GiteaIntegrationTests.RepositoryController;
 
 
-public class GitDiffIntegrationTests : GiteaIntegrationTestsBase<GitDiffIntegrationTests>, IClassFixture<WebApplicationFactory<Program>>
+public class GitDiffIntegrationTests : GiteaIntegrationTestsBase<GitDiffIntegrationTests>
 {
-  public GitDiffIntegrationTests(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture) : base(factory, giteaFixture)
-  {
-  }
+    private readonly ITestOutputHelper _testOutputHelper;
 
-  [Theory]
-  [InlineData(GiteaConstants.TestOrgUsername)]
-  public async Task Test(string org)
-  {
-    string targetRepo = TestDataHelper.GenerateTestRepoName();
-    await CreateAppUsingDesigner(org, targetRepo);
-    string defaultLayoutSetName = "form";
-    string newLayoutSetName = "newLayoutSetName";
-    string updateLayoutSetNameUrl = $"designer/api/{org}/{targetRepo}/app-development/layout-set/{defaultLayoutSetName}";
-
-    using var httpRequestMessageWithNewLayoutSetName = new HttpRequestMessage(HttpMethod.Put, updateLayoutSetNameUrl)
+    public GitDiffIntegrationTests(GiteaWebAppApplicationFactoryFixture<Program> factory, GiteaFixture giteaFixture, SharedDesignerHttpClientProvider sharedDesignerHttpClientProvider, ITestOutputHelper testOutputHelper) : base(factory, giteaFixture, sharedDesignerHttpClientProvider)
     {
-      Content = new StringContent($"\"{newLayoutSetName}\"", Encoding.UTF8, MediaTypeNames.Application.Json)
-    };
-    var updateLayoutSetNameResponse = await HttpClient.SendAsync(httpRequestMessageWithNewLayoutSetName);
-    updateLayoutSetNameResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-    
-    string getGitDiffUrl = $"designer/api/repos/repo/{org}/{targetRepo}/diff";
+        _testOutputHelper = testOutputHelper;
+    }
 
-    using var httpRequestMessageGetGitDiff = new HttpRequestMessage(HttpMethod.Get, getGitDiffUrl);
-    var gitDiffResponse = await HttpClient.SendAsync(httpRequestMessageGetGitDiff);
-    string responseContent = await gitDiffResponse.Content.ReadAsStringAsync();
+    [Theory]
+    [InlineData(GiteaConstants.TestOrgUsername)]
+    public async Task GetGitDiff_ShouldReturnOkWithDiff(string org)
+    {
+        string targetRepo = TestDataHelper.GenerateTestRepoName();
+        await CreateAppUsingDesigner(org, targetRepo);
+        string defaultLayoutSetName = "form";
+        string newLayoutSetName = "newLayoutSetName";
+        string updateLayoutSetNameUrl = $"designer/api/{org}/{targetRepo}/app-development/layout-set/{defaultLayoutSetName}";
+        string pathToGitDiffResponse = Path.Combine("..", "..", "..", "_TestData", "AppChangesForIntegrationTests", "GitDiffResponse.json");
+        string expectedGitDiffResponse = await File.ReadAllTextAsync(pathToGitDiffResponse);
 
-    gitDiffResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-    responseContent.Should().Be("");
-  }
-  
+        using var httpRequestMessageWithNewLayoutSetName = new HttpRequestMessage(HttpMethod.Put, updateLayoutSetNameUrl)
+        {
+            Content = new StringContent($"\"{newLayoutSetName}\"", Encoding.UTF8, MediaTypeNames.Application.Json)
+        };
+        var updateLayoutSetNameResponse = await HttpClient.SendAsync(httpRequestMessageWithNewLayoutSetName);
+        updateLayoutSetNameResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        string getGitDiffUrl = $"designer/api/repos/repo/{org}/{targetRepo}/diff";
+        using var httpRequestMessageGetGitDiff = new HttpRequestMessage(HttpMethod.Get, getGitDiffUrl);
+        var gitDiffResponse = await HttpClient.SendAsync(httpRequestMessageGetGitDiff);
+        string responseContent = await gitDiffResponse.Content.ReadAsStringAsync();
+        gitDiffResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        JsonUtils.DeepEquals(expectedGitDiffResponse, responseContent).Should().BeTrue();
+    }
+
 }
