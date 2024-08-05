@@ -57,12 +57,13 @@ describe('featureToggle url', () => {
     window.history.pushState(
       {},
       'PageUrl',
-      '/?featureFlags=displayPaymentTaskProcessEditor,shouldOverrideAppLibCheck&persistFeatureFlag=true',
+      '/?featureFlags=componentConfigBeta,shouldOverrideAppLibCheck&persistFeatureFlag=true',
     );
     expect(shouldDisplayFeature('componentConfigBeta')).toBeFalsy();
     expect(shouldDisplayFeature('shouldOverrideAppLibCheck')).toBeTruthy();
     expect(typedSessionStorage.getItem<string[]>('featureFlags')).toEqual([
       'shouldOverrideAppLibCheck',
+      'componentConfigBeta',
     ]);
     expect(typedLocalStorage.getItem<string[]>('featureFlags')).toBeUndefined();
   });
