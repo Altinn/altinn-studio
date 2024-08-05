@@ -27,7 +27,7 @@
   "app_create_release_errors.check_status_on_build_error": "Det har skjedd en teknisk feil, så vi får ikke oppdatert statusen på bygget ditt. Vi prøver å sjekke statusen på nytt …",
   "app_create_release_errors.fetch_release_failed": "Det har skjedd en teknisk feil som gjør at du ikke kan bygge versjoner eller publisere en app til miljøene akkurat nå. Prøv igjen senere. Hvis du fortsatt har problemer, kontakt <0 href=\"mailto:tjenesteeier@altinn.no\">Altinn servicedesk</0>.",
   "app_create_release_errors.technical_error_code": "Teknisk feilkode",
-  "app_data_modelling.fields_information": "Du kan bare tilordne objekter til felter i datamodelleringsverktøyet, ikke tekst, heltall, desimaltall eller ja/nei. Velg et element som er et objekt eller konverter gjeldende element til et objekt.",
+  "app_data_modelling.fields_information": "Hvis du vil legge til felter på dette elementet, må du konvertere det til et objekt.",
   "app_data_modelling.landing_dialog_create": "Lag en ny datamodell",
   "app_data_modelling.landing_dialog_header": "Last opp eller lag en ny datamodell for å starte",
   "app_data_modelling.landing_dialog_paragraph": "Velkommen til datamodellering! Her kan du laste opp en datamodell du har fra før, eller lage en ny modell du kan bruke i appen din.",
