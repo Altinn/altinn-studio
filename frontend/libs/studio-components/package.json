@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@studio/icons": "^0.1.0",
-    "ajv": "8.16.0",
+    "ajv": "8.17.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "uuid": "10.0.0"
@@ -27,7 +27,7 @@
     "@storybook/react": "^8.0.4",
     "@storybook/react-webpack5": "^8.0.4",
     "@storybook/test": "^8.0.4",
-    "@testing-library/jest-dom": "6.4.6",
+    "@testing-library/jest-dom": "6.4.8",
     "@testing-library/react": "16.0.0",
     "@types/jest": "^29.5.5",
     "eslint": "8.57.0",

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { EditDataModelBindings } from '../config/editModal/EditDataModelBindings/EditDataModelBindings';
+import { EditDataModelBinding } from '../config/editModal/EditDataModelBinding/EditDataModelBinding';
 import { StudioProperty, StudioSpinner } from '@studio/components';
 import { Alert, Switch } from '@digdir/designsystemet-react';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
@@ -15,6 +15,7 @@ export const DataModelBindings = (): React.JSX.Element => {
   const { formItemId, formItem, handleUpdate, debounceSave } = useFormItemContext();
   const { data: schema } = useComponentSchemaQuery(formItem.type);
   const [multipleAttachments, setMultipleAttachments] = useState<boolean>(false);
+
   const t = useText();
 
   React.useEffect(() => {
@@ -30,7 +31,11 @@ export const DataModelBindings = (): React.JSX.Element => {
   const { dataModelBindings } = schema.properties;
 
   if (!dataModelBindings) {
-    return <Alert>{t('ux_editor.modal_properties_data_model_binding_not_present')}</Alert>;
+    return (
+      <Alert size='small' className={classes.alert}>
+        {t('ux_editor.modal_properties_data_model_binding_not_present')}
+      </Alert>
+    );
   }
 
   let dataModelBindingsProperties = dataModelBindings?.properties;
@@ -67,12 +72,13 @@ export const DataModelBindings = (): React.JSX.Element => {
         {(formItem.type === ComponentType.FileUploadWithTag ||
           formItem.type === ComponentType.FileUpload) &&
           isItemChildOfContainer(layout, formItem.id, ComponentType.RepeatingGroup) && (
-            <Alert severity='warning'>
+            <Alert size='small' severity='warning' className={classes.alert}>
               {t('ux_editor.modal_properties_data_model_restrictions_attachment_components')}
             </Alert>
           )}
         {dataModelBindings.anyOf && (
           <Switch
+            size='small'
             checked={multipleAttachments}
             onChange={handleMultipleAttachmentsSwitch}
             className={classes.switch}
@@ -80,30 +86,32 @@ export const DataModelBindings = (): React.JSX.Element => {
             {t('ux_editor.modal_properties_data_model_link_multiple_attachments')}
           </Switch>
         )}
-        <StudioProperty.Group>
-          {Object.keys(dataModelBindingsProperties).map((propertyKey: string) => {
-            return (
-              <div
-                className={classes.dataModelBindings}
-                key={`${formItem.id}-data-model-${propertyKey}`}
-              >
-                <EditDataModelBindings
-                  component={formItem}
-                  handleComponentChange={async (updatedComponent, mutateOptions) => {
-                    handleUpdate(updatedComponent);
-                    debounceSave(formItemId, updatedComponent, mutateOptions);
-                  }}
-                  editFormId={formItemId}
-                  helpText={dataModelBindingsProperties[propertyKey]?.description}
-                  renderOptions={{
-                    key: propertyKey,
-                    label: propertyKey !== 'simpleBinding' ? propertyKey : undefined,
-                  }}
-                />
-              </div>
-            );
-          })}
-        </StudioProperty.Group>
+        <div className={classes.wrapper}>
+          <StudioProperty.Group>
+            {Object.keys(dataModelBindingsProperties).map((propertyKey: string) => {
+              return (
+                <div
+                  className={classes.dataModelBindings}
+                  key={`${formItem.id}-data-model-${propertyKey}`}
+                >
+                  <EditDataModelBinding
+                    component={formItem}
+                    handleComponentChange={async (updatedComponent, mutateOptions) => {
+                      handleUpdate(updatedComponent);
+                      debounceSave(formItemId, updatedComponent, mutateOptions);
+                    }}
+                    editFormId={formItemId}
+                    helpText={dataModelBindingsProperties[propertyKey]?.description}
+                    renderOptions={{
+                      key: propertyKey,
+                      label: propertyKey !== 'simpleBinding' ? propertyKey : undefined,
+                    }}
+                  />
+                </div>
+              );
+            })}
+          </StudioProperty.Group>
+        </div>
       </div>
     )
   );

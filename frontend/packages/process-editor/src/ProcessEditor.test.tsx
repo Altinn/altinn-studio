@@ -53,7 +53,7 @@ describe('ProcessEditor', () => {
     expect(
       screen.getByRole('heading', {
         name: textMock('process_editor.fetch_bpmn_error_title'),
-        level: 2,
+        level: 1,
       }),
     ).toBeInTheDocument();
   });

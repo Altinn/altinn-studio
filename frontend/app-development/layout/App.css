@@ -25,13 +25,19 @@ a {
   text-decoration: none;
 }
 
+a.fds-link--inverted {
+  color: var(--fds-link--inverted);
+  text-decoration: underline;
+}
+
 button[class*='Button-module_small__'] svg {
   --fdsc-icon-size: var(--fds-sizing-5);
 }
 
 ::-webkit-scrollbar {
-  width: 5px;
+  width: 6px;
 }
+
 ::-webkit-scrollbar-thumb {
   background: darkgray;
   border-radius: 5px;

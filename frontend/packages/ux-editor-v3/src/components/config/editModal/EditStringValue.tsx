@@ -1,10 +1,10 @@
-import React from 'react';
-import type { IGenericEditComponent } from '../componentConfig';
-import { useTranslation } from 'react-i18next';
-import { FormField } from '../../FormField';
 import { Textfield } from '@digdir/designsystemet-react';
-import { LegacySelect } from '@digdir/design-system-react';
+import { StudioNativeSelect } from '@studio/components';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { getComponentPropertyLabel } from '../../../utils/language';
+import { FormField } from '../../FormField';
+import type { IGenericEditComponent } from '../componentConfig';
 
 export interface EditStringValueProps extends IGenericEditComponent {
   propertyKey: string;
@@ -45,16 +45,18 @@ export const EditStringValue = ({
       }}
       renderField={({ fieldProps }) =>
         enumValues ? (
-          <LegacySelect
+          <StudioNativeSelect
             {...fieldProps}
-            options={enumValues.map((value) => ({
-              label: value,
-              value: value,
-            }))}
             onChange={(e: any) => fieldProps.onChange(e)}
             multiple={multiple}
-            inputId={`component-${propertyKey}-select${component.id}`}
-          />
+            id={`component-${propertyKey}-select${component.id}`}
+          >
+            {enumValues.map((value) => (
+              <option key={value} value={value}>
+                {value}
+              </option>
+            ))}
+          </StudioNativeSelect>
         ) : (
           <Textfield
             {...fieldProps}

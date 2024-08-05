@@ -84,13 +84,12 @@ describe('ReferenceSelectionComponent', () => {
     renderReferenceSelectionComponent({
       selectedNode: { ...selectedNode, reference: type1.pointer },
     });
-    expect(await screen.findByRole('combobox')).toHaveValue(type1Name);
+    expect(await screen.findByRole('combobox')).toHaveValue(type1.pointer);
   });
 
   test('onChange handler is called with correct parameters when value changes', async () => {
     renderReferenceSelectionComponent();
-    await user.click(screen.getByRole('combobox'));
-    await user.click(screen.getByRole('option', { name: type1Name }));
+    await user.selectOptions(screen.getByRole('combobox'), type1.pointer);
     expect(onChangeRef).toHaveBeenCalledTimes(1);
     expect(onChangeRef).toHaveBeenCalledWith(selectedNode.pointer, type1.pointer);
   });

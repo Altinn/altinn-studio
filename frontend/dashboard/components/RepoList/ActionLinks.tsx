@@ -1,18 +1,18 @@
-import { Button, DropdownMenu } from '@digdir/designsystemet-react';
+import { StudioButton, StudioDropdownMenu } from '@studio/components';
+import type { StudioButtonProps } from '@studio/components';
 import React, { useRef, useState } from 'react';
 import classes from './ActionLinks.module.css';
-import cn from 'classnames';
 import {
   ExternalLinkIcon,
   FilesIcon,
+  GiteaIcon,
   MenuElipsisVerticalIcon,
   PencilIcon,
-} from '@navikt/aksel-icons';
+} from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { getRepoEditUrl } from '../../utils/urlUtils';
 import type { Repository } from 'app-shared/types/Repository';
 import { MakeCopyModal } from '../MakeCopyModal';
-import { DATA_MODEL_REPO_IDENTIFIER } from '../../constants';
 
 type ActionLinksProps = {
   repo: Repository;
@@ -36,52 +36,58 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
 
   const repoFullName = repo.full_name;
   const [org, repoName] = repoFullName.split('/');
-  const isDataModelRepo = repoFullName.endsWith(DATA_MODEL_REPO_IDENTIFIER);
   const editUrl = getRepoEditUrl({ org, repo: repoName });
-  const editTextKey = t(isDataModelRepo ? 'dashboard.edit_data_models' : 'dashboard.edit_app', {
-    appName: repoName,
-  });
+
+  const giteaIconWithLink = (
+    <a href={repo.html_url}>
+      <GiteaIcon className={classes.giteaIcon} />
+    </a>
+  );
+
+  const editIconWithLink = (
+    <a href={editUrl}>
+      <PencilIcon className={classes.akselIcon} />
+    </a>
+  );
+
+  const dropdownAnchorButtonProps: StudioButtonProps = {
+    variant: 'tertiary',
+    icon: <MenuElipsisVerticalIcon className={classes.akselIcon} />,
+    title: t('dashboard.app_dropdown', {
+      appName: repoName,
+    }),
+  };
 
   return (
     <div className={classes.actionLinksContainer} ref={copyModalAnchorRef}>
-      <Button variant={'tertiary'} className={classes.giteaButton} icon asChild>
-        <a
-          href={repo.html_url}
-          title={t('dashboard.show_repo', {
-            appName: repoName,
-          })}
-        >
-          <i className={cn('fa fa-gitea', classes.giteaIcon)} />
-        </a>
-      </Button>
-      <Button variant={'tertiary'} icon asChild>
-        <a href={editUrl} title={editTextKey}>
-          <PencilIcon className={classes.nativeActionIcon} />
-        </a>
-      </Button>
-      <DropdownMenu size={'small'}>
-        <DropdownMenu.Trigger
-          variant={'tertiary'}
-          title={t('dashboard.app_dropdown', {
-            appName: repoName,
-          })}
-          asChild
-        >
-          <Button variant={'tertiary'} icon>
-            <MenuElipsisVerticalIcon className={classes.nativeActionIcon} />
-          </Button>
-        </DropdownMenu.Trigger>
-        <DropdownMenu.Content>
-          <DropdownMenu.Item onClick={() => handleOpenCopyModal(repoFullName)}>
-            {<FilesIcon />}
-            {t('dashboard.make_copy')}
-          </DropdownMenu.Item>
-          <DropdownMenu.Item onClick={() => window.open(editUrl, '_blank')}>
-            {<ExternalLinkIcon />}
-            {t('dashboard.open_in_new')}
-          </DropdownMenu.Item>
-        </DropdownMenu.Content>
-      </DropdownMenu>
+      <StudioButton
+        title={t('dashboard.show_repo', {
+          appName: repoName,
+        })}
+        variant='tertiary'
+        className={classes.giteaButton}
+        icon={giteaIconWithLink}
+        size='medium'
+      />
+      <StudioButton
+        title={t('dashboard.edit_app', {
+          appName: repoName,
+        })}
+        variant='tertiary'
+        className={classes.editButton}
+        icon={editIconWithLink}
+        size='medium'
+      />
+      <StudioDropdownMenu size='small' anchorButtonProps={dropdownAnchorButtonProps}>
+        <StudioDropdownMenu.Item onClick={() => handleOpenCopyModal(repoFullName)}>
+          <FilesIcon />
+          {t('dashboard.make_copy')}
+        </StudioDropdownMenu.Item>
+        <StudioDropdownMenu.Item onClick={() => window.open(editUrl, '_blank')}>
+          <ExternalLinkIcon />
+          {t('dashboard.open_in_new')}
+        </StudioDropdownMenu.Item>
+      </StudioDropdownMenu>
       {copyCurrentRepoName && (
         <MakeCopyModal
           ref={copyModalAnchorRef}

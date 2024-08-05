@@ -1,7 +1,8 @@
 import React from 'react';
 import classes from './AccessControlWarningModal.module.css';
-import { Modal, Button } from '@digdir/designsystemet-react';
+import { Modal } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
+import { StudioButton } from '@studio/components/src';
 
 export interface AccessControlWarningModalProps {
   modalRef: React.MutableRefObject<HTMLDialogElement>;
@@ -15,9 +16,9 @@ export const AccessControlWarningModal = ({ modalRef }: AccessControlWarningModa
         {t('settings_modal.access_control_tab_option_choose_type_modal_message')}
       </Modal.Content>
       <Modal.Footer>
-        <Button variant='secondary' onClick={() => modalRef.current?.close()}>
+        <StudioButton variant='secondary' onClick={() => modalRef.current?.close()}>
           {t('general.close')}
-        </Button>
+        </StudioButton>
       </Modal.Footer>
     </Modal>
   );

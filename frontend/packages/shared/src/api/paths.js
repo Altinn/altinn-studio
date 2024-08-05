@@ -102,14 +102,9 @@ export const repoStatusPath = (org, app) => `${basePath}/repos/repo/${org}/${app
 export const reposListPath = (org) => `${basePath}/repos/org/${org}`; // Get
 export const stageFilePath = (org, app, filename) => `${basePath}/repos/repo/${org}/${app}/stage/${filename}`; // Get
 
-// Session
-export const keepAlivePath = () => `${basePath}/session/keepalive`; // Get
-export const remainingSessionTimePath = () => `${basePath}/session/remaining`; // Get
-
 // Text - old
 export const textLanguagesPath = (org, app) => `${basePath}/${org}/${app}/text/languages`; // Get
 export const textResourcesPath = (org, app, langCode) => `${basePath}/${org}/${app}/text/language/${langCode}`; // Get, Post, Put, Delete
-export const serviceNamePath = (org, app) => `${basePath}/${org}/${app}/text/service-name`; // Get
 export const textResourceIdsPath = (org, app) => `${basePath}/${org}/${app}/text/keys`; // Put
 
 // Text - new
@@ -144,6 +139,7 @@ export const accessListPath = (org, listId, env, etag = '') => `${basePath}/${en
 export const accessListMemberPath = (org, listId, env, page) => `${basePath}/${env}/${org}/resources/accesslist/${listId}/members/${page ? `?page=${page}` : ''}`; // Get, Post, Delete
 export const resourceAccessListsPath = (org, resourceId, env, page) => `${basePath}/${env}/${org}/resources/${resourceId}/accesslists/${page ? `?page=${page}` : ''}`; // Get
 export const resourceAccessListPath = (org, resourceId, listId, env) => `${basePath}/${env}/${org}/resources/${resourceId}/accesslists/${listId}`; // Post, Delete, Patch
+export const altinn2DelegationsCountPath = (org, serviceCode, serviceEdition, env) => `${basePath}/${org}/resources/altinn2/delegationcount/${serviceCode}/${serviceEdition}/${env}`; // Get
 
 // Process Editor
 export const processEditorPath = (org, app) => `${basePath}/${org}/${app}/process-modelling/process-definition`;

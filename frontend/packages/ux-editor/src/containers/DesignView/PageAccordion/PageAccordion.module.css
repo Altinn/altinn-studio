@@ -23,11 +23,6 @@
   border-top: 1px solid var(--fds-semantic-border-neutral-subtle);
 }
 
-.receiptItem {
-  border-top: none;
-  border-bottom: none;
-}
-
 .accordionHeaderRow {
   display: flex;
 }

@@ -62,6 +62,7 @@ export const EnumField = ({
         onClick={() => onDelete()}
         color='danger'
         variant='tertiary'
+        size='medium'
       />
     </div>
   );

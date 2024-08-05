@@ -68,7 +68,6 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
   if (collapsed) {
     return (
       <StudioButton
-        size='small'
         variant='secondary'
         className={classes.openElementsButton}
         onClick={onCollapseToggle}

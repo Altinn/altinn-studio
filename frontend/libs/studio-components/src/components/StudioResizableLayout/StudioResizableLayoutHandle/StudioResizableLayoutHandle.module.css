@@ -10,16 +10,12 @@
   position: absolute;
 }
 
-.resizeHandle:hover:after {
-  background-color: rgba(0, 0, 0, 0.1);
-}
-
 .resizeHandleH {
   cursor: col-resize;
 }
 
 .resizeHandleH:after {
-  inset: 0px -6px;
+  inset: 0 -5px 0 0;
 }
 
 .resizeHandleV {
@@ -27,7 +23,7 @@
 }
 
 .resizeHandleV:after {
-  inset: -6px 0px;
+  inset: 0 0 -5px 0;
 }
 
 .hideLeftSide {

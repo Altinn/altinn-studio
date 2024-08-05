@@ -37,14 +37,27 @@ export class DataModelPage extends BasePage {
   }
 
   public async clickOnAddPropertyButton(): Promise<void> {
-    await this.page.getByRole('button', { name: this.textMock('schema_editor.add') }).click();
+    await this.page
+      .getByRole('button', { name: this.textMock('schema_editor.add') })
+      .first()
+      .click();
+  }
+
+  public async clickOnObjectAddPropertyButton(): Promise<void> {
+    await this.page.getByTitle(this.textMock('schema_editor.add')).click();
   }
 
   public async clickOnAddObjectPropertyMenuItem(): Promise<void> {
     await this.page.getByRole('menuitem', { name: this.textMock('schema_editor.field') }).click();
   }
 
-  public async checkThatTreeItemProperyExistsOnScreen(name: string): Promise<void> {
+  public async clickOnCombinationPropertyMenuItem(): Promise<void> {
+    await this.page
+      .getByRole('menuitem', { name: this.textMock('schema_editor.combination') })
+      .click();
+  }
+
+  public async checkThatTreeItemPropertyExistsOnScreen(name: string): Promise<void> {
     await this.page.getByRole('treeitem', { name }).isVisible();
   }
 
@@ -72,16 +85,11 @@ export class DataModelPage extends BasePage {
     await this.page.getByRole('treeitem', { name }).focus();
   }
 
-  public async clickOnAddNodeToPropertyButton(): Promise<void> {
+  public async clickOnAddPropertyToObjectButton(property: 'string' | 'number'): Promise<void> {
     await this.page
-      .getByRole('button', { name: this.textMock('schema_editor.add_node_of_type') })
-      .last()
-      .click();
-  }
-
-  public async clickOnAddFieldToNodeButton(): Promise<void> {
-    await this.page
-      .getByRole('menuitem', { name: this.textMock('schema_editor.add_field') })
+      .getByRole('menuitem', {
+        name: this.textMock(`schema_editor.add_${property}`),
+      })
       .click();
   }
 
@@ -93,23 +101,23 @@ export class DataModelPage extends BasePage {
     return this.getTypeCombobox().inputValue();
   }
 
-  public getTypeComboboxOption(type: 'text' | 'integer'): string {
-    switch (type) {
-      case 'text':
-        return this.textMock('schema_editor.description');
-      case 'integer':
-        return this.textMock('schema_editor.integer');
-    }
-  }
-
-  public async clickOnIntegerOption(): Promise<void> {
-    await this.page.getByRole('option', { name: this.textMock('schema_editor.integer') }).click();
-  }
-
   public async clickOnGenerateDataModelButton(): Promise<void> {
     await this.page
       .getByRole('button', { name: this.textMock('schema_editor.generate_model_files') })
       .click();
+  }
+
+  public async checkThatTypeComboboxIsHidden(): Promise<void> {
+    const typeCombobox = this.getTypeCombobox();
+    await expect(typeCombobox).toBeHidden();
+  }
+
+  public async checkThatTypeComboboxVisible(): Promise<void> {
+    await expect(this.getTypeCombobox()).toBeVisible();
+  }
+
+  public async checkThatCorrectValueIsSelected(value: string): Promise<void> {
+    expect(value).toEqual('anyOf');
   }
 
   public async checkThatSuccessAlertIsVisibleOnScreen(): Promise<void> {

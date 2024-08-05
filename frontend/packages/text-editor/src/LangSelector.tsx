@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { LegacySelect } from '@digdir/design-system-react';
 import classes from './LangSelector.module.css';
 import type { LangCode, Option } from './types';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioNativeSelect } from '@studio/components';
 import type { StudioButtonProps } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
@@ -24,8 +23,9 @@ export const LangSelector = ({ onAddLang, options }: ILangSelectorProps) => {
     setSelectedOption(emptyOption);
   };
 
-  const handleSelectOnChange = (value: string) =>
-    setSelectedOption(options.filter((option) => option.value === value)[0]);
+  const handleSelectOnChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedOption(options.filter((option) => option.value === event.target.value)[0]);
+  };
 
   const addButtonProps: StudioButtonProps & { 'data-value': string } = {
     ...(selectedOption?.value
@@ -36,17 +36,22 @@ export const LangSelector = ({ onAddLang, options }: ILangSelectorProps) => {
   return (
     <div className={classes.languageSelector}>
       <div className={classes.selectWrapper}>
-        <LegacySelect
+        <StudioNativeSelect
           label={t('schema_editor.language_add_language')}
           onChange={handleSelectOnChange}
-          options={options}
           value={selectedOption.value}
-        />
+          size='sm'
+        >
+          <option value='' disabled hidden></option>
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </StudioNativeSelect>
       </div>
       <div>
-        <StudioButton {...addButtonProps} size='small'>
-          {t('general.add')}
-        </StudioButton>
+        <StudioButton {...addButtonProps}>{t('general.add')}</StudioButton>
       </div>
     </div>
   );

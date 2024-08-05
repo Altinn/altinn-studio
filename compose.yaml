@@ -77,6 +77,11 @@ services:
       - ServiceRepositorySettings:RepositoryLocation=/AltinnCore/Repos/
       - TestdataRepositorySettings:RepositoryLocation=/Testdata
       - Integrations:AzureDevOpsSettings:BaseUri=http://studio-azure-mock:6161/_apis/
+      - OidcLoginSettings:ClientId=${CLIENT_ID}
+      - OidcLoginSettings:ClientSecret=${CLIENT_SECRET}
+      - OidcLoginSettings:Authority=http://studio.localhost/repos/
+      - OidcLoginSettings:RequireHttpsMetadata=false
+      - OidcLoginSettings:CookieExpiryTimeInMinutes=59
     ports:
       - '6000:6000'
     depends_on:
@@ -85,6 +90,7 @@ services:
       context: .
     extra_hosts:
       - 'host.docker.internal:host-gateway'
+      - 'studio.localhost:host-gateway'
 
   studio_repositories:
     container_name: studio-repositories
@@ -138,3 +144,18 @@ services:
       - ./development/db/init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./development/db/data.sql:/data.sql
       - pgdata:/var/lib/postgresql/data
+
+  database_migrations:
+    container_name: db-database_migrations
+    depends_on:
+      - studio_db
+    build:
+      context: backend
+      dockerfile: Migrations.Dockerfile
+    environment:
+      - PGHOST=studio_db
+      - PGPORT=5432
+      - PGUSER=designer_admin
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+      - PGDATABASE=designerdb
+

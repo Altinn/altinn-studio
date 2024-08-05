@@ -9,7 +9,9 @@ describe('useStudioResizableLayoutFunctions', () => {
 
   beforeEach(() => {
     setContainerSize = jest.fn();
-    elementRefs = { current: [document.createElement('div'), document.createElement('div')] };
+    elementRefs = {
+      current: [document.createElement('div'), document.createElement('div')],
+    };
     children = [
       { props: { collapsed: false, minimumSize: 0, maximumSize: 100, collapsedSize: 0 } },
       { props: { collapsed: false, minimumSize: 0, maximumSize: 100, collapsedSize: 0 } },
@@ -33,7 +35,7 @@ describe('useStudioResizableLayoutFunctions', () => {
   it('should call resizeTo with correct parameters when resizeDelta is called', () => {
     const { result } = renderFunctionsHook(elementRefs, children, setContainerSize);
 
-    result.current.resizeDelta(0, 100);
+    result.current.resizeDelta(1, 100);
     expect(setContainerSize).toHaveBeenCalled();
   });
 

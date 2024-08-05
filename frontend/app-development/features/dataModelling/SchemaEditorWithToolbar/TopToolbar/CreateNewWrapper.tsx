@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { ErrorMessage, Textfield } from '@digdir/designsystemet-react';
-import { LegacyPopover } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@studio/icons';
 import { extractModelNamesFromMetadataList } from '../../../../utils/metadataUtils';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioPopover } from '@studio/components';
 
 export interface CreateNewWrapperProps {
   disabled: boolean;
@@ -77,39 +76,36 @@ export function CreateNewWrapper({
   };
 
   return (
-    <LegacyPopover
-      open={createNewOpen}
-      onOpenChange={setCreateNewOpen}
-      trigger={
-        <StudioButton
-          id='create-new-data-model-button'
-          disabled={disabled}
-          icon={<PlusIcon />}
-          variant='tertiary'
-          onClick={() => setCreateNewOpen(!createNewOpen)}
-          size='small'
-        >
-          {t('general.create_new')}
-        </StudioButton>
-      }
-    >
-      <Textfield
-        id='newModelInput'
-        label={t('schema_editor.create_model_description')}
-        onChange={onNameChange}
-        onBlur={onInputBlur}
-        onKeyUp={onKeyUp}
-        error={nameError && <ErrorMessage>{nameError}</ErrorMessage>}
-      />
-      <StudioButton
-        color='second'
-        onClick={onCreateConfirmClick}
-        style={{ marginTop: 22 }}
-        variant='secondary'
+    <StudioPopover open={createNewOpen} onOpenChange={setCreateNewOpen}>
+      <StudioPopover.Trigger
+        id='create-new-data-model-button'
+        disabled={disabled}
+        variant='tertiary'
+        onClick={() => setCreateNewOpen(!createNewOpen)}
         size='small'
       >
-        {t('schema_editor.create_model_confirm_button')}
-      </StudioButton>
-    </LegacyPopover>
+        {<PlusIcon />}
+        {t('general.create_new')}
+      </StudioPopover.Trigger>
+      <StudioPopover.Content>
+        <Textfield
+          id='newModelInput'
+          label={t('schema_editor.create_model_description')}
+          onChange={onNameChange}
+          onBlur={onInputBlur}
+          onKeyUp={onKeyUp}
+          error={nameError && <ErrorMessage>{nameError}</ErrorMessage>}
+        />
+        <StudioButton
+          color='second'
+          onClick={onCreateConfirmClick}
+          style={{ marginTop: 22 }}
+          variant='secondary'
+          size='small'
+        >
+          {t('schema_editor.create_model_confirm_button')}
+        </StudioButton>
+      </StudioPopover.Content>
+    </StudioPopover>
   );
 }

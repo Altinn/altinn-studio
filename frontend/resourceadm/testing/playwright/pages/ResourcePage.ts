@@ -167,7 +167,8 @@ export class ResourcePage extends ResourceEnvironment {
   }
 
   public async setAvailableForType(): Promise<void> {
-    if (!this.availableForTypeCheckbox.isChecked()) {
+    const isAvailableForChecked = await this.availableForTypeCheckbox.isChecked();
+    if (!isAvailableForChecked) {
       await this.availableForTypeCheckbox.click();
     }
   }
@@ -181,7 +182,9 @@ export class ResourcePage extends ResourceEnvironment {
   }
 
   public async addPolicyRule(): Promise<void> {
-    if (!this.ruleHeader.isVisible()) {
+    await expect(this.addPolicyRuleButton).toBeVisible({ timeout: 15000 }); // wait for policy page to be displayed
+    const isPolicyRuleVisible = await this.ruleHeader.isVisible();
+    if (!isPolicyRuleVisible) {
       await this.addPolicyRuleButton.click();
       await this.setPolicyAction();
       await this.setPolicySubject();
@@ -210,7 +213,7 @@ export class ResourcePage extends ResourceEnvironment {
   }
 
   public async verifyRepoNotInSyncVisible(): Promise<void> {
-    await expect(this.repoSyncAlert).toBeVisible();
+    await expect(this.repoSyncAlert).toBeVisible({ timeout: 15000 });
   }
 
   public async clickUploadChangesButton(): Promise<void> {
@@ -222,6 +225,6 @@ export class ResourcePage extends ResourceEnvironment {
   }
 
   public async verifyDeployAlertVisible(): Promise<void> {
-    await expect(this.publishAlert).toBeVisible();
+    await expect(this.publishAlert).toBeVisible({ timeout: 15000 });
   }
 }

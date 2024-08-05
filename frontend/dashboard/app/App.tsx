@@ -1,12 +1,11 @@
 import React from 'react';
 import classes from './App.module.css';
-import { StudioPageSpinner } from '@studio/components';
+import { StudioPageSpinner, StudioPageError } from '@studio/components';
 import { CreateService } from '../pages/CreateService';
 import { Dashboard } from '../pages/Dashboard';
 import { Route, Routes } from 'react-router-dom';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useOrganizationsQuery } from '../hooks/queries';
-import { ErrorMessage } from 'dashboard/components/ErrorMessage';
 
 import './App.css';
 import { PageLayout } from 'dashboard/pages/PageLayout';
@@ -22,30 +21,33 @@ export const App = (): JSX.Element => {
   const componentIsReady = user && organizations;
   const componentHasError = isUserError || isOrganizationsError;
 
-  const getErrorMessage = (): { title: string; message: string } => {
-    const defaultTitle = 'Feil oppstod ved innlasting av';
-    const defaultMessage = 'Vi beklager men en feil oppstod ved henting av';
+  const getErrorMessage = () => {
     if (isUserError) {
-      return {
-        title: `${defaultTitle} brukerdata`,
-        message: `${defaultMessage} dine brukerdata.`,
-      };
+      return (
+        <StudioPageError
+          title={t('dashboard.error_getting_user_data.title')}
+          message={t('dashboard.error_getting_user_data.message')}
+        />
+      );
     }
     if (isOrganizationsError) {
-      return {
-        title: `${defaultTitle} organisasjoner`,
-        message: `${defaultMessage} organisasjoner som kreves for å kjøre applikasjonen.`,
-      };
+      return (
+        <StudioPageError
+          title={t('dashboard.error_getting_organization_data.title')}
+          message={t('dashboard.error_getting_organization_data.message')}
+        />
+      );
     }
-    return {
-      title: 'Ukjent feil oppstod',
-      message: 'Vi beklager men en ukjent feil, vennligst prøv igjen senere.',
-    };
+    return (
+      <StudioPageError
+        title={t('dashboard.error_unknown.title')}
+        message={t('dashboard.error_unknown.message')}
+      />
+    );
   };
 
   if (componentHasError) {
-    const error = getErrorMessage();
-    return <ErrorMessage title={error.title} message={error.message} />;
+    return getErrorMessage();
   }
 
   if (componentIsReady) {

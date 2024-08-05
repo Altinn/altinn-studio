@@ -129,11 +129,6 @@ namespace Designer.Tests.Mocks
             return Task.FromResult(teamWithDeployAccess);
         }
 
-        public Task<string> GetUserNameFromUI()
-        {
-            return Task.FromResult("testUser");
-        }
-
         public Task<List<Organization>> GetUserOrganizations()
         {
             throw new NotImplementedException();

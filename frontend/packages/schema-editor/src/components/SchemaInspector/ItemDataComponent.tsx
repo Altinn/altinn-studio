@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions } from './helpers/options';
 import { Fieldset, Textfield, Switch } from '@digdir/designsystemet-react';
-import { LegacyTextArea, LegacySelect } from '@digdir/design-system-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
 import type { CombinationKind, UiSchemaNode } from '@altinn/schema-model';
@@ -16,7 +15,6 @@ import {
   setPropertyName,
   setRef,
   setTitle,
-  setType,
   toggleArrayField,
   isField,
   isReference,
@@ -32,7 +30,7 @@ import { useTranslation } from 'react-i18next';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
 import { NameField } from './NameField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { useTypeOptions } from './hooks/useTypeOptions';
+import { StudioNativeSelect, StudioTextarea } from '@studio/components';
 
 export type IItemDataComponentProps = {
   schemaNode: UiSchemaNode;
@@ -43,7 +41,6 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
   const { schemaModel, save, setSelectedTypePointer, setSelectedNodePointer } =
     useSchemaEditorAppContext();
   const { t } = useTranslation();
-  const typeOptions = useTypeOptions();
 
   const [itemTitle, setItemItemTitle] = useState<string>(title);
   const [itemDescription, setItemItemDescription] = useState<string>(description);
@@ -53,9 +50,6 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
     pointer && pointer.endsWith(nodeName) ? schemaModel.getChildNodes(pointer) : [];
 
   const onChangeRef = (path: string, ref: string) => save(setRef(schemaModel, { path, ref }));
-
-  const onChangeFieldType = (type: FieldType) =>
-    save(setType(schemaModel, { path: pointer, type }));
 
   const onChangeNullable = (event: ChangeEvent<HTMLInputElement>): void => {
     const isChecked = event.target.checked;
@@ -126,14 +120,6 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
               size='small'
             />
           )}
-          {isField(schemaNode) && (
-            <LegacySelect
-              label={t('schema_editor.type')}
-              onChange={(type: FieldType) => onChangeFieldType(type)}
-              options={typeOptions}
-              value={schemaNode.fieldType as string}
-            />
-          )}
           {isReference(schemaNode) && (
             <ReferenceSelectionComponent
               buttonText={t('schema_editor.go_to_type')}
@@ -154,14 +140,18 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
             </Switch>
           )}
           {isCombination(schemaNode) && (
-            <LegacySelect
+            <StudioNativeSelect
               label={t('schema_editor.type')}
-              onChange={(combination: string) =>
-                onChangeCombinationType(combination as CombinationKind)
-              }
-              options={getCombinationOptions(t)}
+              onChange={(event) => onChangeCombinationType(event.target.value as CombinationKind)}
               value={schemaNode.combinationType}
-            />
+              size='sm'
+            >
+              {getCombinationOptions(t).map((option) => (
+                <option key={option.value} value={option.value}>
+                  {t(option.label)}
+                </option>
+              ))}
+            </StudioNativeSelect>
           )}
           {isCombination(schemaNode) && (
             <Switch
@@ -195,7 +185,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
           />
         </div>
         <div>
-          <LegacyTextArea
+          <StudioTextarea
             id={descriptionId}
             aria-label={t('schema_editor.description')}
             label={t('schema_editor.description')}

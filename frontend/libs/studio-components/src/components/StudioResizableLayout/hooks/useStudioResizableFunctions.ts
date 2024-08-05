@@ -13,16 +13,6 @@ export const useStudioResizableLayoutFunctions = (
   children: any[],
   setContainerSize: (index: number, size: number) => void,
 ): useResizableFunctionsReturnType => {
-  const getElementNeighbour = (index: number): StudioResizableLayoutArea => {
-    const neighbourIndex = elementRefs.current.length < index + 2 ? index - 1 : index + 1;
-    return new StudioResizableLayoutArea(
-      neighbourIndex,
-      elementRefs.current[neighbourIndex],
-      children[neighbourIndex],
-      orientation,
-    );
-  };
-
   const getElement = (index: number): StudioResizableLayoutArea => {
     return new StudioResizableLayoutArea(
       index,
@@ -30,6 +20,11 @@ export const useStudioResizableLayoutFunctions = (
       children[index],
       orientation,
     );
+  };
+
+  const getElementNeighbour = (index: number): StudioResizableLayoutArea => {
+    const neighbourIndex = elementRefs.current.length < index + 2 ? index - 1 : index + 1;
+    return getElement(neighbourIndex);
   };
 
   const calculatePixelSizes = (

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import React, { forwardRef } from 'react';
 import classes from './StudioModal.module.css';
-import ReactModal from 'react-modal'; // TODO - Replace with component from Designsystemet. Issue:
+import ReactModal from 'react-modal'; // TODO - Replace with component from Designsystemet. Issue: https://github.com/Altinn/altinn-studio/issues/13269
 import { MultiplyIcon } from '@studio/icons';
 import { StudioButton } from '../StudioButton';
 

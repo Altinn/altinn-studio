@@ -62,4 +62,5 @@ export enum QueryKey {
   ResourceAccessLists = 'ResourceAccessLists',
   PartiesRegistrySearch = 'PartiesRegistrySearch',
   SubPartiesRegistrySearch = 'SubPartiesRegistrySearch',
+  Altinn2DelegationCount = 'Altinn2DelegationCount',
 }
