@@ -51,5 +51,5 @@ export const DynamicsProvider = Provider;
 export const useDynamics = () => useCtx();
 export const useRuleConnections = () => {
   const dynamics = useLaxCtx();
-  return dynamics === ContextNotProvided ? null : dynamics?.ruleConnection ?? null;
+  return dynamics === ContextNotProvided ? null : (dynamics?.ruleConnection ?? null);
 };

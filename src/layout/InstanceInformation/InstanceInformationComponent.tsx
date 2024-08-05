@@ -79,7 +79,7 @@ export function InstanceInformation({ elements }: CompInstanceInformationInterna
     instanceOwnerParty &&
     `${instanceOwnerParty.ssn ? instanceOwnerParty.ssn : instanceOwnerParty.orgNumber}-${instanceOwnerParty.name}`;
 
-  const instanceReceiver = receiver !== false ? appReceiver ?? 'Error: Receiver org not found' : undefined;
+  const instanceReceiver = receiver !== false ? (appReceiver ?? 'Error: Receiver org not found') : undefined;
 
   const instanceReferenceNumber = referenceNumber !== false && instance && getInstanceReferenceNumber(instance);
 

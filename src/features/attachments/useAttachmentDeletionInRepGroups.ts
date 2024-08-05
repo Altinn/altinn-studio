@@ -11,6 +11,10 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type UploaderNode = LayoutNode<'FileUpload' | 'FileUploadWithTag'>;
 
+function isUploaderNode(node: LayoutNode): node is UploaderNode {
+  return node.item.type === 'FileUpload' || node.item.type === 'FileUploadWithTag';
+}
+
 /**
  * When deleting a row in a repeating group, we need to find any attachments that are uploaded
  * in that row (or any of its children) and remove them from the instance.
@@ -29,9 +33,7 @@ export function useAttachmentDeletionInRepGroups(node: LayoutNode<'RepeatingGrou
 
   return useCallback(
     async (uuid: string): Promise<boolean> => {
-      const uploaders = nodeRef.current
-        .flat(true, { onlyInRowUuid: uuid })
-        .filter((node) => node.item.type === 'FileUpload' || node.item.type === 'FileUploadWithTag') as UploaderNode[];
+      const uploaders = nodeRef.current.flat(true, { onlyInRowUuid: uuid }).filter(isUploaderNode);
 
       // This code is intentionally not parallelized, as especially LocalTest can't handle parallel requests to
       // delete attachments. It might return a 500 if you try. To be safe, we do them one by one.

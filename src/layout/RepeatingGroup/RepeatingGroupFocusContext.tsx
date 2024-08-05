@@ -6,12 +6,12 @@ import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/Navig
 import { useRepeatingGroup } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
 import type { ParentNode } from 'src/layout/layout';
 
-type FocusableHTMLElement = HTMLElement &
-  HTMLButtonElement &
-  HTMLInputElement &
-  HTMLSelectElement &
-  HTMLTextAreaElement &
-  HTMLAnchorElement;
+type FocusableHTMLElement =
+  | HTMLButtonElement
+  | HTMLInputElement
+  | HTMLSelectElement
+  | HTMLTextAreaElement
+  | HTMLAnchorElement;
 
 export type RefSetter = (rowIndex: number, key: string, node: HTMLElement | null) => void;
 export type FocusTrigger = (rowIndex: number) => void;
@@ -121,7 +121,7 @@ export function RepeatingGroupsFocusProvider({ children }: PropsWithChildren) {
   return <Provider value={{ refSetter, triggerFocus }}>{children}</Provider>;
 }
 
-function isFocusable(element: FocusableHTMLElement) {
+function isFocusable(element: HTMLElement): element is FocusableHTMLElement {
   const tagName = element.tagName.toLowerCase();
   const focusableElements = ['a', 'input', 'select', 'textarea', 'button'];
 
@@ -130,13 +130,13 @@ function isFocusable(element: FocusableHTMLElement) {
   }
 
   const isAvailable =
-    (element.tagName === 'INPUT' && element.getAttribute('type') !== 'hidden') ||
-    !element.disabled ||
-    (element.tagName === 'A' && !!element.href);
+    !(element as HTMLInputElement).disabled &&
+    (element.tagName !== 'INPUT' || (element as HTMLInputElement).type !== 'hidden') &&
+    (element.tagName !== 'A' || !!(element as HTMLAnchorElement).href);
 
   return focusableElements.includes(tagName) && isAvailable;
 }
 
 function findFirstFocusableElement(container: HTMLElement): FocusableHTMLElement | undefined {
-  return Array.from(container.getElementsByTagName('*')).find(isFocusable) as FocusableHTMLElement;
+  return Array.from(container.getElementsByTagName('*')).find(isFocusable);
 }

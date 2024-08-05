@@ -66,7 +66,7 @@ export function validateLayoutSet(layoutSetId: string, layouts: ILayouts, valida
         const errorMessages = errors
           .map(formatError)
           .filter((m) => m != null)
-          .filter(duplicateStringFilter) as string[];
+          .filter(duplicateStringFilter);
 
         if (errorMessages.length) {
           out[layoutSetId][layoutName][component.id].push(...errorMessages);

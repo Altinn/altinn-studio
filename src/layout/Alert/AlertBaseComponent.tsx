@@ -26,7 +26,7 @@ export const AlertBaseComponent = ({ title, children, useAsAlert, severity, aria
     severity={severity}
     role={useAsAlert ? 'alert' : undefined}
     aria-live={useAsAlert ? calculateAriaLive(severity) : undefined}
-    aria-label={useAsAlert ? ariaLabel ?? title : undefined}
+    aria-label={useAsAlert ? (ariaLabel ?? title) : undefined}
   >
     <span className={styles.title}>{title}</span>
     <div className={styles.body}>{children}</div>

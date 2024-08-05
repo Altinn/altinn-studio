@@ -51,7 +51,7 @@ export function GroupComponent({
   const headingLevel =
     container.headingLevel ?? (Math.min(Math.max(groupNode.parents().length + 1, 2), 6) as HeadingLevel);
   const headingSize = headingSizes[headingLevel];
-  const legend = isSummary ? summaryTitle ?? title : title;
+  const legend = isSummary ? (summaryTitle ?? title) : title;
   const restriction = typeof onlyInRowUuid === 'string' ? { onlyInRowUuid } : undefined;
 
   return (

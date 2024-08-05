@@ -145,7 +145,7 @@ export function useRealTaskType() {
 export function useTaskType(taskId: string | undefined) {
   const processData = useLaxProcessData();
   const task =
-    processData?.processTasks?.find((t) => t.elementId === taskId) ?? processData?.currentTask?.elementId === taskId
+    (processData?.processTasks?.find((t) => t.elementId === taskId) ?? processData?.currentTask?.elementId === taskId)
       ? processData?.currentTask
       : undefined;
   const isStateless = useApplicationMetadata().isStatelessApp;

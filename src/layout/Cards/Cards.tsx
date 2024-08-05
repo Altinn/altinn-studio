@@ -14,7 +14,7 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 type ICardsProps = PropsFromGenericComponent<'Cards'>;
 
 function parseSize(size: string | undefined, defaultValue: string): string {
-  return size && /^[0-9]+$/.test(size) ? `${size}px` : size ?? defaultValue;
+  return size && /^[0-9]+$/.test(size) ? `${size}px` : (size ?? defaultValue);
 }
 
 export const Cards = ({ node }: ICardsProps) => {
