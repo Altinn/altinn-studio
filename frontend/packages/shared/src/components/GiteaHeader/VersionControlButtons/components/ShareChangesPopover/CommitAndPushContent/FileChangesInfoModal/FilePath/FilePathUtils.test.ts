@@ -10,6 +10,15 @@ index 0909a03..527e226 100644
 unchanged line
 \ No newline at end of file`;
 
+const diffStringWithoutLastMetadataLineMock = `diff --git a/fileName.json b/fileName.json
+index 0909a03..527e226 100644
+--- a/fileName.json
++++ b/fileName.json
+@@ -2,6 +2,30 @@
+- old line
++ new line
+unchanged line`;
+
 describe('FilePathUtils', () => {
   describe('convertPureGitDiffToUserFriendlyDiff', () => {
     it('removes all metadata including line with double @ in the diff string', () => {
@@ -19,8 +28,9 @@ describe('FilePathUtils', () => {
     });
 
     it('returns last line if it is not metadata', () => {
-      diffStringMock.replace(' No newline at end of file', '');
-      const userFriendlyDiff: string[] = convertPureGitDiffToUserFriendlyDiff(diffStringMock);
+      const userFriendlyDiff: string[] = convertPureGitDiffToUserFriendlyDiff(
+        diffStringWithoutLastMetadataLineMock,
+      );
 
       expect(userFriendlyDiff).toEqual(['- old line', '+ new line', 'unchanged line']);
     });
