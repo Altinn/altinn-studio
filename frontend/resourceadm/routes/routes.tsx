@@ -1,6 +1,6 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
-import { PageLayout } from '../pages/PageLayout';
+import { PageLayout } from '../layouts/PageLayout';
 import { ResourcePage } from '../pages/ResourcePage';
 import { ResourceDashboardPage } from '../pages/ResourceDashboardPage';
 import { ErrorPage } from '../pages/ErrorPage';

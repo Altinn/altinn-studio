@@ -1,6 +1,6 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
-import { PageLayout } from '../pages/PageLayout';
+import { PageLayout } from '../layout';
 import { Contact } from '../pages/Contact/Contact';
 
 export const routes = (

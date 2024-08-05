@@ -1,7 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { routes } from './routes/routes';
 import { AppShell } from 'app-shared/AppShell';
+import { routes } from './routes/routes';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { SettingsModalContextProvider } from './contexts/SettingsModalContext';
 import { PreviewContextProvider } from './contexts/PreviewContext';
