@@ -119,7 +119,7 @@ export const ResourcePage = (): React.JSX.Element => {
           setResourceErrorModalOpen(true);
         }
       }
-      // Validate Policy and display errors + modal
+      // Validate Ppolicy and display errors + modal
       else if (currentPage === 'policy') {
         const data = await refetchValidatePolicy();
         const validationStatus = data?.data?.status ?? null;
