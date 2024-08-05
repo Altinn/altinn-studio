@@ -27,20 +27,22 @@ export function App() {
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
   const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
-  const { data: layoutSets, isError: layoutSetsFetchedError } = useLayoutSetsQuery(org, app);
+  const { isSuccess: areLayoutSetsFetched, isError: layoutSetsFetchedError } = useLayoutSetsQuery(
+    org,
+    app,
+  );
   const { isSuccess: isDataModelFetched, isError: dataModelFetchedError } =
     useDataModelMetadataQuery({
       org,
       app,
       layoutSetName: selectedFormLayoutSetName,
-      dataModelName: layoutSets?.sets?.find((set) => set.id === selectedFormLayoutSetName)
-        ?.dataType,
     });
   const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
 
-  const componentIsReady = areWidgetsFetched && isDataModelFetched && areTextResourcesFetched;
+  const componentIsReady =
+    areLayoutSetsFetched && areWidgetsFetched && isDataModelFetched && areTextResourcesFetched;
 
-  const componentHasError = layoutSetsFetchedError || dataModelFetchedError || widgetFetchedError;
+  const componentHasError = dataModelFetchedError || widgetFetchedError;
 
   const mapErrorToDisplayError = (): { title: string; message: string } => {
     const defaultTitle = t('general.fetch_error_title');
@@ -65,33 +67,36 @@ export function App() {
     return createErrorMessage(t('general.unknown_error'));
   };
 
-  if (layoutSetsFetchedError) {
-    const mappedError = mapErrorToDisplayError();
-    return <StudioPageError title={mappedError.title} message={mappedError.message} />;
-  }
-
   const renderApp = () => {
+    // Will show errorPage below layoutSetsSelector if any of the other requests have failed
     if (componentHasError) {
       const mappedError = mapErrorToDisplayError();
       return <StudioPageError title={mappedError.title} message={mappedError.message} />;
     }
 
-    if (componentIsReady) {
-      return (
-        <FormItemContextProvider>
-          <FormDesigner />
-        </FormItemContextProvider>
-      );
-    }
     return (
-      <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('ux_editor.loading_page')} />
+      <FormItemContextProvider>
+        <FormDesigner />
+      </FormItemContextProvider>
     );
   };
 
-  return (
-    <>
-      <FormDesignerToolbar />
-      {renderApp()}
-    </>
-  );
+  if (layoutSetsFetchedError) {
+    // If error fetching layoutSets show errorPage on whole page
+    const mappedError = mapErrorToDisplayError();
+    return <StudioPageError title={mappedError.title} message={mappedError.message} />;
+  }
+
+  // If all requests are loaded and layoutSets are successfully fetched, show layoutSetsSelector and app
+  if (componentIsReady) {
+    return (
+      <>
+        <FormDesignerToolbar />
+        {renderApp()}
+      </>
+    );
+  }
+
+  // If any requests are loading show spinner on whole page
+  return <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('ux_editor.loading_page')} />;
 }
