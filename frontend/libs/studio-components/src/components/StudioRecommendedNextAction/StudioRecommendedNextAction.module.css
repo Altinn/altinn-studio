@@ -1,0 +1,6 @@
+.buttonGroup {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 12.5px;
+}

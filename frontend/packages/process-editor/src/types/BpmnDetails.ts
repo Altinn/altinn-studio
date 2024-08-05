@@ -8,4 +8,8 @@ export interface BpmnDetails {
   taskType: BpmnTaskType | null;
   type: BpmnTypeEnum;
   element?: Element;
+
+  metadata?: {
+    justAdded?: boolean;
+  };
 }

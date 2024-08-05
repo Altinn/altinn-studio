@@ -33,7 +33,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
       taskEvent,
       taskType: bpmnDetails.taskType,
     });
-    updateBpmnDetailsByTaskEvent(taskEvent);
+    updateBpmnDetailsByTaskEvent(taskEvent, null, null, true);
   };
 
   const handleShapeRemove = (taskEvent: TaskEvent): void => {
@@ -46,10 +46,13 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   };
 
   const updateBpmnDetailsByTaskEvent = useCallback(
-    (taskEvent: TaskEvent) => {
+    (taskEvent: TaskEvent, gfx?: SVGElement, originalEvent?: Event, justAdded: boolean = false) => {
       const bpmnDetails = {
         ...getBpmnEditorDetailsFromBusinessObject(taskEvent.element?.businessObject),
         element: taskEvent.element,
+        metadata: {
+          justAdded: justAdded,
+        },
       };
       setBpmnDetails(bpmnDetails);
     },
@@ -70,7 +73,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
     modelerRef.current.on('commandStack.changed', async (): Promise<void> => {
       await handleCommandStackChanged();
     });
-    modelerRef.current.on('shape.add', (taskEvent: TaskEvent): void => {
+    modelerRef.current.on('shape.added', (taskEvent: TaskEvent): void => {
       handleShapeAdd(taskEvent);
     });
     modelerRef.current.on('shape.remove', (taskEvent: TaskEvent): void => {
