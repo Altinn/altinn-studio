@@ -61,6 +61,7 @@ describe('featureToggle url', () => {
     );
     expect(shouldDisplayFeature('componentConfigBeta')).toBeFalsy();
     expect(shouldDisplayFeature('shouldOverrideAppLibCheck')).toBeTruthy();
+    expect(shouldDisplayFeature('resourceMigration')).toBeTruthy();
     expect(typedSessionStorage.getItem<string[]>('featureFlags')).toEqual([
       'shouldOverrideAppLibCheck',
       'resourceMigration',
