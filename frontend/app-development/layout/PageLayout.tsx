@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Outlet, matchPath, useLocation } from 'react-router-dom';
 import { PageHeader } from './PageHeader';
 import { useRepoMetadataQuery, useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
@@ -9,6 +9,9 @@ import { useOrgListQuery } from '../hooks/queries';
 import { NotFoundPage } from './NotFoundPage';
 import { useTranslation } from 'react-i18next';
 import { WebSocketSyncWrapper } from '../components';
+import postMessages from 'app-shared/utils/postMessages';
+import classes from './PageLayout.module.css';
+import { appContentWrapperId } from '@studio/testing/testids';
 
 /**
  * Displays the layout for the app development pages
@@ -31,6 +34,25 @@ export const PageLayout = (): React.ReactNode => {
   } = useRepoStatusQuery(org, app);
 
   const { data: user, isPending: isUserPending } = useUserQuery();
+
+  const { refetch: reFetchRepoStatus } = useRepoStatusQuery(org, app);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  useEffect(() => {
+    const windowEventReceived = async (event: any) => {
+      if (event.data === postMessages.forceRepoStatusCheck) {
+        await reFetchRepoStatus();
+      }
+    };
+
+    window.addEventListener('message', windowEventReceived);
+    return function cleanup() {
+      window.removeEventListener('message', windowEventReceived);
+    };
+  }, [reFetchRepoStatus]);
 
   if (isRepoStatusPending || isUserPending) {
     return (
@@ -55,14 +77,16 @@ export const PageLayout = (): React.ReactNode => {
   };
 
   return (
-    <>
-      <PageHeader
-        showSubMenu={!repoStatus?.hasMergeConflict}
-        user={user}
-        repoOwnerIsOrg={repoOwnerIsOrg}
-        isRepoError={repoStatusError !== null}
-      />
-      {renderPages()}
-    </>
+    <div className={classes.container}>
+      <div data-testid={appContentWrapperId}>
+        <PageHeader
+          showSubMenu={!repoStatus?.hasMergeConflict}
+          user={user}
+          repoOwnerIsOrg={repoOwnerIsOrg}
+          isRepoError={repoStatusError !== null}
+        />
+        {renderPages()}
+      </div>
+    </div>
   );
 };

@@ -64,11 +64,11 @@ export const PageLayout = () => {
   }
 
   return (
-    <>
+    <div className={classes.root}>
       <HeaderContext.Provider value={headerContextValue}>
         <AppHeader />
       </HeaderContext.Provider>
       <Outlet />
-    </>
+    </div>
   );
 };
