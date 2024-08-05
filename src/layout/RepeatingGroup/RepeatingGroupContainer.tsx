@@ -1,4 +1,5 @@
 import React, { forwardRef } from 'react';
+import type { JSX } from 'react';
 
 import { Button } from '@digdir/designsystemet-react';
 import { Grid } from '@material-ui/core';

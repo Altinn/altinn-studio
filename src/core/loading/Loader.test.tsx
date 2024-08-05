@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
 import { Loader } from 'src/core/loading/Loader';

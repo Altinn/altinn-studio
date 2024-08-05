@@ -1,3 +1,5 @@
+import { jest } from '@jest/globals';
+
 import { NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
 import { CONFIG_FOR_ALL_VALUES_IN_OBJ, evalExpr, evalExprInObj } from 'src/features/expressions/index';
 import { ExprVal } from 'src/features/expressions/types';
@@ -25,7 +27,7 @@ describe('Expressions', () => {
   });
 
   it('should be possible to resolve all values in an object to a default value', () => {
-    const logSpy = jest.spyOn(console, 'log').mockImplementation();
+    const logSpy = jest.spyOn(console, 'log');
     const options = {
       dataSources: {
         formDataSelector: () => null,

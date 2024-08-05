@@ -1,4 +1,5 @@
 import React, { forwardRef } from 'react';
+import type { JSX } from 'react';
 
 import { PanelDef } from 'src/layout/Panel/config.def.generated';
 import { PanelComponent } from 'src/layout/Panel/PanelComponent';

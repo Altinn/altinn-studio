@@ -267,6 +267,7 @@ function InstanceSelection() {
 const openInTab = (url: string, originalEvent: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
   const link = document.createElement('a');
   link.href = url;
+  // eslint-disable-next-line no-undef
   const options: MouseEventInit = {
     button: originalEvent.button,
     buttons: originalEvent.buttons,

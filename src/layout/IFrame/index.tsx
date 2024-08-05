@@ -1,4 +1,5 @@
 import React, { forwardRef } from 'react';
+import type { JSX } from 'react';
 
 import { IFrameDef } from 'src/layout/IFrame/config.def.generated';
 import { IFrameComponent } from 'src/layout/IFrame/IFrameComponent';

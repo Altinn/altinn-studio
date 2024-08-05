@@ -1,5 +1,5 @@
 import React from 'react';
-import type { PropsWithChildren } from 'react';
+import type { JSX, PropsWithChildren } from 'react';
 
 import { ErrorMessage, Paragraph, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';

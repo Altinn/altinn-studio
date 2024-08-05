@@ -2,16 +2,21 @@ import React from 'react';
 
 import { FooterGenericLink } from 'src/features/footer/components/shared/FooterGenericLink';
 import { useLanguage } from 'src/features/language/useLanguage';
-import type { IFooterPhoneComponent } from 'src/features/footer/components/Phone/types';
+import type { IFooterBaseComponent } from 'src/features/footer/types';
 
-export const FooterPhone = ({ title, target }: IFooterPhoneComponent) => {
+export interface IFooterEmailComponent extends IFooterBaseComponent<'Email'> {
+  title: string;
+  target: string;
+}
+
+export const FooterEmail = ({ title, target }: IFooterEmailComponent) => {
   const { langAsString } = useLanguage();
 
   return (
     <FooterGenericLink
       title={langAsString(title)}
-      target={`tel:${langAsString(target)}`}
-      icon='phone'
+      target={`mailto:${langAsString(target)}`}
+      icon='email'
       external={false}
     />
   );

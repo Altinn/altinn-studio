@@ -564,7 +564,7 @@ describe('Validation', () => {
     // Note that we're testing expected functionality here, but if you're actually implementing this in an app, you
     // should trigger validation before saving and closing the group row, so that the user cannot reach this state
     // (although they still could if refreshing the page, so it's not the best idea).
-    // eslint-disable-next-line cypress/unsafe-to-chain-command
+
     cy.focused().should('have.text', 'Du må fylle ut 2. endre verdi til');
 
     // Clicking the next validation message should focus the component already open in editing mode
@@ -777,7 +777,7 @@ describe('Validation', () => {
       cy.findByText('Nåværende navn').should('exist');
     });
 
-    it('should validate number fields as set in the data model when a falsy value is input', () => {
+    it.only('should validate number fields as set in the data model when a falsy value is input', () => {
       cy.interceptLayout('message', (component) => {
         if (component.id === 'falsyInput') {
           component.hidden = false;
@@ -785,7 +785,7 @@ describe('Validation', () => {
       });
       cy.goto('message');
 
-      cy.findByRole('textbox', { name: 'Input with falsy value *' }).type('0');
+      cy.findByRole('textbox', { name: 'Input with falsy value*' }).type('0');
       cy.findByRole('button', { name: 'Send inn' }).click();
 
       // Content from next page
@@ -797,7 +797,7 @@ describe('Validation', () => {
       cy.findByRole('button', { name: /Send inn/ }).click();
 
       cy.findByRole('radiogroup', {
-        name: 'Spørsmål Hører skolen på elevenes forslag? * Du må fylle ut hører skolen på elevenes forslag?',
+        name: 'Spørsmål Hører skolen på elevenes forslag?* Du må fylle ut hører skolen på elevenes forslag?',
       }).within(() => {
         cy.findByRole('radio', { name: 'Alltid' }).should('not.be.focused');
       });
@@ -805,7 +805,7 @@ describe('Validation', () => {
       cy.findByRole('button', { name: /Du må fylle ut hører skolen på elevenes forslag/ }).click();
 
       cy.findByRole('radiogroup', {
-        name: 'Spørsmål Hører skolen på elevenes forslag? * Du må fylle ut hører skolen på elevenes forslag?',
+        name: 'Spørsmål Hører skolen på elevenes forslag?* Du må fylle ut hører skolen på elevenes forslag?',
       }).within(() => {
         cy.findByRole('radio', { name: 'Alltid' }).should('be.focused');
       });

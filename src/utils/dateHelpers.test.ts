@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import moment from 'moment';
 
 import { DateFlags } from 'src/types/index';
@@ -17,7 +18,7 @@ describe('dateHelpers', () => {
     });
 
     it('should return undefined if input date is "abcdef"', () => {
-      jest.spyOn(console, 'warn').mockImplementation();
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
 
       expect(getISOString('abcdef')).toBeUndefined();
       expect(console.warn).toHaveBeenCalledTimes(1);

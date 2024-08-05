@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import { renderHook } from '@testing-library/react';
 import dot from 'dot-object';
 import fs from 'node:fs';

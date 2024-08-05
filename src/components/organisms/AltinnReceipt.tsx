@@ -1,4 +1,5 @@
 import React from 'react';
+import type { JSX } from 'react';
 
 import { makeStyles, Typography } from '@material-ui/core';
 import useMediaQuery from '@material-ui/core/useMediaQuery';

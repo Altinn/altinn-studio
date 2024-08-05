@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
+import { jest } from '@jest/globals';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
@@ -162,12 +163,11 @@ function TesterComponent({
       });
       callback(`state now set to ${targetState}, return value was ${JSON.stringify(retVal)}`, renderCount.current);
     })();
-    // eslint-disable-next-line testing-library/await-async-utils
   }, [callback, targetState, waitFor]);
 
   const waitUntilTargetState = useCallback(
     async () => await waitFor((state) => state === targetState),
-    // eslint-disable-next-line testing-library/await-async-utils
+
     [targetState, waitFor],
   );
 

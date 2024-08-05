@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { jest } from '@jest/globals';
 import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { AxiosResponse } from 'axios';
@@ -75,7 +76,7 @@ const render = async ({ component, genericProps, options, ...rest }: Props = {})
           : Promise.resolve({
               data: options,
               headers: {},
-            } as AxiosResponse<IRawOption[], any>),
+            } as AxiosResponse<IRawOption[]>),
       ...rest.queries,
     },
   });
@@ -151,7 +152,7 @@ describe('DropdownComponent', () => {
     fetchOptions.resolve({
       data: countries,
       headers: {},
-    } as AxiosResponse<IRawOption[], any>);
+    } as AxiosResponse<IRawOption[]>);
 
     await userEvent.click(await screen.findByRole('combobox'));
     await screen.findByRole('option', { name: /denmark/i });
@@ -172,7 +173,7 @@ describe('DropdownComponent', () => {
         },
       ],
       headers: {},
-    } as AxiosResponse<IRawOption[], any>);
+    } as AxiosResponse<IRawOption[]>);
 
     await waitFor(() => expect(screen.queryByTestId('altinn-spinner')).not.toBeInTheDocument());
     await userEvent.click(await screen.findByRole('combobox'));

@@ -1,4 +1,5 @@
 import React, { forwardRef } from 'react';
+import type { JSX } from 'react';
 
 import { VideoDef } from 'src/layout/Video/config.def.generated';
 import { VideoComponent } from 'src/layout/Video/Video';

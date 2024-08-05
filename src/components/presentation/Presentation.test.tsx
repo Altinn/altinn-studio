@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import axios from 'axios';
@@ -27,7 +28,7 @@ describe('Presentation', () => {
     const returnUrl = 'foo';
     const { mockAssign, clearWindow } = mockWindowWithSearch({ search: `?returnUrl=${returnUrl}` });
 
-    (axios.get as jest.Mock).mockResolvedValue({
+    (axios.get as jest.Mock<typeof axios.get>).mockResolvedValue({
       data: returnUrl,
       status: HttpStatusCodes.Ok,
     });
@@ -51,7 +52,7 @@ describe('Presentation', () => {
     const origin = 'https://local.altinn.cloud';
     const returnUrl = 'https://altinn.cloud.no';
     const { mockAssign, clearWindow } = mockWindowWithSearch({ search: `?returnUrl=${returnUrl}`, origin });
-    (axios.get as jest.Mock).mockRejectedValue({
+    (axios.get as jest.Mock<typeof axios.get>).mockRejectedValue({
       data: 'Error',
       status: HttpStatusCodes.BadRequest,
     });

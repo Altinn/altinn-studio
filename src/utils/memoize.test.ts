@@ -1,3 +1,5 @@
+import { jest } from '@jest/globals';
+
 import { invalidateCache, memoize } from 'src/utils/memoize';
 
 function add(a: number, b: number) {

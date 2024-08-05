@@ -1,4 +1,5 @@
 import React, { forwardRef } from 'react';
+import type { JSX } from 'react';
 
 import { InstanceInformationDef } from 'src/layout/InstanceInformation/config.def.generated';
 import { InstanceInformationComponent } from 'src/layout/InstanceInformation/InstanceInformationComponent';

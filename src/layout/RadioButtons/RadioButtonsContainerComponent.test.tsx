@@ -134,7 +134,6 @@ describe('RadioButtonsContainerComponent', () => {
 
     await waitFor(() => expect(getRadio({ name: 'Denmark' })).toBeInTheDocument());
 
-    // eslint-disable-next-line testing-library/no-unnecessary-act
     await act(async () => {
       fireEvent.focus(getRadio({ name: 'Denmark' }));
       fireEvent.blur(getRadio({ name: 'Denmark' }));

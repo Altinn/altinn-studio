@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, { useCallback, useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 

@@ -1,7 +1,11 @@
 import React from 'react';
 
 import { Lang } from 'src/features/language/Lang';
-import type { IFooterTextComponent } from 'src/features/footer/components/Text/types';
+import type { IFooterBaseComponent } from 'src/features/footer/types';
+
+export interface IFooterTextComponent extends IFooterBaseComponent<'Text'> {
+  title: string;
+}
 
 export const FooterText = ({ title }: IFooterTextComponent) => (
   <span>

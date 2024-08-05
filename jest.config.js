@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const env = require('dotenv').config();
 
 const enableJestPreview = env.parsed?.JEST_PREVIEW === 'true';

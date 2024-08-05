@@ -171,7 +171,7 @@ describe('Grid component', () => {
       .findByRole('button', { name: /Hjelpetekst for Prosentandel av gjeld i studielån/i })
       .click();
     cy.get(appFrontend.grid.grid).find('tr:eq(2) td:eq(0) label').click({ force: true });
-    // eslint-disable-next-line cypress/unsafe-to-chain-command
+
     cy.focused().should('have.attr', 'id', 'fordeling-studie');
   });
 });

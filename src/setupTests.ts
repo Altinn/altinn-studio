@@ -1,4 +1,3 @@
-/* eslint-disable no-relative-import-paths/no-relative-import-paths */
 import '@testing-library/jest-dom';
 import '@testing-library/jest-dom/jest-globals';
 import 'core-js/stable/structured-clone'; // https://github.com/jsdom/jsdom/issues/3363
@@ -67,6 +66,7 @@ jest.mock('axios');
 (global as any).TextEncoder = TextEncoder;
 (global as any).TextDecoder = TextDecoder;
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 global.ResizeObserver = require('resize-observer-polyfill');
 
 const autoPreview = env.parsed?.JEST_PREVIEW_AUTO ? env.parsed.JEST_PREVIEW_AUTO === 'true' : false;

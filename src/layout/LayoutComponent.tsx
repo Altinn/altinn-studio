@@ -1,4 +1,5 @@
 import React from 'react';
+import type { JSX } from 'react';
 
 import dot from 'dot-object';
 import type { ErrorObject } from 'ajv';

@@ -1,4 +1,5 @@
 import React from 'react';
+import type { JSX } from 'react';
 
 import { Button, Table } from '@digdir/designsystemet-react';
 import { Grid } from '@material-ui/core';

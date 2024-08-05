@@ -8,8 +8,12 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { useLaxApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { createFooterComponent } from 'src/features/footer';
+import { FooterEmail } from 'src/features/footer/components/FooterEmail';
+import { FooterLink } from 'src/features/footer/components/FooterLink';
+import { FooterPhone } from 'src/features/footer/components/FooterPhone';
+import { FooterText } from 'src/features/footer/components/FooterText';
 import classes from 'src/features/footer/Footer.module.css';
+import type { IFooterComponent, IFooterComponentMap } from 'src/features/footer/types';
 
 export const Footer = () => {
   const { fetchFooterLayout } = useAppQueries();
@@ -27,20 +31,42 @@ export const Footer = () => {
 
   const shouldUseOrgLogo = application !== ContextNotProvided && application.logoOptions != null;
 
-  const components = data?.footer?.map((props) => createFooterComponent(props)) ?? [];
-  if (!components.length && !shouldUseOrgLogo) {
+  const footerElements = data?.footer;
+  if (!footerElements && !shouldUseOrgLogo) {
     return null;
   }
 
   return (
     <footer className={cn(classes.footer, { [classes.columnLayout]: shouldUseOrgLogo })}>
-      <div className={classes.elements}>{components.map((component) => component.render())}</div>
+      <div className={classes.elements}>
+        {footerElements?.map((el) => (
+          <FooterComponent
+            key={el.title}
+            element={el}
+          />
+        ))}
+      </div>
       {shouldUseOrgLogo && (
         <>
-          {components.length > 0 && <hr className={classes.separator} />}
+          {!!footerElements && <hr className={classes.separator} />}
           <AltinnLogo color={LogoColor.blueDarker} />
         </>
       )}
     </footer>
   );
 };
+
+function FooterComponent({ element }: { element: IFooterComponent<keyof IFooterComponentMap> }) {
+  switch (element.type) {
+    case 'Email':
+      return <FooterEmail {...element} />;
+    case 'Link':
+      return <FooterLink {...element} />;
+    case 'Phone':
+      return <FooterPhone {...element} />;
+    case 'Text':
+      return <FooterText {...element} />;
+    default:
+      return null;
+  }
+}

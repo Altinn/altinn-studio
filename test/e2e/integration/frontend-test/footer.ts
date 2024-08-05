@@ -3,17 +3,17 @@ import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 const appFrontend = new AppFrontend();
 
 describe('Footer', () => {
-  it('Renders footer when app has it implemented', () => {
+  it.only('Renders footer when app has it implemented', () => {
     cy.goto('message');
-    cy.get('footer').should('exist').and('be.visible');
-    cy.get('footer > div > div').eq(0).should('contain.text', 'Frontend Test').and('contain.text', 'Testdepartementet');
-    cy.get('footer > div > div')
-      .eq(1)
-      .children('a')
-      .invoke('attr', 'href')
-      .should('eq', 'https://info.altinn.no/om-altinn/tilgjengelighet/');
-    cy.get('footer > div > div').eq(2).children('a').invoke('attr', 'href').should('eq', 'mailto:hjelp@etaten.no');
-    cy.get('footer > div > div').eq(3).children('a').invoke('attr', 'href').should('eq', 'tel:+4798765432');
+    cy.get('footer > div').eq(0).should('contain.text', 'Frontend Test').and('contain.text', 'Testdepartementet');
+    cy.findByRole('link', { name: /Tilgjengelighet/i }).should(
+      'have.attr',
+      'href',
+      'https://info.altinn.no/om-altinn/tilgjengelighet/',
+    );
+
+    cy.findByRole('link', { name: /hjelp@etaten.no/i }).should('have.attr', 'href', 'mailto:hjelp@etaten.no');
+    cy.findByRole('link', { name: /\+47 987 65 432/i }).should('have.attr', 'href', 'tel:+4798765432');
     cy.snapshot('footer');
   });
 

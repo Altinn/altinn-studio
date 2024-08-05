@@ -1,12 +1,13 @@
 import React from 'react';
 
+import { jest } from '@jest/globals';
 import { render as rtlRender, screen } from '@testing-library/react';
 
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 
 describe('ConditionalWrapper', () => {
   it('should pass children to wrapper callback when condition is true', () => {
-    const wrapperCb = jest.fn((children) => <div data-testid='conditional-wrapper'>{children}</div>);
+    const wrapperCb = jest.fn((children: React.ReactNode) => <div data-testid='conditional-wrapper'>{children}</div>);
     render({
       condition: true,
       wrapper: wrapperCb,
@@ -18,7 +19,7 @@ describe('ConditionalWrapper', () => {
   });
 
   it('should not pass children to wrapper callback when condition is false', () => {
-    const wrapperCb = jest.fn((children) => <div data-testid='conditional-wrapper'>{children}</div>);
+    const wrapperCb = jest.fn((children: React.ReactNode) => <div data-testid='conditional-wrapper'>{children}</div>);
     render({
       condition: false,
       wrapper: wrapperCb,

@@ -1,3 +1,4 @@
+import { beforeAll } from '@jest/globals';
 import dot from 'dot-object';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -89,7 +90,6 @@ describe('conditionalRendering', () => {
     const formDataAsObj = { parentGroup: [{ [ALTINN_ROW_ID]: uuidv4(), mockField: '8' }] };
     const nodes = makeNodes(formDataAsObj);
 
-    // eslint-disable-next-line testing-library/render-result-naming-convention
     const result = runConditionalRenderingRules(showRules, nodes);
     expect([...result.values()]).toEqual(['layoutElement_2-0', 'layoutElement_3-0']);
   });
@@ -135,7 +135,6 @@ describe('conditionalRendering', () => {
     };
     const nodes = makeNodes(formDataAsObj);
 
-    // eslint-disable-next-line testing-library/render-result-naming-convention
     const result = runConditionalRenderingRules(showRules, nodes);
 
     expect([...result.values()]).toEqual([

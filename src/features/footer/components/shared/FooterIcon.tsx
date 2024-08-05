@@ -11,6 +11,7 @@ type Icon = typeof Email;
 type IFooterIconMap = {
   [K in IFooterIcon]: Icon;
 };
+
 const FooterIconMap: IFooterIconMap = {
   email: Email,
   information: Information,

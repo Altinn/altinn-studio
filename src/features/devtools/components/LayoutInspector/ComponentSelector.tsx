@@ -16,6 +16,7 @@ export function ComponentSelector({ type }: ComponentSelectorProps) {
   const selectComponent = useDevToolsStore((state) => state.actions.focusLayoutInspector);
 
   const selected = useRef<string | null>(null);
+  // eslint-disable-next-line no-undef
   const listenersRef = useRef<{ eventType: string; listener: EventListener }[]>([]);
 
   const highlightElementsRef = useRef(new Map<Element, Element>());

@@ -3,7 +3,6 @@ import escapeRegex from 'escape-string-regexp';
 
 import { cyUserCredentials } from 'test/e2e/support/auth';
 import type { CyUser } from 'test/e2e/support/auth';
-import Response = Cypress.Response;
 
 function login(user: CyUser, authenticationLevel: string = '1') {
   cy.clearCookies();
@@ -36,7 +35,7 @@ function login(user: CyUser, authenticationLevel: string = '1') {
   }
 
   cy.get('@login').should((response) => {
-    const r = response as unknown as Response<any>;
+    const r = response as unknown as Cypress.Response<any>;
     expect(r.status).to.eq(200);
   });
 }

@@ -62,7 +62,7 @@ describe('organisms/AltinnAppHeader', () => {
         hidden: true,
       }),
     ).toBeNull();
-    // eslint-disable-next-line testing-library/no-unnecessary-act
+
     await act(() =>
       userEvent.click(
         screen.getByRole('button', {

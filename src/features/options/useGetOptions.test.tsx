@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { AxiosResponse } from 'axios';
@@ -9,6 +10,7 @@ import { useGetOptions } from 'src/features/options/useGetOptions';
 import { renderWithNode } from 'src/test/renderWithProviders';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { IRawOption, ISelectionComponentExternal } from 'src/layout/common.generated';
+import type { fetchOptions } from 'src/queries/queries';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface RenderProps {
@@ -16,7 +18,7 @@ interface RenderProps {
   via: 'layout' | 'api' | 'repeatingGroups';
   options?: IRawOption[];
   mapping?: Record<string, string>;
-  fetchOptions?: () => Promise<AxiosResponse<IRawOption[], any>>;
+  fetchOptions?: jest.Mock<typeof fetchOptions>;
 }
 
 function TestOptions({ node }: { node: LayoutNode<'Dropdown' | 'MultipleSelect'> }) {
@@ -93,7 +95,7 @@ async function render(props: RenderProps) {
           ({
             data: props.options,
             headers: {},
-          }) as AxiosResponse<IRawOption[], any>),
+          }) as AxiosResponse<IRawOption[]>),
       fetchTextResources: async () => ({
         resources: [
           {
@@ -160,15 +162,22 @@ describe('useGetOptions', () => {
   });
 
   it('should include the mapping in the api request', async () => {
-    const fetchOptions = jest.fn().mockResolvedValue({ data: [], headers: {} });
+    const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockImplementation(
+      async (_url: string) =>
+        ({
+          data: [] as IRawOption[],
+          headers: {},
+        }) as AxiosResponse<IRawOption[]>,
+    );
+
     await render({
       via: 'api',
       type: 'single',
       mapping: { someOther: 'someParam', result: 'someEmpty' },
-      fetchOptions,
+      fetchOptions: fetchOptionsMock,
     });
 
-    expect(fetchOptions).toHaveBeenCalledWith(
+    expect(fetchOptionsMock).toHaveBeenCalledWith(
       expect.stringMatching(/^.+\/api\/options\/myOptions.+someParam=value&someEmpty=$/),
     );
   });

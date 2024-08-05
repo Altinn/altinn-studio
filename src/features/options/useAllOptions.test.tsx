@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 import type { AxiosResponse } from 'axios';
 
@@ -48,7 +49,10 @@ describe('useAllOptions', () => {
   });
 
   it('should show unknown error if option fetching fails', async () => {
-    const spy = jest.spyOn(window, 'logErrorOnce').mockImplementation().mockName('window.logErrorOnce');
+    const spy = jest
+      .spyOn(window, 'logErrorOnce')
+      .mockImplementation(() => {})
+      .mockName('window.logErrorOnce');
     const view = render({ fetchOptions: async () => Promise.reject() });
 
     expect(screen.getByTestId('loader')).toBeInTheDocument();
@@ -59,7 +63,7 @@ describe('useAllOptions', () => {
   });
 
   it('should finish loading if options are fetched', async () => {
-    const spy = jest.spyOn(window, 'logErrorOnce').mockImplementation().mockName('window.logErrorOnce');
+    const spy = jest.spyOn(window, 'logErrorOnce').mockName('window.logErrorOnce');
     const view = render({ fetchOptions: async () => Promise.resolve({ data: [], headers: {} } as AxiosResponse) });
 
     expect(screen.getByTestId('loader')).toBeInTheDocument();

@@ -39,7 +39,7 @@ describe('InstanceSelection', () => {
 
   it('should show full size table for larger devices', async () => {
     const { container } = await render();
-    // eslint-disable-next-line
+
     const altinnTable = container.querySelector('#instance-selection-table');
     expect(altinnTable).not.toBeNull();
   });
@@ -48,7 +48,7 @@ describe('InstanceSelection', () => {
     // Set screen size to mobile
     setScreenWidth(600);
     const { container } = await render();
-    // eslint-disable-next-line
+
     const altinnMobileTable = container.querySelector('#instance-selection-mobile-table');
     expect(altinnMobileTable).not.toBeNull();
   });

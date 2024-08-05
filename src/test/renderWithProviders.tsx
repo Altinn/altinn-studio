@@ -2,6 +2,7 @@ import React from 'react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
+import { jest } from '@jest/globals';
 import { createTheme, MuiThemeProvider } from '@material-ui/core';
 import { QueryClient } from '@tanstack/react-query';
 import { act, render as rtlRender, waitFor } from '@testing-library/react';

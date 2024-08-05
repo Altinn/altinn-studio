@@ -1,4 +1,5 @@
 import React, { forwardRef } from 'react';
+import type { JSX } from 'react';
 
 import { ImageDef } from 'src/layout/Image/config.def.generated';
 import { ImageComponent } from 'src/layout/Image/ImageComponent';

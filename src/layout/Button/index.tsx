@@ -1,4 +1,5 @@
 import React, { forwardRef } from 'react';
+import type { JSX } from 'react';
 
 import { ButtonComponent } from 'src/layout/Button/ButtonComponent';
 import { ButtonDef } from 'src/layout/Button/config.def.generated';

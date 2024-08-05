@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { jest } from '@jest/globals';
+
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { SummaryRepeatingGroup } from 'src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup';
 import { renderWithNode } from 'src/test/renderWithProviders';

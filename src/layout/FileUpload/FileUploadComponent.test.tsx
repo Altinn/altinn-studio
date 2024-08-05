@@ -64,7 +64,7 @@ describe('FileUploadComponent', () => {
       expect(mutations.doAttachmentUpload.mock).not.toHaveBeenCalled();
 
       const file = new File(['(⌐□_□)'], attachment?.filename || '', { type: attachment.contentType });
-      // eslint-disable-next-line testing-library/no-node-access
+
       const fileInput = screen.getByTestId(`altinn-drop-zone-${id}`).querySelector('input') as HTMLInputElement;
       await userEvent.upload(fileInput, file);
 
@@ -167,7 +167,7 @@ describe('FileUploadWithTagComponent', () => {
       });
 
       const file = new File(['(⌐□_□)'], 'chucknorris.png', { type: 'image/png' });
-      // eslint-disable-next-line testing-library/no-node-access
+
       const dropZone = screen.getByTestId(`altinn-drop-zone-${id}`).querySelector('input') as HTMLInputElement;
       await userEvent.upload(dropZone, file);
 
@@ -252,7 +252,7 @@ describe('FileUploadWithTagComponent', () => {
       const { id, mutations } = await renderWithTag({ attachments: () => [] });
 
       const file = new File(['(⌐□_□)'], 'chucknorris.png', { type: 'image/png' });
-      // eslint-disable-next-line testing-library/no-node-access
+
       const dropZone = screen.getByTestId(`altinn-drop-zone-${id}`).querySelector('input') as HTMLInputElement;
       await userEvent.upload(dropZone, file);
 

@@ -124,17 +124,20 @@ export function selectValidations<T extends BaseValidation>(
  * Gets all validations for a node in a single list, optionally filtered by severity
  * Looks at data model bindings to get field validations
  */
+
 export function getValidationsForNode(
   node: LayoutNode,
   findIn: ValidationSelector | ValidationState,
   mask: number,
 ): NodeValidation[];
+// eslint-disable-next-line no-redeclare
 export function getValidationsForNode<Severity extends ValidationSeverity>(
   node: LayoutNode,
   findIn: ValidationSelector | ValidationState,
   mask: number,
   severity: Severity,
 ): NodeValidation<Severity>[];
+// eslint-disable-next-line no-redeclare
 export function getValidationsForNode(
   node: LayoutNode,
   findIn: ValidationSelector | ValidationState,

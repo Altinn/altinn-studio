@@ -44,7 +44,6 @@ describe('ParagraphComponent', () => {
     const id = 'mock-id';
     await render({ component: { id, textResourceBindings: { title: '### Hello world' } } });
 
-    // eslint-disable-next-line testing-library/no-node-access
     expect(screen.getByTestId(`paragraph-component-${id}`).children[0].tagName).toEqual('H3');
   });
 
@@ -65,9 +64,9 @@ describe('ParagraphComponent', () => {
           },
         },
       });
-      // eslint-disable-next-line testing-library/no-node-access
+
       expect(screen.getByTestId(`paragraph-component-${id}`).children).toHaveLength(1);
-      // eslint-disable-next-line testing-library/no-node-access
+
       expect(screen.getByTestId(`paragraph-component-${id}`).children[0].tagName).toEqual('P');
     }
   });
@@ -89,13 +88,13 @@ describe('ParagraphComponent', () => {
           },
         },
       });
-      // eslint-disable-next-line testing-library/no-node-access
+
       expect(screen.getByTestId(`paragraph-component-${id}`).children).toHaveLength(3);
-      // eslint-disable-next-line testing-library/no-node-access
+
       expect(screen.getByTestId(`paragraph-component-${id}`).children[0].tagName).toEqual('P');
-      // eslint-disable-next-line testing-library/no-node-access
+
       expect(screen.getByTestId(`paragraph-component-${id}`).children[1].tagName).toEqual(tag.toUpperCase());
-      // eslint-disable-next-line testing-library/no-node-access
+
       expect(screen.getByTestId(`paragraph-component-${id}`).children[2].tagName).toEqual('P');
     }
   });

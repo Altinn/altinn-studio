@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
@@ -11,7 +12,7 @@ import type { RenderGenericComponentTestProps } from 'src/test/renderWithProvide
 // Mock dateformat
 jest.mock('src/utils/dateHelpers', () => ({
   __esModules: true,
-  ...jest.requireActual('src/utils/dateHelpers'),
+  ...jest.requireActual<typeof import('src/utils/dateHelpers')>('src/utils/dateHelpers'),
   getDateFormat: jest.fn(() => 'DD.MM.YYYY'),
 }));
 
@@ -55,7 +56,7 @@ describe('DatepickerComponent', () => {
   });
 
   it('should not show calendar initially, and show calendar when clicking calendar button', async () => {
-    jest.spyOn(console, 'error').mockImplementation().mockName('console.error');
+    jest.spyOn(console, 'error').mockName('console.error');
     await render();
 
     expect(getCalendarYearHeader('queryByRole')).not.toBeInTheDocument();

@@ -7,10 +7,8 @@ interface IErrorBoundary {
   lastError?: Error;
 }
 
-interface Props extends React.PropsWithChildren {}
-
-export class ErrorBoundary extends React.Component<Props, IErrorBoundary> {
-  constructor(props: Props) {
+export class ErrorBoundary extends React.Component<React.PropsWithChildren, IErrorBoundary> {
+  constructor(props: React.PropsWithChildren) {
     super(props);
     this.state = { lastError: undefined };
   }

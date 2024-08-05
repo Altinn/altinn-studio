@@ -1,3 +1,5 @@
+import { jest } from '@jest/globals';
+
 export function mockWindow(search?: string) {
   const realLocation = window.location;
   const mockAssign = jest.fn();

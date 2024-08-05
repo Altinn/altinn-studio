@@ -1,5 +1,6 @@
 import React from 'react';
 import { toast } from 'react-toastify';
+import type { JSX } from 'react';
 import type { FileRejection } from 'react-dropzone';
 
 import { useAttachmentsFor, useAttachmentsUploader } from 'src/features/attachments/AttachmentsContext';

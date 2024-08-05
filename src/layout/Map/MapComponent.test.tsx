@@ -54,7 +54,6 @@ describe('MapComponent', () => {
       },
     });
 
-    // eslint-disable-next-line
     const mapComponent = container.getElementsByClassName('map-component')[0];
     expect(mapComponent).toHaveClass('validation-error');
   });
@@ -66,7 +65,6 @@ describe('MapComponent', () => {
       },
     });
 
-    // eslint-disable-next-line
     const mapComponent = container.getElementsByClassName('map-component')[0];
     expect(mapComponent).not.toHaveClass('validation-error');
   });

@@ -1,4 +1,5 @@
 import React, { forwardRef } from 'react';
+import type { JSX } from 'react';
 
 import { AudioComponent } from 'src/layout/Audio/Audio';
 import { AudioDef } from 'src/layout/Audio/config.def.generated';

@@ -1,4 +1,5 @@
 import React from 'react';
+import type { JSX } from 'react';
 
 import { Panel, PanelVariant } from '@altinn/altinn-design-system';
 

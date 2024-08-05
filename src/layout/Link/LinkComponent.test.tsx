@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
 import { LinkComponent } from 'src/layout/Link/LinkComponent';
@@ -53,7 +54,7 @@ describe('LinkComponent', () => {
   });
 
   it('button should call window.open() with correct arguments when openInNewTab = true', async () => {
-    global.open = jest.fn();
+    global.open = jest.fn() as Window['open'];
     await render({
       title: 'Button to service',
       target: 'https://www.digdir.no/service',
@@ -66,7 +67,7 @@ describe('LinkComponent', () => {
   });
 
   it('button should call window.open() with correct arguments when openInNewTab = false', async () => {
-    global.open = jest.fn();
+    global.open = jest.fn() as Window['open'];
     await render({
       title: 'Button to service',
       target: 'https://www.digdir.no/service',

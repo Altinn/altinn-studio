@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { defineConfig } = require('cypress');
 const path = require('node:path');
 const fs = require('node:fs/promises');

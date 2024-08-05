@@ -83,7 +83,7 @@ describe('ErrorReport', () => {
 
     // Unmapped errors should not be clickable
     const errorNode = await screen.findByText('some unmapped error');
-    // eslint-disable-next-line testing-library/no-node-access
+
     expect(errorNode.parentElement?.tagName).toEqual('LI');
   });
 
@@ -103,7 +103,6 @@ describe('ErrorReport', () => {
     // mapped errors not bound to any component should not be clickable
     const errorNode = await screen.findByText('some unbound mapped error');
 
-    // eslint-disable-next-line testing-library/no-node-access
     expect(errorNode.parentElement?.tagName).toEqual('LI');
   });
 
@@ -122,9 +121,8 @@ describe('ErrorReport', () => {
     await screen.findByTestId('ErrorReport');
     const errorNode = await screen.findByText('some mapped error');
 
-    // eslint-disable-next-line testing-library/no-node-access
     expect(errorNode.parentElement?.tagName).toEqual('BUTTON');
-    // eslint-disable-next-line testing-library/no-node-access
+
     expect(errorNode.parentElement?.parentElement?.tagName).toEqual('LI');
   });
 });

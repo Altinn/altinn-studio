@@ -1,4 +1,5 @@
 import React, { forwardRef } from 'react';
+import type { JSX } from 'react';
 
 import { Alert as AlertComponent } from 'src/layout/Alert/Alert';
 import { AlertDef } from 'src/layout/Alert/config.def.generated';
