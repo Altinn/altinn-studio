@@ -1,6 +1,6 @@
 ﻿import { type GetInTouchProvider } from '../interfaces/GetInTouchProvider';
 
-type GitHubIssueTypes = 'featureRequest' | 'bugReport';
+type GitHubIssueTypes = 'featureRequest' | 'bugReport' | 'choose';
 
 type GitHubChannelConfig = {
   labels: Array<string>;
@@ -8,6 +8,10 @@ type GitHubChannelConfig = {
 };
 
 const gitHubIssueType: Record<GitHubIssueTypes, GitHubChannelConfig> = {
+  choose: {
+    labels: [],
+    template: '',
+  },
   featureRequest: {
     labels: ['kind/feature-request', 'status/triage'],
     template: 'feature_request.yml',
@@ -23,6 +27,7 @@ export class GitHubIssueContactProvider implements GetInTouchProvider<GitHubIssu
   private readonly githubIssueUrl: string = `${this.githubRepoUrl}/issues/new`;
 
   public buildContactUrl(selectedIssueType: GitHubIssueTypes): string {
+    if (selectedIssueType === 'choose') return this.githubIssueUrl;
     return this.githubIssueUrl + this.optionToUrlParams(gitHubIssueType[selectedIssueType]);
   }
 

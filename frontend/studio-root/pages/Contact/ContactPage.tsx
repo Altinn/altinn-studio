@@ -71,7 +71,7 @@ export const ContactPage = (): React.ReactElement => {
                 {t('contact.github_issue.heading')}
               </Heading>
               <Paragraph spacing>{t('contact.github_issue.content')}</Paragraph>
-              <Link href={contactByGitHubIssue.url('featureRequest')}>
+              <Link href={contactByGitHubIssue.url('choose')}>
                 {t('contact.github_issue.link_label')}
               </Link>
             </div>
