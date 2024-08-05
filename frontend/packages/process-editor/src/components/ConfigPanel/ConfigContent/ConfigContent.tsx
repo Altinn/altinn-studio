@@ -18,7 +18,7 @@ import { NewNameRecommendation } from '@altinn/process-editor/components/ConfigP
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
-  const { bpmnDetails, setBpmnDetails } = useBpmnContext();
+  const { bpmnDetails } = useBpmnContext();
   const { layoutSets, availableDataModelIds } = useBpmnApiContext();
   const configHeaderTexts: Record<'title' | 'helpText', string> = {
     title: bpmnDetails?.taskType && t(getConfigTitleKey(bpmnDetails.taskType)),
@@ -36,7 +36,6 @@ export const ConfigContent = (): React.ReactElement => {
     .filter((item) => item.businessObject.extensionElements?.values[0]?.taskType === 'signing')
     .some((item, index) => item.id === bpmnDetails.id && index === 0);
 
-  console.log(bpmnDetails.metadata.justAdded);
   return (
     <div className={classes.configContent}>
       <StudioSectionHeader

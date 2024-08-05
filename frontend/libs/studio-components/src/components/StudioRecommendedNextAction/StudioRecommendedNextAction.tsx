@@ -22,16 +22,10 @@ export const StudioRecommendedNextAction = ({
 }: StudioRecommendedNextActionProps): React.ReactElement => {
   return (
     <Card>
-      <Card.Header>
-        {/* <div className={classes.StudioRecommendedNextActionContainer}> */}
-        {/* <h3 className={classes.StudioRecommendedNextActionHeader}>{title}</h3> */}
-        {title}
-      </Card.Header>
+      <Card.Header>{title}</Card.Header>
       <Card.Content>
-        {/* <div className={classes.StudioRecommendedNextActionContent}> */}
         <p>{description}</p>
         {children}
-        {/* </div> */}
         <div className={classes.buttonGroup}>
           {validForm && (
             <StudioButton hidden={!validForm} onClick={onSave} variant='primary'>
