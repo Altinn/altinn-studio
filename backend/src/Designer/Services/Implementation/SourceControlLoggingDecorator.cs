@@ -276,7 +276,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Dictionary<string, string> GetChangedContent(string org, string repository)
+        public Task<Dictionary<string, string>> GetChangedContent(string org, string repository)
         {
             try
             {

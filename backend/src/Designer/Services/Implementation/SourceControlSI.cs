@@ -290,13 +290,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Dictionary<string, string> GetChangedContent(string org, string repository)
+        public async Task<Dictionary<string, string>> GetChangedContent(string org, string repository)
         {
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             Dictionary<string, string> fileDiffs = new Dictionary<string, string>();
             using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
-                FetchRemoteChanges(org, repository);
+                await FetchRemoteChanges(org, repository);
                 var remoteMainBranch = repo.Branches["refs/remotes/origin/master"];
                 if (remoteMainBranch == null || remoteMainBranch.Tip == null)
                 {

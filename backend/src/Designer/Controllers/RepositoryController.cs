@@ -230,7 +230,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>A dictionary of modified or new files and the git diff</returns>
         [HttpGet]
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/diff")]
-        public Dictionary<string, string> RepoDiff(string org, string repository)
+        public async Task<Dictionary<string, string>> RepoDiff(string org, string repository)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
@@ -238,7 +238,7 @@ namespace Altinn.Studio.Designer.Controllers
             try
             {
                 _sourceControl.FetchRemoteChanges(org, repository);
-                return _sourceControl.GetChangedContent(org, repository);
+                return await _sourceControl.GetChangedContent(org, repository);
             }
             finally
             {
