@@ -10,5 +10,9 @@ describe('GitHubIssuesContactProvider', () => {
     expect(gitHubIssuesContactProvider.buildContactUrl('bugReport')).toBe(
       'https://github.com/Altinn/altinn-studio/issues/new?assignees=&labels=kind/bug,status/triage&projects=&template=bug_report.yml',
     );
+
+    expect(gitHubIssuesContactProvider.buildContactUrl('choose')).toBe(
+      'https://github.com/Altinn/altinn-studio/issues/new/choose',
+    );
   });
 });
