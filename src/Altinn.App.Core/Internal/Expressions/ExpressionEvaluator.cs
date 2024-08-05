@@ -511,6 +511,10 @@ public static class ExpressionEvaluator
         {
             return doubvalue.ToString(CultureInfo.InvariantCulture);
         }
+        else if (value is int intvalue)
+        {
+            return intvalue.ToString(CultureInfo.InvariantCulture);
+        }
 
         //TODO: consider accepting more types that might be used in model (eg Datetime)
         throw new NotImplementedException();
