@@ -6,11 +6,11 @@ import { useTranslation } from 'react-i18next';
 import classes from './FileChangesInfoModal.module.css';
 import { ClockDashedIcon } from '@studio/icons';
 
-export interface FileChangesInfoModalProps {
+export type FileChangesInfoModalProps = {
   isOpen: boolean;
   onClose: () => void;
   fileChanges: RepoContentStatus[];
-}
+};
 
 const fileStatusToTagColorMapping: { [key in FileStatus]: string } = {
   NewInWorkdir: 'success',

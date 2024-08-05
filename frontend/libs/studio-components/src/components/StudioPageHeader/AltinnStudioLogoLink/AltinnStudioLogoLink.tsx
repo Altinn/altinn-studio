@@ -1,7 +1,8 @@
 import React from 'react';
 import classes from './AltinnStudioLogoLink.module.css';
 import { AltinnStudioLogo } from './AltinnStudioLogo';
-import { Link, Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/design-system-react';
+import { Link } from '@digdir/designsystemet-react';
 
 export type AltinnStudioLogoLinkProps = {
   title?: string;

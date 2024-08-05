@@ -6,7 +6,7 @@ import { Heading, Paragraph } from '@digdir/designsystemet-react';
 import { StudioButton, StudioTextarea } from '@studio/components';
 import type { RepoContentStatus } from 'app-shared/types/RepoStatus';
 import { ClockDashedIcon } from '@studio/icons';
-import { FileChangesInfoModal } from './FileChangesInfoModal/FileChangesInfoModal';
+import { FileChangesInfoModal } from './FileChangesInfoModal';
 
 export type CommitAndPushContentProps = {
   onHidePopover: (hide: boolean) => void;

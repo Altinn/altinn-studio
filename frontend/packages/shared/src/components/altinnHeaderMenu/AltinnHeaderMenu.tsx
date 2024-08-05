@@ -42,3 +42,9 @@ betaText && (
   </Tag>
 )
   */
+
+/*
+Så er jo da spørsmålet om vi skal da også lage en som heter StudioNavigationButtons som
+viser en liste med StudioNavigationButton, og dersom det er fler enn en button så vises
+hamburger når liten, og dersom det bare er en så vises den ene hele tiden
+*/

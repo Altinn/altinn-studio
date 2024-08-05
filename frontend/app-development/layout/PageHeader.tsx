@@ -14,6 +14,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import { StudioPageHeader } from '@studio/components';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
+import { AltinnHeaderMenu } from 'app-shared/components/altinnHeaderMenu';
 
 type SubMenuContentProps = {
   hasRepoError?: boolean;
@@ -86,12 +87,14 @@ export const PageHeader = ({ showSubMenu, user, repoOwnerIsOrg, isRepoError }: P
       <StudioPageHeader>
         <StudioPageHeader.Main variant='regular'>
           <StudioPageHeader.Left title={app} />
-          <StudioPageHeader.Center>Center</StudioPageHeader.Center>
+          <StudioPageHeader.Center>
+            {menuItems && <AltinnHeaderMenu menuItems={menuItems} />}
+          </StudioPageHeader.Center>
           <StudioPageHeader.Right>Right</StudioPageHeader.Right>
         </StudioPageHeader.Main>
         {(showSubMenu || !isRepoError) && (
           <StudioPageHeader.Sub>
-            {SubMenuContent({ hasRepoError: isRepoError })}
+            <SubMenuContent hasRepoError={isRepoError} />
           </StudioPageHeader.Sub>
         )}
       </StudioPageHeader>

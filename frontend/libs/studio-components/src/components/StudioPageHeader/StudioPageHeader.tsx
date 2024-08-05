@@ -61,14 +61,15 @@ export const StudioPageHeaderRight = ({
 export const StudioPageHeaderSub = ({
   children,
 }: StudioPageHeaderComponentProps): React.ReactElement => {
-  return <div className={classes.sub}>{children}</div>;
+  return <div>{children}</div>;
 };
 
 // Need to create
-// - StudioLogoLink
 // - StudioProfileMenu
-// - StudioSubHeader (.Left, .Right)
+// - StudioNavigationButton
+// - StudioNavigation
 
+// Need to make mdx and stories file etc.
 // Need to split the code above into separate files
 // Need to style header differently based on if center is present or not.
 // - Always keep logo and profile out on the sides

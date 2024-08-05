@@ -1,8 +1,8 @@
 .wrapper {
   display: flex;
   justify-content: space-between;
-  width: 100%;
   background-color: #284e6a;
+  padding-inline: 1rem;
 }
 
 .leftContentWrapper {
