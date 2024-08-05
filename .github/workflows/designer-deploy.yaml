@@ -17,6 +17,10 @@ on:
 
   workflow_dispatch:
 
+permissions:
+      id-token: write
+      contents: read
+
 jobs:
   get-short-sha:
     uses: ./.github/workflows/template-short-sha.yaml
