@@ -48,7 +48,13 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
       {isField(selectedItem) && numberOfChildNodes > 0 && (
         <ItemFieldsTable readonly={readonly} selectedItem={selectedItem} />
       )}
-      <DropdownMenu open={isAddDropdownOpen} onClose={closeDropdown} size='small' portal>
+      <DropdownMenu
+        open={isAddDropdownOpen}
+        onClose={closeDropdown}
+        size='small'
+        portal
+        placement='bottom-start'
+      >
         <DropdownMenu.Trigger asChild>
           {!readonly && (
             <StudioButton
