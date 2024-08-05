@@ -68,7 +68,7 @@ import {
 } from './mocks';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
-import type { RepoDiff } from 'app-shared/types/api/RepoDiff';
+import type { RepoDiffResponse } from 'app-shared/types/api/RepoDiffResponse';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
@@ -92,7 +92,7 @@ export const queriesMock: ServicesContextProps = {
   getDeployments: jest
     .fn()
     .mockImplementation(() => Promise.resolve<DeploymentsResponse>(deploymentsResponse)),
-  getRepoDiff: jest.fn().mockImplementation(() => Promise.resolve<RepoDiff>({})),
+  getRepoDiff: jest.fn().mockImplementation(() => Promise.resolve<RepoDiffResponse>({})),
   getEnvironments: jest.fn().mockImplementation(() => Promise.resolve<Environment[]>([])),
   getFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponse>({})),

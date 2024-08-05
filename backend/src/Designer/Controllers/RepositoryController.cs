@@ -210,7 +210,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
-            semaphore.Wait();
+            await semaphore.WaitAsync();
             try
             {
                 await _sourceControl.FetchRemoteChanges(org, repository);
@@ -234,7 +234,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
-            semaphore.Wait();
+            await semaphore.WaitAsync();
             try
             {
                 await _sourceControl.FetchRemoteChanges(org, repository);

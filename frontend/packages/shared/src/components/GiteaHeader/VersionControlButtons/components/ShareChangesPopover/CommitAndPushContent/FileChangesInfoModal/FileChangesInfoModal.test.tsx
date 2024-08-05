@@ -90,10 +90,15 @@ describe('FileChangesInfoModal', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
-  it('should render filePath as clickable when fileStatus is ModifiedInWorkdir or NewInWorkdir, but not DeletedFromWorkdir', async () => {
+  it('should call getRepoDiff', () => {
+    renderFileChangesInfoModal();
+
+    expect(mockGetRepoDiff).toHaveBeenCalledTimes(1);
+  });
+
+  it('should render filePath as clickable when fileStatus is ModifiedInWorkdir or NewInWorkdir', async () => {
     const user = userEvent.setup();
     const addedFilePath = `${filePathWithoutNameMock}/addedFile.json`;
-    const deletedFilePath = `${filePathWithoutNameMock}/deletedFile.json`;
     await renderFileChangesInfoModalAndWaitForData({
       ...defaultProps,
       fileChanges: [
@@ -104,10 +109,6 @@ describe('FileChangesInfoModal', () => {
         {
           filePath: addedFilePath,
           fileStatus: 'NewInWorkdir',
-        },
-        {
-          filePath: deletedFilePath,
-          fileStatus: 'DeletedFromWorkdir',
         },
       ],
     });
@@ -128,6 +129,20 @@ describe('FileChangesInfoModal', () => {
     expect(addedDiffContentElement).not.toHaveAttribute('open');
     await user.click(addedFilePathElement);
     expect(addedDiffContentElement).toHaveAttribute('open');
+  });
+
+  it('should not render filePath as clickable when fileStatus is DeleteFromWorkdir', async () => {
+    const user = userEvent.setup();
+    const deletedFilePath = `${filePathWithoutNameMock}/deletedFile.json`;
+    await renderFileChangesInfoModalAndWaitForData({
+      ...defaultProps,
+      fileChanges: [
+        {
+          filePath: deletedFilePath,
+          fileStatus: 'DeletedFromWorkdir',
+        },
+      ],
+    });
 
     const deletedFilePathElement = screen.getByTitle(deletedFilePath);
     await user.click(deletedFilePathElement);
@@ -137,8 +152,6 @@ describe('FileChangesInfoModal', () => {
       }),
     });
     expect(deletedDiffContentElement).not.toBeInTheDocument();
-
-    expect(mockGetRepoDiff).toHaveBeenCalledTimes(1);
   });
 });
 

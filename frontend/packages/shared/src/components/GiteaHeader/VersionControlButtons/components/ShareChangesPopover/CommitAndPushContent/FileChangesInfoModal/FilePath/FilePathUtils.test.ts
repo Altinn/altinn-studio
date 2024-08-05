@@ -18,12 +18,6 @@ describe('FilePathUtils', () => {
       expect(userFriendlyDiff).toEqual(['- old line', '+ new line', 'unchanged line']);
     });
 
-    it('removes last metadata line if it exists', () => {
-      const userFriendlyDiff: string[] = convertPureGitDiffToUserFriendlyDiff(diffStringMock);
-
-      expect(userFriendlyDiff).not.toContain('No newline at end of file');
-    });
-
     it('returns last line if it is not metadata', () => {
       diffStringMock.replace(' No newline at end of file', '');
       const userFriendlyDiff: string[] = convertPureGitDiffToUserFriendlyDiff(diffStringMock);

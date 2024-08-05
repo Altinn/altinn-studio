@@ -114,10 +114,10 @@ interface FileChangeTableRowProps {
 const FileChangeTableRow = ({ fileChange, diff, repoDiffStatus }: FileChangeTableRowProps) => {
   const { t } = useTranslation();
 
-  const renderFileStatusTag = (fileStatus: string): React.ReactElement => {
+  const renderFileStatusTag = (): React.ReactElement => {
     return (
-      <Tag size='small' color={fileStatusToTagColorMapping[fileStatus]}>
-        {t(`sync_header.show_changes_modal.file_status_${fileStatus}`)}
+      <Tag size='small' color={fileStatusToTagColorMapping[fileChange.fileStatus]}>
+        {t(`sync_header.show_changes_modal.file_status_${fileChange.fileStatus}`)}
       </Tag>
     );
   };
@@ -135,9 +135,7 @@ const FileChangeTableRow = ({ fileChange, diff, repoDiffStatus }: FileChangeTabl
           repoDiffStatus={repoDiffStatus}
         />
       </Table.Cell>
-      <Table.Cell className={classes.fileStatus}>
-        {renderFileStatusTag(fileChange.fileStatus)}
-      </Table.Cell>
+      <Table.Cell className={classes.fileStatus}>{renderFileStatusTag()}</Table.Cell>
     </Table.Row>
   );
 };
