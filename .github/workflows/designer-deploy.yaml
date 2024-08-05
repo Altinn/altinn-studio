@@ -61,7 +61,7 @@ jobs:
       environment: ${{ matrix.environment }}
       config-chart-name: altinn-designer-config
       artifact-name: altinn-designer
-      helm-set-arguments: environment=${{ matrix.environment }},chartVersion=0.1.0+${{ needs.get-short-sha.outputs.short-sha }},imageTag=${{ needs.get-short-sha.outputs.short-sha }}
+      helm-set-arguments: environmentName=${{ matrix.environment }},chartVersion=0.1.0+${{ needs.get-short-sha.outputs.short-sha }},imageTag=${{ needs.get-short-sha.outputs.short-sha }}
     secrets:
       client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
       tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
