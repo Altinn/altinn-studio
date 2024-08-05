@@ -73,7 +73,7 @@ export function App() {
   const renderApp = () => {
     if (componentHasError) {
       const mappedError = mapErrorToDisplayError();
-      return <ErrorPage title={mappedError.title} message={mappedError.message} />;
+      return <StudioPageError title={mappedError.title} message={mappedError.message} />;
     }
 
     if (componentIsReady) {

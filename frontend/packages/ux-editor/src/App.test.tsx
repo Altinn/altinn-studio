@@ -63,16 +63,12 @@ describe('App', () => {
   it.each(['layout_sets', 'data_model', 'widget'])(
     'should render errorPage for %s when component has errors',
     async (resource) => {
-      let errorQuery;
-      if (resource === 'layout_sets') {
-        errorQuery = { getLayoutSets: jest.fn().mockImplementation(() => Promise.reject()) };
-      }
-      if (resource === 'data_model') {
-        errorQuery = { getDataModelMetadata: jest.fn().mockImplementation(() => Promise.reject()) };
-      }
-      if (resource === 'widget') {
-        errorQuery = { getWidgetSettings: jest.fn().mockImplementation(() => Promise.reject()) };
-      }
+      const errorQueries = {
+        layout_sets: { getLayoutSets: jest.fn().mockImplementation(() => Promise.reject()) },
+        data_model: { getDataModelMetadata: jest.fn().mockImplementation(() => Promise.reject()) },
+        widget: { getWidgetSettings: jest.fn().mockImplementation(() => Promise.reject()) },
+      };
+      const errorQuery = errorQueries[resource];
 
       renderApp({ ...mockQueries, ...errorQuery });
       await waitForLoadingToFinish();
