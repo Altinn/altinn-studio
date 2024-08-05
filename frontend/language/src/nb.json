@@ -517,6 +517,7 @@
   "overview.header_loading": "Laster inn navnet på applikasjonen",
   "overview.navigation_title": "Bygg applikasjonen med våre verktøy",
   "overview.news_date": "Publisert {{date}}",
+  "overview.news_error_title": "En feil oppstod ved innlasting av nyheter",
   "overview.news_title": "Nyheter",
   "overview.no_activity": "Ingen aktivitet eller versjoner er publisert",
   "overview.no_news_content": "Sjekk veikartet for å se hva som kommer fremover!",
