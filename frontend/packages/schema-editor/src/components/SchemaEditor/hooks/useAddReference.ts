@@ -12,7 +12,8 @@ export const useAddReference = (): HandleAdd<string> => {
     (reference: string, position: ItemPosition) => {
       const index = calculatePositionInFullList(savableModel, position);
       const target: NodePosition = { parentPointer: position.parentId, index };
-      const refName = savableModel.generateUniqueChildName(target.parentPointer, 'ref');
+      const pointer = savableModel.getFinalNode(target.parentPointer).pointer;
+      const refName = savableModel.generateUniqueChildName(pointer, 'ref');
       const ref = savableModel.addReference(refName, reference, target);
       setSelectedNodePointer(ref.pointer);
     },
