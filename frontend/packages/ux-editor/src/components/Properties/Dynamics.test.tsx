@@ -16,9 +16,6 @@ const conditionalRenderingTestId = 'conditional-rendering';
 const expressionsTestId = 'expressions';
 
 // Mocks:
-jest.mock('./ConditionalRendering', () => ({
-  ConditionalRendering: () => <div data-testid={conditionalRenderingTestId} />,
-}));
 jest.mock('../config/Expressions', () => ({
   Expressions: () => <div data-testid={expressionsTestId} />,
 }));
