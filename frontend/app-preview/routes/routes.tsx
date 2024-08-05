@@ -1,6 +1,6 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
-import { LandingPage } from '../views/LandingPage';
+import { LandingPage } from '../pages/LandingPage';
 import { PageLayout } from '../layout/PageLayout';
 
 export const routes = (
