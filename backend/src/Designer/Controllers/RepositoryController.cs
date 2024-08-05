@@ -237,7 +237,7 @@ namespace Altinn.Studio.Designer.Controllers
             semaphore.Wait();
             try
             {
-                _sourceControl.FetchRemoteChanges(org, repository);
+                await _sourceControl.FetchRemoteChanges(org, repository);
                 return await _sourceControl.GetChangedContent(org, repository);
             }
             finally
