@@ -16,6 +16,8 @@ import { StudioPageHeader } from '@studio/components';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { AltinnHeaderMenu } from 'app-shared/components/altinnHeaderMenu';
 
+const WINDOW_RESIZE_WIDTH = 1000;
+
 type SubMenuContentProps = {
   hasRepoError?: boolean;
 };
@@ -91,7 +93,9 @@ export const PageHeader = ({ showSubMenu, user, repoOwnerIsOrg, isRepoError }: P
         <StudioPageHeader.Main variant='regular'>
           <StudioPageHeader.Left title={app} />
           <StudioPageHeader.Center>
-            {menuItems && <AltinnHeaderMenu menuItems={menuItems} />}
+            {menuItems && (
+              <AltinnHeaderMenu menuItems={menuItems} windowResizeWidth={WINDOW_RESIZE_WIDTH} />
+            )}
           </StudioPageHeader.Center>
           <StudioPageHeader.Right>Right</StudioPageHeader.Right>
         </StudioPageHeader.Main>

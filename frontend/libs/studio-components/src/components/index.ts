@@ -15,8 +15,6 @@ export * from './StudioLabelAsParagraph';
 export * from './StudioLabelWrapper';
 export * from './StudioModal';
 export * from './StudioNativeSelect';
-export * from './StudioNavigationButton';
-export * from './StudioNavigationMenu';
 export * from './StudioNotFoundPage';
 export * from './StudioParagraph';
 export * from './StudioPageHeader';
