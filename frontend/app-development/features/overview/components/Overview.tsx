@@ -11,9 +11,7 @@ import { Header } from './Header';
 
 export const Overview = () => {
   const { t } = useTranslation();
-  const obje = undefined;
 
-  const data = obje.data;
   return (
     <PageContainer>
       <main className={classes.container}>
