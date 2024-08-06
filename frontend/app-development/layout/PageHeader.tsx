@@ -66,7 +66,10 @@ export const PageHeader = ({ showSubMenu, user, repoOwnerIsOrg, isRepoError }: P
   const { org, app } = useStudioEnvironmentParams();
   const repoType = getRepositoryType(org, app);
   const { data: repository } = useRepoMetadataQuery(org, app);
+
+  // TODO - Is this filter needed??
   const menuItems = getFilteredTopBarMenu(repoType);
+
   const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
   const { selectedFormLayoutName } = useSelectedFormLayoutName(selectedFormLayoutSetName);
 

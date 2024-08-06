@@ -9,3 +9,10 @@ export enum TopBarMenu {
   ProcessEditor = 'top_menu.process_editor',
   None = '',
 }
+
+// TODO MOVE
+export enum TopBarGroup {
+  Overview = 'Oversikt',
+  Tools = 'Verktøy',
+  Other = 'Annet',
+}

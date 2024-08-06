@@ -1,4 +1,4 @@
-import type { TopBarMenu } from 'app-shared/enums/TopBarMenu';
+import type { TopBarGroup, TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import type { RepositoryType } from './global';
 import type { SupportedFeatureFlags } from 'app-shared/utils/featureToggleUtils';
 
@@ -9,4 +9,11 @@ export interface TopBarMenuItem {
   repositoryTypes: RepositoryType[];
   featureFlagName?: SupportedFeatureFlags;
   isBeta?: boolean;
+  group: TopBarGroup;
+}
+
+// TODO move
+export interface TopBarMenuGroup {
+  groupName: string;
+  menuItems: TopBarMenuItem[];
 }

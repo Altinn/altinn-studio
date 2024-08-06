@@ -16,6 +16,8 @@ import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { useTranslation } from 'react-i18next';
 import { Paragraph } from '@digdir/designsystemet-react';
 
+const WINDOW_RESIZE_WIDTH = 1000;
+
 export interface AltinnHeaderProps {
   heading?: string;
   menuItems?: TopBarMenuItem[];
@@ -66,7 +68,9 @@ export const AltinnHeader = ({
             {heading}
           </Paragraph>
         )}
-        {menuItems && <AltinnHeaderMenu menuItems={menuItems} />}
+        {menuItems && (
+          <AltinnHeaderMenu menuItems={menuItems} windowResizeWidth={WINDOW_RESIZE_WIDTH} />
+        )}
         <div className={classes.rightContent}>
           {buttonActions && (
             <div className={classes.rightContentButtons}>

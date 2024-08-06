@@ -1,0 +1,4 @@
+.betaTag {
+  min-height: min-content;
+  padding: 0 var(--fds-spacing-1);
+}
