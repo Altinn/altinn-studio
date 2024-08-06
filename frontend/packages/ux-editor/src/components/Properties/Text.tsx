@@ -11,6 +11,7 @@ import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 import { useAppContext } from '../../hooks';
 import { EditImage } from '../config/editModal/EditImage';
+import classes from './Text.module.css';
 
 export const Text = () => {
   const { formItemId: formId, formItem: form, handleUpdate, debounceSave } = useFormItemContext();
@@ -34,7 +35,9 @@ export const Text = () => {
 
   return (
     <>
-      <Heading size='small'>{'Tekster'}</Heading>
+      <Heading size='2xs' className={classes.heading}>
+        {'Tekster'}
+      </Heading>
       {schema.properties.textResourceBindings?.properties && (
         <EditTextResourceBindings
           component={form}
@@ -69,7 +72,9 @@ export const Text = () => {
       )}
       {form.type === 'Image' && (
         <>
-          <Heading size='xsmall'>{'Valg for bilde'}</Heading>
+          <Heading size='2xs' className={classes.heading}>
+            {'Valg for bilde'}
+          </Heading>
           <EditImage
             component={form}
             handleComponentChange={async (updatedComponent) => {

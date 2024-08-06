@@ -57,7 +57,7 @@ export const EditImage = ({ component, handleComponentChange }: EditImageProps) 
         {imageOriginsFromLibrary ? (
           <PreviewImageSummary
             existingImageUrl={component.image?.src?.nb}
-            existingImageDescription={component.image?.src?.nb}
+            existingImageDescription={null}
             onDeleteImage={handleImageDelete}
           />
         ) : (
