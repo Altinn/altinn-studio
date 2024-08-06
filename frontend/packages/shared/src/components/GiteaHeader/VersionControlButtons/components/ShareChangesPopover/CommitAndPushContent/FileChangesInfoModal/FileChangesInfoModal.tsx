@@ -114,13 +114,11 @@ interface FileChangeTableRowProps {
 const FileChangeTableRow = ({ fileChange, diff, repoDiffStatus }: FileChangeTableRowProps) => {
   const { t } = useTranslation();
 
-  const renderFileStatusTag = (): React.ReactElement => {
-    return (
-      <Tag size='small' color={fileStatusToTagColorMapping[fileChange.fileStatus]}>
-        {t(`sync_header.show_changes_modal.file_status_${fileChange.fileStatus}`)}
-      </Tag>
-    );
-  };
+  const fileStatusTag: React.ReactElement => (
+    <Tag size='small' color={fileStatusToTagColorMapping[fileChange.fileStatus]}>
+      {t(`sync_header.show_changes_modal.file_status_${fileChange.fileStatus}`)}
+    </Tag>
+  );
 
   const enableFileDiff =
     fileChange.fileStatus === 'ModifiedInWorkdir' || fileChange.fileStatus === 'NewInWorkdir';
