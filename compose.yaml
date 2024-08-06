@@ -93,6 +93,11 @@ services:
     extra_hosts:
       - 'host.docker.internal:host-gateway'
       - 'studio.localhost:host-gateway'
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://localhost:6000/" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   studio_repositories:
     container_name: studio-repositories
