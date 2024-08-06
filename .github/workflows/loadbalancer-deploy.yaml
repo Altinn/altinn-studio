@@ -37,7 +37,7 @@ jobs:
     needs: [get-short-sha, helm-push]
     strategy:
       matrix:
-        environment: [staging] # add dev and prod after testing
+        environment: [dev, staging, prod]
     uses: ./.github/workflows/template-flux-config-push.yaml
     with:
       tag: ${{ needs.get-short-sha.outputs.short-sha }}
