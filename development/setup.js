@@ -105,6 +105,7 @@ const createOidcClientIfNotExists = async (env) => {
   writeEnvFile(env);
   // reload designer with new clientid and secret
   restartComposeServices();
+  await waitFor('http://studio.localhost/repos/');
 };
 
 const addUserToSomeTestDepTeams = async (env) => {
