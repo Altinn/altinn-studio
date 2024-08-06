@@ -1,5 +1,6 @@
 .active {
   border-bottom: 2px solid var(--fds-semantic-surface-neutral-default);
+  border: 1px solid red;
 }
 
 .smallLink {

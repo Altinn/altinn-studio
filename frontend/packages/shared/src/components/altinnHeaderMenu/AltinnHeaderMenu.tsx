@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import React, { useState, type ReactElement } from 'react';
 import classes from './AltinnHeaderMenu.module.css';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -87,10 +87,10 @@ const LinkComponentSmall = ({ link, text }: LinkComponentProps): ReactElement =>
   // TODO - Separate file
   // TODO - Add previw and deploy buttons
   return (
-    /*<StudioButton asChild variant='tertiary' size='md' fullWidth className={classes.smallLink}>*/
-    <NavLink to={link} className={({ isActive }) => (isActive ? classes.active : '')}>
-      {text}
-    </NavLink>
-    /*</StudioButton>*/
+    <StudioButton asChild variant='tertiary' size='md' fullWidth className={classes.smallLink}>
+      <NavLink to={link} className={({ isActive }) => (isActive ? classes.active : '')}>
+        {text}
+      </NavLink>
+    </StudioButton>
   );
 };

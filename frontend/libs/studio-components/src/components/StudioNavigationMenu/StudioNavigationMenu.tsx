@@ -94,6 +94,7 @@ export const StudioNavigationMenuSmall = ({
         />
       </DropdownMenu.Trigger>
       <DropdownMenu.Content>
+        {/* MOVE THIS TO SHARED */}
         {menuGroups.map((menuGroup: StudioNavigationMenuSmallGroup, index: number) => (
           <React.Fragment key={menuGroup.name}>
             <DropdownMenu.Group heading={menuGroup.showName ? menuGroup.name : ''}>
