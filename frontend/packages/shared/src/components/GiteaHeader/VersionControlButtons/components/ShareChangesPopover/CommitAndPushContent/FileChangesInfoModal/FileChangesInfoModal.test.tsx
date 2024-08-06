@@ -96,63 +96,30 @@ describe('FileChangesInfoModal', () => {
     expect(mockGetRepoDiff).toHaveBeenCalledTimes(1);
   });
 
-  it('should render filePath as clickable when fileStatus is ModifiedInWorkdir or NewInWorkdir', async () => {
-    const user = userEvent.setup();
-    const addedFilePath = `${filePathWithoutNameMock}/addedFile.json`;
-    await renderFileChangesInfoModalAndWaitForData({
-      ...defaultProps,
-      fileChanges: [
-        {
-          filePath: filePathMock,
-          fileStatus: fileStatusMock,
-        },
-        {
-          filePath: addedFilePath,
-          fileStatus: 'NewInWorkdir',
-        },
-      ],
-    });
-    const modifiedFilePathElement = screen.getByTitle(filePathMock);
-    const modifiedDiffContentElement = screen.getByRole('group', {
-      name: textMock('sync_header.show_changes_modal.file_diff_title', { fileName: fileNameMock }),
-    });
-    expect(modifiedDiffContentElement).not.toHaveAttribute('open');
-    await user.click(modifiedFilePathElement);
-    expect(modifiedDiffContentElement).toHaveAttribute('open');
-
-    const addedFilePathElement = screen.getByTitle(addedFilePath);
-    const addedDiffContentElement = screen.getByRole('group', {
-      name: textMock('sync_header.show_changes_modal.file_diff_title', {
-        fileName: 'addedFile.json',
-      }),
-    });
-    expect(addedDiffContentElement).not.toHaveAttribute('open');
-    await user.click(addedFilePathElement);
-    expect(addedDiffContentElement).toHaveAttribute('open');
-  });
-
-  it('should not render filePath as clickable when fileStatus is DeleteFromWorkdir', async () => {
-    const user = userEvent.setup();
-    const deletedFilePath = `${filePathWithoutNameMock}/deletedFile.json`;
-    await renderFileChangesInfoModalAndWaitForData({
-      ...defaultProps,
-      fileChanges: [
-        {
-          filePath: deletedFilePath,
-          fileStatus: 'DeletedFromWorkdir',
-        },
-      ],
-    });
-
-    const deletedFilePathElement = screen.getByTitle(deletedFilePath);
-    await user.click(deletedFilePathElement);
-    const deletedDiffContentElement = screen.queryByRole('group', {
-      name: textMock('sync_header.show_changes_modal.file_diff_title', {
-        fileName: 'removedFile.json',
-      }),
-    });
-    expect(deletedDiffContentElement).not.toBeInTheDocument();
-  });
+  it.each(['ModifiedInWorkdir', 'NewInWorkdir', 'DeletedFromWorkdir'])(
+    'should render filePath as clickable when fileStatus is %s',
+    async (fileStatus) => {
+      const user = userEvent.setup();
+      await renderFileChangesInfoModalAndWaitForData({
+        ...defaultProps,
+        fileChanges: [
+          {
+            filePath: filePathMock,
+            fileStatus: fileStatus,
+          },
+        ],
+      });
+      const modifiedFilePathElement = screen.getByTitle(filePathMock);
+      const modifiedDiffContentElement = screen.getByRole('group', {
+        name: textMock('sync_header.show_changes_modal.file_diff_title', {
+          fileName: fileNameMock,
+        }),
+      });
+      expect(modifiedDiffContentElement).not.toHaveAttribute('open');
+      await user.click(modifiedFilePathElement);
+      expect(modifiedDiffContentElement).toHaveAttribute('open');
+    },
+  );
 });
 
 const renderFileChangesInfoModal = (props: FileChangesInfoModalProps = defaultProps) => {

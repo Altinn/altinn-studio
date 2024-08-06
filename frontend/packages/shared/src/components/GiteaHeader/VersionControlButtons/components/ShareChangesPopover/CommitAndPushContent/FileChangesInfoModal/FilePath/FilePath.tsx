@@ -2,22 +2,22 @@ import React from 'react';
 import classes from './FilePath.module.css';
 import cn from 'classnames';
 import { convertPureGitDiffToUserFriendlyDiff } from './FilePathUtils';
+import { ChevronRightIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { extractFilename, removeFileNameFromPath } from 'app-shared/utils/filenameUtils';
 
 export interface FilePathProps {
-  enableFileDiff: boolean;
   filePath: string;
   diff?: string; // Might be null for deleted files
   repoDiffStatus: 'success' | 'error' | 'pending';
 }
 
-export const FilePath = ({ enableFileDiff, filePath, diff, repoDiffStatus }: FilePathProps) => {
+export const FilePath = ({ filePath, diff, repoDiffStatus }: FilePathProps) => {
   const { t } = useTranslation();
 
   let linesToRender: string[];
 
-  if (enableFileDiff && !!diff) {
+  if (!!diff) {
     linesToRender = convertPureGitDiffToUserFriendlyDiff(diff);
   }
 
@@ -30,6 +30,7 @@ export const FilePath = ({ enableFileDiff, filePath, diff, repoDiffStatus }: Fil
         className={asButton ? classes.filePathWithDiffContainer : classes.filePathContainer}
         title={filePath}
       >
+        {asButton ? <ChevronRightIcon className={classes.chevronIcon} /> : <div></div>}
         <div className={classes.filePath}>{filePathWithoutName}</div>
         {'/'}
         <strong>{fileName}</strong>
@@ -37,7 +38,7 @@ export const FilePath = ({ enableFileDiff, filePath, diff, repoDiffStatus }: Fil
     );
   };
 
-  if (!enableFileDiff || repoDiffStatus !== 'success') {
+  if (repoDiffStatus !== 'success') {
     return renderFilePath(false);
   }
   return (
@@ -45,7 +46,7 @@ export const FilePath = ({ enableFileDiff, filePath, diff, repoDiffStatus }: Fil
       className={classes.details}
       title={t('sync_header.show_changes_modal.file_diff_title', { fileName })}
     >
-      <summary className={classes.summaryContent}>{renderFilePath(true)}</summary>
+      <summary>{renderFilePath(true)}</summary>
       <div className={classes.gitDiffViewer}>
         {linesToRender.map((line, index) => {
           return (

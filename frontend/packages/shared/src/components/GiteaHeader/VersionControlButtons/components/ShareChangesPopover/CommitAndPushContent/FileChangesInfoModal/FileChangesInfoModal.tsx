@@ -107,33 +107,26 @@ export const FileChangesInfoModal = ({
 
 interface FileChangeTableRowProps {
   fileChange: RepoContentStatus;
-  diff?: string; // Might be null for deleted files
+  diff?: string; // Null if diff not fetched successfully
   repoDiffStatus: 'success' | 'error' | 'pending';
 }
 
 const FileChangeTableRow = ({ fileChange, diff, repoDiffStatus }: FileChangeTableRowProps) => {
+  const { filePath, fileStatus } = fileChange;
   const { t } = useTranslation();
 
-  const fileStatusTag: React.ReactElement => (
-    <Tag size='small' color={fileStatusToTagColorMapping[fileChange.fileStatus]}>
-      {t(`sync_header.show_changes_modal.file_status_${fileChange.fileStatus}`)}
+  const fileStatusTag: React.ReactElement = (
+    <Tag size='small' color={fileStatusToTagColorMapping[fileStatus]}>
+      {t(`sync_header.show_changes_modal.file_status_${fileStatus}`)}
     </Tag>
   );
 
-  const enableFileDiff =
-    fileChange.fileStatus === 'ModifiedInWorkdir' || fileChange.fileStatus === 'NewInWorkdir';
-
   return (
-    <Table.Row key={fileChange.filePath}>
+    <Table.Row key={filePath}>
       <Table.Cell className={classes.filePath}>
-        <FilePath
-          enableFileDiff={enableFileDiff}
-          filePath={fileChange.filePath}
-          diff={diff}
-          repoDiffStatus={repoDiffStatus}
-        />
+        <FilePath filePath={filePath} diff={diff} repoDiffStatus={repoDiffStatus} />
       </Table.Cell>
-      <Table.Cell className={classes.fileStatus}>{renderFileStatusTag()}</Table.Cell>
+      <Table.Cell className={classes.fileStatus}>{fileStatusTag}</Table.Cell>
     </Table.Row>
   );
 };

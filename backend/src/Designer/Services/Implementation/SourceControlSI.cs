@@ -305,7 +305,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 var remoteMainCommit = remoteMainBranch.Tip;
 
                 var changes = repo.Diff.Compare<TreeChanges>(remoteMainCommit.Tree, DiffTargets.WorkingDirectory);
-                foreach (var change in changes.Where(change => change.Status is ChangeKind.Modified or ChangeKind.Added))
+                foreach (var change in changes)
                 {
                     Patch patch = repo.Diff.Compare<Patch>(remoteMainCommit.Tree, DiffTargets.WorkingDirectory, new[] { change.Path });
                     fileDiffs[change.Path] = patch.Content;

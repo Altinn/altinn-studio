@@ -63,17 +63,6 @@ describe('FilePath', () => {
     expect(noNewlineElement).not.toBeInTheDocument();
   });
 
-  it('should not render diff view if enableFileDiff is false', async () => {
-    const user = userEvent.setup();
-    renderFilePath({ enableFileDiff: false });
-
-    const filePathElement = screen.getByTitle(filePathMock);
-    await user.click(filePathElement);
-
-    const diffLineElement = screen.queryByText('+ new line');
-    expect(diffLineElement).not.toBeInTheDocument();
-  });
-
   it('should not render filePath as button when repoDiffStatus is error', async () => {
     const user = userEvent.setup();
     renderFilePath({ repoDiffStatus: 'error' });
@@ -121,7 +110,6 @@ describe('FilePath', () => {
 const renderFilePath = (props: Partial<FilePathProps> = {}) => {
   const defaultProps: FilePathProps = {
     filePath: filePathMock,
-    enableFileDiff: true,
     diff: repoDiffMock,
     repoDiffStatus: 'success',
     ...props,
