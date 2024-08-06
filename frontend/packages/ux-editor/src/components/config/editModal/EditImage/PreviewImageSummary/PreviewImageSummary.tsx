@@ -22,9 +22,11 @@ export const PreviewImageSummary = ({
         <StudioParagraph size='small' className={classes.fileName}>
           {fileName}
         </StudioParagraph>
-        <StudioParagraph size='small' className={classes.fileDescription}>
-          {existingImageDescription}
-        </StudioParagraph>
+        {existingImageDescription && (
+          <StudioParagraph size='small' className={classes.fileDescription}>
+            {existingImageDescription}
+          </StudioParagraph>
+        )}
       </div>
       <StudioDeleteButton variant='tertiary' onDelete={onDeleteImage} />
     </div>

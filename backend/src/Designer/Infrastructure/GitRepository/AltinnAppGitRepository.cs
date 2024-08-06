@@ -840,6 +840,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public List<string> GetAllImageFileNames()
         {
             List<string> allFileNames = new List<string>();
+            if (!DirectoryExistsByRelativePath(ImagesFolderName))
+            {
+                return allFileNames;
+            }
             // Case sensitive?
             string[] directoryFilesPng = GetFilesByRelativeDirectory(ImagesFolderName, "*.png");
             string[] directoryFilesJpeg = GetFilesByRelativeDirectory(ImagesFolderName, "*.jpeg");

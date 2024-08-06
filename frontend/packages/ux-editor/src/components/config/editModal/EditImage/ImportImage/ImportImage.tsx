@@ -52,7 +52,6 @@ export const ImportImage = ({ onImageChange }: ImportImageProps) => {
           accept='image/*'
           ref={imageRef}
           onChange={handleInputChange}
-          alt=''
         />
         <StudioButton
           size='small'
