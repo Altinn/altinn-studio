@@ -49,7 +49,7 @@ export const ConfigContent = (): React.ReactElement => {
           title: t('process_editor.configuration_panel_header_help_text_title'),
         }}
       />
-      {bpmnDetails.metadata.justAdded ? (
+      {bpmnDetails.metadata?.justAdded ? (
         <NewNameRecommendation />
       ) : (
         <>
