@@ -1,3 +1,4 @@
+import { useValidateBpmnTaskId } from '../../../../hooks/useValidateBpmnId';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { StudioIconTextfield, StudioRecommendedNextAction } from '@studio/components';
 import { KeyVerticalIcon } from '@studio/icons';
@@ -12,16 +13,18 @@ export const NewNameRecommendation = ({}: NewNameRecommendationProps): React.Rea
   const modelerInstance = modelerRef.current;
   const modeling: Modeling = modelerInstance.get('modeling');
   const { t } = useTranslation();
+  const { validateBpmnTaskId } = useValidateBpmnTaskId();
 
-  const [recommendedActionNewName, setRecommendedActioNewName] = useState('');
+  const [newName, setNewName] = useState('');
+  const [newNameError, setNewNameError] = useState('');
 
-  const setNewName = () => {
+  const saveNewName = () => {
     modeling.updateProperties(bpmnDetails.element, {
-      id: recommendedActionNewName,
+      id: newName,
     });
     setBpmnDetails({
       ...bpmnDetails,
-      id: recommendedActionNewName,
+      id: newName,
 
       metadata: {
         ...bpmnDetails.metadata,
@@ -47,19 +50,21 @@ export const NewNameRecommendation = ({}: NewNameRecommendationProps): React.Rea
       description={t('process_editor.recommended_action.new_name_description')}
       saveButtonText={t('general.save')}
       skipButtonText={t('general.skip')}
-      hideSaveButton={recommendedActionNewName !== ''}
-      onSave={setNewName}
+      hideSaveButton={!!newNameError || newName == ''}
+      onSave={saveNewName}
       onSkip={cancelAction}
     >
       <StudioIconTextfield
+        error={newNameError}
         icon={<KeyVerticalIcon />}
         size='sm'
         label={t('process_editor.recommended_action.new_name_label')}
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-          setRecommendedActioNewName(event.target.value);
+          setNewName(event.target.value);
+          setNewNameError(validateBpmnTaskId(event.target.value));
         }}
-        value={recommendedActionNewName}
-      ></StudioIconTextfield>
+        value={newName}
+      />
     </StudioRecommendedNextAction>
   );
 };
