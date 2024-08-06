@@ -1,33 +1,9 @@
-.menu {
-  display: flex;
-  align-items: center;
+.active {
+  border-bottom: 2px solid var(--fds-semantic-surface-neutral-default);
+}
+
+.smallLink {
   justify-content: flex-start;
-  list-style-type: none;
-  flex: 2;
-  padding: 0 1rem;
-  gap: 2rem;
-  font-size: 1rem;
-}
-
-.menuItem {
-  color: #fff;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.menuItem a:hover {
-  border-bottom: 2px solid #fff;
-}
-
-.menuItem a {
-  color: #fff;
-  text-decoration: none;
-}
-
-.menuItem .active {
-  border-bottom: 2px solid #fff;
 }
 
 .betaTag {
