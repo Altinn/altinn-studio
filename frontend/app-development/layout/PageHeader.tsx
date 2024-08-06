@@ -5,7 +5,7 @@ import { getRepositoryType } from 'app-shared/utils/repository';
 import type { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { SettingsModalButton } from './SettingsModalButton';
-import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
+import { TopBarGroup, TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import type { User } from 'app-shared/types/Repository';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { RepositoryType } from 'app-shared/types/global';
@@ -15,6 +15,7 @@ import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import { StudioPageHeader } from '@studio/components';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { AltinnHeaderMenu } from 'app-shared/components/altinnHeaderMenu';
+import { type TopBarMenuDeploymentItem } from 'app-shared/types/TopBarMenuItem';
 
 const WINDOW_RESIZE_WIDTH = 1000;
 
@@ -37,7 +38,8 @@ export const SubMenuContent = ({ hasRepoError }: SubMenuContentProps): React.Rea
   );
 };
 
-export const buttonActions = (
+// MOVE THESE INTO SEPARATE FILE
+export const buttonActionsOld = (
   org: string,
   app: string,
   selectedFormLayoutName: string,
@@ -53,6 +55,28 @@ export const buttonActions = (
     {
       menuKey: TopBarMenu.Deploy,
       to: packagesRouter.getPackageNavigationUrl('editorPublish'),
+    },
+  ];
+};
+
+export const getDeploymentButtonItems = (
+  org: string,
+  app: string,
+  selectedFormLayoutName: string,
+): TopBarMenuDeploymentItem[] => {
+  const packagesRouter = new PackagesRouter({ org, app });
+
+  return [
+    {
+      key: TopBarMenu.Preview,
+      link: `${packagesRouter.getPackageNavigationUrl('preview')}${selectedFormLayoutName ? `?layout=${selectedFormLayoutName}` : ''}`,
+      group: TopBarGroup.Deployment,
+      isInverted: true,
+    },
+    {
+      key: TopBarMenu.Deploy,
+      link: packagesRouter.getPackageNavigationUrl('editorPublish'), // fix
+      group: TopBarGroup.Deployment,
     },
   ];
 };
@@ -86,7 +110,7 @@ export const PageHeader = ({ showSubMenu, user, repoOwnerIsOrg, isRepoError }: P
         user={user}
         repository={repository}
         repoOwnerIsOrg={repoOwnerIsOrg}
-        buttonActions={!isRepoError && buttonActions(org, app, selectedFormLayoutName)}
+        buttonActions={!isRepoError && buttonActionsOld(org, app, selectedFormLayoutName)}
       />
       <div style={{ border: '4px solid black', marginBlock: '10px' }} />
       <StudioPageHeader>
@@ -94,7 +118,14 @@ export const PageHeader = ({ showSubMenu, user, repoOwnerIsOrg, isRepoError }: P
           <StudioPageHeader.Left title={app} />
           <StudioPageHeader.Center>
             {menuItems && (
-              <AltinnHeaderMenu menuItems={menuItems} windowResizeWidth={WINDOW_RESIZE_WIDTH} />
+              <AltinnHeaderMenu
+                menuItems={menuItems}
+                windowResizeWidth={WINDOW_RESIZE_WIDTH}
+                repoOwnerIsOrg={repoOwnerIsOrg}
+                deploymentItems={
+                  !isRepoError && getDeploymentButtonItems(org, app, selectedFormLayoutName)
+                }
+              />
             )}
           </StudioPageHeader.Center>
           <StudioPageHeader.Right>Right</StudioPageHeader.Right>

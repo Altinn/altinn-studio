@@ -39,7 +39,7 @@ export const topBarMenuItem: TopBarMenuItem[] = [
     icon: TenancyIcon,
     repositoryTypes: [RepositoryType.App],
     isBeta: true,
-    group: TopBarGroup.Other,
+    group: TopBarGroup.Tools,
   },
 ];
 

@@ -17,3 +17,11 @@ export interface TopBarMenuGroup {
   groupName: string;
   menuItems: TopBarMenuItem[];
 }
+
+// TODO move
+export interface TopBarMenuDeploymentItem {
+  key: TopBarMenu;
+  link: string;
+  group: TopBarGroup;
+  isInverted?: boolean;
+}

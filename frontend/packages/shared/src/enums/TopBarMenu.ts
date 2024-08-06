@@ -12,7 +12,7 @@ export enum TopBarMenu {
 
 // TODO MOVE
 export enum TopBarGroup {
-  Overview = 'Oversikt',
-  Tools = 'Verktøy',
-  Other = 'Annet',
+  Overview = 'top_bar.group_overview',
+  Tools = 'top_bar.group_tools',
+  Deployment = 'top_bar.group_deployment',
 }

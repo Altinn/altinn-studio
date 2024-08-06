@@ -69,20 +69,28 @@ export const AltinnHeader = ({
           </Paragraph>
         )}
         {menuItems && (
-          <AltinnHeaderMenu menuItems={menuItems} windowResizeWidth={WINDOW_RESIZE_WIDTH} />
+          <AltinnHeaderMenu
+            menuItems={menuItems}
+            windowResizeWidth={WINDOW_RESIZE_WIDTH}
+            repoOwnerIsOrg={repoOwnerIsOrg}
+            deploymentItems={[]}
+          />
         )}
         <div className={classes.rightContent}>
-          {buttonActions && (
+          {/*buttonActions && (
             <div className={classes.rightContentButtons}>
-              {buttonActions.map((action) =>
-                !repoOwnerIsOrg && action.menuKey === TopBarMenu.Deploy
-                  ? null
-                  : repositoryType !== RepositoryType.DataModels && (
-                      <AltinnHeaderButton key={action.menuKey} action={action} />
-                    ),
-              )}
+              {
+                // TODO - INCLUDE THIS IN THE MENU
+                buttonActions.map((action) =>
+                  !repoOwnerIsOrg && action.menuKey === TopBarMenu.Deploy
+                    ? null
+                    : repositoryType !== RepositoryType.DataModels && (
+                        <AltinnHeaderButton key={action.menuKey} action={action} />
+                      ),
+                )
+              }
             </div>
-          )}
+          )*/}
           <AltinnHeaderProfile org={org} repository={repository} user={user} />
         </div>
       </div>
