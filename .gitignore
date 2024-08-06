@@ -4,6 +4,7 @@ syntax: glob
 
 # Tool Runtime Dir
 [Tt]ools/
+!/tools/
 
 # User-specific files
 *.suo
@@ -412,3 +413,7 @@ stats.csv
 /playwright/.cache/
 **/playwright/playwright-report/
 .playwright/
+
+/tools/**/repos/
+/tools/*.ini
+!/tools/*.sample.ini
