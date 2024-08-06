@@ -777,7 +777,7 @@ describe('Validation', () => {
       cy.findByText('Nåværende navn').should('exist');
     });
 
-    it.only('should validate number fields as set in the data model when a falsy value is input', () => {
+    it('should validate number fields as set in the data model when a falsy value is input', () => {
       cy.interceptLayout('message', (component) => {
         if (component.id === 'falsyInput') {
           component.hidden = false;

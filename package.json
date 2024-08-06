@@ -167,7 +167,7 @@
   "packageManager": "yarn@4.3.1",
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "yarn .husky/pre-commit-check-for-skipped-tests",
+      ".husky/pre-commit-check-for-skipped-tests",
       "yarn eslint --cache --fix"
     ],
     "*.json": "yarn eslint --cache --fix",
