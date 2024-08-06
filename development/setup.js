@@ -183,6 +183,7 @@ const script = async () => {
   }
   await startingDockerCompose();
   await waitFor('http://studio.localhost/repos/');
+  await runCommand('docker logs studio-designer');
   await createUser(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS, true);
   await ensureUserPassword(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS);
   await createUser(env.GITEA_CYPRESS_USER, env.GITEA_CYPRESS_PASS, false);
