@@ -137,7 +137,7 @@ services:
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     healthcheck:
-          test: [ "CMD", "curl", "--fail", "http://localhost:3000/" ]
+          test: [ "CMD", "curl", "--fail", "http://localhost:3000" ]
           interval: 30s
           timeout: 10s
           retries: 3
@@ -145,7 +145,7 @@ services:
 
   studio_db:
     container_name: studio-db
-    image: postgres:15-alpine
+    image: postgres:alpine
     restart: always
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -158,7 +158,7 @@ services:
       - ./development/db/data.sql:/data.sql
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready"]
+      test: ["CMD-SHELL", "pg_isready -U designer_admin -d designerdb"]
       interval: 10s
       timeout: 5s
       retries: 5
