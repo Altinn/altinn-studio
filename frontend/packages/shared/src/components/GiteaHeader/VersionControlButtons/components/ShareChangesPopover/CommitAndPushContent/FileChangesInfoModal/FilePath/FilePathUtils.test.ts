@@ -17,7 +17,8 @@ index 0909a03..527e226 100644
 @@ -2,6 +2,30 @@
 - old line
 + new line
-unchanged line`;
+unchanged line
+`;
 
 describe('FilePathUtils', () => {
   describe('convertPureGitDiffToUserFriendlyDiff', () => {
