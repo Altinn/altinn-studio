@@ -3,38 +3,58 @@ import { StudioIconTextfield, StudioRecommendedNextAction } from '@studio/compon
 import { KeyVerticalIcon } from '@studio/icons';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface NewNameRecommendationProps {}
 
 export const NewNameRecommendation = ({}: NewNameRecommendationProps): React.ReactElement => {
-  const [recommendedActionNewName, setRecommendedActioNewName] = useState('');
   const { bpmnDetails, setBpmnDetails, modelerRef } = useBpmnContext();
   const modelerInstance = modelerRef.current;
   const modeling: Modeling = modelerInstance.get('modeling');
+  const { t } = useTranslation();
+
+  const [recommendedActionNewName, setRecommendedActioNewName] = useState('');
+
+  const setNewName = () => {
+    modeling.updateProperties(bpmnDetails.element, {
+      id: recommendedActionNewName,
+    });
+    setBpmnDetails({
+      ...bpmnDetails,
+      id: recommendedActionNewName,
+
+      metadata: {
+        ...bpmnDetails.metadata,
+        justAdded: false,
+      },
+    });
+  };
+
+  const cancelAction = () => {
+    setBpmnDetails({
+      ...bpmnDetails,
+
+      metadata: {
+        ...bpmnDetails.metadata,
+        justAdded: false,
+      },
+    });
+  };
 
   return (
     <StudioRecommendedNextAction
-      title='Gi oppgaven et navn'
-      description='Du finner lettere igjen oppgaven på Lage-siden, hvis du gir den et eget navn. Hvis du velger Hopp over, får oppgaven en tilfeldig navn. Du kan endre navnet senere.'
-      validForm={recommendedActionNewName !== ''}
-      onSave={() => {
-        modeling.updateProperties(bpmnDetails.element, {
-          id: recommendedActionNewName,
-        });
-        setBpmnDetails({
-          ...bpmnDetails,
-          id: recommendedActionNewName,
-          metadata: { justAdded: false },
-        });
-      }}
-      onSkip={() => {
-        setBpmnDetails({ ...bpmnDetails, metadata: { justAdded: false } });
-      }}
+      title={t('process_editor.recommended_action.new_name')}
+      description={t('process_editor.recommended_action.new_name_description')}
+      saveButtonText={t('general.save')}
+      skipButtonText={t('general.skip')}
+      hideSaveButton={recommendedActionNewName !== ''}
+      onSave={setNewName}
+      onSkip={cancelAction}
     >
       <StudioIconTextfield
         icon={<KeyVerticalIcon />}
         size='sm'
-        label='Navn på oppgaven'
+        label={t('process_editor.recommended_action.new_name_label')}
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
           setRecommendedActioNewName(event.target.value);
         }}

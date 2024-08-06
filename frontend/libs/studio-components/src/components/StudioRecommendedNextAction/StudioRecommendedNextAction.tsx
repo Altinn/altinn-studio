@@ -5,19 +5,23 @@ import { Card } from '@digdir/designsystemet-react';
 
 export interface StudioRecommendedNextActionProps {
   onSave: React.MouseEventHandler<HTMLButtonElement>;
+  saveButtonText: string;
   onSkip: React.MouseEventHandler<HTMLButtonElement>;
+  skipButtonText: string;
   title: string;
   description: string;
-  validForm: boolean;
+  hideSaveButton: boolean;
   children: React.ReactNode;
 }
 
 export const StudioRecommendedNextAction = ({
   onSave,
+  saveButtonText,
   onSkip,
+  skipButtonText,
   title,
   description,
-  validForm,
+  hideSaveButton,
   children,
 }: StudioRecommendedNextActionProps): React.ReactElement => {
   return (
@@ -27,13 +31,13 @@ export const StudioRecommendedNextAction = ({
         <p>{description}</p>
         {children}
         <div className={classes.buttonGroup}>
-          {validForm && (
-            <StudioButton hidden={!validForm} onClick={onSave} variant='primary'>
-              Lagre
+          {!hideSaveButton && (
+            <StudioButton onClick={onSave} variant='primary'>
+              {saveButtonText}
             </StudioButton>
           )}
           <StudioButton onClick={onSkip} variant='tertiary'>
-            Hopp over
+            {skipButtonText}
           </StudioButton>
         </div>
       </Card.Content>
