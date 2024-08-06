@@ -1,11 +1,4 @@
-.RightMenu__verticalContent {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.RightMenu__sidebar {
+.rightMenuSidebar {
   border-left: 1px solid #c9c9c9;
   background: #f4f3f4;
   padding: 2rem;
@@ -14,7 +7,14 @@
   gap: 3rem;
 }
 
-.RightMenu__radioGroup {
+.rightMenuVerticalContent {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.rightMenu__radioGroup {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -24,7 +24,7 @@
   padding-bottom: 1rem;
 }
 
-.RightMenu__radio {
+.rightMenuRadio {
   display: flex;
   justify-content: space-between;
 }
