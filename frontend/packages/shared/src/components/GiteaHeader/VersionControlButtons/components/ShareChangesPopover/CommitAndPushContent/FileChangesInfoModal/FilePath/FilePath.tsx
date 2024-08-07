@@ -5,64 +5,84 @@ import { convertPureGitDiffToUserFriendlyDiff } from './FilePathUtils';
 import { ChevronRightIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { extractFilename, removeFileNameFromPath } from 'app-shared/utils/filenameUtils';
+import type { QueryStatus } from '@tanstack/react-query';
 
 export interface FilePathProps {
   filePath: string;
-  diff?: string; // Might be null for deleted files
-  repoDiffStatus: 'success' | 'error' | 'pending';
+  diff: string;
+  repoDiffStatus: QueryStatus;
 }
 
 export const FilePath = ({ filePath, diff, repoDiffStatus }: FilePathProps) => {
   const { t } = useTranslation();
 
-  let linesToRender: string[];
-
-  if (!!diff) {
-    linesToRender = convertPureGitDiffToUserFriendlyDiff(diff);
+  if (repoDiffStatus !== 'success') {
+    return <FilePathWithoutDiff filePath={filePath} />;
   }
 
   const fileName = extractFilename(filePath);
-  const filePathWithoutName = removeFileNameFromPath(filePath, true);
+  const linesToRender = convertPureGitDiffToUserFriendlyDiff(diff);
 
-  const renderFilePath = (asButton: boolean) => {
-    return (
-      <div
-        className={asButton ? classes.filePathWithDiffContainer : classes.filePathContainer}
-        title={filePath}
-      >
-        {asButton ? <ChevronRightIcon className={classes.chevronIcon} /> : <div></div>}
-        <div className={classes.filePath}>{filePathWithoutName}</div>
-        {'/'}
-        <strong>{fileName}</strong>
-      </div>
-    );
-  };
-
-  if (repoDiffStatus !== 'success') {
-    return renderFilePath(false);
-  }
   return (
     <details
       className={classes.details}
       title={t('sync_header.show_changes_modal.file_diff_title', { fileName })}
     >
-      <summary>{renderFilePath(true)}</summary>
+      <summary className={classes.filePathWithDiffContainer} title={filePath}>
+        <ChevronRightIcon className={classes.chevronIcon} />
+        <FormattedFilePath filePath={filePath} />
+      </summary>
       <div className={classes.gitDiffViewer}>
-        {linesToRender.map((line, index) => {
-          return (
-            <div
-              key={index}
-              className={cn(
-                classes.diffLine,
-                line.startsWith('-') && classes.removedLine,
-                line.startsWith('+') && classes.addedLine,
-              )}
-            >
-              {line}
-            </div>
-          );
-        })}
+        {linesToRender.map((line, index) => (
+          <DiffLine key={index} line={line} />
+        ))}
       </div>
     </details>
   );
 };
+
+type FilePathWithoutDiffProps = {
+  filePath: string;
+};
+
+const FilePathWithoutDiff = ({ filePath }: FilePathWithoutDiffProps) => (
+  <div className={classes.filePathContainer} title={filePath}>
+    <FormattedFilePath filePath={filePath} />
+  </div>
+);
+
+type FormattedFilePathProps = {
+  filePath: string;
+};
+
+const FormattedFilePath = ({ filePath }: FormattedFilePathProps) => {
+  const fileName = extractFilename(filePath);
+  const filePathWithoutName = removeFileNameFromPath(filePath, true);
+
+  return (
+    <>
+      <div className={classes.filePath}>{filePathWithoutName}</div>
+      {'/'}
+      <strong>{fileName}</strong>
+    </>
+  );
+};
+
+type DiffLineProps = {
+  line: string;
+};
+
+const DiffLine = ({ line }: DiffLineProps) => (
+  <div
+    className={cn(
+      classes.diffLine,
+      isRemoved(line) && classes.removedLine,
+      isAdded(line) && classes.addedLine,
+    )}
+  >
+    {line}
+  </div>
+);
+
+const isAdded = (line: string): boolean => line.startsWith('+');
+const isRemoved = (line: string): boolean => line.startsWith('-');
