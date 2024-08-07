@@ -5,6 +5,10 @@ on:
     paths:
       - 'eidlogger/**'
       - '.github/workflows/deploy-eid-logger.yaml'
+      - '.github/workflows/template-docker-push.yaml'
+      - '.github/workflows/template-flux-config-push.yaml'
+      - '.github/workflows/template-helm-push.yaml'
+      - '.github/workflows/template-short-sha.yaml'
       - 'charts/eid-logger-config/**'
       - 'charts/eid-logger/**'
   workflow_dispatch:
