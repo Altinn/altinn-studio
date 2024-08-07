@@ -7,7 +7,9 @@ const createCypressEnvFile = require('./utils/create-cypress-env-file.js');
 const path = require('path');
 const writeEnvFile = require('./utils/write-env-file.js');
 
-const startingDockerCompose = () => runCommand('docker compose up -d --remove-orphans');
+const startingDockerCompose = () => runCommand('docker compose up -d --remove-orphans --build');
+const restartComposeServices = () =>
+  runCommand('docker compose down && docker compose up -d --remove-orphans');
 
 const createUser = (username, password, admin) =>
   runCommand(
@@ -102,7 +104,8 @@ const createOidcClientIfNotExists = async (env) => {
 
   writeEnvFile(env);
   // reload designer with new clientid and secret
-  startingDockerCompose();
+  restartComposeServices();
+  await waitFor('http://studio.localhost/repos/');
 };
 
 const addUserToSomeTestDepTeams = async (env) => {
