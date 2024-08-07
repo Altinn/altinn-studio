@@ -1,9 +1,9 @@
-name: Designer deploy
+name: Deploy Designer
 on:
   push:
     branches: [ main ]
     paths:
-      - '.github/workflows/designer-deploy.yaml'
+      - '.github/workflows/deploy-designer.yaml'
       - '.github/workflows/template-docker-push.yaml'
       - '.github/workflows/template-flux-config-push.yaml'
       - '.github/workflows/template-helm-push.yaml'
