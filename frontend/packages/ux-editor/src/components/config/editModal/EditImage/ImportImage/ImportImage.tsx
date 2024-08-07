@@ -5,7 +5,8 @@ import { UploadIcon } from '@studio/icons';
 import classes from './ImportImage.module.css';
 import { useAddImageMutation } from 'app-shared/hooks/mutations/useAddImageMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { AddImageFromLibrary } from '@altinn/ux-editor/components/config/editModal/EditImage/ImportImage/AddImageFromLibrary/AddImageFromLibrary';
+import { AddImageFromLibraryModal } from '@altinn/ux-editor/components/config/editModal/EditImage/ImportImage/AddImageFromLibrary/AddImageFromLibraryModal';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 interface ImportImageProps {
   onImageChange: (imageSource: string) => void;
@@ -36,11 +37,13 @@ export const ImportImage = ({ onImageChange }: ImportImageProps) => {
 
   return (
     <div className={classes.importImage}>
-      <StudioButton size='small' onClick={() => setShowChooseFromLibraryModalOpen(true)}>
-        {'Velg fra biblioteket'}
-      </StudioButton>
+      {shouldDisplayFeature('useImageLibrary') && (
+        <StudioButton size='small' onClick={() => setShowChooseFromLibraryModalOpen(true)}>
+          {'Velg fra biblioteket'}
+        </StudioButton>
+      )}
       {showChooseFromLibraryModalOpen && (
-        <AddImageFromLibrary
+        <AddImageFromLibraryModal
           isOpen={showChooseFromLibraryModalOpen}
           onClose={() => setShowChooseFromLibraryModalOpen(false)}
         />

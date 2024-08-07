@@ -30,18 +30,15 @@ public class ImagesService: IImagesService
     return new FileStreamResult(imageStream, MimeTypeMap.GetMimeType(Path.GetExtension(imageFilePath).ToLower()));
   }
 
-  public List<FileStreamResult> GetAllImages(string org, string repo, string developer)
+  public List<Stream> GetAllImages(string org, string repo, string developer)
   {
     var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
-    List<FileStreamResult> images = new List<FileStreamResult>();
+    List<Stream> images = new List<Stream>();
     List<string> imageFileNames = altinnAppGitRepository.GetAllImageFileNames();
     foreach (var imageFilePath in imageFileNames)
     {
       Stream imageStream = altinnAppGitRepository.GetImageByFilePath(imageFilePath);
-      images.Add(new FileStreamResult(
-        imageStream,
-        MimeTypeMap.GetMimeType(Path.GetExtension(imageFilePath).ToLower())
-      ));
+      images.Add(imageStream);
     }
     return images;
   }
@@ -52,12 +49,12 @@ public class ImagesService: IImagesService
     return altinnAppGitRepository.GetAllImageFileNames();
   }
 
-  public Task UploadImage(string org, string repo, string developer, string imageName, Stream imageStream)
+  public async Task UploadImage(string org, string repo, string developer, string imageName, Stream imageStream)
   {
     var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
     using MemoryStream imageMemoryStream = new MemoryStream();
-    imageStream.CopyTo(imageMemoryStream);
-    return altinnAppGitRepository.SaveImageAsMemoryStream(imageMemoryStream, imageName);
+    imageStream.CopyTo(imageMemoryStream); 
+    await altinnAppGitRepository.SaveImageAsMemoryStream(imageMemoryStream, imageName);
   }
 
   public async Task DeleteImage(string org, string repo, string developer, string imageFilePath)

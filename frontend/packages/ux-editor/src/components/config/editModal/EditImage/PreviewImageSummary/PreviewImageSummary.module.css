@@ -16,6 +16,10 @@
   font-weight: bold;
 }
 
+.missingFileDescription {
+  font-style: italic;
+}
+
 .fileInfoContainer {
   overflow: hidden;
   text-overflow: ellipsis;

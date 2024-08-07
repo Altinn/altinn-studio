@@ -13,6 +13,7 @@ export type SupportedFeatureFlags =
   | 'subForm'
   | 'summary2';
 
+
 /*
  * Please add all the features that you want to be toggle on by default here.
  * Remember that all the features that are listed here will be available to the users in production,
