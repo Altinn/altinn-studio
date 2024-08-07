@@ -14,21 +14,28 @@ export const PreviewImageSummary = ({
   existingImageDescription,
   onDeleteImage,
 }: PreviewImageSummaryProps) => {
-  const fileName = existingImageUrl.split('/').pop() || '';
   return (
     <div className={classes.previewContainer}>
       <ImageIcon className={classes.fileIcon} />
       <div className={classes.fileInfoContainer}>
         <StudioParagraph size='small' className={classes.fileName}>
-          {fileName}
+          {existingImageUrl}
         </StudioParagraph>
-        {existingImageDescription && (
+        {existingImageDescription ? (
           <StudioParagraph size='small' className={classes.fileDescription}>
             {existingImageDescription}
           </StudioParagraph>
+        ) : (
+          <StudioParagraph size='small' className={classes.missingFileDescription}>
+            {'Beskrivelse mangler'}
+          </StudioParagraph>
         )}
       </div>
-      <StudioDeleteButton variant='tertiary' onDelete={onDeleteImage} />
+      <StudioDeleteButton
+        title={'Slett bildereferansen fra bildekomponenten'}
+        variant='tertiary'
+        onDelete={onDeleteImage}
+      />
     </div>
   );
 };

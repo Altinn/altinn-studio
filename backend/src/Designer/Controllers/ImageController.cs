@@ -38,7 +38,7 @@ public class ImageController : ControllerBase
   /// <param name="repo">Application identifier which is unique within an organisation.</param>
   /// <param name="imageName">Name of image file to fetch</param>
   /// <returns>Image</returns>
-  [HttpGet]
+  [HttpGet] // add routeParam or use queryParam?
   [ProducesResponseType(StatusCodes.Status200OK)]
   public ActionResult<FileStreamResult> GetImageByName(string org, string repo, [FromRoute] string imageName)
   {
@@ -55,13 +55,13 @@ public class ImageController : ControllerBase
   /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
   /// <param name="repo">Application identifier which is unique within an organisation.</param>
   /// <returns>All images</returns>
-  [HttpGet]
+  [HttpGet("all")]
   [ProducesResponseType(StatusCodes.Status200OK)]
-  public ActionResult<List<FileStreamResult>> GetAllImages(string org, string repo)
+  public ActionResult<List<Stream>> GetAllImages(string org, string repo)
   {
     string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
     
-    var images = _imagesService.GetAllImages(org, repo, developer);
+    List<Stream> images = _imagesService.GetAllImages(org, repo, developer);
 
     return Ok(images);
   }

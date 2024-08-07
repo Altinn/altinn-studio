@@ -72,6 +72,7 @@ import type { RepoDiffResponse } from 'app-shared/types/api/RepoDiffResponse';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
+  getAllImages: jest.fn().mockImplementation(() => Promise.resolve()),
   getAppMetadataModelIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getAppReleases: jest
     .fn()

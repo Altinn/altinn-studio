@@ -1,14 +1,14 @@
 import React from 'react';
 import { StudioModal } from '@studio/components';
 import { Heading } from '@digdir/designsystemet-react';
-import { ChooseFromLibraryModal } from './ChooseFromLibraryModal';
+import { ChooseFromLibrary } from './ChooseFromLibrary';
 
 export interface AddImageFromLibraryProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export const AddImageFromLibrary = ({ isOpen, onClose }: AddImageFromLibraryProps) => {
+export const AddImageFromLibraryModal = ({ isOpen, onClose }: AddImageFromLibraryProps) => {
   return (
     <StudioModal
       isOpen={isOpen}
@@ -20,7 +20,7 @@ export const AddImageFromLibrary = ({ isOpen, onClose }: AddImageFromLibraryProp
       }
       closeButtonLabel={'Lukk'}
     >
-      <ChooseFromLibraryModal />
+      <ChooseFromLibrary />
     </StudioModal>
   );
 };

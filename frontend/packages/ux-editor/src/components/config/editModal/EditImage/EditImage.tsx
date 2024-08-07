@@ -18,26 +18,31 @@ export interface EditImageProps extends IGenericEditComponent<ComponentType.Imag
 export const EditImage = ({ component, handleComponentChange }: EditImageProps) => {
   const [tab, setTab] = useState<string>(ImageTab.Import);
   const { org, app } = useStudioEnvironmentParams();
-  const { data: imageFileNames, isPending: imageFileNamesArePending } =
-    useGetAllImageFileNamesQuery(org, app);
+  const {
+    data: imageFileNames,
+    isPending: imageFileNamesArePending,
+    refetch: refetchImageFileNames,
+  } = useGetAllImageFileNamesQuery(org, app);
 
-  const imageOriginsFromLibrary =
-    !imageFileNamesArePending && imageFileNames.includes(component.image?.src?.nb);
+  const fileName = extractFileNameFromImageSrc(component.image?.src?.nb, org, app);
 
-  const handleImageChange = (imageSource: string) => {
+  const imageOriginsFromLibrary = !imageFileNamesArePending && imageFileNames.includes(fileName);
+
+  const handleImageChange = (imageSource: string, fromUrl: boolean = false) => {
     handleComponentChange({
       ...component,
       image: {
         ...component.image,
         src: {
           ...component.image?.src,
-          nb: imageSource, // How to handle different images for different languages?
+          nb: fromUrl ? imageSource : `wwwroot/${imageSource}`, // How to handle different images for different languages?
         },
       },
     });
+    refetchImageFileNames();
   };
   const handleImageDelete = () => {
-    delete component.image;
+    component.image.src = {};
     handleComponentChange({
       ...component,
     });
@@ -56,8 +61,8 @@ export const EditImage = ({ component, handleComponentChange }: EditImageProps) 
       <Tabs.Content value={ImageTab.Import}>
         {imageOriginsFromLibrary ? (
           <PreviewImageSummary
-            existingImageUrl={component.image?.src?.nb}
-            existingImageDescription={null}
+            existingImageUrl={fileName}
+            existingImageDescription={null} // Where should this come from? What actually is the library?
             onDeleteImage={handleImageDelete}
           />
         ) : (
@@ -67,10 +72,22 @@ export const EditImage = ({ component, handleComponentChange }: EditImageProps) 
       <Tabs.Content value={ImageTab.ExternalUrl}>
         <ImageFromUrl
           existingImageUrl={imageOriginsFromLibrary ? undefined : component.image?.src?.nb}
-          onUrlChange={handleImageChange}
+          onUrlChange={(imageSrc: string) => handleImageChange(imageSrc, true)}
           onUrlDelete={handleImageDelete}
         />
       </Tabs.Content>
     </Tabs>
   );
+};
+
+const extractFileNameFromImageSrc = (imageSrc: string, org: string, app: string) => {
+  if (!imageSrc) return '';
+  const relativeFilePath = `/${org}/${app}/`;
+  const wwwroot = 'wwwroot/';
+  const indexOfRelativePath: number = imageSrc.indexOf(relativeFilePath);
+  const indexOfWwwroot: number = imageSrc.indexOf(wwwroot);
+  if (indexOfRelativePath > -1)
+    return imageSrc.slice(indexOfRelativePath + relativeFilePath.length);
+  if (indexOfWwwroot > -1) return imageSrc.slice(indexOfRelativePath + wwwroot.length + 1); // why do I need this +1
+  return imageSrc; // What to return?
 };
