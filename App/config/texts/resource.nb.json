@@ -192,6 +192,10 @@
     },
     { "id": "reasons.farm", "value": "Gårdsbruk" },
     { "id": "reasons.newName", "value": "Jeg tror navnet er nytt i Norge" },
-    { "id": "reasons.other", "value": "Annen begrunnelse " }
+    { "id": "reasons.other", "value": "Annen begrunnelse " },
+    {
+      "id": "appLogo.url",
+      "value": "/ttd/component-library/testdep.png"
+    }
   ]
 }
