@@ -11,7 +11,7 @@ export interface StudioRecommendedNextActionProps {
   title: string;
   description: string;
   hideSaveButton?: boolean;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 export const StudioRecommendedNextAction = ({
