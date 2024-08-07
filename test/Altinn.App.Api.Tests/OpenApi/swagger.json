@@ -4418,6 +4418,141 @@
         }
       }
     },
+    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/user-defined-metadata": {
+      "get": {
+        "tags": [
+          "UserDefinedMetadata"
+        ],
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "instanceOwnerPartyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "instanceGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "dataGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDefinedMetadataDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "UserDefinedMetadata"
+        ],
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "instanceOwnerPartyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "instanceGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "dataGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserDefinedMetadataDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDefinedMetadataDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/validate": {
       "get": {
         "tags": [
@@ -4835,6 +4970,9 @@
           "copyInstanceSettings": {
             "$ref": "#/components/schemas/CopyInstanceSettings"
           },
+          "disallowUserInstantiation": {
+            "type": "boolean"
+          },
           "id": {
             "type": "string",
             "nullable": true
@@ -4931,6 +5069,13 @@
             "type": "array",
             "items": {
               "type": "string"
+            },
+            "nullable": true
+          },
+          "userDefinedMetadata": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KeyValueEntry"
             },
             "nullable": true
           },
@@ -5181,6 +5326,13 @@
             },
             "nullable": true
           },
+          "userDefinedMetadata": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KeyValueEntry"
+            },
+            "nullable": true
+          },
           "metadata": {
             "type": "array",
             "items": {
@@ -5349,6 +5501,13 @@
             "nullable": true
           },
           "enabledFileValidators": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "allowedKeysForUserDefinedMetadata": {
             "type": "array",
             "items": {
               "type": "string"
@@ -6493,6 +6652,19 @@
           "redirectUrl": {
             "type": "string",
             "format": "uri",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "UserDefinedMetadataDto": {
+        "type": "object",
+        "properties": {
+          "userDefinedMetadata": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KeyValueEntry"
+            },
             "nullable": true
           }
         },
