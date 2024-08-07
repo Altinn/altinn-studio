@@ -10,7 +10,7 @@ export interface StudioRecommendedNextActionProps {
   skipButtonText: string;
   title: string;
   description: string;
-  hideSaveButton: boolean;
+  hideSaveButton?: boolean;
   children: React.ReactNode;
 }
 
@@ -21,7 +21,7 @@ export const StudioRecommendedNextAction = ({
   skipButtonText,
   title,
   description,
-  hideSaveButton,
+  hideSaveButton = false,
   children,
 }: StudioRecommendedNextActionProps): React.ReactElement => {
   return (
