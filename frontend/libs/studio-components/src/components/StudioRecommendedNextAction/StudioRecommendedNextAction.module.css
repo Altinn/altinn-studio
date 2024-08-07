@@ -4,3 +4,8 @@
   align-items: flex-start;
   gap: 12.5px;
 }
+
+.description {
+  margin-top: var(--fds-spacing-2);
+  margin-bottom: var(--fds-spacing-4);
+}
