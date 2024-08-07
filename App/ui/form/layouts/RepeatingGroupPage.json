@@ -72,6 +72,7 @@
                     "title": "Repeterende Gruppe med Gruppe",
                     "description": "Beskrivelse av repeterende gruppe"
                 },
+                "tableHeaders": ["RepeatingGroup-With-Group-Input-Name"],
                 "dataModelBindings": {
                     "group": "repeatingGroup"
                 },
@@ -215,6 +216,16 @@
                 "componentRef": "RepeatingGroup"
             },
             {
+                "id": "RepeatingGroup-With-Group-Summary",
+                "type": "Summary",
+                "componentRef": "RepeatingGroup-With-Group"
+            },
+            {
+                "id": "RepeatingGroup-With-RepeatingGroup-Summary",
+                "type": "Summary",
+                "componentRef": "RepeatingGroup-With-RepeatingGroup"
+            },
+            {
                 "id": "RepeatingGroup-Header-Summary2",
                 "type": "Header",
                 "textResourceBindings": {
@@ -227,8 +238,26 @@
                 "type": "Summary2",
                 "hidden": false,
                 "target": {
-                    "type": "page",
-                    "id": "RepeatingGroupPage"
+                    "type": "component",
+                    "id": "RepeatingGroup"
+                }
+            },
+            {
+                "id": "RepeatingGroup-With-Group-Summary2",
+                "type": "Summary2",
+                "hidden": false,
+                "target": {
+                    "type": "component",
+                    "id": "RepeatingGroup-With-Group"
+                }
+            },
+            {
+                "id": "RepeatingGroup-With-RepeatingGroup-Summary2",
+                "type": "Summary2",
+                "hidden": false,
+                "target": {
+                    "type": "component",
+                    "id": "RepeatingGroup-With-RepeatingGroup"
                 }
             },
             {
