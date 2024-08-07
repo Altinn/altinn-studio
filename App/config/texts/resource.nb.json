@@ -195,7 +195,7 @@
     { "id": "reasons.other", "value": "Annen begrunnelse " },
     {
       "id": "appLogo.url",
-      "value": "/ttd/component-library/testdep.png"
+      "value": "/ttd/component-library/altinn-logo.svg"
     }
   ]
 }
