@@ -5860,8 +5860,12 @@
       "JsonNodeOptions": {
         "type": "object",
         "properties": {
-          "propertyNameCaseInsensitive": {
-            "type": "boolean"
+          "hasValue": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "value": {
+            "$ref": "#/components/schemas/JsonNodeOptions"
           }
         },
         "additionalProperties": false

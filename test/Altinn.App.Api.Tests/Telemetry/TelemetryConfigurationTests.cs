@@ -170,7 +170,7 @@ public class TelemetryConfigurationTests
 
         EventLevel[] errorLevels = [EventLevel.Error, EventLevel.Critical];
         var events = listener.Events;
-        Assert.Empty(events.Where(e => errorLevels.Contains(e.Level)));
+        Assert.DoesNotContain(events, e => errorLevels.Contains(e.Level));
 
         var telemetryItems = TelemetryProcessor.Items;
         var customEvents = telemetryItems

@@ -3709,8 +3709,11 @@ components:
     JsonNodeOptions:
       type: object
       properties:
-        propertyNameCaseInsensitive:
+        hasValue:
           type: boolean
+          readOnly: true
+        value:
+          $ref: '#/components/schemas/JsonNodeOptions'
       additionalProperties: false
     JsonPatch:
       type: object
