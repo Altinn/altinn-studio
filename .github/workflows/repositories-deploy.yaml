@@ -29,6 +29,8 @@ jobs:
       tags: ${{ needs.get-short-sha.outputs.short-sha }},latest
       registry-name: altinntjenestercontainerregistry.azurecr.io
       repository-name: altinn-repositories
+      context: gitea
+      dockerfile: gitea/Dockerfile
     secrets:
       client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
       tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
