@@ -386,6 +386,14 @@
           "items": {
             "type": "string"
           }
+        },
+        "allowedKeysForUserDefinedMetadata":{
+          "type":"array",
+          "title": "Allowed keys for UserDefinedMetadata",
+          "description": "A list of allowed keys for UserDefinedMetadata key-value array. If not set, any key can be used.",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
