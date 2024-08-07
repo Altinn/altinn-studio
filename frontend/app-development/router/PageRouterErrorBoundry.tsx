@@ -3,7 +3,7 @@ import { StudioPageError, StudioParagraph } from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
 import { Link } from '@digdir/designsystemet-react';
 
-export const PageRouterErrorBoundary = (): ReactElement => {
+export const ErrorBoundary = (): ReactElement => {
   const { t } = useTranslation();
   return (
     <StudioPageError
@@ -21,3 +21,7 @@ export const PageRouterErrorBoundary = (): ReactElement => {
     />
   );
 };
+
+export const AppRouteErrorBoundary = ErrorBoundary;
+export const NotFoundRouteErrorBoundary = ErrorBoundary;
+export const RouteErrorBoundary = ErrorBoundary;

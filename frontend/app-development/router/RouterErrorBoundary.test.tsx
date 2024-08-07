@@ -1,11 +1,11 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { PageRouterErrorBoundary } from './PageRouterErrorBoundry';
+import { ErrorBoundary } from './PageRouterErrorBoundry';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('PageRouterErrorBoundary', () => {
   it('should display generic error title and message', () => {
-    render(<PageRouterErrorBoundary />);
+    render(<ErrorBoundary />);
 
     const title = screen.getByRole('heading', {
       level: 1,

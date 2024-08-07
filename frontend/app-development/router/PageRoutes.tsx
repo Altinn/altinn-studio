@@ -12,31 +12,35 @@ import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { routerRoutes } from 'app-development/router/routes';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { NotFoundPage } from 'app-development/layout/NotFoundPage';
-import { PageRouterErrorBoundary } from './PageRouterErrorBoundry';
+import {
+  AppRouteErrorBoundary,
+  NotFoundRouteErrorBoundary,
+  RouteErrorBoundary,
+} from './PageRouterErrorBoundry';
 
 const BASE_PATH = '/:org/:app';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route path='/' element={<App />} errorElement={<PageRouterErrorBoundary />}>
-      <Route path={BASE_PATH} element={<PageLayout />} errorElement={<PageRouterErrorBoundary />}>
+    <Route path='/' element={<App />} errorElement={<AppRouteErrorBoundary />}>
+      <Route path={BASE_PATH} element={<PageLayout />} errorElement={<RouteErrorBoundary />}>
         {/* Redirects from /:org/:app to child route /overview */}
         <Route
           path={RoutePaths.Root}
           element={<Navigate to={RoutePaths.Overview} />}
-          errorElement={<PageRouterErrorBoundary />}
+          errorElement={<RouteErrorBoundary />}
         />
         {routerRoutes.map((route) => (
           <Route
             key={route.path}
             path={route.path}
             element={<route.subapp {...route.props} />}
-            errorElement={<PageRouterErrorBoundary />}
+            errorElement={<RouteErrorBoundary />}
           />
         ))}
-        <Route path='*' element={<NotFoundPage />} errorElement={<PageRouterErrorBoundary />} />
+        <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />
       </Route>
-      <Route path='*' element={<NotFoundPage />} errorElement={<PageRouterErrorBoundary />} />
+      <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />
     </Route>,
   ),
   {
