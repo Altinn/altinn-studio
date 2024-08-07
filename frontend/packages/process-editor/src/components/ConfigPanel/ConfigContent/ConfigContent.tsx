@@ -37,7 +37,7 @@ export const ConfigContent = (): React.ReactElement => {
     .some((item, index) => item.id === bpmnDetails.id && index === 0);
 
   return (
-    <div className={classes.configContent}>
+    <>
       <StudioSectionHeader
         icon={<ConfigIcon taskType={bpmnDetails.taskType} />}
         heading={{
@@ -52,7 +52,7 @@ export const ConfigContent = (): React.ReactElement => {
       {bpmnDetails.metadata?.justAdded ? (
         <NewNameRecommendation />
       ) : (
-        <>
+        <div className={classes.configContent}>
           <EditTaskId />
           <StudioDisplayTile
             label={t('process_editor.configuration_panel_name_label')}
@@ -93,8 +93,8 @@ export const ConfigContent = (): React.ReactElement => {
               </Accordion.Content>
             </Accordion.Item>
           </Accordion>
-        </>
+        </div>
       )}
-    </div>
+    </>
   );
 };
