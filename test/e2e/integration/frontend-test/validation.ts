@@ -8,6 +8,10 @@ const appFrontend = new AppFrontend();
 const mui = new Common();
 
 describe('Validation', () => {
+  const newFirstName = /nytt fornavn/i;
+  const newMiddleName = /nytt mellomnavn/i;
+  const newLastName = /nytt etternavn/i;
+
   it('Required field validation should be visible on submit, not on blur', () => {
     cy.goto('changename');
 
@@ -18,25 +22,21 @@ describe('Validation', () => {
       'have.text',
       texts.requiredFieldFromBackend,
     );
-    cy.get(appFrontend.changeOfName.newFirstName).type('Some value');
-    cy.get(appFrontend.changeOfName.newFirstName).blur();
+    cy.findByRole('textbox', { name: newFirstName }).type('Some value');
+    cy.findByRole('textbox', { name: newFirstName }).blur();
     cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newFirstName)).should('not.exist');
-    cy.get(appFrontend.changeOfName.newFirstName).clear();
+    cy.findByRole('textbox', { name: newFirstName }).clear();
 
-    cy.get(appFrontend.changeOfName.newMiddleName).type('Some value');
-    cy.get(appFrontend.changeOfName.newMiddleName).blur();
-    cy.get(appFrontend.changeOfName.newMiddleName).focus();
-    cy.get(appFrontend.changeOfName.newMiddleName).clear();
-    cy.get(appFrontend.changeOfName.newMiddleName).blur();
+    cy.findByRole('textbox', { name: newMiddleName }).type('Some value');
+    cy.findByRole('textbox', { name: newMiddleName }).blur();
+    cy.findByRole('textbox', { name: newMiddleName }).focus();
+    cy.findByRole('textbox', { name: newMiddleName }).clear();
+    cy.findByRole('textbox', { name: newMiddleName }).blur();
     cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newMiddleName)).should('not.exist');
 
-    cy.get(appFrontend.changeOfName.newMiddleName).type('Some middle name');
+    cy.findByRole('textbox', { name: newMiddleName }).type('Some middle name');
 
-    cy.get(appFrontend.changeOfName.confirmChangeName)
-      .findByRole('checkbox', {
-        name: /Ja[a-z, ]*/,
-      })
-      .check();
+    cy.findByRole('checkbox', { name: /Ja[a-z, ]*/ }).check();
     cy.get(appFrontend.changeOfName.reasonRelationship).type('test');
     cy.get(appFrontend.changeOfName.dateOfEffect).siblings().children(mui.buttonIcon).click();
     cy.get(mui.selectedDate).click();
@@ -52,7 +52,7 @@ describe('Validation', () => {
       texts.requiredFieldFromBackend,
     );
     cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newMiddleName)).should('not.exist');
-    cy.findByRole('tab', { name: 'Nytt etternavn' }).click();
+    cy.findByRole('tab', { name: /nytt etternavn/i }).click();
     cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newLastName)).should(
       'have.text',
       texts.requiredFieldLastName,
@@ -61,7 +61,7 @@ describe('Validation', () => {
 
   it('Custom field validation - warning/info/success', () => {
     cy.goto('changename');
-    cy.get(appFrontend.changeOfName.newFirstName).type('test');
+    cy.findByRole('textbox', { name: newFirstName }).type('test');
 
     // Error
     cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newFirstName))
@@ -87,9 +87,8 @@ describe('Validation', () => {
 
     for (const [type, { value, message }] of Object.entries(validationTypeMap)) {
       const realType = type as keyof typeof validationTypeMap;
-      const field = appFrontend.changeOfName.newMiddleName;
-      cy.get(field).clear();
-      cy.get(field).type(value);
+      cy.findByRole('textbox', { name: newMiddleName }).clear();
+      cy.findByRole('textbox', { name: newMiddleName }).type(value);
       cy.get(`#form-content-newMiddleName`).findByRole('alert', { name: message }).should('exist');
 
       // Should not have any other messages
@@ -103,15 +102,15 @@ describe('Validation', () => {
 
   it('Page validation on clicking next', () => {
     cy.goto('changename');
-    cy.get(appFrontend.changeOfName.newFirstName).clear();
-    cy.get(appFrontend.changeOfName.newFirstName).type('test');
+    cy.findByRole('textbox', { name: newFirstName }).clear();
+    cy.findByRole('textbox', { name: newFirstName }).type('test');
     cy.get(appFrontend.changeOfName.confirmChangeName)
       .findByRole('checkbox', {
         name: /Ja[a-z, ]*/,
       })
       .check();
     cy.navPage('form').should('have.attr', 'aria-current', 'page');
-    cy.findByRole('tab', { name: 'Nytt etternavn' }).click();
+    cy.findByRole('tab', { name: newLastName }).click();
     cy.get(appFrontend.nextButton).scrollIntoView();
     cy.get(appFrontend.nextButton).should('be.inViewport');
     cy.get(appFrontend.nextButton).click();
@@ -131,7 +130,7 @@ describe('Validation', () => {
       .should('have.length', 4 + 2);
     const lastNameError = appFrontend.fieldValidation(appFrontend.changeOfName.newLastName);
     cy.get(lastNameError).should('exist').should('not.be.inViewport');
-    cy.get(appFrontend.changeOfName.newLastName).should('not.be.focused');
+    cy.findByRole('textbox', { name: newLastName }).should('not.be.focused');
 
     cy.get(appFrontend.errorReport)
       .get(`button:contains("${texts.requiredFieldLastName}")`)
@@ -181,13 +180,13 @@ describe('Validation', () => {
     cy.get(appFrontend.changeOfName.newFirstName).type('a');
 
     // Tests regex validation in schema
-    cy.findByRole('tab', { name: 'Nytt etternavn' }).click();
+    cy.findByRole('tab', { name: newLastName }).click();
     cy.get(appFrontend.changeOfName.newLastName).type('client');
     cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newLastName)).should('have.text', texts.clientSide);
     cy.get(appFrontend.changeOfName.newLastName).clear();
 
     // Tests max length validation in schema
-    cy.findByRole('tab', { name: /Nytt mellomnavn/i }).click();
+    cy.findByRole('tab', { name: newMiddleName }).click();
     cy.get(appFrontend.changeOfName.newMiddleName).type(
       'very long middle name that is over 50 characters which is the limit',
     );
@@ -197,16 +196,16 @@ describe('Validation', () => {
     );
 
     // Hiding the field should remove the validation
-    cy.findByRole('tab', { name: 'Nytt etternavn' }).click();
+    cy.findByRole('tab', { name: newLastName }).click();
     cy.get(appFrontend.changeOfName.newLastName).type('hideNext');
-    cy.findByRole('tab', { name: /Nytt mellomnavn/i }).click();
+    cy.findByRole('tab', { name: newMiddleName }).click();
     cy.get(appFrontend.changeOfName.newMiddleName).should('exist');
     cy.changeLayout((component) => {
       if (component.id === 'newMiddleName') {
         component.hidden = ['equals', ['component', 'newLastName'], 'hideNext'];
       }
     });
-    cy.get(appFrontend.changeOfName.newMiddleName).should('not.exist');
+    cy.findByRole('textbox', { name: newMiddleName }).should('not.exist');
     cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newMiddleName)).should('not.exist');
 
     const expectedErrors = [
@@ -758,7 +757,7 @@ describe('Validation', () => {
     cy.get(appFrontend.sendinButton).click();
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 6);
     cy.findByText('Du må fylle ut dato for navneendring').click();
-    cy.findByLabelText(/Når vil du at navnendringen skal skje?/).should('be.inViewport');
+    cy.findByRole('textbox', { name: /når vil du at navnendringen skal skje\?\*/i }).should('be.visible');
   });
 
   describe('Falsy values', () => {
@@ -797,7 +796,7 @@ describe('Validation', () => {
       cy.findByRole('button', { name: /Send inn/ }).click();
 
       cy.findByRole('radiogroup', {
-        name: 'Spørsmål Hører skolen på elevenes forslag?* Du må fylle ut hører skolen på elevenes forslag?',
+        name: 'Spørsmål Hører skolen på elevenes forslag?*',
       }).within(() => {
         cy.findByRole('radio', { name: 'Alltid' }).should('not.be.focused');
       });
@@ -805,7 +804,7 @@ describe('Validation', () => {
       cy.findByRole('button', { name: /Du må fylle ut hører skolen på elevenes forslag/ }).click();
 
       cy.findByRole('radiogroup', {
-        name: 'Spørsmål Hører skolen på elevenes forslag?* Du må fylle ut hører skolen på elevenes forslag?',
+        name: 'Spørsmål Hører skolen på elevenes forslag?*',
       }).within(() => {
         cy.findByRole('radio', { name: 'Alltid' }).should('be.focused');
       });
@@ -813,7 +812,7 @@ describe('Validation', () => {
 
     it('Existing validations should not disappear when a backend validator is not executed', () => {
       cy.goto('changename');
-      cy.get(appFrontend.changeOfName.newFirstName).type('test');
+      cy.findByRole('textbox', { name: newFirstName }).type('test');
       cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newFirstName)).should(
         'have.text',
         texts.testIsNotValidValue,

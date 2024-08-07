@@ -6,6 +6,7 @@ import { Grid } from '@material-ui/core';
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IHeaderProps = PropsFromGenericComponent<'Header'>;
@@ -46,27 +47,29 @@ export const HeaderComponent = ({ node }: IHeaderProps) => {
   const { id, size, textResourceBindings } = node.item;
   const { langAsString } = useLanguage();
   return (
-    <Grid
-      container={true}
-      direction='row'
-      alignItems='center'
-    >
-      <Grid item={true}>
-        <Heading
-          id={id}
-          {...getHeaderProps(size)}
-        >
-          <Lang id={textResourceBindings?.title} />
-        </Heading>
-      </Grid>
-      {textResourceBindings?.help && (
+    <ComponentStructureWrapper node={node}>
+      <Grid
+        container={true}
+        direction='row'
+        alignItems='center'
+      >
         <Grid item={true}>
-          <HelpTextContainer
-            helpText={<Lang id={textResourceBindings.help} />}
-            title={langAsString(textResourceBindings?.title)}
-          />
+          <Heading
+            id={id}
+            {...getHeaderProps(size)}
+          >
+            <Lang id={textResourceBindings?.title} />
+          </Heading>
         </Grid>
-      )}
-    </Grid>
+        {textResourceBindings?.help && (
+          <Grid item={true}>
+            <HelpTextContainer
+              helpText={<Lang id={textResourceBindings.help} />}
+              title={langAsString(textResourceBindings?.title)}
+            />
+          </Grid>
+        )}
+      </Grid>
+    </ComponentStructureWrapper>
   );
 };

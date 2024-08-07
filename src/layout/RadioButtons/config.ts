@@ -11,7 +11,6 @@ export const RADIO_SUMMARY_OVERRIDE_PROPS = new CG.obj()
 
 export const Config = new CG.component({
   category: CompCategory.Form,
-  rendersWithLabel: false,
   capabilities: {
     renderInTable: true,
     renderInButtonGroup: false,

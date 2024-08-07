@@ -37,10 +37,7 @@ export const Fieldset = ({
       legend={
         <div className={classes.legendContent}>
           {legend}
-          <RequiredIndicator
-            required={required}
-            readOnly={false}
-          />
+          <RequiredIndicator required={required} />
           <OptionalIndicator
             labelSettings={labelSettings}
             readOnly={false}

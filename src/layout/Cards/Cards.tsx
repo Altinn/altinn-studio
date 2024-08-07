@@ -6,6 +6,7 @@ import { Grid } from '@material-ui/core';
 
 import { Lang } from 'src/features/language/Lang';
 import { CardProvider } from 'src/layout/Cards/CardContext';
+import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { CardConfigInternal } from 'src/layout/Cards/config.generated';
@@ -30,72 +31,74 @@ export const Cards = ({ node }: ICardsProps) => {
   };
 
   return (
-    <div style={cardContainer}>
-      {cardsInternal.map((card, idx) => (
-        <Card
-          key={idx}
-          color={color}
-          style={{ height: '100%' }}
-        >
-          {mediaPosition === 'top' && (
-            <Media
-              card={card}
-              node={node}
-              minMediaHeight={processedMinMediaHeight}
-            />
-          )}
-          {card.title && (
-            <Card.Header>
-              <Lang id={card.title} />
-            </Card.Header>
-          )}
-          {card.description && (
-            <Card.Content>
-              <Lang id={card.description} />
-            </Card.Content>
-          )}
-          {card.childNodes.length > 0 && (
-            <Grid
-              container={true}
-              item={true}
-              direction='row'
-              spacing={3}
-            >
+    <ComponentStructureWrapper node={node}>
+      <div style={cardContainer}>
+        {cardsInternal.map((card, idx) => (
+          <Card
+            key={idx}
+            color={color}
+            style={{ height: '100%' }}
+          >
+            {mediaPosition === 'top' && (
+              <Media
+                card={card}
+                node={node}
+                minMediaHeight={processedMinMediaHeight}
+              />
+            )}
+            {card.title && (
+              <Card.Header>
+                <Lang id={card.title} />
+              </Card.Header>
+            )}
+            {card.description && (
+              <Card.Content>
+                <Lang id={card.description} />
+              </Card.Content>
+            )}
+            {card.childNodes.length > 0 && (
               <Grid
                 container={true}
-                alignItems='flex-start'
                 item={true}
+                direction='row'
                 spacing={3}
               >
-                <CardProvider
-                  node={node}
-                  renderedInMedia={false}
+                <Grid
+                  container={true}
+                  alignItems='flex-start'
+                  item={true}
+                  spacing={3}
                 >
-                  {card.childNodes.map((childNode, idx) => (
-                    <GenericComponent
-                      key={idx}
-                      node={childNode}
-                    />
-                  ))}
-                </CardProvider>
+                  <CardProvider
+                    node={node}
+                    renderedInMedia={false}
+                  >
+                    {card.childNodes.map((childNode, idx) => (
+                      <GenericComponent
+                        key={idx}
+                        node={childNode}
+                      />
+                    ))}
+                  </CardProvider>
+                </Grid>
               </Grid>
-            </Grid>
-          )}
-          {card.footer && (
-            <Card.Footer>
-              <Lang id={card.footer} />
-            </Card.Footer>
-          )}
-          {mediaPosition === 'bottom' && (
-            <Media
-              card={card}
-              node={node}
-              minMediaHeight={processedMinMediaHeight}
-            />
-          )}
-        </Card>
-      ))}
-    </div>
+            )}
+            {card.footer && (
+              <Card.Footer>
+                <Lang id={card.footer} />
+              </Card.Footer>
+            )}
+            {mediaPosition === 'bottom' && (
+              <Media
+                card={card}
+                node={node}
+                minMediaHeight={processedMinMediaHeight}
+              />
+            )}
+          </Card>
+        ))}
+      </div>
+    </ComponentStructureWrapper>
   );
 };
 

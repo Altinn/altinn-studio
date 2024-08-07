@@ -13,7 +13,7 @@ describe('Grid component', () => {
     // Fill out the rest of the form, so that we can attempt to send it and only get the validation message we care
     // about for Grid.
     cy.get(appFrontend.changeOfName.newFirstName).type('anna');
-    cy.findByRole('tab', { name: 'Nytt etternavn' }).click();
+    cy.findByRole('tab', { name: /nytt etternavn/i }).click();
     cy.get(appFrontend.changeOfName.newLastName).type('last name');
     cy.get(appFrontend.changeOfName.confirmChangeName).find('input').check();
     cy.get(appFrontend.changeOfName.reasonRelationship).click();
@@ -159,19 +159,13 @@ describe('Grid component', () => {
     cy.goto('changename');
     cy.navPage('grid').click();
 
-    cy.get(appFrontend.grid.grid)
-      .find('tr:eq(1) td:eq(0)')
-      .findByRole('button', { name: /Hjelpetekst for Boliglån/i })
-      .click();
+    cy.findByRole('button', { name: /Hjelpetekst for Boliglån/i }).click();
     cy.get(appFrontend.helpText.alert).should('contain.text', 'Help text');
 
-    cy.get(appFrontend.grid.grid).find('tr:eq(2) td:eq(0)').should('contain.text', 'Dette er en beskrivende tekst');
-    cy.get(appFrontend.grid.grid)
-      .find('tr:eq(2) td:eq(0)')
-      .findByRole('button', { name: /Hjelpetekst for Prosentandel av gjeld i studielån/i })
-      .click();
-    cy.get(appFrontend.grid.grid).find('tr:eq(2) td:eq(0) label').click({ force: true });
-
-    cy.focused().should('have.attr', 'id', 'fordeling-studie');
+    cy.findByRole('cell', {
+      name: /prosentandel av gjeld i studielån hjelpetekst for prosentandel av gjeld i studielån dette er en beskrivende tekst/i,
+    }).should('exist');
+    cy.findByRole('button', { name: /Hjelpetekst for Prosentandel av gjeld i studielån/i }).click();
+    cy.focused().should('have.attr', 'id', 'label-fordeling-studie-helptext');
   });
 });

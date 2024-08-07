@@ -15,10 +15,10 @@ type Props = LinkProps & { children?: React.ReactNode };
  * @constructor
  */
 export const LinkToPotentialNode = (props: Props) => {
-  const [_url, queryParams] = props.to.toString().split('?') ?? [];
+  const to = props.to;
+  const searchParams = typeof to === 'string' ? to.split('?').at(1) : to.search;
 
-  const url = new URLSearchParams(queryParams);
-  const componentId = url.get(SearchParams.FocusComponentId);
+  const componentId = new URLSearchParams(searchParams).get(SearchParams.FocusComponentId);
   const resolvedNode = useResolvedNode(componentId);
 
   const nodeExists = resolvedNode != null;

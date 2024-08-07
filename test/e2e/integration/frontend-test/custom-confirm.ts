@@ -20,7 +20,7 @@ describe('Custom confirm page', () => {
 
       cy.get('[data-componentid="confirmBody"]').should('contain.text', 'Dette er en egendefinert bekreftelsesside');
       cy.get('[data-componentid="confirmBody"]').should('contain.text', `på forrige side valgte du ${name}.`);
-      cy.get('[data-componentid="back"]').click();
+      cy.findByRole('button', { name: /gå tilbake/i }).click();
 
       cy.get(dataListPage.tableBody).contains(name).closest('tr').find('input').should('be.checked');
     }
@@ -29,7 +29,7 @@ describe('Custom confirm page', () => {
     cy.get(appFrontend.sendinButton).click();
     cy.get('[data-componentid="confirmBody"]').should('contain.text', 'Dette er en egendefinert bekreftelsesside');
     cy.get('[data-componentid="confirmBody"]').should('contain.text', `på forrige side valgte du Petter.`);
-    cy.get('[data-componentid="sendInButton"]').click();
+    cy.findByRole('button', { name: /send inn/i }).click();
 
     cy.get('#ReceiptContainer').should('contain.text', 'Skjema er sendt inn');
   });

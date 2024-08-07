@@ -6,11 +6,10 @@ import cn from 'classnames';
 
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { Caption } from 'src/components/form/Caption';
-import { Description } from 'src/components/form/Description';
 import { Fieldset } from 'src/components/form/Fieldset';
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
-import { Label } from 'src/components/form/Label';
+import { LabelContent } from 'src/components/label/LabelContent';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsMobile } from 'src/hooks/useIsMobile';
@@ -38,6 +37,17 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
     return <MobileGrid {...props} />;
   }
 
+  const headerRows: GridRowInternal[] = [];
+  const bodyRows: GridRowInternal[] = [];
+
+  rows.forEach((row) => {
+    if (row.header) {
+      headerRows.push(row);
+    } else {
+      bodyRows.push(row);
+    }
+  });
+
   return (
     <ConditionalWrapper
       condition={shouldHaveFullWidth}
@@ -56,33 +66,47 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
             labelSettings={labelSettings}
           />
         )}
-        {rows.map((row, rowIdx) => (
-          <GridRowRenderer
-            key={rowIdx}
-            row={row}
-            isNested={isNested}
-            mutableColumnSettings={columnSettings}
-            node={node}
-          />
-        ))}
+        <Table.Head>
+          {headerRows.map((row, rowIdx) => (
+            <GridRowRenderer
+              key={rowIdx}
+              row={row}
+              isNested={isNested}
+              mutableColumnSettings={columnSettings}
+              node={node}
+            />
+          ))}
+        </Table.Head>
+        <Table.Body>
+          {bodyRows.map((row, rowIdx) => (
+            <GridRowRenderer
+              key={rowIdx}
+              row={row}
+              isNested={isNested}
+              mutableColumnSettings={columnSettings}
+              node={node}
+            />
+          ))}
+        </Table.Body>
       </Table>
     </ConditionalWrapper>
   );
 }
 
-interface GridRowProps {
+type GridRowProps = Readonly<{
   row: GridRowInternal;
   isNested: boolean;
   mutableColumnSettings: ITableColumnFormatting;
   node: LayoutNode;
-}
+}>;
 
 export function GridRowRenderer({ row, isNested, mutableColumnSettings, node }: GridRowProps) {
-  return isGridRowHidden(row) ? null : (
-    <InternalRow
-      header={row.header}
-      readOnly={row.readOnly}
-    >
+  if (isGridRowHidden(row)) {
+    return null;
+  }
+
+  return (
+    <Table.Row className={row.readOnly ? css.rowReadOnly : undefined}>
       {row.cells.map((cell, cellIdx) => {
         const isFirst = cellIdx === 0;
         const isLast = cellIdx === row.cells.length - 1;
@@ -146,27 +170,7 @@ export function GridRowRenderer({ row, isNested, mutableColumnSettings, node }: 
           />
         );
       })}
-    </InternalRow>
-  );
-}
-
-type InternalRowProps = PropsWithChildren<Pick<GridRowInternal, 'header' | 'readOnly'>>;
-
-function InternalRow({ header, readOnly, children }: InternalRowProps) {
-  const className = readOnly ? css.rowReadOnly : undefined;
-
-  if (header) {
-    return (
-      <Table.Head>
-        <Table.Row className={className}>{children}</Table.Row>
-      </Table.Head>
-    );
-  }
-
-  return (
-    <Table.Body>
-      <Table.Row className={className}>{children}</Table.Row>
-    </Table.Body>
+    </Table.Row>
   );
 }
 
@@ -269,23 +273,13 @@ function CellWithLabel({ className, columnStyleOptions, referenceComponent, isHe
       style={columnStyles}
     >
       {componentId && (
-        <>
-          <span className={css.textLabel}>
-            <Label
-              key={`label-${componentId}`}
-              label={<Lang id={title} />}
-              id={componentId}
-              required={required}
-              helpText={help && <Lang id={help} />}
-            />
-          </span>
-          {description && (
-            <Description
-              id={componentId}
-              description={<Lang id={description} />}
-            />
-          )}
-        </>
+        <LabelContent
+          id={`label-${componentId}`}
+          label={title}
+          required={required}
+          help={help}
+          description={description}
+        />
       )}
     </CellComponent>
   );

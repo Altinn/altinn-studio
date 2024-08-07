@@ -19,7 +19,6 @@ import type {
 
 export interface RequiredComponentConfig {
   category: CompCategory;
-  rendersWithLabel: boolean;
   capabilities: {
     renderInTable: boolean;
     renderInButtonGroup: boolean;
@@ -74,11 +73,6 @@ export class ComponentConfig extends GenerateComponentLike {
     if (config.category === CompCategory.Form || config.category === CompCategory.Container) {
       this.inner.extends(CG.common('SummarizableComponentProps'));
       this.extendTextResources(CG.common('TRBSummarizable'));
-    }
-
-    if (config.rendersWithLabel) {
-      this.inner.extends(CG.common('LabeledComponentProps'));
-      this.extendTextResources(CG.common('TRBLabel'));
     }
   }
 
@@ -178,7 +172,6 @@ export class ComponentConfig extends GenerateComponentLike {
     const staticElements = [
       `export const Config = {
          def: new ${impl.toTypeScript()}(),
-         rendersWithLabel: ${this.config.rendersWithLabel ? 'true' : 'false'} as const,
          nodeConstructor: ${nodeObj},
        }`,
       `export type TypeConfig = {

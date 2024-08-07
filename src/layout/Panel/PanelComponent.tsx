@@ -6,6 +6,7 @@ import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import { getVariant } from 'src/components/form/Panel';
 import { Lang } from 'src/features/language/Lang';
+import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/Panel/Panel.module.css';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -22,26 +23,28 @@ export const PanelComponent = ({ node }: IPanelProps) => {
   }
 
   return (
-    <ConditionalWrapper
-      condition={fullWidth}
-      wrapper={(child) => (
-        <FullWidthWrapper
-          className={classes.panelPadding}
-          isOnBottom={isOnBottom}
-          isOnTop={isOnTop}
-        >
-          {child}
-        </FullWidthWrapper>
-      )}
-    >
-      <Panel
-        title={textResourceBindings.title ? <Lang id={textResourceBindings.title} /> : null}
-        showIcon={showIcon}
-        variant={getVariant({ variant })}
-        forceMobileLayout={!fullWidth}
+    <ComponentStructureWrapper node={node}>
+      <ConditionalWrapper
+        condition={fullWidth}
+        wrapper={(child) => (
+          <FullWidthWrapper
+            className={classes.panelPadding}
+            isOnBottom={isOnBottom}
+            isOnTop={isOnTop}
+          >
+            {child}
+          </FullWidthWrapper>
+        )}
       >
-        <Lang id={textResourceBindings.body} />
-      </Panel>
-    </ConditionalWrapper>
+        <Panel
+          title={textResourceBindings.title ? <Lang id={textResourceBindings.title} /> : null}
+          showIcon={showIcon}
+          variant={getVariant({ variant })}
+          forceMobileLayout={!fullWidth}
+        >
+          <Lang id={textResourceBindings.body} />
+        </Panel>
+      </ConditionalWrapper>
+    </ComponentStructureWrapper>
   );
 };

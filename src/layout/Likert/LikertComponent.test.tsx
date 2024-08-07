@@ -41,7 +41,7 @@ describe('RepeatingGroupsLikertContainer', () => {
 
       expect(screen.getByText('Test title')).toBeInTheDocument();
       await waitFor(() => {
-        expect(screen.getByRole('group', { name: 'Test title' })).toBeInTheDocument();
+        expect(screen.getByRole('table', { name: 'Test title' })).toBeInTheDocument();
       });
       expect(screen.getByText('Test description')).toBeInTheDocument();
       expect(screen.getByText('Test left column header')).toBeInTheDocument();
@@ -55,13 +55,13 @@ describe('RepeatingGroupsLikertContainer', () => {
       await render({ mockQuestions: questions });
 
       await waitFor(() => {
-        expect(screen.getByRole('group')).toBeInTheDocument();
+        expect(screen.getByRole('table')).toBeInTheDocument();
       });
 
       await validateTableLayout(defaultMockQuestions, defaultMockOptions, { leftColumnHeader: 'Spørsmål' });
     });
 
-    it('should render table with two selected row', async () => {
+    it('should render table with two selected rows', async () => {
       const selectedAnswers = [
         {
           questionIndex: 1,
@@ -81,7 +81,7 @@ describe('RepeatingGroupsLikertContainer', () => {
       await render({ mockQuestions: questions });
 
       await waitFor(() => {
-        expect(screen.getByRole('group')).toBeInTheDocument();
+        expect(screen.getByRole('table')).toBeInTheDocument();
       });
 
       await validateTableLayout(defaultMockQuestions, defaultMockOptions, { leftColumnHeader: 'Spørsmål' });
@@ -95,7 +95,7 @@ describe('RepeatingGroupsLikertContainer', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByRole('group')).toBeInTheDocument();
+        expect(screen.getByRole('table')).toBeInTheDocument();
       });
 
       await validateTableLayout(defaultMockQuestions.slice(2), defaultMockOptions, { leftColumnHeader: 'Spørsmål' });
@@ -109,7 +109,7 @@ describe('RepeatingGroupsLikertContainer', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByRole('group')).toBeInTheDocument();
+        expect(screen.getByRole('table')).toBeInTheDocument();
       });
 
       await validateTableLayout(defaultMockQuestions.slice(0, 3), defaultMockOptions, { leftColumnHeader: 'Spørsmål' });
@@ -126,7 +126,7 @@ describe('RepeatingGroupsLikertContainer', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByRole('group')).toBeInTheDocument();
+        expect(screen.getByRole('table')).toBeInTheDocument();
       });
 
       await validateTableLayout(defaultMockQuestions.slice(1, 3), defaultMockOptions, { leftColumnHeader: 'Spørsmål' });
@@ -135,7 +135,7 @@ describe('RepeatingGroupsLikertContainer', () => {
     it('should render table view and click radiobuttons', async () => {
       const { formDataMethods } = await render();
       await waitFor(() => {
-        expect(screen.getByRole('group')).toBeInTheDocument();
+        expect(screen.getByRole('table')).toBeInTheDocument();
       });
 
       await validateTableLayout(defaultMockQuestions, defaultMockOptions, { leftColumnHeader: 'Spørsmål' });
@@ -190,7 +190,7 @@ describe('RepeatingGroupsLikertContainer', () => {
       }));
       await render({ mockQuestions, extraTextResources });
       await waitFor(() => {
-        expect(screen.getByRole('group')).toBeInTheDocument();
+        expect(screen.getByRole('table')).toBeInTheDocument();
       });
       await validateTableLayout(defaultMockQuestions, defaultMockOptions, { leftColumnHeader: 'Spørsmål' });
       const group = screen.getByRole('radiogroup', { name: 'Spørsmål Hvordan trives du på skolen?' });
@@ -210,7 +210,7 @@ describe('RepeatingGroupsLikertContainer', () => {
       }));
       await render({ mockOptions, extraTextResources });
       await waitFor(() => {
-        expect(screen.getByRole('group')).toBeInTheDocument();
+        expect(screen.getByRole('table')).toBeInTheDocument();
       });
       await validateTableLayout(defaultMockQuestions, mockOptions, { leftColumnHeader: 'Spørsmål' });
       const group = screen.getByRole('radiogroup', { name: 'Spørsmål Hvordan trives du på skolen?' });
@@ -224,7 +224,7 @@ describe('RepeatingGroupsLikertContainer', () => {
         validationIssues: generateValidations([{ index: 0, message: 'Feltet er påkrevd' }]),
       });
       await waitFor(() => {
-        expect(screen.getByRole('group')).toBeInTheDocument();
+        expect(screen.getByRole('table')).toBeInTheDocument();
       });
       expect(screen.getByRole('alert')).toHaveTextContent('Feltet er påkrevd');
     });
@@ -237,7 +237,7 @@ describe('RepeatingGroupsLikertContainer', () => {
         ]),
       });
       await waitFor(() => {
-        expect(screen.getByRole('group')).toBeInTheDocument();
+        expect(screen.getByRole('table')).toBeInTheDocument();
       });
       expect(screen.getAllByRole('alert')).toHaveLength(2);
     });
@@ -252,7 +252,7 @@ describe('RepeatingGroupsLikertContainer', () => {
         },
       });
       await waitFor(() => {
-        expect(screen.getByRole('group', { name: /Likert test title/i })).toHaveAccessibleDescription(
+        expect(screen.getByRole('table', { name: /Likert test title/i })).toHaveAccessibleDescription(
           'This is a test description',
         );
       });

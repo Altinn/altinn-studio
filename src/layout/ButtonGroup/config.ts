@@ -3,7 +3,6 @@ import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
   category: CompCategory.Container,
-  rendersWithLabel: true,
   capabilities: {
     renderInTable: false,
     renderInButtonGroup: false,
@@ -21,4 +20,6 @@ export const Config = new CG.component({
         .setDescription('Child component IDs of button-like components to be rendered in this group'),
     ).onlyIn(Variant.External),
   )
-  .addProperty(new CG.prop('childComponents', new CG.arr(CG.layoutNode)).onlyIn(Variant.Internal));
+  .addProperty(new CG.prop('childComponents', new CG.arr(CG.layoutNode)).onlyIn(Variant.Internal))
+  .extends(CG.common('LabeledComponentProps'))
+  .extendTextResources(CG.common('TRBLabel'));

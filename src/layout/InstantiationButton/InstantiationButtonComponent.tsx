@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Lang } from 'src/features/language/Lang';
+import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { InstantiationButton } from 'src/layout/InstantiationButton/InstantiationButton';
 import classes from 'src/layout/InstantiationButton/InstantiationButton.module.css';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
@@ -19,9 +20,11 @@ export function InstantiationButtonComponent({ node, ...componentProps }: IInsta
       className={classes.container}
       style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}
     >
-      <InstantiationButton {...props}>
-        <Lang id={node.item.textResourceBindings?.title} />
-      </InstantiationButton>
+      <ComponentStructureWrapper node={props.node}>
+        <InstantiationButton {...props}>
+          <Lang id={node.item.textResourceBindings?.title} />
+        </InstantiationButton>
+      </ComponentStructureWrapper>
     </div>
   );
 }

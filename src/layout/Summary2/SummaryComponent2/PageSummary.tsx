@@ -2,10 +2,11 @@ import React from 'react';
 
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useGetPage } from 'src/utils/layout/NodesContext';
+import type { CompSummary2External } from 'src/layout/Summary2/config.generated';
 
 interface PageSummaryProps {
   pageId: string;
-  summaryOverrides: any;
+  summaryOverrides: CompSummary2External['overrides'];
 }
 
 export function PageSummary({ pageId, summaryOverrides }: PageSummaryProps) {

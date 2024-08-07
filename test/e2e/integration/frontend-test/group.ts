@@ -127,7 +127,7 @@ describe('Group', () => {
     cy.get(appFrontend.group.currentValue).type('1337');
     // DataProcessingHandler.cs for frontend-test changes 1337 to 1338.
     cy.get(appFrontend.group.currentValue).should('have.value', 'NOK 1 338');
-    cy.get(appFrontend.group.newValueLabel).should('contain.text', '2. Endre verdi 1338 til');
+    cy.get(appFrontend.group.newValueLabel).should('contain.text', 'Endre verdi 1338 til');
   });
 
   it('Validation on group', () => {
@@ -315,7 +315,7 @@ describe('Group', () => {
 
     cy.get(appFrontend.fieldValidation('currentValue-0')).should('have.text', texts.requiredFieldFromValue);
 
-    cy.findByLabelText(/1\. Endre fra/i).type('123');
+    cy.findByText('Endre fra').type('123');
     cy.get(appFrontend.group.saveMainGroup).click();
 
     cy.get(appFrontend.fieldValidation('newValue-0')).should('have.text', texts.requiredFieldToValue);

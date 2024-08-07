@@ -15,7 +15,7 @@ import { ComponentValidations } from 'src/features/validation/ComponentValidatio
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { hasValidationErrors } from 'src/features/validation/utils';
 import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
-import { AttachmentsCounter } from 'src/layout/FileUpload/AttachmentsCounter';
+import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { DropzoneComponent } from 'src/layout/FileUpload/DropZone/DropzoneComponent';
 import classes from 'src/layout/FileUpload/FileUploadComponent.module.css';
 import { FileTable } from 'src/layout/FileUpload/FileUploadTable/FileTable';
@@ -62,7 +62,7 @@ export function FileUploadComponent({ node }: IFileUploadWithTagProps): React.JS
   const shouldShowFileUpload =
     canUploadMoreAttachments && (isComplexMode || isSimpleModeWithNoAttachments || showFileUpload);
 
-  const renderAddMoreAttachmentsButton = (): JSX.Element | null => {
+  const AddMoreAttachmentsButton = (): JSX.Element | null => {
     const canShowButton =
       displayMode === 'simple' &&
       !showFileUpload &&
@@ -116,60 +116,66 @@ export function FileUploadComponent({ node }: IFileUploadWithTagProps): React.JS
     }
   };
 
-  const attachmentsCounter = (
-    <AttachmentsCounter
-      currentNumberOfAttachments={attachments.length}
-      minNumberOfAttachments={minNumberOfAttachments}
-      maxNumberOfAttachments={maxNumberOfAttachments}
-    />
+  const AttachmentsCounter = () => (
+    <small style={{ fontWeight: 'normal' }}>
+      {langTools.langAsString('form_filler.file_uploader_number_of_files')}{' '}
+      {minNumberOfAttachments ? `${attachments.length}/${maxNumberOfAttachments}` : attachments.length}.
+    </small>
   );
 
   return (
-    <AttachmentsMappedToFormDataProvider mappingTools={mappingTools}>
-      <div
-        id={`altinn-fileuploader-${id}`}
-        style={{ padding: '0px' }}
-      >
-        {shouldShowFileUpload && (
-          <>
-            <DropzoneComponent
-              id={id}
-              isMobile={mobileView}
-              maxFileSizeInMB={maxFileSizeInMB}
-              readOnly={!!readOnly}
-              onClick={(e) => e.preventDefault()}
-              onDrop={handleDrop}
-              hasValidationMessages={hasValidationErrors(componentValidations)}
-              hasCustomFileEndings={hasCustomFileEndings}
-              validFileEndings={validFileEndings}
-              textResourceBindings={textResourceBindings}
-            />
-            {attachmentsCounter}
-            <ComponentValidations
-              validations={componentValidations}
-              node={node}
-            />
-          </>
-        )}
+    <ComponentStructureWrapper
+      node={node}
+      label={{ ...node.item, renderLabelAs: 'label' }}
+    >
+      <AttachmentsMappedToFormDataProvider mappingTools={mappingTools}>
+        <div
+          id={`altinn-fileuploader-${id}`}
+          style={{ padding: '0px' }}
+        >
+          {shouldShowFileUpload && (
+            <>
+              <DropzoneComponent
+                id={id}
+                isMobile={mobileView}
+                maxFileSizeInMB={maxFileSizeInMB}
+                readOnly={!!readOnly}
+                onClick={(e) => e.preventDefault()}
+                onDrop={handleDrop}
+                hasValidationMessages={hasValidationErrors(componentValidations)}
+                hasCustomFileEndings={hasCustomFileEndings}
+                validFileEndings={validFileEndings}
+                textResourceBindings={textResourceBindings}
+              />
+              <AttachmentsCounter />
+              <ComponentValidations
+                validations={componentValidations}
+                node={node}
+              />
+              <br />
+            </>
+          )}
 
-        <FileTable
-          node={node}
-          mobileView={mobileView}
-          attachments={attachments}
-          options={options}
-        />
+          <FileTable
+            node={node}
+            mobileView={mobileView}
+            attachments={attachments}
+            options={options}
+          />
 
-        {!shouldShowFileUpload && (
-          <>
-            {attachmentsCounter}
-            <ComponentValidations
-              validations={componentValidations}
-              node={node}
-            />
-          </>
-        )}
-        {renderAddMoreAttachmentsButton()}
-      </div>
-    </AttachmentsMappedToFormDataProvider>
+          {!shouldShowFileUpload && (
+            <>
+              <AttachmentsCounter />
+              <ComponentValidations
+                validations={componentValidations}
+                node={node}
+              />
+              <br />
+            </>
+          )}
+          <AddMoreAttachmentsButton />
+        </div>
+      </AttachmentsMappedToFormDataProvider>
+    </ComponentStructureWrapper>
   );
 }

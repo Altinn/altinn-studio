@@ -18,7 +18,6 @@ export const GROUP_SUMMARY_PROPS = new CG.obj(
 
 export const Config = new CG.component({
   category: CompCategory.Container,
-  rendersWithLabel: false,
   capabilities: {
     renderInTable: false,
     renderInButtonGroup: false,

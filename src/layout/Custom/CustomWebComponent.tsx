@@ -3,6 +3,7 @@ import ReactDOMServer from 'react-dom/server';
 
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { CompInternal, ITextResourceBindings } from 'src/layout/layout';
@@ -32,7 +33,7 @@ export function CustomWebComponent({
     text: langAsString(textResourceBindings?.title),
     getTextResourceAsString: (textResource: string) => langAsString(textResource),
   };
-  const Tag = tagName;
+  const HtmlTag = tagName;
   const wcRef = React.useRef<any>(null);
   const { formData, setValue } = useDataModelBindings(dataModelBindings);
 
@@ -68,7 +69,7 @@ export function CustomWebComponent({
     }
   }, [formData, componentValidations]);
 
-  if (node.isHidden() || !Tag) {
+  if (node.isHidden() || !HtmlTag) {
     return null;
   }
 
@@ -84,19 +85,19 @@ export function CustomWebComponent({
   });
 
   return (
-    <div>
-      <Tag
+    <ComponentStructureWrapper node={node}>
+      <HtmlTag
         ref={wcRef}
         data-testid={tagName}
         {...propsAsAttributes}
       />
-    </div>
+    </ComponentStructureWrapper>
   );
 }
 
 function getTextsForComponent(textResourceBindings: ITextResourceBindings<'Custom'>, langTools: IUseLanguage) {
   const result: any = {};
-  const bindings = textResourceBindings || {};
+  const bindings = textResourceBindings ?? {};
   Object.keys(bindings).forEach((key) => {
     result[key] = langTools.langAsString(bindings[key]);
   });

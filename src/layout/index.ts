@@ -4,7 +4,7 @@ import { ComponentConfigs } from 'src/layout/components.generated';
 import type { DisplayData } from 'src/features/displayData';
 import type { BaseValidation, ComponentValidation, ValidationDataSources } from 'src/features/validation';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
-import type { CompInternal, CompRendersLabel, CompTypes } from 'src/layout/layout';
+import type { CompInternal, CompTypes } from 'src/layout/layout';
 import type { AnyComponent, LayoutComponent } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -45,10 +45,6 @@ export function getLayoutComponentObject<T extends keyof CompClassMap>(type: T):
     return ComponentConfigs[type].def as any;
   }
   return undefined as any;
-}
-
-export function shouldComponentRenderLabel<T extends CompTypes>(type: T): CompRendersLabel<T> {
-  return ComponentConfigs[type].rendersWithLabel;
 }
 
 export type DefGetter = typeof getLayoutComponentObject;

@@ -43,10 +43,7 @@ export const Caption = ({
       >
         <div>
           {title}
-          <RequiredIndicator
-            required={required}
-            readOnly={false}
-          />
+          <RequiredIndicator required={required} />
           <OptionalIndicator
             labelSettings={labelSettings}
             readOnly={false}

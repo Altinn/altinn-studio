@@ -7,7 +7,6 @@ import { MULTIPLE_SELECT_SUMMARY_OVERRIDE_PROPS } from 'src/layout/MultipleSelec
 import { RADIO_SUMMARY_OVERRIDE_PROPS } from 'src/layout/RadioButtons/config';
 export const Config = new CG.component({
   category: CompCategory.Container,
-  rendersWithLabel: false,
   capabilities: {
     renderInTable: false,
     renderInButtonGroup: false,

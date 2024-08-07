@@ -11,7 +11,6 @@ export const DROPDOWN_SUMMARY_OVERRIDE_PROPS = new CG.obj()
 
 export const Config = new CG.component({
   category: CompCategory.Form,
-  rendersWithLabel: true,
   capabilities: {
     renderInTable: true,
     renderInButtonGroup: false,
@@ -31,4 +30,6 @@ export const Config = new CG.component({
         .setDescription('Boolean value indicating if the component should alert on change'),
     ),
   )
-  .addDataModelBinding(CG.common('IDataModelBindingsOptionsSimple'));
+  .addDataModelBinding(CG.common('IDataModelBindingsOptionsSimple'))
+  .extends(CG.common('LabeledComponentProps'))
+  .extendTextResources(CG.common('TRBLabel'));

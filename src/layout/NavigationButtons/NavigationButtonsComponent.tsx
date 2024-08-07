@@ -7,6 +7,7 @@ import { useReturnToView, useSummaryNodeOfOrigin } from 'src/features/form/layou
 import { Lang } from 'src/features/language/Lang';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/NavigationButtons/NavigationButtonsComponent.module.css';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -121,47 +122,49 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
    * will read Next before Previous, as this is the primary Button for the user.
    */
   return (
-    <div
-      data-testid='NavigationButtons'
-      className={classes.container}
-      style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}
-    >
-      {showBackToSummaryButton && (
-        <Grid item>
-          <Button
-            ref={refNext}
-            size='small'
-            onClick={onClickBackToSummary}
-          >
-            <Lang id={returnToViewText} />
-          </Button>
-        </Grid>
-      )}
-      {showNextButton && (
-        <Grid item>
-          <Button
-            ref={refNext}
-            size='small'
-            onClick={onClickNext}
-            // If we are showing a back to summary button, we want the "next" button to be secondary
-            variant={showBackToSummaryButton ? 'secondary' : 'primary'}
-          >
-            <Lang id={nextTextKey} />
-          </Button>
-        </Grid>
-      )}
-      {!disablePrevious && showBackButton && (
-        <Grid item>
-          <Button
-            ref={refPrev}
-            size='small'
-            variant={showNextButton || showBackToSummaryButton ? 'secondary' : 'primary'}
-            onClick={onClickPrevious}
-          >
-            <Lang id={backTextKey} />
-          </Button>
-        </Grid>
-      )}
-    </div>
+    <ComponentStructureWrapper node={node}>
+      <div
+        data-testid='NavigationButtons'
+        className={classes.container}
+        style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}
+      >
+        {showBackToSummaryButton && (
+          <Grid item>
+            <Button
+              ref={refNext}
+              size='small'
+              onClick={onClickBackToSummary}
+            >
+              <Lang id={returnToViewText} />
+            </Button>
+          </Grid>
+        )}
+        {showNextButton && (
+          <Grid item>
+            <Button
+              ref={refNext}
+              size='small'
+              onClick={onClickNext}
+              // If we are showing a back to summary button, we want the "next" button to be secondary
+              variant={showBackToSummaryButton ? 'secondary' : 'primary'}
+            >
+              <Lang id={nextTextKey} />
+            </Button>
+          </Grid>
+        )}
+        {!disablePrevious && showBackButton && (
+          <Grid item>
+            <Button
+              ref={refPrev}
+              size='small'
+              variant={showNextButton || showBackToSummaryButton ? 'secondary' : 'primary'}
+              onClick={onClickPrevious}
+            >
+              <Lang id={backTextKey} />
+            </Button>
+          </Grid>
+        )}
+      </div>
+    </ComponentStructureWrapper>
   );
 }

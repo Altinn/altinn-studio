@@ -1,9 +1,9 @@
 import type React from 'react';
 
 import { useGetOptions } from 'src/features/options/useGetOptions';
-import type { IRadioButtonsContainerProps } from 'src/layout/RadioButtons/RadioButtonsContainerComponent';
+import type { IControlledRadioGroupProps } from 'src/layout/RadioButtons/ControlledRadioGroup';
 
-export const useRadioButtons = ({ node }: IRadioButtonsContainerProps) => {
+export const useRadioButtons = ({ node }: IControlledRadioGroupProps) => {
   const {
     options: calculatedOptions,
     isFetching: fetchingOptions,

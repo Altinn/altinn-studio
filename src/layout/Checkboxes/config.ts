@@ -19,7 +19,6 @@ export const CHECKBOX_SUMMARY_OVERRIDE_PROPS = new CG.obj(
 
 export const Config = new CG.component({
   category: CompCategory.Form,
-  rendersWithLabel: false,
   capabilities: {
     renderInTable: true,
     renderInButtonGroup: false,
@@ -50,6 +49,5 @@ export const Config = new CG.component({
         .setDescription('Boolean value indicating if the component should alert on uncheck'),
     ),
   );
-// We don't render the label in GenericComponent, but we still need the
-// text resource bindings for rendering them on our own
+
 Config.addTextResourcesForLabel().inner.extends(CG.common('LabeledComponentProps'));

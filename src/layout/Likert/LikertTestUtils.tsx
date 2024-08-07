@@ -179,7 +179,7 @@ export const validateTableLayout = async (
   options: IRawOption[],
   validateRadioLayoutOptions: ValidateRadioLayoutOptions,
 ) => {
-  screen.getByRole('group');
+  screen.getByRole('table');
 
   for (const option of defaultMockOptions) {
     const allAlternatives = await screen.findAllByRole('radio', {

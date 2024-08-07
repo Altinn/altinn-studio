@@ -4,7 +4,7 @@ import type { JSX, PropsWithChildren } from 'react';
 import { ErrorMessage, Paragraph, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
-import { Label } from 'src/components/form/Label';
+import { LabelContent } from 'src/components/label/LabelContent';
 import { useDisplayDataProps } from 'src/features/displayData/useDisplayData';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -17,6 +17,7 @@ import classes from 'src/layout/Grid/GridSummary.module.css';
 import { isGridRowHidden } from 'src/layout/Grid/tools';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { getColumnStyles } from 'src/utils/formComponentUtils';
+import { typedBoolean } from 'src/utils/typing';
 import type {
   GridCellInternal,
   GridRowInternal,
@@ -26,9 +27,9 @@ import type {
 import type { ITextResourceBindings } from 'src/layout/layout';
 import type { BaseLayoutNode, LayoutNode } from 'src/utils/layout/LayoutNode';
 
-type GridSummaryProps = {
+type GridSummaryProps = Readonly<{
   componentNode: LayoutNode<'Grid'>;
-};
+}>;
 
 export const GridSummary = ({ componentNode }: GridSummaryProps) => {
   const { rows, textResourceBindings } = componentNode.item;
@@ -164,15 +165,17 @@ export function GridRowRenderer({ row, mutableColumnSettings, node, currentHeade
     firstComponentCell.node.isCategory(CompCategory.Form) &&
     firstComponentCell.node;
 
-  return isGridRowHidden(row) ? null : (
-    <InternalRow
-      header={row.header}
-      readOnly={row.readOnly}
-    >
-      {row.cells.map((cell, cellIdx) => {
+  if (isGridRowHidden(row)) {
+    return null;
+  }
+
+  return (
+    <InternalRow readOnly={row.readOnly}>
+      {row.cells.filter(typedBoolean).map((cell, cellIdx) => {
         const currentHeaderCell = getCurrentHeaderCell(currentHeaderCells ?? [], cellIdx);
         let referencedNode: BaseLayoutNode | undefined = undefined;
         let referencedNodeIsRequired = false;
+
         if (currentHeaderCell && 'labelFrom' in currentHeaderCell) {
           const referencedComponent = node
             .flat(true)
@@ -195,47 +198,46 @@ export function GridRowRenderer({ row, mutableColumnSettings, node, currentHeade
           mutableColumnSettings[cellIdx] = cell.columnOptions;
         }
 
-        if (cell && ('labelFrom' in cell || 'text' in cell)) {
-          let textCellSettings: ITableColumnProperties = mutableColumnSettings[cellIdx]
-            ? structuredClone(mutableColumnSettings[cellIdx])
-            : {};
-          textCellSettings = { ...textCellSettings, ...cell };
+        const textCellSettings: ITableColumnProperties = {
+          ...(mutableColumnSettings[cellIdx] ? structuredClone(mutableColumnSettings[cellIdx]) : {}),
+          ...cell,
+        };
 
-          if ('text' in cell && cell.text) {
-            return (
-              <CellWithText
-                key={`${cell.text}/${cellIdx}`}
-                help={cell?.help}
-                isHeader={row.header}
-                columnStyleOptions={textCellSettings}
-                headerTitle={headerTitle}
-                isSmall={isSmall}
-              >
-                <Lang
-                  id={cell.text}
-                  node={node}
-                />
-              </CellWithText>
-            );
-          }
-
-          if ('labelFrom' in cell && cell.labelFrom) {
-            const closestComponent = node
-              .flat(true)
-              .find((n) => n.item.id === cell.labelFrom || n.item.baseComponentId === cell.labelFrom);
-
-            return (
-              <CellWithLabel
-                key={`${cell.labelFrom}/${cellIdx}`}
-                isHeader={row.header}
-                columnStyleOptions={textCellSettings}
-                referenceComponent={closestComponent}
-                headerTitle={headerTitle}
-                isSmall={isSmall}
+        if ('text' in cell && cell.text) {
+          return (
+            <CellWithText
+              key={`${cell.text}/${cellIdx}`}
+              help={cell?.help}
+              isHeader={row.header}
+              columnStyleOptions={textCellSettings}
+              headerTitle={headerTitle}
+              isSmall={isSmall}
+            >
+              <Lang
+                id={cell.text}
+                node={node}
               />
-            );
-          }
+            </CellWithText>
+          );
         }
+
+        if ('labelFrom' in cell && cell.labelFrom) {
+          const closestComponent = node
+            .flat(true)
+            .find((n) => n.item.id === cell.labelFrom || n.item.baseComponentId === cell.labelFrom);
+
+          return (
+            <CellWithLabel
+              key={`${cell.labelFrom}/${cellIdx}`}
+              isHeader={row.header}
+              columnStyleOptions={textCellSettings}
+              referenceComponent={closestComponent}
+              headerTitle={headerTitle}
+              isSmall={isSmall}
+            />
+          );
+        }
+
         const componentNode = cell && 'node' in cell ? cell.node : undefined;
         const componentId = componentNode && componentNode.item.id;
 
@@ -251,8 +253,8 @@ export function GridRowRenderer({ row, mutableColumnSettings, node, currentHeade
           />
         );
       })}
-      {!pdfModeActive && row.header && !isSmall && <Table.HeaderCell />}
-      {!pdfModeActive && !row.header && !isSmall && (
+      {!pdfModeActive && !isSmall && row.header && <Table.HeaderCell />}
+      {!pdfModeActive && !isSmall && !row.header && (
         <Table.Cell align='right'>
           {firstComponentNode && !row.readOnly && (
             <EditButton
@@ -266,14 +268,10 @@ export function GridRowRenderer({ row, mutableColumnSettings, node, currentHeade
   );
 }
 
-type InternalRowProps = PropsWithChildren<Pick<GridRowInternal, 'header' | 'readOnly'>>;
+type InternalRowProps = PropsWithChildren<Pick<GridRowInternal, 'readOnly'>>;
 
-function InternalRow({ header, readOnly, children }: InternalRowProps) {
+function InternalRow({ readOnly, children }: InternalRowProps) {
   const className = readOnly ? classes.rowReadOnly : undefined;
-
-  if (header) {
-    return <Table.Row className={className}>{children}</Table.Row>;
-  }
 
   return <Table.Row className={className}>{children}</Table.Row>;
 }
@@ -402,14 +400,11 @@ function CellWithLabel({
       data-header-title={isSmall ? headerTitle : ''}
     >
       {componentId && (
-        <span className={classes.textLabel}>
-          <Label
-            key={`label-${componentId}`}
-            label={<Lang id={title} />}
-            id={componentId}
-            required={required}
-          />
-        </span>
+        <LabelContent
+          id={`label-${componentId}`}
+          label={title}
+          required={required}
+        />
       )}
     </CellComponent>
   );

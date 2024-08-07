@@ -4,12 +4,10 @@ import { Lang } from 'src/features/language/Lang';
 
 export interface IRequiredIndicatorProps {
   required?: boolean;
-  readOnly?: boolean;
 }
 
-export const RequiredIndicator = ({ required, readOnly }: IRequiredIndicatorProps) =>
-  required &&
-  !readOnly && (
+export const RequiredIndicator = ({ required }: IRequiredIndicatorProps) =>
+  required && (
     <span>
       {' '}
       <Lang

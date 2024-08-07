@@ -5,7 +5,6 @@ import { asUploaderComponent } from 'src/layout/FileUpload/config';
 export const Config = asUploaderComponent(
   new CG.component({
     category: CompCategory.Form,
-    rendersWithLabel: true,
     capabilities: {
       renderInTable: false,
       renderInButtonGroup: false,
@@ -23,4 +22,6 @@ export const Config = asUploaderComponent(
       description: 'The title to show when selecting a tag for each uploaded file',
     }),
   )
-  .makeSelectionComponent(false);
+  .makeSelectionComponent(false)
+  .extends(CG.common('LabeledComponentProps'))
+  .extendTextResources(CG.common('TRBLabel'));

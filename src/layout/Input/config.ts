@@ -11,7 +11,6 @@ export const INPUT_SUMMARY_OVERRIDE_PROPS = new CG.obj()
 
 export const Config = new CG.component({
   category: CompCategory.Form,
-  rendersWithLabel: true,
   capabilities: {
     renderInTable: true,
     renderInButtonGroup: false,
@@ -160,4 +159,6 @@ export const Config = new CG.component({
           'Max length of the input field. Will add a counter to let the user know how many characters are left.',
         ),
     ),
-  );
+  )
+  .extends(CG.common('LabeledComponentProps'))
+  .extendTextResources(CG.common('TRBLabel'));

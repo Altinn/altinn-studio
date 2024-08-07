@@ -4,6 +4,7 @@ import deepEqual from 'fast-deep-equal';
 
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useOrderDetails, useRefetchOrderDetails } from 'src/features/payment/OrderDetailsProvider';
+import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { PaymentDetailsTable } from 'src/layout/PaymentDetails/PaymentDetailsTable';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -27,10 +28,12 @@ export function PaymentDetailsComponent({ node }: IPaymentDetailsProps) {
   }, [hasUnsavedChanges, mappedValues, mapping, refetchOrderDetails]);
 
   return (
-    <PaymentDetailsTable
-      orderDetails={orderDetails}
-      tableTitle={title}
-      description={description}
-    />
+    <ComponentStructureWrapper node={node}>
+      <PaymentDetailsTable
+        orderDetails={orderDetails}
+        tableTitle={title}
+        description={description}
+      />
+    </ComponentStructureWrapper>
   );
 }

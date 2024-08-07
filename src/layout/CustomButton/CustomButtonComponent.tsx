@@ -11,6 +11,7 @@ import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { Lang } from 'src/features/language/Lang';
 import { useNavigatePage, useNavigationParams } from 'src/hooks/useNavigatePage';
+import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { isSpecificClientAction } from 'src/layout/CustomButton/typeHelpers';
 import { promisify } from 'src/utils/promisify';
 import type { BackendValidationIssueGroups } from 'src/features/validation';
@@ -190,15 +191,17 @@ export const CustomButtonComponent = ({ node }: Props) => {
   const { color, variant } = buttonStyles[buttonStyle];
 
   return (
-    <Button
-      id={`custom-button-${id}`}
-      disabled={disabled}
-      onClick={onClick}
-      color={color}
-      variant={variant}
-      aria-busy={mutation.isPending}
-    >
-      <Lang id={textResourceBindings?.title} />
-    </Button>
+    <ComponentStructureWrapper node={node}>
+      <Button
+        id={`custom-button-${id}`}
+        disabled={disabled}
+        onClick={onClick}
+        color={color}
+        variant={variant}
+        aria-busy={mutation.isPending}
+      >
+        <Lang id={textResourceBindings?.title} />
+      </Button>
+    </ComponentStructureWrapper>
   );
 };

@@ -74,7 +74,7 @@ const petsFromCustomButton: PetProps[] = [
 describe('Group (Pets)', () => {
   // TODO: Fix this test. It fails because the Dropdown component somehow doesn't work when selecting the correct
   // species option the second time.
-  it.skip('should be possible to add new pets manually', () => {
+  it('should be possible to add new pets manually', () => {
     cy.goto('group');
     cy.gotoNavPage('Kjæledyr');
 

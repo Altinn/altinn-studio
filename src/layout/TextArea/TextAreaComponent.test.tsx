@@ -73,7 +73,7 @@ describe('TextAreaComponent', () => {
     });
 
     const textarea = screen.getByRole('textbox');
-    expect(textarea).toHaveAttribute('aria-describedby', 'description-id');
+    expect(textarea.getAttribute('aria-describedby')).toContain('description-id');
   });
 
   it('should not have aria-describedby attribute if textResourceBindings is present without description', async () => {
@@ -82,6 +82,9 @@ describe('TextAreaComponent', () => {
         id: 'id',
         textResourceBindings: {},
       },
+      genericProps: {
+        isValid: true,
+      },
     });
 
     const textarea = screen.getByRole('textbox');
@@ -89,7 +92,11 @@ describe('TextAreaComponent', () => {
   });
 
   it('should not have aria-describedby attribute if textResourceBindings is not present', async () => {
-    await render();
+    await render({
+      genericProps: {
+        isValid: true,
+      },
+    });
 
     const textarea = screen.getByRole('textbox');
     expect(textarea).not.toHaveAttribute('aria-describedby');

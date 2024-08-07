@@ -5,24 +5,23 @@ import { PageSummary } from 'src/layout/Summary2/SummaryComponent2/PageSummary';
 
 interface LayoutSetSummaryProps {
   layoutSetId?: string;
-  summaryOverrides?: any;
 }
 
-export function LayoutSetSummary({ layoutSetId, summaryOverrides }: LayoutSetSummaryProps) {
+export function LayoutSetSummary({ layoutSetId }: LayoutSetSummaryProps) {
   const pageOrder = useOrder();
 
-  return pageOrder
-    .filter((layoutId) => {
-      if (!layoutSetId) {
-        return layoutId;
-      }
-      return layoutId === layoutSetId;
-    })
-    .map((layoutId) => (
-      <PageSummary
-        pageId={layoutId}
-        key={layoutId}
-        summaryOverrides={summaryOverrides}
-      />
-    ));
+  const filteredPages = pageOrder.filter((layoutId) => {
+    if (!layoutSetId) {
+      return layoutId;
+    }
+    return layoutId === layoutSetId;
+  });
+
+  return filteredPages.map((layoutId) => (
+    <PageSummary
+      pageId={layoutId}
+      key={layoutId}
+      summaryOverrides={undefined} // FIXME: should have overrides? From where?
+    />
+  ));
 }

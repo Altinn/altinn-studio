@@ -9,6 +9,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useIsMobile } from 'src/hooks/useIsMobile';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 const useStyles = makeStyles((theme) => ({
@@ -164,60 +165,62 @@ export const NavigationBarComponent = ({ node }: INavigationBar) => {
   }
 
   return (
-    <Grid container>
-      <Grid
-        data-testid='NavigationBar'
-        item
-        component='nav'
-        xs={12}
-        role='navigation'
-        aria-label={langAsString('general.navigation_form')}
-      >
-        {isMobile && (
-          <NavigationButton
-            hidden={showMenu}
-            current={true}
-            onClick={handleShowMenu}
-            aria-expanded={showMenu}
-            aria-controls='navigation-menu'
-            aria-haspopup='true'
-          >
-            <span className={classes.dropdownMenuContent}>
-              <span>
-                {order.indexOf(currentPageId) + 1}/{order.length} <Lang id={currentPageId} />
+    <ComponentStructureWrapper node={node}>
+      <Grid container>
+        <Grid
+          data-testid='NavigationBar'
+          item
+          component='nav'
+          xs={12}
+          role='navigation'
+          aria-label={langAsString('general.navigation_form')}
+        >
+          {isMobile && (
+            <NavigationButton
+              hidden={showMenu}
+              current={true}
+              onClick={handleShowMenu}
+              aria-expanded={showMenu}
+              aria-controls='navigation-menu'
+              aria-haspopup='true'
+            >
+              <span className={classes.dropdownMenuContent}>
+                <span>
+                  {order.indexOf(currentPageId) + 1}/{order.length} <Lang id={currentPageId} />
+                </span>
+                <CaretDownFillIcon
+                  aria-hidden='true'
+                  className={classes.dropdownIcon}
+                />
               </span>
-              <CaretDownFillIcon
-                aria-hidden='true'
-                className={classes.dropdownIcon}
-              />
-            </span>
-          </NavigationButton>
-        )}
-        {shouldShowMenu && (
-          <ul
-            id='navigation-menu'
-            data-testid='navigation-menu'
-            className={cn(classes.menu, {
-              [classes.menuCompact]: isMobile,
-            })}
-          >
-            {order.map((pageId, index) => (
-              <li
-                key={pageId}
-                className={classes.containerBase}
-              >
-                <NavigationButton
-                  current={currentPageId === pageId}
-                  onClick={() => handleNavigationClick(pageId)}
-                  ref={index === 0 ? firstPageLink : null}
+            </NavigationButton>
+          )}
+          {shouldShowMenu && (
+            <ul
+              id='navigation-menu'
+              data-testid='navigation-menu'
+              className={cn(classes.menu, {
+                [classes.menuCompact]: isMobile,
+              })}
+            >
+              {order.map((pageId, index) => (
+                <li
+                  key={pageId}
+                  className={classes.containerBase}
                 >
-                  {index + 1}. <Lang id={pageId} />
-                </NavigationButton>
-              </li>
-            ))}
-          </ul>
-        )}
+                  <NavigationButton
+                    current={currentPageId === pageId}
+                    onClick={() => handleNavigationClick(pageId)}
+                    ref={index === 0 ? firstPageLink : null}
+                  >
+                    {index + 1}. <Lang id={pageId} />
+                  </NavigationButton>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Grid>
       </Grid>
-    </Grid>
+    </ComponentStructureWrapper>
   );
 };

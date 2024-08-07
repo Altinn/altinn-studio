@@ -10,12 +10,13 @@ import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/Componen
 import { PageSummary } from 'src/layout/Summary2/SummaryComponent2/PageSummary';
 import { useTaskStore } from 'src/layout/Summary2/taskIdStore';
 import { useNodes } from 'src/utils/layout/NodesContext';
+import type { CompSummary2External } from 'src/layout/Summary2/config.generated';
 
 interface TaskSummaryProps {
   taskId: string;
   pageId?: string;
   componentId?: string;
-  summaryOverrides: any;
+  summaryOverrides: CompSummary2External['overrides'];
   hideEditButton?: boolean;
   showAccordion?: boolean;
 }

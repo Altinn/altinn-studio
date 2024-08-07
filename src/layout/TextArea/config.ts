@@ -9,7 +9,6 @@ export const TEXTAREA_SUMMARY_PROPS = new CG.obj()
 
 export const Config = new CG.component({
   category: CompCategory.Form,
-  rendersWithLabel: true,
   capabilities: {
     renderInTable: true,
     renderInButtonGroup: false,
@@ -33,4 +32,6 @@ export const Config = new CG.component({
         ),
     ),
   )
-  .addProperty(new CG.prop('summaryProps', TEXTAREA_SUMMARY_PROPS).onlyIn(Variant.Internal));
+  .addProperty(new CG.prop('summaryProps', TEXTAREA_SUMMARY_PROPS).onlyIn(Variant.Internal))
+  .extends(CG.common('LabeledComponentProps'))
+  .extendTextResources(CG.common('TRBLabel'));

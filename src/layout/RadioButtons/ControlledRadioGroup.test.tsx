@@ -5,7 +5,7 @@ import { userEvent } from '@testing-library/user-event';
 import type { AxiosResponse } from 'axios';
 
 import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepGroup';
-import { RadioButtonContainerComponent } from 'src/layout/RadioButtons/RadioButtonsContainerComponent';
+import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGroup';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { IRawOption } from 'src/layout/common.generated';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
@@ -34,7 +34,7 @@ interface Props extends Partial<RenderGenericComponentTestProps<'RadioButtons'>>
 const render = async ({ component, options, formData, groupData = getFormDataMockForRepGroup() }: Props = {}) =>
   await renderGenericComponentTest({
     type: 'RadioButtons',
-    renderer: (props) => <RadioButtonContainerComponent {...props} />,
+    renderer: (props) => <ControlledRadioGroup {...props} />,
     component: {
       optionsId: 'countries',
       preselectedOptionIndex: undefined,

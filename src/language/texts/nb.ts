@@ -19,7 +19,7 @@ export function nb(): FixedLanguageList {
       care_of: 'C/O eller annen tilleggsadresse',
       house_number: 'Bolignummer',
       house_number_helper:
-        'Om addressen er felles for flere boenhenter må du oppgi bolignummer. Den består av en bokstav og fire tall og skal være ført opp ved/på inngangsdøren din.',
+        'Om adressen er felles for flere boenhenter må du oppgi bolignummer. Den består av en bokstav og fire tall og skal være ført opp ved/på inngangsdøren din.',
       post_place: 'Poststed',
       simplified: 'Enkel',
       title_text_binding: 'Søk etter ledetekst for Adressekomponenten',

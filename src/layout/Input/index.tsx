@@ -27,7 +27,7 @@ export class Input extends InputDef {
       return '';
     }
 
-    const text = node.getFormData(formDataSelector).simpleBinding || '';
+    const text = node.getFormData(formDataSelector).simpleBinding ?? '';
     const numberFormatting = getMapToReactNumberConfig(
       node.item.formatting as IInputFormattingInternal | undefined,
       text,

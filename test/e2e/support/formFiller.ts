@@ -42,7 +42,7 @@ function fillOutChangeName() {
 
     cy.navPage('form').click();
     cy.get(appFrontend.changeOfName.newFirstName).type('a');
-    cy.findByRole('tab', { name: 'Nytt etternavn' }).click();
+    cy.findByRole('tab', { name: /nytt etternavn/i }).click();
     cy.get(appFrontend.changeOfName.newLastName).type('a');
     cy.get(appFrontend.changeOfName.confirmChangeName)
       .findByRole('checkbox', {
@@ -112,7 +112,11 @@ function fillOutGroup() {
 
 function fillOutLikert() {
   const likertPage = new Likert();
-  likertPage.selectRequiredRadios();
+  cy.findByRole('table', { name: likertPage.requiredTableTitle }).within(() => {
+    likertPage.requiredQuestions.forEach((question, index) => {
+      likertPage.selectRadio(`${question} *`, likertPage.options[index]);
+    });
+  });
 }
 
 function fillOutList() {

@@ -6,7 +6,6 @@ import type { ComponentConfig } from 'src/codegen/ComponentConfig';
 export const Config = asUploaderComponent(
   new CG.component({
     category: CompCategory.Form,
-    rendersWithLabel: true,
     capabilities: {
       renderInTable: false,
       renderInButtonGroup: false,
@@ -74,5 +73,7 @@ export function asUploaderComponent(config: ComponentConfig) {
             'Boolean value indicating if warning popup should be displayed when attempting to delete an element',
           ),
       ),
-    );
+    )
+    .extends(CG.common('LabeledComponentProps'))
+    .extendTextResources(CG.common('TRBLabel'));
 }

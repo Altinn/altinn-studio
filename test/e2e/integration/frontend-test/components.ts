@@ -9,6 +9,11 @@ import type { CompExternal } from 'src/layout/layout';
 const appFrontend = new AppFrontend();
 
 describe('UI Components', () => {
+  const newFirstNameNb = /nytt fornavn/i;
+  const newMiddleNameNb = /nytt mellomnavn/i;
+  const newLastNameNb = /nytt etternavn/i;
+  const confirmChangeOfName = /ja, jeg bekrefter at navnet er riktig og slik jeg ønsker det dette er en hjelpetekst\./i;
+
   beforeEach(() => {
     cy.startAppInstance(appFrontend.apps.frontendTest);
   });
@@ -197,7 +202,6 @@ describe('UI Components', () => {
       cy.get(shouldExist).should('not.exist');
     }
   });
-
   it('minNumberOfAttachments should validate like required', () => {
     cy.interceptLayout('changename', (component) => {
       if (component.type === 'FileUpload' || component.type === 'FileUploadWithTag') {
@@ -274,7 +278,42 @@ describe('UI Components', () => {
     cy.get('@zipCodeApi').its('request.url').should('include', '0123');
   });
 
-  it('radios, checkboxes and other components can be readOnly', () => {
+  it('should not be possible to check a readonly checkbox', () => {
+    cy.interceptLayout('changename', (component) => {
+      if (component.type === 'Checkboxes') {
+        component.readOnly = true;
+      }
+    });
+
+    cy.goto('changename');
+    cy.findByRole('textbox', { name: newFirstNameNb }).type('Per');
+    cy.findByRole('textbox', { name: newFirstNameNb }).blur();
+    cy.findAllByRole('checkbox').should('have.attr', 'readonly');
+
+    cy.findByRole('checkbox', { name: confirmChangeOfName }).should('not.be.checked');
+    cy.findByRole('checkbox', { name: confirmChangeOfName }).check();
+    cy.findByRole('checkbox', { name: confirmChangeOfName }).should('not.be.checked');
+  });
+
+  it('should not be possible to check a readonly radio button', () => {
+    cy.interceptLayout('changename', (component) => {
+      if (component.type === 'RadioButtons') {
+        component.readOnly = true;
+      }
+    });
+
+    cy.goto('changename');
+    cy.findByRole('textbox', { name: newFirstNameNb }).type('Per');
+    cy.findByRole('textbox', { name: newFirstNameNb }).blur();
+    cy.findByRole('checkbox', { name: confirmChangeOfName }).check();
+
+    cy.findAllByRole('radio').should('have.attr', 'readonly');
+    cy.findByRole('radio', { name: /slektskap/i }).should('be.checked');
+    cy.findByRole('radio', { name: /gårdsbruk/i }).check();
+    cy.findByRole('radio', { name: /slektskap/i }).should('be.checked');
+  });
+
+  it('should be possible to set all elements as readonly and snapshot', () => {
     cy.interceptLayout('changename', (component) => {
       const formTypes: CompExternal['type'][] = [
         'Address',
@@ -300,46 +339,21 @@ describe('UI Components', () => {
           ['equals', ['component', 'newMiddleName'], 'radio_readOnly'],
           ['equals', ['component', 'newMiddleName'], 'all_readOnly'],
         ];
-      } else if (formTypes.includes(component.type as CompExternal['type'])) {
+      } else if (formTypes.includes(component.type)) {
         (component as any).readOnly = ['equals', ['component', 'newMiddleName'], 'all_readOnly'];
       }
     });
     cy.goto('changename');
-    cy.get(appFrontend.changeOfName.newFirstName).type('Per');
-    cy.get(appFrontend.changeOfName.newFirstName).blur();
-    cy.findByRole('tab', { name: 'Nytt etternavn' }).click();
-    cy.get(appFrontend.changeOfName.newLastName).type('Hansen');
-    cy.get(appFrontend.changeOfName.newLastName).blur();
-    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
-    cy.get(appFrontend.changeOfName.reasons).should('be.visible');
 
-    cy.findByRole('tab', { name: /Nytt mellomnavn/i }).click();
-    cy.get(appFrontend.changeOfName.newMiddleName).type('checkbox_readOnly');
-    cy.get(appFrontend.changeOfName.newMiddleName).blur();
-
-    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click(); // No effect
-
-    // Assert the last click had no effect
-    cy.get(appFrontend.changeOfName.reasons).should('be.visible');
-
-    cy.get(appFrontend.changeOfName.reasons).findByText('Gårdsbruk').click();
-
-    cy.get(appFrontend.changeOfName.newMiddleName).clear();
-    cy.get(appFrontend.changeOfName.newMiddleName).type('radio_readOnly');
-    cy.get(appFrontend.changeOfName.newMiddleName).blur();
-    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
-    cy.get(appFrontend.changeOfName.reasons).should('not.exist');
-    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
-    cy.get(appFrontend.changeOfName.reasons).should('be.visible');
-    cy.get(appFrontend.changeOfName.reasons).findByText('Slektskap').click(); // No effect
-
-    // Assert the last click had no effect
-    cy.get('#form-content-reasonFarm3').should('be.visible');
+    cy.findByRole('textbox', { name: newFirstNameNb }).type('Per');
+    cy.findByRole('checkbox', { name: confirmChangeOfName }).check();
 
     // Make all components on the page readOnly, and snapshot the effect
-    cy.get(appFrontend.changeOfName.newMiddleName).clear();
-    cy.get(appFrontend.changeOfName.newMiddleName).type('all_readOnly');
-    cy.get(appFrontend.changeOfName.confirmChangeName).find('input').should('have.attr', 'readonly');
+    cy.findByRole('textbox', { name: newMiddleNameNb }).clear();
+    cy.findByRole('textbox', { name: newMiddleNameNb }).type('all_readOnly');
+    cy.findByRole('checkbox', {
+      name: /ja, jeg bekrefter at navnet er riktig og slik jeg ønsker det dette er en hjelpetekst\./i,
+    }).should('have.attr', 'readonly');
     cy.get(appFrontend.changeOfName.reasons).find('input').should('have.attr', 'readonly');
     cy.snapshot('components:read-only');
   });
@@ -348,7 +362,8 @@ describe('UI Components', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).type('Per');
     cy.get(appFrontend.changeOfName.newFirstName).blur();
-    cy.findByRole('tab', { name: 'Nytt etternavn' }).click();
+    cy.findByRole('tab', { name: newLastNameNb }).click();
+
     cy.get(appFrontend.changeOfName.newLastName).type('Hansen');
     cy.get(appFrontend.changeOfName.newLastName).blur();
 
@@ -377,19 +392,19 @@ describe('UI Components', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).type('Per');
     cy.get(appFrontend.changeOfName.newFirstName).blur();
-    cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
+    cy.findByRole('checkbox', { name: confirmChangeOfName }).check();
 
     cy.findByRole('radio', { name: /Slektskap/ }).should('not.be.checked');
-    cy.findByRole('radio', { name: /Slektskap/ }).click();
+    cy.findByRole('radio', { name: /Slektskap/ }).check();
     cy.findByRole('radio', { name: /Slektskap/ }).should('be.checked');
 
-    cy.findByRole('radio', { name: /Gårdsbruk/ }).click();
+    cy.findByRole('radio', { name: /Gårdsbruk/ }).check();
     //makes sure that textresources from active radiobutton are displayed in the alert dialog
     cy.findByRole('dialog').should('contain.text', 'Er du sikker på at du vil endre fra Slektskap?');
     cy.get(appFrontend.changeOfName.popOverCancelButton).click();
     cy.findByRole('radio', { name: /Slektskap/ }).should('be.checked');
 
-    cy.findByRole('radio', { name: /Gårdsbruk/ }).click();
+    cy.findByRole('radio', { name: /Gårdsbruk/ }).check();
     cy.get(appFrontend.changeOfName.popOverDeleteButton).click();
     cy.findByRole('radio', { name: /Gårdsbruk/ }).should('be.checked');
   });
@@ -504,12 +519,12 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.newFirstName).type('Per');
     cy.get(appFrontend.changeOfName.newFirstName).blur();
 
-    cy.findByRole('tab', { name: 'Nytt etternavn' }).click();
+    cy.findByRole('tab', { name: newLastNameNb }).click();
 
     cy.get(appFrontend.changeOfName.newLastName).type('Hansen');
     cy.get(appFrontend.changeOfName.newLastName).blur();
 
-    cy.findByRole('tab', { name: /Nytt mellomnavn/i }).click();
+    cy.findByRole('tab', { name: newMiddleNameNb }).click();
 
     cy.get(appFrontend.changeOfName.newMiddleName).type('Larsen');
     cy.get(appFrontend.changeOfName.newMiddleName).blur();
@@ -528,7 +543,7 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.newFirstName).type('Per');
     cy.get(appFrontend.changeOfName.newFirstName).blur();
 
-    cy.findByRole('tab', { name: 'Nytt etternavn' }).click();
+    cy.findByRole('tab', { name: newLastNameNb }).click();
 
     cy.get(appFrontend.changeOfName.newLastName).type('Hansen');
     cy.get(appFrontend.changeOfName.newLastName).blur();
@@ -589,7 +604,7 @@ describe('UI Components', () => {
     cy.reloadAndWait();
 
     cy.get(appFrontend.changeOfName.newFirstName).should('have.value', 'a');
-    cy.findByRole('tab', { name: 'Nytt etternavn' }).click();
+    cy.findByRole('tab', { name: newLastNameNb }).click();
     cy.get(appFrontend.changeOfName.newLastName).should('have.value', 'a');
     cy.get(appFrontend.changeOfName.confirmChangeName).find('input').should('be.checked');
     cy.get(appFrontend.changeOfName.reasonRelationship).should('have.value', 'test');
@@ -609,11 +624,14 @@ describe('UI Components', () => {
       cy.findByRole('option', { name: lang }).click();
     };
 
-    cy.get('[data-testid="label-newFirstName"]').should('contain.text', 'Nytt fornavn');
+    cy.findByRole('textbox', { name: newFirstNameNb }).should('exist');
+    cy.findByRole('textbox', { name: /new first name/i }).should('not.exist');
     changeLang('Engelsk', 'Språk');
-    cy.get('[data-testid="label-newFirstName"]').should('contain.text', 'New first name');
+    cy.findByRole('textbox', { name: newFirstNameNb }).should('not.exist');
+    cy.findByRole('textbox', { name: /new first name/i }).should('exist');
     changeLang('Norwegian bokmål', 'Language');
-    cy.get('[data-testid="label-newFirstName"]').should('contain.text', 'Nytt fornavn');
+    cy.findByRole('textbox', { name: newFirstNameNb }).should('exist');
+    cy.findByRole('textbox', { name: /new first name/i }).should('not.exist');
   });
 
   interface Field {
@@ -714,7 +732,7 @@ describe('UI Components', () => {
 
       for (const type of invalidFor) {
         // Validation messages are only shown for the first target of each type
-        const target = fields[type].targets[0] as string;
+        const target = fields[type].targets[0];
         cy.get(`[data-validation="${target.substring(1)}"]`).should('contain.text', 'Feil format eller verdi');
       }
       for (const [type, { targets }] of Object.entries(fields)) {

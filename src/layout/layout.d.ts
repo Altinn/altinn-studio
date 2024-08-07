@@ -55,8 +55,6 @@ export type CompExternalExact<Type extends CompTypes> = ComponentTypeConfigs[Typ
 
 export type CompOrGroupExternal = CompRepeatingGroupExternal | CompLikertExternal | CompGroupExternal | CompExternal;
 
-export type CompRendersLabel<T extends CompTypes> = (typeof ComponentConfigs)[T]['rendersWithLabel'];
-
 /**
  * This is the type you should use when referencing a specific component type, and will give
  * you the correct data model bindings for that component.

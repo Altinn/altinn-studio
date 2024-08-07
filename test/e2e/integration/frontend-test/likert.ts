@@ -22,7 +22,9 @@ describe('Likert', () => {
   });
   it('Should fill out optional likert and see results in summary component', () => {
     cy.goto('likert');
-    likertPage.assertOptionalLikertColumnHeaders();
+    cy.findByRole('table', { name: likertPage.optionalTableTitle }).within(() => {
+      cy.findByText('Spørsmål');
+    });
     likertPage.selectRadio(likertPage.optionalQuestions[0], likertPage.options[2]);
     likertPage.selectRadio(likertPage.optionalQuestions[1], likertPage.options[1]);
     likertPage.selectRadio(likertPage.optionalQuestions[2], likertPage.options[1]);

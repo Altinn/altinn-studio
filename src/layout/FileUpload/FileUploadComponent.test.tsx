@@ -310,16 +310,14 @@ describe('FileUploadWithTagComponent', () => {
 
   describe('files', () => {
     it('should display drop area when max attachments is not reached', async () => {
-      await renderWithTag({
+      const { id } = await renderWithTag({
         component: { maxNumberOfAttachments: 3 },
         attachments: (dataType) => getDataElements({ count: 2, dataType }),
       });
 
-      expect(
-        screen.getByRole('presentation', {
-          name: 'Dra og slipp eller let etter fil Tillatte filformater er: alle',
-        }),
-      ).toBeInTheDocument();
+      expect(screen.getByTestId(`altinn-drop-zone-${id}`).textContent).toMatch(
+        'Dra og slipp eller let etter filTillatte filformater er: alle',
+      );
     });
 
     it('should not display drop area when max attachments is reached', async () => {

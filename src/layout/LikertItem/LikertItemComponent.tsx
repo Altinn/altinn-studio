@@ -1,13 +1,12 @@
 import React, { forwardRef } from 'react';
 
 import { Radio, Table } from '@digdir/designsystemet-react';
-import { Typography } from '@material-ui/core';
 
-import { Lang } from 'src/features/language/Lang';
+import { Label } from 'src/components/label/Label';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { LayoutStyle } from 'src/layout/common.generated';
-import { GenericComponentLegend } from 'src/layout/GenericComponentUtils';
 import classes from 'src/layout/LikertItem/LikertItemComponent.module.css';
 import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGroup';
 import { useRadioButtons } from 'src/layout/RadioButtons/radioButtonsUtils';
@@ -18,9 +17,9 @@ export const LikertItemComponent = forwardRef<HTMLTableRowElement, PropsFromGene
   (props, ref) => {
     const nodeLayout = props.node.item.layout;
     const overriddenLayout = props.overrideItemProps?.layout;
-    const actualLayout = overriddenLayout || nodeLayout;
+    const layout = overriddenLayout ?? nodeLayout;
 
-    if (actualLayout === LayoutStyle.Table) {
+    if (layout === LayoutStyle.Table) {
       return (
         <RadioGroupTableRow
           {...props}
@@ -36,6 +35,7 @@ LikertItemComponent.displayName = 'LikertItemComponent';
 
 const RadioGroupTableRow = forwardRef<HTMLTableRowElement, IControlledRadioGroupProps>((props, ref) => {
   const { node } = props;
+  const { langAsString } = useLanguage();
   const { selectedValues, handleChange, calculatedOptions, fetchingOptions } = useRadioButtons(props);
   const validations = useUnifiedValidationsForNode(node);
 
@@ -54,13 +54,16 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, IControlledRadioGroup
       ref={ref}
     >
       <Table.Cell id={rowLabelId}>
-        <Typography component={'div'}>
-          <GenericComponentLegend />
+        <Label
+          {...node.item}
+          renderLabelAs='legend'
+          addBottomPadding={false}
+        >
           <ComponentValidations
             validations={validations}
             node={node}
           />
-        </Typography>
+        </Label>
       </Table.Cell>
       {calculatedOptions?.map((option) => {
         const isChecked = selectedValues[0] === option.value;
@@ -73,15 +76,13 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, IControlledRadioGroup
               value={option.value}
               className={classes.likertRadioButton}
               name={rowLabelId}
-            >
-              <span className='sr-only'>
-                <Lang id={option.label} />
-              </span>
-            </Radio>
+              aria-label={langAsString(option.label)}
+            />
           </Table.Cell>
         );
       })}
     </Table.Row>
   );
 });
+
 RadioGroupTableRow.displayName = 'RadioGroupTableRow';

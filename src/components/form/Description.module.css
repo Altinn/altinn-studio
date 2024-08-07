@@ -4,4 +4,5 @@
   line-height: 1.5rem;
   color: var(--semantic-text-neutral-subtle);
   display: inline-block;
+  font-weight: normal;
 }

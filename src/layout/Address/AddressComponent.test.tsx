@@ -57,7 +57,7 @@ describe('AddressComponent', () => {
     expect(screen.getByRole('textbox', { name: 'Poststed' })).toBeInTheDocument();
 
     expect(screen.queryByRole('textbox', { name: 'C/O eller annen tilleggsadresse' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('textbox', { name: 'Bolignummer' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: /Bolignummer/i })).not.toBeInTheDocument();
   });
 
   it('should return complex version when simplified is false', async () => {
@@ -71,7 +71,7 @@ describe('AddressComponent', () => {
     expect(screen.getByRole('textbox', { name: 'Postnr' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Poststed' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse' })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Bolignummer' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Bolignummer/i })).toBeInTheDocument();
   });
 
   it('should fire change event when user types into field, and field is blurred', async () => {
@@ -221,7 +221,7 @@ describe('AddressComponent', () => {
     expect(screen.getByRole('textbox', { name: 'Postnr' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Poststed' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse' })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Bolignummer' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Bolignummer/i })).toBeInTheDocument();
   });
 
   it('should display required labels when required is true', async () => {
@@ -235,15 +235,15 @@ describe('AddressComponent', () => {
     expect(screen.getByRole('textbox', { name: 'Gateadresse *' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Postnr *' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse *' })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Bolignummer *' })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Poststed' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Bolignummer \*/i })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Poststed/i })).toBeInTheDocument();
 
     expect(screen.queryByRole('textbox', { name: 'Gateadresse (Valgfri)' })).not.toBeInTheDocument();
     expect(screen.queryByRole('textbox', { name: 'Postnr (Valgfri)' })).not.toBeInTheDocument();
     expect(
       screen.queryByRole('textbox', { name: 'C/O eller annen tilleggsadresse (Valgfri)' }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByRole('textbox', { name: 'Bolignummer (Valgfri)' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: /Bolignummer \(Valgfri\)/i })).not.toBeInTheDocument();
   });
 
   it('should display optional labels when optionalIndicator is true', async () => {
@@ -259,14 +259,14 @@ describe('AddressComponent', () => {
     expect(screen.queryByRole('textbox', { name: 'Gateadresse' })).not.toBeInTheDocument();
     expect(screen.queryByRole('textbox', { name: 'Postnr' })).not.toBeInTheDocument();
     expect(screen.queryByRole('textbox', { name: 'C/O eller annen tilleggsadresse' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('textbox', { name: 'Bolignummer' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: /Bolignummer \*/i })).not.toBeInTheDocument();
 
-    expect(screen.getByRole('textbox', { name: 'Poststed' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Poststed/i })).toBeInTheDocument();
 
     expect(screen.getByRole('textbox', { name: 'Gateadresse (Valgfri)' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Postnr (Valgfri)' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse (Valgfri)' })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Bolignummer (Valgfri)' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Bolignummer \(Valgfri\)/i })).toBeInTheDocument();
   });
 
   it('should not display optional labels by default', async () => {
@@ -281,13 +281,13 @@ describe('AddressComponent', () => {
     expect(
       screen.queryByRole('textbox', { name: 'C/O eller annen tilleggsadresse (Valgfri)' }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByRole('textbox', { name: 'Bolignummer (Valgfri)' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: /Bolignummer \(Valgfri\)/i })).not.toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Poststed' })).toBeInTheDocument();
 
     expect(screen.getByRole('textbox', { name: 'Gateadresse' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Postnr' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse' })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Bolignummer' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Bolignummer/i })).toBeInTheDocument();
   });
 
   it('should not display optional labels when readonly is true', async () => {
@@ -301,7 +301,7 @@ describe('AddressComponent', () => {
     expect(screen.getByRole('textbox', { name: 'Gateadresse' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Postnr' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse' })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Bolignummer' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Bolignummer/i })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Poststed' })).toBeInTheDocument();
 
     expect(screen.queryByRole('textbox', { name: 'Gateadresse (Valgfri)' })).not.toBeInTheDocument();
@@ -309,7 +309,7 @@ describe('AddressComponent', () => {
     expect(
       screen.queryByRole('textbox', { name: 'C/O eller annen tilleggsadresse (Valgfri)' }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByRole('textbox', { name: 'Bolignummer (Valgfri)' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: /Bolignummer \(Valgfri\)/i })).not.toBeInTheDocument();
   });
 
   it('should not display optional labels when readonly is true, even when optionalIndicator is true', async () => {
@@ -326,15 +326,15 @@ describe('AddressComponent', () => {
     expect(screen.getByRole('textbox', { name: 'Gateadresse' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Postnr' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse' })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Bolignummer' })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Poststed' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Bolignummer/i })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Poststed/i })).toBeInTheDocument();
 
     expect(screen.queryByRole('textbox', { name: 'Gateadresse (Valgfri)' })).not.toBeInTheDocument();
     expect(screen.queryByRole('textbox', { name: 'Postnr (Valgfri)' })).not.toBeInTheDocument();
     expect(
       screen.queryByRole('textbox', { name: 'C/O eller annen tilleggsadresse (Valgfri)' }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByRole('textbox', { name: 'Bolignummer (Valgfri)' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: /iBolignummer \(Valgfri\)/i })).not.toBeInTheDocument();
   });
 
   it('should not display optional labels when required is true, even when optionalIndicator is true', async () => {
@@ -348,15 +348,15 @@ describe('AddressComponent', () => {
     expect(screen.getByRole('textbox', { name: 'Gateadresse *' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Postnr *' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse *' })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Bolignummer *' })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Poststed' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Bolignummer \*/i })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Poststed/i })).toBeInTheDocument();
 
     expect(screen.queryByRole('textbox', { name: 'Gateadresse (Valgfri)' })).not.toBeInTheDocument();
     expect(screen.queryByRole('textbox', { name: 'Postnr (Valgfri)' })).not.toBeInTheDocument();
     expect(
       screen.queryByRole('textbox', { name: 'C/O eller annen tilleggsadresse (Valgfri)' }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByRole('textbox', { name: 'Bolignummer (Valgfri)' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: /Bolignummer \(Valgfri\)/i })).not.toBeInTheDocument();
   });
 
   it('should display optional title when set', async () => {
@@ -370,72 +370,63 @@ describe('AddressComponent', () => {
         },
       },
     });
-    expect(screen.getByTestId('label-address_address_address-title')).toHaveTextContent('TEST TITLE');
+    expect(screen.getByRole('textbox', { name: /TEST TITLE/i })).toBeInTheDocument();
   });
 
   it('should display care-of title when set', async () => {
-    const ID = 'care-of-title';
-    const TITLE = 'CARE OF TITLE';
     await render({
       component: {
         required: true,
         simplified: false,
-        id: ID,
+        id: 'care-of-title',
         textResourceBindings: {
-          careOfTitle: TITLE,
+          careOfTitle: 'CARE OF TITLE',
         },
       },
     });
-    expect(screen.getByTestId(`label-address_care_of_${ID}`)).toHaveTextContent(TITLE);
+    expect(screen.getByRole('textbox', { name: /CARE OF TITLE/i })).toBeInTheDocument();
   });
 
   it('should display zip code title when set', async () => {
-    const ID = 'zip_code';
-    const TITLE = 'ZIP CODE TITLE';
-
     await render({
       component: {
         required: true,
         simplified: false,
-        id: ID,
+        id: 'zip_code',
         textResourceBindings: {
-          zipCodeTitle: TITLE,
+          zipCodeTitle: 'ZIP CODE TITLE',
         },
       },
     });
-    expect(screen.getByTestId(`label-address_zip_code_${ID}`)).toHaveTextContent(TITLE);
+    expect(screen.getByRole('textbox', { name: /ZIP CODE TITLE/i })).toBeInTheDocument();
   });
 
   it('should display post place title when set', async () => {
-    const ID = 'post-place-title';
-    const TITLE = 'POST PLACE TITLE';
     await render({
       component: {
         required: true,
         simplified: false,
-        id: ID,
+        id: 'post-place-title',
         textResourceBindings: {
-          postPlaceTitle: TITLE,
+          postPlaceTitle: 'POST PLACE TITLE',
         },
       },
     });
-    expect(screen.getByTestId(`label-address_post_place_${ID}`)).toHaveTextContent(TITLE);
+    expect(screen.getByRole('textbox', { name: /POST PLACE TITLE/i })).toBeInTheDocument();
   });
 
   it('should display house number title when set', async () => {
-    const ID = 'house-number-title';
-    const TITLE = 'HOUSE NUMBER TITLE';
     await render({
       component: {
         required: true,
         simplified: false,
-        id: ID,
+        id: 'house-number-title',
         textResourceBindings: {
-          houseNumberTitle: TITLE,
+          houseNumberTitle: 'HOUSE NUMBER TITLE',
         },
       },
     });
-    expect(screen.getByTestId(`label-address_house_number_${ID}`)).toHaveTextContent(TITLE);
+    expect(screen.getByRole('textbox', { name: /HOUSE NUMBER TITLE/i })).toBeInTheDocument();
   });
 
   it('should display default title when title is not set', async () => {
@@ -446,6 +437,6 @@ describe('AddressComponent', () => {
         id: 'address-title',
       },
     });
-    expect(screen.getByTestId('label-address_address_address-title')).toHaveTextContent('Gateadresse');
+    expect(screen.getByRole('textbox', { name: /gateadresse/i })).toBeInTheDocument();
   });
 });

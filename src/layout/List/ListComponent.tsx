@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 
 import { Pagination } from '@altinn/altinn-design-system';
-import { LegacyFieldSet, LegacyResponsiveTable } from '@digdir/design-system-react';
+import { LegacyResponsiveTable } from '@digdir/design-system-react';
 import type { DescriptionText } from '@altinn/altinn-design-system/dist/types/src/components/Pagination/Pagination';
 import type { LegacyResponsiveTableConfig } from '@digdir/design-system-react';
 import type {
@@ -12,7 +12,7 @@ import type {
 import { useDataListQuery } from 'src/features/dataLists/useDataListQuery';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { GenericComponentLegend } from 'src/layout/GenericComponentUtils';
+import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import type { Filter } from 'src/features/dataLists/useDataListQuery';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindingsForList } from 'src/layout/List/config.generated';
@@ -119,13 +119,13 @@ export const ListComponent = ({ node }: IListProps) => {
   };
 
   return (
-    <LegacyFieldSet
-      legend={<GenericComponentLegend />}
-      style={{ width: '100%' }}
+    <ComponentStructureWrapper
+      node={node}
+      label={{ ...node.item, renderLabelAs: 'legend' }}
     >
       <div style={{ overflow: 'auto' }}>
         <LegacyResponsiveTable config={config} />
       </div>
-    </LegacyFieldSet>
+    </ComponentStructureWrapper>
   );
 };

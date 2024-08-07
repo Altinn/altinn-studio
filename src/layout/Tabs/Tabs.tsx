@@ -5,6 +5,7 @@ import { Tabs as DesignsystemetTabs } from '@digdir/designsystemet-react';
 import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -31,41 +32,43 @@ export const Tabs = ({ node }: PropsFromGenericComponent<'Tabs'>) => {
 
   const tabs = node.item.tabsInternal;
   return (
-    <DesignsystemetTabs
-      defaultValue={activeTab}
-      value={activeTab}
-      onChange={(tabId) => setActiveTab(tabId)}
-      size={node.item.size}
-    >
-      <DesignsystemetTabs.List>
-        {tabs.map((tab) => (
-          <TabHeader
-            key={tab.id}
-            id={tab.id}
-            title={tab.title}
-            icon={tab.icon}
-            isActive={tab.id === activeTab}
-          />
-        ))}
-      </DesignsystemetTabs.List>
-      {tabs.map((tab) => (
-        <DesignsystemetTabs.Content
-          key={tab.id}
-          value={tab.id}
-          role='tabpanel'
-          style={{
-            backgroundColor: 'white',
-          }}
-        >
-          {tab.childNodes.map((node, idx) => (
-            <GenericComponent
-              key={idx}
-              node={node}
+    <ComponentStructureWrapper node={node}>
+      <DesignsystemetTabs
+        defaultValue={activeTab}
+        value={activeTab}
+        onChange={(tabId) => setActiveTab(tabId)}
+        size={node.item.size}
+      >
+        <DesignsystemetTabs.List>
+          {tabs.map((tab) => (
+            <TabHeader
+              key={tab.id}
+              id={tab.id}
+              title={tab.title}
+              icon={tab.icon}
+              isActive={tab.id === activeTab}
             />
           ))}
-        </DesignsystemetTabs.Content>
-      ))}
-    </DesignsystemetTabs>
+        </DesignsystemetTabs.List>
+        {tabs.map((tab) => (
+          <DesignsystemetTabs.Content
+            key={tab.id}
+            value={tab.id}
+            role='tabpanel'
+            style={{
+              backgroundColor: 'white',
+            }}
+          >
+            {tab.childNodes.map((node, idx) => (
+              <GenericComponent
+                key={idx}
+                node={node}
+              />
+            ))}
+          </DesignsystemetTabs.Content>
+        ))}
+      </DesignsystemetTabs>
+    </ComponentStructureWrapper>
   );
 };
 

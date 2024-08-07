@@ -1,11 +1,10 @@
 import React, { useMemo } from 'react';
 
-import { Grid } from '@material-ui/core';
-
 import { AltinnAttachment } from 'src/components/atoms/AltinnAttachment';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
+import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { DataTypeReference, filterDisplayPdfAttachments, getDisplayAttachments } from 'src/utils/attachmentsUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IData, IDataType } from 'src/types/shared';
@@ -57,14 +56,11 @@ export function AttachmentListComponent({ node }: IAttachmentListProps) {
   }, [currentTaskId, dataTypes, instanceData, node.item.dataTypeIds]);
 
   return (
-    <Grid
-      item={true}
-      xs={12}
-    >
+    <ComponentStructureWrapper node={node}>
       <AltinnAttachment
         attachments={attachments}
         title={node.item.textResourceBindings?.title}
       />
-    </Grid>
+    </ComponentStructureWrapper>
   );
 }

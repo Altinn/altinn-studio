@@ -5,15 +5,6 @@
   gap: 18px;
 }
 
-.addressComponentPostplaceZipCode {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-content: space-between;
-  align-items: baseline;
-  gap: 0.937rem;
-}
-
 .addressComponentPostplace {
   flex-grow: 4;
   max-width: 300px;
@@ -21,6 +12,7 @@
 
 .addressComponentZipCode {
   flex-grow: 0;
+  box-sizing: content-box;
 }
 
 .addressComponentSmallInputs {

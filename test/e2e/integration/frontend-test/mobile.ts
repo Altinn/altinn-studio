@@ -34,7 +34,11 @@ describe('Mobile', () => {
 
 function testChangeName() {
   cy.goto('changename');
-  cy.get(appFrontend.changeOfName.oldFullName).parents().eq(3).should('have.css', 'max-width', '100%');
+
+  cy.findByRole('textbox', { name: /du har valgt å endre:/i })
+    .parents()
+    .eq(5)
+    .should('have.css', 'max-width', '100%');
   cy.fillOut('changename');
   cy.intercept('**/api/layoutsettings/group').as('getLayoutGroup');
   cy.get(appFrontend.sendinButton).should('be.visible');
@@ -100,7 +104,11 @@ function ensureTableHasNumColumns(tableContainer: string, numRows: number, numCo
 }
 
 function testLikert() {
-  likertPage.selectRequiredRadios();
+  cy.findByRole('group', { name: likertPage.requiredTableTitle }).within(() => {
+    likertPage.requiredQuestions.forEach((question, index) => {
+      likertPage.selectRadio(`${question} *`, likertPage.options[index]);
+    });
+  });
   sendIn();
 }
 
