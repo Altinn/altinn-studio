@@ -64,6 +64,11 @@
     "copyInstanceSettings": {
       "$ref": "#/definitions/copyInstanceSettings"
     },
+    "disallowUserInstantiation": {
+      "type": "boolean",
+      "title": "Disallow user instantiation",
+      "description": "Disallows instantiation by users. When this value is true, only organisations/system users can can instantiate in production. Users can still copy their own instances (if copying is enabled in the app). This configuration only applies to the production environment."
+    },
     "validTo": {
       "type": "string",
       "title": "Valid to",
