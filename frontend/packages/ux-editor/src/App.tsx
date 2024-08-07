@@ -17,6 +17,26 @@ import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery'
  * application
  */
 
+type ErrorKinds = {
+  dataModelError: boolean;
+  layoutSetsError: boolean;
+  widgetError: boolean;
+};
+
+const mapErrorToDisplayError = (t, errors: ErrorKinds) => {
+  const defaultTitle = t('general.fetch_error_title');
+  const defaultMessage = t('general.fetch_error_message');
+  const createErrorMessage = (resource) => ({
+    title: `${defaultTitle} ${resource}`,
+    message: defaultMessage,
+  });
+
+  if (errors.layoutSetsError) return createErrorMessage(t('general.layout_sets'));
+  if (errors.dataModelError) return createErrorMessage(t('general.data_model'));
+  if (errors.widgetError) return createErrorMessage(t('general.widget'));
+  return createErrorMessage(t('general.unknown_error'));
+};
+
 export function App() {
   // Remove local storage keys that are no longer supported
   useEffect(() => {
@@ -36,63 +56,39 @@ export function App() {
       org,
       app,
       layoutSetName: selectedFormLayoutSetName,
+      hideDefault: true,
     });
   const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
 
-  const componentIsReady =
-    areLayoutSetsFetched && areWidgetsFetched && isDataModelFetched && areTextResourcesFetched;
-
+  const componentIsReady = areWidgetsFetched && isDataModelFetched && areTextResourcesFetched;
   const componentHasError = dataModelFetchedError || widgetFetchedError;
 
-  const mapErrorToDisplayError = (): { title: string; message: string } => {
-    const defaultTitle = t('general.fetch_error_title');
-    const defaultMessage = t('general.fetch_error_message');
-
-    const createErrorMessage = (resource: string): { title: string; message: string } => ({
-      title: `${defaultTitle} ${resource}`,
-      message: defaultMessage,
-    });
-
-    if (layoutSetsFetchedError) {
-      return createErrorMessage(t('general.layout_sets'));
-    }
-
-    if (dataModelFetchedError) {
-      return createErrorMessage(t('general.data_model'));
-    }
-    if (widgetFetchedError) {
-      return createErrorMessage(t('general.widget'));
-    }
-
-    return createErrorMessage(t('general.unknown_error'));
+  const errors: ErrorKinds = {
+    layoutSetsError: layoutSetsFetchedError,
+    dataModelError: dataModelFetchedError,
+    widgetError: widgetFetchedError,
   };
 
-  const renderApp = () => {
-    // Will show errorPage below layoutSetsSelector if any of the other requests have failed
-    if (componentHasError) {
-      const mappedError = mapErrorToDisplayError();
-      return <StudioPageError title={mappedError.title} message={mappedError.message} />;
-    }
-
-    return (
-      <FormItemContextProvider>
-        <FormDesigner />
-      </FormItemContextProvider>
-    );
-  };
+  const mappedError = mapErrorToDisplayError(t, errors);
 
   if (layoutSetsFetchedError) {
     // If error fetching layoutSets show errorPage on whole page
-    const mappedError = mapErrorToDisplayError();
     return <StudioPageError title={mappedError.title} message={mappedError.message} />;
   }
 
-  // If all requests are loaded and layoutSets are successfully fetched, show layoutSetsSelector and app
-  if (componentIsReady) {
+  if (areLayoutSetsFetched) {
+    // If layoutSets are successfully fetched, show layoutSetsSelector and app
     return (
       <>
         <FormDesignerToolbar />
-        {renderApp()}
+        {componentHasError && (
+          <StudioPageError title={mappedError.title} message={mappedError.message} />
+        )}
+        {componentIsReady && (
+          <FormItemContextProvider>
+            <FormDesigner />
+          </FormItemContextProvider>
+        )}
       </>
     );
   }
