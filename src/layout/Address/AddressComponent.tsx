@@ -14,8 +14,17 @@ import { usePostPlaceQuery } from 'src/hooks/queries/usePostPlaceQuery';
 import { useEffectEvent } from 'src/hooks/useEffectEvent';
 import classes from 'src/layout/Address/AddressComponent.module.css';
 import type { PropsFromGenericComponent } from 'src/layout';
+import type { IDataModelBindingsForAddress } from 'src/layout/Address/config.generated';
 
 export type IAddressProps = PropsFromGenericComponent<'Address'>;
+
+const bindingKeys: IDataModelBindingsForAddress = {
+  address: 'address',
+  postPlace: 'postPlace',
+  zipCode: 'zipCode',
+  houseNumber: 'houseNumber',
+  careOf: 'careOf',
+};
 
 export function AddressComponent({ node }: IAddressProps) {
   const { id, required, readOnly, labelSettings, simplified, saveWhileTyping } = node.item;
@@ -23,7 +32,6 @@ export function AddressComponent({ node }: IAddressProps) {
   const { textResourceBindings } = node.item;
   const bindingValidations = useBindingValidationsForNode(node);
   const componentValidations = useComponentValidationsForNode(node);
-
   const { formData, setValue, debounce } = useDataModelBindings(node.item.dataModelBindings, saveWhileTyping);
   const { address, careOf, postPlace, zipCode, houseNumber } = formData;
 
@@ -54,6 +62,7 @@ export function AddressComponent({ node }: IAddressProps) {
         />
         <Textfield
           id={`address_address_${id}`}
+          data-bindingkey={bindingKeys.address}
           error={hasValidationErrors(bindingValidations?.address)}
           size={'small'}
           value={address}
@@ -81,6 +90,7 @@ export function AddressComponent({ node }: IAddressProps) {
           />
           <Textfield
             id={`address_care_of_${id}`}
+            data-bindingkey={bindingKeys.careOf}
             error={hasValidationErrors(bindingValidations?.careOf)}
             size={'small'}
             value={careOf}
@@ -109,6 +119,7 @@ export function AddressComponent({ node }: IAddressProps) {
           <div className={classes.addressComponentSmallInputs}>
             <Textfield
               id={`address_zip_code_${id}`}
+              data-bindingkey={bindingKeys.zipCode}
               error={hasValidationErrors(bindingValidations?.zipCode)}
               size={'small'}
               value={zipCode}
@@ -133,6 +144,7 @@ export function AddressComponent({ node }: IAddressProps) {
           />
           <Textfield
             id={`address_post_place_${id}`}
+            data-bindingkey={bindingKeys.postPlace}
             error={hasValidationErrors(bindingValidations?.postPlace)}
             size={'small'}
             value={postPlace}
@@ -167,6 +179,7 @@ export function AddressComponent({ node }: IAddressProps) {
           <div className={classes.addressComponentSmallInputs}>
             <Textfield
               id={`address_house_number_${id}`}
+              data-bindingkey={bindingKeys.houseNumber}
               error={hasValidationErrors(bindingValidations?.houseNumber)}
               size={'small'}
               value={houseNumber}

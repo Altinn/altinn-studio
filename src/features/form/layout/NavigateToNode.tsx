@@ -2,13 +2,15 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
+import type { NodeValidation } from 'src/features/validation';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-type NavigationHandler = (node: LayoutNode) => boolean;
+type NavigationHandler = (node: LayoutNode, error?: NodeValidation) => boolean;
 type FinishNavigationHandler = (
   node: LayoutNode,
   shouldFocus: boolean,
   whenHit: () => void,
+  error?: NodeValidation,
 ) => Promise<NavigationResult | void>;
 
 export enum NavigationResult {
@@ -25,7 +27,7 @@ interface NodeNavigationContext {
    * If no navigation handler are registered to handle navigating to the node, the navigation will also be cancelled
    * after a short delay.
    */
-  navigateTo: (node: LayoutNode, shouldFocus?: boolean) => Promise<NavigationResult>;
+  navigateTo: (node: LayoutNode, shouldFocus?: boolean, error?: NodeValidation) => Promise<NavigationResult>;
 
   /**
    * Registers a function that tries to change some internal state in its own context in order to help navigate
@@ -58,7 +60,7 @@ export function NavigateToNodeProvider({ children }: PropsWithChildren) {
   const finishHandlers = useRef<HandlerRegistry<FinishNavigationHandler>>(new Set());
 
   const navigateTo = useCallback(
-    async (node: LayoutNode, shouldFocus = true) =>
+    async (node: LayoutNode, shouldFocus = true, error?: NodeValidation) =>
       new Promise<NavigationResult>((resolve) => {
         if (node.isHidden()) {
           resolve(NavigationResult.NodeIsHidden);
@@ -73,7 +75,7 @@ export function NavigateToNodeProvider({ children }: PropsWithChildren) {
             if (finished) {
               return;
             }
-            if (handler(node)) {
+            if (handler(node, error)) {
               lastTick = Date.now();
             }
           };
@@ -81,13 +83,18 @@ export function NavigateToNodeProvider({ children }: PropsWithChildren) {
             if (finished) {
               return;
             }
-            const result = await handler(node, shouldFocus, () => {
-              // Mark as finished as soon as the component has been hit (i.e. rendered in GenericComponent), even if
-              // we haven't actually focused it yet. The focussing requires a ref to the actual rendered element, and
-              // it may take some time to reach that stage, and it may even fail if something downstream is hidden.
-              // Still, we don't want to keep running handlers after this point.
-              finished = true;
-            });
+            const result = await handler(
+              node,
+              shouldFocus,
+              () => {
+                // Mark as finished as soon as the component has been hit (i.e. rendered in GenericComponent), even if
+                // we haven't actually focused it yet. The focussing requires a ref to the actual rendered element, and
+                // it may take some time to reach that stage, and it may even fail if something downstream is hidden.
+                // Still, we don't want to keep running handlers after this point.
+                finished = true;
+              },
+              error,
+            );
             if (result) {
               finished = true;
               resolve(result);

@@ -18,6 +18,7 @@ import { shouldComponentRenderLabel } from 'src/layout/index';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import { gridBreakpoints, pageBreakStyles } from 'src/utils/formComponentUtils';
 import { useIsHiddenComponent, useNode } from 'src/utils/layout/NodesContext';
+import type { NodeValidation } from 'src/features/validation';
 import type { IGridStyling } from 'src/layout/common.generated';
 import type { GenericComponentOverrideDisplay, IFormComponentContext } from 'src/layout/FormComponentContext';
 import type { PropsFromGenericComponent } from 'src/layout/index';
@@ -108,7 +109,7 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
     [item.baseComponentId, item.grid, id, node],
   );
 
-  useFinishNodeNavigation(async (targetNode, shouldFocus, onHit) => {
+  useFinishNodeNavigation(async (targetNode, shouldFocus, onHit, error?: NodeValidation<'error'>) => {
     if (targetNode.item.id !== id) {
       return undefined;
     }
@@ -128,16 +129,33 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
       return NavigationResult.SuccessfulNoFocus;
     }
 
-    const maybeInput = containerDivRef.current?.querySelector('input,textarea,select,p') as
-      | HTMLSelectElement
-      | HTMLInputElement
-      | HTMLTextAreaElement;
+    const targetHtmlNodes = containerDivRef.current?.querySelectorAll('input,textarea,select,p');
 
-    if (maybeInput) {
-      maybeInput.focus();
+    if (targetHtmlNodes) {
+      if (targetHtmlNodes.length === 1) {
+        (targetHtmlNodes[0] as HTMLElement).focus();
+        return NavigationResult.SuccessfulWithFocus;
+      }
+
+      if (targetHtmlNodes.length > 1) {
+        let didBreak = false;
+        for (const node of Array.from(targetHtmlNodes)) {
+          const element = node as HTMLInputElement;
+          if (element?.dataset?.bindingkey === error?.bindingKey) {
+            element.focus();
+            didBreak = true;
+            break;
+          }
+        }
+
+        if (didBreak) {
+          return NavigationResult.SuccessfulWithFocus;
+        } else {
+          (targetHtmlNodes[0] as HTMLElement).focus();
+          return NavigationResult.SuccessfulWithFocus;
+        }
+      }
     }
-
-    return NavigationResult.SuccessfulWithFocus;
   });
 
   if (isHidden(node.item.id) || (node.item.baseComponentId && isHidden(node.item.baseComponentId))) {

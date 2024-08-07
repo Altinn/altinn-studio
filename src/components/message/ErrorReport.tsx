@@ -42,8 +42,7 @@ export const ErrorReport = ({ renderIds }: IErrorReportProps) => {
       // No point in trying to focus on a hidden component
       return;
     }
-
-    await navigateTo(componentNode, true);
+    await navigateTo(componentNode, true, error);
   };
 
   return (

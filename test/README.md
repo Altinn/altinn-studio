@@ -42,6 +42,7 @@ npx cypress run --env environment=tt02 -s 'test/e2e/integration/*/*.ts'
 - [ttd/signing-test](https://dev.altinn.studio/repos/ttd/signing-test)
 - [ttd/expression-validation-test](https://dev.altinn.studio/repos/ttd/expression-validation-test)
 - [ttd/payment-test](https://dev.altinn.studio/repos/ttd/payment-test)
+- [ttd/component-library](https://altinn.studio/repos/ttd/component-library.git)
 
 3. Start the app you want to test:
 
