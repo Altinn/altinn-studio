@@ -9,6 +9,9 @@
         "nb": "Endring av navn (RF-1453)",
         "nb-NO": "Endring av navn (RF-1453)"
     },
+    "copyInstanceSettings": {
+        "enabled": true
+    },
     "dataTypes": [
         {
             "id": "default",

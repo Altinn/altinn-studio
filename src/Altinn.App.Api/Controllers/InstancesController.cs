@@ -66,7 +66,7 @@ public class InstancesController : ControllerBase
     private readonly AppSettings _appSettings;
     private readonly IProcessEngine _processEngine;
     private readonly IOrganizationClient _orgClient;
-
+    private readonly IHostEnvironment _env;
     private const long RequestSizeLimit = 2000 * 1024 * 1024;
 
     /// <summary>
@@ -87,7 +87,8 @@ public class InstancesController : ControllerBase
         IPrefill prefillService,
         IProfileClient profileClient,
         IProcessEngine processEngine,
-        IOrganizationClient orgClient
+        IOrganizationClient orgClient,
+        IHostEnvironment env
     )
     {
         _logger = logger;
@@ -105,6 +106,7 @@ public class InstancesController : ControllerBase
         _profileClient = profileClient;
         _processEngine = processEngine;
         _orgClient = orgClient;
+        _env = env;
     }
 
     /// <summary>
@@ -192,6 +194,10 @@ public class InstancesController : ControllerBase
             return BadRequest("The path parameter 'app' cannot be empty");
         }
 
+        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        if (VerifyInstantiationPermissions(application, org, app) is { } verificationResult)
+            return verificationResult;
+
         MultipartRequestReader parsedRequest = new MultipartRequestReader(Request);
         await parsedRequest.Read();
 
@@ -247,7 +253,6 @@ public class InstancesController : ControllerBase
             };
         }
 
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
         RequestPartValidator requestValidator = new(application);
         string? multipartError = requestValidator.ValidateParts(parsedRequest.Parts);
 
@@ -359,6 +364,29 @@ public class InstancesController : ControllerBase
         return Created(url, instance);
     }
 
+    private ObjectResult? VerifyInstantiationPermissions(
+        ApplicationMetadata application,
+        string org,
+        string app,
+        bool isCopy = false
+    )
+    {
+        if (_env.IsProduction() && application.DisallowUserInstantiation)
+        {
+            var orgClaimIsValid = !string.IsNullOrWhiteSpace(User.GetOrg());
+
+            if (orgClaimIsValid || isCopy)
+                return null;
+
+            return StatusCode(
+                (int)HttpStatusCode.Forbidden,
+                $"User instantiation is disabled for this application {org}/{app}"
+            );
+        }
+
+        return null;
+    }
+
     /// <summary>
     /// Simplified Instanciation with support for fieldprefill
     /// </summary>
@@ -388,10 +416,15 @@ public class InstancesController : ControllerBase
             return BadRequest("The path parameter 'app' cannot be empty");
         }
 
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        bool isCopyRequest = !string.IsNullOrEmpty(instansiationInstance.SourceInstanceId);
 
-        bool copySourceInstance = !string.IsNullOrEmpty(instansiationInstance.SourceInstanceId);
-        if (copySourceInstance && application.CopyInstanceSettings?.Enabled != true)
+        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        if (VerifyInstantiationPermissions(application, org, app, isCopy: isCopyRequest) is { } verificationResult)
+            return verificationResult;
+
+        var copyInstanceEnabled = application.CopyInstanceSettings?.Enabled is true;
+
+        if (isCopyRequest && !copyInstanceEnabled)
         {
             return BadRequest(
                 "Creating instance based on a copy from an archived instance is not enabled for this app."
@@ -430,7 +463,7 @@ public class InstancesController : ControllerBase
         }
 
         if (
-            copySourceInstance
+            isCopyRequest
             && party.PartyId.ToString(CultureInfo.InvariantCulture)
                 != instansiationInstance.SourceInstanceId.Split("/")[0]
         )
@@ -489,7 +522,7 @@ public class InstancesController : ControllerBase
 
             Instance? source = null;
 
-            if (copySourceInstance)
+            if (isCopyRequest)
             {
                 string[] sourceSplit = instansiationInstance.SourceInstanceId.Split("/");
                 Guid sourceInstanceGuid = Guid.Parse(sourceSplit[1]);
@@ -506,7 +539,7 @@ public class InstancesController : ControllerBase
                     );
                 }
 
-                if (!source.Status.IsArchived)
+                if (source.Status?.IsArchived is not true)
                 {
                     return BadRequest("It is not possible to copy an instance that isn't archived.");
                 }
@@ -514,7 +547,7 @@ public class InstancesController : ControllerBase
 
             instance = await _instanceClient.CreateInstance(org, app, instanceTemplate);
 
-            if (copySourceInstance && source is not null)
+            if (isCopyRequest && source is not null)
             {
                 await CopyDataFromSourceInstance(application, instance, source);
             }

@@ -117,6 +117,7 @@ public class InstanceClientMockSi : IInstanceClient
         {
             storedInstance.Status ??= new InstanceStatus();
             storedInstance.Status.Archived = process.Ended;
+            storedInstance.Status.IsArchived = true;
         }
 
         storedInstance.Process = process;

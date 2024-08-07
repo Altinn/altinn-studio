@@ -19,6 +19,7 @@ using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -44,6 +45,7 @@ public class InstancesController_CopyInstanceTests
     private readonly Mock<IProcessEngine> _processEngine = new();
     private readonly Mock<HttpContext> _httpContextMock = new();
     private readonly Mock<IOrganizationClient> _oarganizationClientMock = new();
+    private readonly Mock<IHostEnvironment> _envMock = new();
 
     private readonly InstancesController SUT;
 
@@ -66,7 +68,8 @@ public class InstancesController_CopyInstanceTests
             _prefill.Object,
             _profile.Object,
             _processEngine.Object,
-            _oarganizationClientMock.Object
+            _oarganizationClientMock.Object,
+            _envMock.Object
         )
         {
             ControllerContext = controllerContext
