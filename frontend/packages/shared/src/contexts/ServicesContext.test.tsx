@@ -1,5 +1,5 @@
 import React, { type ReactNode } from 'react';
-import { render, renderHook, screen, waitFor } from '@testing-library/react';
+import { renderHook, screen, waitFor } from '@testing-library/react';
 import type { ServicesContextProps } from './ServicesContext';
 import { ServicesContextProvider, useServicesContext } from './ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
