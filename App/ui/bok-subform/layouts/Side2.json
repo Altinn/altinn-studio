@@ -9,35 +9,35 @@
         "textResourceBindings": {
           "title": "Mopeddetaljer"
         },
-        "children": ["summary-moped-1", "summary-moped-2", "summary-moped-3", "summary4-moped-"]
+        "children": ["summary-bok-1", "summary-bok-2", "summary-bok-3", "summary-bok-4"]
       },
       {
-        "id": "summary-moped-1",
+        "id": "summary-bok-1",
         "type": "Summary",
-        "componentRef": "moped-regno"
+        "componentRef": "bok-tittel"
       },
       {
-        "id": "summary-moped-2",
+        "id": "summary-bok-2",
         "type": "Summary",
-        "componentRef": "moped-merke"
+        "componentRef": "bok-serie"
       },
       {
-        "id": "summary-moped-3",
+        "id": "summary-bok-3",
         "type": "Summary",
-        "componentRef": "moped-modell"
+        "componentRef": "bok-forfatter"
       },
       {
-        "id": "summary-moped-4",
+        "id": "summary-bok-4",
         "type": "Summary",
-        "componentRef": "moped-produksjonsaar"
+        "componentRef": "bok-publikasjonsaar"
       },
       {
-        "id": "button-group-moped",
+        "id": "button-group-bok2",
         "type": "ButtonGroup",
-        "children": ["subform-moped-backButton", "subform-moped-exitButton"]
+        "children": ["subform-bok-backButton", "subform-bok-exitButton"]
       },
       {
-        "id": "subform-moped-backButton",
+        "id": "subform-bok-backButton",
         "type": "CustomButton",
         "textResourceBindings": {
           "title": "general.back"
@@ -53,7 +53,7 @@
         "buttonSize": "sm"
       },
       {
-        "id": "subform-moped-exitButton",
+        "id": "subform-bok-exitButton",
         "type": "CustomButton",
         "textResourceBindings": {},
         "actions": [

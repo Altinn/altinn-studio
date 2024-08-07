@@ -39,20 +39,41 @@
       "enabledFileValidators": []
     },
     {
-      "id": "moped",
+      "id": "Moped",
       "allowedContentTypes": [
         "application/xml"
       ],
       "appLogic": {
-        "classRef": "Altinn.App.Models.moped.moped",
+        "classRef": "Altinn.App.Models.Moped.Moped",
         "allowAnonymousOnStateless": false,
         "autoDeleteOnProcessEnd": false,
         "allowUserDelete": true,
         "allowUserCreate": true
       },
       "taskId": "Task_1",
-      "maxCount": 1,
+      "maxCount": 5,
       "minCount": 1,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "Bok",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "classRef": "Altinn.App.Models.Bok.Bok",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false,
+        "allowUserDelete": true,
+        "allowUserCreate": true
+      },
+      "taskId": "Task_1",
+      "maxCount": 0,
+      "minCount": 0,
       "enablePdfCreation": true,
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false,

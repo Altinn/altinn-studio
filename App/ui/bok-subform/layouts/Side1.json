@@ -5,60 +5,60 @@
     "layout": [
       {
         "size": "L",
-        "id": "moped-header",
+        "id": "bok-header",
         "type": "Header",
         "textResourceBindings": {
-          "title": "moped-header.title"
+          "title": "bok-header.title"
         }
       },
       {
-        "id": "moped-blurb",
+        "id": "bok-blurb",
         "type": "Paragraph",
         "textResourceBindings": {
-          "title": "moped-blurb.title"
+          "title": "bok-blurb.title"
         }
       },
       {
         "dataModelBindings": {
-          "simpleBinding": "RegNo"
+          "simpleBinding": "Tittel"
         },
-        "id": "moped-regno",
+        "id": "bok-tittel",
         "type": "Input",
         "textResourceBindings": {
-          "title": "moped-regno.title"
+          "title": "bok-tittel.title"
         },
         "required": true
       },
       {
         "dataModelBindings": {
-          "simpleBinding": "Merke"
+          "simpleBinding": "Serie"
         },
-        "id": "moped-merke",
+        "id": "bok-serie",
         "type": "Input",
         "textResourceBindings": {
-          "title": "moped-merke.title"
+          "title": "bok-serie.title"
+        },
+        "required": false
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "Forfatter"
+        },
+        "id": "bok-forfatter",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "bok-forfatter.title"
         },
         "required": true
       },
       {
         "dataModelBindings": {
-          "simpleBinding": "Modell"
+          "simpleBinding": "Publikasjonsaar"
         },
-        "id": "moped-modell",
+        "id": "bok-publikasjonsaar",
         "type": "Input",
         "textResourceBindings": {
-          "title": "moped-modell.title"
-        },
-        "required": true
-      },
-      {
-        "dataModelBindings": {
-          "simpleBinding": "Produksjonsaar"
-        },
-        "id": "moped-produksjonsaar",
-        "type": "Input",
-        "textResourceBindings": {
-          "title": "moped-produksjonsaar.title"
+          "title": "bok-publikasjonsaar.title"
         },
         "formatting": {
           "number": {
@@ -68,12 +68,12 @@
         "required": true
       },
       {
-        "id": "button-group-moped",
+        "id": "button-group-bok1",
         "type": "ButtonGroup",
-        "children": ["subform-moped-cancelButton", "subform-moped-nextButton"]
+        "children": ["subform-bok-cancelButton", "subform-bok-nextButton"]
       },
       {
-        "id": "subform-moped-cancelButton",
+        "id": "subform-bok-cancelButton",
         "type": "CustomButton",
         "textResourceBindings": {
           "title": "general.cancel"
@@ -89,7 +89,7 @@
         "buttonColor": "second"
       },
       {
-        "id": "subform-moped-nextButton",
+        "id": "subform-bok-nextButton",
         "type": "CustomButton",
         "textResourceBindings": {
           "title": "general.next"

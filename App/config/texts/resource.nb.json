@@ -27,7 +27,7 @@
     },
     {
       "id": "moped-blurb.title",
-      "value": "Fyll inn dette skjemaet for å registrere en moped."
+      "value": "Fyll inn dette skjemaet for å registrere en moped i din garasje."
     },
     {
       "id": "moped-regno.title",
@@ -64,6 +64,54 @@
     {
       "id": "attachments.title",
       "value": "Vedlegg"
+    },
+    {
+      "id": "bok-header.title",
+      "value": "Bokregistrering"
+    },
+    {
+      "id": "bok-blurb.title",
+      "value": "Fyll inn dette skjemaet for å registrere en bok i din bokhylle."
+    },
+    {
+      "id": "bok-tittel.title",
+      "value": "Tittel"
+    },
+    {
+      "id": "bok-publikasjonsaar.title",
+      "value": "Publikasjonsår"
+    },
+    {
+      "id": "bok-serie.title",
+      "value": "Serie"
+    },
+    {
+      "id": "bok-forfatter.title",
+      "value": "Forfatter"
+    },
+    {
+      "id": "subform-bok.title",
+      "value": "Dine bøker"
+    },
+    {
+      "id": "subform-bok.add",
+      "value": "Legg til bok"
+    },
+    {
+      "id": "subform-bok.tittel",
+      "value": "Tittel"
+    },
+    {
+      "id": "subform-bok.serie",
+      "value": "Serie"
+    },
+    {
+      "id": "subform-bok.forfatter",
+      "value": "Forfatter"
+    },
+    {
+      "id": "bok-serie.value.default",
+      "value": "[ingen serie]"
     }
   ]
 }

@@ -7,9 +7,9 @@
         "id": "hovedskjema-detaljer",
         "type": "Group",
         "textResourceBindings": {
-          "title": "Hovedskjemadetaljer"
+          "title": "Hovedskjemadetaljer (Summary v1.0)"
         },
-        "children": ["summary1", "summary2", "summary3", "summary4"]
+        "children": ["summary1", "summary2", "summary3", "summary4", "summary5"]
       },
       {
         "id": "summary1",
@@ -32,12 +32,17 @@
         "componentRef": "subform-mopeder"
       },
       {
+        "id": "summary5",
+        "type": "Summary",
+        "componentRef": "subform-boker"
+      },
+      {
         "id": "hovedskjema-detaljer2",
         "type": "Group",
         "textResourceBindings": {
-          "title": "Hovedskjemadetaljer2"
+          "title": "Hovedskjemadetaljer (Summary v2.0)"
         },
-        "children": ["summary1b", "summary2b", "summary3b", "summary4b"]
+        "children": ["summary1b", "summary2b", "summary3b", "summary4b", "summary5b"]
       },
       {
         "id": "summary1b",
@@ -68,6 +73,14 @@
         "type": "Summary2",
         "target": {
           "id": "subform-mopeder",
+          "type": "component"
+        }
+      },
+      {
+        "id": "summary5b",
+        "type": "Summary2",
+        "target": {
+          "id": "subform-boker",
           "type": "component"
         }
       },

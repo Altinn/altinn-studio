@@ -8,10 +8,10 @@ using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
 
-namespace Altinn.App.Models.moped
+namespace Altinn.App.Models.Moped
 {
-    [XmlRoot(ElementName = "moped")]
-    public class moped
+    [XmlRoot(ElementName = "Moped")]
+    public class Moped
     {
         [XmlElement("RegNo", Order = 1)]
         [JsonProperty("RegNo")]
