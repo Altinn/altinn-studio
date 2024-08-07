@@ -1,10 +1,10 @@
-name: Eid logger deploy
+name: Deploy Eid-Logger
 on:
   push:
     branches: [ main ]
     paths:
       - 'eidlogger/**'
-      - '.github/workflows/eid-logger-deploy.yaml'
+      - '.github/workflows/deploy-eid-logger.yaml'
       - 'charts/eid-logger-config/**'
       - 'charts/eid-logger/**'
   workflow_dispatch:
