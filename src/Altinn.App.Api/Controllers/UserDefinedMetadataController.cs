@@ -151,7 +151,10 @@ public class UserDefinedMetadataController : ControllerBase
         dataElement.UserDefinedMetadata = userDefinedMetadataDto.UserDefinedMetadata;
         dataElement = await _dataClient.Update(instance, dataElement);
 
-        return Ok(dataElement.UserDefinedMetadata);
+        UserDefinedMetadataDto responseUserDefinedMetadataDto =
+            new() { UserDefinedMetadata = dataElement.UserDefinedMetadata };
+
+        return responseUserDefinedMetadataDto;
     }
 
     private static List<string> FindNotAllowedKeys(
