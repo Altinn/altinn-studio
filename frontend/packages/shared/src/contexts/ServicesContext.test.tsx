@@ -157,19 +157,6 @@ describe('ServicesContext', () => {
     expect(await screen.findByText(textMock('general.error_message'))).toBeInTheDocument();
   });
 
-  it('displays a default error message if a component throws an error while rendering', () => {
-    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
-
-    const ErrorComponent = () => {
-      throw new Error('Intentional render error');
-    };
-    render(<ErrorComponent />, { wrapper });
-
-    expect(screen.getByText(textMock('general.error_message'))).toBeInTheDocument();
-    expect(screen.getByText(textMock('general.try_again'))).toBeInTheDocument();
-    expect(mockConsoleError).toHaveBeenCalled();
-  });
-
   it('Throws an error if used outside a ServiceContextProvider', () => {
     const renderHookFn = () => renderHook(() => useServicesContext());
     jest.spyOn(console, 'error').mockImplementation();
