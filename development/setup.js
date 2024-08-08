@@ -6,6 +6,7 @@ const dnsIsOk = require('./utils/check-if-dns-is-correct.js');
 const createCypressEnvFile = require('./utils/create-cypress-env-file.js');
 const path = require('path');
 const writeEnvFile = require('./utils/write-env-file.js');
+const waitForHealthy = require('./utils/wait-for-healthy.js');
 
 const startingDockerCompose = () => runCommand('docker compose up -d --remove-orphans --build');
 const buildAndStartComposeService = (service) =>
@@ -172,11 +173,7 @@ const addReleaseAndDeployTestDataToDb = async () =>
 const setupEnvironment = async (env) => {
   buildAndStartComposeService('studio_db');
   buildAndStartComposeService('studio_repositories');
-  await new Promise((resolve) =>
-    setTimeout(() => {
-      resolve(null);
-    }, 40000),
-  );
+  await waitForHealthy('studio-repositories');
 
   createUser(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS, true);
   createUser(env.GITEA_CYPRESS_USER, env.GITEA_CYPRESS_PASS, false);
