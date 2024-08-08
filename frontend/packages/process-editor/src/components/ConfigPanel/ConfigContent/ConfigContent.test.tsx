@@ -14,6 +14,7 @@ import {
   mockBpmnApiContextValue,
   mockBpmnContextValue,
 } from '../../../../test/mocks/bpmnContextMock';
+import { StudioRecommendedNextActionContextProvider } from '@studio/components';
 
 const tasks = [
   {
@@ -211,7 +212,9 @@ const renderConfigContent = (
     <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
       <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
         <BpmnConfigPanelFormContextProvider>
-          <ConfigContent />
+          <StudioRecommendedNextActionContextProvider>
+            <ConfigContent />
+          </StudioRecommendedNextActionContextProvider>
         </BpmnConfigPanelFormContextProvider>
       </BpmnContext.Provider>
     </BpmnApiContext.Provider>,

@@ -10,6 +10,7 @@ import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { getMockBpmnElementForTask, mockBpmnDetails } from '../../test/mocks/bpmnDetailsMock';
 import { mockModelerRef } from '../../test/mocks/bpmnModelerMock';
 import { getBpmnEditorDetailsFromBusinessObject } from '../utils/bpmnObjectBuilders';
+import { StudioRecommendedNextActionContextProvider } from '@studio/components';
 
 const layoutSetId = 'someLayoutSetId';
 const layoutSetsMock: LayoutSets = {
@@ -108,7 +109,9 @@ const wrapper = ({ children }) => (
       onProcessTaskRemove={onProcessTaskRemoveMock}
       layoutSets={layoutSetsMock}
     >
-      {children}
+      <StudioRecommendedNextActionContextProvider>
+        {children}
+      </StudioRecommendedNextActionContextProvider>
     </BpmnApiContextProvider>
   </BpmnContextProvider>
 );

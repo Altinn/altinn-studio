@@ -3,11 +3,11 @@ import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import {
   StudioIconTextfield,
   StudioRecommendedNextAction,
-  StudioRecommendedNextActionContext,
+  useStudioRecommendedNextActionContext,
 } from '@studio/components';
 import { KeyVerticalIcon } from '@studio/icons';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 export const NewNameRecommendation = (): React.ReactElement => {
@@ -16,7 +16,7 @@ export const NewNameRecommendation = (): React.ReactElement => {
   const modeling: Modeling = modelerInstance.get('modeling');
   const { t } = useTranslation();
   const { validateBpmnTaskId } = useValidateBpmnTaskId();
-  const { removeAction } = useContext(StudioRecommendedNextActionContext);
+  const { removeAction } = useStudioRecommendedNextActionContext();
 
   const [newName, setNewName] = useState('');
   const [newNameError, setNewNameError] = useState('');

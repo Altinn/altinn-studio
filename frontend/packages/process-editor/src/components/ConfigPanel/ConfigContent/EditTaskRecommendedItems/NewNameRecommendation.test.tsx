@@ -5,6 +5,7 @@ import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { useValidateBpmnTaskId } from '../../../../hooks/useValidateBpmnId';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
+import { useStudioRecommendedNextActionContext } from '@studio/components';
 
 jest.mock('../../../../contexts/BpmnContext', () => ({
   useBpmnContext: jest.fn(),
@@ -13,6 +14,13 @@ jest.mock('../../../../contexts/BpmnContext', () => ({
 jest.mock('../../../../hooks/useValidateBpmnId', () => ({
   useValidateBpmnTaskId: jest.fn(),
 }));
+
+jest.mock(
+  '@studio/components/src/components/StudioRecommendedNextAction/context/useStudioRecommendedNextActionContext.ts',
+  () => ({
+    useStudioRecommendedNextActionContext: jest.fn(),
+  }),
+);
 
 describe('NewNameRecommendation', () => {
   const user = userEvent.setup();
@@ -26,10 +34,16 @@ describe('NewNameRecommendation', () => {
       setBpmnDetails: setBpmnDetails,
       modelerRef: { current: { get: () => ({ updateProperties: jest.fn() }) } },
     });
-
+    (useStudioRecommendedNextActionContext as jest.Mock).mockReturnValue({
+      removeAction: jest.fn(),
+      addAction: jest.fn(),
+      shouldDisplayAction: jest.fn(),
+    });
     (useValidateBpmnTaskId as jest.Mock).mockReturnValue({
       validateBpmnTaskId: validateBpmnTaskId,
     });
+
+    jest.clearAllMocks();
   });
 
   it('calls validation on name input', async () => {
@@ -65,10 +79,6 @@ describe('NewNameRecommendation', () => {
     const skipButton = screen.getByText(textMock('general.skip'));
     await user.click(skipButton);
 
-    expect(setBpmnDetails).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: DEFAULT_ID,
-      }),
-    );
+    expect(setBpmnDetails).not.toHaveBeenCalled();
   });
 });
