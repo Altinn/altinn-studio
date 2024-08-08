@@ -6,6 +6,7 @@ import { useBpmnConfigPanelFormContext } from '../contexts/BpmnConfigPanelContex
 import { useBpmnApiContext } from '../contexts/BpmnApiContext';
 import type { TaskEvent } from '../types/TaskEvent';
 import { getBpmnEditorDetailsFromBusinessObject } from '../utils/bpmnObjectBuilders';
+import { useStudioRecommendedNextActionContext } from '@studio/components';
 
 // Wrapper around bpmn-js to Reactify it
 
@@ -19,6 +20,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const { metadataFormRef, resetForm } = useBpmnConfigPanelFormContext();
   const { getModeler, destroyModeler } = useBpmnModeler();
+  const { addAction } = useStudioRecommendedNextActionContext();
 
   const { saveBpmn, onProcessTaskAdd, onProcessTaskRemove } = useBpmnApiContext();
 
@@ -33,7 +35,8 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
       taskEvent,
       taskType: bpmnDetails.taskType,
     });
-    updateBpmnDetailsByTaskEvent(taskEvent, null, null, true);
+    addAction(bpmnDetails.id);
+    updateBpmnDetailsByTaskEvent(taskEvent, null, null);
   };
 
   const handleShapeRemove = (taskEvent: TaskEvent): void => {
@@ -46,13 +49,10 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   };
 
   const updateBpmnDetailsByTaskEvent = useCallback(
-    (taskEvent: TaskEvent, gfx?: SVGElement, originalEvent?: Event, justAdded: boolean = false) => {
+    (taskEvent: TaskEvent, _gfx?: SVGElement, _originalEvent?: Event) => {
       const bpmnDetails = {
         ...getBpmnEditorDetailsFromBusinessObject(taskEvent.element?.businessObject),
         element: taskEvent.element,
-        metadata: {
-          justAdded: justAdded,
-        },
       };
       setBpmnDetails(bpmnDetails);
     },

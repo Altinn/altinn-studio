@@ -55,7 +55,6 @@ describe('NewNameRecommendation', () => {
     expect(setBpmnDetails).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'newName',
-        metadata: expect.objectContaining({ justAdded: false }),
       }),
     );
   });
@@ -69,7 +68,6 @@ describe('NewNameRecommendation', () => {
     expect(setBpmnDetails).toHaveBeenCalledWith(
       expect.objectContaining({
         id: DEFAULT_ID,
-        metadata: expect.objectContaining({ justAdded: false }),
       }),
     );
   });

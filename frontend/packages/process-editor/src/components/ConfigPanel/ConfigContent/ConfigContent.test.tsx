@@ -201,17 +201,6 @@ describe('ConfigContent', () => {
       ).toBeInTheDocument();
     });
   });
-
-  it('should show the new name recommendation when the task has a true justAdded flag', () => {
-    renderConfigContent(
-      {},
-      {
-        bpmnDetails: { ...mockBpmnDetails, metadata: { justAdded: true } },
-      },
-    );
-    expect(screen.getByText(textMock('process_editor.recommended_action.new_name')))
-      .toBeInTheDocument;
-  });
 });
 
 const renderConfigContent = (

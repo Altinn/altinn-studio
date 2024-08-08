@@ -3,7 +3,11 @@ import classes from './ConfigContent.module.css';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { EditTaskId } from './EditTaskId/EditTaskId';
-import { StudioDisplayTile, StudioSectionHeader } from '@studio/components';
+import {
+  StudioDisplayTile,
+  StudioSectionHeader,
+  useStudioRecommendedNextActionContext,
+} from '@studio/components';
 import { getConfigTitleKey, getConfigTitleHelpTextKey } from '../../../utils/configPanelUtils';
 import { ConfigIcon } from './ConfigIcon';
 import { EditDataTypes } from '../EditDataTypes';
@@ -29,6 +33,7 @@ export const ConfigContent = (): React.ReactElement => {
   const isSigningTask = bpmnDetails.taskType === 'signing';
 
   const taskHasConnectedLayoutSet = layoutSets?.sets?.some((set) => set.tasks[0] == bpmnDetails.id);
+  const { shouldDisplayAction } = useStudioRecommendedNextActionContext();
 
   const studioModeler = new StudioModeler();
   const tasks = studioModeler.getAllTasksByType('bpmn:Task');
@@ -49,7 +54,7 @@ export const ConfigContent = (): React.ReactElement => {
           title: t('process_editor.configuration_panel_header_help_text_title'),
         }}
       />
-      {bpmnDetails.metadata?.justAdded ? (
+      {shouldDisplayAction(bpmnDetails.id) ? (
         <NewNameRecommendation />
       ) : (
         <div className={classes.configContent}>

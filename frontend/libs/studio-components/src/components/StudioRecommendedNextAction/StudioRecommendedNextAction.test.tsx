@@ -38,7 +38,9 @@ describe('StudioRecommendedNextAction', () => {
         skipButtonText='Skip'
         title='Title'
         description='Description'
-      />,
+      >
+        <p>Child</p>
+      </StudioRecommendedNextAction>,
     );
 
     await user.click(screen.getByText('Save'));
@@ -54,7 +56,9 @@ describe('StudioRecommendedNextAction', () => {
         skipButtonText='Skip'
         title='Title'
         description='Description'
-      />,
+      >
+        <p>Child</p>
+      </StudioRecommendedNextAction>,
     );
 
     await user.click(screen.getByText('Skip'));
@@ -71,7 +75,9 @@ describe('StudioRecommendedNextAction', () => {
         title='Title'
         description='Description'
         hideSaveButton
-      />,
+      >
+        <p>Child</p>
+      </StudioRecommendedNextAction>,
     );
 
     expect(screen.queryByText('Save')).toBeNull();

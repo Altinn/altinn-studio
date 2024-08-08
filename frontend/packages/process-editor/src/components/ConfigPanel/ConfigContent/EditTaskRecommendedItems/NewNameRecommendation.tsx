@@ -1,9 +1,13 @@
 import { useValidateBpmnTaskId } from '../../../../hooks/useValidateBpmnId';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
-import { StudioIconTextfield, StudioRecommendedNextAction } from '@studio/components';
+import {
+  StudioIconTextfield,
+  StudioRecommendedNextAction,
+  StudioRecommendedNextActionContext,
+} from '@studio/components';
 import { KeyVerticalIcon } from '@studio/icons';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 export const NewNameRecommendation = (): React.ReactElement => {
@@ -12,34 +16,24 @@ export const NewNameRecommendation = (): React.ReactElement => {
   const modeling: Modeling = modelerInstance.get('modeling');
   const { t } = useTranslation();
   const { validateBpmnTaskId } = useValidateBpmnTaskId();
+  const { removeAction } = useContext(StudioRecommendedNextActionContext);
 
   const [newName, setNewName] = useState('');
   const [newNameError, setNewNameError] = useState('');
 
   const saveNewName = () => {
+    removeAction(bpmnDetails.element.id);
     modeling.updateProperties(bpmnDetails.element, {
       id: newName,
     });
     setBpmnDetails({
       ...bpmnDetails,
       id: newName,
-
-      metadata: {
-        ...bpmnDetails.metadata,
-        justAdded: false,
-      },
     });
   };
 
   const cancelAction = () => {
-    setBpmnDetails({
-      ...bpmnDetails,
-
-      metadata: {
-        ...bpmnDetails.metadata,
-        justAdded: false,
-      },
-    });
+    removeAction(bpmnDetails.element.id);
   };
 
   return (
