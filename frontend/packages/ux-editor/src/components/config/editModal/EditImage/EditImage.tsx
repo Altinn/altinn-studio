@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Tabs } from '@digdir/designsystemet-react';
+import { Alert, Tabs } from '@digdir/designsystemet-react';
 import type { IGenericEditComponent } from '@altinn/ux-editor/components/config/componentConfig';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { ImportImage } from './ImportImage';
@@ -7,6 +7,9 @@ import { ImageFromUrl } from './ImageFromUrl';
 import { PreviewImageSummary } from './PreviewImageSummary/PreviewImageSummary';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useGetAllImageFileNamesQuery } from 'app-shared/hooks/queries/useGetAllImageFileNamesQuery';
+import { useTranslation } from 'react-i18next';
+import classes from './EditImage.module.css';
+import { useDeleteImageMutation } from 'app-shared/hooks/mutations/useDeleteImageMutation';
 
 enum ImageTab {
   Import = 'import',
@@ -16,6 +19,7 @@ enum ImageTab {
 export interface EditImageProps extends IGenericEditComponent<ComponentType.Image> {}
 
 export const EditImage = ({ component, handleComponentChange }: EditImageProps) => {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<string>(ImageTab.Import);
   const { org, app } = useStudioEnvironmentParams();
   const {
@@ -23,12 +27,13 @@ export const EditImage = ({ component, handleComponentChange }: EditImageProps) 
     isPending: imageFileNamesArePending,
     refetch: refetchImageFileNames,
   } = useGetAllImageFileNamesQuery(org, app);
+  const { mutate: deleteImageFromLibrary } = useDeleteImageMutation(org, app);
 
   const fileName = extractFileNameFromImageSrc(component.image?.src?.nb, org, app);
-
   const imageOriginsFromLibrary = !imageFileNamesArePending && imageFileNames.includes(fileName);
 
-  const handleImageChange = (imageSource: string, fromUrl: boolean = false) => {
+  const handleImageChange = async (imageSource: string, fromUrl: boolean = false) => {
+    console.log('fileNames before: ', imageFileNames);
     handleComponentChange({
       ...component,
       image: {
@@ -39,42 +44,65 @@ export const EditImage = ({ component, handleComponentChange }: EditImageProps) 
         },
       },
     });
-    refetchImageFileNames();
+    const { data: updatedImageFileNames } = await refetchImageFileNames();
+    console.log('fileNames after: ', updatedImageFileNames);
   };
-  const handleImageDelete = () => {
+  const handleDeleteImageReference = () => {
     component.image.src = {};
     handleComponentChange({
       ...component,
     });
   };
 
-  if (!imageFileNamesArePending) {
-    console.log('image names: ', imageFileNames);
-  }
+  const handleDeleteImage = (fileName: string) => {
+    handleDeleteImageReference();
+    deleteImageFromLibrary(fileName);
+  };
 
   return (
     <Tabs size='small' value={tab} onChange={setTab}>
       <Tabs.List>
-        <Tabs.Tab value={ImageTab.Import}>{'Legg til bilde'}</Tabs.Tab>
-        <Tabs.Tab value={ImageTab.ExternalUrl}>{'Lim inn en URL'}</Tabs.Tab>
+        <Tabs.Tab value={ImageTab.Import}>
+          {t('ux_editor.properties_panel.images.add_image_tab_title')}
+        </Tabs.Tab>
+        <Tabs.Tab value={ImageTab.ExternalUrl}>
+          {t('ux_editor.properties_panel.images.enter_external_url_tab_title')}
+        </Tabs.Tab>
       </Tabs.List>
       <Tabs.Content value={ImageTab.Import}>
         {imageOriginsFromLibrary ? (
           <PreviewImageSummary
             existingImageUrl={fileName}
-            existingImageDescription={null} // Where should this come from? What actually is the library?
-            onDeleteImage={handleImageDelete}
+            existingImageDescription={null} // Null until we have a place to store descriptions
+            onDeleteImage={handleDeleteImage}
+            onDeleteImageReferenceOnly={handleDeleteImageReference}
           />
         ) : (
-          <ImportImage onImageChange={handleImageChange} />
+          <>
+            <ImportImage onImageChange={handleImageChange} />
+            {component.image?.src?.nb && (
+              <Alert size='small'>
+                {
+                  'Du har allerede referert til en ekstern url. Laster du opp et bilde, vil den eksterne referansen bli slettet.'
+                }
+              </Alert>
+            )}
+          </>
         )}
       </Tabs.Content>
-      <Tabs.Content value={ImageTab.ExternalUrl}>
+      <Tabs.Content value={ImageTab.ExternalUrl} className={classes.urlTab}>
         <ImageFromUrl
           existingImageUrl={imageOriginsFromLibrary ? undefined : component.image?.src?.nb}
           onUrlChange={(imageSrc: string) => handleImageChange(imageSrc, true)}
-          onUrlDelete={handleImageDelete}
+          onUrlDelete={handleDeleteImageReference}
         />
+        {imageOriginsFromLibrary && (
+          <Alert size='small'>
+            {
+              'Du har allerede lastet opp et bilde. Skriver du inn en url, vil bildereferansen din bli slettet.'
+            }
+          </Alert>
+        )}
       </Tabs.Content>
     </Tabs>
   );

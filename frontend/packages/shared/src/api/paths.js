@@ -57,8 +57,8 @@ export const userLogoutAfterPath = () => `/Home/Logout`;
 
 // Images
 export const allImagesPath = (org, app) => `${basePath}/${org}/${app}/images/all`; // Get
-export const imagePath = (org, app) => `${basePath}/${org}/${app}/images`; // Get, Post, Delete
-export const getImagePath = (org, app, imageName) => `${basePath}/${org}/${app}/images?${s(imageName)}`; // Get, Post, Delete
+export const addImagePath = (org, app) => `${basePath}/${org}/${app}/images`; // Post
+export const imagePath = (org, app, imageName) => `${basePath}/${org}/${app}/images/${imageName}`; // Get, Delete
 export const getImageFileNamesPath = (org, app) => `${basePath}/${org}/${app}/images/fileNames`; // Get
 
 // Languages - new text-format

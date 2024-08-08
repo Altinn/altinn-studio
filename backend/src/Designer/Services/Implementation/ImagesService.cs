@@ -60,7 +60,7 @@ public class ImagesService: IImagesService
   public async Task DeleteImage(string org, string repo, string developer, string imageFilePath)
   {
     var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
-    altinnAppGitRepository.DeleteFileByAbsolutePath(imageFilePath); 
+    altinnAppGitRepository.DeleteImageByImageFilePath(imageFilePath);
     await Task.CompletedTask;
   }
 }
