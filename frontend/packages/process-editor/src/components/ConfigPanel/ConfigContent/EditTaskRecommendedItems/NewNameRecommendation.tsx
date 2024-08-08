@@ -6,9 +6,7 @@ import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-interface NewNameRecommendationProps {}
-
-export const NewNameRecommendation = ({}: NewNameRecommendationProps): React.ReactElement => {
+export const NewNameRecommendation = (): React.ReactElement => {
   const { bpmnDetails, setBpmnDetails, modelerRef } = useBpmnContext();
   const modelerInstance = modelerRef.current;
   const modeling: Modeling = modelerInstance.get('modeling');
