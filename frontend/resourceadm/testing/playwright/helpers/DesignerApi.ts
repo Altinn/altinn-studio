@@ -45,6 +45,7 @@ export class DesignerApi extends ResourceEnvironment {
   private getXsrfTokenFromStorageState(storageState: StorageState): string {
     const fs = require('fs');
     const jsonData = fs.readFileSync(storageState, 'utf-8');
+    console.log('jsonData', jsonData);
     const formattedStorageState: StorageState = JSON.parse(jsonData);
     return formattedStorageState.cookies.find((cookie: Cookie) => cookie.name === 'XSRF-TOKEN')
       .value;
