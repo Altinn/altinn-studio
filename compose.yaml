@@ -40,6 +40,8 @@ services:
     depends_on:
       studio_repositories:
         condition: service_healthy
+      studio_designer:
+        condition: service_healthy
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     volumes:
@@ -87,8 +89,8 @@ services:
     ports:
       - '6000:6000'
     depends_on:
-        studio_repositories:
-          condition: service_healthy
+      studio_repositories:
+        condition: service_healthy
     build:
       context: .
     extra_hosts:
@@ -141,10 +143,10 @@ services:
       studio_db:
         condition: service_healthy
     healthcheck:
-          test: [ "CMD", "curl", "--fail", "http://localhost:3000" ]
-          interval: 30s
-          timeout: 10s
-          retries: 3
+      test: [ "CMD", "curl", "--fail", "http://localhost:3000" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 
   studio_db:
@@ -162,7 +164,7 @@ services:
       - ./development/db/data.sql:/data.sql
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U designer_admin -d designerdb"]
+      test: [ "CMD-SHELL", "pg_isready -U designer_admin -d designerdb" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -171,7 +173,7 @@ services:
     container_name: db-database_migrations
     depends_on:
       studio_db:
-          condition: service_healthy
+        condition: service_healthy
     build:
       context: backend
       dockerfile: Migrations.Dockerfile
