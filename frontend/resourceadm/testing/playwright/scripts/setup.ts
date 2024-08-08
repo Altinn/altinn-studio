@@ -65,8 +65,8 @@ const createResourceRepo = async () => {
   await giteaApi({
     path: `/repos/api/v1/orgs/${PLAYWRIGHT_RESOURCES_ORGANIZATION}/repos`,
     method: 'POST',
-    user: process.env.GITEA_ADMIN_USER,
-    pass: process.env.GITEA_ADMIN_PASS,
+    user: process.env.GITEA_CYPRESS_USER,
+    pass: process.env.GITEA_CYPRESS_PASS,
     body: {
       name: PLAYWRIGHT_RESOURCES_REPO_NAME,
     },
