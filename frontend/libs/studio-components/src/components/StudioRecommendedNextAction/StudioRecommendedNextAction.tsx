@@ -4,7 +4,7 @@ import classes from './StudioRecommendedNextAction.module.css';
 import { StudioCard } from '../StudioCard';
 import { StudioParagraph } from '@studio/components';
 
-export interface StudioRecommendedNextActionProps {
+export type StudioRecommendedNextActionProps = {
   onSave: React.MouseEventHandler<HTMLButtonElement>;
   saveButtonText: string;
   onSkip: React.MouseEventHandler<HTMLButtonElement>;
@@ -13,7 +13,7 @@ export interface StudioRecommendedNextActionProps {
   description: string;
   hideSaveButton?: boolean;
   children: React.ReactNode;
-}
+};
 
 export const StudioRecommendedNextAction = ({
   onSave,
