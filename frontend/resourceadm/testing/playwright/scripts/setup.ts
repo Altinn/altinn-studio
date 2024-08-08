@@ -64,6 +64,7 @@ const updateEnvironmentVars = async (): Promise<void> => {
 const createResourceRepo = async () => {
   await giteaApi({
     path: `/repos/api/v1/orgs/${PLAYWRIGHT_RESOURCES_ORGANIZATION}/repos`,
+    hostname: 'http://studio.localhost',
     method: 'POST',
     user: process.env.GITEA_CYPRESS_USER,
     pass: process.env.GITEA_CYPRESS_PASS,
