@@ -14,7 +14,7 @@ import { EditPolicy } from './EditPolicy';
 import { EditDataTypesToSign } from '../EditDataTypesToSign';
 import { EditUniqueFromSignaturesInDataTypes } from '../EditUniqueFromSignaturesInDataTypes';
 import { StudioModeler } from '../../../utils/bpmnModeler/StudioModeler';
-import { NewNameRecommendation } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditTaskRecommendedItems/NewNameRecommendation';
+import { NewNameRecommendation } from './EditTaskRecommendedItems/NewNameRecommendation';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
