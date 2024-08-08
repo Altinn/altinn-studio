@@ -182,3 +182,80 @@ services:
       - PGPASSWORD=${POSTGRES_PASSWORD}
       - PGDATABASE=designerdb
 
+
+
+
+
+
+
+
+  studio_repositories_setup:
+    profiles:
+      - setupscript
+    container_name: studio-repositories-setup
+    image: repositories:latest
+    restart: always
+    volumes:
+      - 'gitea-git-data:/var/lib/gitea/git'
+      - 'gitea-avatars-data:/var/lib/gitea/avatars'
+      - 'gitea-attachments-data:/var/lib/gitea/attachments'
+    environment:
+      - GITEA____RUN_MODE=prod
+      - GITEA__database__DB_TYPE=postgres
+      - GITEA__database__HOST=studio_db_setup:5432
+      - GITEA__database__NAME=giteadb
+      - GITEA__database__PASSWD=gitea
+      - GITEA__database__USER=gitea
+      - GITEA__designer__LFS_JWT_SECRET=MRlYoCcrcHmcKzUoQwaK6vKO3o4FPEJ74em5JnPRii0
+      - GITEA__mailer__ENABLED=false
+      - GITEA__mailer__ENABLE_NOTIFY_MAIL=false
+      - GITEA__mailer__HOST=none
+      - GITEA__mailer__REGISTER_EMAIL_CONFIRM=false
+      - GITEA__mailer__SKIP_VERIFY=false
+      - GITEA__security__INTERNAL_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYmYiOjE1MjMyNjM2NTR9.nxb5jknOl-LnVxOvyu0McHglWoixrfOD0mLZ8Druerw
+      - GITEA__security__SECRET_KEY=VCOEYZOz3vPZrm1vGBOL6paxSePtLUHc85LsK7QIqbPHRcohw72p5K8EQQJ7YrgA
+      - GITEA__server__DOMAIN=localhost
+      - GITEA__server__ROOT_URL=http://localhost:3000
+      - GITEA__server__SSH_DOMAIN=localhost
+      - GITEA__service__ENABLE_CAPTCHA=false
+      - GITEA__session__COOKIE_SECURE=false
+      - USER_GID=1000
+      - USER_UID=1000
+    ports:
+      - '3000:3000'
+      - '222:22'
+    build:
+      context: ./gitea/
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    depends_on:
+      studio_db_setup:
+        condition: service_healthy
+    healthcheck:
+          test: [ "CMD", "curl", "--fail", "http://localhost:3000" ]
+          interval: 30s
+          timeout: 10s
+          retries: 3
+
+
+  studio_db_setup:
+    profiles:
+      - setupscript
+    container_name: studio-db-setup
+    image: postgres:alpine
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: designer_admin
+      POSTGRES_DB: designerdb
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./development/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./development/db/data.sql:/data.sql
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U designer_admin -d designerdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

@@ -8,13 +8,14 @@ const path = require('path');
 const writeEnvFile = require('./utils/write-env-file.js');
 
 const startingDockerCompose = () => runCommand('docker compose up -d --remove-orphans --build');
-const startComposeService = (service) => runCommand(`docker compose up -d ${service}`);
+const buildAndStartComposeService = (service) =>
+  runCommand(`docker compose up -d ${service} --build`);
 const stopComposeService = (service) => runCommand(`docker compose down ${service}`);
 
 const createUser = (username, password, admin) =>
   runCommand(
     [
-      `docker exec studio-repositories gitea admin user create`,
+      `docker exec studio-repositories-setup gitea admin user create`,
       `--username ${username}`,
       `--password ${password}`,
       `--email ${username}@digdir.no`,
@@ -25,7 +26,7 @@ const createUser = (username, password, admin) =>
 
 const createTestDepOrg = (env) =>
   giteaApi({
-    path: '/repos/api/v1/orgs',
+    path: '/api/v1/orgs',
     method: 'POST',
     user: env.GITEA_ADMIN_USER,
     pass: env.GITEA_ADMIN_PASS,
@@ -39,7 +40,7 @@ const createTestDepTeams = async (env) => {
   const allTeams = require(path.resolve(__dirname, 'data', 'gitea-teams.json'));
 
   const existingTeams = await giteaApi({
-    path: `/repos/api/v1/orgs/${env.GITEA_ORG_USER}/teams`,
+    path: `/api/v1/orgs/${env.GITEA_ORG_USER}/teams`,
     method: 'GET',
     user: env.GITEA_ADMIN_USER,
     pass: env.GITEA_ADMIN_PASS,
@@ -49,7 +50,7 @@ const createTestDepTeams = async (env) => {
     const existing = existingTeams.find((t) => t.name === team.name);
     if (!existing) {
       await giteaApi({
-        path: `/repos/api/v1/orgs/${env.GITEA_ORG_USER}/teams`,
+        path: `/api/v1/orgs/${env.GITEA_ORG_USER}/teams`,
         method: 'POST',
         user: env.GITEA_ADMIN_USER,
         pass: env.GITEA_ADMIN_PASS,
@@ -66,7 +67,7 @@ const createTestDepTeams = async (env) => {
 
 const createOidcClientIfNotExists = async (env) => {
   const clients = await giteaApi({
-    path: `/repos/api/v1/user/applications/oauth2`,
+    path: `/api/v1/user/applications/oauth2`,
     method: 'GET',
     user: env.GITEA_ADMIN_USER,
     pass: env.GITEA_ADMIN_PASS,
@@ -78,7 +79,7 @@ const createOidcClientIfNotExists = async (env) => {
   }
 
   var createdClient = await giteaApi({
-    path: `/repos/api/v1/user/applications/oauth2`,
+    path: `/api/v1/user/applications/oauth2`,
     method: 'POST',
     user: env.GITEA_ADMIN_USER,
     pass: env.GITEA_ADMIN_PASS,
@@ -97,7 +98,7 @@ const createOidcClientIfNotExists = async (env) => {
 
 const addUserToSomeTestDepTeams = async (env) => {
   const teams = await giteaApi({
-    path: `/repos/api/v1/orgs/${env.GITEA_ORG_USER}/teams`,
+    path: `/api/v1/orgs/${env.GITEA_ORG_USER}/teams`,
     method: 'GET',
     user: env.GITEA_ADMIN_USER,
     pass: env.GITEA_ADMIN_PASS,
@@ -122,7 +123,7 @@ const addUserToSomeTestDepTeams = async (env) => {
   ]) {
     const existing = teams.find((t) => t.name === teamName);
     await giteaApi({
-      path: `/repos/api/v1/teams/${existing.id}/members/${env.GITEA_ADMIN_USER}`,
+      path: `/api/v1/teams/${existing.id}/members/${env.GITEA_ADMIN_USER}`,
       method: 'PUT',
       user: env.GITEA_ADMIN_USER,
       pass: env.GITEA_ADMIN_PASS,
@@ -148,7 +149,7 @@ const addUserToSomeTestDepTeams = async (env) => {
   ]) {
     const existing = teams.find((t) => t.name === teamName);
     await giteaApi({
-      path: `/repos/api/v1/teams/${existing.id}/members/${env.GITEA_CYPRESS_USER}`,
+      path: `/api/v1/teams/${existing.id}/members/${env.GITEA_CYPRESS_USER}`,
       method: 'PUT',
       user: env.GITEA_ADMIN_USER,
       pass: env.GITEA_ADMIN_PASS,
@@ -165,15 +166,14 @@ const addReleaseAndDeployTestDataToDb = async () =>
     ].join(' '),
   );
 
-const script = async () => {
-  const env = ensureDotEnv();
-  await dnsIsOk('studio.localhost');
-  if (!(env.IGNORE_DOCKER_DNS_LOOKUP === 'true')) {
-    await dnsIsOk('host.docker.internal');
-  }
-
-  startingDockerCompose();
-  await waitFor('http://studio.localhost', 80);
+const setupEnvironment = async (env) => {
+  buildAndStartComposeService('studio_db_setup');
+  buildAndStartComposeService('studio_repositories_setup');
+  await new Promise((resolve) =>
+    setTimeout(() => {
+      resolve(null);
+    }, 40000),
+  );
 
   createUser(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS, true);
   createUser(env.GITEA_CYPRESS_USER, env.GITEA_CYPRESS_PASS, false);
@@ -182,16 +182,28 @@ const script = async () => {
   await addUserToSomeTestDepTeams(env);
   const result = await createOidcClientIfNotExists(env);
 
-  if (result) {
-    writeEnvFile(result);
-    stopComposeService('studio_designer');
-    stopComposeService('studio_loadbalancer');
-    startComposeService('studio_designer');
-    startComposeService('studio_loadbalancer');
+  await createCypressEnvFile(env);
+
+  stopComposeService('studio_db_setup');
+  stopComposeService('studio_repositories_setup');
+  return result;
+};
+
+const script = async () => {
+  const env = ensureDotEnv();
+  await dnsIsOk('studio.localhost');
+  if (!(env.IGNORE_DOCKER_DNS_LOOKUP === 'true')) {
+    await dnsIsOk('host.docker.internal');
   }
 
-  await waitFor('http://studio.localhost');
-  await createCypressEnvFile(env);
+  var result = await setupEnvironment(env);
+  if (result) {
+    writeEnvFile(result);
+  }
+
+  startingDockerCompose();
+  await waitFor('http://studio.localhost', 80);
+
   await addReleaseAndDeployTestDataToDb();
   process.exit(0);
 };

@@ -10,7 +10,8 @@ module.exports = (options) =>
   new Promise(function (resolve, reject) {
     const req = request(
       {
-        host: 'studio.localhost',
+        host: 'localhost',
+        port: 3000,
         path: options.path,
         auth: [options.user, options.pass].join(':'),
         method: options.method,
@@ -29,7 +30,7 @@ module.exports = (options) =>
             resolve();
           }
         });
-      }
+      },
     );
     if (options.body) {
       req.write(JSON.stringify(options.body));
