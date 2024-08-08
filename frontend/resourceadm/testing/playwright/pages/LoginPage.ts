@@ -40,8 +40,8 @@ export class LoginPage {
     await this.passwordField.fill(password);
   }
 
-  public async clickLoginButton(): Promise<void> {
-    return await this.page.getByRole('button', { name: loginPageTexts['login'] }).click();
+  public async pressEnterInPasswordField(): Promise<void> {
+    await this.passwordField.press('Enter');
   }
 
   public async clickAuthorizeButtonIfLoaded(): Promise<void> {

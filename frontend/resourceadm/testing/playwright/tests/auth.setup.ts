@@ -8,7 +8,7 @@ setup('authenticate user', async ({ page }): Promise<void> => {
   await loginPage.goToGiteaLoginPage();
   await loginPage.writeUsername(process.env.PLAYWRIGHT_USER);
   await loginPage.writePassword(process.env.PLAYWRIGHT_PASS);
-  await loginPage.clickLoginButton();
+  await loginPage.pressEnterInPasswordField();
   await loginPage.clickAuthorizeButtonIfLoaded();
   await loginPage.confirmSuccessfulLogin();
   await loginPage.addSessionToSharableStorage();
