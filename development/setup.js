@@ -37,7 +37,10 @@ const createTestDepOrg = (env) =>
     },
   });
 const createTestDepTeams = async (env) => {
+  console.log('Creating teams');
   const allTeams = require(path.resolve(__dirname, 'data', 'gitea-teams.json'));
+
+  console.log({ allTeams });
 
   const existingTeams = await giteaApi({
     path: `/api/v1/orgs/${env.GITEA_ORG_USER}/teams`,
@@ -46,7 +49,10 @@ const createTestDepTeams = async (env) => {
     pass: env.GITEA_ADMIN_PASS,
   });
 
+  console.log({ existingTeams });
+
   for (const team of allTeams) {
+    console.log({ team });
     const existing = existingTeams.find((t) => t.name === team.name);
     if (!existing) {
       await giteaApi({
