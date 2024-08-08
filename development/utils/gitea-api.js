@@ -25,8 +25,7 @@ module.exports = (options) =>
         response.on('end', () => {
           console.log(options.method, options.path, response.statusCode, response.statusMessage);
           if (data.length) {
-            console.log({ data });
-            resolve(JSON.parse(data.join()));
+            resolve(JSON.parse(data.toString()));
           } else {
             resolve();
           }
