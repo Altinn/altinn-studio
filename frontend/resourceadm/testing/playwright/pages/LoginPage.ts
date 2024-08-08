@@ -8,6 +8,7 @@ const loginPageTexts: Record<string, string> = {
   password: 'Passord',
   error_message: 'Ugyldig brukernavn eller passord.',
   links: 'Links',
+  authorize: 'Authorize Application',
 };
 
 export class LoginPage {

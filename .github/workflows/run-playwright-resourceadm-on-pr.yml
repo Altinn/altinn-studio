@@ -8,6 +8,10 @@ on:
       - '.github/workflows/run-playwright-resourceadm-on-pr.yaml'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   playwright-tests:
     name: Build environment and run e2e test
@@ -15,7 +19,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: 'Checking Out Code'
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -36,32 +41,20 @@ jobs:
           echo COMMIT= >> .env
           echo IGNORE_DOCKER_DNS_LOOKUP=true >> .env
 
-      - name: Build all images
-        run: |
-          docker compose build --no-cache
-
-      - name: Install node
-        uses: actions/setup-node@v4
-        with:
-          cache: 'yarn'
-
       - name: Run setup.js script
         run: |
           node ./development/setup.js
+
+      - name: 'Installing Dependencies'
+        uses: ./.github/actions/yarn-install
 
       - name: Playwright resourceadm run
         working-directory: frontend/resourceadm/testing/playwright
         env:
           environment: local
         run: |
-          yarn
-          yarn playwright install --with-deps
           yarn resourceadm:setup:playwright
           yarn resourceadm:playwright:test:all
-
-      - name: Stop compose file
-        if: always()
-        run: docker compose down
 
       - name: Store artifacts
         uses: actions/upload-artifact@v4
