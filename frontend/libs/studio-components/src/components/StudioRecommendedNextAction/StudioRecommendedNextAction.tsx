@@ -2,6 +2,7 @@ import { StudioButton } from '../StudioButton';
 import React from 'react';
 import classes from './StudioRecommendedNextAction.module.css';
 import { StudioCard } from '../StudioCard';
+import { StudioParagraph } from '@studio/components';
 
 export interface StudioRecommendedNextActionProps {
   onSave: React.MouseEventHandler<HTMLButtonElement>;
@@ -28,7 +29,7 @@ export const StudioRecommendedNextAction = ({
     <StudioCard>
       <StudioCard.Header>{title}</StudioCard.Header>
       <StudioCard.Content>
-        <p className={classes.description}>{description}</p>
+        <StudioParagraph className={classes.description}>{description}</StudioParagraph>
         {children}
         <div className={classes.buttonGroup}>
           {!hideSaveButton && (
