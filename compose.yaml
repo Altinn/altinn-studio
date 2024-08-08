@@ -97,7 +97,7 @@ services:
       - 'host.docker.internal:host-gateway'
       - 'studio.localhost:host-gateway'
     healthcheck:
-      test: [ "CMD", "curl", "--fail", "http://localhost:6000/" ]
+      test: [ "CMD", "curl", "--fail", "http://localhost:6000/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
