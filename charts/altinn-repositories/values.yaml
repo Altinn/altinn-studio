@@ -16,7 +16,7 @@ service:
 hosts:
   dev: dev.altinn.studio
   staging: staging.altinn.studio
-  production: altinn.studio
+  prod: altinn.studio
 
 distinctEnvironmentVariables:
   dev:
@@ -41,7 +41,7 @@ distinctEnvironmentVariables:
       value: staging.altinn.studio
     - name: GITEA__server__ROOT_URL
       value: https://staging.altinn.studio/repos
-  production:
+  prod:
     - name: ALTINN_STUDIO_DOMAIN
       value: altinn.studio
     - name: ALTINN_STUDIO_RUN_MODE
