@@ -13,12 +13,12 @@ image:
 hosts:
   dev: dev.altinn.studio
   staging: staging.altinn.studio
-  production: altinn.studio
+  prod: altinn.studio
 
 volumeMounts:
   - name: altinn-loadbalancer-conf
     mountPath: "/etc/nginx"
-  # this was to be moved out as a k8s secret?      
+  # this was to be moved out as a k8s secret?
   - name: altinn-loadbalancer-ssl
     mountPath: "/etc/nginx/ssl/altinn_studio"
 
@@ -26,10 +26,10 @@ volumes:
   - name: altinn-loadbalancer-conf
     configMap:
       name: loadbalancer-config
-      items: 
+      items:
        - key: nginx.config
        - path: nginx.config
-  # this was to be moved out as a k8s secret?      
+  # this was to be moved out as a k8s secret?
   - name: altinn-loadbalancer-ssl
     secret:
       secretName: ssl-key-secret
@@ -50,4 +50,4 @@ service:
 loadbalancerIP:
   dev: 51.136.127.155
   staging: 52.157.218.253
-  production: 20.50.249.144
+  prod: 20.50.249.144
