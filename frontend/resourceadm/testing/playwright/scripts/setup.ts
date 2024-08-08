@@ -41,7 +41,6 @@ const createGiteaAccessToken = async (): Promise<void> => {
       ],
     },
   });
-
   environment.GITEA_ACCESS_TOKEN = result.sha1;
 };
 
