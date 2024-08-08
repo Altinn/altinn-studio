@@ -89,7 +89,7 @@ services:
     ports:
       - '6000:6000'
     depends_on:
-      studio_repositories:
+      studio_db:
         condition: service_healthy
     build:
       context: .
@@ -98,9 +98,9 @@ services:
       - 'studio.localhost:host-gateway'
     healthcheck:
       test: [ "CMD", "curl", "--fail", "http://localhost:6000/health" ]
-      interval: 30s
+      interval: 5s
       timeout: 10s
-      retries: 3
+      retries: 5
 
   studio_repositories:
     container_name: studio-repositories
@@ -143,10 +143,10 @@ services:
       studio_db:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD", "curl", "--fail", "http://localhost:3000" ]
-      interval: 30s
+      test: [ "CMD", "curl", "--fail", "http://localhost:3000/api/healthz" ]
+      interval: 5s
       timeout: 10s
-      retries: 3
+      retries: 5
 
 
   studio_db:
