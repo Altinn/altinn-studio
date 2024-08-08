@@ -37,10 +37,7 @@ const createTestDepOrg = (env) =>
     },
   });
 const createTestDepTeams = async (env) => {
-  console.log('Creating teams');
   const allTeams = require(path.resolve(__dirname, 'data', 'gitea-teams.json'));
-
-  console.log({ allTeams });
 
   const existingTeams = await giteaApi({
     path: `/api/v1/orgs/${env.GITEA_ORG_USER}/teams`,
@@ -49,10 +46,7 @@ const createTestDepTeams = async (env) => {
     pass: env.GITEA_ADMIN_PASS,
   });
 
-  console.log({ existingTeams });
-
   for (const team of allTeams) {
-    console.log({ team });
     const existing = existingTeams.find((t) => t.name === team.name);
     if (!existing) {
       await giteaApi({
@@ -109,7 +103,7 @@ const addUserToSomeTestDepTeams = async (env) => {
     user: env.GITEA_ADMIN_USER,
     pass: env.GITEA_ADMIN_PASS,
   });
-  console.log({ teams });
+
   for (const teamName of [
     'Owners',
     'Deploy-TT02',
@@ -129,7 +123,7 @@ const addUserToSomeTestDepTeams = async (env) => {
     'AccessLists-TT02',
   ]) {
     const existing = teams.find((t) => t.name === teamName);
-    console.log({ existing });
+
     await giteaApi({
       path: `/api/v1/teams/${existing.id}/members/${env.GITEA_ADMIN_USER}`,
       method: 'PUT',
@@ -156,7 +150,7 @@ const addUserToSomeTestDepTeams = async (env) => {
     'AccessLists-TT02',
   ]) {
     const existing = teams.find((t) => t.name === teamName);
-    console.log({ key: 'latest', existing });
+
     await giteaApi({
       path: `/api/v1/teams/${existing.id}/members/${env.GITEA_CYPRESS_USER}`,
       method: 'PUT',
@@ -205,7 +199,7 @@ const script = async () => {
     await dnsIsOk('host.docker.internal');
   }
 
-  var result = await setupEnvironment(env);
+  const result = await setupEnvironment(env);
   if (result) {
     writeEnvFile(result);
   }

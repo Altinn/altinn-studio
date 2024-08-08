@@ -8,7 +8,7 @@ const { request } = require('http');
  */
 module.exports = async (options) => {
   try {
-    const response = await fetch(`http://localhost:3000${options.path}`, {
+    const response = await fetch(`${options.hostname || 'http://localhost:3000'}${options.path}`, {
       method: options.method,
       headers: {
         'Content-Type': 'application/json',
@@ -16,9 +16,6 @@ module.exports = async (options) => {
       },
       body: options.body ? JSON.stringify(options.body) : undefined,
     });
-
-    console.log(response.status);
-    console.log(response.toString());
 
     const data = await response.json().catch((err) => {
       console.error('Error:', err);
