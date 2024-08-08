@@ -4,7 +4,7 @@ import { useDataModelBindings } from 'src/features/formData/useDataModelBindings
 import { Lang } from 'src/features/language/Lang';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useBindingValidationsForNode } from 'src/features/validation/selectors/bindingValidationsForNode';
-import classes from 'src/layout/Address/AddressSummary.module.css';
+import classes from 'src/layout/Address/AddressSummary/AddressSummary.module.css';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -70,28 +70,26 @@ export function AddressSummary({ componentNode }: AddressSummaryProps) {
             componentNode={componentNode}
             hideEditButton={true}
           />
-        </div>
-
-        <ComponentValidations
-          validations={bindingValidations?.postPlace}
-          node={componentNode}
-        />
-      </div>
-
-      {!componentNode.item.simplified && (
-        <div>
-          <SingleValueSummary
-            title={<Lang id={houseNumberTitle || 'address_component.house_number'} />}
-            displayData={houseNumber}
-            componentNode={componentNode}
-            hideEditButton={true}
-          />
           <ComponentValidations
-            validations={bindingValidations?.houseNumber}
+            validations={bindingValidations?.postPlace}
             node={componentNode}
           />
         </div>
-      )}
+        {!componentNode.item.simplified && (
+          <div>
+            <SingleValueSummary
+              title={<Lang id={houseNumberTitle || 'address_component.house_number'} />}
+              displayData={houseNumber}
+              componentNode={componentNode}
+              hideEditButton={true}
+            />
+            <ComponentValidations
+              validations={bindingValidations?.houseNumber}
+              node={componentNode}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

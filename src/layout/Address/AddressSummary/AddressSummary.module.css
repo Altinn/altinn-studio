@@ -16,3 +16,38 @@
 .flexGrow {
   flex-grow: 1;
 }
+
+.addressSummaryComponent {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: var(--fds-spacing-4);
+}
+
+.addressSummaryComponentPostplaceZipCode {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-content: space-between;
+  align-items: baseline;
+  gap: 0.937rem;
+}
+
+.addressSummaryComponentPostplace {
+  flex-grow: 4;
+  max-width: 300px;
+}
+
+.addressSummaryComponentZipCode {
+  flex-grow: 0;
+  display: flex;
+  flex-direction: row;
+}
+
+.addressSummaryComponentSmallInputs {
+  max-width: 90px;
+}
+
+.addressComponentZipCode {
+  margin-right: var(--fds-spacing-4);
+}
