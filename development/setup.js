@@ -8,8 +8,8 @@ const path = require('path');
 const writeEnvFile = require('./utils/write-env-file.js');
 
 const startingDockerCompose = () => runCommand('docker compose up -d --remove-orphans --build');
-const restartComposeServices = () =>
-  runCommand('docker compose down && docker compose up -d --remove-orphans');
+const startComposeService = (service) => runCommand(`docker compose up -d ${service}`);
+const stopComposeService = (service) => runCommand(`docker compose down ${service}`);
 
 const createUser = (username, password, admin) =>
   runCommand(
@@ -19,16 +19,6 @@ const createUser = (username, password, admin) =>
       `--password ${password}`,
       `--email ${username}@digdir.no`,
       admin ? `--admin` : undefined,
-      `--must-change-password=false`,
-    ].join(' '),
-  );
-
-const ensureUserPassword = (username, password) =>
-  runCommand(
-    [
-      `docker exec studio-repositories gitea admin user change-password`,
-      `--username ${username}`,
-      `--password ${password}`,
       `--must-change-password=false`,
     ].join(' '),
   );
@@ -84,7 +74,7 @@ const createOidcClientIfNotExists = async (env) => {
 
   const shouldCreateClient = !clients.some((app) => app.name === 'LocalTestOidcClient');
   if (!shouldCreateClient) {
-    return;
+    return null;
   }
 
   var createdClient = await giteaApi({
@@ -102,10 +92,7 @@ const createOidcClientIfNotExists = async (env) => {
   env.CLIENT_ID = createdClient.client_id;
   env.CLIENT_SECRET = createdClient.client_secret;
 
-  writeEnvFile(env);
-  // reload designer with new clientid and secret
-  restartComposeServices();
-  await waitFor('http://studio.localhost/repos/');
+  return env;
 };
 
 const addUserToSomeTestDepTeams = async (env) => {
@@ -184,19 +171,34 @@ const script = async () => {
   if (!(env.IGNORE_DOCKER_DNS_LOOKUP === 'true')) {
     await dnsIsOk('host.docker.internal');
   }
-  await startingDockerCompose();
-  await waitFor('http://studio.localhost/repos/');
-  await createUser(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS, true);
-  await ensureUserPassword(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS);
-  await createUser(env.GITEA_CYPRESS_USER, env.GITEA_CYPRESS_PASS, false);
-  await ensureUserPassword(env.GITEA_CYPRESS_USER, env.GITEA_CYPRESS_PASS);
+
+  startingDockerCompose();
+  await waitFor('http://studio.localhost', 40);
+
+  createUser(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS, true);
+  createUser(env.GITEA_CYPRESS_USER, env.GITEA_CYPRESS_PASS, false);
   await createTestDepOrg(env);
   await createTestDepTeams(env);
   await addUserToSomeTestDepTeams(env);
-  await createOidcClientIfNotExists(env);
+  const result = await createOidcClientIfNotExists(env);
+
+  if (result) {
+    writeEnvFile(result);
+    stopComposeService('studio_designer');
+    stopComposeService('studio_loadbalancer');
+    startComposeService('studio_designer');
+    startComposeService('studio_loadbalancer');
+  }
+
+  await waitFor('http://studio.localhost');
   await createCypressEnvFile(env);
   await addReleaseAndDeployTestDataToDb();
   process.exit(0);
 };
 
-script().then().catch(console.error);
+script()
+  .then()
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });

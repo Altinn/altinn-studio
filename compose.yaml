@@ -136,6 +136,9 @@ services:
       context: ./gitea/
     extra_hosts:
       - 'host.docker.internal:host-gateway'
+    depends_on:
+      studio_db:
+        condition: service_healthy
     healthcheck:
           test: [ "CMD", "curl", "--fail", "http://localhost:3000" ]
           interval: 30s
