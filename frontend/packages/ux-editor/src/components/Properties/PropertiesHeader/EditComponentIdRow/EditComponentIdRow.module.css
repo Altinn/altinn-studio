@@ -2,15 +2,8 @@
   width: 100%;
 }
 
-.alert,
-.idInput {
+.alert {
   padding: var(--fds-spacing-5);
-}
-
-.ellipsis {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }
 
 .duplicatedIdField {

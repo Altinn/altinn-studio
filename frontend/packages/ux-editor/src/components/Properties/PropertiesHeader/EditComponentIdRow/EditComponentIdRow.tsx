@@ -70,11 +70,8 @@ export const EditComponentIdRow = ({
         propertyPath='definitions/component/properties/id'
         key={component.id}
         viewProps={{
-          children: (
-            <span className={classes.ellipsis} title={component.id}>
-              <Trans i18nKey={'ux_editor.id_identifier'} values={{ item: component.id }} />
-            </span>
-          ),
+          children: <Trans i18nKey={'ux_editor.id_identifier'} values={{ item: component.id }} />,
+          title: component.id,
           variant: 'tertiary',
           fullWidth: true,
         }}
@@ -85,7 +82,6 @@ export const EditComponentIdRow = ({
           label: t('ux_editor.modal_properties_component_change_id'),
           size: 'small',
           error: errorMessage,
-          className: classes.idInput,
         }}
         customValidation={(value) => {
           return validateId(value);

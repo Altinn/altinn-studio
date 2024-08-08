@@ -38,7 +38,7 @@ public class ImageController : ControllerBase
   /// <param name="repo">Application identifier which is unique within an organisation.</param>
   /// <param name="imageName">Name of image file to fetch</param>
   /// <returns>Image</returns>
-  [HttpGet] // add routeParam or use queryParam?
+  [HttpGet( "{imageName}")] // add routeParam or use queryParam?
   [ProducesResponseType(StatusCodes.Status200OK)]
   public ActionResult<FileStreamResult> GetImageByName(string org, string repo, [FromRoute] string imageName)
   {

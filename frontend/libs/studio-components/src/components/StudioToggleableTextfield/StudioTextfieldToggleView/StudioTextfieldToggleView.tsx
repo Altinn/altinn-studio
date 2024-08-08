@@ -4,21 +4,29 @@ import { StudioButton, type StudioButtonProps } from '@studio/components';
 import classes from './StudioTextfieldToggleView.module.css';
 import cn from 'classnames';
 
-export type StudioTextfieldToggleViewProps = StudioButtonProps;
+export type StudioTextfieldToggleViewProps = StudioButtonProps & {
+  label?: string;
+};
 
 export const StudioTextfieldToggleView = ({
   onClick,
   children,
+  title,
+  label,
   className: givenClass,
+  icon = <KeyVerticalIcon data-testid='keyIcon' aria-hidden />,
   ...rest
 }: StudioTextfieldToggleViewProps) => {
   const className = cn(classes.button, givenClass);
 
   return (
     <StudioButton className={className} onClick={onClick} {...rest}>
-      <span className={classes.viewModeIconsContainer}>
-        <KeyVerticalIcon data-testid='keyIcon' aria-hidden />
-        {children}
+      <span className={classes.viewModeIconsContainer} title={title}>
+        {icon}
+        <div className={classes.ellipsis}>
+          {label && <div className={classes.label}>{label}</div>}
+          <div className={classes.ellipsis}>{children}</div>
+        </div>
       </span>
       <span className={classes.editIconWrapper}>
         <PencilIcon className={classes.editIcon} data-testid='editIcon' aria-hidden />
