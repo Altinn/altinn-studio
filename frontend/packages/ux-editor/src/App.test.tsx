@@ -11,6 +11,7 @@ import { layoutSetsMock } from './testing/layoutSetsMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { user as userMock } from 'app-shared/mocks/mocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { PreviewContextProvider } from 'app-development/contexts/PreviewContext';
 
 const mockQueries: Partial<ServicesContextProps> = {
   getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve('test')),
@@ -27,11 +28,16 @@ const renderApp = (
 ) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.CurrentUser], [userMock]);
-  return renderWithProviders(<App />, {
-    queries,
-    appContextProps,
-    queryClient,
-  });
+  return renderWithProviders(
+    <PreviewContextProvider>
+      <App />
+    </PreviewContextProvider>,
+    {
+      queries,
+      appContextProps,
+      queryClient,
+    },
+  );
 };
 
 describe('App', () => {

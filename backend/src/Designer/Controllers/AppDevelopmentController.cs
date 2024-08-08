@@ -116,6 +116,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+                Dictionary<string, JsonNode> formLayouts = await _appDevelopmentService.GetFormLayouts(editingContext, layoutSetName, cancellationToken);
                 await _appDevelopmentService.SaveFormLayout(editingContext, layoutSetName, layoutName, formLayoutPayload.Layout, cancellationToken);
 
                 if (formLayoutPayload.ComponentIdsChange is not null && !string.IsNullOrEmpty(layoutSetName))
@@ -130,6 +131,13 @@ namespace Altinn.Studio.Designer.Controllers
                             EditingContext = editingContext
                         }, cancellationToken);
                     }
+                }
+                if (!formLayouts.ContainsKey(layoutName))
+                {
+                    await _mediator.Publish(new LayoutPageAddedEvent
+                    {
+                        EditingContext = editingContext,
+                    }, cancellationToken);
                 }
                 return Ok();
             }
