@@ -6,34 +6,27 @@ const { request } = require('http');
  * @param options
  * @returns {Promise<unknown>}
  */
-module.exports = (options) =>
-  new Promise(function (resolve, reject) {
-    const req = request(
-      {
-        host: 'localhost',
-        port: 3000,
-        path: options.path,
-        auth: [options.user, options.pass].join(':'),
-        method: options.method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+module.exports = async (options) => {
+  try {
+    const response = await fetch(`http://localhost:3000${options.path}`, {
+      method: options.method,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${Buffer.from(`${options.user}:${options.pass}`).toString('base64')}`,
       },
-      (response) => {
-        const data = [];
-        response.on('data', (chunk) => data.push(chunk));
-        response.on('end', () => {
-          console.log(options.method, options.path, response.statusCode, response.statusMessage);
-          if (data.length) {
-            resolve(JSON.parse(data.toString()));
-          } else {
-            resolve();
-          }
-        });
-      },
-    );
-    if (options.body) {
-      req.write(JSON.stringify(options.body));
-    }
-    req.end(() => {});
-  });
+      body: options.body ? JSON.stringify(options.body) : undefined,
+    });
+
+    console.log(response.status);
+    console.log(response.toString());
+
+    const data = await response.json().catch((err) => {
+      console.error('Error:', err);
+    });
+    console.log(options.method, options.path, response.status, response.statusText);
+    return data;
+  } catch (error) {
+    console.error('Error:', error);
+    throw error;
+  }
+};
