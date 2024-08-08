@@ -1,4 +1,5 @@
 const { get } = require('http');
+const runCommand = require('./run-command');
 module.exports = (url, givenAttempts = 10) =>
   new Promise(function (resolve, reject) {
     let attempts = 0;
@@ -6,6 +7,9 @@ module.exports = (url, givenAttempts = 10) =>
     const checkAttempts = () => {
       attempts++;
       if (attempts > givenAttempts) {
+        runCommand('docker ps');
+        runCommand('docker compose logs studio-loadbalancer');
+        runCommand('docker compose logs studio-designer');
         clearInterval(intervalId);
         console.log('Giving up: ', url);
         reject('Giving up this');

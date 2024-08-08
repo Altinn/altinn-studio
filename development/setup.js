@@ -173,7 +173,7 @@ const script = async () => {
   }
 
   startingDockerCompose();
-  await waitFor('http://studio.localhost', 40);
+  await waitFor('http://studio.localhost', 80);
 
   createUser(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS, true);
   createUser(env.GITEA_CYPRESS_USER, env.GITEA_CYPRESS_PASS, false);

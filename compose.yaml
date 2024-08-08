@@ -83,6 +83,7 @@ services:
       - OidcLoginSettings:Authority=http://studio.localhost/repos/
       - OidcLoginSettings:RequireHttpsMetadata=false
       - OidcLoginSettings:CookieExpiryTimeInMinutes=59
+      - OidcLoginSettings:FetchClientIdAndSecretFromRootEnvFile=false
     ports:
       - '6000:6000'
     depends_on:
