@@ -55,6 +55,7 @@ test('that the user can drag a new task in to the data model, and assign a data 
   const svgSelector = await bpmnJSQuery.getTaskByIdAndType('SingleDataTask', 'svg');
   const dataTask: BpmnTaskType = 'data';
   await processEditorPage.dragTaskInToBpmnEditor(dataTask, svgSelector);
+  await processEditorPage.skipRecommendedTask();
   await processEditorPage.waitForTaskToBeVisibleInConfigPanel(dataTask);
   randomGeneratedId = await processEditorPage.getTaskIdFromOpenNewlyAddedTask();
 

@@ -127,8 +127,8 @@ describe('useBpmnEditor', () => {
     await waitFor(() => expect(saveBpmnMock).toHaveBeenCalledTimes(1));
   });
 
-  it('should handle "shape.add" event', async () => {
-    renderUseBpmnEditor(false, 'shape.add');
+  it('should handle "shape.added" event', async () => {
+    renderUseBpmnEditor(false, 'shape.added');
 
     await waitFor(() => expect(onProcessTaskAddMock).toHaveBeenCalledTimes(1));
   });
@@ -144,7 +144,7 @@ describe('useBpmnEditor', () => {
     renderUseBpmnEditor(true, currentEventName);
 
     expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1);
-    expect(setBpmnDetailsMock).toHaveBeenCalledWith(mockBpmnDetails);
+    expect(setBpmnDetailsMock).toHaveBeenCalledWith(expect.objectContaining(mockBpmnDetails));
   });
 });
 
