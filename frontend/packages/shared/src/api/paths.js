@@ -99,6 +99,7 @@ export const repoPushPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/
 export const repoResetPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/reset`; // Get
 export const repoSearchPath = () => `${basePath}/repos/search`; // Get
 export const repoStatusPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/status`; // Get
+export const repoDiffPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/diff`; // Get
 export const reposListPath = (org) => `${basePath}/repos/org/${org}`; // Get
 export const stageFilePath = (org, app, filename) => `${basePath}/repos/repo/${org}/${app}/stage/${filename}`; // Get
 

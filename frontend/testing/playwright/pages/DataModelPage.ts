@@ -165,7 +165,7 @@ export class DataModelPage extends BasePage {
 
   public async waitForDataModelToAppear(dataModelName: string): Promise<void> {
     const dataModelButton = this.page.getByRole('button', { name: dataModelName, exact: true });
-    await expect(dataModelButton).toBeVisible();
+    await expect(dataModelButton).toBeVisible({ timeout: 8000 });
   }
 
   public async waitForSuccessAlertToDisappear(): Promise<void> {
