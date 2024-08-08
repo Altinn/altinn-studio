@@ -15,7 +15,7 @@ const stopComposeService = (service) => runCommand(`docker compose down ${servic
 const createUser = (username, password, admin) =>
   runCommand(
     [
-      `docker exec studio-repositories-setup gitea admin user create`,
+      `docker exec studio-repositories gitea admin user create`,
       `--username ${username}`,
       `--password ${password}`,
       `--email ${username}@digdir.no`,
@@ -167,8 +167,8 @@ const addReleaseAndDeployTestDataToDb = async () =>
   );
 
 const setupEnvironment = async (env) => {
-  buildAndStartComposeService('studio_db_setup');
-  buildAndStartComposeService('studio_repositories_setup');
+  buildAndStartComposeService('studio_db');
+  buildAndStartComposeService('studio_repositories');
   await new Promise((resolve) =>
     setTimeout(() => {
       resolve(null);
@@ -184,8 +184,8 @@ const setupEnvironment = async (env) => {
 
   await createCypressEnvFile(env);
 
-  stopComposeService('studio_db_setup');
-  stopComposeService('studio_repositories_setup');
+  stopComposeService('studio_db');
+  stopComposeService('studio_repositories');
   return result;
 };
 
