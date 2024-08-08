@@ -2,6 +2,7 @@ import {
   extractFilename,
   isXsdFile,
   removeExtension,
+  removeFileNameFromPath,
   removeSchemaExtension,
 } from 'app-shared/utils/filenameUtils';
 
@@ -56,6 +57,28 @@ describe('filenameUtils', () => {
     it('Returns path if path does not contain a slash', () => {
       expect(extractFilename('filename')).toEqual('filename');
       expect(extractFilename('filename.json')).toEqual('filename.json');
+    });
+  });
+
+  describe('removeFileNameFromPath', () => {
+    it('Returns file path without file name', () => {
+      expect(removeFileNameFromPath('/path/to/filename')).toEqual('/path/to/');
+      expect(removeFileNameFromPath('/path/to/filename.json')).toEqual('/path/to/');
+    });
+
+    it('Returns file path without file name and last slash if "excludeLastSlash" is true', () => {
+      expect(removeFileNameFromPath('/path/to/filename', true)).toEqual('/path/to');
+      expect(removeFileNameFromPath('/path/to/filename.json', true)).toEqual('/path/to');
+    });
+
+    it('Returns empty string if path is only fileName', () => {
+      expect(removeFileNameFromPath('filename')).toEqual('');
+      expect(removeFileNameFromPath('filename.json')).toEqual('');
+    });
+
+    it('Returns empty string if path is only fileName and "excludeLastSlash" is true', () => {
+      expect(removeFileNameFromPath('filename', true)).toEqual('');
+      expect(removeFileNameFromPath('filename.json', true)).toEqual('');
     });
   });
 });
