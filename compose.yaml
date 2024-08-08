@@ -172,7 +172,6 @@ services:
     depends_on:
       studio_db:
           condition: service_healthy
-
     build:
       context: backend
       dockerfile: Migrations.Dockerfile
