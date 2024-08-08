@@ -48,7 +48,6 @@ export const AccessListMembers = ({
   const [searchText, setSearchText] = useState<string>('');
   const [searchUrl, setSearchUrl] = useState<string>('');
   const { debounce } = useDebounce({ debounceTimeInMs: 500 });
-
   debounce(() => setSearchUrl(searchText ? getPartiesQueryUrl(searchText, isSubPartySearch) : ''));
 
   const { mutate: removeListMember, isPending: isRemovingMember } =
