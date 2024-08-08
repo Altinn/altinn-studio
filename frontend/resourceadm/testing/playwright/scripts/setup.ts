@@ -21,10 +21,11 @@ const environment: Record<string, string> = {
 
 const createGiteaAccessToken = async (): Promise<void> => {
   const result = await giteaApi({
-    path: `/repos/api/v1/users/${process.env.GITEA_ADMIN_USER}/tokens`,
+    path: `/repos/api/v1/users/${process.env.GITEA_CYPRESS_USER}/tokens`,
+    hostname: 'http://studio.localhost',
     method: 'POST',
-    user: process.env.GITEA_ADMIN_USER,
-    pass: process.env.GITEA_ADMIN_PASS,
+    user: process.env.GITEA_CYPRESS_USER,
+    pass: process.env.GITEA_CYPRESS_PASS,
     body: {
       name: 'setup.ts' + ' ' + Date.now(),
       scopes: [

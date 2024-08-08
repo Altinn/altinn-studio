@@ -42,6 +42,16 @@ export class LoginPage {
     await this.passwordField.press('Enter');
   }
 
+  public async clickAuthorizeButtonIfLoaded(): Promise<void> {
+    const authorizeButton = () =>
+      this.page.getByRole('button', { name: loginPageTexts['authorize'] });
+    await Promise.race([authorizeButton, this.confirmSuccessfulLogin]);
+
+    if (await authorizeButton().isVisible()) {
+      await authorizeButton().click();
+    }
+  }
+
   public async confirmSuccessfulLogin(): Promise<void> {
     await this.page.waitForURL(url(Routes.dashboard));
   }
