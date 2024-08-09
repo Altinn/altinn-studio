@@ -25,7 +25,7 @@ describe('useUniqueKey', () => {
       result.current.removeKey(2);
     });
 
-    rerender({ maxNumberOfItems: 2 });
+    rerender({ maxNumberOfIds: 2 });
 
     expect(result.current.getUniqueKey(2)).toEqual(undefined);
   });
