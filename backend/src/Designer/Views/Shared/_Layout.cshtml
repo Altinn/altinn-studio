@@ -15,21 +15,25 @@
   <link rel="apple-touch-icon" sizes="144x144" href="/designer/img/icon144x144.png">
   <link rel="apple-touch-icon" sizes="192x192" href="/designer/img/icon192x192.png">
 
-  <title>@ViewBag.Title</title>
+  <title>Altinn Studio</title>
 
   <!-- Javascript -->
+  <script type="text/javascript">
+    var aiConnectionString = "@ViewBag.AiConnectionString"
+    window.aiConnectionString = aiConnectionString;
+  </script>
+
   @RenderSection("scripts", required: false)
 
   <!-- CSS -->
   <link href="https://altinncdn.no/fonts/roboto/latin/roboto.css" rel="stylesheet">
+  <link href="https://altinncdn.no/fonts/inter/inter.css" rel="stylesheet">
 
   @RenderSection("styles", required: false)
-
 </head>
 
 <body>
-    <div>
-        @RenderBody()
-    </div>
+    <div id="root" class="media-body flex-column d-flex"></div>
+    @RenderBody()
 </body>
 </html>
