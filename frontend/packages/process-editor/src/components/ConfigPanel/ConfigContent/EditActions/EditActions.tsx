@@ -18,7 +18,9 @@ export const EditActions = (): React.ReactElement => {
   const actions: Action[] = bpmnActionModeler.actionElements?.action || [];
   const { getUniqueKey, removeKey } = useUniqueKey({ maxNumberOfIds: actions.length });
 
-  const handleDeleteActionItem = (index: number): void => {
+  const onDeleteActionItemSideEffect = (index: number): void => {
+    // Removes the item at the specified index to ensure new unique IDs are generated for the action list.
+    // This approach is necessary because the list may contain non-unique data or IDs.
     removeKey(index);
   };
 
@@ -49,7 +51,7 @@ export const EditActions = (): React.ReactElement => {
             actionElement={actionElement}
             actionIndex={index}
             mode={!actionElement.action ? 'edit' : 'view'}
-            onDeleteClick={() => handleDeleteActionItem(index)}
+            onDeleteClick={() => onDeleteActionItemSideEffect(index)}
           />
         </div>
       ))}
