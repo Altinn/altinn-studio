@@ -1,0 +1,1 @@
+export { RepoOwnedByPersonInfo } from './RepoOwnedByPersonInfo';
