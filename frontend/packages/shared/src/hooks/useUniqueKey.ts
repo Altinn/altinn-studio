@@ -7,7 +7,7 @@ type UseUniqueIdsResult = {
   getUniqueKey: (index: number) => string;
 };
 
-type UseUniqueIds = {
+export type UseUniqueIds = {
   maxNumberOfItems: number;
 };
 

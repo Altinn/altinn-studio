@@ -1,6 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
-
-import { useUniqueKey } from 'app-shared/hooks/useUniqueKey';
+import { type UseUniqueIds, useUniqueKey } from 'app-shared/hooks/useUniqueKey';
 
 describe('useUniqueKey', () => {
   it('should generate unique keys within a max number range', () => {
@@ -15,7 +14,7 @@ describe('useUniqueKey', () => {
   });
 
   it('should delete id when "removeKey" is called', () => {
-    const { result, rerender } = renderHook((props) =>
+    const { result, rerender } = renderHook((props: UseUniqueIds) =>
       useUniqueKey({ maxNumberOfItems: props?.maxNumberOfItems || 3 }),
     );
 
