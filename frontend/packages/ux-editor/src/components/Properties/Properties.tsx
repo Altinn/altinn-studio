@@ -43,7 +43,7 @@ export const Properties = () => {
                 aria-label={t('right_menu.text_label')}
                 onHeaderClick={() => toggleOpen('text')}
               >
-                {t('right_menu.text')}
+                {t(formItem.type === 'Image' ? 'right_menu.text_and_image' : 'right_menu.text')}
               </Accordion.Header>
               <Accordion.Content className={classes.texts}>
                 <Text />

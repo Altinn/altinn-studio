@@ -40,7 +40,7 @@ const optionsTypeMap = {
   },
 };
 
-const getSelectedOptionsType = (codeListId: string, options: IOption[]): SelectedOptionsType => {
+const getSelectedOptionsType = (options: IOption[]): SelectedOptionsType => {
   if (options?.length) {
     return SelectedOptionsType.Manual;
   }
@@ -54,7 +54,7 @@ export function EditOptions<T extends SelectionComponentType>({
   renderOptions,
 }: ISelectionEditComponentProvidedProps<T>) {
   const previousEditFormId = useRef(editFormId);
-  const initialSelectedOptionType = getSelectedOptionsType(component.optionsId, component.options);
+  const initialSelectedOptionType = getSelectedOptionsType(component.options);
   const [selectedOptionsType, setSelectedOptionsType] = useState(initialSelectedOptionType);
   const { t } = useTranslation();
 
@@ -120,7 +120,9 @@ export function EditOptions<T extends SelectionComponentType>({
           checked={selectedOptionsType === SelectedOptionsType.CodeList}
           onChange={() => handleOptionsTypeChange(selectedOptionsType)}
         >
-          <Paragraph>{t('ux_editor.properties_panel.options.use_code_list_label')}</Paragraph>
+          <Paragraph size='small'>
+            {t('ux_editor.properties_panel.options.use_code_list_label')}
+          </Paragraph>
         </Switch>
       </div>
       {selectedOptionsType === SelectedOptionsType.CodeList && (

@@ -8,10 +8,22 @@
 .viewModeIconsContainer {
   display: grid;
   grid-template-columns: auto 1fr;
+  gap: var(--fds-spacing-2);
   text-align: left;
   align-items: center;
   color: var(--fds-semantic-text-neutral-default);
   width: 100%;
+}
+
+.label,
+.ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.label {
+  font-weight: bold;
 }
 
 .editIconWrapper {

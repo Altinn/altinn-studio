@@ -3,6 +3,7 @@ import { EditTextResourceBinding } from './EditTextResourceBinding/EditTextResou
 import type { FormContainer } from '../../../../types/FormContainer';
 import type { FormComponent } from '../../../../types/FormComponent';
 import { StudioProperty } from '@studio/components';
+import classes from './EditTextResourceBindings.module.css';
 
 export interface EditTextResourceBindingBase {
   editFormId?: string;
@@ -21,7 +22,7 @@ export const EditTextResourceBindings = ({
   textResourceBindingKeys,
 }: EditTextResourceBindingsProps) => {
   return (
-    <StudioProperty.Group>
+    <StudioProperty.Group className={classes.texts}>
       {textResourceBindingKeys.map((key: string) => (
         <EditTextResourceBinding
           key={key}

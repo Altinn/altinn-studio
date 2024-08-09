@@ -12,7 +12,7 @@ export interface StudioDeleteButtonProps extends StudioButtonProps {
 
 const StudioDeleteButton: OverridableComponent<StudioDeleteButtonProps, HTMLButtonElement> =
   forwardRef<HTMLButtonElement, StudioDeleteButtonProps>(
-    ({ confirmMessage, onClick, onDelete, ...rest }, ref) => {
+    ({ confirmMessage, onClick, onDelete, variant = 'secondary', ...rest }, ref) => {
       const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
         onClick?.(event);
         if (!confirmMessage || confirm(confirmMessage)) onDelete();
@@ -23,7 +23,7 @@ const StudioDeleteButton: OverridableComponent<StudioDeleteButtonProps, HTMLButt
           color='danger'
           icon={<TrashIcon />}
           onClick={handleClick}
-          variant='secondary'
+          variant={variant}
           {...rest}
           ref={ref}
         />

@@ -209,6 +209,22 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Saves the image to the disk.
+        /// </summary>
+        /// <param name="image">Stream representing the image to be saved.</param>
+        /// <param name="imageFileName">The file name of the image to be saved.</param>
+        /// <returns>A string containing the relative path to the file saved.</returns>
+        public async Task<string> SaveImageAsMemoryStream(MemoryStream image, string imageFileName)
+        {
+            string filePath = Path.Combine(ImagesFolderName, imageFileName);
+            image.Position = 0;
+            await WriteStreamByRelativePathAsync(filePath, image, true);
+            image.Position = 0;
+
+            return filePath;
+        }
+
+        /// <summary>
         /// Gets the folder where the data models are stored.
         /// </summary>
         /// <returns>A string with the relative path to the model folder within the app.</returns>
@@ -806,16 +822,64 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Checks if image already exists in wwwroot
+        /// </summary>
+        /// <param name="imageFilePath">The file path of the image from wwwroot</param>
+        /// <returns>A boolean indication if image exists</returns>
+        public bool DoesImageExist(string imageFilePath)
+        {
+            return FileExistsByRelativePath(GetPathToImage(imageFilePath));
+        }
+
+        /// <summary>
         /// Gets specified image from App/wwwroot folder of local repo
         /// </summary>
         /// <param name="imageFilePath">The file path of the image</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The image as stream</returns>
-        public Stream GetImage(string imageFilePath, CancellationToken cancellationToken = default)
+        public Stream GetImageAsStreamByFilePath(string imageFilePath, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             string imagePath = GetPathToImage(imageFilePath);
             return OpenStreamByRelativePath(imagePath);
+        }
+
+        /// <summary>
+        /// Delete specified image from App/wwwroot folder of local repo
+        /// </summary>
+        /// <param name="imageFilePath">The file path of the image</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>The image as stream</returns>
+        public Task DeleteImageByImageFilePath(string imageFilePath, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            string imagePath = GetPathToImage(imageFilePath);
+            DeleteFileByRelativePath(imagePath);
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Gets all image filePathNames from App/wwwroot folder of local repo
+        /// </summary>
+        /// <returns>The image as stream</returns>
+        public List<string> GetAllImageFileNames()
+        {
+            List<string> allFileNames = new List<string>();
+            if (!DirectoryExistsByRelativePath(ImagesFolderName))
+            {
+                return allFileNames;
+            }
+            // Case sensitive?
+            string[] directoryFilesPng = GetFilesByRelativeDirectory(ImagesFolderName, "*.png");
+            string[] directoryFilesJpg = GetFilesByRelativeDirectory(ImagesFolderName, "*.jpg");
+            string[] directoryFilesJpeg = GetFilesByRelativeDirectory(ImagesFolderName, "*.jpeg");
+            string[] directoryFilesSvg = GetFilesByRelativeDirectory(ImagesFolderName, "*.svg");
+            string[] allFilePaths = directoryFilesPng.Concat(directoryFilesJpeg).Concat(directoryFilesSvg).Concat(directoryFilesJpg).ToArray();
+            foreach (var filePath in allFilePaths)
+            {
+                allFileNames.Add(Path.GetFileName(filePath));
+            }
+            return allFileNames;
         }
 
         /// <summary>
@@ -826,11 +890,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private string GetPathToModelJsonSchema(string modelName)
         {
             return Path.Combine(ModelFolderPath, $"{modelName}.schema.json");
-        }
-
-        private string GetPathToModelMetadata(string modelName)
-        {
-            return Path.Combine(ModelFolderPath, $"{modelName}.metadata.json");
         }
 
         private static string GetPathToTexts()
