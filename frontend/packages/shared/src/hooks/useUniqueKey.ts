@@ -8,26 +8,27 @@ type UseUniqueKey = {
 };
 
 export type UseUniqueKeyArgs = {
-  maxNumberOfIds: number;
+  maxNumberOfKeys: number;
 };
 
-export const useUniqueKey = ({ maxNumberOfIds }: UseUniqueKeyArgs): UseUniqueKey => {
-  const internalIds = useRef<Array<string>>([]);
+export const useUniqueKey = ({ maxNumberOfKeys }: UseUniqueKeyArgs): UseUniqueKey => {
+  const internalUniqueKeys = useRef<Array<string>>([]);
 
-  const areInternalIdsInSync = internalIds.current.length === maxNumberOfIds;
-  if (!areInternalIdsInSync) {
-    internalIds.current = [];
-    for (let i = 0; i < maxNumberOfIds; i++) {
-      internalIds.current.push(uuidv4());
+  const areInternalUniqueKeysInSync = internalUniqueKeys.current.length === maxNumberOfKeys;
+  if (!areInternalUniqueKeysInSync) {
+    internalUniqueKeys.current = [];
+    for (let i = 0; i < maxNumberOfKeys; i++) {
+      const newlyGeneratedKey = uuidv4();
+      internalUniqueKeys.current.push(newlyGeneratedKey);
     }
   }
 
   const getUniqueKey = (index: number): string => {
-    return internalIds.current[index];
+    return internalUniqueKeys.current[index];
   };
 
   const removeKey = (index: number): void => {
-    ArrayUtils.removeItemByIndex(internalIds.current, index);
+    ArrayUtils.removeItemByIndex(internalUniqueKeys.current, index);
   };
 
   return {
