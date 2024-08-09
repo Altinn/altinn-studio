@@ -64,6 +64,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             await _sourceControl.VerifyCloneExists(org, app);
             ViewBag.AiConnectionString = _applicationInsightsSettings.ConnectionString;
+            ViewBag.App = "app-development";
             return View();
         }
 

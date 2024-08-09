@@ -272,16 +272,6 @@ namespace Altinn.Studio.Designer.Configuration
         public string DefaultLayoutFileName { get; set; } = "_ServiceLayout.cshtml";
 
         /// <summary>
-        /// Gets or sets the filename for the default view start file
-        /// </summary>
-        public string DefaultViewStartFileName { get; set; } = "_ViewStart.cshtml";
-
-        /// <summary>
-        /// Gets or sets the filename for the default view imports file
-        /// </summary>
-        public string DefaultViewImportsFileName { get; set; } = "_ViewImports.cshtml";
-
-        /// <summary>
         /// Gets or sets the filename for the rules file
         /// </summary>
         public string RulesFileName { get; set; } = "Rules.json";
