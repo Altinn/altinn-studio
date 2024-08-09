@@ -201,7 +201,7 @@ namespace LocalTest.Services.Storage.Implementation
             }
             if (queryParams.ContainsKey("process.currentTask"))
             {
-                instances.RemoveAll(i => !queryParams["process.currentTask"].Contains(i.Process.CurrentTask.ElementId));
+                instances.RemoveAll(i => !queryParams["process.currentTask"].Contains(i.Process.CurrentTask?.ElementId));
             }
 
             instances.RemoveAll(i => i.Status.IsHardDeleted == true);
