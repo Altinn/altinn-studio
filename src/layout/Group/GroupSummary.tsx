@@ -4,6 +4,7 @@ import { Heading, Paragraph } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { HeadingProps } from '@digdir/designsystemet-react';
 
+import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupSummary.module.css';
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import type { CompGroupInternal } from 'src/layout/Group/config.generated';
@@ -65,8 +66,7 @@ const RenderChildComponents = ({ componentNode, hierarchyLevel, summaryOverrides
 };
 
 export const GroupSummary = ({ componentNode, hierarchyLevel = 0, summaryOverrides }: GroupComponentSummaryProps) => {
-  const title = componentNode.item.textResourceBindings?.title;
-  const description = componentNode.item.textResourceBindings?.description;
+  const { title, summaryTitle, description } = componentNode.item.textResourceBindings ?? {};
   const headingLevel = getHeadingLevel(hierarchyLevel);
   const isGroup = componentNode.item.type === 'Group';
   const isNestedGroup = isGroup && hierarchyLevel > 0;
@@ -78,9 +78,11 @@ export const GroupSummary = ({ componentNode, hierarchyLevel = 0, summaryOverrid
           size={isNestedGroup ? 'xsmall' : 'small'}
           level={headingLevel}
         >
-          {title}
+          <Lang id={summaryTitle ?? title} />
         </Heading>
-        <Paragraph className={cn(classes.description)}>{description}</Paragraph>
+        <Paragraph className={cn(classes.description)}>
+          <Lang id={description} />
+        </Paragraph>
       </div>
       <RenderChildComponents
         componentNode={componentNode}
