@@ -24,6 +24,7 @@ export interface IAltinnHeaderMenuProps {
   repoOwnerIsOrg: boolean;
 }
 
+// TODO - Refactor
 export const AltinnHeaderMenu = ({
   menuItems,
   windowResizeWidth,

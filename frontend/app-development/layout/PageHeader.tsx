@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ReactNode, useState, type ReactElement } from 'react';
 import { AltinnHeader } from 'app-shared/components/altinnHeader/AltinnHeader';
 import { getFilteredTopBarMenu } from './AppBar/appBarConfig';
 import { getRepositoryType } from 'app-shared/utils/repository';
@@ -6,17 +6,27 @@ import type { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { SettingsModalButton } from './SettingsModalButton';
 import { TopBarGroup, TopBarMenu } from 'app-shared/enums/TopBarMenu';
-import type { User } from 'app-shared/types/Repository';
+import type { Repository, User } from 'app-shared/types/Repository';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { RepositoryType } from 'app-shared/types/global';
 import { useSelectedFormLayoutSetName, useSelectedFormLayoutName } from '@altinn/ux-editor/hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
-import { StudioPageHeader } from '@studio/components';
+import { StudioButton, StudioDropdownMenu, StudioPageHeader } from '@studio/components';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { AltinnHeaderMenu } from 'app-shared/components/altinnHeaderMenu';
 import { type TopBarMenuDeploymentItem } from 'app-shared/types/TopBarMenuItem';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
+import { useUserNameAndOrg } from 'app-shared/components/AltinnHeaderProfile/hooks/useUserNameAndOrg';
+import { DropdownMenu } from '@digdir/designsystemet-react';
+import {
+  type ProfileMenuItem,
+  ProfileMenuNew,
+} from 'app-shared/navigation/main-header/ProfileMenu/ProfileMenu';
+import { repositoryPath, userLogoutAfterPath, userLogoutPath } from 'app-shared/api/paths';
+import { altinnDocsUrl } from 'app-shared/ext-urls';
+import { useTranslation } from 'react-i18next';
+import { post } from 'app-shared/utils/networking';
 
 const WINDOW_RESIZE_WIDTH = 1000;
 
@@ -129,7 +139,9 @@ export const PageHeader = ({ showSubMenu, user, repoOwnerIsOrg, isRepoError }: P
               />
             )}
           </StudioPageHeader.Center>
-          <StudioPageHeader.Right>Right</StudioPageHeader.Right>
+          <StudioPageHeader.Right>
+            <ProfileMenu user={user} repository={repository} showLogout={true} />
+          </StudioPageHeader.Right>
         </StudioPageHeader.Main>
         {(showSubMenu || !isRepoError) && (
           <StudioPageHeader.Sub>
@@ -138,5 +150,66 @@ export const PageHeader = ({ showSubMenu, user, repoOwnerIsOrg, isRepoError }: P
         )}
       </StudioPageHeader>
     </>
+  );
+};
+
+type ProfileMenuProps = {
+  user: User;
+  showLogout?: boolean;
+  repository: Repository;
+};
+const ProfileMenu = ({ user, showLogout, repository }: ProfileMenuProps): ReactNode => {
+  const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+  const userNameAndOrg = useUserNameAndOrg(user, org, repository);
+
+  // TODO Fix
+  const handleLogout = () =>
+    post(userLogoutPath())
+      .then(() => window.location.assign(userLogoutAfterPath()))
+      .finally(() => true);
+
+  const openRepositoryElement: ProfileMenuItem[] =
+    org && app && repository
+      ? [
+          {
+            action: { type: 'link', href: repositoryPath(org, app) },
+            itemText: t('dashboard.open_repository'),
+          },
+        ]
+      : [];
+
+  const docsMenuItem: ProfileMenuItem = {
+    action: { type: 'link', href: altinnDocsUrl('') },
+    itemText: t('sync_header.documentation'),
+  };
+
+  const logOutMenuItem: ProfileMenuItem[] = showLogout
+    ? [
+        {
+          action: { type: 'button', onClick: handleLogout },
+          itemText: t('shared.header_logout'),
+        },
+      ]
+    : [];
+
+  return (
+    <ProfileMenuNew
+      buttonText={userNameAndOrg}
+      profileImage={
+        <img
+          alt={t('general.profile_icon')}
+          title={t('shared.header_profile_icon_text')}
+          // className={classes.userAvatar}
+          src={user.avatar_url}
+          style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '30px',
+          }}
+        />
+      }
+      profileMenuItems={[...openRepositoryElement, docsMenuItem, ...logOutMenuItem]}
+    />
   );
 };

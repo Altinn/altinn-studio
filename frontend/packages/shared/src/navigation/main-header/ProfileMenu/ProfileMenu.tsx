@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import React, { useEffect, useRef, useState } from 'react';
 import classes from './ProfileMenu.module.css';
 import { Menu, MenuItem } from '@mui/material';
@@ -6,10 +6,13 @@ import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { post } from '../../../utils/networking';
 import { repositoryPath, userLogoutAfterPath, userLogoutPath } from '../../../api/paths';
 import { useTranslation } from 'react-i18next';
-import type { User } from 'app-shared/types/Repository';
+import type { Repository, User } from 'app-shared/types/Repository';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { StudioButton } from '@studio/components';
 import { profileButtonId } from '@studio/testing/testids';
+import { DropdownMenu } from '@digdir/designsystemet-react';
+import { useUserNameAndOrg } from 'app-shared/components/AltinnHeaderProfile/hooks/useUserNameAndOrg';
+import { PersonCircleIcon } from '@studio/icons';
 
 export interface IProfileMenuComponentProps {
   showlogout?: boolean;
@@ -128,5 +131,80 @@ export const ProfileMenu = ({
         )}
       </Menu>
     </StudioButton>
+  );
+};
+
+interface ProfileMenuItemActionButton {
+  type: 'button';
+  onClick: () => void;
+}
+
+interface ProfileMenuItemActionLink {
+  type: 'link';
+  href: string;
+}
+
+export interface ProfileMenuItem {
+  action: ProfileMenuItemActionButton | ProfileMenuItemActionLink;
+  itemText: string;
+  selected?: boolean; // TODO for dashboard active element
+}
+
+// TODO MOVE
+type ProfileMenuNewProps = {
+  buttonText: string;
+  profileImage: ReactNode;
+  profileMenuItems: ProfileMenuItem[];
+};
+
+export const ProfileMenuNew = ({
+  buttonText,
+  profileImage,
+  profileMenuItems,
+}: ProfileMenuNewProps): ReactElement => {
+  const { t } = useTranslation();
+
+  const [open, setOpen] = useState(false);
+
+  const handleToggleMenu = () => {
+    setOpen((isOpen) => !isOpen);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  return (
+    <DropdownMenu onClose={handleClose} open={open}>
+      <DropdownMenu.Trigger asChild>
+        <StudioButton
+          variant='tertiary'
+          color='inverted'
+          onClick={handleToggleMenu}
+          //data-testid={profileButtonId}
+        >
+          <span className={classes.userOrgNames}>{buttonText}</span>
+          {profileImage ? profileImage : <PersonCircleIcon />}
+        </StudioButton>
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content>
+        {profileMenuItems.map((item: ProfileMenuItem) => {
+          if (item.action.type === 'button') {
+            return (
+              <DropdownMenu.Item key={item.itemText} onClick={item.action.onClick}>
+                {item.itemText}
+              </DropdownMenu.Item>
+            );
+          }
+          return (
+            <DropdownMenu.Item key={item.itemText} asChild>
+              <a href={item.action.href} target='_blank' rel='noopener noreferrer'>
+                {item.itemText}
+              </a>
+            </DropdownMenu.Item>
+          );
+        })}
+      </DropdownMenu.Content>
+    </DropdownMenu>
   );
 };
