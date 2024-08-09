@@ -4,7 +4,7 @@
         "hidden": false,
         "layout": [
             {
-                "id": "NavigationBar",
+                "id": "CheckboxesPage-NavigationBar",
                 "type": "NavigationBar"
             },
             {
@@ -138,7 +138,7 @@
                 ]
             },
             {
-                "id": "NavigationButtons",
+                "id": "CheckboxesPage-NavigationButtons",
                 "showBackButton": true,
                 "textResourceBindings": {},
                 "type": "NavigationButtons"

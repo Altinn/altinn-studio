@@ -3,7 +3,7 @@
   "data": {
     "layout": [
       {
-        "id": "NavigationBar",
+        "id": "Tabs-NavigationBar",
         "type": "NavigationBar"
       },
       {
@@ -27,13 +27,13 @@
         "type": "Tabs",
         "defaultTab": "tab2",
         "tabs": [
-          {"id": "tab1", "title": "Tab uten ikon", "children": ["TabsPageParagraphComponent"]},
+          {"id": "tab1", "title": "Tab uten ikon", "children": ["TabsPageParagraphComponent1"]},
           {"id": "tab2", "title": "Default tab", "children": ["TabsPageParagraphComponent2"]},
-          {"id": "tab3", "title": "Tab med ikon", "icon": "https://dev.w3.org/SVG/tools/svgweb/samples/svg-files/svg.svg", "children": ["TabsPageParagraphComponent"]}
+          {"id": "tab3", "title": "Tab med ikon", "icon": "https://dev.w3.org/SVG/tools/svgweb/samples/svg-files/svg.svg", "children": ["TabsPageParagraphComponent3"]}
         ]
       },
       {
-        "id": "TabsPageParagraphComponent",
+        "id": "TabsPageParagraphComponent1",
         "type": "Paragraph",
         "textResourceBindings": {
           "title": "Dette er en lorem ipsum tekst"
@@ -44,6 +44,13 @@
         "type": "Paragraph",
         "textResourceBindings": {
           "title": "Dette er en lorem ipsum tekst 123"
+        }
+      },
+      {
+        "id": "TabsPageParagraphComponent3",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Dette er en lorem ipsum tekst"
         }
       }
     ]

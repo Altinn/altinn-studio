@@ -3,7 +3,7 @@
   "data": {
     "layout": [
       {
-        "id": "NavigationBar",
+        "id": "Grid-NavigationBar",
         "type": "NavigationBar"
       },
       {
@@ -16,7 +16,7 @@
       },
       {
         "size": "h3",
-        "id": "CheckboxesPage-Header-Component",
+        "id": "GridPage-Header-Component",
         "type": "Header",
         "textResourceBindings": {
           "title": "Header.Component"
@@ -475,7 +475,7 @@
       },
       {
         "size": "h3",
-        "id": "CheckboxesPage-Header-Summary",
+        "id": "GridPage-Header-Summary",
         "type": "Header",
         "textResourceBindings": {
           "title": "Header.Summary"
@@ -493,7 +493,7 @@
       },
       {
         "size": "h3",
-        "id": "CheckboxesPage-Header-Summary2",
+        "id": "GridPage-Header-Summary2",
         "type": "Header",
         "textResourceBindings": {
           "title": "Header.Summary2"

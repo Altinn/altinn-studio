@@ -4,7 +4,7 @@
     "hidden": false,
     "layout": [
       {
-        "id": "NavigationBar",
+        "id": "DropdownPage-NavigationBar",
         "type": "NavigationBar"
       },
       {
@@ -84,7 +84,7 @@
         }
       },
       {
-        "id": "NavigationButtons",
+        "id": "DropdownPage-NavigationButtons",
         "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"

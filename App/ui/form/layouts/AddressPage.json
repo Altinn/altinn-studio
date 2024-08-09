@@ -3,7 +3,7 @@
   "data": {
     "layout": [
       {
-        "id": "NavigationBar",
+        "id": "AddressPage-NavigationBar",
         "type": "NavigationBar"
       },
       {
@@ -68,7 +68,7 @@
         }
       },
       {
-        "id": "NavigationButtons",
+        "id": "AddressPage-NavigationButtons",
         "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"

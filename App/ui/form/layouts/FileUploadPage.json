@@ -3,7 +3,7 @@
   "data": {
     "layout": [
       {
-        "id": "NavigationBar",
+        "id": "FileUpload-NavigationBar",
         "type": "NavigationBar"
       },
       {

@@ -4,7 +4,7 @@
     "hidden": false,
     "layout": [
       {
-        "id": "NavigationBar",
+        "id": "RadioButtonsPage-NavigationBar",
         "type": "NavigationBar"
       },
       {
@@ -84,7 +84,7 @@
         }
       },
       {
-        "id": "NavigationButtons",
+        "id": "RadioButtonsPage-NavigationButtons",
         "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"

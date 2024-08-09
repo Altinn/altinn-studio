@@ -3,7 +3,7 @@
   "data": {
     "layout": [
       {
-        "id": "NavigationBar",
+        "id": "TextareaPage-NavigationBar",
         "type": "NavigationBar"
       },
       {
@@ -16,7 +16,7 @@
       },
       {
         "size": "h3",
-        "id": "InputPage-Header-Component",
+        "id": "TextareaPage-Header-Component",
         "type": "Header",
         "textResourceBindings": {
           "title": "Header.Component"
@@ -34,7 +34,7 @@
       },
       {
         "size": "h3",
-        "id": "InputPage-Header-Summary",
+        "id": "TextareaPage-Header-Summary",
         "type": "Header",
         "textResourceBindings": {
           "title": "Header.Summary"
@@ -63,7 +63,7 @@
         }
       },
       {
-        "id": "NavigationButtons",
+        "id": "TextareaPage-NavigationButtons",
         "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
