@@ -30,6 +30,10 @@
       "value": "Slik ser det ut i summary 2"
     },
     {
+      "id": "Header.Summary2.Compact",
+      "value": "Slik ser det ut i summary 2 med kompaktvisning"
+    },
+    {
       "id": "InputPage",
       "value": "Kort svar"
     },
@@ -70,6 +74,34 @@
       "value": "Hva slags kjøretøy har du?"
     },
     {
+      "id": "RepeatingGroup.Name",
+      "value": "Navn"
+    },
+    {
+      "id": "RepeatingGroup.Points",
+      "value": "Poeng"
+    },
+    {
+      "id": "RepeatingGroup.Date",
+      "value": "Dato"
+    },
+    {
+      "id": "RepeatingGroup.Cars",
+      "value": "Biler"
+    },
+    {
+      "id": "RepeatingGroup.CarBrand",
+      "value": "Bilmerke"
+    },
+    {
+      "id": "RepeatingGroup.CarModel",
+      "value": "Modell"
+    },
+    {
+      "id": "RepeatingGroup.ModelYear",
+      "value": "Årsmodell"
+    },
+    {
       "id": "CheckboxesPage",
       "value": "Avkryssningsbokser"
     },
@@ -88,6 +120,10 @@
     {
       "id": "GroupPage",
       "value": "Gruppe"
+    },
+    {
+      "id": "RepeatingGroupPage",
+      "value": "Repeterende gruppe"
     },
     {
       "id": "GridPage",
@@ -156,6 +192,10 @@
     },
     { "id": "reasons.farm", "value": "Gårdsbruk" },
     { "id": "reasons.newName", "value": "Jeg tror navnet er nytt i Norge" },
-    { "id": "reasons.other", "value": "Annen begrunnelse " }
+    { "id": "reasons.other", "value": "Annen begrunnelse " },
+    {
+      "id": "appLogo.url",
+      "value": "/ttd/component-library/altinn-logo.svg"
+    }
   ]
 }

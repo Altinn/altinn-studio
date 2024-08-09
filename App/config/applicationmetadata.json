@@ -93,5 +93,9 @@
   "created": "2024-05-15T08:37:14.2656053Z",
   "createdBy": "adamhaeger",
   "lastChanged": "2024-05-15T08:37:14.2656068Z",
-  "lastChangedBy": "adamhaeger"
+  "lastChangedBy": "adamhaeger",
+  "logo": {
+    "displayAppOwnerNameInHeader": false,
+    "source": "resource"
+    }
 }

@@ -46,7 +46,7 @@
         "type": "Header",
         "textResourceBindings": {
           "title": "FileUpload with tag",
-        },
+        }
       },
       {
         "displayMode": "simple",
