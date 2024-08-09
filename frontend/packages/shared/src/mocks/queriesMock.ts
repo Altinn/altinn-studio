@@ -72,7 +72,6 @@ import type { RepoDiffResponse } from 'app-shared/types/api/RepoDiffResponse';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
-  getAllImages: jest.fn().mockImplementation(() => Promise.resolve()),
   getAppMetadataModelIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getAppReleases: jest
     .fn()
@@ -99,6 +98,7 @@ export const queriesMock: ServicesContextProps = {
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponse>({})),
   getFormLayoutsV3: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponseV3>({})),
   getFrontEndSettings: jest.fn().mockImplementation(() => Promise.resolve<IFrontEndSettings>({})),
+  getImage: jest.fn().mockImplementation(() => Promise.resolve<any>([])),
   getImageFileNames: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
   getLayoutNames: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
@@ -189,6 +189,7 @@ export const queriesMock: ServicesContextProps = {
   deleteDataModel: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteDataTypeFromAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteFormLayout: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteImage: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteLanguageCode: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteLayoutSet: jest.fn().mockImplementation(() => Promise.resolve()),
   generateModels: jest.fn().mockImplementation(() => Promise.resolve()),

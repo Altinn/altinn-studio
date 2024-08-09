@@ -206,7 +206,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
             return filePath;
         }
-        
+
         /// <summary>
         /// Saves the image to the disk.
         /// </summary>
@@ -821,18 +821,28 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Checks if image already exists in wwwroot
+        /// </summary>
+        /// <param name="imageFilePath">The file path of the image from wwwroot</param>
+        /// <returns>A boolean indication if image exists</returns>
+        public bool DoesImageExist(string imageFilePath)
+        {
+            return FileExistsByRelativePath(GetPathToImage(imageFilePath));
+        }
+
+        /// <summary>
         /// Gets specified image from App/wwwroot folder of local repo
         /// </summary>
         /// <param name="imageFilePath">The file path of the image</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The image as stream</returns>
-        public Stream GetImageByFilePath(string imageFilePath, CancellationToken cancellationToken = default)
+        public Stream GetImageAsStreamByFilePath(string imageFilePath, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             string imagePath = GetPathToImage(imageFilePath);
             return OpenStreamByRelativePath(imagePath);
         }
-        
+
         /// <summary>
         /// Delete specified image from App/wwwroot folder of local repo
         /// </summary>
@@ -846,7 +856,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             DeleteFileByRelativePath(imagePath);
             return Task.CompletedTask;
         }
-        
+
         /// <summary>
         /// Gets all image filePathNames from App/wwwroot folder of local repo
         /// </summary>
@@ -860,8 +870,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
             // Case sensitive?
             string[] directoryFilesPng = GetFilesByRelativeDirectory(ImagesFolderName, "*.png");
+            string[] directoryFilesJpg = GetFilesByRelativeDirectory(ImagesFolderName, "*.jpg");
             string[] directoryFilesJpeg = GetFilesByRelativeDirectory(ImagesFolderName, "*.jpeg");
-            string[] allFilePaths = directoryFilesPng.Concat(directoryFilesJpeg).ToArray();
+            string[] directoryFilesSvg = GetFilesByRelativeDirectory(ImagesFolderName, "*.svg");
+            string[] allFilePaths = directoryFilesPng.Concat(directoryFilesJpeg).Concat(directoryFilesSvg).Concat(directoryFilesJpg).ToArray();
             foreach (var filePath in allFilePaths)
             {
                 allFileNames.Add(Path.GetFileName(filePath));

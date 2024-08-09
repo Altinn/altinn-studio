@@ -132,7 +132,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            Stream imageStream = altinnAppGitRepository.GetImageByFilePath(imageFilePath);
+            Stream imageStream = altinnAppGitRepository.GetImageAsStreamByFilePath(imageFilePath);
             return new FileStreamResult(imageStream, MimeTypeMap.GetMimeType(Path.GetExtension(imageFilePath).ToLower()));
         }
 
