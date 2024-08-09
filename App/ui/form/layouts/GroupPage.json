@@ -91,7 +91,7 @@
         ]
       },
       {
-        "id": "NavigationButtons",
+        "id": "GroupPage-NavigationButtons2",
         "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"

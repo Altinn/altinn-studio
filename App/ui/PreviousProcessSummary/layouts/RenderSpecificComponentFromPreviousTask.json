@@ -3,7 +3,7 @@
   "data": {
     "layout": [
       {
-        "id": "NavigationBar",
+        "id": "PrevComponent-NavigationBar",
         "type": "NavigationBar"
       },
       {
@@ -15,7 +15,7 @@
         }
       },
       {
-        "id": "Summary2-previous-process",
+        "id": "Summary2-previous-component",
         "type": "Summary2",
         "hidden": false,
         "target": {

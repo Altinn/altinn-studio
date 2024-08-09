@@ -3,7 +3,7 @@
   "data": {
     "layout": [
       {
-        "id": "NavigationBar",
+        "id": "RepeatingGroup-NavigationBar",
         "type": "NavigationBar"
       },
       {
@@ -282,7 +282,7 @@
         }
       },
       {
-        "id": "NavigationButtons",
+        "id": "RepeatingGroup-NavigationButtons",
         "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"

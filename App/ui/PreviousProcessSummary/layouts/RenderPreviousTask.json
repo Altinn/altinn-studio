@@ -3,7 +3,7 @@
   "data": {
     "layout": [
       {
-        "id": "NavigationBar",
+        "id": "PrevTask-NavigationBar",
         "type": "NavigationBar"
       },
       {
@@ -19,7 +19,7 @@
         "type": "Summary2",
         "hidden": false,
         "target": {
-          "taskId" :"Task_1",
+          "taskId": "Task_1",
           "id": "Task_1"
         },
         "showPageInAccordion": true
