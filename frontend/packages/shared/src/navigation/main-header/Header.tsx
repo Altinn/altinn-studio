@@ -37,6 +37,7 @@ export type HeaderProps = {
   showMenu?: boolean;
 };
 
+// TODO - HEADER
 export function Header({ showMenu = true }: HeaderProps) {
   const { selectableOrgs } = React.useContext(HeaderContext);
   const selectedContext = useSelectedContext();

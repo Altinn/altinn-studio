@@ -32,6 +32,7 @@ export interface AltinnHeaderProps {
   buttonActions: AltinnButtonActionItem[];
 }
 
+// TODO DELETE
 export const AltinnHeader = ({
   heading,
   menuItems,

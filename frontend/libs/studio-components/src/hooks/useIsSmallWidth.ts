@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 
+// TODO - Rename / CHANGE
 export const useIsSmallWidth = (width: number): boolean => {
   const [isSmallWidth, setIsSmallWidth] = useState(window.innerWidth < width);
 

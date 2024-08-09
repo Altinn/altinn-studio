@@ -60,6 +60,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
     });
   }
 
+  // TODO - HEADER
   return (
     <>
       <div className={classes.header}>

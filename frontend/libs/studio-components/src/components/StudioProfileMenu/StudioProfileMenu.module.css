@@ -1,0 +1,14 @@
+.userOrgNames {
+  text-align: right;
+  white-space: pre-line;
+  line-height: var(--fds-spacing-6);
+  font-size: var(--fds-sizing-4);
+  margin-right: var(--fds-spacing-2);
+  color: inherit;
+}
+
+.avatarIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 30px;
+}

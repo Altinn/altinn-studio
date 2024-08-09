@@ -1,8 +1,6 @@
-import React, { type ReactNode, useState, type ReactElement } from 'react';
-import { AltinnHeader } from 'app-shared/components/altinnHeader/AltinnHeader';
+import React, { type ReactNode, type ReactElement } from 'react';
 import { getFilteredTopBarMenu } from './AppBar/appBarConfig';
 import { getRepositoryType } from 'app-shared/utils/repository';
-import type { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { SettingsModalButton } from './SettingsModalButton';
 import { TopBarGroup, TopBarMenu } from 'app-shared/enums/TopBarMenu';
@@ -12,21 +10,20 @@ import { RepositoryType } from 'app-shared/types/global';
 import { useSelectedFormLayoutSetName, useSelectedFormLayoutName } from '@altinn/ux-editor/hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
-import { StudioButton, StudioDropdownMenu, StudioPageHeader } from '@studio/components';
+import { StudioPageHeader, useIsSmallWidth } from '@studio/components';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { AltinnHeaderMenu } from 'app-shared/components/altinnHeaderMenu';
 import { type TopBarMenuDeploymentItem } from 'app-shared/types/TopBarMenuItem';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { useUserNameAndOrg } from 'app-shared/components/AltinnHeaderProfile/hooks/useUserNameAndOrg';
-import { DropdownMenu } from '@digdir/designsystemet-react';
-import {
-  type ProfileMenuItem,
-  ProfileMenuNew,
-} from 'app-shared/navigation/main-header/ProfileMenu/ProfileMenu';
+import {} from //type ProfileMenuItem,
+//ProfileMenuNew,
+'app-shared/navigation/main-header/ProfileMenu/ProfileMenu';
 import { repositoryPath, userLogoutAfterPath, userLogoutPath } from 'app-shared/api/paths';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { useTranslation } from 'react-i18next';
 import { post } from 'app-shared/utils/networking';
+import { StudioProfileMenu, type StudioProfileMenuItem } from '@studio/components';
 
 const WINDOW_RESIZE_WIDTH = 1000;
 
@@ -34,7 +31,7 @@ type SubMenuContentProps = {
   hasRepoError?: boolean;
 };
 
-export const SubMenuContent = ({ hasRepoError }: SubMenuContentProps): React.ReactElement => {
+export const SubMenuContent = ({ hasRepoError }: SubMenuContentProps): ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const repositoryType = getRepositoryType(org, app);
   const { doReloadPreview } = usePreviewContext();
@@ -47,27 +44,6 @@ export const SubMenuContent = ({ hasRepoError }: SubMenuContentProps): React.Rea
       onPullSuccess={doReloadPreview}
     />
   );
-};
-
-// MOVE THESE INTO SEPARATE FILE
-export const buttonActionsOld = (
-  org: string,
-  app: string,
-  selectedFormLayoutName: string,
-): AltinnButtonActionItem[] => {
-  const packagesRouter = new PackagesRouter({ org, app });
-
-  return [
-    {
-      menuKey: TopBarMenu.Preview,
-      to: `${packagesRouter.getPackageNavigationUrl('preview')}${selectedFormLayoutName ? `?layout=${selectedFormLayoutName}` : ''}`,
-      isInverted: true,
-    },
-    {
-      menuKey: TopBarMenu.Deploy,
-      to: packagesRouter.getPackageNavigationUrl('editorPublish'),
-    },
-  ];
 };
 
 export const getDeploymentButtonItems = (
@@ -86,7 +62,7 @@ export const getDeploymentButtonItems = (
     },
     {
       key: TopBarMenu.Deploy,
-      link: RoutePaths.Deploy, //packagesRouter.getPackageNavigationUrl('editorPublish'), // fix
+      link: RoutePaths.Deploy,
       group: TopBarGroup.Deployment,
     },
   ];
@@ -104,52 +80,37 @@ export const PageHeader = ({ showSubMenu, user, repoOwnerIsOrg, isRepoError }: P
   const repoType = getRepositoryType(org, app);
   const { data: repository } = useRepoMetadataQuery(org, app);
 
-  // TODO - Is this filter needed??
   const menuItems = getFilteredTopBarMenu(repoType);
 
   const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
   const { selectedFormLayoutName } = useSelectedFormLayoutName(selectedFormLayoutSetName);
 
   return (
-    <>
-      <AltinnHeader
-        menuItems={!isRepoError && menuItems}
-        showSubMenu={showSubMenu || !isRepoError}
-        subMenuContent={<SubMenuContent hasRepoError={isRepoError} />}
-        org={org}
-        app={!isRepoError && app}
-        user={user}
-        repository={repository}
-        repoOwnerIsOrg={repoOwnerIsOrg}
-        buttonActions={!isRepoError && buttonActionsOld(org, app, selectedFormLayoutName)}
-      />
-      <div style={{ border: '4px solid black', marginBlock: '10px' }} />
-      <StudioPageHeader>
-        <StudioPageHeader.Main variant='regular'>
-          <StudioPageHeader.Left title={app} />
-          <StudioPageHeader.Center>
-            {menuItems && (
-              <AltinnHeaderMenu
-                menuItems={menuItems}
-                windowResizeWidth={WINDOW_RESIZE_WIDTH}
-                repoOwnerIsOrg={repoOwnerIsOrg}
-                deploymentItems={
-                  !isRepoError && getDeploymentButtonItems(org, app, selectedFormLayoutName)
-                }
-              />
-            )}
-          </StudioPageHeader.Center>
-          <StudioPageHeader.Right>
-            <ProfileMenu user={user} repository={repository} showLogout={true} />
-          </StudioPageHeader.Right>
-        </StudioPageHeader.Main>
-        {(showSubMenu || !isRepoError) && (
-          <StudioPageHeader.Sub>
-            <SubMenuContent hasRepoError={isRepoError} />
-          </StudioPageHeader.Sub>
-        )}
-      </StudioPageHeader>
-    </>
+    <StudioPageHeader>
+      <StudioPageHeader.Main variant='regular'>
+        <StudioPageHeader.Left title={app} />
+        <StudioPageHeader.Center>
+          {menuItems && (
+            <AltinnHeaderMenu
+              menuItems={menuItems}
+              windowResizeWidth={WINDOW_RESIZE_WIDTH}
+              repoOwnerIsOrg={repoOwnerIsOrg}
+              deploymentItems={
+                !isRepoError && getDeploymentButtonItems(org, app, selectedFormLayoutName)
+              }
+            />
+          )}
+        </StudioPageHeader.Center>
+        <StudioPageHeader.Right>
+          <ProfileMenu user={user} repository={repository} showLogout={true} />
+        </StudioPageHeader.Right>
+      </StudioPageHeader.Main>
+      {(showSubMenu || !isRepoError) && (
+        <StudioPageHeader.Sub>
+          <SubMenuContent hasRepoError={isRepoError} />
+        </StudioPageHeader.Sub>
+      )}
+    </StudioPageHeader>
   );
 };
 
@@ -158,10 +119,13 @@ type ProfileMenuProps = {
   showLogout?: boolean;
   repository: Repository;
 };
+
 const ProfileMenu = ({ user, showLogout, repository }: ProfileMenuProps): ReactNode => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const userNameAndOrg = useUserNameAndOrg(user, org, repository);
+
+  const isSmallWidth = useIsSmallWidth(WINDOW_RESIZE_WIDTH);
 
   // TODO Fix
   const handleLogout = () =>
@@ -169,34 +133,34 @@ const ProfileMenu = ({ user, showLogout, repository }: ProfileMenuProps): ReactN
       .then(() => window.location.assign(userLogoutAfterPath()))
       .finally(() => true);
 
-  const openRepositoryElement: ProfileMenuItem[] =
+  const openRepositoryElement: StudioProfileMenuItem[] =
     org && app && repository
       ? [
           {
             action: { type: 'link', href: repositoryPath(org, app) },
-            itemText: t('dashboard.open_repository'),
+            itemName: t('dashboard.open_repository'),
           },
         ]
       : [];
 
-  const docsMenuItem: ProfileMenuItem = {
+  const docsMenuItem: StudioProfileMenuItem = {
     action: { type: 'link', href: altinnDocsUrl('') },
-    itemText: t('sync_header.documentation'),
+    itemName: t('sync_header.documentation'),
   };
 
-  const logOutMenuItem: ProfileMenuItem[] = showLogout
+  const logOutMenuItem: StudioProfileMenuItem[] = showLogout
     ? [
         {
           action: { type: 'button', onClick: handleLogout },
-          itemText: t('shared.header_logout'),
+          itemName: t('shared.header_logout'),
         },
       ]
     : [];
 
   return (
-    <ProfileMenuNew
-      buttonText={userNameAndOrg}
-      profileImage={
+    <StudioProfileMenu
+      triggerButtonText={isSmallWidth ? undefined : userNameAndOrg}
+      /*profileImage={
         <img
           alt={t('general.profile_icon')}
           title={t('shared.header_profile_icon_text')}
@@ -208,7 +172,7 @@ const ProfileMenu = ({ user, showLogout, repository }: ProfileMenuProps): ReactN
             borderRadius: '30px',
           }}
         />
-      }
+      }*/
       profileMenuItems={[...openRepositoryElement, docsMenuItem, ...logOutMenuItem]}
     />
   );

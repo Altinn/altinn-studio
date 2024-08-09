@@ -149,7 +149,7 @@ export interface ProfileMenuItem {
   itemText: string;
   selected?: boolean; // TODO for dashboard active element
 }
-
+/*
 // TODO MOVE
 type ProfileMenuNewProps = {
   buttonText: string;
@@ -208,3 +208,4 @@ export const ProfileMenuNew = ({
     </DropdownMenu>
   );
 };
+*/

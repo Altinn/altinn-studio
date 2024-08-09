@@ -15,7 +15,6 @@ import { Divider, DropdownMenu, Tag } from '@digdir/designsystemet-react';
 import { RepositoryType } from 'app-shared/types/global';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { AltinnHeaderButton } from '../altinnHeaderButtons';
 
 export interface IAltinnHeaderMenuProps {
   menuItems: TopBarMenuItem[];
