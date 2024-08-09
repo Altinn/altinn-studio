@@ -55,3 +55,8 @@
   align-items: center;
   gap: var(--fds-spacing-4);
 }
+
+.previewIcon {
+  font-size: var(--fds-sizing-6);
+  color: var(--fds-semantic-surface-neutral-default);
+}

@@ -8,7 +8,7 @@ import type {
   TopBarMenuItem,
 } from 'app-shared/types/TopBarMenuItem';
 import { StudioButton, type StudioButtonProps, useIsSmallWidth } from '@studio/components';
-import { MenuHamburgerIcon } from '@studio/icons';
+import { MenuHamburgerIcon, PlayIcon } from '@studio/icons';
 import { groupMenuItemsByGroup } from 'app-development/layout/AppBar/appBarConfig';
 import { TopBarGroup, TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { Divider, DropdownMenu, Tag } from '@digdir/designsystemet-react';
@@ -105,8 +105,18 @@ const LargeNavigationMenu = ({
   deploymentItems,
   repoOwnerIsOrg,
 }: LargeNavigationMenuProps): ReactElement => {
+  const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const repositoryType = getRepositoryType(org, app);
+
+  const deployItem: TopBarMenuDeploymentItem =
+    deploymentItems && deploymentItems.find((item) => item.key === TopBarMenu.Deploy);
+
+  const previewItem: TopBarMenuDeploymentItem =
+    deploymentItems && deploymentItems.find((item) => item.key === TopBarMenu.Preview);
+
+  console.log('deployItem', deployItem);
+  console.log('previewItem', previewItem);
 
   return (
     <div className={classes.largeMenu}>
@@ -121,23 +131,35 @@ const LargeNavigationMenu = ({
             </NavLink>
             {menuItem.isBeta && (
               <Tag color='info' size='small' className={classes.betaTag}>
-                Beta
+                {t('general.beta')}
               </Tag>
             )}
           </li>
         ))}
+        {!deployItem
+          ? null
+          : !repoOwnerIsOrg && deployItem
+            ? null
+            : repositoryType !== RepositoryType.DataModels && (
+                <li className={classes.menuItem}>
+                  <NavLink
+                    to={deployItem.link}
+                    className={({ isActive }) => (isActive ? classes.active : '')}
+                  >
+                    {t(deployItem.key)}
+                  </NavLink>
+                </li>
+              )}
+        {previewItem && (
+          <li className={classes.menuItem}>
+            <StudioButton asChild color='second' variant='primary'>
+              <a href={previewItem.link}>
+                <PlayIcon className={classes.previewIcon} />
+              </a>
+            </StudioButton>
+          </li>
+        )}
       </ul>
-      {deploymentItems && (
-        <div className={classes.deploymentItems}>
-          {deploymentItems.map((item: TopBarMenuDeploymentItem) =>
-            !repoOwnerIsOrg && item.key === TopBarMenu.Deploy
-              ? null
-              : repositoryType !== RepositoryType.DataModels && (
-                  <AltinnHeaderButton key={item.key} deploymentItem={item} />
-                ),
-          )}
-        </div>
-      )}
     </div>
   );
 };
