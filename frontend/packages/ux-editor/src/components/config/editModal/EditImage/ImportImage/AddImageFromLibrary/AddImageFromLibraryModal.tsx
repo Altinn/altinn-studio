@@ -7,9 +7,14 @@ import { useTranslation } from 'react-i18next';
 export interface AddImageFromLibraryModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onAddImageReference: (imageName: string) => void;
 }
 
-export const AddImageFromLibraryModal = ({ isOpen, onClose }: AddImageFromLibraryModalProps) => {
+export const AddImageFromLibraryModal = ({
+  isOpen,
+  onClose,
+  onAddImageReference,
+}: AddImageFromLibraryModalProps) => {
   const { t } = useTranslation();
   return (
     <StudioModal
@@ -22,7 +27,7 @@ export const AddImageFromLibraryModal = ({ isOpen, onClose }: AddImageFromLibrar
       }
       closeButtonLabel={t('general.close')}
     >
-      <ChooseFromLibrary />
+      <ChooseFromLibrary onAddImageReference={onAddImageReference} />
     </StudioModal>
   );
 };

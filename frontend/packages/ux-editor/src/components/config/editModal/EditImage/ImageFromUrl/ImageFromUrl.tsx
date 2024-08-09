@@ -37,7 +37,9 @@ export const ImageFromUrl = ({ onUrlChange, existingImageUrl, onUrlDelete }: Ima
     <StudioToggleableTextfield
       viewProps={{
         children: existingImageUrl ?? (
-          <span className={classes.missingUrl}>{'Ingen URL lagret'}</span>
+          <span className={classes.missingUrl}>
+            {t('ux_editor.properties_panel.images.external_url_not_added')}
+          </span>
         ),
         label: t('ux_editor.properties_panel.images.enter_external_url'),
         title: existingImageUrl,

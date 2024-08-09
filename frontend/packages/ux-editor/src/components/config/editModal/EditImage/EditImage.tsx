@@ -33,7 +33,6 @@ export const EditImage = ({ component, handleComponentChange }: EditImageProps) 
   const imageOriginsFromLibrary = !imageFileNamesArePending && imageFileNames.includes(fileName);
 
   const handleImageChange = async (imageSource: string, fromUrl: boolean = false) => {
-    console.log('fileNames before: ', imageFileNames);
     handleComponentChange({
       ...component,
       image: {
@@ -44,8 +43,7 @@ export const EditImage = ({ component, handleComponentChange }: EditImageProps) 
         },
       },
     });
-    const { data: updatedImageFileNames } = await refetchImageFileNames();
-    console.log('fileNames after: ', updatedImageFileNames);
+    await refetchImageFileNames();
   };
   const handleDeleteImageReference = () => {
     component.image.src = {};
@@ -54,9 +52,9 @@ export const EditImage = ({ component, handleComponentChange }: EditImageProps) 
     });
   };
 
-  const handleDeleteImage = (fileName: string) => {
+  const handleDeleteImage = (fileNameToDelete: string) => {
     handleDeleteImageReference();
-    deleteImageFromLibrary(fileName);
+    deleteImageFromLibrary(fileNameToDelete);
   };
 
   return (
@@ -81,7 +79,7 @@ export const EditImage = ({ component, handleComponentChange }: EditImageProps) 
           <>
             <ImportImage onImageChange={handleImageChange} />
             {component.image?.src?.nb && (
-              <Alert size='small'>
+              <Alert size='small' className={classes.alertImportTab}>
                 {
                   'Du har allerede referert til en ekstern url. Laster du opp et bilde, vil den eksterne referansen bli slettet.'
                 }
@@ -97,7 +95,7 @@ export const EditImage = ({ component, handleComponentChange }: EditImageProps) 
           onUrlDelete={handleDeleteImageReference}
         />
         {imageOriginsFromLibrary && (
-          <Alert size='small'>
+          <Alert size='small' className={classes.alert}>
             {
               'Du har allerede lastet opp et bilde. Skriver du inn en url, vil bildereferansen din bli slettet.'
             }
