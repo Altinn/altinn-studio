@@ -14,8 +14,8 @@ export type UseUniqueKeyArgs = {
 export const useUniqueKey = ({ maxNumberOfKeys }: UseUniqueKeyArgs): UseUniqueKey => {
   const internalUniqueKeys = useRef<Array<string>>([]);
 
-  const areInternalUniqueKeysInSync = internalUniqueKeys.current.length === maxNumberOfKeys;
-  if (!areInternalUniqueKeysInSync) {
+  const isInternalUniqueKeysOutOfSync = internalUniqueKeys.current.length !== maxNumberOfKeys;
+  if (isInternalUniqueKeysOutOfSync) {
     internalUniqueKeys.current = [];
     for (let i = 0; i < maxNumberOfKeys; i++) {
       const newlyGeneratedKey = uuidv4();
