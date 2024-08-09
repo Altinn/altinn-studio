@@ -3,7 +3,7 @@ import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { DeploymentContainer } from './DeploymentContainer';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { renderWithMockStore } from 'app-development/test/mocks';
+import { renderWithProviders } from 'app-development/test/mocks';
 import { environment } from 'app-shared/mocks/mocks';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import { org } from '@studio/testing/testids';
@@ -54,5 +54,5 @@ describe('DeploymentContainer', () => {
 });
 
 const render = (queries?: Partial<ServicesContextProps>) => {
-  return renderWithMockStore({}, queries)(<DeploymentContainer />);
+  return renderWithProviders(queries)(<DeploymentContainer />);
 };

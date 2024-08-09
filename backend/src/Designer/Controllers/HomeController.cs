@@ -1,16 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
-
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-
-using AltinnCore.Authentication.Constants;
-
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -68,16 +61,18 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("/[controller]/[action]/{id?}", Name = "DefaultNotLoggedIn")]
         public async Task<ActionResult> StartPage()
         {
-            string userName = await _giteaApi.GetUserNameFromUI();
+            await Task.CompletedTask;
+            bool isUserLoggedIn = User.Identity?.IsAuthenticated ?? false;
 
-            if (string.IsNullOrEmpty(userName))
+            if (isUserLoggedIn)
             {
-                Response.Cookies.Delete(Constants.General.DesignerCookieName);
-                Response.Cookies.Delete(_settings.GiteaCookieName);
-                return View("StartPage");
+                return LocalRedirect("/dashboard");
             }
 
-            return LocalRedirect("/dashboard");
+            Response.Cookies.Delete(General.DesignerCookieName);
+            Response.Cookies.Delete(_settings.GiteaCookieName);
+            return View("StartPage");
+
         }
 
         [Route("/{*AllValues:regex(^(?!designer).*$)}")]
@@ -131,69 +126,11 @@ namespace Altinn.Studio.Designer.Controllers
         /// Login
         /// </summary>
         /// <returns>The login page</returns>
+        [Authorize]
         public async Task<IActionResult> Login()
         {
-            string userName;
-            string goToUrl = "/";
-
-            // Verify that user is not logged in already.
-            if (!string.IsNullOrEmpty(AuthenticationHelper.GetDeveloperUserName(HttpContext)))
-            {
-                return LocalRedirect(goToUrl);
-            }
-
-            // Temporary catch errors until we figure out how to force this.
-            try
-            {
-                userName = await _giteaApi.GetUserNameFromUI();
-                if (string.IsNullOrEmpty(userName))
-                {
-                    return Environment.GetEnvironmentVariable("ServiceRepositorySettings__GiteaLoginUrl") != null
-                    ? Redirect(Environment.GetEnvironmentVariable("ServiceRepositorySettings__GiteaLoginUrl"))
-                    : Redirect(_settings.GiteaLoginUrl);
-                }
-            }
-            catch (Exception ex)
-            {
-                return Content(ex.ToString());
-            }
-
-            _logger.LogInformation("Updating app key for " + userName);
-            KeyValuePair<string, string> accessKeyValuePair = await _giteaApi.GetSessionAppKey() ?? default(KeyValuePair<string, string>);
-            List<Claim> claims = new();
-            const string Issuer = "https://altinn.no";
-            if (!accessKeyValuePair.Equals(default(KeyValuePair<string, string>)))
-            {
-                string accessToken = accessKeyValuePair.Value;
-                string accessId = accessKeyValuePair.Key;
-                _logger.LogInformation("Adding key to claims: " + accessId);
-                claims.Add(new Claim(AltinnCoreClaimTypes.DeveloperToken, accessToken, ClaimValueTypes.String, Issuer));
-                claims.Add(new Claim(AltinnCoreClaimTypes.DeveloperTokenId, accessId, ClaimValueTypes.String, Issuer));
-            }
-
-            claims.Add(new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, Issuer));
-            ClaimsIdentity identity = new("TestUserLogin");
-            identity.AddClaims(claims);
-
-            ClaimsPrincipal principal = new(identity);
-
-            string timeoutString = DateTime.UtcNow.AddMinutes(_generalSettings.SessionDurationInMinutes - 5).ToString();
-            HttpContext.Response.Cookies.Append(
-                _generalSettings.SessionTimeoutCookieName,
-                timeoutString,
-                new CookieOptions { HttpOnly = true });
-
-            await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                principal,
-                new AuthenticationProperties
-                {
-                    ExpiresUtc = DateTime.UtcNow.AddMinutes(_generalSettings.SessionDurationInMinutes),
-                    IsPersistent = false,
-                    AllowRefresh = false,
-                });
-
-            return LocalRedirect(goToUrl);
+            await Task.CompletedTask;
+            return LocalRedirect("/");
         }
 
         /// <summary>
@@ -226,20 +163,6 @@ namespace Altinn.Studio.Designer.Controllers
         {
             _sourceControl.StoreAppTokenForUser(appKey.Key);
             return Redirect("/");
-        }
-
-        /// <summary>
-        /// Debug info
-        /// </summary>
-        /// <returns>The debug info you want</returns>
-        public async Task<IActionResult> Debug()
-        {
-            StringBuilder stringBuilder = new();
-            stringBuilder.AppendLine("Debug info");
-            stringBuilder.AppendLine("App token is: " + _sourceControl.GetAppToken());
-            stringBuilder.AppendLine("App token id is " + _sourceControl.GetAppTokenId());
-            stringBuilder.AppendLine("UserName from service: " + await _giteaApi.GetUserNameFromUI());
-            return Content(stringBuilder.ToString());
         }
     }
 }

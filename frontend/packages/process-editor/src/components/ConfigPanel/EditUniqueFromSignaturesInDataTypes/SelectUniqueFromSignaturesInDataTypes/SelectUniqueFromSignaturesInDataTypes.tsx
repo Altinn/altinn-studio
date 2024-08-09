@@ -1,6 +1,6 @@
 import React, { useId, useState } from 'react';
 import { Combobox, Label } from '@digdir/designsystemet-react';
-import { StudioButton } from '@studio/components';
+import { StudioButton, useDebounce } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
 import classes from './SelectUniqueFromSignaturesInDataTypes.module.css';
@@ -9,7 +9,6 @@ import { updateDataTypes, getSelectedDataTypes } from '../UniqueFromSignaturesIn
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
-import { useDebounce } from 'app-shared/hooks/useDebounce';
 import { StudioModeler } from '../../../../utils/bpmnModeler/StudioModeler';
 
 export interface SelectUniqueFromSignaturesInDataTypesProps {

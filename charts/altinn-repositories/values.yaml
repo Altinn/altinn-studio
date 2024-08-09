@@ -1,0 +1,108 @@
+replicaCount: 1
+
+environment: development
+image:
+  repository: altinntjenestercontainerregistry.azurecr.io/altinn-repositories
+  pullPolicy: Always
+  containerPort: 3000
+  imagePullSecret: acrsecret
+
+securityContext:
+  runAsUser: 1000
+
+service:
+  externalPort: 3000
+
+hosts:
+  dev: dev.altinn.studio
+  staging: staging.altinn.studio
+  prod: altinn.studio
+
+distinctEnvironmentVariables:
+  dev:
+    - name: ALTINN_STUDIO_DOMAIN
+      value: dev.altinn.studio
+    - name: ALTINN_STUDIO_RUN_MODE
+      value: dev
+    - name: GITEA____RUN_MODE
+      value: prod
+    - name: GITEA__server__SSH_DOMAIN
+      value: dev.altinn.studio
+    - name: GITEA__server__DOMAIN
+      value: dev.altinn.studio
+    - name: GITEA__server__ROOT_URL
+      value: https://dev.altinn.studio/repos
+  staging:
+    - name: GITEA____RUN_MODE
+      value: test
+    - name: GITEA__server__SSH_DOMAIN
+      value: staging.altinn.studio
+    - name: GITEA__server__DOMAIN
+      value: staging.altinn.studio
+    - name: GITEA__server__ROOT_URL
+      value: https://staging.altinn.studio/repos
+  prod:
+    - name: ALTINN_STUDIO_DOMAIN
+      value: altinn.studio
+    - name: ALTINN_STUDIO_RUN_MODE
+      value: prod
+    - name: GITEA____RUN_MODE
+      value: prod
+    - name: GITEA__server__SSH_DOMAIN
+      value: altinn.studio
+    - name: GITEA__server__DOMAIN
+      value: altinn.studio
+    - name: GITEA__server__ROOT_URL
+      value: https://altinn.studio/repos
+
+environmentVariables:
+  - name: USER_UID
+    value: \"1000\"
+  - name: USER_GID
+    value: \"1000\"
+  - name: DB_TYPE
+    value: "postgres"
+  - name: DB_SSL_MODE
+    value: require
+  - name: GITEA__database__DB_TYPE
+    value: "postgres"
+  - name: GITEA__database__SSL_MODE
+    value: require
+  - name: GITEA__mailer__ENABLED
+    value: "true"
+  - name: GITEA__mailer__SKIP_VERIFY
+    value: "true"
+  - name: GITEA__mailer__REGISTER_EMAIL_CONFIRM
+    value: "true"
+  - name: GITEA__service__ENABLE_NOTIFY_MAIL
+    value: "true"
+
+environmentVariablesSecretName: altinn-repositories-secret
+
+volumeMounts:
+  - name: altinn-gitea-storage
+    mountPath: "/var/lib/gitea/git"
+  - name: altinn-gitea-avatars-storage
+    mountPath: "/var/lib/gitea/avatars"
+  - name: altinn-gitea-attachments-storage
+    mountPath: "/var/lib/gitea/attachments"
+
+volumes:
+  - name: altinn-gitea-storage
+    persistentVolumeClaim:
+      claimName: altinn-storage-gitea-volume-claim
+  - name: altinn-gitea-avatars-storage
+    persistentVolumeClaim:
+      claimName: altinn-storage-gitea-avatars-volume-claim
+  - name: altinn-gitea-attachments-storage
+    persistentVolumeClaim:
+      claimName: altinn-storage-gitea-attachments-volume-claim
+
+ingress:
+  - metadata:
+      name: altinn-repositories-base-path
+      annotations:
+        traefik.ingress.kubernetes.io/rule-type: PathPrefixStrip
+        traefik.frontend.priority: "500"
+    paths:
+      - path: /repos/
