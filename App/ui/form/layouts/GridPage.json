@@ -32,66 +32,113 @@
         "rows": [
           {
             "header": true,
-            "cells": [{ "text": "Komponenttype" }, { "text": "Eksempel" }]
-          },
-          {
             "cells": [
-              { "text": "Button" },
-              { "component": "grid-example-button" }
+              {
+                "text": "Komponenttype"
+              },
+              {
+                "text": "Eksempel"
+              }
             ]
           },
           {
             "cells": [
-              { "text": "PrintButton" },
-              { "component": "grid-example-print-button" }
+              {
+                "text": "Button"
+              },
+              {
+                "component": "grid-example-button"
+              }
             ]
           },
           {
             "cells": [
-              { "text": "InstantiationButton" },
-              { "component": "grid-example-instantiation-button" }
+              {
+                "text": "PrintButton"
+              },
+              {
+                "component": "grid-example-print-button"
+              }
             ]
           },
           {
             "cells": [
-              { "text": "Header" },
-              { "component": "grid-example-header" }
+              {
+                "text": "InstantiationButton"
+              },
+              {
+                "component": "grid-example-instantiation-button"
+              }
             ]
           },
           {
             "cells": [
-              { "text": "Paragraph" },
-              { "component": "grid-example-paragraph" }
+              {
+                "text": "Header"
+              },
+              {
+                "component": "grid-example-header"
+              }
             ]
           },
           {
             "cells": [
-              { "text": "Image" },
-              { "component": "grid-example-image" }
+              {
+                "text": "Paragraph"
+              },
+              {
+                "component": "grid-example-paragraph"
+              }
             ]
           },
           {
             "cells": [
-              { "text": "Datepicker" },
-              { "component": "grid-example-datepicker" }
+              {
+                "text": "Image"
+              },
+              {
+                "component": "grid-example-image"
+              }
             ]
           },
           {
             "cells": [
-              { "text": "Dropdown" },
-              { "component": "grid-example-dropdown" }
+              {
+                "text": "Datepicker"
+              },
+              {
+                "component": "grid-example-datepicker"
+              }
             ]
           },
           {
             "cells": [
-              { "text": "MultipleSelect" },
-              { "component": "grid-example-multiple-select" }
+              {
+                "text": "Dropdown"
+              },
+              {
+                "component": "grid-example-dropdown"
+              }
             ]
           },
           {
             "cells": [
-              { "text": "TextArea" },
-              { "component": "grid-example-text-area" }
+              {
+                "text": "MultipleSelect"
+              },
+              {
+                "component": "grid-example-multiple-select"
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "text": "TextArea"
+              },
+              {
+                "component": "grid-example-text-area"
+              }
             ]
           }
         ]
@@ -200,7 +247,9 @@
             "header": true,
             "readOnly": false,
             "cells": [
-              {"text": "Row number"},
+              {
+                "text": "Row number"
+              },
               {
                 "labelFrom": "grid-input-field"
               },
@@ -216,7 +265,9 @@
             "header": false,
             "readOnly": false,
             "cells": [
-              {"text": "Row 1"},
+              {
+                "text": "Row 1"
+              },
               {
                 "component": "grid-input-field"
               },
@@ -232,7 +283,9 @@
             "header": false,
             "readOnly": false,
             "cells": [
-              {"text": "Row 2"},
+              {
+                "text": "Row 2"
+              },
               {
                 "component": "grid-input-field-two"
               },
@@ -248,7 +301,9 @@
             "header": false,
             "readOnly": false,
             "cells": [
-              {"text": "Row 3"},
+              {
+                "text": "Row 3"
+              },
               {
                 "component": "grid-input-field-three"
               },
@@ -263,7 +318,9 @@
           {
             "readOnly": true,
             "cells": [
-              {"text": "Row 1 - readonly"},
+              {
+                "text": "Row 1 - readonly"
+              },
               {
                 "component": "grid-input-field-readonly"
               },

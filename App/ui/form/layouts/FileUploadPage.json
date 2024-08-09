@@ -45,7 +45,7 @@
         "id": "FileUpload-HeaderWithtag",
         "type": "Header",
         "textResourceBindings": {
-          "title": "FileUpload with tag",
+          "title": "FileUpload with tag"
         }
       },
       {
@@ -57,7 +57,7 @@
         "optionsId": "",
         "id": "FileUploadWithTag-UvbEiL",
         "type": "FileUploadWithTag",
-        "textResourceBindings" : {
+        "textResourceBindings": {
           "tagTitle": "Filtype"
         },
         "options": [

@@ -27,9 +27,28 @@
         "type": "Tabs",
         "defaultTab": "tab2",
         "tabs": [
-          {"id": "tab1", "title": "Tab uten ikon", "children": ["TabsPageParagraphComponent1"]},
-          {"id": "tab2", "title": "Default tab", "children": ["TabsPageParagraphComponent2"]},
-          {"id": "tab3", "title": "Tab med ikon", "icon": "https://dev.w3.org/SVG/tools/svgweb/samples/svg-files/svg.svg", "children": ["TabsPageParagraphComponent3"]}
+          {
+            "id": "tab1",
+            "title": "Tab uten ikon",
+            "children": [
+              "TabsPageParagraphComponent1"
+            ]
+          },
+          {
+            "id": "tab2",
+            "title": "Default tab",
+            "children": [
+              "TabsPageParagraphComponent2"
+            ]
+          },
+          {
+            "id": "tab3",
+            "title": "Tab med ikon",
+            "icon": "https://dev.w3.org/SVG/tools/svgweb/samples/svg-files/svg.svg",
+            "children": [
+              "TabsPageParagraphComponent3"
+            ]
+          }
         ]
       },
       {
