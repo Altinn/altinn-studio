@@ -6,7 +6,7 @@ import { useChecksum } from './useChecksum';
 import { ActionsEditor } from './ActionsEditor';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { type Action, BpmnActionModeler } from '../../../../utils/bpmnModeler/BpmnActionModeler';
-
+import { useUniqueKey } from 'app-shared/hooks/useUniqueKey';
 import classes from './EditActions.module.css';
 
 export const EditActions = (): React.ReactElement => {
@@ -16,6 +16,11 @@ export const EditActions = (): React.ReactElement => {
   // This is a custom hook that is used to force re-render the component, since the actions from bpmnjs are not reactive
   const { updateChecksum: forceReRenderComponent } = useChecksum();
   const actions: Action[] = bpmnActionModeler.actionElements?.action || [];
+  const { getUniqueKey, removeKey } = useUniqueKey({ maxNumberOfItems: actions.length });
+
+  const handleDeleteActionItem = (index: number): void => {
+    removeKey(index);
+  };
 
   const onNewActionAddClicked = (): void => {
     const shouldUpdateExistingActions = bpmnActionModeler.hasActionsAlready;
@@ -39,12 +44,12 @@ export const EditActions = (): React.ReactElement => {
   return (
     <>
       {actions.map((actionElement: ModdleElement, index: number) => (
-        // Using the index as key, since we do not have a unique identifier for the action elements
-        <div key={index} className={classes.container}>
+        <div key={getUniqueKey(index)} className={classes.container}>
           <ActionsEditor
             actionElement={actionElement}
             actionIndex={index}
             mode={!actionElement.action ? 'edit' : 'view'}
+            onDeleteClicked={() => handleDeleteActionItem(index)}
           />
         </div>
       ))}
