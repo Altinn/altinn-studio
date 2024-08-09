@@ -3,7 +3,7 @@ import classes from './Dashboard.module.css';
 import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { Textfield } from '@digdir/designsystemet-react';
-import { StudioButton } from '@studio/components';
+import { StudioButton, useDebounce } from '@studio/components';
 import { XMarkIcon } from '@studio/icons';
 import { CenterContainer } from '../../components/CenterContainer';
 import { DataModelsReposList } from '../../components/DataModelsRepoList';
@@ -12,7 +12,6 @@ import { SearchResultReposList } from '../../components/SearchResultReposList';
 import { FavoriteReposList } from '../../components/FavoriteReposList';
 import { Footer } from '../../components/Footer';
 import { Link } from 'react-router-dom';
-import { useDebounce } from 'react-use';
 import { useTranslation } from 'react-i18next';
 import { ErrorBoundary } from 'react-error-boundary';
 import type { User } from 'app-shared/types/Repository';
@@ -34,7 +33,8 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
   const [searchText, setSearchText] = useState('');
   const [isNewLinkFocused, setIsNewLinkFocused] = useState(false);
   const [debouncedSearchText, setDebouncedSearchText] = useState('');
-  useDebounce(() => setDebouncedSearchText(searchText), disableDebounce ? 1 : 500, [searchText]);
+  const { debounce } = useDebounce({ debounceTimeInMs: disableDebounce ? 1 : 500 });
+  debounce(() => setDebouncedSearchText(searchText));
 
   const handleChangeSearch = (event: ChangeEvent<HTMLInputElement>) =>
     setSearchText(event.target.value);

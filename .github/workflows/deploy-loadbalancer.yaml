@@ -1,9 +1,9 @@
-name: Loadbalancer deploy
+name: Deploy Loadbalancer
 on:
   push:
     branches: [ main ]
     paths:
-      - '.github/workflows/loadbalancer-deploy.yaml'
+      - '.github/workflows/deploy-loadbalancer.yaml'
       - '.github/workflows/template-docker-push.yaml'
       - '.github/workflows/template-flux-config-push.yaml'
       - '.github/workflows/template-helm-push.yaml'

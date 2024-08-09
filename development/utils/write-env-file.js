@@ -9,5 +9,6 @@ module.exports = (envData) => {
   const fd = fs.openSync(dotenvLocations, O_RDWR | O_CREAT, 0o600);
   Object.keys(envData).forEach((key) => newEnv.push([key, envData[key]].join('=')));
   fs.writeFileSync(fd, newEnv.join(os.EOL), 'utf-8');
+  fs.closeSync(fd);
   console.log('Ensuring .env variables at:', dotenvLocations);
 };

@@ -4,7 +4,7 @@ import { Language } from '../enum/Language';
 
 // Since this page is a Razor page, it's not using the nb/en.json files, which are used in the frontend.
 const loginPageTexts: Record<string, string> = {
-  login: 'logg inn',
+  login: 'Logg inn',
   username: 'Brukernavn eller epost',
   password: 'Passord',
   error_message: 'Ugyldig brukernavn eller passord.',
