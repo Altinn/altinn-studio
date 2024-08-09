@@ -11,7 +11,6 @@ const waitForHealthy = require('./utils/wait-for-healthy.js');
 const startingDockerCompose = () => runCommand('docker compose up -d --remove-orphans --build');
 const buildAndStartComposeService = (service) =>
   runCommand(`docker compose up -d ${service} --build`);
-const stopComposeService = (service) => runCommand(`docker compose down ${service}`);
 
 const createUser = (username, password, admin) =>
   runCommand(
@@ -183,9 +182,6 @@ const setupEnvironment = async (env) => {
   const result = await createOidcClientIfNotExists(env);
 
   await createCypressEnvFile(env);
-
-  stopComposeService('studio_db');
-  stopComposeService('studio_repositories');
   return result;
 };
 
