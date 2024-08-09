@@ -8,9 +8,13 @@ import { News } from './News';
 import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
 import { Deployments } from './Deployments';
 import { Header } from './Header';
+import { GetInTouchWith } from 'app-shared/getInTouch';
+import { GitHubIssueContactProvider } from 'app-shared/getInTouch/providers';
 
 export const Overview = () => {
   const { t } = useTranslation();
+
+  const getHubContact = new GetInTouchWith(new GitHubIssueContactProvider());
 
   return (
     <PageContainer>
@@ -18,6 +22,9 @@ export const Overview = () => {
         {/* According to https://developer.mozilla.org/en-US/docs/Web/HTML/Element/header, the role of <header> should implicitly be "generic" when it is a descendant of <main>, but Testing Library still interprets it as "banner". */}
         <header className={classes.header} role='generic'>
           <Header />
+          <a href={getHubContact.url('bugReport', { 'additional-information': 'test lenke' })}>
+            test lenke
+          </a>
         </header>
         <div className={classes.panel}>
           <div className={classes.content}>

@@ -15,4 +15,16 @@ describe('GitHubIssuesContactProvider', () => {
       'https://github.com/Altinn/altinn-studio/issues/new/choose',
     );
   });
+
+  it('should support options to prefill form', () => {
+    const gitHubIssuesContactProvider = new GitHubIssueContactProvider();
+    expect(
+      gitHubIssuesContactProvider.buildContactUrl('bugReport', {
+        title: 'title of the issue',
+        'additional-information': 'cannot read property of undefined, reading id',
+      }),
+    ).toBe(
+      'https://github.com/Altinn/altinn-studio/issues/new?assignees=&labels=kind/bug,status/triage&projects=&template=bug_report.yml&title=title%20of%20the%20issue&additional-information=cannot%20read%20property%20of%20undefined%2C%20reading%20id',
+    );
+  });
 });
