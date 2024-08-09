@@ -2,16 +2,16 @@ import { useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { ArrayUtils } from '@studio/pure-functions';
 
-type UseUniqueIdsResult = {
+type UseUniqueKey = {
   removeKey: (index: number) => void;
   getUniqueKey: (index: number) => string;
 };
 
-export type UseUniqueIds = {
+export type UseUniqueKeyArgs = {
   maxNumberOfIds: number;
 };
 
-export const useUniqueKey = ({ maxNumberOfIds }: UseUniqueIds): UseUniqueIdsResult => {
+export const useUniqueKey = ({ maxNumberOfIds }: UseUniqueKeyArgs): UseUniqueKey => {
   const internalIds = useRef<Array<string>>([]);
 
   const areInternalIdsInSync = internalIds.current.length === maxNumberOfIds;
