@@ -16,7 +16,7 @@ export interface FilePathProps {
 export const FilePath = ({ filePath, diff, repoDiffStatus }: FilePathProps) => {
   const { t } = useTranslation();
 
-  if (repoDiffStatus !== 'success') {
+  if (repoDiffStatus !== 'success' || !diff) {
     return <FilePathWithoutDiff filePath={filePath} />;
   }
 
