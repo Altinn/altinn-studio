@@ -1,4 +1,4 @@
-﻿import { type GetInTouchProvider, Options } from '../interfaces/GetInTouchProvider';
+﻿import { type GetInTouchProvider, type Options } from '../interfaces/GetInTouchProvider';
 
 type BugReportFields = 'title' | 'steps-to-reproduce' | 'additional-information';
 type FeatureRequestFields = 'title' | 'description' | 'additional-information';
