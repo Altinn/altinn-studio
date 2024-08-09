@@ -57,7 +57,6 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, IControlledRadioGroup
         <Label
           {...node.item}
           renderLabelAs='legend'
-          addBottomPadding={false}
         >
           <ComponentValidations
             validations={validations}

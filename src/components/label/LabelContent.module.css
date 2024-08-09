@@ -11,10 +11,6 @@
 .labelWrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-2);
+  gap: var(--fds-spacing-1);
   align-items: flex-start;
-}
-
-.bottomPadding {
-  padding-bottom: var(--fds-spacing-2);
 }

@@ -3,6 +3,7 @@ import type { PropsWithChildren } from 'react';
 
 import { Fieldset, Label as DesignsystemetLabel } from '@digdir/designsystemet-react';
 import { Grid } from '@material-ui/core';
+import cn from 'classnames';
 
 import classes from 'src/components/label/Label.module.css';
 import { LabelContent } from 'src/components/label/LabelContent';
@@ -25,7 +26,6 @@ export type LabelProps = PropsWithChildren<{
     help?: string;
   };
   className?: string;
-  addBottomPadding?: boolean;
 }>;
 
 export function Label({
@@ -38,7 +38,6 @@ export function Label({
   textResourceBindings,
   children,
   className,
-  addBottomPadding,
 }: LabelProps) {
   if (!textResourceBindings?.title) {
     return <>{children}</>;
@@ -52,7 +51,6 @@ export function Label({
     required,
     readOnly,
     labelSettings,
-    addBottomPadding,
   };
 
   switch (renderLabelAs) {
@@ -60,7 +58,7 @@ export function Label({
       return (
         <Fieldset
           size='small'
-          className={classes.fieldWrapper}
+          className={cn(classes.fieldWrapper, classes.fullWidth)}
           legend={
             <LabelGridItemWrapper labelGrid={grid?.labelGrid}>
               <LabelContent
@@ -80,9 +78,12 @@ export function Label({
           id={labelId}
           htmlFor={id}
           style={{ width: '100%' }}
-          className={[classes.fieldWrapper, className].join(' ')}
+          className={className}
         >
-          <Grid container>
+          <Grid
+            container
+            spacing={2}
+          >
             <LabelGridItemWrapper labelGrid={grid?.labelGrid}>
               <LabelContent {...labelContentProps} />
             </LabelGridItemWrapper>
@@ -94,7 +95,7 @@ export function Label({
     case 'span':
     default:
       return (
-        <span className={[classes.fieldWrapper, className].join(' ')}>
+        <span className={cn(classes.fieldWrapper, className)}>
           {/* we want this "label" not to be rendered as a <label>,
            because it does not belong to an input element */}
           <LabelGridItemWrapper labelGrid={grid?.labelGrid}>

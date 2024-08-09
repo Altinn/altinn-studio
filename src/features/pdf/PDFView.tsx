@@ -95,7 +95,7 @@ export const PDFView = () => {
 
       <Grid
         container={true}
-        spacing={3}
+        spacing={6}
         alignItems='flex-start'
       >
         {pdfPage.children().map((node) => (

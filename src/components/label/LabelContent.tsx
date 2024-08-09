@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { HelpText } from '@digdir/designsystemet-react';
-import classNames from 'classnames';
 
 import { Description } from 'src/components/form/Description';
 import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
@@ -20,19 +19,9 @@ export type LabelContentProps = Readonly<{
   readOnly?: boolean;
   help?: string;
   labelSettings?: ILabelSettings;
-  addBottomPadding?: boolean;
 }>;
 
-export function LabelContent({
-  id,
-  label,
-  description,
-  required,
-  readOnly,
-  help,
-  labelSettings,
-  addBottomPadding = true,
-}: LabelContentProps) {
+export function LabelContent({ id, label, description, required, readOnly, help, labelSettings }: LabelContentProps) {
   const { overrideDisplay } = useFormComponentCtxStrict();
   const { langAsString } = useLanguage();
 
@@ -43,7 +32,7 @@ export function LabelContent({
   return (
     <span
       id={id}
-      className={classNames({ [classes.bottomPadding]: addBottomPadding }, classes.labelWrapper)}
+      className={classes.labelWrapper}
     >
       <span className={classes.labelContainer}>
         <span className={classes.labelContent}>

@@ -27,7 +27,7 @@ export const Accordion = ({ node }: IAccordionProps) => {
       <Grid
         item={true}
         container={true}
-        spacing={3}
+        spacing={6}
         alignItems='flex-start'
       >
         {node.item.childComponents.map((n) => (

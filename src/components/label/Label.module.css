@@ -1,5 +1,8 @@
 .fieldWrapper {
   display: grid;
   gap: var(--fds-spacing-2);
+}
+
+.fullWidth {
   width: 100%;
 }

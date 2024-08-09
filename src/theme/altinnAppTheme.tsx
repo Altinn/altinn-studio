@@ -126,4 +126,5 @@ export const AltinnAppTheme = {
       fontSize: '0.875rem',
     },
   },
+  spacing: (factor: number) => `${0.25 * factor}rem`,
 };

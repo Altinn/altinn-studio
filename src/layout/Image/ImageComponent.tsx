@@ -57,7 +57,7 @@ export function ImageComponent({ node }: IImageProps) {
         container
         direction='row'
         justifyContent={align}
-        spacing={1}
+        spacing={2}
       >
         <Grid item={true}>
           <InnerImage

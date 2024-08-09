@@ -61,13 +61,13 @@ export const Cards = ({ node }: ICardsProps) => {
                 container={true}
                 item={true}
                 direction='row'
-                spacing={3}
+                spacing={6}
               >
                 <Grid
                   container={true}
                   alignItems='flex-start'
                   item={true}
-                  spacing={3}
+                  spacing={6}
                 >
                   <CardProvider
                     node={node}

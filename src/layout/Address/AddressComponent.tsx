@@ -122,7 +122,7 @@ export function AddressComponent({ node }: IAddressProps) {
 
       <Grid
         container
-        spacing={3}
+        spacing={6}
       >
         <Grid
           item

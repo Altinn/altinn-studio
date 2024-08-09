@@ -23,7 +23,7 @@ const InnerHeader = ({ header, aboveHeader, children }: IInnerHeaderProps) => (
       direction='row'
       justifyContent='space-between'
       wrap='nowrap'
-      spacing={2}
+      spacing={4}
     >
       <Grid item>
         {aboveHeader && (

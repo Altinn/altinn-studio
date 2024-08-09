@@ -136,7 +136,7 @@ function RepeatingGroupsEditContainerInternal({
           container={true}
           direction='column'
           alignItems='flex-end'
-          spacing={3}
+          spacing={6}
         >
           <Grid item={true}>
             <Button
@@ -157,13 +157,13 @@ function RepeatingGroupsEditContainerInternal({
         container={true}
         item={true}
         direction='row'
-        spacing={3}
+        spacing={6}
       >
         <Grid
           container={true}
           alignItems='flex-start'
           item={true}
-          spacing={3}
+          spacing={6}
           ref={(n) => refSetter && editingRowIndex !== undefined && refSetter(editingRowIndex, 'editContainer', n)}
         >
           {getGenericComponentsToRender()}
@@ -173,7 +173,7 @@ function RepeatingGroupsEditContainerInternal({
             <Grid
               container={true}
               direction='row'
-              spacing={1}
+              spacing={2}
               style={{ marginBottom: 12 }}
             >
               {hasPrevMultiPage && (
@@ -213,7 +213,7 @@ function RepeatingGroupsEditContainerInternal({
           <Grid
             container={true}
             direction='row'
-            spacing={1}
+            spacing={2}
           >
             {saveAndNextButtonVisible && (
               <Grid item={true}>

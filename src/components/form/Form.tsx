@@ -81,7 +81,7 @@ export function Form() {
       )}
       <Grid
         container={true}
-        spacing={3}
+        spacing={6}
         alignItems='flex-start'
       >
         {mainIds.map((id) => (

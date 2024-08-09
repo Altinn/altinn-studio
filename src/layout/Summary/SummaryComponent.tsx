@@ -106,7 +106,7 @@ function _SummaryComponent({ summaryNode, overrides }: ISummaryComponent, ref: R
           <Grid
             container={true}
             style={{ paddingTop: '12px' }}
-            spacing={2}
+            spacing={4}
           >
             {errors.map(({ message }) => (
               <ErrorPaper
