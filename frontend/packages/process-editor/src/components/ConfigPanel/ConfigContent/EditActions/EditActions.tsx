@@ -16,7 +16,7 @@ export const EditActions = (): React.ReactElement => {
   // This is a custom hook that is used to force re-render the component, since the actions from bpmnjs are not reactive
   const { updateChecksum: forceReRenderComponent } = useChecksum();
   const actions: Action[] = bpmnActionModeler.actionElements?.action || [];
-  const { getUniqueKey, removeKey } = useUniqueKey({ maxNumberOfItems: actions.length });
+  const { getUniqueKey, removeKey } = useUniqueKey({ maxNumberOfIds: actions.length });
 
   const handleDeleteActionItem = (index: number): void => {
     removeKey(index);

@@ -8,16 +8,16 @@ type UseUniqueIdsResult = {
 };
 
 export type UseUniqueIds = {
-  maxNumberOfItems: number;
+  maxNumberOfIds: number;
 };
 
-export const useUniqueKey = ({ maxNumberOfItems }: UseUniqueIds): UseUniqueIdsResult => {
+export const useUniqueKey = ({ maxNumberOfIds }: UseUniqueIds): UseUniqueIdsResult => {
   const internalIds = useRef<Array<string>>([]);
 
-  const areInternalIdsInSync = internalIds.current.length === maxNumberOfItems;
+  const areInternalIdsInSync = internalIds.current.length === maxNumberOfIds;
   if (!areInternalIdsInSync) {
     internalIds.current = [];
-    for (let i = 0; i < maxNumberOfItems; i++) {
+    for (let i = 0; i < maxNumberOfIds; i++) {
       internalIds.current.push(uuidv4());
     }
   }

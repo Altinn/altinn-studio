@@ -3,7 +3,7 @@ import { type UseUniqueIds, useUniqueKey } from 'app-shared/hooks/useUniqueKey';
 
 describe('useUniqueKey', () => {
   it('should generate unique keys within a max number range', () => {
-    const { result } = renderHook(() => useUniqueKey({ maxNumberOfItems: 2 }));
+    const { result } = renderHook(() => useUniqueKey({ maxNumberOfIds: 2 }));
 
     const firstItem = result.current.getUniqueKey(0);
     const secondItem = result.current.getUniqueKey(1);
@@ -15,7 +15,7 @@ describe('useUniqueKey', () => {
 
   it('should delete id when "removeKey" is called', () => {
     const { result, rerender } = renderHook((props: UseUniqueIds) =>
-      useUniqueKey({ maxNumberOfItems: props?.maxNumberOfItems || 3 }),
+      useUniqueKey({ maxNumberOfIds: props?.maxNumberOfIds || 3 }),
     );
 
     const thirdItem = result.current.getUniqueKey(2);
