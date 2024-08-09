@@ -29,6 +29,7 @@ export const DeploymentEnvironmentLogList = ({
   pipelineDeploymentList,
 }: DeploymentEnvironmentLogListProps) => {
   const { t } = useTranslation();
+
   const envTitle = isProduction
     ? t(`general.production_environment_alt`).toLowerCase()
     : `${t('general.test_environment_alt').toLowerCase()} ${envName?.toUpperCase()}`;
