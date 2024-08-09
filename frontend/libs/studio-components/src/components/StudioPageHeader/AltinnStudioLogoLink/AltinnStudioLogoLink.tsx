@@ -15,7 +15,7 @@ export const AltinnStudioLogoLink = ({ title }: AltinnStudioLogoLinkProps): Reac
         <AltinnStudioLogo />
       </Link>
       {title && (
-        <Paragraph size='medium'>
+        <Paragraph size='medium' className={classes.titleText}>
           <span className={classes.slash}>/</span>
           {title}
         </Paragraph>

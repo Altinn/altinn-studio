@@ -13,7 +13,7 @@ import {
 describe('RedirectToCreatePageButton', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('Checks that the button to go to "Lage" page has the correct href', () => {
+  it('Checks that the button to go to "Designer" page has the correct href', () => {
     renderRedirectToCreatePageButton();
 
     const navigationButton = screen.getByRole('link', {

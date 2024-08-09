@@ -16,6 +16,7 @@ import { StudioPageHeader } from '@studio/components';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { AltinnHeaderMenu } from 'app-shared/components/altinnHeaderMenu';
 import { type TopBarMenuDeploymentItem } from 'app-shared/types/TopBarMenuItem';
+import { RoutePaths } from 'app-development/enums/RoutePaths';
 
 const WINDOW_RESIZE_WIDTH = 1000;
 
@@ -75,7 +76,7 @@ export const getDeploymentButtonItems = (
     },
     {
       key: TopBarMenu.Deploy,
-      link: packagesRouter.getPackageNavigationUrl('editorPublish'), // fix
+      link: RoutePaths.Deploy, //packagesRouter.getPackageNavigationUrl('editorPublish'), // fix
       group: TopBarGroup.Deployment,
     },
   ];

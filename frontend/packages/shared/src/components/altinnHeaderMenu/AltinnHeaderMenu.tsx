@@ -213,7 +213,7 @@ const SmallNavigationMenu = ({
                       getRouterRouteByPathname(link) === currentRoutePath ? classes.activeSmall : ''
                     }
                   >
-                    {menuGroup.name === TopBarGroup.Deployment ? (
+                    {menuItem.name === TopBarMenu.Preview ? (
                       <a href={link}>{t(name)}</a>
                     ) : (
                       <NavLink
