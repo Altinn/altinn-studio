@@ -264,6 +264,8 @@
   "general.no_options": "Ingen alternativer tilgjengelige",
   "general.options": "Alternativer",
   "general.page": "Side",
+  "general.page_error_message": "Vi vet ikke helt hva, men <a>ta kontakt med oss</a>, så graver vi i det sammen.",
+  "general.page_error_title": "Noe gikk galt",
   "general.previous": "Forrige",
   "general.production": "Produksjon",
   "general.production_environment_alt": "Produksjonsmiljøet",
