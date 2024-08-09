@@ -28,13 +28,13 @@ export type ActionsEditorProps = {
   actionElement: Action;
   actionIndex: number;
   mode?: ComponentMode;
-  onDeleteClicked?: () => void;
+  onDeleteClick?: () => void;
 };
 export const ActionsEditor = ({
   actionElement,
   actionIndex,
   mode,
-  onDeleteClicked,
+  onDeleteClick,
 }: ActionsEditorProps): React.ReactElement => {
   const [componentMode, setComponentMode] = React.useState<ComponentMode>(mode || 'view');
   const { t } = useTranslation();
@@ -54,7 +54,7 @@ export const ActionsEditor = ({
         onClose={() => setComponentMode('view')}
         onDelete={() => {
           bpmnActionModeler.deleteActionFromTask(actionElement);
-          if (onDeleteClicked) onDeleteClicked();
+          if (onDeleteClick) onDeleteClick();
         }}
       />
     );

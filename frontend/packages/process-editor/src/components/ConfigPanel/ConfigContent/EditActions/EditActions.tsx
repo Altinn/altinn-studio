@@ -49,7 +49,7 @@ export const EditActions = (): React.ReactElement => {
             actionElement={actionElement}
             actionIndex={index}
             mode={!actionElement.action ? 'edit' : 'view'}
-            onDeleteClicked={() => handleDeleteActionItem(index)}
+            onDeleteClick={() => handleDeleteActionItem(index)}
           />
         </div>
       ))}
