@@ -845,7 +845,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         private static string GetPathToJsonTextsFile(string fileName)
         {
-            return fileName.IsNullOrEmpty() ?
+            return string.IsNullOrEmpty(fileName) ?
                 Path.Combine(ConfigFolderPath, LanguageResourceFolderName) :
                 Path.Combine(ConfigFolderPath, LanguageResourceFolderName, fileName);
         }
@@ -859,7 +859,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private static string GetPathToLayoutSet(string layoutSetName, bool excludeLayoutsFolderName = false)
         {
             var layoutFolderName = excludeLayoutsFolderName ? string.Empty : LayoutsInSetFolderName;
-            return layoutSetName.IsNullOrEmpty() ?
+            return string.IsNullOrEmpty(layoutSetName) ?
                 Path.Combine(LayoutsFolderName, layoutFolderName) :
                 Path.Combine(LayoutsFolderName, layoutSetName, layoutFolderName);
         }
@@ -867,7 +867,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         // can be null if app does not use layout set
         private static string GetPathToLayoutFile(string layoutSetName, string fileName)
         {
-            return layoutSetName.IsNullOrEmpty() ?
+            return string.IsNullOrEmpty(layoutSetName) ?
                 Path.Combine(LayoutsFolderName, LayoutsInSetFolderName, fileName) :
                 Path.Combine(LayoutsFolderName, layoutSetName, LayoutsInSetFolderName, fileName);
         }
@@ -875,7 +875,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         // can be null if app does not use layout set
         private static string GetPathToLayoutSettings(string layoutSetName)
         {
-            return layoutSetName.IsNullOrEmpty() ?
+            return string.IsNullOrEmpty(layoutSetName) ?
                 Path.Combine(LayoutsFolderName, LayoutSettingsFilename) :
                 Path.Combine(LayoutsFolderName, layoutSetName, LayoutSettingsFilename);
         }
@@ -892,14 +892,14 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         private static string GetPathToRuleHandler(string layoutSetName)
         {
-            return layoutSetName.IsNullOrEmpty() ?
+            return string.IsNullOrEmpty(layoutSetName) ?
                 Path.Combine(LayoutsFolderName, RuleHandlerFilename) :
                 Path.Combine(LayoutsFolderName, layoutSetName, RuleHandlerFilename);
         }
 
         private static string GetPathToRuleConfiguration(string layoutSetName)
         {
-            return layoutSetName.IsNullOrEmpty() ?
+            return string.IsNullOrEmpty(layoutSetName) ?
                 Path.Combine(LayoutsFolderName, RuleConfigurationFilename) :
                 Path.Combine(LayoutsFolderName, layoutSetName, RuleConfigurationFilename);
         }
