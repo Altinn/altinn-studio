@@ -15,7 +15,6 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using LibGit2Sharp;
-using Microsoft.IdentityModel.Tokens;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 using LayoutSets = Altinn.Studio.Designer.Models.LayoutSets;
 

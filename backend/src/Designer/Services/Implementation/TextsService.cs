@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
