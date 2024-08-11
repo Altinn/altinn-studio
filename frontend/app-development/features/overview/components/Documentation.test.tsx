@@ -2,7 +2,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { Documentation } from './Documentation';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
-import { renderWithProviders } from '../../../test/testUtils';
+import { renderWithProviders } from '../../../test/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
 

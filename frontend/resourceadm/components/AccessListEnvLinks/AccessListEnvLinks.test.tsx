@@ -1,12 +1,8 @@
 import React from 'react';
-import { MemoryRouter } from 'react-router-dom';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { AccessListEnvLinks } from './AccessListEnvLinks';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 const resourceId = 'res1';
 const org = 'ttd';
@@ -79,16 +75,9 @@ const renderAccessListEnvLinks = () => {
   const getResourcePublishStatus = jest
     .fn()
     .mockImplementation(() => Promise.resolve(resourcePublishStatus));
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
-    getResourcePublishStatus: getResourcePublishStatus,
-  };
-
-  return render(
-    <MemoryRouter>
-      <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-        <AccessListEnvLinks />
-      </ServicesContextProvider>
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<AccessListEnvLinks />, {
+    queries: {
+      getResourcePublishStatus: getResourcePublishStatus,
+    },
+  });
 };

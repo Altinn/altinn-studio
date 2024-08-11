@@ -45,4 +45,4 @@ describe('LandingPagePanel', () => {
 });
 
 const renderLandingPagePanel = (props: Partial<LandingPagePanelProps> = {}) =>
-  renderWithProviders()(<LandingPagePanel {...landingPagePropsMock} {...props} />);
+  renderWithProviders(<LandingPagePanel {...landingPagePropsMock} {...props} />);

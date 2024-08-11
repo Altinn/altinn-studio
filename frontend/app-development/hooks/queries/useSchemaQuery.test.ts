@@ -1,5 +1,4 @@
 import { waitFor } from '@testing-library/react';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { useSchemaQuery } from './useSchemaQuery';
 import { renderHookWithProviders } from '../../test/mocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -14,12 +13,7 @@ describe('useSchemaQuery', () => {
   afterEach(jest.clearAllMocks);
 
   it('Calls getDataModel with correct arguments when Json Schema', async () => {
-    const {
-      renderHookResult: { result },
-    } = renderHookWithProviders(
-      {},
-      createQueryClientMock(),
-    )(() => useSchemaQuery(jsonModelPathWithSlash));
+    const { result } = renderHookWithProviders(() => useSchemaQuery(jsonModelPathWithSlash));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(queriesMock.getDataModel).toHaveBeenCalledTimes(1);
     expect(queriesMock.getDataModel).toHaveBeenCalledWith(org, app, jsonModelPathWithSlash);
@@ -27,12 +21,7 @@ describe('useSchemaQuery', () => {
   });
 
   it('Calls addXsdFromRepo with correct arguments when XSD', async () => {
-    const {
-      renderHookResult: { result },
-    } = renderHookWithProviders(
-      {},
-      createQueryClientMock(),
-    )(() => useSchemaQuery(xsdModelPathWithSlash));
+    const { result } = renderHookWithProviders(() => useSchemaQuery(xsdModelPathWithSlash));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(queriesMock.addXsdFromRepo).toHaveBeenCalledTimes(1);
     expect(queriesMock.addXsdFromRepo).toHaveBeenCalledWith(org, app, xsdModelPath);

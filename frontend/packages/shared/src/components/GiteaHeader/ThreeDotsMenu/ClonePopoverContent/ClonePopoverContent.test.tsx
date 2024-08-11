@@ -1,9 +1,9 @@
 import React from 'react';
 import { ClonePopoverContent, type ClonePopoverContentProps } from './ClonePopoverContent';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 const mockOnClose = jest.fn();
 
@@ -49,9 +49,5 @@ const renderClonePopoverContent = (props: Partial<ClonePopoverContentProps> = {}
   const queries: Partial<ServicesContextProps> = {
     getDataModelsXsd: async () => [],
   };
-  return render(
-    <ServicesContextProvider {...queries}>
-      <ClonePopoverContent {...defaultProps} {...props} />
-    </ServicesContextProvider>,
-  );
+  return renderWithProviders(<ClonePopoverContent {...defaultProps} {...props} />, { queries });
 };

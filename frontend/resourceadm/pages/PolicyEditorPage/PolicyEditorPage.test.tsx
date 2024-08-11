@@ -1,14 +1,13 @@
 import React from 'react';
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { PolicyEditorPageProps } from './PolicyEditorPage';
 import { PolicyEditorPage } from './PolicyEditorPage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { MemoryRouter } from 'react-router-dom';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import type { Policy, PolicyAction, PolicySubject } from '@altinn/policy-editor';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 const mockResourceId: string = 'r1';
 const mockOrg: string = 'test';
@@ -125,11 +124,8 @@ const renderPolicyEditorPage = (
     getPolicySubjects,
     ...queries,
   };
-  return render(
-    <MemoryRouter>
-      <ServicesContextProvider {...allQueries} client={queryClient}>
-        <PolicyEditorPage {...defaultProps} {...props} />
-      </ServicesContextProvider>
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<PolicyEditorPage {...defaultProps} {...props} />, {
+    queries: allQueries,
+    queryClient,
+  });
 };

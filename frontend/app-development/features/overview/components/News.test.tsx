@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
-import { renderWithProviders } from 'app-development/test/testUtils';
+import { renderWithProviders } from 'app-development/test/mocks';
 import { APP_DEVELOPMENT_BASENAME, NEWS_EXPIRATION_TIME_IN_DAYS } from 'app-shared/constants';
 import { News } from './News';
 import type { NewsList } from 'app-shared/types/api/NewsList';

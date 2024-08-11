@@ -2,7 +2,7 @@ import React from 'react';
 import userEvent from '@testing-library/user-event';
 import type { TextListProps } from './TextList';
 import { TextList } from './TextList';
-import { screen, render as rtlRender } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { TextTableRow } from './types';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
@@ -10,6 +10,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { app, org } from '@studio/testing/testids';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 const textKey1: string = 'a';
 
@@ -65,11 +66,7 @@ const renderTextList = (props: Partial<TextListProps> = {}) => {
   queryClientMock.setQueryData([QueryKey.LayoutNames, org, app], []);
   return {
     initPros: allProps,
-    ...rtlRender(
-      <ServicesContextProvider {...queriesMock} client={queryClientMock}>
-        <TextList {...allProps} />
-      </ServicesContextProvider>,
-    ),
+    ...renderWithProviders(<TextList {...allProps} />, { queryClient: queryClientMock }),
   };
 };
 

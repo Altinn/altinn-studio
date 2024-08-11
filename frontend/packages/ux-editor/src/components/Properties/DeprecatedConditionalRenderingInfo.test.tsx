@@ -1,12 +1,11 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { appContextMock } from '@altinn/ux-editor/testing/appContextMock';
 import { AppContext } from '@altinn/ux-editor/AppContext';
 import { DeprecatedConditionalRenderingInfo } from '@altinn/ux-editor/components/Properties/DeprecatedConditionalRenderingInfo';
+import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 
 describe('DeprecatedConditionalRenderingInfo', () => {
   it('should render alert saying that conditional rendering is deprecated with a documentation link ', () => {
@@ -31,11 +30,10 @@ describe('DeprecatedConditionalRenderingInfo', () => {
 });
 
 const renderDeprecatedConditionalRenderingInfo = () => {
-  return render(
-    <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
-      <AppContext.Provider value={{ ...appContextMock }}>
-        <DeprecatedConditionalRenderingInfo />
-      </AppContext.Provider>
-    </ServicesContextProvider>,
+  return renderWithProviders(
+    <AppContext.Provider value={{ ...appContextMock }}>
+      <DeprecatedConditionalRenderingInfo />
+    </AppContext.Provider>,
+    { queries: queriesMock },
   );
 };

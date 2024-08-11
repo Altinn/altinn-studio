@@ -1,16 +1,14 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ImportResourceModalProps } from './ImportResourceModal';
 import { ImportResourceModal } from './ImportResourceModal';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { MemoryRouter } from 'react-router-dom';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { mapAltinn2LinkServiceToSelectOption } from 'resourceadm/utils/mapperUtils';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 const mockAltinn2LinkService: Altinn2LinkService = {
   serviceOwnerCode: 'ttd',
@@ -316,11 +314,5 @@ const renderImportResourceModal = (queries: Partial<ServicesContextProps> = {}) 
     getAltinn2LinkServices,
   };
 
-  return render(
-    <MemoryRouter>
-      <ServicesContextProvider {...allQueries} {...queries} client={createQueryClientMock()}>
-        <ImportResourceModal {...defaultProps} />
-      </ServicesContextProvider>
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<ImportResourceModal {...defaultProps} />, { queries: allQueries });
 };

@@ -1,15 +1,14 @@
 import React from 'react';
 import { TextEditor } from './TextEditor';
 import type { TextEditorProps } from './TextEditor';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import { deleteButtonId, app, org } from '@studio/testing/testids';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 const user = userEvent.setup();
 let mockScrollIntoView = jest.fn();
@@ -45,11 +44,9 @@ describe('TextEditor', () => {
       upsertTextResource: jest.fn(),
     };
     queryClientMock.setQueryData([QueryKey.LayoutNames, org, app], []);
-    return rtlRender(
-      <ServicesContextProvider {...queriesMock} client={queryClientMock}>
-        <TextEditor {...defaultProps} {...props} />
-      </ServicesContextProvider>,
-    );
+    return renderWithProviders(<TextEditor {...defaultProps} {...props} />, {
+      queryClient: queryClientMock,
+    });
   };
   beforeEach(() => {
     // Need to mock the scrollIntoView function

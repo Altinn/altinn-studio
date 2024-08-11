@@ -33,7 +33,11 @@ const render = ({
 }: {
   queryClient?: QueryClient;
   queries?: Partial<ServicesContextProps>;
-} = {}) => renderWithProviders(queries, queryClient)(<XSDUpload />);
+} = {}) =>
+  renderWithProviders(<XSDUpload />, {
+    queries,
+    queryClient,
+  });
 
 describe('XSDUpload', () => {
   afterEach(jest.restoreAllMocks);

@@ -6,8 +6,7 @@ import { app, org } from '@studio/testing/testids';
 
 describe('useRepoCommitAndPushMutation', () => {
   it('Calls commitAndPushChanges with correct arguments and payload', async () => {
-    const result = renderHookWithProviders()(() => useRepoCommitAndPushMutation(org, app))
-      .renderHookResult.result;
+    const result = renderHookWithProviders(() => useRepoCommitAndPushMutation(org, app)).result;
 
     const commitMessage = 'test commit message';
     await result.current.mutateAsync({ commitMessage });

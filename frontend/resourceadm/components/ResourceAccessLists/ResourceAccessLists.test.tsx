@@ -1,14 +1,11 @@
 import React from 'react';
-import { MemoryRouter } from 'react-router-dom';
-import { render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ResourceAccessListsProps } from './ResourceAccessLists';
 import { ResourceAccessLists } from './ResourceAccessLists';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 const resourceId = 'res1';
 const org = 'ttd';
@@ -205,18 +202,11 @@ const renderResourceAccessLists = (getResourceAccessListsMock?: jest.Mock) => {
   const getResourceAccessListsMockFn =
     getResourceAccessListsMock ??
     jest.fn().mockImplementation(() => Promise.resolve(accessListResults));
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
+  const queries: Partial<ServicesContextProps> = {
     removeResourceAccessList: uncheckListMock,
     addResourceAccessList: checkListMock,
     getResourceAccessLists: getResourceAccessListsMockFn,
   };
 
-  return render(
-    <MemoryRouter>
-      <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-        <ResourceAccessLists {...defaultProps} />
-      </ServicesContextProvider>
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<ResourceAccessLists {...defaultProps} />, { queries });
 };

@@ -1,23 +1,19 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ShareChangesPopover } from './ShareChangesPopover';
-import {
-  type ServicesContextProps,
-  ServicesContextProvider,
-} from 'app-shared/contexts/ServicesContext';
+import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import {
   VersionControlButtonsContext,
   type VersionControlButtonsContextProps,
 } from '../../context';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { mockVersionControlButtonsContextValue } from '../../test/mocks/versionControlContextMock';
-import { MemoryRouter } from 'react-router-dom';
 import { app, org } from '@studio/testing/testids';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { repository } from 'app-shared/mocks/mocks';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -199,20 +195,15 @@ const renderShareChangesPopover = (props: Partial<Props> = {}) => {
     permissions: { ...repository.permissions, push: true },
   });
 
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
-    ...queries,
-  };
-
-  return render(
-    <MemoryRouter>
-      <ServicesContextProvider {...allQueries} client={queryClient}>
-        <VersionControlButtonsContext.Provider
-          value={{ ...mockVersionControlButtonsContextValue, ...versionControlButtonsContextProps }}
-        >
-          <ShareChangesPopover />
-        </VersionControlButtonsContext.Provider>
-      </ServicesContextProvider>
-    </MemoryRouter>,
+  return renderWithProviders(
+    <VersionControlButtonsContext.Provider
+      value={{ ...mockVersionControlButtonsContextValue, ...versionControlButtonsContextProps }}
+    >
+      <ShareChangesPopover />
+    </VersionControlButtonsContext.Provider>,
+    {
+      queries,
+      queryClient,
+    },
   );
 };

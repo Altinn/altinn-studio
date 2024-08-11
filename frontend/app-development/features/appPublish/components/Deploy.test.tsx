@@ -60,15 +60,17 @@ const imageOptions = [
 ];
 
 const render = (props?: Partial<DeployProps>, queries?: Partial<ServicesContextProps>) => {
-  return renderWithProviders({
-    getDeployPermissions: jest.fn().mockImplementation(() => Promise.resolve(['tt02'])),
-    getAppReleases: jest.fn().mockImplementation(() =>
-      Promise.resolve({
-        results: appReleases,
-      }),
-    ),
-    ...queries,
-  })(<Deploy {...defaultProps} {...props} />);
+  return renderWithProviders(<Deploy {...defaultProps} {...props} />, {
+    queries: {
+      getDeployPermissions: jest.fn().mockImplementation(() => Promise.resolve(['tt02'])),
+      getAppReleases: jest.fn().mockImplementation(() =>
+        Promise.resolve({
+          results: appReleases,
+        }),
+      ),
+      ...queries,
+    },
+  });
 };
 describe('DeploymentActions', () => {
   it('renders a spinner while loading data', () => {

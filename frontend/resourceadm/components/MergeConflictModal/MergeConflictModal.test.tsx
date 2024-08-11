@@ -1,12 +1,10 @@
 import React from 'react';
-import { MemoryRouter } from 'react-router-dom';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MergeConflictModal } from './MergeConflictModal';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 const repoName = 'ttd-resources';
 
@@ -78,11 +76,5 @@ describe('MergeConflictModal', () => {
 });
 
 const renderMergeConflictModal = () => {
-  return render(
-    <MemoryRouter>
-      <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
-        <MergeConflictModal isOpen={true} org='ttd' repo={repoName} />
-      </ServicesContextProvider>
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<MergeConflictModal isOpen={true} org='ttd' repo={repoName} />);
 };

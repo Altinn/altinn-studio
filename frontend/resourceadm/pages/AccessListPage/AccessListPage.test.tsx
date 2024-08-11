@@ -1,12 +1,9 @@
 import React from 'react';
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { AccessListPage } from './AccessListPage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { MemoryRouter } from 'react-router-dom';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -49,17 +46,10 @@ describe('AccessListPage', () => {
 });
 
 const renderAccessListPage = (isLoadError?: boolean) => {
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
+  const queries: Partial<ServicesContextProps> = {
     getAccessList: jest
       .fn()
       .mockImplementation(() => (isLoadError ? Promise.reject({}) : Promise.resolve({}))),
   };
-  return render(
-    <MemoryRouter>
-      <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-        <AccessListPage />
-      </ServicesContextProvider>
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<AccessListPage />, { queries });
 };

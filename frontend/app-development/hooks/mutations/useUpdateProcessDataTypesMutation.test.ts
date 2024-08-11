@@ -22,9 +22,9 @@ const renderHook = async ({
   queryClient?: QueryClient;
 } = {}) => {
   const updateProcessDataTypesResult = renderHookWithProviders(
-    {},
-    queryClient,
-  )(() => useUpdateProcessDataTypesMutation(org, app)).renderHookResult.result;
+    () => useUpdateProcessDataTypesMutation(org, app),
+    { queryClient },
+  ).result;
   await waitFor(() => updateProcessDataTypesResult.current.mutateAsync(metadata));
   expect(updateProcessDataTypesResult.current.isSuccess).toBe(true);
 };

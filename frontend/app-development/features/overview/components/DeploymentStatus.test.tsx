@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import type { DeploymentStatusProps } from './DeploymentStatus';
 import { DeploymentStatus } from './DeploymentStatus';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
-import { renderWithProviders } from '../../../test/testUtils';
+import { renderWithProviders } from '../../../test/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { kubernetesDeployment } from 'app-shared/mocks/mocks';
 import { app, org } from '@studio/testing/testids';

@@ -111,9 +111,7 @@ describe('SelectedSchemaEditor', () => {
   it('Auto saves when changing between models that are not present in the cache', async () => {
     const saveDataModel = jest.fn();
     const getDataModel = jest.fn().mockImplementation(() => Promise.resolve(dataMock));
-    const {
-      renderResult: { rerender },
-    } = render({ getDataModel, saveDataModel });
+    const { rerender } = render({ getDataModel, saveDataModel });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('schema_editor.loading_page')),
     );
@@ -132,9 +130,7 @@ describe('SelectedSchemaEditor', () => {
     const newModelPath = 'newModel';
     queryClient.setQueryData([QueryKey.JsonSchema, org, app, model1Path], dataMock);
     queryClient.setQueryData([QueryKey.JsonSchema, org, app, model1Path], dataMock);
-    const {
-      renderResult: { rerender },
-    } = render({ saveDataModel }, queryClient);
+    const { rerender } = render({ saveDataModel }, queryClient);
     expect(saveDataModel).not.toHaveBeenCalled();
 
     const updatedProps = {
@@ -153,9 +149,7 @@ describe('SelectedSchemaEditor', () => {
 
     queryClient.setQueryData([QueryKey.JsonSchema, org, app, model1Path], dataMock);
     queryClient.setQueryData([QueryKey.JsonSchema, org, app, model2Path], dataMock);
-    const {
-      renderResult: { rerender },
-    } = render({ saveDataModel }, queryClient);
+    const { rerender } = render({ saveDataModel }, queryClient);
     expect(saveDataModel).not.toHaveBeenCalled();
 
     const updatedProps = {
@@ -183,8 +177,8 @@ const render = (
     [QueryKey.DataModelsXsd, org, app],
     [model1MetadataXsd, model2MetadataXsd],
   );
-  return renderWithProviders(
+  return renderWithProviders(<SelectedSchemaEditor {...defaultProps} {...props} />, {
     queries,
     queryClient,
-  )(<SelectedSchemaEditor {...defaultProps} {...props} />);
+  });
 };

@@ -10,7 +10,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { app, org } from '@studio/testing/testids';
 import { SyncSuccessQueriesInvalidator } from 'app-shared/queryInvalidator/SyncSuccessQueriesInvalidator';
 import { WebSocketSyncWrapper } from './WebSocketSyncWrapper';
-import { renderWithProviders } from '../../test/testUtils';
+import { renderWithProviders } from '../../test/mocks';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 
 jest.mock('app-shared/hooks/useWebSocket', () => ({

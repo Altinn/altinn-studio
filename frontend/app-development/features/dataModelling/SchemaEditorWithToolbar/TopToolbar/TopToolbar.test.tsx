@@ -53,7 +53,9 @@ const renderToolbar = (
     return <TopToolbar {...defaultProps} {...props} />;
   };
 
-  return renderWithProviders({ ...servicesContextProps })(<TopToolbarWithInitData />);
+  return renderWithProviders(<TopToolbarWithInitData />, {
+    queries: servicesContextProps,
+  });
 };
 
 describe('TopToolbar', () => {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Preview } from './Preview';
 import { screen } from '@testing-library/react';
-import type { ExtendedRenderOptions } from '../../testing/mocks';
+import type { UxEditorExtendedRenderOptions } from '../../testing/mocks';
 import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
@@ -112,7 +112,7 @@ describe('Preview', () => {
 
 const collapseToggle = jest.fn();
 
-export const render = (options: Partial<ExtendedRenderOptions> = {}) => {
+export const render = (options: Partial<UxEditorExtendedRenderOptions> = {}) => {
   return renderWithProviders(
     <Preview collapsed={false} onCollapseToggle={collapseToggle} />,
     options,

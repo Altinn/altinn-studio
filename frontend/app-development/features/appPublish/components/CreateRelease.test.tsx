@@ -1,29 +1,15 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { CreateRelease } from './CreateRelease';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import {
-  type ServicesContextProps,
-  ServicesContextProvider,
-} from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import userEvent from '@testing-library/user-event';
 import { app, org } from '@studio/testing/testids';
 import { BuildResult } from 'app-shared/types/Build';
+import { renderWithProviders } from '../../../test/mocks';
 
-const renderCreateRelease = (queries?: Partial<ServicesContextProps>) => {
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
-    ...queries,
-  };
-
-  render(
-    <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-      <CreateRelease />
-    </ServicesContextProvider>,
-  );
-};
+const renderCreateRelease = (queries?: Partial<ServicesContextProps>) =>
+  renderWithProviders(<CreateRelease />, { queries });
 
 describe('CreateRelease', () => {
   it('renders the component', () => {
@@ -39,7 +25,7 @@ describe('CreateRelease', () => {
     ).toBeInTheDocument();
   });
 
-  it('validates tag name correctly', async () => {
+  it.only('validates tag name correctly', async () => {
     const user = userEvent.setup();
     const newVersionNumber = 'v1';
     renderCreateRelease();

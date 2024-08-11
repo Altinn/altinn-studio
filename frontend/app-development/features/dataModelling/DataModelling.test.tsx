@@ -1,9 +1,8 @@
 import React from 'react';
 import { DataModelling } from './DataModelling';
-import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -12,6 +11,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { app, org } from '@studio/testing/testids';
+import { renderWithProviders } from '../../test/mocks';
 
 // workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {
@@ -33,18 +33,7 @@ const user = userEvent.setup();
 const render = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
-) => {
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
-    ...queries,
-  };
-
-  return rtlRender(
-    <ServicesContextProvider {...allQueries} client={queryClient}>
-      <DataModelling />
-    </ServicesContextProvider>,
-  );
-};
+) => renderWithProviders(<DataModelling />, { queries, queryClient });
 
 describe('DataModelling', () => {
   afterEach(jest.clearAllMocks);

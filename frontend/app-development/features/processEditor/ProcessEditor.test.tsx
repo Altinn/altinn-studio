@@ -2,7 +2,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { ProcessEditor } from './ProcessEditor';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { renderWithProviders } from '../../test/testUtils';
+import { renderWithProviders } from '../../test/mocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import { textMock } from '@studio/testing/mocks/i18nMock';

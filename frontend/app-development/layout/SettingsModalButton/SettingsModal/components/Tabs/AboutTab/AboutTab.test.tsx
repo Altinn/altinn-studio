@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { AboutTab } from './AboutTab';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { AppConfig } from 'app-shared/types/AppConfig';
@@ -7,13 +7,9 @@ import userEvent from '@testing-library/user-event';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';
 import type { UseMutationResult } from '@tanstack/react-query';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { mockRepository1, mockRepository2 } from '../../../mocks/repositoryMock';
 import { mockAppConfig } from '../../../mocks/appConfigMock';
 import { formatDateToDateAndTimeString } from 'app-development/utils/dateUtils';
-import { MemoryRouter } from 'react-router-dom';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { app, org } from '@studio/testing/testids';
 import { SettingsModalContextProvider } from '../../../../../../contexts/SettingsModalContext';
@@ -21,6 +17,7 @@ import {
   PreviewContext,
   type PreviewContextProps,
 } from '../../../../../../contexts/PreviewContext';
+import { renderWithProviders } from '../../../../../../test/mocks';
 
 const mockNewText: string = 'test';
 
@@ -213,24 +210,18 @@ const renderAboutTab = (props: Partial<Props> = {}) => {
   const { queries, previewContextProps } = props;
 
   const allQueries: ServicesContextProps = {
-    ...queriesMock,
     getAppConfig,
     getRepoMetadata,
     getAppMetadata,
     ...queries,
   };
 
-  return render(
-    <MemoryRouter>
-      <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-        <SettingsModalContextProvider>
-          <PreviewContext.Provider
-            value={{ ...defaultPreviewContextProps, ...previewContextProps }}
-          >
-            <AboutTab />
-          </PreviewContext.Provider>
-        </SettingsModalContextProvider>
-      </ServicesContextProvider>
-    </MemoryRouter>,
+  return renderWithProviders(
+    <SettingsModalContextProvider>
+      <PreviewContext.Provider value={{ ...defaultPreviewContextProps, ...previewContextProps }}>
+        <AboutTab />
+      </PreviewContext.Provider>
+    </SettingsModalContextProvider>,
+    { queries: allQueries },
   );
 };

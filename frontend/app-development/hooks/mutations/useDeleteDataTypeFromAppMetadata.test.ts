@@ -8,9 +8,9 @@ const dataTypeId = 'paymentInformation-1234';
 
 describe('useDeleteDataTypeFromAppMetadata', () => {
   it('Calls deleteDataTypeFromAppMetadata with correct arguments and payload', async () => {
-    const deleteDataTypeFromAppMetadata = renderHookWithProviders()(() =>
+    const deleteDataTypeFromAppMetadata = renderHookWithProviders(() =>
       useDeleteDataTypeFromAppMetadata(org, app),
-    ).renderHookResult.result;
+    ).result;
     await deleteDataTypeFromAppMetadata.current.mutateAsync({
       dataTypeId,
     });

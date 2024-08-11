@@ -5,14 +5,11 @@ import {
 } from './SelectAllowedPartyTypes';
 import { mockAppMetadata } from '../../../../mocks/applicationMetadataMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { render as rtlRender, screen, waitFor } from '@testing-library/react';
-import type { QueryClient } from '@tanstack/react-query';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { app, org } from '@studio/testing/testids';
-import { MemoryRouter } from 'react-router-dom';
+import { renderWithProviders } from '../../../../../../../test/mocks';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -144,12 +141,7 @@ describe('SelectAllowedPartyTypes', () => {
 });
 
 const renderSelectAllowedPartyTypes = (props: Partial<SelectAllowedPartyTypesProps> = {}) => {
-  const queryClient: QueryClient = createQueryClientMock();
-  return rtlRender(
-    <MemoryRouter>
-      <ServicesContextProvider {...queriesMock} client={queryClient}>
-        <SelectAllowedPartyTypes {...defaultProps} {...props}></SelectAllowedPartyTypes>
-      </ServicesContextProvider>
-    </MemoryRouter>,
+  return renderWithProviders(
+    <SelectAllowedPartyTypes {...defaultProps} {...props}></SelectAllowedPartyTypes>,
   );
 };

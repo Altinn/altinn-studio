@@ -1,16 +1,16 @@
 import React from 'react';
-import { render, screen, waitForElementToBeRemoved, waitFor } from '@testing-library/react';
+import { screen, waitForElementToBeRemoved, waitFor } from '@testing-library/react';
 import type { ServiceContentProps } from './ServiceContent';
 import { ServiceContent } from './ServiceContent';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { mapAltinn2LinkServiceToSelectOption } from 'resourceadm/utils/mapperUtils';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 const mockOrg: string = 'org';
 const mockEnv: string = 'env1';
@@ -149,14 +149,8 @@ const renderServiceContent = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
-    ...queries,
-  };
-
-  return render(
-    <ServicesContextProvider {...allQueries} client={queryClient}>
-      <ServiceContent {...defaultProps} {...props} />
-    </ServicesContextProvider>,
-  );
+  return renderWithProviders(<ServiceContent {...defaultProps} {...props} />, {
+    queries,
+    queryClient,
+  });
 };
