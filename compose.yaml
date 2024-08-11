@@ -36,7 +36,6 @@ services:
       - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.conf
       - NGINX_HOST=localhost
       - NGINX_PORT=80
-      - TEST_DOMAIN=${TEST_DOMAIN:-local.altinn.cloud}
     depends_on:
       studio_repositories:
         condition: service_healthy
