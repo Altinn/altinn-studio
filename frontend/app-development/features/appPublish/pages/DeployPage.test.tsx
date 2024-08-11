@@ -71,5 +71,7 @@ describe('DeployPage', () => {
 });
 
 const render = (queries?: Partial<ServicesContextProps>) => {
-  return renderWithProviders(queries)(<DeployPage />);
+  return renderWithProviders(<DeployPage />, {
+    queries,
+  });
 };

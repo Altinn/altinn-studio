@@ -1,15 +1,12 @@
 import React from 'react';
-import { MemoryRouter } from 'react-router-dom';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { AccessListDetailProps } from './AccessListDetail';
 import { AccessListDetail } from './AccessListDetail';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 const mockedNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
@@ -156,16 +153,5 @@ const renderAccessListDetail = (
   props: Partial<AccessListDetailProps> = {},
   queries: Partial<ServicesContextProps> = {},
 ) => {
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
-    ...queries,
-  };
-
-  return render(
-    <MemoryRouter>
-      <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-        <AccessListDetail {...defaultProps} {...props} />
-      </ServicesContextProvider>
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<AccessListDetail {...defaultProps} {...props} />, { queries });
 };

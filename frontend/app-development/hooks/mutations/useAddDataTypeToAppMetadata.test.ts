@@ -9,9 +9,9 @@ const taskId = 'task_1';
 
 describe('useAddDataTypeToAppMetadata', () => {
   it('Calls addDataTypeToAppMetadata with correct arguments and payload', async () => {
-    const addDataTypeToAppMetadata = renderHookWithProviders()(() =>
+    const addDataTypeToAppMetadata = renderHookWithProviders(() =>
       useAddDataTypeToAppMetadata(org, app),
-    ).renderHookResult.result;
+    ).result;
     await addDataTypeToAppMetadata.current.mutateAsync({
       dataTypeId,
       taskId,

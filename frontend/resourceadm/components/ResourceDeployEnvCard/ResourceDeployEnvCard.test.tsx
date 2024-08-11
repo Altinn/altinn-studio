@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import type { ResourceDeployEnvCardProps } from './ResourceDeployEnvCard';
 import { ResourceDeployEnvCard } from './ResourceDeployEnvCard';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -9,7 +9,7 @@ import type { Environment } from '../../utils/resourceUtils';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 const mockTestEnv: Environment = {
   envType: 'test',
@@ -127,14 +127,8 @@ const renderResourceDeployEnvCard = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
-    ...queries,
-  };
-
-  return render(
-    <ServicesContextProvider {...allQueries} client={queryClient}>
-      <ResourceDeployEnvCard {...defaultProps} {...props} />
-    </ServicesContextProvider>,
-  );
+  return renderWithProviders(<ResourceDeployEnvCard {...defaultProps} {...props} />, {
+    queries,
+    queryClient,
+  });
 };

@@ -14,9 +14,7 @@ const modelPath = 'modelPath';
 describe('useSchemaMutation', () => {
   it('Returns correct state and calls saveDataModel with the correct parameters', async () => {
     const saveDataModel = jest.fn();
-    const {
-      renderHookResult: { result },
-    } = render({ saveDataModel });
+    const { result } = render({ saveDataModel });
     result.current.mutate({ modelPath, model: jsonSchemaMock });
     await waitFor(() => result.current.isPending);
     expect(saveDataModel).toHaveBeenCalledTimes(1);
@@ -26,9 +24,7 @@ describe('useSchemaMutation', () => {
 
   it('Updates the JsonSchema query cache', async () => {
     const queryClient = createQueryClientMock();
-    const {
-      renderHookResult: { result },
-    } = render({}, queryClient);
+    const { result } = render({}, queryClient);
     result.current.mutate({ modelPath, model: jsonSchemaMock });
     await waitFor(() => result.current.isSuccess);
     expect(queryClient.getQueryData([QueryKey.JsonSchema, org, app, modelPath])).toEqual(
@@ -40,4 +36,8 @@ describe('useSchemaMutation', () => {
 const render = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
-) => renderHookWithProviders(queries, queryClient)(() => useSchemaMutation());
+) =>
+  renderHookWithProviders(() => useSchemaMutation(), {
+    queries,
+    queryClient,
+  });

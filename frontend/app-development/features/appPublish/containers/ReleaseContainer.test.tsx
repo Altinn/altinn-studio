@@ -1,29 +1,15 @@
 import React from 'react';
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { ReleaseContainer } from './ReleaseContainer';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import {
-  type ServicesContextProps,
-  ServicesContextProvider,
-} from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { repoStatus } from 'app-shared/mocks/mocks';
 import userEvent from '@testing-library/user-event';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
+import { renderWithProviders } from '../../../test/mocks';
 
-const renderReleaseContainer = (queries?: Partial<ServicesContextProps>) => {
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
-    ...queries,
-  };
-
-  render(
-    <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-      <ReleaseContainer />
-    </ServicesContextProvider>,
-  );
-};
+const renderReleaseContainer = (queries?: Partial<ServicesContextProps>) =>
+  renderWithProviders(<ReleaseContainer />, { queries });
 
 describe('ReleaseContainer', () => {
   afterEach(() => jest.clearAllMocks);

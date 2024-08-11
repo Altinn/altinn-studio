@@ -15,9 +15,7 @@ import {
   mapKeywordsArrayToString,
   resourceStatusMap,
 } from '../../utils/resourceUtils/resourceUtils';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 const mockContactPoint: ResourceContactPoint = {
   category: 'test',
@@ -362,13 +360,11 @@ describe('AboutResourcePage', () => {
   });
 
   it('should display access list links when RRR is enabled', async () => {
-    render(
-      <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
-        <AboutResourcePage
-          {...defaultProps}
-          resourceData={{ ...mockResource2, limitedByRRR: true }}
-        />
-      </ServicesContextProvider>,
+    renderWithProviders(
+      <AboutResourcePage
+        {...defaultProps}
+        resourceData={{ ...mockResource2, limitedByRRR: true }}
+      />,
     );
 
     expect(screen.getByTestId('rrr-buttons')).toBeInTheDocument();

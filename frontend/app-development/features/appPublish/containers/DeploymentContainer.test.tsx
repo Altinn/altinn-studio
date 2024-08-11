@@ -54,5 +54,7 @@ describe('DeploymentContainer', () => {
 });
 
 const render = (queries?: Partial<ServicesContextProps>) => {
-  return renderWithProviders(queries)(<DeploymentContainer />);
+  return renderWithProviders(<DeploymentContainer />, {
+    queries,
+  });
 };

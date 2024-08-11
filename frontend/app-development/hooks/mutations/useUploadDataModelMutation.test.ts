@@ -8,7 +8,8 @@ import type { QueryClient } from '@tanstack/react-query';
 import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
+const formData = new FormData();
+formData.append('hello', new File(['hello'], 'hello.xsd', { type: 'text/xml' }));
 
 const renderHook = async ({
   queryClient,
@@ -18,10 +19,12 @@ const renderHook = async ({
   modelPath?: string;
 } = {}) => {
   const uploadDataModelResult = renderHookWithProviders(
-    {},
-    queryClient,
-  )(() => useUploadDataModelMutation(modelPath)).renderHookResult.result;
-  await waitFor(() => uploadDataModelResult.current.mutate(file));
+    () => useUploadDataModelMutation(modelPath),
+    {
+      queryClient,
+    },
+  ).result;
+  await waitFor(() => uploadDataModelResult.current.mutate(formData));
   expect(uploadDataModelResult.current.isSuccess).toBe(true);
 };
 
@@ -30,7 +33,7 @@ describe('useUploadDataModelMutation', () => {
     await renderHook();
 
     expect(queriesMock.uploadDataModel).toHaveBeenCalledTimes(1);
-    expect(queriesMock.uploadDataModel).toHaveBeenCalledWith(org, app, file);
+    expect(queriesMock.uploadDataModel).toHaveBeenCalledWith(org, app, formData);
   });
 
   it('invalidates metadata queries when upload is successful', async () => {

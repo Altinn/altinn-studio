@@ -1,14 +1,13 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import type { DeleteModalProps } from './DeleteModal';
 import { DeleteModal } from './DeleteModal';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 const mockApp: string = 'TestApp';
 const mockOrg: string = 'TestOrg';
@@ -110,14 +109,5 @@ const renderDeleteModal = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
-    ...queries,
-  };
-
-  return render(
-    <ServicesContextProvider {...allQueries} client={queryClient}>
-      <DeleteModal {...defaultProps} />
-    </ServicesContextProvider>,
-  );
+  return renderWithProviders(<DeleteModal {...defaultProps} />, { queries, queryClient });
 };

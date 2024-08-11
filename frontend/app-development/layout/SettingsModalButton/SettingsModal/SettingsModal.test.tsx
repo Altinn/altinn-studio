@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { SettingsModalProps } from './SettingsModal';
 import { SettingsModal } from './SettingsModal';
@@ -7,13 +7,12 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient, UseMutationResult } from '@tanstack/react-query';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import { useAppConfigMutation } from '../../../hooks/mutations';
-import { MemoryRouter } from 'react-router-dom';
 
 import { SettingsModalContextProvider } from '../../../contexts/SettingsModalContext';
 import { PreviewContextProvider } from '../../../contexts/PreviewContext';
+import { renderWithProviders } from '../../../test/mocks';
 
 jest.mock('../../../hooks/mutations/useAppConfigMutation');
 const updateAppConfigMutation = jest.fn();
@@ -204,15 +203,12 @@ const renderSettingsModal = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
-  return render(
-    <MemoryRouter>
-      <ServicesContextProvider {...queries} client={queryClient}>
-        <SettingsModalContextProvider>
-          <PreviewContextProvider>
-            <SettingsModal {...props} />
-          </PreviewContextProvider>
-        </SettingsModalContextProvider>
-      </ServicesContextProvider>
-    </MemoryRouter>,
+  return renderWithProviders(
+    <SettingsModalContextProvider>
+      <PreviewContextProvider>
+        <SettingsModal {...props} />
+      </PreviewContextProvider>
+    </SettingsModalContextProvider>,
+    { queries, queryClient },
   );
 };

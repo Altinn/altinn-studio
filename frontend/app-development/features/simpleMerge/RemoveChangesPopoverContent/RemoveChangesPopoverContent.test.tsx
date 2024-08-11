@@ -1,19 +1,16 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   RemoveChangesPopoverContent,
   type RemoveChangesPopoverContentProps,
 } from './RemoveChangesPopoverContent';
-import { MemoryRouter } from 'react-router-dom';
 import { app, org } from '@studio/testing/testids';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { QueryClient } from '@tanstack/react-query';
-import {
-  ServicesContextProvider,
-  type ServicesContextProps,
-} from 'app-shared/contexts/ServicesContext';
+import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { renderWithProviders } from '../../../test/mocks';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -100,11 +97,8 @@ const renderRemoveChangesPopoverContent = (
     ...queries,
   };
 
-  return render(
-    <MemoryRouter>
-      <ServicesContextProvider {...allQueries} client={queryClient}>
-        <RemoveChangesPopoverContent {...defaultProps} />
-      </ServicesContextProvider>
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<RemoveChangesPopoverContent {...defaultProps} />, {
+    queries: allQueries,
+    queryClient,
+  });
 };

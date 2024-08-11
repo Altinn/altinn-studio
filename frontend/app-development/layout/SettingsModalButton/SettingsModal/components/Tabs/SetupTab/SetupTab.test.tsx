@@ -1,15 +1,13 @@
 import React from 'react';
-import { render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { SetupTab } from './SetupTab';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { MemoryRouter } from 'react-router-dom';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { mockAppMetadata } from '../../../mocks/applicationMetadataMock';
 import { app, org } from '@studio/testing/testids';
+import { renderWithProviders } from '../../../../../../test/mocks';
 
 const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
 
@@ -72,15 +70,8 @@ const render = (
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
   const allQueries: ServicesContextProps = {
-    ...queriesMock,
     getAppMetadata,
     ...queries,
   };
-  return rtlRender(
-    <MemoryRouter>
-      <ServicesContextProvider {...allQueries} client={queryClient}>
-        <SetupTab />
-      </ServicesContextProvider>
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<SetupTab />, { queries: allQueries, queryClient });
 };

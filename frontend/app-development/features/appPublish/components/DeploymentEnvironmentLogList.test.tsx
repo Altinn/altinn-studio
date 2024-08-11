@@ -34,9 +34,9 @@ const render = (
   props?: Partial<DeploymentEnvironmentLogListProps>,
   queries?: Partial<ServicesContextProps>,
 ) => {
-  return renderWithProviders(queries)(
-    <DeploymentEnvironmentLogList {...defaultProps} {...props} />,
-  );
+  return renderWithProviders(<DeploymentEnvironmentLogList {...defaultProps} {...props} />, {
+    queries,
+  });
 };
 describe('DeploymentEnvironmentLogList', () => {
   it('renders with no history', () => {

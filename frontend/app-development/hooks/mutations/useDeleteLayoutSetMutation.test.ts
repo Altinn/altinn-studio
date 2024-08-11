@@ -9,9 +9,9 @@ const layoutSetToDeleteId = 'oldLayoutSetName';
 
 describe('useDeleteLayoutSetMutation', () => {
   it('Calls deleteLayoutSetMutation with correct arguments and payload', async () => {
-    const deleteLayoutSetResult = renderHookWithProviders()(() =>
+    const deleteLayoutSetResult = renderHookWithProviders(() =>
       useDeleteLayoutSetMutation(org, app),
-    ).renderHookResult.result;
+    ).result;
     await deleteLayoutSetResult.current.mutateAsync({
       layoutSetIdToUpdate: layoutSetToDeleteId,
     });

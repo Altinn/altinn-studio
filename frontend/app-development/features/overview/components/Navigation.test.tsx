@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import { Navigation } from './Navigation';
 import { getFilteredTopBarMenu, topBarMenuItem } from 'app-development/layout/AppBar/appBarConfig';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { renderWithProviders } from 'app-development/test/testUtils';
+import { renderWithProviders } from 'app-development/test/mocks';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { RepositoryType } from 'app-shared/types/global';

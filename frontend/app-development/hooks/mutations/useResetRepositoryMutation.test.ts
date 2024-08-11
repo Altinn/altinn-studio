@@ -5,8 +5,7 @@ import { app, org } from '@studio/testing/testids';
 
 describe('useResetRepositoryMutation', () => {
   it('Calls updateServiceConfig with correct arguments and payload', async () => {
-    const result = renderHookWithProviders()(() => useResetRepositoryMutation(org, app))
-      .renderHookResult.result;
+    const result = renderHookWithProviders(() => useResetRepositoryMutation(org, app)).result;
 
     await result.current.mutateAsync();
 

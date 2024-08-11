@@ -1,17 +1,16 @@
 import React from 'react';
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { DeployResourcePageProps } from './DeployResourcePage';
 import { DeployResourcePage } from './DeployResourcePage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { MemoryRouter } from 'react-router-dom';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
 import type { Validation } from 'app-shared/types/ResourceAdm';
 import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 const mockResourceId: string = 'r1';
 const mockOrg: string = 'test';
@@ -335,14 +334,8 @@ const renderDeployResourcePage = (
   props: Partial<DeployResourcePageProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
-  const allQueries = {
-    ...queries,
-  };
-  return render(
-    <MemoryRouter>
-      <ServicesContextProvider {...queriesMock} {...allQueries} client={queryClient}>
-        <DeployResourcePage {...defaultProps} {...props} />
-      </ServicesContextProvider>
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<DeployResourcePage {...defaultProps} {...props} />, {
+    queries,
+    queryClient,
+  });
 };

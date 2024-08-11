@@ -1,15 +1,15 @@
 import React from 'react';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { LocalChanges } from './LocalChanges';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient, UseMutationResult } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
 import { repoDownloadPath } from 'app-shared/api/paths';
 import { app, org } from '@studio/testing/testids';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -138,9 +138,5 @@ const render = (
   allQueries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
-  return rtlRender(
-    <ServicesContextProvider {...allQueries} client={queryClient}>
-      <LocalChanges />
-    </ServicesContextProvider>,
-  );
+  return renderWithProviders(<LocalChanges />, { queries: allQueries, queryClient });
 };

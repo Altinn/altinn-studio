@@ -1,20 +1,15 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { VersionControlButtons } from './VersionControlButtons';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import {
-  ServicesContextProvider,
-  type ServicesContextProps,
-} from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { VersionControlButtonsContextProvider } from './context';
 import {
   mockRepoStatus,
   mockVersionControlButtonsContextValue,
 } from './test/mocks/versionControlContextMock';
-import { MemoryRouter } from 'react-router-dom';
 import { app, org } from '@studio/testing/testids';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 const mockOnPullSuccess = jest.fn();
 
@@ -73,18 +68,12 @@ type Props = {
 const renderVersionControlButtons = (props: Partial<Props> = {}) => {
   const { queries } = props;
 
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
-    ...queries,
-  };
-
-  return render(
-    <MemoryRouter>
-      <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-        <VersionControlButtonsContextProvider {...mockVersionControlButtonsContextValue}>
-          <VersionControlButtons onPullSuccess={mockOnPullSuccess} />
-        </VersionControlButtonsContextProvider>
-      </ServicesContextProvider>
-    </MemoryRouter>,
+  return renderWithProviders(
+    <VersionControlButtonsContextProvider {...mockVersionControlButtonsContextValue}>
+      <VersionControlButtons onPullSuccess={mockOnPullSuccess} />
+    </VersionControlButtonsContextProvider>,
+    {
+      queries,
+    },
   );
 };

@@ -1,15 +1,12 @@
 import React, { useRef } from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { NewResourceModalProps } from './NewResourceModal';
 import { NewResourceModal } from './NewResourceModal';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { MemoryRouter } from 'react-router-dom';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 const mockButtonText: string = 'Mock Button';
 const org = 'orgname';
@@ -162,17 +159,7 @@ describe('NewResourceModal', () => {
 });
 
 const renderNewResourceModal = (queries: Partial<ServicesContextProps> = {}) => {
-  const allQueries = {
-    ...queriesMock,
-    ...queries,
-  };
-  return render(
-    <MemoryRouter>
-      <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-        <TestComponentWithButton {...defaultProps} />
-      </ServicesContextProvider>
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<TestComponentWithButton {...defaultProps} />, { queries });
 };
 
 const renderAndOpenModal = async (queries: Partial<ServicesContextProps> = {}) => {

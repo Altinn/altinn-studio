@@ -1,18 +1,17 @@
 import React from 'react';
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { ResourceDashboardPage } from './ResourceDashboardPage';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { MemoryRouter } from 'react-router-dom';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { Organization } from 'app-shared/types/Organization';
 import { organization } from 'app-shared/mocks/mocks';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 const mockResourceListItem1: ResourceListItem = {
   title: { nb: 'resource 1', nn: '', en: '' },
@@ -349,11 +348,5 @@ const renderResourceDashboardPage = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
-  return render(
-    <MemoryRouter>
-      <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
-        <ResourceDashboardPage />
-      </ServicesContextProvider>
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<ResourceDashboardPage />, { queries, queryClient });
 };

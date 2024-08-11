@@ -2,13 +2,12 @@ import React from 'react';
 import type { TextRowProps } from './TextRow';
 import userEvent from '@testing-library/user-event';
 import { TextRow } from './TextRow';
-import { screen, render as rtlRender, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { TextTableRowEntry } from './types';
 import { Table, TableBody } from '@digdir/designsystemet-react';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 const textKey: string = 'key1';
 
@@ -32,14 +31,15 @@ describe('TextRow', () => {
       selectedLanguages: ['nb', 'en', 'nn'],
       ...props,
     };
-    rtlRender(
-      <ServicesContextProvider {...queriesMock} client={queryClientMock}>
-        <Table>
-          <TableBody>
-            <TextRow {...allProps} />
-          </TableBody>
-        </Table>
-      </ServicesContextProvider>,
+    renderWithProviders(
+      <Table>
+        <TableBody>
+          <TextRow {...allProps} />
+        </TableBody>
+      </Table>,
+      {
+        queryClient: queryClientMock,
+      },
     );
   };
 

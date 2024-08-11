@@ -77,4 +77,7 @@ describe('SchemaGenerationErrorsPanel', () => {
 const render = (
   queries: Partial<ServicesContextProps> = {},
   props: Partial<SchemaGenerationErrorsPanelProps> = {},
-) => renderWithProviders(queries)(<SchemaGenerationErrorsPanel {...defaultProps} {...props} />);
+) =>
+  renderWithProviders(<SchemaGenerationErrorsPanel {...defaultProps} {...props} />, {
+    queries,
+  });

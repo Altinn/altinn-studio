@@ -1,13 +1,12 @@
 import React from 'react';
-import { MemoryRouter, useParams } from 'react-router-dom';
-import { render, screen, waitFor } from '@testing-library/react';
+import { useParams } from 'react-router-dom';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ListAdminPage } from './ListAdminPage';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 const accessListResults = {
   data: [
@@ -150,11 +149,5 @@ const renderListAdminPage = (isError?: boolean) => {
           .mockImplementationOnce(() => Promise.resolve(accessListResultsPage2)),
   };
 
-  return render(
-    <MemoryRouter>
-      <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-        <ListAdminPage />
-      </ServicesContextProvider>
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<ListAdminPage />, { queries: allQueries });
 };

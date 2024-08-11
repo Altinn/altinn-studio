@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
-import { renderWithProviders } from '../../../test/testUtils';
+import { renderWithProviders } from '../../../test/mocks';
 import DataModellingContainer from './DataModellingContainer';
 import { dataModellingContainerId } from '@studio/testing/testids';
 

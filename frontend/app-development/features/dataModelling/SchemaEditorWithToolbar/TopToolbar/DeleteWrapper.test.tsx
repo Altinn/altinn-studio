@@ -47,7 +47,10 @@ const render = (
     [QueryKey.DataModelsMetadata, org, app],
     [jsonMetadata1Mock, jsonMetadata2Mock],
   );
-  return renderWithProviders(queries, queryClient)(<DeleteWrapper {...defaultProps} {...props} />);
+  return renderWithProviders(<DeleteWrapper {...defaultProps} {...props} />, {
+    queries,
+    queryClient,
+  });
 };
 
 describe('DeleteWrapper', () => {

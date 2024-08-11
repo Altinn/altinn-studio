@@ -1,4 +1,4 @@
-import { renderWithProviders } from '../../test/testUtils';
+import { renderWithProviders } from '../../test/mocks';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import React from 'react';

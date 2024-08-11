@@ -1,15 +1,12 @@
 import React from 'react';
-import { MemoryRouter } from 'react-router-dom';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { AccessListMembersProps } from './AccessListMembers';
 import { AccessListMembers } from './AccessListMembers';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 const testOrg = 'ttd';
 const testEnv = 'tt02';
@@ -380,19 +377,14 @@ const renderAccessListMembers = (queries: Partial<ServicesContextProps> = {}) =>
     .fn()
     .mockImplementation(() => Promise.resolve(membersResults));
 
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
+  const allQueries: Partial<ServicesContextProps> = {
     getAccessListMembers: defaultGetAccessListMembersMock,
     ...queries,
   };
 
-  render(
-    <MemoryRouter>
-      <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-        <AccessListMembers {...defaultProps} />
-      </ServicesContextProvider>
-    </MemoryRouter>,
-  );
+  renderWithProviders(<AccessListMembers {...defaultProps} />, {
+    queries: allQueries,
+  });
 };
 
 const renderAndWaitForData = async (queries: Partial<ServicesContextProps> = {}) => {

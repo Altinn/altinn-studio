@@ -25,9 +25,7 @@ describe('useDeleteDataModelMutation', () => {
     const client = createQueryClientMock();
     client.setQueryData([QueryKey.DataModelsJson, org, app], [modelMetadataJson]);
     client.setQueryData([QueryKey.DataModelsXsd, org, app], [modelMetadataXsd]);
-    const {
-      renderHookResult: { result },
-    } = render({}, client);
+    const { result } = render({}, client);
     expect(result.current).toBeDefined();
     result.current.mutate(modelPath);
     await waitFor(() => result.current.isSuccess);
@@ -39,9 +37,7 @@ describe('useDeleteDataModelMutation', () => {
     const client = createQueryClientMock();
     client.setQueryData([QueryKey.DataModelsJson, org, app], [modelMetadataJson]);
     client.setQueryData([QueryKey.DataModelsXsd, org, app], [modelMetadataXsd]);
-    const {
-      renderHookResult: { result },
-    } = render({}, client);
+    const { result } = render({}, client);
     result.current.mutate(modelPath);
     await waitFor(() => result.current.isSuccess);
     expect(client.getQueryData([QueryKey.DataModelsJson, org, app])).toEqual([]);
@@ -52,9 +48,7 @@ describe('useDeleteDataModelMutation', () => {
     const client = createQueryClientMock();
     client.setQueryData([QueryKey.DataModelsJson, org, app], [modelMetadataJson]);
     client.setQueryData([QueryKey.DataModelsXsd, org, app], [modelMetadataXsd]);
-    const {
-      renderHookResult: { result },
-    } = render({}, client);
+    const { result } = render({}, client);
     result.current.mutate(modelPath);
     await waitFor(() => result.current.isSuccess);
     expect(client.getQueryData([QueryKey.JsonSchema, org, app, modelPath])).toBeUndefined();
@@ -67,4 +61,8 @@ describe('useDeleteDataModelMutation', () => {
 const render = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
-) => renderHookWithProviders(queries, queryClient)(() => useDeleteDataModelMutation());
+) =>
+  renderHookWithProviders(() => useDeleteDataModelMutation(), {
+    queries,
+    queryClient,
+  });

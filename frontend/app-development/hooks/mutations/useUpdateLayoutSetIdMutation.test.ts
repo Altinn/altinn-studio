@@ -10,9 +10,9 @@ const newLayoutSetId: string = 'newLayoutSetName';
 
 describe('useUpdateLayoutSetIdMutation', () => {
   it('Calls updateLayoutSetIdMutation with correct arguments and payload', async () => {
-    const updateLayoutSetIdResult = renderHookWithProviders()(() =>
+    const updateLayoutSetIdResult = renderHookWithProviders(() =>
       useUpdateLayoutSetIdMutation(org, app),
-    ).renderHookResult.result;
+    ).result;
     await waitFor(() =>
       updateLayoutSetIdResult.current.mutateAsync({
         layoutSetIdToUpdate,

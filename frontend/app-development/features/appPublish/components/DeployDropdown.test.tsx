@@ -304,12 +304,14 @@ describe('DeployDropdown', () => {
 });
 
 const render = (props?: Partial<DeployDropdownProps>, queries?: Partial<ServicesContextProps>) => {
-  return renderWithProviders({
-    getAppReleases: jest.fn().mockImplementation(() =>
-      Promise.resolve({
-        results: appReleases,
-      }),
-    ),
-    ...queries,
-  })(<DeployDropdown {...defaultProps} {...props} />);
+  return renderWithProviders(<DeployDropdown {...defaultProps} {...props} />, {
+    queries: {
+      getAppReleases: jest.fn().mockImplementation(() =>
+        Promise.resolve({
+          results: appReleases,
+        }),
+      ),
+      ...queries,
+    },
+  });
 };

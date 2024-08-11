@@ -1,18 +1,16 @@
 import React, { useEffect } from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import type { AppContextProps, WindowWithQueryClient } from './AppContext';
 import { AppContextProvider } from './AppContext';
 import userEvent from '@testing-library/user-event';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { MemoryRouter } from 'react-router-dom';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useAppContext } from './hooks';
 import type { QueryClient } from '@tanstack/react-query';
 import { layout1NameMock } from './testing/layoutMock';
 import { layoutSet1NameMock } from './testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 const mockSelectedFormLayoutSetName = layoutSet1NameMock;
 const mockSelectedFormLayoutName = layout1NameMock;
@@ -68,22 +66,19 @@ const renderAppContext = (children: (appContext: AppContextProps) => React.React
   });
 
   return {
-    ...render(
-      <MemoryRouter>
-        <ServicesContextProvider {...queriesMock} client={queryClient}>
-          <AppContextProvider
-            shouldReloadPreview={false}
-            previewHasLoaded={jest.fn()}
-            onLayoutSetNameChange={jest.fn()}
-          >
-            <TestComponent queryClient={queryClient}>
-              {(appContext: AppContextProps) => children(appContext)}
-            </TestComponent>
-          </AppContextProvider>
-        </ServicesContextProvider>
-      </MemoryRouter>,
-    ),
     queryClient,
+    ...renderWithProviders(
+      <AppContextProvider
+        shouldReloadPreview={false}
+        previewHasLoaded={jest.fn()}
+        onLayoutSetNameChange={jest.fn()}
+      >
+        <TestComponent queryClient={queryClient}>
+          {(appContext: AppContextProps) => children(appContext)}
+        </TestComponent>
+      </AppContextProvider>,
+      { queryClient },
+    ),
   };
 };
 

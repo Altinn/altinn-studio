@@ -1,18 +1,15 @@
 import React from 'react';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import type { SetupTabContentProps } from './SetupTabContent';
 import { SetupTabContent } from './SetupTabContent';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { UseMutationResult } from '@tanstack/react-query';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { MemoryRouter } from 'react-router-dom';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { mockAppMetadata } from '../../../../mocks/applicationMetadataMock';
 import userEvent from '@testing-library/user-event';
 import { app, org } from '@studio/testing/testids';
+import { renderWithProviders } from '../../../../../../../test/mocks';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -134,11 +131,5 @@ describe('SetupTabContent', () => {
 });
 
 const render = (props: Partial<SetupTabContentProps> = {}) => {
-  return rtlRender(
-    <MemoryRouter>
-      <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
-        <SetupTabContent {...defaultProps} {...props} />
-      </ServicesContextProvider>
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<SetupTabContent {...defaultProps} {...props} />);
 };

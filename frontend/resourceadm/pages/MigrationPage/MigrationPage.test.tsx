@@ -1,14 +1,11 @@
 import React from 'react';
-import { MemoryRouter } from 'react-router-dom';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { MigrationPageProps } from './MigrationPage';
 import { MigrationPage } from './MigrationPage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { renderWithProviders } from '@studio/testing/wrapper';
 
 const defaultProps: MigrationPageProps = {
   navigateToPageWithError: jest.fn(),
@@ -184,15 +181,5 @@ describe('MigrationPage', () => {
 });
 
 const renderMigrationPage = (queries: Partial<ServicesContextProps> = {}) => {
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
-  };
-
-  return render(
-    <MemoryRouter>
-      <ServicesContextProvider {...allQueries} {...queries} client={createQueryClientMock()}>
-        <MigrationPage {...defaultProps} />
-      </ServicesContextProvider>
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<MigrationPage {...defaultProps} />, { queries });
 };
