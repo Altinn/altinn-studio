@@ -253,17 +253,5 @@ namespace Altinn.Studio.Designer.Controllers
 
             return BadRequest($"Resource.{languageCode}.json could not be deleted.");
         }
-
-        /// <summary>
-        /// Get the JSON schema for resource files
-        /// </summary>
-        /// <returns>JSON content</returns>
-        [HttpGet]
-        [Route("json-schema")]
-        public IActionResult GetResourceSchema()
-        {
-            string schema = System.IO.File.ReadAllText(_hostingEnvironment.WebRootPath + "/designer/json/schema/resource-schema.json");
-            return Content(schema, "application/json", Encoding.UTF8);
-        }
     }
 }
