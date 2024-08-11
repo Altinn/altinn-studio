@@ -10,7 +10,6 @@ const {
   createDataModelPath,
   branchStatusPath,
   repoStatusPath,
-  frontendLangPath,
   repoMetaPath,
   serviceConfigPath,
 } = require('../../../packages/shared/src/api/paths');
@@ -29,7 +28,6 @@ module.exports = (middlewares, devServer) => {
   app.get(dataModelPath(':org', ':app', '/App/models/:filename'), require('./routes/get-datamodel'));
   app.get(dataModelsPath(':org', ':app'), require('./routes/get-datamodels'));
   //prettier-ignore
-  app.get(frontendLangPath(':locale'), (req, res) => res.json(require(`../../../language/src/${req.params.locale}.json`)));
   app.get(repoMetaPath(':org', ':app'), require('./routes/get-repo-data'));
   app.get(branchStatusPath(':org', ':app', 'branch'), require('./routes/get-branch'));
   app.get(repoStatusPath(':org', ':app'), fixtureRoute('status'));
