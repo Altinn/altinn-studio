@@ -36,7 +36,8 @@ export const AltinnHeaderMenu = ({
 
   const groupedMenuItems: TopBarMenuGroup[] = groupMenuItemsByGroup(menuItems);
 
-  if (!menuItems?.length) return null;
+  if (!menuItems.length && !deploymentItems.length) return null;
+  console.log('HEI');
 
   if (isSmallWidth) {
     return (
@@ -109,14 +110,15 @@ const LargeNavigationMenu = ({
   const { org, app } = useStudioEnvironmentParams();
   const repositoryType = getRepositoryType(org, app);
 
+  // REFACTOR THE THREE BELOW
   const deployItem: TopBarMenuDeploymentItem =
     deploymentItems && deploymentItems.find((item) => item.key === TopBarMenu.Deploy);
 
   const previewItem: TopBarMenuDeploymentItem =
     deploymentItems && deploymentItems.find((item) => item.key === TopBarMenu.Preview);
 
-  console.log('deployItem', deployItem);
-  console.log('previewItem', previewItem);
+  const backToEditingItem: TopBarMenuDeploymentItem =
+    deploymentItems && deploymentItems.find((item) => item.key === TopBarMenu.PreviewBackToEditing);
 
   //const location = useLocation();
   //const currentRoutePath: string = getRouterRouteByPathname(location.pathname);
@@ -170,6 +172,16 @@ const LargeNavigationMenu = ({
           <li className={classes.menuItem}>
             {/*<StudioButton asChild className={classes.previewButton}>*/}
             <a href={previewItem.link}>
+              <PlayIcon className={classes.previewIcon} />
+            </a>
+            {/*</StudioButton>*/}
+          </li>
+        )}
+        {backToEditingItem && (
+          <li className={classes.menuItem}>
+            {/*<StudioButton asChild className={classes.previewButton}>*/}
+            <a href={backToEditingItem.link}>
+              {t(backToEditingItem.key)}
               <PlayIcon className={classes.previewIcon} />
             </a>
             {/*</StudioButton>*/}

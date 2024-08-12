@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import { useInstanceIdQuery, useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { useLocalStorage } from '@studio/components/src/hooks/useLocalStorage';
-import { AltinnHeader } from 'app-shared/components/altinnHeader';
 import type { AltinnHeaderVariant } from 'app-shared/components/altinnHeader/types';
 import { appPreviewButtonActions } from '../components/AppBarConfig/AppPreviewBarConfig';
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
@@ -17,7 +16,6 @@ import {
   useSelectedTaskId,
 } from '@altinn/ux-editor/hooks';
 import { StudioPageHeader } from '@studio/components';
-import { Paragraph } from '@digdir/designsystemet-react';
 import { AppUserProfileMenu } from 'app-shared/components/AppUserProfileMenu';
 import { AltinnHeaderMenu } from 'app-shared/components/altinnHeaderMenu';
 
@@ -67,37 +65,13 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
     });
   }
 
-  // TODO - HEADER
   // TODO - WHY NOT CORRECT FONT FAMILY
   return (
     <>
-      <div className={classes.header}>
-        <AltinnHeader
-          heading={t('preview.title')}
-          showSubMenu={true}
-          org={org}
-          app={app}
-          user={user}
-          repository={repository}
-          buttonActions={[]} //appPreviewButtonActions(org, app, instanceId)}
-          variant={variant}
-          subMenuContent={
-            <AppPreviewSubMenu
-              setViewSize={setPreviewViewSize}
-              viewSize={previewViewSize}
-              selectedLayoutSet={selectedFormLayoutSetName}
-              handleChangeLayoutSet={handleChangeLayoutSet}
-            />
-          }
-        />
-      </div>
       <StudioPageHeader>
         <StudioPageHeader.Main variant='preview'>
           <StudioPageHeader.Left title={app} />
           <StudioPageHeader.Center>
-            <Paragraph className={classes.headingMenuItem} size='small'>
-              {t('preview.title')}
-            </Paragraph>
             <AltinnHeaderMenu
               menuItems={[]}
               windowResizeWidth={WINDOW_RESIZE_WIDTH}
@@ -108,8 +82,16 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
             <AppUserProfileMenu user={user} repository={repository} />
           </StudioPageHeader.Right>
         </StudioPageHeader.Main>
-        <StudioPageHeader.Sub></StudioPageHeader.Sub>
+        <StudioPageHeader.Sub>
+          <AppPreviewSubMenu
+            setViewSize={setPreviewViewSize}
+            viewSize={previewViewSize}
+            selectedLayoutSet={selectedFormLayoutSetName}
+            handleChangeLayoutSet={handleChangeLayoutSet}
+          />
+        </StudioPageHeader.Sub>
       </StudioPageHeader>
+      {/* TODO - MOVE TO SEPARATE FILE */}
       <div className={classes.previewArea}>
         <PreviewLimitationsInfo />
         <div className={classes.iframeContainer}>

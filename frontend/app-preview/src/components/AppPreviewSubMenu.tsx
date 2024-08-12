@@ -20,7 +20,7 @@ export const AppPreviewSubMenu = ({
   handleChangeLayoutSet,
 }: AppPreviewSubMenuProps) => {
   return (
-    <>
+    <div className={classes.subHeader}>
       <div className={classes.leftContent}>
         <SubPreviewMenuLeftContent
           viewSize={viewSize}
@@ -34,6 +34,6 @@ export const AppPreviewSubMenu = ({
           <SubPreviewMenuRightContent />
         </div>
       )}
-    </>
+    </div>
   );
 };

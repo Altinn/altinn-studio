@@ -11,6 +11,7 @@ import { StudioButton, StudioNativeSelect } from '@studio/components';
 import { ToggleGroup } from '@digdir/designsystemet-react';
 import { type TopBarMenuDeploymentItem } from 'app-shared/types/TopBarMenuItem';
 
+// TODO - MAKE ISSUE TO REFACTOR THIS COMPONENT
 export const SubPreviewMenuLeftContent = ({
   viewSize,
   setViewSize,
@@ -51,6 +52,7 @@ export const SubPreviewMenuLeftContent = ({
   );
 };
 
+// TODO - THESE BUTTONS ARE NOT WORKING???
 export const SubPreviewMenuRightContent = () => {
   const { t } = useTranslation();
   return (

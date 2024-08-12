@@ -1,1 +1,0 @@
-export { AltinnHeader } from './AltinnHeader';
