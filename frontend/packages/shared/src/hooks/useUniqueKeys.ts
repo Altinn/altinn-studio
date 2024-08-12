@@ -3,21 +3,21 @@ import { v4 as uuidv4 } from 'uuid';
 import { ArrayUtils } from '@studio/pure-functions';
 
 type UseUniqueKey = {
-  removeKey: (index: number) => void;
+  removeUniqueKey: (index: number) => void;
   getUniqueKey: (index: number) => string;
 };
 
 export type UseUniqueKeyArgs = {
-  maxNumberOfKeys: number;
+  numberOfKeys: number;
 };
 
-export const useUniqueKey = ({ maxNumberOfKeys }: UseUniqueKeyArgs): UseUniqueKey => {
+export const useUniqueKeys = ({ numberOfKeys }: UseUniqueKeyArgs): UseUniqueKey => {
   const internalUniqueKeys = useRef<Array<string>>([]);
 
-  const isInternalUniqueKeysOutOfSync = internalUniqueKeys.current.length !== maxNumberOfKeys;
-  if (isInternalUniqueKeysOutOfSync) {
+  const areInternalUniqueKeysOutOfSync = internalUniqueKeys.current.length !== numberOfKeys;
+  if (areInternalUniqueKeysOutOfSync) {
     internalUniqueKeys.current = [];
-    for (let i = 0; i < maxNumberOfKeys; i++) {
+    for (let i = 0; i < numberOfKeys; i++) {
       const newlyGeneratedKey = uuidv4();
       internalUniqueKeys.current.push(newlyGeneratedKey);
     }
@@ -27,12 +27,12 @@ export const useUniqueKey = ({ maxNumberOfKeys }: UseUniqueKeyArgs): UseUniqueKe
     return internalUniqueKeys.current[index];
   };
 
-  const removeKey = (index: number): void => {
+  const removeUniqueKey = (index: number): void => {
     ArrayUtils.removeItemByIndex(internalUniqueKeys.current, index);
   };
 
   return {
     getUniqueKey,
-    removeKey,
+    removeUniqueKey,
   };
 };

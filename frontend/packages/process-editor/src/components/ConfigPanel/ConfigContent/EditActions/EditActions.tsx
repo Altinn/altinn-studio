@@ -6,7 +6,7 @@ import { useChecksum } from './useChecksum';
 import { ActionsEditor } from './ActionsEditor';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { type Action, BpmnActionModeler } from '../../../../utils/bpmnModeler/BpmnActionModeler';
-import { useUniqueKey } from 'app-shared/hooks/useUniqueKey';
+import { useUniqueKeys } from 'app-shared/hooks/useUniqueKeys';
 import classes from './EditActions.module.css';
 
 export const EditActions = (): React.ReactElement => {
@@ -16,12 +16,12 @@ export const EditActions = (): React.ReactElement => {
   // This is a custom hook that is used to force re-render the component, since the actions from bpmnjs are not reactive
   const { updateChecksum: forceReRenderComponent } = useChecksum();
   const actions: Action[] = bpmnActionModeler.actionElements?.action || [];
-  const { getUniqueKey, removeKey } = useUniqueKey({ maxNumberOfKeys: actions.length });
+  const { getUniqueKey, removeUniqueKey } = useUniqueKeys({ numberOfKeys: actions.length });
 
   const onDeleteActionItemSideEffect = (index: number): void => {
     // Removes the item at the specified index to ensure new unique IDs are generated for the action list.
     // This approach is necessary because the list may contain non-unique data or IDs.
-    removeKey(index);
+    removeUniqueKey(index);
   };
 
   const onNewActionAddClicked = (): void => {

@@ -7,10 +7,10 @@ import { BpmnContext } from '../../../../contexts/BpmnContext';
 import { mockBpmnContextValue } from '../../../../../test/mocks/bpmnContextMock';
 import { type Action, BpmnActionModeler } from '../../../../utils/bpmnModeler/BpmnActionModeler';
 import { BpmnConfigPanelFormContextProvider } from '../../../../contexts/BpmnConfigPanelContext';
-import { useUniqueKey } from 'app-shared/hooks/useUniqueKey';
+import { useUniqueKeys } from 'app-shared/hooks/useUniqueKeys';
 
 jest.mock('../../../../utils/bpmnModeler/BpmnActionModeler');
-jest.mock('app-shared/hooks/useUniqueKey');
+jest.mock('app-shared/hooks/useUniqueKeys');
 
 const actionElementDefaultMock: Action = {
   $type: 'altinn:Action',
@@ -33,8 +33,8 @@ describe('EditActions', () => {
       updateActionNameOnActionElementMock,
     });
 
-    (useUniqueKey as jest.Mock).mockImplementation(() => ({
-      removeKey: jest.fn(),
+    (useUniqueKeys as jest.Mock).mockImplementation(() => ({
+      removeUniqueKey: jest.fn(),
       getUniqueKey: () => [],
     }));
 
@@ -71,8 +71,8 @@ describe('EditActions', () => {
       hasActionsAlready: true,
     });
 
-    (useUniqueKey as jest.Mock).mockImplementation(() => ({
-      removeKey: jest.fn(),
+    (useUniqueKeys as jest.Mock).mockImplementation(() => ({
+      removeUniqueKey: jest.fn(),
       getUniqueKey: () => [],
     }));
 
@@ -98,8 +98,8 @@ describe('EditActions', () => {
       },
     });
 
-    (useUniqueKey as jest.Mock).mockImplementation(() => ({
-      removeKey: jest.fn(),
+    (useUniqueKeys as jest.Mock).mockImplementation(() => ({
+      removeUniqueKey: jest.fn(),
       getUniqueKey: () => [],
     }));
 
@@ -116,8 +116,8 @@ describe('EditActions', () => {
 
   it('should display in edit mode when adding new action', async () => {
     const user = userEvent.setup();
-    (useUniqueKey as jest.Mock).mockImplementation(() => ({
-      removeKey: jest.fn(),
+    (useUniqueKeys as jest.Mock).mockImplementation(() => ({
+      removeUniqueKey: jest.fn(),
       getUniqueKey: () => [],
     }));
     setupBpmnActionModelerMock({
@@ -144,8 +144,8 @@ describe('EditActions', () => {
     const user = userEvent.setup();
 
     const removeKeyMock = jest.fn();
-    (useUniqueKey as jest.Mock).mockImplementation(() => ({
-      removeKey: removeKeyMock,
+    (useUniqueKeys as jest.Mock).mockImplementation(() => ({
+      removeUniqueKey: removeKeyMock,
       getUniqueKey: () => [],
     }));
     setupBpmnActionModelerMock({
