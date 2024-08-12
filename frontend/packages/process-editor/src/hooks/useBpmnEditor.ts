@@ -36,7 +36,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
       taskType: bpmnDetails.taskType,
     });
     addAction(bpmnDetails.id);
-    updateBpmnDetailsByTaskEvent(taskEvent, null, null);
+    updateBpmnDetailsByTaskEvent(taskEvent);
   };
 
   const handleShapeRemove = (taskEvent: TaskEvent): void => {
@@ -49,7 +49,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   };
 
   const updateBpmnDetailsByTaskEvent = useCallback(
-    (taskEvent: TaskEvent, _gfx?: SVGElement, _originalEvent?: Event) => {
+    (taskEvent: TaskEvent) => {
       const bpmnDetails = {
         ...getBpmnEditorDetailsFromBusinessObject(taskEvent.element?.businessObject),
         element: taskEvent.element,
