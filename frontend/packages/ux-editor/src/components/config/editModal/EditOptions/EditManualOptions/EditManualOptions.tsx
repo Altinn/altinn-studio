@@ -26,9 +26,6 @@ export function EditManualOptions<T extends SelectionComponentType>({
   const errorMessage = useComponentErrorMessage(component);
 
   const handleOptionsChange = (options: Option[]) => {
-    if (component.optionsId) {
-      delete component.optionsId;
-    }
     handleComponentChange({
       ...component,
       options,

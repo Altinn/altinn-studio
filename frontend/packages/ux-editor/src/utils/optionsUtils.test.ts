@@ -1,6 +1,10 @@
 import { SelectedOptionsType } from '../components/config/editModal/EditOptions/EditOptions';
 import type { IOption } from '../types/global';
-import { getSelectedOptionsType, componentUsesDynamicCodeList } from './optionsUtils';
+import {
+  getSelectedOptionsType,
+  componentUsesDynamicCodeList,
+  getOptionsPropertyKey,
+} from './optionsUtils';
 
 describe('getSelectedOptionsType', () => {
   it('should return SelectedOptionsType.Unknown if both options and optionsId are set', () => {
@@ -64,5 +68,27 @@ describe('componentUsesDynamicCodeList', () => {
     const optionListIds = ['anotherCodeListId'];
     const result = componentUsesDynamicCodeList(codeListId, optionListIds);
     expect(result).toEqual(true);
+  });
+});
+
+describe('getOptionsPropertyKey', () => {
+  it('should return optionsId if selected options type is Codelist', () => {
+    const result = getOptionsPropertyKey(SelectedOptionsType.CodeList);
+    expect(result).toEqual('optionsId');
+  });
+
+  it('should return optionsId if selected options type is ReferenceId', () => {
+    const result = getOptionsPropertyKey(SelectedOptionsType.ReferenceId);
+    expect(result).toEqual('optionsId');
+  });
+
+  it('should return options if selected options type is Manual', () => {
+    const result = getOptionsPropertyKey(SelectedOptionsType.Manual);
+    expect(result).toEqual('options');
+  });
+
+  it('should return options if selected options type is Unknown', () => {
+    const result = getOptionsPropertyKey(SelectedOptionsType.Unknown);
+    expect(result).toEqual('options');
   });
 });

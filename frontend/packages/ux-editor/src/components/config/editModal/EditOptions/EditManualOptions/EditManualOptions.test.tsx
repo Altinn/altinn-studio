@@ -8,6 +8,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../../../../types/FormItem';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { FormComponent } from '../../../../../types/FormComponent';
+import userEvent from '@testing-library/user-event';
 
 const mockComponent: FormComponent<ComponentType.RadioButtons> = {
   id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
@@ -78,6 +79,33 @@ describe('EditManualOptions', () => {
         { label: 'oldOption', value: 'oldOption' },
         { label: expect.any(String), value: expect.any(String) },
       ],
+    });
+  });
+
+  it('should call handleComponentUpdate when removing an option', async () => {
+    const user = userEvent.setup();
+    const handleComponentChangeMock = jest.fn();
+    renderEditManualOptions({
+      handleComponentChange: handleComponentChangeMock,
+      componentProps: {
+        options: [
+          { label: 'option1', value: 'option1' },
+          { label: 'option2', value: 'option2' },
+        ],
+      },
+    });
+
+    const selectOptionButton = screen.getByRole('button', {
+      name: textMock('ux_editor.radios_option', { optionNumber: 2 }),
+    });
+    await user.click(selectOptionButton);
+    const removeOptionButton = screen.getByRole('button', {
+      name: textMock('general.delete'),
+    });
+    await user.click(removeOptionButton);
+    expect(handleComponentChangeMock).toHaveBeenCalledWith({
+      ...mockComponent,
+      options: [{ label: 'option1', value: 'option1' }],
     });
   });
 
