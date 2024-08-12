@@ -8,7 +8,7 @@ on:
       - '!frontend/stats/**'
       - 'backend/**'
       - '.github/workflows/run-playwright-on-pr.yaml'
-      - 'docker-compose.yml'
+      - 'compose.yaml'
       - 'Dockerfile'
       - 'gitea/**'
       - 'package.json'
@@ -31,9 +31,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: 'Installing Dependencies'
-        uses: ./.github/actions/yarn-install
-
       - name: Generate .env file
         run: |
           echo PLAYWRIGHT_TEST_APP=autodeploy-v3 >> .env
@@ -54,6 +51,9 @@ jobs:
       - name: Run setup.js script
         run: |
           node ./development/setup.js
+
+      - name: 'Installing Dependencies'
+        uses: ./.github/actions/yarn-install
 
       - name: Playwright run
         working-directory: frontend/testing/playwright

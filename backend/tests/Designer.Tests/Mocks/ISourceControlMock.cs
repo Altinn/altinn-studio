@@ -126,6 +126,11 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
+        public Task<Dictionary<string, string>> GetChangedContent(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<bool> Push(string org, string repository)
         {
             throw new NotImplementedException();

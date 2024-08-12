@@ -10,7 +10,7 @@ image:
 hosts:
   dev: dev.altinn.studio
   staging: staging.altinn.studio
-  production: altinn.studio
+  prod: altinn.studio
 
 service:
   externalPort: 3000

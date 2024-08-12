@@ -1,11 +1,11 @@
 const { get } = require('http');
-module.exports = (url) =>
+module.exports = (url, givenAttempts = 10) =>
   new Promise(function (resolve, reject) {
     let attempts = 0;
 
     const checkAttempts = () => {
       attempts++;
-      if (attempts > 10) {
+      if (attempts > givenAttempts) {
         clearInterval(intervalId);
         console.log('Giving up: ', url);
         reject('Giving up this');
