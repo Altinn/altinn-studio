@@ -1,4 +1,4 @@
-import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
+import { SelectedContextType } from 'app-shared/enums/SelectedContextType';
 import { getReposLabel, validateRepoName } from './repoUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { Organization } from 'app-shared/types/Organization';

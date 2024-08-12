@@ -3,7 +3,6 @@ import classes from './PageLayout.module.css';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   HeaderContext,
-  SelectedContextType,
   getOrgNameByUsername,
   getOrgUsernameByUsername,
 } from 'app-shared/navigation/main-header/Header';
@@ -28,6 +27,7 @@ import {
 import { post } from 'app-shared/utils/networking';
 import { type Organization } from 'app-shared/types/Organization';
 import { useTranslation } from 'react-i18next';
+import { SelectedContextType } from 'app-shared/enums/SelectedContextType';
 
 /**
  * @component
@@ -105,7 +105,7 @@ const WINDOW_RESIZE_WIDTH = 900;
 const HeaderMenuTODOMoveAndRename = () => {
   const { t } = useTranslation();
   const isSmallWidth = useIsSmallWidth(WINDOW_RESIZE_WIDTH);
-  const selectedContext = useSelectedContext();
+  const { org: selectedContext = SelectedContextType.Self } = useUrlParams();
   console.log('SELECTED CONTEXT', selectedContext);
 
   const { user, selectableOrgs } = useContext(HeaderContext);

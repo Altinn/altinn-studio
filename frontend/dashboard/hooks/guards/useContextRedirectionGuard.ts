@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useSelectedContext } from '../useSelectedContext';
 import type { NavigateFunction } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
+import { SelectedContextType } from 'app-shared/enums/SelectedContextType';
 import { typedSessionStorage } from '@studio/components/src/hooks/webStorage';
 import { userHasAccessToSelectedContext } from 'dashboard/utils/userUtils';
 

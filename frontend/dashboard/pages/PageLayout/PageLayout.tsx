@@ -1,6 +1,5 @@
 import {
   HeaderContext,
-  SelectedContextType,
   getOrgNameByUsername,
   getOrgUsernameByUsername,
 } from 'app-shared/navigation/main-header/Header';
@@ -28,6 +27,7 @@ import {
   userLogoutPath,
 } from 'app-shared/api/paths';
 import { post } from 'app-shared/utils/networking';
+import { SelectedContextType } from 'app-shared/enums/SelectedContextType';
 
 export const PageLayout = () => {
   const { t } = useTranslation();

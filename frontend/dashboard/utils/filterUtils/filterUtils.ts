@@ -1,4 +1,4 @@
-import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
+import { SelectedContextType } from 'app-shared/enums/SelectedContextType';
 import type { Organization } from 'app-shared/types/Organization';
 
 type GetUidFilter = {
