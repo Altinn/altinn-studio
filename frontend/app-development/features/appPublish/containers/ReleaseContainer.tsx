@@ -15,6 +15,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { Link } from '@digdir/designsystemet-react';
 
 export function ReleaseContainer() {
   const hiddenMdDown = useMediaQuery('(max-width: 1025px)');
@@ -82,9 +83,12 @@ export function ReleaseContainer() {
           )}
           <div>
             <div className={classes.cannotCreateReleaseTitle}>
-              <Trans i18nKey={'app_create_release_errors.fetch_release_failed'}>
-                <a target='_blank' rel='noopener noreferrer' />
-              </Trans>
+              <Trans
+                i18nKey={'app_create_release_errors.fetch_release_failed'}
+                components={{
+                  a: <Link href='/contact'> </Link>,
+                }}
+              ></Trans>
             </div>
             <div className={classes.cannotCreateReleaseSubTitle}>
               {t('app_create_release_errors.technical_error_code')}

@@ -29,3 +29,12 @@ export const extractFilename = (path: string): string => {
   const indexOfLastSlash = path.lastIndexOf('/');
   return indexOfLastSlash < 0 ? path : path.substring(indexOfLastSlash + 1);
 };
+
+export const removeFileNameFromPath = (path: string, excludeLastSlash: boolean = false): string => {
+  const fileName = extractFilename(path);
+  const indexOfLastSlash = path.lastIndexOf('/');
+  return path.slice(
+    0,
+    path.lastIndexOf(excludeLastSlash && indexOfLastSlash > 0 ? '/' + fileName : fileName),
+  );
+};

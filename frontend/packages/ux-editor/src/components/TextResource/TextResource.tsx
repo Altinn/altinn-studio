@@ -58,7 +58,7 @@ export const TextResource = ({
 
   const handleClose = () => {
     if (currentValue === '') {
-      handleRemoveTextResource();
+      handleRemoveTextResource?.();
     }
     setIsOpen(false);
   };

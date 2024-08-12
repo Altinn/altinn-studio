@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { Alert, Card, Heading, Link, Paragraph } from '@digdir/designsystemet-react';
+import { Card, Heading, Link, Paragraph } from '@digdir/designsystemet-react';
 import { useNewsListQuery } from 'app-development/hooks/queries/useNewsListQuery';
-import { StudioSpinner } from '@studio/components';
+import { StudioPageError, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './News.module.css';
 import { NEWS_EXPIRATION_TIME_IN_DAYS } from 'app-shared/constants';
@@ -39,7 +39,10 @@ export const News = () => {
   if (isError) {
     return (
       <NewsTemplate>
-        <Alert severity='danger'>{t('overview.fetch_news_error_message')}</Alert>
+        <StudioPageError
+          title={t('overview.news_error_title')}
+          message={t('overview.fetch_news_error_message')}
+        />
       </NewsTemplate>
     );
   }
