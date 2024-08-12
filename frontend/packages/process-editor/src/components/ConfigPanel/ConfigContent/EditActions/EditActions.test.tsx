@@ -7,8 +7,10 @@ import { BpmnContext } from '../../../../contexts/BpmnContext';
 import { mockBpmnContextValue } from '../../../../../test/mocks/bpmnContextMock';
 import { type Action, BpmnActionModeler } from '../../../../utils/bpmnModeler/BpmnActionModeler';
 import { BpmnConfigPanelFormContextProvider } from '../../../../contexts/BpmnConfigPanelContext';
+import { useUniqueKey } from 'app-shared/hooks/useUniqueKey';
 
 jest.mock('../../../../utils/bpmnModeler/BpmnActionModeler');
+jest.mock('app-shared/hooks/useUniqueKey');
 
 const actionElementDefaultMock: Action = {
   $type: 'altinn:Action',
@@ -118,6 +120,46 @@ describe('EditActions', () => {
     );
     await waitFor(() => expect(predefinedActionSelector).toBeInTheDocument());
   });
+
+  it('should removeKey when a item is deleted', async () => {
+    const user = userEvent.setup();
+
+    const removeKeyMock = jest.fn();
+    (useUniqueKey as jest.Mock).mockImplementation(() => ({
+      removeKey: removeKeyMock,
+      getUniqueKey: () => [],
+    }));
+    setupBpmnActionModelerMock({
+      addNewActionToTaskMock: jest.fn(),
+      updateTypeForActionMock: jest.fn(),
+      updateActionNameOnActionElementMock: jest.fn(),
+      hasActionsAlready: true,
+      actionElementMock: {
+        ...actionElementDefaultMock,
+        action: 'reject',
+      },
+    });
+
+    renderEditActions();
+
+    const viewModeElement = screen.getByText(
+      textMock('process_editor.configuration_panel_actions_action_label', {
+        actionIndex: 1,
+        actionName: 'reject',
+      }),
+    );
+    expect(viewModeElement).toBeInTheDocument();
+    await user.click(viewModeElement);
+
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('general.delete_item', {
+        item: 'reject',
+      }),
+    });
+    await user.click(deleteButton);
+
+    expect(removeKeyMock).toHaveBeenCalledTimes(1);
+  });
 });
 
 const renderEditActions = () => {
@@ -152,6 +194,7 @@ const setupBpmnActionModelerMock = ({
     addNewActionToTask: addNewActionToTaskMock,
     updateTypeForAction: updateTypeForActionMock,
     updateActionNameOnActionElement: updateActionNameOnActionElementMock,
+    deleteActionFromTask: jest.fn(),
     createActionElement: createActionElementMock,
     getExtensionElements: getExtensionElementsMock,
     hasActionsAlready,
