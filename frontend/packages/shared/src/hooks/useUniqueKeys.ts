@@ -14,13 +14,18 @@ export type UseUniqueKeyArgs = {
 export const useUniqueKeys = ({ numberOfKeys }: UseUniqueKeyArgs): UseUniqueKey => {
   const internalUniqueKeys = useRef<Array<string>>([]);
 
-  const areInternalUniqueKeysOutOfSync = internalUniqueKeys.current.length !== numberOfKeys;
-  if (areInternalUniqueKeysOutOfSync) {
-    internalUniqueKeys.current = [];
+  const generateUniqueKeys = (): Array<string> => {
+    const newlyGeneratedKeys = [];
     for (let i = 0; i < numberOfKeys; i++) {
       const newlyGeneratedKey = uuidv4();
-      internalUniqueKeys.current.push(newlyGeneratedKey);
+      newlyGeneratedKeys.push(newlyGeneratedKey);
     }
+    return newlyGeneratedKeys;
+  };
+
+  const areInternalUniqueKeysOutOfSync = internalUniqueKeys.current.length !== numberOfKeys;
+  if (areInternalUniqueKeysOutOfSync) {
+    internalUniqueKeys.current = generateUniqueKeys();
   }
 
   const getUniqueKey = (index: number): string => {
