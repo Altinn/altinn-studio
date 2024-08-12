@@ -19,9 +19,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@altinn/altinn-design-system@npm:0.30.1":
-  version: 0.30.1
-  resolution: "@altinn/altinn-design-system@npm:0.30.1"
+"@altinn/altinn-design-system@npm:0.30.2":
+  version: 0.30.2
+  resolution: "@altinn/altinn-design-system@npm:0.30.2"
   dependencies:
     "@altinn/figma-design-tokens": "npm:^6.0.1"
     "@digdir/design-system-react": "npm:0.16.0"
@@ -32,7 +32,7 @@ __metadata:
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
-  checksum: 10c0/29c008fb6bd9e87adf62d3a8f816bed1a1e71873a8f015fcf0cc1fe1ea6c9170b512a2b87c07f7d84628c8dee22e07b39b8c23b40a49f57f2d2d40ed7dfcd709
+  checksum: 10c0/c9acbf2e618b7e377d3fee4972a251e5cbd037d29d37680af4f1891bdfeca499c6784a2388ac1d7c56c1d327d196cfac411a2628af43c64e3539111e0ad582f2
   languageName: node
   linkType: hard
 
@@ -4770,7 +4770,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-frontend-react@workspace:."
   dependencies:
-    "@altinn/altinn-design-system": "npm:0.30.1"
+    "@altinn/altinn-design-system": "npm:0.30.2"
     "@babel/core": "npm:7.25.2"
     "@babel/plugin-transform-runtime": "npm:^7.21.0"
     "@babel/polyfill": "npm:7.12.1"
