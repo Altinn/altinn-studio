@@ -36,6 +36,7 @@ RUN yarn build
 
 # Building the backend
 FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS generate-studio-backend
+ARG DESIGNER_VERSION=''
 WORKDIR /build
 COPY backend .
 RUN dotnet publish src/Designer/Designer.csproj -c Release -o /app_output
@@ -45,6 +46,9 @@ RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
 WORKDIR /app_template
 RUN apk add jq zip
 RUN wget -O - https://api.github.com/repos/Altinn/app-template-dotnet/releases/latest | jq '.assets[]|select(.name | startswith("app-template-dotnet-") and endswith(".zip"))' | jq '.browser_download_url' | xargs wget -O apptemplate.zip && unzip apptemplate.zip && rm apptemplate.zip
+# Create version file
+WORKDIR /version
+RUN echo "{\"designerVersion\":\"$DESIGNER_VERSION\",\"appTemplateVersion\":\"$(curl -s https://api.github.com/repos/Altinn/app-template-dotnet/releases/latest | jq -r .tag_name)\"}" > version.json
 
 # Building the final image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
@@ -52,7 +56,7 @@ EXPOSE 80
 WORKDIR /app
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
   DOTNET_RUNNING_IN_CONTAINER=true
-RUN apk add --no-cache icu-libs krb5-libs libgcc libintl openssl libstdc++ zlib
+RUN apk add --no-cache icu-libs krb5-libs libgcc libintl openssl libstdc++ zlib curl
 
 COPY --from=generate-studio-backend /app_output .
 COPY --from=generate-studio-frontend /build/frontend/dist/app-development ./wwwroot/designer/frontend/app-development
@@ -61,8 +65,10 @@ COPY --from=generate-studio-frontend /build/frontend/dist/dashboard ./wwwroot/de
 COPY --from=generate-studio-frontend /build/frontend/dist/resourceadm ./wwwroot/designer/frontend/resourceadm
 COPY --from=generate-studio-frontend /build/frontend/dist/language ./wwwroot/designer/frontend/lang
 COPY --from=generate-studio-frontend /build/frontend/dist/studio-root ./wwwroot/designer/frontend/studio-root
+COPY --from=generate-studio-backend /version/version.json ./wwwroot/designer/version.json
 
 ## Copying app template
 COPY --from=generate-studio-backend /app_template ./Templates/AspNet
+
 
 ENTRYPOINT ["dotnet", "Altinn.Studio.Designer.dll"]
