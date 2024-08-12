@@ -62,7 +62,7 @@ describe('getMissingInputLanguageString', () => {
 
   it('to map a language with 1 non-empty field to correct string', () => {
     const translationFunctionMock = (key: string) => {
-      if (key === 'resourceadm.about_resource_langauge_error_missing_1')
+      if (key === 'resourceadm.about_resource_language_error_missing_1')
         return 'Du mangler oversettelse for test på Engelsk.';
       return key;
     };
@@ -85,7 +85,7 @@ describe('getMissingInputLanguageString', () => {
 
   it('to map a language with 2 non-empty fields to correct string', () => {
     const translationFunctionMock = (key: string) => {
-      if (key === 'resourceadm.about_resource_langauge_error_missing_2')
+      if (key === 'resourceadm.about_resource_language_error_missing_2')
         return 'Du mangler oversettelse for test på Nynorsk og Engelsk.';
       return key;
     };
