@@ -16,6 +16,11 @@ on:
       - 'charts/altinn-designer-config/**'
 
   workflow_dispatch:
+    inputs:
+      environments:
+        description: 'Environments to deploy to. Default is dev. Multiple environments can be specified by separating them with a comma.'
+        required: false
+        default: 'dev,staging'
 
 permissions:
       id-token: write
@@ -24,6 +29,31 @@ permissions:
 jobs:
   get-short-sha:
     uses: ./.github/workflows/template-short-sha.yaml
+
+  construct-enviornment:
+    needs: get-short-sha
+    runs-on: ubuntu-latest
+    steps:
+      - name: Construct environment
+        id: construct-enviornment
+        run: |
+          echo ${{ github.event.inputs.environments }}
+
+  determine-tag:
+    needs: get-short-sha
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.determine-tag.outputs.tag }}
+    steps:
+      - name: Determine tag
+        id: determine-tag
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "tag=${{ needs.get-short-sha.outputs.short-sha }}" >> $GITHUB_OUTPUT
+          else
+            sanitized_branch_name=$(echo "${{ github.ref_name }}" | tr '/' '-')
+            echo "tag=${{ needs.get-short-sha.outputs.short-sha }}-${sanitized_branch_name}" >> $GITHUB_OUTPUT
+          fi
 
   docker-build-push:
     needs: get-short-sha
