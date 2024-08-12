@@ -127,7 +127,7 @@ describe('ActionsEditor', () => {
     }));
 
     const onDeleteClick = jest.fn();
-    renderActionsEditor({ mode: 'edit', onDeleteClick  });
+    renderActionsEditor({ mode: 'edit', onDeleteClick });
 
     const deleteButton = screen.getByRole('button', {
       name: textMock('general.delete_item', {
@@ -136,7 +136,7 @@ describe('ActionsEditor', () => {
     });
     await user.click(deleteButton);
     expect(onDeleteClick).toHaveBeenCalledTimes(1);
-  })
+  });
 
   it('should be possible to toggle between predefined and custom actions', async () => {
     const user = userEvent.setup();
@@ -185,7 +185,7 @@ describe('ActionsEditor', () => {
 type RenderActionsEditorProps = {
   mode?: ActionsEditorProps['mode'];
   actionElement?: Action;
-  onDeleteClick: ActionsEditorProps["onDeleteClick"]
+  onDeleteClick: ActionsEditorProps['onDeleteClick'];
 };
 const renderActionsEditor = (props?: Partial<RenderActionsEditorProps>) => {
   return render(
