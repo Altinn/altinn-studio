@@ -56,6 +56,7 @@ jobs:
             echo "tag=${{ needs.get-short-sha.outputs.short-sha }}" >> $GITHUB_OUTPUT
           else
             sanitized_branch_name=$(echo "${{ github.ref_name }}" | tr '/' '-')
+            echo "tag=${sanitized_branch_name}-${{ needs.get-short-sha.outputs.short-sha }}"
             echo "tag=${{ needs.get-short-sha.outputs.short-sha }}-${sanitized_branch_name}" >> $GITHUB_OUTPUT
           fi
 
