@@ -52,7 +52,7 @@ export const AppUserProfileMenu = ({ user, repository }: AppUserProfileMenuProps
   return (
     <StudioProfileMenu
       triggerButtonText={isSmallWidth ? undefined : userNameAndOrg}
-      /*profileImage={
+      /*profileImage={user.avatar_url &&
         <img
           alt={t('general.profile_icon')}
           title={t('shared.header_profile_icon_text')}

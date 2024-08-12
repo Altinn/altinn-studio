@@ -18,6 +18,7 @@ export const PageLayout = () => {
     <>
       <HeaderContext.Provider value={headerContextValue}>
         <AppHeader showMenu={false} />
+        <h1>HEI</h1>
       </HeaderContext.Provider>
       <Outlet />
     </>

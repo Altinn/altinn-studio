@@ -15,12 +15,12 @@ export const StudioPageHeader = ({ children }: StudioPageHeaderProps): React.Rea
 
 export type StudioPageHeaderMainProps = {
   children: ReactNode;
-  variant: StudioPageHeaderVariant;
+  variant?: StudioPageHeaderVariant;
 };
 
 export const StudioPageHeaderMain = ({
   children,
-  variant,
+  variant = 'regular',
 }: StudioPageHeaderMainProps): React.ReactElement => {
   return <div className={cn(classes.main, classes[variant])}>{children}</div>;
 };

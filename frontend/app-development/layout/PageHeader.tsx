@@ -81,7 +81,7 @@ export const PageHeader = ({ showSubMenu, user, repoOwnerIsOrg, isRepoError }: P
 
   return (
     <StudioPageHeader>
-      <StudioPageHeader.Main variant='regular'>
+      <StudioPageHeader.Main>
         <StudioPageHeader.Left title={app} showOnlyLogo={isSmallWidth} />
         <StudioPageHeader.Center>
           {menuItems && (

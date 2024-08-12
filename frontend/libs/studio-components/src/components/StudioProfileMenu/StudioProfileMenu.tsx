@@ -41,6 +41,11 @@ export const StudioProfileMenu = ({
     setOpen(false);
   };
 
+  const handleClickMenuItemButton = (menuItem: StudioProfileMenuItem) => {
+    menuItem.action.type === 'button' && menuItem.action.onClick();
+    setOpen(false);
+  };
+
   return (
     <DropdownMenu onClose={handleClose} open={open}>
       <DropdownMenu.Trigger asChild>
@@ -53,7 +58,10 @@ export const StudioProfileMenu = ({
         {profileMenuItems.map((item: StudioProfileMenuItem) => {
           if (item.action.type === 'button') {
             return (
-              <DropdownMenu.Item key={item.itemName} onClick={item.action.onClick}>
+              <DropdownMenu.Item
+                key={item.itemName}
+                onClick={() => handleClickMenuItemButton(item)}
+              >
                 {item.itemName}
               </DropdownMenu.Item>
             );

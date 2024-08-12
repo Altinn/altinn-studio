@@ -5,29 +5,33 @@ import type { User } from '../../types/Repository';
 import AltinnStudioLogo from './AltinnStudioLogo';
 import { HeaderMenu } from './HeaderMenu';
 import classes from './Header.module.css';
-import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 
+// TODO MOVE
 export enum SelectedContextType {
   All = 'all',
   Self = 'self',
   None = 'none',
 }
 
+// TODO MOVE
 export interface IHeaderContext {
   selectableOrgs?: Organization[];
   user: User;
 }
 
+// TODO MOVE
 export const HeaderContext = React.createContext<IHeaderContext>({
   selectableOrgs: undefined,
   user: undefined,
 });
 
+// TODO MOVE
 export const getOrgNameByUsername = (username: string, orgs: Organization[]) => {
   const org = orgs?.find((o) => o.username === username);
   return org?.full_name || org?.username;
 };
 
+// TODO MOVE
 export const getOrgUsernameByUsername = (username: string, orgs: Organization[]) => {
   const org = orgs?.find((o) => o.username === username);
   return org?.username;
@@ -37,7 +41,7 @@ export type HeaderProps = {
   showMenu?: boolean;
 };
 
-// TODO - HEADER
+// TODO - DELETE
 export function Header({ showMenu = true }: HeaderProps) {
   const { selectableOrgs } = React.useContext(HeaderContext);
   const selectedContext = useSelectedContext();
