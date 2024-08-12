@@ -4,6 +4,15 @@
   gap: var(--fds-spacing-2);
 }
 
+.grayedBackground {
+  background-color: #bfc4cb;
+}
+
+.grayedBackgroundContent {
+  background-color: #bfc4cb;
+  height: 100%;
+}
+
 .accordion {
   padding-inline: 0;
 }
