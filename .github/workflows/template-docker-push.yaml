@@ -22,6 +22,7 @@ on:
         type: string
       environment:
         required: false
+        type: string
         default: ''
 
     secrets:
