@@ -276,6 +276,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
+        public Task<Dictionary<string, string>> GetChangedContent(string org, string repository)
+        {
+            try
+            {
+                return _decoratedService.GetChangedContent(org, repository);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "GetChangedContent", org, repository);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
         public void ResetCommit(string org, string repository)
         {
             try

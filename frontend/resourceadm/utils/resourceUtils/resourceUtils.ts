@@ -131,13 +131,13 @@ export const getMissingInputLanguageString = (
 
   // Return different messages based on the length
   if (missingLanguages.length === 1) {
-    return translationFunction('resourceadm.about_resource_langauge_error_missing_1', {
+    return translationFunction('resourceadm.about_resource_language_error_missing_1', {
       usageString,
       lang: mapLanguageKeyToLanguageText(missingLanguages[0], translationFunction),
     });
   } else if (missingLanguages.length > 1) {
     const lastLang = missingLanguages.pop();
-    return translationFunction('resourceadm.about_resource_langauge_error_missing_2', {
+    return translationFunction('resourceadm.about_resource_language_error_missing_2', {
       usageString,
       lang1: missingLanguages
         .map((lang) => mapLanguageKeyToLanguageText(lang, translationFunction))

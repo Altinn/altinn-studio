@@ -255,12 +255,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return repoContent;
         }
 
-        /// <summary>
-        /// Gives the complete repository status
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">The name of repository</param>
-        /// <returns>The repository status</returns>
+        /// <inheritdoc/>
         public RepoStatus RepositoryStatus(string org, string repository)
         {
             RepoStatus repoStatus = new();
@@ -292,6 +287,32 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return repoStatus;
+        }
+
+        /// <inheritdoc/>
+        public async Task<Dictionary<string, string>> GetChangedContent(string org, string repository)
+        {
+            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            Dictionary<string, string> fileDiffs = new Dictionary<string, string>();
+            using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
+            {
+                await FetchRemoteChanges(org, repository);
+                var remoteMainBranch = repo.Branches["refs/remotes/origin/master"];
+                if (remoteMainBranch == null || remoteMainBranch.Tip == null)
+                {
+                    return fileDiffs;
+                }
+                var remoteMainCommit = remoteMainBranch.Tip;
+
+                var changes = repo.Diff.Compare<TreeChanges>(remoteMainCommit.Tree, DiffTargets.WorkingDirectory);
+                foreach (var change in changes)
+                {
+                    Patch patch = repo.Diff.Compare<Patch>(remoteMainCommit.Tree, DiffTargets.WorkingDirectory, new[] { change.Path });
+                    fileDiffs[change.Path] = patch.Content;
+                }
+
+                return fileDiffs;
+            }
         }
 
         /// <summary>

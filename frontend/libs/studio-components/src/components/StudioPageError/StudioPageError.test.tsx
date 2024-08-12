@@ -18,4 +18,16 @@ describe('StudioPageError', () => {
     const paragraph = screen.getByText(message);
     expect(paragraph).toBeInTheDocument();
   });
+
+  it('should support message as ReactNode', () => {
+    render(
+      <StudioPageError
+        title={title}
+        message={<a href='https://unit-tests.altinn'>ReactNode Message</a>}
+      />,
+    );
+
+    const messageAsLink = screen.getByRole('link', { name: 'ReactNode Message' });
+    expect(messageAsLink).toBeInTheDocument();
+  });
 });
