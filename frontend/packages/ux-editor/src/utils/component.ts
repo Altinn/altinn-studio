@@ -4,6 +4,7 @@ import type {
   FormCheckboxesComponent,
   FormComponent,
   FormRadioButtonsComponent,
+  SelectionComponentType,
 } from '../types/FormComponent';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { formItemConfigs } from '../data/formItemConfig';
@@ -104,7 +105,7 @@ export const changeDescriptionBinding = (
   resourceKey: string,
 ): FormComponent => changeTextResourceBinding(component, 'description', resourceKey);
 
-export const addOptionToComponent = <T extends FormCheckboxesComponent | FormRadioButtonsComponent>(
+export const addOptionToComponent = <T extends FormComponent<SelectionComponentType>>(
   component: T,
   option: IOption,
 ): T => ({

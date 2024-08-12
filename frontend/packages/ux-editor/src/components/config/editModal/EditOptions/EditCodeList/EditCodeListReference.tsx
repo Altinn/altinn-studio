@@ -3,13 +3,13 @@ import type { IGenericEditComponent } from '../../../componentConfig';
 import { useTranslation, Trans } from 'react-i18next';
 
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import classes from './EditCodeList.module.css';
-import type { ComponentType } from 'app-shared/types/ComponentType';
 import { StudioParagraph, StudioTextfield } from '@studio/components';
+import type { SelectionComponentType } from '../../../../../types/FormComponent';
 
-export function EditCodeListReference<
-  T extends ComponentType.Checkboxes | ComponentType.RadioButtons | ComponentType.Dropdown,
->({ component, handleComponentChange }: IGenericEditComponent<T>) {
+export function EditCodeListReference<T extends SelectionComponentType>({
+  component,
+  handleComponentChange,
+}: IGenericEditComponent<T>) {
   const { t } = useTranslation();
 
   const handleOptionsIdChange = (optionsId: string) => {
@@ -23,7 +23,7 @@ export function EditCodeListReference<
   };
 
   return (
-    <div className={classes.root}>
+    <div>
       <StudioParagraph spacing>
         {t('ux_editor.options.codelist_referenceId.description')}
       </StudioParagraph>

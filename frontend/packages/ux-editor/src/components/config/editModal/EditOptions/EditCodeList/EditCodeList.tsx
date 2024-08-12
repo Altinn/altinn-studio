@@ -8,12 +8,13 @@ import { StudioNativeSelect, StudioSpinner } from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { FormField } from '../../../../FormField';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import type { ComponentType } from 'app-shared/types/ComponentType';
 import { ManualCodelistUploadSteps } from './ManualCodelistUploadSteps';
+import type { SelectionComponentType } from '../../../../../types/FormComponent';
 
-export function EditCodeList<
-  T extends ComponentType.Checkboxes | ComponentType.RadioButtons | ComponentType.Dropdown,
->({ component, handleComponentChange }: IGenericEditComponent<T>) {
+export function EditCodeList<T extends SelectionComponentType>({
+  component,
+  handleComponentChange,
+}: IGenericEditComponent<T>) {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
 

@@ -7,12 +7,10 @@ import { getSelectedOptionsType } from '../../../../utils/optionsUtils';
 import { useOptionListIdsQuery } from '../../../../hooks/queries/useOptionListIdsQuery';
 
 import { StudioSpinner } from '@studio/components';
-import type { ComponentType } from 'app-shared/types/ComponentType';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
 import { EditManualOptions } from './EditManualOptions/EditManualOptions';
-
-type SelectionComponentType = ComponentType.Checkboxes | ComponentType.RadioButtons;
+import type { SelectionComponentType } from '../../../../types/FormComponent';
 
 export interface ISelectionEditComponentProvidedProps<T extends SelectionComponentType>
   extends IGenericEditComponent<T> {

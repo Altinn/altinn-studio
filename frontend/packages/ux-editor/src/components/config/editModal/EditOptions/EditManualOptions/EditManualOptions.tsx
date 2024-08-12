@@ -6,13 +6,11 @@ import { useComponentErrorMessage } from '../../../../../hooks';
 import { addOptionToComponent, generateRandomOption } from '../../../../../utils/component';
 
 import { StudioProperty } from '@studio/components';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { SelectionComponentType } from '../../../../../types/FormComponent';
 import { EditOption } from '../../EditOption';
 import { ArrayUtils } from '@studio/pure-functions';
 import type { Option } from 'app-shared/types/Option';
 import { useTranslation } from 'react-i18next';
-
-type SelectionComponentType = ComponentType.Checkboxes | ComponentType.RadioButtons;
 
 export function EditManualOptions<T extends SelectionComponentType>({
   component,
