@@ -14,7 +14,7 @@ import {
   mockBpmnApiContextValue,
   mockBpmnContextValue,
 } from '../../../../test/mocks/bpmnContextMock';
-import { StudioRecommendedNextActionContextProvider } from '@studio/components';
+import { useStudioRecommendedNextActionContext } from '@studio/components';
 
 const tasks = [
   {
@@ -44,6 +44,19 @@ jest.mock('../../../utils/bpmnModeler/StudioModeler', () => {
     }),
   };
 });
+
+(useStudioRecommendedNextActionContext as jest.Mock).mockReturnValue({
+  removeAction: jest.fn(),
+  addAction: jest.fn(),
+  shouldDisplayAction: jest.fn(),
+});
+
+jest.mock(
+  '@studio/components/src/components/StudioRecommendedNextAction/context/useStudioRecommendedNextActionContext.ts',
+  () => ({
+    useStudioRecommendedNextActionContext: jest.fn(),
+  }),
+);
 
 describe('ConfigContent', () => {
   afterEach(() => {
@@ -201,6 +214,34 @@ describe('ConfigContent', () => {
         }),
       ).toBeInTheDocument();
     });
+
+    it('should show recommended action when selected task is in recommended action queue', async () => {
+      const shouldDisplayAction = jest.fn().mockReturnValue(true);
+      (useStudioRecommendedNextActionContext as jest.Mock).mockReturnValue({
+        removeAction: jest.fn(),
+        addAction: jest.fn(),
+        shouldDisplayAction,
+      });
+      renderConfigContent(
+        {},
+        {
+          bpmnDetails: {
+            ...mockBpmnDetails,
+            id: 'task_2',
+            taskType: 'signing',
+            element,
+          },
+        },
+      );
+
+      expect(shouldDisplayAction).toHaveBeenCalledWith('task_2');
+
+      expect(
+        screen.getByRole('textbox', {
+          name: textMock('process_editor.recommended_action.new_name_label'),
+        }),
+      ).toBeInTheDocument();
+    });
   });
 });
 
@@ -212,9 +253,7 @@ const renderConfigContent = (
     <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
       <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...rootContextProps }}>
         <BpmnConfigPanelFormContextProvider>
-          <StudioRecommendedNextActionContextProvider>
-            <ConfigContent />
-          </StudioRecommendedNextActionContextProvider>
+          <ConfigContent />
         </BpmnConfigPanelFormContextProvider>
       </BpmnContext.Provider>
     </BpmnApiContext.Provider>,
