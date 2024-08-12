@@ -6,15 +6,19 @@ import { Link } from '@digdir/designsystemet-react';
 
 export type AltinnStudioLogoLinkProps = {
   title?: string;
+  showOnlyLogo?: boolean;
 };
 
-export const AltinnStudioLogoLink = ({ title }: AltinnStudioLogoLinkProps): React.ReactElement => {
+export const AltinnStudioLogoLink = ({
+  title,
+  showOnlyLogo,
+}: AltinnStudioLogoLinkProps): React.ReactElement => {
   return (
     <div className={classes.wrapper}>
       <Link href='/'>
-        <AltinnStudioLogo />
+        <AltinnStudioLogo showOnlyLogo={showOnlyLogo} />
       </Link>
-      {title && (
+      {title && !showOnlyLogo && (
         <Paragraph size='medium' className={classes.titleText}>
           <span className={classes.slash}>/</span>
           {title}

@@ -16,6 +16,13 @@ import {
   useSelectedFormLayoutSetName,
   useSelectedTaskId,
 } from '@altinn/ux-editor/hooks';
+import { StudioPageHeader } from '@studio/components';
+import { Paragraph } from '@digdir/designsystemet-react';
+import { AppUserProfileMenu } from 'app-shared/components/AppUserProfileMenu';
+import { AltinnHeaderMenu } from 'app-shared/components/altinnHeaderMenu';
+
+// TODO MOVE
+const WINDOW_RESIZE_WIDTH = 1000;
 
 export interface LandingPageProps {
   variant?: AltinnHeaderVariant;
@@ -61,6 +68,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   }
 
   // TODO - HEADER
+  // TODO - WHY NOT CORRECT FONT FAMILY
   return (
     <>
       <div className={classes.header}>
@@ -71,7 +79,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
           app={app}
           user={user}
           repository={repository}
-          buttonActions={appPreviewButtonActions(org, app, instanceId)}
+          buttonActions={[]} //appPreviewButtonActions(org, app, instanceId)}
           variant={variant}
           subMenuContent={
             <AppPreviewSubMenu
@@ -83,6 +91,25 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
           }
         />
       </div>
+      <StudioPageHeader>
+        <StudioPageHeader.Main variant='preview'>
+          <StudioPageHeader.Left title={app} />
+          <StudioPageHeader.Center>
+            <Paragraph className={classes.headingMenuItem} size='small'>
+              {t('preview.title')}
+            </Paragraph>
+            <AltinnHeaderMenu
+              menuItems={[]}
+              windowResizeWidth={WINDOW_RESIZE_WIDTH}
+              deploymentItems={appPreviewButtonActions(org, app, instanceId)}
+            />
+          </StudioPageHeader.Center>
+          <StudioPageHeader.Right>
+            <AppUserProfileMenu user={user} repository={repository} />
+          </StudioPageHeader.Right>
+        </StudioPageHeader.Main>
+        <StudioPageHeader.Sub></StudioPageHeader.Sub>
+      </StudioPageHeader>
       <div className={classes.previewArea}>
         <PreviewLimitationsInfo />
         <div className={classes.iframeContainer}>

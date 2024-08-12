@@ -1,15 +1,15 @@
 import React from 'react';
-import type { AltinnButtonActionItem } from 'app-shared/components/altinnHeader/types';
 import classes from '../AppPreviewSubMenu.module.css';
 import { ArrowCirclepathIcon, EyeIcon, LinkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import type { AppPreviewSubMenuProps } from '../AppPreviewSubMenu';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
+import { TopBarGroup, TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { StudioButton, StudioNativeSelect } from '@studio/components';
 import { ToggleGroup } from '@digdir/designsystemet-react';
+import { type TopBarMenuDeploymentItem } from 'app-shared/types/TopBarMenuItem';
 
 export const SubPreviewMenuLeftContent = ({
   viewSize,
@@ -68,18 +68,20 @@ export const SubPreviewMenuRightContent = () => {
   );
 };
 
+// TODO MOVE TO OTHER FILE
 export const appPreviewButtonActions = (
   org: string,
   app: string,
   instanceId: string,
-): AltinnButtonActionItem[] => {
+): TopBarMenuDeploymentItem[] => {
   const packagesRouter = new PackagesRouter({ org, app });
   const queryParams = `?layout=${window.localStorage.getItem(instanceId)}`;
 
   return [
     {
-      menuKey: TopBarMenu.PreviewBackToEditing,
-      to: `${packagesRouter.getPackageNavigationUrl('editorUiEditor')}${queryParams}`,
+      key: TopBarMenu.PreviewBackToEditing,
+      link: `${packagesRouter.getPackageNavigationUrl('editorUiEditor')}${queryParams}`,
+      group: TopBarGroup.Tools,
     },
   ];
 };

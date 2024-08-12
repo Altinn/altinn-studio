@@ -32,18 +32,16 @@ export type StudioPageHeaderComponentProps = {
 export type StudioPageHeaderLeftProps = {
   children?: ReactNode;
   title?: string;
+  showOnlyLogo?: boolean;
 };
 
 export const StudioPageHeaderLeft = ({
   children,
   title,
+  showOnlyLogo,
 }: StudioPageHeaderLeftProps): React.ReactElement => {
   if (children) return <div>{children}</div>;
-  return (
-    <div>
-      <AltinnStudioLogoLink title={title} />
-    </div>
-  );
+  return <AltinnStudioLogoLink title={title} showOnlyLogo={showOnlyLogo} />;
 };
 
 export const StudioPageHeaderCenter = ({

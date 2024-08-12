@@ -18,9 +18,9 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 
 export interface IAltinnHeaderMenuProps {
   menuItems: TopBarMenuItem[];
-  deploymentItems: TopBarMenuDeploymentItem[];
+  deploymentItems: TopBarMenuDeploymentItem[]; // TODO RENAME TO SOMETHING WITH BUTTON
   windowResizeWidth: number;
-  repoOwnerIsOrg: boolean;
+  repoOwnerIsOrg?: boolean;
 }
 
 // TODO - Refactor
@@ -118,11 +118,25 @@ const LargeNavigationMenu = ({
   console.log('deployItem', deployItem);
   console.log('previewItem', previewItem);
 
+  //const location = useLocation();
+  //const currentRoutePath: string = getRouterRouteByPathname(location.pathname);
+
   return (
     <div className={classes.largeMenu}>
       <ul className={classes.menu}>
         {menuItems.map((menuItem: StudioNavigationMenuItem) => (
           <li key={menuItem.name} className={classes.menuItem}>
+            {/*<StudioButton
+              asChild
+              color='inverted'
+              style={
+                getRouterRouteByPathname(menuItem.link) === currentRoutePath
+                  ? {
+                      borderBottom: '2px solid white',
+                    }
+                  : undefined
+              }
+            >*/}
             <NavLink
               to={menuItem.link}
               className={({ isActive }) => (isActive ? classes.active : '')}
@@ -134,6 +148,8 @@ const LargeNavigationMenu = ({
                 {t('general.beta')}
               </Tag>
             )}
+
+            {/*</StudioButton>*/}
           </li>
         ))}
         {!deployItem
@@ -152,11 +168,11 @@ const LargeNavigationMenu = ({
               )}
         {previewItem && (
           <li className={classes.menuItem}>
-            <StudioButton asChild color='second' variant='primary'>
-              <a href={previewItem.link}>
-                <PlayIcon className={classes.previewIcon} />
-              </a>
-            </StudioButton>
+            {/*<StudioButton asChild className={classes.previewButton}>*/}
+            <a href={previewItem.link}>
+              <PlayIcon className={classes.previewIcon} />
+            </a>
+            {/*</StudioButton>*/}
           </li>
         )}
       </ul>

@@ -18,10 +18,9 @@ export interface TopBarMenuGroup {
   menuItems: TopBarMenuItem[];
 }
 
-// TODO move
+// TODO move and RENAME
 export interface TopBarMenuDeploymentItem {
   key: TopBarMenu;
   link: string;
   group: TopBarGroup;
-  isInverted?: boolean;
 }

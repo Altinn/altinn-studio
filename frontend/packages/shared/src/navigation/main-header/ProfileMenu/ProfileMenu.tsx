@@ -31,6 +31,7 @@ export interface IProfileMenuComponentProps {
  *
  * @returns {ReactNode} - The rendered component
  */
+// TODO DELETE
 export const ProfileMenu = ({
   showlogout,
   user,

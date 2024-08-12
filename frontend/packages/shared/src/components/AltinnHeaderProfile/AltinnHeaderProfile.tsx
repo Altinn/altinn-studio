@@ -22,6 +22,7 @@ export interface AltinnHeaderProfileProps {
  *
  * @returns {ReactNode} - The Rendered component
  */
+// TODO DELETE
 export const AltinnHeaderProfile = ({
   user,
   repository,

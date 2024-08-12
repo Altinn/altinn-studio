@@ -16,7 +16,7 @@ import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { useTranslation } from 'react-i18next';
 import { Paragraph } from '@digdir/designsystemet-react';
 
-const WINDOW_RESIZE_WIDTH = 1000;
+const WINDOW_RESIZE_WIDTH = 900;
 
 export interface AltinnHeaderProps {
   heading?: string;

@@ -1,11 +1,14 @@
 .wrapper {
   display: flex;
   gap: var(--fds-spacing-2);
-  /* TODO - Legge inn at text osv forsvinner når man lager mindre */
+  overflow: hidden;
 }
 
 .titleText {
   color: var(--fds-semantic-background-default);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .slash {
