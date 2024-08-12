@@ -11,6 +11,7 @@ export * from './StudioDivider';
 export * from './StudioDropdownMenu';
 export * from './StudioExpression';
 export * from './StudioGridSelector';
+export * from './StudioHeading';
 export * from './StudioIconTextfield';
 export * from './StudioLabelAsParagraph';
 export * from './StudioLabelWrapper';

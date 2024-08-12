@@ -3,6 +3,7 @@ import React from 'react';
 import classes from './StudioRecommendedNextAction.module.css';
 import { StudioCard } from '../StudioCard';
 import { StudioParagraph } from '@studio/components';
+import { Heading } from '@digdir/designsystemet-react';
 
 export type StudioRecommendedNextActionProps = {
   onSave: React.MouseEventHandler<HTMLButtonElement>;
@@ -27,7 +28,9 @@ export const StudioRecommendedNextAction = ({
 }: StudioRecommendedNextActionProps): React.ReactElement => {
   return (
     <StudioCard>
-      <StudioCard.Header>{title}</StudioCard.Header>
+      <StudioCard.Header>
+        <Heading size='xs'>{title}</Heading>
+      </StudioCard.Header>
       <StudioCard.Content>
         <StudioParagraph className={classes.description}>{description}</StudioParagraph>
         {children}
