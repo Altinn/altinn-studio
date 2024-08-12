@@ -41,7 +41,7 @@ jobs:
         run: |
           environments="${{ github.event.inputs.environments || 'dev,staging,prod' }}"
           jsonArray=$(echo "[\"$(echo $environments | sed 's/,/\",\"/g')\"]")
-          echo jsonArray
+          echo $jsonArray
 
   determine-tag:
     needs: get-short-sha
