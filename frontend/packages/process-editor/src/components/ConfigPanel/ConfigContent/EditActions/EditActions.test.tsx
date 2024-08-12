@@ -33,6 +33,11 @@ describe('EditActions', () => {
       updateActionNameOnActionElementMock,
     });
 
+    (useUniqueKey as jest.Mock).mockImplementation(() => ({
+      removeKey: jest.fn(),
+      getUniqueKey: () => [],
+    }));
+
     renderEditActions();
     const addButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_actions_add_new'),
@@ -66,6 +71,11 @@ describe('EditActions', () => {
       hasActionsAlready: true,
     });
 
+    (useUniqueKey as jest.Mock).mockImplementation(() => ({
+      removeKey: jest.fn(),
+      getUniqueKey: () => [],
+    }));
+
     renderEditActions();
     const addButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_actions_add_new'),
@@ -88,6 +98,11 @@ describe('EditActions', () => {
       },
     });
 
+    (useUniqueKey as jest.Mock).mockImplementation(() => ({
+      removeKey: jest.fn(),
+      getUniqueKey: () => [],
+    }));
+
     renderEditActions();
 
     const viewModeElement = screen.getByText(
@@ -101,6 +116,10 @@ describe('EditActions', () => {
 
   it('should display in edit mode when adding new action', async () => {
     const user = userEvent.setup();
+    (useUniqueKey as jest.Mock).mockImplementation(() => ({
+      removeKey: jest.fn(),
+      getUniqueKey: () => [],
+    }));
     setupBpmnActionModelerMock({
       addNewActionToTaskMock: jest.fn(),
       createActionElementMock: jest.fn(),
