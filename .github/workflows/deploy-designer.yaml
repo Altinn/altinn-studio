@@ -20,7 +20,7 @@ on:
       environments:
         description: 'Environments to deploy to. Default is dev. Multiple environments can be specified by separating them with a comma.'
         required: false
-        default: 'dev,staging'
+        default: 'dev'
 
 permissions:
       id-token: write
@@ -33,11 +33,15 @@ jobs:
   construct-enviornment:
     needs: get-short-sha
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.construct-enviornment.outputs.tag }}
     steps:
       - name: Construct environment
         id: construct-enviornment
         run: |
-          echo ${{ github.event.inputs.environments }}
+          environments="${github.event.inputs.environments:-dev,staging,prod}"
+          jsonArray=$(echo "[\"$(echo $environments | sed 's/,/\",\"/g')\"]")
+          echo jsonArray
 
   determine-tag:
     needs: get-short-sha
@@ -55,45 +59,45 @@ jobs:
             echo "tag=${{ needs.get-short-sha.outputs.short-sha }}-${sanitized_branch_name}" >> $GITHUB_OUTPUT
           fi
 
-  docker-build-push:
-    needs: get-short-sha
-    uses: ./.github/workflows/template-docker-push.yaml
-    with:
-      tags: ${{ needs.get-short-sha.outputs.short-sha }},latest
-      registry-name: altinntjenestercontainerregistry.azurecr.io
-      repository-name: altinn-core
-    secrets:
-      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
-      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
-      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
-      build-args: DESIGNER_VERSION=${{ needs.get-short-sha.outputs.short-sha }}
+  # docker-build-push:
+  #   needs: get-short-sha
+  #   uses: ./.github/workflows/template-docker-push.yaml
+  #   with:
+  #     tags: ${{ needs.get-short-sha.outputs.short-sha }},latest
+  #     registry-name: altinntjenestercontainerregistry.azurecr.io
+  #     repository-name: altinn-core
+  #   secrets:
+  #     client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+  #     tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+  #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+  #     build-args: DESIGNER_VERSION=${{ needs.get-short-sha.outputs.short-sha }}
 
-  helm-push:
-    needs: get-short-sha
-    uses: ./.github/workflows/template-helm-push.yaml
-    with:
-      tag: 0.1.0+${{ needs.get-short-sha.outputs.short-sha }} # Helm version needs to be valid sematic version
-      chart-name: altinn-designer
-      registry-name: altinntjenestercontainerregistry.azurecr.io
-    secrets:
-      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
-      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
-      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+  # helm-push:
+  #   needs: get-short-sha
+  #   uses: ./.github/workflows/template-helm-push.yaml
+  #   with:
+  #     tag: 0.1.0+${{ needs.get-short-sha.outputs.short-sha }} # Helm version needs to be valid sematic version
+  #     chart-name: altinn-designer
+  #     registry-name: altinntjenestercontainerregistry.azurecr.io
+  #   secrets:
+  #     client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+  #     tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+  #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
-  flux-config-push:
-    needs: [get-short-sha, docker-build-push, helm-push]
-    strategy:
-      matrix:
-        environment: [dev, staging, prod]
-    uses: ./.github/workflows/template-flux-config-push.yaml
-    with:
-      tag: ${{ needs.get-short-sha.outputs.short-sha }}
-      registry-name: altinntjenestercontainerregistry.azurecr.io
-      environment: ${{ matrix.environment }}
-      config-chart-name: altinn-designer-config
-      artifact-name: altinn-designer
-      helm-set-arguments: environmentName=${{ matrix.environment }},chartVersion=0.1.0+${{ needs.get-short-sha.outputs.short-sha }},imageTag=${{ needs.get-short-sha.outputs.short-sha }}
-    secrets:
-      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
-      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
-      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+  # flux-config-push:
+  #   needs: [get-short-sha, docker-build-push, helm-push]
+  #   strategy:
+  #     matrix:
+  #       environment: [dev, staging, prod]
+  #   uses: ./.github/workflows/template-flux-config-push.yaml
+  #   with:
+  #     tag: ${{ needs.get-short-sha.outputs.short-sha }}
+  #     registry-name: altinntjenestercontainerregistry.azurecr.io
+  #     environment: ${{ matrix.environment }}
+  #     config-chart-name: altinn-designer-config
+  #     artifact-name: altinn-designer
+  #     helm-set-arguments: environmentName=${{ matrix.environment }},chartVersion=0.1.0+${{ needs.get-short-sha.outputs.short-sha }},imageTag=${{ needs.get-short-sha.outputs.short-sha }}
+  #   secrets:
+  #     client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+  #     tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+  #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
