@@ -60,6 +60,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   );
 
   const initializeEditor = async () => {
+    if (!modelerRef.current) return;
     try {
       await modelerRef.current.importXML(bpmnXml);
       const canvas: any = modelerRef.current.get('canvas');
@@ -99,6 +100,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   }, []); // Missing dependencies are not added to avoid getModeler to be called multiple times
 
   useEffect(() => {
+    if (!modelerRef.current) return;
     const eventBus: BpmnModeler = modelerRef.current.get('eventBus');
     eventBus.on('element.click', updateBpmnDetailsByTaskEvent);
   }, [modelerRef, updateBpmnDetailsByTaskEvent]);
