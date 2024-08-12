@@ -2,16 +2,28 @@ import React from 'react';
 import { EditCodeList } from './EditCodeList';
 import { screen, waitFor } from '@testing-library/react';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import {
-  renderWithProviders,
-  renderHookWithProviders,
-  optionListIdsMock,
-} from '../../../../testing/mocks';
-import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
+import { renderWithProviders, optionListIdsMock } from '../../../../../testing/mocks';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import type { FormComponent } from '../../../../../types/FormComponent';
+
+const mockComponent: FormComponent<ComponentType.Dropdown> = {
+  id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
+  type: ComponentType.Dropdown,
+  textResourceBindings: {
+    title: 'ServiceName',
+  },
+  itemType: 'COMPONENT',
+  dataModelBindings: { simpleBinding: 'some-path' },
+};
+
+const queryClientMock = createQueryClientMock();
 
 describe('EditCodeList', () => {
+  afterEach(() => {
+    queryClientMock.clear();
+  });
   it('should render the component', async () => {
     await render({
       queries: {
@@ -21,32 +33,33 @@ describe('EditCodeList', () => {
       },
     });
     expect(
-      await screen.findByText(
-        textMock('ux_editor.properties_panel.options.codelist_switch_to_custom'),
-      ),
+      await screen.findByText(textMock('ux_editor.modal_properties_code_list_helper')),
     ).toBeInTheDocument();
   });
 
-  it('should render the component when optionListIds is undefined', async () => {
+  it('should render the component when optionListIds is empty', async () => {
     await render({
       queries: {
-        getOptionListIds: jest
-          .fn()
-          .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
+        getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
       },
     });
 
     expect(
-      await screen.findByText(
-        textMock('ux_editor.properties_panel.options.codelist_switch_to_custom'),
-      ),
+      await screen.findByText(textMock('ux_editor.modal_properties_no_options_found_message')),
     ).toBeInTheDocument();
   });
 
   it('should call onChange when option list changes', async () => {
     const handleComponentChangeMock = jest.fn();
     const user = userEvent.setup();
-    await render({ handleComponentChange: handleComponentChangeMock });
+    await render({
+      handleComponentChange: handleComponentChangeMock,
+      queries: {
+        getOptionListIds: jest
+          .fn()
+          .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
+      },
+    });
 
     await waitFor(() => screen.findByRole('combobox'));
 
@@ -59,41 +72,33 @@ describe('EditCodeList', () => {
       componentProps: {
         optionsId: 'test-2',
       },
+      queries: {
+        getOptionListIds: jest
+          .fn()
+          .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
+      },
     });
 
-    expect(screen.getByRole('combobox')).toHaveValue('test-2');
+    expect(await screen.findByRole('combobox')).toHaveValue('test-2');
   });
 });
-
-const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
-  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
-};
 
 const render = async ({
   handleComponentChange = jest.fn(),
   queries = {},
   componentProps = {},
 } = {}) => {
-  await waitForData();
-
   renderWithProviders(
     <EditCodeList
       handleComponentChange={handleComponentChange}
       component={{
-        id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
-        type: ComponentType.Dropdown,
-        textResourceBindings: {
-          title: 'ServiceName',
-        },
-        itemType: 'COMPONENT',
-        dataModelBindings: { simpleBinding: 'some-path' },
-        optionsId: '',
+        ...mockComponent,
         ...componentProps,
       }}
     />,
     {
       queries,
+      queryClient: queryClientMock,
     },
   );
 };

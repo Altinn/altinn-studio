@@ -109,7 +109,7 @@ export const addOptionToComponent = <T extends FormCheckboxesComponent | FormRad
   option: IOption,
 ): T => ({
   ...component,
-  options: [...component.options, option],
+  options: [...(component.options || []), option],
 });
 
 export const changeComponentOptionLabel = <
