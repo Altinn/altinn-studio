@@ -1,0 +1,44 @@
+name: Deploy Designer on pull request from feature branch
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/workflows/deploy-designer-to-dev-on-pr.yaml'
+      - '.github/workflows/template-docker-push.yaml'
+      - '.github/workflows/template-flux-config-push.yaml'
+      - '.github/workflows/template-helm-push.yaml'
+      - '.github/workflows/template-short-sha.yaml'
+      - 'backend/**'
+      - 'frontend/**'
+      - 'Dockefile'
+      - 'package.json'
+      - 'charts/altinn-designer/**'
+      - 'charts/altinn-designer-config/**'
+
+  workflow_dispatch:
+
+permissions:
+      id-token: write
+      contents: read
+
+jobs:
+  get-short-sha:
+    uses: ./.github/workflows/template-short-sha.yaml
+
+  test:
+    runs-on: ubuntu-latest
+    environment: dev
+    needs: [get-short-sha]
+    steps:
+      - name: output branch name
+        run: echo "Branch name is ${{ github.ref }}"
+
+      - name: 'Azure login'
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+
