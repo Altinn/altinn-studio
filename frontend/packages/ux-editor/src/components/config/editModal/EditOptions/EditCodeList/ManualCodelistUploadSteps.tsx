@@ -1,5 +1,5 @@
 import React from 'react';
-import { List, Link, Heading, Accordion } from '@digdir/designsystemet-react';
+import { List, Link, Accordion } from '@digdir/designsystemet-react';
 import { repositoryPath } from 'app-shared/api/paths';
 import { useTranslation } from 'react-i18next';
 import classes from './ManualCodelistUploadSteps.module.css';
