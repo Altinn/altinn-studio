@@ -118,6 +118,26 @@ describe('ActionsEditor', () => {
     expect(actionButton).not.toBeInTheDocument();
   });
 
+  it('should invoke onDeleteClick callback', async () => {
+    const user = userEvent.setup();
+    const deleteActionFromTaskMock = jest.fn();
+
+    (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
+      deleteActionFromTask: deleteActionFromTaskMock,
+    }));
+
+    const onDeleteClick = jest.fn();
+    renderActionsEditor({ mode: 'edit', onDeleteClick  });
+
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('general.delete_item', {
+        item: 'reject',
+      }),
+    });
+    await user.click(deleteButton);
+    expect(onDeleteClick).toHaveBeenCalledTimes(1);
+  })
+
   it('should be possible to toggle between predefined and custom actions', async () => {
     const user = userEvent.setup();
     (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
@@ -165,6 +185,7 @@ describe('ActionsEditor', () => {
 type RenderActionsEditorProps = {
   mode?: ActionsEditorProps['mode'];
   actionElement?: Action;
+  onDeleteClick: ActionsEditorProps["onDeleteClick"]
 };
 const renderActionsEditor = (props?: Partial<RenderActionsEditorProps>) => {
   return render(
@@ -174,6 +195,7 @@ const renderActionsEditor = (props?: Partial<RenderActionsEditorProps>) => {
           actionElement={props?.actionElement || actionElementMock}
           mode={props?.mode || 'view'}
           actionIndex={0}
+          onDeleteClick={props?.onDeleteClick}
         />
       </BpmnConfigPanelFormContextProvider>
     </BpmnContext.Provider>,
