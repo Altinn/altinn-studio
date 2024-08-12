@@ -66,39 +66,40 @@ jobs:
       tags: ${{ needs.determine-tag.outputs.tag }},latest
       registry-name: altinntjenestercontainerregistry.azurecr.io
       repository-name: altinn-core
+      environment: dev # dev environment has push access and doesn't require review
     secrets:
       client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
       tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
       build-args: DESIGNER_VERSION=${{ needs.determine-tag.outputs.tag }}
 
-  # helm-push:
-  #   needs: [get-short-sha, determine-tag]
-  #   environment: dev # dev environment has push access and doesn't require review
-  #   uses: ./.github/workflows/template-helm-push.yaml
-  #   with:
-  #     tag: 0.1.0+${{ needs.determine-tag.outputs.tag }} # Helm version needs to be valid sematic version
-  #     chart-name: altinn-designer
-  #     registry-name: altinntjenestercontainerregistry.azurecr.io
-  #   secrets:
-  #     client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
-  #     tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
-  #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+  helm-push:
+    needs: [get-short-sha, determine-tag]
+    uses: ./.github/workflows/template-helm-push.yaml
+    with:
+      tag: 0.1.0+${{ needs.determine-tag.outputs.tag }} # Helm version needs to be valid sematic version
+      chart-name: altinn-designer
+      registry-name: altinntjenestercontainerregistry.azurecr.io
+      environment: dev
+    secrets:
+      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
-  # flux-config-push:
-  #   needs: [construct-enviornment, determine-tag, docker-build-push, helm-push]
-  #   strategy:
-  #     matrix:
-  #       environment: ${{ fromJSON(needs.define-matrix.outputs.environmentsjson) }}
-  #   uses: ./.github/workflows/template-flux-config-push.yaml
-  #   with:
-  #     tag: ${{ needs.determine-tag.outputs.tag }}
-  #     registry-name: altinntjenestercontainerregistry.azurecr.io
-  #     environment: ${{ matrix.environment }}
-  #     config-chart-name: altinn-designer-config
-  #     artifact-name: altinn-designer
-  #     helm-set-arguments: environmentName=${{ matrix.environment }},chartVersion=0.1.0+${{ needs.determine-tag.outputs.tag }},imageTag=${{ needs.determine-tag.outputs.tag }}
-  #   secrets:
-  #     client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
-  #     tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
-  #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+  flux-config-push:
+    needs: [construct-enviornment, determine-tag, docker-build-push, helm-push]
+    strategy:
+      matrix:
+        environment: ${{ fromJSON(needs.define-matrix.outputs.environmentsjson) }}
+    uses: ./.github/workflows/template-flux-config-push.yaml
+    with:
+      tag: ${{ needs.determine-tag.outputs.tag }}
+      registry-name: altinntjenestercontainerregistry.azurecr.io
+      environment: ${{ matrix.environment }}
+      config-chart-name: altinn-designer-config
+      artifact-name: altinn-designer
+      helm-set-arguments: environmentName=${{ matrix.environment }},chartVersion=0.1.0+${{ needs.determine-tag.outputs.tag }},imageTag=${{ needs.determine-tag.outputs.tag }}
+    secrets:
+      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}

@@ -37,9 +37,9 @@ on:
 
 jobs:
   docker-build-push:
-    environment: ${{ inputs.environment }}
     name: Build and push docker image
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
 
