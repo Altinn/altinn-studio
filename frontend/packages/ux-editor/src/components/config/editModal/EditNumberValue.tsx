@@ -28,14 +28,11 @@ export const EditNumberValue = <T extends ComponentType, K extends NumberKeys<Fo
   const componentPropertyLabel = useComponentPropertyLabel();
   const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
   const handleValueChange = async (newValue: number) => {
-    await handleComponentChange(
-      setComponentProperty<T, number, K>(component, propertyKey, newValue),
-      {
-        onSuccess: async () => {
-          await refetchLayouts(selectedFormLayoutSetName, true);
-        },
+    handleComponentChange(setComponentProperty<T, number, K>(component, propertyKey, newValue), {
+      onSuccess: async () => {
+        await refetchLayouts(selectedFormLayoutSetName, true);
       },
-    );
+    });
   };
 
   return (

@@ -210,11 +210,35 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
-            semaphore.Wait();
+            await semaphore.WaitAsync();
             try
             {
                 await _sourceControl.FetchRemoteChanges(org, repository);
                 return _sourceControl.RepositoryStatus(org, repository);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
+
+        /// <summary>
+        /// This method returns the git diff between the local WIP commit and the latest remote commit on main for a given repository
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The repository</param>
+        /// <returns>A dictionary of modified or new files and the git diff</returns>
+        [HttpGet]
+        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/diff")]
+        public async Task<Dictionary<string, string>> RepoDiff(string org, string repository)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
+            await semaphore.WaitAsync();
+            try
+            {
+                await _sourceControl.FetchRemoteChanges(org, repository);
+                return await _sourceControl.GetChangedContent(org, repository);
             }
             finally
             {

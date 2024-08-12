@@ -5,6 +5,9 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { VersionControlButtonsContext } from '../../../context';
 import { mockVersionControlButtonsContextValue } from '../../../test/mocks/versionControlContextMock';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const mockOnHidePopover = jest.fn();
 const mockOnClosePopover = jest.fn();
@@ -101,8 +104,11 @@ describe('CommitAndPushContent', () => {
 
 const renderCommitAndPushContent = () => {
   return render(
-    <VersionControlButtonsContext.Provider value={mockVersionControlButtonsContextValue}>
-      <CommitAndPushContent {...defaultProps} />
-    </VersionControlButtonsContext.Provider>,
+    <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
+      <VersionControlButtonsContext.Provider value={mockVersionControlButtonsContextValue}>
+        <CommitAndPushContent {...defaultProps} />
+      </VersionControlButtonsContext.Provider>
+      ,
+    </ServicesContextProvider>,
   );
 };

@@ -38,7 +38,10 @@ services:
       - NGINX_PORT=80
       - TEST_DOMAIN=${TEST_DOMAIN:-local.altinn.cloud}
     depends_on:
-      - studio_repositories
+      studio_repositories:
+        condition: service_healthy
+      studio_designer:
+        condition: service_healthy
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     volumes:
@@ -82,15 +85,22 @@ services:
       - OidcLoginSettings:Authority=http://studio.localhost/repos/
       - OidcLoginSettings:RequireHttpsMetadata=false
       - OidcLoginSettings:CookieExpiryTimeInMinutes=59
+      - OidcLoginSettings:FetchClientIdAndSecretFromRootEnvFile=false
     ports:
       - '6000:6000'
     depends_on:
-      - studio_repositories
+      studio_db:
+        condition: service_healthy
     build:
       context: .
     extra_hosts:
       - 'host.docker.internal:host-gateway'
       - 'studio.localhost:host-gateway'
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://localhost:6000/health" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
 
   studio_repositories:
     container_name: studio-repositories
@@ -129,6 +139,15 @@ services:
       context: ./gitea/
     extra_hosts:
       - 'host.docker.internal:host-gateway'
+    depends_on:
+      studio_db:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://localhost:3000/api/healthz" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
 
   studio_db:
     container_name: studio-db
@@ -144,11 +163,17 @@ services:
       - ./development/db/init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./development/db/data.sql:/data.sql
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U designer_admin -d designerdb" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   database_migrations:
     container_name: db-database_migrations
     depends_on:
-      - studio_db
+      studio_db:
+        condition: service_healthy
     build:
       context: backend
       dockerfile: Migrations.Dockerfile
@@ -158,4 +183,3 @@ services:
       - PGUSER=designer_admin
       - PGPASSWORD=${POSTGRES_PASSWORD}
       - PGDATABASE=designerdb
-

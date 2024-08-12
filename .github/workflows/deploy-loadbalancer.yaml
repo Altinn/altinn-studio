@@ -1,0 +1,52 @@
+name: Deploy Loadbalancer
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/deploy-loadbalancer.yaml'
+      - '.github/workflows/template-docker-push.yaml'
+      - '.github/workflows/template-flux-config-push.yaml'
+      - '.github/workflows/template-helm-push.yaml'
+      - '.github/workflows/template-short-sha.yaml'
+      - 'charts/altinn-loadbalancer/**'
+      - 'charts/altinn-loadbalancer-config/**'
+
+  workflow_dispatch:
+
+permissions:
+      id-token: write
+      contents: read
+
+jobs:
+  get-short-sha:
+    uses: ./.github/workflows/template-short-sha.yaml
+
+  helm-push:
+    needs: get-short-sha
+    uses: ./.github/workflows/template-helm-push.yaml
+    with:
+      tag: 0.1.0+${{ needs.get-short-sha.outputs.short-sha }} # Helm version needs to be valid sematic version
+      chart-name: altinn-loadbalancer
+      registry-name: altinntjenestercontainerregistry.azurecr.io
+    secrets:
+      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+  flux-config-push:
+    needs: [get-short-sha, helm-push]
+    strategy:
+      matrix:
+        environment: [dev, staging, prod]
+    uses: ./.github/workflows/template-flux-config-push.yaml
+    with:
+      tag: ${{ needs.get-short-sha.outputs.short-sha }}
+      registry-name: altinntjenestercontainerregistry.azurecr.io
+      environment: ${{ matrix.environment }}
+      config-chart-name: altinn-loadbalancer-config
+      artifact-name: altinn-loadbalancer
+      helm-set-arguments: environmentName=${{ matrix.environment }},chartVersion=0.1.0+${{ needs.get-short-sha.outputs.short-sha }}
+    secrets:
+      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
