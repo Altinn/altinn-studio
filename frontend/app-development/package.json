@@ -9,6 +9,7 @@
     "not op_mini all"
   ],
   "dependencies": {
+    "@studio/hooks": "workspace:^",
     "@studio/icons": "workspace:^",
     "@studio/pure-functions": "workspace:^",
     "axios": "1.7.3",

@@ -6072,7 +6072,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@studio/hooks@workspace:frontend/libs/studio-hooks":
+"@studio/hooks@workspace:^, @studio/hooks@workspace:frontend/libs/studio-hooks":
   version: 0.0.0-use.local
   resolution: "@studio/hooks@workspace:frontend/libs/studio-hooks"
   dependencies:
@@ -8218,6 +8218,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-development@workspace:frontend/app-development"
   dependencies:
+    "@studio/hooks": "workspace:^"
     "@studio/icons": "workspace:^"
     "@studio/pure-functions": "workspace:^"
     axios: "npm:1.7.3"
