@@ -19,7 +19,7 @@ describe('GetInTouchWith', () => {
     expect(contactByEmail.url('serviceDesk')).toBe('mailto:servicedesk@altinn.no');
     expect(contactBySlack.url('altinn')).toBe('https://altinn.slack.com');
     expect(contactByGitHubIssue.url('bugReport')).toBe(
-      'https://github.com/Altinn/altinn-studio/issues/new?assignees=&labels=kind/bug,status/triage&projects=&template=bug_report.yml',
+      'https://github.com/Altinn/altinn-studio/issues/new?labels=kind/bug,status/triage&projects=&template=bug_report.yml',
     );
   });
 });
