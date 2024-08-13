@@ -9,7 +9,7 @@ import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import classes from 'src/components/label/LabelContent.module.css';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useFormComponentCtxStrict } from 'src/layout/FormComponentContext';
+import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 import type { ILabelSettings } from 'src/layout/common.generated';
 
 export type LabelContentProps = Readonly<{
@@ -32,7 +32,7 @@ export function LabelContent({
   labelSettings,
   className,
 }: LabelContentProps) {
-  const { overrideDisplay } = useFormComponentCtxStrict();
+  const { overrideDisplay } = useFormComponentCtx() || {};
   const { langAsString } = useLanguage();
 
   if (overrideDisplay?.renderLabel === false) {

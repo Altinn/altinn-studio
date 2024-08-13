@@ -12,7 +12,7 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useParties } from 'src/features/party/PartiesProvider';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { getDateFormat } from 'src/utils/dateHelpers';
+import { getDateFormat, PrettyDateAndTime } from 'src/utils/dateHelpers';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { CompInstanceInformationInternal } from 'src/layout/InstanceInformation/config.generated';
@@ -73,7 +73,7 @@ export function InstanceInformation({ elements }: CompInstanceInformationInterna
     instance && parties?.find((party: IParty) => party.partyId.toString() === instance.instanceOwner.partyId);
 
   const instanceDateSent =
-    dateSent !== false && Moment(instance?.lastChanged).format(getDateFormat(undefined, selectedLanguage));
+    dateSent !== false && Moment(instance?.lastChanged).format(getDateFormat(PrettyDateAndTime, selectedLanguage));
 
   const instanceSender =
     sender !== false &&
