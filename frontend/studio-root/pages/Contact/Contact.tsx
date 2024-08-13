@@ -20,7 +20,7 @@ export const Contact = () => {
           </div>
           <section className={classes.section}>
             <div className={classes.iconContainer}>
-              <EnvelopeClosedIcon className={classes.emailIcon} />
+              <EnvelopeClosedIcon className={classes.icon} />
             </div>
             <div className={classes.textContainer}>
               <Heading level={2} size='xsmall' spacing>
@@ -36,7 +36,7 @@ export const Contact = () => {
           </section>
           <section className={classes.section}>
             <div className={classes.iconContainer}>
-              <SlackIcon />
+              <SlackIcon className={classes.icon} />
             </div>
             <div className={classes.textContainer}>
               <Heading level={2} size='xsmall' spacing>
@@ -58,8 +58,8 @@ export const Contact = () => {
             </div>
           </section>
           <section className={classes.section}>
-            <div className={classNames(classes.iconContainer, classes.githubIcon)}>
-              <GitHubIcon />
+            <div className={classNames(classes.iconContainer)}>
+              <GitHubIcon className={classes.icon} />
             </div>
             <div className={classes.textContainer}>
               <Heading level={2} size='xsmall' spacing>
