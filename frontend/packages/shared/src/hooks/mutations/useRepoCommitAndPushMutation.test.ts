@@ -1,12 +1,12 @@
 import type { CreateRepoCommitPayload } from 'app-shared/types/api';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderHookWithMockStore } from 'app-development/test/mocks';
+import { renderHookWithProviders } from 'app-development/test/mocks';
 import { useRepoCommitAndPushMutation } from './useRepoCommitAndPushMutation';
 import { app, org } from '@studio/testing/testids';
 
 describe('useRepoCommitAndPushMutation', () => {
   it('Calls commitAndPushChanges with correct arguments and payload', async () => {
-    const result = renderHookWithMockStore()(() => useRepoCommitAndPushMutation(org, app))
+    const result = renderHookWithProviders()(() => useRepoCommitAndPushMutation(org, app))
       .renderHookResult.result;
 
     const commitMessage = 'test commit message';

@@ -197,7 +197,7 @@ class SupportedPaletteProvider {
         },
         'create.altinn-payment-task': {
           group: 'activity',
-          className: `bpmn-icon-task-generic ${shouldDisplayFeature('displayPaymentTaskProcessEditor') ? 'bpmn-icon-payment-task' : 'payment-is-hidden-based-on-feature-toggle'}`,
+          className: `bpmn-icon-task-generic bpmn-icon-payment-task`,
           title: translate('Payment'),
           action: {
             click: createCustomPaymentTask(),

@@ -11,7 +11,7 @@ import {
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertMetadataToOption } from '../../../../utils/metadataUtils';
-import { renderWithMockStore } from '../../../../test/mocks';
+import { renderWithProviders } from '../../../../test/mocks';
 import type { QueryClient } from '@tanstack/react-query';
 import { app, org } from '@studio/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -47,11 +47,7 @@ const render = (
     [QueryKey.DataModelsMetadata, org, app],
     [jsonMetadata1Mock, jsonMetadata2Mock],
   );
-  return renderWithMockStore(
-    {},
-    queries,
-    queryClient,
-  )(<DeleteWrapper {...defaultProps} {...props} />);
+  return renderWithProviders(queries, queryClient)(<DeleteWrapper {...defaultProps} {...props} />);
 };
 
 describe('DeleteWrapper', () => {

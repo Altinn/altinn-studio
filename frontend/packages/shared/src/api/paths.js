@@ -99,17 +99,13 @@ export const repoPushPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/
 export const repoResetPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/reset`; // Get
 export const repoSearchPath = () => `${basePath}/repos/search`; // Get
 export const repoStatusPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/status`; // Get
+export const repoDiffPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/diff`; // Get
 export const reposListPath = (org) => `${basePath}/repos/org/${org}`; // Get
 export const stageFilePath = (org, app, filename) => `${basePath}/repos/repo/${org}/${app}/stage/${filename}`; // Get
-
-// Session
-export const keepAlivePath = () => `${basePath}/session/keepalive`; // Get
-export const remainingSessionTimePath = () => `${basePath}/session/remaining`; // Get
 
 // Text - old
 export const textLanguagesPath = (org, app) => `${basePath}/${org}/${app}/text/languages`; // Get
 export const textResourcesPath = (org, app, langCode) => `${basePath}/${org}/${app}/text/language/${langCode}`; // Get, Post, Put, Delete
-export const serviceNamePath = (org, app) => `${basePath}/${org}/${app}/text/service-name`; // Get
 export const textResourceIdsPath = (org, app) => `${basePath}/${org}/${app}/text/keys`; // Put
 
 // Text - new

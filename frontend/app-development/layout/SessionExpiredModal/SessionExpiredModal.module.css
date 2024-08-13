@@ -1,8 +1,0 @@
-.modalContent {
-  padding: var(--fds-spacing-4);
-}
-
-.buttonWrapper {
-  display: flex;
-  gap: var(--fds-spacing-3);
-}
