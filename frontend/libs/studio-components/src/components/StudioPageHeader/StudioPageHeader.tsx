@@ -13,7 +13,7 @@ export const StudioPageHeader = ({ children }: StudioPageHeaderProps): React.Rea
   return <div role='banner'>{children}</div>;
 };
 
-export type StudioPageHeaderMainProps = {
+export type StudioPageHeaderWrapperProps = {
   children: ReactNode;
   variant?: StudioPageHeaderVariant;
 };
@@ -21,7 +21,7 @@ export type StudioPageHeaderMainProps = {
 export const StudioPageHeaderMain = ({
   children,
   variant = 'regular',
-}: StudioPageHeaderMainProps): React.ReactElement => {
+}: StudioPageHeaderWrapperProps): React.ReactElement => {
   return <div className={cn(classes.main, classes[variant])}>{children}</div>;
 };
 
@@ -58,8 +58,9 @@ export const StudioPageHeaderRight = ({
 
 export const StudioPageHeaderSub = ({
   children,
-}: StudioPageHeaderComponentProps): React.ReactElement => {
-  return <div>{children}</div>;
+  variant = 'regular',
+}: StudioPageHeaderWrapperProps): React.ReactElement => {
+  return <div className={cn(classes.sub, classes[`${variant}Sub`])}>{children}</div>;
 };
 
 // Need to create

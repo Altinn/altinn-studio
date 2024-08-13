@@ -1,7 +1,7 @@
 .wrapper {
   display: flex;
   justify-content: space-between;
-  background-color: #284e6a;
+  /*background-color: #284e6a;*/
   padding-inline: 1rem;
 }
 

@@ -1,6 +1,4 @@
 .main {
-  --studio-header-colour-regular: #022f51;
-  --studio-header-colour-preview: #118849;
   --studio-page-header-height: 80px;
   --studio-page-header-padding: 0 var(--fds-spacing-8);
 
@@ -13,9 +11,17 @@
 }
 
 .regular {
-  background-color: var(--studio-header-colour-regular);
+  background-color: var(--studio-surface-default-dark);
+}
+
+.regularSub {
+  background-color: var(--studio-surface-default-medium);
 }
 
 .preview {
-  background-color: var(--studio-header-colour-preview);
+  background-color: var(--studio-surface-green-medium);
+}
+
+.previewSub {
+  background-color: var(--studio-surface-green-dark);
 }
