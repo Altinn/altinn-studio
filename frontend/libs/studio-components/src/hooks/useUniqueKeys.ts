@@ -15,18 +15,9 @@ export type UseUniqueKeyArgs = {
 export const useUniqueKeys = ({ numberOfKeys }: UseUniqueKeyArgs): UseUniqueKey => {
   const internalUniqueKeys = useRef<Array<string>>([]);
 
-  const generateUniqueKeys = (): Array<string> => {
-    const newlyGeneratedKeys = [];
-    for (let i = 0; i < numberOfKeys; i++) {
-      const newlyGeneratedKey = uuidv4();
-      newlyGeneratedKeys.push(newlyGeneratedKey);
-    }
-    return newlyGeneratedKeys;
-  };
-
   const areInternalUniqueKeysOutOfSync = internalUniqueKeys.current.length !== numberOfKeys;
   if (areInternalUniqueKeysOutOfSync) {
-    internalUniqueKeys.current = generateUniqueKeys();
+    internalUniqueKeys.current = generateUniqueKeys(numberOfKeys);
   }
 
   const getUniqueKey = (index: number): string => {
@@ -34,8 +25,7 @@ export const useUniqueKeys = ({ numberOfKeys }: UseUniqueKeyArgs): UseUniqueKey 
   };
 
   const addUniqueKey = (): void => {
-    const newlyGeneratedKey = uuidv4();
-    internalUniqueKeys.current = [...internalUniqueKeys.current, newlyGeneratedKey];
+    internalUniqueKeys.current = [...internalUniqueKeys.current, generateUniqueKey()];
   };
 
   const removeUniqueKey = (index: number): void => {
@@ -47,4 +37,16 @@ export const useUniqueKeys = ({ numberOfKeys }: UseUniqueKeyArgs): UseUniqueKey 
     getUniqueKey,
     removeUniqueKey,
   };
+};
+
+const generateUniqueKeys = (numberOfKeys: number): Array<string> => {
+  const newlyGeneratedKeys = [];
+  for (let i = 0; i < numberOfKeys; i++) {
+    newlyGeneratedKeys.push(generateUniqueKey());
+  }
+  return newlyGeneratedKeys;
+};
+
+const generateUniqueKey = (): string => {
+  return uuidv4();
 };
