@@ -1,12 +1,11 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioProperty } from '@studio/components';
+import { StudioProperty, useUniqueKeys } from '@studio/components';
 import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
 import { useChecksum } from './useChecksum';
 import { ActionsEditor } from './ActionsEditor';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { type Action, BpmnActionModeler } from '../../../../utils/bpmnModeler/BpmnActionModeler';
-import { useUniqueKeys } from '@studio/components';
 import classes from './EditActions.module.css';
 
 export const EditActions = (): React.ReactElement => {
