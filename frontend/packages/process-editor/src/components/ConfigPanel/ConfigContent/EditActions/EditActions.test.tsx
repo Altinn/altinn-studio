@@ -7,10 +7,10 @@ import { BpmnContext } from '../../../../contexts/BpmnContext';
 import { mockBpmnContextValue } from '../../../../../test/mocks/bpmnContextMock';
 import { type Action, BpmnActionModeler } from '../../../../utils/bpmnModeler/BpmnActionModeler';
 import { BpmnConfigPanelFormContextProvider } from '../../../../contexts/BpmnConfigPanelContext';
-import { useUniqueKeys } from 'app-shared/hooks/useUniqueKeys';
+import { useUniqueKeys } from '@studio/components/src/hooks/useUniqueKeys';
 
 jest.mock('../../../../utils/bpmnModeler/BpmnActionModeler');
-jest.mock('app-shared/hooks/useUniqueKeys');
+jest.mock('@studio/components/src/hooks/useUniqueKeys');
 
 const actionElementDefaultMock: Action = {
   $type: 'altinn:Action',

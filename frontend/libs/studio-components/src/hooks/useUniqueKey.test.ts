@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
-import { type UseUniqueKeyArgs, useUniqueKeys } from 'app-shared/hooks/useUniqueKeys';
+import { type UseUniqueKeyArgs, useUniqueKeys } from './useUniqueKeys';
 
 describe('useUniqueKey', () => {
   it('should generate unique keys within a max number range', () => {

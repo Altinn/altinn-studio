@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@studio/icons": "^0.1.0",
+    "@studio/pure-functions": "^0.1.0",
     "ajv": "8.17.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

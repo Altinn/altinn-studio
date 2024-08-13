@@ -6,7 +6,7 @@ import { useChecksum } from './useChecksum';
 import { ActionsEditor } from './ActionsEditor';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { type Action, BpmnActionModeler } from '../../../../utils/bpmnModeler/BpmnActionModeler';
-import { useUniqueKeys } from 'app-shared/hooks/useUniqueKeys';
+import { useUniqueKeys } from '@studio/components';
 import classes from './EditActions.module.css';
 
 export const EditActions = (): React.ReactElement => {
