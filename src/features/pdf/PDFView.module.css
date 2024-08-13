@@ -23,7 +23,7 @@
 .paymentTitleContainer {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: var(--fds-spacing-6);
   margin-bottom: var(--fds-spacing-3);
   h1 {

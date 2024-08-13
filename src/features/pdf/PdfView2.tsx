@@ -47,7 +47,10 @@ export const PDFView2 = () => {
       <ConditionalWrapper
         condition={enableOrgLogo}
         wrapper={(children) => (
-          <div className={classes.paymentTitleContainer}>
+          <div
+            className={classes.paymentTitleContainer}
+            data-testid={'pdf-logo'}
+          >
             {children} <OrganisationLogo></OrganisationLogo>
           </div>
         )}
