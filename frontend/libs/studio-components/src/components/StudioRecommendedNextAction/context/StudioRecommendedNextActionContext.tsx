@@ -1,4 +1,4 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useMemo, useState } from 'react';
 
 export type StudioRecommendedNextActionContext = {
   shouldDisplayAction: (actionId: string) => boolean;
@@ -7,7 +7,7 @@ export type StudioRecommendedNextActionContext = {
 };
 
 export const StudioRecommendedNextActionContext =
-  createContext<StudioRecommendedNextActionContext>(null);
+  createContext<StudioRecommendedNextActionContext>(undefined);
 
 export type StudioRecommendedNextActionContextProviderProps = {
   children: React.ReactNode;
@@ -16,29 +16,36 @@ export type StudioRecommendedNextActionContextProviderProps = {
 export const StudioRecommendedNextActionContextProvider = ({
   children,
 }: StudioRecommendedNextActionContextProviderProps) => {
-  const [actions, setActions] = useState<{ [key: string]: string }>({});
+  const [actions, setActions] = useState<Set<string>>(new Set());
 
   const addAction = (actionId: string): void => {
-    setActions((prevActions) => {
-      return { ...prevActions, [actionId]: actionId };
-    });
+    setActions((prevActions) => new Set(prevActions).add(actionId));
   };
+
   const shouldDisplayAction = (actionId: string): boolean => {
-    return actions[actionId] === actionId;
+    return actions.has(actionId);
   };
 
   const removeAction = (actionId: string): void => {
     setActions((prevActions) => {
-      const newActions = { ...prevActions };
-      delete newActions[actionId];
+      const newActions = new Set(prevActions);
+      newActions.delete(actionId);
       return newActions;
     });
   };
 
+  const value = useMemo(
+    () => ({
+      shouldDisplayAction,
+      addAction,
+      removeAction,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [actions],
+  );
+
   return (
-    <StudioRecommendedNextActionContext.Provider
-      value={{ addAction, shouldDisplayAction, removeAction }}
-    >
+    <StudioRecommendedNextActionContext.Provider value={value}>
       {children}
     </StudioRecommendedNextActionContext.Provider>
   );
