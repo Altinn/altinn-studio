@@ -1,5 +1,5 @@
 import React from 'react';
-import classes from './Contact.module.css';
+import classes from './ContactPage.module.css';
 import { Heading, Link, Paragraph } from '@digdir/designsystemet-react';
 import { Trans, useTranslation } from 'react-i18next';
 import { EnvelopeClosedIcon, SlackIcon, GitHubIcon } from '@studio/icons';
