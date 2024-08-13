@@ -20,6 +20,10 @@ on:
       repository-name:
         required: true
         type: string
+      environment:
+        required: false
+        type: string
+        default: ''
 
     secrets:
       client-id:
@@ -35,6 +39,7 @@ jobs:
   docker-build-push:
     name: Build and push docker image
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
 
