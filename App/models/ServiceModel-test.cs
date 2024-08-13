@@ -167,6 +167,11 @@ namespace Altinn.App.Models
         [JsonProperty("Geometries")]
         [JsonPropertyName("Geometries")]
         public List<Geometry>? Geometries { get; set; }
+
+        [XmlElement("Selected")]
+        [JsonProperty("Selected")]
+        [JsonPropertyName("Selected")]
+        public string? Selected { get; set; }
     }
 
     public class Geometry

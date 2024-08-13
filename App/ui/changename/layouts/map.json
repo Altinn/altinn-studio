@@ -55,6 +55,20 @@
         }
       },
       {
+        "id": "geometrySelector",
+        "type": "Checkboxes",
+        "dataModelBindings": {
+          "simpleBinding": "MapData.Selected"
+        },
+        "options": [
+          { "label": "Hankabakken 1", "value": "1" },
+          { "label": "Hankabakken 2", "value": "2" },
+          { "label": "Hankabakken 3", "value": "3" },
+          { "label": "Hankabakken 4", "value": "4" },
+          { "label": "Hankabakken 5", "value": "5" }
+        ]
+      },
+      {
         "id": "mapNavigate",
         "type": "NavigationButtons",
         "textResourceBindings": {

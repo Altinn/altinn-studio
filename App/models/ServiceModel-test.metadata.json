@@ -512,7 +512,8 @@
                   "label": { "type": "string" }
                 }
               }
-            }
+            },
+            "Selected": { "type": "string" }
           }
         }
       },
