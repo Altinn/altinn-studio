@@ -5,7 +5,11 @@ import type { MaybeSymbolizedCodeGenerator } from 'src/codegen/CodeGenerator';
 
 const common = {
   ISummaryOverridesCommon: () =>
-    new CG.obj(new CG.prop('componentId', new CG.str()), new CG.prop('hidden', new CG.bool().optional())),
+    new CG.obj(
+      new CG.prop('componentId', new CG.str()),
+      new CG.prop('hidden', new CG.bool().optional()),
+      new CG.prop('forceShow', new CG.bool().optional()),
+    ),
   ILayoutFile: () =>
     new CG.obj(
       new CG.prop('$schema', new CG.str().optional()),
@@ -430,6 +434,15 @@ const common = {
           .setTitle('Hidden')
           .setDescription(
             'Boolean value or expression indicating if the component should be hidden. Defaults to false.',
+          ),
+      ),
+      new CG.prop(
+        'forceShowInSummary',
+        new CG.expr(ExprVal.Boolean)
+          .optional({ default: false })
+          .setTitle('Force show in summary')
+          .setDescription(
+            'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
           ),
       ),
       new CG.prop('grid', CG.common('IGrid').optional()),

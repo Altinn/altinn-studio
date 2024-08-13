@@ -28,12 +28,12 @@ export const SingleValueSummary = ({
   multiline,
   isCompact,
 }: SingleValueSummaryProps) => (
-  <div className={classes.inputSummaryItem}>
+  <div
+    className={classes.inputSummaryItem}
+    data-testid={'summary-single-value-component'}
+  >
     <div className={cn(classes.labelValueWrapper, isCompact && classes.compact)}>
-      <Label
-        weight={'regular'}
-        className={classes.formLabel}
-      >
+      <Label weight={'regular'}>
         {title}
         {!!title?.toString()?.length && isCompact && ':'}
       </Label>
