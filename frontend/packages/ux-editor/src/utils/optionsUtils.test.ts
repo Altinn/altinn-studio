@@ -46,6 +46,13 @@ describe('getSelectedOptionsType', () => {
     const result = getSelectedOptionsType(codeListId, options, optionListIds);
     expect(result).toEqual(SelectedOptionsType.Manual);
   });
+
+  it('should use default value for optionListIds if it is not provided', () => {
+    const codeListId = '';
+    const options = undefined;
+    const result = getSelectedOptionsType(codeListId, options);
+    expect(result).toEqual(SelectedOptionsType.CodeList);
+  });
 });
 
 describe('componentUsesDynamicCodeList', () => {

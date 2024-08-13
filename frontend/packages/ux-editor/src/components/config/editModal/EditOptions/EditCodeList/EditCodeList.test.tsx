@@ -67,6 +67,30 @@ describe('EditCodeList', () => {
     await waitFor(() => expect(handleComponentChangeMock).toHaveBeenCalled());
   });
 
+  it('should remove options property (if it exists) when optionsId property changes', async () => {
+    const handleComponentChangeMock = jest.fn();
+    const user = userEvent.setup();
+    await render({
+      handleComponentChange: handleComponentChangeMock,
+      queries: {
+        getOptionListIds: jest
+          .fn()
+          .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
+      },
+    });
+
+    await waitFor(() => screen.findByRole('combobox'));
+
+    await user.selectOptions(screen.getByRole('combobox'), 'test-1');
+    await waitFor(() =>
+      expect(handleComponentChangeMock).toHaveBeenCalledWith({
+        ...mockComponent,
+        options: undefined,
+        optionsId: 'test-1',
+      }),
+    );
+  });
+
   it('should render the selected option list item upon component initialization', async () => {
     await render({
       componentProps: {
@@ -80,6 +104,28 @@ describe('EditCodeList', () => {
     });
 
     expect(await screen.findByRole('combobox')).toHaveValue('test-2');
+  });
+
+  it('should render returned error message if option list endpoint returns an error', async () => {
+    await render({
+      queries: {
+        getOptionListIds: jest.fn().mockImplementation(() => Promise.reject(new Error('Error'))),
+      },
+    });
+
+    expect(await screen.findByText('Error')).toBeInTheDocument();
+  });
+
+  it('should render standard error message if option list endpoint throws an error without specified error message', async () => {
+    await render({
+      queries: {
+        getOptionListIds: jest.fn().mockImplementation(() => Promise.reject()),
+      },
+    });
+
+    expect(
+      await screen.findByText(textMock('ux_editor.modal_properties_error_message')),
+    ).toBeInTheDocument();
   });
 });
 
