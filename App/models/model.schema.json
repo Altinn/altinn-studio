@@ -74,7 +74,8 @@
           "type": "string"
         },
         "points": {
-          "type": "integer"
+          "type": "integer",
+          "maximum": 100
         },
         "date": {
           "type": "string",
@@ -97,6 +98,7 @@
         },
         "cars": {
           "type": "array",
+          "maxItems": 3,
           "items": {
             "$ref": "#/$defs/NestedGroup"
           }
@@ -169,6 +171,7 @@
     },
     "nestedRepeatingGroup": {
       "type": "array",
+      "maxItems": 3,
       "items": {
         "$ref": "#/$defs/RepeatingGroupWithNestedGroup"
       }

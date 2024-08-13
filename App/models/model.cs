@@ -179,7 +179,7 @@ namespace Altinn.App.Models.model
     [JsonPropertyName("name")]
     public string name { get; set; }
 
-    [Range(Double.MinValue,Double.MaxValue)]
+    [Range(Double.MinValue, 100d)]
     [XmlElement("points", Order = 2)]
     [JsonProperty("points")]
     [JsonPropertyName("points")]

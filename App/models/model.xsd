@@ -34,7 +34,7 @@
       <xs:element minOccurs="0" name="name" type="xs:string" />
       <xs:element minOccurs="0" name="points" type="xs:long" />
       <xs:element minOccurs="0" name="date" type="xs:date" />
-      <xs:element minOccurs="0" maxOccurs="unbounded" name="cars" type="NestedGroup" />
+      <xs:element minOccurs="0" maxOccurs="3" name="cars" type="NestedGroup" />
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="NestedGroup">
@@ -62,7 +62,7 @@
         <xs:element minOccurs="0" name="dropdown" type="xs:string" />
         <xs:element minOccurs="0" name="multipleSelect" type="xs:string" />
         <xs:element minOccurs="0" maxOccurs="unbounded" name="repeatingGroup" type="RepeatingGroupExample" />
-        <xs:element minOccurs="0" maxOccurs="unbounded" name="nestedRepeatingGroup" type="RepeatingGroupWithNestedGroup" />
+        <xs:element minOccurs="0" maxOccurs="3" name="nestedRepeatingGroup" type="RepeatingGroupWithNestedGroup" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

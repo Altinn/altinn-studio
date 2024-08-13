@@ -1,5 +1,10 @@
 {
   "id": "ttd/component-library",
+  "logo": {
+    "displayAppOwnerNameInHeader": false,
+    "source": "resource",
+    "size": "small"
+  },
   "org": "ttd",
   "title": {
     "nb": "altinn-apps-all-components"
@@ -90,12 +95,9 @@
     "subUnit": false
   },
   "autoDeleteOnProcessEnd": false,
+  "disallowUserInstantiation": false,
   "created": "2024-05-15T08:37:14.2656053Z",
   "createdBy": "adamhaeger",
   "lastChanged": "2024-05-15T08:37:14.2656068Z",
-  "lastChangedBy": "adamhaeger",
-  "logo": {
-    "displayAppOwnerNameInHeader": false,
-    "source": "resource"
-    }
+  "lastChangedBy": "adamhaeger"
 }
