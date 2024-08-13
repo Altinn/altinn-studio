@@ -72,6 +72,9 @@ describe('EditCodeList', () => {
     const user = userEvent.setup();
     await render({
       handleComponentChange: handleComponentChangeMock,
+      componentProps: {
+        options: [{ label: 'option1', value: 'option1' }],
+      },
       queries: {
         getOptionListIds: jest
           .fn()

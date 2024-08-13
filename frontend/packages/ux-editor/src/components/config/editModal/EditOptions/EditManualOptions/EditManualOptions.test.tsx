@@ -146,4 +146,28 @@ describe('EditManualOptions', () => {
       options: [{ label: expect.any(String), value: expect.any(String) }],
     });
   });
+
+  it('should call handleComponentUpdate when changing an option', async () => {
+    const user = userEvent.setup();
+    const handleComponentChangeMock = jest.fn();
+    renderEditManualOptions({
+      handleComponentChange: handleComponentChangeMock,
+      componentProps: {
+        options: [{ label: 'option1', value: 'option1' }],
+      },
+    });
+
+    const selectOptionButton = screen.getByRole('button', {
+      name: textMock('ux_editor.radios_option', { optionNumber: 1 }),
+    });
+    await user.click(selectOptionButton);
+    const textField = screen.getByRole('textbox', {
+      name: textMock('general.value'),
+    });
+    await user.type(textField, 'a');
+    expect(handleComponentChangeMock).toHaveBeenCalledWith({
+      ...mockComponent,
+      options: [{ label: 'option1', value: 'option1a' }],
+    });
+  });
 });
