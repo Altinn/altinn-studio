@@ -1776,6 +1776,7 @@
   "ux_editor.options.codelist_create_info.step4": "Skriv inn kodelisten i tekstfeltet midt på siden. Kodelisten må være i JSON-format.",
   "ux_editor.options.codelist_create_info.step5": "Velg \"Commit endringer\".",
   "ux_editor.options.codelist_create_info.step6": "Du er nå ferdig i Gitea for denne gang. Gå tilbake til Altinn Studio-fanen, eller klikk på Altinn-logoen øverst til venstre i Gitea for å komme tilbake til Altinn Studio.",
+  "ux_editor.options.codelist_only": "Denne komponenten støtter kun oppsett med kodelister.",
   "ux_editor.options.codelist_referenceId.description": "Her kan du legge til en referanse-ID til en dynamisk kodeliste som er satt opp i koden.",
   "ux_editor.options.codelist_referenceId.description_details": "Du bruker dynamiske kodelister for å tilpasse alternativer for brukerne. Det kan for eksempel være tilpasninger ut fra geografisk plassering, eller valg brukeren gjør tidligere i skjemaet.",
   "ux_editor.options.codelist_upload_info.heading": "Steg for å laste opp kodelister manuelt",

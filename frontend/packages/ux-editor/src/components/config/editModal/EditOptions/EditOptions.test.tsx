@@ -9,6 +9,7 @@ import type { FormComponent } from '../../../../types/FormComponent';
 import type { FormItem } from '../../../../types/FormItem';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import userEvent from '@testing-library/user-event';
 
 const mockComponent: FormComponent<ComponentType.RadioButtons> = {
   id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
@@ -27,17 +28,25 @@ const renderEditOptions = async <T extends ComponentType.Checkboxes | ComponentT
   componentProps,
   handleComponentChange = jest.fn(),
   queries = {},
+  renderOptions = {},
 }: {
   componentProps?: Partial<FormItem<T>>;
   handleComponentChange?: () => void;
   queries?: Partial<ServicesContextProps>;
+  renderOptions?: {
+    onlyCodeListOptions?: boolean;
+  };
 } = {}) => {
   const component = {
     ...mockComponent,
     ...componentProps,
   };
   renderWithProviders(
-    <EditOptions handleComponentChange={handleComponentChange} component={component} />,
+    <EditOptions
+      handleComponentChange={handleComponentChange}
+      component={component}
+      renderOptions={renderOptions}
+    />,
     {
       queries,
       queryClient: queryClientMock,
@@ -121,6 +130,7 @@ describe('EditOptions', () => {
   });
 
   it('should switch to manual input clicking manual tab', async () => {
+    const user = userEvent.setup();
     await renderEditOptions({
       componentProps: { optionsId: '' },
     });
@@ -135,7 +145,7 @@ describe('EditOptions', () => {
     const manualTabElement = await screen.findByRole('tab', {
       name: textMock('ux_editor.options.tab_manual'),
     });
-    await waitFor(() => manualTabElement.click());
+    await waitFor(() => user.click(manualTabElement));
     expect(
       screen.getByRole('tab', {
         name: textMock('ux_editor.options.tab_manual'),
@@ -145,6 +155,7 @@ describe('EditOptions', () => {
   });
 
   it('should switch to codelist input clicking codelist tab', async () => {
+    const user = userEvent.setup();
     await renderEditOptions({
       componentProps: { options: [] },
     });
@@ -156,10 +167,10 @@ describe('EditOptions', () => {
       }),
     ).not.toBeInTheDocument();
 
-    const manualTabElement = await screen.findByRole('tab', {
+    const codelistTabElement = await screen.findByRole('tab', {
       name: textMock('ux_editor.options.tab_codelist'),
     });
-    await waitFor(() => manualTabElement.click());
+    await waitFor(() => user.click(codelistTabElement));
     expect(
       screen.getByRole('tab', {
         name: textMock('ux_editor.options.tab_codelist'),
@@ -169,6 +180,7 @@ describe('EditOptions', () => {
   });
 
   it('should switch to referenceId input clicking referenceId tab', async () => {
+    const user = userEvent.setup();
     await renderEditOptions({
       componentProps: { options: [] },
     });
@@ -180,10 +192,10 @@ describe('EditOptions', () => {
       }),
     ).not.toBeInTheDocument();
 
-    const manualTabElement = await screen.findByRole('tab', {
+    const referenceIdElement = await screen.findByRole('tab', {
       name: textMock('ux_editor.options.tab_referenceId'),
     });
-    await waitFor(() => manualTabElement.click());
+    await waitFor(() => user.click(referenceIdElement));
     expect(
       screen.getByRole('tab', {
         name: textMock('ux_editor.options.tab_referenceId'),
@@ -192,16 +204,33 @@ describe('EditOptions', () => {
     ).toBeInTheDocument();
   });
 
+  it('should show alert message in Manual tab when prop onlyCodeListOptions is true', async () => {
+    const user = userEvent.setup();
+    await renderEditOptions({
+      componentProps: { optionsId: '' },
+      renderOptions: { onlyCodeListOptions: true },
+      queries: {
+        getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
+      },
+    });
+
+    const manualTabElement = await screen.findByRole('tab', {
+      name: textMock('ux_editor.options.tab_manual'),
+    });
+
+    await waitFor(() => user.click(manualTabElement));
+    expect(screen.getByText(textMock('ux_editor.options.codelist_only'))).toBeInTheDocument();
+  });
+
   it('should show error message if query fails', async () => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
     renderEditOptions({
       queries: {
-        getOptionListIds: jest.fn().mockRejectedValue(new Error('Error')),
+        getOptionListIds: jest.fn().mockRejectedValueOnce(new Error('Error')),
       },
     });
 
     expect(await screen.findByText('Error')).toBeInTheDocument();
-
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 });

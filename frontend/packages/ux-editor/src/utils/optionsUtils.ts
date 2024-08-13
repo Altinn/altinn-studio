@@ -28,7 +28,7 @@ export const componentUsesDynamicCodeList = (
 export function getSelectedOptionsType(
   codeListId: string | undefined,
   options: IOption[] | undefined,
-  optionListIds: string[],
+  optionListIds: string[] = [],
 ): SelectedOptionsType {
   /** It is not permitted for a component to have both options and optionsId set on the same component. */
   if (options?.length && codeListId) {

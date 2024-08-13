@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { ErrorMessage, Tabs, Heading } from '@digdir/designsystemet-react';
+import { ErrorMessage, Tabs, Heading, Alert } from '@digdir/designsystemet-react';
 import classes from './EditOptions.module.css';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { EditCodeList, EditCodeListReference } from './EditCodeList';
@@ -55,10 +55,6 @@ export function EditOptions<T extends SelectionComponentType>({
     console.log('optionListIds: ', optionListIds);
   }, [optionListIds, component.optionsId, component.options, setInitialSelectedOptionType]);
 
-  if (renderOptions?.onlyCodeListOptions) {
-    return <EditCodeList component={component} handleComponentChange={handleComponentChange} />;
-  }
-
   return (
     <div className={classes.root}>
       <Heading level={3} size='xxsmall' spacing={true}>
@@ -95,10 +91,14 @@ export function EditOptions<T extends SelectionComponentType>({
             <EditCodeList component={component} handleComponentChange={handleComponentChange} />
           </Tabs.Content>
           <Tabs.Content value={SelectedOptionsType.Manual}>
-            <EditManualOptions
-              component={component}
-              handleComponentChange={handleComponentChange}
-            />
+            {renderOptions.onlyCodeListOptions ? (
+              <Alert severity='info'>{t('ux_editor.options.codelist_only')}</Alert>
+            ) : (
+              <EditManualOptions
+                component={component}
+                handleComponentChange={handleComponentChange}
+              />
+            )}
           </Tabs.Content>
           <Tabs.Content value={SelectedOptionsType.ReferenceId}>
             <EditCodeListReference
