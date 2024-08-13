@@ -1,0 +1,39 @@
+import React from 'react';
+import { PreviewImageSummary } from './PreviewImageSummary';
+import { ImportImage } from './ImportImage';
+import { ConflictingImageSourceAlert } from '../ConflictingImageSourceAlert';
+
+interface LocalImageProps {
+  imageOriginsFromLibrary: boolean;
+  componentHasExternalImageReference: boolean;
+  fileName: string;
+  onDeleteImage: (fileName: string) => void;
+  onDeleteImageReferenceOnly: () => void;
+  onImageChange: (fileName: string) => void;
+}
+
+export const LocalImage = ({
+  imageOriginsFromLibrary,
+  componentHasExternalImageReference,
+  fileName,
+  onDeleteImage,
+  onDeleteImageReferenceOnly,
+  onImageChange,
+}: LocalImageProps) => {
+  return imageOriginsFromLibrary ? (
+    <PreviewImageSummary
+      existingImageUrl={fileName}
+      existingImageDescription={null} // Null until we have a place to store descriptions
+      onDeleteImage={onDeleteImage}
+      onDeleteImageReferenceOnly={onDeleteImageReferenceOnly}
+    />
+  ) : (
+    <>
+      <ImportImage onImageChange={onImageChange} />
+      <ConflictingImageSourceAlert
+        showAlert={componentHasExternalImageReference}
+        conflictSource={'relative'}
+      />
+    </>
+  );
+};

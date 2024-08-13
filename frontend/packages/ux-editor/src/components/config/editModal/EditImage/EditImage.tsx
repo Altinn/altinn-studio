@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
-import { Alert, Tabs } from '@digdir/designsystemet-react';
+import { Tabs } from '@digdir/designsystemet-react';
 import type { IGenericEditComponent } from '@altinn/ux-editor/components/config/componentConfig';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { ImportImage } from './ImportImage';
-import { ImageFromUrl } from './ImageFromUrl';
-import { PreviewImageSummary } from './PreviewImageSummary/PreviewImageSummary';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useGetAllImageFileNamesQuery } from 'app-shared/hooks/queries/useGetAllImageFileNamesQuery';
 import { useTranslation } from 'react-i18next';
 import classes from './EditImage.module.css';
 import { useDeleteImageMutation } from 'app-shared/hooks/mutations/useDeleteImageMutation';
+import { LocalImage } from './LocalImage';
+import { ExternalImage } from './ExternalImage';
 
 enum ImageTab {
   Import = 'import',
@@ -33,17 +32,23 @@ export const EditImage = ({ component, handleComponentChange }: EditImageProps) 
   const imageOriginsFromLibrary = !imageFileNamesArePending && imageFileNames.includes(fileName);
 
   const handleImageChange = async (imageSource: string, fromUrl: boolean = false) => {
-    handleComponentChange({
+    const updatedComponent = updateComponentWithImage(
+      fromUrl ? imageSource : `wwwroot/${imageSource}`,
+    );
+    handleComponentChange(updatedComponent);
+    await refetchImageFileNames();
+  };
+  const updateComponentWithImage = (imageSource: string) => {
+    return {
       ...component,
       image: {
         ...component.image,
         src: {
           ...component.image?.src,
-          nb: fromUrl ? imageSource : `wwwroot/${imageSource}`, // How to handle different images for different languages?
+          nb: imageSource, // How to handle different images for different languages?
         },
       },
-    });
-    await refetchImageFileNames();
+    };
   };
   const handleDeleteImageReference = () => {
     component.image.src = {};
@@ -68,39 +73,22 @@ export const EditImage = ({ component, handleComponentChange }: EditImageProps) 
         </Tabs.Tab>
       </Tabs.List>
       <Tabs.Content value={ImageTab.Import}>
-        {imageOriginsFromLibrary ? (
-          <PreviewImageSummary
-            existingImageUrl={fileName}
-            existingImageDescription={null} // Null until we have a place to store descriptions
-            onDeleteImage={handleDeleteImage}
-            onDeleteImageReferenceOnly={handleDeleteImageReference}
-          />
-        ) : (
-          <>
-            <ImportImage onImageChange={handleImageChange} />
-            {component.image?.src?.nb && (
-              <Alert size='small' className={classes.alertImportTab}>
-                {
-                  'Du har allerede referert til en ekstern url. Laster du opp et bilde, vil den eksterne referansen bli slettet.'
-                }
-              </Alert>
-            )}
-          </>
-        )}
+        <LocalImage
+          imageOriginsFromLibrary={imageOriginsFromLibrary}
+          componentHasExternalImageReference={!!component.image?.src?.nb}
+          fileName={fileName}
+          onDeleteImage={handleDeleteImage}
+          onDeleteImageReferenceOnly={handleDeleteImageReference}
+          onImageChange={handleImageChange}
+        />
       </Tabs.Content>
       <Tabs.Content value={ImageTab.ExternalUrl} className={classes.urlTab}>
-        <ImageFromUrl
+        <ExternalImage
           existingImageUrl={imageOriginsFromLibrary ? undefined : component.image?.src?.nb}
           onUrlChange={(imageSrc: string) => handleImageChange(imageSrc, true)}
           onUrlDelete={handleDeleteImageReference}
+          imageOriginsFromLibrary={imageOriginsFromLibrary}
         />
-        {imageOriginsFromLibrary && (
-          <Alert size='small' className={classes.alert}>
-            {
-              'Du har allerede lastet opp et bilde. Skriver du inn en url, vil bildereferansen din bli slettet.'
-            }
-          </Alert>
-        )}
       </Tabs.Content>
     </Tabs>
   );

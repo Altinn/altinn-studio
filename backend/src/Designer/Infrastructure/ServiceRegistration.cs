@@ -14,6 +14,7 @@ using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.ImageClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -69,6 +70,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IOptionsService, OptionsService>();
             services.AddTransient<IEnvironmentsService, EnvironmentsService>();
             services.AddHttpClient<IOrgService, OrgService>();
+            services.AddHttpClient<ImageClient>();
             services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();
             services.AddTransient<IPreviewService, PreviewService>();
             services.AddTransient<IResourceRegistry, ResourceRegistryService>();

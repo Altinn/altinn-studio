@@ -69,6 +69,7 @@ import {
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { RepoDiffResponse } from 'app-shared/types/api/RepoDiffResponse';
+import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
@@ -127,6 +128,9 @@ export const queriesMock: ServicesContextProps = {
   searchRepos: jest
     .fn()
     .mockImplementation(() => Promise.resolve<SearchRepositoryResponse>(searchRepositoryResponse)),
+  validateImageFromExternalUrl: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<ExternalImageUrlValidationResponse>('Ok')),
 
   // Queries - Settings modal
   getAppConfig: jest.fn().mockImplementation(() => Promise.resolve<AppConfig>(appConfig)),

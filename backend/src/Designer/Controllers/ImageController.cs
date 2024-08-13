@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.ImageClient;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,14 +24,17 @@ public class ImageController : ControllerBase
 {
 
     private readonly IImagesService _imagesService;
+    private readonly ImageClient _imageClient;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ImageController"/> class.
     /// </summary>
     /// <param name="imagesService">The images service.</param>
-    public ImageController(IImagesService imagesService)
+    /// <param name="imageClient">A http client to validate external image url</param>
+    public ImageController(IImagesService imagesService, ImageClient imageClient)
     {
         _imagesService = imagesService;
+        _imageClient = imageClient;
     }
 
     /// <summary>
@@ -62,6 +68,39 @@ public class ImageController : ControllerBase
         List<string> imageFileNames = _imagesService.GetAllImageFileNames(org, repo, developer);
 
         return Ok(imageFileNames);
+    }
+
+    /// <summary>
+    /// Endpoint to validate a given url for fetching an external image.
+    /// </summary>
+    /// <param name="url">An external url to fetch an image to represent in the image component in the form.</param>
+    /// <returns>204 if an image is fetched, 404 if no response from url, 401 if url requires authentication, 415 if response is not an image</returns>
+    [HttpGet("validate")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status415UnsupportedMediaType)]
+    public async Task<ImageUrlValidationResult> ValidateExternalImageUrl([FromQuery] string url)
+    {
+        var response = await _imageClient.ValidateUrlAsync(url);
+
+        if (response == null)
+        {
+            return ImageUrlValidationResult.NotValidUrl;
+        }
+
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            return ImageUrlValidationResult.Unathorized;
+        }
+
+        var contentType = response.Content.Headers.ContentType.MediaType;
+        if (!contentType.StartsWith("image/"))
+        {
+            return ImageUrlValidationResult.NotAnImage;
+        }
+
+        return ImageUrlValidationResult.Ok;
     }
 
     /// <summary>

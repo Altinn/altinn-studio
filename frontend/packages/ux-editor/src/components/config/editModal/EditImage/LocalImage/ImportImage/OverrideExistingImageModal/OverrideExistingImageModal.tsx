@@ -32,11 +32,11 @@ export const OverrideExistingImageModal = ({
           {t('ux_editor.properties_panel.images.override_existing_image_modal_content')}
         </StudioParagraph>
         <div className={classes.buttons}>
-          <StudioButton color='danger' variant='secondary' onClick={onOverrideExisting}>
+          <StudioButton onClick={onOverrideExisting}>
             {t('ux_editor.properties_panel.images.override_existing_image_button')}
           </StudioButton>
-          <StudioButton variant='secondary' onClick={onClose}>
-            {t('general.cancel')}
+          <StudioButton variant='tertiary' onClick={onClose}>
+            {t('ux_editor.properties_panel.images.cancel_image_upload')}
           </StudioButton>
         </div>
       </div>

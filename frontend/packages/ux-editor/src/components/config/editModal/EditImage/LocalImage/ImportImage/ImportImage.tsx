@@ -4,7 +4,7 @@ import { StudioButton } from '@studio/components';
 import classes from './ImportImage.module.css';
 import { useAddImageMutation } from 'app-shared/hooks/mutations/useAddImageMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { AddImageFromLibraryModal } from '@altinn/ux-editor/components/config/editModal/EditImage/ImportImage/AddImageFromLibrary/AddImageFromLibraryModal';
+import { AddImageFromLibraryModal } from './AddImageFromLibrary/AddImageFromLibraryModal';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { UploadImage } from './UploadImage/UploadImage';
 import { useTranslation } from 'react-i18next';
@@ -37,12 +37,10 @@ export const ImportImage = ({ onImageChange }: ImportImageProps) => {
       if (overrideExisting) {
         formData.append('overrideExisting', 'true');
       }
-      debugger;
       try {
         await uploadImage(formData);
         onImageChange(imageFile.name);
       } catch (error) {
-        debugger;
         setShowOverrideExistingImageModalOpen(true);
       }
     }
