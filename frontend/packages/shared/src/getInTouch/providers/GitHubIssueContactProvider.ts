@@ -45,8 +45,8 @@ export class GitHubIssueContactProvider
     options?: GitHubIssueContactOptions,
   ): string {
     const labels = selectedConfig.labels.join(',');
-    const optionsQueryParams = options ? this.mapOptionsToQueryParams(options) : '';
-    return `?labels=${labels}&projects=&template=${selectedConfig.template}${optionsQueryParams ? '&' : ''}${optionsQueryParams}`;
+    const optionsQueryParams = options ? `&${this.mapOptionsToQueryParams(options)}` : '';
+    return `?labels=${labels}&template=${selectedConfig.template}${optionsQueryParams}`;
   }
 
   private mapOptionsToQueryParams(options: GitHubIssueContactOptions): string {
