@@ -29,7 +29,7 @@ export const ContactPage = (): React.ReactElement => {
           </div>
           <section className={classes.section}>
             <div className={classes.iconContainer}>
-              <EnvelopeClosedIcon className={classes.emailIcon} />
+              <EnvelopeClosedIcon className={classes.icon} />
             </div>
             <div className={classes.textContainer}>
               <Heading level={2} size='xsmall' spacing>
@@ -43,7 +43,7 @@ export const ContactPage = (): React.ReactElement => {
           </section>
           <section className={classes.section}>
             <div className={classes.iconContainer}>
-              <SlackIcon />
+              <SlackIcon className={classes.icon} />
             </div>
             <div className={classes.textContainer}>
               <Heading level={2} size='xsmall' spacing>
@@ -63,8 +63,8 @@ export const ContactPage = (): React.ReactElement => {
             </div>
           </section>
           <section className={classes.section}>
-            <div className={classNames(classes.iconContainer, classes.githubIcon)}>
-              <GitHubIcon />
+            <div className={classNames(classes.iconContainer)}>
+              <GitHubIcon className={classes.icon} />
             </div>
             <div className={classes.textContainer}>
               <Heading level={2} size='xsmall' spacing>

@@ -43,12 +43,8 @@
   box-sizing: border-box;
 }
 
-.emailIcon {
-  font-size: 2.5rem;
-}
-
-.githubIcon {
-  padding: 10px;
+.icon {
+  font-size: 2.3rem;
 }
 
 .textContainer {
