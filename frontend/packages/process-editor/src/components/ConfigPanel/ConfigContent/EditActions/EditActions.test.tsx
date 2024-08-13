@@ -34,6 +34,7 @@ describe('EditActions', () => {
     });
 
     (useUniqueKeys as jest.Mock).mockImplementation(() => ({
+      addUniqueKey: jest.fn(),
       removeUniqueKey: jest.fn(),
       getUniqueKey: () => [],
     }));
@@ -72,6 +73,7 @@ describe('EditActions', () => {
     });
 
     (useUniqueKeys as jest.Mock).mockImplementation(() => ({
+      addUniqueKey: jest.fn(),
       removeUniqueKey: jest.fn(),
       getUniqueKey: () => [],
     }));
@@ -99,6 +101,7 @@ describe('EditActions', () => {
     });
 
     (useUniqueKeys as jest.Mock).mockImplementation(() => ({
+      addUniqueKey: jest.fn(),
       removeUniqueKey: jest.fn(),
       getUniqueKey: () => [],
     }));
@@ -117,6 +120,7 @@ describe('EditActions', () => {
   it('should display in edit mode when adding new action', async () => {
     const user = userEvent.setup();
     (useUniqueKeys as jest.Mock).mockImplementation(() => ({
+      addUniqueKey: jest.fn(),
       removeUniqueKey: jest.fn(),
       getUniqueKey: () => [],
     }));
@@ -140,11 +144,37 @@ describe('EditActions', () => {
     await waitFor(() => expect(predefinedActionSelector).toBeInTheDocument());
   });
 
+  it('should call addUniqueKey when new action item is added', async () => {
+    const user = userEvent.setup();
+    setupBpmnActionModelerMock({
+      addNewActionToTaskMock: jest.fn(),
+      updateTypeForActionMock: jest.fn(),
+      updateActionNameOnActionElementMock: jest.fn(),
+    });
+
+    const addUniqueKeyMock = jest.fn();
+    (useUniqueKeys as jest.Mock).mockImplementation(() => ({
+      addUniqueKey: addUniqueKeyMock,
+      removeUniqueKey: jest.fn(),
+      getUniqueKey: () => [],
+    }));
+
+    await renderEditActions();
+    const addButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_actions_add_new'),
+    });
+
+    await user.click(addButton);
+
+    expect(addUniqueKeyMock).toHaveBeenCalledTimes(1);
+  });
+
   it('should removeKey when a item is deleted', async () => {
     const user = userEvent.setup();
 
     const removeKeyMock = jest.fn();
     (useUniqueKeys as jest.Mock).mockImplementation(() => ({
+      addUniqueKey: jest.fn(),
       removeUniqueKey: removeKeyMock,
       getUniqueKey: () => [],
     }));

@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import { type UseUniqueKeyArgs, useUniqueKeys } from './useUniqueKeys';
 
 describe('useUniqueKey', () => {
@@ -15,19 +15,22 @@ describe('useUniqueKey', () => {
   });
 
   it('should delete id when "removeKey" is called', () => {
-    const { result, rerender } = renderHook((props: UseUniqueKeyArgs) =>
-      useUniqueKeys({ numberOfKeys: props?.numberOfKeys || 3 }),
-    );
+    const { result } = renderHook((props: UseUniqueKeyArgs) => useUniqueKeys({ numberOfKeys: 3 }));
 
     const thirdItem = result.current.getUniqueKey(2);
     expect(thirdItem).toBe(result.current.getUniqueKey(2));
 
-    act(() => {
-      result.current.removeUniqueKey(2);
-    });
-
-    rerender({ numberOfKeys: 2 });
+    result.current.removeUniqueKey(2);
 
     expect(result.current.getUniqueKey(2)).toBeUndefined();
+  });
+
+  it('should add unique keys when "addKey" is called', () => {
+    const { result } = renderHook((props: UseUniqueKeyArgs) => useUniqueKeys({ numberOfKeys: 1 }));
+
+    expect(result.current.getUniqueKey(1)).toBeUndefined();
+
+    result.current.addUniqueKey();
+    expect(result.current.getUniqueKey(1)).toBeDefined();
   });
 });

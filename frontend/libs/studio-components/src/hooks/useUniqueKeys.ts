@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ArrayUtils } from '@studio/pure-functions';
 
 type UseUniqueKey = {
+  addUniqueKey: () => void;
   removeUniqueKey: (index: number) => void;
   getUniqueKey: (index: number) => string;
 };
@@ -32,11 +33,17 @@ export const useUniqueKeys = ({ numberOfKeys }: UseUniqueKeyArgs): UseUniqueKey 
     return internalUniqueKeys.current[index];
   };
 
+  const addUniqueKey = (): void => {
+    const newlyGeneratedKey = uuidv4();
+    internalUniqueKeys.current = [...internalUniqueKeys.current, newlyGeneratedKey];
+  };
+
   const removeUniqueKey = (index: number): void => {
-    ArrayUtils.removeItemByIndex(internalUniqueKeys.current, index);
+    internalUniqueKeys.current = ArrayUtils.removeItemByIndex(internalUniqueKeys.current, index);
   };
 
   return {
+    addUniqueKey,
     getUniqueKey,
     removeUniqueKey,
   };
