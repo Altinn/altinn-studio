@@ -15,7 +15,6 @@ import type {
 
 import { FormField } from '../../FormField';
 import { StudioButton } from '@studio/components';
-import { getSelectedOptionsType } from '@altinn/ux-editor/utils/optionsUtils';
 
 export interface ISelectionEditComponentProvidedProps
   extends IGenericEditComponent<FormCheckboxesComponent | FormRadioButtonsComponent> {
@@ -29,6 +28,13 @@ export enum SelectedOptionsType {
   Manual = 'manual',
   Unknown = '',
 }
+
+const getSelectedOptionsType = (codeListId: string, options: IOption[]): SelectedOptionsType => {
+  if (options?.length) {
+    return SelectedOptionsType.Manual;
+  }
+  return SelectedOptionsType.CodeList;
+};
 
 export function EditOptions({
   editFormId,
