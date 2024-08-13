@@ -50,7 +50,8 @@
             "children": ["newMiddleName"],
             "title": "Nytt mellomnavn",
             "icon": "/ttd/frontend-test/images/altinn-logo.svg"
-          },  {
+          },
+          {
             "id": "tab-2",
             "children": ["newLastName"],
             "title": "Nytt etternavn"
@@ -790,6 +791,10 @@
           {
             "label": "Cards",
             "value": "cards"
+          },
+          {
+            "label": "Kart",
+            "value": "map"
           }
         ]
       },
@@ -816,4 +821,3 @@
     ]
   }
 }
-

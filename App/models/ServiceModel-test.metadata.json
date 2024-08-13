@@ -498,6 +498,22 @@
         },
         "neverValidatedInput": {
           "type": "string"
+        },
+        "MapData": {
+          "type": "object",
+          "properties": {
+            "Location": { "type": "string" },
+            "Geometries": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "data": { "type": "string" },
+                  "label": { "type": "string" }
+                }
+              }
+            }
+          }
         }
       },
       "required": ["skjemanummer", "spesifikasjonsnummer"],

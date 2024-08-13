@@ -126,6 +126,11 @@ namespace Altinn.App.Models
         [JsonProperty("Numeric")]
         [JsonPropertyName("Numeric")]
         public Numeric? Numeric { get; set; }
+
+        [XmlElement("MapData")]
+        [JsonProperty("MapData")]
+        [JsonPropertyName("MapData")]
+        public MapData? MapData { get; set; }
     }
 
     public class Numeric
@@ -149,6 +154,32 @@ namespace Altinn.App.Models
         [JsonProperty("Int16")]
         [JsonPropertyName("Int16")]
         public short Int16 { get; set; }
+    }
+
+    public class MapData
+    {
+        [XmlElement("Location")]
+        [JsonProperty("Location")]
+        [JsonPropertyName("Location")]
+        public string? Location { get; set; }
+
+        [XmlElement("Geometries")]
+        [JsonProperty("Geometries")]
+        [JsonPropertyName("Geometries")]
+        public List<Geometry>? Geometries { get; set; }
+    }
+
+    public class Geometry
+    {
+        [XmlElement("data")]
+        [JsonProperty("data")]
+        [JsonPropertyName("data")]
+        public string? Data { get; set; }
+
+        [XmlElement("label")]
+        [JsonProperty("label")]
+        [JsonPropertyName("label")]
+        public string? Label { get; set; }
     }
 
     public class Innledninggrp9309

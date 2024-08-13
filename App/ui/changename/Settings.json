@@ -6,6 +6,7 @@
       "numeric-fields",
       "label-data-bindings",
       "cards",
+      "map",
       "summary",
       "grid"
     ],
@@ -13,7 +14,6 @@
     "showLanguageSelector": true
   },
   "components": {
-    "excludeFromPdf": ["confirmChangeName"]
+    "excludeFromPdf": ["confirmChangeName", "mapSummaryHeader"]
   }
 }
-
