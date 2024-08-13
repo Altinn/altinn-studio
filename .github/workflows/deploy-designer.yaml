@@ -39,7 +39,7 @@ jobs:
       - name: Construct environment
         id: construct-enviornments
         run: |
-          environments="${{ github.event.inputs.environments || 'dev,staging,prod' }}"
+          environments="${{ github.event.inputs.environments || 'staging,prod' }}"
           jsonArray=$(echo "[\"$(echo $environments | sed 's/,/\",\"/g')\"]")
           echo "environmentsjson=${jsonArray}" >> $GITHUB_OUTPUT
 
