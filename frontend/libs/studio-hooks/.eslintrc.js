@@ -10,17 +10,17 @@ module.exports = {
               {
                 group: ['@tanstack/react-query'],
                 message:
-                  'In the components library, backend data should be provided as input values to the functions and components that needs them.',
+                  'In the hook library, backend data should be provided as input values to the hooks that needs them.',
               },
               {
                 group: ['app-shared/*', '@altinn/*'],
                 message:
-                  'Files in the @studio/components package should not depend on app-specific packages.',
+                  'Files in the @studio/hooks package should not depend on app-specific packages.',
               },
               {
                 group: ['i18next', 'react-i18next'],
                 message:
-                  'In the components library, texts should be provided as input props to the components that needs them.',
+                  'In the hook library, texts should be provided as input arguments to the hooks that needs them.',
               },
             ],
           },
@@ -28,14 +28,10 @@ module.exports = {
       },
     },
     {
-      files: ['*.test.tsx'],
+      files: ['*.test.ts', '*.test.tsx'],
       rules: {
         '@typescript-eslint/naming-convention': 'off',
       },
     },
   ],
-  extends: ['plugin:storybook/recommended'],
-  settings: {
-    'testing-library/custom-renders': ['rowsToRender'],
-  },
 };
