@@ -1,0 +1,6 @@
+.subHeader {
+  display: flex;
+  align-items: center;
+  height: var(--subtoolbar-height);
+  padding-inline: 2rem;
+}

@@ -12,7 +12,7 @@ export const Navigation = () => {
   const { t } = useTranslation();
 
   const menuItems = getFilteredTopBarMenu(RepositoryType.App).filter(
-    (item) => item.key !== TopBarMenu.About,
+    (item) => item.key !== TopBarMenu.About && item.key !== TopBarMenu.Deploy,
   );
 
   return (

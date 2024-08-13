@@ -2,47 +2,32 @@ import React, { useState, type ReactElement } from 'react';
 import classes from './AltinnHeaderMenu.module.css';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import type {
-  TopBarMenuDeploymentItem,
-  TopBarMenuGroup,
-  TopBarMenuItem,
-} from 'app-shared/types/TopBarMenuItem';
+import type { TopBarMenuGroup, TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { StudioButton, type StudioButtonProps, useIsSmallWidth } from '@studio/components';
-import { MenuHamburgerIcon, PlayIcon } from '@studio/icons';
+import { MenuHamburgerIcon } from '@studio/icons';
 import { groupMenuItemsByGroup } from 'app-development/layout/AppBar/appBarConfig';
-import { TopBarGroup, TopBarMenu } from 'app-shared/enums/TopBarMenu';
+import { TopBarGroup } from 'app-shared/enums/TopBarMenu';
 import { Divider, DropdownMenu, Tag } from '@digdir/designsystemet-react';
-import { RepositoryType } from 'app-shared/types/global';
-import { getRepositoryType } from 'app-shared/utils/repository';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export interface IAltinnHeaderMenuProps {
   menuItems: TopBarMenuItem[];
-  deploymentItems: TopBarMenuDeploymentItem[]; // TODO RENAME TO SOMETHING WITH BUTTON
   windowResizeWidth: number;
-  repoOwnerIsOrg?: boolean;
 }
 
 // TODO - Refactor
-export const AltinnHeaderMenu = ({
-  menuItems,
-  windowResizeWidth,
-  deploymentItems,
-  repoOwnerIsOrg,
-}: IAltinnHeaderMenuProps) => {
+export const AltinnHeaderMenu = ({ menuItems, windowResizeWidth }: IAltinnHeaderMenuProps) => {
   const { t } = useTranslation();
 
   const isSmallWidth = useIsSmallWidth(windowResizeWidth);
 
   const groupedMenuItems: TopBarMenuGroup[] = groupMenuItemsByGroup(menuItems);
 
-  if (!menuItems.length && !deploymentItems.length) return null;
-  console.log('HEI');
+  if (!menuItems.length) return null;
 
   if (isSmallWidth) {
     return (
       <SmallNavigationMenu
-        menuGroups={[...groupedMenuItems.map(mapMenuGroup), ...mapDeploymentItems(deploymentItems)]}
+        menuGroups={[...groupedMenuItems.map(mapMenuGroup)]}
         anchorButtonProps={{
           icon: <MenuHamburgerIcon />,
           variant: 'tertiary',
@@ -59,8 +44,6 @@ export const AltinnHeaderMenu = ({
         name: t(menuItem.key),
         isBeta: menuItem.isBeta,
       }))}
-      deploymentItems={deploymentItems}
-      repoOwnerIsOrg={repoOwnerIsOrg}
     />
   );
 };
@@ -75,20 +58,6 @@ const mapMenuGroup = (menuGroup: TopBarMenuGroup) => ({
   })),
 });
 
-const mapDeploymentItems = (deploymentItems: TopBarMenuDeploymentItem[]) => {
-  if (deploymentItems.length === 0) return [];
-  return [
-    {
-      name: TopBarGroup.Deployment,
-      showName: false,
-      items: deploymentItems.map((item: TopBarMenuDeploymentItem) => ({
-        link: item.link,
-        name: item.key,
-      })),
-    },
-  ];
-};
-
 type StudioNavigationMenuItem = {
   name: string;
   link: string;
@@ -97,29 +66,10 @@ type StudioNavigationMenuItem = {
 
 type LargeNavigationMenuProps = {
   menuItems: StudioNavigationMenuItem[];
-  deploymentItems: TopBarMenuDeploymentItem[];
-  repoOwnerIsOrg: boolean;
 };
 
-const LargeNavigationMenu = ({
-  menuItems,
-  deploymentItems,
-  repoOwnerIsOrg,
-}: LargeNavigationMenuProps): ReactElement => {
+const LargeNavigationMenu = ({ menuItems }: LargeNavigationMenuProps): ReactElement => {
   const { t } = useTranslation();
-  const { org, app } = useStudioEnvironmentParams();
-  const repositoryType = getRepositoryType(org, app);
-
-  // REFACTOR THE THREE BELOW
-  const deployItem: TopBarMenuDeploymentItem =
-    deploymentItems && deploymentItems.find((item) => item.key === TopBarMenu.Deploy);
-
-  const previewItem: TopBarMenuDeploymentItem =
-    deploymentItems && deploymentItems.find((item) => item.key === TopBarMenu.Preview);
-
-  const backToEditingItem: TopBarMenuDeploymentItem =
-    deploymentItems && deploymentItems.find((item) => item.key === TopBarMenu.PreviewBackToEditing);
-
   //const location = useLocation();
   //const currentRoutePath: string = getRouterRouteByPathname(location.pathname);
 
@@ -150,43 +100,9 @@ const LargeNavigationMenu = ({
                 {t('general.beta')}
               </Tag>
             )}
-
             {/*</StudioButton>*/}
           </li>
         ))}
-        {!deployItem
-          ? null
-          : !repoOwnerIsOrg && deployItem
-            ? null
-            : repositoryType !== RepositoryType.DataModels && (
-                <li className={classes.menuItem}>
-                  <NavLink
-                    to={deployItem.link}
-                    className={({ isActive }) => (isActive ? classes.active : '')}
-                  >
-                    {t(deployItem.key)}
-                  </NavLink>
-                </li>
-              )}
-        {previewItem && (
-          <li className={classes.menuItem}>
-            {/*<StudioButton asChild className={classes.previewButton}>*/}
-            <a href={previewItem.link}>
-              <PlayIcon className={classes.previewIcon} />
-            </a>
-            {/*</StudioButton>*/}
-          </li>
-        )}
-        {backToEditingItem && (
-          <li className={classes.menuItem}>
-            {/*<StudioButton asChild className={classes.previewButton}>*/}
-            <a href={backToEditingItem.link}>
-              {t(backToEditingItem.key)}
-              <PlayIcon className={classes.previewIcon} />
-            </a>
-            {/*</StudioButton>*/}
-          </li>
-        )}
       </ul>
     </div>
   );
@@ -263,17 +179,13 @@ const SmallNavigationMenu = ({
                       getRouterRouteByPathname(link) === currentRoutePath ? classes.activeSmall : ''
                     }
                   >
-                    {menuItem.name === TopBarMenu.Preview ? (
-                      <a href={link}>{t(name)}</a>
-                    ) : (
-                      <NavLink
-                        to={link}
-                        className={({ isActive }) => (isActive ? classes.activeSmall : '')}
-                        onClick={handleClose}
-                      >
-                        {t(name)}
-                      </NavLink>
-                    )}
+                    <NavLink
+                      to={link}
+                      className={({ isActive }) => (isActive ? classes.activeSmall : '')}
+                      onClick={handleClose}
+                    >
+                      {t(name)}
+                    </NavLink>
                   </DropdownMenu.Item>
                 );
               })}

@@ -1,27 +1,8 @@
-.elements svg {
-  color: #fff;
-}
-
-.properties {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.subHeader {
-  color: white;
-  background-color: #0c6536;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: var(--subtoolbar-height);
-  padding-inline: 2rem;
-}
-
-.leftSubHeaderComponents {
+.wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
+  padding-top: var(--fds-spacing-4);
 }
 
 .viewSizeButtons {

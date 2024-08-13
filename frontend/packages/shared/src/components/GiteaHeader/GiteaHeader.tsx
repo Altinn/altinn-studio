@@ -30,6 +30,7 @@ type GiteaHeaderProps = {
  *
  * @returns {React.ReactNode} - The rendered Gitea header component
  */
+// TODO MAKE RESPONSIVE
 export const GiteaHeader = ({
   menuOnlyHasRepository = false,
   hasCloneModal = false,

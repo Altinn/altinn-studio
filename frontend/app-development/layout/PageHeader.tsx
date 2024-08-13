@@ -1,21 +1,20 @@
 import React, { type ReactElement } from 'react';
-import { getFilteredTopBarMenu } from './AppBar/appBarConfig';
+import { getTopBarMenuItems } from './AppBar/appBarConfig';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { SettingsModalButton } from './SettingsModalButton';
-import { TopBarGroup, TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import type { User } from 'app-shared/types/Repository';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { RepositoryType } from 'app-shared/types/global';
 import { useSelectedFormLayoutSetName, useSelectedFormLayoutName } from '@altinn/ux-editor/hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
-import { StudioPageHeader, useIsSmallWidth } from '@studio/components';
+import { StudioButton, StudioPageHeader, useIsSmallWidth } from '@studio/components';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { AltinnHeaderMenu } from 'app-shared/components/altinnHeaderMenu';
-import { type TopBarMenuDeploymentItem } from 'app-shared/types/TopBarMenuItem';
-import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { AppUserProfileMenu } from 'app-shared/components/AppUserProfileMenu';
+import { useTranslation } from 'react-i18next';
+import { PlayFillIcon } from '@studio/icons';
 
 const WINDOW_RESIZE_WIDTH = 900;
 
@@ -23,6 +22,7 @@ type SubMenuContentProps = {
   hasRepoError?: boolean;
 };
 
+// TODO MOVE
 export const SubMenuContent = ({ hasRepoError }: SubMenuContentProps): ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const repositoryType = getRepositoryType(org, app);
@@ -31,33 +31,50 @@ export const SubMenuContent = ({ hasRepoError }: SubMenuContentProps): ReactElem
   return (
     <GiteaHeader
       hasCloneModal
-      leftComponent={repositoryType !== RepositoryType.DataModels && <SettingsModalButton />}
+      leftComponent={repositoryType !== RepositoryType.DataModels && <LeftComponent />}
       hasRepoError={hasRepoError}
       onPullSuccess={doReloadPreview}
     />
   );
 };
 
-// TODO MOVE TO OTHER FILE
-export const getDeploymentButtonItems = (
-  org: string,
-  app: string,
-  selectedFormLayoutName: string,
-): TopBarMenuDeploymentItem[] => {
-  const packagesRouter = new PackagesRouter({ org, app });
+const LeftComponent = () => {
+  const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+  const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
+  const { selectedFormLayoutName } = useSelectedFormLayoutName(selectedFormLayoutSetName);
 
-  return [
-    {
-      key: TopBarMenu.Preview,
-      link: `${packagesRouter.getPackageNavigationUrl('preview')}${selectedFormLayoutName ? `?layout=${selectedFormLayoutName}` : ''}`,
-      group: TopBarGroup.Deployment,
-    },
-    {
-      key: TopBarMenu.Deploy,
-      link: RoutePaths.Deploy,
-      group: TopBarGroup.Deployment,
-    },
-  ];
+  const packagesRouter = new PackagesRouter({ org, app });
+  const previewLink: string = `${packagesRouter.getPackageNavigationUrl('preview')}${selectedFormLayoutName ? `?layout=${selectedFormLayoutName}` : ''}`;
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        gap: '0.5rem',
+      }}
+    >
+      <SettingsModalButton />
+      <StudioButton color='second' asChild>
+        <a
+          href={previewLink}
+          style={{
+            color: 'white', // TODO
+            display: 'flex',
+            gap: '0.25rem',
+            fontSize: '18px', // TODO
+          }}
+        >
+          <PlayFillIcon
+            style={{
+              fontSize: '1.25rem',
+            }}
+          />
+          {t('top_menu.preview')}
+        </a>
+      </StudioButton>
+    </div>
+  );
 };
 
 type PageHeaderProps = {
@@ -72,27 +89,17 @@ export const PageHeader = ({ showSubMenu, user, repoOwnerIsOrg, isRepoError }: P
   const repoType = getRepositoryType(org, app);
   const { data: repository } = useRepoMetadataQuery(org, app);
 
-  const menuItems = getFilteredTopBarMenu(repoType);
-
-  const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
-  const { selectedFormLayoutName } = useSelectedFormLayoutName(selectedFormLayoutSetName);
+  const menuItems = getTopBarMenuItems(repoType, repoOwnerIsOrg);
 
   const isSmallWidth = useIsSmallWidth(WINDOW_RESIZE_WIDTH);
 
   return (
     <StudioPageHeader>
       <StudioPageHeader.Main>
-        <StudioPageHeader.Left title={app} showOnlyLogo={isSmallWidth} />
+        <StudioPageHeader.Left title={!isSmallWidth && app} />
         <StudioPageHeader.Center>
           {menuItems && (
-            <AltinnHeaderMenu
-              menuItems={menuItems}
-              windowResizeWidth={WINDOW_RESIZE_WIDTH}
-              repoOwnerIsOrg={repoOwnerIsOrg}
-              deploymentItems={
-                !isRepoError && getDeploymentButtonItems(org, app, selectedFormLayoutName)
-              }
-            />
+            <AltinnHeaderMenu menuItems={menuItems} windowResizeWidth={WINDOW_RESIZE_WIDTH} />
           )}
         </StudioPageHeader.Center>
         <StudioPageHeader.Right>

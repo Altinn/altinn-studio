@@ -1,6 +1,6 @@
 import { RepositoryType } from 'app-shared/types/global';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { DatabaseIcon, Density3Icon, PencilIcon, TenancyIcon } from '@studio/icons';
+import { DatabaseIcon, Density3Icon, PencilIcon, TenancyIcon, UploadIcon } from '@studio/icons';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { TopBarGroup, TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import type { TopBarMenuGroup, TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
@@ -41,6 +41,13 @@ export const topBarMenuItem: TopBarMenuItem[] = [
     isBeta: true,
     group: TopBarGroup.Tools,
   },
+  {
+    key: TopBarMenu.Deploy,
+    link: RoutePaths.Deploy,
+    icon: UploadIcon,
+    repositoryTypes: [RepositoryType.App],
+    group: TopBarGroup.Other,
+  },
 ];
 
 export const getFilteredTopBarMenu = (repositoryType: RepositoryType): TopBarMenuItem[] => {
@@ -48,6 +55,14 @@ export const getFilteredTopBarMenu = (repositoryType: RepositoryType): TopBarMen
     .filter((menuItem) => menuItem.repositoryTypes.includes(repositoryType))
     .filter(filterRoutesByFeatureFlag)
     .filter(filterRoutesByDataModel);
+};
+
+export const getTopBarMenuItems = (
+  repositoryType: RepositoryType,
+  repoOwnerIsOrg: boolean,
+): TopBarMenuItem[] => {
+  const filteredMenuItems: TopBarMenuItem[] = getFilteredTopBarMenu(repositoryType);
+  return filterOutDeployItem(filteredMenuItems, repoOwnerIsOrg, repositoryType);
 };
 
 const filterRoutesByFeatureFlag = (menuItem: TopBarMenuItem): boolean => {
@@ -62,6 +77,19 @@ const filterRoutesByDataModel = (menuItem: TopBarMenuItem) => {
     return menuItem.key === TopBarMenu.DataModel;
   }
   return true;
+};
+
+const filterOutDeployItem = (
+  menuItems: TopBarMenuItem[],
+  repoOwnerIsOrg: boolean,
+  repositoryType: RepositoryType,
+): TopBarMenuItem[] => {
+  return menuItems.filter((menuItem: TopBarMenuItem) => {
+    if (menuItem.key === TopBarMenu.Deploy) {
+      if (!repoOwnerIsOrg || repositoryType === RepositoryType.DataModels) return false;
+    }
+    return true;
+  });
 };
 
 export const groupMenuItemsByGroup = (menuItems: TopBarMenuItem[]): TopBarMenuGroup[] => {

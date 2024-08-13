@@ -2,10 +2,9 @@ import React from 'react';
 import classes from './LandingPage.module.css';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
-import { useInstanceIdQuery, useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
+import { useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { useLocalStorage } from '@studio/components/src/hooks/useLocalStorage';
 import type { AltinnHeaderVariant } from 'app-shared/components/altinnHeader/types';
-import { appPreviewButtonActions } from '../components/AppBarConfig/AppPreviewBarConfig';
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { previewPage } from 'app-shared/api/paths';
@@ -18,6 +17,7 @@ import {
 import { StudioPageHeader } from '@studio/components';
 import { AppUserProfileMenu } from 'app-shared/components/AppUserProfileMenu';
 import { AltinnHeaderMenu } from 'app-shared/components/altinnHeaderMenu';
+import { PreviewControlHeader } from '../components/PreviewControlHeader';
 
 // TODO MOVE
 const WINDOW_RESIZE_WIDTH = 1000;
@@ -34,7 +34,6 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const previewConnection = usePreviewConnection();
   const { data: user } = useUserQuery();
   const { data: repository } = useRepoMetadataQuery(org, app);
-  const { data: instanceId } = useInstanceIdQuery(org, app);
   const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } =
     useSelectedFormLayoutSetName();
   const { selectedFormLayoutName } = useSelectedFormLayoutName(selectedFormLayoutSetName);
@@ -75,24 +74,25 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
             <AltinnHeaderMenu
               menuItems={[]}
               windowResizeWidth={WINDOW_RESIZE_WIDTH}
-              deploymentItems={appPreviewButtonActions(org, app, instanceId)}
+              // deploymentItems={appPreviewButtonActions(org, app, instanceId)}
             />
           </StudioPageHeader.Center>
           <StudioPageHeader.Right>
             <AppUserProfileMenu user={user} repository={repository} />
           </StudioPageHeader.Right>
         </StudioPageHeader.Main>
-        <StudioPageHeader.Sub>
-          <AppPreviewSubMenu
-            setViewSize={setPreviewViewSize}
-            viewSize={previewViewSize}
-            selectedLayoutSet={selectedFormLayoutSetName}
-            handleChangeLayoutSet={handleChangeLayoutSet}
-          />
+        <StudioPageHeader.Sub variant='preview'>
+          <AppPreviewSubMenu />
         </StudioPageHeader.Sub>
       </StudioPageHeader>
       {/* TODO - MOVE TO SEPARATE FILE */}
       <div className={classes.previewArea}>
+        <PreviewControlHeader
+          setViewSize={setPreviewViewSize}
+          viewSize={previewViewSize}
+          selectedLayoutSet={selectedFormLayoutSetName}
+          handleChangeLayoutSet={handleChangeLayoutSet}
+        />
         <PreviewLimitationsInfo />
         <div className={classes.iframeContainer}>
           <iframe

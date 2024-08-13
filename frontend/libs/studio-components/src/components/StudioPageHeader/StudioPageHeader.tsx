@@ -1,7 +1,7 @@
 import React, { type ReactNode } from 'react';
 import classes from './StudioPageHeader.module.css';
 import cn from 'classnames';
-import { AltinnStudioLogoLink } from './AltinnStudioLogoLink';
+import { DigdirLogoLink } from './DigdirLogoLink';
 
 export type StudioPageHeaderVariant = 'regular' | 'preview';
 
@@ -32,16 +32,14 @@ export type StudioPageHeaderComponentProps = {
 export type StudioPageHeaderLeftProps = {
   children?: ReactNode;
   title?: string;
-  showOnlyLogo?: boolean;
 };
 
 export const StudioPageHeaderLeft = ({
   children,
   title,
-  showOnlyLogo,
 }: StudioPageHeaderLeftProps): React.ReactElement => {
   if (children) return <div>{children}</div>;
-  return <AltinnStudioLogoLink title={title} showOnlyLogo={showOnlyLogo} />;
+  return <DigdirLogoLink title={title} />;
 };
 
 export const StudioPageHeaderCenter = ({

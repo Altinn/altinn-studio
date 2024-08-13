@@ -1,1 +1,0 @@
-export { AltinnStudioLogoLink } from './AltinnStudioLogoLink';

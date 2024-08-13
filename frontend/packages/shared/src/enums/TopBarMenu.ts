@@ -3,8 +3,6 @@ export enum TopBarMenu {
   Create = 'top_menu.create',
   DataModel = 'top_menu.data_model',
   Text = 'top_menu.texts',
-  Preview = 'top_menu.preview',
-  PreviewBackToEditing = 'top_menu.preview_back_to_editing',
   Deploy = 'top_menu.deploy',
   ProcessEditor = 'top_menu.process_editor',
   None = '',
@@ -14,5 +12,5 @@ export enum TopBarMenu {
 export enum TopBarGroup {
   Overview = 'top_bar.group_overview',
   Tools = 'top_bar.group_tools',
-  Deployment = 'top_bar.group_deployment',
+  Other = 'top_bar.group_other',
 }

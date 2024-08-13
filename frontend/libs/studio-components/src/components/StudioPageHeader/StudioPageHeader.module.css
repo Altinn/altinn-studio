@@ -1,7 +1,6 @@
 .main {
   --studio-page-header-height: 80px;
-  --studio-page-header-padding: 0 var(--fds-spacing-8);
-
+  --studio-page-header-padding: 0 var(--fds-spacing-2);
   display: flex;
   justify-content: space-between;
   align-items: center;

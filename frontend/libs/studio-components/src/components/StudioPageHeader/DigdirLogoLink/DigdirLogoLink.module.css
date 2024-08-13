@@ -1,7 +1,10 @@
 .wrapper {
   display: flex;
-  gap: var(--fds-spacing-2);
+  align-items: center;
+  gap: var(--fds-spacing-1);
   overflow: hidden;
+  min-width: 30px;
+  padding: var(--fds-spacing-2);
 }
 
 .titleText {
@@ -9,9 +12,4 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.slash {
-  font-size: var(--fds-sizing-8);
-  margin-right: var(--fds-spacing-1);
 }
