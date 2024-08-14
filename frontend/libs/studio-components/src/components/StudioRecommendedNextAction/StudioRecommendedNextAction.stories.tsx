@@ -8,7 +8,7 @@ import { KeyVerticalIcon } from '../../../../studio-icons/src';
 
 type PreviewProps = Omit<StudioRecommendedNextActionProps, 'children'>;
 
-type PreviewStory = StoryFn<PreviewProps>;
+type PreviewStory = StoryFn<typeof StudioRecommendedNextAction>;
 
 const ComposedPreviewComponent = (props: PreviewProps) => {
   return (
@@ -18,9 +18,9 @@ const ComposedPreviewComponent = (props: PreviewProps) => {
   );
 };
 
-const meta: Meta = {
+const meta: Meta<typeof StudioRecommendedNextAction> = {
   title: 'Studio/StudioRecommendedNextAction',
-  component: ComposedPreviewComponent,
+  component: StudioRecommendedNextAction,
   args: {
     onSave: fn(),
     onSkip: fn(),
@@ -38,12 +38,18 @@ Preview.args = {
   hideSaveButton: false,
 };
 
-type ExampleUseCase = StoryFn<typeof StudioRecommendedNextAction>;
-export const ExampleUseCase: ExampleUseCase = (): React.ReactElement => {
-  const [name, setName] = useState('');
-  const onSave = () => {};
+const exampleCaseMeta: Meta = {
+  title: 'Studio/StudioRecommendedNextAction/ExampleUseCase',
+  component: StudioRecommendedNextAction,
+  args: {
+    onSave: fn(),
+    onSkip: fn(),
+  },
+};
 
-  const onSkip = () => {};
+type ExampleUseCase = StoryFn<typeof StudioRecommendedNextAction>;
+export const ExampleUseCase: ExampleUseCase = (args): React.ReactElement => {
+  const [name, setName] = useState('');
   return (
     <div style={{ width: '500px' }}>
       <StudioRecommendedNextAction
@@ -52,8 +58,8 @@ export const ExampleUseCase: ExampleUseCase = (): React.ReactElement => {
         saveButtonText='Lagre'
         skipButtonText='Hopp over'
         hideSaveButton={name !== 'Bernard'}
-        onSave={onSave}
-        onSkip={onSkip}
+        onSave={args.onSave}
+        onSkip={args.onSkip}
       >
         <StudioIconTextfield
           error={name !== 'Bernard' ? 'Navnet må være Bernard' : ''}
