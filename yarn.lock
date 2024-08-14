@@ -6054,7 +6054,8 @@ __metadata:
     "@storybook/react": "npm:^8.0.4"
     "@storybook/react-webpack5": "npm:^8.0.4"
     "@storybook/test": "npm:^8.0.4"
-    "@studio/icons": "npm:^0.1.0"
+    "@studio/icons": "workspace:^"
+    "@studio/pure-functions": "workspace:^"
     "@testing-library/jest-dom": "npm:6.4.8"
     "@testing-library/react": "npm:16.0.0"
     "@types/jest": "npm:^29.5.5"
@@ -6072,7 +6073,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@studio/icons@npm:^0.1.0, @studio/icons@workspace:^, @studio/icons@workspace:frontend/libs/studio-icons":
+"@studio/icons@workspace:^, @studio/icons@workspace:frontend/libs/studio-icons":
   version: 0.0.0-use.local
   resolution: "@studio/icons@workspace:frontend/libs/studio-icons"
   dependencies:
