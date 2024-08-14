@@ -7,6 +7,8 @@ export interface TreeViewRootContextProps {
   selectedId?: string;
   setFocusedId: (id?: string) => void;
   setSelectedId: (id?: string) => void;
+  selectedParentId?: string;
+  setSelectedParentId: (id?: string) => void;
 }
 
 export const StudioTreeViewRootContext = createContext<TreeViewRootContextProps>(null);

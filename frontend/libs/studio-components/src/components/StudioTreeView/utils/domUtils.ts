@@ -37,6 +37,7 @@ export const findDirectChildIds = (rootId: string, nodeId?: string): string[] =>
 
 export const findParentId = (rootId: string, nodeId: string): string | null => {
   const item = findTreeItem(rootId, nodeId);
+  if (!item) return null;
   const parentItem = item.closest(`[role="group"], [role="tree"]`);
   const { id } = parentItem;
   return id === rootId ? null : extractIdFromGroup(rootId, id);

@@ -57,6 +57,7 @@ export const DragAndDropTreeItem = ({
               </div>
             )}
             title={title}
+            parentId={parentId}
           >
             {isExpandable && renderChildren(children, emptyMessage)}
           </StudioTreeView.Item>

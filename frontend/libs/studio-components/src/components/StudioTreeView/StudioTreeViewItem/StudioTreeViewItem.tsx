@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useTreeViewRootContext } from '../hooks/useTreeViewRootContext';
 import { useTreeViewItemContext } from '../hooks/useTreeViewItemContext';
 import {
+  findAllParentIds,
   findFirstChildId,
   findFirstNodeId,
   findLastVisibleNodeId,
@@ -28,6 +29,7 @@ export type StudioTreeViewItemProps = {
   label: ReactNode;
   labelWrapper?: (children: ReactNode) => ReactNode;
   nodeId: string;
+  parentId?: string;
 } & HTMLAttributes<HTMLDivElement>;
 
 export const StudioTreeViewItem = ({
@@ -38,15 +40,43 @@ export const StudioTreeViewItem = ({
   label,
   labelWrapper = (lab) => lab,
   nodeId,
+  parentId,
   ...rest
 }: StudioTreeViewItemProps) => {
   const [open, setOpen] = useState(false);
-  const { selectedId, setSelectedId, rootId, focusedId, setFocusedId, focusableId } =
-    useTreeViewRootContext();
+  const {
+    selectedId,
+    setSelectedId,
+    selectedParentId,
+    setSelectedParentId,
+    rootId,
+    focusedId,
+    setFocusedId,
+    focusableId,
+  } = useTreeViewRootContext();
+
   const { level } = useTreeViewItemContext();
   const treeItemRef = useRef<HTMLDivElement>(null);
+  // const hasParentAndIsSelected = parentId ? selectedParentId === parentId : true;
 
-  useTreeViewItemOpenOnHierarchySelect(rootId, nodeId, selectedId, setOpen);
+  const allParentIds = parentId && findAllParentIds(rootId, nodeId);
+  const upperParentId =
+    (allParentIds?.length > 0 && allParentIds[allParentIds.length - 1]) || undefined;
+
+  // const findUpperParentId = () => {
+  //   return findAllParentIds([parentIds.length - 1];
+  // };
+
+  // const upperParent = findParentId(rootId, selectedId);
+
+  useTreeViewItemOpenOnHierarchySelect(
+    rootId,
+    nodeId,
+    selectedId,
+    upperParentId,
+    selectedParentId,
+    setOpen,
+  );
 
   useEffect(() => {
     if (focusedId === nodeId) {
@@ -54,12 +84,13 @@ export const StudioTreeViewItem = ({
     }
   }, [focusedId, nodeId]);
 
-  const selected = selectedId === nodeId;
+  const selected = selectedId === nodeId && selectedParentId === upperParentId;
   const focusable = focusableId === nodeId;
 
   const selectNode = () => {
     setOpen((prevOpen) => !prevOpen);
     setSelectedId(nodeId);
+    setSelectedParentId(upperParentId);
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
