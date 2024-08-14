@@ -106,7 +106,7 @@ const InnerDevNavigationButtons = () => {
               displayValue={page}
             >
               <span
-                className={isHidden(page) ? classes.hiddenPage : classes.visiblePage}
+                className={isHidden(page) ? classes.hiddenPage : undefined}
                 title={hiddenText(page)}
               >
                 {page}

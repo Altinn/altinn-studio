@@ -332,7 +332,6 @@ export const SummaryPaymentComponent = ({ targetNode }: ISummaryPaymentComponent
         orderDetails={paymentInfo?.orderDetails}
         tableTitle={textResourceBindings?.title}
         description={textResourceBindings?.description}
-        className={classes.container}
       />
     </div>
   );

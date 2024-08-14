@@ -19,14 +19,12 @@ export function NodeInspectorDataModelBindings({ dataModelBindings }: Props) {
     <Value
       property={'dataModelBindings'}
       collapsible={true}
-      className={classes.typeObject}
     >
       <dl className={classes.propertyList}>
         {Object.keys(bindings).map((key) => (
           <Value
             key={key}
             property={key}
-            className={classes.typeLongString}
           >
             <em>Råverdi: </em>
             {bindings[key]}

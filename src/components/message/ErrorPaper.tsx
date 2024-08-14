@@ -16,7 +16,7 @@ export function ErrorPaper(props: IErrorPaperProps) {
         <div className={classes.paperIcon}>
           <ExclamationmarkTriangleFillIcon aria-hidden='true' />
         </div>
-        <div className={classes.paperMessage}>{props.message}</div>
+        <div>{props.message}</div>
       </div>
     </div>
   );

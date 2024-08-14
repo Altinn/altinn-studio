@@ -33,7 +33,6 @@ export function NodeInspectorTextResourceBindings({ node, textResourceBindings }
     <Value
       property={'textResourceBindings'}
       collapsible={true}
-      className={classes.typeObject}
     >
       <dl className={classes.propertyList}>
         {isRepGroup && (
@@ -52,7 +51,6 @@ export function NodeInspectorTextResourceBindings({ node, textResourceBindings }
             <Value
               key={key}
               property={key}
-              className={classes.typeLongString}
             >
               <em>Råverdi:</em> {isExpression ? '[uttrykk]' : value}
               {!isExpression && (

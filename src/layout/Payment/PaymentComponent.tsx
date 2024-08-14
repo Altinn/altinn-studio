@@ -52,9 +52,8 @@ export const PaymentComponent = ({ node }) => {
         orderDetails={paymentInfo?.orderDetails}
         tableTitle={title}
         description={description}
-        className={classes.container}
       />
-      <div className={classes.container}>
+      <div>
         {paymentInfo?.status === PaymentStatus.Failed && (
           <Alert severity='warning'>
             <Lang id='payment.alert.failed' />

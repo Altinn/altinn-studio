@@ -19,7 +19,7 @@ interface NodeInspectorDataFieldParams {
 
 interface ValueProps extends React.PropsWithChildren {
   property: string;
-  className: string;
+  className?: string;
   collapsible?: boolean;
   wasExpression?: unknown;
   exprText?: string;
@@ -62,7 +62,7 @@ export function Value({ children, className, property, collapsible, wasExpressio
       ) : (
         <>
           {wasExpression ? (
-            <dd className={classes.typeExpression}>
+            <dd>
               Uttrykk:
               <div className={classes.json}>
                 <button onClick={editExpression}>Rediger</button>
@@ -82,7 +82,6 @@ function ExpandObject(props: { path: string[]; property: string; object: object 
   return (
     <Value
       property={props.property}
-      className={classes.typeObject}
       collapsible={true}
     >
       <dl className={classes.propertyList}>
@@ -103,10 +102,7 @@ function OtherNode(props: { property: string; node: LayoutNode }) {
   const context = useNodeInspectorContext();
 
   return (
-    <Value
-      property={props.property}
-      className={classes.typeNode}
-    >
+    <Value property={props.property}>
       {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
       <a
         href={'#'}
@@ -126,7 +122,6 @@ function ExpandArray(props: { path: string[]; property: string; elements: unknow
   return (
     <Value
       property={props.property}
-      className={classes.typeArray}
       collapsible={true}
     >
       <dl className={classes.propertyList}>
@@ -249,7 +244,6 @@ export function NodeInspectorDataField({ path, property, value: inputValue }: No
     return (
       <Value
         property={property}
-        className={classes.typeLongString}
         wasExpression={isExpression ? preEvaluatedValue : undefined}
         exprText={exprText}
       >

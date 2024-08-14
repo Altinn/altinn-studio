@@ -1,7 +1,5 @@
 import React from 'react';
 
-import cn from 'classnames';
-
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
@@ -112,9 +110,7 @@ export function SummaryGroupComponent({
         style={{ width: '100%' }}
       >
         <div className={classes.container}>
-          <span
-            className={cn(classes.label, groupHasErrors && !display?.hideValidationMessages && classes.labelWithError)}
-          >
+          <span className={classes.label}>
             <Lang id={summaryTitleTrb ?? titleTrb} />
           </span>
 

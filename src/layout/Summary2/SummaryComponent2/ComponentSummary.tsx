@@ -44,7 +44,7 @@ export function ComponentSummary({ componentNode, summaryOverrides, isCompact }:
     return null;
   }
 
-  if (noUserInput && summaryNode.item.hideEmptyFields && !isRequired && !componentNode.item.forceShowInSummary) {
+  if (noUserInput && summaryNode.item?.hideEmptyFields && !isRequired && !componentNode.item?.forceShowInSummary) {
     return null;
   }
 

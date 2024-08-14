@@ -153,12 +153,7 @@ const FileTypeCell = ({ tagLabel }: { tagLabel: string | undefined }) => {
 const StatusCellContent = ({ uploaded, mobileView, status }) => (
   <td>
     {uploaded ? (
-      <div
-        className={classes.fileStatus}
-        data-testid='status-success'
-      >
-        {mobileView ? null : status}
-      </div>
+      <div data-testid='status-success'>{mobileView ? null : status}</div>
     ) : (
       <AltinnLoader
         id='loader-upload'
