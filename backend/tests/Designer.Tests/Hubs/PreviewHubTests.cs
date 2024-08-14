@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Security.Claims;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Hubs;
 using AltinnCore.Authentication.Constants;
@@ -62,20 +63,12 @@ public class PreviewHubTests
 
     private static HttpContext GetHttpContextForTestUser(string userName)
     {
-        List<Claim> claims = new()
-        {
-            new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, "altinn.no"),
-            new Claim(ClaimTypes.Name, "testUser")
-        };
-        ClaimsIdentity identity = new("TestUserLogin");
-        identity.AddClaims(claims);
+        var identity = new GenericIdentity(userName);
+        var principal = new GenericPrincipal(identity, null);
 
-        ClaimsPrincipal principal = new(identity);
-        HttpContext c = new DefaultHttpContext();
-        c.Request.HttpContext.User = principal;
-        c.Request.RouteValues.Add("org", "ttd");
-        c.Request.RouteValues.Add("app", "apps-test-tba");
+        HttpContext context = new DefaultHttpContext();
+        context.Request.HttpContext.User = principal;
 
-        return c;
+        return context;
     }
 }
