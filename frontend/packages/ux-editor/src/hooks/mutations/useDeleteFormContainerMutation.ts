@@ -8,10 +8,12 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { useUpdateBpmn } from 'app-shared/hooks/useUpdateBpmn';
 import { removeDataTypeIdsToSign } from 'app-shared/utils/bpmnUtils';
 import { getAllDescendants } from '../../utils/formLayoutUtils';
+import { useDeleteAppAttachmentMetadataMutation } from '../../hooks/mutations/useDeleteAppAttachmentMetadataMutation';
 
 export const useDeleteFormContainerMutation = (org: string, app: string, layoutSetName: string) => {
   const { layout, layoutName } = useSelectedFormLayoutWithName();
   const formLayoutsMutation = useFormLayoutMutation(org, app, layoutName, layoutSetName);
+  const deleteAppAttachmentMetadataMutation = useDeleteAppAttachmentMetadataMutation(org, app);
   const updateBpmn = useUpdateBpmn(org, app);
   return useMutation({
     mutationFn: async (id: string) => {
@@ -29,6 +31,10 @@ export const useDeleteFormContainerMutation = (org: string, app: string, layoutS
       });
 
       if (fileUploadComponentIds.length > 0) {
+        fileUploadComponentIds.forEach(
+          async (fileUploadComponentId) =>
+            await deleteAppAttachmentMetadataMutation.mutateAsync(fileUploadComponentId),
+        );
         await updateBpmn(removeDataTypeIdsToSign(fileUploadComponentIds));
       }
 
