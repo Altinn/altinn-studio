@@ -42,6 +42,7 @@ export const AppUserProfileMenu = ({
   const docsMenuItem: StudioProfileMenuItem = {
     action: { type: 'link', href: altinnDocsUrl('') },
     itemName: t('sync_header.documentation'),
+    hasDivider: true,
   };
 
   // TODO Fix

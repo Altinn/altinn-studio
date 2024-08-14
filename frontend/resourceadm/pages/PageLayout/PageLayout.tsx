@@ -156,6 +156,7 @@ const HeaderMenuTODOMoveAndRename = () => {
   const selfMenuItem: StudioProfileMenuItem = {
     action: { type: 'button', onClick: () => handleSetSelectedContext(SelectedContextType.Self) },
     itemName: user?.full_name || user?.login,
+    hasDivider: true,
   };
 
   const giteaMenuItem: StudioProfileMenuItem = {

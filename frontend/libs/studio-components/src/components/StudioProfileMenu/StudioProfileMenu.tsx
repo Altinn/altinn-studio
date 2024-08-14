@@ -1,6 +1,6 @@
 import React, { type ReactNode, type ReactElement, useState } from 'react';
 import classes from './StudioProfileMenu.module.css';
-import { DropdownMenu } from '@digdir/designsystemet-react';
+import { Divider, DropdownMenu } from '@digdir/designsystemet-react';
 import { PersonCircleIcon } from '@studio/icons';
 import { StudioPageHeaderButton } from '../StudioPageHeader';
 import { type StudioPageHeaderColor } from '../StudioPageHeader/types/StudioPageHeaderColor';
@@ -19,6 +19,7 @@ export interface StudioProfileMenuItem {
   action: StudioProfileMenuItemButton | StudioProfileMenuItemLink;
   itemName: string;
   isActive?: boolean;
+  hasDivider?: boolean; // TODO - Does this make sense? Any easier way?
 }
 
 export type StudioProfileMenuProps = {
@@ -62,20 +63,26 @@ export const StudioProfileMenu = ({
         {profileMenuItems.map((item: StudioProfileMenuItem) => {
           if (item.action.type === 'button') {
             return (
-              <DropdownMenu.Item
-                key={item.itemName}
-                onClick={() => handleClickMenuItemButton(item)}
-              >
-                {item.itemName}
-              </DropdownMenu.Item>
+              <React.Fragment key={item.itemName}>
+                <DropdownMenu.Item
+                  key={item.itemName}
+                  onClick={() => handleClickMenuItemButton(item)}
+                >
+                  {item.itemName}
+                </DropdownMenu.Item>
+                {item.hasDivider && <Divider />}
+              </React.Fragment>
             );
           }
           return (
-            <DropdownMenu.Item key={item.itemName} asChild>
-              <a href={item.action.href} target='_blank' rel='noopener noreferrer'>
-                {item.itemName}
-              </a>
-            </DropdownMenu.Item>
+            <React.Fragment key={item.itemName}>
+              <DropdownMenu.Item key={item.itemName} asChild>
+                <a href={item.action.href} target='_blank' rel='noopener noreferrer'>
+                  {item.itemName}
+                </a>
+              </DropdownMenu.Item>
+              {item.hasDivider && <Divider />}
+            </React.Fragment>
           );
         })}
       </DropdownMenu.Content>
