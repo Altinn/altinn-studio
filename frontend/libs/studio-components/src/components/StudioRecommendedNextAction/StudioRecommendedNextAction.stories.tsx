@@ -38,15 +38,6 @@ Preview.args = {
   hideSaveButton: false,
 };
 
-const exampleCaseMeta: Meta = {
-  title: 'Studio/StudioRecommendedNextAction/ExampleUseCase',
-  component: StudioRecommendedNextAction,
-  args: {
-    onSave: fn(),
-    onSkip: fn(),
-  },
-};
-
 type ExampleUseCase = StoryFn<typeof StudioRecommendedNextAction>;
 export const ExampleUseCase: ExampleUseCase = (args): React.ReactElement => {
   const [name, setName] = useState('');
