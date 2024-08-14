@@ -9,6 +9,7 @@ import { repositoryPath, userLogoutAfterPath, userLogoutPath } from 'app-shared/
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { post } from 'app-shared/utils/networking';
 
+// TODO FIX THIS SO IT WORKS WHEN SCALING
 const WINDOW_RESIZE_WIDTH = 900;
 
 export type AppUserProfileMenuProps = {

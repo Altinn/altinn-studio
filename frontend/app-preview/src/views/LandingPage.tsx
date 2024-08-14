@@ -14,9 +14,12 @@ import {
   useSelectedFormLayoutSetName,
   useSelectedTaskId,
 } from '@altinn/ux-editor/hooks';
-import { StudioPageHeader } from '@studio/components';
+import { StudioPageHeader, useIsSmallWidth } from '@studio/components';
 import { AppUserProfileMenu } from 'app-shared/components/AppUserProfileMenu';
 import { PreviewControlHeader } from '../components/PreviewControlHeader';
+
+// TODO
+const WINDOW_RESIZE_WIDTH = 900;
 
 export interface LandingPageProps {
   variant?: AltinnHeaderVariant;
@@ -27,6 +30,7 @@ export type PreviewAsViewSize = 'desktop' | 'mobile';
 export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
+  const isSmallWidth = useIsSmallWidth(WINDOW_RESIZE_WIDTH);
   const previewConnection = usePreviewConnection();
   const { data: user } = useUserQuery();
   const { data: repository } = useRepoMetadataQuery(org, app);
@@ -65,7 +69,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
     <>
       <StudioPageHeader>
         <StudioPageHeader.Main variant='preview' /* TODO - Should we make the variants enum? */>
-          <StudioPageHeader.Left title={app} variant='preview' />
+          <StudioPageHeader.Left title={!isSmallWidth && app} variant='preview' />
           <StudioPageHeader.Right>
             <AppUserProfileMenu user={user} repository={repository} variant='preview' />
           </StudioPageHeader.Right>

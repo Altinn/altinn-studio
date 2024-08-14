@@ -16,6 +16,7 @@ import { AppUserProfileMenu } from 'app-shared/components/AppUserProfileMenu';
 import { useTranslation } from 'react-i18next';
 import { PlayFillIcon } from '@studio/icons';
 
+// TODO
 const WINDOW_RESIZE_WIDTH = 900;
 
 type SubMenuContentProps = {
