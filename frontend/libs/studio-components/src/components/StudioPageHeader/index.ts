@@ -6,6 +6,7 @@ import {
   StudioPageHeaderRight,
   StudioPageHeaderSub,
 } from './StudioPageHeader';
+import { StudioPageHeaderButton } from './StudioPageHeaderButton';
 
 type StudioPageHeaderComponent = typeof StudioPageHeaderParent & {
   Main: typeof StudioPageHeaderMain;
@@ -23,4 +24,4 @@ StudioPageHeader.Center = StudioPageHeaderCenter;
 StudioPageHeader.Right = StudioPageHeaderRight;
 StudioPageHeader.Sub = StudioPageHeaderSub;
 
-export { StudioPageHeader };
+export { StudioPageHeader, StudioPageHeaderButton };

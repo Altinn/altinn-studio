@@ -1,8 +1,10 @@
 import React, { type ReactNode, type ReactElement, useState } from 'react';
 import classes from './StudioProfileMenu.module.css';
-import { StudioButton } from '../StudioButton';
 import { DropdownMenu } from '@digdir/designsystemet-react';
 import { PersonCircleIcon } from '@studio/icons';
+import { StudioPageHeaderButton } from '../StudioPageHeader';
+import { type StudioPageHeaderVariant } from '../StudioPageHeader/types/StudioPageHeaderVariant';
+import { type StudioPageHeaderColor } from '../StudioPageHeader/types/StudioPageHeaderColor';
 
 export interface StudioProfileMenuItemButton {
   type: 'button';
@@ -24,14 +26,18 @@ export type StudioProfileMenuProps = {
   triggerButtonText?: string;
   profileImage?: ReactNode;
   profileMenuItems: StudioProfileMenuItem[];
+  variant: StudioPageHeaderVariant;
 };
 
 export const StudioProfileMenu = ({
   triggerButtonText,
   profileImage,
   profileMenuItems,
+  variant,
 }: StudioProfileMenuProps): ReactElement => {
   const [open, setOpen] = useState(false);
+
+  const buttonColor: StudioPageHeaderColor = variant === 'regular' ? 'dark' : 'light';
 
   const handleToggleMenu = () => {
     setOpen((isOpen) => !isOpen);
@@ -49,10 +55,10 @@ export const StudioProfileMenu = ({
   return (
     <DropdownMenu onClose={handleClose} open={open}>
       <DropdownMenu.Trigger asChild>
-        <StudioButton variant='tertiary' color='inverted' onClick={handleToggleMenu}>
+        <StudioPageHeaderButton variant={variant} color={buttonColor} onClick={handleToggleMenu}>
           {triggerButtonText && <span className={classes.userOrgNames}>{triggerButtonText}</span>}
           {profileImage ? profileImage : <PersonCircleIcon className={classes.avatarIcon} />}
-        </StudioButton>
+        </StudioPageHeaderButton>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content>
         {profileMenuItems.map((item: StudioProfileMenuItem) => {

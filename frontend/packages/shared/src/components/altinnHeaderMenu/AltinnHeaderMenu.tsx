@@ -14,7 +14,7 @@ export interface IAltinnHeaderMenuProps {
   windowResizeWidth: number;
 }
 
-// TODO - Refactor
+// TODO - Refactor and move - only used in app-development now
 export const AltinnHeaderMenu = ({ menuItems, windowResizeWidth }: IAltinnHeaderMenuProps) => {
   const { t } = useTranslation();
 

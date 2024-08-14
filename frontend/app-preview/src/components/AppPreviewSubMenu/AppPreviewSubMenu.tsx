@@ -3,7 +3,7 @@ import classes from './AppPreviewSubMenu.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
-import { StudioButton } from '@studio/components';
+import { StudioPageHeaderButton } from '@studio/components';
 import { ArrowLeftIcon } from '@navikt/aksel-icons';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 
@@ -18,12 +18,12 @@ export const AppPreviewSubMenu = () => {
 
   return (
     <div className={classes.subHeader}>
-      <StudioButton asChild color='second'>
+      <StudioPageHeaderButton asChild variant='preview' color='dark'>
         <a href={backToEditLink}>
           <ArrowLeftIcon />
           {t('top_menu.preview_back_to_editing')}
         </a>
-      </StudioButton>
+      </StudioPageHeaderButton>
     </div>
   );
 };

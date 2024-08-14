@@ -16,11 +16,7 @@ import {
 } from '@altinn/ux-editor/hooks';
 import { StudioPageHeader } from '@studio/components';
 import { AppUserProfileMenu } from 'app-shared/components/AppUserProfileMenu';
-import { AltinnHeaderMenu } from 'app-shared/components/altinnHeaderMenu';
 import { PreviewControlHeader } from '../components/PreviewControlHeader';
-
-// TODO MOVE
-const WINDOW_RESIZE_WIDTH = 1000;
 
 export interface LandingPageProps {
   variant?: AltinnHeaderVariant;
@@ -68,17 +64,10 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   return (
     <>
       <StudioPageHeader>
-        <StudioPageHeader.Main variant='preview'>
-          <StudioPageHeader.Left title={app} />
-          <StudioPageHeader.Center>
-            <AltinnHeaderMenu
-              menuItems={[]}
-              windowResizeWidth={WINDOW_RESIZE_WIDTH}
-              // deploymentItems={appPreviewButtonActions(org, app, instanceId)}
-            />
-          </StudioPageHeader.Center>
+        <StudioPageHeader.Main variant='preview' /* TODO - Should we make the variants enum? */>
+          <StudioPageHeader.Left title={app} variant='preview' />
           <StudioPageHeader.Right>
-            <AppUserProfileMenu user={user} repository={repository} />
+            <AppUserProfileMenu user={user} repository={repository} variant='preview' />
           </StudioPageHeader.Right>
         </StudioPageHeader.Main>
         <StudioPageHeader.Sub variant='preview'>

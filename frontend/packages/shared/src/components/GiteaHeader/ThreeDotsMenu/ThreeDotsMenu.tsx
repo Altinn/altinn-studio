@@ -4,7 +4,7 @@ import { MonitorIcon, TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from '@stud
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
 import { Link } from '@digdir/designsystemet-react';
-import { StudioButton, StudioPopover } from '@studio/components';
+import { StudioButton, StudioPageHeaderButton, StudioPopover } from '@studio/components';
 import { LocalChangesModal } from './LocalChangesModal';
 import { ClonePopoverContent } from './ClonePopoverContent';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -25,14 +25,13 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
   return (
     <StudioPopover>
       <StudioPopover.Trigger asChild>
-        <StudioButton
-          color='inverted'
+        <StudioPageHeaderButton
+          color='light'
           icon={<MenuElipsisVerticalIcon />}
           title={t('sync_header.gitea_menu')}
-          variant='tertiary'
+          variant='regular'
         />
       </StudioPopover.Trigger>
-
       <StudioPopover.Content className={classes.popover}>
         <ul className={classes.menuItems}>
           {isClonePossible && (

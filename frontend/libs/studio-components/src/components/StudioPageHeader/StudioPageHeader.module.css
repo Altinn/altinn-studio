@@ -1,6 +1,18 @@
+.studioPageHeader  {
+  /* TODO - Find better names */
+  --studio-button-regular-dark: #393b51;
+  --studio-button-regular-medium: #3e4f62;
+  --studio-button-regular-light: #657281;
+
+  --studio-button-preview-dark: #0c6536;
+  --studio-button-preview-medium: #118849;
+  --studio-button-preview-light: #67b38a;
+}
+
 .main {
   --studio-page-header-height: 80px;
   --studio-page-header-padding: 0 var(--fds-spacing-2);
+
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -10,17 +22,17 @@
 }
 
 .regular {
-  background-color: var(--studio-surface-default-dark);
+  background-color: var(--studio-button-regular-dark);
 }
 
 .regularSub {
-  background-color: var(--studio-surface-default-medium);
+  background-color: var(--studio-button-regular-medium);
 }
 
 .preview {
-  background-color: var(--studio-surface-green-medium);
+  background-color: var(--studio-button-preview-medium);
 }
 
 .previewSub {
-  background-color: var(--studio-surface-green-dark);
+  background-color: var(--studio-button-preview-dark);
 }

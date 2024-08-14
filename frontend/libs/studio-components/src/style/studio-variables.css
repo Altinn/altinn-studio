@@ -9,13 +9,4 @@
   --studio-property-vertical-gap: var(--fds-spacing-3);
   --studio-property-button-vertical-spacing: calc(var(--studio-property-vertical-gap) / 2);
   --studio-property-fieldset-spacing: var(--fds-spacing-3);
-
-  /* TODO - Find better names */
-  --studio-surface-default-dark: #393b51;
-  --studio-surface-default-medium: #3e4f62;
-  --studio-surface-default-light: #657281;
-
-  --studio-surface-green-dark: #0c6536;
-  --studio-surface-green-medium: #118849;
-  --studio-surface-green-light: #67b38a;
 }

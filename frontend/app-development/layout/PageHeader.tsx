@@ -9,7 +9,7 @@ import { RepositoryType } from 'app-shared/types/global';
 import { useSelectedFormLayoutSetName, useSelectedFormLayoutName } from '@altinn/ux-editor/hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
-import { StudioButton, StudioPageHeader, useIsSmallWidth } from '@studio/components';
+import { StudioPageHeader, StudioPageHeaderButton, useIsSmallWidth } from '@studio/components';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { AltinnHeaderMenu } from 'app-shared/components/altinnHeaderMenu';
 import { AppUserProfileMenu } from 'app-shared/components/AppUserProfileMenu';
@@ -38,6 +38,7 @@ export const SubMenuContent = ({ hasRepoError }: SubMenuContentProps): ReactElem
   );
 };
 
+// TODO MOVE
 const LeftComponent = () => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
@@ -55,14 +56,12 @@ const LeftComponent = () => {
       }}
     >
       <SettingsModalButton />
-      <StudioButton color='second' asChild>
+      <StudioPageHeaderButton variant='regular' color='dark' asChild>
         <a
           href={previewLink}
           style={{
-            color: 'white', // TODO
             display: 'flex',
             gap: '0.25rem',
-            fontSize: '18px', // TODO
           }}
         >
           <PlayFillIcon
@@ -72,7 +71,7 @@ const LeftComponent = () => {
           />
           {t('top_menu.preview')}
         </a>
-      </StudioButton>
+      </StudioPageHeaderButton>
     </div>
   );
 };
@@ -96,14 +95,14 @@ export const PageHeader = ({ showSubMenu, user, repoOwnerIsOrg, isRepoError }: P
   return (
     <StudioPageHeader>
       <StudioPageHeader.Main>
-        <StudioPageHeader.Left title={!isSmallWidth && app} />
+        <StudioPageHeader.Left title={!isSmallWidth && app} variant='regular' />
         <StudioPageHeader.Center>
           {menuItems && (
             <AltinnHeaderMenu menuItems={menuItems} windowResizeWidth={WINDOW_RESIZE_WIDTH} />
           )}
         </StudioPageHeader.Center>
         <StudioPageHeader.Right>
-          <AppUserProfileMenu user={user} repository={repository} />
+          <AppUserProfileMenu user={user} repository={repository} variant='regular' />
         </StudioPageHeader.Right>
       </StudioPageHeader.Main>
       {(showSubMenu || !isRepoError) && (

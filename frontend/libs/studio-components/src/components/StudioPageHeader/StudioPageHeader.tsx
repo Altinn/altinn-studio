@@ -2,15 +2,19 @@ import React, { type ReactNode } from 'react';
 import classes from './StudioPageHeader.module.css';
 import cn from 'classnames';
 import { DigdirLogoLink } from './DigdirLogoLink';
-
-export type StudioPageHeaderVariant = 'regular' | 'preview';
+import { type StudioPageHeaderVariant } from './types/StudioPageHeaderVariant';
+import { type StudioPageHeaderColor } from './types/StudioPageHeaderColor';
 
 export type StudioPageHeaderProps = {
   children: ReactNode;
 };
 
 export const StudioPageHeader = ({ children }: StudioPageHeaderProps): React.ReactElement => {
-  return <div role='banner'>{children}</div>;
+  return (
+    <div role='banner' className={classes.studioPageHeader}>
+      {children}
+    </div>
+  );
 };
 
 export type StudioPageHeaderWrapperProps = {
@@ -32,14 +36,16 @@ export type StudioPageHeaderComponentProps = {
 export type StudioPageHeaderLeftProps = {
   children?: ReactNode;
   title?: string;
+  variant: StudioPageHeaderVariant; // TODO - move to context - should only be set at outermost level
 };
 
 export const StudioPageHeaderLeft = ({
   children,
   title,
+  variant,
 }: StudioPageHeaderLeftProps): React.ReactElement => {
   if (children) return <div>{children}</div>;
-  return <DigdirLogoLink title={title} />;
+  return <DigdirLogoLink title={title} variant={variant} />;
 };
 
 export const StudioPageHeaderCenter = ({

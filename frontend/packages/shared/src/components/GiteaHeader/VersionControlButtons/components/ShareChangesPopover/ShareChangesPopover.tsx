@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudioButton, StudioPopover } from '@studio/components';
+import { StudioPageHeaderButton, StudioPopover } from '@studio/components';
 import { UploadIcon } from '@studio/icons';
 import classes from './ShareChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';
@@ -59,9 +59,9 @@ export const ShareChangesPopover = () => {
 
   return (
     <div>
-      <StudioButton
-        color='inverted'
-        variant='tertiary'
+      <StudioPageHeaderButton
+        color='light'
+        variant='regular'
         onClick={handleOpenPopover}
         disabled={!hasPushRights || hasMergeConflict}
         title={renderCorrectTitle()}
@@ -69,7 +69,7 @@ export const ShareChangesPopover = () => {
       >
         {t('sync_header.changes_to_share')}
         {displayNotification && <Notification />}
-      </StudioButton>
+      </StudioPageHeaderButton>
       <div className={popoverHidden ? classes.hidePopover : classes.showPopover}>
         <StudioPopover open={popoverOpen} onClose={handleClosePopover} placement='bottom-end'>
           <StudioPopover.Trigger asChild>

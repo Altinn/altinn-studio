@@ -1,0 +1,32 @@
+.button {
+  color: var(--fds-semantic-background-default);
+}
+
+.regularDark {
+  background-color: var(--studio-button-regular-dark);
+}
+.regularDark:hover {
+  background-color: var(--studio-button-regular-medium);
+}
+
+.regularLight {
+  background-color: var(--studio-button-regular-medium);
+}
+
+.regularLight:hover {
+  background-color: var(--studio-button-regular-light);
+}
+
+.previewDark {
+  background-color: var(--studio-button-preview-dark);
+}
+.previewDark:hover {
+  background-color: var(--studio-button-preview-medium);
+}
+
+.previewLight {
+  background-color: var(--studio-button-preview-medium);
+}
+.previewLight:hover {
+  background-color: var(--studio-button-preview-light);
+}

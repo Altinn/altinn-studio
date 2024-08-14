@@ -14,9 +14,14 @@ const WINDOW_RESIZE_WIDTH = 900;
 export type AppUserProfileMenuProps = {
   user: User;
   repository: Repository;
+  variant: 'regular' | 'preview'; // TODO - Should we use the type from studio/components here?
 };
 
-export const AppUserProfileMenu = ({ user, repository }: AppUserProfileMenuProps): ReactElement => {
+export const AppUserProfileMenu = ({
+  user,
+  repository,
+  variant,
+}: AppUserProfileMenuProps): ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const userNameAndOrg = useUserNameAndOrg(user, org, repository);
@@ -63,6 +68,7 @@ export const AppUserProfileMenu = ({ user, repository }: AppUserProfileMenuProps
         )
       }
       profileMenuItems={[...openRepositoryElement, docsMenuItem, logOutMenuItem]}
+      variant={variant}
     />
   );
 };
