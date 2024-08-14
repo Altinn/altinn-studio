@@ -65,12 +65,11 @@ export const ShareChangesPopover = () => {
   return (
     <div>
       <StudioPageHeaderButton
-        color='light'
-        variant='regular'
         onClick={handleOpenPopover}
         disabled={!hasPushRights || hasMergeConflict}
         title={renderCorrectTitle()}
         icon={<UploadIcon />}
+        color='light'
       >
         {!isSmallWidth && t('sync_header.changes_to_share')}
         {displayNotification && <Notification />}

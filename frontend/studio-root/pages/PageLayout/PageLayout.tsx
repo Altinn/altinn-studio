@@ -20,7 +20,7 @@ export const PageLayout = () => {
       <HeaderContext.Provider value={headerContextValue}>
         <StudioPageHeader>
           <StudioPageHeader.Main>
-            <StudioPageHeader.Left variant='regular' />
+            <StudioPageHeader.Left />
           </StudioPageHeader.Main>
         </StudioPageHeader>
       </HeaderContext.Provider>

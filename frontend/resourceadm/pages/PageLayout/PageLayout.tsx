@@ -189,6 +189,7 @@ const HeaderMenuTODOMoveAndRename = () => {
   return (
     <StudioProfileMenu
       triggerButtonText={getTriggerButtonText()}
+      color='dark'
       profileImage={
         user.avatar_url && (
           <img

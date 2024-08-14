@@ -59,7 +59,7 @@ const LeftComponent = () => {
       }}
     >
       <SettingsModalButton />
-      <StudioPageHeaderButton variant='regular' color='dark' asChild>
+      <StudioPageHeaderButton asChild color='light'>
         <a
           href={previewLink}
           style={{
@@ -98,14 +98,14 @@ export const PageHeader = ({ showSubMenu, user, repoOwnerIsOrg, isRepoError }: P
   return (
     <StudioPageHeader>
       <StudioPageHeader.Main>
-        <StudioPageHeader.Left title={!isSmallWidth && app} variant='regular' />
+        <StudioPageHeader.Left title={!isSmallWidth && app} />
         <StudioPageHeader.Center>
           {menuItems && (
             <AltinnHeaderMenu menuItems={menuItems} windowResizeWidth={WINDOW_RESIZE_WIDTH} />
           )}
         </StudioPageHeader.Center>
         <StudioPageHeader.Right>
-          <AppUserProfileMenu user={user} repository={repository} variant='regular' />
+          <AppUserProfileMenu user={user} repository={repository} color='dark' />
         </StudioPageHeader.Right>
       </StudioPageHeader.Main>
       {(showSubMenu || !isRepoError) && (

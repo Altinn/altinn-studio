@@ -18,9 +18,8 @@ export const SettingsModalButton = (): ReactNode => {
   return (
     <>
       <StudioPageHeaderButton
-        onClick={() => setSettingsModalOpen(true)}
-        variant='regular'
         color='light'
+        onClick={() => setSettingsModalOpen(true)}
         icon={<CogIcon />}
       >
         {!isSmallWidth && t('sync_header.settings')}

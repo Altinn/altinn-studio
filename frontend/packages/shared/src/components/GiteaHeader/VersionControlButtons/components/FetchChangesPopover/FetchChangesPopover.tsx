@@ -57,11 +57,10 @@ export const FetchChangesPopover = (): React.ReactElement => {
     <StudioPopover open={popoverOpen} onClose={handleClosePopover} placement='bottom-end'>
       <StudioPopover.Trigger asChild>
         <StudioPageHeaderButton
-          color='light'
-          variant='regular'
           onClick={handleOpenPopover}
           disabled={hasMergeConflict}
           icon={<DownloadIcon />}
+          color='light'
         >
           {!isSmallWidth && t('sync_header.fetch_changes')}
           {displayNotification && <Notification numChanges={repoStatus?.behindBy ?? 0} />}

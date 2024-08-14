@@ -67,14 +67,14 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   // TODO - WHY NOT CORRECT FONT FAMILY
   return (
     <>
-      <StudioPageHeader>
-        <StudioPageHeader.Main variant='preview' /* TODO - Should we make the variants enum? */>
-          <StudioPageHeader.Left title={!isSmallWidth && app} variant='preview' />
+      <StudioPageHeader variant='preview'>
+        <StudioPageHeader.Main>
+          <StudioPageHeader.Left title={!isSmallWidth && app} />
           <StudioPageHeader.Right>
-            <AppUserProfileMenu user={user} repository={repository} variant='preview' />
+            <AppUserProfileMenu user={user} repository={repository} color='light' />
           </StudioPageHeader.Right>
         </StudioPageHeader.Main>
-        <StudioPageHeader.Sub variant='preview'>
+        <StudioPageHeader.Sub>
           <AppPreviewSubMenu />
         </StudioPageHeader.Sub>
       </StudioPageHeader>

@@ -3,28 +3,34 @@ import classes from './StudioPageHeader.module.css';
 import cn from 'classnames';
 import { DigdirLogoLink } from './DigdirLogoLink';
 import { type StudioPageHeaderVariant } from './types/StudioPageHeaderVariant';
+import { StudioPageHeaderContextProvider, useStudioPageHeaderContext } from './context';
 
 export type StudioPageHeaderProps = {
   children: ReactNode;
+  variant?: StudioPageHeaderVariant;
 };
 
-export const StudioPageHeader = ({ children }: StudioPageHeaderProps): React.ReactElement => {
+export const StudioPageHeader = ({
+  children,
+  variant = 'regular',
+}: StudioPageHeaderProps): React.ReactElement => {
   return (
-    <div role='banner' className={classes.studioPageHeader}>
-      {children}
-    </div>
+    <StudioPageHeaderContextProvider variant={variant}>
+      <div role='banner' className={classes.studioPageHeader}>
+        {children}
+      </div>
+    </StudioPageHeaderContextProvider>
   );
 };
 
 export type StudioPageHeaderWrapperProps = {
   children: ReactNode;
-  variant?: StudioPageHeaderVariant;
 };
 
 export const StudioPageHeaderMain = ({
   children,
-  variant = 'regular',
 }: StudioPageHeaderWrapperProps): React.ReactElement => {
+  const { variant } = useStudioPageHeaderContext();
   return <div className={cn(classes.main, classes[variant])}>{children}</div>;
 };
 
@@ -35,16 +41,14 @@ export type StudioPageHeaderComponentProps = {
 export type StudioPageHeaderLeftProps = {
   children?: ReactNode;
   title?: string;
-  variant: StudioPageHeaderVariant; // TODO - move to context - should only be set at outermost level
 };
 
 export const StudioPageHeaderLeft = ({
   children,
   title,
-  variant,
 }: StudioPageHeaderLeftProps): React.ReactElement => {
   if (children) return <div>{children}</div>;
-  return <DigdirLogoLink title={title} variant={variant} />;
+  return <DigdirLogoLink title={title} />;
 };
 
 export const StudioPageHeaderCenter = ({
@@ -61,8 +65,9 @@ export const StudioPageHeaderRight = ({
 
 export const StudioPageHeaderSub = ({
   children,
-  variant = 'regular',
 }: StudioPageHeaderWrapperProps): React.ReactElement => {
+  const { variant } = useStudioPageHeaderContext();
+
   return <div className={cn(classes.sub, classes[`${variant}Sub`])}>{children}</div>;
 };
 

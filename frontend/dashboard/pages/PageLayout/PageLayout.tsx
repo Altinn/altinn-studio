@@ -63,7 +63,6 @@ const DashboardHeader = () => {
     <StudioPageHeader>
       <StudioPageHeader.Main>
         <StudioPageHeader.Left
-          variant='regular' // TOD MAKE DEFAULT
           title={
             // TODO MOVE
             selectedContext !== SelectedContextType.All &&
@@ -168,7 +167,7 @@ const HeaderMenuTODOMoveAndRename = () => {
   return (
     <StudioProfileMenu
       triggerButtonText={getTriggerButtonText()}
-      variant='regular'
+      color='dark'
       profileImage={
         user.avatar_url && (
           <img

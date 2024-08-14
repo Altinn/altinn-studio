@@ -83,7 +83,7 @@ const LargeNavigationMenu = ({ menuItems }: LargeNavigationMenuProps): ReactElem
       <ul className={classes.menu}>
         {menuItems.map((menuItem: StudioNavigationMenuItem) => (
           <li key={menuItem.name}>
-            <StudioPageHeaderButton asChild color='dark' variant='regular'>
+            <StudioPageHeaderButton asChild color='dark'>
               <NavLink to={menuItem.link}>
                 <span
                   className={
