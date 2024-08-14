@@ -11,7 +11,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import { StudioPageHeader, StudioPageHeaderButton, useIsSmallWidth } from '@studio/components';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
-import { AltinnHeaderMenu } from 'app-shared/components/altinnHeaderMenu';
+import { HeaderMenu } from './HeaderMenu';
 import { AppUserProfileMenu } from 'app-shared/components/AppUserProfileMenu';
 import { useTranslation } from 'react-i18next';
 import { PlayFillIcon } from '@studio/icons';
@@ -101,7 +101,7 @@ export const PageHeader = ({ showSubMenu, user, repoOwnerIsOrg, isRepoError }: P
         <StudioPageHeader.Left title={!isSmallWidth && app} />
         <StudioPageHeader.Center>
           {menuItems && (
-            <AltinnHeaderMenu menuItems={menuItems} windowResizeWidth={WINDOW_RESIZE_WIDTH} />
+            <HeaderMenu menuItems={menuItems} windowResizeWidth={WINDOW_RESIZE_WIDTH} />
           )}
         </StudioPageHeader.Center>
         <StudioPageHeader.Right>

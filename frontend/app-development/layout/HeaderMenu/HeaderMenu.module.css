@@ -1,0 +1,4 @@
+.activeSmall {
+  background-color: var(--fds-semantic-surface-neutral-subtle);
+  border-radius: 5px;
+}

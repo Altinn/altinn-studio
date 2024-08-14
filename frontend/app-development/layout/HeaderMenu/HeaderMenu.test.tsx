@@ -1,7 +1,7 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import type { IAltinnHeaderMenuProps } from './AltinnHeaderMenu';
-import { AltinnHeaderMenu } from './AltinnHeaderMenu';
+import type { HeaderMenuProps } from './HeaderMenu';
+import { HeaderMenu } from './HeaderMenu';
 import { MemoryRouter } from 'react-router-dom';
 import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
@@ -59,14 +59,14 @@ describe('AltinnHeaderMenu', () => {
   });
 });
 
-const render = (props: Partial<IAltinnHeaderMenuProps> = {}) => {
-  const defaultProps: IAltinnHeaderMenuProps = {
+const render = (props: Partial<HeaderMenuProps> = {}) => {
+  const defaultProps: HeaderMenuProps = {
     menuItems: [],
   };
 
   return rtlRender(
     <MemoryRouter>
-      <AltinnHeaderMenu {...defaultProps} {...props} />
+      <HeaderMenu {...defaultProps} {...props} />
     </MemoryRouter>,
   );
 };
