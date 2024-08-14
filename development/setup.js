@@ -172,7 +172,7 @@ const addReleaseAndDeployTestDataToDb = async () =>
 const setupEnvironment = async (env) => {
   buildAndStartComposeService('studio_db');
   buildAndStartComposeService('studio_repositories');
-  await waitForHealthy('studio-repositories', 120000);
+  await waitForHealthy('studio-repositories');
 
   createUser(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS, true);
   createUser(env.GITEA_CYPRESS_USER, env.GITEA_CYPRESS_PASS, false);
