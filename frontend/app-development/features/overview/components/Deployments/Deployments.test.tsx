@@ -2,7 +2,7 @@ import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { Deployments } from './Deployments';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
-import { renderWithProviders } from '../../../test/testUtils';
+import { renderWithProviders } from '../../../../test/testUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { repository } from 'app-shared/mocks/mocks';
 import { app, org } from '@studio/testing/testids';
