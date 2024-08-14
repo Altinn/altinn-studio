@@ -8,6 +8,7 @@
     "lint": "eslint \"src/**/*.ts*\""
   },
   "dependencies": {
+    "@studio/pure-functions": "workspace:^",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "uuid": "10.0.0"

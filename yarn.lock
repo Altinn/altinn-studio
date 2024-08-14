@@ -6077,6 +6077,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@studio/hooks@workspace:frontend/libs/studio-hooks"
   dependencies:
+    "@studio/pure-functions": "workspace:^"
     "@testing-library/jest-dom": "npm:6.4.8"
     "@testing-library/react": "npm:16.0.0"
     "@types/jest": "npm:^29.5.5"
