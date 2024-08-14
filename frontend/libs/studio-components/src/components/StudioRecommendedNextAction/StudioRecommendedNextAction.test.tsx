@@ -4,7 +4,6 @@ import React from 'react';
 import userEvent from '@testing-library/user-event';
 
 describe('StudioRecommendedNextAction', () => {
-  const user = userEvent.setup();
   const onSave = jest.fn();
   const onSkip = jest.fn();
 
@@ -30,6 +29,7 @@ describe('StudioRecommendedNextAction', () => {
   });
 
   it('calls onSave when save button is clicked', async () => {
+    const user = userEvent.setup();
     render(
       <StudioRecommendedNextAction
         onSave={onSave}
@@ -44,10 +44,11 @@ describe('StudioRecommendedNextAction', () => {
     );
 
     await user.click(screen.getByText('Save'));
-    expect(onSave).toHaveBeenCalled();
+    expect(onSave).toHaveBeenCalledTimes(1);
   });
 
   it('calls onSkip when skip button is clicked', async () => {
+    const user = userEvent.setup();
     render(
       <StudioRecommendedNextAction
         onSave={onSave}
@@ -62,7 +63,7 @@ describe('StudioRecommendedNextAction', () => {
     );
 
     await user.click(screen.getByText('Skip'));
-    expect(onSkip).toHaveBeenCalled();
+    expect(onSkip).toHaveBeenCalledTimes(1);
   });
 
   it('does not render save button when hideSaveButton is true', () => {
@@ -80,6 +81,6 @@ describe('StudioRecommendedNextAction', () => {
       </StudioRecommendedNextAction>,
     );
 
-    expect(screen.queryByText('Save')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument();
   });
 });

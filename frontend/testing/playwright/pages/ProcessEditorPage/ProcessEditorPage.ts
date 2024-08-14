@@ -63,7 +63,8 @@ export class ProcessEditorPage extends BasePage {
   }
 
   public async skipRecommendedTask(): Promise<void> {
-    await this.page.click('button:has-text("Hopp over")');
+    const skipButton = this.page.getByRole('button', { name: this.textMock('general.skip') });
+    await skipButton.click();
   }
 
   public async waitForTaskToBeVisibleInConfigPanel(task: BpmnTaskType): Promise<void> {
