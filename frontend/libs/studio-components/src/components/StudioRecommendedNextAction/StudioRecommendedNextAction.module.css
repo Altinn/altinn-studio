@@ -2,7 +2,7 @@
   display: flex;
   justify-content: flex-end;
   align-items: flex-start;
-  gap: 12.5px;
+  gap: var(--fds-spacing-3);
 }
 
 .description {
