@@ -20,6 +20,7 @@ export function DeployPage() {
     isError: permissionsIsError,
   } = useDeployPermissionsQuery(org, app);
   useInvalidator();
+
   if (orgsIsPending || permissionsIsPending) {
     return (
       <AltinnContentLoader width={1200} height={600} title={t('app_deployment.loading')}>
