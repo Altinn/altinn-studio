@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -21,11 +22,13 @@ using Microsoft.Rest.TransientFaultHandling;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Designer.Tests.Services
 {
     public class ReleaseServiceTest
     {
+        private readonly ITestOutputHelper _testOutputHelper;
         private readonly Mock<IHttpContextAccessor> _httpContextAccessor;
         private readonly Mock<IReleaseRepository> _releaseRepository;
         private readonly Mock<IAzureDevOpsBuildClient> _azureDevOpsBuildClient;
@@ -33,8 +36,9 @@ namespace Designer.Tests.Services
         private readonly string _org = "udi";
         private readonly string _app = "kjaerestebesok";
 
-        public ReleaseServiceTest()
+        public ReleaseServiceTest(ITestOutputHelper testOutputHelper)
         {
+            _testOutputHelper = testOutputHelper;
             _httpContextAccessor = new Mock<IHttpContextAccessor>();
             _httpContextAccessor.Setup(req => req.HttpContext).Returns(GetHttpContextForTestUser("testuser"));
             _releaseLogger = new Mock<ILogger<ReleaseService>>();
@@ -78,6 +82,14 @@ namespace Designer.Tests.Services
             ReleaseEntity result = await releaseService.CreateAsync(releaseEntity);
 
             // Assert
+            Assert.NotNull(result);
+
+            var properties = result.GetType().GetProperties();
+            foreach (var property in properties)
+            {
+                Assert.NotNull(property.GetValue(result));
+            }
+
             _releaseRepository.Verify(r => r.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), buildStatus, buildResult), Times.Once);
             _releaseRepository.Verify(r => r.Create(It.IsAny<ReleaseEntity>()), Times.Once);
             _azureDevOpsBuildClient.Verify(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>()), Times.Once);

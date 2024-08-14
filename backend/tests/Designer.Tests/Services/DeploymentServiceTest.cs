@@ -19,17 +19,18 @@ using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using AltinnCore.Authentication.Constants;
 using MediatR;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Designer.Tests.Services
 {
     public class DeploymentServiceTest
     {
+        private readonly ITestOutputHelper _testOutputHelper;
         private readonly Mock<IHttpContextAccessor> _httpContextAccessor;
         private readonly Mock<IDeploymentRepository> _deploymentRepository;
         private readonly Mock<ILogger<DeploymentService>> _deploymentLogger;
@@ -39,8 +40,9 @@ namespace Designer.Tests.Services
         private readonly Mock<IAzureDevOpsBuildClient> _azureDevOpsBuildClient;
         private readonly Mock<IPublisher> _mediatrMock;
 
-        public DeploymentServiceTest()
+        public DeploymentServiceTest(ITestOutputHelper testOutputHelper)
         {
+            _testOutputHelper = testOutputHelper;
             _httpContextAccessor = new Mock<IHttpContextAccessor>();
             _httpContextAccessor.Setup(req => req.HttpContext).Returns(GetHttpContextForTestUser("testuser"));
             _deploymentLogger = new Mock<ILogger<DeploymentService>>();
@@ -103,6 +105,13 @@ namespace Designer.Tests.Services
 
             // Assert
             Assert.NotNull(deploymentEntity);
+
+            var properties = deploymentEntity.GetType().GetProperties();
+            foreach (var property in properties)
+            {
+                Assert.NotNull(property.GetValue(deploymentEntity));
+            }
+
             _releaseRepository.Verify(
                 r => r.GetSucceededReleaseFromDb(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
                 Times.Once);
