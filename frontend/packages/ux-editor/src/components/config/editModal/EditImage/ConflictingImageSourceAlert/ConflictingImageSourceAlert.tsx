@@ -1,6 +1,7 @@
 import React from 'react';
 import classes from './ConflictingImageSourceAlert.module.css';
 import { Alert } from '@digdir/designsystemet-react';
+import { useTranslation } from 'react-i18next';
 
 interface ConflictingImageSourceAlertProps {
   showAlert: boolean;
@@ -11,12 +12,14 @@ export const ConflictingImageSourceAlert = ({
   showAlert,
   conflictSource,
 }: ConflictingImageSourceAlertProps) => {
+  const { t } = useTranslation();
+  
   return (
     showAlert && (
       <Alert size='small' className={classes.alert}>
         {conflictSource === 'external'
-          ? 'Du har allerede lastet opp et bilde. Skriver du inn en url, vil bildereferansen din bli slettet.'
-          : 'Du har allerede referert til en ekstern url. Laster du opp et bilde, vil den eksterne referansen bli slettet.'}
+          ? t('ux_editor.properties_panel.images.conflicting_image_source_when_entering_url')
+          : t('ux_editor.properties_panel.images.conflicting_image_source_when_uploading_image')}
       </Alert>
     )
   );

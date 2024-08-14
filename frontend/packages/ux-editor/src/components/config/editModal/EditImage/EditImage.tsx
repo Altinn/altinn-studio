@@ -29,7 +29,7 @@ export const EditImage = ({ component, handleComponentChange }: EditImageProps) 
   const { mutate: deleteImageFromLibrary } = useDeleteImageMutation(org, app);
 
   const fileName = extractFileNameFromImageSrc(component.image?.src?.nb, org, app);
-  const imageOriginsFromLibrary = !imageFileNamesArePending && imageFileNames.includes(fileName);
+  const imageOriginsFromLibrary = !imageFileNamesArePending && imageFileNames?.includes(fileName);
 
   const handleImageChange = async (imageSource: string, fromUrl: boolean = false) => {
     const updatedComponent = updateComponentWithImage(

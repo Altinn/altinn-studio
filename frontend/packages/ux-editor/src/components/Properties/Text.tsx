@@ -35,8 +35,8 @@ export const Text = () => {
 
   return (
     <>
-      <Heading size='2xs' className={classes.heading}>
-        {'Tekster'}
+      <Heading level={2} size='2xs' className={classes.heading}>
+        {t('ux_editor.properties_panel.texts.sub_title_texts')}
       </Heading>
       {schema.properties.textResourceBindings?.properties && (
         <EditTextResourceBindings
@@ -72,8 +72,8 @@ export const Text = () => {
       )}
       {form.type === 'Image' && (
         <>
-          <Heading size='2xs' className={classes.heading}>
-            {'Valg for bilde'}
+          <Heading level={2} size='2xs' className={classes.heading}>
+            {t('ux_editor.properties_panel.texts.sub_title_images')}
           </Heading>
           <EditImage
             component={form}
