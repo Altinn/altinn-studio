@@ -7,6 +7,7 @@ import type { ComponentIdsChange } from 'app-shared/types/api/FormLayoutRequest'
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useUpdateBpmn } from 'app-shared/hooks/useUpdateBpmn';
 import { removeDataTypeIdsToSign } from 'app-shared/utils/bpmnUtils';
+import { getAllDescendants } from '../../utils/formLayoutUtils';
 
 export const useDeleteFormContainerMutation = (org: string, app: string, layoutSetName: string) => {
   const { layout, layoutName } = useSelectedFormLayoutWithName();
@@ -17,10 +18,10 @@ export const useDeleteFormContainerMutation = (org: string, app: string, layoutS
       const updatedLayout: IInternalLayout = ObjectUtils.deepCopy(layout);
       const componentIdsChange: ComponentIdsChange = [];
 
-      const childrenComponentIds = layout.order[id];
-      const allComponentIds = Object.keys(layout.components);
+      const childrenFormItemIds = getAllDescendants(layout, id);
+      const allFormItemIds = Object.keys(layout.components).concat(Object.keys(layout.containers));
 
-      const fileUploadComponentIds = childrenComponentIds.filter((componentId) => {
+      const fileUploadComponentIds = childrenFormItemIds.filter((componentId) => {
         return (
           layout.components[componentId]?.type === ComponentType.FileUpload ||
           layout.components[componentId]?.type === ComponentType.FileUploadWithTag
@@ -33,8 +34,8 @@ export const useDeleteFormContainerMutation = (org: string, app: string, layoutS
 
       // Delete child components:
       // Todo: Consider if this should rather be done in the backend
-      for (const componentId of childrenComponentIds) {
-        if (allComponentIds.indexOf(componentId) > -1) {
+      for (const componentId of childrenFormItemIds) {
+        if (allFormItemIds.indexOf(componentId) > -1) {
           delete updatedLayout.components[componentId];
           delete updatedLayout.containers[componentId];
           delete updatedLayout.order[componentId];
