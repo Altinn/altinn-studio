@@ -7,11 +7,10 @@ import type { AccessList, AccessListMember, ResourceError } from 'app-shared/typ
 import { FieldWrapper } from '../FieldWrapper';
 import { useRemoveAccessListMemberMutation } from '../../hooks/mutations/useRemoveAccessListMemberMutation';
 import { useAddAccessListMemberMutation } from '../../hooks/mutations/useAddAccessListMemberMutation';
-import { useDebounce } from 'react-use';
 import { usePartiesRegistryQuery } from '../../hooks/queries/usePartiesRegistryQuery';
 import { useSubPartiesRegistryQuery } from '../../hooks/queries/useSubPartiesRegistryQuery';
 import { getPartiesQueryUrl } from '../../utils/urlUtils';
-import { StudioButton } from '@studio/components';
+import { StudioButton, useDebounce } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
 import { AccessListMembersPaging } from './AccessListMembersPaging';
 import { AccessListMembersTable } from './AccessListMembersTable';
@@ -48,11 +47,8 @@ export const AccessListMembers = ({
   const [isSubPartySearch, setIsSubPartySearch] = useState<boolean>(false);
   const [searchText, setSearchText] = useState<string>('');
   const [searchUrl, setSearchUrl] = useState<string>('');
-  useDebounce(
-    () => setSearchUrl(searchText ? getPartiesQueryUrl(searchText, isSubPartySearch) : ''),
-    500,
-    [searchText, isSubPartySearch],
-  );
+  const { debounce } = useDebounce({ debounceTimeInMs: 500 });
+  debounce(() => setSearchUrl(searchText ? getPartiesQueryUrl(searchText, isSubPartySearch) : ''));
 
   const { mutate: removeListMember, isPending: isRemovingMember } =
     useRemoveAccessListMemberMutation(org, list.identifier, env);

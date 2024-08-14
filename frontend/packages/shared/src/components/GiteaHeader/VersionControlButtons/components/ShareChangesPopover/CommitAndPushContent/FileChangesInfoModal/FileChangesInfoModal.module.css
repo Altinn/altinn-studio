@@ -13,15 +13,21 @@
   flex-direction: column;
   padding: var(--fds-spacing-4) var(--fds-spacing-10) var(--fds-spacing-10) var(--fds-spacing-10);
   width: 50vw;
-}
-
-.filePathContainer {
-  display: grid;
-  grid-template-columns: auto auto 1fr;
+  gap: var(--fds-spacing-3);
+  height: 40vh;
+  justify-content: space-between;
 }
 
 .filePath {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  padding: var(--fds-spacing-3);
+}
+
+.fileStatus {
+  align-content: flex-start;
+  min-width: 5vw;
+  width: 5vw;
+}
+
+.diffStatus {
+  padding: var(--fds-spacing-3);
 }

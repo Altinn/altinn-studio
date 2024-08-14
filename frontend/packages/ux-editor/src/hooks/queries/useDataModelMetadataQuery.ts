@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import type { UseQueryResult } from '@tanstack/react-query';
+import type { MutationMeta, UseQueryResult } from '@tanstack/react-query';
 import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -9,6 +9,7 @@ type UseDataModelMetadataQuery = {
   app: string;
   layoutSetName: string;
   dataModelName?: string;
+  hideDefault?: boolean;
 };
 
 type QueryOptions = {
@@ -16,8 +17,9 @@ type QueryOptions = {
 };
 
 export const useDataModelMetadataQuery = (
-  { org, app, layoutSetName, dataModelName }: UseDataModelMetadataQuery,
+  { org, app, layoutSetName, dataModelName, hideDefault }: UseDataModelMetadataQuery,
   options: QueryOptions = {},
+  meta?: MutationMeta,
 ): UseQueryResult<DataModelFieldElement[]> => {
   const { getDataModelMetadata } = useServicesContext();
 
@@ -35,5 +37,8 @@ export const useDataModelMetadataQuery = (
         return dataModelFields;
       }),
     ...options,
+    meta: {
+      hideDefaultError: hideDefault,
+    },
   });
 };

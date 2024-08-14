@@ -4,17 +4,19 @@ import classes from './StudioPageError.module.css';
 
 export type StudioPageErrorProps = {
   title?: string;
-  message?: string;
+  message?: string | React.ReactNode;
 };
 
 export const StudioPageError = ({ message, title }: StudioPageErrorProps) => {
+  const isReactNode = React.isValidElement(message);
+
   return (
     <div className={classes.container}>
       <Alert className={classes.alertContent} severity='danger'>
         <Heading level={1} size='xs' spacing>
           {title}
         </Heading>
-        <Paragraph>{message}</Paragraph>
+        {isReactNode ? <>{message}</> : <Paragraph>{message}</Paragraph>}
       </Alert>
     </div>
   );

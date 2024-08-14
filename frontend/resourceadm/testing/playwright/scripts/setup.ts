@@ -22,6 +22,7 @@ const environment: Record<string, string> = {
 const createGiteaAccessToken = async (): Promise<void> => {
   const result = await giteaApi({
     path: `/repos/api/v1/users/${process.env.GITEA_ADMIN_USER}/tokens`,
+    hostname: 'http://studio.localhost',
     method: 'POST',
     user: process.env.GITEA_ADMIN_USER,
     pass: process.env.GITEA_ADMIN_PASS,
@@ -63,6 +64,7 @@ const updateEnvironmentVars = async (): Promise<void> => {
 const createResourceRepo = async () => {
   await giteaApi({
     path: `/repos/api/v1/orgs/${PLAYWRIGHT_RESOURCES_ORGANIZATION}/repos`,
+    hostname: 'http://studio.localhost',
     method: 'POST',
     user: process.env.GITEA_ADMIN_USER,
     pass: process.env.GITEA_ADMIN_PASS,
