@@ -1,3 +1,5 @@
+import type { PropsFromGenericComponent } from '.';
+
 import { createContext } from 'src/core/contexts/context';
 import type { IGrid } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -16,6 +18,7 @@ export interface IFormComponentContext {
   node: LayoutNode;
   grid?: IGrid;
   overrideDisplay?: GenericComponentOverrideDisplay;
+  overrideItemProps?: PropsFromGenericComponent['overrideItemProps'];
 }
 
 const { Provider, useCtx } = createContext<IFormComponentContext | undefined>({

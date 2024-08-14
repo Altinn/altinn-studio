@@ -171,7 +171,12 @@ export function ContainerTester(props: { id: string }) {
     throw new Error(`Could not resolve node with id ${props.id}, or unexpected node type`);
   }
 
-  return <LikertComponent node={node} />;
+  return (
+    <LikertComponent
+      node={node}
+      containerDivRef={{ current: null }}
+    />
+  );
 }
 
 export const validateTableLayout = async (

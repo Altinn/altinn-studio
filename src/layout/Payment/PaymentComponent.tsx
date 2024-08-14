@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from 'react';
 
 import { Alert, Button } from '@digdir/designsystemet-react';
 
+import type { PropsFromGenericComponent } from '..';
+
 import { useProcessNavigation } from 'src/features/instance/ProcessNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { usePaymentInformation } from 'src/features/payment/PaymentInformationProvider';
@@ -13,13 +15,13 @@ import classes from 'src/layout/Payment/PaymentComponent.module.css';
 import { SkeletonLoader } from 'src/layout/Payment/SkeletonLoader';
 import { PaymentDetailsTable } from 'src/layout/PaymentDetails/PaymentDetailsTable';
 
-export const PaymentComponent = ({ node }) => {
+export const PaymentComponent = ({ node }: PropsFromGenericComponent<'Payment'>) => {
   const { partyId, instanceGuid } = useInstanceIdParams();
   const { next, busy } = useProcessNavigation() || {};
   const paymentInfo = usePaymentInformation();
   const { mutate: performPayment } = usePerformPayActionMutation(partyId, instanceGuid);
   const paymentDoesNotExist = paymentInfo?.status === PaymentStatus.Uninitialized;
-  const { title, description } = node.item.textResourceBindings;
+  const { title, description } = node.item.textResourceBindings ?? {};
   const actionCalled = useRef(false);
   const nextCalled = useRef(false);
 
