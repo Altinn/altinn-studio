@@ -3,7 +3,12 @@ import classes from './AltinnHeaderMenu.module.css';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { TopBarMenuGroup, TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
-import { StudioButton, type StudioButtonProps, useIsSmallWidth } from '@studio/components';
+import {
+  StudioButton,
+  type StudioButtonProps,
+  useIsSmallWidth,
+  StudioPageHeaderButton,
+} from '@studio/components';
 import { MenuHamburgerIcon } from '@studio/icons';
 import { groupMenuItemsByGroup } from 'app-development/layout/AppBar/appBarConfig';
 import { TopBarGroup } from 'app-shared/enums/TopBarMenu';
@@ -70,37 +75,32 @@ type LargeNavigationMenuProps = {
 
 const LargeNavigationMenu = ({ menuItems }: LargeNavigationMenuProps): ReactElement => {
   const { t } = useTranslation();
-  //const location = useLocation();
-  //const currentRoutePath: string = getRouterRouteByPathname(location.pathname);
+  const location = useLocation();
+  const currentRoutePath: string = getRouterRouteByPathname(location.pathname);
 
   return (
     <div className={classes.largeMenu}>
       <ul className={classes.menu}>
         {menuItems.map((menuItem: StudioNavigationMenuItem) => (
-          <li key={menuItem.name} className={classes.menuItem}>
-            {/*<StudioButton
-              asChild
-              color='inverted'
-              style={
-                getRouterRouteByPathname(menuItem.link) === currentRoutePath
-                  ? {
-                      borderBottom: '2px solid white',
-                    }
-                  : undefined
-              }
-            >*/}
-            <NavLink
-              to={menuItem.link}
-              className={({ isActive }) => (isActive ? classes.active : '')}
-            >
-              {menuItem.name}
-            </NavLink>
-            {menuItem.isBeta && (
-              <Tag color='info' size='small' className={classes.betaTag}>
-                {t('general.beta')}
-              </Tag>
-            )}
-            {/*</StudioButton>*/}
+          <li key={menuItem.name}>
+            <StudioPageHeaderButton asChild color='dark' variant='regular'>
+              <NavLink to={menuItem.link}>
+                <span
+                  className={
+                    getRouterRouteByPathname(menuItem.link) === currentRoutePath
+                      ? classes.active
+                      : undefined
+                  }
+                >
+                  {menuItem.name}
+                </span>
+                {menuItem.isBeta && (
+                  <Tag color='info' size='small' className={classes.betaTag}>
+                    {t('general.beta')}
+                  </Tag>
+                )}
+              </NavLink>
+            </StudioPageHeaderButton>
           </li>
         ))}
       </ul>

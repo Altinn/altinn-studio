@@ -5,27 +5,8 @@
   list-style-type: none;
   flex: 2;
   padding: 0 var(--fds-spacing-4);
-  /* TODO */
-  gap: var(--fds-spacing-8);
+  gap: var(--fds-spacing-2);
   font-size: var(--fds-sizing-4);
-}
-
-.menuItem {
-  color: var(--fds-semantic-surface-neutral-default);
-  font-size: var(--fds-sizing-4);
-  display: flex;
-  align-items: center;
-  /* TODO */
-  gap: var(--fds-spacing-1);
-}
-
-.menuItem a:hover {
-  border-bottom: 2px solid var(--fds-semantic-surface-neutral-default);
-}
-
-.menuItem a {
-  color: var(--fds-semantic-surface-neutral-default);
-  text-decoration: none;
 }
 
 .active {
