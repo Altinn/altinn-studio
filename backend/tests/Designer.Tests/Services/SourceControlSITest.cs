@@ -1,15 +1,12 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Security.Claims;
+using System.Security.Principal;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
-
-using AltinnCore.Authentication.Constants;
 
 using Designer.Tests.Utils;
 
@@ -75,17 +72,13 @@ namespace Designer.Tests.Services
 
         private static HttpContext GetHttpContextForTestUser(string userName)
         {
-            List<Claim> claims = new();
-            claims.Add(new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, "altinn.no"));
-            claims.Add(new Claim(ClaimTypes.Name, userName, ClaimValueTypes.String, "altinn.no"));
-            ClaimsIdentity identity = new("TestUserLogin");
-            identity.AddClaims(claims);
+            var identity = new GenericIdentity(userName);
+            var principal = new GenericPrincipal(identity, null);
 
-            ClaimsPrincipal principal = new(identity);
-            HttpContext c = new DefaultHttpContext();
-            c.Request.HttpContext.User = principal;
+            HttpContext context = new DefaultHttpContext();
+            context.Request.HttpContext.User = principal;
 
-            return c;
+            return context;
         }
 
         private static SourceControlSI GetServiceForTest(string developer, Mock<IGitea> giteaMock = null)
