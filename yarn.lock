@@ -48,9 +48,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@altinn/altinn-design-system@npm:0.30.0":
-  version: 0.30.0
-  resolution: "@altinn/altinn-design-system@npm:0.30.0"
+"@altinn/altinn-design-system@npm:0.30.1":
+  version: 0.30.1
+  resolution: "@altinn/altinn-design-system@npm:0.30.1"
   dependencies:
     "@altinn/figma-design-tokens": "npm:^6.0.1"
     "@digdir/design-system-react": "npm:0.16.0"
@@ -61,7 +61,7 @@ __metadata:
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
-  checksum: 10/e59a4c31342ddfa14ec0ab533416aa93165551337b4cc574d800bc0888b90fa3664186d30ee6b68157762b3a76951c2fa649fcac5d4ee0f635cb29084c0305cb
+  checksum: 10/8e8c10a8a53b567d7d89e80f777d10e49cc777cec8fb55c36bb141ef1ba0456eb3f016f624470bbb609e6f100cd3217231992b74ab28758f1db92efe6e3e209a
   languageName: node
   linkType: hard
 
@@ -8060,7 +8060,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "altinn-studio@workspace:."
   dependencies:
-    "@altinn/altinn-design-system": "npm:0.30.0"
+    "@altinn/altinn-design-system": "npm:0.30.1"
     "@altinn/figma-design-tokens": "npm:6.0.1"
     "@digdir/design-system-tokens": "npm:0.13.0"
     "@digdir/designsystemet-css": "npm:0.10.0"
