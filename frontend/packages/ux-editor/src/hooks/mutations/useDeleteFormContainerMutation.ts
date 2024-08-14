@@ -20,11 +20,12 @@ export const useDeleteFormContainerMutation = (org: string, app: string, layoutS
       const childrenComponentIds = layout.order[id];
       const allComponentIds = Object.keys(layout.components);
 
-      const fileUploadComponentIds = childrenComponentIds.filter(
-        (componentId) =>
-          layout.components[componentId].type === ComponentType.FileUpload ||
-          layout.components[componentId].type === ComponentType.FileUploadWithTag,
-      );
+      const fileUploadComponentIds = childrenComponentIds.filter((componentId) => {
+        return (
+          layout.components[componentId]?.type === ComponentType.FileUpload ||
+          layout.components[componentId]?.type === ComponentType.FileUploadWithTag
+        );
+      });
 
       if (fileUploadComponentIds.length > 0) {
         await updateBpmn(removeDataTypeIdsToSign(fileUploadComponentIds));
