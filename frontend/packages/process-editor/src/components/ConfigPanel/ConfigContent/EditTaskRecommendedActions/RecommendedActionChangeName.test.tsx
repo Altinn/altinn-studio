@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { NewNameRecommendation } from './NewNameRecommendation';
+import { RecommendedActionChangeName } from './RecommendedActionChangeName';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { useValidateBpmnTaskId } from '../../../../hooks/useValidateBpmnId';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -22,7 +22,7 @@ jest.mock(
   }),
 );
 
-describe('NewNameRecommendation', () => {
+describe('RecommendedActionChangeName', () => {
   const user = userEvent.setup();
   const setBpmnDetails = jest.fn();
   const validateBpmnTaskId = jest.fn();
@@ -47,7 +47,7 @@ describe('NewNameRecommendation', () => {
   });
 
   it('calls validation on name input', async () => {
-    render(<NewNameRecommendation />);
+    render(<RecommendedActionChangeName />);
     const newNameInput = screen.getByRole('textbox', {
       name: textMock('process_editor.recommended_action.new_name_label'),
     });
@@ -57,7 +57,7 @@ describe('NewNameRecommendation', () => {
   });
 
   it('calls saveNewName when save button is clicked with a valid name', async () => {
-    render(<NewNameRecommendation />);
+    render(<RecommendedActionChangeName />);
     const newNameInput = screen.getByRole('textbox', {
       name: textMock('process_editor.recommended_action.new_name_label'),
     });
@@ -74,7 +74,7 @@ describe('NewNameRecommendation', () => {
   });
 
   it('calls cancelAction when skip button is clicked', async () => {
-    render(<NewNameRecommendation />);
+    render(<RecommendedActionChangeName />);
 
     const skipButton = screen.getByText(textMock('general.skip'));
     await user.click(skipButton);

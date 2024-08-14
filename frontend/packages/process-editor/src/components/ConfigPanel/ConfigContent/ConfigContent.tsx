@@ -12,7 +12,7 @@ import { EditPolicy } from './EditPolicy';
 import { EditDataTypesToSign } from '../EditDataTypesToSign';
 import { EditUniqueFromSignaturesInDataTypes } from '../EditUniqueFromSignaturesInDataTypes';
 import { StudioModeler } from '../../../utils/bpmnModeler/StudioModeler';
-import { NewNameRecommendation } from './EditTaskRecommendedItems/NewNameRecommendation';
+import { RecommendedActionChangeName } from './EditTaskRecommendedActions/RecommendedActionChangeName';
 import { ConfigContentContainer } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/ConfigContentContainer';
 
 export const ConfigContent = (): React.ReactElement => {
@@ -36,7 +36,7 @@ export const ConfigContent = (): React.ReactElement => {
     return (
       <ConfigContentContainer className={classes.recommendedActionBackdrop}>
         <div className={classes.recommendedActionContentBackdrop}>
-          <NewNameRecommendation />
+          <RecommendedActionChangeName />
         </div>
       </ConfigContentContainer>
     );
