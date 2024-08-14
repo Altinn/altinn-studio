@@ -34,18 +34,10 @@ export const StudioRecommendedNextActionContextProvider = ({
     });
   };
 
-  const value = useMemo(
-    () => ({
-      shouldDisplayAction,
-      addAction,
-      removeAction,
-    }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [actions],
-  );
-
   return (
-    <StudioRecommendedNextActionContext.Provider value={value}>
+    <StudioRecommendedNextActionContext.Provider
+      value={{ addAction, shouldDisplayAction, removeAction }}
+    >
       {children}
     </StudioRecommendedNextActionContext.Provider>
   );
