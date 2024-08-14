@@ -63,12 +63,15 @@ public class PreviewHubTests
 
     private static HttpContext GetHttpContextForTestUser(string userName)
     {
-        var identity = new GenericIdentity(userName);
-        var principal = new GenericPrincipal(identity, null);
+        List<Claim> claims = new();
+        claims.Add(new Claim(ClaimTypes.Name, userName));
+        ClaimsIdentity identity = new("TestUserLogin");
+        identity.AddClaims(claims);
 
-        HttpContext context = new DefaultHttpContext();
-        context.Request.HttpContext.User = principal;
+        ClaimsPrincipal principal = new(identity);
+        HttpContext c = new DefaultHttpContext();
+        c.Request.HttpContext.User = principal;
 
-        return context;
+        return c;
     }
 }
