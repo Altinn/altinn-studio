@@ -3,7 +3,6 @@ import classes from './StudioPageHeader.module.css';
 import cn from 'classnames';
 import { DigdirLogoLink } from './DigdirLogoLink';
 import { type StudioPageHeaderVariant } from './types/StudioPageHeaderVariant';
-import { type StudioPageHeaderColor } from './types/StudioPageHeaderColor';
 
 export type StudioPageHeaderProps = {
   children: ReactNode;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudioPageHeaderButton, StudioPopover } from '@studio/components';
+import { StudioPageHeaderButton, StudioPopover, useIsSmallWidth } from '@studio/components';
 import { UploadIcon } from '@studio/icons';
 import classes from './ShareChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';
@@ -13,11 +13,16 @@ import type { IContentStatus, IGitStatus } from 'app-shared/types/global';
 import { CommitAndPushContent } from './CommitAndPushContent';
 import type { RepoContentStatus } from 'app-shared/types/RepoStatus';
 
+// TODO MOVE
+const SMALL_WIDTH = 900;
+
 export const ShareChangesPopover = () => {
   const { isLoading, setIsLoading, hasPushRights, hasMergeConflict, repoStatus } =
     useVersionControlButtonsContext();
 
   const { t } = useTranslation();
+  const isSmallWidth = useIsSmallWidth(SMALL_WIDTH);
+
   const { org, app } = useStudioEnvironmentParams();
   const { refetch: refetchRepoStatus } = useRepoStatusQuery(org, app);
 
@@ -67,7 +72,7 @@ export const ShareChangesPopover = () => {
         title={renderCorrectTitle()}
         icon={<UploadIcon />}
       >
-        {t('sync_header.changes_to_share')}
+        {!isSmallWidth && t('sync_header.changes_to_share')}
         {displayNotification && <Notification />}
       </StudioPageHeaderButton>
       <div className={popoverHidden ? classes.hidePopover : classes.showPopover}>

@@ -6,4 +6,5 @@
   justify-content: flex-end;
   display: flex;
   flex-direction: row;
+  gap: var(--fds-spacing-2);
 }

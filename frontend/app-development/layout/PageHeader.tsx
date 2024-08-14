@@ -41,6 +41,8 @@ export const SubMenuContent = ({ hasRepoError }: SubMenuContentProps): ReactElem
 // TODO MOVE
 const LeftComponent = () => {
   const { t } = useTranslation();
+  const isSmallWidth = useIsSmallWidth(WINDOW_RESIZE_WIDTH);
+
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
   const { selectedFormLayoutName } = useSelectedFormLayoutName(selectedFormLayoutSetName);
@@ -69,7 +71,7 @@ const LeftComponent = () => {
               fontSize: '1.25rem',
             }}
           />
-          {t('top_menu.preview')}
+          {!isSmallWidth && t('top_menu.preview')}
         </a>
       </StudioPageHeaderButton>
     </div>

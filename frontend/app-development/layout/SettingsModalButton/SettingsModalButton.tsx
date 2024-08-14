@@ -1,13 +1,17 @@
 import type { ReactNode } from 'react';
 import React from 'react';
-import { StudioPageHeaderButton } from '@studio/components';
+import { StudioPageHeaderButton, useIsSmallWidth } from '@studio/components';
 import { CogIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { SettingsModal } from './SettingsModal';
 import { useSettingsModalContext } from '../../contexts/SettingsModalContext';
 
+// TODO MOVE
+const SMALL_WIDTH = 900;
+
 export const SettingsModalButton = (): ReactNode => {
   const { t } = useTranslation();
+  const isSmallWidth = useIsSmallWidth(SMALL_WIDTH);
   const { settingsModalOpen, setSettingsModalOpen, settingsModalSelectedTab } =
     useSettingsModalContext();
 
@@ -19,7 +23,7 @@ export const SettingsModalButton = (): ReactNode => {
         color='light'
         icon={<CogIcon />}
       >
-        {t('sync_header.settings')}
+        {!isSmallWidth && t('sync_header.settings')}
       </StudioPageHeaderButton>
       {
         // Done to prevent API calls to be executed before the modal is open
