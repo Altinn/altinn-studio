@@ -3,13 +3,7 @@ import classes from './ConfigContent.module.css';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { EditTaskId } from './EditTaskId/EditTaskId';
-import {
-  StudioDisplayTile,
-  StudioSectionHeader,
-  useStudioRecommendedNextActionContext,
-} from '@studio/components';
-import { getConfigTitleKey, getConfigTitleHelpTextKey } from '../../../utils/configPanelUtils';
-import { ConfigIcon } from './ConfigIcon';
+import { StudioDisplayTile, useStudioRecommendedNextActionContext } from '@studio/components';
 import { EditDataTypes } from '../EditDataTypes';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { Accordion } from '@digdir/designsystemet-react';
@@ -19,15 +13,12 @@ import { EditDataTypesToSign } from '../EditDataTypesToSign';
 import { EditUniqueFromSignaturesInDataTypes } from '../EditUniqueFromSignaturesInDataTypes';
 import { StudioModeler } from '../../../utils/bpmnModeler/StudioModeler';
 import { NewNameRecommendation } from './EditTaskRecommendedItems/NewNameRecommendation';
+import { ConfigContentContainer } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/ConfigContentContainer';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
   const { layoutSets, availableDataModelIds } = useBpmnApiContext();
-  const configHeaderTexts: Record<'title' | 'helpText', string> = {
-    title: bpmnDetails?.taskType && t(getConfigTitleKey(bpmnDetails.taskType)),
-    helpText: bpmnDetails?.taskType && t(getConfigTitleHelpTextKey(bpmnDetails.taskType)),
-  };
   const layoutSet = layoutSets?.sets.find((set) => set.tasks.includes(bpmnDetails.id));
   const existingDataTypeForTask = layoutSet?.dataType;
   const isSigningTask = bpmnDetails.taskType === 'signing';
@@ -41,71 +32,58 @@ export const ConfigContent = (): React.ReactElement => {
     .filter((item) => item.businessObject.extensionElements?.values[0]?.taskType === 'signing')
     .some((item, index) => item.id === bpmnDetails.id && index === 0);
 
-  return (
-    <>
-      <StudioSectionHeader
-        className={shouldDisplayAction(bpmnDetails.id) ? classes.grayedBackground : ''}
-        icon={<ConfigIcon taskType={bpmnDetails.taskType} />}
-        heading={{
-          text: configHeaderTexts.title,
-          level: 2,
-        }}
-        helpText={{
-          text: configHeaderTexts.helpText,
-          title: t('process_editor.configuration_panel_header_help_text_title'),
-        }}
-      />
-
-      <div
-        className={`${classes.configContent} ${shouldDisplayAction(bpmnDetails.id) ? classes.grayedBackgroundContent : ''}`}
-      >
-        {shouldDisplayAction(bpmnDetails.id) ? (
+  if (shouldDisplayAction(bpmnDetails.id)) {
+    return (
+      <ConfigContentContainer className={classes.recommendedActionBackdrop}>
+        <div className={classes.recommendedActionContentBackdrop}>
           <NewNameRecommendation />
-        ) : (
-          <>
-            <EditTaskId />
-            <StudioDisplayTile
-              label={t('process_editor.configuration_panel_name_label')}
-              value={bpmnDetails.name}
-              className={classes.displayTile}
-              showPadlock={false}
-            />
-            {taskHasConnectedLayoutSet && (
-              <EditDataTypes
-                connectedTaskId={layoutSet.tasks[0]}
-                dataModelIds={availableDataModelIds}
-                existingDataTypeForTask={existingDataTypeForTask}
-              />
-            )}
-            {isSigningTask && (
-              <>
-                <EditDataTypesToSign key={`${bpmnDetails.id}-dataTypes`} />
-                {!isFirstSigningTask && (
-                  <EditUniqueFromSignaturesInDataTypes key={`${bpmnDetails.id}-uniqueSignature`} />
-                )}
-              </>
-            )}
-            <Accordion color='neutral'>
-              <Accordion.Item>
-                <Accordion.Header>
-                  {t('process_editor.configuration_panel_actions_title')}
-                </Accordion.Header>
-                <Accordion.Content className={classes.accordion}>
-                  <EditActions />
-                </Accordion.Content>
-              </Accordion.Item>
-              <Accordion.Item>
-                <Accordion.Header>
-                  {t('process_editor.configuration_panel_policy_title')}
-                </Accordion.Header>
-                <Accordion.Content className={classes.accordion}>
-                  <EditPolicy />
-                </Accordion.Content>
-              </Accordion.Item>
-            </Accordion>
-          </>
-        )}
-      </div>
-    </>
+        </div>
+      </ConfigContentContainer>
+    );
+  }
+
+  return (
+    <ConfigContentContainer>
+      <EditTaskId />
+      <StudioDisplayTile
+        label={t('process_editor.configuration_panel_name_label')}
+        value={bpmnDetails.name}
+        className={classes.displayTile}
+        showPadlock={false}
+      />
+      {taskHasConnectedLayoutSet && (
+        <EditDataTypes
+          connectedTaskId={layoutSet.tasks[0]}
+          dataModelIds={availableDataModelIds}
+          existingDataTypeForTask={existingDataTypeForTask}
+        />
+      )}
+      {isSigningTask && (
+        <>
+          <EditDataTypesToSign key={`${bpmnDetails.id}-dataTypes`} />
+          {!isFirstSigningTask && (
+            <EditUniqueFromSignaturesInDataTypes key={`${bpmnDetails.id}-uniqueSignature`} />
+          )}
+        </>
+      )}
+      <Accordion color='neutral'>
+        <Accordion.Item>
+          <Accordion.Header>
+            {t('process_editor.configuration_panel_actions_title')}
+          </Accordion.Header>
+          <Accordion.Content className={classes.accordion}>
+            <EditActions />
+          </Accordion.Content>
+        </Accordion.Item>
+        <Accordion.Item>
+          <Accordion.Header>
+            {t('process_editor.configuration_panel_policy_title')}
+          </Accordion.Header>
+          <Accordion.Content className={classes.accordion}>
+            <EditPolicy />
+          </Accordion.Content>
+        </Accordion.Item>
+      </Accordion>
+    </ConfigContentContainer>
   );
 };

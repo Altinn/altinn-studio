@@ -4,11 +4,11 @@
   gap: var(--fds-spacing-2);
 }
 
-.grayedBackground {
+.recommendedActionBackdrop {
   background-color: #bfc4cb;
 }
 
-.grayedBackgroundContent {
+.recommendedActionContentBackdrop {
   background-color: #bfc4cb;
   height: 100%;
 }
