@@ -6,14 +6,13 @@ import {
   useStudioRecommendedNextActionContext,
 } from '@studio/components';
 import { KeyVerticalIcon } from '@studio/icons';
-import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { StudioModeler } from '../../../../utils/bpmnModeler/StudioModeler';
 
 export const RecommendedActionChangeName = (): React.ReactElement => {
-  const { bpmnDetails, setBpmnDetails, modelerRef } = useBpmnContext();
-  const modelerInstance = modelerRef.current;
-  const modeling: Modeling = modelerInstance.get('modeling');
+  const { bpmnDetails, setBpmnDetails } = useBpmnContext();
+  const studioModeler = new StudioModeler(bpmnDetails.element);
   const { t } = useTranslation();
   const { validateBpmnTaskId } = useValidateBpmnTaskId();
   const { removeAction } = useStudioRecommendedNextActionContext();
@@ -23,9 +22,7 @@ export const RecommendedActionChangeName = (): React.ReactElement => {
 
   const saveNewName = () => {
     removeAction(bpmnDetails.element.id);
-    modeling.updateProperties(bpmnDetails.element, {
-      id: newName,
-    });
+    studioModeler.updateElementProperties({ id: newName });
     setBpmnDetails({
       ...bpmnDetails,
       id: newName,

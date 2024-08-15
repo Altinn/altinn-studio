@@ -15,6 +15,12 @@ jest.mock('../../../../hooks/useValidateBpmnId', () => ({
   useValidateBpmnTaskId: jest.fn(),
 }));
 
+jest.mock('../../../../utils/bpmnModeler/StudioModeler.ts', () => ({
+  StudioModeler: jest.fn().mockImplementation(() => ({
+    updateElementProperties: jest.fn(),
+  })),
+}));
+
 describe('RecommendedActionChangeName', () => {
   const setBpmnDetails = jest.fn();
   const validateBpmnTaskId = jest.fn();
@@ -22,14 +28,13 @@ describe('RecommendedActionChangeName', () => {
 
   beforeEach(() => {
     (useBpmnContext as jest.Mock).mockReturnValue({
-      bpmnDetails: { id: DEFAULT_ID, element: {}, metadata: {} },
+      bpmnDetails: { id: DEFAULT_ID, element: { id: 'test_id' }, metadata: {} },
       setBpmnDetails: setBpmnDetails,
       modelerRef: { current: { get: () => ({ updateProperties: jest.fn() }) } },
     });
     (useValidateBpmnTaskId as jest.Mock).mockReturnValue({
       validateBpmnTaskId: validateBpmnTaskId,
     });
-
     jest.clearAllMocks();
   });
 
