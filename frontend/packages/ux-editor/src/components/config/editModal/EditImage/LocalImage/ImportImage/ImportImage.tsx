@@ -9,6 +9,7 @@ import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { UploadImage } from './UploadImage/UploadImage';
 import { useTranslation } from 'react-i18next';
 import { OverrideExistingImageModal } from './OverrideExistingImageModal/OverrideExistingImageModal';
+import { WWWROOT_FILE_PATH } from '../../../EditImage/EditImage';
 
 interface ImportImageProps {
   onImageChange: (imageSource: string) => void;
@@ -39,7 +40,7 @@ export const ImportImage = ({ onImageChange }: ImportImageProps) => {
       }
       try {
         await uploadImage(formData);
-        onImageChange(imageFile.name);
+        onImageChange(`${WWWROOT_FILE_PATH}${imageFile.name}`);
       } catch (error) {
         setShowOverrideExistingImageModalOpen(true);
       }

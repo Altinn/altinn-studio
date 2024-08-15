@@ -24,23 +24,46 @@ export const ChooseFromLibrary = ({ onAddImageReference }: ChooseFromLibraryProp
         </StudioParagraph>
       ) : (
         imagesFileNames.map((imageFileName) => (
-          <div key={imageFileName} className={classes.card}>
-            <Card onClick={() => onAddImageReference(imageFileName)}>
-              <Card.Media>
-                <img src={imagePath(org, app, imageFileName)} alt='' />
-              </Card.Media>
-              <Card.Header>
-                <Heading size='xs' className={classes.fileName} title={imageFileName}>
-                  {imageFileName}
-                </Heading>
-              </Card.Header>
-              <Card.Content className={classes.missingFileDescription}>
-                {t('ux_editor.properties_panel.images.description_missing')}
-              </Card.Content>
-            </Card>
-          </div>
+          <ImageFromLibrary
+            key={imageFileName}
+            imageFileName={imageFileName}
+            onAddImageReference={onAddImageReference}
+            imageSource={imagePath(org, app, imageFileName)}
+          />
         ))
       )}
+    </div>
+  );
+};
+
+interface ImageFromLibraryProps {
+  imageFileName: string;
+  onAddImageReference: (fileName: string) => void;
+  imageSource: string;
+}
+
+const ImageFromLibrary = ({
+  imageFileName,
+  onAddImageReference,
+  imageSource,
+}: ImageFromLibraryProps) => {
+  const { t } = useTranslation();
+  // The img component requires an alt which we can set to be the descriptions from the metadata in the library when this is available.
+  return (
+    <div className={classes.card}>
+      <Card onClick={() => onAddImageReference(imageFileName)}>
+        <Card.Media>
+          <img src={imageSource} alt='' />
+        </Card.Media>
+        <Card.Header>
+          <Heading size='xs' className={classes.fileName} title={imageFileName}>
+            {imageFileName}
+          </Heading>
+        </Card.Header>
+        <Card.Content className={classes.missingFileDescription}>
+          {t('ux_editor.properties_panel.images.description_missing')}
+        </Card.Content>
+      </Card>
     </div>
   );
 };

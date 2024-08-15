@@ -13,7 +13,7 @@ export const ConflictingImageSourceAlert = ({
   conflictSource,
 }: ConflictingImageSourceAlertProps) => {
   const { t } = useTranslation();
-  
+
   return (
     showAlert && (
       <Alert size='small' className={classes.alert}>

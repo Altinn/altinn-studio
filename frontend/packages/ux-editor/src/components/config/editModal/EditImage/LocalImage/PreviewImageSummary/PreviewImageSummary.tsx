@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { ImageIcon } from '@studio/icons';
-import { StudioDeleteButton, StudioParagraph } from '@studio/components';
+import { StudioDeleteButton } from '@studio/components';
 import classes from './PreviewImageSummary.module.css';
 import { useTranslation } from 'react-i18next';
 import { DeleteOptionsModal } from './DeleteOptionsModal/DeleteOptionsModal';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { PreviewFileInfo } from '@altinn/ux-editor/components/config/editModal/EditImage/LocalImage/PreviewImageSummary/PreviewFileInfo';
 
 export interface PreviewImageSummaryProps {
   existingImageUrl: string;
@@ -25,20 +26,10 @@ export const PreviewImageSummary = ({
   return (
     <div className={classes.previewContainer}>
       <ImageIcon className={classes.fileIcon} />
-      <div className={classes.fileInfoContainer}>
-        <StudioParagraph size='small' className={classes.fileName}>
-          {existingImageUrl}
-        </StudioParagraph>
-        {existingImageDescription ? (
-          <StudioParagraph size='small' className={classes.fileDescription}>
-            {existingImageDescription}
-          </StudioParagraph>
-        ) : (
-          <StudioParagraph size='small' className={classes.missingFileDescription}>
-            {t('ux_editor.properties_panel.images.description_missing')}
-          </StudioParagraph>
-        )}
-      </div>
+      <PreviewFileInfo
+        existingImageUrl={existingImageUrl}
+        existingImageDescription={existingImageDescription}
+      />
       <StudioDeleteButton
         title={t('ux_editor.properties_panel.images.delete_image_reference_title')}
         variant='tertiary'

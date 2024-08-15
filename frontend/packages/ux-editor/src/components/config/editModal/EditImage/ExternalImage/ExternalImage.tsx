@@ -8,6 +8,7 @@ import { useValidateImageExternalUrlQuery } from 'app-shared/hooks/queries/useVa
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { TFunction } from 'i18next';
 import { ConflictingImageSourceAlert } from '../ConflictingImageSourceAlert';
+import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
 
 export interface ExternalImageProps {
   existingImageUrl: string;
@@ -44,7 +45,7 @@ export const ExternalImage = ({
     }
   };
 
-  const handleValidation = (validation: string) => {
+  const handleValidation = (validation: ExternalImageUrlValidationResponse): string => {
     if (validation === 'Ok') {
       return '';
     } else if (validation === 'NotValidUrl') {

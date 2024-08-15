@@ -9,6 +9,13 @@ import classes from './EditImage.module.css';
 import { useDeleteImageMutation } from 'app-shared/hooks/mutations/useDeleteImageMutation';
 import { LocalImage } from './LocalImage';
 import { ExternalImage } from './ExternalImage';
+import {
+  extractFileNameFromImageSrc,
+  updateComponentWithDeletedImageReference,
+  updateComponentWithImage,
+} from './EditImageUtils';
+
+export const WWWROOT_FILE_PATH = 'wwwroot/';
 
 enum ImageTab {
   Import = 'import',
@@ -31,30 +38,15 @@ export const EditImage = ({ component, handleComponentChange }: EditImageProps) 
   const fileName = extractFileNameFromImageSrc(component.image?.src?.nb, org, app);
   const imageOriginsFromLibrary = !imageFileNamesArePending && imageFileNames?.includes(fileName);
 
-  const handleImageChange = async (imageSource: string, fromUrl: boolean = false) => {
-    const updatedComponent = updateComponentWithImage(
-      fromUrl ? imageSource : `wwwroot/${imageSource}`,
-    );
+  const handleImageChange = async (imageSource: string) => {
+    const updatedComponent = updateComponentWithImage(component, imageSource);
     handleComponentChange(updatedComponent);
     await refetchImageFileNames();
   };
-  const updateComponentWithImage = (imageSource: string) => {
-    return {
-      ...component,
-      image: {
-        ...component.image,
-        src: {
-          ...component.image?.src,
-          nb: imageSource, // How to handle different images for different languages?
-        },
-      },
-    };
-  };
+
   const handleDeleteImageReference = () => {
-    component.image.src = {};
-    handleComponentChange({
-      ...component,
-    });
+    const updateComponent = updateComponentWithDeletedImageReference(component);
+    handleComponentChange(updateComponent);
   };
 
   const handleDeleteImage = (fileNameToDelete: string) => {
@@ -85,23 +77,11 @@ export const EditImage = ({ component, handleComponentChange }: EditImageProps) 
       <Tabs.Content value={ImageTab.ExternalUrl} className={classes.urlTab}>
         <ExternalImage
           existingImageUrl={imageOriginsFromLibrary ? undefined : component.image?.src?.nb}
-          onUrlChange={(imageSrc: string) => handleImageChange(imageSrc, true)}
+          onUrlChange={handleImageChange}
           onUrlDelete={handleDeleteImageReference}
           imageOriginsFromLibrary={imageOriginsFromLibrary}
         />
       </Tabs.Content>
     </Tabs>
   );
-};
-
-const extractFileNameFromImageSrc = (imageSrc: string, org: string, app: string) => {
-  if (!imageSrc) return '';
-  const relativeFilePath = `/${org}/${app}/`;
-  const wwwroot = 'wwwroot/';
-  const indexOfRelativePath: number = imageSrc.indexOf(relativeFilePath);
-  const indexOfWwwroot: number = imageSrc.indexOf(wwwroot);
-  if (indexOfRelativePath > -1)
-    return imageSrc.slice(indexOfRelativePath + relativeFilePath.length);
-  if (indexOfWwwroot > -1) return imageSrc.slice(indexOfRelativePath + wwwroot.length + 1); // why do I need this +1
-  return imageSrc; // What to return?
 };
