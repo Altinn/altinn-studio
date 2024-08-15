@@ -17,7 +17,7 @@ export const NoEnvironmentsAlert = ({ ...rest }: NoEnvironmentsAlertProps) => {
       </Heading>
       <Paragraph spacing>
         <Trans i18nKey='app_deployment.no_env_1'>
-          <a href={contactByEmail.url('serviceOwner')} />
+          <a href={contactByEmail.url('serviceDesk')} />
         </Trans>
       </Paragraph>
       <Paragraph>

@@ -9,8 +9,9 @@ import { useOrganizationsQuery } from '../hooks/queries';
 
 import './App.css';
 import { PageLayout } from 'dashboard/pages/PageLayout';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { DASHBOARD_ROOT_ROUTE } from 'app-shared/constants';
+import { Link } from '@digdir/designsystemet-react';
 
 export const App = (): JSX.Element => {
   const { t } = useTranslation();
@@ -41,7 +42,14 @@ export const App = (): JSX.Element => {
     return (
       <StudioPageError
         title={t('dashboard.error_unknown.title')}
-        message={t('dashboard.error_unknown.message')}
+        message={
+          <Trans
+            i18nKey={'dashboard.error_unknown.message'}
+            components={{
+              a: <Link href='/contact'> </Link>,
+            }}
+          />
+        }
       />
     );
   };
