@@ -31,6 +31,13 @@ describe('StudioRecommendedNextActionContext', () => {
     expect(result.current.shouldDisplayAction('actionId')).toBe(false);
   });
 
+  it('should throw an error if the context is not wrapped in a provider', () => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    expect(() => {
+      renderHook(useStudioRecommendedNextActionContext);
+    }).toThrow(Error);
+  });
+
   const hookWrapper = ({ children }) => {
     return (
       <StudioRecommendedNextActionContextProvider>
