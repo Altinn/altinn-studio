@@ -25,7 +25,7 @@ export const useFormLayoutMutation = (
 
       const requestPayload = {
         layout: convertedLayout,
-      } as FormLayoutRequest;
+      } as unknown as FormLayoutRequest;
 
       return saveFormLayoutV3(org, app, layoutName, layoutSetName, requestPayload).then(
         () => layout,

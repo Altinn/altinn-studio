@@ -32,7 +32,7 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
     const convertedLayout: ExternalFormLayoutV3 = internalLayoutToExternal(updatedLayout);
     return await saveFormLayoutV3(org, app, updatedLayoutName, layoutSetName, {
       layout: convertedLayout,
-    } as FormLayoutRequest);
+    } as unknown as FormLayoutRequest);
   };
 
   return useMutation({
