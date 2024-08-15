@@ -51,7 +51,7 @@ export function App() {
 
   return (
     <div className={classes.container}>
-      <div data-testid={appContentWrapperId}>
+      <div data-testid={appContentWrapperId} className={classes.appContainer}>
         <Outlet />
       </div>
     </div>
