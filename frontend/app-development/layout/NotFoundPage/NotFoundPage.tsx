@@ -5,6 +5,7 @@ import { useTranslation, Trans } from 'react-i18next';
 
 export const NotFoundPage = () => {
   const { t } = useTranslation();
+
   return (
     <StudioNotFoundPage
       title={t('not_found_page.heading')}
