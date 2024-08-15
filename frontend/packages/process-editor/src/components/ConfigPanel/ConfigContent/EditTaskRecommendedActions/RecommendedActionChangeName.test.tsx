@@ -5,7 +5,7 @@ import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { useValidateBpmnTaskId } from '../../../../hooks/useValidateBpmnId';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { useStudioRecommendedNextActionContext } from '@studio/components';
+import { StudioRecommendedNextActionContextProvider } from '@studio/components';
 
 jest.mock('../../../../contexts/BpmnContext', () => ({
   useBpmnContext: jest.fn(),
@@ -15,15 +15,7 @@ jest.mock('../../../../hooks/useValidateBpmnId', () => ({
   useValidateBpmnTaskId: jest.fn(),
 }));
 
-jest.mock(
-  '@studio/components/src/components/StudioRecommendedNextAction/context/useStudioRecommendedNextActionContext.ts',
-  () => ({
-    useStudioRecommendedNextActionContext: jest.fn(),
-  }),
-);
-
 describe('RecommendedActionChangeName', () => {
-  const user = userEvent.setup();
   const setBpmnDetails = jest.fn();
   const validateBpmnTaskId = jest.fn();
   const DEFAULT_ID = 'test_id';
@@ -34,11 +26,6 @@ describe('RecommendedActionChangeName', () => {
       setBpmnDetails: setBpmnDetails,
       modelerRef: { current: { get: () => ({ updateProperties: jest.fn() }) } },
     });
-    (useStudioRecommendedNextActionContext as jest.Mock).mockReturnValue({
-      removeAction: jest.fn(),
-      addAction: jest.fn(),
-      shouldDisplayAction: jest.fn(),
-    });
     (useValidateBpmnTaskId as jest.Mock).mockReturnValue({
       validateBpmnTaskId: validateBpmnTaskId,
     });
@@ -47,7 +34,8 @@ describe('RecommendedActionChangeName', () => {
   });
 
   it('calls validation on name input', async () => {
-    render(<RecommendedActionChangeName />);
+    const user = userEvent.setup();
+    renderWithContext(<RecommendedActionChangeName />);
     const newNameInput = screen.getByRole('textbox', {
       name: textMock('process_editor.recommended_action.new_name_label'),
     });
@@ -57,7 +45,8 @@ describe('RecommendedActionChangeName', () => {
   });
 
   it('calls saveNewName when save button is clicked with a valid name', async () => {
-    render(<RecommendedActionChangeName />);
+    const user = userEvent.setup();
+    renderWithContext(<RecommendedActionChangeName />);
     const newNameInput = screen.getByRole('textbox', {
       name: textMock('process_editor.recommended_action.new_name_label'),
     });
@@ -74,11 +63,20 @@ describe('RecommendedActionChangeName', () => {
   });
 
   it('calls cancelAction when skip button is clicked', async () => {
-    render(<RecommendedActionChangeName />);
+    const user = userEvent.setup();
+    renderWithContext(<RecommendedActionChangeName />);
 
     const skipButton = screen.getByText(textMock('general.skip'));
     await user.click(skipButton);
 
     expect(setBpmnDetails).not.toHaveBeenCalled();
   });
+
+  const renderWithContext = (children) => {
+    render(
+      <StudioRecommendedNextActionContextProvider>
+        {children}
+      </StudioRecommendedNextActionContextProvider>,
+    );
+  };
 });
