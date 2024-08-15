@@ -1,13 +1,22 @@
 import React from 'react';
-import classes from './Contact.module.css';
+import classes from './ContactPage.module.css';
 import { Heading, Link, Paragraph } from '@digdir/designsystemet-react';
 import { Trans, useTranslation } from 'react-i18next';
 import { EnvelopeClosedIcon, SlackIcon, GitHubIcon } from '@studio/icons';
 import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
 import classNames from 'classnames';
+import { GetInTouchWith } from 'app-shared/getInTouch';
+import {
+  EmailContactProvider,
+  GitHubIssueContactProvider,
+  SlackContactProvider,
+} from 'app-shared/getInTouch/providers';
 
-export const Contact = () => {
+export const ContactPage = (): React.ReactElement => {
   const { t } = useTranslation();
+  const contactByEmail = new GetInTouchWith(new EmailContactProvider());
+  const contactBySlack = new GetInTouchWith(new SlackContactProvider());
+  const contactByGitHubIssue = new GetInTouchWith(new GitHubIssueContactProvider());
 
   return (
     <PageContainer>
@@ -27,11 +36,9 @@ export const Contact = () => {
                 {t('contact.email.heading')}
               </Heading>
               <Paragraph spacing>{t('contact.email.content')}</Paragraph>
-              <Paragraph className={classes.link}>
-                <Trans i18nKey='contact.email.link'>
-                  <Link> </Link>
-                </Trans>
-              </Paragraph>
+              <Link href={contactByEmail.url('serviceDesk')}>
+                {t('general.service_desk.email')}
+              </Link>
             </div>
           </section>
           <section className={classes.section}>
@@ -50,11 +57,9 @@ export const Contact = () => {
                   </Trans>
                 </ul>
               </Paragraph>
-              <Paragraph className={classes.link}>
-                <Trans i18nKey='contact.slack.link'>
-                  <Link> </Link>
-                </Trans>
-              </Paragraph>
+              <Link href={contactBySlack.url('product-altinn-studio')}>
+                {t('contact.slack.link')}
+              </Link>
             </div>
           </section>
           <section className={classes.section}>
@@ -66,11 +71,9 @@ export const Contact = () => {
                 {t('contact.github_issue.heading')}
               </Heading>
               <Paragraph spacing>{t('contact.github_issue.content')}</Paragraph>
-              <Paragraph className={classes.link}>
-                <Trans i18nKey='contact.github_issue.link'>
-                  <Link> </Link>
-                </Trans>
-              </Paragraph>
+              <Link href={contactByGitHubIssue.url('choose')}>
+                {t('contact.github_issue.link_label')}
+              </Link>
             </div>
           </section>
         </div>

@@ -1,16 +1,16 @@
 import * as React from 'react';
 import { Card, Heading, Link, Paragraph } from '@digdir/designsystemet-react';
-import { useNewsListQuery } from 'app-development/hooks/queries/useNewsListQuery';
-import { StudioPageError, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './News.module.css';
-import { NEWS_EXPIRATION_TIME_IN_DAYS } from 'app-shared/constants';
 import { gitHubRoadMapUrl } from 'app-shared/ext-urls';
+import newsData from './NewsContent/news.nb.json';
+import { NEWS_EXPIRATION_TIME_IN_DAYS } from 'app-shared/constants';
 
 export const News = () => {
-  const { data: newsList, isPending, isError, isSuccess } = useNewsListQuery();
   const { t } = useTranslation();
   const today = new Date();
+
+  const newsList = newsData.news;
 
   const showNews = (date: string): boolean => {
     const publishDate = new Date(date);
@@ -19,8 +19,7 @@ export const News = () => {
     return publishDate <= today && today <= publishDatePlus30Days;
   };
 
-  const thereAreRelevantNews =
-    isSuccess && newsList.news.filter((news) => showNews(news.date)).length > 0;
+  const thereAreRelevantNews = newsList.filter((news) => showNews(news.date)).length > 0;
 
   const formatDateToText = (date: string) => {
     // Date comes in this format: YYYY-MM-DD
@@ -28,30 +27,11 @@ export const News = () => {
     return `${day}.${month}.${year}`;
   };
 
-  if (isPending) {
-    return (
-      <NewsTemplate>
-        <StudioSpinner showSpinnerTitle spinnerTitle={t('overview.fetch_news_loading_message')} />
-      </NewsTemplate>
-    );
-  }
-
-  if (isError) {
-    return (
-      <NewsTemplate>
-        <StudioPageError
-          title={t('overview.news_error_title')}
-          message={t('overview.fetch_news_error_message')}
-        />
-      </NewsTemplate>
-    );
-  }
-
   return (
     <div>
       <NewsTemplate>
         {thereAreRelevantNews ? (
-          newsList.news?.map(({ title, content, date }) => {
+          newsList?.map(({ title, content, date }) => {
             return (
               showNews(date) && (
                 <Card className={classes.newsContent} key={title}>
