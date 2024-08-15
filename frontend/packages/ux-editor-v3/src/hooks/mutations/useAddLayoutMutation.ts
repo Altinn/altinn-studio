@@ -13,7 +13,7 @@ import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuer
 import type { ILayoutSettings } from 'app-shared/types/global';
 import { addOrRemoveNavigationButtons } from '../../utils/formLayoutsUtils';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
-import { FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
+import { type FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
 
 export interface AddLayoutMutationArgs {
   layoutName: string;

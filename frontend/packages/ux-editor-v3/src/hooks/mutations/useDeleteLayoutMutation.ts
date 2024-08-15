@@ -15,7 +15,7 @@ import { useAddLayoutMutation } from './useAddLayoutMutation';
 import { useText } from '../useText';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
-import { FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
+import { type FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
 
 export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName: string) => {
   const { deleteFormLayout, saveFormLayoutV3 } = useServicesContext();
