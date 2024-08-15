@@ -12,6 +12,7 @@ import { useAppVersionQuery } from 'app-shared/hooks/queries';
 import React from 'react';
 import { usePreviewContext } from '../contexts/PreviewContext';
 import { useLayoutContext } from '../contexts/LayoutContext';
+import { StudioResourceLibrary } from '@studio/resource-library';
 
 interface IRouteProps {
   headerTextKey?: string;
@@ -54,6 +55,12 @@ const UiEditor = () => {
     <UiEditorV3 />
   );
 };
+
+// const appLib = libraryEntryPoint({})
+
+new StudioResourceLibrary({
+  routes: {},
+});
 
 export const routerRoutes: RouterRoute[] = [
   {

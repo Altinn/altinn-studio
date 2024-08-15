@@ -1,0 +1,14 @@
+{
+  "name": "@studio/resource-library",
+  "version": "0.1.0",
+  "packageManager": "yarn@4.4.0",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@studio/components": "workspace:^"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0",
+    "react-router-dom": ">=6.0.0"
+  }
+}

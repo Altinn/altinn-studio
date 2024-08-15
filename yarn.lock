@@ -5922,7 +5922,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@studio/components@workspace:frontend/libs/studio-components":
+"@studio/components@workspace:^, @studio/components@workspace:frontend/libs/studio-components":
   version: 0.0.0-use.local
   resolution: "@studio/components@workspace:frontend/libs/studio-components"
   dependencies:
@@ -5982,6 +5982,18 @@ __metadata:
     jest-environment-jsdom: "npm:^29.7.0"
     ts-jest: "npm:^29.1.1"
     typescript: "npm:^5.2.2"
+  languageName: unknown
+  linkType: soft
+
+"@studio/resource-library@workspace:^, @studio/resource-library@workspace:frontend/libs/studio-resource-library":
+  version: 0.0.0-use.local
+  resolution: "@studio/resource-library@workspace:frontend/libs/studio-resource-library"
+  dependencies:
+    "@studio/components": "workspace:^"
+  peerDependencies:
+    react: ">=18.0.0"
+    react-dom: ">=18.0.0"
+    react-router-dom: ">=6.0.0"
   languageName: unknown
   linkType: soft
 
@@ -8201,6 +8213,7 @@ __metadata:
   dependencies:
     "@studio/icons": "workspace:^"
     "@studio/pure-functions": "workspace:^"
+    "@studio/resource-library": "workspace:^"
     axios: "npm:1.7.4"
     classnames: "npm:2.5.1"
     cross-env: "npm:7.0.3"

@@ -11,6 +11,7 @@
   "dependencies": {
     "@studio/icons": "workspace:^",
     "@studio/pure-functions": "workspace:^",
+    "@studio/resource-library": "workspace:^",
     "axios": "1.7.4",
     "classnames": "2.5.1",
     "i18next": "23.12.2",
