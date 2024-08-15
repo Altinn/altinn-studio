@@ -32,6 +32,12 @@ partial class Telemetry
         return activity;
     }
 
+    internal Activity? StartDataProcessWriteActivity(IDataProcessor dataProcessor)
+    {
+        var activity = ActivitySource.StartActivity($"{Prefix}.ProcessWrite.{dataProcessor.GetType().Name}");
+        return activity;
+    }
+
     internal static class Data
     {
         internal const string Prefix = "Data";

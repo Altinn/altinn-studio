@@ -20,7 +20,10 @@ public class UserActionResponse
     /// Validators that are not listed in the dictionary are assumed to have not been executed
     /// </summary>
     [JsonPropertyName("updatedValidationIssues")]
-    public Dictionary<string, Dictionary<string, List<ValidationIssue>>>? UpdatedValidationIssues { get; set; }
+    public Dictionary<
+        string,
+        Dictionary<string, List<ValidationIssueWithSource>>
+    >? UpdatedValidationIssues { get; set; }
 
     /// <summary>
     /// Actions the client should perform after action has been performed backend

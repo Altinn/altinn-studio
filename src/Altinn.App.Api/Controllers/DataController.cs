@@ -453,6 +453,53 @@ public class DataController : ControllerBase
         [FromQuery] string? language = null
     )
     {
+        var request = new DataPatchRequestMultiple()
+        {
+            Patches = new() { [dataGuid] = dataPatchRequest.Patch },
+            IgnoredValidators = dataPatchRequest.IgnoredValidators
+        };
+        var response = await PatchFormDataMultiple(org, app, instanceOwnerPartyId, instanceGuid, request, language);
+
+        if (response.Result is OkObjectResult { Value: DataPatchResponseMultiple newResponse })
+        {
+            // Map the new response to the old response
+            return Ok(
+                new DataPatchResponse()
+                {
+                    ValidationIssues = newResponse.ValidationIssues,
+                    NewDataModel = newResponse.NewDataModels[dataGuid],
+                }
+            );
+        }
+
+        // Return the error object unchanged
+        return response.Result ?? throw new InvalidOperationException("Response is null");
+    }
+
+    /// <summary>
+    /// Updates an existing form data element with a patch of changes.
+    /// </summary>
+    /// <param name="org">unique identfier of the organisation responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
+    /// <param name="instanceGuid">unique id to identify the instance</param>
+    /// <param name="dataPatchRequest">Container object for the <see cref="JsonPatch" /> and list of ignored validators</param>
+    /// <param name="language">The language selected by the user.</param>
+    /// <returns>A response object with the new full model and validation issues from all the groups that run</returns>
+    [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
+    [HttpPatch("")]
+    [ProducesResponseType(typeof(DataPatchResponseMultiple), 200)]
+    [ProducesResponseType(typeof(ProblemDetails), 409)]
+    [ProducesResponseType(typeof(ProblemDetails), 422)]
+    public async Task<ActionResult<DataPatchResponseMultiple>> PatchFormDataMultiple(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] int instanceOwnerPartyId,
+        [FromRoute] Guid instanceGuid,
+        [FromBody] DataPatchRequestMultiple dataPatchRequest,
+        [FromQuery] string? language = null
+    )
+    {
         try
         {
             var instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
@@ -464,44 +511,59 @@ public class DataController : ControllerBase
                 );
             }
 
-            var dataElement = instance.Data.First(m => m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal));
-
-            if (dataElement == null)
-            {
-                return NotFound("Did not find data element");
-            }
-
-            var dataType = await GetDataType(dataElement);
-
-            if (dataType?.AppLogic?.ClassRef is null)
-            {
-                _logger.LogError(
-                    "Could not determine if {dataType} requires app logic for application {org}/{app}",
-                    dataType,
-                    org,
-                    app
-                );
-                return BadRequest($"Could not determine if data type {dataType?.Id} requires application logic.");
-            }
-
-            ServiceResult<DataPatchResult, DataPatchError> res = await _patchService.ApplyPatch(
+            CachedInstanceDataAccessor dataAccessor = new CachedInstanceDataAccessor(
                 instance,
-                dataType,
-                dataElement,
-                dataPatchRequest.Patch,
+                _dataClient,
+                _appMetadata,
+                _appModel
+            );
+
+            foreach (Guid dataGuid in dataPatchRequest.Patches.Keys)
+            {
+                var dataElement = instance.Data.First(m => m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal));
+
+                if (dataElement == null)
+                {
+                    return NotFound("Did not find data element");
+                }
+
+                var dataType = await GetDataType(dataElement);
+
+                if (dataType?.AppLogic?.ClassRef is null)
+                {
+                    _logger.LogError(
+                        "Could not determine if {dataType} requires app logic for application {org}/{app}",
+                        dataType,
+                        org,
+                        app
+                    );
+                    return BadRequest($"Could not determine if data type {dataType?.Id} requires application logic.");
+                }
+            }
+
+            ServiceResult<DataPatchResult, DataPatchError> res = await _patchService.ApplyPatches(
+                instance,
+                dataPatchRequest.Patches,
                 language,
                 dataPatchRequest.IgnoredValidators
             );
 
             if (res.Success)
             {
-                await UpdateDataValuesOnInstance(instance, dataType.Id, res.Ok.NewDataModel);
-                await UpdatePresentationTextsOnInstance(instance, dataType.Id, res.Ok.NewDataModel);
+                foreach (var dataGuid in dataPatchRequest.Patches.Keys)
+                {
+                    await UpdateDataValuesOnInstance(instance, dataGuid.ToString(), res.Ok.NewDataModels[dataGuid]);
+                    await UpdatePresentationTextsOnInstance(
+                        instance,
+                        dataGuid.ToString(),
+                        res.Ok.NewDataModels[dataGuid]
+                    );
+                }
 
                 return Ok(
-                    new DataPatchResponse
+                    new DataPatchResponseMultiple()
                     {
-                        NewDataModel = res.Ok.NewDataModel,
+                        NewDataModels = res.Ok.NewDataModels,
                         ValidationIssues = res.Ok.ValidationIssues
                     }
                 );
@@ -513,7 +575,7 @@ public class DataController : ControllerBase
         {
             return HandlePlatformHttpException(
                 e,
-                $"Unable to update data element {dataGuid} for instance {instanceOwnerPartyId}/{instanceGuid}"
+                $"Unable to update data element {string.Join(", ", dataPatchRequest.Patches.Keys)} for instance {instanceOwnerPartyId}/{instanceGuid}"
             );
         }
     }

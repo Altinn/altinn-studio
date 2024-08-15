@@ -205,7 +205,6 @@ public static class ServiceCollectionExtensions
 
     private static void AddValidationServices(IServiceCollection services, IConfiguration configuration)
     {
-        CachedFormDataAccessor.Register(services);
         services.AddTransient<IValidatorFactory, ValidatorFactory>();
         services.AddScoped<IValidationService, ValidationService>();
         if (configuration.GetSection("AppSettings").Get<AppSettings>()?.RequiredValidation == true)
@@ -218,9 +217,7 @@ public static class ServiceCollectionExtensions
             services.AddTransient<IFormDataValidator, ExpressionValidator>();
         }
         services.AddTransient<IFormDataValidator, DataAnnotationValidator>();
-        services.AddTransient<IFormDataValidator, LegacyIInstanceValidatorFormDataValidator>();
         services.AddTransient<IDataElementValidator, DefaultDataElementValidator>();
-        services.AddTransient<ITaskValidator, LegacyIInstanceValidatorTaskValidator>();
         services.AddTransient<ITaskValidator, DefaultTaskValidator>();
     }
 

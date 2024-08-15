@@ -356,6 +356,96 @@ paths:
             text/xml:
               schema:
                 $ref: '#/components/schemas/DataElement'
+    patch:
+      tags:
+        - Data
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: language
+          in: query
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataPatchRequestMultiple'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/DataPatchRequestMultiple'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/DataPatchRequestMultiple'
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/DataPatchResponseMultiple'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataPatchResponseMultiple'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/DataPatchResponseMultiple'
+        '409':
+          description: Conflict
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Unprocessable Content
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
   '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}':
     get:
       tags:
@@ -2805,6 +2895,22 @@ paths:
       responses:
         '200':
           description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/ValidationIssueWithSource'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationIssueWithSource'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ValidationIssueWithSource'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ValidationIssueWithSource'
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ValidationIssueWithSource'
   '/{org}/{app}/instances/{instanceOwnerId}/{instanceId}/data/{dataGuid}/validate':
     get:
       tags:
@@ -2845,6 +2951,7 @@ paths:
       responses:
         '200':
           description: OK
+      deprecated: true
 components:
   schemas:
     ActionError:
@@ -3379,6 +3486,23 @@ components:
             type: string
           nullable: true
       additionalProperties: false
+    DataPatchRequestMultiple:
+      required:
+        - ignoredValidators
+        - patches
+      type: object
+      properties:
+        patches:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/JsonPatch'
+          nullable: true
+        ignoredValidators:
+          type: array
+          items:
+            type: string
+          nullable: true
+      additionalProperties: false
     DataPatchResponse:
       required:
         - newDataModel
@@ -3390,9 +3514,27 @@ components:
           additionalProperties:
             type: array
             items:
-              $ref: '#/components/schemas/ValidationIssue'
+              $ref: '#/components/schemas/ValidationIssueWithSource'
           nullable: true
         newDataModel:
+          nullable: true
+      additionalProperties: false
+    DataPatchResponseMultiple:
+      required:
+        - newDataModels
+        - validationIssues
+      type: object
+      properties:
+        validationIssues:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: '#/components/schemas/ValidationIssueWithSource'
+          nullable: true
+        newDataModels:
+          type: object
+          additionalProperties: { }
           nullable: true
       additionalProperties: false
     DataType:
@@ -4273,7 +4415,7 @@ components:
             additionalProperties:
               type: array
               items:
-                $ref: '#/components/schemas/ValidationIssue'
+                $ref: '#/components/schemas/ValidationIssueWithSource'
             nullable: true
           nullable: true
         clientActions:
@@ -4297,9 +4439,22 @@ components:
             $ref: '#/components/schemas/KeyValueEntry'
           nullable: true
       additionalProperties: false
-    ValidationIssue:
+    ValidationIssueSeverity:
+      enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+      type: integer
+      format: int32
+    ValidationIssueWithSource:
       required:
+        - code
+        - description
         - severity
+        - source
       type: object
       properties:
         severity:
@@ -4328,16 +4483,6 @@ components:
             type: string
           nullable: true
       additionalProperties: false
-    ValidationIssueSeverity:
-      enum:
-        - 0
-        - 1
-        - 2
-        - 3
-        - 4
-        - 5
-      type: integer
-      format: int32
     ValidationStatus:
       type: object
       properties:

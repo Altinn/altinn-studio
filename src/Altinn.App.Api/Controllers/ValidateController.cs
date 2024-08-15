@@ -1,5 +1,7 @@
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models.Validation;
@@ -17,6 +19,8 @@ namespace Altinn.App.Api.Controllers;
 public class ValidateController : ControllerBase
 {
     private readonly IInstanceClient _instanceClient;
+    private readonly IDataClient _dataClient;
+    private readonly IAppModel _appModel;
     private readonly IAppMetadata _appMetadata;
     private readonly IValidationService _validationService;
 
@@ -26,12 +30,16 @@ public class ValidateController : ControllerBase
     public ValidateController(
         IInstanceClient instanceClient,
         IValidationService validationService,
-        IAppMetadata appMetadata
+        IAppMetadata appMetadata,
+        IDataClient dataClient,
+        IAppModel appModel
     )
     {
         _instanceClient = instanceClient;
         _validationService = validationService;
         _appMetadata = appMetadata;
+        _dataClient = dataClient;
+        _appModel = appModel;
     }
 
     /// <summary>
@@ -45,6 +53,7 @@ public class ValidateController : ControllerBase
     /// <param name="language">The currently used language by the user (or null if not available)</param>
     [HttpGet]
     [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/validate")]
+    [ProducesResponseType(typeof(ValidationIssueWithSource), 200)]
     public async Task<IActionResult> ValidateInstance(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -67,9 +76,11 @@ public class ValidateController : ControllerBase
 
         try
         {
-            List<ValidationIssue> messages = await _validationService.ValidateInstanceAtTask(
+            var dataAccessor = new CachedInstanceDataAccessor(instance, _dataClient, _appMetadata, _appModel);
+            List<ValidationIssueWithSource> messages = await _validationService.ValidateInstanceAtTask(
                 instance,
                 taskId,
+                dataAccessor,
                 language
             );
             return Ok(messages);
@@ -95,6 +106,9 @@ public class ValidateController : ControllerBase
     /// <param name="dataGuid">Unique id identifying specific data element</param>
     /// <param name="language">The currently used language by the user (or null if not available)</param>
     [HttpGet]
+    [Obsolete(
+        "There is no longer any concept of validating a single data element. Use the /validate endpoint instead."
+    )]
     [Route("{org}/{app}/instances/{instanceOwnerId:int}/{instanceId:guid}/data/{dataGuid:guid}/validate")]
     public async Task<IActionResult> ValidateData(
         [FromRoute] string org,
@@ -116,7 +130,7 @@ public class ValidateController : ControllerBase
             throw new ValidationException("Unable to validate instance without a started process.");
         }
 
-        List<ValidationIssue> messages = new List<ValidationIssue>();
+        List<ValidationIssueWithSource> messages = new List<ValidationIssueWithSource>();
 
         DataElement? element = instance.Data.FirstOrDefault(d => d.Id == dataGuid.ToString());
 
@@ -134,22 +148,29 @@ public class ValidateController : ControllerBase
             throw new ValidationException("Unknown element type.");
         }
 
-        messages.AddRange(await _validationService.ValidateDataElement(instance, element, dataType, language));
+        var dataAccessor = new CachedInstanceDataAccessor(instance, _dataClient, _appMetadata, _appModel);
+
+        // TODO: Consider filtering so that only relevant issues are reported.
+        messages.AddRange(
+            await _validationService.ValidateInstanceAtTask(instance, dataType.TaskId, dataAccessor, language)
+        );
 
         string taskId = instance.Process.CurrentTask.ElementId;
 
         // Should this be a BadRequest instead?
         if (!dataType.TaskId.Equals(taskId, StringComparison.OrdinalIgnoreCase))
         {
-            ValidationIssue message = new ValidationIssue
-            {
-                Code = ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask,
-                Severity = ValidationIssueSeverity.Warning,
-                DataElementId = element.Id,
-                Description = $"Data element for task {dataType.TaskId} validated while currentTask is {taskId}",
-                CustomTextKey = ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask,
-                CustomTextParams = new List<string>() { dataType.TaskId, taskId },
-            };
+            ValidationIssueWithSource message =
+                new()
+                {
+                    Code = ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask,
+                    Severity = ValidationIssueSeverity.Warning,
+                    DataElementId = element.Id,
+                    Description = $"Data element for task {dataType.TaskId} validated while currentTask is {taskId}",
+                    CustomTextKey = ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask,
+                    CustomTextParams = new List<string>() { dataType.TaskId, taskId },
+                    Source = GetType().FullName ?? String.Empty
+                };
             messages.Add(message);
         }
 

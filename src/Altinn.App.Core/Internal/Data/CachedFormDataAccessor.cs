@@ -1,51 +1,47 @@
 using System.Collections.Concurrent;
 using System.Globalization;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Core.Internal.Data;
 
 /// <summary>
 /// Class that caches form data to avoid multiple calls to the data service for a single validation
 ///
-/// Must be registered as a scoped service in DI container
+/// Do not add this to the DI container, as it should only be created explicitly because of data leak potential.
 /// </summary>
-internal sealed class CachedFormDataAccessor : ICachedFormDataAccessor
+internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
 {
+    private readonly string _org;
+    private readonly string _app;
+    private readonly Guid _instanceGuid;
+    private readonly int _instanceOwnerPartyId;
     private readonly IDataClient _dataClient;
     private readonly IAppMetadata _appMetadata;
     private readonly IAppModel _appModel;
-    private readonly IHttpContextAccessor _contextAccessor;
-    private readonly string _requestIdentifier;
     private readonly LazyCache<string, object> _cache = new();
 
-    public CachedFormDataAccessor(
+    public CachedInstanceDataAccessor(
+        Instance instance,
         IDataClient dataClient,
         IAppMetadata appMetadata,
-        IAppModel appModel,
-        IHttpContextAccessor contextAccessor
+        IAppModel appModel
     )
     {
+        _org = instance.Org;
+        _app = instance.AppId.Split("/")[1];
+        _instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
+        _instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
         _dataClient = dataClient;
         _appMetadata = appMetadata;
         _appModel = appModel;
-        _contextAccessor = contextAccessor;
-        ArgumentNullException.ThrowIfNull(_contextAccessor.HttpContext);
-        _requestIdentifier = _contextAccessor.HttpContext.TraceIdentifier;
     }
 
     /// <inheritdoc />
-    public async Task<object> Get(Instance instance, DataElement dataElement)
+    public async Task<object> Get(DataElement dataElement)
     {
-        // Be completly sure that the cache is only used in a single http request
-        if (_requestIdentifier != _contextAccessor.HttpContext?.TraceIdentifier)
-        {
-            throw new Exception("Cache can only be used in a single http request");
-        }
-
         return await _cache.GetOrCreate(
             dataElement.Id,
             async _ =>
@@ -59,15 +55,19 @@ internal sealed class CachedFormDataAccessor : ICachedFormDataAccessor
 
                 if (dataType.AppLogic?.ClassRef != null)
                 {
-                    return await GetFormData(instance, dataElement, dataType);
+                    return await GetFormData(dataElement, dataType);
                 }
 
-                return await GetBinaryData(instance, dataElement);
+                return await GetBinaryData(dataElement);
             }
         );
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Add data to the cache, so that it won't be fetched again
+    /// </summary>
+    /// <param name="dataElement"></param>
+    /// <param name="data"></param>
     public void Set(DataElement dataElement, object data)
     {
         _cache.Set(dataElement.Id, data);
@@ -86,64 +86,53 @@ internal sealed class CachedFormDataAccessor : ICachedFormDataAccessor
 
         public async Task<TValue> GetOrCreate(TKey key, Func<TKey, Task<TValue>> valueFactory)
         {
-            return await _cache.GetOrAdd(key, innerKey => new Lazy<Task<TValue>>(() => valueFactory(innerKey))).Value;
+            Task<TValue> task;
+            lock (_cache)
+            {
+                task = _cache.GetOrAdd(key, innerKey => new Lazy<Task<TValue>>(() => valueFactory(innerKey))).Value;
+            }
+            ;
+            return await task;
         }
 
         public void Set(TKey key, TValue data)
         {
-            if (!_cache.TryAdd(key, new Lazy<Task<TValue>>(Task.FromResult(data))))
+            lock (_cache)
             {
-                var existing = _cache[key];
-                if (
-                    existing.IsValueCreated
-                    && existing.Value.IsCompletedSuccessfully
-                    && data.Equals(existing.Value.Result)
-                )
-                {
-                    // We are trying to set the same value again, so we can just ignore this
-                    return;
-                }
-
-                throw new InvalidOperationException($"Key {key} already exists in cache");
+                _cache.AddOrUpdate(
+                    key,
+                    _ => new Lazy<Task<TValue>>(Task.FromResult(data)),
+                    (_, _) => new Lazy<Task<TValue>>(Task.FromResult(data))
+                );
             }
         }
     }
 
-    private async Task<Stream> GetBinaryData(Instance instance, DataElement dataElement)
+    private async Task<Stream> GetBinaryData(DataElement dataElement)
     {
-        var instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-        var app = instance.AppId.Split("/")[1];
-        var instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
+        ;
         var data = await _dataClient.GetBinaryData(
-            instance.Org,
-            app,
-            instanceOwnerPartyId,
-            instanceGuid,
+            _org,
+            _app,
+            _instanceOwnerPartyId,
+            _instanceGuid,
             Guid.Parse(dataElement.Id)
         );
         return data;
     }
 
-    private async Task<object> GetFormData(Instance instance, DataElement dataElement, DataType dataType)
+    private async Task<object> GetFormData(DataElement dataElement, DataType dataType)
     {
         var modelType = _appModel.GetModelType(dataType.AppLogic.ClassRef);
 
-        var instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-        var app = instance.AppId.Split("/")[1];
-        var instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
         var data = await _dataClient.GetFormData(
-            instanceGuid,
+            _instanceGuid,
             modelType,
-            instance.Org,
-            app,
-            instanceOwnerPartyId,
+            _org,
+            _app,
+            _instanceOwnerPartyId,
             Guid.Parse(dataElement.Id)
         );
         return data;
-    }
-
-    internal static void Register(IServiceCollection services)
-    {
-        services.AddScoped<ICachedFormDataAccessor, CachedFormDataAccessor>();
     }
 }

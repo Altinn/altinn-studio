@@ -53,7 +53,8 @@ public class DefaultDataElementValidator : IDataElementValidator
                         DataElementId = dataElement.Id,
                         Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
                         Severity = ValidationIssueSeverity.Error,
-                        Description = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
+                        Description =
+                            $"ContentType {contentTypeWithoutEncoding} not allowed for {string.Join(",", dataType.AllowedContentTypes)}",
                         Field = dataType.Id
                     }
                 );

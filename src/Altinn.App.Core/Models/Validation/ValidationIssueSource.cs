@@ -29,4 +29,9 @@ public static class ValidationIssueSources
     /// Expression validation
     /// </summary>
     public static readonly string Expression = nameof(Expression);
+
+    /// <summary>
+    /// Validation based on data annotations (json / xml schema)
+    /// </summary>
+    public static readonly string DataAnnotations = nameof(DataAnnotations);
 }

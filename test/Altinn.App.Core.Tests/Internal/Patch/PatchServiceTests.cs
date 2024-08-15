@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Altinn.App.Common.Tests;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
@@ -14,6 +15,7 @@ using Json.Patch;
 using Json.Pointer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using DataType = Altinn.Platform.Storage.Interface.Models.DataType;
 
@@ -22,13 +24,17 @@ namespace Altinn.App.Core.Tests.Internal.Patch;
 public class PatchServiceTests : IDisposable
 {
     // Test data
-    private static readonly Guid DataGuid = new("12345678-1234-1234-1234-123456789123");
+    private static readonly Guid _dataGuid = new("12345678-1234-1234-1234-123456789123");
 
     private readonly Instance _instance =
         new()
         {
             Id = "1337/12345678-1234-1234-1234-12345678912a",
-            Process = new ProcessState { CurrentTask = new ProcessElementInfo { Name = "Task_1" } }
+            AppId = "ttd/test",
+            Org = "ttd",
+            InstanceOwner = new() { PartyId = "1337" },
+            Data = [_dataElement],
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" }, }
         };
 
     // Service mocks
@@ -49,10 +55,11 @@ public class PatchServiceTests : IDisposable
 
     public PatchServiceTests()
     {
+        var applicationMetadata = new ApplicationMetadata("ttd/test") { DataTypes = [_dataType], };
         _appMetadataMock
             .Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("ttd/test"))
-            .Verifiable();
+            .ReturnsAsync(applicationMetadata)
+            .Verifiable(Times.AtLeastOnce);
         _appModelMock
             .Setup(a => a.GetModelType("Altinn.App.Core.Tests.Internal.Patch.PatchServiceTests+MyModel"))
             .Returns(typeof(MyModel))
@@ -60,6 +67,8 @@ public class PatchServiceTests : IDisposable
         _formDataValidator.Setup(fdv => fdv.DataType).Returns(_dataType.Id);
         _formDataValidator.Setup(fdv => fdv.ValidationSource).Returns("formDataValidator");
         _formDataValidator.Setup(fdv => fdv.HasRelevantChanges(It.IsAny<object>(), It.IsAny<object>())).Returns(true);
+        _dataElementValidator.Setup(dev => dev.DataType).Returns(_dataType.Id);
+        _dataElementValidator.Setup(dev => dev.ValidationSource).Returns("dataElementValidator");
         _dataClientMock
             .Setup(d =>
                 d.UpdateData<object>(
@@ -74,8 +83,15 @@ public class PatchServiceTests : IDisposable
             )
             .ReturnsAsync(_dataElement)
             .Verifiable();
-        _httpContextAccessorMock.SetupGet(hca => hca.HttpContext!.TraceIdentifier).Returns(Guid.NewGuid().ToString());
-        var validatorFactory = new ValidatorFactory([], [_dataElementValidator.Object], [_formDataValidator.Object]);
+        var validatorFactory = new ValidatorFactory(
+            [],
+            Options.Create(new GeneralSettings()),
+            [_dataElementValidator.Object],
+            [_formDataValidator.Object],
+            [],
+            [],
+            _appMetadataMock.Object
+        );
         var validationService = new ValidationService(
             validatorFactory,
             _dataClientMock.Object,
@@ -100,14 +116,15 @@ public class PatchServiceTests : IDisposable
         );
     }
 
-    private readonly DataType _dataType =
+    private static readonly DataType _dataType =
         new()
         {
             Id = "dataTypeId",
-            AppLogic = new() { ClassRef = "Altinn.App.Core.Tests.Internal.Patch.PatchServiceTests+MyModel" }
+            AppLogic = new() { ClassRef = "Altinn.App.Core.Tests.Internal.Patch.PatchServiceTests+MyModel" },
+            TaskId = "Task_1",
         };
 
-    private readonly DataElement _dataElement = new() { Id = DataGuid.ToString(), DataType = "dataTypeId" };
+    private static readonly DataElement _dataElement = new() { Id = _dataGuid.ToString(), DataType = _dataType.Id };
 
     private class MyModel
     {
@@ -162,21 +179,20 @@ public class PatchServiceTests : IDisposable
             .ReturnsAsync(validationIssues);
 
         // Act
-        var response = await _patchService.ApplyPatch(
-            _instance,
-            _dataType,
-            _dataElement,
-            jsonPatch,
-            null,
-            ignoredValidators
-        );
+        var patches = new Dictionary<Guid, JsonPatch>() { { _dataGuid, jsonPatch } };
+        var response = await _patchService.ApplyPatches(_instance, patches, null, ignoredValidators);
 
         // Assert
         response.Should().NotBeNull();
         response.Success.Should().BeTrue();
         response.Ok.Should().NotBeNull();
         var res = response.Ok!;
-        res.NewDataModel.Should().BeOfType<MyModel>().Subject.Name.Should().Be("Test Testesen");
+        res.NewDataModels.Should()
+            .ContainKey(_dataGuid)
+            .WhoseValue.Should()
+            .BeOfType<MyModel>()
+            .Subject.Name.Should()
+            .Be("Test Testesen");
         var validator = res.ValidationIssues.Should().ContainSingle().Which;
         validator.Key.Should().Be("formDataValidator");
         var issue = validator.Value.Should().ContainSingle().Which;
@@ -238,14 +254,8 @@ public class PatchServiceTests : IDisposable
             .ReturnsAsync(validationIssues);
 
         // Act
-        var response = await _patchService.ApplyPatch(
-            _instance,
-            _dataType,
-            _dataElement,
-            jsonPatch,
-            null,
-            ignoredValidators
-        );
+        var patches = new Dictionary<Guid, JsonPatch>() { { _dataGuid, jsonPatch } };
+        var response = await _patchService.ApplyPatches(_instance, patches, null, ignoredValidators);
 
         // Assert
         response.Should().NotBeNull();
@@ -306,14 +316,8 @@ public class PatchServiceTests : IDisposable
             .ReturnsAsync(validationIssues);
 
         // Act
-        var response = await _patchService.ApplyPatch(
-            _instance,
-            _dataType,
-            _dataElement,
-            jsonPatch,
-            null,
-            ignoredValidators
-        );
+        var patches = new Dictionary<Guid, JsonPatch>() { { _dataGuid, jsonPatch } };
+        var response = await _patchService.ApplyPatches(_instance, patches, null, ignoredValidators);
 
         // Assert
         response.Should().NotBeNull();

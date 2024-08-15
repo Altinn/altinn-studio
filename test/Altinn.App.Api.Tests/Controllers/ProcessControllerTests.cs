@@ -43,7 +43,8 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     public ProcessControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
         : base(factory, outputHelper)
     {
-        _formDataValidatorMock.Setup(v => v.DataType).Returns("Not a valid data type");
+        _formDataValidatorMock.Setup(v => v.DataType).Returns("9edd53de-f46f-40a1-bb4d-3efb93dc113d");
+        _formDataValidatorMock.Setup(v => v.ValidationSource).Returns("Not a valid validation source");
         OverrideServicesForAllTests = (services) =>
         {
             services.AddSingleton(_dataProcessorMock.Object);

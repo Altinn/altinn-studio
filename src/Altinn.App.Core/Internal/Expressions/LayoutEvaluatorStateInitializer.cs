@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
@@ -16,7 +17,7 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
     // Dependency injection properties (set in ctor)
     private readonly IAppResources _appResources;
     private readonly FrontEndSettings _frontEndSettings;
-    private readonly ICachedFormDataAccessor _dataAccessor;
+    private readonly IInstanceDataAccessor _dataAccessor;
 
     /// <summary>
     /// Constructor with services from dependency injection
@@ -24,7 +25,7 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
     public LayoutEvaluatorStateInitializer(
         IAppResources appResources,
         IOptions<FrontEndSettings> frontEndSettings,
-        ICachedFormDataAccessor dataAccessor
+        IInstanceDataAccessor dataAccessor
     )
     {
         _appResources = appResources;
@@ -80,9 +81,7 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
             dataTasks.AddRange(
                 instance
                     .Data.Where(dataElement => dataElement.DataType == dataType)
-                    .Select(async dataElement =>
-                        KeyValuePair.Create(dataElement, await _dataAccessor.Get(instance, dataElement))
-                    )
+                    .Select(async dataElement => KeyValuePair.Create(dataElement, await _dataAccessor.Get(dataElement)))
             );
         }
 

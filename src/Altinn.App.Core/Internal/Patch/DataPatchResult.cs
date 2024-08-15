@@ -10,10 +10,10 @@ public class DataPatchResult
     /// <summary>
     /// The validation issues that were found during the patch operation.
     /// </summary>
-    public required Dictionary<string, List<ValidationIssue>> ValidationIssues { get; init; }
+    public required Dictionary<string, List<ValidationIssueWithSource>> ValidationIssues { get; init; }
 
     /// <summary>
     /// The current data model after the patch operation.
     /// </summary>
-    public required object NewDataModel { get; init; }
+    public required Dictionary<Guid, object> NewDataModels { get; init; }
 }

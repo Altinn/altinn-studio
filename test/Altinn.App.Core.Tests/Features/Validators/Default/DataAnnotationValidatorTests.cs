@@ -122,7 +122,7 @@ public class DataAnnotationValidatorTests : IClassFixture<DataAnnotationsTestFix
                         "field": "range",
                         "code": "The field RangeProperty must be between 1 and 10.",
                         "description": "The field RangeProperty must be between 1 and 10.",
-                        "source": "ModelState",
+                        "source": null,
                         "customTextKey": null
                       },
                       {
@@ -132,7 +132,7 @@ public class DataAnnotationValidatorTests : IClassFixture<DataAnnotationsTestFix
                         "field": "requiredProperty",
                         "code": "The RequiredProperty field is required.",
                         "description": "The RequiredProperty field is required.",
-                        "source": "ModelState",
+                        "source": null,
                         "customTextKey": null
                       },
                       {
@@ -142,7 +142,7 @@ public class DataAnnotationValidatorTests : IClassFixture<DataAnnotationsTestFix
                         "field": "NestedProperty.range",
                         "code": "The field RangeProperty must be between 1 and 10.",
                         "description": "The field RangeProperty must be between 1 and 10.",
-                        "source": "ModelState",
+                        "source": null,
                         "customTextKey": null
                       },
                       {
@@ -152,7 +152,7 @@ public class DataAnnotationValidatorTests : IClassFixture<DataAnnotationsTestFix
                         "field": "NestedProperty.requiredProperty",
                         "code": "The RequiredProperty field is required.",
                         "description": "The RequiredProperty field is required.",
-                        "source": "ModelState",
+                        "source": null,
                         "customTextKey": null
                       }
                     ]

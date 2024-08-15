@@ -171,7 +171,6 @@ public static class LayoutEvaluator
                                 Field = field.Field,
                                 Description = $"{field.Field} is required in component with id {context.Component.Id}",
                                 Code = "required",
-                                Source = ValidationIssueSources.Required
                             }
                         );
                     }

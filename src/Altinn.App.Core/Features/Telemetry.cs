@@ -180,6 +180,7 @@ public sealed partial class Telemetry : IDisposable
         internal const string AuthorizerTaskId = "authorization.authorizer.task.id";
         internal const string ValidatorType = "validator.type";
         internal const string ValidatorSource = "validator.source";
+        internal const string ValidatorRelevantChanges = "validator.relevant_changes";
     }
 
     private void InitMetricCounter(InitContext context, string name, Action<Counter<long>> init)

@@ -21,15 +21,13 @@ public static class ModelStateHelpers
     /// <param name="dataElement">Data element for populating issue.DataElementId</param>
     /// <param name="generalSettings">General settings to get *Fixed* prefixes</param>
     /// <param name="objectType">Type of the object to map ModelStateDictionary key to the json path field (might be different)</param>
-    /// <param name="source">issue.Source</param>
     /// <returns>A list of the issues as our standard ValidationIssue</returns>
     public static List<ValidationIssue> ModelStateToIssueList(
         ModelStateDictionary modelState,
         Instance instance,
         DataElement dataElement,
         GeneralSettings generalSettings,
-        Type objectType,
-        string source
+        Type objectType
     )
     {
         var validationIssues = new List<ValidationIssue>();
@@ -47,7 +45,6 @@ public static class ModelStateHelpers
                         new ValidationIssue
                         {
                             DataElementId = dataElement.Id,
-                            Source = source,
                             Code = severityAndMessage.Message,
                             Field = ModelKeyToField(modelKey, objectType),
                             Severity = severityAndMessage.Severity,

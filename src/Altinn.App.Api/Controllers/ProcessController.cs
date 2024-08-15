@@ -4,6 +4,9 @@ using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -38,6 +41,9 @@ public class ProcessController : ControllerBase
     private readonly IAuthorizationService _authorization;
     private readonly IProcessEngine _processEngine;
     private readonly IProcessReader _processReader;
+    private readonly IDataClient _dataClient;
+    private readonly IAppMetadata _appMetadata;
+    private readonly IAppModel _appModel;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessController"/>
@@ -49,7 +55,10 @@ public class ProcessController : ControllerBase
         IValidationService validationService,
         IAuthorizationService authorization,
         IProcessReader processReader,
-        IProcessEngine processEngine
+        IProcessEngine processEngine,
+        IDataClient dataClient,
+        IAppMetadata appMetadata,
+        IAppModel appModel
     )
     {
         _logger = logger;
@@ -59,6 +68,9 @@ public class ProcessController : ControllerBase
         _authorization = authorization;
         _processReader = processReader;
         _processEngine = processEngine;
+        _dataClient = dataClient;
+        _appMetadata = appMetadata;
+        _appModel = appModel;
     }
 
     /// <summary>
@@ -237,7 +249,13 @@ public class ProcessController : ControllerBase
         string? language
     )
     {
-        var validationIssues = await _validationService.ValidateInstanceAtTask(instance, currentTaskId, language);
+        var dataAcceesor = new CachedInstanceDataAccessor(instance, _dataClient, _appMetadata, _appModel);
+        var validationIssues = await _validationService.ValidateInstanceAtTask(
+            instance,
+            currentTaskId,
+            dataAcceesor,
+            language
+        );
         var success = validationIssues.TrueForAll(v => v.Severity != ValidationIssueSeverity.Error);
 
         if (!success)

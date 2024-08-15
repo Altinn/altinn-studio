@@ -300,12 +300,11 @@ public class ExpressionsExclusiveGatewayTests
 
         var frontendSettings = Options.Create(new FrontEndSettings());
 
-        _httpContextAccessor.SetupGet(hca => hca.HttpContext!.TraceIdentifier).Returns(Guid.NewGuid().ToString());
-
         var layoutStateInit = new LayoutEvaluatorStateInitializer(
             _resources.Object,
             frontendSettings,
-            new CachedFormDataAccessor(
+            new CachedInstanceDataAccessor(
+                _instance,
                 _dataClient.Object,
                 _appMetadata.Object,
                 _appModel.Object,

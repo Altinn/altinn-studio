@@ -14,7 +14,7 @@ using Microsoft.Extensions.Options;
 namespace Altinn.App.Core.Infrastructure.Clients.Storage;
 
 /// <summary>
-/// A client forretrieving text resources from Altinn Platform.
+/// A client for retrieving text resources from Altinn Platform.
 /// </summary>
 [Obsolete("Use IAppResources.GetTexts() instead")]
 public class TextClient : IText

@@ -18,7 +18,7 @@ namespace Altinn.App.Core.Internal.Patch;
 /// <summary>
 /// Service for applying patches to form data elements
 /// </summary>
-public class PatchService : IPatchService
+internal class PatchService : IPatchService
 {
     private readonly IAppMetadata _appMetadata;
     private readonly IDataClient _dataClient;
@@ -33,12 +33,6 @@ public class PatchService : IPatchService
     /// <summary>
     /// Creates a new instance of the <see cref="PatchService"/> class
     /// </summary>
-    /// <param name="appMetadata"></param>
-    /// <param name="dataClient"></param>
-    /// <param name="validationService"></param>
-    /// <param name="dataProcessors"></param>
-    /// <param name="appModel"></param>
-    /// <param name="telemetry"></param>
     public PatchService(
         IAppMetadata appMetadata,
         IDataClient dataClient,
@@ -57,96 +51,121 @@ public class PatchService : IPatchService
     }
 
     /// <inheritdoc />
-    public async Task<ServiceResult<DataPatchResult, DataPatchError>> ApplyPatch(
+    public async Task<ServiceResult<DataPatchResult, DataPatchError>> ApplyPatches(
         Instance instance,
-        DataType dataType,
-        DataElement dataElement,
-        JsonPatch jsonPatch,
+        Dictionary<Guid, JsonPatch> patches,
         string? language,
-        List<string>? ignoredValidators = null
+        List<string>? ignoredValidators
     )
     {
         using var activity = _telemetry?.StartDataPatchActivity(instance);
 
-        InstanceIdentifier instanceIdentifier = new InstanceIdentifier(instance);
+        InstanceIdentifier instanceIdentifier = new(instance);
         AppIdentifier appIdentifier = (await _appMetadata.GetApplicationMetadata()).AppIdentifier;
-        var modelType = _appModel.GetModelType(dataType.AppLogic.ClassRef);
-        var oldModel = await _dataClient.GetFormData(
-            instanceIdentifier.InstanceGuid,
-            modelType,
-            appIdentifier.Org,
-            appIdentifier.App,
-            instanceIdentifier.InstanceOwnerPartyId,
-            Guid.Parse(dataElement.Id)
-        );
-        var oldModelNode = JsonSerializer.SerializeToNode(oldModel);
-        var patchResult = jsonPatch.Apply(oldModelNode);
 
-        var telemetryPatchResult = (
-            patchResult.IsSuccess ? Telemetry.Data.PatchResult.Success : Telemetry.Data.PatchResult.Error
-        );
-        activity?.SetTag(InternalLabels.Result, telemetryPatchResult.ToStringFast());
-        _telemetry?.DataPatched(telemetryPatchResult);
+        var dataAccessor = new CachedInstanceDataAccessor(instance, _dataClient, _appMetadata, _appModel);
+        var changes = new List<DataElementChange>();
 
-        if (!patchResult.IsSuccess)
+        foreach (var (dataElementId, jsonPatch) in patches)
         {
-            bool testOperationFailed = patchResult.Error.Contains("is not equal to the indicated value.");
-            return new DataPatchError()
+            var dataElement = instance.Data.Find(d => d.Id == dataElementId.ToString());
+            if (dataElement is null)
             {
-                Title = testOperationFailed ? "Precondition in patch failed" : "Patch Operation Failed",
-                Detail = patchResult.Error,
-                ErrorType = testOperationFailed
-                    ? DataPatchErrorType.PatchTestFailed
-                    : DataPatchErrorType.DeserializationFailed,
-                Extensions = new Dictionary<string, object?>()
+                return new DataPatchError()
                 {
-                    { "previousModel", oldModel },
-                    { "patchOperationIndex", patchResult.Operation },
-                }
-            };
-        }
+                    Title = "Unknown data element to patch",
+                    Detail = $"Data element with id {dataElementId} not found in instance",
+                };
+            }
 
-        var result = DeserializeModel(oldModel.GetType(), patchResult.Result);
-        if (!result.Success)
-        {
-            return new DataPatchError()
+            var oldModel = await dataAccessor.Get(dataElement);
+            var oldModelNode = JsonSerializer.SerializeToNode(oldModel);
+            var patchResult = jsonPatch.Apply(oldModelNode);
+
+            if (!patchResult.IsSuccess)
             {
-                Title = "Patch operation did not deserialize",
-                Detail = result.Error,
-                ErrorType = DataPatchErrorType.DeserializationFailed
-            };
-        }
-        Guid dataElementId = Guid.Parse(dataElement.Id);
-        foreach (var dataProcessor in _dataProcessors)
-        {
-            await dataProcessor.ProcessDataWrite(instance, dataElementId, result.Ok, oldModel, language);
+                bool testOperationFailed = patchResult.Error.Contains("is not equal to the indicated value.");
+                return new DataPatchError()
+                {
+                    Title = testOperationFailed ? "Precondition in patch failed" : "Patch Operation Failed",
+                    Detail = patchResult.Error,
+                    ErrorType = testOperationFailed
+                        ? DataPatchErrorType.PatchTestFailed
+                        : DataPatchErrorType.DeserializationFailed,
+                    Extensions = new Dictionary<string, object?>()
+                    {
+                        { "previousModel", oldModel },
+                        { "patchOperationIndex", patchResult.Operation },
+                    }
+                };
+            }
+
+            var newModelResult = DeserializeModel(oldModel.GetType(), patchResult.Result);
+            if (!newModelResult.Success)
+            {
+                return new DataPatchError()
+                {
+                    Title = "Patch operation did not deserialize",
+                    Detail = newModelResult.Error,
+                    ErrorType = DataPatchErrorType.DeserializationFailed
+                };
+            }
+            var newModel = newModelResult.Ok;
+
+            foreach (var dataProcessor in _dataProcessors)
+            {
+                using var processWriteActivity = _telemetry?.StartDataProcessWriteActivity(dataProcessor);
+                try
+                {
+                    // TODO: Create new dataProcessor interface that takes multiple models at the same time.
+                    await dataProcessor.ProcessDataWrite(instance, dataElementId, newModel, oldModel, language);
+                }
+                catch (Exception e)
+                {
+                    processWriteActivity?.Errored(e);
+                    throw;
+                }
+            }
+            ObjectUtils.InitializeAltinnRowId(newModel);
+            ObjectUtils.PrepareModelForXmlStorage(newModel);
+            changes.Add(
+                new DataElementChange
+                {
+                    DataElement = dataElement,
+                    PreviousValue = oldModel,
+                    CurrentValue = newModel,
+                }
+            );
+
+            // save form data to storage
+            await _dataClient.UpdateData(
+                newModel,
+                instanceIdentifier.InstanceGuid,
+                newModel.GetType(),
+                appIdentifier.Org,
+                appIdentifier.App,
+                instanceIdentifier.InstanceOwnerPartyId,
+                dataElementId
+            );
+
+            // Ensure that validation runs on the modified model.
+            dataAccessor.Set(dataElement, newModel);
         }
 
-        ObjectUtils.InitializeAltinnRowId(result.Ok);
-        ObjectUtils.PrepareModelForXmlStorage(result.Ok);
-
-        var validationIssues = await _validationService.ValidateFormData(
+        var validationIssues = await _validationService.ValidateIncrementalFormData(
             instance,
-            dataElement,
-            dataType,
-            result.Ok,
-            oldModel,
+            instance.Process.CurrentTask.ElementId,
+            changes,
+            dataAccessor,
             ignoredValidators,
             language
         );
 
-        // Save Formdata to database
-        await _dataClient.UpdateData(
-            result.Ok,
-            instanceIdentifier.InstanceGuid,
-            modelType,
-            appIdentifier.Org,
-            appIdentifier.App,
-            instanceIdentifier.InstanceOwnerPartyId,
-            dataElementId
-        );
-
-        return new DataPatchResult { NewDataModel = result.Ok, ValidationIssues = validationIssues };
+        return new DataPatchResult
+        {
+            NewDataModels = changes.ToDictionary(c => Guid.Parse(c.DataElement.Id), c => c.CurrentValue),
+            ValidationIssues = validationIssues
+        };
     }
 
     private static ServiceResult<object, string> DeserializeModel(Type type, JsonNode? patchResult)

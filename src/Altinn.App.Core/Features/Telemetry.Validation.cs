@@ -18,52 +18,27 @@ partial class Telemetry
         return activity;
     }
 
-    internal Activity? StartRunTaskValidatorActivity(ITaskValidator validator)
+    internal Activity? StartValidateIncrementalActivity(
+        Instance instance,
+        string taskId,
+        List<DataElementChange> changes
+    )
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.RunTaskValidator");
+        ArgumentException.ThrowIfNullOrWhiteSpace(taskId);
+        ArgumentNullException.ThrowIfNull(changes);
 
-        activity?.SetTag(InternalLabels.ValidatorType, validator.GetType().Name);
-        activity?.SetTag(InternalLabels.ValidatorSource, validator.ValidationSource);
-
-        return activity;
-    }
-
-    internal Activity? StartValidateDataElementActivity(Instance instance, DataElement dataElement)
-    {
-        var activity = ActivitySource.StartActivity($"{Prefix}.ValidateDataElement");
+        var activity = ActivitySource.StartActivity($"{Prefix}.ValidateIncremental");
+        activity?.SetTaskId(taskId);
         activity?.SetInstanceId(instance);
-        activity?.SetDataElementId(dataElement);
+        // TODO: record the guid for the changed elements in a sensible list
         return activity;
     }
 
-    internal Activity? StartRunDataElementValidatorActivity(IDataElementValidator validator)
-    {
-        var activity = ActivitySource.StartActivity($"{Prefix}.RunDataElementValidator");
-
-        activity?.SetTag(InternalLabels.ValidatorType, validator.GetType().Name);
-        activity?.SetTag(InternalLabels.ValidatorSource, validator.ValidationSource);
-
-        return activity;
-    }
-
-    internal Activity? StartValidateFormDataActivity(Instance instance, DataElement dataElement)
-    {
-        var activity = ActivitySource.StartActivity($"{Prefix}.ValidateFormData");
-
-        activity?.SetInstanceId(instance);
-        activity?.SetDataElementId(dataElement);
-        return activity;
-    }
-
-    internal Activity? StartRunFormDataValidatorActivity(IFormDataValidator validator)
-    {
-        var activity = ActivitySource.StartActivity($"{Prefix}.RunFormDataValidator");
-
-        activity?.SetTag(InternalLabels.ValidatorType, validator.GetType().Name);
-        activity?.SetTag(InternalLabels.ValidatorSource, validator.ValidationSource);
-
-        return activity;
-    }
+    internal Activity? StartRunValidatorActivity(IValidator validator) =>
+        ActivitySource
+            .StartActivity($"{Prefix}.RunValidator")
+            ?.SetTag(InternalLabels.ValidatorType, validator.GetType().Name)
+            .SetTag(InternalLabels.ValidatorSource, validator.ValidationSource);
 
     internal static class Validation
     {
