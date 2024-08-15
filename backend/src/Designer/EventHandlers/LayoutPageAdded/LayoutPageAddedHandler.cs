@@ -37,8 +37,8 @@ public class LayoutPageAddedHandler(IAltinnGitRepositoryFactory altinnGitReposit
 
                 TextResource jsonTexts = await repository.GetTextV1("nb");
                 int initialCount = jsonTexts.Resources.Count;
-                AddTextResourceIfNotExists(jsonTexts.Resources, "next", "neste");
-                AddTextResourceIfNotExists(jsonTexts.Resources, "back", "tilbake");
+                AddTextResourceIfNotExists(jsonTexts.Resources, "next", "Neste");
+                AddTextResourceIfNotExists(jsonTexts.Resources, "back", "Tilbake");
 
                 if (jsonTexts.Resources.Count != initialCount)
                 {
