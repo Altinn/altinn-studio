@@ -4,6 +4,7 @@ import type { PropsWithChildren } from 'react';
 import { Fieldset, Label as DesignsystemetLabel } from '@digdir/designsystemet-react';
 import { Grid } from '@material-ui/core';
 import cn from 'classnames';
+import type { LabelProps as DesignsystemetLabelProps } from '@digdir/designsystemet-react';
 
 import classes from 'src/components/label/Label.module.css';
 import { LabelContent } from 'src/components/label/LabelContent';
@@ -26,22 +27,26 @@ export type LabelProps = PropsWithChildren<{
     help?: string;
   };
   className?: string;
-}>;
+}> &
+  DesignsystemetLabelProps;
 
-export function Label({
-  id,
-  renderLabelAs,
-  required,
-  readOnly,
-  labelSettings,
-  grid,
-  textResourceBindings,
-  children,
-  className,
-}: LabelProps) {
-  if (!textResourceBindings?.title) {
-    return <>{children}</>;
+export function Label(props: LabelProps) {
+  if (!props.textResourceBindings?.title) {
+    return <>{props.children}</>;
   }
+
+  const { children, ...propsWithoutChildren } = props;
+  const {
+    id,
+    renderLabelAs,
+    required,
+    readOnly,
+    labelSettings,
+    grid,
+    textResourceBindings,
+    className,
+    ...designsystemetLabelProps
+  } = props;
 
   const labelId = `label-${id}`;
   const labelContentProps: Omit<LabelContentProps, 'id'> = {
@@ -57,15 +62,12 @@ export function Label({
     case 'legend': {
       return (
         <Fieldset
-          size='small'
           className={cn(classes.fieldWrapper, classes.fullWidth)}
           legend={
-            <LabelGridItemWrapper labelGrid={grid?.labelGrid}>
-              <LabelContent
-                id={labelId}
-                {...labelContentProps}
-              />
-            </LabelGridItemWrapper>
+            <Label
+              {...propsWithoutChildren}
+              renderLabelAs='span'
+            />
           }
         >
           {children}
@@ -79,6 +81,7 @@ export function Label({
           htmlFor={id}
           style={{ width: '100%' }}
           className={className}
+          {...designsystemetLabelProps}
         >
           <Grid
             container
@@ -99,7 +102,10 @@ export function Label({
           {/* we want this "label" not to be rendered as a <label>,
            because it does not belong to an input element */}
           <LabelGridItemWrapper labelGrid={grid?.labelGrid}>
-            <DesignsystemetLabel asChild>
+            <DesignsystemetLabel
+              asChild
+              {...designsystemetLabelProps}
+            >
               <LabelContent
                 id={labelId}
                 {...labelContentProps}

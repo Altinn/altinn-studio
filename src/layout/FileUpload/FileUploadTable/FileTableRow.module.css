@@ -9,8 +9,17 @@
   padding-right: 0;
 }
 
+tr.noRowSpacing td {
+  padding: inherit;
+  padding-left: 6px;
+}
+
 tr.blueUnderlineDotted td {
-  border-bottom: 1px dotted #1eadf7;
+  border-bottom: 1px dotted var(--border-color-primary);
+}
+
+tr.grayUnderlineDotted td {
+  border-bottom: 1px dotted var(--fds-semantic-border-neutral-default);
 }
 
 tr.grayUnderline td {

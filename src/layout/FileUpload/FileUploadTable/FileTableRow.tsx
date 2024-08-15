@@ -1,5 +1,7 @@
 import React from 'react';
 
+import classNames from 'classnames';
+
 import { AltinnLoader } from 'src/components/AltinnLoader';
 import { isAttachmentUploaded } from 'src/features/attachments';
 import { Lang } from 'src/features/language/Lang';
@@ -38,10 +40,15 @@ export function FileTableRow({ node, attachment, mobileView, tagLabel, isSummary
     ? langAsString('form_filler.file_uploader_list_status_done')
     : langAsString('general.loading');
 
+  const rowStyle =
+    isSummary || pdfModeActive
+      ? classNames(classes.noRowSpacing, classes.grayUnderlineDotted)
+      : classes.blueUnderlineDotted;
+
   return (
     <tr
       key={uniqueId}
-      className={pdfModeActive ? classes.grayUnderline : classes.blueUnderlineDotted}
+      className={rowStyle}
       id={`altinn-file-list-row-${uniqueId}`}
       tabIndex={0}
     >

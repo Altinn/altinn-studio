@@ -8,3 +8,9 @@
   padding: 0;
   margin-top: 1.5rem;
 }
+
+.betweenTableAndDropMargin {
+  display: block;
+  visibility: hidden;
+  height: 1.5rem;
+}

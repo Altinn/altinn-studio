@@ -7,10 +7,13 @@
 .tableMobile {
   width: 100%;
   table-layout: fixed;
-  margin-top: 1.5rem;
-  margin-bottom: 12px;
+  margin-bottom: var(--fds-spacing-2);
   box-shadow: none;
   border-spacing: 0;
+}
+
+.summaryLabelMargin {
+  margin-bottom: var(--fds-spacing-2);
 }
 
 .tableMobile tbody tr td {
@@ -29,7 +32,6 @@
   overflow: hidden;
   font-weight: 400;
   font-size: 1rem;
-  border-bottom: 1px dotted var(--border-color-primary);
   color: #000;
 }
 .editButton {
