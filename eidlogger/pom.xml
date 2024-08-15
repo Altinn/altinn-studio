@@ -17,7 +17,7 @@
 		<java.version>21</java.version>
     <springdoc.version>2.6.0</springdoc.version>
     <log-event.version>1.2.2</log-event.version>
-    <spring-cloud-azure.version>5.14.0</spring-cloud-azure.version>
+    <spring-cloud-azure.version>5.15.0</spring-cloud-azure.version>
 	</properties>
   <dependencyManagement>
     <dependencies>
