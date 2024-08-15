@@ -30,17 +30,17 @@ describe('Grid component', () => {
 
     // Dynamics hiding an entire row
     cy.get(appFrontend.grid.hasCreditCard).find('label:contains("Nei")').dsCheck();
-    cy.get(appFrontend.grid.grid).find('tr').should('have.length', 4);
+    cy.get(appFrontend.grid.grid).find('tr').should('have.length', 6);
     cy.get(appFrontend.grid.hasCreditCard).find('label:contains("Ja")').dsCheck();
-    cy.get(appFrontend.grid.grid).find('tr').should('have.length', 5);
+    cy.get(appFrontend.grid.grid).find('tr').should('have.length', 7);
 
     // Filling out the form without ending up at 100% total. We reference these fields in their respective rows
     // not because we can't reference them directly, but to verify that they exist inside the grid and not outside.
     cy.get(appFrontend.grid.totalAmount).type('1000000');
-    cy.get(appFrontend.grid.grid).find('tr').eq(1).find(appFrontend.grid.bolig.percent).type('70');
-    cy.get(appFrontend.grid.grid).find('tr').eq(2).find(appFrontend.grid.studie.percent).type('10');
-    cy.get(appFrontend.grid.grid).find('tr').eq(3).find(appFrontend.grid.kredittkort.percent).type('5');
-    cy.get(appFrontend.grid.grid).find('tr').eq(4).find(appFrontend.grid.totalPercent).should('have.text', '85 %');
+    cy.get(appFrontend.grid.grid).find('tr').eq(3).find(appFrontend.grid.bolig.percent).type('70');
+    cy.get(appFrontend.grid.grid).find('tr').eq(4).find(appFrontend.grid.studie.percent).type('10');
+    cy.get(appFrontend.grid.grid).find('tr').eq(5).find(appFrontend.grid.kredittkort.percent).type('5');
+    cy.get(appFrontend.grid.grid).find('tr').eq(6).find(appFrontend.grid.totalPercent).should('have.text', '85 %');
     cy.get(appFrontend.grid.bolig.percentComponent).should('not.contain.text', 'Prosentandel av gjeld i boliglån');
     cy.get(appFrontend.errorReport).should('not.exist');
 
@@ -52,16 +52,16 @@ describe('Grid component', () => {
     cy.snapshot('grid');
 
     // Make sure markdown works in text cells
-    cy.get(appFrontend.grid.grid).find('tr').eq(1).find('td').eq(0).should('contain.text', 'Boliglån');
+    cy.get(appFrontend.grid.grid).find('tr').eq(3).find('td').eq(0).should('contain.text', 'Boliglån');
     cy.changeLayout((component) => {
       if (component.type === 'Grid') {
-        const cell = component.rows[1].cells[0];
+        const cell = component.rows[3].cells[0];
         if (cell && 'text' in cell) {
           cell.text = 'Mitt **bolig**lån';
         }
       }
     });
-    cy.get(appFrontend.grid.grid).find('tr').eq(1).find('td').eq(0).should('contain.text', 'Mitt boliglån');
+    cy.get(appFrontend.grid.grid).find('tr').eq(3).find('td').eq(0).should('contain.text', 'Mitt boliglån');
 
     // Verify that the summary is correct
     cy.navPage('summary').click();
@@ -140,11 +140,11 @@ describe('Grid component', () => {
   it("should allow adding help text to Grid's text cells or referencing a component", () => {
     cy.interceptLayout('changename', (component) => {
       if (component.type === 'Grid') {
-        const cell1 = component.rows[1].cells[0];
+        const cell1 = component.rows[3].cells[0];
         if (cell1 && 'text' in cell1) {
           cell1.help = 'Help text';
         }
-        const cell2 = component.rows[2].cells[0];
+        const cell2 = component.rows[4].cells[0];
         if (cell2 && 'text' in cell2) {
           delete (cell2 as any).text;
           (cell2 as unknown as GridCellLabelFrom).labelFrom = 'fordeling-studie';

@@ -37,17 +37,6 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
     return <MobileGrid {...props} />;
   }
 
-  const headerRows: GridRowInternal[] = [];
-  const bodyRows: GridRowInternal[] = [];
-
-  rows.forEach((row) => {
-    if (row.header) {
-      headerRows.push(row);
-    } else {
-      bodyRows.push(row);
-    }
-  });
-
   return (
     <ConditionalWrapper
       condition={shouldHaveFullWidth}
@@ -66,47 +55,33 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
             labelSettings={labelSettings}
           />
         )}
-        <Table.Head>
-          {headerRows.map((row, rowIdx) => (
-            <GridRowRenderer
-              key={rowIdx}
-              row={row}
-              isNested={isNested}
-              mutableColumnSettings={columnSettings}
-              node={node}
-            />
-          ))}
-        </Table.Head>
-        <Table.Body>
-          {bodyRows.map((row, rowIdx) => (
-            <GridRowRenderer
-              key={rowIdx}
-              row={row}
-              isNested={isNested}
-              mutableColumnSettings={columnSettings}
-              node={node}
-            />
-          ))}
-        </Table.Body>
+        {rows.map((row, rowIdx) => (
+          <GridRowRenderer
+            key={rowIdx}
+            row={row}
+            isNested={isNested}
+            mutableColumnSettings={columnSettings}
+            node={node}
+          />
+        ))}
       </Table>
     </ConditionalWrapper>
   );
 }
 
-type GridRowProps = Readonly<{
+interface GridRowProps {
   row: GridRowInternal;
   isNested: boolean;
   mutableColumnSettings: ITableColumnFormatting;
   node: LayoutNode;
-}>;
+}
 
 export function GridRowRenderer({ row, isNested, mutableColumnSettings, node }: GridRowProps) {
-  if (isGridRowHidden(row)) {
-    return null;
-  }
-
-  return (
-    <Table.Row className={row.readOnly ? css.rowReadOnly : undefined}>
+  return isGridRowHidden(row) ? null : (
+    <InternalRow
+      header={row.header}
+      readOnly={row.readOnly}
+    >
       {row.cells.map((cell, cellIdx) => {
         const isFirst = cellIdx === 0;
         const isLast = cellIdx === row.cells.length - 1;
@@ -170,7 +145,27 @@ export function GridRowRenderer({ row, isNested, mutableColumnSettings, node }: 
           />
         );
       })}
-    </Table.Row>
+    </InternalRow>
+  );
+}
+
+type InternalRowProps = PropsWithChildren<Pick<GridRowInternal, 'header' | 'readOnly'>>;
+
+function InternalRow({ header, readOnly, children }: InternalRowProps) {
+  const className = readOnly ? css.rowReadOnly : undefined;
+
+  if (header) {
+    return (
+      <Table.Head>
+        <Table.Row className={className}>{children}</Table.Row>
+      </Table.Head>
+    );
+  }
+
+  return (
+    <Table.Body>
+      <Table.Row className={className}>{children}</Table.Row>
+    </Table.Body>
   );
 }
 

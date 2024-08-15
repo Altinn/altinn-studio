@@ -76,22 +76,8 @@ Altinn, and making sure they are consistent. */
   width: calc(var(--cell-width) + 8.15%);
 }
 
-.textCell,
-.textLabel,
-.textLabel div {
+.textCell {
   display: flex;
-}
-
-.textLabel {
-  margin-top: 12px;
-}
-
-.textLabel div {
-  flex-wrap: nowrap;
-}
-
-.textLabel button {
-  align-self: flex-start;
 }
 
 .captionFullWidth {
