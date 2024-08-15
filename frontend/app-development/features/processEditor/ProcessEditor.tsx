@@ -112,7 +112,7 @@ export const ProcessEditor = (): React.ReactElement => {
     onProcessTaskRemoveHandler.handleOnProcessTaskRemove(taskMetadata);
   };
 
-  if (appLibDataLoading) {
+  if (appLibDataLoading || appMetadataPending) {
     return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} showSpinnerTitle />;
   }
 
