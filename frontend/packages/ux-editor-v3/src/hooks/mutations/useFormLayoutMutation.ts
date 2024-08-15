@@ -21,7 +21,11 @@ export const useFormLayoutMutation = (
   return useMutation({
     mutationFn: (layout: IInternalLayout) => {
       const convertedLayout: ExternalFormLayoutV3 = internalLayoutToExternal(layout);
-      return saveFormLayoutV3(org, app, layoutName, layoutSetName, convertedLayout).then(
+
+      const requestPayload = {
+        layout: convertedLayout,
+      };
+      return saveFormLayoutV3(org, app, layoutName, layoutSetName, requestPayload).then(
         () => layout,
       );
     },

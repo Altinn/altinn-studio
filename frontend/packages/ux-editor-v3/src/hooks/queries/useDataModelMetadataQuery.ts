@@ -11,6 +11,7 @@ export const useDataModelMetadataQuery = (
   dataModelName: string,
 ): UseQueryResult<DataModelFieldElement[]> => {
   const { getDataModelMetadata } = useServicesContext();
+
   return useQuery<DataModelFieldElement[]>({
     queryKey: [QueryKey.DataModelMetadata, org, app, layoutSetName, dataModelName],
     queryFn: () =>
