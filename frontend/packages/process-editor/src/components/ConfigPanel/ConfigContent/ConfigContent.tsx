@@ -13,7 +13,7 @@ import { EditDataTypesToSign } from '../EditDataTypesToSign';
 import { EditUniqueFromSignaturesInDataTypes } from '../EditUniqueFromSignaturesInDataTypes';
 import { StudioModeler } from '../../../utils/bpmnModeler/StudioModeler';
 import { RecommendedActionChangeName } from './EditTaskRecommendedActions/RecommendedActionChangeName';
-import { ConfigContentContainer } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/ConfigContentContainer';
+import { ConfigContentContainer } from './ConfigContentContainer';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
