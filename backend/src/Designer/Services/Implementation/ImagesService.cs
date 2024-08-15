@@ -1,7 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -54,7 +54,7 @@ public class ImagesService : IImagesService
         bool imageExists = altinnAppGitRepository.DoesImageExist(imageName);
         if (imageExists && !overrideExisting)
         {
-            throw new InvalidOperationException("An image with this name already exists.");
+            throw new ConflictingFileNameException("An image with this name already exists.");
         }
         using MemoryStream imageMemoryStream = new MemoryStream();
         imageStream.CopyTo(imageMemoryStream);

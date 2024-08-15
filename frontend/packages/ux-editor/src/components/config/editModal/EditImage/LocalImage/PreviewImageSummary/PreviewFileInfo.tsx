@@ -16,15 +16,23 @@ export const PreviewFileInfo = ({
 
   return (
     <div className={classes.fileInfoContainer}>
-      <StudioParagraph size='small' className={classes.fileName}>
+      <StudioParagraph size='small' className={classes.fileName} title={existingImageUrl}>
         {existingImageUrl}
       </StudioParagraph>
       {existingImageDescription ? (
-        <StudioParagraph size='small' className={classes.fileDescription}>
+        <StudioParagraph
+          size='small'
+          className={classes.fileDescription}
+          title={existingImageDescription}
+        >
           {existingImageDescription}
         </StudioParagraph>
       ) : (
-        <StudioParagraph size='small' className={classes.missingFileDescription}>
+        <StudioParagraph
+          size='small'
+          className={classes.missingFileDescription}
+          title={t('ux_editor.properties_panel.images.description_missing')}
+        >
           {t('ux_editor.properties_panel.images.description_missing')}
         </StudioParagraph>
       )}

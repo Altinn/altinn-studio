@@ -66,7 +66,6 @@ export const EditImage = ({ component, handleComponentChange }: EditImageProps) 
       </Tabs.List>
       <Tabs.Content value={ImageTab.Import}>
         <LocalImage
-          imageOriginsFromLibrary={imageOriginsFromLibrary}
           componentHasExternalImageReference={!!component.image?.src?.nb}
           fileName={fileName}
           onDeleteImage={handleDeleteImage}

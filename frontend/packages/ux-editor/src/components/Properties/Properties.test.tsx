@@ -143,6 +143,13 @@ describe('Properties', () => {
       await user.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'false');
     });
+    it('Sets accordion title to include images when component is images', async () => {
+      renderProperties({ formItem: componentMocks[ComponentType.Image] });
+      const accordionTitle = screen.queryByRole('button', {
+        name: textMock('right_menu.text_and_image'),
+      });
+      expect(accordionTitle).toBeInTheDocument();
+    });
   });
 
   describe('DataModelBindings', () => {

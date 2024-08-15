@@ -34,5 +34,5 @@ export const extractFileNameFromImageSrc = (imageSrc: string, org: string, app: 
     return imageSrc.slice(indexOfRelativePathInImageSource + relativeFilePath.length);
   if (indexOfWwwrootInImageSource > -1)
     return imageSrc.slice(indexOfWwwrootInImageSource + WWWROOT_FILE_PATH.length);
-  return imageSrc; // What to return?
+  return undefined;
 };

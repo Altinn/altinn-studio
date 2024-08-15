@@ -4,7 +4,6 @@ import { StudioDeleteButton } from '@studio/components';
 import classes from './PreviewImageSummary.module.css';
 import { useTranslation } from 'react-i18next';
 import { DeleteOptionsModal } from './DeleteOptionsModal/DeleteOptionsModal';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { PreviewFileInfo } from '@altinn/ux-editor/components/config/editModal/EditImage/LocalImage/PreviewImageSummary/PreviewFileInfo';
 
 export interface PreviewImageSummaryProps {
@@ -34,11 +33,7 @@ export const PreviewImageSummary = ({
         title={t('ux_editor.properties_panel.images.delete_image_reference_title')}
         variant='tertiary'
         size='small'
-        onDelete={
-          shouldDisplayFeature('useImageLibrary')
-            ? () => setDeleteOptionModalOpen(true)
-            : () => onDeleteImage(existingImageUrl)
-        }
+        onDelete={() => setDeleteOptionModalOpen(true)}
       />
       {deleteOptionsModalOpen && (
         <DeleteOptionsModal

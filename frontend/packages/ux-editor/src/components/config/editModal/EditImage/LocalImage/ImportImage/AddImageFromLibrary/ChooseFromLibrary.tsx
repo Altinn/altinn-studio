@@ -18,7 +18,7 @@ export const ChooseFromLibrary = ({ onAddImageReference }: ChooseFromLibraryProp
 
   return (
     <div className={classes.cardsContainer}>
-      {imagesFileNames.length === 0 ? (
+      {imagesFileNames?.length === 0 ? (
         <StudioParagraph>
           {t('ux_editor.properties_panel.images.no_images_in_library')}
         </StudioParagraph>
@@ -53,7 +53,7 @@ const ImageFromLibrary = ({
     <div className={classes.card}>
       <Card onClick={() => onAddImageReference(imageFileName)}>
         <Card.Media>
-          <img src={imageSource} alt='' />
+          <img src={imageSource} alt={imageFileName} />
         </Card.Media>
         <Card.Header>
           <Heading size='xs' className={classes.fileName} title={imageFileName}>

@@ -3,7 +3,7 @@ import { UploadIcon } from '@studio/icons';
 import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
-interface UploadImageProps {
+export interface UploadImageProps {
   onHandleSubmit: () => void;
   onHandleInputChange: () => void;
   imageRef: React.MutableRefObject<any>;

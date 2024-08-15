@@ -3,8 +3,7 @@ import { PreviewImageSummary } from './PreviewImageSummary';
 import { ImportImage } from './ImportImage';
 import { ConflictingImageSourceAlert } from '../ConflictingImageSourceAlert';
 
-interface LocalImageProps {
-  imageOriginsFromLibrary: boolean;
+export interface LocalImageProps {
   componentHasExternalImageReference: boolean;
   fileName: string;
   onDeleteImage: (fileName: string) => void;
@@ -13,14 +12,14 @@ interface LocalImageProps {
 }
 
 export const LocalImage = ({
-  imageOriginsFromLibrary,
   componentHasExternalImageReference,
   fileName,
   onDeleteImage,
   onDeleteImageReferenceOnly,
   onImageChange,
 }: LocalImageProps) => {
-  return imageOriginsFromLibrary ? (
+  // Can we return null if the image source is not a file from app? Then we can check here if fileName is null and not use imageOriginsFromLibrary
+  return !!fileName ? (
     <PreviewImageSummary
       existingImageUrl={fileName}
       existingImageDescription={null} // Null until we have a place to store descriptions

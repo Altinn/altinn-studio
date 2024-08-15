@@ -44,6 +44,11 @@ const paragraphComponent: FormComponent<ComponentType.Paragraph> = {
 };
 const imageComponent: FormComponent<ComponentType.Image> = {
   ...commonProps(ComponentType.Image),
+  image: {
+    src: {},
+    width: '100%',
+    align: 'center',
+  },
 };
 const datePickerComponent: FormComponent<ComponentType.Datepicker> = {
   ...commonProps(ComponentType.Datepicker),

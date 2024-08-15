@@ -17,6 +17,7 @@ import { componentSchemaMocks } from '../../testing/componentSchemaMocks';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { app, org } from '@studio/testing/testids';
+import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
 // Test data:
@@ -56,6 +57,14 @@ describe('TextTab', () => {
 
     it('should render the component', async () => {
       render({ props });
+    });
+
+    it('should render sub title for texts', () => {
+      render({ props });
+      const textsSubTitle = screen.getByText(
+        textMock('ux_editor.properties_panel.texts.sub_title_texts'),
+      );
+      expect(textsSubTitle).toBeInTheDocument();
     });
 
     it('should render all available textResourceBinding properties for the group component', () => {
@@ -162,6 +171,40 @@ describe('TextTab', () => {
       expect(
         screen.queryByText(textMock('ux_editor.options.section_heading')),
       ).not.toBeInTheDocument();
+    });
+
+    it('should render image section if component is image', () => {
+      render({
+        props: {
+          ...props,
+          formItem: {
+            ...componentMocks[ComponentType.Image],
+          },
+        },
+      });
+      const addImageTabTitle = screen.getByRole('tab', {
+        name: textMock('ux_editor.properties_panel.images.add_image_tab_title'),
+      });
+      const pasteUrlTabTitle = screen.getByRole('tab', {
+        name: textMock('ux_editor.properties_panel.images.enter_external_url_tab_title'),
+      });
+      expect(addImageTabTitle).toBeInTheDocument();
+      expect(pasteUrlTabTitle).toBeInTheDocument();
+    });
+
+    it('should render sub title for images options when component is image', () => {
+      render({
+        props: {
+          ...props,
+          formItem: {
+            ...componentMocks[ComponentType.Image],
+          },
+        },
+      });
+      const imagesSubTitle = screen.getByText(
+        textMock('ux_editor.properties_panel.texts.sub_title_images'),
+      );
+      expect(imagesSubTitle).toBeInTheDocument();
     });
   });
 });
