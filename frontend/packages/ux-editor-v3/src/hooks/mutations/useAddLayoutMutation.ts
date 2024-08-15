@@ -13,6 +13,7 @@ import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuer
 import type { ILayoutSettings } from 'app-shared/types/global';
 import { addOrRemoveNavigationButtons } from '../../utils/formLayoutsUtils';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
+import { FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
 
 export interface AddLayoutMutationArgs {
   layoutName: string;
@@ -29,7 +30,9 @@ export const useAddLayoutMutation = (org: string, app: string, layoutSetName: st
 
   const save = async (updatedLayoutName: string, updatedLayout: IInternalLayout) => {
     const convertedLayout: ExternalFormLayoutV3 = internalLayoutToExternal(updatedLayout);
-    return await saveFormLayoutV3(org, app, updatedLayoutName, layoutSetName, convertedLayout);
+    return await saveFormLayoutV3(org, app, updatedLayoutName, layoutSetName, {
+      layout: convertedLayout,
+    } as FormLayoutRequest);
   };
 
   return useMutation({
