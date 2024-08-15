@@ -21,7 +21,10 @@
         "maxNumberOfAttachments": 10,
         "minNumberOfAttachments": 1,
         "id": "FileUpload-N6frPq",
-        "type": "FileUpload"
+        "type": "FileUpload",
+        "textResourceBindings": {
+          "title": "Enkel filopplasting"
+        }
       },
       {
         "size": "h3",
@@ -58,7 +61,8 @@
         "id": "FileUploadWithTag-UvbEiL",
         "type": "FileUploadWithTag",
         "textResourceBindings": {
-          "tagTitle": "Filtype"
+          "tagTitle": "Filtype",
+          "title": "Filopplasting med type",
         },
         "options": [
           {

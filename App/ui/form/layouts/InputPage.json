@@ -25,6 +25,7 @@
       },
       {
         "id": "InputPage-Input",
+        "required":true,
         "type": "Input",
         "textResourceBindings": {
           "title": "InputPage.Input.title"
@@ -32,7 +33,6 @@
         "dataModelBindings": {
           "simpleBinding": "shortAnswerInput"
         },
-        "required": false,
         "showValidations": [
           "All"
         ]
@@ -74,6 +74,7 @@
         "dataModelBindings": {
           "simpleBinding": "shortAnswerInput"
         },
+        "required": true,
         "grid": {
           "innerGrid": {
             "xs": 12,
@@ -144,6 +145,7 @@
       {
         "id": "InputPage-Summary2-grid-long",
         "type": "Summary2",
+        "hideEmptyFields": true,
         "target": {
           "type": "component",
           "id": "InputPage-Input-long"

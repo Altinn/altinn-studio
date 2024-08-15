@@ -39,7 +39,7 @@
     },
     {
       "id": "InputPage.Input.title",
-      "value": "Eksempel på kort svar komponent"
+      "value": "Eksempel på kort svar komponent",
     },
     {
       "id": "InputPage.Input.Grid.title-1",
@@ -72,6 +72,14 @@
     {
       "id": "DropdownPage.Dropdown.title",
       "value": "Hva slags kjøretøy har du?"
+    },
+    {
+      "id": "Group.Title",
+      "value": "Gruppetittel"
+    },
+    {
+      "id": "Group.Description",
+      "value": "Gruppebeskrivelse"
     },
     {
       "id": "RepeatingGroup.Name",
