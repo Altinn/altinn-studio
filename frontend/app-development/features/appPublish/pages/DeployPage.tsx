@@ -47,7 +47,7 @@ export function DeployPage() {
       <InfoCard headerText={t('app_deployment.no_env_title')} shadow={true}>
         <div>
           <Trans i18nKey='app_deployment.no_env_1'>
-            <Link href={contactByEmail.url('serviceDesk')}> </Link>
+            <Link href={contactByEmail.url('serviceOwner')}> </Link>
           </Trans>
         </div>
         <div style={{ paddingTop: '2.4rem' }}>
