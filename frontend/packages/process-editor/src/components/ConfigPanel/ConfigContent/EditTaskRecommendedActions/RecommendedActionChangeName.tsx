@@ -42,7 +42,7 @@ export const RecommendedActionChangeName = (): React.ReactElement => {
       description={t('process_editor.recommended_action.new_name_description')}
       saveButtonText={t('general.save')}
       skipButtonText={t('general.skip')}
-      hideSaveButton={!!newNameError || newName == ''}
+      hideSaveButton={Boolean(newNameError) || newName === ''}
       onSave={saveNewName}
       onSkip={cancelAction}
     >
