@@ -89,6 +89,8 @@ function processLayouts(input: ILayoutCollection): LayoutContextValue {
     expandedWidthLayouts[key] = file.data.expandedWidth;
   }
 
+  warnAboutDuplicateComponentIds(layouts);
+
   const config: ExprObjConfig<{ hidden: ExprVal.Boolean; whatever: string }> = {
     hidden: {
       returnType: 'test',
@@ -110,4 +112,24 @@ function processLayouts(input: ILayoutCollection): LayoutContextValue {
     hiddenLayoutsExpressions,
     expandedWidthLayouts,
   };
+}
+
+function warnAboutDuplicateComponentIds(layouts: ILayouts) {
+  const seenIds = new Map<string, { pageKey: string; idx: number }>();
+
+  for (const pageKey of Object.keys(layouts)) {
+    const page = layouts[pageKey] || [];
+    for (const [idx, comp] of page.entries()) {
+      const prev = seenIds.get(comp.id);
+      if (prev) {
+        window.logError(
+          `Found duplicate component id '${comp.id}' from page '${pageKey}' at index ${idx} ` +
+            `(first found on page '${prev.pageKey})' at index ${prev.idx}). Such duplicate components will ` +
+            `be automatically removed from your layout in the next release.`,
+        );
+        continue;
+      }
+      seenIds.set(comp.id, { pageKey, idx });
+    }
+  }
 }
