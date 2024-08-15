@@ -45,9 +45,9 @@ export function App() {
     removeSelectedLayoutSet,
   ]);
 
-  const componentIsReady = areWidgetsFetched && areTextResourcesFetched;
+  const componentIsReady = areWidgetsFetched && isDataModelFetched && areTextResourcesFetched;
 
-  const componentHasError = widgetFetchedError;
+  const componentHasError = dataModelFetchedError || widgetFetchedError;
 
   const mapErrorToDisplayError = (): { title: string; message: string } => {
     const defaultTitle = t('general.fetch_error_title');
@@ -75,10 +75,10 @@ export function App() {
     }
   }, [setSelectedLayoutSet, selectedLayoutSet, layoutSets, app]);
 
-  // if (componentHasError) {
-  //   const mappedError = mapErrorToDisplayError();
-  //   return <ErrorPage title={mappedError.title} message={mappedError.message} />;
-  // }
+  if (componentHasError) {
+    const mappedError = mapErrorToDisplayError();
+    return <ErrorPage title={mappedError.title} message={mappedError.message} />;
+  }
 
   if (componentIsReady) {
     return (
