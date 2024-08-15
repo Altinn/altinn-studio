@@ -78,7 +78,6 @@
     <dependency>
       <groupId>com.azure</groupId>
       <artifactId>azure-identity</artifactId>
-      <!--1.13.1 breaks the deployment-->
       <version>1.13.2</version>
     </dependency>
     <dependency>
