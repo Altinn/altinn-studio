@@ -2380,7 +2380,7 @@ paths:
       responses:
         '200':
           description: OK
-  '/{org}/{app}/api/validationconfig/{id}':
+  '/{org}/{app}/api/validationconfig/{dataTypeId}':
     get:
       tags:
         - Resource
@@ -2395,7 +2395,7 @@ paths:
           required: true
           schema:
             type: string
-        - name: id
+        - name: dataTypeId
           in: path
           required: true
           schema:

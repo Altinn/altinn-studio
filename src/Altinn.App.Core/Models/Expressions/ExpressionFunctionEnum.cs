@@ -1,7 +1,10 @@
+// ReSharper disable InconsistentNaming
 namespace Altinn.App.Core.Models.Expressions;
 
 /// <summary>
 /// Enumeration for valid functions in Layout Expressions
+///
+/// Note that capitalization follows the JavaScript convention of camelCase for function names
 /// </summary>
 public enum ExpressionFunction
 {
@@ -139,4 +142,9 @@ public enum ExpressionFunction
     /// Get the action performed in task prior to bpmn gateway
     /// </summary>
     gatewayAction,
+
+    /// <summary>
+    /// Gets the currently selected language (or "nb" if not in a context where language is available)
+    /// </summary>
+    language,
 }

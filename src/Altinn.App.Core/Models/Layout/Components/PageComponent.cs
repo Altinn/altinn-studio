@@ -7,7 +7,7 @@ namespace Altinn.App.Core.Models.Layout.Components;
 /// Component like object to add Page as a group like object
 /// </summary>
 [JsonConverter(typeof(PageComponentConverter))]
-public class PageComponent : GroupComponent
+public record PageComponent : GroupComponent
 {
     /// <summary>
     /// Constructor for PageComponent
@@ -16,9 +16,9 @@ public class PageComponent : GroupComponent
         string id,
         List<BaseComponent> children,
         Dictionary<string, BaseComponent> componentLookup,
-        Expression? hidden,
-        Expression? required,
-        Expression? readOnly,
+        Expression hidden,
+        Expression required,
+        Expression readOnly,
         IReadOnlyDictionary<string, string>? extra
     )
         : base(id, "page", null, children, null, hidden, required, readOnly, extra)

@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Models.Layout.Components;
 /// <summary>
 /// Custom component for handeling the special fields that represents an option.
 /// </summary>
-public class OptionsComponent : BaseComponent
+public record OptionsComponent : BaseComponent
 {
     /// <summary>
     /// The ID that references <see cref="Altinn.App.Core.Features.IAppOptionsProvider.Id" /> and <see cref="Altinn.App.Core.Features.IInstanceAppOptionsProvider.Id" />
@@ -33,10 +33,10 @@ public class OptionsComponent : BaseComponent
     public OptionsComponent(
         string id,
         string type,
-        IReadOnlyDictionary<string, string>? dataModelBindings,
-        Expression? hidden,
-        Expression? required,
-        Expression? readOnly,
+        IReadOnlyDictionary<string, ModelBinding>? dataModelBindings,
+        Expression hidden,
+        Expression required,
+        Expression readOnly,
         string? optionId,
         List<AppOption>? options,
         OptionsSource? optionsSource,
@@ -55,7 +55,7 @@ public class OptionsComponent : BaseComponent
 /// <summary>
 /// This is an optional child element of <see cref="OptionsComponent" /> that specifies that
 /// </summary>
-public class OptionsSource
+public record OptionsSource
 {
     /// <summary>
     /// Constructor for <see cref="OptionsSource" />

@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 using Altinn.App.Core.Models.Expressions;
+using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
 
 namespace Altinn.App.Core.Internal.Expressions;
@@ -22,18 +23,15 @@ public static class ExpressionEvaluator
     {
         try
         {
+            ArgumentNullException.ThrowIfNull(context.Component);
             var expr = property switch
             {
-                "hidden" => context.Component?.Hidden,
-                "hiddenRow"
-                    => context.Component is RepeatingGroupComponent repeatingGroup ? repeatingGroup.HiddenRow : null,
-                "required" => context.Component?.Required,
+                "hidden" => context.Component.Hidden,
+                "hiddenRow" when context.Component is RepeatingGroupComponent repeatingGroup
+                    => repeatingGroup.HiddenRow,
+                "required" => context.Component.Required,
                 _ => throw new ExpressionEvaluatorTypeErrorException($"unknown boolean expression property {property}")
             };
-            if (expr is null)
-            {
-                return defaultReturn;
-            }
 
             return EvaluateExpression(state, expr, context) switch
             {
@@ -62,11 +60,7 @@ public static class ExpressionEvaluator
         object[]? positionalArguments = null
     )
     {
-        if (expr is null)
-        {
-            return null;
-        }
-        if (expr.Function is null || expr.Args is null)
+        if (!expr.IsFunctionExpression)
         {
             return expr.Value;
         }
@@ -75,7 +69,7 @@ public static class ExpressionEvaluator
         // ! TODO: should find better ways to deal with nulls here for the next major version
         var ret = expr.Function switch
         {
-            ExpressionFunction.dataModel => DataModel(args.First()?.ToString(), context, state),
+            ExpressionFunction.dataModel => DataModel(args, context, state),
             ExpressionFunction.component => Component(args, context, state),
             ExpressionFunction.instanceContext => state.GetInstanceContext(args.First()?.ToString()!),
             ExpressionFunction.@if => IfImpl(args),
@@ -101,12 +95,29 @@ public static class ExpressionEvaluator
             ExpressionFunction.lowerCase => LowerCase(args),
             ExpressionFunction.argv => Argv(args, positionalArguments),
             ExpressionFunction.gatewayAction => state.GetGatewayAction(),
+            ExpressionFunction.language => state.GetLanguage() ?? "nb",
             _ => throw new ExpressionEvaluatorTypeErrorException($"Function \"{expr.Function}\" not implemented"),
         };
         return ret;
     }
 
-    private static object? DataModel(string? key, ComponentContext? context, LayoutEvaluatorState state)
+    private static object? DataModel(object?[] args, ComponentContext? context, LayoutEvaluatorState state)
+    {
+        var key = args switch
+        {
+            [string field] => new ModelBinding { Field = field, DataType = state.DefaultDataElement.DataType },
+            [string field, string dataType] => new ModelBinding { Field = field, DataType = dataType },
+            [ModelBinding binding] => binding,
+            [null] => throw new ExpressionEvaluatorTypeErrorException("Cannot lookup dataModel null"),
+            _
+                => throw new ExpressionEvaluatorTypeErrorException(
+                    $"""Expected ["dataModel", ...] to have 1-2 argument(s), got {args.Length}"""
+                )
+        };
+        return DataModel(key, context, state);
+    }
+
+    private static object? DataModel(ModelBinding key, ComponentContext? context, LayoutEvaluatorState state)
     {
         var data = state.GetModelData(key, context);
 

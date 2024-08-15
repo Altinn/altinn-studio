@@ -1,7 +1,7 @@
-#nullable disable
 using System.Text.Json.Serialization;
-using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Models.Layout;
 using FluentAssertions;
 
 namespace Altinn.App.Core.Tests.LayoutExpressions.FullTests.Test3;
@@ -51,7 +51,7 @@ public class RunTest3
         var hidden = LayoutEvaluator.GetHiddenFieldsForRemoval(state);
 
         // Should try to remove "some.data[0].binding2", because it is not nullable int and the parent object exists
-        hidden.Should().BeEquivalentTo(new List<string> { "some.data[2]" });
+        hidden.Should().BeEquivalentTo([new ModelBinding { Field = "some.data[2]", DataType = "default" }]);
 
         // Verify before removing data
         data.Some.Data.Should().HaveCount(3);
@@ -108,7 +108,7 @@ public class RunTest3
         var hidden = LayoutEvaluator.GetHiddenFieldsForRemoval(state);
 
         // Should try to remove "some.data[0].binding2", because it is not nullable int and the parent object exists
-        hidden.Should().BeEquivalentTo(new List<string> { "some.data[2]" });
+        hidden.Should().BeEquivalentTo([new ModelBinding { Field = "some.data[2]", DataType = "default" }]);
 
         // Verify before removing data
         data.Some.Data.Should().HaveCount(3);
@@ -133,26 +133,26 @@ public class RunTest3
 public class DataModel
 {
     [JsonPropertyName("some")]
-    public Some Some { get; set; }
+    public Some? Some { get; set; }
 }
 
 public class Some
 {
     [JsonPropertyName("notRepeating")]
-    public string NotRepeating { get; set; }
+    public string? NotRepeating { get; set; }
 
     [JsonPropertyName("data")]
-    public List<Data> Data { get; set; }
+    public List<Data>? Data { get; set; }
 }
 
 public class Data
 {
     [JsonPropertyName("binding")]
-    public string Binding { get; set; }
+    public string? Binding { get; set; }
 
     [JsonPropertyName("binding2")]
     public int Binding2 { get; set; }
 
     [JsonPropertyName("binding3")]
-    public string Binding3 { get; set; }
+    public string? Binding3 { get; set; }
 }

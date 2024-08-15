@@ -1,4 +1,3 @@
-using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
@@ -10,22 +9,14 @@ namespace Altinn.App.Core.Features.Validation.Default;
 /// </summary>
 public class RequiredLayoutValidator : IFormDataValidator
 {
-    private readonly LayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
-    private readonly IAppResources _appResourcesService;
-    private readonly IAppMetadata _appMetadata;
+    private readonly ILayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RequiredLayoutValidator"/> class.
     /// </summary>
-    public RequiredLayoutValidator(
-        LayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
-        IAppResources appResourcesService,
-        IAppMetadata appMetadata
-    )
+    public RequiredLayoutValidator(ILayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer)
     {
         _layoutEvaluatorStateInitializer = layoutEvaluatorStateInitializer;
-        _appResourcesService = appResourcesService;
-        _appMetadata = appMetadata;
     }
 
     /// <summary>
@@ -39,13 +30,11 @@ public class RequiredLayoutValidator : IFormDataValidator
     public string ValidationSource => "Required";
 
     /// <summary>
-    /// Always run for incremental validation
+    /// We don't have an efficient way to figure out if changes to the model results in different validations, and frontend ignores this anyway
     /// </summary>
     public bool HasRelevantChanges(object current, object previous) => true;
 
-    /// <summary>
-    /// Validate the form data against the required rules in the layout
-    /// </summary>
+    /// <inheritdoc />
     public async Task<List<ValidationIssue>> ValidateFormData(
         Instance instance,
         DataElement dataElement,
@@ -53,11 +42,15 @@ public class RequiredLayoutValidator : IFormDataValidator
         string? language
     )
     {
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
-        var layoutSet = _appResourcesService.GetLayoutSetForTask(
-            appMetadata.DataTypes.First(dt => dt.Id == dataElement.DataType).TaskId
+        var taskId = instance.Process.CurrentTask.ElementId;
+
+        var evaluationState = await _layoutEvaluatorStateInitializer.Init(
+            instance,
+            taskId,
+            gatewayAction: null,
+            language
         );
-        var evaluationState = await _layoutEvaluatorStateInitializer.Init(instance, data, layoutSet?.Id);
-        return LayoutEvaluator.RunLayoutValidationsForRequired(evaluationState, dataElement.Id);
+
+        return LayoutEvaluator.RunLayoutValidationsForRequired(evaluationState);
     }
 }

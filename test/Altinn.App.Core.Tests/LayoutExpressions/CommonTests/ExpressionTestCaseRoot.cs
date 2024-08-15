@@ -1,12 +1,11 @@
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout;
 using Altinn.Platform.Storage.Interface.Models;
 
-namespace Altinn.App.Core.Tests.LayoutExpressions;
+namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 
 public class ExpressionTestCaseRoot
 {
@@ -45,7 +44,10 @@ public class ExpressionTestCaseRoot
     public LayoutModel ComponentModel { get; set; } = default!;
 
     [JsonPropertyName("dataModel")]
-    public JsonObject? DataModel { get; set; }
+    public JsonElement? DataModel { get; set; }
+
+    [JsonPropertyName("dataModels")]
+    public List<DataModelAndElement>? DataModels { get; set; }
 
     [JsonPropertyName("frontendSettings")]
     public FrontEndSettings? FrontEndSettings { get; set; }
@@ -56,10 +58,28 @@ public class ExpressionTestCaseRoot
     [JsonPropertyName("gatewayAction")]
     public string? GatewayAction { get; set; }
 
+    [JsonPropertyName("profileSettings")]
+    public ProfileSettings? ProfileSettings { get; set; }
+
     public override string ToString()
     {
         return $"{Filename}: {Name}";
     }
+}
+
+public class DataModelAndElement
+{
+    [JsonPropertyName("dataElement")]
+    public required DataElement DataElement { get; set; }
+
+    [JsonPropertyName("data")]
+    public required JsonElement Data { get; set; }
+}
+
+public class ProfileSettings
+{
+    [JsonPropertyName("language")]
+    public string? Language { get; set; }
 }
 
 public class ComponentContextForTestSpec

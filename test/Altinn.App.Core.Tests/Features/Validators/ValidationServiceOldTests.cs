@@ -11,6 +11,7 @@ using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -23,6 +24,7 @@ public class ValidationServiceOldTests
     private readonly Mock<IDataClient> _dataClientMock = new();
     private readonly Mock<IAppModel> _appModelMock = new();
     private readonly Mock<IAppMetadata> _appMetadataMock = new();
+    private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new();
     private readonly ServiceCollection _serviceCollection = new();
 
     private readonly ApplicationMetadata _applicationMetadata =
@@ -50,6 +52,11 @@ public class ValidationServiceOldTests
         _serviceCollection.AddSingleton<IDataElementValidator, DefaultDataElementValidator>();
         _serviceCollection.AddSingleton<ITaskValidator, DefaultTaskValidator>();
         _serviceCollection.AddSingleton<IValidatorFactory, ValidatorFactory>();
+        _serviceCollection.AddScoped<ICachedFormDataAccessor, CachedFormDataAccessor>();
+
+        _httpContextAccessorMock.SetupGet(h => h.HttpContext!.TraceIdentifier).Returns(Guid.NewGuid().ToString());
+        _serviceCollection.AddSingleton(_httpContextAccessorMock.Object);
+
         _appMetadataMock.Setup(am => am.GetApplicationMetadata()).ReturnsAsync(_applicationMetadata);
     }
 

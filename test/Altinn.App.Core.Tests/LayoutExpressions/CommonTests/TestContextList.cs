@@ -1,15 +1,12 @@
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Internal.Expressions;
-using Altinn.App.Core.Tests.Helpers;
+using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.App.Core.Tests.TestUtils;
 using FluentAssertions;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 
-namespace Altinn.App.Core.Tests.LayoutExpressions;
+namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 
 public class TestContextList
 {
@@ -65,7 +62,13 @@ public class TestContextList
         _output.WriteLine($"{test.Filename} in {test.Folder}");
         _output.WriteLine(test.RawJson);
         _output.WriteLine(test.FullPath);
-        var state = new LayoutEvaluatorState(new JsonDataModel(test.DataModel), test.ComponentModel, new(), new());
+
+        var state = new LayoutEvaluatorState(
+            DynamicClassBuilder.DataModelFromJsonDocument(test.DataModel ?? JsonDocument.Parse("{}").RootElement),
+            test.ComponentModel,
+            new(),
+            new()
+        );
 
         test.ParsingException.Should().BeNull("Loading of test failed");
 

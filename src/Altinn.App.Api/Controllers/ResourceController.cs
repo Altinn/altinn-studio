@@ -7,6 +7,7 @@ namespace Altinn.App.Api.Controllers;
 /// <summary>
 /// Controller to handle resources like css, images, javascript included in an app
 /// </summary>
+[ApiController]
 public class ResourceController : ControllerBase
 {
     private readonly IAppResources _appResourceService;
@@ -169,13 +170,13 @@ public class ResourceController : ControllerBase
     /// </summary>
     /// <param name="org">The application owner short name</param>
     /// <param name="app">The application name</param>
-    /// <param name="id">Unique identifier of the model to fetch validations for.</param>
+    /// <param name="dataTypeId">Unique identifier of the model to fetch validations for.</param>
     /// <returns>The validation configuration file as json.</returns>
     [HttpGet]
-    [Route("{org}/{app}/api/validationconfig/{id}")]
-    public ActionResult GetValidationConfiguration(string org, string app, string id)
+    [Route("{org}/{app}/api/validationconfig/{dataTypeId}")]
+    public ActionResult GetValidationConfiguration(string org, string app, string dataTypeId)
     {
-        string? validationConfiguration = _appResourceService.GetValidationConfiguration(id);
+        var validationConfiguration = _appResourceService.GetValidationConfiguration(dataTypeId);
         return Ok(validationConfiguration);
     }
 }

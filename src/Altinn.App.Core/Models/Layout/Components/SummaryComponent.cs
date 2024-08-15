@@ -5,12 +5,12 @@ namespace Altinn.App.Core.Models.Layout.Components;
 /// <summary>
 /// Custom component for handeling the special fields in "type" = "Summary"
 /// </summary>
-public class SummaryComponent : BaseComponent
+public record SummaryComponent : BaseComponent
 {
     /// <summary>
     /// <see cref="BaseComponent.Id" /> of the component this summary references
     /// </summary>
-    public string ComponentRef { get; set; }
+    public string ComponentRef { get; }
 
     /// <summary>
     /// Constructor
@@ -18,11 +18,11 @@ public class SummaryComponent : BaseComponent
     public SummaryComponent(
         string id,
         string type,
-        Expression? hidden,
+        Expression hidden,
         string componentRef,
         IReadOnlyDictionary<string, string>? additionalProperties
     )
-        : base(id, type, null, hidden, null, null, additionalProperties)
+        : base(id, type, null, hidden, Expression.False, Expression.False, additionalProperties)
     {
         ComponentRef = componentRef;
     }

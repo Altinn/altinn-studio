@@ -1,6 +1,7 @@
 #nullable disable
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Models.Layout;
 using FluentAssertions;
 
 namespace Altinn.App.Core.Tests.LayoutExpressions.FullTests.Test1;
@@ -46,7 +47,7 @@ public class RunTest1
             "Test1"
         );
         var hidden = LayoutEvaluator.GetHiddenFieldsForRemoval(state);
-        hidden.Should().BeEquivalentTo(["some.data.binding2"]);
+        hidden.Should().BeEquivalentTo([new ModelBinding { Field = "some.data.binding2", DataType = "default" }]);
     }
 
     [Fact]
@@ -62,7 +63,7 @@ public class RunTest1
             },
             "Test1"
         );
-        var validationIssues = LayoutEvaluator.RunLayoutValidationsForRequired(state, dataElementId: "dummy");
+        var validationIssues = LayoutEvaluator.RunLayoutValidationsForRequired(state);
         validationIssues.Should().BeEmpty();
     }
 
@@ -79,7 +80,7 @@ public class RunTest1
             },
             "Test1"
         );
-        var validationIssues = LayoutEvaluator.RunLayoutValidationsForRequired(state, dataElementId: "dummy");
+        var validationIssues = LayoutEvaluator.RunLayoutValidationsForRequired(state);
         validationIssues
             .Should()
             .BeEquivalentTo(new object[] { new { Code = "required", Field = "some.data.binding3" } });

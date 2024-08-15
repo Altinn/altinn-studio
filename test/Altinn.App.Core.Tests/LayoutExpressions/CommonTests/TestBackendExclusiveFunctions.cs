@@ -1,11 +1,11 @@
 using System.Text.Json;
 using Altinn.App.Core.Internal.Expressions;
-using Altinn.App.Core.Tests.Helpers;
+using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.App.Core.Tests.TestUtils;
 using FluentAssertions;
 using Xunit.Abstractions;
 
-namespace Altinn.App.Core.Tests.LayoutExpressions;
+namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 
 public class TestBackendExclusiveFunctions
 {
@@ -59,11 +59,12 @@ public class TestBackendExclusiveFunctions
         _output.WriteLine(test.RawJson);
         _output.WriteLine(test.FullPath);
         var state = new LayoutEvaluatorState(
-            new JsonDataModel(test.DataModel),
+            DynamicClassBuilder.DataModelFromJsonDocument(test.DataModel ?? JsonDocument.Parse("{}").RootElement),
             test.ComponentModel,
             test.FrontEndSettings ?? new(),
             test.Instance ?? new(),
-            test.GatewayAction
+            test.GatewayAction,
+            test.ProfileSettings?.Language
         );
 
         if (test.ExpectsFailure is not null)

@@ -1,7 +1,7 @@
-#nullable disable
 using System.Text.Json.Serialization;
-using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Models.Layout;
 using FluentAssertions;
 
 namespace Altinn.App.Core.Tests.LayoutExpressions.FullTests.Test2;
@@ -48,7 +48,11 @@ public class RunTest2
         hidden
             .Should()
             .BeEquivalentTo(
-                new List<string> { "some.data[0].binding2", "some.data[1].binding", "some.data[1].binding2" }
+                [
+                    new ModelBinding { Field = "some.data[0].binding2", DataType = "default" },
+                    new ModelBinding { Field = "some.data[1].binding", DataType = "default" },
+                    new ModelBinding { Field = "some.data[1].binding2", DataType = "default" }
+                ]
             );
 
         // Verify before removing data
@@ -85,33 +89,33 @@ public class RunTest2
         );
         var hidden = LayoutEvaluator.GetHiddenFieldsForRemoval(state);
 
-        hidden.Should().BeEquivalentTo(new List<string> { "some.data[1].binding2" });
+        hidden.Should().BeEquivalentTo([new ModelBinding() { Field = "some.data[1].binding2", DataType = "default" }]);
     }
 }
 
 public class DataModel
 {
     [JsonPropertyName("some")]
-    public Some Some { get; set; }
+    public Some? Some { get; set; }
 }
 
 public class Some
 {
     [JsonPropertyName("notRepeating")]
-    public string NotRepeating { get; set; }
+    public string? NotRepeating { get; set; }
 
     [JsonPropertyName("data")]
-    public List<Data> Data { get; set; }
+    public List<Data>? Data { get; set; }
 }
 
 public class Data
 {
     [JsonPropertyName("binding")]
-    public string Binding { get; set; }
+    public string? Binding { get; set; }
 
     [JsonPropertyName("binding2")]
     public int Binding2 { get; set; }
 
     [JsonPropertyName("binding3")]
-    public string Binding3 { get; set; }
+    public string? Binding3 { get; set; }
 }

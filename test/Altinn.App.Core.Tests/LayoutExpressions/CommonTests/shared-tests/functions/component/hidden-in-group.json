@@ -63,7 +63,8 @@
         "Ansatte": [
           {
             "Navn": "Kaare",
-            "Alder": 24
+            "Alder": 24,
+            "AlderSkjult": true
           },
           {
             "Navn": "Per",

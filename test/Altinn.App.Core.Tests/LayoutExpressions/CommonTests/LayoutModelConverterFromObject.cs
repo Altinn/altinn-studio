@@ -1,8 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Models.Layout;
+using Altinn.App.Core.Models.Layout.Components;
+using Altinn.Platform.Storage.Interface.Models;
 
-namespace Altinn.App.Core.Tests.LayoutExpressions;
+namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 
 /// <summary>
 /// Custom converter for parsing Layout files in json format to <see cref="LayoutModel" />
@@ -24,7 +26,7 @@ public class LayoutModelConverterFromObject : JsonConverter<LayoutModel>
             );
         }
 
-        var componentModel = new LayoutModel();
+        var pages = new Dictionary<string, PageComponent>();
 
         // Read dictionary of pages
         while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
@@ -47,10 +49,14 @@ public class LayoutModelConverterFromObject : JsonConverter<LayoutModel>
             PageComponentConverter.SetAsyncLocalPageName(pageName);
             var converter = new PageComponentConverter();
 
-            componentModel.Pages[pageName] = converter.ReadNotNull(ref reader, pageName, options);
+            pages[pageName] = converter.ReadNotNull(ref reader, pageName, options);
         }
 
-        return componentModel;
+        return new LayoutModel()
+        {
+            DefaultDataType = new DataType() { Id = "default", },
+            Pages = pages
+        };
     }
 
     /// <inheritdoc />

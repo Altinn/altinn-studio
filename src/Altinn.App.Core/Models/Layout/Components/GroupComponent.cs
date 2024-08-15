@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Models.Layout.Components;
 /// <summary>
 /// Tag component to signify that this is a group component
 /// </summary>
-public class GroupComponent : BaseComponent
+public record GroupComponent : BaseComponent
 {
     /// <summary>
     /// Constructor for GroupComponent
@@ -13,12 +13,12 @@ public class GroupComponent : BaseComponent
     public GroupComponent(
         string id,
         string type,
-        IReadOnlyDictionary<string, string>? dataModelBindings,
-        IEnumerable<BaseComponent> children,
-        IEnumerable<string>? childIDs,
-        Expression? hidden,
-        Expression? required,
-        Expression? readOnly,
+        IReadOnlyDictionary<string, ModelBinding>? dataModelBindings,
+        IReadOnlyCollection<BaseComponent> children,
+        IReadOnlyCollection<string>? childIDs,
+        Expression hidden,
+        Expression required,
+        Expression readOnly,
         IReadOnlyDictionary<string, string>? additionalProperties
     )
         : base(id, type, dataModelBindings, hidden, required, readOnly, additionalProperties)

@@ -1,14 +1,11 @@
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Altinn.App.Core.Internal.Expressions;
-using Altinn.App.Core.Tests.Helpers;
+using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.App.Core.Tests.TestUtils;
 using FluentAssertions;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 
-namespace Altinn.App.Core.Tests.LayoutExpressions;
+namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 
 public class TestInvalid
 {
@@ -34,7 +31,7 @@ public class TestInvalid
         {
             var test = JsonSerializer.Deserialize<ExpressionTestCaseRoot>(testCase.RawJson!, _jsonSerializerOptions)!;
             var state = new LayoutEvaluatorState(
-                new JsonDataModel(test.DataModel),
+                DynamicClassBuilder.DataModelFromJsonDocument(test.DataModel ?? JsonDocument.Parse("{}").RootElement),
                 test.ComponentModel,
                 test.FrontEndSettings ?? new(),
                 test.Instance ?? new()

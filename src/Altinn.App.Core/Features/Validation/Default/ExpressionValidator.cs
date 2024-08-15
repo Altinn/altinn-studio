@@ -3,6 +3,7 @@ using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Expressions;
+using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
@@ -19,8 +20,7 @@ public class ExpressionValidator : IFormDataValidator
 
     private readonly ILogger<ExpressionValidator> _logger;
     private readonly IAppResources _appResourceService;
-    private readonly LayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
-    private readonly IAppMetadata _appMetadata;
+    private readonly ILayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
 
     /// <summary>
     /// Constructor for the expression validator
@@ -28,14 +28,12 @@ public class ExpressionValidator : IFormDataValidator
     public ExpressionValidator(
         ILogger<ExpressionValidator> logger,
         IAppResources appResourceService,
-        LayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
-        IAppMetadata appMetadata
+        ILayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer
     )
     {
         _logger = logger;
         _appResourceService = appResourceService;
         _layoutEvaluatorStateInitializer = layoutEvaluatorStateInitializer;
-        _appMetadata = appMetadata;
     }
 
     /// <inheritdoc />
@@ -47,7 +45,7 @@ public class ExpressionValidator : IFormDataValidator
     public string ValidationSource => "Expression";
 
     /// <summary>
-    /// Expression validations should always run (it is way to complex to figure out if it should run or not)
+    /// We don't have an efficient way to figure out if changes to the model results in different validations, and frontend ignores this anyway
     /// </summary>
     public bool HasRelevantChanges(object current, object previous) => true;
 
@@ -59,6 +57,9 @@ public class ExpressionValidator : IFormDataValidator
         string? language
     )
     {
+        // TODO: Consider not depending on the instance object to get the task
+        //       to follow the same principle as the other validators
+        var taskId = instance.Process.CurrentTask.ElementId;
         var rawValidationConfig = _appResourceService.GetValidationConfiguration(dataElement.DataType);
         if (rawValidationConfig == null)
         {
@@ -67,18 +68,20 @@ public class ExpressionValidator : IFormDataValidator
         }
 
         using var validationConfig = JsonDocument.Parse(rawValidationConfig);
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
-        var layoutSet = _appResourceService.GetLayoutSetForTask(
-            appMetadata.DataTypes.First(dt => dt.Id == dataElement.DataType).TaskId
+
+        var evaluatorState = await _layoutEvaluatorStateInitializer.Init(
+            instance,
+            taskId,
+            gatewayAction: null,
+            language
         );
-        var evaluatorState = await _layoutEvaluatorStateInitializer.Init(instance, data, layoutSet?.Id);
         var hiddenFields = LayoutEvaluator.GetHiddenFieldsForRemoval(evaluatorState, true);
 
         var validationIssues = new List<ValidationIssue>();
         var expressionValidations = ParseExpressionValidationConfig(validationConfig.RootElement, _logger);
         foreach (var validationObject in expressionValidations)
         {
-            var baseField = validationObject.Key;
+            var baseField = new ModelBinding { Field = validationObject.Key, DataType = dataElement.DataType };
             var resolvedFields = evaluatorState.GetResolvedKeys(baseField);
             var validations = validationObject.Value;
             foreach (var resolvedField in resolvedFields)
@@ -92,7 +95,7 @@ public class ExpressionValidator : IFormDataValidator
                     rowIndices: DataModel.GetRowIndices(resolvedField),
                     rowLength: null
                 );
-                var positionalArguments = new[] { resolvedField };
+                var positionalArguments = new object[] { resolvedField };
                 foreach (var validation in validations)
                 {
                     try
@@ -102,29 +105,33 @@ public class ExpressionValidator : IFormDataValidator
                             continue;
                         }
 
-                        var isInvalid = ExpressionEvaluator.EvaluateExpression(
+                        var validationResult = ExpressionEvaluator.EvaluateExpression(
                             evaluatorState,
-                            validation.Condition,
+                            validation.Condition.Value,
                             context,
                             positionalArguments
                         );
-                        if (isInvalid is not bool)
+                        switch (validationResult)
                         {
-                            throw new ArgumentException(
-                                $"Validation condition for {resolvedField} did not evaluate to a boolean"
-                            );
-                        }
-                        if ((bool)isInvalid)
-                        {
-                            var validationIssue = new ValidationIssue
-                            {
-                                Field = resolvedField,
-                                Severity = validation.Severity ?? ValidationIssueSeverity.Error,
-                                CustomTextKey = validation.Message,
-                                Code = validation.Message,
-                                Source = ValidationIssueSources.Expression,
-                            };
-                            validationIssues.Add(validationIssue);
+                            case true:
+                                var validationIssue = new ValidationIssue
+                                {
+                                    Field = resolvedField.Field,
+                                    DataElementId = resolvedField.DataType,
+                                    Severity = validation.Severity ?? ValidationIssueSeverity.Error,
+                                    CustomTextKey = validation.Message,
+                                    Code = validation.Message,
+                                    Source = ValidationIssueSources.Expression,
+                                };
+                                validationIssues.Add(validationIssue);
+
+                                break;
+                            case false:
+                                break;
+                            default:
+                                throw new ArgumentException(
+                                    $"Validation condition for {resolvedField} did not evaluate to a boolean"
+                                );
                         }
                     }
                     catch (Exception e)
@@ -212,7 +219,7 @@ public class ExpressionValidator : IFormDataValidator
         ILogger logger
     )
     {
-        var rawExpressionValidatıon = new RawExpressionValidation();
+        var rawExpressionValidation = new RawExpressionValidation();
 
         if (definition.ValueKind == JsonValueKind.String)
         {
@@ -232,9 +239,9 @@ public class ExpressionValidator : IFormDataValidator
                 );
                 return null;
             }
-            rawExpressionValidatıon.Message = reference.Message;
-            rawExpressionValidatıon.Condition = reference.Condition;
-            rawExpressionValidatıon.Severity = reference.Severity;
+            rawExpressionValidation.Message = reference.Message;
+            rawExpressionValidation.Condition = reference.Condition;
+            rawExpressionValidation.Severity = reference.Severity;
         }
         else
         {
@@ -257,34 +264,34 @@ public class ExpressionValidator : IFormDataValidator
                     );
                     return null;
                 }
-                rawExpressionValidatıon.Message = reference.Message;
-                rawExpressionValidatıon.Condition = reference.Condition;
-                rawExpressionValidatıon.Severity = reference.Severity;
+                rawExpressionValidation.Message = reference.Message;
+                rawExpressionValidation.Condition = reference.Condition;
+                rawExpressionValidation.Severity = reference.Severity;
             }
 
             if (expressionDefinition.Message != null)
             {
-                rawExpressionValidatıon.Message = expressionDefinition.Message;
+                rawExpressionValidation.Message = expressionDefinition.Message;
             }
 
             if (expressionDefinition.Condition != null)
             {
-                rawExpressionValidatıon.Condition = expressionDefinition.Condition;
+                rawExpressionValidation.Condition = expressionDefinition.Condition;
             }
 
             if (expressionDefinition.Severity != null)
             {
-                rawExpressionValidatıon.Severity = expressionDefinition.Severity;
+                rawExpressionValidation.Severity = expressionDefinition.Severity;
             }
         }
 
-        if (rawExpressionValidatıon.Message == null)
+        if (rawExpressionValidation.Message == null)
         {
             logger.LogError("Validation for field {field} is missing message", field);
             return null;
         }
 
-        if (rawExpressionValidatıon.Condition == null)
+        if (rawExpressionValidation.Condition == null)
         {
             logger.LogError("Validation for field {field} is missing condition", field);
             return null;
@@ -292,9 +299,9 @@ public class ExpressionValidator : IFormDataValidator
 
         var expressionValidation = new ExpressionValidation
         {
-            Message = rawExpressionValidatıon.Message,
-            Condition = rawExpressionValidatıon.Condition,
-            Severity = rawExpressionValidatıon.Severity ?? ValidationIssueSeverity.Error,
+            Message = rawExpressionValidation.Message,
+            Condition = rawExpressionValidation.Condition,
+            Severity = rawExpressionValidation.Severity ?? ValidationIssueSeverity.Error,
         };
 
         return expressionValidation;
@@ -306,8 +313,10 @@ public class ExpressionValidator : IFormDataValidator
     )
     {
         var expressionValidationDefinitions = new Dictionary<string, RawExpressionValidation>();
-        JsonElement definitionsObject;
-        var hasDefinitions = expressionValidationConfig.TryGetProperty("definitions", out definitionsObject);
+        var hasDefinitions = expressionValidationConfig.TryGetProperty(
+            "definitions",
+            out JsonElement definitionsObject
+        );
         if (hasDefinitions)
         {
             foreach (var definitionObject in definitionsObject.EnumerateObject())
@@ -329,8 +338,10 @@ public class ExpressionValidator : IFormDataValidator
             }
         }
         var expressionValidations = new Dictionary<string, List<ExpressionValidation>>();
-        JsonElement validationsObject;
-        var hasValidations = expressionValidationConfig.TryGetProperty("validations", out validationsObject);
+        var hasValidations = expressionValidationConfig.TryGetProperty(
+            "validations",
+            out JsonElement validationsObject
+        );
         if (hasValidations)
         {
             foreach (var validationArray in validationsObject.EnumerateObject())

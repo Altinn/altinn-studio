@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
@@ -18,32 +19,23 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
     private readonly IAppMetadata _appMetadata;
     private readonly IDataClient _dataClient;
     private readonly IAppModel _appModel;
-    private readonly IAppResources _appResources;
-    private readonly LayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
+    private readonly ILayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
     private readonly IOptions<AppSettings> _appSettings;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessTaskFinalizer"/> class.
     /// </summary>
-    /// <param name="appMetadata"></param>
-    /// <param name="dataClient"></param>
-    /// <param name="appModel"></param>
-    /// <param name="appResources"></param>
-    /// <param name="layoutEvaluatorStateInitializer"></param>
-    /// <param name="appSettings"></param>
     public ProcessTaskFinalizer(
         IAppMetadata appMetadata,
         IDataClient dataClient,
         IAppModel appModel,
-        IAppResources appResources,
-        LayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
+        ILayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
         IOptions<AppSettings> appSettings
     )
     {
         _appMetadata = appMetadata;
         _dataClient = dataClient;
         _appModel = appModel;
-        _appResources = appResources;
         _layoutEvaluatorStateInitializer = layoutEvaluatorStateInitializer;
         _appSettings = appSettings;
     }
@@ -54,10 +46,15 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
         List<DataType> connectedDataTypes = applicationMetadata.DataTypes.FindAll(dt => dt.TaskId == taskId);
 
-        await RunRemoveFieldsInModelOnTaskComplete(instance, connectedDataTypes);
+        await RunRemoveFieldsInModelOnTaskComplete(instance, taskId, connectedDataTypes, language: null);
     }
 
-    private async Task RunRemoveFieldsInModelOnTaskComplete(Instance instance, List<DataType> dataTypesToLock)
+    private async Task RunRemoveFieldsInModelOnTaskComplete(
+        Instance instance,
+        string taskId,
+        List<DataType> dataTypesToLock,
+        string? language = null
+    )
     {
         ArgumentNullException.ThrowIfNull(instance.Data);
 
@@ -68,7 +65,14 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
                 .Select(
                     async (d) =>
                     {
-                        await RemoveFieldsOnTaskComplete(instance, dataTypesToLock, d.dataElement, d.dataType);
+                        await RemoveFieldsOnTaskComplete(
+                            instance,
+                            taskId,
+                            dataTypesToLock,
+                            d.dataElement,
+                            d.dataType,
+                            language
+                        );
                     }
                 )
         );
@@ -76,9 +80,11 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
 
     private async Task RemoveFieldsOnTaskComplete(
         Instance instance,
+        string taskId,
         List<DataType> dataTypesToLock,
         DataElement dataElement,
-        DataType dataType
+        DataType dataType,
+        string? language = null
     )
     {
         // Download the data
@@ -99,11 +105,11 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
         // Remove hidden data before validation, ignore hidden rows.
         if (_appSettings.Value?.RemoveHiddenData == true)
         {
-            LayoutSet? layoutSet = _appResources.GetLayoutSetForTask(dataType.TaskId);
             LayoutEvaluatorState evaluationState = await _layoutEvaluatorStateInitializer.Init(
                 instance,
-                data,
-                layoutSet?.Id
+                taskId,
+                gatewayAction: null,
+                language
             );
             LayoutEvaluator.RemoveHiddenData(evaluationState, RowRemovalOption.Ignore);
         }

@@ -170,8 +170,9 @@ public static class ServiceCollectionExtensions
         services.TryAddTransient<DataListsFactory>();
         services.TryAddTransient<InstanceDataListsFactory>();
         services.TryAddTransient<IDataListsService, DataListsService>();
+        services.TryAddTransient<ILayoutEvaluatorStateInitializer, LayoutEvaluatorStateInitializer>();
         services.TryAddTransient<LayoutEvaluatorStateInitializer>();
-        services.TryAddTransient<IPatchService, PatchService>();
+        services.TryAddScoped<IPatchService, PatchService>();
         services.AddTransient<IDataService, DataService>();
         services.Configure<Common.PEP.Configuration.PepSettings>(configuration.GetSection("PEPSettings"));
         services.Configure<Common.PEP.Configuration.PlatformSettings>(configuration.GetSection("PlatformSettings"));
@@ -204,8 +205,9 @@ public static class ServiceCollectionExtensions
 
     private static void AddValidationServices(IServiceCollection services, IConfiguration configuration)
     {
+        CachedFormDataAccessor.Register(services);
         services.AddTransient<IValidatorFactory, ValidatorFactory>();
-        services.TryAddTransient<IValidationService, ValidationService>();
+        services.AddScoped<IValidationService, ValidationService>();
         if (configuration.GetSection("AppSettings").Get<AppSettings>()?.RequiredValidation == true)
         {
             services.AddTransient<IFormDataValidator, RequiredLayoutValidator>();
@@ -322,10 +324,10 @@ public static class ServiceCollectionExtensions
 
     private static void AddProcessServices(IServiceCollection services)
     {
-        services.TryAddTransient<IProcessEngine, ProcessEngine>();
+        services.TryAddScoped<IProcessEngine, ProcessEngine>();
         services.TryAddTransient<IProcessNavigator, ProcessNavigator>();
         services.TryAddSingleton<IProcessReader, ProcessReader>();
-        services.TryAddSingleton<IProcessEventHandlerDelegator, ProcessEventHandlingDelegator>();
+        services.TryAddScoped<IProcessEventHandlerDelegator, ProcessEventHandlingDelegator>();
         services.TryAddTransient<IProcessEventDispatcher, ProcessEventDispatcher>();
         services.AddTransient<IProcessExclusiveGateway, ExpressionsExclusiveGateway>();
         services.TryAddTransient<ExclusiveGatewayFactory>();

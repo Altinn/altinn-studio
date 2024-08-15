@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -37,6 +38,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     // Define constants
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
+    private const int UserId = 1337;
     private const int InstanceOwnerPartyId = 500600;
     private static readonly Guid InstanceGuid = new("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
     private static readonly string InstanceId = $"{InstanceOwnerPartyId}/{InstanceGuid}";
@@ -78,19 +80,13 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
             url += $"?language={language}";
         }
         _outputHelper.WriteLine($"Calling PATCH {url}");
-        using var httpClient = GetRootedClient(Org, App);
-        string token = PrincipalUtil.GetToken(1337, null);
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        using var httpClient = GetRootedClient(Org, App, UserId, null);
         var serializedPatch = JsonSerializer.Serialize(
             new DataPatchRequest() { Patch = patch, IgnoredValidators = ignoredValidators, },
             _jsonSerializerOptions
         );
         _outputHelper.WriteLine(serializedPatch);
-        using var updateDataElementContent = new StringContent(
-            serializedPatch,
-            System.Text.Encoding.UTF8,
-            "application/json"
-        );
+        using var updateDataElementContent = new StringContent(serializedPatch, Encoding.UTF8, "application/json");
         var response = await httpClient.PatchAsync(url, updateDataElementContent);
         var responseString = await response.Content.ReadAsStringAsync();
         using var responseParsedRaw = JsonDocument.Parse(responseString);
@@ -171,14 +167,25 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
 
         var (_, _, parsedResponse) = await CallPatchApi<DataPatchResponse>(patch, null, HttpStatusCode.OK);
 
+        var newModelElement = parsedResponse.NewDataModel.Should().BeOfType<JsonElement>().Which;
+        var newModel = newModelElement.Deserialize<Skjema>()!;
+        newModel.Melding!.Name.Should().BeNull();
+
         var requiredList = parsedResponse.ValidationIssues.Should().ContainKey("Required").WhoseValue;
         var requiredName = requiredList.Should().ContainSingle().Which;
         requiredName.Field.Should().Be("melding.name");
         requiredName.Description.Should().Be("melding.name is required in component with id name");
 
-        var newModelElement = parsedResponse.NewDataModel.Should().BeOfType<JsonElement>().Which;
-        var newModel = newModelElement.Deserialize<Skjema>()!;
-        newModel.Melding!.Name.Should().BeNull();
+        // Run full validation to see that result is the same
+        using var client = GetRootedClient(Org, App, UserId, null);
+        var validationResponse = await client.GetAsync($"/{Org}/{App}/instances/{InstanceId}/validate");
+        validationResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+        var validationResponseString = await validationResponse.Content.ReadAsStringAsync();
+        var validationResponseObject = JsonSerializer.Deserialize<List<ValidationIssue>>(
+            validationResponseString,
+            _jsonSerializerOptions
+        )!;
+        validationResponseObject.Should().BeEquivalentTo(parsedResponse.ValidationIssues.Values.SelectMany(d => d));
 
         _dataProcessorMock.Verify(
             p =>

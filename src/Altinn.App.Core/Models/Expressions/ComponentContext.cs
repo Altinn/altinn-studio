@@ -67,7 +67,7 @@ public sealed class ComponentContext
     /// <summary>
     /// Get all children and children of children of this componentContext (not including this)
     /// </summary>
-    public IEnumerable<ComponentContext> Decendants
+    public IEnumerable<ComponentContext> Descendants
     {
         get
         {

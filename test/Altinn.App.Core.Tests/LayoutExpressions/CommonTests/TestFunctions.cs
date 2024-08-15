@@ -1,11 +1,11 @@
 using System.Text.Json;
 using Altinn.App.Core.Internal.Expressions;
-using Altinn.App.Core.Tests.Helpers;
+using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.App.Core.Tests.TestUtils;
 using FluentAssertions;
 using Xunit.Abstractions;
 
-namespace Altinn.App.Core.Tests.LayoutExpressions;
+namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 
 public class TestFunctions
 {
@@ -40,12 +40,20 @@ public class TestFunctions
     public void Concat_Theory(string testName, string folder) => RunTestCase(testName, folder);
 
     [Theory]
+    [SharedTest("language")]
+    public void Language_Theory(string testName, string folder) => RunTestCase(testName, folder);
+
+    [Theory]
     [SharedTest("contains")]
     public void Contains_Theory(string testName, string folder) => RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("dataModel")]
     public void DataModel_Theory(string testName, string folder) => RunTestCase(testName, folder);
+
+    [Theory]
+    [SharedTest("dataModelMultiple")]
+    public void DataModelMultiple_Theory(string testName, string folder) => RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("endsWith")]
@@ -151,11 +159,18 @@ public class TestFunctions
         _output.WriteLine($"{test.Filename} in {test.Folder}");
         _output.WriteLine(test.RawJson);
         _output.WriteLine(test.FullPath);
+
+        var dataModel = test.DataModels is null
+            ? DynamicClassBuilder.DataModelFromJsonDocument(test.DataModel ?? JsonDocument.Parse("{}").RootElement)
+            : DynamicClassBuilder.DataModelFromJsonDocument(test.DataModels);
+
         var state = new LayoutEvaluatorState(
-            new JsonDataModel(test.DataModel),
+            dataModel,
             test.ComponentModel,
             test.FrontEndSettings ?? new(),
-            test.Instance ?? new()
+            test.Instance ?? new(),
+            test.GatewayAction,
+            test.ProfileSettings?.Language
         );
 
         if (test.ExpectsFailure is not null)

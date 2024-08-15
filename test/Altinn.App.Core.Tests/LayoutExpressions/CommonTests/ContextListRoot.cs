@@ -1,8 +1,8 @@
-using System.Text.Json.Nodes;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Models.Layout;
 
-namespace Altinn.App.Core.Tests.LayoutExpressions;
+namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 
 public class ContextListRoot
 {
@@ -29,7 +29,7 @@ public class ContextListRoot
     public LayoutModel ComponentModel { get; set; } = default!;
 
     [JsonPropertyName("dataModel")]
-    public JsonObject? DataModel { get; set; }
+    public JsonElement? DataModel { get; set; }
 
     [JsonPropertyName("expectedContexts")]
     public List<ComponentContextForTestSpec> Expected { get; set; } = default!;
