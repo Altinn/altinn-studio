@@ -48,28 +48,6 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// The View for text resources
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The view with JSON editor</returns>
-        [HttpGet]
-        [Route("/designer/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/Text")]
-        public IActionResult Index(string org, string app)
-        {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            IList<string> languages = _textsService.GetLanguages(org, app, developer);
-
-            if (Request.Headers["accept"] == "application/json")
-            {
-                Dictionary<string, Dictionary<string, TextResourceElement>> resources = _repository.GetServiceTexts(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer));
-                return Json(resources);
-            }
-
-            return View(languages);
-        }
-
-        /// <summary>
         /// The languages in the app
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
