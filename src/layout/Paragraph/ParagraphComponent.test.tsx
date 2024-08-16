@@ -44,7 +44,9 @@ describe('ParagraphComponent', () => {
     const id = 'mock-id';
     await render({ component: { id, textResourceBindings: { title: '### Hello world' } } });
 
-    expect(screen.getByTestId(`paragraph-component-${id}`).children[0].tagName).toEqual('H3');
+    const paragraphBlockContainer = screen.getByTestId(`paragraph-component-${id}`).firstElementChild;
+
+    expect(paragraphBlockContainer?.children[0].tagName).toEqual('H3');
   });
 
   it('should render as a single <p> when text content contains inline elements', async () => {
@@ -65,9 +67,10 @@ describe('ParagraphComponent', () => {
         },
       });
 
-      expect(screen.getByTestId(`paragraph-component-${id}`).children).toHaveLength(1);
+      const paragraphInlineContainer = screen.getByTestId(`paragraph-component-${id}`);
 
-      expect(screen.getByTestId(`paragraph-component-${id}`).children[0].tagName).toEqual('P');
+      expect(paragraphInlineContainer.children).toHaveLength(1);
+      expect(paragraphInlineContainer.children[0].tagName).toEqual('P');
     }
   });
 
@@ -89,13 +92,12 @@ describe('ParagraphComponent', () => {
         },
       });
 
-      expect(screen.getByTestId(`paragraph-component-${id}`).children).toHaveLength(3);
+      const paragraphBlockContainer = screen.getByTestId(`paragraph-component-${id}`).firstElementChild;
 
-      expect(screen.getByTestId(`paragraph-component-${id}`).children[0].tagName).toEqual('P');
-
-      expect(screen.getByTestId(`paragraph-component-${id}`).children[1].tagName).toEqual(tag.toUpperCase());
-
-      expect(screen.getByTestId(`paragraph-component-${id}`).children[2].tagName).toEqual('P');
+      expect(paragraphBlockContainer?.children).toHaveLength(3);
+      expect(paragraphBlockContainer?.children[0].tagName).toEqual('P');
+      expect(paragraphBlockContainer?.children[1].tagName).toEqual(tag.toUpperCase());
+      expect(paragraphBlockContainer?.children[2].tagName).toEqual('P');
     }
   });
 });

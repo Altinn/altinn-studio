@@ -2,7 +2,6 @@ import React from 'react';
 
 import { Paragraph } from '@digdir/designsystemet-react';
 
-import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -28,12 +27,15 @@ export function ParagraphComponent({ node }: IParagraphProps) {
           id={id}
           data-testid={`paragraph-component-${id}`}
         >
-          <ConditionalWrapper
-            condition={!!hasInlineContent}
-            wrapper={(child) => <Paragraph>{child}</Paragraph>}
-          >
-            <Lang id={textResourceBindings?.title} />
-          </ConditionalWrapper>
+          <Paragraph asChild={!hasInlineContent}>
+            {!hasInlineContent ? (
+              <div>
+                <Lang id={textResourceBindings?.title} />
+              </div>
+            ) : (
+              <Lang id={textResourceBindings?.title} />
+            )}
+          </Paragraph>
         </div>
         {textResourceBindings?.help && (
           <HelpTextContainer
