@@ -55,7 +55,7 @@ export const StudioProfileMenu = ({
     <DropdownMenu onClose={handleClose} open={open}>
       <DropdownMenu.Trigger asChild size='sm'>
         <StudioPageHeaderButton onClick={handleToggleMenu} color={color}>
-          {/* TODO - THE TEXT BELOW LOOS WEIRED BEFORE RESIZE ON WIDTH 1000 ish */}
+          {/* TODO - THE TEXT BELOW LOOS WEIRED BEFORE RESIZE ON WIDTH 1030px ish (only for localgiteaadmin and testdepartementet) */}
           {triggerButtonText && <span className={classes.userOrgNames}>{triggerButtonText}</span>}
           {profileImage ? profileImage : <PersonCircleIcon className={classes.avatarIcon} />}
         </StudioPageHeaderButton>

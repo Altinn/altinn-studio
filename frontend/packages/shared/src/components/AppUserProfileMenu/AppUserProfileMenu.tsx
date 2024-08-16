@@ -8,9 +8,7 @@ import { type StudioProfileMenuItem, useMediaQuery, StudioProfileMenu } from '@s
 import { repositoryPath, userLogoutAfterPath, userLogoutPath } from 'app-shared/api/paths';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { post } from 'app-shared/utils/networking';
-
-// TODO FIX THIS SO IT WORKS WHEN SCALING
-const WINDOW_RESIZE_WIDTH = 900;
+import { WINDOW_RESIZE_WIDTH } from 'app-shared/utils/resizeUtils';
 
 export type AppUserProfileMenuProps = {
   user: User;
@@ -47,6 +45,7 @@ export const AppUserProfileMenu = ({
 
   // TODO Fix
   const handleLogout = () =>
+    // TODO - Can we refactor this to a shared function???
     post(userLogoutPath())
       .then(() => window.location.assign(userLogoutAfterPath()))
       .finally(() => true);

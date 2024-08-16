@@ -1,23 +1,20 @@
-import React, { useContext, useEffect, useMemo } from 'react';
-import classes from './PageLayout.module.css';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import React, { useContext } from 'react';
+import classes from './DashboardHeader.module.css';
 import {
   HeaderContext,
   getOrgNameByUsername,
   getOrgUsernameByUsername,
 } from 'app-shared/navigation/main-header/Header';
-import type { IHeaderContext } from 'app-shared/navigation/main-header/Header';
-import { userHasAccessToOrganization } from '../../utils/userUtils';
-import { useOrganizationsQuery } from '../../hooks/queries';
-import { useUserQuery } from 'app-shared/hooks/queries';
-import { GiteaHeader } from 'app-shared/components/GiteaHeader';
-import { useUrlParams } from '../../hooks/useUrlParams';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   StudioPageHeader,
   StudioProfileMenu,
-  type StudioProfileMenuItem,
   useMediaQuery,
+  type StudioProfileMenuItem,
 } from '@studio/components';
+import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
+import { type Organization } from 'app-shared/types/Organization';
 import {
   repositoryBasePath,
   repositoryOwnerPath,
@@ -25,78 +22,26 @@ import {
   userLogoutPath,
 } from 'app-shared/api/paths';
 import { post } from 'app-shared/utils/networking';
-import { type Organization } from 'app-shared/types/Organization';
-import { useTranslation } from 'react-i18next';
 import { SelectedContextType } from 'app-shared/enums/SelectedContextType';
 import { WINDOW_RESIZE_WIDTH } from 'app-shared/utils/resizeUtils';
 
-/**
- * @component
- *    The layout of each page, including the header and the Gitea header
- *
- * @returns {React.JSX.Element} - The rendered component
- */
-export const PageLayout = (): React.JSX.Element => {
-  const { pathname } = useLocation();
-  const { data: user } = useUserQuery();
-  const { data: organizations } = useOrganizationsQuery();
-
-  const { org = SelectedContextType.Self } = useUrlParams();
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
-
-  useEffect(() => {
-    if (organizations && !userHasAccessToOrganization({ org, orgs: organizations })) {
-      navigate('/');
-    }
-  }, [organizations, org, user.login, navigate]);
-
-  const headerContextValue: IHeaderContext = useMemo(
-    () => ({
-      selectableOrgs: organizations,
-      user,
-    }),
-    [organizations, user],
-  );
-
-  return (
-    <>
-      <HeaderContext.Provider value={headerContextValue}>
-        <ResourceadmHeader />
-      </HeaderContext.Provider>
-      <Outlet />
-    </>
-  );
-};
-
-const ResourceadmHeader = () => {
-  const { org = SelectedContextType.Self } = useUrlParams();
-  const selectedContext = org;
-
+export const DashboardHeader = () => {
+  const selectedContext = useSelectedContext();
   const { selectableOrgs } = useContext(HeaderContext);
+
+  const pageHeaderTitle: string =
+    selectedContext !== SelectedContextType.All &&
+    selectedContext !== SelectedContextType.Self &&
+    getOrgNameByUsername(selectedContext, selectableOrgs);
 
   return (
     <StudioPageHeader>
       <StudioPageHeader.Main>
-        <StudioPageHeader.Left
-          title={
-            // TODO MOVE
-            selectedContext !== SelectedContextType.All &&
-            selectedContext !== SelectedContextType.Self &&
-            getOrgNameByUsername(selectedContext, selectableOrgs)
-          }
-        />
+        <StudioPageHeader.Left title={pageHeaderTitle} />
         <StudioPageHeader.Right>
           <HeaderMenuTODOMoveAndRename />
         </StudioPageHeader.Right>
       </StudioPageHeader.Main>
-      <StudioPageHeader.Sub>
-        <GiteaHeader menuOnlyHasRepository rightContentClassName={classes.extraPadding} />
-      </StudioPageHeader.Sub>
     </StudioPageHeader>
   );
 };
@@ -105,7 +50,8 @@ const ResourceadmHeader = () => {
 const HeaderMenuTODOMoveAndRename = () => {
   const { t } = useTranslation();
   const shouldResizeWindow = useMediaQuery(`(max-width: ${WINDOW_RESIZE_WIDTH}px)`);
-  const { org: selectedContext = SelectedContextType.Self } = useUrlParams();
+
+  const selectedContext = useSelectedContext();
   console.log('SELECTED CONTEXT', selectedContext);
 
   const { user, selectableOrgs } = useContext(HeaderContext);
@@ -182,20 +128,16 @@ const HeaderMenuTODOMoveAndRename = () => {
       color='dark'
       profileImage={
         user.avatar_url && (
+          // TODO - Maybe make StudioUserAvatar component?
           <img
             alt={t('general.profile_icon')}
             title={t('shared.header_profile_icon_text')}
-            // className={classes.userAvatar}
+            className={classes.userAvatar}
             src={user.avatar_url}
-            style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '30px',
-            }}
           />
         )
       }
-      // TODO - Selected??
+      // TODO - Selected?? Should we have a prop for selected to show which "page" on dashboard we are on?
       profileMenuItems={[
         allMenuItem,
         ...selectableOrgMenuItems,
