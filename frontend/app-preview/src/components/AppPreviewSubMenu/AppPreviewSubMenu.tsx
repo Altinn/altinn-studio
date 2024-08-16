@@ -3,16 +3,14 @@ import classes from './AppPreviewSubMenu.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
-import { StudioPageHeaderButton, useIsSmallWidth } from '@studio/components';
+import { StudioPageHeaderButton, useMediaQuery } from '@studio/components';
 import { ArrowLeftIcon } from '@navikt/aksel-icons';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
-
-// TODO
-const WINDOW_RESIZE_WIDTH = 900;
+import { WINDOW_RESIZE_WIDTH } from 'app-shared/utils/resizeUtils';
 
 export const AppPreviewSubMenu = () => {
   const { t } = useTranslation();
-  const isSmallWidth = useIsSmallWidth(WINDOW_RESIZE_WIDTH);
+  const shouldResizeWindow = useMediaQuery(`(max-width: ${WINDOW_RESIZE_WIDTH}px)`);
   const { org, app } = useStudioEnvironmentParams();
   const { data: instanceId } = useInstanceIdQuery(org, app);
 
@@ -25,7 +23,7 @@ export const AppPreviewSubMenu = () => {
       <StudioPageHeaderButton asChild color='dark'>
         <a href={backToEditLink}>
           <ArrowLeftIcon className={classes.icon} />
-          {!isSmallWidth && t('top_menu.preview_back_to_editing')}
+          {!shouldResizeWindow && t('top_menu.preview_back_to_editing')}
         </a>
       </StudioPageHeaderButton>
     </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudioPageHeaderButton, StudioPopover, useIsSmallWidth } from '@studio/components';
+import { StudioPageHeaderButton, StudioPopover, useMediaQuery } from '@studio/components';
 import { UploadIcon } from '@studio/icons';
 import classes from './ShareChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';
@@ -12,17 +12,13 @@ import { SyncLoadingIndicator } from '../SyncLoadingIndicator';
 import type { IContentStatus, IGitStatus } from 'app-shared/types/global';
 import { CommitAndPushContent } from './CommitAndPushContent';
 import type { RepoContentStatus } from 'app-shared/types/RepoStatus';
-
-// TODO MOVE
-const SMALL_WIDTH = 900;
+import { WINDOW_RESIZE_WIDTH } from 'app-shared/utils/resizeUtils';
 
 export const ShareChangesPopover = () => {
   const { isLoading, setIsLoading, hasPushRights, hasMergeConflict, repoStatus } =
     useVersionControlButtonsContext();
-
   const { t } = useTranslation();
-  const isSmallWidth = useIsSmallWidth(SMALL_WIDTH);
-
+  const shouldResizeWindow = useMediaQuery(`(max-width: ${WINDOW_RESIZE_WIDTH}px)`);
   const { org, app } = useStudioEnvironmentParams();
   const { refetch: refetchRepoStatus } = useRepoStatusQuery(org, app);
 
@@ -71,7 +67,7 @@ export const ShareChangesPopover = () => {
         icon={<UploadIcon />}
         color='light'
       >
-        {!isSmallWidth && t('sync_header.changes_to_share')}
+        {!shouldResizeWindow && t('sync_header.changes_to_share')}
         {displayNotification && <Notification />}
       </StudioPageHeaderButton>
       <div className={popoverHidden ? classes.hidePopover : classes.showPopover}>

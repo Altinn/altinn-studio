@@ -5,10 +5,10 @@ import { getFilteredTopBarMenu, topBarMenuItem } from 'app-development/layout/Ap
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from 'app-development/test/testUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
-import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
+import { HeaderMenuKey } from 'app-shared/enums/TopBarMenu';
 import { RepositoryType } from 'app-shared/types/global';
 import { typedLocalStorage } from '@studio/components/src/hooks/webStorage';
-import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
+import type { HeaderMenuItem } from 'app-shared/types/TopBarMenuItem';
 
 describe('Navigation', () => {
   beforeEach(() => {
@@ -20,7 +20,7 @@ describe('Navigation', () => {
     });
 
     getFilteredTopBarMenu(RepositoryType.App)
-      .filter((item) => item.key !== TopBarMenu.About)
+      .filter((item) => item.key !== HeaderMenuKey.About)
       .forEach((link) => {
         expect(screen.getByRole('link', { name: getLinkName(link) })).toBeInTheDocument();
       });
@@ -32,7 +32,7 @@ describe('Navigation', () => {
     });
 
     topBarMenuItem
-      .filter((item) => item.key !== TopBarMenu.About)
+      .filter((item) => item.key !== HeaderMenuKey.About)
       .forEach((link) => {
         if (link.featureFlagName) {
           expect(screen.queryByRole('link', { name: getLinkName(link) })).not.toBeInTheDocument();
@@ -50,7 +50,7 @@ describe('Navigation', () => {
     });
 
     topBarMenuItem
-      .filter((item) => item.key !== TopBarMenu.About)
+      .filter((item) => item.key !== HeaderMenuKey.About)
       .forEach((link) => {
         expect(screen.getByRole('link', { name: getLinkName(link) })).toBeInTheDocument();
       });
@@ -74,7 +74,7 @@ describe('Navigation', () => {
   });
 });
 
-const getLinkName = (linkItem: TopBarMenuItem): string => {
+const getLinkName = (linkItem: HeaderMenuItem): string => {
   let name = textMock(linkItem.key);
   if (linkItem.isBeta) {
     name = `${name} ${textMock('general.beta')}`;
@@ -82,6 +82,6 @@ const getLinkName = (linkItem: TopBarMenuItem): string => {
   return name;
 };
 
-const getFeatureFlags = (menuItems: TopBarMenuItem[]) => {
+const getFeatureFlags = (menuItems: HeaderMenuItem[]) => {
   return menuItems.filter((item) => !!item.featureFlagName).map((item) => item.featureFlagName);
 };

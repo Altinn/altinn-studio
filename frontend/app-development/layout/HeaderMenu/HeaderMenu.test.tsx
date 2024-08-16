@@ -3,31 +3,31 @@ import { render as rtlRender, screen } from '@testing-library/react';
 import type { HeaderMenuProps } from './HeaderMenu';
 import { HeaderMenu } from './HeaderMenu';
 import { MemoryRouter } from 'react-router-dom';
-import type { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
-import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
+import type { HeaderMenuItem } from 'app-shared/types/TopBarMenuItem';
+import { HeaderMenuKey } from 'app-shared/enums/TopBarMenu';
 import { RepositoryType } from 'app-shared/types/global';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-const mockMenuItems: TopBarMenuItem[] = [
+const mockMenuItems: HeaderMenuItem[] = [
   {
-    key: TopBarMenu.About,
+    key: HeaderMenuKey.About,
     link: 'Link1',
     repositoryTypes: [RepositoryType.App, RepositoryType.DataModels],
   },
   {
-    key: TopBarMenu.Create,
+    key: HeaderMenuKey.Create,
     link: 'Link2',
     repositoryTypes: [RepositoryType.App],
   },
   {
-    key: TopBarMenu.DataModel,
+    key: HeaderMenuKey.DataModel,
     link: 'Link3',
     repositoryTypes: [RepositoryType.App, RepositoryType.DataModels],
   },
 ];
 
-const mockMenuItem4: TopBarMenuItem = {
-  key: TopBarMenu.ProcessEditor,
+const mockMenuItem4: HeaderMenuItem = {
+  key: HeaderMenuKey.ProcessEditor,
   link: 'Link4',
   repositoryTypes: [RepositoryType.App],
   isBeta: true,

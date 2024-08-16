@@ -1,5 +1,5 @@
 import React, { type ReactElement } from 'react';
-import { getTopBarMenuItems } from './AppBar/appBarConfig';
+import { getTopBarMenuItems } from 'app-development/utils/headerMenu/headerMenuUtils';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { SettingsModalButton } from './SettingsModalButton';
@@ -9,15 +9,13 @@ import { RepositoryType } from 'app-shared/types/global';
 import { useSelectedFormLayoutSetName, useSelectedFormLayoutName } from '@altinn/ux-editor/hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
-import { StudioPageHeader, StudioPageHeaderButton, useIsSmallWidth } from '@studio/components';
+import { StudioPageHeader, StudioPageHeaderButton, useMediaQuery } from '@studio/components';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { HeaderMenu } from './HeaderMenu';
 import { AppUserProfileMenu } from 'app-shared/components/AppUserProfileMenu';
 import { useTranslation } from 'react-i18next';
 import { PlayFillIcon } from '@studio/icons';
-
-// TODO
-const WINDOW_RESIZE_WIDTH = 900;
+import { WINDOW_RESIZE_WIDTH } from 'app-shared/utils/resizeUtils';
 
 type SubMenuContentProps = {
   hasRepoError?: boolean;
@@ -42,7 +40,7 @@ export const SubMenuContent = ({ hasRepoError }: SubMenuContentProps): ReactElem
 // TODO MOVE
 const LeftComponent = () => {
   const { t } = useTranslation();
-  const isSmallWidth = useIsSmallWidth(WINDOW_RESIZE_WIDTH);
+  const shouldResizeWindow = useMediaQuery(`(max-width: ${WINDOW_RESIZE_WIDTH}px)`);
 
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
@@ -72,7 +70,7 @@ const LeftComponent = () => {
               fontSize: '1.25rem',
             }}
           />
-          {!isSmallWidth && t('top_menu.preview')}
+          {!shouldResizeWindow && t('top_menu.preview')}
         </a>
       </StudioPageHeaderButton>
     </div>
@@ -91,18 +89,17 @@ export const PageHeader = ({ showSubMenu, user, repoOwnerIsOrg, isRepoError }: P
   const repoType = getRepositoryType(org, app);
   const { data: repository } = useRepoMetadataQuery(org, app);
 
-  const menuItems = getTopBarMenuItems(repoType, repoOwnerIsOrg);
+  // TODO - Maybe this should be moved to a 'headerContext'?
+  const shouldResizeWindow = useMediaQuery(`(max-width: ${WINDOW_RESIZE_WIDTH}px)`);
 
-  const isSmallWidth = useIsSmallWidth(WINDOW_RESIZE_WIDTH);
+  const menuItems = getTopBarMenuItems(repoType, repoOwnerIsOrg);
 
   return (
     <StudioPageHeader>
       <StudioPageHeader.Main>
-        <StudioPageHeader.Left title={!isSmallWidth && app} />
+        <StudioPageHeader.Left title={!shouldResizeWindow && app} />
         <StudioPageHeader.Center>
-          {menuItems && (
-            <HeaderMenu menuItems={menuItems} windowResizeWidth={WINDOW_RESIZE_WIDTH} />
-          )}
+          {menuItems && <HeaderMenu menuItems={menuItems} shouldResize={shouldResizeWindow} />}
         </StudioPageHeader.Center>
         <StudioPageHeader.Right>
           <AppUserProfileMenu user={user} repository={repository} color='dark' />

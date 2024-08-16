@@ -14,7 +14,7 @@ import {
   StudioPageSpinner,
   StudioPageHeader,
   StudioProfileMenu,
-  useIsSmallWidth,
+  useMediaQuery,
   type StudioProfileMenuItem,
 } from '@studio/components';
 import { useContextRedirectionGuard } from 'dashboard/hooks/guards/useContextRedirectionGuard';
@@ -28,6 +28,7 @@ import {
 } from 'app-shared/api/paths';
 import { post } from 'app-shared/utils/networking';
 import { SelectedContextType } from 'app-shared/enums/SelectedContextType';
+import { WINDOW_RESIZE_WIDTH } from 'app-shared/utils/resizeUtils';
 
 export const PageLayout = () => {
   const { t } = useTranslation();
@@ -78,11 +79,11 @@ const DashboardHeader = () => {
   );
 };
 
-const WINDOW_RESIZE_WIDTH = 900;
-
+// TODO MOVE
 const HeaderMenuTODOMoveAndRename = () => {
   const { t } = useTranslation();
-  const isSmallWidth = useIsSmallWidth(WINDOW_RESIZE_WIDTH);
+  const shouldResizeWindow = useMediaQuery(`(max-width: ${WINDOW_RESIZE_WIDTH}px)`);
+
   const selectedContext = useSelectedContext();
   console.log('SELECTED CONTEXT', selectedContext);
 
@@ -90,7 +91,7 @@ const HeaderMenuTODOMoveAndRename = () => {
   const navigate = useNavigate();
 
   const getTriggerButtonText = (): string => {
-    if (isSmallWidth) return;
+    if (shouldResizeWindow) return;
 
     // TODO - Can user full_name or login be undefined? Type says it is always set
     const username = user?.full_name || user?.login;

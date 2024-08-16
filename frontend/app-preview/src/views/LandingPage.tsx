@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import { useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { useLocalStorage } from '@studio/components/src/hooks/useLocalStorage';
-import type { AltinnHeaderVariant } from 'app-shared/components/altinnHeader/types';
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { previewPage } from 'app-shared/api/paths';
@@ -14,15 +13,13 @@ import {
   useSelectedFormLayoutSetName,
   useSelectedTaskId,
 } from '@altinn/ux-editor/hooks';
-import { StudioPageHeader, useIsSmallWidth } from '@studio/components';
+import { StudioPageHeader, useMediaQuery } from '@studio/components';
 import { AppUserProfileMenu } from 'app-shared/components/AppUserProfileMenu';
 import { PreviewControlHeader } from '../components/PreviewControlHeader';
-
-// TODO
-const WINDOW_RESIZE_WIDTH = 900;
+import { WINDOW_RESIZE_WIDTH } from 'app-shared/utils/resizeUtils';
 
 export interface LandingPageProps {
-  variant?: AltinnHeaderVariant;
+  variant?: 'regular' | 'preview'; // TODO - Import from studio components?
 }
 
 export type PreviewAsViewSize = 'desktop' | 'mobile';
@@ -30,7 +27,7 @@ export type PreviewAsViewSize = 'desktop' | 'mobile';
 export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
-  const isSmallWidth = useIsSmallWidth(WINDOW_RESIZE_WIDTH);
+  const shouldResizeWindow = useMediaQuery(`(max-width: ${WINDOW_RESIZE_WIDTH}px)`);
   const previewConnection = usePreviewConnection();
   const { data: user } = useUserQuery();
   const { data: repository } = useRepoMetadataQuery(org, app);
@@ -69,7 +66,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
     <>
       <StudioPageHeader variant='preview'>
         <StudioPageHeader.Main>
-          <StudioPageHeader.Left title={!isSmallWidth && app} />
+          <StudioPageHeader.Left title={!shouldResizeWindow && app} />
           <StudioPageHeader.Right>
             <AppUserProfileMenu user={user} repository={repository} color='light' />
           </StudioPageHeader.Right>

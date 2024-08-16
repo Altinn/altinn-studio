@@ -4,7 +4,7 @@ import { type Repository, type User } from 'app-shared/types/Repository';
 import { useTranslation } from 'react-i18next';
 import { useUserNameAndOrg } from './hooks/useUserNameAndOrg';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { type StudioProfileMenuItem, useIsSmallWidth, StudioProfileMenu } from '@studio/components';
+import { type StudioProfileMenuItem, useMediaQuery, StudioProfileMenu } from '@studio/components';
 import { repositoryPath, userLogoutAfterPath, userLogoutPath } from 'app-shared/api/paths';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { post } from 'app-shared/utils/networking';
@@ -27,7 +27,7 @@ export const AppUserProfileMenu = ({
   const { org, app } = useStudioEnvironmentParams();
   const userNameAndOrg = useUserNameAndOrg(user, org, repository);
 
-  const isSmallWidth = useIsSmallWidth(WINDOW_RESIZE_WIDTH);
+  const shouldResizeWindow = useMediaQuery(`(max-width: ${WINDOW_RESIZE_WIDTH}px)`);
 
   const openRepositoryElement: StudioProfileMenuItem[] =
     org && app && repository
@@ -58,7 +58,7 @@ export const AppUserProfileMenu = ({
 
   return (
     <StudioProfileMenu
-      triggerButtonText={isSmallWidth ? undefined : userNameAndOrg}
+      triggerButtonText={shouldResizeWindow ? undefined : userNameAndOrg}
       profileImage={
         user?.avatar_url && (
           <img

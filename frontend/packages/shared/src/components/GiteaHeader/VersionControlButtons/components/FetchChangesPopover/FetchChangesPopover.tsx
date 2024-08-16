@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudioPageHeaderButton, StudioPopover, useIsSmallWidth } from '@studio/components';
+import { StudioPageHeaderButton, StudioPopover, useMediaQuery } from '@studio/components';
 import { DownloadIcon } from '@studio/icons';
 import classes from './FetchChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';
@@ -10,9 +10,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { GiteaFetchCompleted } from '../GiteaFetchCompleted';
 import { useVersionControlButtonsContext } from '../../context';
 import { SyncLoadingIndicator } from '../SyncLoadingIndicator';
-
-// TODO MOVE
-const SMALL_WIDTH = 900;
+import { WINDOW_RESIZE_WIDTH } from 'app-shared/utils/resizeUtils';
 
 export const FetchChangesPopover = (): React.ReactElement => {
   const {
@@ -25,7 +23,7 @@ export const FetchChangesPopover = (): React.ReactElement => {
   } = useVersionControlButtonsContext();
 
   const { t } = useTranslation();
-  const isSmallWidth = useIsSmallWidth(SMALL_WIDTH);
+  const shouldResizeWindow = useMediaQuery(`(max-width: ${WINDOW_RESIZE_WIDTH}px)`);
   const { org, app } = useStudioEnvironmentParams();
   const { refetch: fetchPullData } = useRepoPullQuery(org, app, true);
   const queryClient = useQueryClient();
@@ -62,7 +60,7 @@ export const FetchChangesPopover = (): React.ReactElement => {
           icon={<DownloadIcon />}
           color='light'
         >
-          {!isSmallWidth && t('sync_header.fetch_changes')}
+          {!shouldResizeWindow && t('sync_header.fetch_changes')}
           {displayNotification && <Notification numChanges={repoStatus?.behindBy ?? 0} />}
         </StudioPageHeaderButton>
       </StudioPopover.Trigger>
