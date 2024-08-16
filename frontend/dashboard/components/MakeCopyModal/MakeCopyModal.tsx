@@ -1,5 +1,6 @@
 import React, { forwardRef, useState } from 'react';
-import { StudioModal, useForwardedRef } from '@studio/components';
+import { StudioModal } from '@studio/components';
+import { useForwardedRef } from '@studio/hooks';
 import { useTranslation } from 'react-i18next';
 import { useCopyAppMutation } from 'dashboard/hooks/mutations/useCopyAppMutation';
 import type { AxiosError } from 'axios';

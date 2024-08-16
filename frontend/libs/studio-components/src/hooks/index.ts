@@ -1,4 +1,3 @@
-export * from './useForwardedRef';
 export * from './useLocalStorage';
 export * from './useMediaQuery';
 export * from './usePrevious';

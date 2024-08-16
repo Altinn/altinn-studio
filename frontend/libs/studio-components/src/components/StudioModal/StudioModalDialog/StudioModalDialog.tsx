@@ -4,7 +4,7 @@ import { Modal } from '@digdir/designsystemet-react';
 import type { ModalDialogProps } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import classes from './StudioModalDialog.module.css';
-import { useForwardedRef } from '../../../hooks';
+import { useForwardedRef } from '@studio/hooks';
 
 export type StudioModalDialogProps = ModalDialogProps & {
   children: ReactNode;
