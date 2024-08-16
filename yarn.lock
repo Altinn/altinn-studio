@@ -39,15 +39,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@altinn-studio/mockend@workspace:frontend/testing/mockend":
-  version: 0.0.0-use.local
-  resolution: "@altinn-studio/mockend@workspace:frontend/testing/mockend"
-  dependencies:
-    body-parser: "npm:1.20.2"
-    esm: "npm:3.2.25"
-  languageName: unknown
-  linkType: soft
-
 "@altinn/altinn-design-system@npm:0.30.0":
   version: 0.30.0
   resolution: "@altinn/altinn-design-system@npm:0.30.0"
@@ -11841,13 +11832,6 @@ __metadata:
   bin:
     eslint: bin/eslint.js
   checksum: 10/00496e218b23747a7a9817bf58b522276d0dc1f2e546dceb4eea49f9871574088f72f1f069a6b560ef537efa3a75261b8ef70e51ef19033da1cc4c86a755ef15
-  languageName: node
-  linkType: hard
-
-"esm@npm:3.2.25":
-  version: 3.2.25
-  resolution: "esm@npm:3.2.25"
-  checksum: 10/ee96b8202b76dd1841c55e8a066608d6f0ae0333012be5c77829ccadcd21114283b4d7bf9ac1b8c09853258829c7843e9c6d7e0594acbc5e813cb37d82728d4b
   languageName: node
   linkType: hard
 

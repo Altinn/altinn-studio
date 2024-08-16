@@ -26,7 +26,6 @@ COPY ./frontend/resourceadm/package.json ./frontend/resourceadm/
 COPY ./frontend/resourceadm/testing/playwright/package.json ./frontend/resourceadm/testing/playwright/
 COPY ./frontend/studio-root/package.json ./frontend/studio-root/
 COPY ./frontend/testing/cypress/package.json ./frontend/testing/cypress/
-COPY ./frontend/testing/mockend/package.json ./frontend/testing/mockend/
 COPY ./frontend/testing/playwright/package.json ./frontend/testing/playwright/
 
 RUN yarn --immutable
