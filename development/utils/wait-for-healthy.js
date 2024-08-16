@@ -3,7 +3,7 @@ const { execSync } = require('child_process');
 module.exports = (name, timeout = 60000) =>
   new Promise(function (resolve, reject) {
     const intervalId = setInterval(function () {
-      const buffer = execSync(`docker inspect --format='{{json .State.Health.Status}}' ${name} `);
+      const buffer = execSync(`docker inspect --format="{{json .State.Health.Status}}" ${name}`);
 
       const status = JSON.parse(buffer.toString());
 
