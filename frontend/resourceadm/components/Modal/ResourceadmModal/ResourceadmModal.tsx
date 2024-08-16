@@ -13,6 +13,9 @@ export type ResourceadmModalProps = {
   closeButtonLabel: string;
 };
 
+/**
+ * @deprecated Use StudioModal from @studio/components instead
+ */
 export const ResourceadmModal = forwardRef<HTMLDialogElement, ResourceadmModalProps>(
   ({ isOpen, onClose, title, children, closeButtonLabel, ...rest }, ref): ReactNode => {
     return (

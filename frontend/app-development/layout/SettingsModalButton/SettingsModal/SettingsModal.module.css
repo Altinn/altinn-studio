@@ -7,8 +7,8 @@
 .modalContent {
   align-items: stretch;
   display: flex;
+  height: 100%;
   overflow: hidden;
-  max-height: 100%;
 }
 
 .leftNavWrapper {

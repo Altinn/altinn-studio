@@ -9,7 +9,14 @@
   padding: var(--studio-modal-spacing);
 }
 
+.heading > * {
+  align-items: center;
+  display: flex;
+  line-height: 1;
+}
+
 .icon {
+  display: flex;
   margin-right: var(--studio-modal-spacing);
 }
 
