@@ -4,7 +4,7 @@ import { StudioPageHeaderButton, useMediaQuery } from '@studio/components';
 import { CogIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { SettingsModal } from './SettingsModal';
-import { useSettingsModalContext } from '../../contexts/SettingsModalContext';
+import { useSettingsModalContext } from '../../../../contexts/SettingsModalContext';
 import { WINDOW_RESIZE_WIDTH } from 'app-shared/utils/resizeUtils';
 
 export const SettingsModalButton = (): ReactNode => {

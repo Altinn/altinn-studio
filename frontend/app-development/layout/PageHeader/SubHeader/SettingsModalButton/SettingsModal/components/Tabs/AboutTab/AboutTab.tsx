@@ -14,7 +14,7 @@ import { TabDataError } from '../../TabDataError';
 import { InputFields } from './InputFields';
 import { CreatedFor } from './CreatedFor';
 import { TabContent } from '../../TabContent';
-import { usePreviewContext } from '../../../../../../contexts/PreviewContext';
+import { usePreviewContext } from '../../../../../../../../contexts/PreviewContext';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export const AboutTab = (): React.ReactElement => {
