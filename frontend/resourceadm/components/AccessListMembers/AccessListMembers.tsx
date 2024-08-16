@@ -10,7 +10,8 @@ import { useAddAccessListMemberMutation } from '../../hooks/mutations/useAddAcce
 import { usePartiesRegistryQuery } from '../../hooks/queries/usePartiesRegistryQuery';
 import { useSubPartiesRegistryQuery } from '../../hooks/queries/useSubPartiesRegistryQuery';
 import { getPartiesQueryUrl } from '../../utils/urlUtils';
-import { StudioButton, useDebounce } from '@studio/components';
+import { StudioButton } from '@studio/components';
+import { useDebounce } from '@studio/hooks';
 import { PlusIcon } from '@studio/icons';
 import { AccessListMembersPaging } from './AccessListMembersPaging';
 import { AccessListMembersTable } from './AccessListMembersTable';
