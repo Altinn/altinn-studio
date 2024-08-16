@@ -5955,6 +5955,25 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@studio/hooks@workspace:^, @studio/hooks@workspace:frontend/libs/studio-hooks":
+  version: 0.0.0-use.local
+  resolution: "@studio/hooks@workspace:frontend/libs/studio-hooks"
+  dependencies:
+    "@studio/pure-functions": "workspace:^"
+    "@testing-library/jest-dom": "npm:6.4.8"
+    "@testing-library/react": "npm:16.0.0"
+    "@types/jest": "npm:^29.5.5"
+    eslint: "npm:8.57.0"
+    jest: "npm:^29.7.0"
+    jest-environment-jsdom: "npm:^29.7.0"
+    react: "npm:^18.2.0"
+    react-dom: "npm:^18.2.0"
+    ts-jest: "npm:^29.1.1"
+    typescript: "npm:^5.2.2"
+    uuid: "npm:10.0.0"
+  languageName: unknown
+  linkType: soft
+
 "@studio/icons@workspace:^, @studio/icons@workspace:frontend/libs/studio-icons":
   version: 0.0.0-use.local
   resolution: "@studio/icons@workspace:frontend/libs/studio-icons"
@@ -8199,6 +8218,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-development@workspace:frontend/app-development"
   dependencies:
+    "@studio/hooks": "workspace:^"
     "@studio/icons": "workspace:^"
     "@studio/pure-functions": "workspace:^"
     axios: "npm:1.7.4"
