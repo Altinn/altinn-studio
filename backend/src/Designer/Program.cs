@@ -289,7 +289,6 @@ void Configure(IConfiguration configuration)
     }
 
     app.UseDefaultFiles();
-    app.UseStaticFiles();
     app.UseStaticFiles(new StaticFileOptions
     {
         OnPrepareResponse = context =>
@@ -301,6 +300,7 @@ void Configure(IConfiguration configuration)
                 MaxAge = TimeSpan.FromMinutes(60),
             };
         },
+        RequestPath = "/designer"
     });
 
     const string swaggerRoutePrefix = "designer/swagger";
