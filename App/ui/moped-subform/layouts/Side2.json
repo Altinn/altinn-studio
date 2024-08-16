@@ -9,7 +9,7 @@
         "textResourceBindings": {
           "title": "Mopeddetaljer"
         },
-        "children": ["summary-moped-1", "summary-moped-2", "summary-moped-3", "summary4-moped-"]
+        "children": ["summary-moped-1", "summary-moped-2", "summary-moped-3", "summary-moped-4"]
       },
       {
         "id": "summary-moped-1",
@@ -32,7 +32,7 @@
         "componentRef": "moped-produksjonsaar"
       },
       {
-        "id": "button-group-moped",
+        "id": "button-group-moped2",
         "type": "ButtonGroup",
         "children": ["subform-moped-backButton", "subform-moped-exitButton"]
       },
