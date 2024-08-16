@@ -191,7 +191,6 @@ const script = async () => {
   startingDockerCompose();
   await waitFor('http://studio.localhost', 120);
 
-  await addReleaseAndDeployTestDataToDb();
   process.exit(0);
 };
 
