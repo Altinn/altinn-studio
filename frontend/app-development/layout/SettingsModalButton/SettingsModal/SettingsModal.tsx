@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ReactElement } from 'react';
 import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import classes from './SettingsModal.module.css';
 import {
@@ -20,7 +20,7 @@ import { AccessControlTab } from './components/Tabs/AccessControlTab';
 import { SetupTab } from './components/Tabs/SetupTab';
 import type { SettingsModalHandle } from '../../../types/SettingsModalHandle';
 
-export const SettingsModal = forwardRef<SettingsModalHandle, {}>(({}, ref): ReactNode => {
+export const SettingsModal = forwardRef<SettingsModalHandle, {}>(({}, ref): ReactElement => {
   const { t } = useTranslation();
 
   const [currentTab, setCurrentTab] = useState<SettingsModalTab>('about');
