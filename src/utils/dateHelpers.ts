@@ -6,7 +6,7 @@ export const DatepickerMinDateDefault = '1900-01-01T12:00:00.000Z';
 export const DatepickerMaxDateDefault = '2100-01-01T12:00:00.000Z';
 export const DatepickerFormatDefault = 'DD.MM.YYYY';
 export const DatepickerSaveFormatTimestamp = 'YYYY-MM-DDThh:mm:ss.sssZ';
-export const PrettyDateAndTime = 'YYYY-MM-DD hh:mm:ss';
+export const PrettyDateAndTime = 'DD.MM.YYYY HH.mm.SS';
 export const DatepickerSaveFormatNoTimestamp = 'YYYY-MM-DD';
 
 export function getISOString(potentialDate: string | undefined): string | undefined {

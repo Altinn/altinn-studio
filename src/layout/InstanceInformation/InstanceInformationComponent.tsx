@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Grid } from '@material-ui/core';
-import Moment from 'moment';
+import moment from 'moment-timezone';
 
 import type { PropsFromGenericComponent } from '..';
 
@@ -73,7 +73,8 @@ export function InstanceInformation({ elements }: CompInstanceInformationInterna
     instance && parties?.find((party: IParty) => party.partyId.toString() === instance.instanceOwner.partyId);
 
   const instanceDateSent =
-    dateSent !== false && Moment(instance?.lastChanged).format(getDateFormat(PrettyDateAndTime, selectedLanguage));
+    dateSent !== false &&
+    moment(instance?.lastChanged).tz('Europe/Oslo').format(getDateFormat(PrettyDateAndTime, selectedLanguage));
 
   const instanceSender =
     sender !== false &&
