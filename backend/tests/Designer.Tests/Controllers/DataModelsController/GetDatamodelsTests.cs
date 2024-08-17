@@ -11,7 +11,7 @@ namespace Designer.Tests.Controllers.DataModelsController;
 
 public class GetDatamodelsTests : DesignerEndpointsTestsBase<GetDatamodelsTests>, IClassFixture<WebApplicationFactory<Program>>
 {
-    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
+    private static string VersionPrefix(string org, string repository) => $"/api/{org}/{repository}/datamodels";
     public GetDatamodelsTests(WebApplicationFactory<Program> factory) : base(factory)
     {
     }

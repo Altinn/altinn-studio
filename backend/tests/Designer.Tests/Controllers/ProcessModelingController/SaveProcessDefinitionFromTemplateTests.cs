@@ -12,7 +12,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
     public class SaveProcessDefinitionFromTemplateTests : DesignerEndpointsTestsBase<SaveProcessDefinitionFromTemplateTests>, IClassFixture<WebApplicationFactory<Program>>
     {
 
-        private static string VersionPrefix(string org, string repository, string appVersion, string templateName) => $"/designer/api/{org}/{repository}/process-modelling/templates/{appVersion}/{templateName}";
+        private static string VersionPrefix(string org, string repository, string appVersion, string templateName) => $"/api/{org}/{repository}/process-modelling/templates/{appVersion}/{templateName}";
 
         public SaveProcessDefinitionFromTemplateTests(WebApplicationFactory<Program> factory) : base(factory)
         {

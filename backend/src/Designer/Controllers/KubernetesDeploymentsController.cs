@@ -14,7 +14,7 @@ namespace Altinn.Studio.Designer.Controllers
     [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/kubernetesDeployments")]
+    [Route("api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/kubernetesDeployments")]
     public class KubernetesDeploymentsController : ControllerBase
     {
         private readonly IKubernetesDeploymentsService _kubernetesDeploymentsService;

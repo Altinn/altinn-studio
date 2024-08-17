@@ -12,7 +12,7 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
 {
     public class GetActionOptionsTests : DesignerEndpointsTestsBase<GetActionOptionsTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        private readonly string _versionPrefix = "designer/api";
+        private readonly string _versionPrefix = "api";
 
         public GetActionOptionsTests(WebApplicationFactory<Program> factory) : base(factory)
         {

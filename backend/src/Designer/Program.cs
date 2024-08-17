@@ -299,11 +299,10 @@ void Configure(IConfiguration configuration)
                 Public = true,
                 MaxAge = TimeSpan.FromMinutes(60),
             };
-        },
-        RequestPath = "/designer"
+        }
     });
 
-    const string swaggerRoutePrefix = "designer/swagger";
+    const string swaggerRoutePrefix = "swagger";
     app.UseSwagger(c =>
     {
         c.RouteTemplate = swaggerRoutePrefix + "/{documentName}/swagger.json";
@@ -320,6 +319,8 @@ void Configure(IConfiguration configuration)
         app.UseHsts();
         app.UseHttpsRedirection();
     }
+
+    app.UseRouting();
 
     app.UseAuthentication();
     app.UseAuthorization();

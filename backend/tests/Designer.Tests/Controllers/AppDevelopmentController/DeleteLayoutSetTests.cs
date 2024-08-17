@@ -20,7 +20,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
           : DesignerEndpointsTestsBase<DeleteLayoutSetTests>(factory), IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) =>
-            $"/designer/api/{org}/{repository}/app-development";
+            $"/api/{org}/{repository}/app-development";
 
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet2")]

@@ -45,7 +45,7 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
             }
         };
 
-        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionsListId}";
+        string apiUrl = $"/api/{Org}/{targetRepository}/options/{optionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
         httpRequestMessage.Content = JsonContent.Create(newOptionsList);
 
@@ -91,7 +91,7 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
             }
         };
 
-        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionsListId}";
+        string apiUrl = $"/api/{Org}/{targetRepository}/options/{optionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
         httpRequestMessage.Content = JsonContent.Create(newOptionsList);
 
@@ -122,7 +122,7 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(Org, "empty-app", Developer, targetRepository);
 
-        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionsListId}";
+        string apiUrl = $"/api/{Org}/{targetRepository}/options/{optionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
 
         if (optionsListId == "options-missing-label")

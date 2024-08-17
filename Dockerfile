@@ -59,13 +59,13 @@ ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
 RUN apk add --no-cache icu-libs krb5-libs libgcc libintl openssl libstdc++ zlib curl
 
 COPY --from=generate-studio-backend /app_output .
-COPY --from=generate-studio-frontend /build/frontend/dist/app-development ./wwwroot/designer/frontend/app-development
-COPY --from=generate-studio-frontend /build/frontend/dist/app-preview ./wwwroot/designer/frontend/app-preview
-COPY --from=generate-studio-frontend /build/frontend/dist/dashboard ./wwwroot/designer/frontend/dashboard
-COPY --from=generate-studio-frontend /build/frontend/dist/resourceadm ./wwwroot/designer/frontend/resourceadm
-COPY --from=generate-studio-frontend /build/frontend/dist/language ./wwwroot/designer/frontend/lang
-COPY --from=generate-studio-frontend /build/frontend/dist/studio-root ./wwwroot/designer/frontend/studio-root
-COPY --from=generate-studio-backend /version/version.json ./wwwroot/designer/version.json
+COPY --from=generate-studio-frontend /build/frontend/dist/app-development ./wwwroot/app-development
+COPY --from=generate-studio-frontend /build/frontend/dist/app-preview ./wwwroot/app-preview
+COPY --from=generate-studio-frontend /build/frontend/dist/dashboard ./wwwroot/dashboard
+COPY --from=generate-studio-frontend /build/frontend/dist/resourceadm ./wwwroot/resourceadm
+COPY --from=generate-studio-frontend /build/frontend/dist/language ./wwwroot/lang
+COPY --from=generate-studio-frontend /build/frontend/dist/studio-root ./wwwroot/studio-root
+COPY --from=generate-studio-backend /version/version.json ./wwwroot/version.json
 
 ## Copying app template
 COPY --from=generate-studio-backend /app_template ./Templates/AspNet

@@ -16,7 +16,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) =>
-            $"/designer/api/{org}/{repository}/app-development/app-version";
+            $"/api/{org}/{repository}/app-development/app-version";
 
         public GetAppVersionTests(WebApplicationFactory<Program> factory) : base(factory)
         {

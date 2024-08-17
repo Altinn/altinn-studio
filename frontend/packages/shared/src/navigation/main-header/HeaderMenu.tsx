@@ -37,7 +37,7 @@ export function HeaderMenu({ org, repo }: HeaderMenuProps) {
     const altinnWindow: Window = window;
     const url = `${altinnWindow.location.origin}/repos/user/logout`;
     post(url).then(() => {
-      window.location.assign(`${altinnWindow.location.origin}/Home/Logout`);
+      window.location.assign(`${altinnWindow.location.origin}/logout`);
     });
     sessionStorage.clear();
     return true;

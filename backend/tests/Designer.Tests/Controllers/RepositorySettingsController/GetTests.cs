@@ -11,7 +11,7 @@ namespace Designer.Tests.Controllers.RepositorySettingsController
 {
     public class GetTests : DesignerEndpointsTestsBase<GetTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/repository-settings";
+        private static string VersionPrefix(string org, string repository) => $"/api/{org}/{repository}/repository-settings";
         public GetTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }

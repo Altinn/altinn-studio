@@ -14,7 +14,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 {
     public class UpdateFormLayoutNameTests : DesignerEndpointsTestsBase<UpdateFormLayoutNameTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
+        private static string VersionPrefix(string org, string repository) => $"/api/{org}/{repository}/app-development";
         public UpdateFormLayoutNameTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }

@@ -21,7 +21,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task GetFilteredLinkServices()
         {
             // Arrange
-            string uri = $"designer/api/brg/resources/altinn2linkservices/at23";
+            string uri = $"api/brg/resources/altinn2linkservices/at23";
             using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri))
             {
                 List<AvailableService> services = new List<AvailableService>();

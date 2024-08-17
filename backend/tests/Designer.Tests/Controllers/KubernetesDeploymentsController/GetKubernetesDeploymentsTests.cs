@@ -20,7 +20,7 @@ namespace Designer.Tests.Controllers.KubernetesDeploymentsController;
 public class GetKubernetesDeployments : DesignerEndpointsTestsBase<GetKubernetesDeployments>, IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<IKubernetesDeploymentsService> _kubernetesDeploymentsMock = new Mock<IKubernetesDeploymentsService>();
-    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/kubernetesdeployments";
+    private static string VersionPrefix(string org, string repository) => $"/api/{org}/{repository}/kubernetesdeployments";
     public GetKubernetesDeployments(WebApplicationFactory<Program> factory) : base(factory)
     {
     }

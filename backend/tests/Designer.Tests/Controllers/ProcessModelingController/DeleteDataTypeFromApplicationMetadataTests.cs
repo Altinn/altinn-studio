@@ -13,7 +13,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
 {
     public class DeleteDataTypeFromApplicationMetadataTests : DesignerEndpointsTestsBase<DeleteDataTypeFromApplicationMetadataTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        private static string VersionPrefix(string org, string repository, string dataTypeId) => $"/designer/api/{org}/{repository}/process-modelling/data-type/{dataTypeId}";
+        private static string VersionPrefix(string org, string repository, string dataTypeId) => $"/api/{org}/{repository}/process-modelling/data-type/{dataTypeId}";
 
         public DeleteDataTypeFromApplicationMetadataTests(WebApplicationFactory<Program> factory) : base(factory)
         {

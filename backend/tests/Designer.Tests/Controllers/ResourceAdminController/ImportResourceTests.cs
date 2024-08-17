@@ -24,7 +24,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task ExportAltinn2Resource_Ok()
         {
             // Arrange
-            string uri = $"designer/api/ttd/resources/importresource/4485/4444/at23";
+            string uri = $"api/ttd/resources/importresource/4485/4444/at23";
             using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri))
             {
                 string resourceId = "new-resource-id";
@@ -52,7 +52,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         public async Task ExportAltinn2Resource_ResourceIdentifierTooShort_ReturnsBadRequest()
         {
             // Arrange
-            string uri = $"designer/api/ttd/resources/importresource/4485/4444/at23";
+            string uri = $"api/ttd/resources/importresource/4485/4444/at23";
             using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri))
             {
                 string resourceId = "new";

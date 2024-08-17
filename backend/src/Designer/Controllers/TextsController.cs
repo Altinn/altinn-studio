@@ -22,7 +22,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// </remarks>
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("designer/api/{org}/{repo:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/texts")]
+    [Route("api/{org}/{repo:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/texts")]
     public class TextsController : ControllerBase
     {
         private readonly ITextsService _textsService;

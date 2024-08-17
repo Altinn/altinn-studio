@@ -13,7 +13,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 {
     public class GetRuleHandlerTests : DesignerEndpointsTestsBase<GetRuleHandlerTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
+        private static string VersionPrefix(string org, string repository) => $"/api/{org}/{repository}/app-development";
         public GetRuleHandlerTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }

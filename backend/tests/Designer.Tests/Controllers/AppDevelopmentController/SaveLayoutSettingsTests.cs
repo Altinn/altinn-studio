@@ -14,7 +14,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 {
     public class SaveLayoutSettingsTests : DesignerEndpointsTestsBase<SaveLayoutSettingsTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
+        private static string VersionPrefix(string org, string repository) => $"/api/{org}/{repository}/app-development";
 
         public SaveLayoutSettingsTests(WebApplicationFactory<Program> factory) : base(factory)
         {

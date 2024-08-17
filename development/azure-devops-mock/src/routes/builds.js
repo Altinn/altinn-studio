@@ -14,7 +14,7 @@ export const buildsRoute = async (req, res) => {
   const isDeploy = parseInt(req.body.definition.id) === DEPLOY_DEFINITION_ID;
   const webhookUrl =
     designerDomain() +
-    '/designer/api/v1/' +
+    '/api/v1/' +
     (isDeploy ? 'checkdeploymentbuildstatus' : 'checkreleasebuildstatus');
 
   if (isDeploy) {

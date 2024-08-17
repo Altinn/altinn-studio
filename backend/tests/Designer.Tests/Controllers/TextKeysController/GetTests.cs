@@ -12,7 +12,7 @@ namespace Designer.Tests.Controllers.TextKeysController
 {
     public class GetTests : DesignerEndpointsTestsBase<GetTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text-keys";
+        private static string VersionPrefix(string org, string repository) => $"/api/{org}/{repository}/text-keys";
         public GetTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }

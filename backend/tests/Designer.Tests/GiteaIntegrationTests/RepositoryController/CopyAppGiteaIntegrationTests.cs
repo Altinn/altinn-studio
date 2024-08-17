@@ -32,7 +32,7 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
             CopyRepoName = TestDataHelper.GenerateTestRepoName("-gitea-copy");
 
             // Copy app
-            using HttpResponseMessage commitResponse = await HttpClient.PostAsync($"designer/api/repos/repo/{org}/copy-app?sourceRepository={targetRepo}&targetRepository={CopyRepoName}&targetOrg={TargetCopyOrg}", null);
+            using HttpResponseMessage commitResponse = await HttpClient.PostAsync($"api/repos/repo/{org}/copy-app?sourceRepository={targetRepo}&targetRepository={CopyRepoName}&targetOrg={TargetCopyOrg}", null);
             commitResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
             // Check if repo exists in git

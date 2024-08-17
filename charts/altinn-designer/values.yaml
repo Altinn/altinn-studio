@@ -141,21 +141,3 @@ ingress:
         traefik.frontend.priority: "1000"
     paths:
       - path: /
-  - metadata:
-      name: altinn-designer-home-path
-      annotations:
-        traefik.frontend.priority: "800"
-    paths:
-      - path: /Home/
-  - metadata:
-      name: altinn-designer-designer-path
-      annotations:
-        traefik.frontend.priority: "700"
-    paths:
-      - path: /designer/
-  - metadata:
-      name: altinn-designer-designerapi-path
-      annotations:
-        traefik.frontend.priority: "600"
-    paths:
-      - path: /designerapi/

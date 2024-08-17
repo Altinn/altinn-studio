@@ -15,7 +15,7 @@ namespace Altinn.Studio.Designer.Controllers
     [AutoValidateAntiforgeryToken]
     [ApiController]
     [Authorize]
-    [Route("/designer/api/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/repository-settings")]
+    [Route("api/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/repository-settings")]
     public class RepositorySettingsController : ControllerBase
     {
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;

@@ -17,7 +17,7 @@ namespace Altinn.Studio.Designer.Controllers;
 [ApiController]
 [Authorize]
 [AutoValidateAntiforgeryToken]
-[Route("designer/api/{org}/{repo:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/options")]
+[Route("api/{org}/{repo:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/options")]
 public class OptionsController : ControllerBase
 {
     private readonly IOptionsService _optionsService;

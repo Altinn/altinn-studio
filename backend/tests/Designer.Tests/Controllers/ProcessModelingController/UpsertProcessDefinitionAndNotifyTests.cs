@@ -20,7 +20,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController;
 
 public class UpsertProcessDefinitionAndNotifyTests : DesignerEndpointsTestsBase<UpsertProcessDefinitionAndNotifyTests>, IClassFixture<WebApplicationFactory<Program>>
 {
-    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/process-modelling/process-definition-latest";
+    private static string VersionPrefix(string org, string repository) => $"/api/{org}/{repository}/process-modelling/process-definition-latest";
 
     public UpsertProcessDefinitionAndNotifyTests(WebApplicationFactory<Program> factory) : base(factory)
     {

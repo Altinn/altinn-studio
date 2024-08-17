@@ -28,7 +28,7 @@ public class DeleteOptionsTests : DesignerEndpointsTestsBase<DeleteOptionsTests>
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
 
-        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionsListId}";
+        string apiUrl = $"/api/{Org}/{targetRepository}/options/{optionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, apiUrl);
 
         // Act
@@ -51,7 +51,7 @@ public class DeleteOptionsTests : DesignerEndpointsTestsBase<DeleteOptionsTests>
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
 
-        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionsListId}";
+        string apiUrl = $"/api/{Org}/{targetRepository}/options/{optionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, apiUrl);
 
         // Act

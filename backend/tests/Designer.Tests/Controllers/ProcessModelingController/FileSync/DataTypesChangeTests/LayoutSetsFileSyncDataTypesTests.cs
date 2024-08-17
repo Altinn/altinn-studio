@@ -19,7 +19,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController.FileSync.DataType
 public class LayoutSetsFileSyncDataTypesTests : DesignerEndpointsTestsBase<LayoutSetsFileSyncDataTypesTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) =>
-        $"/designer/api/{org}/{repository}/process-modelling/data-types";
+        $"/api/{org}/{repository}/process-modelling/data-types";
 
     public LayoutSetsFileSyncDataTypesTests(WebApplicationFactory<Program> factory) : base(factory)
     {

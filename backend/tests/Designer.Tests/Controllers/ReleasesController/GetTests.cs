@@ -22,7 +22,7 @@ namespace Designer.Tests.Controllers.ReleasesController
 {
     public class GetTests : DesignerEndpointsTestsBase<GetTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        private readonly string _versionPrefix = "/designer/api";
+        private readonly string _versionPrefix = "/api";
         private readonly JsonSerializerOptions _options;
 
         private readonly Mock<IReleaseService> _releaseServiceMock;

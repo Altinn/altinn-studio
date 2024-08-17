@@ -32,7 +32,7 @@ internal class ApiTestsAuthAndCookieDelegatingHandler : DelegatingHandler
             return await base.SendAsync(request, cancellationToken);
         }
 
-        string xsrfUrl = $"{_baseAddress}/designer/api/user/current";
+        string xsrfUrl = $"{_baseAddress}/api/user/current";
         using var httpRequestMessageXsrf = new HttpRequestMessage(HttpMethod.Get, xsrfUrl);
 
         using var xsrfResponse = await base.SendAsync(httpRequestMessageXsrf, cancellationToken);

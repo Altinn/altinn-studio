@@ -14,7 +14,7 @@ namespace Altinn.Studio.Designer.Controllers
     [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/metadata")]
+    [Route("api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/metadata")]
     public class ApplicationMetadataController : ControllerBase
     {
         private readonly IApplicationMetadataService _applicationMetadataService;
@@ -29,7 +29,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Gets the application metadata, url GET "/designer/api/org/app/metadata"
+        /// Gets the application metadata, url GET "/api/org/app/metadata"
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -47,7 +47,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Puts the application metadata, url PUT "/designer/api/org/app/metadata
+        /// Puts the application metadata, url PUT "/api/org/app/metadata
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -62,7 +62,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Create an application metadata, url POST "/designer/api/org/app/metadata"
+        /// Create an application metadata, url POST "/api/org/app/metadata"
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -83,7 +83,7 @@ namespace Altinn.Studio.Designer.Controllers
                 return StatusCode(500);
             }
 
-            return Created($"/designer/api/{org}/{app}", createdApplication);
+            return Created($"/api/{org}/{app}", createdApplication);
         }
 
         /// <summary>

@@ -12,7 +12,7 @@ namespace Designer.Tests.Controllers.TextsController
 {
     public class PutTests : DesignerEndpointsTestsBase<PutTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        protected static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/texts";
+        protected static string VersionPrefix(string org, string repository) => $"/api/{org}/{repository}/texts";
         public PutTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }

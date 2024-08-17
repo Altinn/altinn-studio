@@ -2,7 +2,7 @@ import { stringify as s } from 'qs';
 import { APP_DEVELOPMENT_BASENAME, PREVIEW_MOCK_PARTY_ID, PREVIEW_MOCK_INSTANCE_GUID } from '../constants';
 
 // Base path
-const basePath = '/designer/api';
+const basePath = '/api';
 
 // ApplicationMetadata
 export const appMetadataPath = (org, app) => `${basePath}/${org}/${app}/metadata`; // Get, Put, Post
@@ -52,7 +52,7 @@ export const repositoryBasePath = () => `/repos`;
 export const userLogoutPath = () => `/repos/user/logout`;
 
 // Home
-export const userLogoutAfterPath = () => `/Home/Logout`;
+export const userLogoutAfterPath = () => `/logout`;
 
 // Languages - new text-format
 export const languagesPath = (org, app) => `${basePath}/${org}/${app}/languages`; // Get

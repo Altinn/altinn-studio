@@ -11,7 +11,7 @@ using PolicyAdmin.Models;
 
 namespace Altinn.Studio.Designer.Controllers
 {
-    [Route("/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/policy")]
+    [Route("api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/policy")]
     public class PolicyController : ControllerBase
     {
         private readonly IRepository _repository;
@@ -24,7 +24,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Gets the application policy, url Get "/designer/api/org/app/
+        /// Gets the application policy, url Get "/api/org/app/
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -47,7 +47,7 @@ namespace Altinn.Studio.Designer.Controllers
 
 
         /// <summary>
-        /// Gets the resource policy, url PUT "/designer/api/org/app/{resoruceid}.
+        /// Gets the resource policy, url PUT "/api/org/app/{resoruceid}.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -71,7 +71,7 @@ namespace Altinn.Studio.Designer.Controllers
 
 
         /// <summary>
-        /// Puts the application policy, url PUT "/designer/api/org/app/apppolicy
+        /// Puts the application policy, url PUT "/api/org/app/apppolicy
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -90,7 +90,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Puts the resource policy, url PUT "/designer/api/org/app/apppolicy
+        /// Puts the resource policy, url PUT "/api/org/app/apppolicy
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>

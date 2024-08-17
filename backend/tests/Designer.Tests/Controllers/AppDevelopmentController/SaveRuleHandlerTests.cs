@@ -17,7 +17,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 {
     public class SaveRuleHandlerTests : DesignerEndpointsTestsBase<SaveRuleHandlerTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
+        private static string VersionPrefix(string org, string repository) => $"/api/{org}/{repository}/app-development";
 
         public SaveRuleHandlerTests(WebApplicationFactory<Program> factory) : base(factory)
         {

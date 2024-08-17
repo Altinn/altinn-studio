@@ -1,7 +1,7 @@
 @{
     var app = ViewBag.App;
-    var cssPath = Url.Content($"/designer/frontend/{app}/{app}.css");
-    var jsPath = Url.Content($"/designer/frontend/{app}/{app}.js");
+    var cssPath = Url.Content($"/{app}/{app}.css");
+    var jsPath = Url.Content($"/{app}/{app}.js");
 }
 
 <link href="@cssPath" asp-append-version="true" rel="stylesheet">

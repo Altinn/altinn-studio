@@ -20,20 +20,6 @@ spec:
               name: altinn-designer
               port:
                 number: 3000
-          path: /designer
-          pathType: ImplementationSpecific
-        - backend:
-            service:
-              name: altinn-designer
-              port:
-                number: 3000
-          path: /Home
-          pathType: ImplementationSpecific
-        - backend:
-            service:
-              name: altinn-designer
-              port:
-                number: 3000
           path: /
           pathType: ImplementationSpecific
         - backend:

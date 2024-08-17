@@ -11,7 +11,7 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
 {
     public class GetResourcePolicyTests : DesignerEndpointsTestsBase<GetResourcePolicyTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        private readonly string _versionPrefix = "designer/api";
+        private readonly string _versionPrefix = "api";
 
         public GetResourcePolicyTests(WebApplicationFactory<Program> factory) : base(factory)
         {

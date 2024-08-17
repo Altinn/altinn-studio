@@ -21,7 +21,7 @@ public class PolicyFileSyncTaskIdTests : DesignerEndpointsTestsBase<PolicyFileSy
     IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) =>
-        $"/designer/api/{org}/{repository}/process-modelling/process-definition-latest";
+        $"/api/{org}/{repository}/process-modelling/process-definition-latest";
 
     public PolicyFileSyncTaskIdTests(WebApplicationFactory<Program> factory) : base(factory)
     {

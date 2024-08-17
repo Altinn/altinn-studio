@@ -15,7 +15,7 @@ namespace Designer.Tests.Controllers.DeploymentsController;
 
 public class GetPermissions : DesignerEndpointsTestsBase<GetPermissions>, IClassFixture<WebApplicationFactory<Program>>
 {
-    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/deployments";
+    private static string VersionPrefix(string org, string repository) => $"/api/{org}/{repository}/deployments";
     private readonly Mock<IGitea> _giteaMock;
 
     public GetPermissions(WebApplicationFactory<Program> factory) : base(factory)

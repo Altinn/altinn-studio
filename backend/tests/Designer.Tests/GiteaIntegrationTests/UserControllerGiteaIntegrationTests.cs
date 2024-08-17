@@ -23,7 +23,7 @@ namespace Designer.Tests.GiteaIntegrationTests
         [InlineData(GiteaConstants.TestUser, GiteaConstants.TestUserEmail)]
         public async Task GetCurrentUser_ShouldReturnOk(string expectedUserName, string expectedEmail)
         {
-            string requestUrl = "designer/api/user/current";
+            string requestUrl = "api/user/current";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, requestUrl);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -47,7 +47,7 @@ namespace Designer.Tests.GiteaIntegrationTests
             string targetRepo = TestDataHelper.GenerateTestRepoName();
             await CreateAppUsingDesigner(org, targetRepo);
 
-            string requestUrl = "designer/api/user/repos";
+            string requestUrl = "api/user/repos";
             using var response = await HttpClient.GetAsync(requestUrl);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             var content = await response.Content.ReadAsAsync<List<Repository>>();
@@ -62,11 +62,11 @@ namespace Designer.Tests.GiteaIntegrationTests
             string targetRepo = TestDataHelper.GenerateTestRepoName();
             await CreateAppUsingDesigner(org, targetRepo);
 
-            using var putStarredResponse = await HttpClient.PutAsync($"designer/api/user/starred/{org}/{targetRepo}", null);
+            using var putStarredResponse = await HttpClient.PutAsync($"api/user/starred/{org}/{targetRepo}", null);
             putStarredResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
             await GetAndVerifyStarredRepos(targetRepo);
 
-            using var deleteStarredResponse = await HttpClient.DeleteAsync($"designer/api/user/starred/{org}/{targetRepo}");
+            using var deleteStarredResponse = await HttpClient.DeleteAsync($"api/user/starred/{org}/{targetRepo}");
             deleteStarredResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
             await GetAndVerifyStarredRepos();
@@ -74,7 +74,7 @@ namespace Designer.Tests.GiteaIntegrationTests
 
         private async Task GetAndVerifyStarredRepos(params string[] expectedStarredRepos)
         {
-            using var response = await HttpClient.GetAsync("designer/api/user/starred");
+            using var response = await HttpClient.GetAsync("api/user/starred");
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             var content = await response.Content.ReadAsAsync<List<Repository>>();
             content.Should().NotBeNull().And.HaveCount(expectedStarredRepos.Length);

@@ -18,7 +18,7 @@ namespace Designer.Tests.Controllers.DataModelsController;
 
 public class DeleteDatamodelTests : DesignerEndpointsTestsBase<DeleteDatamodelTests>, IClassFixture<WebApplicationFactory<Program>>
 {
-    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
+    private static string VersionPrefix(string org, string repository) => $"/api/{org}/{repository}/datamodels";
     private readonly Mock<IRepository> _repositoryMock;
 
     public DeleteDatamodelTests(WebApplicationFactory<Program> factory) : base(factory)

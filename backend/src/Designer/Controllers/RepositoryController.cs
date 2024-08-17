@@ -24,7 +24,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// </summary>
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("designer/api/repos")]
+    [Route("api/repos")]
     public class RepositoryController : ControllerBase
     {
         private readonly IGitea _giteaApi;

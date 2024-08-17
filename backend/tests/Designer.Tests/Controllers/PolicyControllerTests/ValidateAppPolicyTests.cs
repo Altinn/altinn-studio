@@ -15,7 +15,7 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
 {
     public class ValidateAppPolicyTests : DesignerEndpointsTestsBase<ValidateAppPolicyTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        private readonly string _versionPrefix = "designer/api";
+        private readonly string _versionPrefix = "api";
 
         public ValidateAppPolicyTests(WebApplicationFactory<Program> factory) : base(factory)
         {

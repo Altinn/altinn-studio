@@ -84,7 +84,7 @@ namespace Designer.Tests.Fixtures
         private async Task<string> CallUserCurrentEndpointAndExtractAntiForgeryToken(IEnumerable<string> cookies,
             CancellationToken cancellationToken)
         {
-            string xsrfUrl = $"{TestUrlsProvider.Instance.DesignerUrl}/designer/api/user/current";
+            string xsrfUrl = $"{TestUrlsProvider.Instance.DesignerUrl}/api/user/current";
             using var httpRequestMessageXsrf = new HttpRequestMessage(HttpMethod.Get, xsrfUrl);
             httpRequestMessageXsrf.AddCookies(cookies);
             using var xsrfResponse = await base.SendAsync(httpRequestMessageXsrf, cancellationToken);

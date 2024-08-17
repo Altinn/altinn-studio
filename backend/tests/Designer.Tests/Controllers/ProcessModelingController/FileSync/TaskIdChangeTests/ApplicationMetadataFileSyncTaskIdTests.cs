@@ -21,7 +21,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController.FileSync.TaskIdCh
 public class ApplicationMetadataFileSyncTaskIdTests : DesignerEndpointsTestsBase<ApplicationMetadataFileSyncTaskIdTests>, IClassFixture<WebApplicationFactory<Program>>
 {
 
-    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/process-modelling/process-definition-latest";
+    private static string VersionPrefix(string org, string repository) => $"/api/{org}/{repository}/process-modelling/process-definition-latest";
 
     public ApplicationMetadataFileSyncTaskIdTests(WebApplicationFactory<Program> factory) : base(factory)
     {

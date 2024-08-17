@@ -59,7 +59,7 @@ module.exports = {
             options: {
               url: {
                 filter: (url, _resourcePath) => {
-                  // Disable processing for root-relative urls (e.g. /designer/img)
+                  // Disable processing for root-relative urls (e.g. /img)
                   return !/^\//.test(url);
                 },
               },

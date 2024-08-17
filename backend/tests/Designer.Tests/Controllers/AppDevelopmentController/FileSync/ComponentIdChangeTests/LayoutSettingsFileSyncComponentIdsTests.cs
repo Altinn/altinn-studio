@@ -19,7 +19,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController.FileSync.Component
 
 public class LayoutSettingsFileSyncComponentIdsTests : DesignerEndpointsTestsBase<LayoutSettingsFileSyncComponentIdsTests>, IClassFixture<WebApplicationFactory<Program>>
 {
-    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development/form-layout";
+    private static string VersionPrefix(string org, string repository) => $"/api/{org}/{repository}/app-development/form-layout";
 
     public LayoutSettingsFileSyncComponentIdsTests(WebApplicationFactory<Program> factory) : base(factory)
     {

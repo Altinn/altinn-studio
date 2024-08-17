@@ -11,7 +11,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
 {
     public class GetTemplatesTests : DesignerEndpointsTestsBase<GetTemplatesTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        private static string VersionPrefix(string org, string repository, string appVersion) => $"/designer/api/{org}/{repository}/process-modelling/templates/{appVersion}";
+        private static string VersionPrefix(string org, string repository, string appVersion) => $"/api/{org}/{repository}/process-modelling/templates/{appVersion}";
 
         public GetTemplatesTests(WebApplicationFactory<Program> factory) : base(factory)
         {

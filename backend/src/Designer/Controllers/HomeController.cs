@@ -16,8 +16,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// <summary>
     /// The default MVC controller in the application
     /// </summary>
-    [Route("[action]/{id?}")]
-    [Route("[controller]/[action]/{id?}")]
+    [Route("[action]")]
     public class HomeController : Controller
     {
         private readonly IGitea _giteaApi;
@@ -56,11 +55,10 @@ namespace Altinn.Studio.Designer.Controllers
         /// the default page for altinn studio when the user is not logged in
         /// </summary>
         /// <returns>The start page</returns>
-        [Route("/")]
-        [Route("/[controller]")]
-        [Route("/[controller]/[action]/{id?}", Name = "DefaultNotLoggedIn")]
-        public async Task<ActionResult> StartPage()
+        [HttpGet("/")]
+        public async Task<ActionResult> Index()
         {
+            Console.WriteLine("Index");
             await Task.CompletedTask;
             bool isUserLoggedIn = User.Identity?.IsAuthenticated ?? false;
 
@@ -72,26 +70,17 @@ namespace Altinn.Studio.Designer.Controllers
             Response.Cookies.Delete(General.DesignerCookieName);
             Response.Cookies.Delete(_settings.GiteaCookieName);
             return View("StartPage");
-
-        }
-
-        [Route("/{*AllValues:regex(^(?!designer).*$)}")]
-        public IActionResult Index()
-        {
-            ViewBag.AiConnectionString = _applicationInsightsSettings.ConnectionString;
-            ViewBag.App = "studio-root";
-            return View();
         }
 
         /// <summary>
         /// The default action presenting a list of available apps when the user is logged in
         /// </summary>
         /// <returns>The front page</returns>
-        [Route("/[controller]/[action]")]
         [Authorize]
-        [Route("/dashboard/{*AllValues}", Name = "DefaultLoggedIn")]
+        [HttpGet("/dashboard/{*AllValues}")]
         public ActionResult Dashboard()
         {
+            Console.WriteLine("Dashboard");
             ViewBag.AiConnectionString = _applicationInsightsSettings.ConnectionString;
             ViewBag.App = "dashboard";
             return View("Index");
@@ -138,6 +127,14 @@ namespace Altinn.Studio.Designer.Controllers
         {
             _sourceControl.StoreAppTokenForUser(appKey.Key);
             return Redirect("/");
+        }
+
+        [HttpGet("{*AllValues}")]
+        public IActionResult Root()
+        {
+            ViewBag.AiConnectionString = _applicationInsightsSettings.ConnectionString;
+            ViewBag.App = "studio-root";
+            return View("Index");
         }
     }
 }

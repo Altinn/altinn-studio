@@ -12,7 +12,7 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
 {
     public class UpdateApplicationPolicyTests : DesignerEndpointsTestsBase<UpdateApplicationPolicyTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        private readonly string _versionPrefix = "designer/api";
+        private readonly string _versionPrefix = "api";
 
         public UpdateApplicationPolicyTests(WebApplicationFactory<Program> factory) : base(factory)
         {

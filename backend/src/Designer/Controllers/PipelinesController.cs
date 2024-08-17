@@ -11,9 +11,9 @@ namespace Altinn.Studio.Designer.Controllers
     /// </summary>
     [ApiController]
     // Obsolete route
-    [Route("/designer/api/v1")]
+    [Route("api/v1")]
     // Route that is consistent with newer version
-    [Route("/designer/api/")]
+    [Route("api/")]
     public class PipelinesController : ControllerBase
     {
         private readonly IReleaseService _releaseService;

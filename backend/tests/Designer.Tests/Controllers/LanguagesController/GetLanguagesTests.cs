@@ -11,7 +11,7 @@ namespace Designer.Tests.Controllers.LanguagesController
 {
     public class GetLanguagesTests : DesignerEndpointsTestsBase<GetLanguagesTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        private readonly string _versionPrefix = "designer/api";
+        private readonly string _versionPrefix = "api";
 
         public GetLanguagesTests(WebApplicationFactory<Program> factory) : base(factory)
         {

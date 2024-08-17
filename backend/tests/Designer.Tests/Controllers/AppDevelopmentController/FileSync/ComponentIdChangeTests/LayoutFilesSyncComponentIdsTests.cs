@@ -21,7 +21,7 @@ public class LayoutFilesSyncComponentIdsTests : DesignerEndpointsTestsBase<Layou
     IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) =>
-        $"/designer/api/{org}/{repository}/app-development/form-layout";
+        $"/api/{org}/{repository}/app-development/form-layout";
 
     private const string Org = "ttd";
     private const string App = "app-with-layoutsets";

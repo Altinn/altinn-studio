@@ -34,7 +34,7 @@ public class GitDiffIntegrationTests : GiteaIntegrationTestsBase<GitDiffIntegrat
         await CreateAppUsingDesigner(org, targetRepo);
         string defaultLayoutSetName = "form";
         string newLayoutSetName = "newLayoutSetName";
-        string updateLayoutSetNameUrl = $"designer/api/{org}/{targetRepo}/app-development/layout-set/{defaultLayoutSetName}";
+        string updateLayoutSetNameUrl = $"api/{org}/{targetRepo}/app-development/layout-set/{defaultLayoutSetName}";
         string pathToGitDiffResponse = Path.Combine("..", "..", "..", "_TestData", "AppChangesForIntegrationTests", "GitDiffResponse.json");
         string expectedGitDiffResponse = await File.ReadAllTextAsync(pathToGitDiffResponse);
 
@@ -45,7 +45,7 @@ public class GitDiffIntegrationTests : GiteaIntegrationTestsBase<GitDiffIntegrat
         var updateLayoutSetNameResponse = await HttpClient.SendAsync(httpRequestMessageWithNewLayoutSetName);
         updateLayoutSetNameResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        string getGitDiffUrl = $"designer/api/repos/repo/{org}/{targetRepo}/diff";
+        string getGitDiffUrl = $"api/repos/repo/{org}/{targetRepo}/diff";
         using var httpRequestMessageGetGitDiff = new HttpRequestMessage(HttpMethod.Get, getGitDiffUrl);
         var gitDiffResponse = await HttpClient.SendAsync(httpRequestMessageGetGitDiff);
         string responseContent = await gitDiffResponse.Content.ReadAsStringAsync();

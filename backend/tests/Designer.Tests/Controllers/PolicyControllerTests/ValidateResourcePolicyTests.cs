@@ -16,7 +16,7 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
 {
     public class ValidateResourcePolicyTests : DesignerEndpointsTestsBase<ValidateResourcePolicyTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        private readonly string _versionPrefix = "designer/api";
+        private readonly string _versionPrefix = "api";
 
         public ValidateResourcePolicyTests(WebApplicationFactory<Program> factory) : base(factory)
         {

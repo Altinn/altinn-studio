@@ -17,7 +17,7 @@ export class DesignerApi extends ResourceEnvironment {
     resourceId: string = this.resourceId,
   ) {
     const xsrfToken: string = this.getXsrfTokenFromStorageState(storageState);
-    const response = await request.post(`/designer/api/${this.org}/resources/addresource`, {
+    const response = await request.post(`/api/${this.org}/resources/addresource`, {
       // The following header is needed to be able to do API requestes
       headers: {
         'X-Xsrf-Token': xsrfToken,
@@ -33,7 +33,7 @@ export class DesignerApi extends ResourceEnvironment {
 
   public async resetResourceRepo(request: APIRequestContext, storageState: StorageState) {
     const xsrfToken: string = this.getXsrfTokenFromStorageState(storageState);
-    const response = await request.get(`/designer/api/repos/repo/${this.org}/${this.repo}/reset`, {
+    const response = await request.get(`/api/repos/repo/${this.org}/${this.repo}/reset`, {
       // The following header is needed to be able to do API requestes
       headers: {
         'X-Xsrf-Token': xsrfToken,

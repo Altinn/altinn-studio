@@ -12,7 +12,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// API controller for User functionality
     /// </summary>
     [Authorize]
-    [Route("designer/api/user")]
+    [Route("api/user")]
     public class UserController : ControllerBase
     {
         private readonly IGitea _giteaApi;

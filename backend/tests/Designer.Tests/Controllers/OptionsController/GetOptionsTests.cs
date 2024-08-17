@@ -22,7 +22,7 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
     {
         // Arrange
         const string repo = "app-with-options";
-        string apiUrl = $"/designer/api/ttd/{repo}/options";
+        string apiUrl = $"/api/ttd/{repo}/options";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
 
         // Act
@@ -41,7 +41,7 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
     {
         // Arrange
         const string repo = "empty-app";
-        string apiUrl = $"/designer/api/ttd/{repo}/options";
+        string apiUrl = $"/api/ttd/{repo}/options";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
 
         // Act
@@ -61,7 +61,7 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
         const string repo = "app-with-options";
         const string optionsListId = "test-options";
 
-        string apiUrl = $"/designer/api/ttd/{repo}/options/{optionsListId}";
+        string apiUrl = $"/api/ttd/{repo}/options/{optionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
 
         // Act
@@ -87,7 +87,7 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
         const string repo = "empty-app";
         const string optionsListId = "non-existing-options";
 
-        string apiUrl = $"/designer/api/ttd/{repo}/options/{optionsListId}";
+        string apiUrl = $"/api/ttd/{repo}/options/{optionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
 
         // Act

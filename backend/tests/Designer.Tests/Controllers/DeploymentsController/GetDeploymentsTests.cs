@@ -25,7 +25,7 @@ public class GetDeployments : DesignerEndpointsTestsBase<GetDeployments>, IClass
 {
     private readonly Mock<IDeploymentService> _deploymentServiceMock = new Mock<IDeploymentService>();
     private readonly Mock<IKubernetesDeploymentsService> _kubernetesDeploymentsMock = new Mock<IKubernetesDeploymentsService>();
-    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/deployments";
+    private static string VersionPrefix(string org, string repository) => $"/api/{org}/{repository}/deployments";
     public GetDeployments(WebApplicationFactory<Program> factory) : base(factory)
     {
     }

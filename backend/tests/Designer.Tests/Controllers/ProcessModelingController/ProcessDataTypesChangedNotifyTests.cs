@@ -16,7 +16,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController;
 
 public class ProcessDataTypesChangedNotifyTests : DesignerEndpointsTestsBase<ProcessDataTypesChangedNotifyTests>, IClassFixture<WebApplicationFactory<Program>>
 {
-    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/process-modelling/data-types";
+    private static string VersionPrefix(string org, string repository) => $"/api/{org}/{repository}/process-modelling/data-types";
 
     public ProcessDataTypesChangedNotifyTests(WebApplicationFactory<Program> factory) : base(factory)
     {

@@ -19,7 +19,7 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
 {
     public class UpdateMetadataForAttachmentTests : DesignerEndpointsTestsBase<UpdateMetadataForAttachmentTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/metadata";
+        private static string VersionPrefix(string org, string repository) => $"/api/{org}/{repository}/metadata";
         public UpdateMetadataForAttachmentTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }

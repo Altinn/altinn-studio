@@ -11,7 +11,7 @@ namespace Designer.Tests.Controllers.TextController
 {
     public class GetResourceTests : DesignerEndpointsTestsBase<GetResourceTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/text";
+        private static string VersionPrefix(string org, string repository) => $"/api/{org}/{repository}/text";
         public GetResourceTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }

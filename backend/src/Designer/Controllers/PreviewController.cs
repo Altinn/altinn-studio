@@ -33,7 +33,7 @@ namespace Altinn.Studio.Designer.Controllers
     [Authorize]
     [AutoValidateAntiforgeryToken]
     // Uses regex to not match on designer since the call from frontend to get the iframe for app-frontend,
-    // `designer/html/preview.html`, will match on Image-endpoint which is a fetch-all route
+    // `html/preview.html`, will match on Image-endpoint which is a fetch-all route
     [Route("{org:regex(^(?!designer))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}")]
     public class PreviewController : Controller
     {
@@ -424,7 +424,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The mocked instance object</returns>
         [HttpGet]
-        [Route("/designer/api/{org}/{app}/mock-instance-id")]
+        [Route("/api/{org}/{app}/mock-instance-id")]
         public async Task<ActionResult<string>> GetInstanceId(string org, string app, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);

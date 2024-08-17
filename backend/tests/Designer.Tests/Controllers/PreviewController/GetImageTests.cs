@@ -89,7 +89,7 @@ namespace Designer.Tests.Controllers.PreviewController
                 s.AddTransient(_ => factMock.Object);
             };
 
-            string dataPathWithData = "designer/html/path/some-file.jpg";
+            string dataPathWithData = "html/path/some-file.jpg";
             using HttpResponseMessage response = await HttpClient.GetAsync(dataPathWithData);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
             factMock.Verify(x => x.GetAltinnAppGitRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);

@@ -25,7 +25,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// </summary>
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("designer/api/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/datamodels")]
+    [Route("api/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/datamodels")]
     public class DatamodelsController : ControllerBase
     {
         private readonly ISchemaModelService _schemaModelService;
@@ -201,7 +201,7 @@ namespace Altinn.Studio.Designer.Controllers
             // Sets the location header and content-type manually instead of using CreatedAtAction
             // because the latter overrides the content type and sets it to text/plain.
             string baseUrl = GetBaseUrl();
-            string locationUrl = $"{baseUrl}/designer/api/{org}/{repository}/datamodels/datamodel?modelPath={relativePath}";
+            string locationUrl = $"{baseUrl}/api/{org}/{repository}/datamodels/datamodel?modelPath={relativePath}";
             Response.Headers.Append("Location", locationUrl);
             Response.StatusCode = (int)HttpStatusCode.Created;
 

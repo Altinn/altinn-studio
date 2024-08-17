@@ -17,7 +17,7 @@ namespace Designer.Tests.Controllers.RepositoryController
     public class ContentsTests : DesignerEndpointsTestsBase<ContentsTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly Mock<IRepository> _repositoryMock = new Mock<IRepository>();
-        private static string VersionPrefix => "/designer/api/repos";
+        private static string VersionPrefix => "/api/repos";
         public ContentsTests(WebApplicationFactory<Program> factory) : base(factory)
         {
         }

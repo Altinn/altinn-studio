@@ -13,7 +13,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// </summary>
     [Authorize]
     [AutoValidateAntiforgeryToken]
-
+    [Route("api/environments")]
     public class EnvironmentsController : ControllerBase
     {
         private readonly IEnvironmentsService _environmentsService;
@@ -33,7 +33,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <returns>List of environments</returns>
         [HttpGet]
-        [Route("designer/api/environments")]
         public async Task<List<EnvironmentModel>> Environments()
         {
             return await _environmentsService.GetEnvironments();

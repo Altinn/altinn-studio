@@ -15,7 +15,7 @@ namespace Designer.Tests.Controllers.ProcessModelingController
 {
     public class SaveProcessDefinitionTests : DesignerEndpointsTestsBase<SaveProcessDefinitionTests>, IClassFixture<WebApplicationFactory<Program>>
     {
-        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/process-modelling/process-definition";
+        private static string VersionPrefix(string org, string repository) => $"/api/{org}/{repository}/process-modelling/process-definition";
 
         public SaveProcessDefinitionTests(WebApplicationFactory<Program> factory) : base(factory)
         {

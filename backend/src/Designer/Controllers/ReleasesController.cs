@@ -19,8 +19,8 @@ namespace Altinn.Studio.Designer.Controllers
     /// Controller for creating, getting and updating releases
     /// </summary>
     [ApiController]
-    [Route("/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/releases")]
     [AutoValidateAntiforgeryToken]
+    [Route("api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/releases")]
     public class ReleasesController : ControllerBase
     {
         private readonly IReleaseService _releaseService;

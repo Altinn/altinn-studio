@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.RepositoryClient.Model;
@@ -12,7 +13,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// </summary>
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("designer/api/orgs")]
+    [Route("api/orgs")]
     public class OrganizationController : ControllerBase
     {
         private readonly IGitea _giteaApi;
@@ -33,6 +34,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         public async Task<List<Organization>> Organizations()
         {
+            Console.WriteLine("ORGS");
             List<Organization> orglist = await _giteaApi.GetUserOrganizations();
             return orglist ?? new List<Organization>();
         }
