@@ -14,7 +14,8 @@
   width: 26px;
 }
 
-.plusIcon {
+.plusIcon,
+.plusFillIcon {
   font-size: 30px;
   width: 40px;
   display: flex;
@@ -22,6 +23,12 @@
   align-items: center;
 }
 
+.plusIcon {
+  display: inline;
+}
+.plusFillIcon {
+  display: none;
+}
 .newLink {
   color: #022f51;
   display: flex;
@@ -36,6 +43,12 @@
 }
 .newLink:hover span {
   text-decoration: underline;
+}
+.newLink:hover .plusIcon {
+  display: none;
+}
+.newLink:hover .plusFillIcon {
+  display: inline;
 }
 
 .searchFieldContainer {

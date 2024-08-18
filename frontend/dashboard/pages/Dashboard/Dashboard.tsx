@@ -31,7 +31,6 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
   const [searchText, setSearchText] = useState('');
-  const [isNewLinkFocused, setIsNewLinkFocused] = useState(false);
   const [debouncedSearchText, setDebouncedSearchText] = useState('');
   const { debounce } = useDebounce({ debounceTimeInMs: disableDebounce ? 1 : 500 });
   debounce(() => setDebouncedSearchText(searchText));
@@ -41,8 +40,6 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
 
   const handleKeyDown = (event: KeyboardEvent) => event.code === 'Escape' && setSearchText('');
   const handleClearSearch = () => setSearchText('');
-  const handleNewLinkFocus = () => setIsNewLinkFocused(true);
-  const handleNewLinkFocusOut = () => setIsNewLinkFocused(false);
 
   const shouldDisplayResources =
     selectedContext !== SelectedContextType.All && selectedContext !== SelectedContextType.Self;
@@ -69,18 +66,10 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                 />
               )}
             </div>
-            <Link
-              to={'/' + selectedContext + '/new'}
-              className={classes.newLink}
-              onMouseEnter={handleNewLinkFocus}
-              onMouseLeave={handleNewLinkFocusOut}
-            >
+            <Link to={'/' + selectedContext + '/new'} className={classes.newLink}>
               <span>{t('dashboard.new_service')}</span>
-              {isNewLinkFocused ? (
-                <PlusCircleFillIcon className={classes.plusIcon} />
-              ) : (
-                <PlusCircleIcon className={classes.plusIcon} />
-              )}
+              <PlusCircleFillIcon className={classes.plusFillIcon} />
+              <PlusCircleIcon className={classes.plusIcon} />
             </Link>
           </div>
 
