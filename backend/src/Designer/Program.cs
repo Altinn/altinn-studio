@@ -299,8 +299,7 @@ void Configure(IConfiguration configuration)
                 Public = true,
                 MaxAge = TimeSpan.FromMinutes(60),
             };
-        },
-        RequestPath = "/designer"
+        }
     });
 
     const string swaggerRoutePrefix = "designer/swagger";

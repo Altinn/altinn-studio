@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import classes from './Dashboard.module.css';
-import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { Textfield } from '@digdir/designsystemet-react';
 import { StudioButton } from '@studio/components';
-import { XMarkIcon } from '@studio/icons';
+import { XMarkIcon, PlusCircleIcon, PlusCircleFillIcon } from '@studio/icons';
 import { useDebounce } from '@studio/hooks';
 import { CenterContainer } from '../../components/CenterContainer';
 import { DataModelsReposList } from '../../components/DataModelsRepoList';
@@ -77,12 +76,11 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
               onMouseLeave={handleNewLinkFocusOut}
             >
               <span>{t('dashboard.new_service')}</span>
-              <i
-                className={cn('fa', classes.plusIcon, {
-                  'fa-circle-plus': isNewLinkFocused,
-                  'fa-circle-plus-outline': !isNewLinkFocused,
-                })}
-              />
+              {isNewLinkFocused ? (
+                <PlusCircleFillIcon className={classes.plusIcon} />
+              ) : (
+                <PlusCircleIcon className={classes.plusIcon} />
+              )}
             </Link>
           </div>
 
