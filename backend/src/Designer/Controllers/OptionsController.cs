@@ -50,6 +50,30 @@ public class OptionsController : ControllerBase
     }
 
     /// <summary>
+    /// Fetches the contents of all the options lists belonging to the app.
+    [HttpGet]
+    [Route("option-lists")]
+    public async Task<ActionResult<List<Option>>> GetOptionLists(string org, string repo)
+    {
+        try
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            string[] optionListIds = _optionsService.GetOptionsListIds(org, repo, developer);
+            Dictionary<string, List<Option>> optionLists = [];
+            foreach (string optionListId in optionListIds)
+            {
+                List<Option> optionList = await _optionsService.GetOptionsList(org, repo, developer, optionListId);
+                optionLists.Add(optionListId, optionList);
+            }
+            return Ok(optionLists);
+        }
+        catch (NotFoundException)
+        {
+            return NoContent();
+        }
+    }
+
+    /// <summary>
     /// Fetches a specific option list.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>

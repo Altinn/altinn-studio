@@ -12,7 +12,7 @@ export const useOptionListsQuery = (org: string, app: string): UseQueryResult<st
       getOptionLists(org, app).then((result) => {
         const optionLists = {};
         Object.keys(result).forEach((optionListId) => {
-          optionLists[optionListId] = JSON.parse(result[optionListId]);
+          optionLists[optionListId] = result[optionListId];
         });
         return optionLists;
       }),
