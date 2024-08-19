@@ -63,9 +63,44 @@
                     "lineWrap": true,
                     "maxHeight": 1
                   }
-                }
+                },
+                "text": "Kolonne 1"
               },
-              { "text": "Fordeling" },
+              {
+                "text": "Kolonne 2"
+              },
+              {
+                "text": "Kolonne 3"
+              },
+              {
+                "text": "Kolonne 4"
+              }
+            ]
+          },
+          {
+            "header": false,
+            "cells": [
+              {
+                "text": "Tekst 1"
+              },
+              {
+                "text": "Tekst 2"
+              },
+              {
+                "text": "Tekst 3"
+              },
+              {
+                "text": "Tekst 4"
+              }
+            ]
+          },
+          {
+            "header": true,
+            "cells": [
+              null,
+              {
+                "text": "Fordeling"
+              },
               {
                 "text": "Beløp",
                 "columnOptions": {

@@ -25,7 +25,7 @@
         "required": true
       },
       {
-        "id": "neverValidatedInputChangeName2",
+        "id": "neverValidatedInputChangeName3",
         "type": "Input",
         "textResourceBindings": {
           "title": "This input should never be shown, and never validated (changename layout, valid binding #2)"

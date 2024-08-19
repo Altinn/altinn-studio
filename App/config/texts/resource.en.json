@@ -9,11 +9,11 @@
     },
     {
       "id": "37131.SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131.Label",
-      "value": "1. **Endre fra**"
+      "value": "1\\. **Endre fra**"
     },
     {
       "id": "37132.SkattemeldingEndringEtterFristNyttBelopdatadef37132.Label",
-      "value": "2. Endre verdi {0} til ",
+      "value": "2\\. Endre verdi {0} til ",
       "variables": [
         {
           "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value",

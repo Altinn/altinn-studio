@@ -652,6 +652,13 @@
         }
       },
       {
+        "id": "test-accordion-paragraph4",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "Dette er en annen Accordion utenfor en AccordionGroup"
+        }
+      },
+      {
         "id": "pageSummary",
         "type": "Header",
         "textResourceBindings": {
