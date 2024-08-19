@@ -94,6 +94,154 @@ public class NetsMapperTests
     }
 
     [Fact]
+    public void MapPayerDetails_ValidPayerCompany_ReturnsNetsConsumer()
+    {
+        // Arrange
+        var payer = new Payer
+        {
+            Company = new PayerCompany
+            {
+                Name = "Firmanavn",
+                ContactPerson = new PayerPrivatePerson
+                {
+                    FirstName = "Ola",
+                    LastName = "Normann",
+                    Email = "ola.normann@example.com",
+                    PhoneNumber = new PhoneNumber { Prefix = "+47", Number = "12345678" }
+                }
+            },
+            ShippingAddress = new Address
+            {
+                Name = "Ola Normann",
+                AddressLine1 = "Gate 1",
+                AddressLine2 = "Adresselinje 1",
+                PostalCode = "1234",
+                City = "By",
+                Country = "Land"
+            },
+            BillingAddress = new Address
+            {
+                Name = "Kari Normann",
+                AddressLine1 = "Gate 2",
+                AddressLine2 = "Adresselinje 2",
+                PostalCode = "5678",
+                City = "By",
+                Country = "Land"
+            }
+        };
+
+        // Act
+        NetsCheckoutConsumerDetails? result = NetsMapper.MapConsumerDetails(payer);
+
+        // Assert
+        result.Should().NotBeNull();
+
+        result!.Company.Should().NotBeNull();
+        result.Company!.Name.Should().Be("Firmanavn");
+        result.Company.Contact.Should().NotBeNull();
+        result.Company.Contact!.FirstName.Should().Be("Ola");
+        result.Company.Contact.LastName.Should().Be("Normann");
+        result.Email.Should().Be("ola.normann@example.com");
+        result.PhoneNumber.Should().NotBeNull();
+        result.PhoneNumber!.Prefix.Should().Be("+47");
+        result.PhoneNumber.Number.Should().Be("12345678");
+
+        result.PrivatePerson.Should().BeNull();
+
+        result.ShippingAddress.Should().NotBeNull();
+        result.ShippingAddress!.ReceiverLine.Should().Be("Ola Normann");
+        result.ShippingAddress.AddressLine1.Should().Be("Gate 1");
+        result.ShippingAddress.AddressLine2.Should().Be("Adresselinje 1");
+        result.ShippingAddress.PostalCode.Should().Be("1234");
+        result.ShippingAddress.City.Should().Be("By");
+        result.ShippingAddress.Country.Should().Be("Land");
+
+        result.BillingAddress.Should().NotBeNull();
+        result.BillingAddress!.ReceiverLine.Should().Be("Kari Normann");
+        result.BillingAddress.AddressLine1.Should().Be("Gate 2");
+        result.BillingAddress.AddressLine2.Should().Be("Adresselinje 2");
+        result.BillingAddress.PostalCode.Should().Be("5678");
+        result.BillingAddress.City.Should().Be("By");
+        result.BillingAddress.Country.Should().Be("Land");
+    }
+
+    [Fact]
+    public void MapPayerDetails_ValidPayerPrivatePerson_ReturnsNetsConsumer()
+    {
+        // Arrange
+        var payer = new Payer
+        {
+            PrivatePerson = new PayerPrivatePerson
+            {
+                FirstName = "Kari",
+                LastName = "Normann",
+                Email = "ola.normann@example.com",
+                PhoneNumber = new PhoneNumber { Prefix = "+47", Number = "87654321" }
+            },
+            ShippingAddress = new Address
+            {
+                Name = "Ola Normann",
+                AddressLine1 = "Gate 1",
+                AddressLine2 = "Adresselinje 1",
+                PostalCode = "1234",
+                City = "By",
+                Country = "Land"
+            },
+            BillingAddress = new Address
+            {
+                Name = "Kari Normann",
+                AddressLine1 = "Gate 2",
+                AddressLine2 = "Adresselinje 2",
+                PostalCode = "5678",
+                City = "By",
+                Country = "Land"
+            }
+        };
+
+        // Act
+        NetsCheckoutConsumerDetails? result = NetsMapper.MapConsumerDetails(payer);
+
+        // Assert
+        result.Should().NotBeNull();
+
+        result!.Company.Should().BeNull();
+
+        result.PrivatePerson.Should().NotBeNull();
+        result.PrivatePerson!.FirstName.Should().Be("Kari");
+        result.PrivatePerson.LastName.Should().Be("Normann");
+        result.Email.Should().Be("ola.normann@example.com");
+        result.PhoneNumber.Should().NotBeNull();
+        result.PhoneNumber!.Prefix.Should().Be("+47");
+        result.PhoneNumber.Number.Should().Be("87654321");
+
+        result.ShippingAddress.Should().NotBeNull();
+        result.ShippingAddress!.ReceiverLine.Should().Be("Ola Normann");
+        result.ShippingAddress.AddressLine1.Should().Be("Gate 1");
+        result.ShippingAddress.AddressLine2.Should().Be("Adresselinje 1");
+        result.ShippingAddress.PostalCode.Should().Be("1234");
+        result.ShippingAddress.City.Should().Be("By");
+        result.ShippingAddress.Country.Should().Be("Land");
+
+        result.BillingAddress.Should().NotBeNull();
+        result.BillingAddress!.ReceiverLine.Should().Be("Kari Normann");
+        result.BillingAddress.AddressLine1.Should().Be("Gate 2");
+        result.BillingAddress.AddressLine2.Should().Be("Adresselinje 2");
+        result.BillingAddress.PostalCode.Should().Be("5678");
+        result.BillingAddress.City.Should().Be("By");
+        result.BillingAddress.Country.Should().Be("Land");
+    }
+
+    [Fact]
+    public void MapPayerDetails_BothCompanyAndPrivatePersonIsSet_ThrowsArgumentException()
+    {
+        // Arrange
+        var payer = new Payer { Company = new PayerCompany(), PrivatePerson = new PayerPrivatePerson(), };
+
+        // Act & assert
+        Assert.Throws<ArgumentException>(() => NetsMapper.MapConsumerDetails(payer));
+    }
+
+    [Fact]
     public void MapConsumerTypes_ValidPayerTypes_ReturnsCorrectConsumerTypes()
     {
         // Arrange

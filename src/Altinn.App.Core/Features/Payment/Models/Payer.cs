@@ -6,12 +6,12 @@ namespace Altinn.App.Core.Features.Payment.Models;
 public class Payer
 {
     /// <summary>
-    /// If the payer is a private person, this property should be set.
+    /// If the payer is a private person, this property should be set. Do not set both this and <see cref="Company"/>.
     /// </summary>
     public PayerPrivatePerson? PrivatePerson { get; set; }
 
     /// <summary>
-    /// If the payer is a company, this property should be set.
+    /// If the payer is a company, this property should be set. Do not set both this and <see cref="PrivatePerson"/>.
     /// </summary>
     public PayerCompany? Company { get; set; }
 

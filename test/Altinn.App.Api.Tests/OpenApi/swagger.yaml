@@ -3791,6 +3791,8 @@ components:
           nullable: true
         receiver:
           $ref: '#/components/schemas/PaymentReceiver'
+        payer:
+          $ref: '#/components/schemas/Payer'
         currency:
           type: string
           nullable: true

@@ -29,4 +29,9 @@ public class NetsPaymentSettings
     /// If true, the name of the merchant will be shown to the user before they confirm the payment.
     /// </summary>
     public bool ShowMerchantName { get; set; } = true;
+
+    /// <summary>
+    /// Allows you to initiate the checkout with customer data so that your customer only need to provide payment details. If set to true, information about the paying party must be supplied.
+    /// </summary>
+    public bool? MerchantHandlesConsumerData { get; set; }
 }
