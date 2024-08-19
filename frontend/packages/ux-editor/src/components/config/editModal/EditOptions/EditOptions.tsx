@@ -1,12 +1,12 @@
 import React, { useEffect, useRef } from 'react';
-import { ErrorMessage, Tabs, Heading, Alert } from '@digdir/designsystemet-react';
+import { ErrorMessage, Heading, Alert } from '@digdir/designsystemet-react';
 import classes from './EditOptions.module.css';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { EditCodeList, EditCodeListReference } from './EditCodeList';
 import { getSelectedOptionsType } from '../../../../utils/optionsUtils';
 import { useOptionListIdsQuery } from '../../../../hooks/queries/useOptionListIdsQuery';
 
-import { StudioSpinner } from '@studio/components';
+import { StudioSpinner, StudioTabs } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
 import { EditManualOptions } from './EditManualOptions/EditManualOptions';
@@ -70,27 +70,27 @@ export function EditOptions<T extends SelectionComponentType>({
           {error instanceof Error ? error.message : t('ux_editor.modal_properties_error_message')}
         </ErrorMessage>
       ) : (
-        <Tabs
+        <StudioTabs
           value={initialSelectedOptionType}
           onChange={(value) => {
             setInitialSelectedOptionType(value as SelectedOptionsType);
           }}
         >
-          <Tabs.List>
-            <Tabs.Tab value={SelectedOptionsType.CodeList}>
+          <StudioTabs.List>
+            <StudioTabs.Tab value={SelectedOptionsType.CodeList}>
               {t('ux_editor.options.tab_codelist')}
-            </Tabs.Tab>
-            <Tabs.Tab value={SelectedOptionsType.Manual}>
+            </StudioTabs.Tab>
+            <StudioTabs.Tab value={SelectedOptionsType.Manual}>
               {t('ux_editor.options.tab_manual')}
-            </Tabs.Tab>
-            <Tabs.Tab value={SelectedOptionsType.ReferenceId}>
+            </StudioTabs.Tab>
+            <StudioTabs.Tab value={SelectedOptionsType.ReferenceId}>
               {t('ux_editor.options.tab_referenceId')}
-            </Tabs.Tab>
-          </Tabs.List>
-          <Tabs.Content value={SelectedOptionsType.CodeList}>
+            </StudioTabs.Tab>
+          </StudioTabs.List>
+          <StudioTabs.Content value={SelectedOptionsType.CodeList}>
             <EditCodeList component={component} handleComponentChange={handleComponentChange} />
-          </Tabs.Content>
-          <Tabs.Content value={SelectedOptionsType.Manual}>
+          </StudioTabs.Content>
+          <StudioTabs.Content value={SelectedOptionsType.Manual}>
             {renderOptions.onlyCodeListOptions ? (
               <Alert severity='info'>{t('ux_editor.options.codelist_only')}</Alert>
             ) : (
@@ -99,14 +99,14 @@ export function EditOptions<T extends SelectionComponentType>({
                 handleComponentChange={handleComponentChange}
               />
             )}
-          </Tabs.Content>
-          <Tabs.Content value={SelectedOptionsType.ReferenceId}>
+          </StudioTabs.Content>
+          <StudioTabs.Content value={SelectedOptionsType.ReferenceId}>
             <EditCodeListReference
               component={component}
               handleComponentChange={handleComponentChange}
             />
-          </Tabs.Content>
-        </Tabs>
+          </StudioTabs.Content>
+        </StudioTabs>
       )}
     </div>
   );
