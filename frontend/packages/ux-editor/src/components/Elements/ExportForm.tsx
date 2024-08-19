@@ -40,10 +40,8 @@ export const ExportForm = () => {
   };
 
   return (
-    <div style={{ marginTop: 12 }}>
-      <StudioButton onClick={handleExportClick} variant='tertiary'>
-        Eksporter skjemadefinisjon
-      </StudioButton>
-    </div>
+    <StudioButton onClick={handleExportClick} variant='tertiary'>
+      Eksporter skjemadefinisjon
+    </StudioButton>
   );
 };
