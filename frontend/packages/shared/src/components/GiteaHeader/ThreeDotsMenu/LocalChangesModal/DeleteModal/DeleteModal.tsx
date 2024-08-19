@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioModal, StudioSpinner } from '@studio/components';
 import { useForwardedRef } from '@studio/hooks';
 import { TrashIcon } from '@studio/icons';
-import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
+import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';
 import { toast } from 'react-toastify';
 import { Paragraph, Textfield } from '@digdir/designsystemet-react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -12,10 +12,11 @@ import { useQueryClient } from '@tanstack/react-query';
 export type DeleteModalProps = {
   org: string;
   app: string;
+  onDelete: () => void;
 };
 
 export const DeleteModal = forwardRef<HTMLDialogElement, DeleteModalProps>(
-  ({ app, org }, ref): JSX.Element => {
+  ({ app, org, onDelete }, ref): JSX.Element => {
     const { t } = useTranslation();
     const dialogRef = useForwardedRef<HTMLDialogElement>(ref);
 
@@ -25,7 +26,7 @@ export const DeleteModal = forwardRef<HTMLDialogElement, DeleteModalProps>(
     const [nameToDelete, setNameToDelete] = useState('');
     const queryClient = useQueryClient();
 
-    const handleCloseButtonClick = () => {
+    const closeDialog = () => {
       dialogRef.current?.close();
       handleClose();
     };
@@ -37,7 +38,8 @@ export const DeleteModal = forwardRef<HTMLDialogElement, DeleteModalProps>(
     const handleDelete = () => {
       deleteLocalChanges(undefined, {
         onSuccess: async () => {
-          handleClose();
+          closeDialog();
+          onDelete();
           toast.success(t('local_changes.modal_deleted_success'));
           await queryClient.invalidateQueries();
         },
@@ -80,7 +82,7 @@ export const DeleteModal = forwardRef<HTMLDialogElement, DeleteModalProps>(
               >
                 {t('local_changes.modal_confirm_delete_button')}
               </StudioButton>
-              <StudioButton variant='secondary' onClick={handleCloseButtonClick}>
+              <StudioButton variant='secondary' onClick={closeDialog}>
                 {t('general.cancel')}
               </StudioButton>
             </>

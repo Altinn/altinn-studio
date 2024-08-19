@@ -9,7 +9,11 @@ import { DeleteModal } from '../DeleteModal';
 import { repoDownloadPath } from 'app-shared/api/paths';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
-export const LocalChanges = (): ReactNode => {
+export type LocalChangesProps = {
+  onDelete: () => void;
+}
+
+export const LocalChanges = ({ onDelete }: LocalChangesProps): ReactNode => {
   const { t } = useTranslation();
   const { app, org } = useStudioEnvironmentParams();
   const deleteDialogRef = React.useRef<HTMLDialogElement>(null);
@@ -43,7 +47,7 @@ export const LocalChanges = (): ReactNode => {
         text={t('local_changes.modal_delete_button')}
         action={{ type: 'button', onClick: openDeleteDialog }}
       />
-      <DeleteModal app={app} org={org} ref={deleteDialogRef} />
+      <DeleteModal app={app} org={org} onDelete={onDelete} ref={deleteDialogRef} />
     </div>
   );
 };

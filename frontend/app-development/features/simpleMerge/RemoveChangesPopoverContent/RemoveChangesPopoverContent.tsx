@@ -5,7 +5,7 @@ import { StudioTextfield, StudioButton, StudioSpinner } from '@studio/components
 import { useTranslation, Trans } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useResetRepositoryMutation } from '../../../hooks/mutations/useResetRepositoryMutation';
+import { useResetRepositoryMutation } from 'app-shared/hooks/mutations/useResetRepositoryMutation';
 import { toast } from 'react-toastify';
 
 export type RemoveChangesPopoverContentProps = {

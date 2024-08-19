@@ -13,10 +13,12 @@ import type { QueryClient } from '@tanstack/react-query';
 
 const mockApp: string = 'TestApp';
 const mockOrg: string = 'TestOrg';
+const onDelete: () => void = jest.fn();
 
 const defaultProps: DeleteModalProps = {
   app: mockApp,
   org: mockOrg,
+  onDelete,
 };
 
 describe('DeleteModal', () => {
