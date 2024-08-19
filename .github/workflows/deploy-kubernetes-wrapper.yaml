@@ -56,13 +56,20 @@ jobs:
     with:
       environments: ${{ github.event.inputs.environments || 'dev' }}
 
+  print-environments:
+    needs: construct-environments-array
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print environments
+        run: echo ${{ needs.construct-environments-array.outputs.environmentsjson }}
+
   docker-build-push:
     needs: [get-short-sha, determine-tag-exists, construct-environments-array]
     uses: ./.github/workflows/template-docker-push.yaml
     with:
       tags: ${{ needs.get-short-sha.outputs.short-sha }},latest
       registry-name: altinntjenestercontainerregistry.azurecr.io
-      repository-name: altinn-core
+      repository-name: altinn-kuberneteswrapper
       environment: dev # dev environment has push access and doesn't require review
       checkout-repository: 'Altinn/app-kubernetes-wrapper'
       context: src/KubernetesWrapper

@@ -1,4 +1,4 @@
-name: Calculate short sha
+name: Construct environments array
 
 on:
   workflow_call:
@@ -6,7 +6,6 @@ on:
       environments:
         required: true
         type: string
-        default: 'dev'
     outputs:
       short-sha:
         description: "Short sha commit"
