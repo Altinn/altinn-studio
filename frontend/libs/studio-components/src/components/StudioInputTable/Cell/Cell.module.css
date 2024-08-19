@@ -1,0 +1,44 @@
+.cell {
+}
+
+.textfieldCell,
+.textareaCell {
+  padding: var(--fds-spacing-1) 0;
+  font-size: var(--studio-input-table-font-size);
+}
+
+.textfieldCell input,
+.textareaCell textarea {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1.5rem' height='1.5rem' viewBox='0 0 24 24' role='img'%3E%3Cpath fill='%230062ba' fill-rule='evenodd' d='M19.638 4.417a3.25 3.25 0 0 0-4.608-.008l-9.378 9.379a.75.75 0 0 0-.191.324l-1.414 4.95a.75.75 0 0 0 .925.927l4.94-1.398a.75.75 0 0 0 .327-.191l9.39-9.391a3.25 3.25 0 0 0 .01-4.592M16.091 5.47a1.752 1.752 0 1 1 2.478 2.478l-.23.23-2.477-2.479zM14.8 6.76 6.85 14.71l-.991 3.47 3.457-.979 7.963-7.963z' clip-rule='evenodd'%3E%3C/path%3E%3C/svg%3E");
+  background-position: center left 0.5rem;
+  background-repeat: no-repeat;
+  box-sizing: border-box;
+  padding-left: var(--fds-spacing-8);
+}
+
+.textareaCell textarea {
+  --textarea-height-limit-max: 16rem;
+  --textarea-height-limit-min: 4rem;
+  --textarea-content-padding: var(--fds-spacing-1);
+  --textarea-content-height: calc(
+    var(--row-max-textarea-scrollheight) + var(--textarea-content-padding)
+  );
+  resize: none;
+
+  box-sizing: border-box;
+  height: clamp(
+    var(--textarea-height-limit-min),
+    var(--textarea-content-height),
+    var(--textarea-height-limit-max)
+  );
+}
+
+.buttonCell button {
+  display: flex;
+}
+
+.textfieldCell:not(:hover) input:not(:hover):not(:active):not(:focus),
+.textareaCell:not(:hover) textarea:not(:hover):not(:active):not(:focus) {
+  background-color: transparent;
+  border-color: transparent;
+}

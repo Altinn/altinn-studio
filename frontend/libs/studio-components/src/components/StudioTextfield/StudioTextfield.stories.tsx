@@ -17,7 +17,6 @@ const meta: Meta = {
 export const Preview: Story = (args) => <StudioTextfield {...args}></StudioTextfield>;
 
 Preview.args = {
-  label: 'Textfield',
   placeholder: '',
   error: '',
   size: 'small',
