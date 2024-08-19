@@ -72,7 +72,7 @@ public class LegacyIValidationFormDataTests
             )
             .Verifiable(Times.Once);
 
-        _instanceDataAccessor.Setup(ida => ida.Get(_dataElement)).ReturnsAsync(data);
+        _instanceDataAccessor.Setup(ida => ida.GetData(_dataElement)).ReturnsAsync(data);
 
         // Act
         var result = await _validator.Validate(_instance, _instanceDataAccessor.Object, "Task_1", null);
@@ -151,7 +151,7 @@ public class LegacyIValidationFormDataTests
                 }
             )
             .Verifiable(Times.Once);
-        _instanceDataAccessor.Setup(ida => ida.Get(_dataElement)).ReturnsAsync(data).Verifiable(Times.Once);
+        _instanceDataAccessor.Setup(ida => ida.GetData(_dataElement)).ReturnsAsync(data).Verifiable(Times.Once);
 
         // Act
         var result = await _validator.Validate(_instance, _instanceDataAccessor.Object, "Task_1", null);

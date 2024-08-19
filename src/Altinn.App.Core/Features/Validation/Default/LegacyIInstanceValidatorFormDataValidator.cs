@@ -62,7 +62,7 @@ public class LegacyIInstanceValidatorFormDataValidator : IValidator
         var dataTypes = appMetadata.DataTypes.Where(d => d.TaskId == taskId).Select(d => d.Id).ToList();
         foreach (var dataElement in instance.Data.Where(d => dataTypes.Contains(d.DataType)))
         {
-            var data = await instanceDataAccessor.Get(dataElement);
+            var data = await instanceDataAccessor.GetData(dataElement);
             var modelState = new ModelStateDictionary();
             await _instanceValidator.ValidateData(data, modelState);
             issues.AddRange(

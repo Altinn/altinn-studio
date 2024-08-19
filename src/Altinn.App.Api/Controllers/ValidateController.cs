@@ -130,7 +130,7 @@ public class ValidateController : ControllerBase
             throw new ValidationException("Unable to validate instance without a started process.");
         }
 
-        List<ValidationIssueWithSource> messages = new List<ValidationIssueWithSource>();
+        List<ValidationIssueWithSource> messages = [];
 
         DataElement? element = instance.Data.FirstOrDefault(d => d.Id == dataGuid.ToString());
 
@@ -150,10 +150,9 @@ public class ValidateController : ControllerBase
 
         var dataAccessor = new CachedInstanceDataAccessor(instance, _dataClient, _appMetadata, _appModel);
 
-        // TODO: Consider filtering so that only relevant issues are reported.
-        messages.AddRange(
-            await _validationService.ValidateInstanceAtTask(instance, dataType.TaskId, dataAccessor, language)
-        );
+        // Run validations for all data elements, but only return the issues for the specific data element
+        var issues = await _validationService.ValidateInstanceAtTask(instance, dataType.TaskId, dataAccessor, language);
+        messages.AddRange(issues.Where(i => i.DataElementId == element.Id));
 
         string taskId = instance.Process.CurrentTask.ElementId;
 

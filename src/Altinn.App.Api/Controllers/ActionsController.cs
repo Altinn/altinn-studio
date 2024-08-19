@@ -202,7 +202,7 @@ public class ActionsController : ControllerBase
                 continue;
             }
             var dataElement = instance.Data.First(d => d.Id.Equals(elementId, StringComparison.OrdinalIgnoreCase));
-            var previousData = await dataAccessor.Get(dataElement);
+            var previousData = await dataAccessor.GetData(dataElement);
 
             ObjectUtils.InitializeAltinnRowId(newModel);
             ObjectUtils.PrepareModelForXmlStorage(newModel);
@@ -254,7 +254,7 @@ public class ActionsController : ControllerBase
         return PartitionValidationIssuesByDataElement(validationIssues);
     }
 
-    private Dictionary<
+    private static Dictionary<
         string,
         Dictionary<string, List<ValidationIssueWithSource>>
     > PartitionValidationIssuesByDataElement(Dictionary<string, List<ValidationIssueWithSource>> validationIssues)
@@ -266,12 +266,12 @@ public class ActionsController : ControllerBase
             {
                 if (!updatedValidationIssues.TryGetValue(issue.DataElementId ?? "", out var elementIssues))
                 {
-                    elementIssues = new Dictionary<string, List<ValidationIssueWithSource>>();
+                    elementIssues = [];
                     updatedValidationIssues[issue.DataElementId ?? ""] = elementIssues;
                 }
                 if (!elementIssues.TryGetValue(validationSource, out var sourceIssues))
                 {
-                    sourceIssues = new List<ValidationIssueWithSource>();
+                    sourceIssues = [];
                     elementIssues[validationSource] = sourceIssues;
                 }
                 sourceIssues.Add(issue);

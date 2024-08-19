@@ -10,13 +10,11 @@ internal class FormDataValidatorWrapper : IValidator
 {
     private readonly IFormDataValidator _formDataValidator;
     private readonly string _taskId;
-    private readonly List<DataType> _dataTypes;
 
-    public FormDataValidatorWrapper(IFormDataValidator formDataValidator, string taskId, List<DataType> dataTypes)
+    public FormDataValidatorWrapper(IFormDataValidator formDataValidator, string taskId)
     {
         _formDataValidator = formDataValidator;
         _taskId = taskId;
-        _dataTypes = dataTypes;
     }
 
     /// <inheritdoc />
@@ -44,7 +42,7 @@ internal class FormDataValidatorWrapper : IValidator
                 continue;
             }
 
-            var data = await instanceDataAccessor.Get(dataElement);
+            var data = await instanceDataAccessor.GetData(dataElement);
             var dataElementValidationResult = await _formDataValidator.ValidateFormData(
                 instance,
                 dataElement,

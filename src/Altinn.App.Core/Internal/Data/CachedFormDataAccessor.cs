@@ -46,7 +46,7 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
     public Instance Instance => _instance;
 
     /// <inheritdoc />
-    public async Task<object> Get(DataElement dataElement)
+    public async Task<object> GetData(DataElement dataElement)
     {
         return await _cache.GetOrCreate(
             dataElement.Id,
@@ -97,7 +97,6 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
             {
                 task = _cache.GetOrAdd(key, innerKey => new Lazy<Task<TValue>>(() => valueFactory(innerKey))).Value;
             }
-            ;
             return await task;
         }
 
@@ -116,7 +115,6 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
 
     private async Task<Stream> GetBinaryData(DataElement dataElement)
     {
-        ;
         var data = await _dataClient.GetBinaryData(
             _org,
             _app,

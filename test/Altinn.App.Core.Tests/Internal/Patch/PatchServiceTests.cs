@@ -92,7 +92,7 @@ public class PatchServiceTests : IDisposable
             [],
             _appMetadataMock.Object
         );
-        var validationService = new ValidationService(validatorFactory, _appMetadataMock.Object, _vLoggerMock.Object);
+        var validationService = new ValidationService(validatorFactory, _vLoggerMock.Object);
 
         _patchService = new PatchService(
             _appMetadataMock.Object,

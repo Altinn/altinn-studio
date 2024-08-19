@@ -60,7 +60,7 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
         await Task.WhenAll(
             changedDataElements.Select(async dataElement =>
             {
-                var data = await dataAccessor.Get(dataElement);
+                var data = await dataAccessor.GetData(dataElement);
                 return _dataClient.UpdateData(
                     data,
                     Guid.Parse(instance.Id.Split('/')[1]),
@@ -83,7 +83,7 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
     )
     {
         ArgumentNullException.ThrowIfNull(instance.Data);
-        HashSet<DataElement> modifiedDataElements = new();
+        HashSet<DataElement> modifiedDataElements = [];
 
         var dataTypesWithLogic = dataTypesToLock.Where(d => !string.IsNullOrEmpty(d.AppLogic?.ClassRef)).ToList();
         await Task.WhenAll(
@@ -128,11 +128,10 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
     )
     {
         bool isModified = false;
-        var data = await dataAccessor.Get(dataElement);
+        var data = await dataAccessor.GetData(dataElement);
 
         // remove AltinnRowIds
-        ObjectUtils.RemoveAltinnRowId(data);
-        isModified = true;
+        isModified |= ObjectUtils.RemoveAltinnRowId(data);
 
         // Remove hidden data before validation, ignore hidden rows.
         if (_appSettings.Value?.RemoveHiddenData == true)
@@ -145,7 +144,7 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
                 language
             );
             LayoutEvaluator.RemoveHiddenData(evaluationState, RowRemovalOption.Ignore);
-            // TODO:
+            // TODO: Make RemoveHiddenData return a bool indicating if data was removed
             isModified = true;
         }
 
@@ -185,11 +184,13 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
             else
             {
                 // Remove the shadow fields from the data
+                // TODO: This does not work!!!
                 data =
                     JsonSerializer.Deserialize(serializedData, data.GetType())
                     ?? throw new JsonException(
                         "Could not deserialize back datamodel after removing shadow fields. Data was \"null\""
                     );
+                isModified = true; // TODO: Detect if modifications were made
             }
         }
 

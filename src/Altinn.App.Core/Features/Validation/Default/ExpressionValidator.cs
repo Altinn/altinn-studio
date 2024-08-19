@@ -76,7 +76,6 @@ public class ExpressionValidator : IValidator
         var validationIssues = new List<ValidationIssue>();
         foreach (var dataElement in formDataElementsForTask)
         {
-            var data = instanceDataAccessor.Get(dataElement);
             var issues = await ValidateFormData(instance, dataElement, instanceDataAccessor, taskId, language);
             validationIssues.AddRange(issues);
         }

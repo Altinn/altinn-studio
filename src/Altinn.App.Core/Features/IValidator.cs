@@ -87,5 +87,5 @@ public interface IInstanceDataAccessor
     /// </summary>
     /// <param name="dataElement">The data element to retrieve. Must be from the instance that is currently active</param>
     /// <returns>The deserialized data model for this data element or a stream for binary elements</returns>
-    Task<object> Get(DataElement dataElement);
+    Task<object> GetData(DataElement dataElement);
 }

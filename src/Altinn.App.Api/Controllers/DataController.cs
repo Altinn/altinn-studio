@@ -511,13 +511,6 @@ public class DataController : ControllerBase
                 );
             }
 
-            CachedInstanceDataAccessor dataAccessor = new CachedInstanceDataAccessor(
-                instance,
-                _dataClient,
-                _appMetadata,
-                _appModel
-            );
-
             foreach (Guid dataGuid in dataPatchRequest.Patches.Keys)
             {
                 var dataElement = instance.Data.First(m => m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal));

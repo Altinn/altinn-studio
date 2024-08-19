@@ -11,7 +11,6 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Result;
 using Altinn.Platform.Storage.Interface.Models;
 using Json.Patch;
-using static Altinn.App.Core.Features.Telemetry;
 
 namespace Altinn.App.Core.Internal.Patch;
 
@@ -78,7 +77,7 @@ internal class PatchService : IPatchService
                 };
             }
 
-            var oldModel = await dataAccessor.Get(dataElement);
+            var oldModel = await dataAccessor.GetData(dataElement);
             var oldModelNode = JsonSerializer.SerializeToNode(oldModel);
             var patchResult = jsonPatch.Apply(oldModelNode);
 

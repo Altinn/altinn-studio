@@ -1,7 +1,4 @@
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.AppModel;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
@@ -14,7 +11,6 @@ namespace Altinn.App.Core.Internal.Validation;
 public class ValidationService : IValidationService
 {
     private readonly IValidatorFactory _validatorFactory;
-    private readonly IAppMetadata _appMetadata;
     private readonly ILogger<ValidationService> _logger;
     private readonly Telemetry? _telemetry;
 
@@ -23,13 +19,11 @@ public class ValidationService : IValidationService
     /// </summary>
     public ValidationService(
         IValidatorFactory validatorFactory,
-        IAppMetadata appMetadata,
         ILogger<ValidationService> logger,
         Telemetry? telemetry = null
     )
     {
         _validatorFactory = validatorFactory;
-        _appMetadata = appMetadata;
         _logger = logger;
         _telemetry = telemetry;
     }
@@ -64,7 +58,7 @@ public class ValidationService : IValidationService
             {
                 _logger.LogError(
                     e,
-                    "Error while running validator {validatorName} for task {taskId} on instance {instanceId}",
+                    "Error while running validator {ValidatorName} for task {TaskId} on instance {InstanceId}",
                     v.ValidationSource,
                     taskId,
                     instance.Id
@@ -144,7 +138,7 @@ public class ValidationService : IValidationService
         return lists.Where(k => k.Value is not null).ToDictionary(kv => kv.Key, kv => kv.Value!);
     }
 
-    private void ThrowIfDuplicateValidators(IValidator[] validators, string taskId)
+    private static void ThrowIfDuplicateValidators(IValidator[] validators, string taskId)
     {
         var sourceNames = validators
             .Select(v => v.ValidationSource)

@@ -3,7 +3,6 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Data;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Options;
 
@@ -76,7 +75,9 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
             dataTasks.AddRange(
                 instance
                     .Data.Where(dataElement => dataElement.DataType == dataType)
-                    .Select(async dataElement => KeyValuePair.Create(dataElement, await dataAccessor.Get(dataElement)))
+                    .Select(async dataElement =>
+                        KeyValuePair.Create(dataElement, await dataAccessor.GetData(dataElement))
+                    )
             );
         }
 

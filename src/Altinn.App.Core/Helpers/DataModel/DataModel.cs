@@ -84,7 +84,12 @@ public class DataModel
         return null;
     }
 
-    private object? GetModelDataRecursive(string[] keys, int index, object? currentModel, ReadOnlySpan<int> indicies)
+    private static object? GetModelDataRecursive(
+        string[] keys,
+        int index,
+        object? currentModel,
+        ReadOnlySpan<int> indicies
+    )
     {
         if (index == keys.Length || currentModel is null)
         {

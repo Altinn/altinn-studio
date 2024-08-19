@@ -131,7 +131,7 @@ public class ValidatorFactory : IValidatorFactory
                 .Select(dev => new DataElementValidatorWrapper(dev, taskId, dataTypes))
         );
         validators.AddRange(
-            GetFormDataValidators(taskId, dataTypes).Select(fdv => new FormDataValidatorWrapper(fdv, taskId, dataTypes))
+            GetFormDataValidators(taskId, dataTypes).Select(fdv => new FormDataValidatorWrapper(fdv, taskId))
         );
 
         // add legacy instance validators wrapped in IValidator wrappers
