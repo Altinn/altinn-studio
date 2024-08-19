@@ -29,8 +29,8 @@
 }
 
 .content {
-  display: grid;
-  grid-template-columns: auto auto;
+  display: flex;
+  flex-direction: column;
   gap: var(--fds-spacing-10);
 }
 
