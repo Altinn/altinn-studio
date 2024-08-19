@@ -253,22 +253,15 @@ function ExtraRows({ where, extraCells, columnSettings }: ExtraRowsProps) {
 
   return (
     <>
-      {rows.map((row, index) => {
-        const gridRow = (
-          <GridRowRenderer
-            key={`grid${where}-${index}`}
-            row={{ ...row, cells: [...row.cells, ...extraCells] }}
-            isNested={isNested}
-            mutableColumnSettings={columnSettings}
-            node={node}
-          />
-        );
-        if (row.header) {
-          return <Table.Head key={`grid${where}-${index}`}>{gridRow}</Table.Head>;
-        }
-
-        return <Table.Body key={`grid${where}-${index}`}>{gridRow}</Table.Body>;
-      })}
+      {rows.map((row, index) => (
+        <GridRowRenderer
+          key={`grid${where}-${index}`}
+          row={{ ...row, cells: [...row.cells, ...extraCells] }}
+          isNested={isNested}
+          mutableColumnSettings={columnSettings}
+          node={node}
+        />
+      ))}
     </>
   );
 }

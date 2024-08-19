@@ -152,3 +152,57 @@ it('"save and next"-button should open row 3 when row 2 is hidden', () => {
   cy.get(appFrontend.group.currentValue).should('have.value', 'NOK 2');
   cy.get(appFrontend.group.saveAndNextMainGroup).should('not.exist');
 });
+
+it('rowsAfter should align with the cells in the table above', () => {
+  cy.goto('group');
+  for (const prefill of Object.values(appFrontend.group.prefill)) {
+    cy.get(prefill).check();
+    cy.waitUntilSaved();
+  }
+  cy.get(appFrontend.nextButton).click();
+  cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
+
+  cy.get(appFrontend.group.mainGroup).find('tr').should('have.length', 6);
+  cy.get(appFrontend.group.hiddenRowsInfoMsg).should('not.exist');
+
+  cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
+  cy.waitUntilSaved();
+  cy.get(appFrontend.group.hideRepeatingGroupRow).type('{moveToEnd}{backspace}1000');
+
+  cy.get(appFrontend.group.hiddenRowsInfoMsg).should('exist');
+  cy.get(appFrontend.group.mainGroup).find('tr').should('have.length', 3);
+  cy.navPage('repeating (store endringer)').click();
+
+  const headers = 2;
+  const regularRows = 3;
+  const sumRows = 1;
+  const numRows = headers + regularRows + sumRows;
+  cy.get(appFrontend.group.overflowGroup).find('tr').should('have.length', numRows);
+
+  const columns = 3;
+  for (const rowIdx of Array.from({ length: numRows }).keys()) {
+    cy.get(appFrontend.group.overflowGroup).find('tr').eq(rowIdx).find('td,th').should('have.length', columns);
+  }
+
+  cy.get(appFrontend.group.overflowGroup).find('tr').eq(0).find('th').eq(0).should('have.text', 'Kilde');
+  cy.get(appFrontend.group.overflowGroup).find('tr').eq(0).find('th').eq(1).should('have.text', 'Endre fra');
+  cy.get(appFrontend.group.overflowGroup).find('tr').eq(0).find('th').eq(2).should('have.text', 'Endre til');
+
+  cy.get(appFrontend.group.overflowGroup).find('tr').eq(4).find('th').eq(0).should('have.text', '');
+  cy.get(appFrontend.group.overflowGroup).find('tr').eq(4).find('th').eq(1).should('have.text', 'Alle endringer');
+  cy.get(appFrontend.group.overflowGroup).find('tr').eq(4).find('th').eq(2).should('have.text', 'Disse endringene');
+
+  // This prevents regressions like the one fixed in #2313. Even though the tr/th elements were correct, the last
+  // cell in the 'rowsAfter' was not aligned with the last cells of the rest of the table.
+  cy.get(appFrontend.group.overflowGroup).find('tr').eq(0).find('th').last().as('firstCell');
+  cy.get(appFrontend.group.overflowGroup).find('tr').eq(4).find('th').last().as('rowAfterCell');
+  cy.get('@firstCell').then(($firstCell) => {
+    cy.get('@rowAfterCell').then(($rowAfterCell) => {
+      expect($firstCell.position().left).to.be.closeTo($rowAfterCell.position().left, 1);
+    });
+  });
+
+  // This is just to make sure our sum is correct, and the rows that got hidden are the correct ones
+  cy.get(appFrontend.group.overflowGroup).find('tr').eq(5).find('td').eq(1).should('have.text', 'NOK 9 045 621');
+  cy.get(appFrontend.group.overflowGroup).find('tr').eq(5).find('td').eq(2).should('have.text', 'NOK 9 045 387');
+});
