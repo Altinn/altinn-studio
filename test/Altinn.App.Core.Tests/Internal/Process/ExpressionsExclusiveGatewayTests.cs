@@ -14,7 +14,6 @@ using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Tests.Internal.Process.TestData;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Moq;
 
@@ -29,7 +28,6 @@ public class ExpressionsExclusiveGatewayTests
     private readonly Mock<IAppModel> _appModel = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadata = new(MockBehavior.Strict);
     private readonly Mock<IDataClient> _dataClient = new(MockBehavior.Strict);
-    private readonly Mock<IHttpContextAccessor> _httpContextAccessor = new(MockBehavior.Strict);
 
     private const string Org = "ttd";
     private const string App = "test";
@@ -57,7 +55,6 @@ public class ExpressionsExclusiveGatewayTests
 
         var data = new DummyModel();
 
-        var gateway = SetupExpressionsGateway(dataTypes: dataTypes, formData: data);
         var outgoingFlows = new List<SequenceFlow>
         {
             new SequenceFlow { Id = "1", ConditionExpression = null, },
@@ -76,8 +73,10 @@ public class ExpressionsExclusiveGatewayTests
         };
         var processGatewayInformation = new ProcessGatewayInformation { Action = "confirm", };
 
+        var (gateway, dataAccessor) = SetupExpressionsGateway(instance, dataTypes: dataTypes, formData: data);
+
         // Act
-        var result = await gateway.FilterAsync(outgoingFlows, instance, processGatewayInformation);
+        var result = await gateway.FilterAsync(outgoingFlows, instance, dataAccessor, processGatewayInformation);
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -99,7 +98,6 @@ public class ExpressionsExclusiveGatewayTests
         };
 
         var data = new DummyModel();
-        var gateway = SetupExpressionsGateway(dataTypes: dataTypes, formData: data);
         var outgoingFlows = new List<SequenceFlow>
         {
             new SequenceFlow { Id = "1", ConditionExpression = "[\"equals\", [\"gatewayAction\"], \"confirm\"]", },
@@ -118,8 +116,10 @@ public class ExpressionsExclusiveGatewayTests
         };
         var processGatewayInformation = new ProcessGatewayInformation { Action = "confirm", };
 
+        var (gateway, dataAccessor) = SetupExpressionsGateway(instance, dataTypes, formData: data);
+
         // Act
-        var result = await gateway.FilterAsync(outgoingFlows, instance, processGatewayInformation);
+        var result = await gateway.FilterAsync(outgoingFlows, instance, dataAccessor, processGatewayInformation);
 
         // Assert
         Assert.Single(result);
@@ -156,11 +156,6 @@ public class ExpressionsExclusiveGatewayTests
                 }
             }
         };
-        var gateway = SetupExpressionsGateway(
-            dataTypes: dataTypes,
-            formData: formData,
-            layoutSets: LayoutSetsToString(layoutSets)
-        );
         var outgoingFlows = new List<SequenceFlow>
         {
             new SequenceFlow { Id = "1", ConditionExpression = "[\"notEquals\", [\"dataModel\", \"Amount\"], 1000]", },
@@ -179,8 +174,15 @@ public class ExpressionsExclusiveGatewayTests
         };
         var processGatewayInformation = new ProcessGatewayInformation { Action = "confirm", };
 
+        var (gateway, dataAccessor) = SetupExpressionsGateway(
+            instance,
+            dataTypes: dataTypes,
+            formData: formData,
+            layoutSets: LayoutSetsToString(layoutSets)
+        );
+
         // Act
-        var result = await gateway.FilterAsync(outgoingFlows, instance, processGatewayInformation);
+        var result = await gateway.FilterAsync(outgoingFlows, instance, dataAccessor, processGatewayInformation);
 
         // Assert
         Assert.Single(result);
@@ -218,11 +220,6 @@ public class ExpressionsExclusiveGatewayTests
                 }
             }
         };
-        var gateway = SetupExpressionsGateway(
-            dataTypes: dataTypes,
-            formData: formData,
-            layoutSets: LayoutSetsToString(layoutSets)
-        );
         var outgoingFlows = new List<SequenceFlow>
         {
             new SequenceFlow { Id = "1", ConditionExpression = "[\"notEquals\", [\"dataModel\", \"Amount\"], 1000]", },
@@ -241,15 +238,23 @@ public class ExpressionsExclusiveGatewayTests
         };
         var processGatewayInformation = new ProcessGatewayInformation { Action = "confirm", DataTypeId = "aa" };
 
+        var (gateway, dataAccessor) = SetupExpressionsGateway(
+            instance,
+            dataTypes,
+            LayoutSetsToString(layoutSets),
+            formData
+        );
+
         // Act
-        var result = await gateway.FilterAsync(outgoingFlows, instance, processGatewayInformation);
+        var result = await gateway.FilterAsync(outgoingFlows, instance, dataAccessor, processGatewayInformation);
 
         // Assert
         Assert.Single(result);
         Assert.Equal("2", result[0].Id);
     }
 
-    private ExpressionsExclusiveGateway SetupExpressionsGateway(
+    private (ExpressionsExclusiveGateway gateway, IInstanceDataAccessor dataAccessor) SetupExpressionsGateway(
+        Instance instance,
         List<DataType> dataTypes,
         string? layoutSets = null,
         object? formData = null
@@ -300,18 +305,15 @@ public class ExpressionsExclusiveGatewayTests
 
         var frontendSettings = Options.Create(new FrontEndSettings());
 
-        var layoutStateInit = new LayoutEvaluatorStateInitializer(
-            _resources.Object,
-            frontendSettings,
-            new CachedInstanceDataAccessor(
-                _instance,
-                _dataClient.Object,
-                _appMetadata.Object,
-                _appModel.Object,
-                _httpContextAccessor.Object
-            )
+        var dataAccessor = new CachedInstanceDataAccessor(
+            instance,
+            _dataClient.Object,
+            _appMetadata.Object,
+            _appModel.Object
         );
-        return new ExpressionsExclusiveGateway(layoutStateInit);
+
+        var layoutStateInit = new LayoutEvaluatorStateInitializer(_resources.Object, frontendSettings);
+        return (new ExpressionsExclusiveGateway(layoutStateInit), dataAccessor);
     }
 
     private static string LayoutSetsToString(LayoutSets layoutSets) =>

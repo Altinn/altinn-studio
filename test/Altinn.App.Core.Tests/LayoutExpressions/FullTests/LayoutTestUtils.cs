@@ -93,11 +93,6 @@ public static class LayoutTestUtils
         services.AddSingleton(appMetadata.Object);
         services.AddSingleton(appModel.Object);
         services.AddScoped<ILayoutEvaluatorStateInitializer, LayoutEvaluatorStateInitializer>();
-        services.AddScoped<ICachedFormDataAccessor, CachedFormDataAccessor>();
-
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        httpContextAccessorMock.SetupGet(c => c.HttpContext!.TraceIdentifier).Returns(Guid.NewGuid().ToString());
-        services.AddSingleton(httpContextAccessorMock.Object);
 
         services.AddOptions<FrontEndSettings>().Configure(fes => fes.Add("test", "value"));
 
@@ -105,6 +100,9 @@ public static class LayoutTestUtils
         using var scope = serviceProvider.CreateScope();
         var initializer = scope.ServiceProvider.GetRequiredService<ILayoutEvaluatorStateInitializer>();
 
-        return await initializer.Init(_instance, TaskId);
+        var dataAccessor = new CachedInstanceDataAccessor(_instance, data.Object, appMetadata.Object, appModel.Object);
+        dataAccessor.Set(_instance.Data[0], model);
+
+        return await initializer.Init(_instance, dataAccessor, TaskId);
     }
 }

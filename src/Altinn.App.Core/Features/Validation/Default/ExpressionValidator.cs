@@ -13,7 +13,7 @@ namespace Altinn.App.Core.Features.Validation.Default;
 /// <summary>
 /// Validates form data against expression validations
 /// </summary>
-public class ExpressionValidator : IFormDataValidator
+public class ExpressionValidator : IValidator
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions =
         new() { ReadCommentHandling = JsonCommentHandling.Skip, PropertyNamingPolicy = JsonNamingPolicy.CamelCase, };
@@ -21,6 +21,7 @@ public class ExpressionValidator : IFormDataValidator
     private readonly ILogger<ExpressionValidator> _logger;
     private readonly IAppResources _appResourceService;
     private readonly ILayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
+    private readonly IAppMetadata _appMetadata;
 
     /// <summary>
     /// Constructor for the expression validator
@@ -28,16 +29,18 @@ public class ExpressionValidator : IFormDataValidator
     public ExpressionValidator(
         ILogger<ExpressionValidator> logger,
         IAppResources appResourceService,
-        ILayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer
+        ILayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
+        IAppMetadata appMetadata
     )
     {
         _logger = logger;
         _appResourceService = appResourceService;
         _layoutEvaluatorStateInitializer = layoutEvaluatorStateInitializer;
+        _appMetadata = appMetadata;
     }
 
     /// <inheritdoc />
-    public string DataType => "*";
+    public string TaskId => "*";
 
     /// <summary>
     /// This validator has the code "Expression" and this is known by the frontend, who may request this validator to not run for incremental validation.
@@ -47,19 +50,48 @@ public class ExpressionValidator : IFormDataValidator
     /// <summary>
     /// We don't have an efficient way to figure out if changes to the model results in different validations, and frontend ignores this anyway
     /// </summary>
-    public bool HasRelevantChanges(object current, object previous) => true;
+    public Task<bool> HasRelevantChanges(
+        Instance instance,
+        string taskId,
+        List<DataElementChange> changes,
+        IInstanceDataAccessor instanceDataAccessor
+    ) => Task.FromResult(true);
 
     /// <inheritdoc />
-    public async Task<List<ValidationIssue>> ValidateFormData(
+    public async Task<List<ValidationIssue>> Validate(
         Instance instance,
-        DataElement dataElement,
-        object data,
+        IInstanceDataAccessor instanceDataAccessor,
+        string taskId,
         string? language
     )
     {
-        // TODO: Consider not depending on the instance object to get the task
-        //       to follow the same principle as the other validators
-        var taskId = instance.Process.CurrentTask.ElementId;
+        var dataTypes = (await _appMetadata.GetApplicationMetadata()).DataTypes;
+        var formDataElementsForTask = instance
+            .Data.Where(d =>
+            {
+                var dataType = dataTypes.Find(dt => dt.Id == d.DataType);
+                return dataType != null && dataType.TaskId == taskId;
+            })
+            .ToList();
+        var validationIssues = new List<ValidationIssue>();
+        foreach (var dataElement in formDataElementsForTask)
+        {
+            var data = instanceDataAccessor.Get(dataElement);
+            var issues = await ValidateFormData(instance, dataElement, instanceDataAccessor, taskId, language);
+            validationIssues.AddRange(issues);
+        }
+
+        return validationIssues;
+    }
+
+    internal async Task<List<ValidationIssue>> ValidateFormData(
+        Instance instance,
+        DataElement dataElement,
+        IInstanceDataAccessor dataAccessor,
+        string taskId,
+        string? language
+    )
+    {
         var rawValidationConfig = _appResourceService.GetValidationConfiguration(dataElement.DataType);
         if (rawValidationConfig == null)
         {
@@ -71,6 +103,7 @@ public class ExpressionValidator : IFormDataValidator
 
         var evaluatorState = await _layoutEvaluatorStateInitializer.Init(
             instance,
+            dataAccessor,
             taskId,
             gatewayAction: null,
             language

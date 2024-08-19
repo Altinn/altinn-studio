@@ -23,15 +23,15 @@ public interface IValidator
     ///
     /// </summary>
     /// <param name="instance">The instance to validate</param>
+    /// <param name="instanceDataAccessor">Use this to access data from other data elements</param>
     /// <param name="taskId">The current task. </param>
     /// <param name="language">Language for messages, if the messages are too dynamic for the translation system</param>
-    /// <param name="instanceDataAccessor">Use this to access data from other data elements</param>
     /// <returns></returns>
     public Task<List<ValidationIssue>> Validate(
         Instance instance,
+        IInstanceDataAccessor instanceDataAccessor,
         string taskId,
-        string? language,
-        IInstanceDataAccessor instanceDataAccessor
+        string? language
     );
 
     /// <summary>
@@ -77,6 +77,11 @@ public class DataElementChange
 /// </summary>
 public interface IInstanceDataAccessor
 {
+    /// <summary>
+    /// The instance that the accessor can access data for.
+    /// </summary>
+    Instance Instance { get; }
+
     /// <summary>
     /// Get the actual data represented in the data element.
     /// </summary>

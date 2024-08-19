@@ -48,9 +48,9 @@ public class LegacyIInstanceValidatorTaskValidator : IValidator
     /// <inheritdoc />
     public async Task<List<ValidationIssue>> Validate(
         Instance instance,
+        IInstanceDataAccessor instanceDataAccessor,
         string taskId,
-        string? language,
-        IInstanceDataAccessor instanceDataAccessor
+        string? language
     )
     {
         var modelState = new ModelStateDictionary();

@@ -180,8 +180,10 @@ public static class ObjectUtils
     /// <summary>
     /// Set all <see cref="Guid"/> properties named "AltinnRowId" to Guid.Empty
     /// </summary>
-    public static void RemoveAltinnRowId(object model, int depth = 64)
+    /// <returns>true if any changes to the data has been performed</returns>
+    public static bool RemoveAltinnRowId(object model, int depth = 64)
     {
+        var isModified = false;
         ArgumentNullException.ThrowIfNull(model);
         if (depth < 0)
         {
@@ -192,7 +194,7 @@ public static class ObjectUtils
         var type = model.GetType();
         if (type.Namespace?.StartsWith("System", StringComparison.Ordinal) == true)
         {
-            return; // System.DateTime.Now causes infinite recursion, and we shuldn't recurse into system types anyway.
+            return isModified; // System.DateTime.Now causes infinite recursion, and we shuldn't recurse into system types anyway.
         }
 
         foreach (var prop in type.GetProperties())
@@ -200,6 +202,7 @@ public static class ObjectUtils
             // Handle guid fields named "AltinnRowId"
             if (PropertyIsAltinRowGuid(prop))
             {
+                isModified = true;
                 prop.SetValue(model, Guid.Empty);
             }
             // Recurse into lists
@@ -213,7 +216,7 @@ public static class ObjectUtils
                         // Recurse into values of a list
                         if (item is not null)
                         {
-                            RemoveAltinnRowId(item, depth - 1);
+                            isModified |= RemoveAltinnRowId(item, depth - 1);
                         }
                     }
                 }
@@ -226,10 +229,12 @@ public static class ObjectUtils
                 // continue recursion over all properties
                 if (value is not null)
                 {
-                    RemoveAltinnRowId(value, depth - 1);
+                    isModified |= RemoveAltinnRowId(value, depth - 1);
                 }
             }
         }
+
+        return isModified;
     }
 
     private static bool PropertyIsAltinRowGuid(PropertyInfo prop)

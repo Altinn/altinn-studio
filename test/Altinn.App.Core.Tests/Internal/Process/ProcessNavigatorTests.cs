@@ -1,5 +1,7 @@
-#nullable disable
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
@@ -8,11 +10,16 @@ using Altinn.App.PlatformServices.Tests.Internal.Process.StubGatewayFilters;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.Process;
 
 public class ProcessNavigatorTests
 {
+    private readonly Mock<IDataClient> _dataClient = new(MockBehavior.Strict);
+    private readonly Mock<IAppMetadata> _appMetadata = new(MockBehavior.Strict);
+    private readonly Mock<IAppModel> _appModel = new(MockBehavior.Strict);
+
     [Fact]
     public async Task GetNextTask_returns_next_element_if_no_gateway()
     {
@@ -20,7 +27,7 @@ public class ProcessNavigatorTests
             "simple-linear.bpmn",
             new List<IProcessExclusiveGateway>()
         );
-        ProcessElement nextElements = await processNavigator.GetNextTask(new Instance(), "Task1", null);
+        ProcessElement? nextElements = await processNavigator.GetNextTask(new Instance(), "Task1", null);
         nextElements
             .Should()
             .BeEquivalentTo(
@@ -45,7 +52,7 @@ public class ProcessNavigatorTests
             "simple-linear.bpmn",
             new List<IProcessExclusiveGateway>()
         );
-        ProcessElement nextElements = await processNavigator.GetNextTask(new Instance(), "EndEvent", null);
+        ProcessElement? nextElements = await processNavigator.GetNextTask(new Instance(), "EndEvent", null);
         nextElements.Should().BeNull();
     }
 
@@ -56,7 +63,7 @@ public class ProcessNavigatorTests
             "simple-gateway-default.bpmn",
             new List<IProcessExclusiveGateway>()
         );
-        ProcessElement nextElements = await processNavigator.GetNextTask(new Instance(), "Task1", null);
+        ProcessElement? nextElements = await processNavigator.GetNextTask(new Instance(), "Task1", null);
         nextElements
             .Should()
             .BeEquivalentTo(
@@ -85,9 +92,14 @@ public class ProcessNavigatorTests
             "simple-gateway-with-join-gateway.bpmn",
             new List<IProcessExclusiveGateway>() { new DataValuesFilter("Gateway1", "choose") }
         );
-        Instance i = new Instance() { DataValues = new Dictionary<string, string>() { { "choose", "Flow3" } } };
+        Instance i = new Instance()
+        {
+            Id = $"123/{Guid.NewGuid()}",
+            AppId = "org/app",
+            DataValues = new Dictionary<string, string>() { { "choose", "Flow3" } }
+        };
 
-        ProcessElement nextElements = await processNavigator.GetNextTask(i, "Task1", null);
+        ProcessElement? nextElements = await processNavigator.GetNextTask(i, "Task1", null);
         nextElements
             .Should()
             .BeEquivalentTo(
@@ -133,8 +145,13 @@ public class ProcessNavigatorTests
             "simple-gateway-with-join-gateway.bpmn",
             new List<IProcessExclusiveGateway>() { new DataValuesFilter("Gateway1", "choose1") }
         );
-        Instance i = new Instance() { DataValues = new Dictionary<string, string>() { { "choose1", "Flow4" } } };
-        ProcessElement nextElements = await processNavigator.GetNextTask(i, "Task1", null);
+        Instance i = new Instance()
+        {
+            Id = $"123/{Guid.NewGuid()}",
+            AppId = "org/app",
+            DataValues = new Dictionary<string, string>() { { "choose1", "Flow4" } }
+        };
+        ProcessElement? nextElements = await processNavigator.GetNextTask(i, "Task1", null);
         nextElements
             .Should()
             .BeEquivalentTo(
@@ -161,10 +178,12 @@ public class ProcessNavigatorTests
         );
         Instance i = new Instance()
         {
+            Id = $"123/{Guid.NewGuid()}",
+            AppId = "org/app",
             DataValues = new Dictionary<string, string>() { { "choose1", "Flow4" }, { "choose2", "Bar" } }
         };
 
-        ProcessElement nextElements = await processNavigator.GetNextTask(i, "Task1", null);
+        ProcessElement? nextElements = await processNavigator.GetNextTask(i, "Task1", null);
         nextElements.Should().BeNull();
     }
 
@@ -175,13 +194,13 @@ public class ProcessNavigatorTests
             "simple-gateway-with-join-gateway.bpmn",
             new List<IProcessExclusiveGateway>()
         );
-        Instance i = new Instance();
+        Instance i = new Instance() { Id = $"123/{Guid.NewGuid()}", AppId = "org/app", };
 
-        ProcessElement nextElements = await processNavigator.GetNextTask(i, "EndEvent", null);
+        ProcessElement? nextElements = await processNavigator.GetNextTask(i, "EndEvent", null);
         nextElements.Should().BeNull();
     }
 
-    private static IProcessNavigator SetupProcessNavigator(
+    private IProcessNavigator SetupProcessNavigator(
         string bpmnfile,
         IEnumerable<IProcessExclusiveGateway> gatewayFilters
     )
@@ -190,7 +209,10 @@ public class ProcessNavigatorTests
         return new ProcessNavigator(
             pr,
             new ExclusiveGatewayFactory(gatewayFilters),
-            new NullLogger<ProcessNavigator>()
+            new NullLogger<ProcessNavigator>(),
+            _dataClient.Object,
+            _appMetadata.Object,
+            _appModel.Object
         );
     }
 }

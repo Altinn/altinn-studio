@@ -17,19 +17,13 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
     // Dependency injection properties (set in ctor)
     private readonly IAppResources _appResources;
     private readonly FrontEndSettings _frontEndSettings;
-    private readonly IInstanceDataAccessor _dataAccessor;
 
     /// <summary>
     /// Constructor with services from dependency injection
     /// </summary>
-    public LayoutEvaluatorStateInitializer(
-        IAppResources appResources,
-        IOptions<FrontEndSettings> frontEndSettings,
-        IInstanceDataAccessor dataAccessor
-    )
+    public LayoutEvaluatorStateInitializer(IAppResources appResources, IOptions<FrontEndSettings> frontEndSettings)
     {
         _appResources = appResources;
-        _dataAccessor = dataAccessor;
         _frontEndSettings = frontEndSettings.Value;
     }
 
@@ -61,6 +55,7 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
     /// <inheritdoc />
     public async Task<LayoutEvaluatorState> Init(
         Instance instance,
+        IInstanceDataAccessor dataAccessor,
         string taskId,
         string? gatewayAction = null,
         string? language = null
@@ -81,7 +76,7 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
             dataTasks.AddRange(
                 instance
                     .Data.Where(dataElement => dataElement.DataType == dataType)
-                    .Select(async dataElement => KeyValuePair.Create(dataElement, await _dataAccessor.Get(dataElement)))
+                    .Select(async dataElement => KeyValuePair.Create(dataElement, await dataAccessor.Get(dataElement)))
             );
         }
 

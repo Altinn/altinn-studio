@@ -27,9 +27,9 @@ internal class TaskValidatorWrapper : IValidator
     /// <inheritdoc />
     public Task<List<ValidationIssue>> Validate(
         Instance instance,
+        IInstanceDataAccessor instanceDataAccessor,
         string taskId,
-        string? language,
-        IInstanceDataAccessor instanceDataAccessor
+        string? language
     )
     {
         return _taskValidator.ValidateTask(instance, taskId, language);

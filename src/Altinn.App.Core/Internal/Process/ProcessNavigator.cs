@@ -1,4 +1,7 @@
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Models.Process;
@@ -15,22 +18,28 @@ public class ProcessNavigator : IProcessNavigator
     private readonly IProcessReader _processReader;
     private readonly ExclusiveGatewayFactory _gatewayFactory;
     private readonly ILogger<ProcessNavigator> _logger;
+    private readonly IDataClient _dataClient;
+    private readonly IAppMetadata _appMetadata;
+    private readonly IAppModel _appModel;
 
     /// <summary>
     /// Initialize a new instance of <see cref="ProcessNavigator"/>
     /// </summary>
-    /// <param name="processReader">The process reader</param>
-    /// <param name="gatewayFactory">Service to fetch wanted gateway filter implementation</param>
-    /// <param name="logger">The logger</param>
     public ProcessNavigator(
         IProcessReader processReader,
         ExclusiveGatewayFactory gatewayFactory,
-        ILogger<ProcessNavigator> logger
+        ILogger<ProcessNavigator> logger,
+        IDataClient dataClient,
+        IAppMetadata appMetadata,
+        IAppModel appModel
     )
     {
         _processReader = processReader;
         _gatewayFactory = gatewayFactory;
         _logger = logger;
+        _dataClient = dataClient;
+        _appMetadata = appMetadata;
+        _appModel = appModel;
     }
 
     /// <inheritdoc/>
@@ -101,8 +110,18 @@ public class ProcessNavigator : IProcessNavigator
                         Action = action,
                         DataTypeId = gateway.ExtensionElements?.GatewayExtension?.ConnectedDataTypeId
                     };
-
-                filteredList = await gatewayFilter.FilterAsync(outgoingFlows, instance, gatewayInformation);
+                IInstanceDataAccessor dataAccessor = new CachedInstanceDataAccessor(
+                    instance,
+                    _dataClient,
+                    _appMetadata,
+                    _appModel
+                );
+                filteredList = await gatewayFilter.FilterAsync(
+                    outgoingFlows,
+                    instance,
+                    dataAccessor,
+                    gatewayInformation
+                );
             }
             var defaultSequenceFlow = filteredList.Find(s => s.Id == gateway.Default);
             if (defaultSequenceFlow != null)

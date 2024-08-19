@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Expressions;
@@ -14,6 +15,7 @@ public interface ILayoutEvaluatorStateInitializer
     /// </summary>
     Task<LayoutEvaluatorState> Init(
         Instance instance,
+        IInstanceDataAccessor dataAccessor,
         string taskId,
         string? gatewayAction = null,
         string? language = null

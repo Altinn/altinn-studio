@@ -54,7 +54,7 @@ public class ValidationService : IValidationService
             using var validatorActivity = _telemetry?.StartRunValidatorActivity(v);
             try
             {
-                var issues = await v.Validate(instance, taskId, language, dataAccessor);
+                var issues = await v.Validate(instance, dataAccessor, taskId, language);
                 return KeyValuePair.Create(
                     v.ValidationSource,
                     issues.Select(issue => ValidationIssueWithSource.FromIssue(issue, v.ValidationSource))
@@ -112,7 +112,7 @@ public class ValidationService : IValidationService
                 validatorActivity?.SetTag(Telemetry.InternalLabels.ValidatorRelevantChanges, hasRelevantChanges);
                 if (hasRelevantChanges)
                 {
-                    var issues = await validator.Validate(instance, taskId, language, dataAccessor);
+                    var issues = await validator.Validate(instance, dataAccessor, taskId, language);
                     var issuesWithSource = issues
                         .Select(i => ValidationIssueWithSource.FromIssue(i, validator.ValidationSource))
                         .ToList();

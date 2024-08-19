@@ -20,6 +20,7 @@ public class DataValuesFilter : IProcessExclusiveGateway
     public async Task<List<SequenceFlow>> FilterAsync(
         List<SequenceFlow> outgoingFlows,
         Instance instance,
+        IInstanceDataAccessor dataAccessor,
         ProcessGatewayInformation processGatewayInformation
     )
     {

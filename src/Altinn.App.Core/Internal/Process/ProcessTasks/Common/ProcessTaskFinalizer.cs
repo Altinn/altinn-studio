@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Internal.App;
@@ -46,72 +47,106 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
         List<DataType> connectedDataTypes = applicationMetadata.DataTypes.FindAll(dt => dt.TaskId == taskId);
 
-        await RunRemoveFieldsInModelOnTaskComplete(instance, taskId, connectedDataTypes, language: null);
+        var dataAccessor = new CachedInstanceDataAccessor(instance, _dataClient, _appMetadata, _appModel);
+        var changedDataElements = await RunRemoveFieldsInModelOnTaskComplete(
+            instance,
+            dataAccessor,
+            taskId,
+            connectedDataTypes,
+            language: null
+        );
+
+        // Save changes to the data elements with app logic that was changed.
+        await Task.WhenAll(
+            changedDataElements.Select(async dataElement =>
+            {
+                var data = await dataAccessor.Get(dataElement);
+                return _dataClient.UpdateData(
+                    data,
+                    Guid.Parse(instance.Id.Split('/')[1]),
+                    data.GetType(),
+                    instance.Org,
+                    instance.AppId.Split('/')[1],
+                    int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture),
+                    Guid.Parse(dataElement.Id)
+                );
+            })
+        );
     }
 
-    private async Task RunRemoveFieldsInModelOnTaskComplete(
+    private async Task<IEnumerable<DataElement>> RunRemoveFieldsInModelOnTaskComplete(
         Instance instance,
+        IInstanceDataAccessor dataAccessor,
         string taskId,
         List<DataType> dataTypesToLock,
         string? language = null
     )
     {
         ArgumentNullException.ThrowIfNull(instance.Data);
+        HashSet<DataElement> modifiedDataElements = new();
 
-        dataTypesToLock = dataTypesToLock.Where(d => !string.IsNullOrEmpty(d.AppLogic?.ClassRef)).ToList();
+        var dataTypesWithLogic = dataTypesToLock.Where(d => !string.IsNullOrEmpty(d.AppLogic?.ClassRef)).ToList();
         await Task.WhenAll(
             instance
-                .Data.Join(dataTypesToLock, de => de.DataType, dt => dt.Id, (de, dt) => (dataElement: de, dataType: dt))
+                .Data.Join(
+                    dataTypesWithLogic,
+                    de => de.DataType,
+                    dt => dt.Id,
+                    (de, dt) => (dataElement: de, dataType: dt)
+                )
                 .Select(
                     async (d) =>
                     {
-                        await RemoveFieldsOnTaskComplete(
-                            instance,
-                            taskId,
-                            dataTypesToLock,
-                            d.dataElement,
-                            d.dataType,
-                            language
-                        );
+                        if (
+                            await RemoveFieldsOnTaskComplete(
+                                instance,
+                                dataAccessor,
+                                taskId,
+                                dataTypesWithLogic,
+                                d.dataElement,
+                                d.dataType,
+                                language
+                            )
+                        )
+                        {
+                            modifiedDataElements.Add(d.dataElement);
+                        }
                     }
                 )
         );
+        return modifiedDataElements;
     }
 
-    private async Task RemoveFieldsOnTaskComplete(
+    private async Task<bool> RemoveFieldsOnTaskComplete(
         Instance instance,
+        IInstanceDataAccessor dataAccessor,
         string taskId,
-        List<DataType> dataTypesToLock,
+        List<DataType> dataTypesWithLogic,
         DataElement dataElement,
         DataType dataType,
         string? language = null
     )
     {
-        // Download the data
-        Type modelType = _appModel.GetModelType(dataType.AppLogic.ClassRef);
-        Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-        Guid dataGuid = Guid.Parse(dataElement.Id);
-        string app = instance.AppId.Split("/")[1];
-        int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
-        object data = await _dataClient.GetFormData(
-            instanceGuid,
-            modelType,
-            instance.Org,
-            app,
-            instanceOwnerPartyId,
-            dataGuid
-        );
+        bool isModified = false;
+        var data = await dataAccessor.Get(dataElement);
+
+        // remove AltinnRowIds
+        ObjectUtils.RemoveAltinnRowId(data);
+        isModified = true;
 
         // Remove hidden data before validation, ignore hidden rows.
         if (_appSettings.Value?.RemoveHiddenData == true)
         {
             LayoutEvaluatorState evaluationState = await _layoutEvaluatorStateInitializer.Init(
                 instance,
+                dataAccessor,
                 taskId,
                 gatewayAction: null,
                 language
             );
             LayoutEvaluator.RemoveHiddenData(evaluationState, RowRemovalOption.Ignore);
+            // TODO:
+            isModified = true;
         }
 
         // Remove shadow fields
@@ -121,7 +156,7 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
             if (dataType.AppLogic.ShadowFields.SaveToDataType != null)
             {
                 // Save the shadow fields to another data type
-                DataType? saveToDataType = dataTypesToLock.Find(dt =>
+                DataType? saveToDataType = dataTypesWithLogic.Find(dt =>
                     dt.Id == dataType.AppLogic.ShadowFields.SaveToDataType
                 );
                 if (saveToDataType == null)
@@ -133,10 +168,14 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
 
                 Type saveToModelType = _appModel.GetModelType(saveToDataType.AppLogic.ClassRef);
                 object? updatedData = JsonSerializer.Deserialize(serializedData, saveToModelType);
+                // Save a new data element with the cleaned data without shadow fields.
+                Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
+                string app = instance.AppId.Split("/")[1];
+                int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
                 await _dataClient.InsertFormData(
                     updatedData,
                     instanceGuid,
-                    saveToModelType ?? modelType,
+                    saveToModelType,
                     instance.Org,
                     app,
                     instanceOwnerPartyId,
@@ -147,16 +186,14 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
             {
                 // Remove the shadow fields from the data
                 data =
-                    JsonSerializer.Deserialize(serializedData, modelType)
+                    JsonSerializer.Deserialize(serializedData, data.GetType())
                     ?? throw new JsonException(
                         "Could not deserialize back datamodel after removing shadow fields. Data was \"null\""
                     );
             }
         }
-        // remove AltinnRowIds
-        ObjectUtils.RemoveAltinnRowId(data);
 
         // Save the updated data
-        await _dataClient.UpdateData(data, instanceGuid, modelType, instance.Org, app, instanceOwnerPartyId, dataGuid);
+        return isModified;
     }
 }

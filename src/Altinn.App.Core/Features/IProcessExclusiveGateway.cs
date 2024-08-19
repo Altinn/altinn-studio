@@ -19,11 +19,13 @@ public interface IProcessExclusiveGateway
     /// </summary>
     /// <param name="outgoingFlows">Complete list of defined flows out of gateway</param>
     /// <param name="instance">Instance where process is about to move next</param>
+    /// <param name="dataAccessor">Cached accessor for instance.Data</param>
     /// <param name="processGatewayInformation">Information connected with the current gateway under evaluation</param>
     /// <returns>List of possible SequenceFlows to choose out of the gateway</returns>
     public Task<List<SequenceFlow>> FilterAsync(
         List<SequenceFlow> outgoingFlows,
         Instance instance,
+        IInstanceDataAccessor dataAccessor,
         ProcessGatewayInformation processGatewayInformation
     );
 }

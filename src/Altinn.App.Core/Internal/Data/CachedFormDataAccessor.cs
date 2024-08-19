@@ -14,6 +14,7 @@ namespace Altinn.App.Core.Internal.Data;
 /// </summary>
 internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
 {
+    private readonly Instance _instance;
     private readonly string _org;
     private readonly string _app;
     private readonly Guid _instanceGuid;
@@ -30,14 +31,19 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
         IAppModel appModel
     )
     {
-        _org = instance.Org;
-        _app = instance.AppId.Split("/")[1];
-        _instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-        _instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
+        var splitApp = instance.AppId.Split("/");
+        _org = splitApp[0];
+        _app = splitApp[1];
+        var splitId = instance.Id.Split("/");
+        _instanceOwnerPartyId = int.Parse(splitId[0], CultureInfo.InvariantCulture);
+        _instanceGuid = Guid.Parse(splitId[1]);
+        _instance = instance;
         _dataClient = dataClient;
         _appMetadata = appMetadata;
         _appModel = appModel;
     }
+
+    public Instance Instance => _instance;
 
     /// <inheritdoc />
     public async Task<object> Get(DataElement dataElement)

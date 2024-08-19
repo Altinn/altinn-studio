@@ -7,7 +7,7 @@ namespace Altinn.App.Core.Features.Validation.Default;
 /// <summary>
 /// Implement the default validation of DataElements based on the metadata in appMetadata
 /// </summary>
-public class DefaultTaskValidator : ITaskValidator
+public class DefaultTaskValidator : ITaskValidator //TODO: Implement IValidator
 {
     private readonly IAppMetadata _appMetadata;
 

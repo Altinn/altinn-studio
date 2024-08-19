@@ -209,12 +209,12 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IValidationService, ValidationService>();
         if (configuration.GetSection("AppSettings").Get<AppSettings>()?.RequiredValidation == true)
         {
-            services.AddTransient<IFormDataValidator, RequiredLayoutValidator>();
+            services.AddTransient<IValidator, RequiredLayoutValidator>();
         }
 
         if (configuration.GetSection("AppSettings").Get<AppSettings>()?.ExpressionValidation == true)
         {
-            services.AddTransient<IFormDataValidator, ExpressionValidator>();
+            services.AddTransient<IValidator, ExpressionValidator>();
         }
         services.AddTransient<IFormDataValidator, DataAnnotationValidator>();
         services.AddTransient<IDataElementValidator, DefaultDataElementValidator>();

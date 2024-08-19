@@ -2,6 +2,9 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Models.Expressions;
@@ -28,7 +31,6 @@ public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
     /// <summary>
     /// Constructor for <see cref="ExpressionsExclusiveGateway" />
     /// </summary>
-    /// <param name="layoutEvaluatorStateInitializer">Expressions state initalizer used to create context for expression evaluation</param>
     public ExpressionsExclusiveGateway(ILayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer)
     {
         _layoutStateInit = layoutEvaluatorStateInitializer;
@@ -41,11 +43,13 @@ public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
     public async Task<List<SequenceFlow>> FilterAsync(
         List<SequenceFlow> outgoingFlows,
         Instance instance,
+        IInstanceDataAccessor dataAccessor,
         ProcessGatewayInformation processGatewayInformation
     )
     {
         var state = await GetLayoutEvaluatorState(
             instance,
+            dataAccessor,
             instance.Process.CurrentTask.ElementId,
             processGatewayInformation.Action,
             language: null
@@ -56,12 +60,13 @@ public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
 
     private async Task<LayoutEvaluatorState> GetLayoutEvaluatorState(
         Instance instance,
+        IInstanceDataAccessor dataAccessor,
         string taskId,
         string? gatewayAction,
         string? language
     )
     {
-        var state = await _layoutStateInit.Init(instance, taskId, gatewayAction, language);
+        var state = await _layoutStateInit.Init(instance, dataAccessor, taskId, gatewayAction, language);
         return state;
     }
 

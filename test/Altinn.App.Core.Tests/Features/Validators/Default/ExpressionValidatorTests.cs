@@ -1,17 +1,15 @@
-using System.Reflection;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Validation.Default;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Validation;
-using Altinn.App.Core.Tests.Helpers;
-using Altinn.App.Core.Tests.LayoutExpressions;
 using Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.App.Core.Tests.TestUtils;
@@ -21,7 +19,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 
 namespace Altinn.App.Core.Tests.Features.Validators.Default;
 
@@ -33,6 +30,7 @@ public class ExpressionValidatorTests
     private readonly Mock<IAppResources> _appResources = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadata = new(MockBehavior.Strict);
     private readonly Mock<IDataClient> _dataClient = new(MockBehavior.Strict);
+    private readonly Mock<IAppModel> _appModel = new(MockBehavior.Strict);
     private readonly IOptions<FrontEndSettings> _frontendSettings = Microsoft.Extensions.Options.Options.Create(
         new FrontEndSettings()
     );
@@ -48,7 +46,12 @@ public class ExpressionValidatorTests
                 new ApplicationMetadata("org/app") { DataTypes = new List<DataType> { new() { Id = "default" } } }
             );
         _appResources.Setup(ar => ar.GetLayoutSetForTask("Task_1")).Returns(new LayoutSet());
-        _validator = new ExpressionValidator(_logger.Object, _appResources.Object, _layoutInitializer.Object);
+        _validator = new ExpressionValidator(
+            _logger.Object,
+            _appResources.Object,
+            _layoutInitializer.Object,
+            _appMetadata.Object
+        );
     }
 
     public ExpressionValidationTestModel LoadData(string fileName, string folder)
@@ -75,7 +78,7 @@ public class ExpressionValidatorTests
     {
         var testCase = LoadData(fileName, folder);
 
-        var instance = new Instance() { Process = new() { CurrentTask = new() { ElementId = "Task_1", } } };
+        var instance = new Instance() { Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d", AppId = "org/app", };
         var dataElement = new DataElement { DataType = "default", };
 
         var dataModel = DynamicClassBuilder.DataModelFromJsonDocument(testCase.FormData, dataElement);
@@ -83,7 +86,13 @@ public class ExpressionValidatorTests
         var evaluatorState = new LayoutEvaluatorState(dataModel, testCase.Layouts, _frontendSettings.Value, instance);
         _layoutInitializer
             .Setup(init =>
-                init.Init(It.Is<Instance>(i => i == instance), "Task_1", It.IsAny<string>(), It.IsAny<string?>())
+                init.Init(
+                    It.Is<Instance>(i => i == instance),
+                    It.IsAny<IInstanceDataAccessor>(),
+                    "Task_1",
+                    It.IsAny<string?>(),
+                    It.IsAny<string?>()
+                )
             )
             .ReturnsAsync(evaluatorState);
         _appResources
@@ -91,7 +100,14 @@ public class ExpressionValidatorTests
             .Returns(JsonSerializer.Serialize(testCase.ValidationConfig));
         _appResources.Setup(ar => ar.GetLayoutSetForTask(null!)).Returns(new LayoutSet() { DataType = "default", });
 
-        var validationIssues = await _validator.ValidateFormData(instance, dataElement, null!, null);
+        var dataAccessor = new CachedInstanceDataAccessor(
+            instance,
+            _dataClient.Object,
+            _appMetadata.Object,
+            _appModel.Object
+        );
+
+        var validationIssues = await _validator.ValidateFormData(instance, dataElement, dataAccessor, "Task_1", null);
 
         var result = validationIssues.Select(i => new
         {

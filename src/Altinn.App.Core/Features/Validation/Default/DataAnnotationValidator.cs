@@ -14,7 +14,7 @@ namespace Altinn.App.Core.Features.Validation.Default;
 /// <summary>
 /// Runs <see cref="System.ComponentModel.DataAnnotations"/> validation on the data object.
 /// </summary>
-public class DataAnnotationValidator : IFormDataValidator
+public class DataAnnotationValidator : IFormDataValidator // TODO: This should be IValidator
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IObjectModelValidator _objectModelValidator;

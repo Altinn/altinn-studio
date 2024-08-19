@@ -7,7 +7,7 @@ namespace Altinn.App.Core.Features.Validation.Default;
 /// <summary>
 /// Validator that runs the required rules in the layout
 /// </summary>
-public class RequiredLayoutValidator : IFormDataValidator
+public class RequiredLayoutValidator : IValidator
 {
     private readonly ILayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
 
@@ -20,32 +20,26 @@ public class RequiredLayoutValidator : IFormDataValidator
     }
 
     /// <summary>
-    /// Run for all data types
+    /// Run for all tasks
     /// </summary>
-    public string DataType => "*";
+    public string TaskId => "*";
 
     /// <summary>
     /// This validator has the code "Required" and this is known by the frontend, who may request this validator to not run for incremental validation.
     /// </summary>
     public string ValidationSource => ValidationIssueSources.Required;
 
-    /// <summary>
-    /// We don't have an efficient way to figure out if changes to the model results in different validations, and frontend ignores this anyway
-    /// </summary>
-    public bool HasRelevantChanges(object current, object previous) => true;
-
     /// <inheritdoc />
-    public async Task<List<ValidationIssue>> ValidateFormData(
+    public async Task<List<ValidationIssue>> Validate(
         Instance instance,
-        DataElement dataElement,
-        object data,
+        IInstanceDataAccessor instanceDataAccessor,
+        string taskId,
         string? language
     )
     {
-        var taskId = instance.Process.CurrentTask.ElementId;
-
         var evaluationState = await _layoutEvaluatorStateInitializer.Init(
             instance,
+            instanceDataAccessor,
             taskId,
             gatewayAction: null,
             language
@@ -53,4 +47,14 @@ public class RequiredLayoutValidator : IFormDataValidator
 
         return LayoutEvaluator.RunLayoutValidationsForRequired(evaluationState);
     }
+
+    /// <summary>
+    /// We don't have an efficient way to figure out if changes to the model results in different validations, and frontend ignores this anyway
+    /// </summary>
+    public Task<bool> HasRelevantChanges(
+        Instance instance,
+        string taskId,
+        List<DataElementChange> changes,
+        IInstanceDataAccessor instanceDataAccessor
+    ) => Task.FromResult(true);
 }

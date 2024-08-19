@@ -52,9 +52,9 @@ public class LegacyIInstanceValidatorFormDataValidator : IValidator
     /// <inheritdoc />
     public async Task<List<ValidationIssue>> Validate(
         Instance instance,
+        IInstanceDataAccessor instanceDataAccessor,
         string taskId,
-        string? language,
-        IInstanceDataAccessor instanceDataAccessor
+        string? language
     )
     {
         var issues = new List<ValidationIssue>();

@@ -105,8 +105,6 @@ public class ValidationServiceTests : IDisposable
     private readonly Mock<IFormDataValidator> _formDataValidatorAlwaysMock =
         new(MockBehavior.Strict) { Name = "alwaysFormDataValidator" };
 
-    private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new();
-
     private readonly ServiceCollection _serviceCollection = new();
 
     public ValidationServiceTests()
@@ -125,9 +123,6 @@ public class ValidationServiceTests : IDisposable
         _serviceCollection.AddSingleton(_appMetadataMock.Object);
         _appMetadataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(_defaultAppMetadata);
         _serviceCollection.AddSingleton<IValidatorFactory, ValidatorFactory>();
-
-        _httpContextAccessorMock.Setup(h => h.HttpContext!.TraceIdentifier).Returns(Guid.NewGuid().ToString());
-        _serviceCollection.AddSingleton(_httpContextAccessorMock.Object);
 
         _serviceCollection.AddSingleton(Microsoft.Extensions.Options.Options.Create(new GeneralSettings()));
 
