@@ -18,6 +18,7 @@ import {
   layoutSetsPath,
   layoutSettingsPath,
   optionListIdsPath,
+  optionListsPath,
   orgsListPath,
   accessListsPath,
   accessListPath,
