@@ -1,8 +1,5 @@
 name: Deploy Kubernetes Wrapper
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened]
 
   workflow_dispatch:
     inputs:
@@ -15,8 +12,8 @@ on:
         description: If true, workflow will not be stopped if tag already exists
         default: false
 
-  # schedule:
-  #   - cron: '0 8 * * *' # 8 AM UTC
+  schedule:
+    - cron: '0 8 * * 1' # 8 AM UTC every Monday
 
 permissions:
       id-token: write
@@ -64,7 +61,7 @@ jobs:
     if: ${{ needs.determine-tag-exists.outputs.tag-exists == 'false' || github.event.inputs.override-tag }}
     uses: ./.github/workflows/template-construct-environments.yaml
     with:
-      environments: ${{ github.event.inputs.environments || 'dev' }}
+      environments: ${{ github.event.inputs.environments || 'dev,staging,prod' }}
 
   docker-build-push:
     needs: [get-short-sha, determine-tag-exists, construct-environments-array]
