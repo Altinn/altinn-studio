@@ -1,4 +1,5 @@
 import { CG, Variant } from 'src/codegen/CG';
+import { ExprVal } from 'src/features/expressions/types';
 import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
@@ -26,6 +27,15 @@ export const Config = new CG.component({
         .setTitle('Children')
         .setDescription('List of child component IDs to show inside the Accordion (limited to a few component types)'),
     ).onlyIn(Variant.External),
+  )
+  .addProperty(
+    new CG.prop(
+      'openByDefault',
+      new CG.expr(ExprVal.Boolean)
+        .optional({ default: false })
+        .setTitle('Open by default')
+        .setDescription('Boolean value indicating if the accordion should be open by default'),
+    ),
   )
   .addProperty(new CG.prop('childComponents', new CG.arr(CG.layoutNode)).onlyIn(Variant.Internal))
   .addProperty(new CG.prop('renderAsAccordionItem', new CG.bool().optional()).onlyIn(Variant.Internal))
