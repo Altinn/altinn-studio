@@ -31,9 +31,8 @@ export const useDeleteFormContainerMutation = (org: string, app: string, layoutS
       });
 
       if (fileUploadComponentIds.length > 0) {
-        fileUploadComponentIds.forEach(
-          async (fileUploadComponentId) =>
-            await deleteAppAttachmentMetadataMutation.mutateAsync(fileUploadComponentId),
+        fileUploadComponentIds.forEach((fileUploadComponentId) =>
+          deleteAppAttachmentMetadataMutation.mutate(fileUploadComponentId),
         );
         await updateBpmn(removeDataTypeIdsToSign(fileUploadComponentIds));
       }
