@@ -21,11 +21,11 @@ describe('StudioRecommendedNextAction', () => {
       </StudioRecommendedNextAction>,
     );
 
-    expect(screen.getByText('Title')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Title' })).toBeInTheDocument();
     expect(screen.getByText('Description')).toBeInTheDocument();
     expect(screen.getByText('Child')).toBeInTheDocument();
-    expect(screen.getByText('Save')).toBeInTheDocument();
-    expect(screen.getByText('Skip')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Skip' })).toBeInTheDocument();
   });
 
   it('calls onSave when save button is clicked', async () => {
@@ -43,7 +43,7 @@ describe('StudioRecommendedNextAction', () => {
       </StudioRecommendedNextAction>,
     );
 
-    await user.click(screen.getByText('Save'));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
     expect(onSave).toHaveBeenCalledTimes(1);
   });
 
@@ -62,7 +62,7 @@ describe('StudioRecommendedNextAction', () => {
       </StudioRecommendedNextAction>,
     );
 
-    await user.click(screen.getByText('Skip'));
+    await user.click(screen.getByRole('button', { name: 'Skip' }));
     expect(onSkip).toHaveBeenCalledTimes(1);
   });
 

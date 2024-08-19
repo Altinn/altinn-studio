@@ -57,7 +57,7 @@ describe('RecommendedActionChangeName', () => {
     });
     await user.type(newNameInput, 'newName');
 
-    const saveButton = screen.getByText(textMock('general.save'));
+    const saveButton = screen.getByRole('button', { name: textMock('general.save') });
     await user.click(saveButton);
 
     expect(setBpmnDetails).toHaveBeenCalledWith(
@@ -71,7 +71,7 @@ describe('RecommendedActionChangeName', () => {
     const user = userEvent.setup();
     renderWithContext(<RecommendedActionChangeName />);
 
-    const skipButton = screen.getByText(textMock('general.skip'));
+    const skipButton = screen.getByRole('button', { name: textMock('general.skip') });
     await user.click(skipButton);
 
     expect(setBpmnDetails).not.toHaveBeenCalled();
