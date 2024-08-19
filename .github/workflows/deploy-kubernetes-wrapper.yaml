@@ -1,5 +1,9 @@
 name: Deploy Kubernetes Wrapper
 on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
   workflow_dispatch:
     inputs:
       environments:
@@ -12,7 +16,6 @@ permissions:
       contents: read
 
 jobs:
-
   get-short-sha:
     uses: ./.github/workflows/template-short-sha.yaml
     with:
