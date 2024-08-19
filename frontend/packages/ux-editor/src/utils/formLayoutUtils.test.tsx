@@ -23,6 +23,7 @@ import {
   validateDepth,
   findLayoutsContainingDuplicateComponents,
   getAllDescendants,
+  getAllFormItemIds,
 } from './formLayoutUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { IInternalLayout } from '../types/global';
@@ -666,5 +667,17 @@ describe('formLayoutUtils', () => {
         duplicateComponents: ['component1'],
       });
     });
+  });
+
+  describe('getAllFormItemIds', () => {
+    const layout = { ...mockInternal };
+    expect(getAllFormItemIds(layout)).toEqual([
+      headerId,
+      paragraphId,
+      groupId,
+      paragraphInGroupId,
+      groupInGroupId,
+      paragraphInGroupInGroupId,
+    ]);
   });
 });
