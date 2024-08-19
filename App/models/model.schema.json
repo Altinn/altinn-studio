@@ -135,7 +135,7 @@
     },
     "checkboxesInput": {
       "type": "string",
-      "pattern": "[A-Za-z ,æøå]*(Kjøring i skogen)[A-Za-z ,æøå]*"
+      "pattern": "[A-Za-z,æøå]*(kjoringISkogen)[A-Za-z,æøå]*"
     },
     "nestedInput": {
       "type": "string"

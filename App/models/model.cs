@@ -32,7 +32,7 @@ namespace Altinn.App.Models.model
     [JsonPropertyName("radioButtonInput")]
     public string radioButtonInput { get; set; }
 
-    [RegularExpression(@"[A-Za-z ,æøå]*(Kjøring i skogen)[A-Za-z ,æøå]*")]
+    [RegularExpression(@"[A-Za-z,æøå]*(kjoringISkogen)[A-Za-z,æøå]*")]
     [XmlElement("checkboxesInput", Order = 5)]
     [JsonProperty("checkboxesInput")]
     [JsonPropertyName("checkboxesInput")]
