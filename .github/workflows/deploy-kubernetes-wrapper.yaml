@@ -39,13 +39,18 @@ jobs:
         uses: azure/CLI@v2
         with:
           azcliversion: latest
+          inlineScript: |
+            SHORT_SHA=${{ needs.get-short-sha.outputs.short-sha }}
+            exists_tag=$(az acr repository show-tags --name altinntjenestercontainerregistry --repository altinn-kuberneteswrapper --query "[?contains(@, '$SHORT_SHA')]" --output tsv)
+            echo "tag-exists=$exists_tag"
+            echo "tag-exists=$exists_tag" >> $GITHUB_OUTPUT
 
-      - name: Determine tag exists
-        id: determine-tag-exists
-        run: |
-          SHORT_SHA=${{ needs.get-short-sha.outputs.short-sha }}
-          exists_tag=$(az acr repository show-tags --name altinntjenestercontainerregistry --repository altinn-kuberneteswrapper --query "[?contains(@, '$SHORT_SHA')]" --output tsv)
-          echo "tag-exists=$exists_tag"
-          echo "tag-exists=$exists_tag" >> $GITHUB_OUTPUT
+      # - name: Determine tag exists
+      #   id: determine-tag-exists
+      #   run: |
+      #     SHORT_SHA=${{ needs.get-short-sha.outputs.short-sha }}
+      #     exists_tag=$(az acr repository show-tags --name altinntjenestercontainerregistry --repository altinn-kuberneteswrapper --query "[?contains(@, '$SHORT_SHA')]" --output tsv)
+      #     echo "tag-exists=$exists_tag"
+      #     echo "tag-exists=$exists_tag" >> $GITHUB_OUTPUT
 
 
