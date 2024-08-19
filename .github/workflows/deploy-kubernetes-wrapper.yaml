@@ -15,6 +15,9 @@ on:
         description: If true, workflow will not be stopped if tag already exists
         default: false
 
+  # schedule:
+  #   - cron: '0 8 * * *' # 8 AM UTC
+
 permissions:
       id-token: write
       contents: read
@@ -31,6 +34,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag-exists: ${{ steps.determine-tag-exists.outputs.tag-exists }}
+    env:
+      repository-name: altinn-kuberneteswrapper
+      registry-name: altinntjenestercontainerregistry
     steps:
       - name: 'Azure login'
         uses: azure/login@v2
@@ -46,7 +52,7 @@ jobs:
           azcliversion: latest
           inlineScript: |
             SHORT_SHA=${{ needs.get-short-sha.outputs.short-sha }}
-            exists_tag=$(az acr repository show-tags --name altinntjenestercontainerregistry --repository altinn-kuberneteswrapper --query "[?contains(@, '$SHORT_SHA')]" --output tsv)
+            exists_tag=$(az acr repository show-tags --name ${{ env.registry-name }} --repository ${{ env.repository-name }} --query "[?contains(@, '$SHORT_SHA')]" --output tsv)
             if [ -z "$exists_tag" ]; then
               echo "tag-exists=false" >> $GITHUB_OUTPUT
             else
