@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { ArrayUtils } from '@studio/pure-functions';
 
-type UseUniqueKey = {
+export type UseUniqueKey = {
   addUniqueKey: () => void;
   removeUniqueKey: (index: number) => void;
   getUniqueKey: (index: number) => string;

@@ -1,11 +1,15 @@
 import React from 'react';
-import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
-import { renderWithProviders } from 'app-development/test/testUtils';
-import { APP_DEVELOPMENT_BASENAME, NEWS_EXPIRATION_TIME_IN_DAYS } from 'app-shared/constants';
-import { News } from './News';
+import { render, screen, waitFor } from '@testing-library/react';
 import type { NewsList } from 'app-shared/types/api/NewsList';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { NEWS_EXPIRATION_TIME_IN_DAYS } from 'app-shared/constants';
+
+const mockNewsData = (newsList: NewsList) => {
+  jest.mock('./NewsContent/news.nb.json', () => ({
+    __esModule: true,
+    default: newsList,
+  }));
+};
 
 const formatDate = (date) => {
   const year = date.getFullYear();
@@ -21,6 +25,9 @@ const formatDateToVisualText = (date: string) => {
 };
 
 describe('News', () => {
+  afterEach(() => {
+    jest.resetModules();
+  });
   it('section title is always rendered', async () => {
     const publishDate = new Date();
     const newsList: NewsList = {
@@ -32,7 +39,7 @@ describe('News', () => {
         },
       ],
     };
-    await render(newsList);
+    await renderNews(newsList);
 
     await screen.findByText('title');
   });
@@ -47,7 +54,7 @@ describe('News', () => {
         },
       ],
     };
-    await render(newsList);
+    await renderNews(newsList);
 
     await screen.findByText('title');
     await screen.findByText('News content');
@@ -68,30 +75,12 @@ describe('News', () => {
         },
       ],
     };
-    await render(newsList);
-    await waitForElementToBeRemoved(() =>
-      screen.queryByText(textMock('overview.fetch_news_loading_message')),
-    );
+    await renderNews(newsList);
 
     const noNewsTitle = screen.getByText(textMock('overview.no_news_title'));
     expect(noNewsTitle).toBeInTheDocument();
     const noNewsContent = screen.getByText(textMock('overview.no_news_content'));
     expect(noNewsContent).toBeInTheDocument();
-  });
-
-  it('loading spinner is shown while waiting for content', async () => {
-    const newsList: NewsList = {
-      news: [
-        {
-          title: 'title',
-          content: 'News content',
-          date: '2021-01-01',
-        },
-      ],
-    };
-    render(newsList);
-
-    await screen.findByText(textMock('overview.fetch_news_loading_message'));
   });
 
   it('does not list a news if the date in the news is in the future', async () => {
@@ -106,8 +95,7 @@ describe('News', () => {
         },
       ],
     };
-
-    await render(newsList);
+    await renderNews(newsList);
 
     await waitFor(() => {
       screen.queryByText('News content');
@@ -129,8 +117,7 @@ describe('News', () => {
         },
       ],
     };
-
-    await render(newsList);
+    await renderNews(newsList);
 
     await waitFor(() => {
       screen.queryByText('News content');
@@ -139,32 +126,10 @@ describe('News', () => {
     const news = screen.queryByText('News content');
     expect(news).not.toBeInTheDocument();
   });
-
-  it('error message is shown when content fails to load', async () => {
-    const publishDate = new Date();
-    const newsList: NewsList = {
-      news: [
-        {
-          title: 'title',
-          content: 'News content',
-          date: formatDate(publishDate),
-        },
-      ],
-    };
-    await render(newsList, {
-      getNewsList: jest.fn().mockImplementation(() => Promise.reject()),
-    });
-
-    await screen.findByText(textMock('overview.fetch_news_error_message'));
-  });
 });
 
-const render = async (newsList: NewsList, queries?: Partial<ServicesContextProps>) => {
-  return renderWithProviders(<News />, {
-    startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
-    queries: {
-      getNewsList: jest.fn().mockImplementation(() => Promise.resolve<NewsList>(newsList)),
-      ...queries,
-    },
-  });
+const renderNews = async (newsList: NewsList) => {
+  mockNewsData(newsList);
+  const { News } = await import('./News');
+  return render(<News />);
 };
