@@ -22,7 +22,7 @@ export const StudioTreeViewRoot = ({
   const [selectedId, setSelectedId] = useState<string | undefined>(selectedIdFromProps);
   const [focusedId, setFocusedId] = useState<string | undefined>(undefined);
   const [focusableId, setFocusableId] = useState<string | null>(null);
-
+  const [selectedUniqueId, setSelectedUniqueId] = useState<string | undefined>(undefined);
   useEffect(() => {
     setSelectedId(selectedIdFromProps);
   }, [selectedIdFromProps]);
@@ -46,6 +46,8 @@ export const StudioTreeViewRoot = ({
         setFocusedId,
         setSelectedId: handleSelect,
         focusableId,
+        selectedUniqueId,
+        setSelectedUniqueId,
       }}
     >
       <ul role='tree' {...rest} id={rootId} className={cn(classes.list, className)}>

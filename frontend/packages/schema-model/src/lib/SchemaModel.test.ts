@@ -6,6 +6,7 @@ import {
   combinationNodeWithMultipleChildrenMock,
   defNodeMock,
   defNodeWithChildrenChildMock,
+  defNodeWithChildrenGrandchildMock,
   defNodeWithChildrenMock,
   enumNodeMock,
   nodeMockBase,
@@ -116,6 +117,37 @@ describe('SchemaModel', () => {
       expect(schemaModel.getNode(defNodeMock.pointer)).toEqual(defNodeMock);
       expect(schemaModel.getNode(allOfNodeMock.pointer)).toEqual(allOfNodeMock);
       expect(schemaModel.getNode(stringNodeMock.pointer)).toEqual(stringNodeMock);
+    });
+  });
+
+  describe.only('getUniqueNodePointer', () => {
+    it('Returns the pointer as is when called on the root node', () => {
+      expect(schemaModel.getUniqueNodePointer(rootNodeMock.pointer)).toEqual(rootNodeMock.pointer);
+    });
+
+    it('Returns the pointer as is when called on a property node', () => {
+      expect(schemaModel.getUniqueNodePointer(referenceToObjectNodeMock.pointer)).toEqual(
+        referenceToObjectNodeMock.pointer,
+      );
+    });
+
+    it('Returns a pointer reflecting the path to a given node in a reference', () => {
+      const expectedChildPointer = '#/properties/referenceToParent/properties/child';
+      const expectedGrandchildPointer =
+        '#/properties/referenceToParent/properties/child/properties/grandchild';
+
+      expect(
+        schemaModel.getUniqueNodePointer(
+          defNodeWithChildrenChildMock.pointer,
+          referenceToObjectNodeMock.pointer,
+        ),
+      ).toEqual(expectedChildPointer);
+      expect(
+        schemaModel.getUniqueNodePointer(
+          defNodeWithChildrenGrandchildMock.pointer,
+          expectedChildPointer,
+        ),
+      ).toEqual(expectedGrandchildPointer);
     });
   });
 

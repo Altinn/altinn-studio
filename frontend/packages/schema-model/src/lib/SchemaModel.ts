@@ -80,6 +80,13 @@ export class SchemaModel {
     return this.nodeMap.get(pointer);
   }
 
+  public getUniqueNodePointer(pointer: string, uniqueParentPointer?: string): string {
+    if (!uniqueParentPointer || !isDefinitionPointer(pointer)) return pointer;
+
+    const uniquePath = `${uniqueParentPointer}/properties/${extractNameFromPointer(pointer)}`;
+    return uniquePath;
+  }
+
   public hasNode(pointer: string): boolean {
     return this.nodeMap.has(pointer);
   }
@@ -107,7 +114,9 @@ export class SchemaModel {
   }
 
   public getChildNodes(pointer: string): UiSchemaNodes {
+    console.log(pointer);
     const node = this.getFinalNode(pointer);
+    console.log(node);
     return this.getDirectChildNodes(node);
   }
 

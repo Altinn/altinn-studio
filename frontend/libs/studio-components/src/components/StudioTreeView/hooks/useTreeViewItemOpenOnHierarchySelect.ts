@@ -6,13 +6,15 @@ export const useTreeViewItemOpenOnHierarchySelect = (
   rootId: string,
   nodeId: string,
   selectedId: string,
+  uniqueNodeId: string,
+  selectedUniqueId: string,
   setOpen: Dispatch<SetStateAction<boolean>>,
 ) => {
   useEffect(() => {
-    if (nodeId === selectedId) {
+    if (uniqueNodeId === selectedUniqueId) {
       setOpen(true);
-    } else if (isDirectChildOfNode(selectedId, rootId, nodeId)) {
+    } else if (isDirectChildOfNode(selectedUniqueId, rootId, uniqueNodeId)) {
       setOpen(true);
     }
-  }, [nodeId, rootId, selectedId, setOpen]);
+  }, [nodeId, rootId, selectedId, setOpen, selectedUniqueId, uniqueNodeId]);
 };

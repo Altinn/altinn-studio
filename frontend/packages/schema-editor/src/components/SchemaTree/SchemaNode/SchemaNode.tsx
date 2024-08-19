@@ -14,16 +14,26 @@ import { useSavableSchemaModel } from '../../../hooks/useSavableSchemaModel';
 
 export interface SchemaNodeProps {
   pointer: string;
+  parentPointer: string;
+  uniqueParentPointer?: string;
 }
 
-export const SchemaNode = ({ pointer }: SchemaNodeProps): ReactElement => {
+export const SchemaNode = ({
+  pointer,
+  parentPointer,
+  uniqueParentPointer,
+}: SchemaNodeProps): ReactElement => {
   const savableModel = useSavableSchemaModel();
   const { t } = useTranslation();
   const node = savableModel.getNode(pointer);
   const label = savableModel.isChildOfCombination(pointer) ? '' : extractNameFromPointer(pointer);
   const index = savableModel.getIndexOfChildNode(pointer);
-  const title = label || t('schema_editor.tree.combination_child_title', { index });
+  const uniqueNodePointer = savableModel.getUniqueNodePointer(
+    pointer,
+    uniqueParentPointer || parentPointer,
+  );
 
+  const title = label || t('schema_editor.tree.combination_child_title', { index });
   const labelWrapper = (labelComponent: ReactNode) => (
     <LabelWrapper label={labelComponent} pointer={pointer} schemaModel={savableModel} />
   );
@@ -36,9 +46,10 @@ export const SchemaNode = ({ pointer }: SchemaNodeProps): ReactElement => {
       label={label}
       labelWrapper={labelWrapper}
       nodeId={pointer}
+      uniqueNodeId={uniqueNodePointer}
       title={title}
     >
-      {renderSchemaNodeList(savableModel, pointer)}
+      {renderSchemaNodeList(savableModel, pointer, uniqueNodePointer)}
     </DragAndDropTree.Item>
   );
 };

@@ -16,6 +16,7 @@ export interface DragAndDropTreeItemProps {
   label: string;
   labelWrapper?: (children: ReactNode) => ReactNode;
   nodeId: string;
+  uniqueNodeId: string;
   title?: string;
 }
 
@@ -27,6 +28,7 @@ export const DragAndDropTreeItem = ({
   label,
   labelWrapper,
   nodeId,
+  uniqueNodeId,
   title,
 }: DragAndDropTreeItemProps) => {
   const { hoveredNodeParent, setHoveredNodeParent } = useContext(DragAndDropTreeRootContext);
@@ -49,6 +51,7 @@ export const DragAndDropTreeItem = ({
             as='div'
             className={cn(classes.item, hasHoveredItemClass)}
             nodeId={nodeId}
+            uniqueNodeId={uniqueNodeId}
             icon={icon}
             label={label}
             labelWrapper={(node) => (
