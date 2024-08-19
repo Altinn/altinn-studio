@@ -33,3 +33,4 @@ export * from './StudioTreeView';
 export * from './StudioTabs';
 export * from './StudioDivider';
 export * from './StudioPageError';
+export * from './StudioError';
