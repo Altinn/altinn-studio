@@ -483,5 +483,10 @@ export const getDuplicatedIds = (layout: IInternalLayout): string[] => {
   return uniqueDuplicatedIds;
 };
 
+/**
+ * Get all (valid) ids in the layout
+ * @param layout The layout
+ * @returns An array of all ids in the layout
+ * */
 export const getAllFormItemIds = (layout: IInternalLayout): string[] =>
   flattenObjectValues(layout.order);
