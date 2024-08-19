@@ -120,7 +120,33 @@ describe('SchemaModel', () => {
     });
   });
 
-  describe.only('getUniqueNodePointer', () => {
+  describe('getNodeByUniquePointer', () => {
+    it('Returns the node when pointer it is the root pointer', () => {
+      expect(schemaModel.getNodeByUniquePointer(rootNodeMock.pointer)).toEqual(rootNodeMock);
+    });
+
+    it('Returns the node when pointer is a property node', () => {
+      expect(schemaModel.getNodeByUniquePointer(parentNodeMock.pointer)).toEqual(parentNodeMock);
+      expect(schemaModel.getNodeByUniquePointer(defNodeMock.pointer)).toEqual(defNodeMock);
+      expect(schemaModel.getNodeByUniquePointer(allOfNodeMock.pointer)).toEqual(allOfNodeMock);
+      expect(schemaModel.getNodeByUniquePointer(stringNodeMock.pointer)).toEqual(stringNodeMock);
+    });
+
+    it('Returns the node reflecting the path to a given unique pointer in a reference', () => {
+      const uniqueChildPointer = '#/properties/referenceToParent/properties/child';
+      const uniqueGrandchildPointer =
+        '#/properties/referenceToParent/properties/child/properties/grandchild';
+
+      expect(schemaModel.getNodeByUniquePointer(uniqueChildPointer)).toEqual(
+        defNodeWithChildrenChildMock,
+      );
+      expect(schemaModel.getNodeByUniquePointer(uniqueGrandchildPointer)).toEqual(
+        defNodeWithChildrenGrandchildMock,
+      );
+    });
+  });
+
+  describe('getUniqueNodePointer', () => {
     it('Returns the pointer as is when called on the root node', () => {
       expect(schemaModel.getUniqueNodePointer(rootNodeMock.pointer)).toEqual(rootNodeMock.pointer);
     });

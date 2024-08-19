@@ -80,6 +80,36 @@ export class SchemaModel {
     return this.nodeMap.get(pointer);
   }
 
+  public getNodeByUniquePointer(uniquePointer: string): UiSchemaNode {
+    if (this.hasNode(uniquePointer)) return this.getNode(uniquePointer);
+
+    // Find the top parent of the unique pointer
+    const topLvlParentPointer = uniquePointer.split('/').slice(0, 3).join('/');
+    if (!topLvlParentPointer) {
+      return null;
+    }
+
+    const findNodeInChildren = (
+      children: UiSchemaNodes,
+      parentPointer: string,
+    ): UiSchemaNode | null => {
+      // Recursively search for the child node with the unique pointer
+      for (const child of children) {
+        const childUniquePointer = this.getUniqueNodePointer(child.pointer, parentPointer);
+
+        if (childUniquePointer === uniquePointer) return child;
+
+        const nestedChildren = this.getChildNodes(child.pointer);
+        if (nestedChildren.length > 0)
+          return findNodeInChildren(nestedChildren, childUniquePointer);
+      }
+      return null;
+    };
+
+    const topLvlChildren = this.getChildNodes(topLvlParentPointer);
+    return findNodeInChildren(topLvlChildren, topLvlParentPointer);
+  }
+
   public getUniqueNodePointer(pointer: string, uniqueParentPointer?: string): string {
     if (!uniqueParentPointer || !isDefinitionPointer(pointer)) return pointer;
 
@@ -114,9 +144,7 @@ export class SchemaModel {
   }
 
   public getChildNodes(pointer: string): UiSchemaNodes {
-    console.log(pointer);
     const node = this.getFinalNode(pointer);
-    console.log(node);
     return this.getDirectChildNodes(node);
   }
 
