@@ -1,10 +1,14 @@
 import React, { type ReactElement } from 'react';
-import classes from './AppUserProfileMenu.module.css';
 import { type Repository, type User } from 'app-shared/types/Repository';
 import { useTranslation } from 'react-i18next';
 import { useUserNameAndOrg } from './hooks/useUserNameAndOrg';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { type StudioProfileMenuItem, useMediaQuery, StudioProfileMenu } from '@studio/components';
+import {
+  type StudioProfileMenuItem,
+  useMediaQuery,
+  StudioProfileMenu,
+  StudioAvatar,
+} from '@studio/components';
 import { repositoryPath, userLogoutAfterPath, userLogoutPath } from 'app-shared/api/paths';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { post } from 'app-shared/utils/networking';
@@ -27,7 +31,7 @@ export const AppUserProfileMenu = ({
 
   const shouldResizeWindow = useMediaQuery(`(max-width: ${WINDOW_RESIZE_WIDTH}px)`);
 
-  const openRepositoryElement: StudioProfileMenuItem[] =
+  const openRepositoryMenuItem: StudioProfileMenuItem[] =
     org && app && repository
       ? [
           {
@@ -59,16 +63,17 @@ export const AppUserProfileMenu = ({
     <StudioProfileMenu
       triggerButtonText={shouldResizeWindow ? undefined : userNameAndOrg}
       profileImage={
-        user?.avatar_url && (
-          <img
-            alt={t('general.profile_icon')}
-            title={t('shared.header_profile_icon_text')}
-            className={classes.userAvatar}
-            src={user.avatar_url}
-          />
-        )
+        <StudioAvatar
+          imageDetails={
+            user?.avatar_url && {
+              src: user.avatar_url,
+              alt: t('general.profile_icon'),
+              title: t('shared.header_profile_icon_text'),
+            }
+          }
+        />
       }
-      profileMenuItems={[...openRepositoryElement, docsMenuItem, logOutMenuItem]}
+      profileMenuItems={[...openRepositoryMenuItem, docsMenuItem, logOutMenuItem]}
       color={color}
     />
   );

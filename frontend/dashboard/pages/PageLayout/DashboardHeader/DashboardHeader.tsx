@@ -1,5 +1,4 @@
 import React, { useContext } from 'react';
-import classes from './DashboardHeader.module.css';
 import {
   HeaderContext,
   getOrgNameByUsername,
@@ -8,6 +7,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
+  StudioAvatar,
   StudioPageHeader,
   StudioProfileMenu,
   useMediaQuery,
@@ -47,6 +47,7 @@ export const DashboardHeader = () => {
 };
 
 // TODO MOVE
+// TODO - Use AppUserProfileMenu?
 const HeaderMenuTODOMoveAndRename = () => {
   const { t } = useTranslation();
   const shouldResizeWindow = useMediaQuery(`(max-width: ${WINDOW_RESIZE_WIDTH}px)`);
@@ -127,15 +128,15 @@ const HeaderMenuTODOMoveAndRename = () => {
       triggerButtonText={getTriggerButtonText()}
       color='dark'
       profileImage={
-        user.avatar_url && (
-          // TODO - Maybe make StudioUserAvatar component?
-          <img
-            alt={t('general.profile_icon')}
-            title={t('shared.header_profile_icon_text')}
-            className={classes.userAvatar}
-            src={user.avatar_url}
-          />
-        )
+        <StudioAvatar
+          imageDetails={
+            user?.avatar_url && {
+              src: user.avatar_url,
+              alt: t('general.profile_icon'),
+              title: t('shared.header_profile_icon_text'),
+            }
+          }
+        />
       }
       // TODO - Selected?? Should we have a prop for selected to show which "page" on dashboard we are on?
       profileMenuItems={[

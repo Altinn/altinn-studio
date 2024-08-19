@@ -17,6 +17,7 @@ import {
   StudioProfileMenu,
   type StudioProfileMenuItem,
   useMediaQuery,
+  StudioAvatar,
 } from '@studio/components';
 import {
   repositoryBasePath,
@@ -102,6 +103,7 @@ const ResourceadmHeader = () => {
 };
 
 // TODO MOVE
+// TODO - Use AppUserProfileMenu?
 const HeaderMenuTODOMoveAndRename = () => {
   const { t } = useTranslation();
   const shouldResizeWindow = useMediaQuery(`(max-width: ${WINDOW_RESIZE_WIDTH}px)`);
@@ -181,19 +183,15 @@ const HeaderMenuTODOMoveAndRename = () => {
       triggerButtonText={getTriggerButtonText()}
       color='dark'
       profileImage={
-        user.avatar_url && (
-          <img
-            alt={t('general.profile_icon')}
-            title={t('shared.header_profile_icon_text')}
-            // className={classes.userAvatar}
-            src={user.avatar_url}
-            style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '30px',
-            }}
-          />
-        )
+        <StudioAvatar
+          imageDetails={
+            user?.avatar_url && {
+              src: user.avatar_url,
+              alt: t('general.profile_icon'),
+              title: t('shared.header_profile_icon_text'),
+            }
+          }
+        />
       }
       // TODO - Selected??
       profileMenuItems={[

@@ -1,7 +1,6 @@
 import React, { type ReactNode, type ReactElement, useState } from 'react';
 import classes from './StudioProfileMenu.module.css';
 import { Divider, DropdownMenu } from '@digdir/designsystemet-react';
-import { PersonCircleIcon } from '@studio/icons';
 import { StudioPageHeaderButton } from '../StudioPageHeader';
 import { type StudioPageHeaderColor } from '../StudioPageHeader/types/StudioPageHeaderColor';
 
@@ -24,7 +23,7 @@ export interface StudioProfileMenuItem {
 
 export type StudioProfileMenuProps = {
   triggerButtonText?: string;
-  profileImage?: ReactNode;
+  profileImage: ReactNode;
   profileMenuItems: StudioProfileMenuItem[];
   color: StudioPageHeaderColor;
 };
@@ -57,7 +56,7 @@ export const StudioProfileMenu = ({
         <StudioPageHeaderButton onClick={handleToggleMenu} color={color}>
           {/* TODO - THE TEXT BELOW LOOS WEIRED BEFORE RESIZE ON WIDTH 1030px ish (only for localgiteaadmin and testdepartementet) */}
           {triggerButtonText && <span className={classes.userOrgNames}>{triggerButtonText}</span>}
-          {profileImage ? profileImage : <PersonCircleIcon className={classes.avatarIcon} />}
+          {profileImage}
         </StudioPageHeaderButton>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content>
