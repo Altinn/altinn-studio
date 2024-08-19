@@ -8,7 +8,7 @@ export interface IHeaderContext {
   user: User;
 }
 
-// TODO MOVE AND SEPARATE - ONE FOR DASHBOARD AND ONE FOR RESOURCEADM
+// TODO MOVE AND SEPARATE - ONE FOR DASHBOARD AND ONE FOR RESOURCEADM??
 export const HeaderContext = React.createContext<IHeaderContext>({
   selectableOrgs: undefined,
   user: undefined,

@@ -1,8 +1,7 @@
 .wrapper {
   display: flex;
   justify-content: space-between;
-  /*background-color: #284e6a;*/
-  padding-inline: 1rem;
+  padding-inline: var(--fds-spacing-4);
 }
 
 .leftContentWrapper {
@@ -13,6 +12,6 @@
 .rightContentWrapper {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  height: 60px;
+  padding-inline: var(--fds-spacing-4);
+  height: 60px; /* TODO - should we create a variable for this? */
 }

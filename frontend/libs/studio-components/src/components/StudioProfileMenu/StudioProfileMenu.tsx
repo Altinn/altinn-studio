@@ -28,7 +28,7 @@ export type StudioProfileMenuProps = {
   color: StudioPageHeaderColor;
 };
 
-// TODO - Should this component be inside the pagehader?
+// TODO - Should this component be inside the StudioPageHeader folder?
 export const StudioProfileMenu = ({
   triggerButtonText,
   profileImage,
@@ -54,7 +54,7 @@ export const StudioProfileMenu = ({
     <DropdownMenu onClose={handleClose} open={open}>
       <DropdownMenu.Trigger asChild size='sm'>
         <StudioPageHeaderButton onClick={handleToggleMenu} color={color}>
-          {/* TODO - THE TEXT BELOW LOOS WEIRED BEFORE RESIZE ON WIDTH 1030px ish (only for localgiteaadmin and testdepartementet) */}
+          {/* TODO - THE TEXT BELOW LOOKS WEIRED BEFORE RESIZE ON WIDTH 1030px ish (only for localgiteaadmin and testdepartementet) */}
           {triggerButtonText && <span className={classes.userOrgNames}>{triggerButtonText}</span>}
           {profileImage}
         </StudioPageHeaderButton>
