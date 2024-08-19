@@ -65,6 +65,7 @@ jobs:
       repository-name: altinn-core
       environment: dev # dev environment has push access and doesn't require review
       checkout-repository: 'Altinn/app-kubernetes-wrapper'
+      context: src/KubernetesWrapper
       dockerfile: src/KubernetesWrapper/Dockerfile
     secrets:
       client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
@@ -85,7 +86,7 @@ jobs:
       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
   flux-config-push:
-    needs: [get-short-sha, determine-tag-exists, construct-environments-array]
+    needs: [docker-build-push, helm-push]
     strategy:
       matrix:
         environment: ${{ fromJSON(needs.construct-environments-array.outputs.environmentsjson) }}
