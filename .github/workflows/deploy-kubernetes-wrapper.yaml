@@ -1,0 +1,46 @@
+name: Deploy Kubernetes Wrapper
+on:
+  workflow_dispatch:
+    inputs:
+      environments:
+        description: 'Environments to deploy to. Multiple environments can be specified by separating them with a comma.'
+        required: false
+        default: 'dev'
+
+permissions:
+      id-token: write
+      contents: read
+
+jobs:
+
+  get-short-sha:
+    uses: ./.github/workflows/template-short-sha.yaml
+    with:
+      checkout-repository: 'Altinn/app-kubernetes-wrapper'
+
+  determine-tag-exists:
+    needs: get-short-sha
+    environment: dev
+    runs-on: ubuntu-latest
+    outputs:
+      tag-exists: ${{ steps.determine-tag-exists.outputs.tag-exists }}
+    steps:
+      - name: Set up Azure CLI
+        uses: azure/CLI@v2
+
+      - name: 'Azure login'
+        uses: azure/login@v2
+        with:
+            client-id: ${{ secrets.client-id }}
+            tenant-id: ${{ secrets.tenant-id }}
+            subscription-id: ${{ secrets.subscription-id }}
+
+      - name: Determine tag exists
+        id: determine-tag-exists
+        run: |
+          SHORT_SHA=${{ needs.get-short-sha.outputs.short-sha }}
+          exists_tag=$(az acr repository show-tags --name altinntjenestercontainerregistry --repository altinn-kuberneteswrapper --query "[?contains(@, '$SHORT_SHA')]" --output tsv)
+          echo "tag-exists=$exists_tag"
+          echo "tag-exists=$exists_tag" >> $GITHUB_OUTPUT
+
+
