@@ -393,7 +393,9 @@ export const getChildIds = (layout: IInternalLayout, parentId: string): string[]
  * @returns An array of all the children of the container.
  */
 export const getAllDescendants = (layout: IInternalLayout, parentId: string): string[] =>
-  getChildIds(layout, parentId).flatMap((id) => [id, ...getAllDescendants(layout, id)]);
+  getChildIds(layout, parentId).flatMap((id) =>
+    ArrayUtils.prepend(getAllDescendants(layout, id), id),
+  );
 
 export const getItem = (layout: IInternalLayout, itemId: string): FormComponent | FormContainer =>
   layout.components[itemId] || layout.containers[itemId];
