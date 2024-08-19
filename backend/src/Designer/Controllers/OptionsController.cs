@@ -51,9 +51,13 @@ public class OptionsController : ControllerBase
 
     /// <summary>
     /// Fetches the contents of all the options lists belonging to the app.
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <returns>Dictionary of all option lists belonging to the app</returns>
     [HttpGet]
     [Route("option-lists")]
-    public async Task<ActionResult<List<Option>>> GetOptionLists(string org, string repo)
+    public async Task<ActionResult<Dictionary<string, List<Option>>>> GetOptionLists(string org, string repo)
     {
         try
         {
