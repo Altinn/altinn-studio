@@ -7,8 +7,8 @@ on:
         required: true
         type: string
     outputs:
-      short-sha:
-        description: "Short sha commit"
+      environmentsjson:
+        description: "Environments json"
         value: ${{ jobs.construct-environments-array.outputs.environmentsjson }}
 
 jobs:
