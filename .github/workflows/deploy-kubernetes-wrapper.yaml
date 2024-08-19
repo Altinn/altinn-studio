@@ -10,6 +10,10 @@ on:
         description: 'Environments to deploy to. Multiple environments can be specified by separating them with a comma.'
         required: false
         default: 'dev'
+      override-tag:
+        type: boolean
+        description: If true, workflow will not be stopped if tag already exists
+        default: false
 
 permissions:
       id-token: write
@@ -51,17 +55,10 @@ jobs:
 
   construct-environments-array:
     needs: [get-short-sha, determine-tag-exists]
-    # if: ${{ needs.determine-tag-exists.outputs.tag-exists == 'false' }}
+    if: ${{ needs.determine-tag-exists.outputs.tag-exists == 'false' || github.event.inputs.override-tag }} }}
     uses: ./.github/workflows/template-construct-environments.yaml
     with:
       environments: ${{ github.event.inputs.environments || 'dev' }}
-
-  print-environments:
-    needs: construct-environments-array
-    runs-on: ubuntu-latest
-    steps:
-      - name: Print environments
-        run: echo ${{ needs.construct-environments-array.outputs.environmentsjson }}
 
   docker-build-push:
     needs: [get-short-sha, determine-tag-exists, construct-environments-array]
