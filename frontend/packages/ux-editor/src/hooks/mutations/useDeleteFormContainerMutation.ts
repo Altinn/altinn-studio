@@ -29,11 +29,10 @@ export const useDeleteFormContainerMutation = (org: string, app: string, layoutS
           layout.components[componentId]?.type === ComponentType.FileUploadWithTag
         );
       });
-
+      for (const fileUploadComponentId of fileUploadComponentIds) {
+        await deleteAppAttachmentMetadataMutation.mutateAsync(fileUploadComponentId);
+      }
       if (fileUploadComponentIds.length > 0) {
-        fileUploadComponentIds.forEach((fileUploadComponentId) =>
-          deleteAppAttachmentMetadataMutation.mutate(fileUploadComponentId),
-        );
         await updateBpmn(removeDataTypeIdsToSign(fileUploadComponentIds));
       }
 
