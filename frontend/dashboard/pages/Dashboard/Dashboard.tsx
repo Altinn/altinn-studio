@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './Dashboard.module.css';
 import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent } from 'react';
-import { Textfield } from '@digdir/designsystemet-react';
+import { Textfield, Link } from '@digdir/designsystemet-react';
 import { StudioButton } from '@studio/components';
 import { XMarkIcon } from '@studio/icons';
 import { useDebounce } from '@studio/hooks';
@@ -12,8 +12,7 @@ import { OrgReposList } from '../../components/OrgRepoList';
 import { SearchResultReposList } from '../../components/SearchResultReposList';
 import { FavoriteReposList } from '../../components/FavoriteReposList';
 import { Footer } from '../../components/Footer';
-import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { ErrorBoundary } from 'react-error-boundary';
 import type { User } from 'app-shared/types/Repository';
 import type { Organization } from 'app-shared/types/Organization';
@@ -71,7 +70,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
               )}
             </div>
             <Link
-              to={'/' + selectedContext + '/new'}
+              href={'/' + selectedContext + '/new'}
               className={classes.newLink}
               onMouseEnter={handleNewLinkFocus}
               onMouseLeave={handleNewLinkFocusOut}
@@ -95,7 +94,14 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                   <SafeErrorView
                     heading={t('dashboard.favourites')}
                     title={t('dashboard.view_favorites_error_title')}
-                    message={t('dashboard.view_table_error_message')}
+                    message={
+                      <Trans
+                        i18nKey={'dashboard.view_table_error_message'}
+                        components={{
+                          a: <Link href='/contact'> </Link>,
+                        }}
+                      ></Trans>
+                    }
                   />
                 }
               >
@@ -107,7 +113,15 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                     <SafeErrorView
                       heading={t('dashboard.all_apps')}
                       title={t('dashboard.view_apps_error_title')}
-                      message={t('dashboard.view_table_error_message')}
+                      message={
+                        <Trans
+                          aria-disabled={true}
+                          i18nKey={'dashboard.view_table_error_message'}
+                          components={{
+                            a: <Link href='/contact'> </Link>,
+                          }}
+                        ></Trans>
+                      }
                     />
                   }
                 >
@@ -119,7 +133,15 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                   <SafeErrorView
                     heading={t('dashboard.all_data_models')}
                     title={t('dashboard.view_data_models_error_title')}
-                    message={t('dashboard.view_table_error_message')}
+                    message={
+                      <Trans
+                        aria-disabled={true}
+                        i18nKey={'dashboard.view_table_error_message'}
+                        components={{
+                          a: <Link href='/contact'> </Link>,
+                        }}
+                      ></Trans>
+                    }
                   />
                 }
               >
@@ -131,7 +153,14 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                     <SafeErrorView
                       heading={t('dashboard.all_resources')}
                       title={t('dashboard.view_resources_error_title')}
-                      message={t('dashboard.view_table_error_message')}
+                      message={
+                        <Trans
+                          i18nKey={'dashboard.view_table_error_message'}
+                          components={{
+                            a: <Link href='/contact'> </Link>,
+                          }}
+                        ></Trans>
+                      }
                     />
                   }
                 >

@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 export type SafeErrorViewProps = {
   heading?: string;
   title: string;
-  message: string;
+  message: string | React.ReactElement;
 };
 
 export const SafeErrorView = ({
