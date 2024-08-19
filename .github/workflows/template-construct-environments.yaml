@@ -1,0 +1,26 @@
+name: Calculate short sha
+
+on:
+  workflow_call:
+    inputs:
+      environments:
+        required: true
+        type: string
+        default: 'dev'
+    outputs:
+      short-sha:
+        description: "Short sha commit"
+        value: ${{ jobs.construct-environments-array.outputs.environmentsjson }}
+
+jobs:
+  construct-environments-array:
+    runs-on: ubuntu-latest
+    outputs:
+      environmentsjson: ${{ steps.construct-enviornments.outputs.environmentsjson }}
+    steps:
+      - name: Construct environment
+        id: construct-enviornments
+        run: |
+          environments="${{ inputs.environments }}"
+          jsonArray=$(echo "[\"$(echo $environments | sed 's/,/\",\"/g')\"]")
+          echo "environmentsjson=${jsonArray}" >> $GITHUB_OUTPUT

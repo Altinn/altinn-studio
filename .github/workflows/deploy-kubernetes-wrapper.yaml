@@ -35,22 +35,70 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
-      - name: Set up Azure CLI
+      - name: Determine tag exists
+        id: determine-tag-exists
         uses: azure/CLI@v2
         with:
           azcliversion: latest
           inlineScript: |
             SHORT_SHA=${{ needs.get-short-sha.outputs.short-sha }}
             exists_tag=$(az acr repository show-tags --name altinntjenestercontainerregistry --repository altinn-kuberneteswrapper --query "[?contains(@, '$SHORT_SHA')]" --output tsv)
-            echo "tag-exists=$exists_tag"
-            echo "tag-exists=$exists_tag" >> $GITHUB_OUTPUT
+            if [ -z "$exists_tag" ]; then
+              echo "tag-exists=false" >> $GITHUB_OUTPUT
+            else
+              echo "tag-exists=true" >> $GITHUB_OUTPUT
+            fi
 
-      # - name: Determine tag exists
-      #   id: determine-tag-exists
-      #   run: |
-      #     SHORT_SHA=${{ needs.get-short-sha.outputs.short-sha }}
-      #     exists_tag=$(az acr repository show-tags --name altinntjenestercontainerregistry --repository altinn-kuberneteswrapper --query "[?contains(@, '$SHORT_SHA')]" --output tsv)
-      #     echo "tag-exists=$exists_tag"
-      #     echo "tag-exists=$exists_tag" >> $GITHUB_OUTPUT
+  construct-environments-array:
+    needs: [get-short-sha, determine-tag-exists]
+    condition: ${{ needs.determine-tag-exists.outputs.tag-exists == 'true' }}
+    uses: ./.github/workflows/template-construct-environments.yaml
+    with:
+      environments: ${{ github.event.inputs.environments || 'staging,prod' }}
 
+  docker-build-push:
+    needs: [get-short-sha, determine-tag-exists, construct-environments-array]
+    uses: ./.github/workflows/template-docker-push.yaml
+    with:
+      tags: ${{ needs.get-short-sha.outputs.short-sha }},latest
+      registry-name: altinntjenestercontainerregistry.azurecr.io
+      repository-name: altinn-core
+      environment: dev # dev environment has push access and doesn't require review
+      checkout-repository: 'Altinn/app-kubernetes-wrapper'
+      dockerfile: src/KubernetesWrapper/Dockerfile
+    secrets:
+      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+  helm-push:
+    needs: [get-short-sha, determine-tag-exists, construct-environments-array]
+    uses: ./.github/workflows/template-helm-push.yaml
+    with:
+      tag: 0.1.0+${{ needs.get-short-sha.outputs.short-sha }} # Helm version needs to be valid sematic version
+      chart-name: kuberneteswrapper
+      registry-name: altinntjenestercontainerregistry.azurecr.io
+      environment: dev
+    secrets:
+      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+  flux-config-push:
+    needs: [get-short-sha, determine-tag-exists, construct-environments-array]
+    strategy:
+      matrix:
+        environment: ${{ fromJSON(needs.construct-environments-array.outputs.environmentsjson) }}
+    uses: ./.github/workflows/template-flux-config-push.yaml
+    with:
+      tag: ${{ needs.get-short-sha.outputs.short-sha }}
+      registry-name: altinntjenestercontainerregistry.azurecr.io
+      environment: ${{ matrix.environment }}
+      config-chart-name: kuberneteswrapper-config
+      artifact-name: kuberneteswrapper
+      helm-set-arguments: environmentName=${{ matrix.environment }},chartVersion=0.1.0+${{ needs.get-short-sha.outputs.short-sha }},imageTag=${{ needs.get-short-sha.outputs.short-sha }}
+    secrets:
+      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
