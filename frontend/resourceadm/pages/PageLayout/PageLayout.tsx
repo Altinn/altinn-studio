@@ -103,12 +103,10 @@ const ResourceadmHeader = () => {
 };
 
 // TODO MOVE
-// TODO - Use AppUserProfileMenu?
 const HeaderMenuTODOMoveAndRename = () => {
   const { t } = useTranslation();
   const shouldResizeWindow = useMediaQuery(`(max-width: ${WINDOW_RESIZE_WIDTH}px)`);
   const { org: selectedContext = SelectedContextType.Self } = useUrlParams();
-  console.log('SELECTED CONTEXT', selectedContext);
 
   const { user, selectableOrgs } = useContext(HeaderContext);
   const navigate = useNavigate();

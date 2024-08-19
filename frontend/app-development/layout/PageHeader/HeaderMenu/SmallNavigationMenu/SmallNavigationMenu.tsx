@@ -52,14 +52,10 @@ export const SmallNavigationMenu = ({
                     key={name}
                     asChild
                     className={
-                      getRouterRouteByPathname(link) === currentRoutePath ? classes.activeSmall : ''
+                      getRouterRouteByPathname(link) === currentRoutePath ? classes.active : ''
                     }
                   >
-                    <NavLink
-                      to={link}
-                      className={({ isActive }) => (isActive ? classes.activeSmall : '')}
-                      onClick={handleClose}
-                    >
+                    <NavLink to={link} onClick={handleClose}>
                       {t(name)}
                     </NavLink>
                   </DropdownMenu.Item>

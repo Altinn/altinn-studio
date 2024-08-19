@@ -4,22 +4,22 @@ import { Divider, DropdownMenu } from '@digdir/designsystemet-react';
 import { StudioPageHeaderButton } from '../StudioPageHeader';
 import { type StudioPageHeaderColor } from '../StudioPageHeader/types/StudioPageHeaderColor';
 
-export interface StudioProfileMenuItemButton {
+export type StudioProfileMenuItemButton = {
   type: 'button';
   onClick: () => void;
-}
+};
 
-export interface StudioProfileMenuItemLink {
+export type StudioProfileMenuItemLink = {
   type: 'link';
   href: string;
-}
+};
 
-export interface StudioProfileMenuItem {
+export type StudioProfileMenuItem = {
   action: StudioProfileMenuItemButton | StudioProfileMenuItemLink;
   itemName: string;
   isActive?: boolean;
   hasDivider?: boolean; // TODO - Does this make sense? Any easier way?
-}
+};
 
 export type StudioProfileMenuProps = {
   triggerButtonText?: string;
@@ -67,6 +67,7 @@ export const StudioProfileMenu = ({
                 <DropdownMenu.Item
                   key={item.itemName}
                   onClick={() => handleClickMenuItemButton(item)}
+                  className={item.isActive ? classes.selected : undefined}
                 >
                   {item.itemName}
                 </DropdownMenu.Item>

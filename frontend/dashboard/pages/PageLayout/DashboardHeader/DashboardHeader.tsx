@@ -39,21 +39,18 @@ export const DashboardHeader = () => {
       <StudioPageHeader.Main>
         <StudioPageHeader.Left title={pageHeaderTitle} />
         <StudioPageHeader.Right>
-          <HeaderMenuTODOMoveAndRename />
+          <DashboardHeaderMenu />
         </StudioPageHeader.Right>
       </StudioPageHeader.Main>
     </StudioPageHeader>
   );
 };
 
-// TODO MOVE
-// TODO - Use AppUserProfileMenu?
-const HeaderMenuTODOMoveAndRename = () => {
+const DashboardHeaderMenu = () => {
   const { t } = useTranslation();
   const shouldResizeWindow = useMediaQuery(`(max-width: ${WINDOW_RESIZE_WIDTH}px)`);
 
   const selectedContext = useSelectedContext();
-  console.log('SELECTED CONTEXT', selectedContext);
 
   const { user, selectableOrgs } = useContext(HeaderContext);
   const navigate = useNavigate();
@@ -92,18 +89,21 @@ const HeaderMenuTODOMoveAndRename = () => {
   const allMenuItem: StudioProfileMenuItem = {
     action: { type: 'button', onClick: () => handleSetSelectedContext(SelectedContextType.All) },
     itemName: t('shared.header_all'),
+    isActive: selectedContext === SelectedContextType.All,
   };
 
   const selectableOrgMenuItems: StudioProfileMenuItem[] =
     selectableOrgs?.map((selectableOrg: Organization) => ({
       action: { type: 'button', onClick: () => handleSetSelectedContext(selectableOrg.username) },
       itemName: selectableOrg?.full_name || selectableOrg.username,
+      isActive: selectedContext === selectableOrg.username,
     })) ?? [];
 
   const selfMenuItem: StudioProfileMenuItem = {
     action: { type: 'button', onClick: () => handleSetSelectedContext(SelectedContextType.Self) },
     itemName: user?.full_name || user?.login,
     hasDivider: true,
+    isActive: selectedContext === SelectedContextType.Self,
   };
 
   const giteaMenuItem: StudioProfileMenuItem = {
@@ -138,7 +138,6 @@ const HeaderMenuTODOMoveAndRename = () => {
           }
         />
       }
-      // TODO - Selected?? Should we have a prop for selected to show which "page" on dashboard we are on?
       profileMenuItems={[
         allMenuItem,
         ...selectableOrgMenuItems,

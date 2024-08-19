@@ -5,6 +5,7 @@ import { DigdirLogoLink } from './DigdirLogoLink';
 import { type StudioPageHeaderVariant } from './types/StudioPageHeaderVariant';
 import { StudioPageHeaderContextProvider, useStudioPageHeaderContext } from './context';
 
+// TODO - Should we split this file into smaller files?
 export type StudioPageHeaderProps = {
   children: ReactNode;
   variant?: StudioPageHeaderVariant;
@@ -23,19 +24,15 @@ export const StudioPageHeader = ({
   );
 };
 
-export type StudioPageHeaderWrapperProps = {
-  children: ReactNode;
+export type StudioPageHeaderComponentProps = {
+  children?: ReactNode;
 };
 
 export const StudioPageHeaderMain = ({
   children,
-}: StudioPageHeaderWrapperProps): React.ReactElement => {
+}: StudioPageHeaderComponentProps): React.ReactElement => {
   const { variant } = useStudioPageHeaderContext();
   return <div className={cn(classes.main, classes[variant])}>{children}</div>;
-};
-
-export type StudioPageHeaderComponentProps = {
-  children?: ReactNode;
 };
 
 export type StudioPageHeaderLeftProps = {
@@ -65,31 +62,8 @@ export const StudioPageHeaderRight = ({
 
 export const StudioPageHeaderSub = ({
   children,
-}: StudioPageHeaderWrapperProps): React.ReactElement => {
+}: StudioPageHeaderComponentProps): React.ReactElement => {
   const { variant } = useStudioPageHeaderContext();
 
   return <div className={cn(classes.sub, classes[`${variant}Sub`])}>{children}</div>;
 };
-
-// Need to create
-// - StudioProfileMenu
-// - StudioNavigationButton
-// - StudioNavigation
-
-// Need to make mdx and stories file etc.
-// Need to split the code above into separate files
-// Need to style header differently based on if center is present or not.
-// - Always keep logo and profile out on the sides
-
-/*
-<StudioPageHeader>
-   <StudioPageHeader.Main>
-      <StudioPageHeader.Left />
-      <StudioPageHeader.Center />
-      <StudioPageHeader.Right />
-   </StudioPageHeader.Main>
-   <StudioPageHeader.Sub>
-      Sub header komponent kommer inn her
-   </StudioPageHeader.Sub>
-</StudioPageHeader>
-*/
