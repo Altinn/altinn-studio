@@ -11,18 +11,21 @@ using PsA3Forms.Clients;
 using PsA3Forms.DTOs;
 using Altinn.App.logic;
 using Altinn.App.Core.Features.Payment;
-using Altinn.App.Custom.Payment;
+using Altinn.Codelists.SSB.Extensions;
+using Altinn.Codelists.SSB.Models;
 using Microsoft.Extensions.Hosting;
 
 
 void RegisterCustomAppServices(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
 {
     // Register your apps custom service implementations here.
-    services.AddTransient<IAppOptionsProvider, CountryAppOptionsProvider>();
     services.AddHttpClient<ICountryClient, CountryClient>();
     services.AddTransient<TrademarkSearchResultDTO, TrademarkSearchResultDTO>();
     services.AddTransient<IDataProcessor, DataProcessor>();
     services.AddTransient<IOrderDetailsCalculator, OrderDetailsCalculator>(); //Vi kunne hatt en standardimplementasjon av denne i library som leser en fastpris fra et bestemt sted.
+    
+    // services.AddTransient<IAppOptionsProvider, CountryAppOptionsProvider>();
+    services.AddSSBClassificationCodelistProvider("countries", Classification.Countries);
 }
 
 // ###########################################################################

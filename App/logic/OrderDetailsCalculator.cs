@@ -11,7 +11,7 @@ using Altinn.App.Core.Models;
 using Altinn.App.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
-namespace Altinn.App.Custom.Payment;
+namespace Altinn.App.logic;
 
 /// <summary>
 /// Calculating order details for payment
@@ -39,7 +39,53 @@ public class OrderDetailsCalculator : IOrderDetailsCalculator
                 })
             .ToList() : [];
 
-        return new OrderDetails { PaymentProcessorId = "Fake Payment Processor", Currency = "NOK", OrderLines = paymentOrderLines, Receiver = GetReceiverDetails()};
+        return new OrderDetails { PaymentProcessorId = "Nets Easy", Currency = "NOK", OrderLines = paymentOrderLines, Receiver = GetReceiverDetails(), Payer = GetPayerDetails(formData)};
+    }
+
+    private Payer? GetPayerDetails(Form? formData)
+    {
+        if (formData?.ContactInformation == null || formData.Company == null)
+        {
+            return null;
+        }
+        
+        ContactInformation contactInformation = formData.ContactInformation;
+        Company company = formData.Company;
+        CompanyProperties? companyProperties = company.CompanyProperties.FirstOrDefault();
+
+        if(companyProperties == null)
+        {
+            return null;
+        }
+        
+        var payer = new Payer
+        {
+            PrivatePerson = new PayerPrivatePerson
+            {
+                Email = contactInformation.Email,
+                PhoneNumber = ExtractPhoneNumber(contactInformation.PhoneNumber),
+                FirstName = companyProperties.FirstName,
+                LastName = companyProperties.LastName
+            },
+            BillingAddress = new Address
+            {
+                Name = companyProperties.CompanyName,
+                AddressLine1 = companyProperties.StreetAddress,
+                PostalCode = companyProperties.ZipCode,
+                City = companyProperties.City,
+                Country = companyProperties.Country
+            },
+            ShippingAddress = new Address
+            {
+                Name = companyProperties.CompanyName,
+                AddressLine1 = companyProperties.StreetAddress,
+                PostalCode = companyProperties.ZipCode,
+                City = companyProperties.City,
+                Country = companyProperties.Country
+            }
+        };
+
+        return payer;
     }
 
     private async Task<Form> GetFormData(Instance instance)
@@ -79,6 +125,18 @@ public class OrderDetailsCalculator : IOrderDetailsCalculator
                 City = "Oslo",
                 Country = "Norway",
             }
+        };
+    }
+    
+    public static PhoneNumber ExtractPhoneNumber(string fullPhoneNumber)
+    {
+        string prefix = fullPhoneNumber.Substring(0, 3);
+        string number = fullPhoneNumber.Substring(3);
+
+        return new PhoneNumber
+        {
+            Prefix = prefix,
+            Number = number
         };
     }
 }
