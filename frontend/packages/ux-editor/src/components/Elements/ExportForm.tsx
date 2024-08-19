@@ -1,7 +1,7 @@
 import React from 'react';
 import { StudioButton } from '@studio/components';
 import { useAppContext } from '../../hooks';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { useOptionListsQuery } from '../../hooks/queries/useOptionListsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
@@ -9,7 +9,7 @@ import { generateExportFormFormat } from '../../utils/exportUtils';
 import { useFormLayoutSettingsQuery } from '@altinn/ux-editor/hooks/queries/useFormLayoutSettingsQuery';
 
 export const ExportForm = () => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
   const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
   const { data: optionLists } = useOptionListsQuery(org, app);
