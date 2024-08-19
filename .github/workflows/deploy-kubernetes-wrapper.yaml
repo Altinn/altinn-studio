@@ -28,15 +28,17 @@ jobs:
     outputs:
       tag-exists: ${{ steps.determine-tag-exists.outputs.tag-exists }}
     steps:
-      - name: Set up Azure CLI
-        uses: azure/CLI@v2
-
       - name: 'Azure login'
         uses: azure/login@v2
         with:
             client-id: ${{ secrets.client-id }}
             tenant-id: ${{ secrets.tenant-id }}
             subscription-id: ${{ secrets.subscription-id }}
+
+      - name: Set up Azure CLI
+        uses: azure/CLI@v2
+        with:
+          azcliversion: latest
 
       - name: Determine tag exists
         id: determine-tag-exists
