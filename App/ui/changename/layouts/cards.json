@@ -89,6 +89,155 @@
         ]
       },
       {
+        "id": "number1",
+        "type": "Number",
+        "textResourceBindings": {
+          "title": "Total gjeld"
+        },
+        "value": ["dataModel","GridData.TotalGjeld"],
+        "direction": "horizontal",
+        "formatting": {
+          "currency": "NOK",
+          "position": "suffix",
+          "number": {
+            "thousandSeparator": " "
+          }
+        },
+        "grid": {
+          "xs": 12
+        }
+      },
+      {
+        "id": "number2",
+        "type": "Number",
+        "textResourceBindings": {
+          "title": "Statisk verdi som tall"
+        },
+        "value": 2000,
+        "direction": "horizontal",
+        "formatting": {
+          "currency": "NOK",
+          "position": "suffix",
+          "number": {
+            "thousandSeparator": " "
+          }
+        },
+        "grid": {
+          "xs": 12
+        }
+      },
+      {
+        "id": "number3",
+        "type": "Number",
+        "textResourceBindings": {
+          "title": "Kredittkort prosent",
+          "description": "",
+          "helpText": ""
+        },
+        "value": ["dataModel","GridData.Kredittkort.Prosent"],
+        "direction": "horizontal",
+        "formatting": {
+          "unit": "percent",
+          "position": "suffix",
+          "number": {
+            "thousandSeparator": " "
+          }
+        },
+        "grid": {
+          "xs": 12
+        }
+      },
+      {
+        "id": "number4",
+        "type": "Number",
+        "textResourceBindings": {
+          "title": "Statisk verdi med desimal",
+          "description": "Dette er en beskrivelse",
+          "help":"Dette er en helptext"
+        },
+        "value": 20000.20,
+        "direction": "horizontal",
+        "formatting": {
+          "currency": "NOK",
+          "position": "suffix",
+          "number": {
+            "thousandSeparator": " "
+          }
+        },
+        "grid": {
+          "xs": 12
+        }
+      },
+      {
+        "type": "Cards",
+        "id": "number-Card",
+        "color": "subtle",
+        "cards": [
+          {
+            "title": "Nummer kort",
+            "description": "",
+            "children": ["number1", "number2", "number3", "number4"]
+          }
+        ]
+      },
+      {
+        "id": "text1",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Fornavn"
+        },
+        "value": ["dataModel","GridData.TotalGjeld"],
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "text2",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Etternavn"
+        },
+        "value": "Mitt etternavn",
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "text3",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Adresse"
+        },
+        "value": "Min adresse",
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "text4",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Tekst"
+        },
+        "value": "Test",
+        "direction": "vertical",
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "type": "Cards",
+        "id": "text-Card",
+        "color": "subtle",
+        "cards": [
+          {
+            "title": "Tekst kort",
+            "description": "",
+            "children": ["text1", "text2", "text3", "text4"]
+          }
+        ]
+      },
+      {
         "id": "cardsNavigate",
         "type": "NavigationButtons",
         "textResourceBindings": {
