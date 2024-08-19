@@ -32,7 +32,7 @@ describe('SafeErrorView', () => {
     const title = screen.getByRole('heading', { name: safeErrorViewProps.title, level: 3 });
     expect(title).toBeInTheDocument();
 
-    const alertMessage = screen.getByText(safeErrorViewProps.message);
+    const alertMessage = screen.getByText('Some unexpected happen when loading users');
     expect(alertMessage).toBeInTheDocument();
 
     expect(screen.getByRole('button', { name: textMock('general.reload') })).toBeInTheDocument();
