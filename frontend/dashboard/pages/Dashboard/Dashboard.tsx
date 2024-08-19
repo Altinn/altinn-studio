@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import classes from './Dashboard.module.css';
 import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent } from 'react';
-import { Textfield /* Link */ } from '@digdir/designsystemet-react';
-import { Link } from 'react-router-dom';
+import { Textfield, Link } from '@digdir/designsystemet-react';
 import { StudioButton } from '@studio/components';
 import { XMarkIcon } from '@studio/icons';
 import { useDebounce } from '@studio/hooks';
@@ -71,7 +70,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
               )}
             </div>
             <Link
-              to={'/' + selectedContext + '/new'}
+              href={'/' + selectedContext + '/new'}
               className={classes.newLink}
               onMouseEnter={handleNewLinkFocus}
               onMouseLeave={handleNewLinkFocusOut}
@@ -99,7 +98,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                       <Trans
                         i18nKey={'dashboard.view_table_error_message'}
                         components={{
-                          a: <Link to='/contact'> </Link>,
+                          a: <Link href='/contact'> </Link>,
                         }}
                       ></Trans>
                     }
@@ -119,7 +118,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                           aria-disabled={true}
                           i18nKey={'dashboard.view_table_error_message'}
                           components={{
-                            a: <Link to='/contact'> </Link>,
+                            a: <Link href='/contact'> </Link>,
                           }}
                         ></Trans>
                       }
@@ -139,7 +138,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                         aria-disabled={true}
                         i18nKey={'dashboard.view_table_error_message'}
                         components={{
-                          a: <Link to='/contact'> </Link>,
+                          a: <Link href='/contact'> </Link>,
                         }}
                       ></Trans>
                     }
@@ -158,7 +157,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                         <Trans
                           i18nKey={'dashboard.view_table_error_message'}
                           components={{
-                            a: <Link to='/contact'> </Link>,
+                            a: <Link href='/contact'> </Link>,
                           }}
                         ></Trans>
                       }
