@@ -7,7 +7,7 @@ import type { ComponentIdsChange } from 'app-shared/types/api/FormLayoutRequest'
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useUpdateBpmn } from 'app-shared/hooks/useUpdateBpmn';
 import { removeDataTypeIdsToSign } from 'app-shared/utils/bpmnUtils';
-import { getAllDescendants } from '../../utils/formLayoutUtils';
+import { getAllDescendants, getAllFormItemIds } from '../../utils/formLayoutUtils';
 import { useDeleteAppAttachmentMetadataMutation } from '../../hooks/mutations/useDeleteAppAttachmentMetadataMutation';
 
 export const useDeleteFormContainerMutation = (org: string, app: string, layoutSetName: string) => {
@@ -21,7 +21,7 @@ export const useDeleteFormContainerMutation = (org: string, app: string, layoutS
       const componentIdsChange: ComponentIdsChange = [];
 
       const childrenFormItemIds = getAllDescendants(layout, id);
-      const allFormItemIds = Object.keys(layout.components).concat(Object.keys(layout.containers));
+      const allFormItemIds = getAllFormItemIds(layout);
 
       const fileUploadComponentIds = childrenFormItemIds.filter((componentId) => {
         return (

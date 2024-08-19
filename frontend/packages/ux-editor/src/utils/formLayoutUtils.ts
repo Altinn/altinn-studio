@@ -482,3 +482,6 @@ export const getDuplicatedIds = (layout: IInternalLayout): string[] => {
   const uniqueDuplicatedIds = Array.from(new Set(duplicatedIds));
   return uniqueDuplicatedIds;
 };
+
+export const getAllFormItemIds = (layout: IInternalLayout): string[] =>
+  flattenObjectValues(layout.order);
