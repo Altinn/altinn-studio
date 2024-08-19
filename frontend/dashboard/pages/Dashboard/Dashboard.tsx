@@ -70,7 +70,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
               )}
             </div>
             <Link
-              href={'/' + selectedContext + '/new'}
+              href={'/dashboard/' + selectedContext + '/new'}
               className={classes.newLink}
               onMouseEnter={handleNewLinkFocus}
               onMouseLeave={handleNewLinkFocusOut}
@@ -115,7 +115,6 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                       title={t('dashboard.view_apps_error_title')}
                       message={
                         <Trans
-                          aria-disabled={true}
                           i18nKey={'dashboard.view_table_error_message'}
                           components={{
                             a: <Link href='/contact'> </Link>,
@@ -135,7 +134,6 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                     title={t('dashboard.view_data_models_error_title')}
                     message={
                       <Trans
-                        aria-disabled={true}
                         i18nKey={'dashboard.view_table_error_message'}
                         components={{
                           a: <Link href='/contact'> </Link>,
