@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using LibGit2Sharp;
+using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -47,8 +47,7 @@ public class OptionsService : IOptionsService
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
         string optionsListString = await altinnAppGitRepository.GetOptionsList(optionsListId, cancellationToken);
-        var optionsList = JsonSerializer.Deserialize<List<Option>>(optionsListString);
-
+        var optionsList = JsonConvert.DeserializeObject<List<Option>>(optionsListString);
         return optionsList;
     }
 
@@ -58,11 +57,10 @@ public class OptionsService : IOptionsService
         cancellationToken.ThrowIfCancellationRequested();
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-        var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
-        string payloadString = JsonSerializer.Serialize(payload, jsonOptions);
+        string payloadString = JsonConvert.SerializeObject(payload, Formatting.Indented);
 
         string updatedOptionsString = await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, payloadString, cancellationToken);
-        var updatedOptions = JsonSerializer.Deserialize<List<Option>>(updatedOptionsString);
+        var updatedOptions = JsonConvert.DeserializeObject<List<Option>>(updatedOptionsString);
 
         return updatedOptions;
     }

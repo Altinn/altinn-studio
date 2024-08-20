@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -19,16 +20,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
     {
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly IApplicationMetadataService _applicationMetadataService;
+        private readonly IOptionsService _optionsService;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
         /// <param name="applicationMetadataService">IApplicationMetadataService</param>
-        public TextsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IApplicationMetadataService applicationMetadataService)
+        /// <param name="optionsService">IOptionsService</param>
+        public TextsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IApplicationMetadataService applicationMetadataService, IOptionsService optionsService)
         {
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _applicationMetadataService = applicationMetadataService;
+            _optionsService = optionsService;
         }
 
         public async Task CreateLanguageResources(string org, string repo, string developer)
@@ -299,11 +303,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     await UpdateKeysInLayoutsInLayoutSet(org, app, developer, layoutSetName, keyMutations);
                 }
-
-                return;
+            }
+            else
+            {
+                await UpdateKeysInLayoutsInLayoutSet(org, app, developer, null, keyMutations);
             }
 
-            await UpdateKeysInLayoutsInLayoutSet(org, app, developer, null, keyMutations);
+            await UpdateKeysInOptionLists(org, app, developer, keyMutations);
         }
 
         /// <summary>
@@ -331,9 +337,50 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     {
                         layoutObject["textResourceBindings"] = UpdateKey(layoutObject["textResourceBindings"], mutation);
                     }
+                    foreach (TextIdMutation mutation in keyMutations.Where(_ => layoutObject["options"] is not null))
+                    {
+                        var options = JsonConvert.DeserializeObject<List<Option>>(layoutObject["options"].ToJsonString());
+                        List<Option> updatedOptions = UpdateOptionsKeys(options, mutation);
+                        string json = JsonConvert.SerializeObject(updatedOptions);
+                        layoutObject["options"] = JsonNode.Parse(json);
+                    }
                 }
                 await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, layout);
             }
+        }
+
+        private async Task UpdateKeysInOptionLists(string org, string app, string developer, List<TextIdMutation> keyMutations)
+        {
+            string[] codelists = _optionsService.GetOptionsListIds(org, app, developer);
+            foreach (string codeListId in codelists)
+            {
+                List<Option> options = await _optionsService.GetOptionsList(org, app, developer, codeListId);
+                foreach (TextIdMutation mutation in keyMutations)
+                {
+                    options = UpdateOptionsKeys(options, mutation);
+                }
+                await _optionsService.CreateOrOverwriteOptionsList(org, app, developer, codeListId, options);
+            }
+        }
+
+        private static List<Option> UpdateOptionsKeys(List<Option> options, TextIdMutation keyMutation)
+        {
+            foreach (Option option in options)
+            {
+                if (option.Label == keyMutation.OldId && keyMutation.NewId.HasValue)
+                {
+                    option.Label = keyMutation.NewId.Value;
+                }
+                if (option.Description == keyMutation.OldId && keyMutation.NewId.HasValue)
+                {
+                    option.Description = keyMutation.NewId.Value;
+                }
+                if (option.HelpText == keyMutation.OldId && keyMutation.NewId.HasValue)
+                {
+                    option.HelpText = keyMutation.NewId.Value;
+                }
+            }
+            return options;
         }
 
         private static JsonNode UpdateKey(JsonNode textResourceBindings, TextIdMutation keyMutation)
