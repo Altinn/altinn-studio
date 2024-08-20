@@ -29,36 +29,41 @@ export const SingleValueSummary = ({
   isCompact,
 }: SingleValueSummaryProps) => (
   <div
-    className={classes.inputSummaryItem}
+    className={classes.summaryItemWrapper}
     data-testid={'summary-single-value-component'}
   >
-    <div className={cn(classes.labelValueWrapper, isCompact && classes.compact)}>
-      <Label weight={'regular'}>
-        {title}
-        {!!title?.toString()?.length && isCompact && ':'}
-      </Label>
-      <Paragraph
-        asChild
-        className={cn({
-          [classes.error]: errors && errors?.length > 0,
-          [classes.emptyValue]: !displayData,
-          [classes.formValue]: displayData,
-          [classes.multiline]: multiline,
-        })}
-      >
-        <span>
-          {!displayData && <Lang id={'general.empty_summary'} />}
-          {displayData}
-        </span>
-      </Paragraph>
+    <div className={classes.summaryItem}>
+      <div className={cn(classes.labelValueWrapper, isCompact && classes.compact)}>
+        <Label weight={'regular'}>
+          {title}
+          {!!title?.toString()?.length && isCompact && ':'}
+        </Label>
+        <Paragraph
+          asChild
+          className={cn(
+            {
+              [classes.error]: errors && errors?.length > 0,
+              [classes.emptyValue]: !displayData,
+              [classes.formValue]: displayData,
+              [classes.multiline]: multiline,
+            },
+            classes.summaryValue,
+          )}
+        >
+          <span>
+            {!displayData && <Lang id={'general.empty_summary'} />}
+            {displayData}
+          </span>
+        </Paragraph>
+      </div>
+      {!hideEditButton && (
+        <EditButton
+          className={classes.editButton}
+          componentNode={componentNode}
+          summaryComponentId={componentNode.item.id}
+        />
+      )}
     </div>
-    {!hideEditButton && (
-      <EditButton
-        className={classes.editButton}
-        componentNode={componentNode}
-        summaryComponentId={componentNode.item.id}
-      />
-    )}
 
     {errors &&
       errors?.length > 0 &&

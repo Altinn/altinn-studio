@@ -25,10 +25,16 @@
   border-bottom: var(--fds-semantic-border-danger-default) solid 2px;
 }
 
-.checkboxSummaryItem {
+.summaryItemWrapper {
   display: flex;
   align-items: flex-start;
   flex-direction: row;
+}
+
+.summaryItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-2);
 }
 
 .editButton {
