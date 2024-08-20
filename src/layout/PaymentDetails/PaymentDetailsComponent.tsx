@@ -20,6 +20,11 @@ export function PaymentDetailsComponent({ node }: IPaymentDetailsProps) {
   const mappedValues = FD.useMapping(mapping);
   const prevMappedValues = useRef<Record<string, unknown>>(mappedValues);
 
+  // refetch data on mount by invalidating cache as the first fetch is done by the formPrefetcher
+  useEffect(() => {
+    refetchOrderDetails();
+  }, [refetchOrderDetails]);
+
   useEffect(() => {
     if (!hasUnsavedChanges && mapping && !deepEqual(prevMappedValues.current, mappedValues)) {
       refetchOrderDetails();
