@@ -37,7 +37,7 @@ export function DeployPage() {
   if (orgsIsError || permissionsIsError)
     return (
       <div className={classes.alert}>
-        <StudioError>{t('app_deployment.error')}</StudioError>
+        <StudioError>{t('app_deployment.error')}</StudioError>;
       </div>
     );
 
