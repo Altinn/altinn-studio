@@ -16,14 +16,6 @@ export const NumberComponent = ({ node }: PropsFromGenericComponent<'Number'>) =
   const numberFormatting = getMapToReactNumberConfig(node.item.formatting, value.toString(), currentLanguage);
   const displayData = numberFormatting?.number ? formatNumericText(value.toString(), numberFormatting.number) : value;
 
-  if (icon) {
-    const imgType = icon.split('.').at(-1);
-
-    if (!imgType) {
-      throw new Error('Image source is missing file type. Are you sure the image source is correct?');
-    }
-  }
-
   if (!textResourceBindings?.title) {
     return <span>{displayData}</span>;
   }
