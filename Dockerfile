@@ -63,7 +63,6 @@ COPY --from=generate-studio-frontend /build/frontend/dist/app-development ./wwwr
 COPY --from=generate-studio-frontend /build/frontend/dist/app-preview ./wwwroot/app-preview
 COPY --from=generate-studio-frontend /build/frontend/dist/dashboard ./wwwroot/dashboard
 COPY --from=generate-studio-frontend /build/frontend/dist/resourceadm ./wwwroot/resourceadm
-COPY --from=generate-studio-frontend /build/frontend/dist/language ./wwwroot/lang
 COPY --from=generate-studio-frontend /build/frontend/dist/studio-root ./wwwroot/studio-root
 COPY --from=generate-studio-backend /version/version.json ./wwwroot/version.json
 
