@@ -89,7 +89,7 @@ export function App() {
   if (areLayoutSetsFetched) {
     // If layoutSets are successfully fetched, show layoutSetsSelector and app
     return (
-      <>
+      <div>
         <FormDesignerToolbar />
         {componentHasError && (
           <StudioPageError title={mappedError.title} message={mappedError.message} />
@@ -99,7 +99,10 @@ export function App() {
             <FormDesigner />
           </FormItemContextProvider>
         )}
-      </>
+        {!componentHasError && !componentIsReady && (
+          <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('ux_editor.loading_page')} />
+        )}
+      </div>
     );
   }
 
