@@ -7,7 +7,7 @@ import { CreateRelease } from '../components/CreateRelease';
 import { Release } from '../components/Release';
 import { UploadIcon, CheckmarkIcon } from '@studio/icons';
 import { gitCommitPath } from 'app-shared/api/paths';
-import { StudioSpinner, StudioPopover, StudioParagraph } from '@studio/components';
+import { StudioSpinner, StudioPopover, StudioParagraph, StudioError } from '@studio/components';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { Trans, useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
@@ -15,7 +15,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { Alert, Link } from '@digdir/designsystemet-react';
+import { Link } from '@digdir/designsystemet-react';
 
 export function ReleaseContainer() {
   const { org, app } = useStudioEnvironmentParams();
@@ -76,7 +76,7 @@ export function ReleaseContainer() {
     }
     if (!masterBranchStatus) {
       return (
-        <Alert severity='danger'>
+        <StudioError>
           <StudioParagraph>
             <Trans
               i18nKey={'app_create_release_errors.fetch_release_failed'}
@@ -85,7 +85,7 @@ export function ReleaseContainer() {
               }}
             ></Trans>
           </StudioParagraph>
-        </Alert>
+        </StudioError>
       );
     }
     // Check if latest
