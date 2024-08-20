@@ -31,17 +31,9 @@ jobs:
     uses: ./.github/workflows/template-short-sha.yaml
 
   construct-environments-array:
-    needs: get-short-sha
-    runs-on: ubuntu-latest
-    outputs:
-      environmentsjson: ${{ steps.construct-enviornments.outputs.environmentsjson }}
-    steps:
-      - name: Construct environment
-        id: construct-enviornments
-        run: |
-          environments="${{ github.event.inputs.environments || 'staging,prod' }}"
-          jsonArray=$(echo "[\"$(echo $environments | sed 's/,/\",\"/g')\"]")
-          echo "environmentsjson=${jsonArray}" >> $GITHUB_OUTPUT
+    uses: ./.github/workflows/template-construct-environments.yaml
+    with:
+      environments: ${{ github.event.inputs.environments || 'staging,prod' }}
 
   determine-tag:
     needs: get-short-sha
@@ -55,7 +47,7 @@ jobs:
           if [ "${{ github.ref }}" == "refs/heads/main" ]; then
             echo "tag=${{ needs.get-short-sha.outputs.short-sha }}" >> $GITHUB_OUTPUT
           else
-            sanitized_branch_name=$(echo "${{ github.ref_name }}" | tr '/' '-')
+            sanitized_branch_name=$(echo "${{ github.ref_name }}" | tr -d '()' | tr '/' '-')
             echo "tag=${sanitized_branch_name}-${{ needs.get-short-sha.outputs.short-sha }}" >> $GITHUB_OUTPUT
           fi
 
