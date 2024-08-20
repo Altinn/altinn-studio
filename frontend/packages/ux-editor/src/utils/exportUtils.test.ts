@@ -3,6 +3,8 @@ import type { IFormLayouts } from '../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { ITextResources } from 'app-shared/types/global';
 import type { ExportForm } from '../types/ExportForm';
+import type { FormComponent } from '../types/FormComponent';
+import type { FormContainer } from '../types/FormContainer';
 
 describe('generateExportFormFormat', () => {
   const settings = {
@@ -10,45 +12,63 @@ describe('generateExportFormFormat', () => {
       order: ['page1'],
     },
   };
-  const formLayouts: IFormLayouts = {
-    page1: {
-      components: {
-        component1: {
-          id: 'component1',
-          itemType: 'COMPONENT',
-          type: ComponentType.Input,
-          dataModelBindings: { simpleBinding: 'simpleBinding' },
-          textResourceBindings: {
-            title: 'title1',
-          },
-        },
-        component2: {
-          id: 'component2',
-          itemType: 'COMPONENT',
-          type: ComponentType.RadioButtons,
-          dataModelBindings: { simpleBinding: 'simpleBinding' },
-          textResourceBindings: {
-            title: 'title2',
-          },
-          optionsId: 'optionList1',
-        },
-      },
-      containers: {
-        __base__: {
-          id: '__base__',
-          index: 0,
-          itemType: 'CONTAINER',
-          type: null,
-          pageIndex: null,
-        },
-      },
-      order: {
-        __base__: ['component1', 'component2'],
-      },
-      customDataProperties: {},
-      customRootProperties: {},
+  const component1: FormComponent<ComponentType.Input> = {
+    id: 'component1',
+    itemType: 'COMPONENT',
+    type: ComponentType.Input,
+    dataModelBindings: { simpleBinding: 'simpleBinding' },
+    textResourceBindings: {
+      title: 'title1',
+    },
+    required: true,
+    readOnly: false,
+  };
+
+  const component2: FormComponent<ComponentType.RadioButtons> = {
+    id: 'component2',
+    itemType: 'COMPONENT',
+    type: ComponentType.RadioButtons,
+    dataModelBindings: { simpleBinding: 'simpleBinding' },
+    textResourceBindings: {
+      title: 'title2',
+    },
+    optionsId: 'optionList1',
+    mapping: {
+      test: 'test',
     },
   };
+
+  const baseContainerMock: FormContainer = {
+    id: '__base__',
+    index: 0,
+    itemType: 'CONTAINER',
+    type: null,
+    pageIndex: null,
+  };
+
+  const generateMockInternalFormLayouts = (
+    components: FormComponent[],
+    containers: FormContainer[] = [baseContainerMock],
+  ): IFormLayouts => {
+    return {
+      page1: {
+        components: components.reduce(
+          (acc, component) => ({ ...acc, [component.id]: component }),
+          {},
+        ),
+        containers: containers.reduce(
+          (acc, container) => ({ ...acc, [container.id]: container }),
+          {},
+        ),
+        order: {
+          __base__: components.map((component) => component.id),
+        },
+        customDataProperties: {},
+        customRootProperties: {},
+      },
+    };
+  };
+
   const selectedFormLayoutSetName = 'layout1';
   const app = 'app1';
   const textResources: ITextResources = {
@@ -85,11 +105,11 @@ describe('generateExportFormFormat', () => {
     optionList1: [{ label: 'option1', value: 'option1' }],
   };
   it.each(['nb', 'en'])(
-    'should generate correct export format for specified text resource language',
+    'should generate correct export format for specified default language',
     (language) => {
       const result = generateExportFormFormat(
         settings.pages.order,
-        formLayouts,
+        generateMockInternalFormLayouts([component1, component2]),
         selectedFormLayoutSetName,
         app,
         textResources,
@@ -168,4 +188,112 @@ describe('generateExportFormFormat', () => {
       expect(result).toEqual(expectedExportForm);
     },
   );
+
+  it('should generate correct export format for all languages if no default language is specified', () => {
+    const result = generateExportFormFormat(
+      settings.pages.order,
+      generateMockInternalFormLayouts([component1]),
+      selectedFormLayoutSetName,
+      app,
+      textResources,
+      optionLists,
+      undefined,
+      false,
+    );
+
+    const expectedExportForm: ExportForm = {
+      appId: app,
+      formId: selectedFormLayoutSetName,
+      pages: [
+        {
+          pageId: 'page1',
+          sortOrder: 0,
+          components: [
+            expect.objectContaining({
+              texts: [
+                {
+                  id: 'title1',
+                  type: 'title',
+                  text: [
+                    {
+                      language: 'nb',
+                      value: textResources['nb'].find(
+                        (textResource) => textResource.id === 'title1',
+                      )?.value,
+                    },
+                    {
+                      language: 'en',
+                      value: textResources['en'].find(
+                        (textResource) => textResource.id === 'title1',
+                      )?.value,
+                    },
+                  ],
+                },
+              ],
+            }),
+          ],
+        },
+      ],
+    };
+
+    expect(result).toEqual(expectedExportForm);
+  });
+
+  it('should only include default properties when includeRestProperties is false', () => {
+    const result = generateExportFormFormat(
+      settings.pages.order,
+      generateMockInternalFormLayouts([component1, component2]),
+      selectedFormLayoutSetName,
+      app,
+      textResources,
+      optionLists,
+      'nb',
+      false,
+    );
+
+    expect(result.pages[0].components[0]).not.toHaveProperty('required');
+    expect(result.pages[0].components[0]).not.toHaveProperty('readOnly');
+    expect(result.pages[0].components[1]).not.toHaveProperty('mapping');
+  });
+
+  it('should include all properties when includeRestProperties is true', () => {
+    const result = generateExportFormFormat(
+      settings.pages.order,
+      generateMockInternalFormLayouts([component1, component2]),
+      selectedFormLayoutSetName,
+      app,
+      textResources,
+      optionLists,
+      'nb',
+      true,
+    );
+
+    expect(result.pages[0].components[0]).toHaveProperty('required');
+    expect(result.pages[0].components[0]).toHaveProperty('readOnly');
+    expect(result.pages[0].components[1]).toHaveProperty('mapping');
+  });
+
+  it('should return empty array for text resorce binding if no text resource bindings are set for component', () => {
+    const componentWithoutTextResourceBindings: FormComponent<ComponentType.Input> = {
+      id: 'component1',
+      itemType: 'COMPONENT',
+      type: ComponentType.Input,
+      dataModelBindings: { simpleBinding: 'simpleBinding' },
+      textResourceBindings: {},
+      required: true,
+      readOnly: false,
+    };
+    const result = generateExportFormFormat(
+      settings.pages.order,
+      generateMockInternalFormLayouts([componentWithoutTextResourceBindings]),
+      selectedFormLayoutSetName,
+      app,
+      textResources,
+      optionLists,
+      'nb',
+      true,
+    );
+
+    expect(result.pages[0].components[0].texts).toEqual([]);
+  });
 });
