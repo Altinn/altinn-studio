@@ -25,7 +25,7 @@ const updateBpmn = async (
 
 export const useUpdateBpmn = (org: string, app: string) => {
   const { refetch: refetchBpmn } = useBpmnQuery(org, app, false);
-  const { mutate: mutateBpmn } = useBpmnMutation(org, app);
+  const { mutate: mutateBpmn } = useBpmnMutation(org, app, true);
 
   return async (updateCriteria: (definitions: Definitions) => boolean) => {
     const { data: bpmnXml } = await refetchBpmn();

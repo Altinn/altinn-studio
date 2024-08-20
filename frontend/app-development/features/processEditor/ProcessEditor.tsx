@@ -30,7 +30,11 @@ export const ProcessEditor = (): React.ReactElement => {
   const { data: currentPolicy, isPending: isPendingCurrentPolicy } = useAppPolicyQuery(org, app);
   const { mutate: mutateApplicationPolicy } = useAppPolicyMutation(org, app);
   const { setSettingsModalOpen, setSettingsModalSelectedTab } = useSettingsModalContext();
-  const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
+  const {
+    data: bpmnXml,
+    isError: hasBpmnQueryError,
+    isPending: isBpmnPending,
+  } = useBpmnQuery(org, app);
   const { data: appLibData, isLoading: appLibDataLoading } = useAppVersionQuery(org, app);
   const { mutate: mutateBpmn, isPending: mutateBpmnPending } = useBpmnMutation(org, app);
   const { mutate: mutateLayoutSetId, isPending: mutateLayoutSetIdPending } =
@@ -112,7 +116,7 @@ export const ProcessEditor = (): React.ReactElement => {
     onProcessTaskRemoveHandler.handleOnProcessTaskRemove(taskMetadata);
   };
 
-  if (appLibDataLoading || appMetadataPending) {
+  if (isBpmnPending || appLibDataLoading || appMetadataPending) {
     return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} showSpinnerTitle />;
   }
 
