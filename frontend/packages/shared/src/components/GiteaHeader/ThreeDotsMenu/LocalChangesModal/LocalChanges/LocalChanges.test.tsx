@@ -10,7 +10,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 import { repoDownloadPath } from 'app-shared/api/paths';
 import { app, org } from '@studio/testing/testids';
-import { queriesMock } from "app-shared/mocks/queriesMock";
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -90,11 +90,12 @@ describe('LocalChanges', () => {
 const renderLocalChanges = (
   allQueries: Partial<ServicesContextProps> = queriesMock,
   queryClient: QueryClient = createQueryClientMock(),
-) => render(
-  <ServicesContextProvider {...allQueries} client={queryClient}>
-    <LocalChanges onDelete={onDelete}/>
-  </ServicesContextProvider>
-);
+) =>
+  render(
+    <ServicesContextProvider {...allQueries} client={queryClient}>
+      <LocalChanges onDelete={onDelete} />
+    </ServicesContextProvider>,
+  );
 
 const getDownloadChangedOnlyLink = () => getLink(downloadChangedOnlyLinkName);
 const getDownloadAllLink = () => getLink(downloadAllLinkName);

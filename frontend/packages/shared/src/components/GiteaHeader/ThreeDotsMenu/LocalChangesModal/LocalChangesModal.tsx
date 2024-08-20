@@ -24,7 +24,7 @@ export const LocalChangesModal = ({ triggerClassName }: LocalChangesModalProps):
         heading={t('sync_header.local_changes')}
         ref={dialogRef}
       >
-        <LocalChanges onDelete={closeDialog}/>
+        <LocalChanges onDelete={closeDialog} />
       </StudioModal.Dialog>
     </StudioModal.Root>
   );

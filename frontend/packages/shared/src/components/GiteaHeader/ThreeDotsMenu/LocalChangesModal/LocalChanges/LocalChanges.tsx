@@ -11,7 +11,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 
 export type LocalChangesProps = {
   onDelete: () => void;
-}
+};
 
 export const LocalChanges = ({ onDelete }: LocalChangesProps): ReactNode => {
   const { t } = useTranslation();
