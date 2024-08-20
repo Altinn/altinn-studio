@@ -79,6 +79,7 @@ describe('On Entry', () => {
     // The instance does not actually exist, we pretended it did by mocking
     // the response, so trying to fetch it will fail with a 403
     cy.get(appFrontend.instanceErrorCode).should('have.text', '403 - Forbidden');
+    cy.allowFailureOnEnd();
   });
 
   it('is possible to paginate the instances and select default rows per page', () => {

@@ -1,5 +1,3 @@
-import { v4 as uuidv4 } from 'uuid';
-
 export type ErrorList = { [path: string]: string[] };
 
 export interface PrettyErrorsOptions {
@@ -8,15 +6,10 @@ export interface PrettyErrorsOptions {
   indentation?: number;
 }
 
-export interface PrettyErrorsOptionsStyling {
-  defaultStyle?: string;
-}
-
 interface In {
   obj: any;
   errors: ErrorList;
   path: string[];
-  css: { [unique: string]: { original: string; style: string } } | undefined;
 }
 
 type RecursiveLines = (string | RecursiveLines)[];
@@ -40,29 +33,10 @@ function trimLastTrailingComma(lines: RecursiveLines) {
   }
 }
 
-const cssRegex = /(\{css:[a-f0-9]+})/g;
-
-function style(text: string, style: string, input: In): string {
-  if (input.css !== undefined) {
-    const uuid = `{css:${uuidv4().replaceAll('-', '')}}`;
-    input.css[uuid] = {
-      original: text,
-      style,
-    };
-    return uuid;
-  }
-
-  return text;
-}
-
 function errorLines(input: In): string[] {
   const stringPath = input.path.join('.');
   if (input.errors[stringPath] && input.errors[stringPath].length) {
-    return input.errors[stringPath].map((err) =>
-      [style('→', 'color: red; font-weight: bold;', input), style(err, 'color: red; font-style: italic;', input)].join(
-        ' ',
-      ),
-    );
+    return input.errors[stringPath].map((err) => ['→', err].join(' '));
   }
 
   return [];
@@ -97,7 +71,7 @@ function inline(out: Out): RecursiveLines {
   return newLines;
 }
 
-function appendErrors(input: In, out: Out, lineLength?: number): RecursiveLines {
+function appendErrors(out: Out, lineLength?: number): RecursiveLines {
   const lines: RecursiveLines = [];
   if (out.errors.length) {
     let lastLineLength = lineLength || 1;
@@ -106,7 +80,7 @@ function appendErrors(input: In, out: Out, lineLength?: number): RecursiveLines 
       lastLineLength = trimTrailingComma(out.lines[lastLineIdx] as string).length + (out.inline ? out.start.length : 0);
     }
 
-    lines.push(style('~'.repeat(lastLineLength), 'color: red;', input), ...out.errors);
+    lines.push('~'.repeat(lastLineLength), ...out.errors);
   }
 
   return lines;
@@ -129,7 +103,7 @@ function postProcessObjectLike(input: In, results: Out[], out: Omit<Out, 'lines'
     if (parseInt(idx) === results.length - 1) {
       trimLastTrailingComma(newLines);
     }
-    newLines.push(...appendErrors(input, result, fixedErrorLength));
+    newLines.push(...appendErrors(result, fixedErrorLength));
   }
 
   const errors = errorLines(input);
@@ -216,14 +190,14 @@ function indent(lines: RecursiveLines, level: number): string[] {
   return returnVal;
 }
 
-function postProcessOuterObject(input: In, out: Out, level: number): string[] {
+function postProcessOuterObject(out: Out, level: number): string[] {
   trimLastTrailingComma(out.lines);
 
   const lines = out.inline
-    ? [...inline(out), ...appendErrors(input, out)]
+    ? [...inline(out), ...appendErrors(out)]
     : out.start
-      ? [out.start, out.lines, trimTrailingComma(out.end), ...appendErrors(input, out)]
-      : [...out.lines, ...appendErrors(input, out)];
+      ? [out.start, out.lines, trimTrailingComma(out.end), ...appendErrors(out)]
+      : [...out.lines, ...appendErrors(out)];
 
   return indent(lines, level);
 }
@@ -236,40 +210,7 @@ export function prettyErrors({ input, errors, indentation }: PrettyErrorsOptions
     obj: input,
     errors: errors || {},
     path: [],
-    css: undefined,
   };
   const out = prettyErrorsRecursive(i);
-  return postProcessOuterObject(i, out, indentation || 0).join('\n');
-}
-
-/**
- * The same as above, but prepares a colored output which can be passed to console.log() with color support
- */
-export function prettyErrorsToConsole({
-  input,
-  errors,
-  indentation,
-  defaultStyle,
-}: PrettyErrorsOptions & PrettyErrorsOptionsStyling): {
-  lines: string;
-  css: string[];
-} {
-  const css: In['css'] = {};
-  const i: In = {
-    obj: input,
-    errors: errors || {},
-    path: [],
-    css,
-  };
-  const cssList = [defaultStyle || ''];
-  const out = prettyErrorsRecursive(i);
-  const lines = postProcessOuterObject(i, out, indentation || 0)
-    .join('\n')
-    .replaceAll(cssRegex, (match) => {
-      cssList.push(css[match].style);
-      cssList.push(defaultStyle || '');
-      return `%c${css[match].original}%c`;
-    });
-
-  return { lines: `%c${lines}`, css: cssList };
+  return postProcessOuterObject(out, indentation || 0).join('\n');
 }

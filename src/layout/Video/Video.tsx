@@ -4,13 +4,14 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useParentCard } from 'src/layout/Cards/CardContext';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IVideoProps = PropsFromGenericComponent<'Video'>;
 
 export function VideoComponent({ node }: IVideoProps) {
   const { langAsString } = useLanguage();
-  const { id, video, textResourceBindings } = node.item;
+  const { id, video, textResourceBindings } = useNodeItem(node);
   const languageKey = useCurrentLanguage();
   const altText = textResourceBindings?.altText ? langAsString(textResourceBindings.altText) : undefined;
   const videoSrc = video?.src?.[languageKey] || '';

@@ -4,6 +4,8 @@ import ReactDOMServer from 'react-dom/server';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
+import { Hidden } from 'src/utils/layout/NodesContext';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { CompInternal, ITextResourceBindings } from 'src/layout/layout';
@@ -13,7 +15,7 @@ export type ICustomComponentProps = PropsFromGenericComponent<'Custom'> & {
 };
 
 export type IPassedOnProps = Omit<PropsFromGenericComponent<'Custom'>, 'node' | 'componentValidations'> &
-  Omit<CompInternal<'Custom'>, 'tagName'> & {
+  Omit<CompInternal<'Custom'>, 'tagName' | 'textResourceBindings'> & {
     [key: string]: string | number | boolean | object | null | undefined;
     text: string | undefined;
     getTextResourceAsString: (textResource: string | undefined) => string;
@@ -26,7 +28,7 @@ export function CustomWebComponent({
 }: ICustomComponentProps) {
   const langTools = useLanguage();
   const { language, langAsString } = langTools;
-  const { tagName, textResourceBindings, dataModelBindings, ...passThroughPropsFromNode } = node.item;
+  const { tagName, textResourceBindings, dataModelBindings, ...passThroughPropsFromNode } = useNodeItem(node);
   const passThroughProps: IPassedOnProps = {
     ...passThroughPropsFromGenericComponent,
     ...passThroughPropsFromNode,
@@ -69,7 +71,8 @@ export function CustomWebComponent({
     }
   }, [formData, componentValidations]);
 
-  if (node.isHidden() || !HtmlTag) {
+  const isHidden = Hidden.useIsHidden(node);
+  if (isHidden || !HtmlTag) {
     return null;
   }
 

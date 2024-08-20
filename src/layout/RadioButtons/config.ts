@@ -1,5 +1,6 @@
 import { CG } from 'src/codegen/CG';
-import { ExprVal } from 'src/features/expressions/types';
+import { AlertOnChangePlugin } from 'src/features/alertOnChange/AlertOnChangePlugin';
+import { OptionsPlugin } from 'src/features/options/OptionsPlugin';
 import { CompCategory } from 'src/layout/common';
 
 export const RADIO_SUMMARY_OVERRIDE_PROPS = new CG.obj()
@@ -20,18 +21,19 @@ export const Config = new CG.component({
     renderInCards: true,
     renderInCardsMedia: false,
   },
+  functionality: {
+    customExpressions: false,
+  },
 })
   .addDataModelBinding(CG.common('IDataModelBindingsOptionsSimple'))
-  .makeSelectionComponent()
   .addProperty(new CG.prop('layout', CG.common('LayoutStyle').optional()))
-  .addProperty(
-    new CG.prop(
-      'alertOnChange',
-      new CG.expr(ExprVal.Boolean)
-        .optional({ default: false })
-        .setTitle('Alert on change')
-        .setDescription('Boolean value indicating if the component should alert on change'),
-    ),
+  .addPlugin(new OptionsPlugin({ supportsPreselection: true, type: 'single' }))
+  .addPlugin(
+    new AlertOnChangePlugin({
+      propName: 'alertOnChange',
+      title: 'Alert on change',
+      description: 'Boolean value indicating if the component should alert on change',
+    }),
   )
   .addProperty(
     new CG.prop(
@@ -50,8 +52,6 @@ export const Config = new CG.component({
         .setTitle('Show as card')
         .setDescription('Boolean value indicating if the options should be displayed as cards. Defaults to false.'),
     ),
-  );
-
-// We don't render the label in GenericComponent, but we still need the
-// text resource bindings for rendering them on our own
-Config.addTextResourcesForLabel().inner.extends(CG.common('LabeledComponentProps'));
+  )
+  .extends(CG.common('LabeledComponentProps'))
+  .extendTextResources(CG.common('TRBLabel'));

@@ -1,19 +1,23 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo } from 'react';
 
 import { Pagination, Table, usePagination } from '@digdir/designsystemet-react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@navikt/aksel-icons';
-import deepEqual from 'fast-deep-equal';
 
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
+import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { getValidationsForNode, hasValidationErrors, shouldValidateNode } from 'src/features/validation/utils';
-import { Validation } from 'src/features/validation/validationContext';
-import { getVisibilityForNode } from 'src/features/validation/visibility/visibilityUtils';
 import { useIsMini, useIsMobile, useIsMobileOrTablet } from 'src/hooks/useIsMobile';
-import { useRepeatingGroup } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
+import {
+  useRepeatingGroup,
+  useRepeatingGroupPagination,
+  useRepeatingGroupRowState,
+} from 'src/layout/RepeatingGroup/RepeatingGroupContext';
 import classes from 'src/layout/RepeatingGroup/RepeatingGroupPagination.module.css';
-import type { CompRepeatingGroupInternal, HRepGroupRow } from 'src/layout/RepeatingGroup/config.generated';
-import type { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
+import type { RepGroupRow } from 'src/layout/RepeatingGroup/types';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface RepeatingGroupPaginationProps {
   inTable?: boolean;
@@ -24,7 +28,8 @@ interface RepeatingGroupPaginationProps {
  * Specifically, usePagesWithErrors and useRowStructure would be doing unecessary work
  */
 export function RepeatingGroupPagination(props: RepeatingGroupPaginationProps) {
-  const { hasPagination, visibleRows, rowsPerPage } = useRepeatingGroup();
+  const { visibleRows } = useRepeatingGroupRowState();
+  const { hasPagination, rowsPerPage } = useRepeatingGroupPagination();
 
   if (!hasPagination || visibleRows.length <= rowsPerPage) {
     return null;
@@ -34,46 +39,30 @@ export function RepeatingGroupPagination(props: RepeatingGroupPaginationProps) {
 }
 
 function _RepeatingGroupPagination({ inTable = true }: RepeatingGroupPaginationProps) {
-  const { hasPagination, rowsPerPage, currentPage, totalPages, changePage, node } = useRepeatingGroup();
+  const { changePage, node } = useRepeatingGroup();
+  const { hasPagination, rowsPerPage, currentPage, totalPages } = useRepeatingGroupPagination();
   const pagesWithErrors = usePagesWithErrors(rowsPerPage, node);
   const isTablet = useIsMobileOrTablet();
   const isMobile = useIsMobile();
   const isMini = useIsMini();
+  const textResourceBindings = useNodeItem(node, (i) => i.textResourceBindings || {});
 
   const getScrollPosition = useCallback(
-    () => document.querySelector(`[data-pagination-id="${node.item.id}"]`)?.getClientRects().item(0)?.y,
-    [node.item.id],
+    () => document.querySelector(`[data-pagination-id="${node.id}"]`)?.getClientRects().item(0)?.y,
+    [node],
   );
-
-  // Should never be true, but leaving it for type inference
-  if (!hasPagination) {
-    return null;
-  }
 
   /**
    * The last page can have fewer items than the other pages,
    * navigating to or from the last page will cause everything to move.
    * This resets the scroll position so that the buttons are in the same place.
    */
-  const resetScrollPosition = (prevScrollPosition: number | undefined) => {
-    if (prevScrollPosition === undefined) {
-      return;
-    }
-    let attemptsLeft = 10;
-    const check = () => {
-      attemptsLeft--;
-      if (attemptsLeft <= 0) {
-        return;
-      }
-      const newScrollPosition = getScrollPosition();
-      if (newScrollPosition !== undefined && newScrollPosition !== prevScrollPosition) {
-        window.scrollBy({ top: newScrollPosition - prevScrollPosition });
-      } else {
-        requestAnimationFrame(check);
-      }
-    };
-    requestAnimationFrame(check);
-  };
+  const resetScrollPosition = useResetScrollPosition(getScrollPosition);
+
+  // Should never be true, but leaving it for type inference
+  if (!hasPagination) {
+    return null;
+  }
 
   const onChange = async (pageNumber: number) => {
     const prevScrollPosition = getScrollPosition();
@@ -93,9 +82,9 @@ function _RepeatingGroupPagination({ inTable = true }: RepeatingGroupPaginationP
       )}
     >
       <PaginationComponent
-        nextTextKey={node.item.textResourceBindings?.pagination_next_button ?? 'general.next'}
-        backTextKey={node.item.textResourceBindings?.pagination_back_button ?? 'general.back'}
-        data-pagination-id={node.item.id}
+        nextTextKey={textResourceBindings?.pagination_next_button ?? 'general.next'}
+        backTextKey={textResourceBindings?.pagination_back_button ?? 'general.back'}
+        data-pagination-id={node.id}
         className={classes.pagination}
         currentPage={currentPage + 1}
         totalPages={totalPages}
@@ -221,19 +210,19 @@ function PaginationComponent({
 /**
  * Returns a list of pagination pages containing errors
  */
-function usePagesWithErrors(rowsPerPage: number | undefined, node: BaseLayoutNode<CompRepeatingGroupInternal>) {
-  const rows = useRowStructure(node);
-  const selector = Validation.useSelector();
-  const visibilitySelector = Validation.useVisibilitySelector();
+function usePagesWithErrors(rowsPerPage: number | undefined, node: LayoutNode<'RepeatingGroup'>) {
+  const rows = useNodeItem(node).rows;
+  const nodeValidationsSelector = NodesInternal.useValidationsSelector();
+  const traversalSelector = useNodeTraversalSelector();
 
   return useMemo(() => {
     if (typeof rowsPerPage !== 'number') {
       return [];
     }
 
-    const visibleRows: HRepGroupRow[] = [];
+    const visibleRows: RepGroupRow[] = [];
     for (const row of rows) {
-      if (!row.groupExpressions?.hiddenRow) {
+      if (row && !row.groupExpressions?.hiddenRow) {
         visibleRows.push(row);
       }
     }
@@ -246,16 +235,10 @@ function usePagesWithErrors(rowsPerPage: number | undefined, node: BaseLayoutNod
         continue;
       }
 
-      const deepNodes = visibleRows[i].items.flatMap((node) => [node, ...node.flat(true)]);
-
-      for (const node of deepNodes) {
-        if (!shouldValidateNode(node)) {
-          continue;
-        }
-
-        if (
-          hasValidationErrors(getValidationsForNode(node, selector, getVisibilityForNode(node, visibilitySelector)))
-        ) {
+      const deepNodes = visibleRows[i].items?.flatMap((node) => traversalSelector((t) => t.with(node).flat(), [node]));
+      for (const node of deepNodes || []) {
+        const validations = nodeValidationsSelector(node, 'visible', 'error');
+        if (validations.length > 0) {
           pagesWithErrors.push(pageNumber);
           break;
         }
@@ -263,29 +246,5 @@ function usePagesWithErrors(rowsPerPage: number | undefined, node: BaseLayoutNod
     }
 
     return pagesWithErrors;
-  }, [rows, rowsPerPage, selector, visibilitySelector]);
-}
-
-/**
- * Utility hook that only updates whenever rows or nodes are added or removed,
- * even nodes deep in nested structures.
- */
-function useRowStructure(node: BaseLayoutNode<CompRepeatingGroupInternal>) {
-  const rowChildrenRef = useRef(node.item.rows);
-  const deepRowChildrenIds = useMemo(
-    () => node.item.rows.map((r) => r.items.flatMap((n) => [n.item.id, ...n.flat(true).map((c) => c.item.id)])),
-    [node.item.rows],
-  );
-  const deepRowChildrenIdsRef = useRef(deepRowChildrenIds);
-
-  if (
-    deepRowChildrenIds === deepRowChildrenIdsRef.current ||
-    deepEqual(deepRowChildrenIds, deepRowChildrenIdsRef.current)
-  ) {
-    return rowChildrenRef.current;
-  } else {
-    rowChildrenRef.current = node.item.rows;
-    deepRowChildrenIdsRef.current = deepRowChildrenIds;
-    return node.item.rows;
-  }
+  }, [nodeValidationsSelector, rows, rowsPerPage, traversalSelector]);
 }

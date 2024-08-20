@@ -17,16 +17,13 @@ describe('Custom Button', () => {
     cy.goto('changename');
 
     cy.findByRole('textbox', { name: /Her kan man skrive input/ }).type('Hello b');
-
-    cy.intercept('PATCH', '**/data/**').as('saveData');
-
-    cy.wait('@saveData');
+    cy.waitUntilSaved();
 
     cy.findByRole('button', { name: 'Fyll ut skjema' }).click();
     cy.get(appFrontend.toast).should('have.text', 'Her kommer det en feilmelding');
   });
 
-  it('It should execute frontend actions that are sendt as a result with the action', () => {
+  it('It should execute frontend actions that are sent as a result with the action', () => {
     cy.goto('changename');
 
     cy.findByRole('textbox', { name: /Her kan man skrive input/ }).type('Generate frontend actions');
@@ -36,9 +33,7 @@ describe('Custom Button', () => {
 
   it('It should execute frontend actions that are specified in the component', () => {
     cy.goto('changename');
-
-    cy.intercept('PATCH', '**/data/**').as('saveData');
-    cy.wait('@saveData');
+    cy.waitUntilSaved();
 
     cy.findByRole('button', { name: 'Trigger frontend actions' }).click();
     cy.findByRole('textbox', { name: /Hvor mye gjeld har du?/ }).should('be.visible');

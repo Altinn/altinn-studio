@@ -1,9 +1,8 @@
-import { useSearchParams } from 'react-router-dom';
+import { useQueryKey } from 'src/features/routing/AppRoutingContext';
 
 /**
  * Hook checking whether we are in PDF generation mode
  */
 export function useIsPdf() {
-  const [searchParams] = useSearchParams();
-  return searchParams.get('pdf') === '1';
+  return useQueryKey('pdf') === '1';
 }

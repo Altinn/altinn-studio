@@ -103,6 +103,7 @@ describe('PDF', () => {
     cy.get(appFrontend.group.editContainer).should('be.visible');
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).first().click();
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.back).should('be.visible');
+    cy.get(appFrontend.group.row(0).nestedGroup.row(0).comments).type('Dette er en kommentar');
     cy.get(appFrontend.group.edit).first().click();
     cy.get(appFrontend.group.editContainer).should('not.exist');
 
@@ -120,13 +121,13 @@ describe('PDF', () => {
       cy.findByRole('table').should('contain.text', 'Mottaker:Testdepartementet');
 
       cy.getSummary('Group summary title').should('contain.text', 'Endre fra : NOK 1');
-      cy.getSummary('Group summary title').should('contain.text', 'Endre verdi 1 til  : NOK 5');
+      cy.getSummary('Group summary title').should('contain.text', 'Endre verdi 1 til : NOK 5');
 
       cy.getSummary('Group summary title').should('contain.text', 'Endre fra : NOK 120');
-      cy.getSummary('Group summary title').should('contain.text', 'Endre verdi 120 til  : NOK 350');
+      cy.getSummary('Group summary title').should('contain.text', 'Endre verdi 120 til : NOK 350');
 
       cy.getSummary('Group summary title').should('contain.text', 'Endre fra : NOK 1 233');
-      cy.getSummary('Group summary title').should('contain.text', 'Endre verdi 1233 til  : NOK 3 488');
+      cy.getSummary('Group summary title').should('contain.text', 'Endre verdi 1233 til : NOK 3 488');
     });
   });
 

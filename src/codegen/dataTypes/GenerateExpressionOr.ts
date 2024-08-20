@@ -1,12 +1,8 @@
 import type { JSONSchema7 } from 'json-schema';
 
-import { CG, Variant } from 'src/codegen/CG';
 import { DescribableCodeGenerator } from 'src/codegen/CodeGenerator';
 import { CodeGeneratorContext } from 'src/codegen/CodeGeneratorContext';
 import { ExprVal } from 'src/features/expressions/types';
-import type { GenerateBoolean } from 'src/codegen/dataTypes/GenerateBoolean';
-import type { GenerateNumber } from 'src/codegen/dataTypes/GenerateNumber';
-import type { GenerateString } from 'src/codegen/dataTypes/GenerateString';
 
 const toTsMap: { [key in ExprVal]: string } = {
   [ExprVal.Any]: 'ExprValToActualOrExpr<ExprVal.Any>',
@@ -30,14 +26,6 @@ type TypeMap<Val extends ExprVal> = Val extends ExprVal.Boolean
       ? string
       : never;
 
-type GeneratorMap<Val extends ExprVal> = Val extends ExprVal.Boolean
-  ? GenerateBoolean
-  : Val extends ExprVal.Number
-    ? GenerateNumber
-    : Val extends ExprVal.String
-      ? GenerateString
-      : never;
-
 /**
  * Generates a type that can be either a pure boolean, number, or string, or an expression that evaluates to
  * one of those types. Be sure you implement support for evaluating the expression as well, because adding
@@ -48,38 +36,7 @@ export class GenerateExpressionOr<Val extends ExprVal> extends DescribableCodeGe
     super();
   }
 
-  transformTo(variant: Variant): GeneratorMap<Val> | this {
-    if (variant === Variant.External) {
-      this.currentVariant = variant;
-      return this;
-    }
-
-    let out: GeneratorMap<Val> | undefined;
-    if (this.valueType === ExprVal.Boolean) {
-      out = new CG.bool() as GeneratorMap<Val>;
-    }
-    if (this.valueType === ExprVal.Number) {
-      out = new CG.num() as GeneratorMap<Val>; // Represents any number in TypeScript
-    }
-    if (this.valueType === ExprVal.String) {
-      out = new CG.str() as GeneratorMap<Val>;
-    }
-
-    if (out) {
-      out.internal = structuredClone(this.internal) as any;
-      out.internal.source = this;
-      out.currentVariant = variant;
-      return out;
-    }
-
-    throw new Error(`Unsupported type: ${this.valueType}`);
-  }
-
   toTypeScriptDefinition(symbol: string | undefined): string {
-    if (this.currentVariant !== Variant.External) {
-      throw new Error('Cannot generate expr TypeScript definition for internal or non-transformed type');
-    }
-
     CodeGeneratorContext.curFile().addImport('ExprVal', 'src/features/expressions/types');
     CodeGeneratorContext.curFile().addImport('ExprValToActualOrExpr', 'src/features/expressions/types');
     return symbol ? `type ${symbol} = ${toTsMap[this.valueType]};` : toTsMap[this.valueType];
@@ -90,9 +47,5 @@ export class GenerateExpressionOr<Val extends ExprVal> extends DescribableCodeGe
       ...this.getInternalJsonSchema(),
       ...toSchemaMap[this.valueType],
     };
-  }
-
-  containsVariationDifferences(): boolean {
-    return true;
   }
 }

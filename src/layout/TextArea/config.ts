@@ -1,11 +1,12 @@
-import { CG, Variant } from 'src/codegen/CG';
+import { CG } from 'src/codegen/CG';
 import { CompCategory } from 'src/layout/common';
 
 export const TEXTAREA_SUMMARY_PROPS = new CG.obj()
   .extends(CG.common('ISummaryOverridesCommon'))
   .optional()
   .setTitle('Summary properties')
-  .setDescription('Properties for how to display the summary of the component');
+  .setDescription('Properties for how to display the summary of the component')
+  .exportAs('TextAreaSummaryOverrideProps');
 
 export const Config = new CG.component({
   category: CompCategory.Form,
@@ -16,6 +17,10 @@ export const Config = new CG.component({
     renderInAccordionGroup: false,
     renderInCards: true,
     renderInCardsMedia: false,
+    renderInTabs: true,
+  },
+  functionality: {
+    customExpressions: false,
   },
 })
   .addDataModelBinding(CG.common('IDataModelBindingsSimple'))
@@ -32,6 +37,5 @@ export const Config = new CG.component({
         ),
     ),
   )
-  .addProperty(new CG.prop('summaryProps', TEXTAREA_SUMMARY_PROPS).onlyIn(Variant.Internal))
   .extends(CG.common('LabeledComponentProps'))
   .extendTextResources(CG.common('TRBLabel'));

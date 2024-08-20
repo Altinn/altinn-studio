@@ -2,10 +2,12 @@ import { useMemo } from 'react';
 
 import type { NodeValidation } from '..';
 
-import { getValidationsForNode, shouldValidateNode } from 'src/features/validation/utils';
-import { Validation } from 'src/features/validation/validationContext';
-import { getVisibilityForNode } from 'src/features/validation/visibility/visibilityUtils';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
+
+const emptyArray: NodeValidation[] = [];
 
 /**
  * Returns all validation messages for a nodes children and optionally the node itself.
@@ -13,20 +15,28 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 export function useDeepValidationsForNode(
   node: LayoutNode | undefined,
   onlyChildren: boolean = false,
-  onlyInRowUuid?: string,
+  restriction?: TraversalRestriction,
 ): NodeValidation[] {
-  const selector = Validation.useSelector();
-  const visibilitySelector = Validation.useVisibilitySelector();
-
-  return useMemo(() => {
-    if (!node) {
+  const validationsSelector = NodesInternal.useValidationsSelector();
+  const nodesToValidate = useNodeTraversal((t) => {
+    if (!node || t.targetIsRoot()) {
       return [];
     }
 
-    const restriction = onlyInRowUuid ? { onlyInRowUuid } : undefined;
-    const deepNodes = onlyChildren ? node.flat(true, restriction) : [node, ...node.flat(true, restriction)];
-    return deepNodes
-      .filter(shouldValidateNode)
-      .flatMap((node) => getValidationsForNode(node, selector, getVisibilityForNode(node, visibilitySelector)));
-  }, [node, onlyChildren, onlyInRowUuid, selector, visibilitySelector]);
+    if (onlyChildren) {
+      return t.children(undefined, restriction);
+    }
+
+    return t.flat(undefined, restriction);
+  }, node);
+
+  return useMemo(() => {
+    if (!nodesToValidate || nodesToValidate.length === 0) {
+      return emptyArray;
+    }
+
+    return nodesToValidate.flatMap((node) =>
+      validationsSelector(node, 'visible').map((validation) => ({ ...validation, node })),
+    );
+  }, [nodesToValidate, validationsSelector]);
 }

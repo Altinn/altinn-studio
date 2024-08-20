@@ -1,8 +1,11 @@
-import { CG, Variant } from 'src/codegen/CG';
+import { CG } from 'src/codegen/CG';
+import { OptionsPlugin } from 'src/features/options/OptionsPlugin';
 import { CompCategory } from 'src/layout/common';
+import { LikertRowsPlugin } from 'src/layout/Likert/Generator/LikertRowsPlugin';
 
 export const Config = new CG.component({
   category: CompCategory.Form,
+  directRendering: true,
   capabilities: {
     renderInTable: false,
     renderInButtonGroup: false,
@@ -10,8 +13,13 @@ export const Config = new CG.component({
     renderInAccordionGroup: false,
     renderInCards: false,
     renderInCardsMedia: false,
+    renderInTabs: true,
+  },
+  functionality: {
+    customExpressions: false,
   },
 })
+  .addPlugin(new LikertRowsPlugin())
   .addTextResource(
     new CG.trb({
       name: 'title',
@@ -54,25 +62,6 @@ export const Config = new CG.component({
       description: 'The help texts to be displayed in each row (use a dynamic text resource)',
     }),
   )
-  .addProperty(
-    new CG.prop(
-      'rows',
-      new CG.arr(
-        new CG.obj(
-          new CG.prop('uuid', new CG.str()),
-          new CG.prop('index', new CG.num()),
-          new CG.prop('items', new CG.arr(CG.layoutNode)),
-          new CG.prop(
-            'likertExpressions',
-            new CG.import({
-              import: 'HLikertExpressions',
-              from: 'src/layout/Likert/types',
-            }).optional(),
-          ),
-        ).exportAs('HLikertRow'),
-      ).exportAs('HLikertRows'),
-    ).onlyIn(Variant.Internal),
-  )
   .addDataModelBinding(CG.common('IDataModelBindingsLikert'))
   .addProperty(
     new CG.prop(
@@ -92,4 +81,4 @@ export const Config = new CG.component({
         .exportAs('ILikertFilter'),
     ),
   )
-  .makeSelectionComponent(false);
+  .addPlugin(new OptionsPlugin({ supportsPreselection: false, type: 'single' }));

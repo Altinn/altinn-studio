@@ -28,6 +28,7 @@ const { Provider, useCtx } = createContext<IFormComponentContext | undefined>({
 });
 
 export const useFormComponentCtx = () => useCtx();
+export const useCurrentNode = () => useFormComponentCtx()?.node;
 export const useFormComponentCtxStrict = () => {
   const ctx = useFormComponentCtx();
   if (!ctx) {

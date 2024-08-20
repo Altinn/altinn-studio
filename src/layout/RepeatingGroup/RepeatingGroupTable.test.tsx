@@ -9,7 +9,7 @@ import { getFormLayoutRepeatingGroupMock } from 'src/__mocks__/getFormLayoutGrou
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import {
   RepeatingGroupProvider,
-  useRepeatingGroup,
+  useRepeatingGroupRowState,
   useRepeatingGroupSelector,
 } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
 import { RepeatingGroupTable } from 'src/layout/RepeatingGroup/RepeatingGroupTable';
@@ -17,16 +17,13 @@ import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithNode } from 'src/test/renderWithProviders';
 import type { CompCheckboxesExternal } from 'src/layout/Checkboxes/config.generated';
 import type { IRawOption } from 'src/layout/common.generated';
-import type { CompOrGroupExternal, ILayoutCollection } from 'src/layout/layout';
-import type {
-  CompRepeatingGroupExternal,
-  CompRepeatingGroupInternal,
-} from 'src/layout/RepeatingGroup/config.generated';
-import type { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
+import type { CompRepeatingGroupExternal } from 'src/layout/RepeatingGroup/config.generated';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 (global as any).ResizeObserver = ResizeObserverModule;
 
-const getLayout = (group: CompRepeatingGroupExternal, components: CompOrGroupExternal[]): ILayoutCollection => ({
+const getLayout = (group: CompRepeatingGroupExternal, components: CompExternal[]): ILayoutCollection => ({
   FormLayout: {
     data: {
       layout: [group, ...components],
@@ -39,7 +36,7 @@ describe('RepeatingGroupTable', () => {
     id: 'mock-container-id',
   });
   const options: IRawOption[] = [{ value: 'option.value', label: 'option.label' }];
-  const components: CompOrGroupExternal[] = [
+  const components: CompExternal[] = [
     {
       id: 'field1',
       type: 'Input',
@@ -128,8 +125,8 @@ describe('RepeatingGroupTable', () => {
     it('should remove row on delete-button click', async () => {
       const { formDataMethods } = await render();
 
-      expect(screen.getByText('test row 0')).toBeInTheDocument();
-      expect(screen.getByText('test row 1')).toBeInTheDocument();
+      await screen.findByText('test row 0');
+      await screen.findByText('test row 1');
       await userEvent.click(screen.getAllByRole('button', { name: /slett/i })[0]);
 
       expect(formDataMethods.removeFromListCallback).toBeCalledTimes(1);
@@ -140,7 +137,7 @@ describe('RepeatingGroupTable', () => {
       });
 
       await waitFor(() => expect(screen.queryByText('test row 0')).not.toBeInTheDocument());
-      expect(screen.getByText('test row 1')).toBeInTheDocument();
+      await screen.findByText('test row 1');
     });
 
     it('should open first row for editing when clicking edit button', async () => {
@@ -176,7 +173,7 @@ describe('RepeatingGroupTable', () => {
   });
 
   const render = async (layout = getLayout(group, components)) =>
-    await renderWithNode<true, BaseLayoutNode<CompRepeatingGroupInternal>>({
+    await renderWithNode<true, LayoutNode<'RepeatingGroup'>>({
       nodeId: group.id,
       inInstance: true,
       renderer: ({ node }) => (
@@ -210,7 +207,7 @@ describe('RepeatingGroupTable', () => {
 
 function LeakEditIndex() {
   const editingId = useRepeatingGroupSelector((state) => state.editingId);
-  const { visibleRows } = useRepeatingGroup();
+  const { visibleRows } = useRepeatingGroupRowState();
   const editingIndex = visibleRows.find((r) => r.uuid === editingId)?.index;
   return <div data-testid='editIndex'>{editingIndex === undefined ? 'undefined' : editingIndex}</div>;
 }

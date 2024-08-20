@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
+import { useIsLoading } from 'src/core/loading/LoadingContext';
 import { DevTools } from 'src/features/devtools/DevTools';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
 import { LangDataSourcesProvider } from 'src/features/language/LangDataSourcesProvider';
+import { useNavigationEffect, useNavigationParam } from 'src/features/routing/AppRoutingContext';
 
 interface Props extends PropsWithChildren {
   devTools?: boolean;
@@ -18,9 +20,24 @@ interface Props extends PropsWithChildren {
 export function RenderStart({ children, devTools = true, dataModelFetcher = true }: Props) {
   return (
     <LangDataSourcesProvider>
+      <RunNavigationEffect />
       {children}
       {devTools && <DevTools />}
       {dataModelFetcher && <DataModelFetcher />}
     </LangDataSourcesProvider>
   );
+}
+
+function RunNavigationEffect() {
+  const isLoading = useIsLoading();
+  const pageKey = useNavigationParam('pageKey');
+  const navigationEffect = useNavigationEffect();
+
+  useEffect(() => {
+    if (!isLoading && navigationEffect) {
+      navigationEffect();
+    }
+  }, [isLoading, navigationEffect, pageKey]);
+
+  return null;
 }

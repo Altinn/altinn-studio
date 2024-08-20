@@ -9,6 +9,7 @@ describe('Redirect', () => {
   });
 
   it('User missing role to start the app is displayed', () => {
+    cy.allowFailureOnEnd();
     cy.intercept('POST', `**/instances?instanceOwnerPartyId*`, {
       statusCode: 403,
     }).as('instantiate');
@@ -21,6 +22,7 @@ describe('Redirect', () => {
   });
 
   it('User is redirected to unknown error page when a network call fails', () => {
+    cy.allowFailureOnEnd();
     cy.intercept('GET', `**/applicationmetadata`, {
       statusCode: 401,
     }).as('getAppMetadata');

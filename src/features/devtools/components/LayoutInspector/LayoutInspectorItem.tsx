@@ -7,10 +7,10 @@ import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
 import { useComponentHighlighter } from 'src/features/devtools/hooks/useComponentHighlighter';
-import type { CompOrGroupExternal } from 'src/layout/layout';
+import type { CompExternal } from 'src/layout/layout';
 
 interface ILayoutInspectorItemProps {
-  component: CompOrGroupExternal;
+  component: CompExternal;
   hasErrors: boolean;
   selected: boolean;
   onClick: () => void;

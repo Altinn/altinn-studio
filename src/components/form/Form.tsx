@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 
 import Grid from '@material-ui/core/Grid';
 import deepEqual from 'fast-deep-equal';
@@ -14,12 +14,20 @@ import { useExpandedWidthLayouts } from 'src/features/form/layout/LayoutsContext
 import { useNavigateToNode, useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import {
+  useNavigate,
+  useNavigationParam,
+  useQueryKey,
+  useQueryKeysAsStringAsRef,
+} from 'src/features/routing/AppRoutingContext';
 import { FrontendValidationSource } from 'src/features/validation';
 import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
-import { SearchParams, useCurrentView, useNavigatePage } from 'src/hooks/useNavigatePage';
+import { SearchParams, useCurrentView, useNavigatePage, useStartUrl } from 'src/hooks/useNavigatePage';
 import { GenericComponentById } from 'src/layout/GenericComponent';
-import { extractBottomButtons, hasRequiredFields } from 'src/utils/formLayout';
-import { useNodesMemoSelector, useResolvedNode } from 'src/utils/layout/NodesContext';
+import { extractBottomButtons } from 'src/utils/formLayout';
+import { useNode } from 'src/utils/layout/NodesContext';
+import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
+import type { NodeData } from 'src/utils/layout/types';
 
 interface FormState {
   hasRequired: boolean;
@@ -42,11 +50,12 @@ export function Form() {
   useRedirectToStoredPage();
   useSetExpandedWidth();
 
-  useRegisterNodeNavigationHandler((targetNode) => {
-    const targetView = targetNode?.top.top.myKey;
+  useRegisterNodeNavigationHandler(async (targetNode, options) => {
+    const targetView = targetNode?.pageKey;
     if (targetView && targetView !== currentPageId) {
-      navigateToPage(targetView, {
-        shouldFocusComponent: true,
+      await navigateToPage(targetView, {
+        ...options?.pageNavOptions,
+        shouldFocusComponent: options?.shouldFocus ?? options?.pageNavOptions?.shouldFocusComponent ?? true,
         replace: window.location.href.includes(SearchParams.FocusComponentId),
       });
       return true;
@@ -106,10 +115,10 @@ export function Form() {
 }
 
 export function FormFirstPage() {
-  const { startUrl, queryKeys } = useNavigatePage();
+  const startUrl = useStartUrl();
   return (
     <Navigate
-      to={startUrl + queryKeys}
+      to={startUrl}
       replace
     />
   );
@@ -121,7 +130,10 @@ export function FormFirstPage() {
  * it is no longer needed.
  */
 function useRedirectToStoredPage() {
-  const { currentPageId, partyId, instanceGuid, isValidPageId, navigateToPage } = useNavigatePage();
+  const pageKey = useCurrentView();
+  const partyId = useNavigationParam('partyId');
+  const instanceGuid = useNavigationParam('instanceGuid');
+  const { isValidPageId, navigateToPage } = useNavigatePage();
   const applicationMetadataId = useApplicationMetadata()?.id;
   const location = useLocation().pathname;
 
@@ -129,14 +141,14 @@ function useRedirectToStoredPage() {
   const currentViewCacheKey = instanceId || applicationMetadataId;
 
   useEffect(() => {
-    if (!currentPageId && !!currentViewCacheKey) {
+    if (!pageKey && !!currentViewCacheKey) {
       const lastVisitedPage = localStorage.getItem(currentViewCacheKey);
       if (lastVisitedPage !== null && isValidPageId(lastVisitedPage)) {
         localStorage.removeItem(currentViewCacheKey);
         navigateToPage(lastVisitedPage, { replace: true });
       }
     }
-  }, [currentPageId, currentViewCacheKey, isValidPageId, location, navigateToPage]);
+  }, [pageKey, currentViewCacheKey, isValidPageId, location, navigateToPage]);
 }
 
 /**
@@ -164,35 +176,45 @@ interface ErrorProcessingProps {
   setFormState: React.Dispatch<React.SetStateAction<FormState>>;
 }
 
+function nodeDataIsRequired(n: NodeData) {
+  const item = n.item;
+  return !!(item && 'required' in item && item.required === true);
+}
+
 /**
  * Instead of re-rendering the entire Form component when any of this changes, we just report the
  * state to the parent component.
  */
 function ErrorProcessing({ setFormState }: ErrorProcessingProps) {
   const currentPageId = useCurrentView();
-  const topLevelNodeIds = useNodesMemoSelector(
-    (nodes) =>
-      nodes
-        .findLayout(currentPageId)
-        ?.children()
-        .map((n) => n.item.id) || emptyArray,
-  );
-  const hasRequired = useNodesMemoSelector((nodes) => {
-    const page = nodes.findLayout(currentPageId);
-    return page ? hasRequiredFields(page) : false;
+  const page = useNodeTraversal((traverser) => traverser.findPage(currentPageId));
+
+  const topLevelNodeIds = useNodeTraversal((traverser) => {
+    if (!page) {
+      return emptyArray;
+    }
+
+    const all = traverser.with(page).children();
+    return all.map((n) => n.id);
+  });
+
+  const hasRequired = useNodeTraversal((traverser) => {
+    if (!page) {
+      return false;
+    }
+    return traverser.with(page).flat((n) => n.type === 'node' && nodeDataIsRequired(n)).length > 0;
   });
 
   const { formErrors, taskErrors } = useTaskErrors();
   const hasErrors = Boolean(formErrors.length) || Boolean(taskErrors.length);
-  const [mainIds, errorReportIds] = useNodesMemoSelector((nodes) => {
-    const page = nodes.findLayout(currentPageId);
+  const [mainIds, errorReportIds] = useNodeTraversal((traverser) => {
     if (!hasErrors || !page) {
       return [topLevelNodeIds, []];
     }
-    return extractBottomButtons(page);
+    return extractBottomButtons(traverser.with(page).children());
   });
   const requiredFieldsMissing = formErrors.some(
-    (error) => error.source === FrontendValidationSource.EmptyField && error.pageKey === currentPageId,
+    (error) => error.source === FrontendValidationSource.EmptyField && error.node.pageKey === currentPageId,
   );
 
   useEffect(() => {
@@ -219,22 +241,24 @@ function ErrorProcessing({ setFormState }: ErrorProcessingProps) {
 }
 
 function HandleNavigationFocusComponent() {
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  const componentId = searchParams.get(SearchParams.FocusComponentId);
-  const focusNode = useResolvedNode(componentId);
+  const searchStringRef = useQueryKeysAsStringAsRef();
+  const componentId = useQueryKey(SearchParams.FocusComponentId);
+  const focusNode = useNode(componentId ?? undefined);
   const navigateTo = useNavigateToNode();
+  const navigate = useNavigate();
 
   React.useEffect(() => {
-    searchParams.delete(SearchParams.FocusComponentId);
-    setSearchParams(searchParams, { replace: true, preventScrollReset: true });
-  }, [searchParams, setSearchParams]);
-
-  React.useEffect(() => {
-    if (focusNode != null) {
-      navigateTo(focusNode);
-    }
-  }, [navigateTo, focusNode]);
+    (async () => {
+      if (focusNode) {
+        await navigateTo(focusNode, { shouldFocus: true });
+        const location = new URLSearchParams(searchStringRef.current);
+        location.delete(SearchParams.FocusComponentId);
+        const baseHash = window.location.hash.slice(1).split('?')[0];
+        const nextLocation = location.size > 0 ? `${baseHash}?${location.toString()}` : baseHash;
+        navigate(nextLocation, { replace: true });
+      }
+    })();
+  }, [navigateTo, focusNode, navigate, searchStringRef]);
 
   return null;
 }

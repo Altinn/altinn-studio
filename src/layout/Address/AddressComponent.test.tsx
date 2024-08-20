@@ -7,7 +7,7 @@ import { AddressComponent } from 'src/layout/Address/AddressComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
-const render = async ({ component, genericProps, ...rest }: Partial<RenderGenericComponentTestProps<'Address'>> = {}) =>
+const render = async ({ component, ...rest }: Partial<RenderGenericComponentTestProps<'Address'>> = {}) =>
   await renderGenericComponentTest({
     type: 'Address',
     renderer: (props) => <AddressComponent {...props} />,
@@ -24,10 +24,6 @@ const render = async ({ component, genericProps, ...rest }: Partial<RenderGeneri
         houseNumber: 'houseNumber',
       },
       ...component,
-    },
-    genericProps: {
-      isValid: true,
-      ...genericProps,
     },
     ...rest,
     queries: {

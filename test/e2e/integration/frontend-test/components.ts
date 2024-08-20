@@ -14,10 +14,6 @@ describe('UI Components', () => {
   const newLastNameNb = /nytt etternavn/i;
   const confirmChangeOfName = /ja, jeg bekrefter at navnet er riktig og slik jeg ønsker det dette er en hjelpetekst\./i;
 
-  beforeEach(() => {
-    cy.startAppInstance(appFrontend.apps.frontendTest);
-  });
-
   it('Image component with help text', () => {
     cy.goto('message');
     cy.get('body').should('have.css', 'background-color', 'rgb(239, 239, 239)');
@@ -120,12 +116,14 @@ describe('UI Components', () => {
     });
     cy.goto('changename');
     cy.intercept('POST', '**/tags').as('saveTags');
+    cy.intercept('POST', '**/instances/**/data?dataType=*').as('upload');
     cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).should('not.exist');
-    cy.get(appFrontend.changeOfName.uploadWithTag.uploadZone).selectFile('test/e2e/fixtures/test.pdf', {
-      force: true,
-    });
+    cy.get(appFrontend.changeOfName.uploadWithTag.uploadZone).selectFile('test/e2e/fixtures/test.pdf', { force: true });
+    cy.wait('@upload');
+    cy.waitUntilNodesReady();
     cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).should('be.visible');
     cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.uploadWithTag.uploadZone)).should('not.exist');
+    cy.dsReady(appFrontend.changeOfName.uploadWithTag.saveTag);
     cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).click();
     cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.uploadWithTag.uploadZone)).should(
       'contain.text',

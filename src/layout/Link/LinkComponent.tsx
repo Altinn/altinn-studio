@@ -8,6 +8,7 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { ButtonColor, ButtonVariant } from 'src/layout/Button/WrappedButton';
 import type { LinkStyle } from 'src/layout/Link/config.generated';
 
@@ -21,7 +22,7 @@ export const buttonStyles: {
 export type ILinkComponent = PropsFromGenericComponent<'Link'>;
 
 export function LinkComponent({ node }: ILinkComponent) {
-  const { id, style: linkStyle, openInNewTab, textResourceBindings } = node.item;
+  const { id, style: linkStyle, openInNewTab, textResourceBindings } = useNodeItem(node);
   const { langAsString } = useLanguage();
   const parentIsPage = node.parent instanceof LayoutPage;
   const style = { marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined };

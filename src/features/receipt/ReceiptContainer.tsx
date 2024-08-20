@@ -13,7 +13,7 @@ import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useParties } from 'src/features/party/PartiesProvider';
-import { useInstanceIdParams } from 'src/hooks/useInstanceIdParams';
+import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import {
   filterDisplayAttachments,
   filterDisplayPdfAttachments,
@@ -84,7 +84,7 @@ export const ReceiptContainer = () => {
 
   const origin = window.location.origin;
 
-  const { instanceGuid } = useInstanceIdParams();
+  const instanceGuid = useNavigationParam('instanceGuid');
 
   const lastChangedDateTime = useMemo(() => {
     if (instance && instance.data) {

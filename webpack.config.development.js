@@ -20,6 +20,7 @@ if (enableNotifier) {
 
 const enableSourceMaps = !('WEBPACK_SOURCE_MAPS' in env) || env.WEBPACK_SOURCE_MAPS === 'true';
 const enableMinify = !('WEBPACK_MINIFY' in env) || env.WEBPACK_MINIFY === 'true';
+const enableErrorsOverlay = !('WEBPACK_ERRORS_OVERLAY' in env) || env.WEBPACK_ERRORS_OVERLAY === 'true';
 
 console.log('Starting Altinn 3 app-frontend-react development server');
 console.log('See template.env for available environment variables and how to set them');
@@ -104,7 +105,7 @@ module.exports = {
     },
     client: {
       overlay: {
-        errors: true,
+        errors: enableErrorsOverlay,
         warnings: false,
       },
     },

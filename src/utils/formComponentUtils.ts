@@ -2,25 +2,27 @@ import type React from 'react';
 
 import { isAttachmentUploaded } from 'src/features/attachments';
 import printStyles from 'src/styles/print.module.css';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { IAttachment } from 'src/features/attachments';
+import type { ExprResolved } from 'src/features/expressions/types';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type {
+  IDataModelBindingsList,
   IGridStyling,
-  IPageBreakInternal,
+  IPageBreak,
   ITableColumnFormatting,
   ITableColumnProperties,
 } from 'src/layout/common.generated';
-import type { CompInternal, CompTypes, IDataModelBindings, ITextResourceBindings } from 'src/layout/layout';
-import type { IDataModelBindingsForList } from 'src/layout/List/config.generated';
+import type { CompTypes, IDataModelBindings, ITextResourceBindings } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export type BindingToValues<B extends IDataModelBindings | undefined> = B extends undefined
   ? { [key: string]: undefined }
-  : B extends IDataModelBindingsForList
+  : B extends IDataModelBindingsList
     ? { list: string[] | undefined }
     : { [key in keyof B]: string | undefined };
 
-export type IComponentFormData<T extends CompTypes> = BindingToValues<CompInternal<T>['dataModelBindings']>;
+export type IComponentFormData<T extends CompTypes> = BindingToValues<IDataModelBindings<T>>;
 
 export const atLeastOneTagExists = (attachments: IAttachment[]): boolean => {
   let totalTagCount = 0;
@@ -145,7 +147,7 @@ export const gridBreakpoints = (grid?: IGridStyling) => {
   };
 };
 
-export const pageBreakStyles = (pageBreak: IPageBreakInternal | undefined) => {
+export const pageBreakStyles = (pageBreak: ExprResolved<IPageBreak> | undefined) => {
   if (!pageBreak) {
     return {};
   }
@@ -160,32 +162,28 @@ export const pageBreakStyles = (pageBreak: IPageBreakInternal | undefined) => {
   };
 };
 
-export function getTextAlignment(node: LayoutNode): 'left' | 'center' | 'right' {
-  if (!node.isType('Input')) {
+export function useTextAlignment(node: LayoutNode): 'left' | 'center' | 'right' {
+  const formatting = useNodeItem(node, (i) => (i.type === 'Input' ? i.formatting : undefined));
+  if (!formatting) {
     return 'left';
   }
-  const formatting = node.item.formatting;
-  if (formatting && formatting.align) {
+  if (formatting.align) {
     return formatting.align;
   }
-  if (formatting && formatting.number) {
-    return 'right';
-  }
-  return 'left';
+  return formatting.number ? 'right' : 'left';
 }
 
-export function getColumnStylesRepeatingGroups(
-  tableItem: LayoutNode,
-  columnSettings: ITableColumnFormatting | undefined,
-) {
-  const column = columnSettings && columnSettings[tableItem.item.baseComponentId || tableItem.item.id];
+export function useColumnStylesRepeatingGroups(node: LayoutNode, columnSettings: ITableColumnFormatting | undefined) {
+  const textAlignment = useTextAlignment(node);
+  const column = columnSettings && columnSettings[node.baseId];
   if (!column) {
     return;
   }
 
-  column.alignText = column.alignText ?? getTextAlignment(tableItem);
+  const columnCopy = { ...column };
+  columnCopy.alignText = columnCopy.alignText ?? textAlignment;
 
-  return getColumnStyles(column);
+  return getColumnStyles(columnCopy);
 }
 
 export function getColumnStyles(columnSettings: ITableColumnProperties) {

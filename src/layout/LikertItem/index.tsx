@@ -9,7 +9,7 @@ import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { DisplayDataProps } from 'src/features/displayData';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IDataModelBindingsLikertInternal } from 'src/layout/common.generated';
+import type { CompInternal } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -25,21 +25,21 @@ export class LikertItem extends LikertItemDef {
     },
   );
 
-  directRender(props: PropsFromGenericComponent<'LikertItem'>): boolean {
-    return props.node.item.layout === LayoutStyle.Table || props.overrideItemProps?.layout === LayoutStyle.Table;
+  directRender(item: CompInternal<'LikertItem'>): boolean {
+    return item.layout === LayoutStyle.Table;
   }
 
   getDisplayData(
     node: LayoutNode<'LikertItem'>,
-    { langTools, optionsSelector, formDataSelector }: DisplayDataProps,
+    { langTools, optionsSelector, nodeFormDataSelector }: DisplayDataProps,
   ): string {
-    if (!node.item.dataModelBindings?.simpleBinding) {
+    const value = String(nodeFormDataSelector(node).simpleBinding ?? '');
+    if (!value) {
       return '';
     }
 
-    const value = String(node.getFormData(formDataSelector).simpleBinding ?? '');
-    const optionList = optionsSelector(node.item.id);
-    return getSelectedValueToText(value, langTools, optionList) || '';
+    const { options } = optionsSelector(node);
+    return getSelectedValueToText(value, langTools, options) || '';
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'LikertItem'>): JSX.Element | null {
@@ -55,8 +55,11 @@ export class LikertItem extends LikertItemDef {
     ]);
     const errors: string[] = [...(answerErr || [])];
 
-    const parentBindings = ctx.node.parent?.item.dataModelBindings as IDataModelBindingsLikertInternal | undefined;
-    const bindings = ctx.node.item.dataModelBindings;
+    const parentBindings = ctx.nodeDataSelector(
+      (picker) => picker(ctx.node.parent as LayoutNode<'Likert'>)?.layout?.dataModelBindings,
+      [ctx.node.parent],
+    );
+    const bindings = ctx.item.dataModelBindings;
     if (
       answer &&
       bindings &&

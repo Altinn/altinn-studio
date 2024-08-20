@@ -1,37 +1,29 @@
 import type { MutableRefObject } from 'react';
 
-import { ComponentConfigs } from 'src/layout/components.generated';
+import { getComponentConfigs } from 'src/layout/components.generated';
+import type { CompBehaviors } from 'src/codegen/Config';
 import type { DisplayData } from 'src/features/displayData';
 import type { BaseValidation, ComponentValidation, ValidationDataSources } from 'src/features/validation';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
 import type { CompInternal, CompTypes } from 'src/layout/layout';
-import type { AnyComponent, LayoutComponent } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { NodeDataSelector } from 'src/utils/layout/NodesContext';
+import type { BaseRow } from 'src/utils/layout/types';
+
+type ComponentConfigs = ReturnType<typeof getComponentConfigs>;
 
 export type CompClassMap = {
-  [K in keyof typeof ComponentConfigs]: (typeof ComponentConfigs)[K]['def'];
+  [K in keyof ComponentConfigs]: ComponentConfigs[K]['def'];
 };
 
-export type CompClassMapTypes = {
-  [K in keyof CompClassMap]: CompClassMap[K]['type'];
+export type CompClassMapCategories = {
+  [K in keyof CompClassMap]: CompClassMap[K]['category'];
 };
 
-// noinspection JSUnusedLocalSymbols
-/**
- * This type is only used to make sure all components exist and are correct in the list above. If any component is
- * missing above, this type will give you an error.
- */
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-const _componentsTypeCheck: {
-  [Type in CompTypes]: { def: LayoutComponent<Type> };
-} = {
-  ...ComponentConfigs,
-};
+export type CompDef<T extends CompTypes = CompTypes> = ComponentConfigs[T]['def'];
 
 export interface IComponentProps {
   containerDivRef: MutableRefObject<HTMLDivElement | null>;
-  isValid?: boolean;
 }
 
 export interface PropsFromGenericComponent<T extends CompTypes = CompTypes> extends IComponentProps {
@@ -40,37 +32,65 @@ export interface PropsFromGenericComponent<T extends CompTypes = CompTypes> exte
   overrideDisplay?: IGenericComponentProps<T>['overrideDisplay'];
 }
 
-export function getLayoutComponentObject<T extends keyof CompClassMap>(type: T): CompClassMap[T] {
-  if (type && type in ComponentConfigs) {
-    return ComponentConfigs[type].def as any;
+export function getComponentDef<T extends keyof CompClassMap>(type: T): CompClassMap[T] {
+  const configs = getComponentConfigs();
+  if (type && type in configs) {
+    return configs[type].def as any;
   }
   return undefined as any;
 }
 
-export type DefGetter = typeof getLayoutComponentObject;
+export function getNodeConstructor<T extends CompTypes>(type: T): ComponentConfigs[T]['nodeConstructor'] {
+  const configs = getComponentConfigs();
+  if (type && type in configs) {
+    return configs[type].nodeConstructor;
+  }
 
-export function implementsAnyValidation<Type extends CompTypes>(component: AnyComponent<Type>): boolean {
-  return 'runEmptyFieldValidation' in component || 'runComponentValidation' in component;
+  return undefined as any;
 }
 
-export interface ValidateEmptyField {
-  runEmptyFieldValidation: (node: LayoutNode, validationContext: ValidationDataSources) => ComponentValidation[];
+export function getComponentCapabilities<T extends CompTypes>(type: T): ComponentConfigs[T]['capabilities'] {
+  const configs = getComponentConfigs();
+  if (type && type in configs) {
+    return configs[type].capabilities;
+  }
+
+  return undefined as any;
 }
 
-export function implementsValidateEmptyField<Type extends CompTypes>(
-  component: AnyComponent<Type>,
-): component is typeof component & ValidateEmptyField {
-  return 'runEmptyFieldValidation' in component;
+export function getComponentBehavior<T extends CompTypes, K extends keyof CompBehaviors>(
+  type: T,
+  behavior: K,
+): ComponentConfigs[T]['behaviors'][K] {
+  return getComponentConfigs()[type].behaviors[behavior];
 }
 
-export interface ValidateComponent {
-  runComponentValidation: (node: LayoutNode, validationContext: ValidationDataSources) => ComponentValidation[];
+type TypeFromDef<Def extends CompDef> = Def extends CompDef<infer T> ? T : CompTypes;
+
+export function implementsAnyValidation<Def extends CompDef>(
+  def: Def,
+): def is Def & (ValidateEmptyField<TypeFromDef<Def>> | ValidateComponent<TypeFromDef<Def>>) {
+  return 'runEmptyFieldValidation' in def || 'runComponentValidation' in def;
 }
 
-export function implementsValidateComponent<Type extends CompTypes>(
-  component: AnyComponent<Type>,
-): component is typeof component & ValidateComponent {
-  return 'runComponentValidation' in component;
+export interface ValidateEmptyField<Type extends CompTypes> {
+  runEmptyFieldValidation: (node: LayoutNode<Type>, validationContext: ValidationDataSources) => ComponentValidation[];
+}
+
+export function implementsValidateEmptyField<Def extends CompDef>(
+  def: Def,
+): def is Def & ValidateEmptyField<TypeFromDef<Def>> {
+  return 'runEmptyFieldValidation' in def;
+}
+
+export interface ValidateComponent<Type extends CompTypes> {
+  runComponentValidation: (node: LayoutNode<Type>, validationContext: ValidationDataSources) => ComponentValidation[];
+}
+
+export function implementsValidateComponent<Def extends CompDef>(
+  def: Def,
+): def is Def & ValidateComponent<TypeFromDef<Def>> {
+  return 'runComponentValidation' in def;
 }
 
 export type ValidationFilterFunction = (
@@ -80,19 +100,12 @@ export type ValidationFilterFunction = (
 ) => boolean;
 
 export interface ValidationFilter {
-  getValidationFilters: (node: LayoutNode) => ValidationFilterFunction[];
+  getValidationFilters: (node: LayoutNode, nodeDataSelector: NodeDataSelector) => ValidationFilterFunction[];
 }
 
-export type FormDataSelector = (path: string, postProcessor?: (data: unknown) => unknown) => unknown;
+export type FormDataSelector = (path: string) => unknown;
+export type FormDataRowsSelector = (path: string) => BaseRow[];
 
-export function implementsValidationFilter<Type extends CompTypes>(
-  component: AnyComponent<Type>,
-): component is typeof component & ValidationFilter {
-  return 'getValidationFilters' in component;
-}
-
-export function implementsDisplayData<Type extends CompTypes>(
-  component: AnyComponent<Type>,
-): component is typeof component & DisplayData<Type> {
-  return 'getDisplayData' in component && 'useDisplayData' in component;
+export function implementsDisplayData<Def extends CompDef>(def: Def): def is Def & DisplayData<TypeFromDef<Def>> {
+  return 'getDisplayData' in def && 'useDisplayData' in def;
 }

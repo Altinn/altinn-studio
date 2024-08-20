@@ -14,7 +14,7 @@ function generateAttachmentLists({
 
 export const customReceiptPageReceipt: ILayout = [
   { id: 'r-instance', type: 'InstanceInformation' },
-  { id: 'r-header', type: 'Header', textResourceBindings: { title: 'Custom kvittering' }, size: 'L' },
+  { id: 'r-header1', type: 'Header', textResourceBindings: { title: 'Custom kvittering' }, size: 'L' },
   {
     id: 'r-paragraph',
     type: 'Paragraph',
@@ -33,7 +33,7 @@ export const customReceiptPageReceipt: ILayout = [
     dataTypeIds: ['include-all'],
   }),
   {
-    id: 'NavigationButtons',
+    id: 'NavigationButtons1',
     type: 'NavigationButtons',
     textResourceBindings: {
       next: 'Neste',
@@ -42,9 +42,9 @@ export const customReceiptPageReceipt: ILayout = [
 ];
 
 export const customReceiptPageAnother: ILayout = [
-  { id: 'r-header', type: 'Header', textResourceBindings: { title: 'Dette er neste side' }, size: 'L' },
+  { id: 'r-header2', type: 'Header', textResourceBindings: { title: 'Dette er neste side' }, size: 'L' },
   {
-    id: 'NavigationButtons',
+    id: 'NavigationButtons2',
     type: 'NavigationButtons',
     textResourceBindings: {
       next: 'Neste',

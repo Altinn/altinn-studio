@@ -9,16 +9,14 @@ import cn from 'classnames';
 import { Lang } from 'src/features/language/Lang';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
-import { useRepeatingGroup } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
+import { useRepeatingGroup, useRepeatingGroupRowState } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
 import {
   RepeatingGroupEditRowProvider,
   useRepeatingGroupEdit,
 } from 'src/layout/RepeatingGroup/RepeatingGroupEditContext';
 import { useRepeatingGroupsFocusContext } from 'src/layout/RepeatingGroup/RepeatingGroupFocusContext';
-import type {
-  CompRepeatingGroupInternal,
-  IGroupEditPropertiesInternal,
-} from 'src/layout/RepeatingGroup/config.generated';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import type { CompInternal } from 'src/layout/layout';
 
 export interface IRepeatingGroupsEditContainer {
   editId: string;
@@ -28,10 +26,10 @@ export interface IRepeatingGroupsEditContainer {
 
 export function RepeatingGroupsEditContainer({ editId, ...props }: IRepeatingGroupsEditContainer): JSX.Element | null {
   const { node } = useRepeatingGroup();
-  const group = node.item;
-  const row = group.rows.find((r) => r.uuid === editId);
+  const group = useNodeItem(node);
+  const row = group.rows.find((r) => r && r.uuid === editId);
 
-  if (!row || row.groupExpressions.hiddenRow) {
+  if (!row || row.groupExpressions?.hiddenRow) {
     return null;
   }
 
@@ -54,10 +52,11 @@ function RepeatingGroupsEditContainerInternal({
   group,
   row,
 }: IRepeatingGroupsEditContainer & {
-  group: CompRepeatingGroupInternal;
-  row: CompRepeatingGroupInternal['rows'][number];
+  group: CompInternal<'RepeatingGroup'>;
+  row: CompInternal<'RepeatingGroup'>['rows'][number];
 }): JSX.Element | null {
-  const { node, closeForEditing, deleteRow, openNextForEditing, isDeleting, visibleRows } = useRepeatingGroup();
+  const { node, closeForEditing, deleteRow, openNextForEditing, isDeleting } = useRepeatingGroup();
+  const { visibleRows } = useRepeatingGroupRowState();
 
   const editingRowIndex = visibleRows.find((r) => r.uuid === editId)?.index;
   let moreVisibleRowsAfterEditIndex = false;
@@ -70,54 +69,29 @@ function RepeatingGroupsEditContainerInternal({
 
   const { multiPageEnabled, multiPageIndex, nextMultiPage, prevMultiPage, hasNextMultiPage, hasPrevMultiPage } =
     useRepeatingGroupEdit();
-  const id = node.item.id;
-  const textsForRow = row.groupExpressions?.textResourceBindings;
-  const editForRow = row.groupExpressions?.edit;
+  const id = node.id;
+  const textsForRow = row?.groupExpressions?.textResourceBindings;
+  const editForRow = row?.groupExpressions?.edit;
   const editForGroup = group.edit;
-  const edit = {
-    ...editForGroup,
-    ...editForRow,
-  } as IGroupEditPropertiesInternal;
-  const rowItems = row.items;
+  const rowItems = row?.items;
   const { refSetter } = useRepeatingGroupsFocusContext();
   const texts = {
     ...group.textResourceBindings,
     ...textsForRow,
   };
 
-  const getGenericComponentsToRender = (): (JSX.Element | null)[] =>
-    rowItems.map((n): JSX.Element | null => {
-      const isOnOtherMultiPage = multiPageEnabled && n.item.multiPageIndex !== multiPageIndex;
-
-      if (isOnOtherMultiPage) {
-        return null;
-      }
-
-      if (
-        group.tableColumns &&
-        n.item.baseComponentId &&
-        group.tableColumns[n.item.baseComponentId] &&
-        group.tableColumns[n.item.baseComponentId].showInExpandedEdit === false
-      ) {
-        return null;
-      }
-
-      return (
-        <GenericComponent
-          node={n}
-          key={n.item.id}
-        />
-      );
-    });
-
   const isNested = typeof group.baseComponentId === 'string';
   const saveButtonVisible =
     !forceHideSaveButton &&
-    (edit?.saveButton !== false || (edit.saveAndNextButton === true && !moreVisibleRowsAfterEditIndex));
+    (editForRow?.saveButton !== false || (editForRow.saveAndNextButton === true && !moreVisibleRowsAfterEditIndex));
   const saveAndNextButtonVisible =
-    !forceHideSaveButton && edit.saveAndNextButton === true && moreVisibleRowsAfterEditIndex;
+    !forceHideSaveButton && editForRow?.saveAndNextButton === true && moreVisibleRowsAfterEditIndex;
 
-  const hideTable = edit.mode === 'hideTable' || edit.mode === 'showAll';
+  const hideTable = editForGroup?.mode === 'hideTable' || editForGroup?.mode === 'showAll';
+
+  if (!row) {
+    return null;
+  }
 
   return (
     <div
@@ -127,10 +101,10 @@ function RepeatingGroupsEditContainerInternal({
         { [classes.hideTable]: hideTable, [classes.nestedHideTable]: hideTable && isNested },
         className,
       )}
-      style={{ marginBottom: isNested && edit?.mode === 'showAll' ? 15 : undefined }}
+      style={{ marginBottom: isNested && editForGroup?.mode === 'showAll' ? 15 : undefined }}
       data-testid='group-edit-container'
     >
-      {edit?.deleteButton !== false && edit?.mode === 'showAll' && (
+      {editForRow?.deleteButton !== false && editForGroup?.mode === 'showAll' && (
         <Grid
           item={true}
           container={true}
@@ -144,7 +118,7 @@ function RepeatingGroupsEditContainerInternal({
               color='danger'
               size='small'
               disabled={isDeleting(editId)}
-              onClick={() => deleteRow(editId)}
+              onClick={() => deleteRow({ index: row.index, uuid: row.uuid })}
               data-testid='delete-button'
             >
               <Lang id={'general.delete'} />
@@ -166,10 +140,26 @@ function RepeatingGroupsEditContainerInternal({
           spacing={6}
           ref={(n) => refSetter && editingRowIndex !== undefined && refSetter(editingRowIndex, 'editContainer', n)}
         >
-          {getGenericComponentsToRender()}
+          {rowItems?.map((n) => {
+            const isOnOtherMultiPage = multiPageEnabled && n.multiPageIndex !== multiPageIndex;
+            if (isOnOtherMultiPage) {
+              return null;
+            }
+
+            if (group.tableColumns && group.tableColumns[n.baseId]?.showInExpandedEdit === false) {
+              return null;
+            }
+
+            return (
+              <GenericComponent
+                key={n.id}
+                node={n}
+              />
+            );
+          })}
         </Grid>
         <Grid item={true}>
-          {edit?.multiPage && (
+          {editForGroup?.multiPage && (
             <Grid
               container={true}
               direction='row'
@@ -232,7 +222,7 @@ function RepeatingGroupsEditContainerInternal({
               <Grid item={true}>
                 <Button
                   id={`save-button-${id}`}
-                  onClick={() => closeForEditing(editId)}
+                  onClick={() => closeForEditing({ index: row.index, uuid: row.uuid })}
                   variant={saveAndNextButtonVisible ? 'secondary' : 'primary'}
                   color='first'
                   size='small'

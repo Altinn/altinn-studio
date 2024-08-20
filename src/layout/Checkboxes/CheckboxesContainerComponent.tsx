@@ -8,37 +8,31 @@ import { LabelContent } from 'src/components/label/LabelContent';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useGetOptions } from 'src/features/options/useGetOptions';
+import { useIsValid } from 'src/features/validation/selectors/isValid';
 import classes from 'src/layout/Checkboxes/CheckboxesContainerComponent.module.css';
 import { WrappedCheckbox } from 'src/layout/Checkboxes/WrappedCheckbox';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { shouldUseRowLayout } from 'src/utils/layout';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type ICheckboxContainerProps = PropsFromGenericComponent<'Checkboxes'>;
 
-export const CheckboxContainerComponent = ({ node, isValid, overrideDisplay }: ICheckboxContainerProps) => {
+export const CheckboxContainerComponent = ({ node, overrideDisplay }: ICheckboxContainerProps) => {
+  const item = useNodeItem(node);
   const { id, layout, readOnly, textResourceBindings, required, labelSettings, alertOnChange, showLabelsInTable } =
-    node.item;
+    item;
   const { langAsString } = useLanguage();
-
-  const {
-    options: calculatedOptions,
-    isFetching,
-    setData,
-    selectedValues,
-  } = useGetOptions({
-    ...node.item,
-    valueType: 'multi',
-    node,
-  });
+  const { options: calculatedOptions, isFetching, setData, selectedValues } = useGetOptions(node, 'multi');
+  const isValid = useIsValid(node);
 
   const labelTextGroup = (
     <LabelContent
       id={`label-${id}`}
-      label={node.item.textResourceBindings?.title}
+      label={textResourceBindings?.title}
       readOnly={readOnly}
       required={required}
-      help={node.item.textResourceBindings?.help}
+      help={textResourceBindings?.help}
       labelSettings={labelSettings}
     />
   );

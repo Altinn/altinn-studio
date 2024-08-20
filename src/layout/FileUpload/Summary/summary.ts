@@ -1,4 +1,4 @@
-import { useAttachmentsFor } from 'src/features/attachments/AttachmentsContext';
+import { useAttachmentsFor } from 'src/features/attachments/hooks';
 import type { IAttachment } from 'src/features/attachments';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 

@@ -4,8 +4,6 @@ export type IFormDynamics = {
   conditionalRendering: IConditionalRenderingRules | null;
 };
 
-export type IFormDynamicState = IFormDynamics;
-
 export interface IRuleConnection {
   inputParams: IParameters;
   outParams: {
@@ -24,7 +22,7 @@ export interface IConditionalRenderingRules {
 
 export interface IConditionalRenderingRule {
   selectedFunction: string;
-  selectedAction: string;
+  selectedAction: 'Show' | 'Hide';
   selectedFields: ISelectedFields;
   inputParams: IParameters;
   repeatingGroup?: IConditionalRenderingRepeatingGroup;

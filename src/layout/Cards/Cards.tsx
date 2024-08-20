@@ -8,8 +8,10 @@ import { Lang } from 'src/features/language/Lang';
 import { CardProvider } from 'src/layout/Cards/CardContext';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponent } from 'src/layout/GenericComponent';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { typedBoolean } from 'src/utils/typing';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { CardConfigInternal } from 'src/layout/Cards/config.generated';
+import type { CardInternal } from 'src/layout/Cards/CardsPlugin';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type ICardsProps = PropsFromGenericComponent<'Cards'>;
@@ -19,7 +21,7 @@ function parseSize(size: string | undefined, defaultValue: string): string {
 }
 
 export const Cards = ({ node }: ICardsProps) => {
-  const { cardsInternal, minMediaHeight, minWidth, color, mediaPosition: _mediaPosition } = node.item;
+  const { cardsInternal, minMediaHeight, minWidth, color, mediaPosition: _mediaPosition } = useNodeItem(node);
   const processedMinWidth = parseSize(minWidth, '250px');
   const processedMinMediaHeight = parseSize(minMediaHeight, '150px');
   const mediaPosition = _mediaPosition ?? 'top';
@@ -56,7 +58,7 @@ export const Cards = ({ node }: ICardsProps) => {
                 <Lang id={card.description} />
               </Card.Content>
             )}
-            {card.childNodes.length > 0 && (
+            {card.children && card.children.length > 0 && (
               <Grid
                 container={true}
                 item={true}
@@ -73,7 +75,7 @@ export const Cards = ({ node }: ICardsProps) => {
                     node={node}
                     renderedInMedia={false}
                   >
-                    {card.childNodes.map((childNode, idx) => (
+                    {card.children.filter(typedBoolean).map((childNode, idx) => (
                       <GenericComponent
                         key={idx}
                         node={childNode}
@@ -103,13 +105,13 @@ export const Cards = ({ node }: ICardsProps) => {
 };
 
 interface MediaProps {
-  card: CardConfigInternal;
+  card: CardInternal;
   node: LayoutNode<'Cards'>;
   minMediaHeight: string | undefined;
 }
 
 function Media({ card, node, minMediaHeight }: MediaProps) {
-  if (!card.mediaNode) {
+  if (!card.media) {
     return null;
   }
 
@@ -121,12 +123,11 @@ function Media({ card, node, minMediaHeight }: MediaProps) {
         minMediaHeight={minMediaHeight}
       >
         <div
-          key={card.mediaNode.item.id}
-          data-componentid={card.mediaNode.item.id}
-          data-componentbaseid={card.mediaNode.item.baseComponentId || card.mediaNode.item.id}
+          data-componentid={card.media.id}
+          data-componentbaseid={card.media.baseId}
         >
           <GenericComponent
-            node={card.mediaNode}
+            node={card.media}
             overrideDisplay={{
               directRender: true,
             }}

@@ -206,14 +206,13 @@ describe('FileUploadWithTagComponent', () => {
   });
 
   describe('editing', () => {
-    it('should disable dropdown in edit mode when updating', async () => {
+    it('should hide dropdown when updating', async () => {
       const { mutations } = await renderWithTag({ attachments: (dataType) => getDataElements({ count: 1, dataType }) });
       await selectTag();
 
       expect(mutations.doAttachmentAddTag.mock).toHaveBeenCalledTimes(1);
       expect(screen.getByText('Laster innhold')).toBeInTheDocument();
-
-      expect(screen.getByRole('combobox')).toBeDisabled();
+      expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
     });
 
     it('should not disable dropdown in edit mode when not updating', async () => {
@@ -234,21 +233,15 @@ describe('FileUploadWithTagComponent', () => {
       ).not.toBeDisabled();
     });
 
-    it('should disable save button when readOnly=true', async () => {
+    it('should not allow opening for editing when readOnly=true', async () => {
       await renderWithTag({
         component: { readOnly: true },
         attachments: (dataType) => getDataElements({ count: 1, dataType }),
       });
-      await openEdit();
-
-      expect(
-        screen.getByRole('button', {
-          name: 'Lagre',
-        }),
-      ).toBeDisabled();
+      expect(screen.queryByRole('button', { name: 'Rediger' })).not.toBeInTheDocument();
     });
 
-    it('should disable save button when attachment.uploaded=false', async () => {
+    it('should not show save button when attachment.uploaded=false', async () => {
       const { id, mutations } = await renderWithTag({ attachments: () => [] });
 
       const file = new File(['(⌐□_□)'], 'chucknorris.png', { type: 'image/png' });
@@ -257,11 +250,8 @@ describe('FileUploadWithTagComponent', () => {
       await userEvent.upload(dropZone, file);
 
       await waitFor(() => expect(mutations.doAttachmentUpload.mock).toHaveBeenCalledTimes(1));
-      expect(
-        screen.getByRole('button', {
-          name: 'Lagre',
-        }),
-      ).toBeDisabled();
+      expect(screen.getByText('Laster innhold')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Lagre' })).not.toBeInTheDocument();
     });
 
     it('should not show save button when attachment.updating=true', async () => {
@@ -344,7 +334,6 @@ interface Props<T extends Types> extends Partial<RenderGenericComponentTestProps
 async function renderAbstract<T extends Types>({
   type,
   component,
-  genericProps,
   attachments: attachmentsGenerator = (dataType) => getDataElements({ dataType }),
 }: Props<T>) {
   (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementationOnce(() =>
@@ -380,10 +369,6 @@ async function renderAbstract<T extends Types>({
       }),
       ...component,
     } as CompExternalExact<T>,
-    genericProps: {
-      isValid: true,
-      ...genericProps,
-    },
     queries: {
       fetchInstanceData: async () =>
         getInstanceDataMock((i) => {

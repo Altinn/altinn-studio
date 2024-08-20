@@ -11,10 +11,13 @@ import { useTextResources } from 'src/features/language/textResources/TextResour
 import { getLanguageFromCode } from 'src/language/languages';
 import type { TextResourceMap } from 'src/features/language/textResources';
 import type { TextResourceVariablesDataSources } from 'src/features/language/useLanguage';
-import type { ILanguage } from 'src/types/shared';
+import type { IApplicationSettings, ILanguage } from 'src/types/shared';
 
-export interface LangDataSources
-  extends Omit<TextResourceVariablesDataSources, 'node' | 'currentDataModel' | 'currentDataModelName'> {
+export type LimitedTextResourceVariablesDataSources = Omit<
+  TextResourceVariablesDataSources,
+  'node' | 'currentDataModel' | 'currentDataModelName' | 'transposeSelector'
+>;
+export interface LangDataSources extends LimitedTextResourceVariablesDataSources {
   textResources: TextResourceMap;
   selectedLanguage: string;
   language: ILanguage;
@@ -27,7 +30,8 @@ export const LangDataSourcesProvider = ({ children }: PropsWithChildren) => {
   const selectedAppLanguage = useCurrentLanguage();
   const dataModels = useDataModelReaders();
   const _applicationSettings = useLaxApplicationSettings();
-  const applicationSettings = _applicationSettings === ContextNotProvided ? emptyObject : _applicationSettings;
+  const applicationSettings: IApplicationSettings =
+    _applicationSettings === ContextNotProvided ? emptyObject : _applicationSettings;
   const instanceDataSources = useLaxInstanceDataSources();
   const setDataSources = useSetLangToolsDataSources();
 

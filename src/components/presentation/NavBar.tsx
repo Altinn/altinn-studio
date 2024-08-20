@@ -11,7 +11,7 @@ import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useCurrentParty } from 'src/features/party/PartiesProvider';
-import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { useNavigatePage, usePreviousPageKey } from 'src/hooks/useNavigatePage';
 import { PresentationType, ProcessTaskType } from 'src/types';
 import { httpGet } from 'src/utils/network/networking';
 import { getRedirectUrl } from 'src/utils/urls/appUrlHelper';
@@ -25,7 +25,8 @@ const expandIconStyle = { transform: 'rotate(45deg)' };
 
 export const NavBar = ({ type }: INavBarProps) => {
   const { langAsString } = useLanguage();
-  const { navigateToPage, previous } = useNavigatePage();
+  const previous = usePreviousPageKey();
+  const { navigateToPage } = useNavigatePage();
   const returnToView = useReturnToView();
   const party = useCurrentParty();
   const { expandedWidth, toggleExpandedWidth } = useUiConfigContext();

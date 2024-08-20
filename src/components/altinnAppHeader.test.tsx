@@ -3,7 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { getOrganisationMock } from 'src/__mocks__/getOrganisationMock';
-import { getProfileMock, getProfileStateMock } from 'src/__mocks__/getProfileMock';
+import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { AltinnAppHeader } from 'src/components/altinnAppHeader';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IHeaderProps } from 'src/components/altinnAppHeader';
@@ -46,10 +46,10 @@ describe('AltinnAppHeader', () => {
 });
 
 const render = async (props: Partial<IHeaderProps> = {}) => {
-  const profile = getProfileStateMock();
+  const profile = getProfileMock();
 
   const allProps = {
-    profile: profile.profile,
+    profile,
     ...props,
   };
 

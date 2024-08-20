@@ -42,6 +42,8 @@ Object.defineProperty(document, 'fonts', {
 // Forcing a low timeout for useDelayedSaveState()
 (global as any).delayedSaveState = 50;
 
+(window as any).forceNodePropertiesValidation = 'off';
+
 window.inUnitTest = true;
 
 // org and app is assigned to window object, so to avoid 'undefined' in tests, they need to be set

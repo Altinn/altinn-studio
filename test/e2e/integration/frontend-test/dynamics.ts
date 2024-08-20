@@ -1,8 +1,8 @@
 import texts from 'test/e2e/fixtures/texts.json';
-import { changeToLang } from 'test/e2e/integration/frontend-test/formatting';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+import { changeToLang } from 'test/e2e/support/lang';
 
-import type { CompOrGroupExternal } from 'src/layout/layout';
+import type { CompExternal } from 'src/layout/layout';
 
 const appFrontend = new AppFrontend();
 
@@ -89,7 +89,7 @@ describe('Dynamics', () => {
         layoutSet.summary.data.hidden = ['equals', ['component', 'newFirstName'], 'hideSummary'];
 
         const summaryComponents = [...layoutSet.summary.data.layout];
-        const lastButton = summaryComponents.pop() as CompOrGroupExternal;
+        const lastButton = summaryComponents.pop() as CompExternal;
         layoutSet.summary.data.layout = [
           ...summaryComponents,
           {

@@ -1,16 +1,9 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+import { changeToLang } from 'test/e2e/support/lang';
 
-import type { IFormattingInternal } from 'src/layout/common.generated';
+import type { IFormatting } from 'src/layout/common.generated';
 
 const appFrontend = new AppFrontend();
-
-export const changeToLang = (option: 'en' | 'nb') => {
-  cy.findByRole('combobox', { name: option === 'en' ? 'Språk' : 'Language' }).click();
-  cy.findByRole('option', { name: option === 'en' ? 'Engelsk' : 'Norwegian bokmål' }).click();
-
-  // Verify that the language has changed
-  cy.findByRole('combobox', { name: option === 'en' ? 'Language' : 'Språk' }).should('be.visible');
-};
 
 describe('Formatting', () => {
   it('Number formatting', () => {
@@ -43,7 +36,7 @@ describe('Formatting', () => {
     cy.get(appFrontend.group.currentValue).numberFormatClear();
     cy.get(appFrontend.group.currentValue).type('10000');
 
-    const alternatives: { format: IFormattingInternal; expected: any }[] = [
+    const alternatives: { format: IFormatting; expected: any }[] = [
       {
         format: { currency: 'NOK', number: { prefix: 'SEK ' } },
         expected: { nb: 'SEK 10 000', en: 'SEK 10,000' },
@@ -79,10 +72,10 @@ describe('Formatting', () => {
 
       for (const lang of ['en', 'nb'] as const) {
         changeToLang(lang);
+        cy.get(appFrontend.group.edit).click();
         cy.get(appFrontend.group.currentValue).assertTextWithoutWhiteSpaces(expected[lang]);
         cy.get(appFrontend.group.saveMainGroup).clickAndGone();
         cy.findByText(expected[lang]);
-        cy.get(appFrontend.group.edit).click();
       }
     }
   });

@@ -11,7 +11,6 @@ import { useCurrentParty } from 'src/features/party/PartiesProvider';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { maybeAuthenticationRedirect } from 'src/utils/maybeAuthenticationRedirect';
 
-// Also used for prefetching @see formPrefetcher.ts
 export function useFormDataQueryDef(
   cacheKeyUrl?: string,
   currentTaskId?: string,
@@ -24,6 +23,8 @@ export function useFormDataQueryDef(
     queryFn: url ? () => fetchFormData(url, options) : skipToken,
     enabled: !!url,
     gcTime: 0,
+    staleTime: 0,
+    refetchInterval: false,
   };
 }
 

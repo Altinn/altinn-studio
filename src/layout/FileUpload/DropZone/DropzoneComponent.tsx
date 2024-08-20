@@ -10,8 +10,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/FileUpload/DropZone/DropzoneComponent.module.css';
 import { mapExtensionToAcceptMime } from 'src/layout/FileUpload/DropZone/mapExtensionToAcceptMime';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
-import type { CompFileUploadInternal } from 'src/layout/FileUpload/config.generated';
-import type { ITextResourceBindings } from 'src/layout/layout';
+import type { CompInternal, ITextResourceBindings } from 'src/layout/layout';
 
 export interface IDropzoneComponentProps {
   id: string;
@@ -22,7 +21,7 @@ export interface IDropzoneComponentProps {
   onDrop: (acceptedFiles: File[], rejectedFiles: FileRejection[]) => void;
   hasValidationMessages: boolean;
   hasCustomFileEndings?: boolean;
-  validFileEndings?: CompFileUploadInternal['validFileEndings'];
+  validFileEndings?: CompInternal<'FileUpload'>['validFileEndings'];
   textResourceBindings?: ITextResourceBindings<'FileUpload' | 'FileUploadWithTag'>;
 }
 

@@ -364,7 +364,7 @@ export function nn(): FixedLanguageList {
       navigateLastPage: 'Naviger til siste side i tabell',
     },
     config_error: {
-      component_has_errors: 'Me fann følgjande feil når me tolka konfigurasjonen for <code>{0}</code>:',
+      component_has_errors: 'Ein feil oppstod for <code>{0}</code>:',
       component_has_errors_after:
         'Medan du har feil i konfigurasjonen kan me ikkje vise komponenten i skjemaet. Rett opp i feila og prøv igjen.',
     },

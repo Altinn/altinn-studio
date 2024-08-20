@@ -7,16 +7,12 @@ import { GridDef } from 'src/layout/Grid/config.def.generated';
 import { RenderGrid } from 'src/layout/Grid/GridComponent';
 import { GridSummary } from 'src/layout/Grid/GridSummary';
 import { GridSummaryComponent } from 'src/layout/Grid/GridSummaryComponent';
-import { GridHierarchyGenerator } from 'src/layout/Grid/hierarchy';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { CompExternalExact } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
-import type { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class Grid extends GridDef {
-  private _hierarchyGenerator = new GridHierarchyGenerator();
-
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Grid'>>(
     function LayoutComponentGridRender(props, _): JSX.Element | null {
       return <RenderGrid {...props} />;
@@ -27,35 +23,23 @@ export class Grid extends GridDef {
     return <GridSummaryComponent {...props} />;
   }
 
-  renderSummary2(componentNode: LayoutNode<'Grid'>): JSX.Element | null {
-    return <GridSummary componentNode={componentNode} />;
+  renderSummary2(props: Summary2Props<'Grid'>): JSX.Element | null {
+    return <GridSummary componentNode={props.target} />;
   }
 
   renderSummaryBoilerplate(): boolean {
     return false;
   }
 
-  getDisplayData(_node: LayoutNode<'Grid'>): string {
-    return '';
-  }
-
-  hierarchyGenerator(): ComponentHierarchyGenerator<'Grid'> {
-    return this._hierarchyGenerator;
-  }
-
-  validateDataModelBindings(): string[] {
-    return [];
-  }
-
   /**
    * Override layout validation to validate grid cells individually
    */
-  validateLayoutConfing(
+  validateLayoutConfig(
     component: CompExternalExact<'Grid'>,
-    validatate: (pointer: string | null, data: unknown) => ErrorObject[] | undefined,
+    validate: (pointer: string | null, data: unknown) => ErrorObject[] | undefined,
   ): ErrorObject[] | undefined {
     const schemaPointer = '#/definitions/AnyComponent';
-    const rawErrors = validatate(schemaPointer, component);
+    const rawErrors = validate(schemaPointer, component);
 
     if (!rawErrors) {
       return undefined;
@@ -81,7 +65,7 @@ export class Grid extends GridDef {
             } else if (typeof cell === 'object' && 'component' in cell) {
               cellPointer = '#/definitions/GridComponentRef';
             }
-            const cellErrors = validatate(cellPointer, cell);
+            const cellErrors = validate(cellPointer, cell);
             if (cellErrors) {
               // Rewrite instancePath to start at the component root
               errors.push(...cellErrors.map((e) => ({ ...e, instancePath: `/rows/${i}/cells/${j}${e.instancePath}` })));

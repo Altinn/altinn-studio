@@ -13,6 +13,7 @@ import { hasValidationErrors } from 'src/features/validation/utils';
 import { usePostPlaceQuery } from 'src/hooks/queries/usePostPlaceQuery';
 import { useEffectEvent } from 'src/hooks/useEffectEvent';
 import classes from 'src/layout/Address/AddressComponent.module.css';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindingsForAddress } from 'src/layout/Address/config.generated';
 
@@ -27,12 +28,12 @@ const bindingKeys: IDataModelBindingsForAddress = {
 };
 
 export function AddressComponent({ node }: IAddressProps) {
-  const { id, required, readOnly, labelSettings, simplified, saveWhileTyping } = node.item;
+  const { id, required, readOnly, simplified, saveWhileTyping, textResourceBindings, dataModelBindings } =
+    useNodeItem(node);
 
-  const { textResourceBindings } = node.item;
   const bindingValidations = useBindingValidationsForNode(node);
   const componentValidations = useComponentValidationsForNode(node);
-  const { formData, setValue, debounce } = useDataModelBindings(node.item.dataModelBindings, saveWhileTyping);
+  const { formData, setValue, debounce } = useDataModelBindings(dataModelBindings, saveWhileTyping);
   const { address, careOf, postPlace, zipCode, houseNumber } = formData;
 
   const updatePostPlace = useEffectEvent((newPostPlace) => {
@@ -41,7 +42,7 @@ export function AddressComponent({ node }: IAddressProps) {
     }
   });
 
-  const zipCodeDebounced = FD.useDebouncedPick(node.item.dataModelBindings.zipCode);
+  const zipCodeDebounced = FD.useDebouncedPick(dataModelBindings.zipCode);
   const slowZip = typeof zipCodeDebounced === 'string' ? zipCodeDebounced : undefined;
   const postPlaceQueryData = usePostPlaceQuery(slowZip, !hasValidationErrors(bindingValidations?.zipCode));
   useEffect(() => updatePostPlace(postPlaceQueryData), [postPlaceQueryData, updatePostPlace]);
@@ -53,12 +54,10 @@ export function AddressComponent({ node }: IAddressProps) {
     >
       <div>
         <Label
+          node={node}
           id={`address_address_${id}`}
           renderLabelAs='label'
           textResourceBindings={{ title: textResourceBindings?.title ?? 'address_component.address' }}
-          readOnly={readOnly}
-          required={required}
-          labelSettings={labelSettings}
         >
           <Grid
             item
@@ -79,21 +78,16 @@ export function AddressComponent({ node }: IAddressProps) {
             />
           </Grid>
         </Label>
-        <ComponentValidations
-          validations={bindingValidations?.address}
-          node={node}
-        />
+        <ComponentValidations validations={bindingValidations?.address} />
       </div>
 
       {!simplified && (
         <div>
           <Label
+            node={node}
             id={`address_care_of_${id}`}
             renderLabelAs='label'
             textResourceBindings={{ title: textResourceBindings?.careOfTitle ?? 'address_component.care_of' }}
-            readOnly={readOnly}
-            required={required}
-            labelSettings={labelSettings}
           >
             <Grid
               item
@@ -113,10 +107,7 @@ export function AddressComponent({ node }: IAddressProps) {
               />
             </Grid>
           </Label>
-          <ComponentValidations
-            validations={bindingValidations?.careOf}
-            node={node}
-          />
+          <ComponentValidations validations={bindingValidations?.careOf} />
         </div>
       )}
 
@@ -129,12 +120,10 @@ export function AddressComponent({ node }: IAddressProps) {
           className={`${classes.addressComponentZipCode} ${classes.addressComponentSmallInputs}`}
         >
           <Label
+            node={node}
             id={`address_zip_code_${id}`}
             renderLabelAs='label'
             textResourceBindings={{ title: textResourceBindings?.zipCodeTitle ?? 'address_component.zip_code' }}
-            readOnly={readOnly}
-            required={required}
-            labelSettings={labelSettings}
           >
             <Textfield
               id={`address_zip_code_${id}`}
@@ -156,12 +145,10 @@ export function AddressComponent({ node }: IAddressProps) {
           className={classes.addressComponentPostplace}
         >
           <Label
+            node={node}
             id={`address_post_place_${id}`}
             renderLabelAs='label'
             textResourceBindings={{ title: textResourceBindings?.postPlaceTitle ?? 'address_component.post_place' }}
-            readOnly={readOnly}
-            required={required}
-            labelSettings={labelSettings}
           >
             <Textfield
               id={`address_post_place_${id}`}
@@ -176,28 +163,20 @@ export function AddressComponent({ node }: IAddressProps) {
             />
           </Label>
         </Grid>
-        <ComponentValidations
-          validations={bindingValidations?.zipCode}
-          node={node}
-        />
-        <ComponentValidations
-          validations={bindingValidations?.postPlace}
-          node={node}
-        />
+        <ComponentValidations validations={bindingValidations?.zipCode} />
+        <ComponentValidations validations={bindingValidations?.postPlace} />
       </Grid>
 
       {!simplified && (
         <div>
           <Label
+            node={node}
             id={`address_house_number_${id}`}
             renderLabelAs='label'
             textResourceBindings={{
               title: textResourceBindings?.houseNumberTitle ?? 'address_component.house_number',
               help: 'address_component.house_number_helper',
             }}
-            readOnly={readOnly}
-            required={required}
-            labelSettings={labelSettings}
           >
             <div className={classes.addressComponentSmallInputs}>
               <Textfield
@@ -213,17 +192,11 @@ export function AddressComponent({ node }: IAddressProps) {
               />
             </div>
           </Label>
-          <ComponentValidations
-            validations={bindingValidations?.houseNumber}
-            node={node}
-          />
+          <ComponentValidations validations={bindingValidations?.houseNumber} />
         </div>
       )}
 
-      <ComponentValidations
-        validations={componentValidations}
-        node={node}
-      />
+      <ComponentValidations validations={componentValidations} />
     </div>
   );
 }

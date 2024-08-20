@@ -363,7 +363,7 @@ export function en() {
       navigateLastPage: 'Navigate to the last page in the table',
     },
     config_error: {
-      component_has_errors: 'We found the following errors when we interpreted the configuration for <code>{0}</code>:',
+      component_has_errors: 'An error occurred for <code>{0}</code>:',
       component_has_errors_after:
         'As long as the component has configuration errors, we cannot show it in the form. Fix the errors and try again.',
     },

@@ -7,14 +7,16 @@ import type { HeadingProps } from '@digdir/designsystemet-react';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupSummary.module.css';
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
-import type { CompGroupInternal } from 'src/layout/Group/config.generated';
-import type { CompSummary2Internal } from 'src/layout/Summary2/config.generated';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import type { CompInternal } from 'src/layout/layout';
+import type { GroupSummaryOverrideProps } from 'src/layout/Summary2/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type GroupComponentSummaryProps = {
   componentNode: LayoutNode<'Group'>;
   hierarchyLevel?: number;
-  summaryOverrides?: CompGroupInternal['summaryProps'] | CompSummary2Internal['overrides'];
+  summaryOverrides?: CompInternal<'Summary2'>['overrides'];
+  parentId?: string;
 };
 
 type HeadingLevel = HeadingProps['level'];
@@ -30,32 +32,36 @@ function getHeadingLevel(hierarchyLevel: number): HeadingLevel {
     return maximumHeadingLevel;
   }
 }
-const RenderChildComponents = ({ componentNode, hierarchyLevel, summaryOverrides }: GroupComponentSummaryProps) => {
-  if (!('childComponents' in componentNode.item)) {
-    return null;
-  }
 
+const ChildComponents = ({ componentNode, hierarchyLevel, summaryOverrides, parentId }: GroupComponentSummaryProps) => {
+  const childComponents = useNodeItem(componentNode, (i) => i.childComponents);
   return (
-    componentNode?.item?.childComponents?.length &&
-    componentNode.item.childComponents.map((child) => {
-      if (child?.item?.type === 'Group') {
+    childComponents.length &&
+    childComponents.map((child) => {
+      if (child?.isType('Group')) {
         return (
           <GroupSummary
-            componentNode={child as LayoutNode<'Group'>}
+            componentNode={child}
             hierarchyLevel={hierarchyLevel ? hierarchyLevel + 1 : 1}
-            key={componentNode.item.id}
-            summaryOverrides={summaryOverrides as CompGroupInternal['summaryProps']}
+            key={componentNode.id}
+            summaryOverrides={summaryOverrides}
           />
         );
       } else {
-        const isCompact = summaryOverrides?.['isCompact'];
+        const isCompact = (
+          summaryOverrides?.find((override) => override.componentId === parentId) as
+            | GroupSummaryOverrideProps
+            | undefined
+        )?.isCompact;
+
         return (
           <div
-            key={child?.item?.id}
+            key={child?.id}
             className={cn(classes.childItem)}
           >
             <ComponentSummary
               componentNode={child}
+              summaryOverrides={summaryOverrides}
               isCompact={isCompact}
             />
           </div>
@@ -66,11 +72,11 @@ const RenderChildComponents = ({ componentNode, hierarchyLevel, summaryOverrides
 };
 
 export const GroupSummary = ({ componentNode, hierarchyLevel = 0, summaryOverrides }: GroupComponentSummaryProps) => {
-  const { title, summaryTitle, description } = componentNode.item.textResourceBindings ?? {};
+  const title = useNodeItem(componentNode, (i) => i.textResourceBindings?.title);
+  const summaryTitle = useNodeItem(componentNode, (i) => i.textResourceBindings?.summaryTitle);
+  const description = useNodeItem(componentNode, (i) => i.textResourceBindings?.description);
   const headingLevel = getHeadingLevel(hierarchyLevel);
-  const isGroup = componentNode.item.type === 'Group';
-  const isNestedGroup = isGroup && hierarchyLevel > 0;
-
+  const isNestedGroup = hierarchyLevel > 0;
   return (
     <section
       className={isNestedGroup ? cn(classes.groupContainer, classes.nested) : cn(classes.groupContainer)}
@@ -87,10 +93,11 @@ export const GroupSummary = ({ componentNode, hierarchyLevel = 0, summaryOverrid
           <Lang id={description} />
         </Paragraph>
       </div>
-      <RenderChildComponents
+      <ChildComponents
         componentNode={componentNode}
         hierarchyLevel={hierarchyLevel}
         summaryOverrides={summaryOverrides}
+        parentId={componentNode.baseId}
       />
     </section>
   );

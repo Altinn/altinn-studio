@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { useIsMutating, useMutation } from '@tanstack/react-query';
+import { useIsMutating, useMutation, useQueryClient } from '@tanstack/react-query';
 import dot from 'dot-object';
 import deepEqual from 'fast-deep-equal';
 
@@ -14,6 +14,7 @@ import { useRuleConnections } from 'src/features/form/dynamics/DynamicsContext';
 import { useFormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import { createFormDataWriteStore } from 'src/features/formData/FormDataWriteStateMachine';
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
+import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
@@ -23,9 +24,10 @@ import type { IRuleConnections } from 'src/features/form/dynamics';
 import type { FormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import type { FDSaveFinished, FDSaveResult, FormDataContext } from 'src/features/formData/FormDataWriteStateMachine';
 import type { BackendValidationIssueGroups } from 'src/features/validation';
-import type { FormDataSelector } from 'src/layout';
+import type { FormDataRowsSelector, FormDataSelector } from 'src/layout';
 import type { IMapping } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
+import type { BaseRow } from 'src/utils/layout/types';
 
 export type FDLeafValue = string | number | boolean | null | undefined | string[];
 export type FDValue = FDLeafValue | object | FDValue[];
@@ -45,9 +47,8 @@ const {
   useMemoSelector,
   useSelectorAsRef,
   useLaxMemoSelector,
-  useLaxSelectorAsRef,
-  useLaxDelayedMemoSelectorFactory,
-  useDelayedMemoSelectorFactory,
+  useLaxDelayedSelector,
+  useDelayedSelector,
   useLaxSelector,
   useLaxStore,
   useStore,
@@ -75,6 +76,7 @@ function useFormDataSaveMutation() {
   const debounce = useSelector((s) => s.debounce);
   const waitFor = useWaitForState<{ prev: object; next: object }, FormDataContext>(useStore());
   const useIsSavingRef = useAsRef(useIsSaving());
+  const onSaveFinishedRef = useSelectorAsRef((s) => s.onSaveFinished);
 
   return useMutation({
     mutationKey: ['saveFormData', dataModelUrl],
@@ -104,6 +106,7 @@ function useFormDataSaveMutation() {
 
       if (isStateless) {
         const newDataModel = await doPostStatelessFormData(urlWithLanguage, next);
+        onSaveFinishedRef.current?.();
         return { newDataModel, savedData: next, validationIssues: undefined };
       } else {
         const patch = createPatch({ prev, next });
@@ -115,6 +118,7 @@ function useFormDataSaveMutation() {
           patch,
           ignoredValidators: [],
         });
+        onSaveFinishedRef.current?.();
         return { ...result, patch, savedData: next };
       }
     },
@@ -178,7 +182,7 @@ function FormDataEffects() {
   const isSaving = useIsSaving();
   const debounce = useDebounceImmediately();
   const hasUnsavedChanges = useHasUnsavedChanges();
-  const hasUnsavedChangesRef = useHasUnsavedChangesRef();
+  const hasUnsavedChangesNow = useHasUnsavedChangesNow();
 
   // If errors occur, we want to throw them so that the user can see them, and they
   // can be handled by the error boundary.
@@ -202,6 +206,7 @@ function FormDataEffects() {
   const needsToSave = lastSavedData !== debouncedCurrentData;
   const canSaveNow = !isSaving && !lockedBy;
   const shouldSave = (needsToSave && canSaveNow && autoSaving) || manualSaveRequested;
+  const setUnsavedAttrTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     shouldSave && performSave();
@@ -210,7 +215,15 @@ function FormDataEffects() {
   // Marking the document as having unsaved changes. The data attribute is used in tests, while the beforeunload
   // event is used to warn the user when they try to navigate away from the page with unsaved changes.
   useEffect(() => {
-    document.body.setAttribute('data-unsaved-changes', hasUnsavedChanges.toString());
+    clearTimeout(setUnsavedAttrTimeout.current);
+    if (hasUnsavedChanges) {
+      document.body.setAttribute('data-unsaved-changes', 'true');
+    } else {
+      setUnsavedAttrTimeout.current = setTimeout(() => {
+        document.body.setAttribute('data-unsaved-changes', 'false');
+        setUnsavedAttrTimeout.current = undefined;
+      }, 10);
+    }
     window.onbeforeunload = hasUnsavedChanges ? () => true : null;
 
     return () => {
@@ -224,11 +237,11 @@ function FormDataEffects() {
   // to trigger when the user is typing, which is not what we want.
   useEffect(
     () => () => {
-      if (hasUnsavedChangesRef.current) {
+      if (hasUnsavedChangesNow()) {
         performSave();
       }
     },
-    [hasUnsavedChangesRef, performSave],
+    [hasUnsavedChangesNow, performSave],
   );
 
   // Sets the debounced data in the window object, so that Cypress tests can access it.
@@ -278,9 +291,31 @@ const useHasUnsavedChanges = () => {
   return result || isSaving;
 };
 
-const useHasUnsavedChangesRef = () => {
-  const isSaving = useIsSaving();
-  return useLaxSelectorAsRef((state) => hasUnsavedChanges(state) || isSaving);
+const useHasUnsavedChangesNow = () => {
+  const store = useStore();
+  const isSavingNow = useIsSavingNow();
+
+  return useCallback(() => {
+    if (hasUnsavedChanges(store.getState())) {
+      return true;
+    }
+
+    return isSavingNow();
+  }, [store, isSavingNow]);
+};
+
+const useIsSavingNow = () => {
+  const dataModelUrl = useLaxSelector((s) => s.controlState.saveUrl);
+  const queryClient = useQueryClient();
+
+  return useCallback(() => {
+    const numRequests = queryClient.getMutationCache().findAll({
+      status: 'pending',
+      mutationKey: ['saveFormData', dataModelUrl === ContextNotProvided ? '__never__' : dataModelUrl],
+    }).length;
+
+    return numRequests > 0;
+  }, [queryClient, dataModelUrl]);
 };
 
 const useWaitForSave = () => {
@@ -320,9 +355,7 @@ const useWaitForSave = () => {
 };
 
 const emptyObject: any = {};
-
-const debouncedSelector = (path: string) => (state: FormDataContext) => dot.pick(path, state.debouncedCurrentData);
-const makeCacheKey = (path: string) => path;
+const emptyArray: never[] = [];
 
 export const FD = {
   /**
@@ -332,9 +365,38 @@ export const FD = {
    * pretend to have the full data model available to look up values from.
    */
   useDebouncedSelector(): FormDataSelector {
-    return useDelayedMemoSelectorFactory({
-      selector: debouncedSelector,
-      makeCacheKey,
+    return useDelayedSelector({
+      mode: 'simple',
+      selector: (path: string) => (state) => dot.pick(path, state.debouncedCurrentData),
+    });
+  },
+
+  /**
+   * The same as useDebouncedSelector(), but will return BaseRow[] instead of the raw data. This is useful if you
+   * just want to fetch the number of rows, and the indexes/uuids of those rows, without fetching the actual data
+   * inside them (and re-render if that data changes).
+   */
+  useDebouncedRowsSelector(): FormDataRowsSelector {
+    return useDelayedSelector({
+      mode: 'simple',
+      selector: (path: string) => (state) => {
+        const rawRows = dot.pick(path, state.debouncedCurrentData);
+        if (!Array.isArray(rawRows) || !rawRows.length) {
+          return emptyArray;
+        }
+
+        return rawRows.map((row: any, index: number) => ({ uuid: row[ALTINN_ROW_ID], index }));
+      },
+    });
+  },
+
+  /**
+   * Same as useDebouncedSelector(), but for invalid data.
+   */
+  useInvalidDebouncedSelector(): FormDataSelector {
+    return useDelayedSelector({
+      mode: 'simple',
+      selector: (path: string) => (state) => dot.pick(path, state.invalidDebouncedCurrentData),
     });
   },
 
@@ -351,9 +413,9 @@ export const FD = {
    * provider is not present.
    */
   useLaxDebouncedSelector(): FormDataSelector | typeof ContextNotProvided {
-    return useLaxDelayedMemoSelectorFactory({
-      selector: debouncedSelector,
-      makeCacheKey,
+    return useLaxDelayedSelector({
+      mode: 'simple',
+      selector: (path: string) => (state) => dot.pick(path, state.debouncedCurrentData),
     });
   },
 
@@ -499,7 +561,7 @@ export const FD = {
     const isLockedByMe = lockedBy === lockId;
     const isLockedByMeRef = useAsRef(isLockedByMe);
 
-    const hasUnsavedChangesRef = useHasUnsavedChangesRef();
+    const hasUnsavedChangesNow = useHasUnsavedChangesNow();
     const waitForSave = useWaitForSave();
 
     const lock = useCallback(async () => {
@@ -512,13 +574,13 @@ export const FD = {
         return false;
       }
 
-      if (hasUnsavedChangesRef.current) {
+      if (hasUnsavedChangesNow()) {
         await waitForSave(true);
       }
 
       rawLock(lockId);
       return true;
-    }, [hasUnsavedChangesRef, isLockedByMeRef, isLockedRef, lockId, lockedByRef, rawLock, waitForSave]);
+    }, [hasUnsavedChangesNow, isLockedByMeRef, isLockedRef, lockId, lockedByRef, rawLock, waitForSave]);
 
     const unlock = useCallback(
       (saveResult?: FDSaveResult) => {
@@ -538,8 +600,29 @@ export const FD = {
       [isLockedByMeRef, isLockedRef, lockId, lockedByRef, rawUnlock],
     );
 
-    return { lock, unlock, isLocked, lockedBy, isLockedByMe };
+    return useMemo(
+      () => ({ lock, unlock, isLocked, lockedBy, isLockedByMe }),
+      [isLocked, isLockedByMe, lock, lockedBy, unlock],
+    );
   },
+
+  /**
+   * Returns a list of rows, given a binding/path that points to a repeating-group-like structure (i.e. an array of
+   * objects). This will always be 'fresh', meaning it will update immediately when a new row is added/removed.
+   */
+  useFreshRows: (binding: string | undefined): BaseRow[] =>
+    useMemoSelector((s) => {
+      if (!binding) {
+        return emptyArray;
+      }
+
+      const rawRows = dot.pick(binding, s.currentData);
+      if (!Array.isArray(rawRows) || !rawRows.length) {
+        return emptyArray;
+      }
+
+      return rawRows.map((row: any, index: number) => ({ uuid: row[ALTINN_ROW_ID], index }));
+    }),
 
   /**
    * Returns a function you can use to debounce saved form data
@@ -563,6 +646,11 @@ export const FD = {
    * This will work (and return false) even if there is no FormDataWriteProvider in the tree.
    */
   useHasUnsavedChanges,
+
+  /**
+   * Same as the above, but returns a non-reactive function you can call to check if there are unsaved changes.
+   */
+  useHasUnsavedChangesNow,
 
   /**
    * Returns a function to append a value to a list. It checks if the value is already in the list, and if not,
@@ -591,4 +679,11 @@ export const FD = {
    * Returns the latest validation issues from the backend, from the last time the form data was saved.
    */
   useLastSaveValidationIssues: () => useSelector((s) => s.validationIssues),
+
+  /**
+   * This lets you set to a function that will be called as soon as the saving operation finishes.
+   * Beware that this is not a subscription service, so you can easily overwrite an existing callback here. This
+   * is only meant to be used in NodesContext.
+   */
+  useSetOnSaveFinished: () => useSelector((s) => s.setOnSaveFinished),
 };

@@ -4,12 +4,9 @@ import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 const appFrontend = new AppFrontend();
 
 describe('Validation in anonymous stateless app', () => {
-  beforeEach(() => {
+  it('Should show validation message for missing name', () => {
     cy.startAppInstance(appFrontend.apps.anonymousStateless, { user: null });
     cy.get(appFrontend.stateless.name).should('exist').and('be.visible');
-  });
-
-  it('Should show validation message for missing name', () => {
     cy.get(appFrontend.stateless.name).invoke('val').should('be.empty');
     cy.get(appFrontend.navButtons).contains('button', 'next').click();
 

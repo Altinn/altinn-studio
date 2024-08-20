@@ -11,14 +11,6 @@ export class GenerateIntersection<U extends CodeGenerator<any>[]> extends Descri
     this.types = types;
   }
 
-  containsVariationDifferences(): boolean {
-    if (super.containsVariationDifferences()) {
-      return true;
-    }
-
-    return this.types.some((type) => type.containsVariationDifferences());
-  }
-
   toJsonSchemaDefinition(): JSONSchema7 {
     return {
       ...this.getInternalJsonSchema(),

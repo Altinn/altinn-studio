@@ -1,5 +1,4 @@
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
-import type { IProfileState } from 'src/features/profile';
 import type { IProfile } from 'src/types/shared';
 
 export function getProfileMock(): IProfile {
@@ -14,16 +13,5 @@ export function getProfileMock(): IProfile {
       preSelectedPartyId: 12345,
       doNotPromptForParty: false,
     },
-  };
-}
-
-export function getProfileStateMock(customStates?: Partial<IProfileState>): IProfileState {
-  const profileStateMock: IProfileState = {
-    profile: getProfileMock(),
-  };
-
-  return {
-    ...profileStateMock,
-    ...customStates,
   };
 }

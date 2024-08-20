@@ -1,5 +1,6 @@
-import { CG, Variant } from 'src/codegen/CG';
+import { CG } from 'src/codegen/CG';
 import { CompCategory } from 'src/layout/common';
+import { NonRepeatingChildrenPlugin } from 'src/utils/layout/plugins/NonRepeatingChildrenPlugin';
 
 export const GROUP_SUMMARY_PROPS = new CG.obj(
   new CG.prop(
@@ -18,6 +19,7 @@ export const GROUP_SUMMARY_PROPS = new CG.obj(
 
 export const Config = new CG.component({
   category: CompCategory.Container,
+  directRendering: true,
   capabilities: {
     renderInTable: false,
     renderInButtonGroup: false,
@@ -25,6 +27,10 @@ export const Config = new CG.component({
     renderInAccordionGroup: false,
     renderInCards: true,
     renderInCardsMedia: false,
+    renderInTabs: true,
+  },
+  functionality: {
+    customExpressions: false,
   },
 })
   .addTextResource(
@@ -41,7 +47,6 @@ export const Config = new CG.component({
       description: 'The description text shown underneath the title',
     }),
   )
-  .addProperty(new CG.prop('childComponents', new CG.arr(CG.layoutNode)).onlyIn(Variant.Internal))
   .addProperty(
     new CG.prop(
       'groupingIndicator',
@@ -51,13 +56,10 @@ export const Config = new CG.component({
         .setDescription('Can visually group components together by indenting them or by putting them in a panel. '),
     ),
   )
-  .addProperty(
-    new CG.prop(
-      'children',
-      new CG.arr(new CG.str())
-        .setTitle('Children')
-        .setDescription('Array of component IDs that should be displayed in the group'),
-    ).onlyIn(Variant.External),
+  .addPlugin(
+    new NonRepeatingChildrenPlugin({
+      description: 'Array of component IDs that should be displayed in the group',
+    }),
   )
   .addProperty(
     new CG.prop(
@@ -67,5 +69,4 @@ export const Config = new CG.component({
         .setTitle('Heading level')
         .setDescription('The heading level of the group title.'),
     ),
-  )
-  .addProperty(new CG.prop('summaryProps', GROUP_SUMMARY_PROPS).onlyIn(Variant.Internal));
+  );

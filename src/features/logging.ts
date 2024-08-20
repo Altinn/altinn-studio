@@ -84,8 +84,9 @@ window.CypressLog = (...args: string[]) => {
   if (!window.Cypress) {
     return;
   }
+  const dateStamp = new Date().toISOString();
   (window as any)._cyLog = (window as any)._cyLog || [];
-  (window as any)._cyLog.push(args.join(' '));
+  (window as any)._cyLog.push(`${dateStamp}: ${args.join(' ')}`);
 };
 window.CypressSaveLog = () => {
   (window as any)._cyLogSave = true;

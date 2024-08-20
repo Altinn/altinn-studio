@@ -1,4 +1,5 @@
 import { CG } from 'src/codegen/CG';
+import { OptionsPlugin } from 'src/features/options/OptionsPlugin';
 import { CompCategory } from 'src/layout/common';
 import { asUploaderComponent } from 'src/layout/FileUpload/config';
 
@@ -12,6 +13,10 @@ export const Config = asUploaderComponent(
       renderInAccordionGroup: false,
       renderInCards: false,
       renderInCardsMedia: false,
+      renderInTabs: true,
+    },
+    functionality: {
+      customExpressions: false,
     },
   }),
 )
@@ -22,6 +27,4 @@ export const Config = asUploaderComponent(
       description: 'The title to show when selecting a tag for each uploaded file',
     }),
   )
-  .makeSelectionComponent(false)
-  .extends(CG.common('LabeledComponentProps'))
-  .extendTextResources(CG.common('TRBLabel'));
+  .addPlugin(new OptionsPlugin({ supportsPreselection: false, type: 'single' }));

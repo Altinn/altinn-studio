@@ -1,5 +1,6 @@
 import { CG } from 'src/codegen/CG';
 import { CompCategory } from 'src/layout/common';
+import { GridRowsPlugin } from 'src/layout/Grid/GridRowsPlugin';
 
 export const Config = new CG.component({
   category: CompCategory.Container,
@@ -10,8 +11,12 @@ export const Config = new CG.component({
     renderInAccordionGroup: false,
     renderInCards: false,
     renderInCardsMedia: false,
+    renderInTabs: true,
   },
-}).addProperty(new CG.prop('rows', CG.common('GridRows')));
-// We don't render the label in GenericComponent, but we still need the
-// text resource bindings for rendering them on our own
-Config.addTextResourcesForLabel().inner.extends(CG.common('LabeledComponentProps'));
+  functionality: {
+    customExpressions: false,
+  },
+})
+  .addPlugin(new GridRowsPlugin())
+  .extends(CG.common('LabeledComponentProps'))
+  .extendTextResources(CG.common('TRBLabel'));

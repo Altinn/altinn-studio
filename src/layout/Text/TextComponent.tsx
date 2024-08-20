@@ -4,10 +4,11 @@ import cn from 'classnames';
 
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/Text/TextComponent.module.css';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const TextComponent = ({ node }: PropsFromGenericComponent<'Text'>) => {
-  const { textResourceBindings, value, icon, direction, id } = node.item;
+  const { textResourceBindings, value, icon, direction } = useNodeItem(node);
 
   if (!textResourceBindings?.title) {
     return <span>{value}</span>;
@@ -17,9 +18,8 @@ export const TextComponent = ({ node }: PropsFromGenericComponent<'Text'>) => {
     <ComponentStructureWrapper
       node={node}
       label={{
-        textResourceBindings,
+        node,
         renderLabelAs: 'span',
-        id,
         className: cn(classes.textComponent, direction === 'vertical' ? classes.vertical : classes.horizontal),
       }}
     >
@@ -30,7 +30,7 @@ export const TextComponent = ({ node }: PropsFromGenericComponent<'Text'>) => {
           alt={textResourceBindings.title}
         />
       )}
-      <span aria-labelledby={`label-${id}`}>{value}</span>
+      <span aria-labelledby={`label-${node.id}`}>{value}</span>
     </ComponentStructureWrapper>
   );
 };

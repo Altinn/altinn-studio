@@ -5,18 +5,18 @@ import { skipToken, useQuery } from '@tanstack/react-query';
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
-import { preProcessItem } from 'src/features/expressions/validation';
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
+import { applyLayoutQuirks } from 'src/features/form/layout/quirks';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSetId';
 import { useHasInstance } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
-import { useNavigationParams } from 'src/hooks/useNavigatePage';
+import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useTaskStore } from 'src/layout/Summary2/taskIdStore';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
-import type { ExprObjConfig, ExprVal } from 'src/features/expressions/types';
 import type { ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { IExpandedWidthLayouts, IHiddenLayoutsExternal } from 'src/types';
+
 export interface LayoutContextValue {
   layouts: ILayouts;
   hiddenLayoutsExpressions: IHiddenLayoutsExternal;
@@ -28,7 +28,9 @@ export function useLayoutQueryDef(enabled: boolean, layoutSetId?: string): Query
   const { fetchLayouts } = useAppQueries();
   return {
     queryKey: ['formLayouts', layoutSetId, enabled],
-    queryFn: layoutSetId ? () => fetchLayouts(layoutSetId).then(processLayouts) : skipToken,
+    queryFn: layoutSetId
+      ? () => fetchLayouts(layoutSetId).then((layouts) => processLayouts(layouts, layoutSetId))
+      : skipToken,
     enabled: enabled && !!layoutSetId,
   };
 }
@@ -59,7 +61,7 @@ const { Provider, useCtx } = delayedContext(() =>
 export function useLayoutSetId() {
   const layoutSets = useLayoutSets();
   const currentProcessLayoutSetId = useCurrentLayoutSetId();
-  const { taskId } = useNavigationParams();
+  const taskId = useNavigationParam('taskId');
 
   const { overriddenLayoutSetId } = useTaskStore(({ overriddenLayoutSetId }) => ({ overriddenLayoutSetId }));
 
@@ -78,7 +80,7 @@ export const useHiddenLayoutsExpressions = () => useCtx().hiddenLayoutsExpressio
 
 export const useExpandedWidthLayouts = () => useCtx().expandedWidthLayouts;
 
-function processLayouts(input: ILayoutCollection): LayoutContextValue {
+function processLayouts(input: ILayoutCollection, layoutSetId: string): LayoutContextValue {
   const layouts: ILayouts = {};
   const hiddenLayoutsExpressions: IHiddenLayoutsExternal = {};
   const expandedWidthLayouts: IExpandedWidthLayouts = {};
@@ -89,47 +91,68 @@ function processLayouts(input: ILayoutCollection): LayoutContextValue {
     expandedWidthLayouts[key] = file.data.expandedWidth;
   }
 
-  warnAboutDuplicateComponentIds(layouts);
-
-  const config: ExprObjConfig<{ hidden: ExprVal.Boolean; whatever: string }> = {
-    hidden: {
-      returnType: 'test',
-      defaultValue: false,
-      resolvePerRow: false,
-    },
-  };
-
-  for (const key of Object.keys(hiddenLayoutsExpressions)) {
-    hiddenLayoutsExpressions[key] = preProcessItem(hiddenLayoutsExpressions[key], config, ['hidden'], key);
-  }
-
-  for (const key of Object.keys(expandedWidthLayouts)) {
-    expandedWidthLayouts[key] = preProcessItem(expandedWidthLayouts[key], config, ['hidden'], key);
-  }
+  const withQuirksFixed = applyLayoutQuirks(layouts, layoutSetId);
+  removeDuplicateComponentIds(withQuirksFixed, layoutSetId);
 
   return {
-    layouts,
+    layouts: withQuirksFixed,
     hiddenLayoutsExpressions,
     expandedWidthLayouts,
   };
 }
 
-function warnAboutDuplicateComponentIds(layouts: ILayouts) {
+function removeDuplicateComponentIds(layouts: ILayouts, layoutSetId: string) {
   const seenIds = new Map<string, { pageKey: string; idx: number }>();
+  const quirksCode = {
+    verifyAndApplyEarly: new Set<string>(),
+    verifyAndApplyLate: new Set<string>(),
+    logMessages: new Set<string>(),
+  };
 
   for (const pageKey of Object.keys(layouts)) {
     const page = layouts[pageKey] || [];
+    const toRemove: number[] = [];
     for (const [idx, comp] of page.entries()) {
       const prev = seenIds.get(comp.id);
       if (prev) {
         window.logError(
-          `Found duplicate component id '${comp.id}' from page '${pageKey}' at index ${idx} ` +
-            `(first found on page '${prev.pageKey})' at index ${prev.idx}). Such duplicate components will ` +
-            `be automatically removed from your layout in the next release.`,
+          `Removed duplicate component id '${comp.id}' from page '${pageKey}' at index ${idx} ` +
+            `(first found on page '${prev.pageKey})' at index ${prev.idx})`,
         );
+        toRemove.push(idx);
+
+        quirksCode.verifyAndApplyEarly.add(`assert(layouts['${prev.pageKey}']![${prev.idx}].id === '${comp.id}');`);
+        quirksCode.verifyAndApplyEarly.add(`assert(layouts['${pageKey}']![${idx}].id === '${comp.id}');`);
+        quirksCode.verifyAndApplyLate.add(`layouts['${pageKey}']![${idx}].id = '${comp.id}Duplicate';`);
+        quirksCode.logMessages.add(
+          `\`Renamed component id '${comp.id}' to '${comp.id}Duplicate' on page '${pageKey}'\``,
+        );
+
         continue;
       }
       seenIds.set(comp.id, { pageKey, idx });
     }
+    toRemove.reverse(); // Remove from the end to avoid changing the indexes
+    for (const idx of toRemove) {
+      page.splice(idx, 1);
+    }
+  }
+
+  if (quirksCode.verifyAndApplyEarly.size) {
+    const code: string[] = [];
+    code.push('{');
+    code.push('  verifyAndApply: (layouts) => {');
+    code.push(`    ${[...quirksCode.verifyAndApplyEarly.values()].join('\n    ')}`);
+    code.push('');
+    code.push(`    ${[...quirksCode.verifyAndApplyLate.values()].join('\n    ')}`);
+    code.push('  },');
+    code.push('  logMessages: [');
+    code.push(`    ${[...quirksCode.logMessages.values()].join(',\n    ')}`);
+    code.push('  ],');
+    code.push('}');
+    const fullKey = `${window.org}/${window.app}/${layoutSetId}`;
+    const _fullCode = `'${fullKey}': ${code.join('\n')},`;
+    // Uncomment the next line to get the generated quirks code
+    // debugger;
   }
 }

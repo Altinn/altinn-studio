@@ -28,6 +28,7 @@ it('should be possible to hide rows when "Endre fra" is greater or equals to [..
   // for such fields in the data model.
   cy.waitUntilSaved();
 
+  cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
   cy.get(appFrontend.group.hideRepeatingGroupRow).type('1');
   cy.get(appFrontend.group.mainGroup).find('tr').should('not.exist');
   cy.get(appFrontend.group.hiddenRowsInfoMsg).should('exist');

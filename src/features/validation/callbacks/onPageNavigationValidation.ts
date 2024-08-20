@@ -1,9 +1,11 @@
 import { useCallback } from 'react';
 
-import { getValidationsForNode, getVisibilityMask, shouldValidateNode } from 'src/features/validation/utils';
+import { getVisibilityMask } from 'src/features/validation/utils';
 import { Validation } from 'src/features/validation/validationContext';
 import { useEffectEvent } from 'src/hooks/useEffectEvent';
-import { useOrder } from 'src/hooks/useNavigatePage';
+import { usePageOrder } from 'src/hooks/useNavigatePage';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { useNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
 import type { PageValidation } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
@@ -14,10 +16,11 @@ import type { LayoutPage } from 'src/utils/layout/LayoutPage';
  *
  */
 export function useOnPageNavigationValidation() {
-  const setNodeVisibility = Validation.useSetNodeVisibility();
-  const selector = Validation.useSelector();
+  const setNodeVisibility = NodesInternal.useSetNodeVisibility();
+  const getNodeValidations = NodesInternal.useValidationsSelector();
   const validating = Validation.useValidating();
-  const pageOrder = useOrder();
+  const pageOrder = usePageOrder();
+  const traversalSelector = useNodeTraversalSelector();
 
   /* Ensures the callback will have the latest state */
   const callback = useEffectEvent((currentPage: LayoutPage, config: PageValidation): boolean => {
@@ -27,29 +30,46 @@ export function useOnPageNavigationValidation() {
     const mask = getVisibilityMask(masks);
     let nodes: LayoutNode[] = [];
 
-    const currentIndex = pageOrder.indexOf(currentPage.top.myKey);
+    const currentIndex = pageOrder.indexOf(currentPage.pageKey);
 
     if (pageConfig === 'current') {
       // Get nodes for current page
-      nodes = currentPage.flat(true);
+      nodes = traversalSelector((t) => t.with(currentPage).flat(), [currentPage]);
     } else if (pageConfig === 'currentAndPrevious') {
       // Get nodes for current and previous pages
       if (!pageOrder || currentIndex === -1) {
         return false;
       }
       const pageKeysToCheck = pageOrder.slice(0, currentIndex + 1);
-      const layoutPagesToCheck = pageKeysToCheck.map((key) => currentPage.top.collection.all()[key]);
-      nodes = layoutPagesToCheck.flatMap((page) => page.flat(true));
+      nodes = traversalSelector(
+        (t) => {
+          const out: LayoutNode[] = [];
+          for (const key of pageKeysToCheck) {
+            const page = t.findPage(key);
+            if (page) {
+              out.push(...t.with(page).flat());
+            }
+          }
+          return out;
+        },
+        [...pageKeysToCheck],
+      );
     } else {
       // Get all nodes
-      nodes = currentPage.top.collection.allNodes();
+      nodes = traversalSelector((t) => t.flat(), []);
     }
 
     // Get nodes with errors along with their errors
+    let onCurrentOrPreviousPage = false;
     const nodeErrors = nodes
-      .filter(shouldValidateNode)
-      .map((n) => [n, getValidationsForNode(n, selector, mask, 'error')] as const)
-      .filter(([_, e]) => e.length > 0);
+      .map((n) => {
+        const validations = getNodeValidations(n, mask, 'error');
+        if (validations.length > 0) {
+          onCurrentOrPreviousPage = onCurrentOrPreviousPage || pageOrder.indexOf(n.pageKey) <= currentIndex;
+        }
+        return [n, validations.length > 0] as const;
+      })
+      .filter(([_, e]) => e);
 
     if (nodeErrors.length > 0) {
       setNodeVisibility(
@@ -58,7 +78,7 @@ export function useOnPageNavigationValidation() {
       );
 
       // Only block navigation if there are errors on the current or previous pages
-      return nodeErrors.some(([_, e]) => e.some((v) => pageOrder.indexOf(v.pageKey) <= currentIndex));
+      return onCurrentOrPreviousPage;
     }
 
     return false;

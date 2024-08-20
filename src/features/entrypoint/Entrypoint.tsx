@@ -4,7 +4,6 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { Form, FormFirstPage } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { LayoutValidationProvider } from 'src/features/devtools/layoutValidation/useLayoutValidation';
 import { FormProvider } from 'src/features/form/FormContext';
 import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
@@ -22,22 +21,20 @@ import type { ShowTypes } from 'src/features/applicationMetadata/types';
 
 const RenderStateless = () => (
   <FormProvider>
-    <LayoutValidationProvider>
-      <Routes>
-        <Route
-          path=':pageKey'
-          element={
-            <PresentationComponent type={PresentationType.Stateless}>
-              <Form />
-            </PresentationComponent>
-          }
-        />
-        <Route
-          path='*'
-          element={<FormFirstPage />}
-        />
-      </Routes>
-    </LayoutValidationProvider>
+    <Routes>
+      <Route
+        path=':pageKey'
+        element={
+          <PresentationComponent type={PresentationType.Stateless}>
+            <Form />
+          </PresentationComponent>
+        }
+      />
+      <Route
+        path='*'
+        element={<FormFirstPage />}
+      />
+    </Routes>
   </FormProvider>
 );
 

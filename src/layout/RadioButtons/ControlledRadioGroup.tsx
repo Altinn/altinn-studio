@@ -7,19 +7,26 @@ import { RadioButton } from 'src/components/form/RadioButton';
 import { LabelContent } from 'src/components/label/LabelContent';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { useRadioButtons } from 'src/layout/RadioButtons/radioButtonsUtils';
 import { shouldUseRowLayout } from 'src/utils/layout';
+import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IControlledRadioGroupProps = PropsFromGenericComponent<'RadioButtons' | 'LikertItem'>;
 
 export const ControlledRadioGroup = (props: IControlledRadioGroupProps) => {
-  const { node, isValid, overrideDisplay } = props;
-  const { id, layout, readOnly, textResourceBindings, required, showAsCard, showLabelsInTable } = node.item;
+  const { node, overrideDisplay } = props;
+  const isValid = useIsValid(node);
+  const item = useNodeItem(node);
+  const parentItem = useNodeItem(node.parent instanceof BaseLayoutNode ? node.parent : undefined);
+  const { id, layout, readOnly, textResourceBindings, required, showLabelsInTable } = item;
+  const showAsCard = 'showAsCard' in item ? item.showAsCard : false;
   const { selectedValues, handleChange, fetchingOptions, calculatedOptions } = useRadioButtons(props);
-  const alertOnChange = 'alertOnChange' in node.item ? node.item.alertOnChange && !!selectedValues[0] : undefined;
-  const labelSettings = 'labelSettings' in node.item ? node.item.labelSettings : undefined;
+  const alertOnChange = 'alertOnChange' in item ? item.alertOnChange && !!selectedValues[0] : undefined;
+  const labelSettings = 'labelSettings' in item ? item.labelSettings : undefined;
   const { lang, langAsString } = useLanguage();
   const selectedLabel = calculatedOptions.find((option) => option.value === selectedValues[0])?.label;
   const selectedLabelTranslated = langAsString(selectedLabel);
@@ -29,8 +36,8 @@ export const ControlledRadioGroup = (props: IControlledRadioGroupProps) => {
   const confirmChangeText = langAsString('form_filler.alert_confirm');
 
   const getLabelPrefixForLikert = () => {
-    if (node.parent.item.type === 'Likert' && node.parent.item.textResourceBindings?.leftColumnHeader) {
-      return `${langAsString(node.parent.item.textResourceBindings.leftColumnHeader)} `;
+    if (parentItem?.type === 'Likert' && parentItem.textResourceBindings?.leftColumnHeader) {
+      return `${langAsString(parentItem.textResourceBindings.leftColumnHeader)} `;
     }
     return null;
   };

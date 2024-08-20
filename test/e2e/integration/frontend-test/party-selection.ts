@@ -176,6 +176,10 @@ describe('Party selection', () => {
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.reporteeSelection.reportee).should('not.exist');
     cy.wait('@loadInstance');
+
+    // This fails in the end because the partyId does not exist, but we still proved
+    // that party selection did not appear (even though @loadInstance fails with a 404)
+    cy.allowFailureOnEnd();
   });
 
   it('Should show party selection with a warning when you cannot use the preselected party', () => {
@@ -211,6 +215,7 @@ describe('Party selection', () => {
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.reporteeSelection.appHeader).should('be.visible');
     cy.get('[data-testid=StatusCode').should('exist');
+    cy.allowFailureOnEnd();
   });
 
   it('List of parties should show correct icon and org nr or ssn', () => {

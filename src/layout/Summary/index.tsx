@@ -6,16 +6,11 @@ import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export class Summary extends SummaryDef {
-  directRender(): boolean {
-    return true;
-  }
-
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Summary'>>(
     function LayoutComponentSummaryRender(props, _): JSX.Element | null {
       return (
         <SummaryComponent
           summaryNode={props.node}
-          overrides={props.overrideItemProps}
           ref={props.containerDivRef}
         />
       );
@@ -30,13 +25,5 @@ export class Summary extends SummaryDef {
 
   shouldRenderInAutomaticPDF() {
     return false;
-  }
-
-  getDisplayData(): string {
-    return '';
-  }
-
-  validateDataModelBindings(): string[] {
-    return [];
   }
 }

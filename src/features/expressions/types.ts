@@ -28,6 +28,16 @@ export type ExprValToActual<T extends ExprVal = ExprVal> = T extends ExprVal.Str
         ? string | number | boolean | null
         : unknown;
 
+export type ActualToExprVal<T> = T extends string
+  ? ExprVal.String
+  : T extends number
+    ? ExprVal.Number
+    : T extends boolean
+      ? ExprVal.Boolean
+      : T extends null
+        ? ExprVal.Any
+        : never;
+
 /**
  * This type replaces ExprVal with the actual value type, or expression that returns that type.
  */
@@ -103,12 +113,11 @@ export type NonRecursiveExpression<F extends ExprFunction = ExprFunction> = [F, 
  * This type removes all expressions from the input type (replacing them with the type
  * the expression is expected to return)
  *
- * @deprecated Use internal types for components instead
  * @see https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types
  * @see https://stackoverflow.com/a/54487392
  */
-export type ExprResolved<T> = T extends ExprVal
-  ? ExprValToActual<T>
+export type ExprResolved<T> = T extends [FunctionsReturning<any>, ...any]
+  ? never
   : T extends any
     ? T extends object
       ? {
@@ -124,55 +133,13 @@ export type ExprResolved<T> = T extends ExprVal
 type Prev = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 /**
- * Removes all properties from an object where its keys point to never types. This turns { defunctProp: never } into {}
- */
-type OmitNeverKeys<T> = {
-  [P in keyof T as T[P] extends never ? never : P]: T[P];
-};
-
-type OmitEmptyObjects<T> = T extends Record<string, never> ? never : T;
-
-type OmitNeverArrays<T> = T extends never[] ? never : T;
-
-/**
- * Expression configuration. This configuration object needs to be set on every layout property which can be resolved
- * as an expression, and it is the configuration passed to the expression evaluator.
+ * Expression configuration. This configuration object indicates to the expression engine what we expect of the
+ * expression, such as the return type and the default value (which will be used should the expression fail at
+ * some point)
  */
 export interface ExprConfig<V extends ExprVal = ExprVal> {
   returnType: V;
   defaultValue: ExprValToActual<V> | null;
-  errorAsException?: true;
-
-  // Setting this to true means that if there are such expressions on a repeating 'Group' layout component, they will
-  // be evaluated separately for each row in the group. This means you can have a property like edit.deleteButton which
-  // hides the delete button, and this behaviour may differ for each row.
-  resolvePerRow: boolean;
 }
-
-/**
- * This is the heavy lifter used by ExprObjConfig to recursively iterate types
- */
-type DistributiveExprConfig<T, Iterations extends Prev[number]> = [T] extends [
-  string | number | boolean | null | undefined,
-]
-  ? never
-  : T extends ExprVal
-    ? ExprConfig<T>
-    : [T] extends [object]
-      ? OmitEmptyObjects<ExprObjConfig<T, Prev[Iterations]>>
-      : never;
-
-/**
- * This type looks through an object recursively, finds any expressions, and requires you to provide a default
- * value for them (i.e. a fallback value should the expression evaluation fail).
- */
-export type ExprObjConfig<
-  T,
-  Iterations extends Prev[number] = 1, // <-- Recursion depth limited to 2 levels by default
-> = [Iterations] extends [never]
-  ? never
-  : OmitNeverKeys<{
-      [P in keyof Required<T>]: OmitNeverArrays<DistributiveExprConfig<Exclude<T[P], undefined>, Iterations>>;
-    }>;
 
 export type ExprPositionalArgs = ExprValToActual<ExprVal.Any>[];

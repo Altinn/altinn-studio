@@ -5,7 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
-import { useHasPendingAttachments } from 'src/features/attachments/AttachmentsContext';
+import { useHasPendingAttachments } from 'src/features/attachments/hooks';
 import { useLaxInstance, useStrictInstance } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData, useSetProcessData } from 'src/features/instance/ProcessContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';

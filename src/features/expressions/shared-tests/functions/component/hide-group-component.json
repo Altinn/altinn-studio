@@ -108,7 +108,7 @@
     ]
   },
   "context": {
-    "component": "ansatte",
+    "component": "alder",
     "currentLayout": "Page1",
     "rowIndices": [1,0]
   }

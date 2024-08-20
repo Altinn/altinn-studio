@@ -1,18 +1,19 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { toast } from 'react-toastify';
 
 import { Button } from '@digdir/designsystemet-react';
 import { useMutation } from '@tanstack/react-query';
-import type { UseMutationResult } from '@tanstack/react-query';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { useCurrentDataModelGuid } from 'src/features/datamodel/useBindingSchema';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { Lang } from 'src/features/language/Lang';
-import { useNavigatePage, useNavigationParams } from 'src/hooks/useNavigatePage';
+import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
+import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { isSpecificClientAction } from 'src/layout/CustomButton/typeHelpers';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { promisify } from 'src/utils/promisify';
 import type { BackendValidationIssueGroups } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -58,30 +59,40 @@ function useHandleClientActions(): UseHandleClientActions {
   const currentDataModelGuid = useCurrentDataModelGuid();
   const { navigateToPage, navigateToNextPage, navigateToPreviousPage } = useNavigatePage();
 
-  const frontendActions: ClientActionHandlers = {
-    nextPage: promisify(navigateToNextPage),
-    previousPage: promisify(navigateToPreviousPage),
-    navigateToPage: promisify<ClientActionHandlers['navigateToPage']>(async ({ page }) => navigateToPage(page)),
-  };
+  const frontendActions: ClientActionHandlers = useMemo(
+    () => ({
+      nextPage: promisify(navigateToNextPage),
+      previousPage: promisify(navigateToPreviousPage),
+      navigateToPage: promisify<ClientActionHandlers['navigateToPage']>(async ({ page }) => navigateToPage(page)),
+    }),
+    [navigateToNextPage, navigateToPage, navigateToPreviousPage],
+  );
 
-  const handleClientAction = async (action: CBTypes.ClientAction) => {
-    if (action.id == null) {
-      window.logError('Client action is missing id. Did you provide the id of the action? Action:', action);
-      return;
-    }
-    if (isSpecificClientAction('navigateToPage', action)) {
-      return await frontendActions[action.id](action.metadata);
-    }
-    await frontendActions[action.id]();
-  };
+  const handleClientAction = useCallback(
+    async (action: CBTypes.ClientAction) => {
+      if (action.id == null) {
+        window.logError('Client action is missing id. Did you provide the id of the action? Action:', action);
+        return;
+      }
+      if (isSpecificClientAction('navigateToPage', action)) {
+        return await frontendActions[action.id](action.metadata);
+      }
+      await frontendActions[action.id]();
+    },
+    [frontendActions],
+  );
 
-  return {
-    handleClientActions: async (actions) => {
+  const handleClientActions: UseHandleClientActions['handleClientActions'] = useCallback(
+    async (actions) => {
       for (const action of actions) {
         await handleClientAction(action);
       }
     },
-    handleDataModelUpdate: async (lockTools, result) => {
+    [handleClientAction],
+  );
+
+  const handleDataModelUpdate: UseHandleClientActions['handleDataModelUpdate'] = useCallback(
+    async (lockTools, result) => {
       const newDataModel =
         currentDataModelGuid && result.updatedDataModels ? result.updatedDataModels[currentDataModelGuid] : undefined;
       const validationIssues =
@@ -98,7 +109,10 @@ function useHandleClientActions(): UseHandleClientActions {
         lockTools.unlock();
       }
     },
-  };
+    [currentDataModelGuid],
+  );
+
+  return { handleClientActions, handleDataModelUpdate };
 }
 
 type PerformActionMutationProps = {
@@ -107,16 +121,17 @@ type PerformActionMutationProps = {
 };
 
 type UsePerformActionMutation = {
-  mutation: UseMutationResult<ActionResult>;
+  isPending: boolean;
   handleServerAction: (props: PerformActionMutationProps) => Promise<void>;
 };
 
 function useHandleServerActionMutation(lockTools: FormDataLockTools): UsePerformActionMutation {
   const { doPerformAction } = useAppMutations();
-  const { partyId, instanceGuid } = useNavigationParams();
+  const partyId = useNavigationParam('partyId');
+  const instanceGuid = useNavigationParam('instanceGuid');
   const { handleClientActions, handleDataModelUpdate } = useHandleClientActions();
 
-  const mutation = useMutation({
+  const { mutateAsync, isPending } = useMutation({
     mutationFn: async ({ action, buttonId }: PerformActionMutationProps) => {
       if (!instanceGuid || !partyId) {
         throw Error('Cannot perform action without partyId and instanceGuid');
@@ -125,12 +140,11 @@ function useHandleServerActionMutation(lockTools: FormDataLockTools): UsePerform
     },
   });
 
-  return {
-    mutation,
-    handleServerAction: async ({ action, buttonId }: PerformActionMutationProps) => {
+  const handleServerAction = useCallback(
+    async ({ action, buttonId }: PerformActionMutationProps) => {
       await lockTools.lock();
       try {
-        const result = await mutation.mutateAsync({ action, buttonId });
+        const result = await mutateAsync({ action, buttonId });
         await handleDataModelUpdate(lockTools, result);
         if (result.clientActions) {
           await handleClientActions(result.clientActions);
@@ -144,17 +158,24 @@ function useHandleServerActionMutation(lockTools: FormDataLockTools): UsePerform
         }
       }
     },
-  };
+    [handleClientActions, handleDataModelUpdate, lockTools, mutateAsync],
+  );
+
+  return { handleServerAction, isPending };
 }
 
 export function useActionAuthorization() {
   const currentTask = useLaxProcessData()?.currentTask;
   const userActions = currentTask?.userActions;
   const actionPermissions = currentTask?.actions;
-  return {
-    isAuthorized: (action: IUserAction['id']) =>
+
+  const isAuthorized = useCallback(
+    (action: IUserAction['id']) =>
       (!!actionPermissions?.[action] || userActions?.find((a) => a.id === action)?.authorized) ?? false,
-  };
+    [actionPermissions, userActions],
+  );
+
+  return { isAuthorized };
 }
 
 export const buttonStyles: { [style in CBTypes.CustomButtonStyle]: { color: ButtonColor; variant: ButtonVariant } } = {
@@ -163,16 +184,16 @@ export const buttonStyles: { [style in CBTypes.CustomButtonStyle]: { color: Butt
 };
 
 export const CustomButtonComponent = ({ node }: Props) => {
-  const { textResourceBindings, actions, id, buttonStyle = 'secondary' } = node.item;
-  const lockTools = FD.useLocking(node.item.id);
+  const { textResourceBindings, actions, id, buttonStyle = 'secondary' } = useNodeItem(node);
+  const lockTools = FD.useLocking(id);
   const { isAuthorized } = useActionAuthorization();
   const { handleClientActions } = useHandleClientActions();
-  const { handleServerAction, mutation } = useHandleServerActionMutation(lockTools);
+  const { handleServerAction, isPending } = useHandleServerActionMutation(lockTools);
 
   const isPermittedToPerformActions = actions
     .filter((action) => action.type === 'ServerAction')
     .reduce((acc, action) => acc && isAuthorized(action.id), true);
-  const disabled = !isPermittedToPerformActions || mutation.isPending;
+  const disabled = !isPermittedToPerformActions || isPending;
 
   const onClick = async () => {
     if (disabled) {
@@ -198,7 +219,7 @@ export const CustomButtonComponent = ({ node }: Props) => {
         onClick={onClick}
         color={color}
         variant={variant}
-        aria-busy={mutation.isPending}
+        aria-busy={isPending}
       >
         <Lang id={textResourceBindings?.title} />
       </Button>

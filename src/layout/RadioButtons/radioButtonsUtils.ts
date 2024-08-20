@@ -9,11 +9,7 @@ export const useRadioButtons = ({ node }: IControlledRadioGroupProps) => {
     isFetching: fetchingOptions,
     setData,
     selectedValues,
-  } = useGetOptions({
-    ...node.item,
-    valueType: 'single',
-    node,
-  });
+  } = useGetOptions(node, 'single');
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setData([event.target.value]);

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useOrder } from 'src/hooks/useNavigatePage';
+import { usePageOrder } from 'src/hooks/useNavigatePage';
 import { PageSummary } from 'src/layout/Summary2/SummaryComponent2/PageSummary';
 
 interface LayoutSetSummaryProps {
@@ -8,7 +8,7 @@ interface LayoutSetSummaryProps {
 }
 
 export function LayoutSetSummary({ layoutSetId }: LayoutSetSummaryProps) {
-  const pageOrder = useOrder();
+  const pageOrder = usePageOrder();
 
   const filteredPages = pageOrder.filter((layoutId) => {
     if (!layoutSetId) {

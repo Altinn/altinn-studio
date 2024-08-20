@@ -5,16 +5,17 @@ import { formatNumericText } from '@digdir/design-system-react';
 
 import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { InputDef } from 'src/layout/Input/config.def.generated';
+import { evalFormatting } from 'src/layout/Input/formatting';
 import { InputComponent } from 'src/layout/Input/InputComponent';
 import { InputSummary } from 'src/layout/Input/InputSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { DisplayDataProps } from 'src/features/displayData';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IFormattingInternal } from 'src/layout/common.generated';
-import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
-import type { InputSummaryOverrideProps } from 'src/layout/Summary2/config.generated';
+import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+
 export class Input extends InputDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Input'>>(
     function LayoutComponentInputRender(props, _): JSX.Element | null {
@@ -22,17 +23,17 @@ export class Input extends InputDef {
     },
   );
 
-  getDisplayData(node: LayoutNode<'Input'>, { currentLanguage, formDataSelector }: DisplayDataProps): string {
-    if (!node.item.dataModelBindings?.simpleBinding) {
+  getDisplayData(
+    node: LayoutNode<'Input'>,
+    { currentLanguage, nodeFormDataSelector, nodeDataSelector }: DisplayDataProps,
+  ): string {
+    const text = nodeFormDataSelector(node).simpleBinding || '';
+    if (!text) {
       return '';
     }
 
-    const text = node.getFormData(formDataSelector).simpleBinding ?? '';
-    const numberFormatting = getMapToReactNumberConfig(
-      node.item.formatting as IFormattingInternal | undefined,
-      text,
-      currentLanguage,
-    );
+    const formatting = nodeDataSelector((picker) => picker(node)?.item?.formatting, [node]);
+    const numberFormatting = getMapToReactNumberConfig(formatting, text, currentLanguage);
 
     if (numberFormatting?.number) {
       return formatNumericText(text, numberFormatting.number);
@@ -46,21 +47,25 @@ export class Input extends InputDef {
     return <SummaryItemSimple formDataAsString={displayData} />;
   }
 
-  renderSummary2(
-    componentNode: LayoutNode<'Input'>,
-    _?: InputSummaryOverrideProps,
-    isCompact?: boolean,
-  ): JSX.Element | null {
+  renderSummary2(props: Summary2Props<'Input'>): JSX.Element | null {
     return (
       <InputSummary
-        componentNode={componentNode}
-        displayData={this.useDisplayData(componentNode)}
-        isCompact={isCompact}
+        componentNode={props.target}
+        summaryOverrides={props.overrides}
+        displayData={this.useDisplayData(props.target)}
+        isCompact={props.isCompact}
       />
     );
   }
 
   validateDataModelBindings(ctx: LayoutValidationCtx<'Input'>): string[] {
     return this.validateDataModelBindingsSimple(ctx);
+  }
+
+  evalExpressions(props: ExprResolver<'Input'>) {
+    return {
+      ...this.evalDefaultExpressions(props),
+      formatting: evalFormatting(props),
+    };
   }
 }

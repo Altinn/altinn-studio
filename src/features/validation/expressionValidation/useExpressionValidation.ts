@@ -2,41 +2,38 @@ import { useMemo } from 'react';
 
 import { useCustomValidationConfig } from 'src/features/customValidation/CustomValidationContext';
 import { evalExpr } from 'src/features/expressions';
-import { ExprVal } from 'src/features/expressions/types';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { type FieldValidations, FrontendValidationSource, ValidationMask } from 'src/features/validation';
-import { useAsRef } from 'src/hooks/useAsRef';
 import { getKeyWithoutIndex } from 'src/utils/databindings';
-import { useNodes } from 'src/utils/layout/NodesContext';
-import type { ExprConfig, Expression } from 'src/features/expressions/types';
-
-const EXPR_CONFIG: ExprConfig<ExprVal.Boolean> = {
-  defaultValue: false,
-  returnType: ExprVal.Boolean,
-  resolvePerRow: false,
-};
+import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
+import { useNodeTraversalSilent } from 'src/utils/layout/useNodeTraversal';
+import type { Expression } from 'src/features/expressions/types';
 
 const __default__ = {};
 
 export function useExpressionValidation(): FieldValidations {
   const formData = FD.useDebounced();
   const customValidationConfig = useCustomValidationConfig();
-  const nodesRef = useAsRef(useNodes());
+  const dataSources = useExpressionDataSources();
+  const allNodes = useNodeTraversalSilent((t) => t.allNodes());
+  const nodeDataSelector = NodesInternal.useNodeDataSelector();
 
   /**
    * Should only update when form data changes
    */
   return useMemo(() => {
-    if (!customValidationConfig || Object.keys(customValidationConfig).length === 0 || !formData) {
+    if (!customValidationConfig || Object.keys(customValidationConfig).length === 0 || !formData || !allNodes) {
       return __default__;
     }
 
-    return nodesRef.current.allNodes().reduce((validations, node) => {
-      if (!node.item.dataModelBindings) {
+    return allNodes.reduce((validations, node) => {
+      const dmb = nodeDataSelector((picker) => picker(node)?.layout.dataModelBindings, [node]);
+      if (!dmb) {
         return validations;
       }
 
-      for (const field of Object.values(node.item.dataModelBindings)) {
+      for (const field of Object.values(dmb)) {
         /**
          * Should not run validations on the same field multiple times
          */
@@ -51,8 +48,7 @@ export function useExpressionValidation(): FieldValidations {
         }
 
         for (const validationDef of validationDefs) {
-          const isInvalid = evalExpr(validationDef.condition as Expression, node, node.getDataSources(), {
-            config: EXPR_CONFIG,
+          const isInvalid = evalExpr(validationDef.condition as Expression, node, dataSources, {
             positionalArguments: [field],
           });
           if (isInvalid) {
@@ -73,5 +69,5 @@ export function useExpressionValidation(): FieldValidations {
 
       return validations;
     }, {});
-  }, [customValidationConfig, nodesRef, formData]);
+  }, [customValidationConfig, formData, allNodes, nodeDataSelector, dataSources]);
 }

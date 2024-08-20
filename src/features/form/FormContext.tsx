@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
-import { AttachmentsProvider, AttachmentsStoreProvider } from 'src/features/attachments/AttachmentsContext';
 import { CustomValidationConfigProvider } from 'src/features/customValidation/CustomValidationContext';
 import { DataModelSchemaProvider } from 'src/features/datamodel/DataModelSchemaProvider';
 import { DynamicsProvider } from 'src/features/form/dynamics/DynamicsContext';
@@ -13,7 +12,6 @@ import { RulesProvider } from 'src/features/form/rules/RulesContext';
 import { InitialFormDataProvider } from 'src/features/formData/InitialFormData';
 import { useHasProcessProvider } from 'src/features/instance/ProcessContext';
 import { ProcessNavigationProvider } from 'src/features/instance/ProcessNavigationContext';
-import { AllOptionsProvider, AllOptionsStoreProvider } from 'src/features/options/useAllOptions';
 import { OrderDetailsProvider } from 'src/features/payment/OrderDetailsProvider';
 import { PaymentInformationProvider } from 'src/features/payment/PaymentInformationProvider';
 import { ValidationProvider } from 'src/features/validation/validationContext';
@@ -48,31 +46,23 @@ export function FormProvider({ children }: React.PropsWithChildren) {
                 <RulesProvider>
                   <DataModelSchemaProvider>
                     <InitialFormDataProvider>
-                      <AttachmentsStoreProvider>
-                        <AllOptionsStoreProvider>
-                          <NodesProvider>
-                            <AllOptionsProvider>
-                              <NavigateToNodeProvider>
-                                <ValidationProvider>
-                                  <AttachmentsProvider>
-                                    <PaymentInformationProvider>
-                                      <OrderDetailsProvider>
-                                        {hasProcess ? (
-                                          <ProcessNavigationProvider>
-                                            <Provider value={undefined}>{children}</Provider>
-                                          </ProcessNavigationProvider>
-                                        ) : (
-                                          <Provider value={undefined}>{children}</Provider>
-                                        )}
-                                      </OrderDetailsProvider>
-                                    </PaymentInformationProvider>
-                                  </AttachmentsProvider>
-                                </ValidationProvider>
-                              </NavigateToNodeProvider>
-                            </AllOptionsProvider>
-                          </NodesProvider>
-                        </AllOptionsStoreProvider>
-                      </AttachmentsStoreProvider>
+                      <ValidationProvider>
+                        <NodesProvider>
+                          <NavigateToNodeProvider>
+                            <PaymentInformationProvider>
+                              <OrderDetailsProvider>
+                                {hasProcess ? (
+                                  <ProcessNavigationProvider>
+                                    <Provider value={undefined}>{children}</Provider>
+                                  </ProcessNavigationProvider>
+                                ) : (
+                                  <Provider value={undefined}>{children}</Provider>
+                                )}
+                              </OrderDetailsProvider>
+                            </PaymentInformationProvider>
+                          </NavigateToNodeProvider>
+                        </NodesProvider>
+                      </ValidationProvider>
                     </InitialFormDataProvider>
                   </DataModelSchemaProvider>
                 </RulesProvider>

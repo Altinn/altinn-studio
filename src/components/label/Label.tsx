@@ -8,45 +8,52 @@ import type { LabelProps as DesignsystemetLabelProps } from '@digdir/designsyste
 
 import classes from 'src/components/label/Label.module.css';
 import { LabelContent } from 'src/components/label/LabelContent';
+import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 import { gridBreakpoints } from 'src/utils/formComponentUtils';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LabelContentProps } from 'src/components/label/LabelContent';
-import type { IGridStyling, ILabelSettings } from 'src/layout/common.generated';
+import type { ExprResolved } from 'src/features/expressions/types';
+import type { IGridStyling, TRBLabel } from 'src/layout/common.generated';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type LabelType = 'legend' | 'span' | 'label' | 'plainLabel';
 
 export type LabelProps = PropsWithChildren<{
-  id: string;
+  node: LayoutNode;
   renderLabelAs: LabelType;
-  required?: boolean;
-  readOnly?: boolean;
-  labelSettings?: ILabelSettings;
-  grid?: { labelGrid?: IGridStyling };
-  textResourceBindings?: {
-    title?: string;
-    description?: string;
-    help?: string;
-  };
   className?: string;
+
+  id?: string;
+  textResourceBindings?: ExprResolved<TRBLabel>;
 }> &
   DesignsystemetLabelProps;
 
 export function Label(props: LabelProps) {
-  if (!props.textResourceBindings?.title) {
-    return <>{props.children}</>;
-  }
-
   const { children, ...propsWithoutChildren } = props;
   const {
-    id,
+    node,
     renderLabelAs,
-    required,
-    readOnly,
-    labelSettings,
-    grid,
-    textResourceBindings,
     className,
+    id: overriddenId,
+    textResourceBindings: overriddenTrb,
     ...designsystemetLabelProps
   } = props;
+
+  const overrideItemProps = useFormComponentCtx()?.overrideItemProps;
+  const _item = useNodeItem(node);
+  const item = { ..._item, ...overrideItemProps };
+  const { id: nodeId, grid, textResourceBindings: _trb } = item;
+  const required = 'required' in item && item.required;
+  const readOnly = 'readOnly' in item && item.readOnly;
+  const labelSettings = 'labelSettings' in item ? item.labelSettings : undefined;
+
+  // These can be overridden by props, but are otherwise retrieved from the node item
+  const id = overriddenId ?? nodeId;
+  const textResourceBindings = (overriddenTrb ?? _trb) as ExprResolved<TRBLabel> | undefined;
+
+  if (!textResourceBindings?.title) {
+    return <>{children}</>;
+  }
 
   const labelId = `label-${id}`;
   const labelContentProps: Omit<LabelContentProps, 'id'> = {

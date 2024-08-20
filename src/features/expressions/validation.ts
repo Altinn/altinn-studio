@@ -1,22 +1,7 @@
-import {
-  argTypeAt,
-  ExprConfigForComponent,
-  ExprConfigForGroup,
-  ExprFunctions,
-  ExprTypes,
-  getConfigFor,
-} from 'src/features/expressions';
-import { prettyErrors, prettyErrorsToConsole } from 'src/features/expressions/prettyErrors';
+import { argTypeAt, ExprFunctions, ExprTypes } from 'src/features/expressions';
+import { prettyErrors } from 'src/features/expressions/prettyErrors';
 import { ExprVal } from 'src/features/expressions/types';
-import type {
-  ExprConfig,
-  Expression,
-  ExprFunction,
-  ExprObjConfig,
-  ExprValToActual,
-  FuncDef,
-} from 'src/features/expressions/types';
-import type { ILayout } from 'src/layout/layout';
+import type { Expression, ExprFunction, ExprValToActualOrExpr, FuncDef } from 'src/features/expressions/types';
 
 enum ValidationErrorMessage {
   InvalidType = 'Invalid type "%s"',
@@ -209,21 +194,17 @@ export function canBeExpression(expr: any, checkIfValidFunction = false): expr i
   return firstPass;
 }
 
+const alreadyValidatedExpressions = new Map<string, boolean>();
+
 /**
- * Takes the input object, validates it to make sure it is a valid expression, returns either a fully
- * parsed expression (ready to pass to evalExpr()), or undefined (if not a valid expression).
- *
  * @param obj Input, can be anything
- * @param config Configuration and default value (the default is returned if the expression fails to validate)
  * @param errorText Error intro text used when printing to console or throwing an error
  */
-export function asExpression(
-  obj: any,
-  config?: ExprConfig,
-  errorText = 'Invalid expression',
-): Expression | ExprValToActual | undefined {
-  if (typeof obj !== 'object' || obj === null || !Array.isArray(obj)) {
-    return undefined;
+function isValidExpr(obj: unknown, errorText = 'Invalid expression'): obj is Expression {
+  const cacheKey = JSON.stringify(obj);
+  const previousRun = alreadyValidatedExpressions.get(cacheKey);
+  if (typeof previousRun === 'boolean') {
+    return previousRun;
   }
 
   const ctx: ValidationContext = { errors: {} };
@@ -235,83 +216,85 @@ export function asExpression(
       errors: ctx.errors,
       indentation: 1,
     });
+    const fullMessage = `${errorText}:\n${pretty}`;
 
-    if (typeof config !== 'undefined' && !config.errorAsException) {
-      const prettyPrinted = prettyErrorsToConsole({
+    window.logError(fullMessage);
+    alreadyValidatedExpressions.set(cacheKey, false);
+    return false;
+  }
+
+  alreadyValidatedExpressions.set(cacheKey, true);
+  return true;
+}
+
+function isScalar(val: unknown, type: ExprVal | undefined) {
+  if (val === null || val === undefined) {
+    return true;
+  }
+
+  if (type === ExprVal.String) {
+    return typeof val === 'string';
+  }
+  if (type === ExprVal.Number) {
+    return typeof val === 'number';
+  }
+  if (type === ExprVal.Boolean) {
+    return typeof val === 'boolean';
+  }
+
+  return typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean';
+}
+
+function isValidOrScalar<EV extends ExprVal>(
+  obj: unknown,
+  type: EV,
+  errorText?: string,
+): obj is ExprValToActualOrExpr<EV>;
+// eslint-disable-next-line no-redeclare
+function isValidOrScalar(obj: unknown, type?: undefined, errorText?: string): obj is ExprValToActualOrExpr<ExprVal.Any>;
+// eslint-disable-next-line no-redeclare
+function isValidOrScalar(obj: unknown, type?: ExprVal, errorText?: string): boolean {
+  return isScalar(obj, type) || isValidExpr(obj, errorText);
+}
+
+function throwIfInvalid<EV extends ExprVal>(obj: unknown, type: EV, errorText?: string): void;
+// eslint-disable-next-line no-redeclare
+function throwIfInvalid(obj: unknown, type?: undefined, errorText?: string): void;
+// eslint-disable-next-line no-redeclare
+function throwIfInvalid(obj: unknown, type?: ExprVal, errorText?: string): void {
+  if (Array.isArray(obj) && !isScalar(obj, type)) {
+    const ctx: ValidationContext = { errors: {} };
+    validateRecursively(obj, ctx, []);
+
+    if (Object.keys(ctx.errors).length) {
+      const pretty = prettyErrors({
         input: obj,
         errors: ctx.errors,
         indentation: 1,
-        defaultStyle: '',
       });
-
-      // eslint-disable-next-line no-console
-      console.log(
-        [
-          `${errorText}:`,
-          prettyPrinted.lines,
-          '%cUsing default value instead:',
-          `  %c${config.defaultValue === null ? 'null' : (config.defaultValue as any).toString()}%c`,
-        ].join('\n'),
-        ...prettyPrinted.css,
-        ...['', 'color: red;', ''],
-      );
-
-      window.logError(`${errorText}:\n${pretty}`);
-
-      return config.defaultValue;
-    }
-
-    throw new InvalidExpression(`${errorText}:\n${pretty}`);
-  }
-
-  return obj as unknown as Expression;
-}
-
-export function preProcessItem<T>(
-  input: T,
-  config: ExprObjConfig<any>,
-  componentPath: string[],
-  componentId: string,
-): any {
-  const pathStr = componentPath.join('.');
-  const cfg = getConfigFor(componentPath, config);
-  if (cfg) {
-    if (typeof input === 'object' && input !== null) {
-      const errText = `Invalid expression when parsing ${pathStr} for "${componentId}"`;
-      return asExpression(input, cfg, errText);
-    }
-
-    return input;
-  }
-
-  if (typeof input === 'object' && !Array.isArray(input) && input !== null) {
-    for (const property of Object.keys(input)) {
-      const newValue = preProcessItem(input[property], config, [...componentPath, property], componentId);
-      if (newValue !== input[property]) {
-        input[property] = newValue;
-      }
+      const fullMessage = `${errorText}:\n${pretty}`;
+      throw new InvalidExpression(fullMessage);
     }
   }
-
-  return input;
 }
 
-/**
- * Pre-process a layout array. This iterates all components and makes sure to validate expressions (making sure they
- * are valid according to the Expression TypeScript type, ready to pass to evalExpr()).
- *
- * If/when expressions inside components does not validate correctly, a warning is printed to the console, and the
- * expression is substituted with the appropriate default value.
- *
- * Please note: This mutates the layout array passed to the function, and returns nothing.
- */
-export function preProcessLayout(layout: ILayout) {
-  const config = {
-    ...ExprConfigForComponent,
-    ...ExprConfigForGroup,
-  };
+export const ExprValidation = {
+  /**
+   * Takes the input object, validates it to make sure it is a valid expression OR a simple scalar that can be
+   * used in place of an expression. If the expression is invalid, an error is logged to the developer tools
+   * (unless the same expression has logged errors before).
+   */
+  isValidOrScalar,
 
-  for (const comp of layout) {
-    preProcessItem(comp, config, [], comp.id);
-  }
-}
+  /**
+   * Checks an input object and only returns true if it is an expression, and that expression is valid.
+   */
+  isValid(obj: unknown, errorText?: string): obj is Expression {
+    return Array.isArray(obj) && isValidExpr(obj, errorText);
+  },
+
+  /**
+   * The same as the above, but just throws an error if the expression fails. Useful for tests, etc.
+   */
+  throwIfInvalid,
+};

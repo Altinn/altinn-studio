@@ -16,8 +16,8 @@ export class Custom extends CustomDef {
     },
   );
 
-  getDisplayData(node: LayoutNode<'Custom'>, { formDataSelector }: DisplayDataProps): string {
-    const data = node.getFormData(formDataSelector);
+  getDisplayData(node: LayoutNode<'Custom'>, { nodeFormDataSelector }: DisplayDataProps): string {
+    const data = nodeFormDataSelector(node);
     return Object.values(data).join(', ');
   }
 

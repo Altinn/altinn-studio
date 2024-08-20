@@ -3,15 +3,11 @@ import { useCallback } from 'react';
 import { ValidationMask } from '..';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
-import {
-  getValidationsForNode,
-  getVisibilityMask,
-  selectValidations,
-  shouldValidateNode,
-} from 'src/features/validation/utils';
+import { getVisibilityMask, selectValidations } from 'src/features/validation/utils';
 import { Validation } from 'src/features/validation/validationContext';
 import { useEffectEvent } from 'src/hooks/useEffectEvent';
-import { useNodesAsLaxRef } from 'src/utils/layout/NodesContext';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { useNodeTraversalSelectorLax } from 'src/utils/layout/useNodeTraversal';
 
 /**
  * Checks for any validation errors before submitting the form.
@@ -21,34 +17,37 @@ import { useNodesAsLaxRef } from 'src/utils/layout/NodesContext';
  * If there are no backend errors, it shows any backend errors that cannot be mapped to a visible node. Including task errors.
  */
 export function useOnFormSubmitValidation() {
-  const nodes = useNodesAsLaxRef();
   const validation = Validation.useLaxRef();
+  const setNodeVisibility = NodesInternal.useLaxSetNodeVisibility();
+  const nodeValidationsSelector = NodesInternal.useLaxValidationsSelector();
+  const traversalSelector = useNodeTraversalSelectorLax();
 
   /* Ensures the callback will have the latest state */
   const callback = useEffectEvent((): boolean => {
-    const layoutPages = nodes.current;
-
-    if (layoutPages === ContextNotProvided) {
-      // If the nodes are not provided, we cannot validate them
+    if (
+      validation.current === ContextNotProvided ||
+      nodeValidationsSelector === ContextNotProvided ||
+      setNodeVisibility === ContextNotProvided
+    ) {
+      // If the validation context or nodes context is not provided, we cannot validate
       return false;
     }
 
-    if (validation.current === ContextNotProvided) {
-      // If the validation context is not provided, we cannot validate
-      return false;
-    }
-
-    const setNodeVisibility = validation.current.setNodeVisibility;
     const state = validation.current.state;
     const setShowAllErrors = validation.current.setShowAllErrors;
 
     /*
      * First: check and show any frontend errors
      */
-    const nodesWithFrontendErrors = layoutPages
-      .allNodes()
-      .filter(shouldValidateNode)
-      .filter((n) => getValidationsForNode(n, state, ValidationMask.All, 'error').length > 0);
+    const nodesWithFrontendErrors = traversalSelector(
+      (t) => t.allNodes().filter((n) => nodeValidationsSelector(n, ValidationMask.All, 'error').length > 0),
+      [nodeValidationsSelector],
+    );
+
+    if (!nodesWithFrontendErrors || nodesWithFrontendErrors === ContextNotProvided) {
+      // If the nodes are not provided, we cannot validate them
+      return false;
+    }
 
     if (nodesWithFrontendErrors.length > 0) {
       setNodeVisibility(nodesWithFrontendErrors, ValidationMask.All);
@@ -59,12 +58,13 @@ export function useOnFormSubmitValidation() {
      * Normally, backend errors should be in sync with frontend errors.
      * But if not, show them now.
      */
-    const nodesWithAnyError = layoutPages
-      .allNodes()
-      .filter(shouldValidateNode)
-      .filter((n) => getValidationsForNode(n, state, ValidationMask.AllIncludingBackend, 'error').length > 0);
+    const nodesWithAnyError = traversalSelector(
+      (t) =>
+        t.allNodes().filter((n) => nodeValidationsSelector(n, ValidationMask.AllIncludingBackend, 'error').length > 0),
+      [nodeValidationsSelector],
+    );
 
-    if (nodesWithAnyError.length > 0) {
+    if (nodesWithAnyError !== ContextNotProvided && nodesWithAnyError.length > 0) {
       setNodeVisibility(nodesWithAnyError, ValidationMask.All);
       return true;
     }
@@ -86,12 +86,13 @@ export function useOnFormSubmitValidation() {
   });
 
   return useCallback(async () => {
-    if (validation.current === ContextNotProvided) {
+    const validating = validation.current === ContextNotProvided ? undefined : validation.current?.validating;
+    if (!validating) {
       // If the validation context is not provided, we cannot validate
       return false;
     }
 
-    await validation.current.validating();
+    await validating();
     return callback();
   }, [callback, validation]);
 }

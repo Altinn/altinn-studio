@@ -6,6 +6,7 @@ import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { DataTypeReference, filterDisplayPdfAttachments, getDisplayAttachments } from 'src/utils/attachmentsUtils';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IData, IDataType } from 'src/types/shared';
 
@@ -18,9 +19,10 @@ export function AttachmentListComponent({ node }: IAttachmentListProps) {
   const instanceData = useLaxInstanceData()?.data ?? emptyDataArray;
   const currentTaskId = useLaxProcessData()?.currentTask?.elementId;
   const dataTypes = useApplicationMetadata().dataTypes ?? emptyDataTypeArray;
+  const { dataTypeIds, textResourceBindings } = useNodeItem(node);
 
   const attachments = useMemo(() => {
-    const allowedTypes = new Set(node.item.dataTypeIds ?? []);
+    const allowedTypes = new Set(dataTypeIds ?? []);
     const includePdf =
       allowedTypes.has(DataTypeReference.RefDataAsPdf) || allowedTypes.has(DataTypeReference.IncludeAll);
     const pdfAttachments = includePdf ? filterDisplayPdfAttachments(instanceData) : [];
@@ -53,13 +55,13 @@ export function AttachmentListComponent({ node }: IAttachmentListProps) {
 
     const otherAttachments = getDisplayAttachments(attachments);
     return [...pdfAttachments, ...otherAttachments];
-  }, [currentTaskId, dataTypes, instanceData, node.item.dataTypeIds]);
+  }, [currentTaskId, dataTypes, instanceData, dataTypeIds]);
 
   return (
     <ComponentStructureWrapper node={node}>
       <AltinnAttachment
         attachments={attachments}
-        title={node.item.textResourceBindings?.title}
+        title={textResourceBindings?.title}
       />
     </ComponentStructureWrapper>
   );

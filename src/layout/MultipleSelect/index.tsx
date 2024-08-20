@@ -1,20 +1,16 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { Lang } from 'src/features/language/Lang';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { getCommaSeparatedOptionsToText } from 'src/features/options/getCommaSeparatedOptionsToText';
-import { useAllOptionsSelector } from 'src/features/options/useAllOptions';
 import { MultipleChoiceSummary } from 'src/layout/Checkboxes/MultipleChoiceSummary';
 import { MultipleSelectDef } from 'src/layout/MultipleSelect/config.def.generated';
 import { MultipleSelectComponent } from 'src/layout/MultipleSelect/MultipleSelectComponent';
-import { MultipleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/MultipleValueSummary';
+import { MultipleSelectSummary } from 'src/layout/MultipleSelect/MultipleSelectSummary';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { DisplayDataProps } from 'src/features/displayData';
-import type { IUseLanguage } from 'src/features/language/useLanguage';
-import type { FormDataSelector, PropsFromGenericComponent } from 'src/layout';
+import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
-import type { MultipleSelectSummaryOverrideProps } from 'src/layout/Summary2/config.generated';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class MultipleSelect extends MultipleSelectDef {
@@ -26,48 +22,33 @@ export class MultipleSelect extends MultipleSelectDef {
 
   private getSummaryData(
     node: LayoutNode<'MultipleSelect'>,
-    langTools: IUseLanguage,
-    options: ReturnType<typeof useAllOptionsSelector>,
-    formDataSelector: FormDataSelector,
+    { nodeFormDataSelector, optionsSelector, langTools }: DisplayDataProps,
   ): { [key: string]: string } {
-    if (!node.item.dataModelBindings?.simpleBinding) {
+    const data = nodeFormDataSelector(node);
+    if (!data.simpleBinding) {
       return {};
     }
 
-    const value = String(node.getFormData(formDataSelector).simpleBinding ?? '');
-    const optionList = options(node.item.id);
-    return getCommaSeparatedOptionsToText(value, optionList, langTools);
+    const value = String(data.simpleBinding ?? '');
+    const { options } = optionsSelector(node);
+    return getCommaSeparatedOptionsToText(value, options, langTools);
   }
 
-  getDisplayData(
-    node: LayoutNode<'MultipleSelect'>,
-    { langTools, optionsSelector, formDataSelector }: DisplayDataProps,
-  ): string {
-    return Object.values(this.getSummaryData(node, langTools, optionsSelector, formDataSelector)).join(', ');
+  getDisplayData(node: LayoutNode<'MultipleSelect'>, props: DisplayDataProps): string {
+    return Object.values(this.getSummaryData(node, props)).join(', ');
   }
 
-  renderSummary({ targetNode, formDataSelector }: SummaryRendererProps<'MultipleSelect'>): JSX.Element | null {
-    const langTools = useLanguage();
-    const options = useAllOptionsSelector();
-    const summaryData = this.getSummaryData(targetNode, langTools, options, formDataSelector);
-    return <MultipleChoiceSummary formData={summaryData} />;
+  renderSummary({ targetNode }: SummaryRendererProps<'MultipleSelect'>): JSX.Element | null {
+    return <MultipleChoiceSummary getFormData={(props) => this.getSummaryData(targetNode, props)} />;
   }
 
-  renderSummary2(
-    componentNode: LayoutNode<'MultipleSelect'>,
-    summaryOverrides?: MultipleSelectSummaryOverrideProps,
-  ): JSX.Element | null {
-    const displayData = this.useDisplayData(componentNode);
-    const maxStringLength = 75;
-    const showAsList =
-      summaryOverrides?.displayType === 'list' ||
-      (!summaryOverrides?.displayType && displayData?.length >= maxStringLength);
-    const title = componentNode.item.textResourceBindings?.title;
+  renderSummary2(props: Summary2Props<'MultipleSelect'>): JSX.Element | null {
+    const displayData = this.useDisplayData(props.target);
     return (
-      <MultipleValueSummary
-        title={<Lang id={title} />}
-        componentNode={componentNode}
-        showAsList={showAsList}
+      <MultipleSelectSummary
+        componentNode={props.target}
+        summaryOverrides={props.overrides}
+        displayData={displayData}
       />
     );
   }

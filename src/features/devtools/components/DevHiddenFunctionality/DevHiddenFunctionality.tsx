@@ -5,8 +5,10 @@ import { Fieldset, ToggleGroup } from '@digdir/designsystemet-react';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { useComponentRefs } from 'src/features/devtools/hooks/useComponentRefs';
 import { useIsInFormContext } from 'src/features/form/FormContext';
-import { useNodes } from 'src/utils/layout/NodesContext';
+import { Hidden } from 'src/utils/layout/NodesContext';
+import { useNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
 import type { IDevToolsState } from 'src/features/devtools/data/types';
+import type { IsHiddenOptions } from 'src/utils/layout/NodesContext';
 
 const pseudoHiddenCssFilter = 'contrast(0.75)';
 
@@ -22,28 +24,10 @@ export function DevHiddenFunctionality() {
 function InnerDevHiddenFunctionality() {
   const state = useDevToolsStore((state) => state.hiddenComponents);
   const setShowHiddenComponents = useDevToolsStore((state) => state.actions.setShowHiddenComponents);
-  const hierarchy = useNodes();
-
-  useComponentRefs({
-    callback: (id, ref) => {
-      const node = hierarchy?.findById(id);
-      if (node) {
-        if (ref.style.filter === pseudoHiddenCssFilter && state !== 'disabled') {
-          ref.style.filter = '';
-        } else if (state === 'disabled' && node.isHidden({ respectDevTools: false })) {
-          ref.style.filter = pseudoHiddenCssFilter;
-        }
-      }
-    },
-    cleanupCallback: (_, ref) => {
-      if (ref.style.filter === pseudoHiddenCssFilter) {
-        ref.style.filter = '';
-      }
-    },
-  });
 
   return (
     <Fieldset legend='Skjulte komponenter'>
+      <MarkHiddenComponents />
       <div>
         <ToggleGroup
           size='small'
@@ -57,4 +41,32 @@ function InnerDevHiddenFunctionality() {
       </div>
     </Fieldset>
   );
+}
+
+const isHiddenOptions: IsHiddenOptions = { respectDevTools: false };
+function MarkHiddenComponents() {
+  const state = useDevToolsStore((state) => state.hiddenComponents);
+  const isHiddenSelector = Hidden.useIsHiddenSelector();
+  const traversalSelector = useNodeTraversalSelector();
+
+  useComponentRefs({
+    callback: (id, ref) => {
+      if (ref.style.filter === pseudoHiddenCssFilter && state !== 'disabled') {
+        ref.style.filter = '';
+      } else if (state === 'disabled') {
+        const node = traversalSelector((t) => t.findById(id), [id]);
+        const isHidden = node ? isHiddenSelector(node, isHiddenOptions) : true;
+        if (isHidden) {
+          ref.style.filter = pseudoHiddenCssFilter;
+        }
+      }
+    },
+    cleanupCallback: (_, ref) => {
+      if (ref.style.filter === pseudoHiddenCssFilter) {
+        ref.style.filter = '';
+      }
+    },
+  });
+
+  return null;
 }

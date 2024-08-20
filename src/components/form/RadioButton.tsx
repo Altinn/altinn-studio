@@ -5,9 +5,9 @@ import type { RadioProps } from '@digdir/designsystemet-react';
 
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import classes from 'src/components/form/RadioButton.module.css';
-import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
+import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
+import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useAlertOnChange } from 'src/hooks/useAlertOnChange';
 
 export interface IRadioButtonProps extends Omit<RadioProps, 'children'> {
   showAsCard?: boolean;

@@ -28,6 +28,11 @@ function addPet({ species, name, age }: PetProps) {
 }
 
 function assertPetOrder(pets: PetProps[], editingIndex?: number) {
+  cy.log('--------------------');
+  cy.log('Verifying that pet order is', structuredClone(pets));
+  cy.waitUntilSaved();
+  cy.waitUntilNodesReady();
+
   const visibleLength = pets.filter((pet) => pet.visible === true || pet.visible === undefined).length;
   cy.get(appFrontend.pets.group.tableRows).should(
     'have.length',
@@ -96,23 +101,23 @@ describe('Group (Pets)', () => {
     cy.goto('group');
     cy.gotoNavPage('Kjæledyr');
     cy.get(appFrontend.pets.decisionPanel.autoPetsButton).click();
-    const pets = [...petsFromCustomButton];
-    assertPetOrder(pets);
+    const pets1 = [...petsFromCustomButton];
+    assertPetOrder(pets1);
 
     // Sort the rows from the outside
     cy.dsSelect(appFrontend.pets.sortOutside.sortOrder, 'Navn (A-Å)');
     cy.get(appFrontend.pets.sortOutside.sortButton).click();
-    pets.sort((a, b) => a.name.localeCompare(b.name));
-    assertPetOrder(pets);
+    const pets2 = structuredClone(pets1).sort((a, b) => a.name.localeCompare(b.name));
+    assertPetOrder(pets2);
 
     cy.dsSelect(appFrontend.pets.sortOutside.sortOrder, 'Alder (1-9)');
     cy.get(appFrontend.pets.sortOutside.sortButton).click();
-    pets.sort((a, b) => a.age - b.age);
-    assertPetOrder(pets);
+    const pets3 = structuredClone(pets2).sort((a, b) => a.age - b.age);
+    assertPetOrder(pets3);
 
     // Sort when having opened one row for editing
     cy.get(appFrontend.pets.group.tableRow(0).editButton).click();
-    assertPetOrder(pets, 0);
+    assertPetOrder(pets3, 0);
     cy.get(appFrontend.pets.group.editContainer.species).should('have.value', Species.Cat.nb);
     cy.get(appFrontend.pets.group.editContainer.name).should('have.value', 'Reidar Reddik');
     cy.get(appFrontend.pets.group.editContainer.sortOrder).should('have.value', 'Alder (1-9)');
@@ -121,7 +126,7 @@ describe('Group (Pets)', () => {
 
     // Species are currently sorted by the english names, even if we have selected the norwegian language
     // TODO: Update this test when the issue is fixed
-    pets
+    const pets4 = structuredClone(pets3)
       .sort((a, b) => {
         const result = Species[a.species].en.localeCompare(Species[b.species].en);
         if (result === 0) {
@@ -130,7 +135,7 @@ describe('Group (Pets)', () => {
         return result;
       })
       .reverse();
-    assertPetOrder(pets, 5);
+    assertPetOrder(pets4, 5);
 
     // We should still be editing the same row
     cy.get(appFrontend.pets.group.editContainer.species).should('have.value', Species.Cat.nb);
@@ -139,13 +144,15 @@ describe('Group (Pets)', () => {
 
     // Hiding one row via checkboxes
     cy.get(appFrontend.pets.hide._).findByRole('checkbox', { name: 'Fish med navn Siri Spinat (3 år)' }).check();
-    pets[pets.findIndex((pet) => pet.name === 'Siri Spinat')].visible = false;
-    assertPetOrder(pets);
+    const pets5 = structuredClone(pets4);
+    pets5[pets5.findIndex((pet) => pet.name === 'Siri Spinat')].visible = false;
+    assertPetOrder(pets5);
 
     // Hiding another row via checkboxes
     cy.get(appFrontend.pets.hide._).findByRole('checkbox', { name: 'Dog med navn Preben Potet (15 år)' }).check();
-    pets[pets.findIndex((pet) => pet.name === 'Preben Potet')].visible = false;
-    assertPetOrder(pets);
+    const pets6 = structuredClone(pets5);
+    pets6[pets6.findIndex((pet) => pet.name === 'Preben Potet')].visible = false;
+    assertPetOrder(pets6);
 
     cy.get(appFrontend.nextButton).click();
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
@@ -154,9 +161,10 @@ describe('Group (Pets)', () => {
     cy.snapshot('pets');
 
     cy.get(appFrontend.pets.group.tableRow(0).deleteButton).click();
-    const deletedIndex = pets.findIndex((pet) => pet.name === 'Birte Blomkål' && pet.age === 2);
-    pets.splice(deletedIndex, 1);
-    assertPetOrder(pets);
+    const pets7 = structuredClone(pets6);
+    const deletedIndex = pets7.findIndex((pet) => pet.name === 'Birte Blomkål' && pet.age === 2);
+    pets7.splice(deletedIndex, 1);
+    assertPetOrder(pets7);
 
     cy.get(appFrontend.nextButton).click();
     cy.get(appFrontend.errorReport).should('not.exist');

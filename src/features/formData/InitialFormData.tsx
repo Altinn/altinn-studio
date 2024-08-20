@@ -19,7 +19,7 @@ import { getUrlWithLanguage } from 'src/utils/urls/urlHelper';
  */
 export function InitialFormDataProvider({ children }: PropsWithChildren) {
   const url = useCurrentDataModelUrl(true);
-  const { error, isLoading, data } = useFormDataQuery(getUrlWithLanguage(url, useCurrentLanguage()));
+  const { error, isFetching, data } = useFormDataQuery(getUrlWithLanguage(url, useCurrentLanguage()));
   const autoSaveBehaviour = usePageSettings().autoSaveBehavior;
 
   if (!url) {
@@ -35,7 +35,7 @@ export function InitialFormDataProvider({ children }: PropsWithChildren) {
     return <DisplayError error={error} />;
   }
 
-  if (isLoading) {
+  if (isFetching) {
     return <Loader reason='formdata' />;
   }
 

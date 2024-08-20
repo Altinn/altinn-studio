@@ -2,7 +2,8 @@ import { CG } from 'src/codegen/CG';
 import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
-  category: CompCategory.Container,
+  category: CompCategory.Presentation,
+  directRendering: true,
   capabilities: {
     renderInTable: false,
     renderInButtonGroup: false,
@@ -10,6 +11,10 @@ export const Config = new CG.component({
     renderInAccordionGroup: false,
     renderInCards: true,
     renderInCardsMedia: false,
+    renderInTabs: true,
+  },
+  functionality: {
+    customExpressions: false,
   },
 })
   .addProperty(

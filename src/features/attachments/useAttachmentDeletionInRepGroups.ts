@@ -1,19 +1,15 @@
 import { useCallback } from 'react';
 
-import {
-  useAttachments,
-  useAttachmentsAwaiter,
-  useAttachmentsRemover,
-} from 'src/features/attachments/AttachmentsContext';
+import { AttachmentsPlugin } from 'src/features/attachments/AttachmentsPlugin';
+import { useAttachmentsAwaiter, useAttachmentsRemover, useAttachmentsSelector } from 'src/features/attachments/hooks';
 import { isAttachmentUploaded } from 'src/features/attachments/index';
 import { useAsRef } from 'src/hooks/useAsRef';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { useNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
 type UploaderNode = LayoutNode<'FileUpload' | 'FileUploadWithTag'>;
-
-function isUploaderNode(node: LayoutNode): node is UploaderNode {
-  return node.item.type === 'FileUpload' || node.item.type === 'FileUploadWithTag';
-}
 
 /**
  * When deleting a row in a repeating group, we need to find any attachments that are uploaded
@@ -27,29 +23,39 @@ function isUploaderNode(node: LayoutNode): node is UploaderNode {
  */
 export function useAttachmentDeletionInRepGroups(node: LayoutNode<'RepeatingGroup'>) {
   const remove = useAsRef(useAttachmentsRemover());
-  const awaiter = useAsRef(useAttachmentsAwaiter());
+  const awaiter = useAttachmentsAwaiter();
   const nodeRef = useAsRef(node);
-  const attachments = useAsRef(useAttachments());
+  const attachmentsSelector = useAttachmentsSelector();
+  const traversalSelector = useNodeTraversalSelector();
+  const nodeItemSelector = NodesInternal.useNodeDataSelector();
 
   return useCallback(
-    async (uuid: string): Promise<boolean> => {
-      const uploaders = nodeRef.current.flat(true, { onlyInRowUuid: uuid }).filter(isUploaderNode);
+    async (restriction: TraversalRestriction): Promise<boolean> => {
+      const uploaders = traversalSelector(
+        (t) =>
+          t
+            .with(nodeRef.current)
+            .flat(undefined, restriction)
+            .filter((n) => n.def.hasPlugin(AttachmentsPlugin)),
+        [nodeRef.current, restriction],
+      ) as UploaderNode[];
 
       // This code is intentionally not parallelized, as especially LocalTest can't handle parallel requests to
       // delete attachments. It might return a 500 if you try. To be safe, we do them one by one.
       for (const uploader of uploaders) {
-        const files = attachments.current[uploader.item.id] ?? [];
+        const files = attachmentsSelector(uploader);
         for (const file of files) {
           if (isAttachmentUploaded(file)) {
             const result = await remove.current({
               attachment: file,
               node: uploader,
+              dataModelBindings: nodeItemSelector((picker) => picker(uploader)?.layout.dataModelBindings, [uploader]),
             });
             if (!result) {
               return false;
             }
           } else {
-            const uploaded = await awaiter.current(file);
+            const uploaded = await awaiter(uploader, file);
             if (uploaded) {
               const result = await remove.current({
                 attachment: {
@@ -59,6 +65,7 @@ export function useAttachmentDeletionInRepGroups(node: LayoutNode<'RepeatingGrou
                   data: uploaded,
                 },
                 node: uploader,
+                dataModelBindings: nodeItemSelector((picker) => picker(uploader)?.layout.dataModelBindings, [uploader]),
               });
               if (!result) {
                 return false;
@@ -73,6 +80,6 @@ export function useAttachmentDeletionInRepGroups(node: LayoutNode<'RepeatingGrou
 
       return true;
     },
-    [attachments, awaiter, remove, nodeRef],
+    [traversalSelector, nodeRef, attachmentsSelector, remove, nodeItemSelector, awaiter],
   );
 }

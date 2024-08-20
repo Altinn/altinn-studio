@@ -1,10 +1,8 @@
 import React from 'react';
 import type { PropsWithChildren } from 'react';
 
-import {
-  MINIMUM_APPLICATION_VERSION,
-  useApplicationMetadata,
-} from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { MINIMUM_APPLICATION_VERSION } from 'src/features/applicationMetadata/minVersion';
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
 import { Lang } from 'src/features/language/Lang';
 

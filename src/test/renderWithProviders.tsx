@@ -39,10 +39,12 @@ import { TextResourcesProvider } from 'src/features/language/textResources/TextR
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { ProfileProvider } from 'src/features/profile/ProfileProvider';
+import { AppRoutingProvider } from 'src/features/routing/AppRoutingContext';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { PageNavigationRouter } from 'src/test/routerUtils';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { useNodes } from 'src/utils/layout/NodesContext';
+import { useNodeTraversalSelectorSilent } from 'src/utils/layout/useNodeTraversal';
 import type { IDataList } from 'src/features/dataLists';
 import type { IFooterLayout } from 'src/features/footer/types';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
@@ -66,6 +68,7 @@ interface InstanceRouterProps {
   initialPage?: string;
   taskId?: string;
   instanceId?: string;
+  alwaysRouteToChildren?: boolean;
 }
 
 interface ExtendedRenderOptionsWithInstance extends ExtendedRenderOptions, InstanceRouterProps {}
@@ -215,7 +218,7 @@ function DefaultRouter({ children }: PropsWithChildren) {
       <Routes>
         <Route
           path={'/'}
-          element={<>{children}</>}
+          element={children}
         />
         <Route
           path={'*'}
@@ -231,6 +234,7 @@ export function InstanceRouter({
   instanceId = exampleInstanceId,
   taskId = 'Task_1',
   initialPage = 'FormLayout',
+  alwaysRouteToChildren = false,
 }: PropsWithChildren<InstanceRouterProps>) {
   return (
     <MemoryRouter
@@ -248,7 +252,7 @@ export function InstanceRouter({
         />
         <Route
           path={'*'}
-          element={<NotFound />}
+          element={alwaysRouteToChildren ? children : <NotFound />}
         />
       </Routes>
     </MemoryRouter>
@@ -274,23 +278,25 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
             <UiConfigProvider>
               <PageNavigationProvider>
                 <Router>
-                  <ApplicationMetadataProvider>
-                    <GlobalFormDataReadersProvider>
-                      <OrgsProvider>
-                        <ApplicationSettingsProvider>
-                          <LayoutSetsProvider>
-                            <ProfileProvider>
-                              <PartyProvider>
-                                <TextResourcesProvider>
-                                  <InstantiationProvider>{children}</InstantiationProvider>
-                                </TextResourcesProvider>
-                              </PartyProvider>
-                            </ProfileProvider>
-                          </LayoutSetsProvider>
-                        </ApplicationSettingsProvider>
-                      </OrgsProvider>
-                    </GlobalFormDataReadersProvider>
-                  </ApplicationMetadataProvider>
+                  <AppRoutingProvider>
+                    <ApplicationMetadataProvider>
+                      <GlobalFormDataReadersProvider>
+                        <OrgsProvider>
+                          <ApplicationSettingsProvider>
+                            <LayoutSetsProvider>
+                              <ProfileProvider>
+                                <PartyProvider>
+                                  <TextResourcesProvider>
+                                    <InstantiationProvider>{children}</InstantiationProvider>
+                                  </TextResourcesProvider>
+                                </PartyProvider>
+                              </ProfileProvider>
+                            </LayoutSetsProvider>
+                          </ApplicationSettingsProvider>
+                        </OrgsProvider>
+                      </GlobalFormDataReadersProvider>
+                    </ApplicationMetadataProvider>
+                  </AppRoutingProvider>
                 </Router>
               </PageNavigationProvider>
             </UiConfigProvider>
@@ -325,7 +331,9 @@ function MinimalProviders({ children, queries, queryClient, Router = DefaultRout
       queryClient={queryClient}
     >
       <LangToolsStoreProvider>
-        <Router>{children}</Router>
+        <Router>
+          <AppRoutingProvider>{children}</AppRoutingProvider>
+        </Router>
       </LangToolsStoreProvider>
     </AppQueriesProvider>
   );
@@ -518,6 +526,7 @@ export const renderWithInstanceAndLayout = async ({
   renderer,
   instanceId,
   taskId,
+  alwaysRouteToChildren,
   initialPage = 'FormLayout',
   ...renderOptions
 }: ExtendedRenderOptionsWithInstance) => {
@@ -549,6 +558,7 @@ export const renderWithInstanceAndLayout = async ({
           instanceId={instanceId}
           taskId={taskId}
           initialPage={initialPage}
+          alwaysRouteToChildren={alwaysRouteToChildren}
         >
           {children}
         </InstanceRouter>
@@ -589,6 +599,7 @@ const WaitForNodes = ({
   nodeId,
 }: PropsWithChildren<{ waitForAllNodes: boolean; nodeId?: string }>) => {
   const nodes = useNodes();
+  const selector = useNodeTraversalSelectorSilent();
 
   if (!nodes && waitForAllNodes) {
     return (
@@ -600,17 +611,22 @@ const WaitForNodes = ({
   }
 
   if (nodeId !== undefined && nodes && waitForAllNodes) {
-    const node = nodes.findById(nodeId);
+    const node = selector((t) => t.findById(nodeId), [nodeId]);
     if (!node) {
+      const allNodes = selector((t) => t.allNodes(), []);
       return (
         <>
           <div>Unable to find target node: {nodeId}</div>
-          <div>All other nodes loaded:</div>
-          <ul>
-            {nodes.allNodes().map((node) => (
-              <li key={node.item.id}>{node.item.id}</li>
-            ))}
-          </ul>
+          {allNodes && (
+            <>
+              <div>All other nodes loaded:</div>
+              <ul>
+                {allNodes.map((node) => (
+                  <li key={node.id}>{node.id}</li>
+                ))}
+              </ul>
+            </>
+          )}
         </>
       );
     }
@@ -638,12 +654,13 @@ export async function renderWithNode<InInstance extends boolean, T extends Layou
 }: RenderWithNodeTestProps<T, InInstance>): Promise<RenderWithNodeReturnType<InInstance>> {
   function Child() {
     const root = useNodes();
+    const selector = useNodeTraversalSelectorSilent();
 
     if (!root) {
       return <div>Unable to find root context</div>;
     }
 
-    const node = root.findById(props.nodeId);
+    const node = selector((t) => t.findById(props.nodeId), [props.nodeId]);
     if (!node) {
       return <div>Unable to find node: {props.nodeId}</div>;
     }
@@ -703,8 +720,8 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
       <FormComponentContextProvider
         value={{
           node,
-          baseComponentId: node.item.baseComponentId,
-          id: node.item.id,
+          baseComponentId: node.baseId,
+          id: node.id,
         }}
       >
         {renderer(props)}
@@ -738,5 +755,4 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
 
 const mockGenericComponentProps: IComponentProps = {
   containerDivRef: { current: null },
-  isValid: undefined,
 };

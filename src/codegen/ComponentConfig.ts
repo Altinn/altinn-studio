@@ -1,10 +1,13 @@
 import type { JSONSchema7 } from 'json-schema';
 
-import { CG, Variant } from 'src/codegen/CG';
-import { GenerateComponentLike } from 'src/codegen/dataTypes/GenerateComponentLike';
+import { CG } from 'src/codegen/CG';
 import { GenerateImportedSymbol } from 'src/codegen/dataTypes/GenerateImportedSymbol';
+import { GenerateRaw } from 'src/codegen/dataTypes/GenerateRaw';
+import { GenerateUnion } from 'src/codegen/dataTypes/GenerateUnion';
+import { ValidationPlugin } from 'src/features/validation/ValidationPlugin';
 import { CompCategory } from 'src/layout/common';
-import type { MaybeSymbolizedCodeGenerator } from 'src/codegen/CodeGenerator';
+import { isNodeDefChildrenPlugin, NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
+import type { CompBehaviors, RequiredComponentConfig } from 'src/codegen/Config';
 import type { GenerateCommonImport } from 'src/codegen/dataTypes/GenerateCommonImport';
 import type { GenerateObject } from 'src/codegen/dataTypes/GenerateObject';
 import type { GenerateProperty } from 'src/codegen/dataTypes/GenerateProperty';
@@ -16,19 +19,6 @@ import type {
   FormComponent,
   PresentationComponent,
 } from 'src/layout/LayoutComponent';
-
-export interface RequiredComponentConfig {
-  category: CompCategory;
-  capabilities: {
-    renderInTable: boolean;
-    renderInButtonGroup: boolean;
-    renderInAccordion: boolean;
-    renderInAccordionGroup: boolean;
-    renderInTabs?: boolean;
-    renderInCards: boolean;
-    renderInCardsMedia: boolean;
-  };
-}
 
 const CategoryImports: { [Category in CompCategory]: GenerateImportedSymbol<any> } = {
   [CompCategory.Action]: new GenerateImportedSymbol<ActionComponent<CompTypes>>({
@@ -49,55 +39,102 @@ const CategoryImports: { [Category in CompCategory]: GenerateImportedSymbol<any>
   }),
 };
 
-export class ComponentConfig extends GenerateComponentLike {
+const baseLayoutNode = new GenerateImportedSymbol({
+  import: 'BaseLayoutNode',
+  from: 'src/utils/layout/LayoutNode',
+});
+
+export class ComponentConfig {
   public type: string;
   public typeSymbol: string;
-  public layoutNodeType = CG.baseLayoutNode;
-
-  private exportedComp: MaybeSymbolizedCodeGenerator<any> = this.inner;
+  public layoutNodeType = baseLayoutNode;
+  readonly inner = new CG.obj();
+  public behaviors: CompBehaviors = {
+    isSummarizable: false,
+    canHaveLabel: false,
+    canHaveOptions: false,
+    canHaveAttachments: false,
+  };
+  protected plugins: NodeDefPlugin<any>[] = [];
 
   constructor(public readonly config: RequiredComponentConfig) {
-    super();
     this.inner.extends(CG.common('ComponentBase'));
-    this.inner.addProperty(
-      new CG.prop('textResourceBindings', new CG.raw({ typeScript: 'undefined' }).optional()).onlyIn(Variant.Internal),
-    );
-    this.inner.addProperty(
-      new CG.prop('dataModelBindings', new CG.raw({ typeScript: 'undefined' }).optional()).onlyIn(Variant.Internal),
-    );
 
     if (config.category === CompCategory.Form) {
       this.inner.extends(CG.common('FormComponentProps'));
       this.extendTextResources(CG.common('TRBFormComp'));
     }
-    if (config.category === CompCategory.Form || config.category === CompCategory.Container) {
+    if (this.isFormLike()) {
       this.inner.extends(CG.common('SummarizableComponentProps'));
       this.extendTextResources(CG.common('TRBSummarizable'));
+      this.behaviors.isSummarizable = true;
+      this.addPlugin(new ValidationPlugin());
     }
   }
 
-  private ensureNotOverridden(): void {
-    if (this.inner !== this.exportedComp) {
-      throw new Error('The exported symbol has been overridden, you cannot call this method anymore');
+  public setType(type: string, symbol?: string): this {
+    const symbolName = symbol ?? type;
+    this.type = type;
+    this.typeSymbol = symbolName;
+    this.inner.addProperty(new CG.prop('type', new CG.const(this.type)).insertFirst());
+
+    return this;
+  }
+
+  public addPlugin(plugin: NodeDefPlugin<any>): this {
+    for (const existing of this.plugins) {
+      if (existing.getKey() === plugin.getKey()) {
+        throw new Error(`Component already has a plugin with the key ${plugin.getKey()}!`);
+      }
+    }
+
+    plugin.addToComponent(this);
+    this.plugins.push(plugin);
+    return this;
+  }
+
+  public addProperty(prop: GenerateProperty<any>): this {
+    this.inner.addProperty(prop);
+    return this;
+  }
+
+  private ensureTextResourceBindings(): void {
+    const existing = this.inner.getProperty('textResourceBindings');
+    if (!existing || existing.type instanceof GenerateRaw) {
+      this.inner.addProperty(new CG.prop('textResourceBindings', new CG.obj().optional()));
     }
   }
 
-  addProperty(prop: GenerateProperty<any>): this {
-    this.ensureNotOverridden();
-    return super.addProperty(prop);
+  /**
+   * TODO: Add support for some required text resource bindings (but only make them required in external types)
+   */
+  public addTextResource(arg: GenerateTextResourceBinding): this {
+    this.ensureTextResourceBindings();
+    this.inner.getProperty('textResourceBindings')?.type.addProperty(arg);
+
+    return this;
   }
 
-  makeSelectionComponent(full = true): this {
-    this.ensureNotOverridden();
-    return super.makeSelectionComponent(full);
+  public extendTextResources(type: GenerateCommonImport<any>): this {
+    this.ensureTextResourceBindings();
+    this.inner.getProperty('textResourceBindings')?.type.extends(type);
+
+    return this;
   }
 
-  addTextResourcesForLabel(): this {
-    this.ensureNotOverridden();
-    return super.addTextResourcesForLabel();
+  public isFormLike(): boolean {
+    return this.config.category === CompCategory.Form || this.config.category === CompCategory.Container;
   }
 
-  addDataModelBinding(
+  private hasDataModelBindings(): boolean {
+    const prop = this.inner.getProperty('dataModelBindings');
+    return this.isFormLike() && prop !== undefined && !(prop.type instanceof GenerateRaw);
+  }
+
+  /**
+   * Adding multiple data model bindings to the component makes it a union
+   */
+  public addDataModelBinding(
     type:
       | GenerateCommonImport<
           | 'IDataModelBindingsSimple'
@@ -107,45 +144,37 @@ export class ComponentConfig extends GenerateComponentLike {
         >
       | GenerateObject<any>,
   ): this {
-    this.ensureNotOverridden();
-    return super.addDataModelBinding(type);
-  }
+    if (!this.isFormLike()) {
+      throw new Error(
+        `Component wants dataModelBindings, but is not a form nor a container component. ` +
+          `Only these categories can have data model bindings.`,
+      );
+    }
 
-  extendTextResources(type: GenerateCommonImport<any>): this {
-    this.ensureNotOverridden();
-    return super.extendTextResources(type);
-  }
-
-  /**
-   * TODO: Add support for some required text resource bindings (but only make them required in external types)
-   */
-  addTextResource(arg: GenerateTextResourceBinding): this {
-    this.ensureNotOverridden();
-    return super.addTextResource(arg);
-  }
-
-  public setType(type: string, symbol?: string): this {
-    const symbolName = symbol ?? type;
-    this.type = type;
-    this.typeSymbol = symbolName;
-    this.inner.addProperty(new CG.prop('type', new CG.const(this.type)).insertFirst());
-    if (this.inner !== this.exportedComp) {
-      this.inner.exportAs(`${symbolName}Base`);
+    const name = 'dataModelBindings';
+    const existing = this.inner.getProperty(name)?.type;
+    if (existing && existing instanceof GenerateUnion) {
+      existing.addType(type);
+    } else if (existing && !(existing instanceof GenerateRaw)) {
+      const union = new CG.union(existing, type);
+      this.inner.addProperty(new CG.prop(name, union));
+    } else {
+      this.inner.addProperty(new CG.prop(name, type));
     }
 
     return this;
   }
 
-  /**
-   * Overrides the exported symbol for this component with something else. This lets you change the base component
-   * type to, for example, a union of multiple types. This is for example useful for components that have
-   * configurations that change a lot of options based on some other options. Examples include the Group component,
-   * where many options rely on the Group being configured as repeating or not.
-   */
-  public overrideExported(comp: MaybeSymbolizedCodeGenerator<any>): this {
-    this.exportedComp = comp;
+  extends(type: GenerateCommonImport<any> | ComponentConfig): this {
+    if (type instanceof ComponentConfig) {
+      this.inner.extends(type.inner);
+      return this;
+    }
+
+    this.inner.extends(type);
     return this;
   }
+
   // This will not be used at the moment after we split the group to several components.
   // However, this is nice to keep for future components that might need it.
   public setLayoutNodeType(type: GenerateImportedSymbol<any>): this {
@@ -153,31 +182,65 @@ export class ComponentConfig extends GenerateComponentLike {
     return this;
   }
 
+  private beforeFinalizing(): void {
+    // We have to add these to our typescript types in order for ITextResourceBindings<T>, and similar to work.
+    // Components that doesn't have them, will always have the 'undefined' value.
+    if (!this.inner.hasProperty('dataModelBindings')) {
+      this.inner.addProperty(
+        new CG.prop('dataModelBindings', new CG.raw({ typeScript: 'undefined' }).optional()).omitInSchema(),
+      );
+    }
+    if (!this.inner.hasProperty('textResourceBindings')) {
+      this.inner.addProperty(
+        new CG.prop('textResourceBindings', new CG.raw({ typeScript: 'undefined' }).optional()).omitInSchema(),
+      );
+    }
+  }
+
   public generateConfigFile(): string {
+    this.beforeFinalizing();
     // Forces the objects to register in the context and be exported via the context symbols table
-    this.exportedComp.exportAs(`Comp${this.typeSymbol}`);
-    const ext = this.exportedComp.transformTo(Variant.External);
-    ext.toTypeScript();
-    const int = this.exportedComp.transformTo(Variant.Internal);
-    int.toTypeScript();
+    this.inner.exportAs(`Comp${this.typeSymbol}External`);
+    this.inner.toTypeScript();
 
     const impl = new CG.import({
       import: this.typeSymbol,
       from: `./index`,
-    }).transformTo(Variant.Internal);
+    });
 
-    const nodeObj = this.layoutNodeType.transformTo(Variant.Internal).toTypeScript();
-    const nodeSuffix = this.layoutNodeType === CG.baseLayoutNode ? `<${int.getName()}, '${this.type}'>` : '';
+    const nodeObj = this.layoutNodeType.toTypeScript();
+    const nodeSuffix = this.layoutNodeType === baseLayoutNode ? `<'${this.type}'>` : '';
+
+    const CompCategory = new CG.import({
+      import: 'CompCategory',
+      from: `src/layout/common`,
+    });
+
+    const pluginUnion =
+      this.plugins.length === 0
+        ? 'never'
+        : this.plugins
+            .map((plugin) => {
+              const PluginName = plugin.makeImport();
+              const genericArgs = plugin.makeGenericArgs();
+              return genericArgs ? `${PluginName}<${genericArgs}>` : `${PluginName}`;
+            })
+            .join(' | ');
 
     const staticElements = [
-      `export const Config = {
-         def: new ${impl.toTypeScript()}(),
-         nodeConstructor: ${nodeObj},
+      `export function getConfig() {
+         return {
+           def: new ${impl.toTypeScript()}(),
+           nodeConstructor: ${nodeObj},
+           capabilities: ${JSON.stringify(this.config.capabilities, null, 2)} as const,
+           behaviors: ${JSON.stringify(this.behaviors, null, 2)} as const,
+         };
        }`,
       `export type TypeConfig = {
-         layout: ${ext.getName()};
-         nodeItem: ${int.getName()};
+         category: ${CompCategory}.${this.config.category},
+         layout: ${this.inner};
          nodeObj: ${nodeObj}${nodeSuffix};
+         plugins: ${pluginUnion};
        }`,
     ];
 
@@ -187,26 +250,220 @@ export class ComponentConfig extends GenerateComponentLike {
   public generateDefClass(): string {
     const symbol = this.typeSymbol;
     const category = this.config.category;
-    const categorySymbol = CategoryImports[category].transformTo(Variant.Internal).toTypeScript();
+    const categorySymbol = CategoryImports[category].toTypeScript();
 
-    const methods: string[] = [];
-    for (const [key, value] of Object.entries(this.config.capabilities)) {
-      if (key.startsWith('renderIn')) {
-        const name = key.replace('renderIn', '');
-        const valueStr = JSON.stringify(value);
-        methods.push(`canRenderIn${name}(): ${valueStr} {\nreturn ${valueStr}; }`);
-        continue;
+    const StateFactoryProps = new CG.import({
+      import: 'StateFactoryProps',
+      from: 'src/utils/layout/types',
+    });
+
+    const BaseNodeData = new CG.import({
+      import: 'BaseNodeData',
+      from: 'src/utils/layout/types',
+    });
+
+    const ExprResolver = new CG.import({
+      import: 'ExprResolver',
+      from: 'src/layout/LayoutComponent',
+    });
+
+    const NodeGeneratorProps = new CG.import({
+      import: 'NodeGeneratorProps',
+      from: 'src/layout/LayoutComponent',
+    });
+
+    const ReactJSX = new CG.import({
+      import: 'JSX',
+      from: 'react',
+    });
+
+    const NodeGenerator = new CG.import({
+      import: 'NodeGenerator',
+      from: 'src/utils/layout/generator/NodeGenerator',
+    });
+
+    const CompInternal = new CG.import({
+      import: 'CompInternal',
+      from: 'src/layout/layout',
+    });
+
+    const BaseRow = new CG.import({
+      import: 'BaseRow',
+      from: 'src/utils/layout/types',
+    });
+
+    const isFormComponent = this.config.category === CompCategory.Form;
+    const isSummarizable = this.behaviors.isSummarizable;
+
+    const evalCommonProps = [
+      { base: CG.common('ComponentBase'), condition: true, evaluator: 'evalBase' },
+      { base: CG.common('FormComponentProps'), condition: isFormComponent, evaluator: 'evalFormProps' },
+      { base: CG.common('SummarizableComponentProps'), condition: isSummarizable, evaluator: 'evalSummarizable' },
+    ];
+
+    const evalLines: string[] = [];
+    const itemLine: string[] = [];
+    for (const { base, condition, evaluator } of evalCommonProps) {
+      if (condition) {
+        itemLine.push(`keyof ${base}`);
+        evalLines.push(`...props.${evaluator}(),`);
       }
+    }
 
-      throw new Error(`Unknown capability ${key}`);
+    const pluginInstances = this.plugins.map((plugin) => {
+      const args = plugin.makeConstructorArgs();
+      const instance = `new ${plugin.import}(${args})`;
+      return `'${plugin.getKey()}': ${instance}`;
+    });
+    const pluginMap = pluginInstances.length ? `protected plugins = {${pluginInstances.join(',\n')}};` : '';
+
+    function pluginRef(plugin: NodeDefPlugin<any>): string {
+      return `this.plugins['${plugin.getKey()}']`;
+    }
+
+    const pluginStateFactories = this.plugins
+      .filter((plugin) => plugin.stateFactory !== NodeDefPlugin.prototype.stateFactory)
+      .map((plugin) => `...${pluginRef(plugin)}.stateFactory(props as any),`)
+      .join('\n');
+
+    const pluginItemFactories = this.plugins
+      .filter((plugin) => plugin.itemFactory !== NodeDefPlugin.prototype.itemFactory)
+      .map((plugin) => `...${pluginRef(plugin)}.itemFactory(props as any)`)
+      .join(',\n');
+
+    const itemDef = pluginItemFactories
+      ? `const item = { ${pluginItemFactories} } as ${CompInternal}<'${this.type}'>;`
+      : '';
+
+    const pluginGeneratorChildren = this.plugins
+      .filter((plugin) => plugin.extraNodeGeneratorChildren !== NodeDefPlugin.prototype.extraNodeGeneratorChildren)
+      .map((plugin) => plugin.extraNodeGeneratorChildren())
+      .join('\n');
+
+    const additionalMethods: string[] = [];
+
+    if (!this.config.functionality.customExpressions) {
+      additionalMethods.push(
+        `// Do not override this one, set functionality.customExpressions to true instead
+        evalExpressions(props: ${ExprResolver}<'${this.type}'>) {
+          return this.evalDefaultExpressions(props);
+        }`,
+      );
+    }
+
+    if (this.hasDataModelBindings()) {
+      const LayoutValidationCtx = new CG.import({
+        import: 'LayoutValidationCtx',
+        from: 'src/features/devtools/layoutValidation/types',
+      });
+      additionalMethods.push(
+        `// You must implement this because the component has data model bindings defined
+        abstract validateDataModelBindings(ctx: ${LayoutValidationCtx}<'${this.type}'>): string[];`,
+      );
+    } else if (this.isFormLike()) {
+      additionalMethods.push(
+        `// This component could have, but does not have any data model bindings defined
+        getDisplayData() { return ''; }`,
+      );
+    }
+
+    for (const plugin of this.plugins) {
+      const extraMethodsFromPlugin = plugin.extraMethodsInDef();
+      additionalMethods.push(...extraMethodsFromPlugin);
+
+      const extraInEval = plugin.extraInEvalExpressions();
+      extraInEval && evalLines.push(extraInEval);
+    }
+
+    const childrenPlugins = this.plugins.filter((plugin) => isNodeDefChildrenPlugin(plugin));
+    if (childrenPlugins.length > 0) {
+      const ChildClaimerProps = new CG.import({ import: 'ChildClaimerProps', from: 'src/layout/LayoutComponent' });
+      const NodeData = new CG.import({ import: 'NodeData', from: 'src/utils/layout/types' });
+      const TraversalRestriction = new CG.import({
+        import: 'TraversalRestriction',
+        from: 'src/utils/layout/useNodeTraversal',
+      });
+      const LayoutNode = new CG.import({ import: 'LayoutNode', from: 'src/utils/layout/LayoutNode' });
+      const ChildClaim = new CG.import({ import: 'ChildClaim', from: 'src/utils/layout/generator/GeneratorContext' });
+
+      const claimChildrenBody = childrenPlugins.map((plugin) =>
+        `${pluginRef(plugin)}.claimChildren({
+            ...props,
+            claimChild: (id: string, metadata: unknown) =>
+              props.claimChild('${plugin.getKey()}', id, metadata),
+         });`.trim(),
+      );
+
+      const pickDirectChildrenBody = childrenPlugins.map(
+        (plugin) => `...${pluginRef(plugin)}.pickDirectChildren(state as any, restriction)`,
+      );
+
+      const isChildHiddenBody = childrenPlugins.map(
+        (plugin) => `${pluginRef(plugin)}.isChildHidden(state as any, childNode)`,
+      );
+
+      additionalMethods.push(
+        `claimChildren(props: ${ChildClaimerProps}<'${this.type}', unknown>) {
+          ${claimChildrenBody.join('\n')}
+        }`,
+        `pickDirectChildren(state: ${NodeData}<'${this.type}'>, restriction?: ${TraversalRestriction}) {
+          return [${pickDirectChildrenBody.join(', ')}];
+        }`,
+        `addChild(state: ${NodeData}<'${this.type}'>, childNode: ${LayoutNode}, { pluginKey, metadata }: ${ChildClaim}, row: ${BaseRow} | undefined) {
+          return this.plugins[pluginKey!].addChild(state as any, childNode, metadata, row) as Partial<${NodeData}<'${this.type}'>>;
+        }`,
+        `removeChild(state: ${NodeData}<'${this.type}'>, childNode: ${LayoutNode}, { pluginKey, metadata }: ${ChildClaim}, row: ${BaseRow} | undefined) {
+          return this.plugins[pluginKey!].removeChild(state as any, childNode, metadata, row) as Partial<${NodeData}<'${this.type}'>>;
+        }`,
+        `isChildHidden(state: ${NodeData}<'${this.type}'>, childNode: ${LayoutNode}) {
+          return [${isChildHiddenBody.join(', ')}].some((h) => h);
+        }`,
+      );
     }
 
     return `export abstract class ${symbol}Def extends ${categorySymbol}<'${this.type}'> {
-      ${methods.join('\n\n')}
+      protected readonly type = '${this.type}';
+      ${pluginMap}
+
+      ${this.config.directRendering ? 'directRender(): boolean { return true; }' : ''}
+
+      renderNodeGenerator(props: ${NodeGeneratorProps}<'${this.type}'>): ${ReactJSX}.Element | null {
+        return (
+          <${NodeGenerator} {...props}>
+            ${pluginGeneratorChildren}
+          </${NodeGenerator}>
+        );
+      }
+
+      stateFactory(props: ${StateFactoryProps}<'${this.type}'>) {
+        const baseState: ${BaseNodeData}<'${this.type}'> = {
+          type: 'node',
+          item: undefined,
+          layout: props.item,
+          hidden: undefined,
+          row: props.row,
+          errors: undefined,
+        };
+        ${itemDef}
+
+        return { ...baseState, ${pluginStateFactories} ${itemDef ? 'item' : ''} };
+      }
+
+      // Do not override this one, set functionality.customExpressions to true instead
+      evalDefaultExpressions(props: ${ExprResolver}<'${this.type}'>) {
+        return {
+          ...props.item as Omit<typeof props.item, ${itemLine.join(' | ')} | 'hidden'>,
+          ${evalLines.join('\n')}
+          ...props.evalTrb(),
+        };
+      }
+
+      ${additionalMethods.join('\n\n')}
     }`;
   }
 
   public toJsonSchema(): JSONSchema7 {
-    return this.exportedComp.transformTo(Variant.External).toJsonSchema();
+    this.beforeFinalizing();
+    return this.inner.toJsonSchema();
   }
 }

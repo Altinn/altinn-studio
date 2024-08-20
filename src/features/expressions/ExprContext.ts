@@ -1,39 +1,42 @@
 import dot from 'dot-object';
 
 import { ExprRuntimeError, NodeNotFound, NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
-import { prettyErrors, prettyErrorsToConsole } from 'src/features/expressions/prettyErrors';
-import type { IAttachments } from 'src/features/attachments';
+import { prettyErrors } from 'src/features/expressions/prettyErrors';
+import type { AttachmentsSelector } from 'src/features/attachments/AttachmentsStorePlugin';
+import type { DevToolsHiddenComponents } from 'src/features/devtools/data/types';
 import type { EvalExprOptions } from 'src/features/expressions/index';
 import type { ExprConfig, Expression, ExprPositionalArgs } from 'src/features/expressions/types';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
-import type { useAllOptionsSelector } from 'src/features/options/useAllOptions';
-import type { FormDataSelector } from 'src/layout';
+import type { NodeOptionsSelector } from 'src/features/options/OptionsStorePlugin';
+import type { FormDataRowsSelector, FormDataSelector } from 'src/layout';
 import type { ILayoutSettings } from 'src/layout/common.generated';
-import type { IHiddenLayoutsExternal } from 'src/types';
 import type { IApplicationSettings, IAuthContext, IInstanceDataSources, IProcess } from 'src/types/shared';
 import type { BaseLayoutNode, LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
+import type { Hidden, NodeDataSelector } from 'src/utils/layout/NodesContext';
+import type { DataModelTransposeSelector } from 'src/utils/layout/useDataModelBindingTranspose';
+import type { NodeFormDataSelector } from 'src/utils/layout/useNodeItem';
+import type { NodeTraversalSelectorLax } from 'src/utils/layout/useNodeTraversal';
 
-export type PageNavigationConfig = {
-  currentView?: string;
-  order?: string[];
-  isHiddenPage: (pageKey: string) => boolean;
-  hiddenExpr: IHiddenLayoutsExternal;
-};
-
-export interface ContextDataSources {
+export interface ExpressionDataSources {
   process?: IProcess;
   instanceDataSources: IInstanceDataSources | null;
   applicationSettings: IApplicationSettings | null;
   formDataSelector: FormDataSelector;
-  attachments: IAttachments;
+  formDataRowsSelector: FormDataRowsSelector;
+  attachmentsSelector: AttachmentsSelector;
   layoutSettings: ILayoutSettings;
-  pageNavigationConfig: PageNavigationConfig;
-  options: ReturnType<typeof useAllOptionsSelector>;
+  optionsSelector: NodeOptionsSelector;
   authContext: Partial<IAuthContext> | null;
-  isHidden: (nodeId: string) => boolean;
   langToolsSelector: (node: LayoutNode | undefined) => IUseLanguage;
   currentLanguage: string;
+  isHiddenSelector: ReturnType<typeof Hidden.useIsHiddenSelector>;
+  nodeFormDataSelector: NodeFormDataSelector;
+  nodeDataSelector: NodeDataSelector;
+  nodeTraversal: NodeTraversalSelectorLax;
+  transposeSelector: DataModelTransposeSelector;
+  devToolsIsOpen: boolean;
+  devToolsHiddenComponents: DevToolsHiddenComponents;
 }
 
 export interface PrettyErrorsOptions {
@@ -51,7 +54,7 @@ export class ExprContext {
   private constructor(
     public expr: Expression,
     public node: LayoutNode | LayoutPage | NodeNotFoundWithoutContext,
-    public dataSources: ContextDataSources,
+    public dataSources: ExpressionDataSources,
     public callbacks: Pick<EvalExprOptions, 'onBeforeFunctionCall' | 'onAfterFunctionCall'>,
     public positionalArguments?: ExprPositionalArgs,
   ) {}
@@ -62,7 +65,7 @@ export class ExprContext {
   public static withBlankPath(
     expr: Expression,
     node: LayoutNode | LayoutPage | NodeNotFoundWithoutContext,
-    dataSources: ContextDataSources,
+    dataSources: ExpressionDataSources,
     callbacks: Pick<EvalExprOptions, 'onBeforeFunctionCall' | 'onAfterFunctionCall'>,
     positionalArguments?: ExprPositionalArgs,
   ): ExprContext {
@@ -117,12 +120,11 @@ export class ExprContext {
    */
   public trace(err: Error, options?: PrettyErrorsOptions) {
     if (!(err instanceof ExprRuntimeError)) {
-      console.error(err);
+      window.logError(err);
       return;
     }
 
-    // eslint-disable-next-line no-console
-    console.log(...this.prettyErrorConsole(err, options));
+    window.logError(this.prettyError(err, options));
   }
 
   public prettyError(err: Error, options?: PrettyErrorsOptions): string {
@@ -142,26 +144,5 @@ export class ExprContext {
     }
 
     return err.message;
-  }
-
-  public prettyErrorConsole(err: Error, options?: PrettyErrorsOptions): string[] {
-    if (err instanceof ExprRuntimeError) {
-      const prettyPrinted = prettyErrorsToConsole({
-        input: this.expr,
-        errors: { [this.path.join('')]: [err.message] },
-        indentation: 1,
-        defaultStyle: '',
-      });
-
-      const introText = options && 'introText' in options ? options.introText : 'Evaluated expression:';
-
-      const extra =
-        options && options.config ? `\n%cUsing default value instead:\n  %c${options.config.defaultValue}%c` : '';
-      const extraCss = options && options.config ? ['', 'color: red;', ''] : [];
-
-      return [`${introText}:\n${prettyPrinted.lines}${extra}`, ...prettyPrinted.css, ...extraCss];
-    }
-
-    return [err.message];
   }
 }

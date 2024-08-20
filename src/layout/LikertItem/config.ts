@@ -1,4 +1,5 @@
-import { CG, Variant } from 'src/codegen/CG';
+import { CG } from 'src/codegen/CG';
+import { OptionsPlugin } from 'src/features/options/OptionsPlugin';
 import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
@@ -10,6 +11,10 @@ export const Config = new CG.component({
     renderInAccordionGroup: false,
     renderInCards: false,
     renderInCardsMedia: false,
+    renderInTabs: false,
+  },
+  functionality: {
+    customExpressions: false,
   },
 })
   .addDataModelBinding(CG.common('IDataModelBindingsOptionsSimple'))
@@ -43,12 +48,5 @@ export const Config = new CG.component({
         .setDescription('Boolean value indicating if the label should be visible when only one option exists in table'),
     ),
   )
-  .makeSelectionComponent()
-  .addProperty(new CG.prop('layout', CG.common('LayoutStyle').optional()))
-  .addProperty(
-    new CG.prop('showAsCard', new CG.bool().optional()).onlyIn(
-      // TODO: This should probably not be available on the Likert component (if it should, only on mobile?)
-      // Marking it as internal only for now, in case it is needed for some reason.
-      Variant.Internal,
-    ),
-  );
+  .addPlugin(new OptionsPlugin({ supportsPreselection: true, type: 'single' }))
+  .addProperty(new CG.prop('layout', CG.common('LayoutStyle').optional()));

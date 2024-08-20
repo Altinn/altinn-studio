@@ -4,29 +4,59 @@ import { ErrorMessage } from '@digdir/designsystemet-react';
 
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
 import { AlertBaseComponent } from 'src/layout/Alert/AlertBaseComponent';
+import { useCurrentNode } from 'src/layout/FormComponentContext';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
-import type { NodeValidation } from 'src/features/validation';
+import type { BaseValidation, NodeValidation } from 'src/features/validation';
 import type { AlertSeverity } from 'src/layout/Alert/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-type Props = {
+interface Props {
   validations: NodeValidation[] | undefined;
   node?: LayoutNode;
-};
+}
 
-export function ComponentValidations({ validations, node }: Props) {
-  if (!validations || validations.length === 0) {
+export function AllComponentValidations({ node: _node }: { node?: LayoutNode }) {
+  const currentNode = useCurrentNode();
+  const node = _node ?? currentNode;
+  const validations = useUnifiedValidationsForNode(node);
+  return <ComponentValidations validations={validations} />;
+}
+
+export function ComponentValidations({ validations, node: _node }: Props) {
+  const currentNode = useCurrentNode();
+  const node = _node ?? currentNode;
+  const inputMaxLength = useNodeItem(node, (i) =>
+    i.type === 'Input' || i.type === 'TextArea' ? i.maxLength : undefined,
+  );
+  if (!validations || validations.length === 0 || !node) {
     return null;
   }
-  const errors = validationsOfSeverity(validations, 'error');
-  const warnings = validationsOfSeverity(validations, 'warning');
-  const info = validationsOfSeverity(validations, 'info');
-  const success = validationsOfSeverity(validations, 'success');
+
+  // If maxLength is set in both schema and component, don't display the schema error message here.
+  // TODO: This should preferably be implemented in the Input component, via ValidationFilter, but that causes
+  // cypress tests in `components.ts` to fail.
+  // @see https://github.com/Altinn/app-frontend-react/issues/1263
+  const filteredValidations = inputMaxLength
+    ? validations.filter(
+        (validation) =>
+          !(
+            validation.message.key === 'validation_errors.maxLength' &&
+            validation.message.params?.at(0) === inputMaxLength
+          ),
+      )
+    : validations;
+
+  const errors = validationsOfSeverity(filteredValidations, 'error');
+  const warnings = validationsOfSeverity(filteredValidations, 'warning');
+  const info = validationsOfSeverity(filteredValidations, 'info');
+  const success = validationsOfSeverity(filteredValidations, 'success');
 
   return (
-    <div data-validation={node?.item.id}>
+    <div data-validation={node.id}>
       {errors.length > 0 && (
         <ErrorValidations
           validations={errors}
@@ -58,7 +88,7 @@ export function ComponentValidations({ validations, node }: Props) {
   );
 }
 
-function ErrorValidations({ validations, node }: { validations: NodeValidation<'error'>[]; node?: LayoutNode }) {
+function ErrorValidations({ validations, node }: { validations: BaseValidation<'error'>[]; node: LayoutNode }) {
   const getUniqueKeyFromObject = useGetUniqueKeyFromObject();
 
   return (
@@ -86,9 +116,9 @@ function SoftValidations({
   variant,
   node,
 }: {
-  validations: NodeValidation<'warning' | 'info' | 'success'>[];
+  validations: BaseValidation<'warning' | 'info' | 'success'>[];
   variant: AlertSeverity;
-  node?: LayoutNode;
+  node: LayoutNode;
 }) {
   const getUniqueKeyFromObject = useGetUniqueKeyFromObject();
   const { langAsString } = useLanguage();

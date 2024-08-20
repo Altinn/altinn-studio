@@ -5,11 +5,12 @@ import { TextDef } from 'src/layout/Text/config.def.generated';
 import { TextComponent } from 'src/layout/Text/TextComponent';
 import type { DisplayDataProps } from 'src/features/displayData';
 import type { PropsFromGenericComponent } from 'src/layout';
+import type { ExprResolver } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Text extends TextDef {
-  getDisplayData(node: LayoutNode<'Text'>, _extraProp: DisplayDataProps): string {
-    const text = node.item.value;
+  getDisplayData(node: LayoutNode<'Text'>, { nodeDataSelector }: DisplayDataProps): string {
+    const text = nodeDataSelector((picker) => picker(node)?.item?.value, [node]);
     if (!text) {
       return '';
     }
@@ -21,4 +22,11 @@ export class Text extends TextDef {
       return <TextComponent {...props} />;
     },
   );
+
+  evalExpressions(props: ExprResolver<'Text'>) {
+    return {
+      ...this.evalDefaultExpressions(props),
+      value: props.evalStr(props.item.value, ''),
+    };
+  }
 }

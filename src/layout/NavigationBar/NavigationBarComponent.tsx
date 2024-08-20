@@ -6,10 +6,12 @@ import cn from 'classnames';
 
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useIsMobile } from 'src/hooks/useIsMobile';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 const useStyles = makeStyles((theme) => ({
@@ -110,12 +112,13 @@ const NavigationButton = React.forwardRef(
 NavigationButton.displayName = 'NavigationButton';
 
 export const NavigationBarComponent = ({ node }: INavigationBar) => {
-  const { compact, validateOnForward, validateOnBackward } = node.item;
+  const { compact, validateOnForward, validateOnBackward } = useNodeItem(node);
   const classes = useStyles();
   const [showMenu, setShowMenu] = React.useState(false);
   const isMobile = useIsMobile() || compact === true;
   const { langAsString } = useLanguage();
-  const { navigateToPage, currentPageId, order, maybeSaveOnPageChange } = useNavigatePage();
+  const currentPageId = useNavigationParam('pageKey') ?? '';
+  const { navigateToPage, order, maybeSaveOnPageChange } = useNavigatePage();
   const onPageNavigationValidation = useOnPageNavigationValidation();
 
   const firstPageLink = React.useRef<HTMLButtonElement>();
@@ -134,12 +137,12 @@ export const NavigationBarComponent = ({ node }: INavigationBar) => {
 
     maybeSaveOnPageChange();
 
-    if (isForward && validateOnForward && (await onPageNavigationValidation(node.top, validateOnForward))) {
+    if (isForward && validateOnForward && (await onPageNavigationValidation(node.page, validateOnForward))) {
       // Block navigation if validation fails
       return;
     }
 
-    if (isBackward && validateOnBackward && (await onPageNavigationValidation(node.top, validateOnBackward))) {
+    if (isBackward && validateOnBackward && (await onPageNavigationValidation(node.page, validateOnBackward))) {
       // Block navigation if validation fails
       return;
     }

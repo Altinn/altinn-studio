@@ -302,14 +302,13 @@ describe('createPatch', () => {
     });
   });
 
-  describe('should prefer remove and add operations for a simple string in a large array', () => {
+  describe('should avoid overwriting differing simple arrays in current', () => {
     testPatch({
       prev: { a: ['foo', 'bar', 'baz', 'qux'] },
       next: { a: ['foo', 'bar2', 'baz', 'qux'] },
-      expectedPatch: [
-        { op: 'test', path: '/a', value: ['foo', 'bar', 'baz', 'qux'] },
-        { op: 'replace', path: '/a', value: ['foo', 'bar2', 'baz', 'qux'] },
-      ],
+      current: { a: ['foo', 'bar', 'baz', 'qux'] },
+      final: { a: ['foo', 'bar', 'baz', 'qux'] },
+      expectedPatch: [],
     });
   });
 

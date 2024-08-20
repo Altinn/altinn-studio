@@ -1,4 +1,5 @@
-import { CG, Variant } from 'src/codegen/CG';
+import { CG } from 'src/codegen/CG';
+import { CardsPlugin } from 'src/layout/Cards/CardsPlugin';
 import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
@@ -10,8 +11,13 @@ export const Config = new CG.component({
     renderInAccordionGroup: false,
     renderInCardsMedia: false,
     renderInCards: false,
+    renderInTabs: true,
+  },
+  functionality: {
+    customExpressions: false,
   },
 })
+  .addPlugin(new CardsPlugin())
   .addProperty(
     new CG.prop(
       'mediaPosition',
@@ -84,24 +90,5 @@ export const Config = new CG.component({
           ),
         ).exportAs('CardConfigExternal'),
       ),
-    ).onlyIn(Variant.External),
-  )
-  .addProperty(
-    new CG.prop(
-      'cardsInternal',
-      new CG.arr(
-        new CG.obj(
-          new CG.prop('mediaNode', new CG.union(CG.layoutNode, new CG.raw({ typeScript: 'undefined' }))),
-          new CG.prop('title', new CG.str().optional()),
-          new CG.prop('description', new CG.str().optional()),
-          new CG.prop('footer', new CG.str().optional()),
-          new CG.prop(
-            'childNodes',
-            new CG.arr(CG.layoutNode)
-              .setTitle('Children')
-              .setDescription('Child component IDs to show inside the card'),
-          ),
-        ).exportAs('CardConfigInternal'),
-      ),
-    ).onlyIn(Variant.Internal),
+    ),
   );

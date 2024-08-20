@@ -2,26 +2,27 @@ import React, { useEffect, useRef } from 'react';
 
 import { Alert, Button } from '@digdir/designsystemet-react';
 
-import type { PropsFromGenericComponent } from '..';
-
 import { useProcessNavigation } from 'src/features/instance/ProcessNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { usePaymentInformation } from 'src/features/payment/PaymentInformationProvider';
 import { PaymentStatus } from 'src/features/payment/types';
 import { usePerformPayActionMutation } from 'src/features/payment/usePerformPaymentMutation';
-import { useInstanceIdParams } from 'src/hooks/useInstanceIdParams';
+import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/Payment/PaymentComponent.module.css';
 import { SkeletonLoader } from 'src/layout/Payment/SkeletonLoader';
 import { PaymentDetailsTable } from 'src/layout/PaymentDetails/PaymentDetailsTable';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import type { PropsFromGenericComponent } from 'src/layout';
 
 export const PaymentComponent = ({ node }: PropsFromGenericComponent<'Payment'>) => {
-  const { partyId, instanceGuid } = useInstanceIdParams();
+  const partyId = useNavigationParam('partyId');
+  const instanceGuid = useNavigationParam('instanceGuid');
   const { next, busy } = useProcessNavigation() || {};
   const paymentInfo = usePaymentInformation();
   const { mutate: performPayment } = usePerformPayActionMutation(partyId, instanceGuid);
   const paymentDoesNotExist = paymentInfo?.status === PaymentStatus.Uninitialized;
-  const { title, description } = node.item.textResourceBindings ?? {};
+  const { title, description } = useNodeItem(node, (i) => i.textResourceBindings) ?? {};
   const actionCalled = useRef(false);
   const nextCalled = useRef(false);
 

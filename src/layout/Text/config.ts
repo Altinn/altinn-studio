@@ -9,8 +9,12 @@ export const Config = new CG.component({
     renderInButtonGroup: false,
     renderInAccordion: true,
     renderInAccordionGroup: false,
+    renderInTabs: true,
     renderInCards: true,
     renderInCardsMedia: false,
+  },
+  functionality: {
+    customExpressions: true,
   },
 })
   .extendTextResources(CG.common('TRBLabel'))

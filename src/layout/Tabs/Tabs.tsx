@@ -7,20 +7,23 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponent } from 'src/layout/GenericComponent';
-import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
+import { typedBoolean } from 'src/utils/typing';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const Tabs = ({ node }: PropsFromGenericComponent<'Tabs'>) => {
-  const [activeTab, setActiveTab] = useState<string | undefined>(
-    node.item.defaultTab ?? node.item.tabsInternal.at(0)?.id,
-  );
+  const size = useNodeItem(node, (i) => i.size);
+  const defaultTab = useNodeItem(node, (i) => i.defaultTab);
+  const tabs = useNodeItem(node, (i) => i.tabsInternal);
+  const [activeTab, setActiveTab] = useState<string | undefined>(defaultTab ?? tabs.at(0)?.id);
 
-  useRegisterNodeNavigationHandler((targetNode) => {
-    for (const parent of targetNode.parents() ?? []) {
-      if (parent instanceof BaseLayoutNode && parent.isType('Tabs') && parent.item.id === node.item.id) {
-        const targetTabId = parent.item['tabsInternal']?.find((tab) =>
-          tab.childNodes.some((child) => child.item.id === targetNode.item.id),
-        )?.id;
+  const traversalSelector = useNodeTraversalSelector();
+  useRegisterNodeNavigationHandler(async (targetNode) => {
+    const parents = traversalSelector((t) => t.with(targetNode).parents(), [targetNode]);
+    for (const parent of parents ?? []) {
+      if (parent === node) {
+        const targetTabId = tabs.find((tab) => tab.children.some((child) => child === targetNode))?.id;
         if (targetTabId) {
           setActiveTab(targetTabId);
           return true;
@@ -30,14 +33,13 @@ export const Tabs = ({ node }: PropsFromGenericComponent<'Tabs'>) => {
     return false;
   });
 
-  const tabs = node.item.tabsInternal;
   return (
     <ComponentStructureWrapper node={node}>
       <DesignsystemetTabs
         defaultValue={activeTab}
         value={activeTab}
         onChange={(tabId) => setActiveTab(tabId)}
-        size={node.item.size}
+        size={size}
       >
         <DesignsystemetTabs.List>
           {tabs.map((tab) => (
@@ -59,9 +61,9 @@ export const Tabs = ({ node }: PropsFromGenericComponent<'Tabs'>) => {
               backgroundColor: 'white',
             }}
           >
-            {tab.childNodes.map((node, idx) => (
+            {tab.children.filter(typedBoolean).map((node) => (
               <GenericComponent
-                key={idx}
+                key={node.id}
                 node={node}
               />
             ))}

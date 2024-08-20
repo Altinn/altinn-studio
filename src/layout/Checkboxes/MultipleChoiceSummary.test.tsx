@@ -13,7 +13,7 @@ describe('MultipleChoiceSummary', () => {
 
 async function render(props: Partial<IMultipleChoiceSummaryProps> = {}) {
   const defaultProps: IMultipleChoiceSummaryProps = {
-    formData: { 'some-key': 'This is a text', 'some-other-key': 'This is another text' },
+    getFormData: () => ({ 'some-key': 'This is a text', 'some-other-key': 'This is another text' }),
   };
 
   return await renderWithInstanceAndLayout({

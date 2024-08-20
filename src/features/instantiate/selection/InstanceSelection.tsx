@@ -17,8 +17,9 @@ import classes from 'src/features/instantiate/selection/InstanceSelection.module
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useCurrentParty } from 'src/features/party/PartiesProvider';
+import { useSetNavigationEffect } from 'src/features/routing/AppRoutingContext';
 import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
-import { focusMainContent, useNavigationEffectStore } from 'src/hooks/useNavigatePage';
+import { focusMainContent } from 'src/hooks/useNavigatePage';
 import { ProcessTaskType } from 'src/types';
 import { getInstanceUiUrl } from 'src/utils/urls/appUrlHelper';
 import type { ISimpleInstance } from 'src/types';
@@ -53,7 +54,7 @@ function InstanceSelection() {
   const rowsPerPageOptions = instanceSelectionOptions?.rowsPerPageOptions ?? [10, 25, 50];
   const instantiate = useInstantiation().instantiate;
   const currentParty = useCurrentParty();
-  const storeCallback = useNavigationEffectStore((state) => state.storeCallback);
+  const storeCallback = useSetNavigationEffect();
 
   const doesIndexExist = (selectedIndex: number | undefined): selectedIndex is number =>
     selectedIndex !== undefined && rowsPerPageOptions.length - 1 >= selectedIndex && selectedIndex >= 0;

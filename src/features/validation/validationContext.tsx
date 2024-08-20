@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { createStore } from 'zustand';
@@ -6,13 +6,12 @@ import { immer } from 'zustand/middleware/immer';
 
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { Loader } from 'src/core/loading/Loader';
-import { useHasPendingAttachments } from 'src/features/attachments/AttachmentsContext';
+import { useHasPendingAttachments } from 'src/features/attachments/hooks';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useShouldValidateInitial } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { useBackendValidation } from 'src/features/validation/backendValidation/useBackendValidation';
 import { useExpressionValidation } from 'src/features/validation/expressionValidation/useExpressionValidation';
 import { useInvalidDataValidation } from 'src/features/validation/invalidDataValidation/useInvalidDataValidation';
-import { useNodeValidation } from 'src/features/validation/nodeValidation/useNodeValidation';
 import { useSchemaValidation } from 'src/features/validation/schemaValidation/useSchemaValidation';
 import {
   getVisibilityMask,
@@ -20,34 +19,21 @@ import {
   mergeFieldValidations,
   selectValidations,
 } from 'src/features/validation/utils';
-import { useVisibility } from 'src/features/validation/visibility/useVisibility';
-import {
-  onBeforeRowDelete,
-  setVisibilityForAttachment,
-  setVisibilityForNode,
-} from 'src/features/validation/visibility/visibilityUtils';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type {
   BackendValidationIssueGroups,
   BaseValidation,
-  ComponentValidations,
   FieldValidations,
   ValidationContext,
   WaitForValidation,
 } from 'src/features/validation';
-import type { Visibility } from 'src/features/validation/visibility/visibilityUtils';
-import type { WaitForState } from 'src/hooks/useWaitForState';
-
-interface NewStoreProps {
-  validating: WaitForValidation;
-}
 
 interface Internals {
   isLoading: boolean;
   individualValidations: {
     backend: FieldValidations;
-    component: ComponentValidations;
     expression: FieldValidations;
     schema: FieldValidations;
     invalidData: FieldValidations;
@@ -59,11 +45,10 @@ interface Internals {
     issueGroups?: BackendValidationIssueGroups,
   ) => void;
   updateTaskValidations: (validations: BaseValidation[]) => void;
-  updateVisibility: (mutator: (visibility: Visibility) => void) => void;
   updateValidating: (validating: WaitForValidation) => void;
 }
 
-function initialCreateStore({ validating }: NewStoreProps) {
+function initialCreateStore() {
   return createStore<ValidationContext & Internals>()(
     immer((set) => ({
       // =======
@@ -71,38 +56,19 @@ function initialCreateStore({ validating }: NewStoreProps) {
       state: {
         task: [],
         fields: {},
-        components: {},
       },
-      visibility: {
-        mask: 0,
-        children: {},
-        items: [],
-      },
-      removeRowVisibilityOnDelete: (node, rowIndex) =>
-        set((state) => {
-          onBeforeRowDelete(node, rowIndex, state.visibility);
-        }),
-      setNodeVisibility: (nodes, newVisibility, rowIndex) =>
-        set((state) => {
-          nodes.forEach((node) => setVisibilityForNode(node, state.visibility, newVisibility, rowIndex));
-        }),
-      setAttachmentVisibility: (attachmentId, node, newVisibility) =>
-        set((state) => {
-          setVisibilityForAttachment(attachmentId, node, state.visibility, newVisibility);
-        }),
       setShowAllErrors: (newValue) =>
         set((state) => {
           state.showAllErrors = newValue;
         }),
       showAllErrors: false,
-      validating,
+      validating: undefined,
 
       // =======
       // Internal state
       isLoading: true,
       individualValidations: {
         backend: {},
-        component: {},
         expression: {},
         schema: {},
         invalidData: {},
@@ -115,24 +81,16 @@ function initialCreateStore({ validating }: NewStoreProps) {
             state.issueGroupsProcessedLast = issueGroups;
           }
           state.individualValidations[key] = validations;
-          if (key === 'component') {
-            state.state.components = validations as ComponentValidations;
-          } else {
-            state.state.fields = mergeFieldValidations(
-              state.individualValidations.backend,
-              state.individualValidations.invalidData,
-              state.individualValidations.schema,
-              state.individualValidations.expression,
-            );
-          }
+          state.state.fields = mergeFieldValidations(
+            state.individualValidations.backend,
+            state.individualValidations.invalidData,
+            state.individualValidations.schema,
+            state.individualValidations.expression,
+          );
         }),
       updateTaskValidations: (validations) =>
         set((state) => {
           state.state.task = validations;
-        }),
-      updateVisibility: (mutator) =>
-        set((state) => {
-          mutator(state.visibility);
         }),
       updateValidating: (newValidating) =>
         set((state) => {
@@ -142,60 +100,66 @@ function initialCreateStore({ validating }: NewStoreProps) {
   );
 }
 
-const {
-  Provider,
-  useSelector,
-  useLaxSelector,
-  useDelayedMemoSelector,
-  useSelectorAsRef,
-  useStore,
-  useLaxSelectorAsRef,
-} = createZustandContext({
-  name: 'Validation',
-  required: true,
-  initialCreateStore,
-  onReRender: (store, { validating }) => {
-    store.getState().updateValidating(validating);
-  },
-});
+const { Provider, useSelector, useLaxSelector, useSelectorAsRef, useStore, useLaxSelectorAsRef, useDelayedSelector } =
+  createZustandContext({
+    name: 'Validation',
+    required: true,
+    initialCreateStore,
+  });
 
 export function ValidationProvider({ children }: PropsWithChildren) {
+  return (
+    <Provider>
+      <UpdateValidations />
+      <ManageShowAllErrors />
+      <LoadingBlocker>{children}</LoadingBlocker>
+    </Provider>
+  );
+}
+
+function useWaitForValidation(): WaitForValidation {
+  const waitForNodesReady = NodesInternal.useWaitUntilReady();
   const waitForSave = FD.useWaitForSave();
-  const waitForStateRef = useRef<WaitForState<ValidationContext & Internals, unknown>>();
+  const waitForState = useWaitForState<never, ValidationContext & Internals>(useStore());
   const hasPendingAttachments = useHasPendingAttachments();
 
   // Provide a promise that resolves when all pending validations have been completed
   const pendingAttachmentsRef = useAsRef(hasPendingAttachments);
   const waitForAttachments = useWaitForState(pendingAttachmentsRef);
 
-  const validating: WaitForValidation = useCallback(
+  return useCallback(
     async (forceSave = true) => {
       await waitForAttachments((state) => !state);
 
       // Wait until we've saved changed to backend, and we've processed the backend validations we got from that save
+      await waitForNodesReady();
       const validationsFromSave = await waitForSave(forceSave);
-      await waitForStateRef.current!((state) => state.issueGroupsProcessedLast === validationsFromSave);
+      await waitForNodesReady();
+      await waitForState((state) => state.issueGroupsProcessedLast === validationsFromSave);
     },
-    [waitForAttachments, waitForSave],
-  );
-
-  return (
-    <Provider validating={validating}>
-      <MakeWaitForState waitForStateRef={waitForStateRef} />
-      <UpdateValidations />
-      <ManageVisibility />
-      <LoadingBlocker>{children}</LoadingBlocker>
-    </Provider>
+    [waitForAttachments, waitForSave, waitForState, waitForNodesReady],
   );
 }
 
-function MakeWaitForState({
-  waitForStateRef,
-}: {
-  waitForStateRef: React.MutableRefObject<WaitForState<ValidationContext & Internals, unknown> | undefined>;
-}) {
-  waitForStateRef.current = useWaitForState(useStore());
+export function ProvideWaitForValidation() {
+  const validate = useWaitForValidation();
+  const updateValidating = useSelector((state) => state.updateValidating);
+
+  useEffect(() => {
+    updateValidating(validate);
+  }, [updateValidating, validate]);
+
   return null;
+}
+
+export function LoadingBlockerWaitForValidation({ children }: PropsWithChildren) {
+  const validating = useSelector((state) => state.validating);
+  const shouldValidateInitial = useShouldValidateInitial();
+  if (!validating && shouldValidateInitial) {
+    return <Loader reason='validation-awaiter' />;
+  }
+
+  return <>{children}</>;
 }
 
 function LoadingBlocker({ children }: PropsWithChildren) {
@@ -220,18 +184,8 @@ function UpdateValidations() {
     }
   }, [backendValidation, updateValidations]);
 
-  const componentValidations = useNodeValidation();
-  const expressionValidations = useExpressionValidation();
   const schemaValidations = useSchemaValidation();
   const invalidDataValidations = useInvalidDataValidation();
-
-  useEffect(() => {
-    updateValidations('component', componentValidations);
-  }, [componentValidations, updateValidations]);
-
-  useEffect(() => {
-    updateValidations('expression', expressionValidations);
-  }, [expressionValidations, updateValidations]);
 
   useEffect(() => {
     updateValidations('schema', schemaValidations);
@@ -244,28 +198,39 @@ function UpdateValidations() {
   return null;
 }
 
-function ManageVisibility() {
-  const validations = useSelector((state) => state.state);
-  const setVisibility = useSelector((state) => state.updateVisibility);
-  const showAllErrors = useSelector((state) => state.showAllErrors);
-  const setShowAllErrors = useSelector((state) => state.setShowAllErrors);
+export function UpdateExpressionValidation() {
+  const updateValidations = useSelector((state) => state.updateValidations);
+  const expressionValidations = useExpressionValidation();
 
-  useVisibility(validations, setVisibility);
+  useEffect(() => {
+    updateValidations('expression', expressionValidations);
+  }, [expressionValidations, updateValidations]);
+
+  return null;
+}
+
+function ManageShowAllErrors() {
+  const showAllErrors = useSelector((state) => state.showAllErrors);
+  return showAllErrors ? <UpdateShowAllErrors /> : null;
+}
+
+function UpdateShowAllErrors() {
+  const taskValidations = useSelector((state) => state.state.task);
+  const fieldValidations = useSelector((state) => state.state.fields);
+  const setShowAllErrors = useSelector((state) => state.setShowAllErrors);
 
   /**
    * Hide unbound errors as soon as possible.
    */
   useEffect(() => {
-    if (showAllErrors) {
-      const backendMask = getVisibilityMask(['Backend', 'CustomBackend']);
-      const hasFieldErrors =
-        Object.values(validations.fields).flatMap((field) => selectValidations(field, backendMask, 'error')).length > 0;
+    const backendMask = getVisibilityMask(['Backend', 'CustomBackend']);
+    const hasFieldErrors =
+      Object.values(fieldValidations).flatMap((field) => selectValidations(field, backendMask, 'error')).length > 0;
 
-      if (!hasFieldErrors && !hasValidationErrors(validations.task)) {
-        setShowAllErrors(false);
-      }
+    if (!hasFieldErrors && !hasValidationErrors(taskValidations)) {
+      setShowAllErrors(false);
     }
-  }, [setShowAllErrors, showAllErrors, validations.fields, validations.task]);
+  }, [fieldValidations, setShowAllErrors, taskValidations]);
 
   return null;
 }
@@ -274,49 +239,27 @@ function ManageVisibility() {
  * This hook returns a function that lets you select one or more fields from the validation state. The hook will
  * only force a re-render if the selected fields have changed.
  */
-function useDelayedSelector<U>(
-  outerSelector: (state: ValidationContext) => U,
-): <U2>(cacheKey: string, innerSelector: (state: U) => U2) => U2 {
-  const selector = useDelayedMemoSelector();
-  const callbacks = useRef<Record<string, Parameters<typeof selector>[0]>>({});
-
-  useEffect(() => {
-    callbacks.current = {};
-  }, [selector]);
-
-  return useCallback(
-    (cacheKey, innerSelector) => {
-      if (!callbacks.current[cacheKey]) {
-        callbacks.current[cacheKey] = (state) => innerSelector(outerSelector(state));
-      }
-      return selector(callbacks.current[cacheKey]) as any;
-    },
-    // The outer selector is not expected to change, so we don't need to include it in the dependencies
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selector],
-  );
+function useDS<U>(outerSelector: (state: ValidationContext) => U) {
+  return useDelayedSelector({
+    mode: 'innerSelector',
+    makeArgs: (state) => [outerSelector(state)],
+  });
 }
 
-export type ValidationSelector = ReturnType<typeof useDelayedSelector<ValidationContext>>;
-export type ValidationFieldSelector = ReturnType<typeof useDelayedSelector<FieldValidations>>;
-export type ValidationComponentSelector = ReturnType<typeof useDelayedSelector<ComponentValidations>>;
-export type ValidationVisibilitySelector = ReturnType<typeof useDelayedSelector<Visibility>>;
+export type ValidationSelector = ReturnType<typeof Validation.useSelector>;
+export type ValidationFieldSelector = ReturnType<typeof Validation.useFieldSelector>;
 
 export const Validation = {
   useFullStateRef: () => useSelectorAsRef((state) => state.state),
 
   // Selectors. These are memoized, so they won't cause a re-render unless the selected fields change.
-  useSelector: () => useDelayedSelector((state) => state),
-  useFieldSelector: () => useDelayedSelector((state) => state.state.fields),
-  useComponentSelector: () => useDelayedSelector((state) => state.state.components),
-  useVisibilitySelector: () => useDelayedSelector((state) => state.visibility),
+  useSelector: () => useDS((state) => state),
+  useFieldSelector: () => useDS((state) => state.state.fields),
 
-  useOnDeleteGroupRow: () => useSelector((state) => state.removeRowVisibilityOnDelete),
-  useSetAttachmentVisibility: () => useSelector((state) => state.setAttachmentVisibility),
-  useSetNodeVisibility: () => useSelector((state) => state.setNodeVisibility),
   useSetShowAllErrors: () => useSelector((state) => state.setShowAllErrors),
-  useValidating: () => useSelector((state) => state.validating),
+  useValidating: () => useSelector((state) => state.validating!),
   useUpdateTaskValidations: () => useLaxSelector((state) => state.updateTaskValidations),
 
+  useRef: () => useSelectorAsRef((state) => state),
   useLaxRef: () => useLaxSelectorAsRef((state) => state),
 };

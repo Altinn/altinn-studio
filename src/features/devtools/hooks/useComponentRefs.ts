@@ -2,8 +2,6 @@ import { useLayoutEffect, useRef } from 'react';
 
 import escapeRegex from 'escape-string-regexp';
 
-import { useNodes } from 'src/utils/layout/NodesContext';
-
 interface IUseComponentRefs {
   componentId?: string;
   exact?: boolean;
@@ -18,7 +16,6 @@ interface IUseComponentRefs {
  */
 export function useComponentRefs({ componentId, exact = false, callback, cleanupCallback }: IUseComponentRefs) {
   const refs = useRef<HTMLElement[]>([]);
-  const hierarchy = useNodes();
 
   useLayoutEffect(() => {
     const matcher = componentId ? new RegExp(`^${escapeRegex(componentId)}(-[0-9]+)?$`) : undefined;
@@ -54,7 +51,7 @@ export function useComponentRefs({ componentId, exact = false, callback, cleanup
         }
       }
     };
-  }, [componentId, exact, callback, cleanupCallback, hierarchy]);
+  }, [componentId, exact, callback, cleanupCallback]);
 
   return refs;
 }

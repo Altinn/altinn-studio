@@ -1,5 +1,6 @@
 import { CG } from 'src/codegen/CG';
-import { ExprVal } from 'src/features/expressions/types';
+import { AlertOnChangePlugin } from 'src/features/alertOnChange/AlertOnChangePlugin';
+import { OptionsPlugin } from 'src/features/options/OptionsPlugin';
 import { CompCategory } from 'src/layout/common';
 
 export const CHECKBOX_SUMMARY_OVERRIDE_PROPS = new CG.obj(
@@ -26,9 +27,13 @@ export const Config = new CG.component({
     renderInAccordionGroup: false,
     renderInCards: true,
     renderInCardsMedia: false,
+    renderInTabs: true,
+  },
+  functionality: {
+    customExpressions: false,
   },
 })
-  .makeSelectionComponent()
+  .addPlugin(new OptionsPlugin({ supportsPreselection: true, type: 'multi' }))
   .addDataModelBinding(CG.common('IDataModelBindingsOptionsSimple'))
   .addProperty(new CG.prop('layout', CG.common('LayoutStyle').optional()))
   .addProperty(
@@ -40,14 +45,12 @@ export const Config = new CG.component({
         .setDescription('Boolean value indicating if the label should be visible when only one option exists in table'),
     ),
   )
-  .addProperty(
-    new CG.prop(
-      'alertOnChange',
-      new CG.expr(ExprVal.Boolean)
-        .optional({ default: false })
-        .setTitle('Alert on change')
-        .setDescription('Boolean value indicating if the component should alert on uncheck'),
-    ),
-  );
-
-Config.addTextResourcesForLabel().inner.extends(CG.common('LabeledComponentProps'));
+  .addPlugin(
+    new AlertOnChangePlugin({
+      propName: 'alertOnChange',
+      title: 'Alert on change',
+      description: 'Boolean value indicating if the component should alert on change',
+    }),
+  )
+  .extends(CG.common('LabeledComponentProps'))
+  .extendTextResources(CG.common('TRBLabel'));

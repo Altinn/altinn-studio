@@ -1,7 +1,6 @@
 import React from 'react';
 import type { JSX } from 'react';
 
-import dot from 'dot-object';
 import type { ErrorObject } from 'ajv';
 import type { JSONSchema7 } from 'json-schema';
 
@@ -10,29 +9,68 @@ import { DefaultNodeInspector } from 'src/features/devtools/components/NodeInspe
 import { useDisplayDataProps } from 'src/features/displayData/useDisplayData';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { CompCategory } from 'src/layout/common';
+import { getComponentCapabilities } from 'src/layout/index';
 import { SummaryItemCompact } from 'src/layout/Summary/SummaryItemCompact';
 import { getFieldNameKey } from 'src/utils/formComponentUtils';
-import { SimpleComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
-import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { NodeGenerator } from 'src/utils/layout/generator/NodeGenerator';
+import type { CompCapabilities } from 'src/codegen/Config';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { DisplayData, DisplayDataProps } from 'src/features/displayData';
+import type { SimpleEval } from 'src/features/expressions';
+import type { ExprResolved, ExprVal } from 'src/features/expressions/types';
 import type { ComponentValidation, ValidationDataSources } from 'src/features/validation';
+import type { ComponentBase, FormComponentProps, SummarizableComponentProps } from 'src/layout/common.generated';
 import type { FormDataSelector, PropsFromGenericComponent, ValidateEmptyField } from 'src/layout/index';
 import type {
   CompExternalExact,
+  CompIntermediate,
+  CompIntermediateExact,
   CompInternal,
   CompTypes,
-  HierarchyDataSources,
-  ITextResourceBindings,
+  IsContainerComp,
+  ITextResourceBindingsExternal,
 } from 'src/layout/layout';
 import type { ISummaryComponent } from 'src/layout/Summary/SummaryComponent';
-import type { ComponentHierarchyGenerator } from 'src/utils/layout/HierarchyGenerator';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
+import type { ChildClaim, ChildClaims } from 'src/utils/layout/generator/GeneratorContext';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { LayoutPage } from 'src/utils/layout/LayoutPage';
+import type { NodeDataSelector } from 'src/utils/layout/NodesContext';
+import type { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
+import type { BaseRow, NodeData, StateFactoryProps } from 'src/utils/layout/types';
+import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
-const defaultGenerator = new SimpleComponentHierarchyGenerator();
+export interface BasicNodeGeneratorProps {
+  externalItem: CompExternalExact<CompTypes>;
+  claim: ChildClaim;
+}
+
+export interface ContainerGeneratorProps extends BasicNodeGeneratorProps {
+  childClaims: ChildClaims;
+}
+
+export type NodeGeneratorProps<Type extends CompTypes> =
+  IsContainerComp<Type> extends true ? ContainerGeneratorProps : BasicNodeGeneratorProps;
+
+export interface ExprResolver<Type extends CompTypes> {
+  item: CompIntermediateExact<Type>;
+  row?: BaseRow;
+  formDataSelector: FormDataSelector;
+  evalBase: () => ExprResolved<Omit<ComponentBase, 'hidden'>>;
+  evalFormProps: () => ExprResolved<FormComponentProps>;
+  evalSummarizable: () => ExprResolved<SummarizableComponentProps>;
+  evalStr: SimpleEval<ExprVal.String>;
+  evalNum: SimpleEval<ExprVal.Number>;
+  evalBool: SimpleEval<ExprVal.Boolean>;
+  evalAny: SimpleEval<ExprVal.Any>;
+  evalTrb: () => {
+    textResourceBindings: ExprResolved<ITextResourceBindingsExternal<Type>>;
+  };
+}
 
 export abstract class AnyComponent<Type extends CompTypes> {
+  protected readonly type: Type;
+  protected plugins: { [key: string]: NodeDefPlugin<any> } = {};
+
   /**
    * Given properties from GenericComponent, render this layout component
    */
@@ -40,7 +78,89 @@ export abstract class AnyComponent<Type extends CompTypes> {
     | ReturnType<typeof React.forwardRef<HTMLElement, PropsFromGenericComponent<Type>>>
     | ((props: PropsFromGenericComponent<Type>) => JSX.Element | null);
 
-  renderSummary2?(componentNode: LayoutNode<Type>): JSX.Element | null;
+  renderSummary2?(props: Summary2Props<Type>): JSX.Element | null;
+
+  /**
+   * Render a node generator for this component. This can be overridden if you want to extend
+   * the default node generator with additional functionality.
+   */
+  renderNodeGenerator(props: NodeGeneratorProps<Type>): JSX.Element | null {
+    return <NodeGenerator {...props} />;
+  }
+
+  /**
+   * Check if this component has a specific plugin
+   */
+  public hasPlugin(constructor: new (...args: any[]) => NodeDefPlugin<any>): boolean {
+    return Object.values(this.plugins).some((plugin: NodeDefPlugin<any>) => plugin instanceof constructor);
+  }
+
+  /**
+   * Creates the zustand store default state for a node of this component type. Usually this is implemented
+   * automatically by code generation, but you can override it if you need to add additional properties to the state.
+   */
+  abstract stateFactory(props: StateFactoryProps<Type>): unknown;
+
+  /**
+   * Picks all direct children of a node, returning an array of item stores for each child. This must be implemented for
+   * every component type that can adopt children.
+   */
+  public pickDirectChildren(_state: NodeData<Type>, _restriction?: TraversalRestriction): LayoutNode[] {
+    return [];
+  }
+
+  /**
+   * Adds a child node to the parent node. This must be implemented for every component type that can adopt children.
+   */
+  public addChild(
+    _state: NodeData<Type>,
+    _childNode: LayoutNode,
+    _claim: ChildClaim,
+    row: BaseRow | undefined,
+  ): Partial<NodeData<Type>> {
+    throw new Error(
+      `addChild() is not implemented yet for '${this.type}'. ` +
+        `You have to implement this if the component type supports children.`,
+    );
+  }
+
+  /**
+   * Removes a child node from the parent node. This must be implemented for every component type that
+   * can adopt children.
+   */
+  public removeChild(
+    _state: NodeData<Type>,
+    _childNode: LayoutNode,
+    _claim: ChildClaim,
+    row: BaseRow | undefined,
+  ): Partial<NodeData<Type>> {
+    throw new Error(
+      `removeChild() is not implemented yet for '${this.type}'. ` +
+        `You have to implement this if the component type supports children.`,
+    );
+  }
+
+  /**
+   * The default expression evaluator, implemented by code generation. Do not try to override this yourself. If you
+   * need custom expression support, set that in your component configuration.
+   */
+  abstract evalDefaultExpressions(props: ExprResolver<Type>): unknown;
+
+  /**
+   * Resolves all expressions in the layout configuration, and returns a new layout configuration
+   * with expressions resolved. Will either be implemented using code generation (if your component has no custom
+   * expressions), or must be implemented manually.
+   */
+  abstract evalExpressions(props: ExprResolver<Type>): unknown;
+
+  /**
+   * This needs to be implemented for components that supports repeating rows
+   * @see RepeatingChildrenPlugin
+   */
+  evalExpressionsForRow(_props: ExprResolver<Type>): unknown {
+    throw new Error('Component does not support evalExpressionsForRow');
+  }
+
   /**
    * Given a node, a list of the node's data, for display in the devtools node inspector
    */
@@ -51,46 +171,31 @@ export abstract class AnyComponent<Type extends CompTypes> {
   /**
    * Direct render? Override this and return true if you want GenericComponent to omit rendering grid,
    * validation messages, etc.
+   *
+   * @param _item This will contain the item with possibly overridden properties given to GenericComponent
    */
-  directRender(_props: PropsFromGenericComponent<Type>): boolean {
+  directRender(_item: CompInternal<Type>): boolean {
     return false;
   }
 
-  shouldRenderInAutomaticPDF(node: LayoutNode<Type>): boolean {
-    if (!('renderAsSummary' in node.item)) {
-      return true;
-    }
+  shouldRenderInAutomaticPDF(node: LayoutNode<Type>, nodeDataSelector: NodeDataSelector): boolean {
+    const renderAsSummary = nodeDataSelector(
+      (picker) => {
+        const item = picker(node)?.item;
+        return item && 'renderAsSummary' in item ? item.renderAsSummary : false;
+      },
+      [node],
+    );
 
-    return !node.item.renderAsSummary;
+    return !renderAsSummary;
   }
 
   /**
    * Return false to prevent this component from being rendered in a table
    * Should be configured as a capability in the component configuration (config.ts)
    */
-  abstract canRenderInTable(): boolean;
-
-  /**
-   * Return true to allow this component to be rendered in a ButtonGroup
-   * Should be configured as a capability in the component configuration (config.ts)
-   */
-  abstract canRenderInButtonGroup(): boolean;
-
-  /**
-   * Return true to allow this component to be rendered in an Accordion
-   */
-  abstract canRenderInAccordion(): boolean;
-
-  /**
-   * Return true to allow this component to be rendered in an AccordionGroup
-   */
-  abstract canRenderInAccordionGroup(): boolean;
-
-  /**
-   * Return true to allow this component to be rendered in a Tabs
-   */
-  canRenderInTabs(): boolean {
-    return true;
+  canRenderInTable() {
+    return getComponentCapabilities(this.type).renderInTable;
   }
 
   /**
@@ -104,30 +209,10 @@ export abstract class AnyComponent<Type extends CompTypes> {
   }
 
   /**
-   * Returns a new instance of a class to perform the component hierarchy generation process
-   * @see HierarchyGenerator
+   * Base implementation of validateLayoutConfig.
+   * Override this if you need to use a more specific pointer or modify/filter errors before returning them.
    */
-  hierarchyGenerator(): ComponentHierarchyGenerator<Type> {
-    return defaultGenerator;
-  }
-
-  makeNode(
-    item: CompInternal<Type>,
-    parent: LayoutNode | LayoutPage,
-    top: LayoutPage,
-    dataSources: HierarchyDataSources,
-    rowIndex?: number,
-    rowId?: string,
-  ): LayoutNode<Type> {
-    return new BaseLayoutNode(item, parent, top, dataSources, rowIndex, rowId) as LayoutNode<Type>;
-  }
-
-  /**
-   * Base implementation of validateLayoutConfing.
-   * Override this if you need to use a more specific pointer
-   * or modify/filter errors before returning them.
-   */
-  validateLayoutConfing(
+  validateLayoutConfig(
     component: CompExternalExact<Type>,
     validate: (pointer: string | null, data: unknown) => ErrorObject[] | undefined,
   ): ErrorObject[] | undefined {
@@ -137,13 +222,12 @@ export abstract class AnyComponent<Type extends CompTypes> {
 }
 
 export abstract class PresentationComponent<Type extends CompTypes> extends AnyComponent<Type> {
-  readonly type = CompCategory.Presentation;
+  readonly category = CompCategory.Presentation;
 }
 
 export interface SummaryRendererProps<Type extends CompTypes> {
-  summaryNode: LayoutNode<'Summary'>;
+  summaryNode: LayoutNode<'Summary'> | undefined;
   targetNode: LayoutNode<Type>;
-  formDataSelector: FormDataSelector;
   onChangeClick: () => void;
   changeText: string | null;
   overrides?: ISummaryComponent['overrides'];
@@ -202,7 +286,9 @@ abstract class _FormComponent<Type extends CompTypes> extends AnyComponent<Type>
   /**
    * Runs validation on data model bindings. Returns an array of error messages.
    */
-  public abstract validateDataModelBindings(ctx: LayoutValidationCtx<Type>): string[];
+  public validateDataModelBindings(_ctx: LayoutValidationCtx<Type>): string[] {
+    return [];
+  }
 
   protected validateDataModelBindingsAny(
     ctx: LayoutValidationCtx<Type>,
@@ -211,8 +297,8 @@ abstract class _FormComponent<Type extends CompTypes> extends AnyComponent<Type>
     isRequired = this.isDataModelBindingsRequired(ctx.node),
     name = key,
   ): [string[], undefined] | [undefined, JSONSchema7] {
-    const { node, lookupBinding } = ctx;
-    const value = ((node.item.dataModelBindings as any) || {})[key] || '';
+    const { item, lookupBinding } = ctx;
+    const value = ((item.dataModelBindings as any) || {})[key] || '';
 
     if (!value) {
       if (isRequired) {
@@ -286,31 +372,42 @@ abstract class _FormComponent<Type extends CompTypes> extends AnyComponent<Type>
 }
 
 export abstract class ActionComponent<Type extends CompTypes> extends AnyComponent<Type> {
-  readonly type = CompCategory.Action;
+  readonly category = CompCategory.Action;
 
-  shouldRenderInAutomaticPDF() {
+  shouldRenderInAutomaticPDF(_node: LayoutNode<Type>, _nodeDataSelector: NodeDataSelector): boolean {
     return false;
   }
 }
 
-export abstract class FormComponent<Type extends CompTypes> extends _FormComponent<Type> implements ValidateEmptyField {
-  readonly type = CompCategory.Form;
+export abstract class FormComponent<Type extends CompTypes>
+  extends _FormComponent<Type>
+  implements ValidateEmptyField<Type>
+{
+  readonly category = CompCategory.Form;
 
   runEmptyFieldValidation(
     node: LayoutNode<Type>,
-    { formData, invalidData }: ValidationDataSources,
+    { formDataSelector, invalidDataSelector, nodeDataSelector }: ValidationDataSources,
   ): ComponentValidation[] {
-    if (!('required' in node.item) || !node.item.required || !node.item.dataModelBindings) {
+    const required = nodeDataSelector(
+      (picker) => {
+        const item = picker(node)?.item;
+        return item && 'required' in item ? item.required : false;
+      },
+      [node],
+    );
+    const dataModelBindings = nodeDataSelector((picker) => picker(node)?.layout.dataModelBindings, [node]);
+    if (!required || !dataModelBindings) {
       return [];
     }
 
     const validations: ComponentValidation[] = [];
 
-    for (const [bindingKey, field] of Object.entries(node.item.dataModelBindings) as [string, string][]) {
-      const data = dot.pick(field, formData) ?? dot.pick(field, invalidData);
+    for (const [bindingKey, field] of Object.entries(dataModelBindings) as [string, string][]) {
+      const data = formDataSelector(field) ?? invalidDataSelector(field);
       const asString =
         typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean' ? String(data) : '';
-      const trb: ITextResourceBindings = 'textResourceBindings' in node.item ? node.item.textResourceBindings : {};
+      const trb = nodeDataSelector((picker) => picker(node)?.item?.textResourceBindings, [node]);
 
       if (asString.length === 0) {
         const key =
@@ -320,7 +417,6 @@ export abstract class FormComponent<Type extends CompTypes> extends _FormCompone
         const fieldReference = { key: getFieldNameKey(trb, bindingKey), makeLowerCase: true };
 
         validations.push({
-          componentId: node.item.id,
           source: FrontendValidationSource.EmptyField,
           bindingKey,
           message: { key, params: [fieldReference] },
@@ -333,12 +429,41 @@ export abstract class FormComponent<Type extends CompTypes> extends _FormCompone
   }
 }
 
+export interface ComponentProto {
+  type: CompTypes;
+  capabilities: CompCapabilities;
+}
+
+export interface ChildClaimerProps<Type extends CompTypes, ClaimMetadata> {
+  item: CompIntermediate<Type>;
+  claimChild: (pluginKey: string, id: string, metadata: ClaimMetadata) => void;
+  getProto: (id: string) => ComponentProto | undefined;
+}
+
 export abstract class ContainerComponent<Type extends CompTypes> extends _FormComponent<Type> {
-  readonly type = CompCategory.Container;
+  readonly category = CompCategory.Container;
 
   isDataModelBindingsRequired(_node: LayoutNode<Type>): boolean {
     return false;
   }
+
+  abstract claimChildren(props: ChildClaimerProps<Type, unknown>): void;
+
+  abstract pickDirectChildren(state: NodeData<Type>, restriction?: TraversalRestriction): LayoutNode[];
+
+  abstract addChild(
+    state: NodeData<Type>,
+    childNode: LayoutNode,
+    claim: ChildClaim,
+    row: BaseRow | undefined,
+  ): Partial<NodeData<Type>>;
+
+  abstract removeChild(
+    state: NodeData<Type>,
+    childNode: LayoutNode,
+    claim: ChildClaim,
+    row: BaseRow | undefined,
+  ): Partial<NodeData<Type>>;
 }
 
 export type LayoutComponent<Type extends CompTypes = CompTypes> =

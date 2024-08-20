@@ -70,6 +70,7 @@ function fillOutGroup() {
     };
   };
 
+  cy.intercept('POST', '**/instances/**/data?dataType=*').as('upload');
   cy.get(appFrontend.nextButton).click();
   cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
   cy.addItemToGroup(1, 2, 'automation');
@@ -78,21 +79,25 @@ function fillOutGroup() {
   cy.get(appFrontend.group.row(0).uploadSingle.dropZone).selectFile(mkFile('attachment-in-single.pdf'), {
     force: true,
   });
+  cy.wait('@upload');
+  cy.waitUntilNodesReady();
   cy.get(appFrontend.group.row(0).uploadSingle.attachments(0).name).should('have.text', 'attachment-in-single.pdf');
-  cy.get(appFrontend.group.row(0).uploadMulti.dropZone).selectFile(mkFile('attachment-in-multi1.pdf'), {
-    force: true,
-  });
+  cy.get(appFrontend.group.row(0).uploadMulti.dropZone).selectFile(mkFile('attachment-in-multi1.pdf'), { force: true });
+  cy.wait('@upload');
+  cy.waitUntilNodesReady();
   cy.get(appFrontend.group.row(0).uploadMulti.attachments(0).name).should('have.text', 'attachment-in-multi1.pdf');
   cy.get(appFrontend.group.row(0).uploadMulti.addMoreBtn).click();
-  cy.get(appFrontend.group.row(0).uploadMulti.dropZone).selectFile(mkFile('attachment-in-multi2.pdf'), {
-    force: true,
-  });
+  cy.get(appFrontend.group.row(0).uploadMulti.dropZone).selectFile(mkFile('attachment-in-multi2.pdf'), { force: true });
+  cy.wait('@upload');
+  cy.waitUntilNodesReady();
   cy.get(appFrontend.group.row(0).uploadMulti.attachments(1).name).should('have.text', 'attachment-in-multi2.pdf');
   cy.get(appFrontend.group.row(0).nestedGroup.row(0).editBtn).click();
   cy.get(appFrontend.group.row(0).nestedGroup.row(0).uploadTagMulti.dropZone).selectFile(
     mkFile('attachment-in-nested.pdf'),
     { force: true },
   );
+  cy.wait('@upload');
+  cy.waitUntilNodesReady();
   cy.dsSelect(appFrontend.group.row(0).nestedGroup.row(0).uploadTagMulti.attachments(0).tagSelector!, 'Altinn');
   cy.get(appFrontend.group.row(0).nestedGroup.row(0).uploadTagMulti.attachments(0).tagSave!).click();
   cy.get(appFrontend.group.row(0).nestedGroup.row(0).uploadTagMulti.attachments(0).tagSelector!).should('not.exist');

@@ -1,5 +1,6 @@
-import { CG, Variant } from 'src/codegen/CG';
+import { CG } from 'src/codegen/CG';
 import { CompCategory } from 'src/layout/common';
+import { NonRepeatingChildrenPlugin } from 'src/utils/layout/plugins/NonRepeatingChildrenPlugin';
 
 export const Config = new CG.component({
   category: CompCategory.Container,
@@ -10,16 +11,17 @@ export const Config = new CG.component({
     renderInAccordionGroup: false,
     renderInCards: true,
     renderInCardsMedia: false,
+    renderInTabs: true,
+  },
+  functionality: {
+    customExpressions: false,
   },
 })
-  .addProperty(
-    new CG.prop(
-      'children',
-      new CG.arr(new CG.str())
-        .setTitle('Children')
-        .setDescription('Child component IDs of button-like components to be rendered in this group'),
-    ).onlyIn(Variant.External),
+  .addPlugin(
+    new NonRepeatingChildrenPlugin({
+      onlyWithCapability: 'renderInButtonGroup',
+      description: 'Child component IDs of button-like components to be rendered in this group',
+    }),
   )
-  .addProperty(new CG.prop('childComponents', new CG.arr(CG.layoutNode)).onlyIn(Variant.Internal))
   .extends(CG.common('LabeledComponentProps'))
   .extendTextResources(CG.common('TRBLabel'));

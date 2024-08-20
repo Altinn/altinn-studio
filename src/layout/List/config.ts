@@ -10,9 +10,14 @@ export const Config = new CG.component({
     renderInAccordionGroup: false,
     renderInCards: false,
     renderInCardsMedia: false,
+    renderInTabs: true,
+  },
+  functionality: {
+    customExpressions: false,
   },
 })
-  .addTextResourcesForLabel()
+  .extends(CG.common('LabeledComponentProps'))
+  .extendTextResources(CG.common('TRBLabel'))
   .addDataModelBinding(new CG.obj().optional().additionalProperties(new CG.str()).exportAs('IDataModelBindingsForList'))
   .addProperty(
     new CG.prop(

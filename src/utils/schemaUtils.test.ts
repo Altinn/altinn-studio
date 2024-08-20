@@ -1,12 +1,12 @@
-import fs from 'node:fs';
 import type { JSONSchema7 } from 'json-schema';
 
 import * as complexSchema from 'src/__mocks__/json-schema/complex.json';
 import * as oneOfOnRootSchema from 'src/__mocks__/json-schema/one-of-on-root.json';
 import * as refOnRootSchema from 'src/__mocks__/json-schema/ref-on-root.json';
 import { lookupPropertiesInSchema } from 'src/features/datamodel/SimpleSchemaTraversal';
-import { ensureAppsDirIsSet, getAllLayoutSetsWithDataModelSchema, parseJsonTolerantly } from 'src/test/allApps';
+import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { getRootElementPath, getSchemaPart, getSchemaPartOldGenerator } from 'src/utils/schemaUtils';
+import type { IDataModelBindings } from 'src/layout/layout';
 
 describe('schemaUtils', () => {
   describe('getRootElementPath', () => {
@@ -128,14 +128,16 @@ describe('schemaUtils', () => {
       return;
     }
 
-    const { out: allLayoutSets } = getAllLayoutSetsWithDataModelSchema(dir);
-    it.each(allLayoutSets)('$appName/$dataType', ({ setName, layouts, modelPath, dataTypeDef }) => {
-      if (!dataTypeDef) {
-        throw new Error(`No data type found for ${modelPath}`);
-      }
+    const allApps = getAllApps(dir)
+      .filter((app) => app.isValid())
+      .map((app) => app.enableCompatibilityMode().getDataModelsFromLayoutSets())
+      .flat()
+      .filter((model) => model.isValid())
+      .map((model) => ({ appName: model.app.getName(), dataType: model.getName(), model }));
 
-      const schema = parseJsonTolerantly(fs.readFileSync(modelPath, 'utf-8'));
-      const rootPath = getRootElementPath(schema, dataTypeDef);
+    it.each(allApps)('$appName/$dataType', ({ model }) => {
+      const schema = model.getSchema();
+      const rootPath = getRootElementPath(schema, model.getDataDef());
       const availableProperties = lookupPropertiesInSchema(schema, rootPath);
       const availablePropertiesOnRoot = lookupPropertiesInSchema(schema, '');
 
@@ -148,24 +150,26 @@ describe('schemaUtils', () => {
       }
 
       const notFound: string[] = [];
-      for (const [pageKey, layout] of Object.entries(layouts)) {
+      for (const [pageKey, layout] of Object.entries(model.layoutSet!.getLayouts())) {
         for (const component of layout.data.layout || []) {
-          if ('dataModelBindings' in component && component.dataModelBindings) {
-            for (const binding of Object.values(component.dataModelBindings)) {
-              const firstLeg = binding.split('.')[0];
-              const foundInPath = availableProperties.has(firstLeg);
-              const foundInRoot = availablePropertiesOnRoot.has(firstLeg);
-              const foundInFirstProperty = availablePropertiesOnFirstProperty.has(firstLeg);
-              const location = `Used in ${setName}/${pageKey}/${component.id} (${component.type}) (binding = ${binding})`;
-              if (!foundInPath && foundInRoot) {
-                notFound.push(
-                  [`${firstLeg} was found in the root of the schema, but not in ${rootPath}.`, location].join(' '),
-                );
-              } else if (!foundInPath && foundInFirstProperty) {
-                notFound.push(
-                  [`${firstLeg} was found in the first property of the schema, but not in ${rootPath}.`, ''].join(' '),
-                );
-              }
+          if (!('dataModelBindings' in component && component.dataModelBindings)) {
+            continue;
+          }
+          const bindings = component.dataModelBindings as IDataModelBindings;
+          for (const binding of Object.values(bindings)) {
+            const firstLeg = binding.split('.')[0];
+            const foundInPath = availableProperties.has(firstLeg);
+            const foundInRoot = availablePropertiesOnRoot.has(firstLeg);
+            const foundInFirstProperty = availablePropertiesOnFirstProperty.has(firstLeg);
+            const location = `Used in ${model.layoutSet!.getName()}/${pageKey}/${component.id} (${component.type}) (binding = ${binding})`;
+            if (!foundInPath && foundInRoot) {
+              notFound.push(
+                [`${firstLeg} was found in the root of the schema, but not in ${rootPath}.`, location].join(' '),
+              );
+            } else if (!foundInPath && foundInFirstProperty) {
+              notFound.push(
+                [`${firstLeg} was found in the first property of the schema, but not in ${rootPath}.`, ''].join(' '),
+              );
             }
           }
         }

@@ -6,10 +6,11 @@ import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { FormProvider } from 'src/features/form/FormContext';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { Lang } from 'src/features/language/Lang';
+import { usePageOrder } from 'src/hooks/useNavigatePage';
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { PageSummary } from 'src/layout/Summary2/SummaryComponent2/PageSummary';
 import { useTaskStore } from 'src/layout/Summary2/taskIdStore';
-import { useNodes } from 'src/utils/layout/NodesContext';
+import { useNode } from 'src/utils/layout/NodesContext';
 import type { CompSummary2External } from 'src/layout/Summary2/config.generated';
 
 interface TaskSummaryProps {
@@ -41,26 +42,55 @@ function TaskSummaryAccordion({ pageKey, children }: React.PropsWithChildren<{ p
   );
 }
 
-export function TaskSummary({ pageId, componentId, summaryOverrides, showAccordion }: TaskSummaryProps) {
-  const nodes = useNodes();
-  if (componentId) {
-    const nodeToRender = nodes.findById(componentId);
-    return (
-      nodeToRender && (
-        <ComponentSummary
-          componentNode={nodeToRender}
-          summaryOverrides={summaryOverrides}
-        />
-      )
-    );
+export function TaskSummary(props: TaskSummaryProps) {
+  if (props.componentId) {
+    return <TaskSummaryForComponent {...props} />;
   }
 
-  let pageKeys = nodes.allPageKeys();
-
-  if (pageId) {
-    pageKeys = pageKeys.filter((key) => key === pageId);
+  if (props.pageId) {
+    return <TaskSummaryForPage {...props} />;
   }
 
+  return <TaskSummaryForAllPages {...props} />;
+}
+
+function TaskSummaryForComponent({ componentId, summaryOverrides }: TaskSummaryProps) {
+  const nodeToRender = useNode(componentId);
+  return (
+    nodeToRender && (
+      <ComponentSummary
+        componentNode={nodeToRender}
+        summaryOverrides={summaryOverrides}
+      />
+    )
+  );
+}
+
+function TaskSummaryForPage({ pageId, summaryOverrides, showAccordion }: TaskSummaryProps) {
+  const showAccordionWrapper = !!showAccordion;
+
+  return (
+    <div style={{ width: '100%' }}>
+      <div
+        style={{ marginBottom: '10px' }}
+        key={pageId}
+      >
+        <ConditionalWrapper
+          condition={showAccordionWrapper}
+          wrapper={(child) => <TaskSummaryAccordion pageKey={pageId!}>{child}</TaskSummaryAccordion>}
+        >
+          <PageSummary
+            pageId={pageId!}
+            summaryOverrides={summaryOverrides}
+          />
+        </ConditionalWrapper>
+      </div>
+    </div>
+  );
+}
+
+function TaskSummaryForAllPages({ summaryOverrides, showAccordion }: TaskSummaryProps) {
+  const pageKeys = usePageOrder();
   const showAccordionWrapper = !!showAccordion;
 
   return (
@@ -84,6 +114,7 @@ export function TaskSummary({ pageId, componentId, summaryOverrides, showAccordi
     </div>
   );
 }
+
 export function TaskSummaryWrapper({ taskId, children }: React.PropsWithChildren<TaskSummaryProps>) {
   const { setTaskId, setOverriddenDataModelId, setOverriddenLayoutSetId, overriddenTaskId } = useTaskStore((state) => ({
     setTaskId: state.setTaskId,

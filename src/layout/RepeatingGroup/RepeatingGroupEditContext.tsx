@@ -5,8 +5,9 @@ import { createContext } from 'src/core/contexts/context';
 import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
 import { useRepeatingGroup } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
-import type { CompRepeatingGroupInternal } from 'src/layout/RepeatingGroup/config.generated';
-import type { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface RepeatingGroupEditRowContext {
   multiPageEnabled: boolean;
@@ -23,18 +24,19 @@ const { Provider, useCtx } = createContext<RepeatingGroupEditRowContext>({
 });
 
 function useRepeatingGroupEditRowState(
-  node: BaseLayoutNode<CompRepeatingGroupInternal>,
+  node: LayoutNode<'RepeatingGroup'>,
   editId: string,
 ): RepeatingGroupEditRowContext & { setMultiPageIndex: (index: number) => void } {
-  const multiPageEnabled = node.item.edit?.multiPage ?? false;
+  const { edit, rows } = useNodeItem(node);
+  const multiPageEnabled = edit?.multiPage ?? false;
   const lastPage = useMemo(() => {
-    const row = node.item.rows.find((r) => r.uuid === editId);
+    const row = rows.find((r) => r && r.uuid === editId);
     let lastPage = 0;
     for (const childNode of row?.items ?? []) {
-      lastPage = Math.max(lastPage, childNode.item.multiPageIndex ?? 0);
+      lastPage = Math.max(lastPage, childNode.multiPageIndex ?? 0);
     }
     return lastPage;
-  }, [editId, node.item.rows]);
+  }, [editId, rows]);
 
   const [multiPageIndex, setMultiPageIndex] = useState(0);
 
@@ -64,20 +66,28 @@ interface Props {
 export function RepeatingGroupEditRowProvider({ editId, children }: PropsWithChildren<Props>) {
   const { node } = useRepeatingGroup();
   const { setMultiPageIndex, ...state } = useRepeatingGroupEditRowState(node, editId);
+  const traversal = useNodeTraversalSelector();
 
-  useRegisterNodeNavigationHandler((targetNode) => {
+  useRegisterNodeNavigationHandler(async (targetNode) => {
     if (!state.multiPageEnabled) {
       // Nothing to do here. Other navigation handlers will make sure this row is opened for editing.
       return false;
     }
-    const ourChildRecursively = node.flat(true).find((item) => item.item.id === targetNode.item.id);
+    const ourChildRecursively = traversal(
+      (t) =>
+        t
+          .with(node)
+          .flat()
+          .find((n) => n === targetNode),
+      [node, targetNode],
+    );
     if (!ourChildRecursively) {
       return false;
     }
-    const ourDirectChildren = node.children();
-    const ourChildDirectly = ourDirectChildren.find((n) => n.item.id === targetNode.item.id);
+    const ourDirectChildren = traversal((t) => t.with(node).children(), [node]);
+    const ourChildDirectly = ourDirectChildren.find((n) => n === targetNode);
     if (ourChildDirectly) {
-      const targetMultiPageIndex = targetNode.item.multiPageIndex ?? 0;
+      const targetMultiPageIndex = targetNode.multiPageIndex ?? 0;
       if (targetMultiPageIndex !== state.multiPageIndex) {
         setMultiPageIndex(targetMultiPageIndex);
       }
@@ -86,10 +96,14 @@ export function RepeatingGroupEditRowProvider({ editId, children }: PropsWithChi
 
     // It's our child, but not directly. We need to figure out which of our children contains the target node,
     // and navigate there. Then it's a problem that can be forwarded there.
-    const ourChildrenIds = new Set(ourDirectChildren.map((n) => n.item.id));
-    const childWeAreLookingFor = targetNode.parents((n) => (n?.item.id ? ourChildrenIds.has(n.item.id) : false))[0];
+    const ourChildrenIds = new Set(ourDirectChildren.map((n) => n.id));
+    const childWeAreLookingFor = traversal(
+      (t) => t.with(targetNode).parents((i) => i.type === 'node' && ourChildrenIds.has(i.layout.id)),
+      [targetNode],
+    )[0];
+
     if (childWeAreLookingFor && !(childWeAreLookingFor instanceof LayoutPage)) {
-      const targetMultiPageIndex = childWeAreLookingFor.item.multiPageIndex ?? 0;
+      const targetMultiPageIndex = childWeAreLookingFor.multiPageIndex ?? 0;
       if (targetMultiPageIndex !== state.multiPageIndex) {
         setMultiPageIndex(targetMultiPageIndex);
       }

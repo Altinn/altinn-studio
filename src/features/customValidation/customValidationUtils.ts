@@ -1,6 +1,5 @@
 import { ExprVal } from 'src/features/expressions/types';
-import { asExpression } from 'src/features/expressions/validation';
-import type { ExprConfig } from 'src/features/expressions/types';
+import { ExprValidation } from 'src/features/expressions/validation';
 import type {
   IExpressionValidation,
   IExpressionValidationConfig,
@@ -8,12 +7,6 @@ import type {
   IExpressionValidationRefUnresolved,
   IExpressionValidations,
 } from 'src/features/validation';
-
-const EXPR_CONFIG: ExprConfig<ExprVal.Boolean> = {
-  defaultValue: false,
-  returnType: ExprVal.Boolean,
-  resolvePerRow: false,
-};
 
 /**
  * Resolves a reusable expression validation definition.
@@ -38,11 +31,11 @@ function resolveExpressionValidationDefinition(
     resolvedDefinition = { ...reference, ...definitionWithoutRef };
   }
 
-  resolvedDefinition.condition = asExpression(
-    resolvedDefinition.condition,
-    EXPR_CONFIG,
-    `Custom validation:\nDefinition for ${name} has an invalid condition.`,
-  );
+  const errorMessage = `Custom validation:\nDefinition for ${name} has an invalid condition.`;
+  const condition = resolvedDefinition.condition;
+  if (!ExprValidation.isValidOrScalar(condition, ExprVal.Boolean, errorMessage)) {
+    resolvedDefinition.condition = false;
+  }
 
   if (!('message' in resolvedDefinition)) {
     window.logWarn(`Custom validation:\nDefinition for ${name} is missing a message.`);
@@ -102,11 +95,11 @@ function resolveExpressionValidation(
     } as IExpressionValidation;
   }
 
-  expressionValidation.condition = asExpression(
-    expressionValidation.condition,
-    EXPR_CONFIG,
-    `Custom validation:\nValidation for ${field} has an invalid condition.`,
-  ) as typeof expressionValidation.condition;
+  const errorMessage = `Custom validation:\nValidation for ${field} has an invalid condition.`;
+  const condition = expressionValidation.condition;
+  if (!ExprValidation.isValidOrScalar(condition, ExprVal.Boolean, errorMessage)) {
+    expressionValidation.condition = false;
+  }
 
   if (!('message' in expressionValidation)) {
     window.logWarn(`Custom validation:\nValidation for ${field} is missing a message.`);
@@ -122,7 +115,7 @@ function resolveExpressionValidation(
 }
 
 /**
- * Takes an expression validation config and returnes an object with the field validation definitions resolved.
+ * Takes an expression validation config and returns an object with the field validation definitions resolved.
  */
 export function resolveExpressionValidationConfig(config: IExpressionValidationConfig): IExpressionValidations {
   const resolvedDefinitions: { [name: string]: IExpressionValidationRefResolved } = {};

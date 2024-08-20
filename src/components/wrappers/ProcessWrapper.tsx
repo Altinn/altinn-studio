@@ -9,7 +9,6 @@ import { Form, FormFirstPage } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import classes from 'src/components/wrappers/ProcessWrapper.module.css';
 import { useCurrentDataModelGuid } from 'src/features/datamodel/useBindingSchema';
-import { LayoutValidationProvider } from 'src/features/devtools/layoutValidation/useLayoutValidation';
 import { FormProvider } from 'src/features/form/FormContext';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useLaxProcessData, useRealTaskType, useTaskType } from 'src/features/instance/ProcessContext';
@@ -19,7 +18,8 @@ import { PDFWrapper } from 'src/features/pdf/PDFWrapper';
 import { Confirm } from 'src/features/processEnd/confirm/containers/Confirm';
 import { Feedback } from 'src/features/processEnd/feedback/Feedback';
 import { ReceiptContainer } from 'src/features/receipt/ReceiptContainer';
-import { TaskKeys, useNavigatePage, useNavigationParams } from 'src/hooks/useNavigatePage';
+import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
+import { TaskKeys, useIsCurrentTask, useNavigatePage, useStartUrl } from 'src/hooks/useNavigatePage';
 import { ProcessTaskType } from 'src/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
 
@@ -60,16 +60,11 @@ export function InvalidTaskIdPage() {
 }
 
 export function ProcessWrapperWrapper() {
-  const { taskId, startUrl, queryKeys } = useNavigatePage();
+  const taskId = useNavigationParam('taskId');
   const currentTaskId = useLaxProcessData()?.currentTask?.elementId;
 
   if (taskId === undefined && currentTaskId !== undefined) {
-    return (
-      <Navigate
-        to={`${startUrl}/${currentTaskId}${queryKeys}`}
-        replace
-      />
-    );
+    return <NavigateToStartUrl />;
   }
 
   return (
@@ -82,9 +77,21 @@ export function ProcessWrapperWrapper() {
   );
 }
 
+function NavigateToStartUrl() {
+  const currentTaskId = useLaxProcessData()?.currentTask?.elementId;
+  const startUrl = useStartUrl(currentTaskId);
+  return (
+    <Navigate
+      to={startUrl}
+      replace
+    />
+  );
+}
+
 export const ProcessWrapper = () => {
-  const { isCurrentTask, isValidTaskId } = useNavigatePage();
-  const { taskId } = useNavigationParams();
+  const isCurrentTask = useIsCurrentTask();
+  const { isValidTaskId } = useNavigatePage();
+  const taskId = useNavigationParam('taskId');
   const taskType = useTaskType(taskId);
   const realTaskType = useRealTaskType();
   const layoutSets = useLayoutSets();
@@ -149,24 +156,22 @@ export const ProcessWrapper = () => {
   if (taskType === ProcessTaskType.Data) {
     return (
       <FormProvider>
-        <LayoutValidationProvider>
-          <Routes>
-            <Route
-              path=':pageKey'
-              element={
-                <PDFWrapper>
-                  <PresentationComponent type={realTaskType}>
-                    <Form />
-                  </PresentationComponent>
-                </PDFWrapper>
-              }
-            />
-            <Route
-              path='*'
-              element={<FormFirstPage />}
-            />
-          </Routes>
-        </LayoutValidationProvider>
+        <Routes>
+          <Route
+            path=':pageKey'
+            element={
+              <PDFWrapper>
+                <PresentationComponent type={realTaskType}>
+                  <Form />
+                </PresentationComponent>
+              </PDFWrapper>
+            }
+          />
+          <Route
+            path='*'
+            element={<FormFirstPage />}
+          />
+        </Routes>
       </FormProvider>
     );
   }

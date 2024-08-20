@@ -10,6 +10,7 @@ import { SubmitButton } from 'src/layout/Button/SubmitButton';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { ProcessTaskType } from 'src/types';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { CompInternal } from 'src/layout/layout';
 
@@ -19,9 +20,10 @@ export type IButtonProvidedProps =
   | (PropsFromGenericComponent<'InstantiationButton'> & CompInternal<'InstantiationButton'>);
 
 export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProps) => {
-  const { mode } = node.item;
+  const item = useNodeItem(node);
+  const { mode } = item;
   const { langAsString } = useLanguage();
-  const props: IButtonProvidedProps = { ...componentProps, ...node.item, node };
+  const props: IButtonProvidedProps = { ...componentProps, ...item, node };
 
   const currentTaskType = useTaskTypeFromBackend();
   const { actions, write } = useLaxProcessData()?.currentTask || {};
@@ -45,7 +47,7 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
     return (
       <div style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}>
         <GenericButton {...props}>
-          <Lang id={node.item.textResourceBindings?.title} />
+          <Lang id={item.textResourceBindings?.title} />
         </GenericButton>
       </div>
     );
@@ -57,22 +59,22 @@ export const ButtonComponent = ({ node, ...componentProps }: IButtonReceivedProp
     }
     setReturnToView?.(undefined);
     if (currentTaskType === ProcessTaskType.Data) {
-      next({ nodeId: node.item.id });
+      next({ nodeId: node.id });
     } else if (currentTaskType === ProcessTaskType.Confirm) {
-      next({ nodeId: node.item.id, action: 'confirm' });
+      next({ nodeId: node.id, action: 'confirm' });
     }
   };
   return (
     <ComponentStructureWrapper node={node}>
       <div style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}>
         <SubmitButton
-          nodeId={node.item.id}
+          nodeId={node.id}
           onClick={submitTask}
           busyWithId={busyWithId}
           disabled={disabled}
           message={attachmentsPending ? langAsString('general.wait_for_attachments') : undefined}
         >
-          <Lang id={node.item.textResourceBindings?.title} />
+          <Lang id={item.textResourceBindings?.title} />
         </SubmitButton>
       </div>
     </ComponentStructureWrapper>

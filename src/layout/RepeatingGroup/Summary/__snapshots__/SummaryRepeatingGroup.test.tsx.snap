@@ -53,10 +53,7 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
           data-testid="summary-item-compact"
         >
           <span>
-            <span>
-              Mock field 1
-            </span>
-             : 
+            Mock field 1 : 
           </span>
           <span
             class="data"
@@ -68,10 +65,7 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
           data-testid="summary-item-compact"
         >
           <span>
-            <span>
-              Mock field 2
-            </span>
-             : 
+            Mock field 2 : 
           </span>
           <span
             class="data"

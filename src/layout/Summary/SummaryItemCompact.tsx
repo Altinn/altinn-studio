@@ -1,7 +1,9 @@
 import React from 'react';
 
 import { Lang } from 'src/features/language/Lang';
+import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/Summary/SummaryItemCompact.module.css';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface ICompactSummaryItem {
@@ -10,8 +12,10 @@ export interface ICompactSummaryItem {
 }
 
 export function SummaryItemCompact({ targetNode, displayData }: ICompactSummaryItem) {
-  const textBindings = 'textResourceBindings' in targetNode.item ? targetNode.item.textResourceBindings : undefined;
-  const summaryTitleTrb = textBindings && 'summaryTitle' in textBindings ? textBindings.summaryTitle : undefined;
+  const targetItem = useNodeItem(targetNode);
+  const textBindings = 'textResourceBindings' in targetItem ? targetItem.textResourceBindings : undefined;
+  const summaryTitleTrb =
+    textBindings && 'summaryTitle' in textBindings ? (textBindings.summaryTitle as string) : undefined;
   const titleTrb = textBindings && 'title' in textBindings ? textBindings.title : undefined;
 
   return (
@@ -30,18 +34,11 @@ export function SummaryItemCompact({ targetNode, displayData }: ICompactSummaryI
 }
 
 const SummaryTitle = ({ title, targetNode }: { title: string | undefined; targetNode: LayoutNode }) => {
+  const { langAsString } = useLanguage(targetNode);
   if (!title) {
     return null;
   }
-  return (
-    <span>
-      <Lang
-        id={title}
-        node={targetNode}
-      />
-      {' : '}
-    </span>
-  );
+  return <span>{`${langAsString(title).trim()} : `}</span>;
 };
 
 const DisplayData = ({ displayData, targetNode }: { displayData: string; targetNode: LayoutNode }) =>

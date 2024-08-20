@@ -65,9 +65,9 @@ export function createContext<T>({ name, required, ...rest }: CreateContextProps
   };
 
   const useLaxCtx = (): T | typeof ContextNotProvided => {
-    const hasProvider = useHasProvider();
-    const value = useContext(Context).innerValue;
-    if (!hasProvider) {
+    const ctx = useContext(Context);
+    const value = ctx.innerValue;
+    if (!ctx.provided) {
       return ContextNotProvided;
     }
     return value as T;

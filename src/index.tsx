@@ -2,7 +2,7 @@
 // all the polyfills we need and inject them here
 import 'core-js';
 
-import React, { StrictMode } from 'react';
+import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { createHashRouter, RouterProvider, ScrollRestoration } from 'react-router-dom';
 import { Slide, ToastContainer } from 'react-toastify';
@@ -33,6 +33,7 @@ import { TextResourcesProvider } from 'src/features/language/textResources/TextR
 import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { ProfileProvider } from 'src/features/profile/ProfileProvider';
+import { AppRoutingProvider } from 'src/features/routing/AppRoutingContext';
 import { AppPrefetcher } from 'src/queries/appPrefetcher';
 import { PartyPrefetcher } from 'src/queries/partyPrefetcher';
 import * as queries from 'src/queries/queries';
@@ -45,9 +46,11 @@ const router = createHashRouter([
   {
     path: '*',
     element: (
-      <ErrorBoundary>
-        <Root />
-      </ErrorBoundary>
+      <AppRoutingProvider>
+        <ErrorBoundary>
+          <Root />
+        </ErrorBoundary>
+      </AppRoutingProvider>
     ),
   },
 ]);
@@ -56,24 +59,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById('root');
   const root = container && createRoot(container);
   root?.render(
-    <StrictMode>
-      <AppQueriesProvider {...queries}>
-        <AppPrefetcher />
-        <ErrorBoundary>
-          <AppWrapper>
-            <LanguageProvider>
-              <LangToolsStoreProvider>
-                <ThemeWrapper>
-                  <UiConfigProvider>
-                    <RouterProvider router={router} />
-                  </UiConfigProvider>
-                </ThemeWrapper>
-              </LangToolsStoreProvider>
-            </LanguageProvider>
-          </AppWrapper>
-        </ErrorBoundary>
-      </AppQueriesProvider>
-    </StrictMode>,
+    <AppQueriesProvider {...queries}>
+      <AppPrefetcher />
+      <ErrorBoundary>
+        <AppWrapper>
+          <LanguageProvider>
+            <LangToolsStoreProvider>
+              <ThemeWrapper>
+                <UiConfigProvider>
+                  <RouterProvider router={router} />
+                </UiConfigProvider>
+              </ThemeWrapper>
+            </LangToolsStoreProvider>
+          </LanguageProvider>
+        </AppWrapper>
+      </ErrorBoundary>
+    </AppQueriesProvider>,
   );
 });
 

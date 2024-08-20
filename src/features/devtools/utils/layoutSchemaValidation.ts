@@ -3,11 +3,6 @@ import Ajv from 'ajv';
 import type { DefinedError, ErrorObject } from 'ajv';
 import type { JSONSchema7 } from 'json-schema';
 
-import { getLayoutComponentObject } from 'src/layout';
-import { duplicateStringFilter } from 'src/utils/stringHelper';
-import type { LayoutValidationErrors } from 'src/features/devtools/layoutValidation/types';
-import type { ILayouts } from 'src/layout/layout';
-
 export const LAYOUT_SCHEMA_NAME = 'layout.schema.v1.json';
 export const EMPTY_SCHEMA_NAME = '__empty__';
 
@@ -26,55 +21,6 @@ export function createLayoutValidator(layoutSchema: JSONSchema7) {
   ajv.addSchema(removeExpressionRefs(layoutSchema), LAYOUT_SCHEMA_NAME);
   ajv.addSchema({ additionalProperties: false }, EMPTY_SCHEMA_NAME);
   return ajv;
-}
-
-/**
- * Validate a layout set against the layout schema.
- * @returns an array of human readable validation messages
- */
-export function validateLayoutSet(layoutSetId: string, layouts: ILayouts, validator: Ajv) {
-  const out: LayoutValidationErrors = {
-    [layoutSetId]: {},
-  };
-
-  /**
-   * Validation function passed to component classes.
-   * Component class decides which schema pointer to use and what data to validate.
-   * If pointer is null, it will validate against an empty schema with additionalProperties=false,
-   * to indicate that everything is invalid. Useful for grid cells where the type cannot be decided.
-   * Component classes can choose to modify the output errors before returning.
-   */
-  function validate(pointer: string | null, data: unknown): ErrorObject[] | undefined {
-    const isValid = pointer?.length
-      ? validator.validate(`${LAYOUT_SCHEMA_NAME}${pointer}`, data)
-      : validator.validate(EMPTY_SCHEMA_NAME, data);
-    if (!isValid && validator.errors) {
-      return validator.errors;
-    }
-    return undefined;
-  }
-
-  for (const [layoutName, layout] of Object.entries(layouts)) {
-    out[layoutSetId][layoutName] = {};
-    for (const component of layout || []) {
-      const def = getLayoutComponentObject(component.type);
-      const errors = def?.validateLayoutConfing(component as any, validate);
-
-      out[layoutSetId][layoutName][component.id] = [];
-
-      if (errors) {
-        const errorMessages = errors
-          .map(formatError)
-          .filter((m) => m != null)
-          .filter(duplicateStringFilter);
-
-        if (errorMessages.length) {
-          out[layoutSetId][layoutName][component.id].push(...errorMessages);
-        }
-      }
-    }
-  }
-  return out;
 }
 
 /**
@@ -138,7 +84,7 @@ function getProperty(error: ErrorObject): string | undefined {
  * @param error the AJV validation error object
  * @returns a human readable string describing the error
  */
-function formatError(error: DefinedError): string | null {
+export function formatLayoutSchemaValidationError(error: DefinedError): string | null {
   if (error.parentSchema?.comment === 'ignore') {
     return null;
   }

@@ -12,7 +12,7 @@ import { useLayoutValidationForPage } from 'src/features/devtools/layoutValidati
 import { useLayouts, useLayoutSetId } from 'src/features/form/layout/LayoutsContext';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { parseAndCleanText } from 'src/language/sharedLanguage';
-import { useNodes } from 'src/utils/layout/NodesContext';
+import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
 import type { LayoutContextValue } from 'src/features/form/layout/LayoutsContext';
 
 export const LayoutInspector = () => {
@@ -24,7 +24,6 @@ export const LayoutInspector = () => {
   const [componentProperties, setComponentProperties] = useState<string | null>(null);
   const [propertiesHaveChanged, setPropertiesHaveChanged] = useState(false);
   const [error, setError] = useState<boolean>(false);
-  const nodes = useNodes();
   const focusNodeInspector = useDevToolsStore((state) => state.actions.focusNodeInspector);
 
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -38,7 +37,7 @@ export const LayoutInspector = () => {
   }, [componentProperties]);
 
   const currentLayout = currentView ? layouts?.[currentView] : undefined;
-  const matchingNodes = selectedComponent ? nodes?.findAllById(selectedComponent) || [] : [];
+  const matchingNodes = useNodeTraversal((t) => t.findAllById(selectedComponent));
   const validationErrorsForPage = useLayoutValidationForPage() || {};
 
   useEffect(() => {
@@ -143,8 +142,8 @@ export const LayoutInspector = () => {
               {matchingNodes.length === 0 && 'Ingen aktive komponenter funnet'}
               {matchingNodes.map((node) => (
                 <NodeLink
-                  key={node.item.id}
-                  nodeId={node.item.id}
+                  key={node.id}
+                  nodeId={node.id}
                 />
               ))}
             </div>

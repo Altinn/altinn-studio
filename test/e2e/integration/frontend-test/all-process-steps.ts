@@ -1,4 +1,5 @@
 import dot from 'dot-object';
+import deepEqual from 'fast-deep-equal';
 
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
@@ -153,16 +154,44 @@ function testInstanceData() {
           cy.request({
             url: dataModelUrl,
           }).then((response) => {
+            cy.log(`Testing data model "${dataElement.dataType}"`);
+
             const dataModel = replaceVariableData(response.body);
             const knownModel = knownDataModels[dataElement.dataType];
             if (dataElement.dataType === 'ServiceModel-test') {
               dot.str(
                 'Innledning-grp-9309.Kontaktinformasjon-grp-9311.MelderFultnavn.value',
                 Cypress.env('defaultFullName'),
-                knownModel,
+                knownModel as object,
               );
             }
-            expect(dataModel).to.deep.equal(knownModel);
+
+            // Before we do the full comparison, we compare locally and log the differences. This way we can see what
+            // the differences are, as the cypress test runner does not show the full diff when the test fails.
+            const expected = dot.dot(knownModel);
+            const actual = dot.dot(dataModel);
+
+            for (const path of Object.keys(expected)) {
+              const exp = expected[path];
+              const act = actual[path];
+              const bothEmptyArrays = Array.isArray(exp) && Array.isArray(act) && exp.length === 0 && act.length === 0;
+              if (!deepEqual(exp, act) && !bothEmptyArrays) {
+                cy.log('---');
+                cy.log(`Path: ${path}`);
+                cy.log(`Expected: ${JSON.stringify(expected[path])}`);
+                cy.log(`Actual: ${JSON.stringify(actual[path])}`);
+              }
+            }
+
+            const inActualButNotExpected = Object.keys(actual).filter((key) => !Object.keys(expected).includes(key));
+            for (const path of inActualButNotExpected) {
+              cy.log('---');
+              cy.log(`Path: ${path}`);
+              cy.log(`Expected: ${JSON.stringify(expected[path])}`);
+              cy.log(`Actual: ${JSON.stringify(actual[path])}`);
+            }
+
+            cy.wrap(dataModel).should('deep.equal', knownModel);
           });
         }
       }
@@ -177,7 +206,7 @@ function isUuid(value: string) {
 const regexDate1 = /^\d{4}-\d{2}-\d{2}$/;
 const regexDate2 = /^\d{2}[./]\d{2}[./]\d{4}$/;
 
-function replaceVariableData(input: any) {
+function replaceVariableData(input: unknown) {
   if (typeof input === 'string' && isUuid(input)) {
     return 'ANY_UUID';
   }
@@ -198,7 +227,7 @@ function replaceVariableData(input: any) {
   return input;
 }
 
-const knownDataModels: { [key: string]: any } = {
+const knownDataModels: { [key: string]: unknown } = {
   message: {
     ProcessTask: null,
     Title: null,

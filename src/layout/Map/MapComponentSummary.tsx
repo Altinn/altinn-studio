@@ -6,6 +6,7 @@ import { Grid, makeStyles, Typography } from '@material-ui/core';
 import { Lang } from 'src/features/language/Lang';
 import { parseLocation } from 'src/layout/Map/MapComponent';
 import { markerIcon } from 'src/layout/Map/MapIcons';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IMapComponentSummary {
@@ -38,7 +39,7 @@ export const useStyles = makeStyles(() => ({
 
 export function MapComponentSummary({ targetNode }: IMapComponentSummary) {
   const classes = useStyles();
-  const layers = targetNode.item.layers;
+  const layers = useNodeItem(targetNode).layers;
   const formData = targetNode.def.useDisplayData(targetNode);
   const location = parseLocation(formData);
 

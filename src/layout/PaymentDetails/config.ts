@@ -10,7 +10,12 @@ export const Config = new CG.component({
     renderInAccordionGroup: false,
     renderInCards: false,
     renderInCardsMedia: false,
+    renderInTabs: true,
   },
+  functionality: {
+    customExpressions: false,
+  },
+  directRendering: false,
 })
   .addTextResource(
     new CG.trb({

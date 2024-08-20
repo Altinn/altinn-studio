@@ -1,4 +1,4 @@
-import { CG, Variant } from 'src/codegen/CG';
+import { CG } from 'src/codegen/CG';
 import { ExprVal } from 'src/features/expressions/types';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import type { MaybeSymbolizedCodeGenerator } from 'src/codegen/CodeGenerator';
@@ -20,15 +20,10 @@ const common = {
             'layout',
             new CG.arr(
               new CG.raw({
-                typeScript: new CG.linked(
-                  new CG.import({
-                    import: 'CompOrGroupExternal',
-                    from: 'src/layout/layout.d',
-                  }),
-                  new CG.raw({
-                    typeScript: 'never',
-                  }),
-                ),
+                typeScript: new CG.import({
+                  import: 'CompExternal',
+                  from: 'src/layout/layout',
+                }),
                 jsonSchema: () => ({
                   $ref: '#/definitions/AnyComponent',
                 }),
@@ -168,10 +163,7 @@ const common = {
             'Dot notation location for the answers. This must point to a property of the objects inside the ' +
               'question array. The answer for each question will be stored in the answer property of the ' +
               'corresponding question object.',
-          )
-          .optional({
-            onlyIn: Variant.Internal,
-          }),
+          ),
       ),
       new CG.prop(
         'questions',
@@ -436,21 +428,8 @@ const common = {
             'Boolean value or expression indicating if the component should be hidden. Defaults to false.',
           ),
       ),
-      new CG.prop(
-        'forceShowInSummary',
-        new CG.expr(ExprVal.Boolean)
-          .optional({ default: false })
-          .setTitle('Force show in summary')
-          .setDescription(
-            'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
-          ),
-      ),
       new CG.prop('grid', CG.common('IGrid').optional()),
       new CG.prop('pageBreak', CG.common('IPageBreak').optional()),
-
-      // Internal-only properties (these are added by the hierarchy generator):
-      new CG.prop('baseComponentId', new CG.str().optional()).onlyIn(Variant.Internal),
-      new CG.prop('multiPageIndex', new CG.int().optional()).onlyIn(Variant.Internal),
     ),
   FormComponentProps: () =>
     new CG.obj(
@@ -478,11 +457,20 @@ const common = {
     new CG.obj(
       new CG.prop(
         'renderAsSummary',
-        new CG.expr(ExprVal.Boolean)
+        new CG.bool()
           .optional({ default: false })
           .setTitle('Render as summary')
           .setDescription(
-            'Boolean value or expression indicating if the component should be rendered as a summary. Defaults to false.',
+            'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+          ),
+      ),
+      new CG.prop(
+        'forceShowInSummary',
+        new CG.expr(ExprVal.Boolean)
+          .optional({ default: false })
+          .setTitle('Force show in summary')
+          .setDescription(
+            'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
           ),
       ),
     ),
@@ -514,18 +502,7 @@ const common = {
       new CG.prop('columnOptions', CG.common('ITableColumnProperties').optional()),
     ).extends(CG.common('ITableColumnProperties')),
   GridCell: () =>
-    new CG.union(
-      new CG.linked(
-        CG.common('GridComponentRef'),
-        new CG.import({
-          import: 'GridComponent',
-          from: 'src/layout/Grid/types',
-        }),
-      ),
-      CG.null,
-      CG.common('GridCellText'),
-      CG.common('GridCellLabelFrom'),
-    ),
+    new CG.union(CG.common('GridComponentRef'), CG.null, CG.common('GridCellText'), CG.common('GridCellLabelFrom')),
   GridRow: () =>
     new CG.obj(
       new CG.prop('header', new CG.bool().optional({ default: false }).setTitle('Is header row?')),
@@ -725,6 +702,33 @@ const common = {
     )
       .setTitle('Layout set')
       .setDescription('Settings regarding a specific layout-set'),
+  PatternFormatProps: () =>
+    new CG.obj(
+      new CG.prop('format', new CG.expr(ExprVal.String)),
+      new CG.prop('mask', new CG.union(new CG.str(), new CG.arr(new CG.str())).optional()),
+      new CG.prop('allowEmptyFormatting', new CG.bool().optional()),
+      new CG.prop('patternChar', new CG.str().optional()),
+    ),
+  NumberFormatProps: () =>
+    new CG.obj(
+      new CG.prop(
+        'thousandSeparator',
+        new CG.union(new CG.expr(ExprVal.Boolean), new CG.expr(ExprVal.String)).optional(),
+      ),
+      new CG.prop('decimalSeparator', new CG.expr(ExprVal.String).optional()),
+      new CG.prop('allowedDecimalSeparators', new CG.arr(new CG.str()).optional()),
+      new CG.prop('thousandsGroupStyle', new CG.enum('thousand', 'lakh', 'wan', 'none').optional()),
+      new CG.prop('decimalScale', new CG.num().optional()),
+      new CG.prop('fixedDecimalScale', new CG.bool().optional()),
+      new CG.prop('allowNegative', new CG.bool().optional()),
+      new CG.prop('allowLeadingZeros', new CG.bool().optional()),
+      new CG.prop('suffix', new CG.expr(ExprVal.String).optional()),
+      new CG.prop('prefix', new CG.expr(ExprVal.String).optional()),
+    )
+      .setTitle('Number formatting options')
+      .setDescription(
+        'These options are sent directly to react-number-format in order to make it possible to format pretty numbers in the input field.',
+      ),
   IFormatting: () =>
     new CG.obj(
       // Newer Intl.NumberFormat options
@@ -777,39 +781,9 @@ const common = {
       ),
 
       // Older options based on react-number-format
-      new CG.prop(
-        'number',
-        new CG.union(
-          new CG.obj(
-            new CG.prop('format', new CG.expr(ExprVal.String)),
-            new CG.prop('mask', new CG.union(new CG.str(), new CG.arr(new CG.str())).optional()),
-            new CG.prop('allowEmptyFormatting', new CG.bool().optional()),
-            new CG.prop('patternChar', new CG.str().optional()),
-          ),
-          new CG.obj(
-            new CG.prop(
-              'thousandSeparator',
-              new CG.union(new CG.expr(ExprVal.Boolean), new CG.expr(ExprVal.String)).optional(),
-            ),
-            new CG.prop('decimalSeparator', new CG.expr(ExprVal.String).optional()),
-            new CG.prop('allowedDecimalSeparators', new CG.arr(new CG.str()).optional()),
-            new CG.prop('thousandsGroupStyle', new CG.enum('thousand', 'lakh', 'wan', 'none').optional()),
-            new CG.prop('decimalScale', new CG.num().optional()),
-            new CG.prop('fixedDecimalScale', new CG.bool().optional()),
-            new CG.prop('allowNegative', new CG.bool().optional()),
-            new CG.prop('allowLeadingZeros', new CG.bool().optional()),
-            new CG.prop('suffix', new CG.expr(ExprVal.String).optional()),
-            new CG.prop('prefix', new CG.expr(ExprVal.String).optional()),
-          )
-            .setTitle('Number formatting options')
-            .setDescription(
-              'These options are sent directly to react-number-format in order to make it possible to format pretty numbers in the input field.',
-            ),
-        ).optional(),
-      ),
+      new CG.prop('number', new CG.union(CG.common('PatternFormatProps'), CG.common('NumberFormatProps')).optional()),
       new CG.prop('align', new CG.enum('right', 'center', 'left').optional({ default: 'left' })),
     )
-      .optional()
       .addExample({
         currency: 'NOK',
       })
@@ -857,10 +831,6 @@ export function getSourceForCommon(key: ValidCommonKeys) {
   return impl;
 }
 
-export function commonContainsVariationDifferences(key: ValidCommonKeys): boolean {
-  return getSourceForCommon(key).containsVariationDifferences();
-}
-
 export function generateAllCommonTypes() {
   for (const key in common) {
     getSourceForCommon(key as ValidCommonKeys);
@@ -873,18 +843,13 @@ export function generateCommonTypeScript() {
 
     // Calling toTypeScript() on an exported symbol will register it in the currently
     // generated file, so there's no need to output the result here
-    if (val.containsVariationDifferences()) {
-      val.transformTo(Variant.External).toTypeScript();
-      val.transformTo(Variant.Internal).toTypeScript();
-    } else {
-      val.transformTo(Variant.External).toTypeScript();
-    }
+    val.toTypeScript();
   }
 }
 
 export function generateCommonSchema() {
   for (const key in common) {
     const val = getSourceForCommon(key as ValidCommonKeys);
-    val.transformTo(Variant.External).toJsonSchema();
+    val.toJsonSchema();
   }
 }

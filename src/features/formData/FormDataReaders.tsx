@@ -8,8 +8,8 @@ import { useAvailableDataModels } from 'src/features/datamodel/useAvailableDataM
 import { useDataModelUrl } from 'src/features/datamodel/useBindingSchema';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useAsRef } from 'src/hooks/useAsRef';
-import { useNavigationParams } from 'src/hooks/useNavigatePage';
 import { getUrlWithLanguage } from 'src/utils/urls/urlHelper';
 
 type ReaderMap = { [name: string]: DataModelReader };
@@ -161,7 +161,7 @@ export function GlobalFormDataReadersProvider({ children }: PropsWithChildren) {
  */
 export function DataModelFetcher() {
   const ctx = useLaxCtx();
-  const { taskId } = useNavigationParams();
+  const taskId = useNavigationParam('taskId');
   const taskWas = useRef(taskId);
 
   // Reset the readers when the task changes

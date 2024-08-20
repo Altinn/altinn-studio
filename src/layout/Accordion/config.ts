@@ -1,9 +1,10 @@
-import { CG, Variant } from 'src/codegen/CG';
+import { CG } from 'src/codegen/CG';
 import { ExprVal } from 'src/features/expressions/types';
 import { CompCategory } from 'src/layout/common';
+import { NonRepeatingChildrenPlugin } from 'src/utils/layout/plugins/NonRepeatingChildrenPlugin';
 
 export const Config = new CG.component({
-  category: CompCategory.Presentation,
+  category: CompCategory.Container,
   capabilities: {
     renderInTable: false,
     renderInButtonGroup: false,
@@ -11,6 +12,10 @@ export const Config = new CG.component({
     renderInAccordionGroup: true,
     renderInCards: false,
     renderInCardsMedia: false,
+    renderInTabs: true,
+  },
+  functionality: {
+    customExpressions: false,
   },
 })
   .addTextResource(
@@ -20,13 +25,11 @@ export const Config = new CG.component({
       description: 'The title of the accordion',
     }),
   )
-  .addProperty(
-    new CG.prop(
-      'children',
-      new CG.arr(new CG.str())
-        .setTitle('Children')
-        .setDescription('List of child component IDs to show inside the Accordion (limited to a few component types)'),
-    ).onlyIn(Variant.External),
+  .addPlugin(
+    new NonRepeatingChildrenPlugin({
+      onlyWithCapability: 'renderInAccordion',
+      description: 'List of child component IDs to show inside the Accordion (limited to a few component types)',
+    }),
   )
   .addProperty(
     new CG.prop(
@@ -37,6 +40,4 @@ export const Config = new CG.component({
         .setDescription('Boolean value indicating if the accordion should be open by default'),
     ),
   )
-  .addProperty(new CG.prop('childComponents', new CG.arr(CG.layoutNode)).onlyIn(Variant.Internal))
-  .addProperty(new CG.prop('renderAsAccordionItem', new CG.bool().optional()).onlyIn(Variant.Internal))
   .addProperty(new CG.prop('headingLevel', CG.common('HeadingLevel').optional()));

@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
-import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
@@ -11,57 +10,60 @@ import { LargeLikertSummaryContainer } from 'src/layout/Likert/Summary/LargeLike
 import classes from 'src/layout/Likert/Summary/LikertSummary.module.css';
 import { EditButton } from 'src/layout/Summary/EditButton';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
+import { Hidden } from 'src/utils/layout/NodesContext';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { typedBoolean } from 'src/utils/typing';
 import type { ITextResourceBindings } from 'src/layout/layout';
-import type { ISummaryComponent } from 'src/layout/Summary/SummaryComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export interface ILikertSummary {
-  changeText: string | null;
-  onChangeClick: () => void;
-  summaryNode: LayoutNode<'Summary'>;
-  targetNode: LayoutNode<'Likert'>;
-  overrides?: ISummaryComponent['overrides'];
-}
-
-export function LikertSummary({ onChangeClick, changeText, summaryNode, targetNode, overrides }: ILikertSummary) {
-  const excludedChildren = summaryNode.item.excludedChildren;
-  const display = overrides?.display || summaryNode.item.display;
+export function LikertSummary({
+  onChangeClick,
+  changeText,
+  summaryNode,
+  targetNode,
+  overrides,
+}: SummaryRendererProps<'Likert'>) {
+  const targetItem = useNodeItem(targetNode);
+  const summaryItem = useNodeItem(summaryNode);
+  const excludedChildren = summaryItem?.excludedChildren;
+  const display = overrides?.display || summaryItem?.display;
   const { lang, langAsString } = useLanguage();
-  const formDataSelector = FD.useDebouncedSelector();
+  const isHidden = Hidden.useIsHiddenSelector();
 
   const inExcludedChildren = (n: LayoutNode) =>
-    excludedChildren &&
-    (excludedChildren.includes(n.item.id) || excludedChildren.includes(`${n.item.baseComponentId}`));
+    excludedChildren && (excludedChildren.includes(n.id) || excludedChildren.includes(n.baseId));
 
   const groupValidations = useDeepValidationsForNode(targetNode);
   const groupHasErrors = hasValidationErrors(groupValidations);
 
-  const textBindings = targetNode.item.textResourceBindings as ITextResourceBindings;
+  const textBindings = targetItem.textResourceBindings as ITextResourceBindings;
   const summaryAccessibleTitleTrb =
     textBindings && 'summaryAccessibleTitle' in textBindings ? textBindings.summaryAccessibleTitle : undefined;
   const summaryTitleTrb = textBindings && 'summaryTitle' in textBindings ? textBindings.summaryTitle : undefined;
   const titleTrb = textBindings && 'title' in textBindings ? textBindings.title : undefined;
   const title = lang(summaryTitleTrb ?? titleTrb);
   const ariaLabel = langAsString(summaryTitleTrb ?? summaryAccessibleTitleTrb ?? titleTrb);
-  const rows = targetNode.item.rows;
 
-  if (summaryNode.item.largeGroup && overrides?.largeGroup !== false && rows.length) {
+  const rows = targetItem.rows;
+  const largeGroup = overrides?.largeGroup ?? summaryItem?.largeGroup ?? false;
+  if (largeGroup && rows.length) {
     return (
       <>
-        {rows.map((row) => (
+        {rows.filter(typedBoolean).map((row) => (
           <LargeLikertSummaryContainer
-            key={`summary-${targetNode.item.id}-${row.uuid}`}
-            id={`summary-${targetNode.item.id}-${row.index}`}
+            key={`summary-${targetNode.id}-${row.uuid}`}
+            id={`summary-${targetNode.id}-${row.index}`}
             groupNode={targetNode}
-            onlyInRowUuid={row.uuid}
+            restriction={row.index}
             renderLayoutNode={(n) => {
-              if (inExcludedChildren(n) || n.isHidden()) {
+              if (inExcludedChildren(n) || isHidden(n)) {
                 return null;
               }
 
               return (
                 <SummaryComponent
-                  key={n.item.id}
+                  key={n.id}
                   summaryNode={summaryNode}
                   overrides={{
                     ...overrides,
@@ -99,33 +101,27 @@ export function LikertSummary({ onChangeClick, changeText, summaryNode, targetNo
           {rows.length === 0 ? (
             <span className={classes.emptyField}>{lang('general.empty_summary')}</span>
           ) : (
-            rows.map((row) => {
-              const childSummaryComponents = row.items
-                .filter((n) => !inExcludedChildren(n))
-                .map((child) => {
-                  if (child.isHidden() || !child.isCategory(CompCategory.Form)) {
-                    return;
-                  }
-                  const RenderCompactSummary = child.def.renderCompactSummary.bind(child.def);
-                  return (
-                    <RenderCompactSummary
-                      onChangeClick={onChangeClick}
-                      changeText={changeText}
-                      key={child.item.id}
-                      targetNode={child as any}
-                      summaryNode={summaryNode}
-                      overrides={{}}
-                      formDataSelector={formDataSelector}
-                    />
-                  );
-                });
+            rows.filter(typedBoolean).map((row) => {
+              if (!row.itemNode || inExcludedChildren(row.itemNode)) {
+                return null;
+              }
+              if (isHidden(row.itemNode) || !row.itemNode.isCategory(CompCategory.Form)) {
+                return null;
+              }
 
+              const RenderCompactSummary = row.itemNode.def.renderCompactSummary.bind(row.itemNode.def);
               return (
                 <div
                   key={`row-${row.uuid}`}
                   className={classes.border}
                 >
-                  {childSummaryComponents}
+                  <RenderCompactSummary
+                    onChangeClick={onChangeClick}
+                    changeText={changeText}
+                    key={row.itemNode.id}
+                    targetNode={row.itemNode as any}
+                    summaryNode={summaryNode}
+                  />
                 </div>
               );
             })

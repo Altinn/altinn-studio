@@ -9,30 +9,28 @@ import type { PropsFromGenericComponent } from '..';
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useGetOptions } from 'src/features/options/useGetOptions';
+import { useNodeOptions } from 'src/features/options/useNodeOptions';
 import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
 import { LayoutStyle } from 'src/layout/common.generated';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { GenericComponent, type IGenericComponentProps } from 'src/layout/GenericComponent';
+import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/LikertItem/LikertItemComponent.module.css';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { typedBoolean } from 'src/utils/typing';
+import type { IGenericComponentProps } from 'src/layout/GenericComponent';
 
 type LikertComponentProps = PropsFromGenericComponent<'Likert'>;
 
 export const LikertComponent = ({ node }: LikertComponentProps) => {
-  const firstLikertChild = node?.children((item) => item.type === 'LikertItem') as LayoutNode<'LikertItem'> | undefined;
+  const { textResourceBindings, rows } = useNodeItem(node);
   const mobileView = useIsMobileOrTablet();
-  const { options: calculatedOptions, isFetching } = useGetOptions({
-    ...(firstLikertChild?.item || {}),
-    node,
-    valueType: 'single',
-    dataModelBindings: undefined,
-  });
+  const { options: calculatedOptions, isFetching } = useNodeOptions(rows.find((row) => !!row)?.itemNode);
   const { lang } = useLanguage();
+  const rowNodes = rows.map((row) => row?.itemNode).filter(typedBoolean);
 
-  const id = node.item.id;
-  const hasDescription = !!node?.item.textResourceBindings?.description;
-  const hasTitle = !!node?.item.textResourceBindings?.title;
+  const id = node.id;
+  const hasDescription = !!textResourceBindings?.description;
+  const hasTitle = !!textResourceBindings?.title;
   const titleId = `likert-title-${id}`;
   const descriptionId = `likert-description-${id}`;
 
@@ -49,7 +47,7 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
           style={{ width: '100%' }}
           id={titleId}
         >
-          {lang(node?.item.textResourceBindings?.title)}
+          <Lang id={textResourceBindings?.title} />
         </Typography>
       )}
       {hasDescription && (
@@ -57,7 +55,7 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
           variant='body1'
           id={descriptionId}
         >
-          {lang(node?.item.textResourceBindings?.description)}
+          <Lang id={textResourceBindings?.description} />
         </Typography>
       )}
     </Grid>
@@ -69,8 +67,8 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
         <Grid
           item
           container
-          data-componentid={node.item.id}
-          data-componentbaseid={node.item.baseComponentId || node.item.id}
+          data-componentid={node.id}
+          data-componentbaseid={node.baseId}
         >
           <Header />
           <div
@@ -79,19 +77,12 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
             aria-labelledby={(hasTitle && titleId) || undefined}
             aria-describedby={(hasDescription && descriptionId) || undefined}
           >
-            {node?.children().map((comp) => {
-              if (comp.isType('Group') || comp.isType('Summary')) {
-                window.logWarnOnce('Unexpected Group or Summary inside likert container:\n', comp.item.id);
-                return;
-              }
-
-              return (
-                <GenericComponent
-                  key={comp.item.id}
-                  node={comp}
-                />
-              );
-            })}
+            {rowNodes.map((comp) => (
+              <GenericComponent
+                key={comp.id}
+                node={comp}
+              />
+            ))}
           </div>
         </Grid>
       </ComponentStructureWrapper>
@@ -103,8 +94,8 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
       <Grid
         item
         container
-        data-componentid={node.item.id}
-        data-componentbaseid={node.item.baseComponentId || node.item.id}
+        data-componentid={node.id}
+        data-componentbaseid={node.baseId}
       >
         <Header />
         {isFetching ? (
@@ -124,12 +115,10 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
                 <Table.HeaderCell id={`${id}-likert-columnheader-left`}>
                   <span
                     className={cn(classes.likertTableHeaderCell, {
-                      'sr-only': node?.item.textResourceBindings?.leftColumnHeader == null,
+                      'sr-only': textResourceBindings?.leftColumnHeader == null,
                     })}
                   >
-                    <Lang
-                      id={node?.item.textResourceBindings?.leftColumnHeader ?? 'likert.left_column_default_header_text'}
-                    />
+                    <Lang id={textResourceBindings?.leftColumnHeader ?? 'likert.left_column_default_header_text'} />
                   </span>
                 </Table.HeaderCell>
                 {calculatedOptions.map((option, index) => {
@@ -147,20 +136,15 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
               </Table.Row>
             </Table.Head>
             <Table.Body id={`likert-table-body-${id}`}>
-              {node?.children().map((comp) => {
-                if (comp.isType('Group') || comp.isType('Summary')) {
-                  window.logWarnOnce('Unexpected Group or Summary inside likert container:\n', comp.item.id);
-                  return;
-                }
-
+              {rowNodes.map((comp) => {
                 const override: IGenericComponentProps<'LikertItem'>['overrideItemProps'] = {
                   layout: LayoutStyle.Table,
                 };
 
                 return (
                   <GenericComponent
-                    key={comp.item.id}
-                    node={comp as LayoutNode<'LikertItem'>}
+                    key={comp.id}
+                    node={comp}
                     overrideItemProps={override}
                   />
                 );

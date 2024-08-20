@@ -3,21 +3,25 @@ import React from 'react';
 import { Button } from '@digdir/designsystemet-react';
 import { Grid } from '@material-ui/core';
 
+import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useReturnToView, useSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
-import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { useNavigatePage, useNextPageKey, usePreviousPageKey } from 'src/hooks/useNavigatePage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/NavigationButtons/NavigationButtonsComponent.module.css';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 export type INavigationButtons = PropsFromGenericComponent<'NavigationButtons'>;
 
 export function NavigationButtonsComponent({ node }: INavigationButtons) {
-  const { id, showBackButton, textResourceBindings, validateOnNext, validateOnPrevious } = node.item;
-  const { navigateToPage, next, previous, maybeSaveOnPageChange } = useNavigatePage();
+  const { id, showBackButton, textResourceBindings, validateOnNext, validateOnPrevious } = useNodeItem(node);
+  const { navigateToPage, maybeSaveOnPageChange } = useNavigatePage();
+  const next = useNextPageKey();
+  const previous = usePreviousPageKey();
   const returnToView = useReturnToView();
-  const summaryItem = useSummaryNodeOfOrigin()?.item;
+  const summaryItem = useNodeItem(useSummaryNodeOfOrigin());
 
   const parentIsPage = node.parent instanceof LayoutPage;
 
@@ -47,25 +51,7 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
    * If validation fails the ErrorReport will move the buttons down.
    * This resets the scroll position so that the buttons are in the same place.
    */
-  const resetScrollPosition = (prevScrollPosition: number | undefined) => {
-    if (prevScrollPosition === undefined) {
-      return;
-    }
-    let attemptsLeft = 10;
-    const check = () => {
-      attemptsLeft--;
-      if (attemptsLeft <= 0) {
-        return;
-      }
-      const newScrollPosition = getScrollPosition();
-      if (newScrollPosition !== undefined && newScrollPosition !== prevScrollPosition) {
-        window.scrollBy({ top: newScrollPosition - prevScrollPosition });
-      } else {
-        requestAnimationFrame(check);
-      }
-    };
-    requestAnimationFrame(check);
-  };
+  const resetScrollPosition = useResetScrollPosition(getScrollPosition, '[data-testid="ErrorReport"]');
 
   const onClickPrevious = async () => {
     if (!previous || disablePrevious) {
@@ -76,7 +62,7 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
 
     const prevScrollPosition = getScrollPosition();
     if (validateOnPrevious) {
-      const hasError = await onPageNavigationValidation(node.top, validateOnPrevious);
+      const hasError = await onPageNavigationValidation(node.page, validateOnPrevious);
       if (hasError) {
         // Block navigation if validation fails
         resetScrollPosition(prevScrollPosition);
@@ -84,7 +70,7 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
       }
     }
 
-    navigateToPage(previous, { skipAutoSave: true });
+    await navigateToPage(previous, { skipAutoSave: true });
   };
 
   const onClickNext = async () => {
@@ -96,7 +82,7 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
 
     const prevScrollPosition = getScrollPosition();
     if (validateOnNext && !returnToView) {
-      const hasErrors = await onPageNavigationValidation(node.top, validateOnNext);
+      const hasErrors = await onPageNavigationValidation(node.page, validateOnNext);
       if (hasErrors) {
         // Block navigation if validation fails, unless returnToView is set (Back to summary)
         resetScrollPosition(prevScrollPosition);
@@ -104,16 +90,16 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
       }
     }
 
-    navigateToPage(next, { skipAutoSave: true });
+    await navigateToPage(next, { skipAutoSave: true });
   };
 
-  const onClickBackToSummary = () => {
+  const onClickBackToSummary = async () => {
     if (!returnToView) {
       return;
     }
 
     maybeSaveOnPageChange();
-    navigateToPage(returnToView, { skipAutoSave: true });
+    await navigateToPage(returnToView, { skipAutoSave: true });
   };
 
   /**

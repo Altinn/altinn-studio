@@ -21,9 +21,13 @@ describe('Auto save behavior', () => {
       });
       cy.get(appFrontend.nextButton).clickAndGone();
       cy.get(appFrontend.backButton).clickAndGone();
-      // Doing a hard wait to be sure no request is sent to backend
+
+      // Doing an extra wait to be sure no request is sent to backend
+      cy.waitUntilSaved();
+      cy.waitUntilNodesReady();
+      cy.waitForNetworkIdle(100);
       // eslint-disable-next-line cypress/no-unnecessary-waiting
-      cy.wait(1000).then(() => {
+      cy.wait(100).then(() => {
         expect(formDataReqCounter).to.be.eq(1);
       });
     });
@@ -53,7 +57,9 @@ describe('Auto save behavior', () => {
       // Clicking the back button does not save anything, because we didn't
       // change anything in the form data worth saving
       cy.get(appFrontend.backButton).clickAndGone();
+
       cy.navPage('prefill').should('have.attr', 'aria-current', 'page');
+      cy.get(appFrontend.group.prefill.liten).should('be.visible');
 
       // Go forward again, change something and then observe the back button saves
       cy.get(appFrontend.nextButton).clickAndGone();

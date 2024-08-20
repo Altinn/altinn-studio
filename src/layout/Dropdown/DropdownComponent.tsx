@@ -4,30 +4,29 @@ import { Combobox } from '@digdir/designsystemet-react';
 
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
-import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
+import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
+import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useGetOptions } from 'src/features/options/useGetOptions';
-import { useAlertOnChange } from 'src/hooks/useAlertOnChange';
+import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import comboboxClasses from 'src/styles/combobox.module.css';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IDropdownProps = PropsFromGenericComponent<'Dropdown'>;
 
-export function DropdownComponent({ node, isValid, overrideDisplay }: IDropdownProps) {
-  const { id, readOnly, textResourceBindings, alertOnChange } = node.item;
+export function DropdownComponent({ node, overrideDisplay }: IDropdownProps) {
+  const item = useNodeItem(node);
+  const isValid = useIsValid(node);
+  const { id, readOnly, textResourceBindings, alertOnChange } = item;
   const { langAsString, lang } = useLanguage(node);
 
   const debounce = FD.useDebounceImmediately();
 
-  const { options, isFetching, selectedValues, setData, key } = useGetOptions({
-    ...node.item,
-    valueType: 'single',
-    node,
-    removeDuplicates: true,
-  });
+  const { options, isFetching, selectedValues, setData, key } = useGetOptions(node, 'single');
 
   const changeMessageGenerator = useCallback(
     (values: string[]) => {
@@ -70,7 +69,7 @@ export function DropdownComponent({ node, isValid, overrideDisplay }: IDropdownP
     >
       <ComponentStructureWrapper
         node={node}
-        label={overrideDisplay?.renderedInTable !== true ? { ...node.item, renderLabelAs: 'label' } : undefined}
+        label={overrideDisplay?.renderedInTable !== true ? { node, renderLabelAs: 'label' } : undefined}
       >
         <Combobox
           id={id}

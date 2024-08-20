@@ -2,11 +2,14 @@ import { CG } from 'src/codegen/CG';
 import { CHECKBOX_SUMMARY_OVERRIDE_PROPS } from 'src/layout/Checkboxes/config';
 import { CompCategory } from 'src/layout/common';
 import { DROPDOWN_SUMMARY_OVERRIDE_PROPS } from 'src/layout/Dropdown/config';
+import { GROUP_SUMMARY_PROPS } from 'src/layout/Group/config';
 import { INPUT_SUMMARY_OVERRIDE_PROPS } from 'src/layout/Input/config';
 import { MULTIPLE_SELECT_SUMMARY_OVERRIDE_PROPS } from 'src/layout/MultipleSelect/config';
 import { RADIO_SUMMARY_OVERRIDE_PROPS } from 'src/layout/RadioButtons/config';
+import { TEXTAREA_SUMMARY_PROPS } from 'src/layout/TextArea/config';
+
 export const Config = new CG.component({
-  category: CompCategory.Container,
+  category: CompCategory.Presentation,
   capabilities: {
     renderInTable: false,
     renderInButtonGroup: false,
@@ -14,7 +17,12 @@ export const Config = new CG.component({
     renderInAccordionGroup: false,
     renderInCards: false,
     renderInCardsMedia: false,
+    renderInTabs: true,
   },
+  functionality: {
+    customExpressions: false,
+  },
+  directRendering: true,
 })
   .addProperty(
     new CG.prop(
@@ -57,7 +65,9 @@ export const Config = new CG.component({
           RADIO_SUMMARY_OVERRIDE_PROPS,
           DROPDOWN_SUMMARY_OVERRIDE_PROPS,
           MULTIPLE_SELECT_SUMMARY_OVERRIDE_PROPS,
-        ),
+          GROUP_SUMMARY_PROPS,
+          TEXTAREA_SUMMARY_PROPS,
+        ).exportAs('AnySummaryOverrideProps'),
       ).optional(),
     ),
   );

@@ -1,9 +1,12 @@
-import { CG, Variant } from 'src/codegen/CG';
+import { CG } from 'src/codegen/CG';
 import { ExprVal } from 'src/features/expressions/types';
 import { CompCategory } from 'src/layout/common';
+import { GridRowsPlugin } from 'src/layout/Grid/GridRowsPlugin';
+import { RepeatingChildrenPlugin } from 'src/utils/layout/plugins/RepeatingChildrenPlugin';
 
 export const Config = new CG.component({
   category: CompCategory.Container,
+  directRendering: true,
   capabilities: {
     renderInTable: false,
     renderInButtonGroup: false,
@@ -11,15 +14,34 @@ export const Config = new CG.component({
     renderInAccordionGroup: false,
     renderInCards: false,
     renderInCardsMedia: false,
+    renderInTabs: true,
+  },
+  functionality: {
+    customExpressions: true,
   },
 })
-  .addProperty(
-    new CG.prop(
-      'children',
-      new CG.arr(new CG.str())
-        .setTitle('Children')
-        .setDescription('Array of component IDs that should be displayed in the repeating group'),
-    ).onlyIn(Variant.External),
+  .addPlugin(
+    new RepeatingChildrenPlugin({
+      multiPageSupport: 'edit.multiPage',
+      extraRowState: new CG.import({
+        import: 'RepGroupRowExtras',
+        from: 'src/layout/RepeatingGroup/types',
+      }),
+    }),
+  )
+  .addPlugin(
+    new GridRowsPlugin({
+      externalProp: 'rowsBefore',
+      internalProp: 'rowsBeforeInternal',
+      optional: true,
+    }),
+  )
+  .addPlugin(
+    new GridRowsPlugin({
+      externalProp: 'rowsAfter',
+      internalProp: 'rowsAfterInternal',
+      optional: true,
+    }),
   )
   .addTextResource(
     new CG.trb({
@@ -216,25 +238,6 @@ export const Config = new CG.component({
   )
   .addProperty(
     new CG.prop(
-      'rows',
-      new CG.arr(
-        new CG.obj(
-          new CG.prop('uuid', new CG.str()),
-          new CG.prop('index', new CG.num()),
-          new CG.prop('items', new CG.arr(CG.layoutNode)),
-          new CG.prop(
-            'groupExpressions',
-            new CG.import({
-              import: 'HGroupExpressions',
-              from: 'src/layout/Group/types',
-            }).optional(),
-          ),
-        ).exportAs('HRepGroupRow'),
-      ).exportAs('HRepGroupRows'),
-    ).onlyIn(Variant.Internal),
-  )
-  .addProperty(
-    new CG.prop(
       'maxCount',
       new CG.int()
         .optional()
@@ -323,6 +326,4 @@ export const Config = new CG.component({
         .setDescription('If set to true, the header of the repeating group will be sticky'),
     ),
   )
-  .addProperty(new CG.prop('rowsBefore', CG.common('GridRows').optional()))
-  .addProperty(new CG.prop('rowsAfter', CG.common('GridRows').optional()))
   .addProperty(new CG.prop('labelSettings', CG.common('ILabelSettings').optional()));

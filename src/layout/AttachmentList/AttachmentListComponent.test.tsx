@@ -1,7 +1,8 @@
 import React from 'react';
 
-import { expect, jest } from '@jest/globals';
+import { expect } from '@jest/globals';
 import { screen } from '@testing-library/react';
+import type { jest } from '@jest/globals';
 
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
@@ -11,14 +12,6 @@ import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { IData } from 'src/types/shared';
 
 describe('AttachmentListComponent', () => {
-  beforeEach(() => {
-    jest.spyOn(window, 'logErrorOnce').mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should render specific attachments without pdf', async () => {
     await render(['not-ref-data-as-pdf', 'different-process-task']);
     expect(screen.getByText('2mb')).toBeInTheDocument();
@@ -42,13 +35,6 @@ describe('AttachmentListComponent', () => {
     expect(screen.getByText('2mb')).toBeInTheDocument();
     expect(screen.getByText('differentTask')).toBeInTheDocument();
     expect(screen.queryByText('testData1')).not.toBeInTheDocument();
-
-    // We know this happens, because we don't have any uploader components available for this data type
-    expect(window.logErrorOnce).toHaveBeenCalledWith(
-      'Could not find matching component/node for attachment not-ref-data-as-pdf/test-data-type-2 ' +
-        '(there may be a problem with the mapping of attachments to form data in a repeating group). ' +
-        'Traversed 0 nodes with id not-ref-data-as-pdf',
-    );
   });
   it('should render attachments from current task without pdf', async () => {
     await render(['from-task']);

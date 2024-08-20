@@ -14,6 +14,7 @@ describe('Tabbing', () => {
       .should('have.value', 'a')
       .should('have.attr', 'id')
       .and('eq', appFrontend.changeOfName.newFullName.substring(1));
+    cy.get(appFrontend.changeOfName.confirmChangeName).should('exist');
     cy.tab().tab().tab({
       shift: true,
     });

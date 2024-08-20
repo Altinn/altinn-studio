@@ -8,6 +8,7 @@ import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import {
   RepeatingGroupProvider,
   useRepeatingGroup,
+  useRepeatingGroupRowState,
   useRepeatingGroupSelector,
 } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
 import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/RepeatingGroupsEditContainer';
@@ -15,8 +16,7 @@ import { renderWithNode } from 'src/test/renderWithProviders';
 import type { CompCheckboxesExternal } from 'src/layout/Checkboxes/config.generated';
 import type { IRawOption } from 'src/layout/common.generated';
 import type { CompExternal } from 'src/layout/layout';
-import type { CompRepeatingGroupInternal } from 'src/layout/RepeatingGroup/config.generated';
-import type { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 describe('RepeatingGroupsEditContainer', () => {
   const options: IRawOption[] = [{ value: 'option.value', label: 'option.label' }];
@@ -86,7 +86,7 @@ describe('RepeatingGroupsEditContainer', () => {
     const multiPageGroup = getMultiPageGroupMock({ id: 'group' });
     multiPageGroup.edit!.saveAndNextButton = true;
 
-    return await renderWithNode<true, BaseLayoutNode<CompRepeatingGroupInternal>>({
+    return await renderWithNode<true, LayoutNode<'RepeatingGroup'>>({
       nodeId: 'group',
       inInstance: true,
       renderer: ({ node }) => (
@@ -134,7 +134,7 @@ describe('RepeatingGroupsEditContainer', () => {
 
 function TestRenderer() {
   const editingId = useRepeatingGroupSelector((state) => state.editingId);
-  const { visibleRows } = useRepeatingGroup();
+  const { visibleRows } = useRepeatingGroupRowState();
   const editingIndex = visibleRows.find((r) => r.uuid === editingId)?.index;
   const { openForEditing } = useRepeatingGroup();
 
@@ -142,7 +142,7 @@ function TestRenderer() {
     return (
       <>
         <div data-testid='editingIndex'>undefined</div>
-        <button onClick={() => openForEditing(visibleRows[0].uuid)}>Open first row</button>
+        <button onClick={() => openForEditing(visibleRows[0])}>Open first row</button>
       </>
     );
   }

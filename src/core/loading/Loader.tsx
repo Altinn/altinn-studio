@@ -3,6 +3,7 @@ import React from 'react';
 import { AltinnContentIconFormData } from 'src/components/atoms/AltinnContentIconFormData';
 import { AltinnContentLoader } from 'src/components/molecules/AltinnContentLoader';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
+import { LoadingProvider } from 'src/core/loading/LoadingContext';
 import { Lang } from 'src/features/language/Lang';
 import { useTaskStore } from 'src/layout/Summary2/taskIdStore';
 import { ProcessTaskType } from 'src/types';
@@ -13,7 +14,7 @@ interface LoaderProps {
   renderPresentation?: boolean;
 }
 
-export const Loader = ({ reason, details, renderPresentation = true }: LoaderProps) => {
+export const Loader = ({ renderPresentation = true, ...rest }: LoaderProps) => {
   const { overriddenTaskId } = useTaskStore(({ overriddenTaskId }) => ({
     overriddenTaskId,
   }));
@@ -21,35 +22,34 @@ export const Loader = ({ reason, details, renderPresentation = true }: LoaderPro
   if (overriddenTaskId) {
     return null;
   }
-
   if (renderPresentation) {
     return (
-      <PresentationComponent
-        header={<Lang id='instantiate.starting' />}
-        type={ProcessTaskType.Unknown}
-        renderNavBar={false}
-        runNavigationEffect={false}
-      >
-        <AltinnContentLoader
-          width='100%'
-          height='400'
-          reason={reason}
-          details={details}
+      <LoadingProvider reason={rest.reason}>
+        <PresentationComponent
+          header={<Lang id='instantiate.starting' />}
+          type={ProcessTaskType.Unknown}
+          renderNavBar={false}
         >
-          <AltinnContentIconFormData />
-        </AltinnContentLoader>
-      </PresentationComponent>
+          <InnerLoader {...rest} />
+        </PresentationComponent>
+      </LoadingProvider>
     );
   }
 
   return (
-    <AltinnContentLoader
-      width='100%'
-      height='400'
-      reason={reason}
-      details={details}
-    >
-      <AltinnContentIconFormData />
-    </AltinnContentLoader>
+    <LoadingProvider reason={rest.reason}>
+      <InnerLoader {...rest} />
+    </LoadingProvider>
   );
 };
+
+const InnerLoader = ({ reason, details }: LoaderProps) => (
+  <AltinnContentLoader
+    width='100%'
+    height='400'
+    reason={reason}
+    details={details}
+  >
+    <AltinnContentIconFormData />
+  </AltinnContentLoader>
+);

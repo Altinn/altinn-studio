@@ -155,6 +155,7 @@ describe('Options', () => {
     cy.gotoNavPage('summary');
 
     cy.get(appFrontend.changeOfName.summaryReference).should('contain.text', 'Digitaliseringsdirektoratet');
+    cy.get(appFrontend.changeOfName.summaryReference).should('not.contain.text', 'Ola Nordmann');
     cy.get(appFrontend.changeOfName.summaryReference).should('not.contain.text', 'nordmann');
   });
 

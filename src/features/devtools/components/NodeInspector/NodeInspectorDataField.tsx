@@ -9,6 +9,8 @@ import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import { canBeExpression } from 'src/features/expressions/validation';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface NodeInspectorDataFieldParams {
@@ -35,7 +37,7 @@ export function Value({ children, className, property, collapsible, wasExpressio
 
   const editExpression = () => {
     setExpression(JSON.stringify(wasExpression, null, 2));
-    setExprContext(context.node?.top.top.myKey, context.node?.item.id);
+    setExprContext(context.node?.page.pageKey, context.node?.id);
     setActiveTab(DevToolsTab.Expressions);
   };
 
@@ -109,10 +111,10 @@ function OtherNode(props: { property: string; node: LayoutNode }) {
         role={'button'}
         onClick={(e) => {
           e.preventDefault();
-          context.selectNode(props.node.item.id);
+          context.selectNode(props.node.id);
         }}
       >
-        {props.node.item.id}
+        {props.node.id}
       </a>
     </Value>
   );
@@ -140,22 +142,24 @@ function ExpandArray(props: { path: string[]; property: string; elements: unknow
 
 export function NodeInspectorDataField({ path, property, value: inputValue }: NodeInspectorDataFieldParams) {
   const { node } = useNodeInspectorContext();
+  const firstRowExpr = useNodeItem(
+    node,
+    (i) => i && i.type === 'RepeatingGroup' && i.rows && i.rows?.find((r) => !!r)?.groupExpressions,
+  );
+  const itemWithExpressions = NodesInternal.useNodeData(node, (s) => s.layout);
 
   let value = inputValue;
-  const preEvaluatedValue = dot.pick(path.join('.'), node?.itemWithExpressions);
+  const preEvaluatedValue = dot.pick(path.join('.'), itemWithExpressions);
   const isExpression =
     (preEvaluatedValue !== value && Array.isArray(preEvaluatedValue) && !Array.isArray(value)) ||
     canBeExpression(value, true);
 
   let exprText = 'Ble evaluert til:';
-  if (isExpression && node?.isType('RepeatingGroup')) {
-    const firstRow = node.item.rows[0];
-    if (firstRow && firstRow.groupExpressions) {
-      const realValue = dot.pick(path.join('.'), firstRow.groupExpressions);
-      if (realValue !== undefined) {
-        value = realValue;
-        exprText = 'Ble evaluert til (for første rad):';
-      }
+  if (isExpression && node?.isType('RepeatingGroup') && firstRowExpr) {
+    const realValue = dot.pick(path.join('.'), firstRowExpr);
+    if (realValue !== undefined) {
+      value = realValue;
+      exprText = 'Ble evaluert til (for første rad):';
     }
   }
 

@@ -5,16 +5,8 @@ import cn from 'classnames';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/Accordion/SummaryAccordion.module.css';
 import { GenericComponent } from 'src/layout/GenericComponent';
-import type { ISummaryComponent } from 'src/layout/Summary/SummaryComponent';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-
-interface ISummaryAccordionComponentProps {
-  changeText: string | null;
-  onChangeClick: () => void;
-  summaryNode: LayoutNode<'Summary'>;
-  targetNode: LayoutNode<'Accordion'>;
-  overrides?: ISummaryComponent['overrides'];
-}
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 
 function getHeadingLevel(headingLevel: number | undefined) {
   switch (headingLevel) {
@@ -33,8 +25,8 @@ function getHeadingLevel(headingLevel: number | undefined) {
   }
 }
 
-export function SummaryAccordionComponent({ targetNode }: ISummaryAccordionComponentProps) {
-  const { textResourceBindings, headingLevel } = targetNode.item;
+export function SummaryAccordionComponent({ targetNode }: SummaryRendererProps<'Accordion'>) {
+  const { textResourceBindings, headingLevel, childComponents } = useNodeItem(targetNode);
   const { langAsString } = useLanguage();
 
   const title = langAsString(textResourceBindings?.title);
@@ -46,10 +38,10 @@ export function SummaryAccordionComponent({ targetNode }: ISummaryAccordionCompo
         <Heading className={classes.paddingSmall}>{title}</Heading>
       </div>
       <div className={classes.padding}>
-        {targetNode.item.childComponents.map((n) => (
+        {childComponents.map((node) => (
           <GenericComponent
-            key={n.item.id}
-            node={n}
+            key={node.id}
+            node={node}
           />
         ))}
       </div>

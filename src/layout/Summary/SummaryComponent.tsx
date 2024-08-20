@@ -8,38 +8,54 @@ import { useNavigateToNode } from 'src/features/form/layout/NavigateToNode';
 import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
-import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Summary/SummaryComponent.module.css';
 import { SummaryContent } from 'src/layout/Summary/SummaryContent';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
-import { useResolvedNode } from 'src/utils/layout/NodesContext';
-import type { IGrid } from 'src/layout/common.generated';
+import { Hidden, useNode } from 'src/utils/layout/NodesContext';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import type { ExprResolved } from 'src/features/expressions/types';
+import type { IGrid, IPageBreak } from 'src/layout/common.generated';
 import type { SummaryDisplayProperties } from 'src/layout/Summary/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
+interface SummaryOverrides {
+  targetNode: LayoutNode;
+  grid?: IGrid;
+  largeGroup?: boolean;
+  display?: SummaryDisplayProperties;
+  pageBreak?: ExprResolved<IPageBreak>;
+}
+
 export interface ISummaryComponent {
-  summaryNode: LayoutNode<'Summary'>;
-  overrides?: {
-    targetNode?: LayoutNode;
-    grid?: IGrid;
-    largeGroup?: boolean;
-    display?: SummaryDisplayProperties;
-  };
+  summaryNode: LayoutNode<'Summary'> | undefined;
+  overrides?: Partial<SummaryOverrides>;
 }
 
 function _SummaryComponent({ summaryNode, overrides }: ISummaryComponent, ref: React.Ref<HTMLDivElement>) {
-  const { id, grid } = summaryNode.item;
-  const display = overrides?.display || summaryNode.item.display;
-  const { langAsString } = useLanguage();
-  const { currentPageId } = useNavigatePage();
-  const summaryItem = summaryNode.item;
+  const summaryItem = useNodeItem(summaryNode);
+  const _targetNode = useNode(summaryItem?.componentRef);
+  const targetNode = overrides?.targetNode ?? _targetNode;
+  const targetItem = useNodeItem(targetNode);
 
-  const targetNode = useResolvedNode(overrides?.targetNode || summaryNode.item.componentRef || summaryNode.item.id);
-  const targetItem = targetNode?.item;
-  const targetView = targetNode?.top.top.myKey;
+  if (!targetNode) {
+    throw new Error(
+      `No target found for Summary '${summaryNode?.id}'. ` +
+        `Check the 'componentRef' property and make sure the target component exists.`,
+    );
+  }
+
+  const display = overrides?.display ?? summaryItem?.display;
+  const pageBreak = overrides?.pageBreak ?? summaryItem?.pageBreak ?? targetItem?.pageBreak;
+
+  const { langAsString } = useLanguage();
+  const currentPageId = useNavigationParam('pageKey');
+
+  const targetView = targetNode?.pageKey;
+  const targetIsHidden = Hidden.useIsHidden(targetNode);
 
   const validations = useUnifiedValidationsForNode(targetNode);
   const errors = validationsOfSeverity(validations, 'error');
@@ -47,28 +63,38 @@ function _SummaryComponent({ summaryNode, overrides }: ISummaryComponent, ref: R
   const navigateTo = useNavigateToNode();
   const setReturnToView = useSetReturnToView();
   const setNodeOfOrigin = useSetSummaryNodeOfOrigin();
+
   const onChangeClick = async () => {
-    if (!targetView) {
+    if (!targetView || !targetNode) {
       return;
     }
 
-    navigateTo(targetNode, true);
     setReturnToView?.(currentPageId);
-    setNodeOfOrigin?.(id);
+    setNodeOfOrigin?.(summaryNode?.id ?? targetNode?.id);
+    await navigateTo(targetNode, {
+      shouldFocus: true,
+      pageNavOptions: {
+        resetReturnToView: false,
+      },
+    });
   };
 
-  if (!targetNode || !targetItem || targetNode.isHidden() || targetItem.type === 'Summary') {
+  if (!targetNode || !targetItem || targetIsHidden || targetItem.type === 'Summary') {
     // TODO: Show info to developers if target node is not found?
     return null;
   }
 
   const displayGrid =
-    display && display.useComponentGrid ? overrides?.grid || targetItem?.grid : overrides?.grid || grid;
-
+    display && display.useComponentGrid ? overrides?.grid || targetItem?.grid : overrides?.grid || summaryItem?.grid;
   const component = targetNode.def;
   const RenderSummary = 'renderSummary' in component ? component.renderSummary.bind(component) : null;
   const shouldShowBorder =
     RenderSummary && 'renderSummaryBoilerplate' in component && component?.renderSummaryBoilerplate();
+
+  // This logic is needlessly complex, but our tests depends on it being this way as of now.
+  const summaryTestId = overrides?.targetNode
+    ? overrides.targetNode.id
+    : (summaryNode?.id ?? targetNode?.id ?? 'unknown');
 
   return (
     <Grid
@@ -79,10 +105,10 @@ function _SummaryComponent({ summaryNode, overrides }: ISummaryComponent, ref: R
       md={displayGrid?.md || false}
       lg={displayGrid?.lg || false}
       xl={displayGrid?.xl || false}
-      data-testid={`summary-${overrides?.targetNode?.item.id || id}`}
-      data-componentid={summaryItem.id}
-      data-componentbaseid={summaryItem.baseComponentId || summaryItem.id}
-      className={cn(pageBreakStyles(summaryItem.pageBreak ?? targetItem?.pageBreak))}
+      data-testid={`summary-${summaryTestId}`}
+      data-componentid={summaryNode?.id ?? `summary-${targetNode?.id}`}
+      data-componentbaseid={summaryNode?.baseId ?? `summary-${targetNode.id}`}
+      className={cn(pageBreakStyles(pageBreak))}
     >
       <Grid
         container={true}

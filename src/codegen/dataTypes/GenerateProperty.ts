@@ -1,7 +1,6 @@
 import type { JSONSchema7 } from 'json-schema';
 
 import { CodeGenerator, MaybeOptionalCodeGenerator } from 'src/codegen/CodeGenerator';
-import type { Variant } from 'src/codegen/CG';
 import type { Extract } from 'src/codegen/CodeGenerator';
 
 /**
@@ -12,8 +11,8 @@ export class GenerateProperty<Val extends CodeGenerator<any>> extends CodeGenera
   private _insertBefore?: string;
   private _insertAfter?: string;
   private _insertFirst = false;
-  private _onlyVariant?: Variant;
   private _added = false;
+  private _inSchema = true;
 
   constructor(
     public readonly name: string,
@@ -58,14 +57,13 @@ export class GenerateProperty<Val extends CodeGenerator<any>> extends CodeGenera
     return this;
   }
 
-  onlyIn(variant: Variant): this {
-    this.ensureMutable();
-    this._onlyVariant = variant;
+  omitInSchema(): this {
+    this._inSchema = false;
     return this;
   }
 
-  shouldExistIn(variant: Variant): boolean {
-    return !this._onlyVariant || this._onlyVariant === variant;
+  shouldOmitInSchema(): boolean {
+    return !this._inSchema;
   }
 
   toObject() {
@@ -74,53 +72,10 @@ export class GenerateProperty<Val extends CodeGenerator<any>> extends CodeGenera
       insertBefore: this._insertBefore,
       insertAfter: this._insertAfter,
       insertFirst: this._insertFirst,
-      onlyVariant: this._onlyVariant,
     };
   }
 
-  containsVariationDifferences(): boolean {
-    if (super.containsVariationDifferences()) {
-      return true;
-    }
-
-    if (this._onlyVariant) {
-      return true;
-    }
-
-    return this.type.containsVariationDifferences();
-  }
-
-  transformTo(variant: Variant): GenerateProperty<any> {
-    if (this._onlyVariant && this._onlyVariant !== variant) {
-      throw new Error(
-        'Cannot transform to target variant when the property is not supposed to be present in this ' +
-          'variants. This is probably a bug, as the property should have been filtered out before this point.',
-      );
-    }
-
-    if (this.currentVariant === variant) {
-      return this;
-    }
-
-    const transformedType = this.type.transformTo(variant);
-    const next = new GenerateProperty(this.name, transformedType);
-    next._insertFirst = this._insertFirst;
-    next._insertBefore = this._insertBefore;
-    next._insertAfter = this._insertAfter;
-    next._onlyVariant = this._onlyVariant;
-    next._added = this._added;
-    next.internal = structuredClone(this.internal);
-    next.internal.source = this;
-    next.currentVariant = variant;
-
-    return next;
-  }
-
   toTypeScript() {
-    if (!this.currentVariant) {
-      throw new Error('You need to transform this type to either external or internal before generating TypeScript');
-    }
-
     return this.type instanceof MaybeOptionalCodeGenerator && this.type.isOptional()
       ? `${this.name}?: ${this.type.toTypeScript()};`
       : `${this.name}: ${this.type.toTypeScript()};`;

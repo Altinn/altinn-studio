@@ -17,12 +17,8 @@ export class Map extends MapDef {
     },
   );
 
-  getDisplayData(node: LayoutNode<'Map'>, { formDataSelector }: DisplayDataProps): string {
-    if (!node.item.dataModelBindings?.simpleBinding) {
-      return '';
-    }
-
-    return node.getFormData(formDataSelector).simpleBinding ?? '';
+  getDisplayData(node: LayoutNode<'Map'>, { nodeFormDataSelector }: DisplayDataProps): string {
+    return nodeFormDataSelector(node).simpleBinding ?? '';
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'Map'>): JSX.Element | null {

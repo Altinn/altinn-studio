@@ -1,7 +1,6 @@
 import type { JSONSchema7 } from 'json-schema';
 
 import { CodeGenerator, MaybeOptionalCodeGenerator } from 'src/codegen/CodeGenerator';
-import type { Variant } from 'src/codegen/CG';
 
 type RawTypeScript = {
   typeScript: string | (() => string) | CodeGenerator<any>;
@@ -73,35 +72,5 @@ export class GenerateRaw extends MaybeOptionalCodeGenerator<any> {
 
   toTypeScriptDefinition(_symbol: string | undefined): string {
     throw new Error('Method not implemented.');
-  }
-
-  containsVariationDifferences(): boolean {
-    const realTypeScript = this.getRealTypeScript(false);
-    if (realTypeScript instanceof CodeGenerator && realTypeScript.containsVariationDifferences()) {
-      return true;
-    }
-
-    const realJsonSchema = this.getRealJsonSchema(false);
-    if (realJsonSchema instanceof CodeGenerator && realJsonSchema.containsVariationDifferences()) {
-      return true;
-    }
-
-    return super.containsVariationDifferences();
-  }
-
-  transformTo(variant: Variant): this {
-    const realTypeScript = this.getRealTypeScript(false);
-    if (realTypeScript instanceof CodeGenerator) {
-      this.realTypeScript = realTypeScript.transformTo(variant);
-    }
-
-    const realJsonSchema = this.getRealJsonSchema(false);
-    if (realJsonSchema instanceof CodeGenerator) {
-      this.realJsonSchema = realJsonSchema.transformTo(variant);
-    }
-
-    this.currentVariant = variant;
-
-    return this;
   }
 }

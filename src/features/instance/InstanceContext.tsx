@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
 
 import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
@@ -10,6 +9,7 @@ import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { ProcessProvider } from 'src/features/instance/ProcessContext';
 import { useInstantiation } from 'src/features/instantiate/InstantiationContext';
+import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useStateDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
 import { isAxiosError } from 'src/utils/isAxiosError';
@@ -64,7 +64,8 @@ function useGetInstanceDataQuery(partyId: string, instanceGuid: string) {
 }
 
 export const InstanceProvider = ({ children }: { children: React.ReactNode }) => {
-  const { partyId, instanceGuid } = useParams();
+  const partyId = useNavigationParam('partyId');
+  const instanceGuid = useNavigationParam('instanceGuid');
 
   if (!partyId || !instanceGuid) {
     return null;
@@ -93,9 +94,7 @@ const InnerInstanceProvider = ({
   const [data, setData] = useStateDeepEqual<IInstance | undefined>(undefined);
   const [error, setError] = useState<AxiosError | undefined>(undefined);
   const dataSources = useMemo(() => buildInstanceDataSources(data), [data]);
-
   const instantiation = useInstantiation();
-
   const fetchQuery = useGetInstanceDataQuery(partyId, instanceGuid);
 
   const changeData: ChangeInstanceData = useCallback(
@@ -117,7 +116,9 @@ const InnerInstanceProvider = ({
   }, [changeData, instantiation.lastResult, instantiation.error]);
 
   useEffect(() => {
-    changeData((prev) => (fetchQuery.error ? undefined : (fetchQuery.data ?? prev)));
+    if (fetchQuery.data && !fetchQuery.error) {
+      changeData(() => fetchQuery.data);
+    }
   }, [changeData, fetchQuery.data, fetchQuery.error]);
 
   // Update error states
@@ -130,8 +131,12 @@ const InnerInstanceProvider = ({
     return <DisplayError error={error} />;
   }
 
-  if (!data) {
+  if (fetchQuery.isLoading) {
     return <Loader reason='instance' />;
+  }
+
+  if (!data) {
+    return false;
   }
 
   return (

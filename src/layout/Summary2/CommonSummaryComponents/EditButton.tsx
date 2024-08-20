@@ -9,8 +9,9 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
 import { useIsMobile } from 'src/hooks/useIsMobile';
-import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { useTaskStore } from 'src/layout/Summary2/taskIdStore';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type EditButtonProps = {
@@ -23,9 +24,14 @@ export function EditButton({ componentNode, summaryComponentId, className }: Edi
   const { langAsString } = useLanguage();
   const setReturnToView = useSetReturnToView();
   const setNodeOfOrigin = useSetSummaryNodeOfOrigin();
-  const { currentPageId } = useNavigatePage();
+  const currentPageId = useCurrentView();
   const pdfModeActive = usePdfModeActive();
   const isMobile = useIsMobile();
+
+  const titleTrb = useNodeItem(componentNode, (i) =>
+    i.textResourceBindings && 'title' in i.textResourceBindings ? i.textResourceBindings.title : undefined,
+  );
+  const accessibleTitle = titleTrb ? langAsString(titleTrb) : '';
 
   const { overriddenTaskId } = useTaskStore(({ overriddenTaskId }) => ({
     overriddenTaskId,
@@ -35,16 +41,17 @@ export function EditButton({ componentNode, summaryComponentId, className }: Edi
     return null;
   }
 
-  const accessibleTitle =
-    componentNode?.item?.textResourceBindings && 'title' in componentNode.item.textResourceBindings
-      ? langAsString(componentNode.item.textResourceBindings?.title)
-      : '';
   const onChangeClick = async () => {
-    if (!componentNode.top.top.myKey) {
+    if (!componentNode.pageKey) {
       return;
     }
 
-    navigateTo(componentNode, true);
+    await navigateTo(componentNode, {
+      shouldFocus: true,
+      pageNavOptions: {
+        resetReturnToView: false,
+      },
+    });
     setReturnToView?.(currentPageId);
     setNodeOfOrigin?.(summaryComponentId);
   };

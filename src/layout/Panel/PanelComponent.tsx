@@ -9,14 +9,22 @@ import { Lang } from 'src/features/language/Lang';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/Panel/Panel.module.css';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
 import type { PropsFromGenericComponent } from 'src/layout';
 type IPanelProps = PropsFromGenericComponent<'Panel'>;
 
 export const PanelComponent = ({ node }: IPanelProps) => {
-  const { textResourceBindings, variant, showIcon } = node.item;
-  const fullWidth = !node.item.grid && node.parent instanceof LayoutPage;
-  const isOnBottom = node.parent.children().indexOf(node) === node.parent.children().length - 1;
-  const isOnTop = node.parent.children().indexOf(node) === 0;
+  const { textResourceBindings, variant, showIcon, grid } = useNodeItem(node);
+  const fullWidth = !grid && node.parent instanceof LayoutPage;
+
+  const { isOnBottom, isOnTop } = useNodeTraversal((t) => {
+    const parent = t.parents()[0];
+    const children = t.with(parent).children();
+    const isOnBottom = children.indexOf(node) === children.length - 1;
+    const isOnTop = children.indexOf(node) === 0;
+    return { isOnBottom, isOnTop };
+  }, node);
 
   if (!textResourceBindings) {
     return null;

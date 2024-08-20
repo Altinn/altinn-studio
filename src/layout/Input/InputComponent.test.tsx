@@ -136,7 +136,7 @@ describe('InputComponent', () => {
     expect(inputComponent).toHaveValue(formattedValue);
   });
 
-  const render = async ({ component, genericProps, ...rest }: Partial<RenderGenericComponentTestProps<'Input'>> = {}) =>
+  const render = async ({ component, ...rest }: Partial<RenderGenericComponentTestProps<'Input'>> = {}) =>
     await renderGenericComponentTest({
       type: 'Input',
       renderer: (props) => <InputComponent {...props} />,
@@ -148,10 +148,6 @@ describe('InputComponent', () => {
           simpleBinding: 'some.field',
         },
         ...component,
-      },
-      genericProps: {
-        isValid: true,
-        ...genericProps,
       },
       ...rest,
     });

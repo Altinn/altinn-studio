@@ -7,31 +7,31 @@ exports[`MultipleChoiceSummary MultipleChoiceSummary 1`] = `
     data-testid="multiple-choice-summary"
   >
     <ul
-      class="MuiList-root makeStyles-list-6 MuiList-padding"
+      class="MuiList-root makeStyles-list-11 MuiList-padding"
     >
       <li
-        class="MuiListItem-root makeStyles-listItem-7 MuiListItem-gutters"
+        class="MuiListItem-root makeStyles-listItem-12 MuiListItem-gutters"
       >
         <div
           class="MuiListItemText-root"
           id="some-key"
         >
           <span
-            class="MuiTypography-root makeStyles-data-8 MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
+            class="MuiTypography-root makeStyles-data-13 MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
           >
             This is a text
           </span>
         </div>
       </li>
       <li
-        class="MuiListItem-root makeStyles-listItem-7 MuiListItem-gutters"
+        class="MuiListItem-root makeStyles-listItem-12 MuiListItem-gutters"
       >
         <div
           class="MuiListItemText-root"
           id="some-other-key"
         >
           <span
-            class="MuiTypography-root makeStyles-data-8 MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
+            class="MuiTypography-root makeStyles-data-13 MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
           >
             This is another text
           </span>

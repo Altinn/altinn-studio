@@ -1,10 +1,12 @@
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Common } from 'test/e2e/pageobjects/common';
+import { Datalist } from 'test/e2e/pageobjects/datalist';
 
 import type { IDataModelPatchResponse } from 'src/features/formData/types';
 
 const appFrontend = new AppFrontend();
+const dataListPage = new Datalist();
 const mui = new Common();
 
 describe('Validation', () => {
@@ -22,7 +24,7 @@ describe('Validation', () => {
       'have.text',
       texts.requiredFieldFromBackend,
     );
-    cy.findByRole('textbox', { name: newFirstName }).type('Some value');
+    cy.findByRole('textbox', { name: newFirstName }).type('Per'); // Has to be less than 5 characters
     cy.findByRole('textbox', { name: newFirstName }).blur();
     cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newFirstName)).should('not.exist');
     cy.findByRole('textbox', { name: newFirstName }).clear();
@@ -121,9 +123,6 @@ describe('Validation', () => {
       .should('contain.text', texts.requiredFieldDateFrom)
       .should('contain.text', texts.next);
     cy.navPage('form').should('have.attr', 'aria-current', 'page');
-    // Make sure all the buttons in the form are now inside errorReport, not outside of it.
-    // - 4 of the button roles belong to each of the errors in the report
-    // - 2 of the button roles belong to the buttons on the bottom of the form (print, next)
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 4);
     cy.get(appFrontend.errorReport)
       .findAllByRole('button')
@@ -163,9 +162,13 @@ describe('Validation', () => {
   });
 
   it('Validation on uploaded attachment type with tag', () => {
+    cy.intercept('POST', '**/instances/**/data?dataType=*').as('upload');
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.uploadWithTag.uploadZone).selectFile('test/e2e/fixtures/test.pdf', { force: true });
-    cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).click({ multiple: true });
+    cy.wait('@upload');
+    cy.waitUntilNodesReady();
+    cy.dsReady(appFrontend.changeOfName.uploadWithTag.saveTag);
+    cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).click();
     cy.get(appFrontend.changeOfName.uploadWithTag.error).should(
       'not.contain.text',
       appFrontend.changeOfName.uploadWithTag.unwantedChar,
@@ -315,6 +318,7 @@ describe('Validation', () => {
 
   it('List component: validation messages should only show up once', () => {
     cy.goto('datalist');
+    cy.get(dataListPage.tableBody).first().first().contains('Caroline');
     cy.get(appFrontend.nextButton).click();
     cy.get(appFrontend.errorReport)
       .should('be.inViewport')
@@ -342,6 +346,7 @@ describe('Validation', () => {
 
     cy.get(appFrontend.group.prefill.liten).check();
     cy.get(appFrontend.group.prefill.stor).check();
+    cy.get(appFrontend.group.prefill.stor).blur();
     cy.get(appFrontend.nextButton).clickAndGone();
     cy.navPage('repeating').should('have.attr', 'aria-current', 'page');
 
@@ -373,6 +378,7 @@ describe('Validation', () => {
     // Validation message should now have changed, since we filled out currentValue and saved
     cy.get(appFrontend.errorReport).findByText('Du må fylle ut 2. endre verdi 123 til').should('be.visible');
     cy.get(appFrontend.group.row(2).deleteBtn).click();
+    cy.waitUntilNodesReady();
 
     // Check that nested group with multipage gets focus
     cy.get(appFrontend.group.row(0).editBtn).click();
@@ -403,12 +409,7 @@ describe('Validation', () => {
     cy.get(appFrontend.prevButton).click();
 
     cy.changeLayout((component) => {
-      if (
-        component.type === 'RepeatingGroup' &&
-        component.id === 'mainGroup' &&
-        'tableColumns' in component &&
-        component.tableColumns
-      ) {
+      if (component.type === 'RepeatingGroup' && component.id === 'mainGroup' && component.tableColumns) {
         // As the component is hidden in edit mode, and not shown in the table for editing, it should not be
         // showing any validation messages.
         component.tableColumns.currentValue.showInExpandedEdit = false;
@@ -439,12 +440,7 @@ describe('Validation', () => {
     cy.get(appFrontend.errorReport).should('not.exist');
 
     cy.changeLayout((component) => {
-      if (
-        component.type === 'RepeatingGroup' &&
-        component.id === 'mainGroup' &&
-        'edit' in component &&
-        component.edit
-      ) {
+      if (component.type === 'RepeatingGroup' && component.id === 'mainGroup' && component.edit) {
         // In the 'onlyTable' mode, there is no option to edit a row, so we should not open the row in edit mode
         // to focus a component either.
         component.edit.mode = 'onlyTable';
@@ -460,12 +456,7 @@ describe('Validation', () => {
     cy.get(appFrontend.group.editContainer).should('not.exist');
 
     cy.changeLayout((component) => {
-      if (
-        component.type === 'RepeatingGroup' &&
-        component.id === 'mainGroup' &&
-        'tableColumns' in component &&
-        component.tableColumns
-      ) {
+      if (component.type === 'RepeatingGroup' && component.id === 'mainGroup' && component.tableColumns) {
         component.tableColumns.currentValue.editInTable = undefined;
         component.tableColumns.newValue.editInTable = true;
       }
@@ -484,6 +475,7 @@ describe('Validation', () => {
     // Delete the row, start over, and observe that the currentValue now exists as a field in the table and
     // produces a validation message if not filled out. We need to use the 'next' button to trigger validation.
     cy.get(appFrontend.group.row(2).deleteBtn).click();
+    cy.waitUntilNodesReady();
     cy.get(appFrontend.group.row(2).currentValue).should('not.exist');
     cy.get(appFrontend.group.addNewItem).click();
     cy.get(appFrontend.group.row(2).currentValue).should('exist');
@@ -501,12 +493,7 @@ describe('Validation', () => {
     cy.get(appFrontend.group.editContainer).should('not.exist');
 
     cy.changeLayout((component) => {
-      if (
-        component.type === 'RepeatingGroup' &&
-        component.id === 'mainGroup' &&
-        'tableColumns' in component &&
-        component.tableColumns
-      ) {
+      if (component.type === 'RepeatingGroup' && component.id === 'mainGroup' && component.tableColumns) {
         // Components that are not editable in the table, when using the 'onlyTable' mode, are implicitly hidden
         component.tableColumns.currentValue.editInTable = false;
       }
@@ -527,9 +514,7 @@ describe('Validation', () => {
       if (
         component.type === 'RepeatingGroup' &&
         component.id === 'mainGroup' &&
-        'edit' in component &&
         component.edit &&
-        'tableColumns' in component &&
         component.tableColumns
       ) {
         // In regular mode, if the edit button is hidden, we should not open the row in edit mode to focus a component
@@ -541,35 +526,19 @@ describe('Validation', () => {
       }
     });
 
-    // Go back to the first page and then here again to reset the repeating group after the change above
-    cy.gotoNavPage('prefill');
-    cy.gotoNavPage('repeating');
-
+    cy.get(appFrontend.nextButton).click();
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
     cy.get(appFrontend.group.editContainer).should('not.exist');
     cy.get(appFrontend.group.addNewItem).click();
-    cy.get(appFrontend.group.editContainer).should('be.visible');
-    cy.get(appFrontend.group.row(3).newValue).should('exist');
+    cy.get(appFrontend.group.row(3).newValue).should('not.exist');
     cy.get(appFrontend.group.row(3).currentValue).should('not.exist');
-    cy.get(appFrontend.group.saveMainGroup).click();
+    cy.get(appFrontend.group.editContainer).should('not.exist');
+    cy.get(appFrontend.nextButton).click();
+
+    // The validations still show up, because technically these are not hidden, but they're unreachable.
+    // See the TODO in RepeatingGroup/index.tsx for why fixing this is a breaking change.
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
-    cy.get(appFrontend.errorReport).findAllByText('Du må fylle ut 2. endre verdi til').eq(0).click();
-
-    // We have no way to focus this field, because this component is hidden when the edit container is no longer
-    // visible for this row. It's not technically a fully hidden component since it can still be edited when the
-    // edit container was first opened, but by removing the edit button, we've made it impossible to reach the
-    // component to focus it.
-    //
-    // Note that we're testing expected functionality here, but if you're actually implementing this in an app, you
-    // should trigger validation before saving and closing the group row, so that the user cannot reach this state
-    // (although they still could if refreshing the page, so it's not the best idea).
-
-    cy.focused().should('have.text', 'Du må fylle ut 2. endre verdi til');
-
-    // Clicking the next validation message should focus the component already open in editing mode
-    cy.get(appFrontend.group.editContainer).find(appFrontend.group.row(3).newValue).should('not.be.focused');
-    cy.get(appFrontend.errorReport).findAllByText('Du må fylle ut 2. endre verdi til').eq(1).click();
-    cy.get(appFrontend.group.editContainer).find(appFrontend.group.row(3).newValue).should('be.focused');
+    cy.navPage('repeating').should('have.attr', 'aria-current', 'page');
   });
 
   it('Validates mime type on attachment', () => {
@@ -600,10 +569,10 @@ describe('Validation', () => {
     cy.get(appFrontend.grid.bolig.percent).numberFormatClear();
 
     cy.get(appFrontend.grid.kredittkort.percent).numberFormatClear();
-    cy.get(appFrontend.grid.kredittkort.percent).type('44');
+    cy.get(appFrontend.grid.kredittkort.percent).type('{moveToStart}{del}44');
 
     cy.get(appFrontend.grid.studie.percent).numberFormatClear();
-    cy.get(appFrontend.grid.studie.percent).type('56');
+    cy.get(appFrontend.grid.studie.percent).type('{moveToStart}{del}56');
 
     // When filling out the credit card field with 44%, there is a special validation that triggers and is added to
     // a field on a hidden page. Even though this should not happen, we should still not be able to continue, as

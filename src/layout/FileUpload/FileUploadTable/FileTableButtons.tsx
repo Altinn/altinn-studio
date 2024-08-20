@@ -4,15 +4,15 @@ import { Button } from '@digdir/designsystemet-react';
 import { PencilIcon, TrashIcon } from '@navikt/aksel-icons';
 
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
-import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
+import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
+import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import { isAttachmentUploaded } from 'src/features/attachments';
-import { useAttachmentsRemover } from 'src/features/attachments/AttachmentsContext';
-import { useAttachmentsMappedToFormDataProvider } from 'src/features/attachments/useAttachmentsMappedToFormData';
+import { useAttachmentsRemover } from 'src/features/attachments/hooks';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useAlertOnChange } from 'src/hooks/useAlertOnChange';
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableRow.module.css';
 import { useFileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { IAttachment } from 'src/features/attachments';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -24,13 +24,12 @@ interface IFileTableButtonsProps {
 }
 
 export function FileTableButtons({ node, attachment, mobileView, editWindowIsOpen }: IFileTableButtonsProps) {
-  const { alertOnDelete, type } = node.item;
+  const { alertOnDelete, type, dataModelBindings, readOnly } = useNodeItem(node);
   const hasTag = type === 'FileUploadWithTag';
-  const showEditButton = hasTag && !editWindowIsOpen;
+  const showEditButton = hasTag && !editWindowIsOpen && !readOnly;
   const { langAsString } = useLanguage();
   const { index, setEditIndex, editIndex } = useFileTableRow();
   const removeAttachment = useAttachmentsRemover();
-  const mappingTools = useAttachmentsMappedToFormDataProvider();
 
   // Edit button
   const handleEdit = (index: number) => {
@@ -41,14 +40,12 @@ export function FileTableButtons({ node, attachment, mobileView, editWindowIsOpe
     }
   };
 
-  const handleDeleteFile = () => {
+  const handleDeleteFile = async () => {
     if (!isAttachmentUploaded(attachment)) {
       return;
     }
 
-    removeAttachment({ attachment, node }).then(() => {
-      mappingTools.removeAttachment(attachment.data.id);
-    });
+    await removeAttachment({ attachment, node, dataModelBindings });
     editWindowIsOpen && setEditIndex(-1);
   };
 

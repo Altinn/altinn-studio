@@ -29,15 +29,15 @@ export class UnexpectedType extends ExprRuntimeError {
 
 export class NodeNotFound extends ExprRuntimeError {
   public constructor(context: ExprContext, original: NodeNotFoundWithoutContext) {
-    super(
-      context,
-      `Unable to evaluate expressions in context of the ${JSON.stringify(
-        original.nodeId,
-      )} component (it could not be found)`,
-    );
+    const id = JSON.stringify(original.getId());
+    super(context, `Unable to evaluate expressions in context of the ${id} component (it could not be found)`);
   }
 }
 
 export class NodeNotFoundWithoutContext {
-  public constructor(public nodeId: string | undefined) {}
+  public constructor(private nodeId: string | undefined) {}
+
+  public getId() {
+    return this.nodeId;
+  }
 }

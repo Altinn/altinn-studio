@@ -10,6 +10,6 @@ export const getMultiPageGroupMock = (overrides: Partial<CompRepeatingGroupExter
   edit: {
     multiPage: true,
   },
-  children: ['FormLayout:field1', 'FormLayout:field2', 'FormLayout:field3'],
+  children: ['0:field1', '1:field2', '2:field3'],
   ...overrides,
 });

@@ -9,7 +9,7 @@ import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { renderWithNode } from 'src/test/renderWithProviders';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
-import type { IRawOption, ISelectionComponentExternal } from 'src/layout/common.generated';
+import type { IRawOption, ISelectionComponent } from 'src/layout/common.generated';
 import type { fetchOptions } from 'src/queries/queries';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -22,11 +22,7 @@ interface RenderProps {
 }
 
 function TestOptions({ node }: { node: LayoutNode<'Dropdown' | 'MultipleSelect'> }) {
-  const { options, setData, selectedValues } = useGetOptions({
-    ...node.item,
-    valueType: node.item.type === 'Dropdown' ? 'single' : 'multi',
-    node,
-  });
+  const { options, setData, selectedValues } = useGetOptions(node, node.isType('Dropdown') ? 'single' : 'multi');
 
   const setterFor = (index: number) => () => setData([options[index].value]);
 
@@ -43,7 +39,7 @@ function TestOptions({ node }: { node: LayoutNode<'Dropdown' | 'MultipleSelect'>
 }
 
 async function render(props: RenderProps) {
-  const layoutConfig: ISelectionComponentExternal = {
+  const layoutConfig: ISelectionComponent = {
     options: props.via === 'layout' ? props.options : undefined,
     optionsId: props.via === 'api' ? 'myOptions' : undefined,
     mapping: props.via === 'api' ? props.mapping : undefined,

@@ -13,28 +13,37 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import classes from 'src/layout/RepeatingGroup/RepeatingGroupContainer.module.css';
-import { useRepeatingGroup, useRepeatingGroupSelector } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
+import {
+  useRepeatingGroup,
+  useRepeatingGroupPagination,
+  useRepeatingGroupRowState,
+  useRepeatingGroupSelector,
+} from 'src/layout/RepeatingGroup/RepeatingGroupContext';
 import { useRepeatingGroupsFocusContext } from 'src/layout/RepeatingGroup/RepeatingGroupFocusContext';
 import { RepeatingGroupPagination } from 'src/layout/RepeatingGroup/RepeatingGroupPagination';
 import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/RepeatingGroupsEditContainer';
 import { RepeatingGroupTable } from 'src/layout/RepeatingGroup/RepeatingGroupTable';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { Hidden } from 'src/utils/layout/NodesContext';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 
 export const RepeatingGroupContainer = forwardRef((_, ref: React.ForwardedRef<HTMLDivElement>): JSX.Element | null => {
-  const { node, rowsToDisplay } = useRepeatingGroup();
+  const { node } = useRepeatingGroup();
+  const { rowsToDisplay } = useRepeatingGroupPagination();
   const { editingId } = useRepeatingGroupSelector((state) => ({
     editingId: state.editingId,
   }));
   const isEditingAnyRow = editingId !== undefined;
 
-  const { textResourceBindings, edit, type } = node.item;
+  const { textResourceBindings, edit, type } = useNodeItem(node);
   const { title, description } = textResourceBindings || {};
 
   const numRows = rowsToDisplay.length;
   const lastIndex = rowsToDisplay[numRows - 1];
   const validations = useUnifiedValidationsForNode(node);
+  const isHidden = Hidden.useIsHidden(node);
 
-  if (node.isHidden() || type !== 'RepeatingGroup') {
+  if (isHidden || type !== 'RepeatingGroup') {
     return null;
   }
 
@@ -44,8 +53,8 @@ export const RepeatingGroupContainer = forwardRef((_, ref: React.ForwardedRef<HT
     <Grid
       container={true}
       item={true}
-      data-componentid={node.item.id}
-      data-componentbaseid={node.item.baseComponentId || node.item.id}
+      data-componentid={node.id}
+      data-componentbaseid={node.baseId}
       ref={ref}
     >
       {(!edit?.mode ||
@@ -96,10 +105,7 @@ export const RepeatingGroupContainer = forwardRef((_, ref: React.ForwardedRef<HT
         item={true}
         xs={12}
       >
-        <ComponentValidations
-          validations={validations}
-          node={node}
-        />
+        <ComponentValidations validations={validations} />
       </Grid>
     </Grid>
   );
@@ -109,20 +115,21 @@ RepeatingGroupContainer.displayName = 'RepeatingGroupContainer';
 function AddButton() {
   const { lang, langAsString } = useLanguage();
   const { triggerFocus } = useRepeatingGroupsFocusContext();
-  const { node, addRow, visibleRows } = useRepeatingGroup();
-  const { editingAll, editingNone, editingId, currentlyAddingRow } = useRepeatingGroupSelector((state) => ({
+  const { node, addRow } = useRepeatingGroup();
+  const { visibleRows } = useRepeatingGroupRowState();
+  const { editingAll, editingNone, isEditingAnyRow, currentlyAddingRow } = useRepeatingGroupSelector((state) => ({
     editingAll: state.editingAll,
     editingNone: state.editingNone,
-    editingId: state.editingId,
+    isEditingAnyRow: state.editingId !== undefined,
     currentlyAddingRow: state.addingIds.length > 0,
   }));
-  const isEditingAnyRow = editingId !== undefined;
 
-  const { textResourceBindings, id, edit } = node.item;
+  const item = useNodeItem(node);
+  const { textResourceBindings, id, edit } = item;
   const { add_button, add_button_full } = textResourceBindings || {};
 
   const numRows = visibleRows.length;
-  const tooManyRows = 'maxCount' in node.item && typeof node.item.maxCount == 'number' && numRows >= node.item.maxCount;
+  const tooManyRows = 'maxCount' in item && typeof item.maxCount == 'number' && numRows >= item.maxCount;
   const forceShow = editingAll || editingNone || edit?.alwaysShowAddButton === true;
 
   if (edit?.addButton === false) {

@@ -2,9 +2,7 @@ import { useMemo } from 'react';
 
 import type { NodeValidation } from '..';
 
-import { getValidationsForNode } from 'src/features/validation/utils';
-import { Validation } from 'src/features/validation/validationContext';
-import { getVisibilityForNode } from 'src/features/validation/visibility/visibilityUtils';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 /**
@@ -12,14 +10,15 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
  * Both validations connected to specific data model bindings,
  * and general component validations in a single list.
  */
+const emptyArray = [];
 export function useUnifiedValidationsForNode(node: LayoutNode | undefined): NodeValidation[] {
-  const selector = Validation.useSelector();
-  const visibilitySelector = Validation.useVisibilitySelector();
+  const validations = NodesInternal.useVisibleValidations(node);
 
   return useMemo(() => {
     if (!node) {
-      return [];
+      return emptyArray;
     }
-    return getValidationsForNode(node, selector, getVisibilityForNode(node, visibilitySelector));
-  }, [node, selector, visibilitySelector]);
+
+    return validations.map((validation) => ({ ...validation, node }));
+  }, [node, validations]);
 }

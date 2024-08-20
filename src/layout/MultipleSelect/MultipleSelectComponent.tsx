@@ -4,26 +4,25 @@ import { Combobox } from '@digdir/designsystemet-react';
 
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
-import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
+import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
+import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useGetOptions } from 'src/features/options/useGetOptions';
-import { useAlertOnChange } from 'src/hooks/useAlertOnChange';
+import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import comboboxClasses from 'src/styles/combobox.module.css';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IMultipleSelectProps = PropsFromGenericComponent<'MultipleSelect'>;
-export function MultipleSelectComponent({ node, isValid, overrideDisplay }: IMultipleSelectProps) {
-  const { id, readOnly, textResourceBindings, alertOnChange } = node.item;
+export function MultipleSelectComponent({ node, overrideDisplay }: IMultipleSelectProps) {
+  const item = useNodeItem(node);
+  const isValid = useIsValid(node);
+  const { id, readOnly, textResourceBindings, alertOnChange } = item;
   const debounce = FD.useDebounceImmediately();
-  const { options, isFetching, selectedValues, setData } = useGetOptions({
-    ...node.item,
-    valueType: 'multi',
-    node,
-    removeDuplicates: true,
-  });
+  const { options, isFetching, selectedValues, setData } = useGetOptions(node, 'multi');
   const { langAsString, lang } = useLanguage(node);
 
   const changeMessageGenerator = useCallback(
@@ -68,7 +67,7 @@ export function MultipleSelectComponent({ node, isValid, overrideDisplay }: IMul
     >
       <ComponentStructureWrapper
         node={node}
-        label={{ ...node.item, renderLabelAs: 'label' }}
+        label={{ node, renderLabelAs: 'label' }}
       >
         <Combobox
           multiple

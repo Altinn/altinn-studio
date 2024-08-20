@@ -5,11 +5,12 @@ import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/DevNavigationButtons/DevNavigationButtons.module.css';
 import { useIsInFormContext } from 'src/features/form/FormContext';
-import { useIsHiddenPage } from 'src/features/form/layout/PageNavigationContext';
 import { useLayoutSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import comboboxClasses from 'src/styles/combobox.module.css';
-import { useNodes } from 'src/utils/layout/NodesContext';
+import { Hidden } from 'src/utils/layout/NodesContext';
+import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
 
 export function DevNavigationButtons() {
   const isInForm = useIsInFormContext();
@@ -21,12 +22,12 @@ export function DevNavigationButtons() {
 }
 
 const InnerDevNavigationButtons = () => {
-  const { navigateToPage, currentPageId } = useNavigatePage();
-  const isHiddenPage = useIsHiddenPage();
+  const pageKey = useNavigationParam('pageKey');
+  const { navigateToPage } = useNavigatePage();
+  const isHiddenPage = Hidden.useIsHiddenPageSelector();
   const orderWithHidden = useLayoutSettings().pages.order;
-  const ctx = useNodes();
   const order = orderWithHidden ?? [];
-  const allPages = ctx?.allPageKeys() || [];
+  const allPages = useNodeTraversal((t) => t.children().map((p) => p.pageKey));
 
   function handleChange(values: string[]) {
     const newView = values.at(0);
@@ -85,7 +86,7 @@ const InnerDevNavigationButtons = () => {
               // TODO(DevTools): Navigate to hidden pages is not working
               disabled={isHidden(page)}
               onClick={() => handleChange([page])}
-              selected={currentPageId == page}
+              selected={pageKey == page}
             >
               {page}
             </Chip.Toggle>
@@ -95,7 +96,7 @@ const InnerDevNavigationButtons = () => {
       <div className={cn(classes.dropdown, { [classes.responsiveDropdown]: !compactView })}>
         <Combobox
           size='sm'
-          value={[currentPageId]}
+          value={[pageKey!]}
           onValueChange={handleChange}
           className={comboboxClasses.container}
         >

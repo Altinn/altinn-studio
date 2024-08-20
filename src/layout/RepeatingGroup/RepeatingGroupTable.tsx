@@ -6,53 +6,39 @@ import cn from 'classnames';
 import { Caption } from 'src/components/form/Caption';
 import { Lang } from 'src/features/language/Lang';
 import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
-import { CompCategory } from 'src/layout/common';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { GridRowRenderer } from 'src/layout/Grid/GridComponent';
-import { nodesFromGridRows } from 'src/layout/Grid/tools';
+import { useNodesFromGridRows } from 'src/layout/Grid/tools';
 import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
-import { useRepeatingGroup } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
+import {
+  useRepeatingGroup,
+  useRepeatingGroupPagination,
+  useRepeatingGroupRowState,
+} from 'src/layout/RepeatingGroup/RepeatingGroupContext';
 import { RepeatingGroupPagination } from 'src/layout/RepeatingGroup/RepeatingGroupPagination';
 import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/RepeatingGroupsEditContainer';
 import { RepeatingGroupTableRow } from 'src/layout/RepeatingGroup/RepeatingGroupTableRow';
 import { RepeatingGroupTableTitle } from 'src/layout/RepeatingGroup/RepeatingGroupTableTitle';
-import { getColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
+import { useTableNodes } from 'src/layout/RepeatingGroup/useTableNodes';
+import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
+import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { ITableColumnFormatting } from 'src/layout/common.generated';
-import type { ChildLookupRestriction } from 'src/utils/layout/HierarchyGenerator';
+import type { GridCellInternal } from 'src/layout/Grid/types';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export function RepeatingGroupTable(): React.JSX.Element | null {
   const mobileView = useIsMobileOrTablet();
-  const { node, isEditing, rowsToDisplay } = useRepeatingGroup();
-  const { textResourceBindings, labelSettings, id, edit, minCount, stickyHeader } = node.item;
+  const { node, isEditing } = useRepeatingGroup();
+  const { rowsToDisplay } = useRepeatingGroupPagination();
+  const { textResourceBindings, labelSettings, id, edit, minCount, stickyHeader, tableColumns, rows, baseComponentId } =
+    useNodeItem(node);
   const required = !!minCount && minCount > 0;
 
-  const columnSettings = node.item.tableColumns
-    ? structuredClone(node.item.tableColumns)
-    : ({} as ITableColumnFormatting);
+  const columnSettings = tableColumns ? structuredClone(tableColumns) : ({} as ITableColumnFormatting);
 
-  const getTableNodes = (restriction: ChildLookupRestriction) => {
-    const tableHeaders = node.item?.tableHeaders;
-    const nodes = node.children(undefined, restriction).filter((child) => {
-      if (tableHeaders) {
-        const { id, baseComponentId } = child.item;
-        return !!(tableHeaders.includes(id) || (baseComponentId && tableHeaders.includes(baseComponentId)));
-      }
-      return child.isCategory(CompCategory.Form);
-    });
+  const tableNodes = useTableNodes(node, 0);
 
-    // Sort using the order from tableHeaders
-    if (tableHeaders) {
-      nodes?.sort((a, b) => {
-        const aIndex = tableHeaders.indexOf(a.item.baseComponentId || a.item.id);
-        const bIndex = tableHeaders.indexOf(b.item.baseComponentId || b.item.id);
-        return aIndex - bIndex;
-      });
-    }
-
-    return nodes;
-  };
-
-  const tableNodes = getTableNodes({ onlyInRowIndex: 0 });
   const numRows = rowsToDisplay.length;
   const firstRowId = numRows >= 1 ? rowsToDisplay[0].uuid : undefined;
 
@@ -61,25 +47,19 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
 
   const showDeleteButtonColumns = new Set<boolean>();
   const showEditButtonColumns = new Set<boolean>();
-  for (const row of node.item.rows) {
-    if (rowsToDisplay.some((r) => r.uuid === row.uuid)) {
-      showDeleteButtonColumns.add(row.groupExpressions.edit?.deleteButton !== false);
-      showEditButtonColumns.add(row.groupExpressions.edit?.editButton !== false);
+  for (const row of rows) {
+    if (row && rowsToDisplay.some((r) => r.uuid === row.uuid)) {
+      showDeleteButtonColumns.add(row.groupExpressions?.edit?.deleteButton !== false);
+      showEditButtonColumns.add(row.groupExpressions?.edit?.editButton !== false);
     }
   }
-  let displayDeleteColumn = showDeleteButtonColumns.has(true) || !showDeleteButtonColumns.has(false);
+  const displayDeleteColumn = showDeleteButtonColumns.has(true) || !showDeleteButtonColumns.has(false);
   let displayEditColumn = showEditButtonColumns.has(true) || !showEditButtonColumns.has(false);
-  if (edit?.editButton === false) {
-    displayEditColumn = false;
-  }
-  if (edit?.deleteButton === false) {
-    displayDeleteColumn = false;
-  }
   if (edit?.mode === 'onlyTable') {
     displayEditColumn = false;
   }
 
-  const isNested = typeof node.item?.baseComponentId === 'string';
+  const isNested = typeof baseComponentId === 'string';
 
   if (!tableNodes) {
     return null;
@@ -131,16 +111,11 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
           <Table.Head id={`group-${id}-table-header`}>
             <Table.Row>
               {tableNodes?.map((n) => (
-                <Table.HeaderCell
-                  key={n.item.id}
-                  className={classes.tableCellFormatting}
-                  style={getColumnStylesRepeatingGroups(n, columnSettings)}
-                >
-                  <RepeatingGroupTableTitle
-                    node={n}
-                    columnSettings={columnSettings}
-                  />
-                </Table.HeaderCell>
+                <TitleCell
+                  key={n.id}
+                  node={n}
+                  columnSettings={columnSettings}
+                />
               ))}
               {displayEditColumn && (
                 <Table.HeaderCell style={{ padding: 0, paddingRight: '10px' }}>
@@ -163,14 +138,14 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
           {rowsToDisplay.map((row) => {
             const isEditingRow = isEditing(row.uuid) && edit?.mode !== 'onlyTable';
             return (
-              <React.Fragment key={row.uuid}>
+              <React.Fragment key={`${row.uuid}-${row.index}`}>
                 <RepeatingGroupTableRow
                   className={cn({
                     [classes.editingRow]: isEditingRow,
                     [classes.editRowOnTopOfStickyHeader]: isEditingRow && stickyHeader,
                   })}
                   uuid={row.uuid}
-                  getTableNodes={getTableNodes}
+                  index={row.index}
                   mobileView={mobileView}
                   displayDeleteColumn={displayDeleteColumn}
                   displayEditColumn={displayEditColumn}
@@ -212,24 +187,26 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
 
 interface ExtraRowsProps {
   where: 'Before' | 'After';
-  extraCells: null[];
+  extraCells: GridCellInternal[];
   columnSettings: ITableColumnFormatting;
 }
 
 function ExtraRows({ where, extraCells, columnSettings }: ExtraRowsProps) {
   const mobileView = useIsMobileOrTablet();
-  const { visibleRows, node } = useRepeatingGroup();
+  const { node } = useRepeatingGroup();
+  const { visibleRows } = useRepeatingGroupRowState();
   const isEmpty = visibleRows.length === 0;
-  const isNested = typeof node.item.baseComponentId === 'string';
+  const item = useNodeItem(node);
+  const isNested = node.parent instanceof BaseLayoutNode;
 
-  const rows = where === 'Before' ? node.item.rowsBefore : node.item.rowsAfter;
+  const rows = where === 'Before' ? item.rowsBeforeInternal : item.rowsAfterInternal;
+  const mobileNodes = useNodesFromGridRows(rows, mobileView);
   if (isEmpty || !rows) {
     return null;
   }
 
   if (mobileView) {
-    const nodes = nodesFromGridRows(rows).filter((child) => !child.isHidden());
-    if (!nodes) {
+    if (!mobileNodes || mobileNodes.length === 0) {
       return null;
     }
 
@@ -237,9 +214,9 @@ function ExtraRows({ where, extraCells, columnSettings }: ExtraRowsProps) {
       <Table.Body>
         <Table.Row>
           <Table.Cell className={classes.mobileTableCell}>
-            {nodes.map((child) => (
+            {mobileNodes.map((child) => (
               <GenericComponent
-                key={child.item.id}
+                key={child.id}
                 node={child}
               />
             ))}
@@ -263,5 +240,20 @@ function ExtraRows({ where, extraCells, columnSettings }: ExtraRowsProps) {
         />
       ))}
     </>
+  );
+}
+
+function TitleCell({ node, columnSettings }: { node: LayoutNode; columnSettings: ITableColumnFormatting }) {
+  const style = useColumnStylesRepeatingGroups(node, columnSettings);
+  return (
+    <Table.HeaderCell
+      className={classes.tableCellFormatting}
+      style={style}
+    >
+      <RepeatingGroupTableTitle
+        node={node}
+        columnSettings={columnSettings}
+      />
+    </Table.HeaderCell>
   );
 }

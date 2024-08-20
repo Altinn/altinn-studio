@@ -10,6 +10,7 @@ import { ButtonLoader } from 'src/layout/Button/ButtonLoader';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { useActionAuthorization } from 'src/layout/CustomButton/CustomButtonComponent';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { ActionButtonStyle } from 'src/layout/ActionButton/config.generated';
 import type { ButtonColor, ButtonVariant } from 'src/layout/Button/WrappedButton';
 
@@ -24,7 +25,7 @@ export function ActionButtonComponent({ node }: IActionButton) {
   const { busyWithId, busy, next } = useProcessNavigation() || {};
   const { isAuthorized } = useActionAuthorization();
 
-  const { action, buttonStyle, id, textResourceBindings } = node.item;
+  const { action, buttonStyle, id, textResourceBindings } = useNodeItem(node);
   const disabled = !isAuthorized(action);
   const isLoadingHere = busyWithId === id;
 

@@ -6,10 +6,6 @@ import { SummaryComponent2 } from 'src/layout/Summary2/SummaryComponent2/Summary
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export class Summary2 extends Summary2Def {
-  directRender(): boolean {
-    return true;
-  }
-
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Summary2'>>(
     function LayoutComponentSummaryRender(props, _): JSX.Element | null {
       return (
@@ -34,13 +30,5 @@ export class Summary2 extends Summary2Def {
   }
   shouldRenderInAutomaticPDF() {
     return true;
-  }
-
-  getDisplayData(): string {
-    return '';
-  }
-
-  validateDataModelBindings(): string[] {
-    return [];
   }
 }

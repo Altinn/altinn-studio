@@ -2,10 +2,12 @@ import React from 'react';
 
 import { Grid, List, ListItem, ListItemText, makeStyles, Typography } from '@material-ui/core';
 
+import { useDisplayDataProps } from 'src/features/displayData/useDisplayData';
 import { Lang } from 'src/features/language/Lang';
+import type { DisplayDataProps } from 'src/features/displayData';
 
 export interface IMultipleChoiceSummaryProps {
-  formData: { [key: string]: string };
+  getFormData: (displayDataProps: DisplayDataProps) => { [key: string]: string };
 }
 
 const useStyles = makeStyles({
@@ -32,8 +34,10 @@ const useStyles = makeStyles({
   },
 });
 
-export function MultipleChoiceSummary({ formData }: IMultipleChoiceSummaryProps) {
+export function MultipleChoiceSummary({ getFormData }: IMultipleChoiceSummaryProps) {
   const classes = useStyles();
+  const props = useDisplayDataProps();
+  const formData = getFormData(props);
 
   return (
     <Grid

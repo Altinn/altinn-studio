@@ -1,5 +1,5 @@
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
-import { useNavigationParams } from 'src/hooks/useNavigatePage';
+import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useTaskStore } from 'src/layout/Summary2/taskIdStore';
 
 export function useProcessTaskId() {
@@ -8,6 +8,6 @@ export function useProcessTaskId() {
   }));
   const urlTaskId = useLaxProcessData()?.currentTask?.elementId;
   const currentTaskId = overriddenTaskId || urlTaskId;
-  const { taskId } = useNavigationParams();
+  const taskId = useNavigationParam('taskId');
   return currentTaskId ?? taskId;
 }

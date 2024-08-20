@@ -1,12 +1,13 @@
 import { useMemo } from 'react';
 
-import type { NodeValidation } from '..';
+import type { ComponentValidation, FieldValidation, NodeValidation } from '..';
 
-import { buildNodeValidation, filterValidations, selectValidations } from 'src/features/validation/utils';
-import { Validation } from 'src/features/validation/validationContext';
-import { getVisibilityForNode } from 'src/features/validation/visibility/visibilityUtils';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { CompTypes, IDataModelBindings } from 'src/layout/layout';
 import type { BaseLayoutNode, LayoutNode } from 'src/utils/layout/LayoutNode';
+
+type OutValues = NodeValidation<ComponentValidation | FieldValidation>[];
 
 /**
  * Gets all validations that are bound to a data model field,
@@ -14,36 +15,30 @@ import type { BaseLayoutNode, LayoutNode } from 'src/utils/layout/LayoutNode';
  */
 export function useBindingValidationsForNode<
   N extends LayoutNode,
-  T extends CompTypes = N extends BaseLayoutNode<any, infer T> ? T : never,
->(node: N): { [binding in keyof NonNullable<IDataModelBindings<T>>]: NodeValidation[] } | undefined {
-  const fieldSelector = Validation.useFieldSelector();
-  const componentSelector = Validation.useComponentSelector();
-  const visibilitySelector = Validation.useVisibilitySelector();
+  T extends CompTypes = N extends BaseLayoutNode<infer T> ? T : never,
+>(node: N): { [binding in keyof NonNullable<IDataModelBindings<T>>]: OutValues } | undefined {
+  const component = NodesInternal.useVisibleValidations(node);
+  const dataModelBindings = useNodeItem(node).dataModelBindings;
 
   return useMemo(() => {
-    if (!node.item.dataModelBindings) {
+    if (!dataModelBindings) {
       return undefined;
     }
-    const mask = getVisibilityForNode(node, visibilitySelector);
-    const bindingValidations = {};
-    for (const [bindingKey, field] of Object.entries(node.item.dataModelBindings)) {
+
+    const bindingValidations: { [bindingKey: string]: OutValues } = {};
+    for (const bindingKey of Object.keys(dataModelBindings)) {
       bindingValidations[bindingKey] = [];
 
-      const fieldValidation = fieldSelector(field, (fields) => fields[field]);
-      if (fieldValidation) {
-        const validations = filterValidations(selectValidations(fieldValidation, mask), node);
-        bindingValidations[bindingKey].push(
-          ...validations.map((validation) => buildNodeValidation(node, validation, bindingKey)),
-        );
-      }
-      const component = componentSelector(node.item.id, (components) => components[node.item.id]);
-      if (component?.bindingKeys?.[bindingKey]) {
-        const validations = filterValidations(selectValidations(component.bindingKeys[bindingKey], mask), node);
-        bindingValidations[bindingKey].push(
-          ...validations.map((validation) => buildNodeValidation(node, validation, bindingKey)),
-        );
-      }
+      const validations = component as ComponentValidation[];
+      bindingValidations[bindingKey].push(
+        ...validations
+          .filter((v) => 'bindingKey' in v && v.bindingKey === bindingKey)
+          .map((validation) => ({ ...validation, bindingKey, node }) as NodeValidation<ComponentValidation>),
+      );
     }
-    return bindingValidations as { [binding in keyof NonNullable<IDataModelBindings<T>>]: NodeValidation[] };
-  }, [node, visibilitySelector, fieldSelector, componentSelector]);
+
+    return bindingValidations as {
+      [binding in keyof NonNullable<IDataModelBindings<T>>]: OutValues;
+    };
+  }, [component, node, dataModelBindings]);
 }

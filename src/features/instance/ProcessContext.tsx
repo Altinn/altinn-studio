@@ -9,6 +9,7 @@ import { Loader } from 'src/core/loading/Loader';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { TaskKeys, useNavigatePage } from 'src/hooks/useNavigatePage';
 import { ProcessTaskType } from 'src/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
@@ -51,7 +52,8 @@ function useProcessQuery(instanceId: string) {
 }
 
 export function ProcessProvider({ children, instance }: React.PropsWithChildren<{ instance: IInstance }>) {
-  const { navigateToTask, taskId } = useNavigatePage();
+  const taskId = useNavigationParam('taskId');
+  const { navigateToTask } = useNavigatePage();
   const query = useProcessQuery(instance.id);
   const reFetchNative = query.refetch;
   const reFetch = useCallback(async () => void (await reFetchNative()), [reFetchNative]);
@@ -143,37 +145,48 @@ export function useRealTaskType() {
  * the taskId provided.
  */
 export function useTaskType(taskId: string | undefined) {
+  return useGetTaskType()(taskId);
+}
+
+export function useGetTaskType() {
   const processData = useLaxProcessData();
-  const task =
-    (processData?.processTasks?.find((t) => t.elementId === taskId) ?? processData?.currentTask?.elementId === taskId)
-      ? processData?.currentTask
-      : undefined;
   const isStateless = useApplicationMetadata().isStatelessApp;
   const layoutSets = useLayoutSets();
 
-  if (isStateless) {
-    // Stateless apps only have data tasks. As soon as they start creating an instance from that stateless step,
-    // applicationMetadata.isStatelessApp will return false and we'll proceed as normal.
-    return ProcessTaskType.Data;
-  }
+  return useCallback(
+    (taskId: string | undefined) => {
+      const task =
+        (processData?.processTasks?.find((t) => t.elementId === taskId) ??
+        processData?.currentTask?.elementId === taskId)
+          ? processData?.currentTask
+          : undefined;
 
-  if (taskId === TaskKeys.CustomReceipt) {
-    return ProcessTaskType.Data;
-  }
+      if (isStateless) {
+        // Stateless apps only have data tasks. As soon as they start creating an instance from that stateless step,
+        // applicationMetadata.isStatelessApp will return false and we'll proceed as normal.
+        return ProcessTaskType.Data;
+      }
 
-  if (taskId === TaskKeys.ProcessEnd) {
-    return ProcessTaskType.Archived;
-  }
+      if (taskId === TaskKeys.CustomReceipt) {
+        return ProcessTaskType.Data;
+      }
 
-  if (processData?.ended) {
-    return ProcessTaskType.Archived;
-  }
-  if (task === undefined || task?.altinnTaskType === undefined) {
-    return ProcessTaskType.Unknown;
-  }
+      if (taskId === TaskKeys.ProcessEnd) {
+        return ProcessTaskType.Archived;
+      }
 
-  const isDataTask = behavesLikeDataTask(task.elementId, layoutSets);
-  return isDataTask ? ProcessTaskType.Data : (task.altinnTaskType as ProcessTaskType);
+      if (processData?.ended) {
+        return ProcessTaskType.Archived;
+      }
+      if (task === undefined || task?.altinnTaskType === undefined) {
+        return ProcessTaskType.Unknown;
+      }
+
+      const isDataTask = behavesLikeDataTask(task.elementId, layoutSets);
+      return isDataTask ? ProcessTaskType.Data : (task.altinnTaskType as ProcessTaskType);
+    },
+    [isStateless, layoutSets, processData?.currentTask, processData?.ended, processData?.processTasks],
+  );
 }
 
 export function useRealTaskTypeById(taskId: string | undefined) {

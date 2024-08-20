@@ -8,64 +8,79 @@ import classes from 'src/layout/Summary2/SummaryComponent2/SummaryComponent2.mod
 import { useTaskStore } from 'src/layout/Summary2/taskIdStore';
 import { gridBreakpoints, pageBreakStyles } from 'src/utils/formComponentUtils';
 import { useNode } from 'src/utils/layout/NodesContext';
-import type { CompSummary2External, CompSummary2Internal } from 'src/layout/Summary2/config.generated';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import type { CompExternal, CompInternal, CompTypes } from 'src/layout/layout';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-interface ComponentSummaryProps {
-  componentNode: LayoutNode;
-  summaryOverrides?: CompSummary2Internal['overrides'];
+interface ComponentSummaryProps<T extends CompTypes> {
+  componentNode: LayoutNode<T>;
+  summaryOverrides?: CompInternal<'Summary2'>['overrides'];
   isCompact?: boolean;
 }
 
-interface ResolveComponentProps {
-  summaryProps: CompSummary2External;
-  summaryOverrides?: CompSummary2Internal['overrides'];
-}
-export function ComponentSummary({ componentNode, summaryOverrides, isCompact }: ComponentSummaryProps) {
-  const override = summaryOverrides?.find((override) => override.componentId === componentNode.item.id);
+export function ComponentSummary<T extends CompTypes>({
+  componentNode,
+  summaryOverrides,
+  isCompact,
+}: ComponentSummaryProps<T>) {
+  const { pageBreak, grid, required, dataModelBindings, forceShowInSummary } = useNodeItem(componentNode, (i) => ({
+    pageBreak: i.pageBreak,
+    grid: i.grid,
+    required: 'required' in i ? i.required : false,
+    dataModelBindings: i.dataModelBindings,
+    forceShowInSummary: 'forceShowInSummary' in i ? i.forceShowInSummary : undefined,
+  }));
+  const overrides = summaryOverrides?.find((override) => override.componentId === componentNode.baseId);
+  const props: Summary2Props<T> = {
+    target: componentNode,
+    overrides: summaryOverrides,
+    isCompact,
+  };
 
   const summaryNode = useTaskStore((state) => state.summaryNode);
+  const hideEmptyFields = useNodeItem(summaryNode, (i) => i.hideEmptyFields);
 
-  const isRequired = 'required' in componentNode.item && componentNode.item['required'] === true;
-
-  const { formData } = useDataModelBindings(componentNode.item.dataModelBindings);
+  const { formData } = useDataModelBindings(dataModelBindings);
 
   const noUserInput = Object.values(formData).every((value) => value?.length < 1);
 
-  const renderedComponent = componentNode.def.renderSummary2
-    ? componentNode.def.renderSummary2(componentNode as LayoutNode<any>, override, isCompact)
-    : null;
-
+  const renderedComponent = componentNode.def.renderSummary2 ? (componentNode.def as any).renderSummary2(props) : null;
   if (!renderedComponent) {
     return null;
   }
 
-  if (override?.hidden) {
+  if (overrides?.hidden) {
     return null;
   }
 
-  if (noUserInput && summaryNode.item?.hideEmptyFields && !isRequired && !componentNode.item?.forceShowInSummary) {
+  if (noUserInput && hideEmptyFields && !required && !forceShowInSummary) {
     return null;
   }
 
   return (
     <Grid
       item={true}
-      className={cn(pageBreakStyles(componentNode.item?.pageBreak), classes.summaryItem)}
-      {...gridBreakpoints(componentNode.item.grid)}
+      className={cn(pageBreakStyles(pageBreak), classes.summaryItem)}
+      {...gridBreakpoints(grid)}
     >
       {renderedComponent}
     </Grid>
   );
 }
 
-export function ResolveComponent({ summaryProps, summaryOverrides }: ResolveComponentProps) {
-  if (!summaryProps.target?.id) {
+interface ResolveComponentProps {
+  summaryTarget: CompExternal<'Summary2'>['target'];
+  summaryOverrides?: CompInternal<'Summary2'>['overrides'];
+}
+
+export function ResolveComponent({ summaryTarget, summaryOverrides }: ResolveComponentProps) {
+  if (!summaryTarget?.id) {
     window.logError('Tried to render component without component ID, please add id property to target.');
     throw new Error();
   }
 
-  const resolvedComponent = useNode(summaryProps.target.id);
+  const resolvedComponent = useNode(summaryTarget.id);
   if (!resolvedComponent) {
     return null;
   }

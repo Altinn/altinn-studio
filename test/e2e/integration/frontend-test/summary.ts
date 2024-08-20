@@ -26,13 +26,11 @@ describe('Summary', () => {
     cy.get('[data-testid=summary-summary4]').contains(texts.emptySummary);
     cy.get('[data-testid=summary-summary5]').contains(texts.emptySummary);
     cy.get('[data-testid=summary-summary6]').contains(texts.emptySummary);
-    cy.get('[data-testid=summary-summary-reference] [data-testid=summary-item-compact]')
-      .and('have.length', 3)
-      .then((items) => {
-        cy.wrap(items).eq(0).should('contain.text', 'hvor fikk du vite om skjemaet? : Altinn');
-        cy.wrap(items).eq(1).should('contain.text', `Referanse : ${texts.emptySummary}`);
-        cy.wrap(items).eq(2).should('contain.text', `Referanse 2 : ${texts.emptySummary}`);
-      });
+    const referencesSelector = '[data-testid=summary-summary-reference] [data-testid=summary-item-compact]';
+    cy.get(referencesSelector).should('have.length', 3);
+    cy.get(referencesSelector).eq(0).should('contain.text', 'hvor fikk du vite om skjemaet? : Altinn');
+    cy.get(referencesSelector).eq(1).should('contain.text', `Referanse : ${texts.emptySummary}`);
+    cy.get(referencesSelector).eq(2).should('contain.text', `Referanse 2 : ${texts.emptySummary}`);
 
     cy.gotoNavPage('form');
     cy.fillOut('changename');
@@ -132,39 +130,32 @@ describe('Summary', () => {
     cy.dsSelect('#reference', 'Ola Nordmann');
     cy.dsSelect('#reference2', 'Ole');
     cy.gotoNavPage('summary');
-    cy.get('[data-testid=summary-summary-reference] [data-testid=summary-item-compact]')
-      .and('have.length', 3)
-      .then((items) => {
-        cy.wrap(items).eq(0).should('contain.text', 'hvor fikk du vite om skjemaet? : Altinn');
-        cy.wrap(items).eq(1).should('contain.text', 'Referanse : Ola Nordmann');
-        cy.wrap(items).eq(2).should('contain.text', 'Referanse 2 : Ole');
-      });
+    cy.get(referencesSelector).should('have.length', 3);
+    cy.get(referencesSelector).eq(0).eq(0).should('contain.text', 'hvor fikk du vite om skjemaet? : Altinn');
+    cy.get(referencesSelector).eq(1).should('contain.text', 'Referanse : Ola Nordmann');
+    cy.get(referencesSelector).eq(2).should('contain.text', 'Referanse 2 : Ole');
 
     cy.gotoNavPage('form');
     cy.dsSelect('#sources', 'Digitaliseringsdirektoratet');
     cy.dsSelect('#reference', 'Sophie Salt');
     cy.dsSelect('#reference2', 'Dole');
     cy.gotoNavPage('summary');
-    cy.get('[data-testid=summary-summary-reference] [data-testid=summary-item-compact]')
-      .and('have.length', 3)
-      .then((items) => {
-        cy.wrap(items).eq(0).should('contain.text', 'hvor fikk du vite om skjemaet? : Digitaliseringsdirektoratet');
-        cy.wrap(items).eq(1).should('contain.text', 'Referanse : Sophie Salt');
-        cy.wrap(items).eq(2).should('contain.text', 'Referanse 2 : Dole');
-      });
+    cy.get(referencesSelector).should('have.length', 3);
+    cy.get(referencesSelector)
+      .eq(0)
+      .should('contain.text', 'hvor fikk du vite om skjemaet? : Digitaliseringsdirektoratet');
+    cy.get(referencesSelector).eq(1).should('contain.text', 'Referanse : Sophie Salt');
+    cy.get(referencesSelector).eq(2).should('contain.text', 'Referanse 2 : Dole');
 
     cy.gotoNavPage('form');
     cy.dsSelect('#sources', 'Annet');
     cy.dsSelect('#reference', 'Test');
     cy.dsSelect('#reference2', 'Doffen');
     cy.gotoNavPage('summary');
-    cy.get('[data-testid=summary-summary-reference] [data-testid=summary-item-compact]')
-      .and('have.length', 3)
-      .then((items) => {
-        cy.wrap(items).eq(0).should('contain.text', 'hvor fikk du vite om skjemaet? : Annet');
-        cy.wrap(items).eq(1).should('contain.text', 'Referanse : Test');
-        cy.wrap(items).eq(2).should('contain.text', 'Referanse 2 : Doffen');
-      });
+    cy.get(referencesSelector).should('have.length', 3);
+    cy.get(referencesSelector).eq(0).should('contain.text', 'hvor fikk du vite om skjemaet? : Annet');
+    cy.get(referencesSelector).eq(1).should('contain.text', 'Referanse : Test');
+    cy.get(referencesSelector).eq(2).should('contain.text', 'Referanse 2 : Doffen');
 
     cy.snapshot('summary:change-name');
   });
@@ -310,7 +301,7 @@ describe('Summary', () => {
     cy.get('#summary-mainGroup-5 [data-testid=summary-source-5] > div')
       .children()
       .last()
-      .should('contain.text', texts.emptySummary);
+      .should('contain.text', 'Altinn');
     cy.get('#summary-mainGroup-5 [data-testid=summary-reference-5] > div')
       .children()
       .last()
@@ -459,7 +450,7 @@ describe('Summary', () => {
       cy.get(appFrontend.backToSummaryButton).should('not.exist');
       cy.navPage('summary').click();
       assertErrorReport();
-      cy.get(exampleSummary).find('button').click();
+      cy.get(`${exampleSummary} button`).click();
       assertErrorReport();
       cy.get(appFrontend.backToSummaryButton).click();
       cy.get(appFrontend.backToSummaryButton).should('not.exist');

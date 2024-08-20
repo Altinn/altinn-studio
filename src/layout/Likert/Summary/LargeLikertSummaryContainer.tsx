@@ -6,15 +6,18 @@ import { Heading } from '@digdir/designsystemet-react';
 import { Fieldset } from 'src/components/form/Fieldset';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Likert/Summary/LikertSummary.module.css';
+import { Hidden } from 'src/utils/layout/NodesContext';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
 import type { HeadingLevel } from 'src/layout/common.generated';
-import type { CompLikertInternal } from 'src/layout/Likert/config.generated';
-import type { BaseLayoutNode, LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
 export interface IDisplayLikertContainer {
-  groupNode: BaseLayoutNode<CompLikertInternal>;
+  groupNode: LayoutNode<'Likert'>;
   divRef?: React.Ref<HTMLDivElement>;
   id?: string;
-  onlyInRowUuid?: string | undefined;
+  restriction?: TraversalRestriction;
   renderLayoutNode: (node: LayoutNode) => JSX.Element | null;
 }
 
@@ -30,20 +33,22 @@ export function LargeLikertSummaryContainer({
   divRef,
   groupNode,
   id,
-  onlyInRowUuid,
+  restriction,
   renderLayoutNode,
 }: IDisplayLikertContainer) {
-  const container = groupNode.item;
+  const container = useNodeItem(groupNode);
   const { title, summaryTitle } = container.textResourceBindings ?? {};
+  const isHidden = Hidden.useIsHidden(groupNode);
+  const depth = useNodeTraversal((t) => t.parents().length, groupNode);
+  const children = useNodeTraversal((t) => t.children(undefined, restriction), groupNode);
 
-  if (groupNode.isHidden()) {
+  if (isHidden) {
     return null;
   }
 
-  const headingLevel = Math.min(Math.max(groupNode.parents().length + 1, 2), 6) as HeadingLevel;
+  const headingLevel = Math.min(Math.max(depth + 1, 2), 6) as HeadingLevel;
   const headingSize = headingSizes[headingLevel];
   const legend = summaryTitle ?? title;
-  const restriction = typeof onlyInRowUuid === 'string' ? { onlyInRowUuid } : undefined;
 
   return (
     <Fieldset
@@ -66,7 +71,7 @@ export function LargeLikertSummaryContainer({
         id={id || container.id}
         data-testid='display-group-container'
       >
-        {groupNode.children(undefined, restriction).map((n) => renderLayoutNode(n))}
+        {children.map((n) => renderLayoutNode(n))}
       </div>
     </Fieldset>
   );

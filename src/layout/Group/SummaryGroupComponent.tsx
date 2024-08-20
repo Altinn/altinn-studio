@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
-import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
@@ -11,17 +10,12 @@ import { GroupComponent } from 'src/layout/Group/GroupComponent';
 import classes from 'src/layout/Group/SummaryGroupComponent.module.css';
 import { EditButton } from 'src/layout/Summary/EditButton';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
-import type { ITextResourceBindings } from 'src/layout/layout';
-import type { ISummaryComponent } from 'src/layout/Summary/SummaryComponent';
+import { Hidden } from 'src/utils/layout/NodesContext';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
+import type { CompTypes, ITextResourceBindings } from 'src/layout/layout';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-
-export interface ISummaryGroupComponent {
-  changeText: string | null;
-  onChangeClick: () => void;
-  summaryNode: LayoutNode<'Summary'>;
-  targetNode: LayoutNode<'Group'>;
-  overrides?: ISummaryComponent['overrides'];
-}
 
 export function SummaryGroupComponent({
   onChangeClick,
@@ -29,79 +23,71 @@ export function SummaryGroupComponent({
   summaryNode,
   targetNode,
   overrides,
-}: ISummaryGroupComponent) {
-  const excludedChildren = summaryNode.item.excludedChildren;
-  const display = overrides?.display || summaryNode.item.display;
+}: SummaryRendererProps<'Group'>) {
+  const summaryItem = useNodeItem(summaryNode);
+  const targetItem = useNodeItem(targetNode);
+  const excludedChildren = summaryItem?.excludedChildren;
+  const display = overrides?.display || summaryItem?.display;
   const { langAsString } = useLanguage();
-  const formDataSelector = FD.useDebouncedSelector();
+  const isHidden = Hidden.useIsHiddenSelector();
 
-  const inExcludedChildren = (n: LayoutNode) =>
-    excludedChildren &&
-    (excludedChildren.includes(n.item.id) || excludedChildren.includes(`${n.item.baseComponentId}`));
+  const inExcludedChildren = useCallback(
+    (n: LayoutNode) =>
+      excludedChildren ? excludedChildren.includes(n.id) || excludedChildren.includes(n.baseId) : false,
+    [excludedChildren],
+  );
 
   const groupValidations = useDeepValidationsForNode(targetNode);
   const groupHasErrors = hasValidationErrors(groupValidations);
 
-  const textBindings = targetNode.item.textResourceBindings as ITextResourceBindings;
+  const textBindings = targetItem.textResourceBindings as ITextResourceBindings;
   const summaryAccessibleTitleTrb =
     textBindings && 'summaryAccessibleTitle' in textBindings ? textBindings.summaryAccessibleTitle : undefined;
   const summaryTitleTrb = textBindings && 'summaryTitle' in textBindings ? textBindings.summaryTitle : undefined;
   const titleTrb = textBindings && 'title' in textBindings ? textBindings.title : undefined;
   const ariaLabel = langAsString(summaryAccessibleTitleTrb ?? summaryTitleTrb ?? titleTrb);
+  const children = useNodeTraversal((t) => t.children().filter((n) => !inExcludedChildren(n)), targetNode);
 
-  if (summaryNode.item.largeGroup && overrides?.largeGroup !== false) {
+  const largeGroup = overrides?.largeGroup ?? summaryItem?.largeGroup ?? false;
+  if (largeGroup) {
     return (
       <>
         {
           <GroupComponent
-            key={`summary-${targetNode.item.id}`}
-            id={`summary-${targetNode.item.id}`}
+            key={`summary-${targetNode.id}`}
+            id={`summary-${targetNode.id}`}
             groupNode={targetNode}
             isSummary={true}
-            renderLayoutNode={(n) => {
-              if (inExcludedChildren(n) || n.isHidden()) {
-                return null;
-              }
-
-              return (
-                <SummaryComponent
-                  key={n.item.id}
-                  summaryNode={summaryNode}
-                  overrides={{
-                    ...overrides,
-                    targetNode: n,
-                    grid: {},
-                    largeGroup: true,
-                  }}
-                />
-              );
-            }}
+            renderLayoutNode={(node) => (
+              <SummaryComponentFromNode
+                targetNode={node}
+                summaryNode={summaryNode}
+                overrides={overrides}
+                inExcludedChildren={inExcludedChildren}
+              />
+            )}
           />
         }
       </>
     );
   }
 
-  const childSummaryComponents = targetNode
-    .children(undefined, undefined)
-    .filter((n) => !inExcludedChildren(n))
-    .map((child) => {
-      if (child.isHidden() || !child.isCategory(CompCategory.Form)) {
-        return;
-      }
-      const RenderCompactSummary = child.def.renderCompactSummary.bind(child.def);
-      return (
-        <RenderCompactSummary
-          onChangeClick={onChangeClick}
-          changeText={changeText}
-          key={child.item.id}
-          targetNode={child as any}
-          summaryNode={summaryNode}
-          overrides={{}}
-          formDataSelector={formDataSelector}
-        />
-      );
-    });
+  const childSummaryComponents = children.map((child) => {
+    if (!child.isCategory(CompCategory.Form) || isHidden(child)) {
+      return;
+    }
+    const RenderCompactSummary = child.def.renderCompactSummary.bind(child.def) as React.FC<SummaryRendererProps<any>>;
+    return (
+      <RenderCompactSummary
+        onChangeClick={onChangeClick}
+        changeText={changeText}
+        key={child.id}
+        targetNode={child}
+        summaryNode={summaryNode}
+        overrides={{}}
+      />
+    );
+  });
 
   return (
     <>
@@ -144,5 +130,34 @@ export function SummaryGroupComponent({
         </div>
       )}
     </>
+  );
+}
+
+interface SummaryComponentFromRefProps
+  extends Pick<SummaryRendererProps<CompTypes>, 'targetNode' | 'summaryNode' | 'overrides'> {
+  inExcludedChildren: (node: LayoutNode) => boolean;
+}
+
+function SummaryComponentFromNode({
+  targetNode,
+  inExcludedChildren,
+  summaryNode,
+  overrides,
+}: SummaryComponentFromRefProps) {
+  const isHidden = Hidden.useIsHidden(targetNode);
+  if (inExcludedChildren(targetNode) || isHidden) {
+    return null;
+  }
+
+  return (
+    <SummaryComponent
+      summaryNode={summaryNode}
+      overrides={{
+        ...overrides,
+        targetNode,
+        grid: {},
+        largeGroup: true,
+      }}
+    />
   );
 }

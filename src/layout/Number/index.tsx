@@ -4,16 +4,24 @@ import type { JSX } from 'react';
 import { formatNumericText } from '@digdir/design-system-react';
 
 import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
+import { evalFormatting } from 'src/layout/Input/formatting';
 import { NumberDef } from 'src/layout/Number/config.def.generated';
 import { NumberComponent } from 'src/layout/Number/NumberComponent';
 import type { DisplayDataProps } from 'src/features/displayData';
 import type { PropsFromGenericComponent } from 'src/layout';
+import type { ExprResolver } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Number extends NumberDef {
-  getDisplayData(node: LayoutNode<'Number'>, { currentLanguage }: DisplayDataProps): string {
-    const text = node.item.value.toString();
-    const numberFormatting = getMapToReactNumberConfig(node.item.formatting, text, currentLanguage);
+  getDisplayData(node: LayoutNode<'Number'>, { currentLanguage, nodeDataSelector }: DisplayDataProps): string {
+    const number = nodeDataSelector((picker) => picker(node)?.item?.value, [node]);
+    if (number === undefined || isNaN(number)) {
+      return '';
+    }
+
+    const text = number.toString();
+    const formatting = nodeDataSelector((picker) => picker(node)?.item?.formatting, [node]);
+    const numberFormatting = getMapToReactNumberConfig(formatting, text, currentLanguage);
 
     if (numberFormatting?.number) {
       return formatNumericText(text, numberFormatting.number);
@@ -27,4 +35,12 @@ export class Number extends NumberDef {
       return <NumberComponent {...props} />;
     },
   );
+
+  evalExpressions(props: ExprResolver<'Number'>) {
+    return {
+      ...this.evalDefaultExpressions(props),
+      formatting: evalFormatting(props),
+      value: props.evalNum(props.item.value, NaN),
+    };
+  }
 }

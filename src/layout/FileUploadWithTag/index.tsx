@@ -9,12 +9,13 @@ import { FileUploadWithTagDef } from 'src/layout/FileUploadWithTag/config.def.ge
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { DisplayDataProps } from 'src/features/displayData';
-import type { ComponentValidation, ValidationDataSources } from 'src/features/validation';
+import type { AttachmentValidation, ComponentValidation, ValidationDataSources } from 'src/features/validation';
 import type { PropsFromGenericComponent, ValidateComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateComponent {
+export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateComponent<'FileUploadWithTag'> {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'FileUploadWithTag'>>(
     function LayoutComponentFileUploadWithTagRender(props, _): JSX.Element | null {
       return <FileUploadComponent {...props} />;
@@ -25,16 +26,18 @@ export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateC
     return false;
   }
 
-  getDisplayData(node: LayoutNode<'FileUploadWithTag'>, { attachments }: DisplayDataProps): string {
-    return (attachments[node.item.id] || []).map((a) => a.data.filename).join(', ');
+  getDisplayData(node: LayoutNode<'FileUploadWithTag'>, { attachmentsSelector }: DisplayDataProps): string {
+    return attachmentsSelector(node)
+      .map((a) => a.data.filename)
+      .join(', ');
   }
 
   renderSummary({ targetNode }: SummaryRendererProps<'FileUploadWithTag'>): JSX.Element | null {
     return <AttachmentSummaryComponent targetNode={targetNode} />;
   }
 
-  renderSummary2(componentNode: LayoutNode<'FileUploadWithTag'>): JSX.Element | null {
-    return <AttachmentSummaryComponent2 targetNode={componentNode} />;
+  renderSummary2(props: Summary2Props<'FileUploadWithTag'>): JSX.Element | null {
+    return <AttachmentSummaryComponent2 targetNode={props.target} />;
   }
 
   // This component does not have empty field validation, so has to override its inherited method
@@ -44,35 +47,37 @@ export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateC
 
   runComponentValidation(
     node: LayoutNode<'FileUploadWithTag'>,
-    { attachments }: ValidationDataSources,
+    { attachmentsSelector, nodeDataSelector }: ValidationDataSources,
   ): ComponentValidation[] {
     const validations: ComponentValidation[] = [];
+    const minNumberOfAttachments = nodeDataSelector((picker) => picker(node)?.item?.minNumberOfAttachments, [node]);
 
     // Validate minNumberOfAttachments
+    const attachments = attachmentsSelector(node);
     if (
-      node.item.minNumberOfAttachments > 0 &&
-      (!attachments[node.item.id] || attachments[node.item.id]!.length < node.item.minNumberOfAttachments)
+      minNumberOfAttachments !== undefined &&
+      minNumberOfAttachments > 0 &&
+      attachments.length < minNumberOfAttachments
     ) {
       validations.push({
         message: {
           key: 'form_filler.file_uploader_validation_error_file_number',
-          params: [node.item.minNumberOfAttachments],
+          params: [minNumberOfAttachments],
         },
         severity: 'error',
         source: FrontendValidationSource.Component,
-        componentId: node.item.id,
         // Treat visibility of minNumberOfAttachments the same as required to prevent showing an error immediately
         category: ValidationMask.Required,
       });
     }
 
     // Validate missing tags
-    for (const attachment of attachments[node.item.id] || []) {
+    for (const attachment of attachments) {
       if (
         isAttachmentUploaded(attachment) &&
         (attachment.data.tags === undefined || attachment.data.tags.length === 0)
       ) {
-        const tagKey = node.item.textResourceBindings?.tagTitle;
+        const tagKey = nodeDataSelector((picker) => picker(node)?.item?.textResourceBindings?.tagTitle, [node]);
         const tagReference = tagKey
           ? {
               key: tagKey,
@@ -80,18 +85,18 @@ export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateC
             }
           : 'tag';
 
-        validations.push({
+        const validation: AttachmentValidation = {
           message: {
             key: 'form_filler.file_uploader_validation_error_no_chosen_tag',
             params: [tagReference],
           },
           severity: 'error',
-          componentId: node.item.id,
           source: FrontendValidationSource.Component,
-          meta: { attachmentId: attachment.data.id },
+          attachmentId: attachment.data.id,
           // Treat visibility of missing tag the same as required to prevent showing an error immediately
           category: ValidationMask.Required,
-        });
+        };
+        validations.push(validation);
       }
     }
 
@@ -104,8 +109,8 @@ export class FileUploadWithTag extends FileUploadWithTagDef implements ValidateC
   }
 
   validateDataModelBindings(ctx: LayoutValidationCtx<'FileUploadWithTag'>): string[] {
-    const { node } = ctx;
-    const { dataModelBindings } = node.item;
+    const { node, item } = ctx;
+    const { dataModelBindings } = item;
     const isRequired = this.isDataModelBindingsRequired(node);
     const hasBinding = dataModelBindings && ('simpleBinding' in dataModelBindings || 'list' in dataModelBindings);
 

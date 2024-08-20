@@ -69,6 +69,7 @@ describe('Repeating group attachments', () => {
     });
     cy.get(item.dropZoneContainer).should('be.visible');
     cy.get(item.dropZone).selectFile(makeTestFile(fileName), { force: true });
+    cy.wait('@upload');
 
     const attachment = item.attachments(idx);
     if (attachment.tagSelector !== undefined && attachment.tagSave !== undefined) {
@@ -80,6 +81,7 @@ describe('Repeating group attachments', () => {
     cy.get(attachment.name).should('contain.text', fileName);
 
     if (verifyTableRow) {
+      cy.waitUntilSaved();
       cy.get(tableRow.editBtn).click();
       verifyTableRowPreview(item, fileName);
       cy.get(tableRow.editBtn).click();
@@ -160,6 +162,8 @@ describe('Repeating group attachments', () => {
   };
 
   it('Works when uploading attachments to repeating groups, supports deleting attachments and entire rows', () => {
+    cy.intercept('POST', '**/instances/**/data?dataType=*').as('upload');
+
     const filenames = [
       {
         single: 'singleFileInFirstRow.pdf',
@@ -298,6 +302,10 @@ describe('Repeating group attachments', () => {
     gotoSecondPage();
 
     interceptFormDataSave();
+
+    // We haven't filled in anything in the first form inputs, so these labels will be the same. The options will be
+    // deduplicated so two rows becomes one option.
+    cy.get('#reduxOptions-expressions-radiobuttons').findAllByRole('radio').should('have.length', 1);
 
     cy.snapshot('attachments-in-group');
 
@@ -454,6 +462,7 @@ describe('Repeating group attachments', () => {
     cy.get(appFrontend.group.saveMainGroup).click();
     cy.get(appFrontend.group.saveMainGroup).should('not.exist');
     cy.get(appFrontend.group.row(0).deleteBtn).click();
+    cy.waitUntilNodesReady();
 
     verifyPreview(true);
     waitForFormDataSave();

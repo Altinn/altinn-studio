@@ -104,7 +104,14 @@ function compareArrays({ prev, next, current, hasCurrent, patch, path }: Compare
   const allNextValuesIsString = next.length > 0 && next.every((item) => typeof item === 'string');
   if (allNextValuesIsString) {
     if (next.length > 0) {
-      if (!current) {
+      if (current) {
+        // Special case. If we have a current model, and that model is an array of strings that is different from
+        // next, we'll keep the current value. This can happen if you for example have a file uploader that saves
+        // IDs to a list in the data model. When one attachment got uploaded, and got saved to the backend, we started
+        // uploading a new attachment (which got added to the current model), but before the previous save response
+        // came back from the backend.
+        return;
+      } else {
         patch.push({
           op: 'test',
           path: pointer(path),

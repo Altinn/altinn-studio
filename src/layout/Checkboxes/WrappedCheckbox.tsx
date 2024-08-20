@@ -4,10 +4,10 @@ import { Checkbox, HelpText } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
-import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
+import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
+import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useAlertOnChange } from 'src/hooks/useAlertOnChange';
 import classes from 'src/layout/Checkboxes/CheckboxesContainerComponent.module.css';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 
