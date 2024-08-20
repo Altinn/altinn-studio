@@ -181,6 +181,75 @@
         ]
       },
       {
+        "id": "text1",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Fornavn"
+        },
+        "value": ["dataModel","GridData.TotalGjeld"],
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "text2",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Etternavn"
+        },
+        "value": "Mitt etternavn",
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "text3",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Adresse"
+        },
+        "value": "Min adresse",
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "text4",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Tekst"
+        },
+        "value": "Test",
+        "direction": "vertical",
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "text5",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Språk"
+        },
+        "value": ["language"],
+        "direction": "vertical",
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "type": "Cards",
+        "id": "text-Card",
+        "color": "subtle",
+        "cards": [
+          {
+            "title": "Tekst kort",
+            "description": "",
+            "children": ["text1", "text2", "text3", "text4", "text5"]
+          }
+        ]
+      },
+      {
         "id": "cardsNavigate",
         "type": "NavigationButtons",
         "textResourceBindings": {
