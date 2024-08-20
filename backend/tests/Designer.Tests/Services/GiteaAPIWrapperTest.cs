@@ -353,12 +353,12 @@ namespace Designer.Tests.Services
             Assert.Equal(1769, result.Id);
         }
 
-        private static GiteaAPIWrapper GetServiceForTest(HttpClient c)
+        private static GiteaAPIWrapper GetServiceForTest(HttpClient client)
         {
-            HttpContext ctx = new DefaultHttpContext();
+            HttpContext context = new DefaultHttpContext();
 
             Mock<IHttpContextAccessor> httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            httpContextAccessorMock.Setup(s => s.HttpContext).Returns(ctx);
+            httpContextAccessorMock.Setup(s => s.HttpContext).Returns(context);
 
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositorySITests).Assembly.Location).LocalPath);
             var repoSettings = new ServiceRepositorySettings()
@@ -371,7 +371,7 @@ namespace Designer.Tests.Services
                 httpContextAccessorMock.Object,
                 new MemoryCache(new MemoryCacheOptions()),
                 new Mock<ILogger<GiteaAPIWrapper>>().Object,
-                c);
+                client);
 
             return service;
         }
