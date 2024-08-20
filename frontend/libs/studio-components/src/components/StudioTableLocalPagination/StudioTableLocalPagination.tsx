@@ -10,13 +10,13 @@ export type LocalPaginationProps = {
 };
 
 export type StudioTableLocalPaginationProps = {
-  columns: Columns;
-  rows: Rows;
-  size?: 'small' | 'medium' | 'large';
-  isLoading?: boolean;
-  loadingText?: string;
-  emptyTableFallback?: React.ReactNode;
-  pagination?: LocalPaginationProps;
+  // columns: Columns;
+  // rows: Rows;
+  // size?: 'small' | 'medium' | 'large';
+  // isLoading?: boolean;
+  // loadingText?: string;
+  // emptyTableFallback?: React.ReactNode;
+  // pagination?: LocalPaginationProps;
 };
 
 export const StudioTableLocalPagination = forwardRef<
