@@ -11,7 +11,7 @@ import classes from 'src/layout/Input/InputComponent.module.css';
 import { isNumericFormat, isPatternFormat } from 'src/layout/Input/number-format-helpers';
 import { useCharacterLimit } from 'src/utils/inputUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IInputFormattingInternal } from 'src/layout/Input/config.generated';
+import type { IFormattingInternal } from 'src/layout/common.generated';
 
 export type IInputProps = PropsFromGenericComponent<'Input'>;
 
@@ -89,10 +89,7 @@ export const InputComponent: React.FunctionComponent<IInputProps> = ({ node, isV
 
   const { langAsString } = useLanguage();
 
-  const reactNumberFormatConfig = useMapToReactNumberConfig(
-    formatting as IInputFormattingInternal | undefined,
-    formValue,
-  );
+  const reactNumberFormatConfig = useMapToReactNumberConfig(formatting as IFormattingInternal | undefined, formValue);
   const ariaLabel = overrideDisplay?.renderedInTable === true ? langAsString(textResourceBindings?.title) : undefined;
   const prefixText = textResourceBindings?.prefix ? langAsString(textResourceBindings.prefix) : undefined;
   const suffixText = textResourceBindings?.suffix ? langAsString(textResourceBindings.suffix) : undefined;

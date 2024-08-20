@@ -959,6 +959,11 @@ export const ExprConfigForComponent: ExprObjConfig<CompExternal> = {
       },
     },
   },
+  value: {
+    returnType: ExprVal.String,
+    defaultValue: '',
+    resolvePerRow: false,
+  },
 };
 
 export const ExprConfigForGroup:

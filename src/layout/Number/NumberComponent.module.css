@@ -1,0 +1,17 @@
+.numberComponent {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  width: 100%;
+}
+
+.horizontal {
+  flex-direction: row;
+}
+.vertical {
+  flex-direction: column;
+}
+.icon {
+  width: 24px;
+  margin-right: 12px;
+}
