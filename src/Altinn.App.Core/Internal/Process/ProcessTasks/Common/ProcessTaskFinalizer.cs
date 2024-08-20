@@ -136,6 +136,9 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
         // Remove hidden data before validation, ignore hidden rows.
         if (_appSettings.Value?.RemoveHiddenData == true)
         {
+            // Backend removal of data is deprecated in favor of
+            // implementing frontend removal of hidden data, so
+            //this is not updated to remove from multiple data models at once.
             LayoutEvaluatorState evaluationState = await _layoutEvaluatorStateInitializer.Init(
                 instance,
                 dataAccessor,
@@ -184,12 +187,13 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
             else
             {
                 // Remove the shadow fields from the data
-                // TODO: This does not work!!!
+
                 data =
                     JsonSerializer.Deserialize(serializedData, data.GetType())
                     ?? throw new JsonException(
                         "Could not deserialize back datamodel after removing shadow fields. Data was \"null\""
                     );
+                (dataAccessor as CachedInstanceDataAccessor)?.Set(dataElement, data);
                 isModified = true; // TODO: Detect if modifications were made
             }
         }

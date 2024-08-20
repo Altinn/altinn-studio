@@ -200,7 +200,7 @@ public class ProcessNavigatorTests
         nextElements.Should().BeNull();
     }
 
-    private IProcessNavigator SetupProcessNavigator(
+    private ProcessNavigator SetupProcessNavigator(
         string bpmnfile,
         IEnumerable<IProcessExclusiveGateway> gatewayFilters
     )

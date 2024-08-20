@@ -17,6 +17,14 @@
         "dataModelBindings": {
           "simpleBinding": "melding.name"
         }
+      },
+      {
+        "id": "hidden",
+        "type": "Input",
+        "hidden": true,
+        "dataModelBindings": {
+          "simpleBinding": "melding.hidden"
+        }
       }
     ]
   }

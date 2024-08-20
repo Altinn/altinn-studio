@@ -58,7 +58,10 @@ public class ApiTestBase
 
         var factory = _factory.WithWebHostBuilder(builder =>
         {
-            var configuration = new ConfigurationBuilder().AddJsonFile(appSettingsPath).Build();
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile(appSettingsPath)
+                .AddInMemoryCollection(_configOverrides)
+                .Build();
 
             configuration.GetSection("AppSettings:AppBasePath").Value = appRootPath;
             IConfigurationSection appSettingSection = configuration.GetSection("AppSettings");
@@ -78,6 +81,16 @@ public class ApiTestBase
 
         return client;
     }
+
+    /// <summary>
+    /// Overrides the app settings for the test application.
+    /// </summary>
+    public void OverrideAppSetting(string key, string? value)
+    {
+        _configOverrides[key] = value;
+    }
+
+    private readonly Dictionary<string, string?> _configOverrides = new();
 
     private sealed class DiagnosticHandler : DelegatingHandler
     {
