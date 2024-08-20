@@ -28,7 +28,7 @@ import { WINDOW_RESIZE_WIDTH } from 'app-shared/utils/resizeUtils';
 export const DashboardHeader = () => {
   const selectedContext = useSelectedContext();
   const { selectableOrgs } = useContext(HeaderContext);
-
+  x;
   const pageHeaderTitle: string =
     selectedContext !== SelectedContextType.All &&
     selectedContext !== SelectedContextType.Self &&
