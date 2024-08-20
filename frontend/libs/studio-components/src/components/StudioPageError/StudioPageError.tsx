@@ -1,6 +1,7 @@
 import React from 'react';
-import { Alert, Heading, Paragraph } from '@digdir/designsystemet-react';
+import { Heading, Paragraph } from '@digdir/designsystemet-react';
 import classes from './StudioPageError.module.css';
+import { StudioError } from '../StudioError';
 
 export type StudioPageErrorProps = {
   title?: string;
@@ -12,12 +13,14 @@ export const StudioPageError = ({ message, title }: StudioPageErrorProps) => {
 
   return (
     <div className={classes.container}>
-      <Alert className={classes.alertContent} severity='danger'>
-        <Heading level={1} size='xs' spacing>
-          {title}
-        </Heading>
+      <StudioError>
+        {title && (
+          <Heading level={1} size='xs' spacing>
+            {title}
+          </Heading>
+        )}
         {isReactNode ? <>{message}</> : <Paragraph>{message}</Paragraph>}
-      </Alert>
+      </StudioError>
     </div>
   );
 };

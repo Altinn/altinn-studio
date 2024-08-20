@@ -8,8 +8,6 @@ export type StudioErrorProps = {
 export const StudioError = ({ children }: StudioErrorProps) => {
   const isReactNode = React.isValidElement(children);
   return (
-    <Alert severity='danger'>
-      {isReactNode ? <>{children}</> : <Paragraph>{children}</Paragraph>}
-    </Alert>
+    <Alert severity='danger'>{isReactNode ? <Paragraph>{children}</Paragraph> : children}</Alert>
   );
 };
