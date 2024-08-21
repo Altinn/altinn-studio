@@ -49,16 +49,16 @@ describe('ItemPropertiesTab', () => {
   });
 
   it('Renders a name field when a field node is selected', async () => {
-    const selectedNodePointer = '#/properties/test';
+    const selectedUniqueNodePointer = '#/properties/test';
     const rootNode: FieldNode = {
       ...rootNodeMock,
-      children: [selectedNodePointer],
+      children: [selectedUniqueNodePointer],
     };
     const selectedNode: FieldNode = {
       ...nodeMockBase,
       objectKind: ObjectKind.Field,
       fieldType: FieldType.String,
-      pointer: selectedNodePointer,
+      pointer: selectedUniqueNodePointer,
     };
     const nodes = [rootNode, selectedNode];
     validateTestUiSchema(nodes);
@@ -66,7 +66,7 @@ describe('ItemPropertiesTab', () => {
     const schemaModel = SchemaModel.fromArray(nodes);
     const appContextProps: Partial<SchemaEditorAppContextProps> = {
       schemaModel,
-      selectedNodePointer,
+      selectedUniqueNodePointer,
     };
     renderWithProviders({ appContextProps })(<ItemPropertiesTab selectedItem={selectedNode} />);
 
@@ -86,7 +86,7 @@ describe('ItemPropertiesTab', () => {
     const schemaModel = SchemaModel.fromArray(nodes);
     const appContextProps: Partial<SchemaEditorAppContextProps> = {
       schemaModel,
-      selectedNodePointer: null,
+      selectedUniqueNodePointer: null,
     };
     renderWithProviders({ appContextProps })(<ItemPropertiesTab selectedItem={rootNodeMock} />);
 

@@ -155,13 +155,18 @@ describe('SchemaNode', () => {
   it('Removes node selection when the node is selected and deleted', async () => {
     const { pointer } = objectNodeMock;
     const schemaModel = setupSchemaModel();
-    const setSelectedNodePointer = jest.fn();
+    const setSelectedUniqueNodePointer = jest.fn();
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
-    render({ schemaModel, pointer, selectedNodePointer: pointer, setSelectedNodePointer });
+    render({
+      schemaModel,
+      pointer,
+      selectedUniqueNodePointer: pointer,
+      setSelectedUniqueNodePointer,
+    });
     const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
     await user.click(deleteButton);
-    expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
-    expect(setSelectedNodePointer).toHaveBeenCalledWith(null);
+    expect(setSelectedUniqueNodePointer).toHaveBeenCalledTimes(1);
+    expect(setSelectedUniqueNodePointer).toHaveBeenCalledWith(null);
   });
 
   it('Marks the node as selected when it is added', async () => {
@@ -183,21 +188,21 @@ interface RenderProps {
   pointer?: string;
   schemaModel?: SchemaModel;
   save?: (model: SchemaModel) => void;
-  selectedNodePointer?: string;
-  setSelectedNodePointer?: (pointer?: string) => void;
+  selectedUniqueNodePointer?: string;
+  setSelectedUniqueNodePointer?: (pointer?: string) => void;
 }
 
 const render = ({
   pointer = objectNodeMock.pointer,
   schemaModel = SchemaModel.fromArray(uiSchemaNodesMock),
   save = jest.fn(),
-  selectedNodePointer = null,
-  setSelectedNodePointer = jest.fn(),
+  selectedUniqueNodePointer = null,
+  setSelectedUniqueNodePointer = jest.fn(),
 }: RenderProps) => {
   const onAdd = jest.fn();
   const onMove = jest.fn();
   return renderWithProviders({
-    appContextProps: { save, schemaModel, selectedNodePointer, setSelectedNodePointer },
+    appContextProps: { save, schemaModel, selectedUniqueNodePointer, setSelectedUniqueNodePointer },
   })(
     <DragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={ROOT_POINTER}>
       <DragAndDropTree.Root>

@@ -13,14 +13,14 @@ import { StudioTreeView } from '@studio/components';
 
 // Test data:
 const label = 'Test';
-const nodeId = 'node';
+const uniqueNodeId = 'node';
 const parentId = 'parent';
 const onAdd = jest.fn();
 const onMove = jest.fn();
 const rootId = 'rootId';
 const hoveredNodeParent = null;
 const setHoveredNodeParent = jest.fn();
-const defaultProps: DragAndDropTreeItemProps = { label, nodeId };
+const defaultProps: DragAndDropTreeItemProps = { label, uniqueNodeId };
 const defaultItemContextProps: DragAndDropTreeItemContextProps = { nodeId: parentId };
 const defaultRootContextProps: DragAndDropTreeRootContextProps = {
   hoveredNodeParent,
@@ -78,7 +78,7 @@ describe('DragAndDropTreeItem', () => {
   });
 
   it('Has the hasHoveredItem class name if hoveredNodeParent matches nodeId', () => {
-    const { container } = render({ rootContextProps: { hoveredNodeParent: nodeId } });
+    const { container } = render({ rootContextProps: { hoveredNodeParent: uniqueNodeId } });
     const item = container.querySelector('.item');
     expect(item).toHaveClass('hasHoveredItem');
   });
@@ -97,7 +97,7 @@ describe('DragAndDropTreeItem', () => {
 
   it('Does not display the empty message when the component is expandable and there are subitems', () => {
     const emptyMessage = 'Empty';
-    const children = <DragAndDropTreeItem label='Sub-item' nodeId='subitem' />;
+    const children = <DragAndDropTreeItem label='Sub-item' uniqueNodeId='subitem' />;
     render({ props: { expandable: true, emptyMessage, children } });
     expect(screen.queryByText(emptyMessage)).not.toBeInTheDocument();
   });

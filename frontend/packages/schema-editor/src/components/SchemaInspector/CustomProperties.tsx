@@ -21,10 +21,10 @@ export interface CustomPropertiesProps {
 const inputId = (key: string) => `custom-property-${key}`;
 
 export const CustomProperties = ({ path }: CustomPropertiesProps) => {
-  const { schemaModel, save, selectedNodePointer } = useSchemaEditorAppContext();
+  const { schemaModel, save, selectedUniqueNodePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
 
-  const selectedItem = schemaModel.getNode(selectedNodePointer);
+  const selectedItem = schemaModel.getNodeByUniquePointer(selectedUniqueNodePointer);
   const { custom } = selectedItem;
 
   function changeProperties(properties: KeyValuePairs) {

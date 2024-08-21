@@ -157,8 +157,8 @@ describe('useMoveProperty', () => {
   it('Updates the selected node pointer if moving a node that is selected into an object', () => {
     const setSelectedNodePointerMock = jest.fn();
     const { move, save } = setup({
-      selectedNodePointer: fieldNode1Mock.pointer,
-      setSelectedNodePointer: setSelectedNodePointerMock,
+      selectedUniqueNodePointer: fieldNode1Mock.pointer,
+      setSelectedUniqueNodePointer: setSelectedNodePointerMock,
     });
     const pointerOfNodeToMove = fieldNode1Mock.pointer;
     const index = rootNodeMock.children.length;
@@ -174,8 +174,8 @@ describe('useMoveProperty', () => {
   it('Updates the selected node pointer if moving a node that is selected into a combination node', () => {
     const setSelectedNodePointerMock = jest.fn();
     const { move } = setup({
-      selectedNodePointer: toggableNodeMock.pointer,
-      setSelectedNodePointer: setSelectedNodePointerMock,
+      selectedUniqueNodePointer: toggableNodeMock.pointer,
+      setSelectedUniqueNodePointer: setSelectedNodePointerMock,
     });
     const pointerOfNodeToMove = toggableNodeMock.pointer;
     const pointerOfNewParent = combinationNodeMock.pointer;

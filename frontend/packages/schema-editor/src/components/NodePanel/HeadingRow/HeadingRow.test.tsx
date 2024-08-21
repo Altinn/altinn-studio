@@ -27,7 +27,7 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 // Test data:
 const initialModel = SchemaModel.fromArray(schemaNodesMock);
 const createSchemaModel = () => initialModel.deepClone();
-const setSelectedNodePointer = jest.fn();
+const setSelectedUniqueNodePointer = jest.fn();
 const setSelectedTypePointer = jest.fn();
 const save = jest.fn();
 const dataModelName = 'Test';
@@ -38,9 +38,9 @@ const defaultProps: HeadingRowProps = {
 
 const defaultAppContextProps: SchemaEditorAppContextProps = {
   schemaModel: initialModel,
-  selectedNodePointer: null,
+  selectedUniqueNodePointer: null,
   selectedTypePointer: null,
-  setSelectedNodePointer,
+  setSelectedUniqueNodePointer,
   setSelectedTypePointer,
   save,
   name: dataModelName,
@@ -67,8 +67,8 @@ describe('HeadingRow', () => {
       const user = userEvent.setup();
       renderHeadingRow();
       await user.click(screen.getByRole('button', { name: dataModelName }));
-      expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
-      expect(setSelectedNodePointer).toHaveBeenCalledWith(ROOT_POINTER);
+      expect(setSelectedUniqueNodePointer).toHaveBeenCalledTimes(1);
+      expect(setSelectedUniqueNodePointer).toHaveBeenCalledWith(ROOT_POINTER);
     });
 
     it.each(['combination', 'object', 'string', 'integer', 'number', 'boolean'])(
@@ -85,7 +85,7 @@ describe('HeadingRow', () => {
         expect(savedModel.getNodeMap()).toBe(schemaModel.getNodeMap());
         const numberOfRootChildrenAfter = schemaModel.getRootChildren().length;
         expect(numberOfRootChildrenAfter).toBe(numberOfRootChildrenBefore + 1);
-        expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
+        expect(setSelectedUniqueNodePointer).toHaveBeenCalledTimes(1);
       },
     );
 
@@ -96,8 +96,8 @@ describe('HeadingRow', () => {
     });
 
     it('Renders with the "selected" class name when the root node is selected', () => {
-      const selectedNodePointer = ROOT_POINTER;
-      const appContextProps: Partial<SchemaEditorAppContextProps> = { selectedNodePointer };
+      const selectedUniqueNodePointer = ROOT_POINTER;
+      const appContextProps: Partial<SchemaEditorAppContextProps> = { selectedUniqueNodePointer };
       const { container } = renderHeadingRow({ appContextProps });
       expect(container.firstChild).toHaveClass('selected'); // eslint-disable-line testing-library/no-node-access
     });
@@ -188,8 +188,8 @@ describe('HeadingRow', () => {
         const user = userEvent.setup();
         renderHeadingRowForType(pointer);
         await user.click(screen.getByRole('button', { name }));
-        expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
-        expect(setSelectedNodePointer).toHaveBeenCalledWith(pointer);
+        expect(setSelectedUniqueNodePointer).toHaveBeenCalledTimes(1);
+        expect(setSelectedUniqueNodePointer).toHaveBeenCalledWith(pointer);
       });
 
       if (canHaveChildren) {
@@ -207,7 +207,7 @@ describe('HeadingRow', () => {
             expect(savedModel.getNodeMap()).toBe(schemaModel.getNodeMap());
             const numberOfChildrenAfter = schemaModel.getChildNodes(pointer).length;
             expect(numberOfChildrenAfter).toBe(numberOfChildrenBefore + 1);
-            expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
+            expect(setSelectedUniqueNodePointer).toHaveBeenCalledTimes(1);
           },
         );
       } else {
@@ -236,14 +236,14 @@ describe('HeadingRow', () => {
           expect(schemaModel.hasNode(pointer)).toBe(false);
           expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
           expect(setSelectedTypePointer).toHaveBeenCalledWith(null);
-          expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
-          expect(setSelectedNodePointer).toHaveBeenCalledWith(null);
+          expect(setSelectedUniqueNodePointer).toHaveBeenCalledTimes(1);
+          expect(setSelectedUniqueNodePointer).toHaveBeenCalledWith(null);
         });
       }
 
       it('Renders with the "selected" class name when the root node is selected', () => {
-        const selectedNodePointer = pointer;
-        const appContextProps: Partial<SchemaEditorAppContextProps> = { selectedNodePointer };
+        const selectedUniqueNodePointer = pointer;
+        const appContextProps: Partial<SchemaEditorAppContextProps> = { selectedUniqueNodePointer };
         const { container } = renderHeadingRowForType(pointer, appContextProps);
         expect(container.firstChild).toHaveClass('selected'); // eslint-disable-line testing-library/no-node-access
       });

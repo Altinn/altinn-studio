@@ -9,16 +9,16 @@ describe('useTreeViewRootContext', () => {
     const focusableId = 'foobar';
     const focusedId = 'foo';
     const rootId = 'baz';
-    const selectedId = 'bar';
+    const selectedUniqueId = 'bar';
     const setFocusedId = jest.fn();
-    const setSelectedId = jest.fn();
+    const setSelectedUniqueId = jest.fn();
     const props: TreeViewRootContextProps = {
       focusableId,
       focusedId,
       rootId,
-      selectedId,
+      selectedUniqueId,
       setFocusedId,
-      setSelectedId,
+      setSelectedUniqueId,
     };
     const { result } = renderHook(useTreeViewRootContext, {
       wrapper: ({ children }) => (

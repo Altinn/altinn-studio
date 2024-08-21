@@ -14,7 +14,7 @@ import { useSavableSchemaModel } from '../../../hooks/useSavableSchemaModel';
 
 export interface SchemaNodeProps {
   pointer: string;
-  parentPointer: string;
+  parentPointer?: string;
   uniqueParentPointer?: string;
 }
 

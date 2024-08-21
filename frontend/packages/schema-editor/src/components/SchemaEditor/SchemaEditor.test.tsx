@@ -253,7 +253,7 @@ describe('SchemaEditor', () => {
 
   it('Navigates back to the data model when clicking the "back to data model" link', async () => {
     const setSelectedTypePointer = jest.fn();
-    const setSelectedNodePointer = jest.fn();
+    const setSelectedUniqueNodePointer = jest.fn();
     const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchemaTypePanel));
     const dataModelName = 'TestDataModel';
 
@@ -263,7 +263,7 @@ describe('SchemaEditor', () => {
         selectedTypePointer,
         setSelectedTypePointer,
         name: dataModelName,
-        setSelectedNodePointer,
+        setSelectedUniqueNodePointer,
       },
     });
 
@@ -273,14 +273,18 @@ describe('SchemaEditor', () => {
     await user.click(backButton);
     expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
     expect(setSelectedTypePointer).toHaveBeenCalledWith(undefined);
-    expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
-    expect(setSelectedNodePointer).toHaveBeenCalledWith(undefined);
+    expect(setSelectedUniqueNodePointer).toHaveBeenCalledTimes(1);
+    expect(setSelectedUniqueNodePointer).toHaveBeenCalledWith(undefined);
   });
 
   it('should not display the type panel when selectedTypePointer is null and selectedNodePointer is null/undefined', async () => {
     const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchemaTypePanel));
     renderEditor({
-      appContextProps: { schemaModel, selectedTypePointer: null, selectedNodePointer: undefined },
+      appContextProps: {
+        schemaModel,
+        selectedTypePointer: null,
+        setSelectedUniqueNodePointer: undefined,
+      },
     });
     expect(screen.queryByRole('heading', { name: typeName, level: 1 })).not.toBeInTheDocument();
   });
@@ -289,13 +293,13 @@ describe('SchemaEditor', () => {
     const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchemaTypePanel));
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
     const setSelectedTypePointer = jest.fn();
-    const setSelectedNodePointer = jest.fn();
+    const setSelectedUniqueNodePointer = jest.fn();
     renderEditor({
       appContextProps: {
         schemaModel,
         selectedTypePointer,
         setSelectedTypePointer,
-        setSelectedNodePointer,
+        setSelectedUniqueNodePointer,
       },
     });
 
@@ -303,22 +307,22 @@ describe('SchemaEditor', () => {
     await user.click(deleteButton[0]);
     expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
     expect(setSelectedTypePointer).toHaveBeenCalledWith(null);
-    expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
-    expect(setSelectedNodePointer).toHaveBeenCalledWith(null);
+    expect(setSelectedUniqueNodePointer).toHaveBeenCalledTimes(1);
+    expect(setSelectedUniqueNodePointer).toHaveBeenCalledWith(null);
   });
 
   it('should not close the type panel when deleting a property of the selected type', async () => {
     const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchemaTypePanel));
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
     const setSelectedTypePointer = jest.fn();
-    const setSelectedNodePointer = jest.fn();
+    const setSelectedUniqueNodePointer = jest.fn();
 
     renderEditor({
       appContextProps: {
         schemaModel,
         selectedTypePointer,
         setSelectedTypePointer,
-        setSelectedNodePointer,
+        setSelectedUniqueNodePointer,
       },
     });
 
@@ -329,7 +333,7 @@ describe('SchemaEditor', () => {
     await user.click(deleteButton);
 
     expect(setSelectedTypePointer).not.toHaveBeenCalled();
-    expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
-    expect(setSelectedNodePointer).toHaveBeenCalledWith(null);
+    expect(setSelectedUniqueNodePointer).toHaveBeenCalledTimes(1);
+    expect(setSelectedUniqueNodePointer).toHaveBeenCalledWith(null);
   });
 });

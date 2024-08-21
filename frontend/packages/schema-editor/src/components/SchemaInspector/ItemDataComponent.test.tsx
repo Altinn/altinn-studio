@@ -27,7 +27,7 @@ const renderItemDataComponent = (schemaNode: UiSchemaNode = defaultNode) => {
     appContextProps: {
       schemaModel,
       save: saveDataModel,
-      selectedNodePointer: schemaNode.pointer,
+      selectedUniqueNodePointer: schemaNode.pointer,
     },
   })(<ItemDataComponent schemaNode={schemaNode} />);
 };
