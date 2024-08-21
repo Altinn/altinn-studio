@@ -32,7 +32,9 @@ export const StudioRecommendedNextAction = ({
         <Heading size='xs'>{title}</Heading>
       </StudioCard.Header>
       <StudioCard.Content>
-        <StudioParagraph className={classes.description}>{description}</StudioParagraph>
+        <StudioParagraph size='sm' className={classes.description}>
+          {description}
+        </StudioParagraph>
         {children}
         <div className={classes.buttonGroup}>
           {!hideSaveButton && (
