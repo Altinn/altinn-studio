@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -333,19 +332,37 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
                 foreach (var layoutObject in layoutArray)
                 {
-                    foreach (TextIdMutation mutation in keyMutations.Where(_ => layoutObject["textResourceBindings"] is not null))
+                    foreach (TextIdMutation mutation in keyMutations)
                     {
-                        layoutObject["textResourceBindings"] = UpdateKey(layoutObject["textResourceBindings"], mutation);
+                        UpdateKeyInLayoutObject(layoutObject, mutation);
                     }
-                    foreach (TextIdMutation mutation in keyMutations.Where(_ => layoutObject["options"] is not null))
+                    await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, layout);
+                }
+            }
+        }
+
+        private static void UpdateKeyInLayoutObject(JsonNode layoutObject, TextIdMutation mutation)
+        {
+            if (layoutObject["textResourceBindings"] is not null)
+            {
+                layoutObject["textResourceBindings"] = UpdateKey(layoutObject["textResourceBindings"], mutation);
+            }
+            if (layoutObject["options"] is not null)
+            {
+                var options = JsonSerializer.Deserialize<List<Option>>(layoutObject["options"]);
+                List<Option> updatedOptions = UpdateOptionsKeys(options, mutation);
+                layoutObject["options"] = JsonSerializer.SerializeToNode(updatedOptions);
+            }
+            if (layoutObject["source"] is JsonObject)
+            {
+                JsonElement jsonElement = layoutObject["source"]["label"].AsValue().GetValue<JsonElement>();
+                if (jsonElement.ValueKind == JsonValueKind.String && jsonElement.GetString() == mutation.OldId)
+                {
+                    if (mutation.NewId.HasValue)
                     {
-                        var options = JsonConvert.DeserializeObject<List<Option>>(layoutObject["options"].ToJsonString());
-                        List<Option> updatedOptions = UpdateOptionsKeys(options, mutation);
-                        string json = JsonConvert.SerializeObject(updatedOptions);
-                        layoutObject["options"] = JsonNode.Parse(json);
+                        layoutObject["source"]["label"] = mutation.NewId.Value;
                     }
                 }
-                await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, layout);
             }
         }
 
