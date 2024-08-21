@@ -8,20 +8,22 @@ import { SmallNavigationMenu } from './SmallNavigationMenu';
 import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenuItem';
 import { type HeaderMenuGroup } from 'app-development/types/HeaderMenu/HeaderMenuGroup';
 import { HeaderMenuGroupKey } from 'app-development/enums/HeaderMenuGroupKey';
+import { useMediaQuery } from '@studio/components';
+import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 
 export type HeaderMenuProps = {
   menuItems: HeaderMenuItem[];
-  shouldResize: boolean;
 };
 
-export const HeaderMenu = ({ menuItems, shouldResize }: HeaderMenuProps): ReactElement => {
+export const HeaderMenu = ({ menuItems }: HeaderMenuProps): ReactElement => {
   const { t } = useTranslation();
+  const shouldDisplaySmallMenu = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
 
   const groupedMenuItems: HeaderMenuGroup[] = groupMenuItemsByGroup(menuItems);
 
   if (!menuItems.length) return null;
 
-  if (shouldResize) {
+  if (shouldDisplaySmallMenu) {
     return (
       <SmallNavigationMenu
         menuGroups={[...groupedMenuItems.map(mapMenuGroup)]}

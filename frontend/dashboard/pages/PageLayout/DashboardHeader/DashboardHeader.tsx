@@ -48,7 +48,7 @@ export const DashboardHeader = () => {
 
 const DashboardHeaderMenu = () => {
   const { t } = useTranslation();
-  const shouldResizeWindow = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
+  const shouldHideButtonText = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
 
   const selectedContext = useSelectedContext();
 
@@ -56,7 +56,7 @@ const DashboardHeaderMenu = () => {
   const navigate = useNavigate();
 
   const getTriggerButtonText = (): string => {
-    if (shouldResizeWindow) return;
+    if (shouldHideButtonText) return;
 
     const username = user.full_name || user.login;
 

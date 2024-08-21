@@ -104,14 +104,14 @@ const ResourceadmHeader = () => {
 
 const ResourceadmHeaderMenu = () => {
   const { t } = useTranslation();
-  const shouldResizeWindow = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
+  const shouldHideButtonText = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const { org: selectedContext = SelectedContextType.Self } = useUrlParams();
 
   const { user, selectableOrgs } = useContext(HeaderContext);
   const navigate = useNavigate();
 
   const getTriggerButtonText = (): string => {
-    if (shouldResizeWindow) return;
+    if (shouldHideButtonText) return;
 
     const username = user.full_name || user.login;
 

@@ -43,7 +43,7 @@ const SubHeaderLeftContent = () => {
 
 const PreviewButton = () => {
   const { t } = useTranslation();
-  const shouldResizeWindow = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
+  const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
   const { selectedFormLayoutName } = useSelectedFormLayoutName(selectedFormLayoutSetName);
@@ -54,7 +54,7 @@ const PreviewButton = () => {
     <StudioPageHeaderButton asChild color='dark'>
       <a href={previewLink} className={classes.previewLink}>
         <PlayFillIcon className={classes.playIcon} />
-        {!shouldResizeWindow && t('top_menu.preview')}
+        {shouldDisplayText && t('top_menu.preview')}
       </a>
     </StudioPageHeaderButton>
   );

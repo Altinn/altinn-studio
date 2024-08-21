@@ -9,7 +9,7 @@ import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 
 export const SettingsModalButton = (): ReactNode => {
   const { t } = useTranslation();
-  const shouldResizeWindow = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
+  const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
 
   const { settingsModalOpen, setSettingsModalOpen, settingsModalSelectedTab } =
     useSettingsModalContext();
@@ -21,7 +21,7 @@ export const SettingsModalButton = (): ReactNode => {
         onClick={() => setSettingsModalOpen(true)}
         icon={<CogIcon />}
       >
-        {!shouldResizeWindow && t('sync_header.settings')}
+        {shouldDisplayText && t('sync_header.settings')}
       </StudioPageHeaderButton>
       {
         // Done to prevent API calls to be executed before the modal is open

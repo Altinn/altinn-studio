@@ -27,7 +27,7 @@ export type PreviewAsViewSize = 'desktop' | 'mobile';
 export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
-  const shouldResizeWindow = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
+  const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const previewConnection = usePreviewConnection();
   const { data: user } = useUserQuery();
   const { data: repository } = useRepoMetadataQuery(org, app);
@@ -66,7 +66,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
     <>
       <StudioPageHeader variant='preview'>
         <StudioPageHeader.Main>
-          <StudioPageHeader.Left title={!shouldResizeWindow && app} />
+          <StudioPageHeader.Left title={shouldDisplayText && app} />
           <StudioPageHeader.Right>
             <AppUserProfileMenu user={user} repository={repository} color='light' />
           </StudioPageHeader.Right>

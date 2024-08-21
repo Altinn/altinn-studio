@@ -30,7 +30,7 @@ export const AppUserProfileMenu = ({
   const { org } = useStudioEnvironmentParams();
   const userNameAndOrg = useUserNameAndOrg(user, org, repository);
 
-  const shouldResizeWindow = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
+  const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
 
   const docsMenuItem: StudioProfileMenuItem = {
     action: { type: 'link', href: altinnDocsUrl('') },
@@ -52,7 +52,7 @@ export const AppUserProfileMenu = ({
 
   return (
     <StudioProfileMenu
-      triggerButtonText={shouldResizeWindow ? undefined : userNameAndOrg}
+      triggerButtonText={shouldDisplayText ? userNameAndOrg : undefined}
       profileImage={
         <StudioAvatar
           imageDetails={

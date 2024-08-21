@@ -27,16 +27,17 @@ export const PageHeader = ({
   const repoType = getRepositoryType(org, app);
   const { data: repository } = useRepoMetadataQuery(org, app);
 
-  const shouldResizeWindow = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
+  const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
 
   const menuItems = getTopBarMenuItems(repoType, repoOwnerIsOrg);
 
+  // TODO - FIX NEW STRUCTURE - IF SMALL, Nothing in main, merge small nav and profile in right
   return (
     <StudioPageHeader>
       <StudioPageHeader.Main>
-        <StudioPageHeader.Left title={!shouldResizeWindow && app} />
+        <StudioPageHeader.Left title={shouldDisplayText && app} />
         <StudioPageHeader.Center>
-          {menuItems && <HeaderMenu menuItems={menuItems} shouldResize={shouldResizeWindow} />}
+          {menuItems && <HeaderMenu menuItems={menuItems} />}
         </StudioPageHeader.Center>
         <StudioPageHeader.Right>
           <AppUserProfileMenu user={user} repository={repository} color='dark' />
@@ -50,3 +51,21 @@ export const PageHeader = ({
     </StudioPageHeader>
   );
 };
+
+/*
+Men hva med disse 3 gruppene da?
+  - Oversikt
+  - Verktøy
+    - Lage
+    - Datamodell
+    - Språk
+    - Prosess (beta)
+  - Brukernavn for org
+    - Dokumentasjon
+    - Logg ut
+
+da er "brukernacn for org" samme tekst som står der til vanlig
+
+Supert! så har vi jo de casene hvor brukernavnet for org blir veldig langt :slightly_smiling_face:
+så kanskje begrense mkas ord der, også vise hele navnet når man hovrer over, slik som vi gjorde med lange id navn?
+*/
