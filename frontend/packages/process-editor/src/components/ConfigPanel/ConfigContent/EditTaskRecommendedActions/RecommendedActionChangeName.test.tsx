@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { RecommendedActionChangeName } from './RecommendedActionChangeName';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { useValidateBpmnTaskId } from '../../../../hooks/useValidateBpmnId';
@@ -58,7 +58,22 @@ describe('RecommendedActionChangeName', () => {
     await user.type(newNameInput, 'newName');
 
     const saveButton = screen.getByRole('button', { name: textMock('general.save') });
-    await user.click(saveButton);
+    fireEvent.submit(saveButton);
+
+    expect(setBpmnDetails).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'newName',
+      }),
+    );
+  });
+
+  it('calls saveNewName when pressing enter in input field', async () => {
+    const user = userEvent.setup();
+    renderWithContext(<RecommendedActionChangeName />);
+    const newNameInput = screen.getByRole('textbox', {
+      name: textMock('process_editor.recommended_action.new_name_label'),
+    });
+    await user.type(newNameInput, 'newName{enter}');
 
     expect(setBpmnDetails).toHaveBeenCalledWith(
       expect.objectContaining({

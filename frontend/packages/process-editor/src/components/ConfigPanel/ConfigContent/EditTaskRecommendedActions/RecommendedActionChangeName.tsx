@@ -20,7 +20,11 @@ export const RecommendedActionChangeName = (): React.ReactElement => {
   const [newName, setNewName] = useState('');
   const [newNameError, setNewNameError] = useState('');
 
-  const saveNewName = () => {
+  const saveNewName = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (newNameError || newName === '') {
+      return false;
+    }
     removeAction(bpmnDetails.element.id);
     studioModeler.updateElementProperties({ id: newName });
     setBpmnDetails({

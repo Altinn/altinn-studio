@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { StudioRecommendedNextAction } from './StudioRecommendedNextAction';
 import React from 'react';
 import userEvent from '@testing-library/user-event';
@@ -29,7 +29,6 @@ describe('StudioRecommendedNextAction', () => {
   });
 
   it('calls onSave when save button is clicked', async () => {
-    const user = userEvent.setup();
     render(
       <StudioRecommendedNextAction
         onSave={onSave}
@@ -43,7 +42,7 @@ describe('StudioRecommendedNextAction', () => {
       </StudioRecommendedNextAction>,
     );
 
-    await user.click(screen.getByRole('button', { name: 'Save' }));
+    fireEvent.submit(screen.getByRole('button', { name: 'Save' }));
     expect(onSave).toHaveBeenCalledTimes(1);
   });
 
