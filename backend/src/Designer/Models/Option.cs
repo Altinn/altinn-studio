@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.Models;
 
@@ -12,25 +12,27 @@ public class Option
     /// Value that connects the option to the data model.
     /// </summary>
     [Required]
-    [JsonProperty(PropertyName = "value")]
+    [JsonPropertyName("value")]
     public string Value { get; set; }
 
     /// <summary>
     /// Label to present to the user.
     /// </summary>
     [Required]
-    [JsonProperty(PropertyName = "label")]
+    [JsonPropertyName("label")]
     public string Label { get; set; }
 
     /// <summary>
     /// Description, typically displayed below the label.
     /// </summary>
-    [JsonProperty(PropertyName = "description", NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("description")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string Description { get; set; }
 
     /// <summary>
     /// Help text, typically wrapped inside a popover.
     /// </summary>
-    [JsonProperty(PropertyName = "helpText", NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("helpText")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string HelpText { get; set; }
 }
