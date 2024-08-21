@@ -8,33 +8,34 @@ import cn from 'classnames';
 
 export type StudioTreeViewRootProps = {
   onSelect?: (nodeId: string) => void;
-  selectedId?: string;
+  selectedUniqueId?: string;
 } & Omit<HTMLAttributes<HTMLUListElement>, 'onSelect'>;
 
 export const StudioTreeViewRoot = ({
   children,
   className,
   onSelect,
-  selectedId: selectedIdFromProps,
+  selectedUniqueId: selectedUniqueIdFromProps,
   ...rest
 }: StudioTreeViewRootProps) => {
   const rootId = useId();
-  const [selectedId, setSelectedId] = useState<string | undefined>(selectedIdFromProps);
   const [focusedId, setFocusedId] = useState<string | undefined>(undefined);
   const [focusableId, setFocusableId] = useState<string | null>(null);
-  const [selectedUniqueId, setSelectedUniqueId] = useState<string | undefined>(undefined);
+  const [selectedUniqueId, setSelectedUniqueId] = useState<string | undefined>(
+    selectedUniqueIdFromProps,
+  );
   useEffect(() => {
-    setSelectedId(selectedIdFromProps);
-  }, [selectedIdFromProps]);
+    setSelectedUniqueId(selectedUniqueIdFromProps);
+  }, [selectedUniqueIdFromProps]);
 
   useLayoutEffect(() => {
     const firstNodeId = findFirstNodeId(rootId);
-    setFocusableId(focusableNodeId(focusedId, selectedId, firstNodeId));
-  }, [rootId, selectedId, focusedId]);
+    setFocusableId(focusableNodeId(focusedId, selectedUniqueId, firstNodeId));
+  }, [rootId, selectedUniqueId, focusedId]);
 
-  const handleSelect = (nodeId: string) => {
-    setSelectedId(nodeId);
-    onSelect?.(nodeId);
+  const handleSelect = (uniqueNodeId: string) => {
+    setSelectedUniqueId(uniqueNodeId);
+    onSelect?.(uniqueNodeId);
   };
 
   return (
@@ -42,12 +43,10 @@ export const StudioTreeViewRoot = ({
       value={{
         focusedId,
         rootId,
-        selectedId,
         setFocusedId,
-        setSelectedId: handleSelect,
         focusableId,
         selectedUniqueId,
-        setSelectedUniqueId,
+        setSelectedUniqueId: handleSelect,
       }}
     >
       <ul role='tree' {...rest} id={rootId} className={cn(classes.list, className)}>

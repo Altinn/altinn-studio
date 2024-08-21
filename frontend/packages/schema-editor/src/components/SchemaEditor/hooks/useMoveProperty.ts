@@ -9,9 +9,11 @@ import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchema
 
 export const useMoveProperty = (): HandleMove => {
   const savableModel = useSavableSchemaModel();
-  const { selectedNodePointer, setSelectedNodePointer } = useSchemaEditorAppContext();
+  const { selectedUniqueNodePointer, setSelectedUniqueNodePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
-
+  const selectedNodePointer = selectedUniqueNodePointer
+    ? savableModel.getNodeByUniquePointer(selectedUniqueNodePointer).pointer
+    : null;
   const areThereCollidingNames = useCallback(
     (pointer: string, position: ItemPosition): boolean => {
       const currentParent = savableModel.getParentNode(pointer);
@@ -28,6 +30,8 @@ export const useMoveProperty = (): HandleMove => {
 
   return useCallback(
     (pointer: string, position: ItemPosition) => {
+      pointer = savableModel.getNodeByUniquePointer(pointer).pointer;
+      position.parentId = savableModel.getNodeByUniquePointer(position.parentId).pointer;
       const index = calculatePositionInFullList(savableModel, position);
       const target: NodePosition = { parentPointer: position.parentId, index };
       const name = extractNameFromPointer(pointer);
@@ -37,10 +41,10 @@ export const useMoveProperty = (): HandleMove => {
       } else {
         const movedNode = savableModel.moveNode(pointer, target);
         if (selectedNodePointer === pointer) {
-          setSelectedNodePointer(movedNode.pointer);
+          setSelectedUniqueNodePointer(movedNode.pointer);
         }
       }
     },
-    [savableModel, t, areThereCollidingNames, selectedNodePointer, setSelectedNodePointer],
+    [savableModel, t, areThereCollidingNames, selectedNodePointer, setSelectedUniqueNodePointer],
   );
 };

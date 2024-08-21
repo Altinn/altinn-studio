@@ -31,7 +31,7 @@ export const ItemFieldsTableRow = ({
   onEnterKeyPress,
 }: ItemFieldsTableRowProps): ReactNode => {
   const { t } = useTranslation();
-  const { schemaModel, setSelectedNodePointer, save } = useSchemaEditorAppContext();
+  const { schemaModel, setSelectedUniqueNodePointer, save } = useSchemaEditorAppContext();
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
   const typeOptions = useTypeOptions();
@@ -60,7 +60,7 @@ export const ItemFieldsTableRow = ({
 
   const deleteHandler = () => {
     save(deleteNode(schemaModel, fullPath));
-    setSelectedNodePointer(null);
+    setSelectedUniqueNodePointer(null);
   };
 
   return (

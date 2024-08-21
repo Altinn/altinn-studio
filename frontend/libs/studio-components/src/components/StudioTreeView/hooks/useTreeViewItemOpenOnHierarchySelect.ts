@@ -4,8 +4,6 @@ import { isDirectChildOfNode } from '../utils/domUtils';
 
 export const useTreeViewItemOpenOnHierarchySelect = (
   rootId: string,
-  nodeId: string,
-  selectedId: string,
   uniqueNodeId: string,
   selectedUniqueId: string,
   setOpen: Dispatch<SetStateAction<boolean>>,
@@ -16,5 +14,5 @@ export const useTreeViewItemOpenOnHierarchySelect = (
     } else if (isDirectChildOfNode(selectedUniqueId, rootId, uniqueNodeId)) {
       setOpen(true);
     }
-  }, [nodeId, rootId, selectedId, setOpen, selectedUniqueId, uniqueNodeId]);
+  }, [rootId, setOpen, selectedUniqueId, uniqueNodeId]);
 };

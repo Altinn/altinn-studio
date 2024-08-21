@@ -22,8 +22,8 @@ export const renderWithProviders =
     const allSelectedSchemaContextProps: SchemaEditorAppContextProps = {
       schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
       save: jest.fn(),
-      selectedNodePointer: null,
-      setSelectedNodePointer: jest.fn(),
+      selectedUniqueNodePointer: null,
+      setSelectedUniqueNodePointer: jest.fn(),
       selectedTypePointer: null,
       setSelectedTypePointer: jest.fn(),
       name,
@@ -44,8 +44,8 @@ export const renderWithProviders =
       const newAppContextProps: SchemaEditorAppContextProps = {
         schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
         save: jest.fn(),
-        selectedNodePointer: null,
-        setSelectedNodePointer: jest.fn(),
+        selectedUniqueNodePointer: null,
+        setSelectedUniqueNodePointer: jest.fn(),
         selectedTypePointer: null,
         setSelectedTypePointer: jest.fn(),
         name,

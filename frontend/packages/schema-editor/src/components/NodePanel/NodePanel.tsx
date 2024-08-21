@@ -29,11 +29,11 @@ export const NodePanel = ({ pointer }: NodePanelProps) => {
 };
 
 const BackButton = () => {
-  const { setSelectedNodePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
+  const { setSelectedUniqueNodePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
 
   const navigateToDataModelRoot = () => {
-    setSelectedNodePointer(undefined);
+    setSelectedUniqueNodePointer(undefined);
     setSelectedTypePointer(undefined);
   };
 

@@ -14,7 +14,8 @@ import { useUserQuery } from 'app-development/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export const SchemaEditor = () => {
-  const { schemaModel, selectedTypePointer, selectedNodePointer } = useSchemaEditorAppContext();
+  const { schemaModel, selectedTypePointer, selectedUniqueNodePointer } =
+    useSchemaEditorAppContext();
   const { org } = useStudioEnvironmentParams();
   const { data: user } = useUserQuery();
   const moveProperty = useMoveProperty();
@@ -48,7 +49,7 @@ export const SchemaEditor = () => {
         </StudioResizableLayout.Element>
         <StudioResizableLayout.Element
           minimumSize={300}
-          collapsed={!selectedNodePointer}
+          collapsed={!selectedUniqueNodePointer}
           collapsedSize={180}
         >
           <aside className={classes.inspector}>

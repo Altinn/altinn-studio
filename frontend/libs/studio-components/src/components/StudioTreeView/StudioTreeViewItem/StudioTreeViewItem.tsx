@@ -27,7 +27,6 @@ export type StudioTreeViewItemProps = {
   icon?: ReactNode;
   label: ReactNode;
   labelWrapper?: (children: ReactNode) => ReactNode;
-  nodeId: string;
   uniqueNodeId: string;
 } & HTMLAttributes<HTMLDivElement>;
 
@@ -38,32 +37,15 @@ export const StudioTreeViewItem = ({
   icon,
   label,
   labelWrapper = (lab) => lab,
-  nodeId,
   uniqueNodeId,
   ...rest
 }: StudioTreeViewItemProps) => {
   const [open, setOpen] = useState(false);
-  const {
-    selectedId,
-    setSelectedId,
-    selectedUniqueId,
-    setSelectedUniqueId,
-    rootId,
-    focusedId,
-    setFocusedId,
-    focusableId,
-  } = useTreeViewRootContext();
+  const { selectedUniqueId, setSelectedUniqueId, rootId, focusedId, setFocusedId, focusableId } =
+    useTreeViewRootContext();
   const { level } = useTreeViewItemContext();
   const treeItemRef = useRef<HTMLDivElement>(null);
-
-  useTreeViewItemOpenOnHierarchySelect(
-    rootId,
-    nodeId,
-    selectedId,
-    uniqueNodeId,
-    selectedUniqueId,
-    setOpen,
-  );
+  useTreeViewItemOpenOnHierarchySelect(rootId, uniqueNodeId, selectedUniqueId, setOpen);
 
   useEffect(() => {
     if (focusedId === uniqueNodeId) {
@@ -72,11 +54,10 @@ export const StudioTreeViewItem = ({
   }, [focusedId, uniqueNodeId]);
 
   const selected = selectedUniqueId === uniqueNodeId;
-  const focusable = focusableId === nodeId && selectedUniqueId === uniqueNodeId;
+  const focusable = focusableId === uniqueNodeId;
 
   const selectNode = () => {
     setOpen((prevOpen) => !prevOpen);
-    setSelectedId(nodeId);
     setSelectedUniqueId(uniqueNodeId);
   };
 

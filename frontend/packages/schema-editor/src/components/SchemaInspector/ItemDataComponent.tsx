@@ -38,8 +38,13 @@ export type IItemDataComponentProps = {
 
 export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
   const { pointer, title = '', description = '', isArray, custom } = schemaNode;
-  const { schemaModel, save, setSelectedTypePointer, setSelectedNodePointer } =
-    useSchemaEditorAppContext();
+  const {
+    schemaModel,
+    save,
+    setSelectedTypePointer,
+    selectedUniqueNodePointer,
+    setSelectedUniqueNodePointer,
+  } = useSchemaEditorAppContext();
   const { t } = useTranslation();
 
   const [itemTitle, setItemItemTitle] = useState<string>(title);
@@ -57,7 +62,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
       save(
         addCombinationItem(schemaModel, {
           pointer,
-          callback: setSelectedNodePointer,
+          callback: setSelectedUniqueNodePointer,
         }),
       );
       return;
@@ -66,7 +71,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
     getChildNodes().forEach((childNode: UiSchemaNode) => {
       if (isField(childNode) && childNode.fieldType === FieldType.Null) {
         save(deleteNode(schemaModel, childNode.pointer));
-        setSelectedNodePointer(null);
+        setSelectedUniqueNodePointer(null);
       }
     });
   };
@@ -96,7 +101,9 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
           if (newPointer && pointerIsDefinition(newPointer)) {
             setSelectedTypePointer(newPointer);
           }
-          setSelectedNodePointer(newPointer);
+          setSelectedUniqueNodePointer(
+            selectedUniqueNodePointer.split('/').slice(0, -1).join('/') + '/' + newNodeName,
+          );
         },
       }),
     );

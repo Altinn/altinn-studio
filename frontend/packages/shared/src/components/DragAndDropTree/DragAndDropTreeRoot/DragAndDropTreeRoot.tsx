@@ -9,14 +9,14 @@ export interface DragAndDropTreeRootProps {
   children?: ReactNode;
   emptyMessage?: string;
   onSelect?: (nodeId: string) => void;
-  selectedId?: string;
+  selectedUniqueId?: string;
 }
 
 export const DragAndDropTreeRoot = ({
   children,
   emptyMessage,
   onSelect,
-  selectedId,
+  selectedUniqueId,
 }: DragAndDropTreeRootProps) => {
   const [hoveredNodeParent, setHoveredNodeParent] = useState<string | null>(null);
 
@@ -26,7 +26,7 @@ export const DragAndDropTreeRoot = ({
         <StudioTreeView.Root
           onSelect={onSelect}
           onMouseOut={() => setHoveredNodeParent(null)}
-          selectedId={selectedId}
+          selectedUniqueId={selectedUniqueId}
         >
           {children || <EmptyList>{emptyMessage}</EmptyList>}
         </StudioTreeView.Root>

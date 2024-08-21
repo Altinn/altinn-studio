@@ -45,7 +45,7 @@ export const FormItem = ({ layout, id, duplicateComponents }: FormItemProps) => 
       expandable={isContainer(layout, id)}
       label={itemTitle(formItem)}
       labelWrapper={labelWrapper}
-      nodeId={id}
+      uniqueNodeId={id}
     >
       {renderItemList(layout, duplicateComponents, id)}
     </DragAndDropTree.Item>

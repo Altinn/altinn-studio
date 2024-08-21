@@ -15,12 +15,17 @@ export interface TypesInspectorProps {
 
 export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
   const { t } = useTranslation();
-  const { schemaModel, save, selectedTypePointer, setSelectedTypePointer, setSelectedNodePointer } =
-    useSchemaEditorAppContext();
+  const {
+    schemaModel,
+    save,
+    selectedTypePointer,
+    setSelectedTypePointer,
+    setSelectedUniqueNodePointer,
+  } = useSchemaEditorAppContext();
 
   const setSelectedType = (pointer: string) => {
     setSelectedTypePointer(pointer);
-    setSelectedNodePointer(pointer);
+    setSelectedUniqueNodePointer(pointer);
   };
 
   const handleAddDefinition = (e: MouseEvent) => {

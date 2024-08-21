@@ -35,7 +35,12 @@ export const SchemaNode = ({
 
   const title = label || t('schema_editor.tree.combination_child_title', { index });
   const labelWrapper = (labelComponent: ReactNode) => (
-    <LabelWrapper label={labelComponent} pointer={pointer} schemaModel={savableModel} />
+    <LabelWrapper
+      label={labelComponent}
+      pointer={pointer}
+      schemaModel={savableModel}
+      uniqueNodePointer={uniqueNodePointer}
+    />
   );
 
   return (
@@ -45,7 +50,6 @@ export const SchemaNode = ({
       icon={renderIcon(savableModel, pointer)}
       label={label}
       labelWrapper={labelWrapper}
-      nodeId={pointer}
       uniqueNodeId={uniqueNodePointer}
       title={title}
     >
@@ -58,16 +62,21 @@ interface LabelWrapperProps {
   label: ReactNode;
   pointer: string;
   schemaModel: SchemaModel;
+  uniqueNodePointer: string;
 }
 
-const LabelWrapper = ({ label, pointer, schemaModel }: LabelWrapperProps) => {
+const LabelWrapper = ({ label, pointer, uniqueNodePointer, schemaModel }: LabelWrapperProps) => {
   const node = schemaModel.getNode(pointer);
   const className = createWrapperClassNames(schemaModel, node);
   return (
     <div className={className}>
       <div className={classes.nodeName}>{label}</div>
       {isReference(node) && <ReferenceButton node={node} />}
-      <ActionButtons className={classes.actionButtons} pointer={pointer} />
+      <ActionButtons
+        className={classes.actionButtons}
+        pointer={pointer}
+        uniqueNodePointer={uniqueNodePointer}
+      />
     </div>
   );
 };
