@@ -4,6 +4,7 @@ import { StudioButton } from '@studio/components';
 import { UploadIcon } from '@studio/icons';
 import { fileSelectorInputId } from '@studio/testing/testids';
 import { toast } from 'react-toastify';
+import classes from './FileSelector.module.css';
 
 export interface IFileSelectorProps {
   accept?: string;
@@ -64,13 +65,13 @@ export const FileSelector = ({
         data-testid={fileSelectorInputId}
         type='file'
         id='file-upload-picker'
-        className='sr-only'
         accept={accept}
         ref={fileInput}
         name={formFileName}
         onChange={handleInputChange}
         disabled={busy}
         tabIndex={-1}
+        className={classes.fileInput}
       />
       {(submitButtonRenderer ?? defaultSubmitButtonRenderer)(() => fileInput?.current?.click())}
     </form>
