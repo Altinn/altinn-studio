@@ -44,46 +44,48 @@ export const ConfigContent = (): React.ReactElement => {
 
   return (
     <ConfigContentContainer>
-      <EditTaskId />
-      <StudioDisplayTile
-        label={t('process_editor.configuration_panel_name_label')}
-        value={bpmnDetails.name}
-        className={classes.displayTile}
-        showPadlock={false}
-      />
-      {taskHasConnectedLayoutSet && (
-        <EditDataTypes
-          connectedTaskId={layoutSet.tasks[0]}
-          dataModelIds={availableDataModelIds}
-          existingDataTypeForTask={existingDataTypeForTask}
+      <div className={classes.configContent}>
+        <EditTaskId />
+        <StudioDisplayTile
+          label={t('process_editor.configuration_panel_name_label')}
+          value={bpmnDetails.name}
+          className={classes.displayTile}
+          showPadlock={false}
         />
-      )}
-      {isSigningTask && (
-        <>
-          <EditDataTypesToSign key={`${bpmnDetails.id}-dataTypes`} />
-          {!isFirstSigningTask && (
-            <EditUniqueFromSignaturesInDataTypes key={`${bpmnDetails.id}-uniqueSignature`} />
-          )}
-        </>
-      )}
-      <Accordion color='neutral'>
-        <Accordion.Item>
-          <Accordion.Header>
-            {t('process_editor.configuration_panel_actions_title')}
-          </Accordion.Header>
-          <Accordion.Content className={classes.accordion}>
-            <EditActions />
-          </Accordion.Content>
-        </Accordion.Item>
-        <Accordion.Item>
-          <Accordion.Header>
-            {t('process_editor.configuration_panel_policy_title')}
-          </Accordion.Header>
-          <Accordion.Content className={classes.accordion}>
-            <EditPolicy />
-          </Accordion.Content>
-        </Accordion.Item>
-      </Accordion>
+        {taskHasConnectedLayoutSet && (
+          <EditDataTypes
+            connectedTaskId={layoutSet.tasks[0]}
+            dataModelIds={availableDataModelIds}
+            existingDataTypeForTask={existingDataTypeForTask}
+          />
+        )}
+        {isSigningTask && (
+          <>
+            <EditDataTypesToSign key={`${bpmnDetails.id}-dataTypes`} />
+            {!isFirstSigningTask && (
+              <EditUniqueFromSignaturesInDataTypes key={`${bpmnDetails.id}-uniqueSignature`} />
+            )}
+          </>
+        )}
+        <Accordion color='neutral'>
+          <Accordion.Item>
+            <Accordion.Header>
+              {t('process_editor.configuration_panel_actions_title')}
+            </Accordion.Header>
+            <Accordion.Content className={classes.accordion}>
+              <EditActions />
+            </Accordion.Content>
+          </Accordion.Item>
+          <Accordion.Item>
+            <Accordion.Header>
+              {t('process_editor.configuration_panel_policy_title')}
+            </Accordion.Header>
+            <Accordion.Content className={classes.accordion}>
+              <EditPolicy />
+            </Accordion.Content>
+          </Accordion.Item>
+        </Accordion>
+      </div>
     </ConfigContentContainer>
   );
 };
