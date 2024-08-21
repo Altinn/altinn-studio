@@ -1,4 +1,4 @@
-﻿using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.App;
 using Azure.Identity;
 
 namespace Altinn.App.Api.Extensions;

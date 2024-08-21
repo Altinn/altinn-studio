@@ -1,6 +1,7 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Features.Options.Altinn2Provider;
+using Altinn.App.Core.Internal.Language;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -58,11 +59,11 @@ public class Altinn2OptionsCacheTests
             messageHandler.CallCounter.Should().Be(0);
             providers.Count().Should().Be(3);
             var optionsProvider = providers.Single(p => p.Id == "ASF_Land3");
-            await optionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
+            await optionsProvider.GetAppOptionsAsync(LanguageConst.Nb, new Dictionary<string, string>());
             await Task.Delay(5);
             messageHandler.CallCounter.Should().Be(1);
 
-            await optionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
+            await optionsProvider.GetAppOptionsAsync(LanguageConst.Nb, new Dictionary<string, string>());
             await Task.Delay(5);
             messageHandler.CallCounter.Should().Be(1);
         }
@@ -74,11 +75,11 @@ public class Altinn2OptionsCacheTests
             var messageHandler =
                 scope.ServiceProvider.GetRequiredService<Altinn2MetadataApiClientHttpMessageHandlerMoq>();
             var optionsProvider = providers.Single(p => p.Id == "ASF_Land3");
-            await optionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
+            await optionsProvider.GetAppOptionsAsync(LanguageConst.Nb, new Dictionary<string, string>());
             await Task.Delay(5);
             messageHandler.CallCounter.Should().Be(1);
 
-            await optionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
+            await optionsProvider.GetAppOptionsAsync(LanguageConst.Nb, new Dictionary<string, string>());
             await Task.Delay(5);
             messageHandler.CallCounter.Should().Be(1);
         }
@@ -90,12 +91,12 @@ public class Altinn2OptionsCacheTests
             var messageHandler =
                 scope.ServiceProvider.GetRequiredService<Altinn2MetadataApiClientHttpMessageHandlerMoq>();
             var optionsProvider = providers.Single(p => p.Id == "ASF_Fylker");
-            await optionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
+            await optionsProvider.GetAppOptionsAsync(LanguageConst.Nb, new Dictionary<string, string>());
             await Task.Delay(5);
             messageHandler.CallCounter.Should().Be(2);
 
             // Fetch the list in nynorsk and see that yeat another call is made
-            await optionsProvider.GetAppOptionsAsync("nn", new Dictionary<string, string>());
+            await optionsProvider.GetAppOptionsAsync(LanguageConst.Nn, new Dictionary<string, string>());
             await Task.Delay(5);
             messageHandler.CallCounter.Should().Be(3);
         }

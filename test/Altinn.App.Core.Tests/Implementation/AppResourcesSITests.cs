@@ -15,8 +15,8 @@ namespace Altinn.App.Core.Tests.Implementation;
 
 public class AppResourcesSITests
 {
-    private readonly string appBasePath = Path.Combine("Implementation", "TestData") + Path.DirectorySeparatorChar;
-    private readonly TelemetrySink telemetry = new();
+    private readonly string _appBasePath = Path.Combine("Implementation", "TestData") + Path.DirectorySeparatorChar;
+    private readonly TelemetrySink _telemetry = new();
 
     [Fact]
     public void GetApplication_desrializes_file_from_disk()
@@ -29,7 +29,7 @@ public class AppResourcesSITests
             appMetadata,
             null,
             new NullLogger<AppResourcesSI>(),
-            telemetry.Object
+            _telemetry.Object
         );
         Application expected = new Application()
         {
@@ -80,7 +80,7 @@ public class AppResourcesSITests
             appMetadata,
             null,
             new NullLogger<AppResourcesSI>(),
-            telemetry.Object
+            _telemetry.Object
         );
         Application expected = new Application()
         {
@@ -137,7 +137,7 @@ public class AppResourcesSITests
             appMetadata,
             null,
             new NullLogger<AppResourcesSI>(),
-            telemetry.Object
+            _telemetry.Object
         );
         Application expected = new Application()
         {
@@ -192,7 +192,7 @@ public class AppResourcesSITests
             appMetadata,
             null,
             new NullLogger<AppResourcesSI>(),
-            telemetry.Object
+            _telemetry.Object
         );
         Assert.Throws<ApplicationConfigException>(() => appResources.GetApplication());
     }
@@ -208,7 +208,7 @@ public class AppResourcesSITests
             appMetadata,
             null,
             new NullLogger<AppResourcesSI>(),
-            telemetry.Object
+            _telemetry.Object
         );
         Assert.Throws<ApplicationConfigException>(() => appResources.GetApplication());
     }
@@ -224,7 +224,7 @@ public class AppResourcesSITests
             appMetadata,
             null,
             new NullLogger<AppResourcesSI>(),
-            telemetry.Object
+            _telemetry.Object
         );
         string expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" + Environment.NewLine + "<root>policy</root>";
         var actual = appResources.GetApplicationXACMLPolicy();
@@ -242,7 +242,7 @@ public class AppResourcesSITests
             appMetadata,
             null,
             new NullLogger<AppResourcesSI>(),
-            telemetry.Object
+            _telemetry.Object
         );
         var actual = appResources.GetApplicationXACMLPolicy();
         actual.Should().BeNull();
@@ -259,7 +259,7 @@ public class AppResourcesSITests
             appMetadata,
             null,
             new NullLogger<AppResourcesSI>(),
-            telemetry.Object
+            _telemetry.Object
         );
         string expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" + Environment.NewLine + "<root>process</root>";
         var actual = appResources.GetApplicationBPMNProcess();
@@ -277,7 +277,7 @@ public class AppResourcesSITests
             appMetadata,
             null,
             new NullLogger<AppResourcesSI>(),
-            telemetry.Object
+            _telemetry.Object
         );
         var actual = appResources.GetApplicationBPMNProcess();
         actual.Should().BeNull();
@@ -292,7 +292,7 @@ public class AppResourcesSITests
     {
         AppSettings appSettings = new AppSettings()
         {
-            AppBasePath = appBasePath,
+            AppBasePath = _appBasePath,
             ConfigurationFolder = subfolder + Path.DirectorySeparatorChar,
             AuthorizationFolder = string.Empty,
             ProcessFolder = string.Empty,

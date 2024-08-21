@@ -1,4 +1,4 @@
-﻿using Altinn.App.Api.Helpers;
+using Altinn.App.Api.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 

@@ -1,6 +1,7 @@
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Options;
+using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -84,7 +85,7 @@ public class OptionsController : ControllerBase
         AppOptions appOptions = await _appOptionsService.GetOptionsAsync(
             instanceIdentifier,
             optionsId,
-            language ?? "nb",
+            language ?? LanguageConst.Nb,
             queryParams
         );
 

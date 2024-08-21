@@ -1,18 +1,23 @@
 using System.Net;
+using System.Security.Claims;
 using Altinn.App.Common.Tests;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Infrastructure.Clients.Pdf;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.PlatformServices.Tests.Helpers;
 using Altinn.App.PlatformServices.Tests.Mocks;
+using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using AltinnCore.Authentication.Constants;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 using Moq;
 
 namespace Altinn.App.PlatformServices.Tests.Internal.Pdf;
@@ -26,14 +31,15 @@ public class PdfServiceTests
     private readonly Mock<IHttpContextAccessor> _httpContextAccessor = new();
     private readonly Mock<IPdfGeneratorClient> _pdfGeneratorClient = new();
     private readonly Mock<IProfileClient> _profile = new();
-    private readonly IOptions<PdfGeneratorSettings> _pdfGeneratorSettingsOptions =
-        Microsoft.Extensions.Options.Options.Create<PdfGeneratorSettings>(new() { });
+    private readonly IOptions<PdfGeneratorSettings> _pdfGeneratorSettingsOptions = Options.Create<PdfGeneratorSettings>(
+        new() { }
+    );
 
-    private readonly IOptions<GeneralSettings> _generalSettingsOptions =
-        Microsoft.Extensions.Options.Options.Create<GeneralSettings>(new() { HostName = HostName });
+    private readonly IOptions<GeneralSettings> _generalSettingsOptions = Options.Create<GeneralSettings>(
+        new() { HostName = HostName }
+    );
 
-    private readonly IOptions<PlatformSettings> _platformSettingsOptions =
-        Microsoft.Extensions.Options.Options.Create<PlatformSettings>(new() { });
+    private readonly IOptions<PlatformSettings> _platformSettingsOptions = Options.Create<PlatformSettings>(new() { });
 
     private readonly Mock<IUserTokenProvider> _userTokenProvider;
 
@@ -42,9 +48,9 @@ public class PdfServiceTests
         var resource = new TextResource()
         {
             Id = "digdir-not-really-an-app-nb",
-            Language = "nb",
+            Language = LanguageConst.Nb,
             Org = "digdir",
-            Resources = new List<TextResourceElement>()
+            Resources = []
         };
         _appResources
             .Setup(s => s.GetTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -131,15 +137,10 @@ public class PdfServiceTests
         _pdfGeneratorClient.Setup(s => s.GeneratePdf(It.IsAny<Uri>(), It.IsAny<CancellationToken>()));
         _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
 
-        var target = new PdfService(
-            _appResources.Object,
-            _dataClient.Object,
-            _httpContextAccessor.Object,
-            _profile.Object,
-            _pdfGeneratorClient.Object,
-            _pdfGeneratorSettingsOptions,
-            _generalSettingsOptions,
-            telemetrySink.Object
+        var target = SetupPdfService(
+            pdfGeneratorClient: _pdfGeneratorClient,
+            generalSettingsOptions: _generalSettingsOptions,
+            telemetrySink: telemetrySink
         );
 
         Instance instance =
@@ -192,14 +193,9 @@ public class PdfServiceTests
 
         _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
 
-        var target = new PdfService(
-            _appResources.Object,
-            _dataClient.Object,
-            _httpContextAccessor.Object,
-            _profile.Object,
-            _pdfGeneratorClient.Object,
-            _pdfGeneratorSettingsOptions,
-            _generalSettingsOptions
+        var target = SetupPdfService(
+            pdfGeneratorClient: _pdfGeneratorClient,
+            generalSettingsOptions: _generalSettingsOptions
         );
 
         var dataModelId = Guid.NewGuid();
@@ -248,6 +244,157 @@ public class PdfServiceTests
                     It.Is<string>(s => s == "Task_1")
                 ),
             Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task GetLanguage_ShouldReturnLanguageFromUserPreference()
+    {
+        // Arrange
+        var profileMock = new Mock<IProfileClient>();
+        profileMock
+            .Setup(s => s.GetUserProfile(It.IsAny<int>()))
+            .Returns(
+                Task.FromResult<UserProfile?>(
+                    new UserProfile
+                    {
+                        UserId = 123,
+                        ProfileSettingPreference = new ProfileSettingPreference { Language = LanguageConst.En }
+                    }
+                )
+            );
+        var user = new ClaimsPrincipal(new ClaimsIdentity([new(AltinnCoreClaimTypes.UserId, "123")], "TestAuthType"));
+
+        var target = SetupPdfService(profile: profileMock);
+
+        // Act
+        var language = await target.GetLanguage(user);
+
+        // Assert
+        language.Should().Be(LanguageConst.En);
+    }
+
+    [Fact]
+    public async Task GetLanguage_NoLanguageInUserPreference_ShouldReturnBokmål()
+    {
+        // Arrange
+        var profileMock = new Mock<IProfileClient>();
+        profileMock
+            .Setup(s => s.GetUserProfile(It.IsAny<int>()))
+            .Returns(
+                Task.FromResult<UserProfile?>(
+                    new UserProfile
+                    {
+                        UserId = 123,
+                        ProfileSettingPreference = new ProfileSettingPreference
+                        {
+                            /* No language preference set*/
+                        }
+                    }
+                )
+            );
+        var user = new ClaimsPrincipal(new ClaimsIdentity([new(AltinnCoreClaimTypes.UserId, "123")], "TestAuthType"));
+
+        var target = SetupPdfService(profile: profileMock);
+
+        // Act
+        var language = await target.GetLanguage(user);
+
+        // Assert
+        language.Should().Be(LanguageConst.Nb);
+    }
+
+    [Fact]
+    public async Task GetLanguage_UserIsNull_ShouldReturnBokmål()
+    {
+        // Arrange
+        ClaimsPrincipal? user = null;
+        var target = SetupPdfService();
+
+        // Act
+        var language = await target.GetLanguage(user);
+
+        // Assert
+        language.Should().Be(LanguageConst.Nb);
+    }
+
+    [Fact]
+    public async Task GetLanguage_UserProfileIsNull_ShouldThrow()
+    {
+        // Arrange
+        var user = new ClaimsPrincipal(new ClaimsIdentity([new(AltinnCoreClaimTypes.UserId, "123")], "TestAuthType"));
+
+        var profileMock = new Mock<IProfileClient>();
+        profileMock.Setup(s => s.GetUserProfile(It.IsAny<int>())).Returns(Task.FromResult<UserProfile?>(null));
+
+        var target = SetupPdfService(profile: profileMock);
+
+        // Act
+        var func = async () => await target.GetLanguage(user);
+
+        // Assert
+        await func.Should().ThrowAsync<Exception>().WithMessage("Could not get user profile while getting language");
+    }
+
+    [Fact]
+    public void GetOverridenLanguage_ShouldReturnLanguageFromQuery()
+    {
+        // Arrange
+        var queries = new QueryCollection(new Dictionary<string, StringValues> { { "lang", LanguageConst.Nb } });
+
+        // Act
+        var language = PdfService.GetOverriddenLanguage(queries);
+
+        // Assert
+        language.Should().Be(LanguageConst.Nb);
+    }
+
+    [Fact]
+    public void GetOverridenLanguage_HttpContextIsNull_ShouldReturnNull()
+    {
+        // Arrange
+        QueryCollection? queries = null;
+
+        // Act
+        var language = PdfService.GetOverriddenLanguage(queries);
+
+        // Assert
+        language.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetOverridenLanguage_NoLanguageInQuery_ShouldReturnNull()
+    {
+        // Arrange
+        IQueryCollection queries = new QueryCollection();
+
+        // Act
+        var language = PdfService.GetOverriddenLanguage(queries);
+
+        // Assert
+        language.Should().BeNull();
+    }
+
+    private PdfService SetupPdfService(
+        Mock<IAppResources>? appResources = null,
+        Mock<IDataClient>? dataClient = null,
+        Mock<IHttpContextAccessor>? httpContentAccessor = null,
+        Mock<IProfileClient>? profile = null,
+        Mock<IPdfGeneratorClient>? pdfGeneratorClient = null,
+        IOptions<PdfGeneratorSettings>? pdfGeneratorSettingsOptions = null,
+        IOptions<GeneralSettings>? generalSettingsOptions = null,
+        TelemetrySink? telemetrySink = null
+    )
+    {
+        return new PdfService(
+            appResources?.Object ?? _appResources.Object,
+            dataClient?.Object ?? _dataClient.Object,
+            httpContentAccessor?.Object ?? _httpContextAccessor.Object,
+            profile?.Object ?? _profile.Object,
+            pdfGeneratorClient?.Object ?? _pdfGeneratorClient.Object,
+            pdfGeneratorSettingsOptions ?? _pdfGeneratorSettingsOptions,
+            generalSettingsOptions ?? _generalSettingsOptions,
+            telemetrySink?.Object
         );
     }
 }
