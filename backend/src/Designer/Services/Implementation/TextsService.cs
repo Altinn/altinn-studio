@@ -350,8 +350,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (layoutObject["options"] is not null)
             {
                 var options = JsonSerializer.Deserialize<List<Option>>(layoutObject["options"]);
-                List<Option> updatedOptions = UpdateOptionsKeys(options, mutation);
-                layoutObject["options"] = JsonSerializer.SerializeToNode(updatedOptions);
+                UpdateOptionsKeys(options, mutation);
+                layoutObject["options"] = JsonSerializer.SerializeToNode(options);
             }
             if (layoutObject["source"] is JsonObject)
             {
@@ -374,13 +374,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 List<Option> options = await _optionsService.GetOptionsList(org, app, developer, codeListId);
                 foreach (TextIdMutation mutation in keyMutations)
                 {
-                    options = UpdateOptionsKeys(options, mutation);
+                    UpdateOptionsKeys(options, mutation);
                 }
                 await _optionsService.CreateOrOverwriteOptionsList(org, app, developer, codeListId, options);
             }
         }
 
-        private static List<Option> UpdateOptionsKeys(List<Option> options, TextIdMutation keyMutation)
+        private static void UpdateOptionsKeys(List<Option> options, TextIdMutation keyMutation)
         {
             foreach (Option option in options)
             {
@@ -397,7 +397,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     option.HelpText = keyMutation.NewId.Value;
                 }
             }
-            return options;
         }
 
         private static JsonNode UpdateKey(JsonNode textResourceBindings, TextIdMutation keyMutation)
