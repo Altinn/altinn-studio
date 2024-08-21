@@ -113,8 +113,8 @@ const ResourceadmHeaderMenu = () => {
   const getTriggerButtonText = (): string => {
     if (shouldResizeWindow) return;
 
-    // TODO - Can user full_name or login be undefined? Type says it is always set
-    const username = user?.full_name || user?.login;
+    const username = user.full_name || user.login;
+
     if (
       selectedContext !== SelectedContextType.All &&
       selectedContext !== SelectedContextType.Self

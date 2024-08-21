@@ -3,7 +3,6 @@
   align-items: center;
   gap: var(--fds-spacing-1);
   overflow: hidden;
-  min-width: 30px;
   padding: var(--fds-spacing-2);
 }
 

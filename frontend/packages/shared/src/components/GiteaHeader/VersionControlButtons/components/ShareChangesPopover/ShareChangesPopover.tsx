@@ -18,7 +18,8 @@ export const ShareChangesPopover = () => {
   const { isLoading, setIsLoading, hasPushRights, hasMergeConflict, repoStatus } =
     useVersionControlButtonsContext();
   const { t } = useTranslation();
-  const shouldResizeWindow = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
+  const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
+
   const { org, app } = useStudioEnvironmentParams();
   const { refetch: refetchRepoStatus } = useRepoStatusQuery(org, app);
 
@@ -67,7 +68,7 @@ export const ShareChangesPopover = () => {
         icon={<UploadIcon />}
         color='light'
       >
-        {!shouldResizeWindow && t('sync_header.changes_to_share')}
+        {shouldDisplayText && t('sync_header.changes_to_share')}
         {displayNotification && <Notification />}
       </StudioPageHeaderButton>
       <div className={popoverHidden ? classes.hidePopover : classes.showPopover}>

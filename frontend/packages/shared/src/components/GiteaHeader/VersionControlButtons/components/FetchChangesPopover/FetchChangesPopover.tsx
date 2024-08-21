@@ -23,7 +23,7 @@ export const FetchChangesPopover = (): React.ReactElement => {
   } = useVersionControlButtonsContext();
 
   const { t } = useTranslation();
-  const shouldResizeWindow = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
+  const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const { org, app } = useStudioEnvironmentParams();
   const { refetch: fetchPullData } = useRepoPullQuery(org, app, true);
   const queryClient = useQueryClient();
@@ -59,8 +59,9 @@ export const FetchChangesPopover = (): React.ReactElement => {
           disabled={hasMergeConflict}
           icon={<DownloadIcon />}
           color='light'
+          aria-label={t('sync_header.fetch_changes')}
         >
-          {!shouldResizeWindow && t('sync_header.fetch_changes')}
+          {shouldDisplayText && t('sync_header.fetch_changes')}
           {displayNotification && <Notification numChanges={repoStatus?.behindBy ?? 0} />}
         </StudioPageHeaderButton>
       </StudioPopover.Trigger>
