@@ -83,12 +83,6 @@ export class SchemaModel {
   public getNodeByUniquePointer(uniquePointer: string): UiSchemaNode {
     if (this.hasNode(uniquePointer)) return this.getNode(uniquePointer);
 
-    // Find the top parent of the unique pointer
-    const topLvlParentPointer = uniquePointer.split('/').slice(0, 3).join('/');
-    if (!topLvlParentPointer) {
-      return null;
-    }
-
     const findNodeInChildren = (
       children: UiSchemaNodes,
       parentPointer: string,
@@ -106,6 +100,7 @@ export class SchemaModel {
       return null;
     };
 
+    const topLvlParentPointer = uniquePointer.split('/').slice(0, 3).join('/'); // Find the top parent of the unique pointer
     const topLvlChildren = this.getChildNodes(topLvlParentPointer);
     return findNodeInChildren(topLvlChildren, topLvlParentPointer);
   }
