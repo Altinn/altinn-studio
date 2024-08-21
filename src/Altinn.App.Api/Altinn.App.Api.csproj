@@ -16,11 +16,7 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Common.PEP" Version="4.0.0" />
-
-    <!-- The package with updated `ApplicationLogic` properties has not been published yet -->
-    <!-- Using local project ref to demonstrate that this must be resolved before moving on -->
-    <!--<PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.26.0" />-->
-    <ProjectReference Include="../../../altinn-storage/src/Storage.Interface/Altinn.Platform.Storage.Interface.csproj" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.31.0" />
 
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="3.3.1" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.9.0" />
