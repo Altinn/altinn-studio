@@ -11,7 +11,7 @@ import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import { StudioPageHeaderButton, useMediaQuery } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { PlayFillIcon } from '@studio/icons';
-import { WINDOW_RESIZE_WIDTH } from 'app-shared/utils/resizeUtils';
+import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 
 type SubHeaderProps = {
   hasRepoError?: boolean;
@@ -43,7 +43,7 @@ const SubHeaderLeftContent = () => {
 
 const PreviewButton = () => {
   const { t } = useTranslation();
-  const shouldResizeWindow = useMediaQuery(`(max-width: ${WINDOW_RESIZE_WIDTH}px)`);
+  const shouldResizeWindow = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useSelectedFormLayoutSetName();
   const { selectedFormLayoutName } = useSelectedFormLayoutName(selectedFormLayoutSetName);

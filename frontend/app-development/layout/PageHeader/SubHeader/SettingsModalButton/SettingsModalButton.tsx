@@ -5,11 +5,11 @@ import { CogIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { SettingsModal } from './SettingsModal';
 import { useSettingsModalContext } from '../../../../contexts/SettingsModalContext';
-import { WINDOW_RESIZE_WIDTH } from 'app-shared/utils/resizeUtils';
+import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 
 export const SettingsModalButton = (): ReactNode => {
   const { t } = useTranslation();
-  const shouldResizeWindow = useMediaQuery(`(max-width: ${WINDOW_RESIZE_WIDTH}px)`);
+  const shouldResizeWindow = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
 
   const { settingsModalOpen, setSettingsModalOpen, settingsModalSelectedTab } =
     useSettingsModalContext();

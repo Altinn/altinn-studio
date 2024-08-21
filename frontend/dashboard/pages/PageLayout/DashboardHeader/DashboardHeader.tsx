@@ -23,12 +23,12 @@ import {
 } from 'app-shared/api/paths';
 import { post } from 'app-shared/utils/networking';
 import { SelectedContextType } from 'app-shared/enums/SelectedContextType';
-import { WINDOW_RESIZE_WIDTH } from 'app-shared/utils/resizeUtils';
+import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 
 export const DashboardHeader = () => {
   const selectedContext = useSelectedContext();
   const { selectableOrgs } = useContext(HeaderContext);
-  x;
+
   const pageHeaderTitle: string =
     selectedContext !== SelectedContextType.All &&
     selectedContext !== SelectedContextType.Self &&
@@ -48,7 +48,7 @@ export const DashboardHeader = () => {
 
 const DashboardHeaderMenu = () => {
   const { t } = useTranslation();
-  const shouldResizeWindow = useMediaQuery(`(max-width: ${WINDOW_RESIZE_WIDTH}px)`);
+  const shouldResizeWindow = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
 
   const selectedContext = useSelectedContext();
 

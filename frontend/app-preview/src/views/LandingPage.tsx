@@ -16,7 +16,7 @@ import {
 import { StudioPageHeader, useMediaQuery } from '@studio/components';
 import { AppUserProfileMenu } from 'app-shared/components/AppUserProfileMenu';
 import { PreviewControlHeader } from '../components/PreviewControlHeader';
-import { WINDOW_RESIZE_WIDTH } from 'app-shared/utils/resizeUtils';
+import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 
 export interface LandingPageProps {
   variant?: 'regular' | 'preview'; // TODO - Import from studio components?
@@ -27,7 +27,7 @@ export type PreviewAsViewSize = 'desktop' | 'mobile';
 export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
-  const shouldResizeWindow = useMediaQuery(`(max-width: ${WINDOW_RESIZE_WIDTH}px)`);
+  const shouldResizeWindow = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const previewConnection = usePreviewConnection();
   const { data: user } = useUserQuery();
   const { data: repository } = useRepoMetadataQuery(org, app);

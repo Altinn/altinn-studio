@@ -29,7 +29,7 @@ import { post } from 'app-shared/utils/networking';
 import { type Organization } from 'app-shared/types/Organization';
 import { useTranslation } from 'react-i18next';
 import { SelectedContextType } from 'app-shared/enums/SelectedContextType';
-import { WINDOW_RESIZE_WIDTH } from 'app-shared/utils/resizeUtils';
+import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 
 /**
  * @component
@@ -104,7 +104,7 @@ const ResourceadmHeader = () => {
 
 const ResourceadmHeaderMenu = () => {
   const { t } = useTranslation();
-  const shouldResizeWindow = useMediaQuery(`(max-width: ${WINDOW_RESIZE_WIDTH}px)`);
+  const shouldResizeWindow = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const { org: selectedContext = SelectedContextType.Self } = useUrlParams();
 
   const { user, selectableOrgs } = useContext(HeaderContext);

@@ -7,8 +7,8 @@ import { StudioPageHeader, useMediaQuery } from '@studio/components';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { HeaderMenu } from './HeaderMenu';
 import { AppUserProfileMenu } from 'app-shared/components/AppUserProfileMenu';
-import { WINDOW_RESIZE_WIDTH } from 'app-shared/utils/resizeUtils';
 import { SubHeader } from './SubHeader';
+import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 
 type PageHeaderProps = {
   showSubMenu: boolean;
@@ -28,7 +28,7 @@ export const PageHeader = ({
   const { data: repository } = useRepoMetadataQuery(org, app);
 
   // TODO - Maybe this should be moved to a 'headerContext'?
-  const shouldResizeWindow = useMediaQuery(`(max-width: ${WINDOW_RESIZE_WIDTH}px)`);
+  const shouldResizeWindow = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
 
   const menuItems = getTopBarMenuItems(repoType, repoOwnerIsOrg);
 

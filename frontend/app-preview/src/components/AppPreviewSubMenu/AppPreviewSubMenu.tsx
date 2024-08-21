@@ -6,11 +6,11 @@ import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { StudioPageHeaderButton, useMediaQuery } from '@studio/components';
 import { ArrowLeftIcon } from '@navikt/aksel-icons';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
-import { WINDOW_RESIZE_WIDTH } from 'app-shared/utils/resizeUtils';
+import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 
 export const AppPreviewSubMenu = () => {
   const { t } = useTranslation();
-  const shouldResizeWindow = useMediaQuery(`(max-width: ${WINDOW_RESIZE_WIDTH}px)`);
+  const shouldResizeWindow = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const { org, app } = useStudioEnvironmentParams();
   const { data: instanceId } = useInstanceIdQuery(org, app);
 

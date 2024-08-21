@@ -10,7 +10,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { GiteaFetchCompleted } from '../GiteaFetchCompleted';
 import { useVersionControlButtonsContext } from '../../context';
 import { SyncLoadingIndicator } from '../SyncLoadingIndicator';
-import { WINDOW_RESIZE_WIDTH } from 'app-shared/utils/resizeUtils';
+import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 
 export const FetchChangesPopover = (): React.ReactElement => {
   const {
@@ -23,7 +23,7 @@ export const FetchChangesPopover = (): React.ReactElement => {
   } = useVersionControlButtonsContext();
 
   const { t } = useTranslation();
-  const shouldResizeWindow = useMediaQuery(`(max-width: ${WINDOW_RESIZE_WIDTH}px)`);
+  const shouldResizeWindow = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const { org, app } = useStudioEnvironmentParams();
   const { refetch: fetchPullData } = useRepoPullQuery(org, app, true);
   const queryClient = useQueryClient();

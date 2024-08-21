@@ -12,7 +12,7 @@ import {
 import { repositoryPath, userLogoutAfterPath, userLogoutPath } from 'app-shared/api/paths';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { post } from 'app-shared/utils/networking';
-import { WINDOW_RESIZE_WIDTH } from 'app-shared/utils/resizeUtils';
+import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 
 export type AppUserProfileMenuProps = {
   user: User;
@@ -29,7 +29,7 @@ export const AppUserProfileMenu = ({
   const { org, app } = useStudioEnvironmentParams();
   const userNameAndOrg = useUserNameAndOrg(user, org, repository);
 
-  const shouldResizeWindow = useMediaQuery(`(max-width: ${WINDOW_RESIZE_WIDTH}px)`);
+  const shouldResizeWindow = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
 
   const openRepositoryMenuItem: StudioProfileMenuItem[] =
     org && app && repository
