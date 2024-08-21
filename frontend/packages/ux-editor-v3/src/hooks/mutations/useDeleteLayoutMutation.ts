@@ -15,6 +15,7 @@ import { useAddLayoutMutation } from './useAddLayoutMutation';
 import { useText } from '../useText';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
+import { type FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
 
 export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName: string) => {
   const { deleteFormLayout, saveFormLayoutV3 } = useServicesContext();
@@ -31,7 +32,9 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
 
   const saveLayout = async (updatedLayoutName: string, updatedLayout: IInternalLayout) => {
     const convertedLayout: ExternalFormLayoutV3 = internalLayoutToExternal(updatedLayout);
-    return await saveFormLayoutV3(org, app, updatedLayoutName, layoutSetName, convertedLayout);
+    return await saveFormLayoutV3(org, app, updatedLayoutName, layoutSetName, {
+      layout: convertedLayout,
+    } as unknown as FormLayoutRequest);
   };
 
   return useMutation({

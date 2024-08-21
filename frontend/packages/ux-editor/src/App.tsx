@@ -8,6 +8,7 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResources
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { FormItemContextProvider } from './containers/FormItemContext';
 import { cleanupStaleLocalStorageKeys } from './utils/localStorageUtils';
+import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import { FormDesignerToolbar } from '@altinn/ux-editor/containers/FormDesignerToolbar';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 
@@ -58,7 +59,16 @@ export function App() {
       layoutSetName: selectedFormLayoutSetName,
       hideDefault: true,
     });
-  const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
+  const { isSuccess: areTextResourcesFetched, data: textResources } = useTextResourcesQuery(
+    org,
+    app,
+  );
+
+  const { doReloadPreview } = usePreviewContext();
+  useEffect(() => {
+    doReloadPreview();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [textResources]);
 
   const componentIsReady = areWidgetsFetched && isDataModelFetched && areTextResourcesFetched;
   const componentHasError = dataModelFetchedError || widgetFetchedError;
