@@ -1,4 +1,4 @@
-import { SelectedContextType } from 'app-shared/enums/SelectedContextType';
+import { SelectedContextType } from 'dashboard/context/HeaderContext';
 import { userHasAccessToSelectedContext } from './index';
 
 describe('userHasAccessToSelectedContext', () => {

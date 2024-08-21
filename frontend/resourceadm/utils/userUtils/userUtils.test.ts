@@ -1,4 +1,4 @@
-import { SelectedContextType } from 'app-shared/enums/SelectedContextType';
+import { SelectedContextType } from 'resourceadm/context/HeaderContext';
 import { userHasAccessToOrganization } from './index';
 
 describe('userHasAccessToOrganization', () => {

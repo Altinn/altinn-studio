@@ -1,4 +1,4 @@
-import { SelectedContextType } from 'app-shared/enums/SelectedContextType';
+import { SelectedContextType } from 'resourceadm/context/HeaderContext';
 import type { Organization } from 'app-shared/types/Organization';
 
 export const userHasAccessToOrganization = ({

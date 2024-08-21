@@ -1,15 +1,19 @@
 import React from 'react';
-import type { Organization } from '../../types/Organization';
-import type { User } from '../../types/Repository';
+import { type Organization } from 'app-shared/types/Organization';
+import { type User } from 'app-shared/types/Repository';
 
-// TODO MOVE
-export interface IHeaderContext {
-  selectableOrgs?: Organization[];
-  user: User;
+export enum SelectedContextType {
+  All = 'all',
+  Self = 'self',
+  None = 'none',
 }
 
-// TODO MOVE AND SEPARATE - ONE FOR DASHBOARD AND ONE FOR RESOURCEADM??
-export const HeaderContext = React.createContext<IHeaderContext>({
+export type HeaderContextType = {
+  selectableOrgs?: Organization[];
+  user: User;
+};
+
+export const HeaderContext = React.createContext<HeaderContextType>({
   selectableOrgs: undefined,
   user: undefined,
 });

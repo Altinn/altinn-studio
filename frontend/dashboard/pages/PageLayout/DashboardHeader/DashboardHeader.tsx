@@ -1,9 +1,4 @@
 import React, { useContext } from 'react';
-import {
-  HeaderContext,
-  getOrgNameByUsername,
-  getOrgUsernameByUsername,
-} from 'app-shared/navigation/main-header/Header';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -22,8 +17,13 @@ import {
   userLogoutPath,
 } from 'app-shared/api/paths';
 import { post } from 'app-shared/utils/networking';
-import { SelectedContextType } from 'app-shared/enums/SelectedContextType';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
+import {
+  HeaderContext,
+  getOrgNameByUsername,
+  getOrgUsernameByUsername,
+  SelectedContextType,
+} from 'dashboard/context/HeaderContext';
 
 export const DashboardHeader = () => {
   const selectedContext = useSelectedContext();

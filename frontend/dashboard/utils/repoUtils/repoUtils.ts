@@ -1,4 +1,4 @@
-import { SelectedContextType } from 'app-shared/enums/SelectedContextType';
+import { SelectedContextType } from 'dashboard/context/HeaderContext';
 import type { Repository } from 'app-shared/types/Repository';
 import type { Organization } from 'app-shared/types/Organization';
 import type i18next from 'i18next';
