@@ -80,10 +80,10 @@ export const StudioTreeViewItem = ({
         if (previousVisibleNode) setFocusedId(previousVisibleNode);
         break;
       case 'Home': // Focus on first node
-        setFocusedId(findFirstNodeId(uniqueNodeId));
+        setFocusedId(findFirstNodeId(rootId));
         break;
       case 'End': // Focus on last visible node
-        setFocusedId(findLastVisibleNodeId(uniqueNodeId));
+        setFocusedId(findLastVisibleNodeId(rootId));
         break;
       case 'Enter': // Select node
         selectNode();
