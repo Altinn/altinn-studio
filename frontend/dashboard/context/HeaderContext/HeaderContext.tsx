@@ -18,7 +18,7 @@ export const HeaderContext = React.createContext<HeaderContextType>({
   user: undefined,
 });
 
-// TODO MOVE
+// TODO MOVE - utils
 export const getOrgNameByUsername = (username: string, orgs: Organization[]) => {
   const org = orgs?.find((o) => o.username === username);
   return org?.full_name || org?.username;

@@ -8,8 +8,9 @@ import {
   useMediaQuery,
   StudioProfileMenu,
   StudioAvatar,
+  type StudioProfileMenuProps,
 } from '@studio/components';
-import { repositoryPath, userLogoutAfterPath, userLogoutPath } from 'app-shared/api/paths';
+import { userLogoutAfterPath, userLogoutPath } from 'app-shared/api/paths';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { post } from 'app-shared/utils/networking';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
@@ -17,7 +18,7 @@ import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 export type AppUserProfileMenuProps = {
   user: User;
   repository: Repository;
-  color: 'dark' | 'light'; // TODO - Should this be a type from StudioComponents?
+  color: StudioProfileMenuProps['color']; // TODO - See if we can do this with "StudioProfileMenuItem" too
 };
 
 export const AppUserProfileMenu = ({
@@ -26,20 +27,10 @@ export const AppUserProfileMenu = ({
   color,
 }: AppUserProfileMenuProps): ReactElement => {
   const { t } = useTranslation();
-  const { org, app } = useStudioEnvironmentParams();
+  const { org } = useStudioEnvironmentParams();
   const userNameAndOrg = useUserNameAndOrg(user, org, repository);
 
   const shouldResizeWindow = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
-
-  const openRepositoryMenuItem: StudioProfileMenuItem[] =
-    org && app && repository
-      ? [
-          {
-            action: { type: 'link', href: repositoryPath(org, app) },
-            itemName: t('dashboard.open_repository'),
-          },
-        ]
-      : [];
 
   const docsMenuItem: StudioProfileMenuItem = {
     action: { type: 'link', href: altinnDocsUrl('') },
@@ -73,7 +64,7 @@ export const AppUserProfileMenu = ({
           }
         />
       }
-      profileMenuItems={[...openRepositoryMenuItem, docsMenuItem, logOutMenuItem]}
+      profileMenuItems={[docsMenuItem, logOutMenuItem]}
       color={color}
     />
   );

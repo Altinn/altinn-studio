@@ -1,1 +1,5 @@
-export { StudioProfileMenu, type StudioProfileMenuItem } from './StudioProfileMenu';
+export {
+  StudioProfileMenu,
+  type StudioProfileMenuItem,
+  type StudioProfileMenuProps,
+} from './StudioProfileMenu';

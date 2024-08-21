@@ -23,5 +23,4 @@ export const useUserNameAndOrg = (user: User, org: string, repository: Repositor
   return getUsername(user);
 };
 
-// TODO - Can user full_name or login be undefined? Type says it is always set
-const getUsername = (user: User | Repository['owner']) => user?.full_name || user?.login;
+const getUsername = (user: User | Repository['owner']) => user.full_name || user.login;

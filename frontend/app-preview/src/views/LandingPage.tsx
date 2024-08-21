@@ -19,7 +19,7 @@ import { PreviewControlHeader } from '../components/PreviewControlHeader';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 
 export interface LandingPageProps {
-  variant?: 'regular' | 'preview'; // TODO - Import from studio components?
+  variant?: 'regular' | 'preview'; // TODO - Import from studio components? // SAME AS StudioProfileMenuProps['color'];
 }
 
 export type PreviewAsViewSize = 'desktop' | 'mobile';

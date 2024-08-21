@@ -111,6 +111,7 @@ const DashboardHeaderMenu = () => {
     itemName: t('shared.header_go_to_gitea'),
   };
 
+  // TAN
   const handleLogout = () => {
     // TODO - Can we refactor this to a shared function???
     post(userLogoutPath())

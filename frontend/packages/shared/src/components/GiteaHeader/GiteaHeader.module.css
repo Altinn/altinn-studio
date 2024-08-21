@@ -2,6 +2,7 @@
   display: flex;
   justify-content: space-between;
   padding-inline: var(--fds-spacing-4);
+  height: 60px;
 }
 
 .leftContentWrapper {
@@ -13,5 +14,5 @@
   display: flex;
   align-items: center;
   padding-inline: var(--fds-spacing-4);
-  height: 60px; /* TODO - should we create a variable for this? */
+  gap: var(--fds-spacing-2);
 }

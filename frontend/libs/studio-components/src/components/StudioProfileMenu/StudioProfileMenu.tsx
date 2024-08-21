@@ -18,7 +18,7 @@ export type StudioProfileMenuItem = {
   action: StudioProfileMenuItemButton | StudioProfileMenuItemLink;
   itemName: string;
   isActive?: boolean;
-  hasDivider?: boolean; // TODO - Does this make sense? Any easier way?
+  hasDivider?: boolean;
 };
 
 export type StudioProfileMenuProps = {
@@ -28,7 +28,6 @@ export type StudioProfileMenuProps = {
   color: StudioPageHeaderColor;
 };
 
-// TODO - Should this component be inside the StudioPageHeader folder?
 export const StudioProfileMenu = ({
   triggerButtonText,
   profileImage,

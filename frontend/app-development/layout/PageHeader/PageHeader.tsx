@@ -27,7 +27,6 @@ export const PageHeader = ({
   const repoType = getRepositoryType(org, app);
   const { data: repository } = useRepoMetadataQuery(org, app);
 
-  // TODO - Maybe this should be moved to a 'headerContext'?
   const shouldResizeWindow = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
 
   const menuItems = getTopBarMenuItems(repoType, repoOwnerIsOrg);

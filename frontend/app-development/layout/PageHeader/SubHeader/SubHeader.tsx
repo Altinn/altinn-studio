@@ -51,7 +51,7 @@ const PreviewButton = () => {
   const previewLink: string = `${packagesRouter.getPackageNavigationUrl('preview')}${selectedFormLayoutName ? `?layout=${selectedFormLayoutName}` : ''}`;
 
   return (
-    <StudioPageHeaderButton asChild color='light'>
+    <StudioPageHeaderButton asChild color='dark'>
       <a href={previewLink} className={classes.previewLink}>
         <PlayFillIcon className={classes.playIcon} />
         {!shouldResizeWindow && t('top_menu.preview')}

@@ -166,10 +166,11 @@ const ResourceadmHeaderMenu = () => {
     itemName: t('shared.header_go_to_gitea'),
   };
 
+  // TODO - CREATE TANSTACK and use onSuccess
   const handleLogout = () => {
     // TODO - Can we refactor this to a shared function???
     post(userLogoutPath())
-      .then(() => window.location.assign(userLogoutAfterPath()))
+      .then(() => window.location.assign(userLogoutAfterPath())) // THis in on success
       .finally(() => true);
   };
 

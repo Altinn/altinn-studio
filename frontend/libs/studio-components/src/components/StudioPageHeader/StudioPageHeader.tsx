@@ -5,7 +5,7 @@ import { DigdirLogoLink } from './DigdirLogoLink';
 import { type StudioPageHeaderVariant } from './types/StudioPageHeaderVariant';
 import { StudioPageHeaderContextProvider, useStudioPageHeaderContext } from './context';
 
-// TODO - Should we split this file into smaller files?
+// TODO - Split to separate files and folders with test
 export type StudioPageHeaderProps = {
   children: ReactNode;
   variant?: StudioPageHeaderVariant;
