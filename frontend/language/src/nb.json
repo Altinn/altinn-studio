@@ -162,7 +162,7 @@
   "dashboard.view_data_models_error_title": "Kan ikke vise listen over datamodeller",
   "dashboard.view_favorites_error_title": "Kan ikke vise listen med favoritter",
   "dashboard.view_resources_error_title": "Kan ikke vise listen med ressurser",
-  "dashboard.view_table_error_message": "Prøv å laste Studio på nytt. Hvis problemet fortsetter, <a> kan du ta kontakt med oss. </a>",
+  "dashboard.view_table_error_message": "Prøv å laste Studio på nytt. Hvis problemet fortsetter, <a>kan du ta kontakt med oss.</a>",
   "data_modelling.loading": "Laster inn datamodellering",
   "expression": "Uttrykk",
   "expression.addSubexpression": "Legg til underuttrykk",
