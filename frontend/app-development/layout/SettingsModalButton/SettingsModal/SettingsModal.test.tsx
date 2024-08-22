@@ -119,7 +119,7 @@ describe('SettingsModal', () => {
 
   const tabPanelHeadingOptions = (name: string): ByRoleOptions => ({
     name,
-    level: 2,
+    level: 3,
   });
   const aboutHeading = textMock('settings_modal.about_tab_heading');
   const setupHeading = textMock('settings_modal.setup_tab_heading');

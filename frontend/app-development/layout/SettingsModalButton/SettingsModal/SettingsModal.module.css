@@ -1,7 +1,21 @@
 .settingsModal[open] {
+  --settings-modal-width: min(80vw, 64rem);
+
   height: 80vh;
   max-width: unset;
-  width: 80vw;
+  width: var(--settings-modal-width);
+
+  --tabs-width-with-border: calc(
+    var(--studio-vertical-tabs-width) + var(--studio-vertical-tabs-border-width)
+  );
+  background: linear-gradient(
+    to right,
+    var(--studio-vertical-tabs-background-colour),
+    var(--studio-vertical-tabs-background-colour) var(--studio-vertical-tabs-width),
+    var(--studio-vertical-tabs-border-colour) var(--studio-vertical-tabs-width),
+    var(--studio-vertical-tabs-border-colour) var(--tabs-width-with-border),
+    var(--studio-app-background) var(--tabs-width-with-border)
+  );
 }
 
 .modalContent {
@@ -13,7 +27,6 @@
 
 .leftNavWrapper {
   height: 100%;
-  overflow-y: auto;
 }
 
 .contentWrapper {

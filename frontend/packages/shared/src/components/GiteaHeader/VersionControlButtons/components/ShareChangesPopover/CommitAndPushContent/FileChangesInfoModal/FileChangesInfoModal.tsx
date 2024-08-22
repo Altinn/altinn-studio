@@ -45,7 +45,7 @@ export const FileChangesInfoModal = ({
         icon={<ClockDashedIcon />}
       >
         <div>
-          <Table stickyHeader zebra className={classes.table}>
+          <Table zebra className={classes.table}>
             <Table.Head>
               <Table.Row>
                 <Table.HeaderCell>
