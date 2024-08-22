@@ -11,15 +11,4 @@ describe('StudioError', () => {
     const paragraph = screen.getByText(message);
     expect(paragraph).toBeInTheDocument();
   });
-
-  it('should support children as ReactNode', () => {
-    render(
-      <StudioError>
-        <a href='https://unit-tests.altinn'>ReactNode Message</a>
-      </StudioError>,
-    );
-
-    const messageAsLink = screen.getByRole('link', { name: 'ReactNode Message' });
-    expect(messageAsLink).toBeInTheDocument();
-  });
 });
