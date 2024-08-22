@@ -57,9 +57,7 @@ public class OptionsService : IOptionsService
         cancellationToken.ThrowIfCancellationRequested();
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-
         string payloadString = JsonSerializer.Serialize(payload, new JsonSerializerOptions() { WriteIndented = true });
-
         string updatedOptionsString = await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, payloadString, cancellationToken);
         var updatedOptions = JsonSerializer.Deserialize<List<Option>>(updatedOptionsString);
 
