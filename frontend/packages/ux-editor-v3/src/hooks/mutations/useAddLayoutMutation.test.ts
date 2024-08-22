@@ -37,10 +37,12 @@ describe('useAddLayoutMutation', () => {
       layoutName,
       selectedLayoutSet,
       {
-        $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
-        data: {
-          layout: [expect.objectContaining({ type: ComponentTypeV3.NavigationButtons })],
-          hidden: undefined,
+        layout: {
+          $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
+          data: {
+            layout: [expect.objectContaining({ type: ComponentTypeV3.NavigationButtons })],
+            hidden: undefined,
+          },
         },
       },
     );
@@ -66,10 +68,12 @@ describe('useAddLayoutMutation', () => {
       formLayoutSettingsMock.receiptLayoutName,
       selectedLayoutSet,
       {
-        $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
-        data: {
-          layout: [],
-          hidden: undefined,
+        layout: {
+          $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
+          data: {
+            layout: [],
+            hidden: undefined,
+          },
         },
       },
     );

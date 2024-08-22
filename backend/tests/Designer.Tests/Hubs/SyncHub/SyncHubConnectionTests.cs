@@ -1,6 +1,7 @@
+using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 using Designer.Tests.Controllers.ApiTests;
-using Designer.Tests.Hubs.Auth;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -29,18 +30,20 @@ public class SyncHubConnectionTests : DesignerEndpointsTestsBase<SyncHubConnecti
 
     private async Task ConnectionStarted()
     {
-        var client = HttpClient;
-
         HubConnection = new HubConnectionBuilder()
             .WithUrl("ws://localhost/sync-hub", o =>
             {
-                o.HttpMessageHandlerFactory = h => new HubAuthDelegatingHandler(client)
-                {
-                    InnerHandler = Factory.Server.CreateHandler()
-                };
+                o.HttpMessageHandlerFactory = h => GetHandler(HttpClient);
             }).Build();
 
         await HubConnection.StartAsync();
+    }
+
+
+    private static HttpMessageHandler GetHandler(HttpClient client)
+    {
+        var handlerField = client.GetType().BaseType!.GetField("_handler", BindingFlags.NonPublic | BindingFlags.Instance);
+        return handlerField!.GetValue(client) as HttpMessageHandler;
     }
 
 }

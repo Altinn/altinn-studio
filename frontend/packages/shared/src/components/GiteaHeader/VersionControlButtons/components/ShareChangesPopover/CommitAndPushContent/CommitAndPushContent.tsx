@@ -47,9 +47,6 @@ export const CommitAndPushContent = ({
       <Paragraph size='small' spacing>
         {t('sync_header.describe_and_validate_sub_message')}
       </Paragraph>
-      <Paragraph size='small' spacing>
-        {t('sync_header.describe_and_validate_sub_sub_message')}
-      </Paragraph>
       <StudioButton
         variant='tertiary'
         onClick={() => handleModalToggle(true)}

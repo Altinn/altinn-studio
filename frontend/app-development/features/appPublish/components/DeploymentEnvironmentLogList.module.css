@@ -62,18 +62,18 @@
   width: var(--icon-size);
 }
 
-.icon-canceled {
+.canceledIcon {
   color: var(--fds-semantic-border-warning-default);
 }
-.icon-failed {
+.failedIcon {
   color: var(--fds-semantic-border-danger-default);
 }
-.icon-none {
+.noneIcon {
   color: var(--fds-semantic-border-info-default);
 }
-.icon-partiallySucceeded {
+.partiallySucceededIcon {
   color: var(--fds-semantic-border-warning-default);
 }
-.icon-succeeded {
+.succeededIcon {
   color: var(--fds-semantic-border-success-default);
 }

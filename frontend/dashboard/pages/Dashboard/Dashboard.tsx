@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import classes from './Dashboard.module.css';
-import cn from 'classnames';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { Textfield } from '@digdir/designsystemet-react';
 import { StudioButton } from '@studio/components';
-import { XMarkIcon } from '@studio/icons';
+import { XMarkIcon, PlusCircleIcon, PlusCircleFillIcon } from '@studio/icons';
+import { useDebounce } from '@studio/hooks';
 import { CenterContainer } from '../../components/CenterContainer';
 import { DataModelsReposList } from '../../components/DataModelsRepoList';
 import { OrgReposList } from '../../components/OrgRepoList';
@@ -12,7 +12,6 @@ import { SearchResultReposList } from '../../components/SearchResultReposList';
 import { FavoriteReposList } from '../../components/FavoriteReposList';
 import { Footer } from '../../components/Footer';
 import { Link } from 'react-router-dom';
-import { useDebounce } from 'react-use';
 import { useTranslation } from 'react-i18next';
 import { ErrorBoundary } from 'react-error-boundary';
 import type { User } from 'app-shared/types/Repository';
@@ -32,17 +31,15 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
   const [searchText, setSearchText] = useState('');
-  const [isNewLinkFocused, setIsNewLinkFocused] = useState(false);
   const [debouncedSearchText, setDebouncedSearchText] = useState('');
-  useDebounce(() => setDebouncedSearchText(searchText), disableDebounce ? 1 : 500, [searchText]);
+  const { debounce } = useDebounce({ debounceTimeInMs: disableDebounce ? 1 : 500 });
+  debounce(() => setDebouncedSearchText(searchText));
 
   const handleChangeSearch = (event: ChangeEvent<HTMLInputElement>) =>
     setSearchText(event.target.value);
 
   const handleKeyDown = (event: KeyboardEvent) => event.code === 'Escape' && setSearchText('');
   const handleClearSearch = () => setSearchText('');
-  const handleNewLinkFocus = () => setIsNewLinkFocused(true);
-  const handleNewLinkFocusOut = () => setIsNewLinkFocused(false);
 
   const shouldDisplayResources =
     selectedContext !== SelectedContextType.All && selectedContext !== SelectedContextType.Self;
@@ -69,19 +66,10 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                 />
               )}
             </div>
-            <Link
-              to={'/' + selectedContext + '/new'}
-              className={classes.newLink}
-              onMouseEnter={handleNewLinkFocus}
-              onMouseLeave={handleNewLinkFocusOut}
-            >
+            <Link to={'/' + selectedContext + '/new'} className={classes.newLink}>
               <span>{t('dashboard.new_service')}</span>
-              <i
-                className={cn('fa', classes.plusIcon, {
-                  'fa-circle-plus': isNewLinkFocused,
-                  'fa-circle-plus-outline': !isNewLinkFocused,
-                })}
-              />
+              <PlusCircleFillIcon className={classes.plusFillIcon} />
+              <PlusCircleIcon className={classes.plusIcon} />
             </Link>
           </div>
 

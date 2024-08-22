@@ -3,12 +3,11 @@ import classes from './ReleaseContainer.module.css';
 import type { AppRelease as AppReleaseType } from 'app-shared/types/AppRelease';
 import type { KeyboardEvent, MouseEvent } from 'react';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
-import { LegacyPopover } from '@digdir/design-system-react';
 import { CreateRelease } from '../components/CreateRelease';
 import { Release } from '../components/Release';
-import { UploadIcon, CheckmarkIcon, XMarkOctagonFillIcon } from '@studio/icons';
+import { UploadIcon, CheckmarkIcon } from '@studio/icons';
 import { gitCommitPath } from 'app-shared/api/paths';
-import { useMediaQuery, StudioButton, StudioSpinner } from '@studio/components';
+import { StudioSpinner, StudioPopover, StudioParagraph } from '@studio/components';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { Trans, useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
@@ -16,9 +15,9 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { Alert, Link } from '@digdir/designsystemet-react';
 
 export function ReleaseContainer() {
-  const hiddenMdDown = useMediaQuery('(max-width: 1025px)');
   const { org, app } = useStudioEnvironmentParams();
   const [popoverOpenClick, setPopoverOpenClick] = useState<boolean>(false);
   const [popoverOpenHover, setPopoverOpenHover] = useState<boolean>(false);
@@ -77,21 +76,16 @@ export function ReleaseContainer() {
     }
     if (!masterBranchStatus) {
       return (
-        <div className={classes.cannotCreateReleaseContainer}>
-          {hiddenMdDown ? null : (
-            <XMarkOctagonFillIcon className={classes.renderCannotCreateReleaseIcon} />
-          )}
-          <div>
-            <div className={classes.cannotCreateReleaseTitle}>
-              <Trans i18nKey={'app_create_release_errors.fetch_release_failed'}>
-                <a target='_blank' rel='noopener noreferrer' />
-              </Trans>
-            </div>
-            <div className={classes.cannotCreateReleaseSubTitle}>
-              {t('app_create_release_errors.technical_error_code')}
-            </div>
-          </div>
-        </div>
+        <Alert severity='danger'>
+          <StudioParagraph>
+            <Trans
+              i18nKey={'app_create_release_errors.fetch_release_failed'}
+              components={{
+                a: <Link href='/contact'> </Link>,
+              }}
+            ></Trans>
+          </StudioParagraph>
+        </Alert>
       );
     }
     // Check if latest
@@ -205,25 +199,21 @@ export function ReleaseContainer() {
       </div>
       <div className={classes.versionSubHeader}>
         <div className={classes.appCreateReleaseTitle}>{renderCreateReleaseTitle()}</div>
-        <LegacyPopover
-          className={classes.popover}
-          open={popoverOpenClick || popoverOpenHover}
-          trigger={
-            <StudioButton
-              title={t('app_create_release.status_popover')}
-              className={classes.appCreateReleaseStatusButton}
-              onClick={handlePopoverOpenClicked}
-              onMouseOver={handlePopoverOpenHover}
-              onMouseLeave={handlePopoverClose}
-              tabIndex={0}
-              onKeyUp={handlePopoverKeyPress}
-              icon={renderStatusIcon()}
-              variant='tertiary'
-            />
-          }
-        >
-          {renderStatusMessage()}
-        </LegacyPopover>
+        <StudioPopover open={popoverOpenClick || popoverOpenHover}>
+          <StudioPopover.Trigger
+            title={t('app_create_release.status_popover')}
+            className={classes.appCreateReleaseStatusButton}
+            onClick={handlePopoverOpenClicked}
+            onMouseOver={handlePopoverOpenHover}
+            onMouseLeave={handlePopoverClose}
+            tabIndex={0}
+            onKeyUp={handlePopoverKeyPress}
+            variant='tertiary'
+          >
+            {renderStatusIcon()}
+          </StudioPopover.Trigger>
+          <StudioPopover.Content>{renderStatusMessage()}</StudioPopover.Content>
+        </StudioPopover>
       </div>
       <div className={classes.appReleaseCreateRelease}>{renderCreateRelease()}</div>
       <div className={classes.appReleaseHistoryTitle}>{t('app_release.earlier_releases')}</div>

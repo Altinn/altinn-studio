@@ -13,16 +13,14 @@ import {
 import type { SimpleSubexpression } from '../../types/SimpleSubexpression';
 import classes from './LogicalExpressionEditor.module.css';
 import { StudioButton } from '../../../StudioButton';
-import type { MutableRefObject, ReactNode } from 'react';
-import React, { Fragment, useRef } from 'react';
+import React, { Fragment, type ReactNode } from 'react';
 import { PlusIcon } from '@studio/icons';
 import { Subexpression } from './SubExpression';
 import { useStudioExpressionContext } from '../../StudioExpressionContext';
 import { LogicalOperatorToggle } from './LogicalOperatorToggle';
 import { OperatorBetweenSubexpressions } from './OperatorBetweenSubexpressions';
 import { Fieldset } from '@digdir/designsystemet-react';
-import { v4 as uuidv4 } from 'uuid';
-import { ArrayUtils } from '@studio/pure-functions';
+import { type UseUniqueKey, useUniqueKeys } from '@studio/hooks';
 
 export type LogicalExpressionEditorProps = {
   expression: SimpleLogicalExpression;
@@ -36,16 +34,11 @@ export const LogicalExpressionEditor = ({
   onChange,
 }: LogicalExpressionEditorProps) => {
   const { texts } = useStudioExpressionContext();
-  const internalIds = useRef<string[]>([]); // Used to keep track of the order of the subcomponents
   const { subexpressions, logicalOperator } = expression;
 
-  const areInternalIdsInSync = internalIds.current.length === subexpressions.length;
-  if (!areInternalIdsInSync) {
-    internalIds.current = [];
-    for (let i = 0; i < subexpressions.length; i++) {
-      internalIds.current.push(uuidv4());
-    }
-  }
+  const { removeUniqueKey, addUniqueKey, getUniqueKey } = useUniqueKeys({
+    numberOfKeys: subexpressions.length,
+  });
 
   const handleOperatorChange = (operator: LogicalTupleOperator) =>
     onChange(changeOperator(expression, operator));
@@ -55,7 +48,7 @@ export const LogicalExpressionEditor = ({
 
   const handleAddSubexpression = () => {
     onChange(addDefaultSubexpression(expression));
-    internalIds.current.push(uuidv4());
+    addUniqueKey();
   };
 
   return (
@@ -71,7 +64,8 @@ export const LogicalExpressionEditor = ({
             ) : undefined
           }
           expressions={subexpressions}
-          internalIds={internalIds}
+          getUniqueKey={getUniqueKey}
+          removeUniqueKey={removeUniqueKey}
           onChange={handleSubexpressionsChange}
         />
         {showAddSubexpression && (
@@ -87,30 +81,30 @@ export const LogicalExpressionEditor = ({
 type SubexpressionListProps = {
   componentBetween: ReactNode;
   expressions: SimpleSubexpression[];
-  internalIds: MutableRefObject<string[]>;
   onChange: (subexpressions: SimpleSubexpression[]) => void;
-};
+} & Pick<UseUniqueKey, 'getUniqueKey' | 'removeUniqueKey'>;
 
 const SubexpressionList = ({
   expressions,
   onChange,
   componentBetween,
-  internalIds,
+  getUniqueKey,
+  removeUniqueKey,
 }: SubexpressionListProps) => {
   const { texts } = useStudioExpressionContext();
 
-  const handleSubexpressionChange = (index: number, expression: SimpleSubexpression) =>
+  const handleSubexpressionChange = (index: number, expression: SimpleSubexpression): void =>
     onChange(changeSubexpression(expressions, index, expression));
 
-  const handleDeleteExpression = (index: number) => {
+  const handleDeleteExpression = (index: number): void => {
     onChange(deleteSubexpression(expressions, index));
-    internalIds.current = ArrayUtils.removeItemByIndex(internalIds.current, index);
+    removeUniqueKey(index);
   };
 
   return (
     <>
       {expressions.map((expression, index) => (
-        <Fragment key={internalIds.current[index]}>
+        <Fragment key={getUniqueKey(index)}>
           <Subexpression
             expression={expression}
             legend={texts.subexpression(index)}

@@ -7,8 +7,10 @@ import { BpmnContext } from '../../../../contexts/BpmnContext';
 import { mockBpmnContextValue } from '../../../../../test/mocks/bpmnContextMock';
 import { type Action, BpmnActionModeler } from '../../../../utils/bpmnModeler/BpmnActionModeler';
 import { BpmnConfigPanelFormContextProvider } from '../../../../contexts/BpmnConfigPanelContext';
+import { useUniqueKeys } from '@studio/hooks';
 
 jest.mock('../../../../utils/bpmnModeler/BpmnActionModeler');
+jest.mock('@studio/hooks/src/hooks/useUniqueKeys');
 
 const actionElementDefaultMock: Action = {
   $type: 'altinn:Action',
@@ -30,6 +32,12 @@ describe('EditActions', () => {
       updateTypeForActionMock,
       updateActionNameOnActionElementMock,
     });
+
+    (useUniqueKeys as jest.Mock).mockImplementation(() => ({
+      addUniqueKey: jest.fn(),
+      removeUniqueKey: jest.fn(),
+      getUniqueKey: () => [],
+    }));
 
     renderEditActions();
     const addButton = screen.getByRole('button', {
@@ -64,6 +72,12 @@ describe('EditActions', () => {
       hasActionsAlready: true,
     });
 
+    (useUniqueKeys as jest.Mock).mockImplementation(() => ({
+      addUniqueKey: jest.fn(),
+      removeUniqueKey: jest.fn(),
+      getUniqueKey: () => [],
+    }));
+
     renderEditActions();
     const addButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_actions_add_new'),
@@ -86,6 +100,12 @@ describe('EditActions', () => {
       },
     });
 
+    (useUniqueKeys as jest.Mock).mockImplementation(() => ({
+      addUniqueKey: jest.fn(),
+      removeUniqueKey: jest.fn(),
+      getUniqueKey: () => [],
+    }));
+
     renderEditActions();
 
     const viewModeElement = screen.getByText(
@@ -99,6 +119,11 @@ describe('EditActions', () => {
 
   it('should display in edit mode when adding new action', async () => {
     const user = userEvent.setup();
+    (useUniqueKeys as jest.Mock).mockImplementation(() => ({
+      addUniqueKey: jest.fn(),
+      removeUniqueKey: jest.fn(),
+      getUniqueKey: () => [],
+    }));
     setupBpmnActionModelerMock({
       addNewActionToTaskMock: jest.fn(),
       createActionElementMock: jest.fn(),
@@ -117,6 +142,72 @@ describe('EditActions', () => {
       textMock('process_editor.configuration_panel_actions_action_selector_label'),
     );
     await waitFor(() => expect(predefinedActionSelector).toBeInTheDocument());
+  });
+
+  it('should call addUniqueKey when new action item is added', async () => {
+    const user = userEvent.setup();
+    setupBpmnActionModelerMock({
+      addNewActionToTaskMock: jest.fn(),
+      updateTypeForActionMock: jest.fn(),
+      updateActionNameOnActionElementMock: jest.fn(),
+    });
+
+    const addUniqueKeyMock = jest.fn();
+    (useUniqueKeys as jest.Mock).mockImplementation(() => ({
+      addUniqueKey: addUniqueKeyMock,
+      removeUniqueKey: jest.fn(),
+      getUniqueKey: () => [],
+    }));
+
+    await renderEditActions();
+    const addButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_actions_add_new'),
+    });
+
+    await user.click(addButton);
+
+    expect(addUniqueKeyMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('should removeKey when a item is deleted', async () => {
+    const user = userEvent.setup();
+
+    const removeKeyMock = jest.fn();
+    (useUniqueKeys as jest.Mock).mockImplementation(() => ({
+      addUniqueKey: jest.fn(),
+      removeUniqueKey: removeKeyMock,
+      getUniqueKey: () => [],
+    }));
+    setupBpmnActionModelerMock({
+      addNewActionToTaskMock: jest.fn(),
+      updateTypeForActionMock: jest.fn(),
+      updateActionNameOnActionElementMock: jest.fn(),
+      hasActionsAlready: true,
+      actionElementMock: {
+        ...actionElementDefaultMock,
+        action: 'reject',
+      },
+    });
+
+    renderEditActions();
+
+    const viewModeElement = screen.getByText(
+      textMock('process_editor.configuration_panel_actions_action_label', {
+        actionIndex: 1,
+        actionName: 'reject',
+      }),
+    );
+    expect(viewModeElement).toBeInTheDocument();
+    await user.click(viewModeElement);
+
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('general.delete_item', {
+        item: 'reject',
+      }),
+    });
+    await user.click(deleteButton);
+
+    expect(removeKeyMock).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -152,6 +243,7 @@ const setupBpmnActionModelerMock = ({
     addNewActionToTask: addNewActionToTaskMock,
     updateTypeForAction: updateTypeForActionMock,
     updateActionNameOnActionElement: updateActionNameOnActionElementMock,
+    deleteActionFromTask: jest.fn(),
     createActionElement: createActionElementMock,
     getExtensionElements: getExtensionElementsMock,
     hasActionsAlready,
