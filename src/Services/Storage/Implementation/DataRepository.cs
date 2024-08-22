@@ -71,7 +71,7 @@ namespace LocalTest.Services.Storage.Implementation
                     dataElements.Add(instance);
                 }
             }
-            return dataElements;
+            return dataElements.OrderBy(x => x.Created).ToList();
         }
 
         public async Task<Stream> ReadDataFromStorage(string org, string blobStoragePath)
