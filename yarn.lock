@@ -4984,7 +4984,7 @@ __metadata:
     jsonpointer: "npm:5.0.1"
     lint-staged: "npm:15.2.8"
     lru-cache: "npm:^11.0.0"
-    marked: "npm:10.0.0"
+    marked: "npm:14.0.0"
     marked-mangle: "npm:^1.0.1"
     mime: "npm:4.0.4"
     mini-css-extract-plugin: "npm:2.9.0"
@@ -11756,12 +11756,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"marked@npm:10.0.0":
-  version: 10.0.0
-  resolution: "marked@npm:10.0.0"
+"marked@npm:14.0.0":
+  version: 14.0.0
+  resolution: "marked@npm:14.0.0"
   bin:
     marked: bin/marked.js
-  checksum: 10c0/5882b04a5f0d619757b281f09a67eb8f9e966299083748b51b144b482c56527161cc4dee3ef8e334926c84b7c6ad2bb5c48af5855a52c6ae460131175e3fb93f
+  checksum: 10c0/57a47cb110f7b1a10f398b0a7236f9183aad2dcd5345ee73f2732b6387e585d04cef472bc655d2f84c542296be9728e179aebe3ed7f2f8666b8a0a9dae592876
   languageName: node
   linkType: hard
 

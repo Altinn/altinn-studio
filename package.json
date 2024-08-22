@@ -147,7 +147,7 @@
     "immer": "^10.0.3",
     "jsonpointer": "5.0.1",
     "lru-cache": "^11.0.0",
-    "marked": "10.0.0",
+    "marked": "14.0.0",
     "marked-mangle": "^1.0.1",
     "moment": "2.30.1",
     "moment-timezone": "^0.5.45",

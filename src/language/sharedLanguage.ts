@@ -38,7 +38,7 @@ export const parseAndCleanText = cachedFunction(
       return null;
     }
 
-    const dirty = marked.parse(text);
+    const dirty = marked.parse(text, { async: false });
     const clean = DOMPurify.sanitize(dirty);
     return parseHtmlToReact(clean.toString().trim(), parserOptions);
   },
