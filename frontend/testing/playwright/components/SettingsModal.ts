@@ -13,7 +13,7 @@ export class SettingsModal extends BasePage {
     await this.page
       .getByRole('heading', {
         name: this.textMock('settings_modal.heading'),
-        level: 1,
+        level: 2,
         exact: true,
       })
       .isVisible();
@@ -32,7 +32,7 @@ export class SettingsModal extends BasePage {
     await this.page
       .getByRole('heading', {
         name: this.textMock('settings_modal.heading'),
-        level: 1,
+        level: 2,
         exact: true,
       })
       .isHidden();
@@ -48,7 +48,7 @@ export class SettingsModal extends BasePage {
     await this.page
       .getByRole('heading', {
         name: this.textMock(`settings_modal.${tabHeading}_tab_heading`),
-        level: 2,
+        level: 3,
         exact: true,
       })
       .isVisible();
@@ -58,7 +58,7 @@ export class SettingsModal extends BasePage {
     await this.page
       .getByRole('heading', {
         name: this.textMock(`settings_modal.${tabHeading}_tab_heading`),
-        level: 2,
+        level: 3,
         exact: true,
       })
       .isHidden();

@@ -2,10 +2,6 @@
   --studio-font-family: 'Inter', sans-serif;
   --studio-app-background: #fff;
   --studio-link-color: #0062ba;
-  --studio-vertical-tabs-background-colour: var(--fds-semantic-background-subtle);
-  --studio-vertical-tabs-border-colour: var(--fds-semantic-border-divider-default);
-  --studio-vertical-tabs-border-width: var(--fds-border_width-default);
-  --studio-vertical-tabs-width: 16rem;
 }
 
 html,

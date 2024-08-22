@@ -7,7 +7,6 @@
 .heading {
   border-bottom: 1px solid var(--fds-semantic-border-divider-default);
   padding: var(--studio-modal-spacing);
-  background-color: var(--fds-semantic-background-default);
 }
 
 .heading > * {
@@ -27,6 +26,7 @@
 
 .content {
   padding: 0;
+  flex: 1;
 }
 
 .dialog.withContentPadding .content,
