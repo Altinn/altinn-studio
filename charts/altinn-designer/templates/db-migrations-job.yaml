@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migrations-job
+  labels:
+    release: altinn-designer
+  annotations:
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-weight": "-1"
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed
+spec:
+  template:
+    metadata:
+      labels:
+        run: db-migrations-job
+    spec:
+      containers:
+        - name: db-migrations-job
+          image: "{{ .Values.dbMigrationsJob.image.repository }}:{{ required "image.tag not set" .Values.dbMigrationsJob.image.tag }}"
+          imagePullPolicy: Always
+          command: ['sh', '-c', 'echo Running db-migrations job && exit 0']
+          env:
+            {{- if not (hasKey .Values.dbMigrationsenvironmentVariables .Values.environment) }}
+              {{ fail "the chosen environment does not exist" }}
+            {{- end }}
+            {{- $dbMigrationsenvironmentVariables := index $.Values.dbMigrationsenvironmentVariables $.Values.environment }}
+            {{- range $variable := $dbMigrationsenvironmentVariables }}
+            - name: {{ $variable.name }}
+              {{- if $variable.value }}
+              value: {{ $variable.value | quote }}
+              {{- end }}
+              {{- if $variable.valueFrom }}
+              valueFrom:
+                {{- if $variable.valueFrom.secretKeyRef}}
+                secretKeyRef:
+                  name: {{ $variable.valueFrom.secretKeyRef.name }}
+                  key: {{ $variable.valueFrom.secretKeyRef.key }}
+                {{- end }}
+              {{- end }}
+            {{- end }}
+      restartPolicy: Never

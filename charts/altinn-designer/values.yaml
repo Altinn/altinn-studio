@@ -7,6 +7,10 @@ image:
   containerPort: 5000
   imagePullSecret: acrsecret
 
+dbMigrationsJob:
+  image:
+    repository: altinntjenestercontainerregistry.azurecr.io/altinn-designer-db-migrations
+
 hosts:
   dev: dev.altinn.studio
   staging: staging.altinn.studio
@@ -108,6 +112,77 @@ environmentVariables:
       value: "true"
     - name: OidcLoginSettings__CookieExpiryTimeInMinutes
       value: 59
+
+dbMigrationsenvironmentVariables:
+  dev:
+    - name: PGHOST
+      valueFrom:
+        secretKeyRef:
+          name: gitea-db-secret
+          key: host
+    - name: PGPORT
+      value: 5432
+    - name: PGUSER
+      valueFrom:
+        secretKeyRef:
+          name: gitea-db-secret
+          key: username
+    - name: PGPASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: gitea-db-secret
+          key: password
+    - name: PGDATABASE
+      valueFrom:
+        secretKeyRef:
+          name: gitea-db-secret
+          key: db-name
+  staging:
+    - name: PGHOST
+      valueFrom:
+        secretKeyRef:
+          name: gitea-db-secret
+          key: host
+    - name: PGPORT
+      value: 5432
+    - name: PGUSER
+      valueFrom:
+        secretKeyRef:
+          name: gitea-db-secret
+          key: username
+    - name: PGPASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: gitea-db-secret
+          key: password
+    - name: PGDATABASE
+      valueFrom:
+        secretKeyRef:
+          name: gitea-db-secret
+          key: db-name
+  prod:
+    - name: PGHOST
+      valueFrom:
+        secretKeyRef:
+          name: gitea-db-secret
+          key: host
+    - name: PGPORT
+      value: 5432
+    - name: PGUSER
+      valueFrom:
+        secretKeyRef:
+          name: gitea-db-secret
+          key: username
+    - name: PGPASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: gitea-db-secret
+          key: password
+    - name: PGDATABASE
+      valueFrom:
+        secretKeyRef:
+          name: gitea-db-secret
+          key: db-name
 
 volumeMounts:
   - name: altinn-repo-storage
