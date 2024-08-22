@@ -48,16 +48,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<bool> ResetLocalRepository(AltinnRepoEditingContext altinnRepoEditingContext);
 
         /// <summary>
-        /// Returns the app texts
-        /// </summary>
-        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-        /// <remarks>
-        /// Format of the dictionary is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
-        /// </remarks>
-        /// <returns>The text resources</returns>
-        Dictionary<string, Dictionary<string, TextResourceElement>> GetServiceTexts(AltinnRepoEditingContext altinnRepoEditingContext);
-
-        /// <summary>
         /// Saves policy to git repository
         /// </summary>
         /// <param name="org">The org</param>
