@@ -18,7 +18,6 @@ spec:
         - name: db-migrations-job
           image: "{{ .Values.dbMigrationsJob.image.repository }}:{{ required "image.tag not set" .Values.dbMigrationsJob.image.tag }}"
           imagePullPolicy: Always
-          command: ['sh', '-c', 'echo Running db-migrations job && exit 0']
           envFrom:
             - secretRef:
                 name: {{ .Values.dbMigrationsEnvironmentVariablesSecretName }}
