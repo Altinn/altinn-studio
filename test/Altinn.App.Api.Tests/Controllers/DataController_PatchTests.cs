@@ -12,6 +12,7 @@ using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
+using App.IntegrationTests.Mocks.Services;
 using FluentAssertions;
 using Json.More;
 using Json.Patch;
@@ -48,6 +49,10 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     private readonly Mock<IDataProcessor> _dataProcessorMock = new(MockBehavior.Strict);
     private readonly Mock<IFormDataValidator> _formDataValidatorMock = new(MockBehavior.Strict);
 
+    private HttpClient? _client;
+
+    private HttpClient GetClient() => _client ??= GetRootedClient(Org, App, UserId, null);
+
     // Constructor with common setup
     public DataControllerPatchTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
         : base(factory, outputHelper)
@@ -81,14 +86,44 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
             url += $"?language={language}";
         }
         _outputHelper.WriteLine($"Calling PATCH {url}");
-        using var httpClient = GetRootedClient(Org, App, UserId, null);
+
         var serializedPatch = JsonSerializer.Serialize(
             new DataPatchRequest() { Patch = patch, IgnoredValidators = ignoredValidators, },
             _jsonSerializerOptions
         );
         _outputHelper.WriteLine(serializedPatch);
         using var updateDataElementContent = new StringContent(serializedPatch, Encoding.UTF8, "application/json");
-        var response = await httpClient.PatchAsync(url, updateDataElementContent);
+        var response = await GetClient().PatchAsync(url, updateDataElementContent);
+        var responseString = await response.Content.ReadAsStringAsync();
+        using var responseParsedRaw = JsonDocument.Parse(responseString);
+        _outputHelper.WriteLine("\nResponse:");
+        _outputHelper.WriteLine(JsonSerializer.Serialize(responseParsedRaw, _jsonSerializerOptions));
+        response.Should().HaveStatusCode(expectedStatus);
+        var responseObject = JsonSerializer.Deserialize<TResponse>(responseString, _jsonSerializerOptions)!;
+        return (response, responseString, responseObject);
+    }
+
+    // Helper method to call the API
+    private async Task<(
+        HttpResponseMessage response,
+        string responseString,
+        TResponse parsedResponse
+    )> CallPatchMultipleApi<TResponse>(
+        DataPatchRequestMultiple requestMultiple,
+        HttpStatusCode expectedStatus,
+        string? language = null
+    )
+    {
+        var url = $"/{Org}/{App}/instances/{InstanceId}/data";
+        if (language is not null)
+        {
+            url += $"?language={language}";
+        }
+        _outputHelper.WriteLine($"Calling PATCH {url}");
+        var serializedPatch = JsonSerializer.Serialize(requestMultiple, _jsonSerializerOptions);
+        _outputHelper.WriteLine(serializedPatch);
+        using var updateDataElementContent = new StringContent(serializedPatch, Encoding.UTF8, "application/json");
+        var response = await GetClient().PatchAsync(url, updateDataElementContent);
         var responseString = await response.Content.ReadAsStringAsync();
         using var responseParsedRaw = JsonDocument.Parse(responseString);
         _outputHelper.WriteLine("\nResponse:");
@@ -141,6 +176,95 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
             Times.Exactly(1)
         );
         _dataProcessorMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task MultiplePatches_AppliesCorrectly()
+    {
+        const string prefillDataType = "prefill-data-type";
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddSingleton(
+                new AppMetadataMutationHook(
+                    (app) =>
+                    {
+                        app.DataTypes.Add(
+                            new DataType()
+                            {
+                                Id = prefillDataType,
+                                AllowedContentTypes = new List<string> { "application/json" },
+                                AppLogic = new()
+                                {
+                                    ClassRef =
+                                        "Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema",
+                                },
+                            }
+                        );
+                    }
+                )
+            );
+        };
+        _dataProcessorMock
+            .Setup(p =>
+                p.ProcessDataWrite(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Guid?>(),
+                    It.IsAny<object>(),
+                    It.IsAny<object?>(),
+                    null
+                )
+            )
+            .Returns(Task.CompletedTask)
+            .Verifiable(Times.Exactly(2));
+
+        // Initialize extra data element
+        var createExtraElementResponse = await GetClient()
+            .PostAsync(
+                $"{Org}/{App}/instances/{InstanceId}/data?dataType={prefillDataType}",
+                new StringContent("""{"melding":{}}""", Encoding.UTF8, "application/json")
+            );
+        var createExtraElementResponseString = await createExtraElementResponse.Content.ReadAsStringAsync();
+        _outputHelper.WriteLine(createExtraElementResponseString);
+        createExtraElementResponse.Should().HaveStatusCode(HttpStatusCode.Created);
+        var extraDataId = JsonSerializer
+            .Deserialize<DataElement>(createExtraElementResponseString, _jsonSerializerOptions)
+            ?.Id;
+        extraDataId.Should().NotBeNull();
+        var extraDataGuid = Guid.Parse(extraDataId!);
+
+        // Update data element
+        var patch = new JsonPatch(
+            PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonNode.Parse("\"Ola Olsen\""))
+        );
+        var patch2 = new JsonPatch(
+            PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonNode.Parse("\"Kari Olsen\""))
+        );
+        var request = new DataPatchRequestMultiple()
+        {
+            Patches = new Dictionary<Guid, JsonPatch> { [DataGuid] = patch, [extraDataGuid] = patch2, },
+            IgnoredValidators = []
+        };
+
+        var (_, _, parsedResponse) = await CallPatchMultipleApi<DataPatchResponseMultiple>(request, HttpStatusCode.OK);
+
+        parsedResponse.ValidationIssues.Should().ContainKey("Required").WhoseValue.Should().BeEmpty();
+
+        parsedResponse.NewDataModels.Should().HaveCount(2).And.ContainKey(DataGuid).And.ContainKey(extraDataGuid);
+        var newData = parsedResponse
+            .NewDataModels[DataGuid]
+            .Should()
+            .BeOfType<JsonElement>()
+            .Which.Deserialize<Skjema>()!;
+        newData.Melding!.Name.Should().Be("Ola Olsen");
+
+        var newExtraData = parsedResponse
+            .NewDataModels[extraDataGuid]
+            .Should()
+            .BeOfType<JsonElement>()
+            .Which.Deserialize<Skjema>()!;
+        newExtraData.Melding!.Name.Should().Be("Kari Olsen");
+
+        _dataProcessorMock.Verify();
     }
 
     [Fact]
@@ -486,7 +610,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     }
 
     [Fact]
-    public async Task SetStringPropertyToEmtpy_ReturnsCorrectDataModel()
+    public async Task SetStringPropertyToEmpty_ReturnsCorrectDataModel()
     {
         _dataProcessorMock
             .Setup(p =>
@@ -531,7 +655,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     }
 
     [Fact]
-    public async Task SetAttributeTagPropertyToEmtpy_ReturnsCorrectDataModel()
+    public async Task SetAttributeTagPropertyToEmpty_ReturnsCorrectDataModel()
     {
         _dataProcessorMock
             .Setup(p =>
@@ -578,7 +702,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     public async Task RowId_GetsAddedAutomatically()
     {
         var rowIdServer = Guid.NewGuid();
-        var rowIdClinet = Guid.NewGuid();
+        var rowIdClient = Guid.NewGuid();
         _dataProcessorMock
             .Setup(p =>
                 p.ProcessDataWrite(
@@ -621,7 +745,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
                             {
                                "key": "KeyFromClient",
                                "intValue": 123,
-                               "altinnRowId": "{{rowIdClinet}}"
+                               "altinnRowId": "{{rowIdClient}}"
                              },
                              {
                                   "key": "KeyFromClientNoRowId",
@@ -647,7 +771,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
                     {
                         Key = "KeyFromClient",
                         IntValue = 123,
-                        AltinnRowId = rowIdClinet
+                        AltinnRowId = rowIdClient
                     },
                     new()
                     {
@@ -861,5 +985,10 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
 
         _dataProcessorMock.Verify();
         _formDataValidatorMock.Verify();
+    }
+
+    ~DataControllerPatchTests()
+    {
+        _client?.Dispose();
     }
 }

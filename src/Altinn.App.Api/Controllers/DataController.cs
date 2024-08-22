@@ -477,7 +477,7 @@ public class DataController : ControllerBase
     }
 
     /// <summary>
-    /// Updates an existing form data element with a patch of changes.
+    /// Updates an existing form data element with patches to mulitple data elements.
     /// </summary>
     /// <param name="org">unique identfier of the organisation responsible for the app</param>
     /// <param name="app">application identifier which is unique within an organisation</param>
@@ -507,17 +507,31 @@ public class DataController : ControllerBase
             if (!InstanceIsActive(instance))
             {
                 return Conflict(
-                    $"Cannot update data element of archived or deleted instance {instanceOwnerPartyId}/{instanceGuid}"
+                    new ProblemDetails()
+                    {
+                        Title = "Instance is not active",
+                        Detail =
+                            $"Cannot update data element of archived or deleted instance {instanceOwnerPartyId}/{instanceGuid}",
+                        Status = (int)HttpStatusCode.Conflict,
+                    }
                 );
             }
 
             foreach (Guid dataGuid in dataPatchRequest.Patches.Keys)
             {
-                var dataElement = instance.Data.First(m => m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal));
+                var dataElement = instance.Data.Find(m => m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal));
 
-                if (dataElement == null)
+                if (dataElement is null)
                 {
-                    return NotFound("Did not find data element");
+                    return NotFound(
+                        new ProblemDetails()
+                        {
+                            Title = "Did not find data element",
+                            Detail =
+                                $"Data element with id {dataGuid} not found on instance {instanceOwnerPartyId}/{instanceGuid}",
+                            Status = (int)HttpStatusCode.NotFound,
+                        }
+                    );
                 }
 
                 var dataType = await GetDataType(dataElement);
@@ -530,7 +544,13 @@ public class DataController : ControllerBase
                         org,
                         app
                     );
-                    return BadRequest($"Could not determine if data type {dataType?.Id} requires application logic.");
+                    return BadRequest(
+                        new ProblemDetails()
+                        {
+                            Title = "Could not determine if data type requires application logic",
+                            Detail = $"Could not determine if data type {dataType?.Id} requires application logic."
+                        }
+                    );
                 }
             }
 

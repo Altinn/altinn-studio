@@ -72,13 +72,22 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
         var dataTasks = new List<Task<KeyValuePair<DataElement, object>>>();
         foreach (var dataType in layouts.GetReferencedDataTypeIds())
         {
-            dataTasks.AddRange(
-                instance
-                    .Data.Where(dataElement => dataElement.DataType == dataType)
-                    .Select(async dataElement =>
-                        KeyValuePair.Create(dataElement, await dataAccessor.GetData(dataElement))
-                    )
-            );
+            // Find first data element of type dataType
+            var dataElement = instance.Data.Find(d => d.DataType == dataType);
+            if (dataElement is not null)
+            {
+                dataTasks.Add(
+                    Task.Run(async () => KeyValuePair.Create(dataElement, await dataAccessor.GetData(dataElement)))
+                );
+            }
+            // TODO: This will change when subforms use the same data type for multiple data elemetns.
+            // dataTasks.AddRange(
+            //     instance
+            //         .Data.Where(dataElement => dataElement.DataType == dataType)
+            //         .Select(async dataElement =>
+            //             KeyValuePair.Create(dataElement, await dataAccessor.GetData(dataElement))
+            //         )
+            // );
         }
 
         var extraModels = await Task.WhenAll(dataTasks);
