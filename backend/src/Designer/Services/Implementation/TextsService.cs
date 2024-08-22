@@ -368,15 +368,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private async Task UpdateKeysInOptionLists(string org, string app, string developer, List<TextIdMutation> keyMutations)
         {
-            string[] codelists = _optionsService.GetOptionsListIds(org, app, developer);
-            foreach (string codeListId in codelists)
+            string[] optionListIds = _optionsService.GetOptionsListIds(org, app, developer);
+            foreach (string optionListId in optionListIds)
             {
-                List<Option> options = await _optionsService.GetOptionsList(org, app, developer, codeListId);
+                List<Option> options = await _optionsService.GetOptionsList(org, app, developer, optionListId);
                 foreach (TextIdMutation mutation in keyMutations)
                 {
                     UpdateOptionsKeys(options, mutation);
                 }
-                await _optionsService.CreateOrOverwriteOptionsList(org, app, developer, codeListId, options);
+                await _optionsService.CreateOrOverwriteOptionsList(org, app, developer, optionListId, options);
             }
         }
 
