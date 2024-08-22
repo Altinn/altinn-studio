@@ -303,26 +303,26 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
             string url = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/delegationcount/?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
-            
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
 
-            HttpResponseMessage response = await _httpClient.SendAsync(request);
+            using HttpResponseMessage response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
-            
+
             return await response.Content.ReadAsAsync<DelegationCountOverview>();
         }
 
         public async Task<ActionResult> StartMigrateDelegations(ExportDelegationsRequestBE delegationRequest, string environment)
         {
-             _maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(environment);
+            _maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(environment);
             TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
 
             string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
             string url = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/exportdelegations";
-            
+
             string serializedContent = JsonSerializer.Serialize(delegationRequest, _serializerOptions);
-            HttpRequestMessage request = new HttpRequestMessage()
+            using HttpRequestMessage request = new HttpRequestMessage()
             {
                 RequestUri = new Uri(url),
                 Method = HttpMethod.Post,
@@ -330,9 +330,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             };
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
 
-            HttpResponseMessage response = await _httpClient.SendAsync(request);
+            using HttpResponseMessage response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
-            
+
             return new StatusCodeResult(201);
         }
 
