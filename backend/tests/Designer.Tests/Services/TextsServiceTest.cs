@@ -173,11 +173,11 @@ public class TextsServiceTest : IDisposable
         await textsService.UpdateRelatedFiles(org, targetRepository, developer, keyMutations);
         AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
         string raw = await altinnAppGitRepository.GetOptionsList("test-options");
-        JsonArray optionsList = JsonNode.Parse(raw) as JsonArray;
+        JsonNode optionsList = JsonNode.Parse(raw);
 
         optionsList.Should().NotBeNull();
-        optionsList[0]["label"].ToString().Should().Be("label1new");
-        optionsList[1]["label"].ToString().Should().Be("label2");
+        (optionsList as JsonArray)[0]["label"].ToString().Should().Be("label1new");
+        (optionsList as JsonArray)[1]["label"].ToString().Should().Be("label2");
     }
 
     [Fact]
@@ -189,11 +189,11 @@ public class TextsServiceTest : IDisposable
         await textsService.UpdateRelatedFiles(org, targetRepository, developer, keyMutations);
         AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
         string raw = await altinnAppGitRepository.GetOptionsList("test-options");
-        JsonArray optionsList = JsonNode.Parse(raw) as JsonArray;
+        JsonNode optionsList = JsonNode.Parse(raw);
 
         optionsList.Should().NotBeNull();
-        optionsList[0]["label"].ToString().Should().Be("label1");
-        optionsList[1]["label"].ToString().Should().Be("label2");
+        (optionsList as JsonArray)[0]["label"].ToString().Should().Be("label1");
+        (optionsList as JsonArray)[1]["label"].ToString().Should().Be("label2");
     }
 
     [Fact]
