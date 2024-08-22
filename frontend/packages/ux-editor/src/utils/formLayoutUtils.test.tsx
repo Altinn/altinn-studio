@@ -22,6 +22,8 @@ import {
   updateContainer,
   validateDepth,
   findLayoutsContainingDuplicateComponents,
+  getAllDescendants,
+  getAllFormItemIds,
 } from './formLayoutUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { IInternalLayout } from '../types/global';
@@ -559,6 +561,16 @@ describe('formLayoutUtils', () => {
     });
   });
 
+  describe('getDescendants', () => {
+    it('Returns the ids of the descendants of the given container', () => {
+      expect(getAllDescendants(mockInternal, groupId)).toEqual([
+        paragraphInGroupId,
+        groupInGroupId,
+        paragraphInGroupInGroupId,
+      ]);
+    });
+  });
+
   describe('getItem', () => {
     it('Returns the item with the given id when it is a component', () => {
       expect(getItem(mockInternal, paragraphId)).toEqual(paragraphComponent);
@@ -655,5 +667,17 @@ describe('formLayoutUtils', () => {
         duplicateComponents: ['component1'],
       });
     });
+  });
+
+  describe('getAllFormItemIds', () => {
+    const layout = { ...mockInternal };
+    expect(getAllFormItemIds(layout)).toEqual([
+      headerId,
+      paragraphId,
+      groupId,
+      paragraphInGroupId,
+      groupInGroupId,
+      paragraphInGroupInGroupId,
+    ]);
   });
 });

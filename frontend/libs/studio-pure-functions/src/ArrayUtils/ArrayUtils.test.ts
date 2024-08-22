@@ -110,4 +110,11 @@ describe('ArrayUtils', () => {
       expect(ArrayUtils.getNonEmptyArrayOrUndefined([])).toBeUndefined();
     });
   });
+
+  describe('prepend', () => {
+    it('Prepends item to array', () => {
+      expect(ArrayUtils.prepend([1, 2, 3], 0)).toEqual([0, 1, 2, 3]);
+      expect(ArrayUtils.prepend(['a', 'b', 'c'], 'd')).toEqual(['d', 'a', 'b', 'c']);
+    });
+  });
 });
