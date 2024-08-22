@@ -5,7 +5,6 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.TypedHttpClients.Altinn2DelegationMigration;
 using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
@@ -46,8 +45,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 <IAltinnAuthorizationPolicyClient, AltinnAuthorizationPolicyClient>();
             services.AddAuthenticatedAltinnPlatformTypedHttpClient
                 <IAltinnStorageTextResourceClient, AltinnStorageTextResourceClient>();
-            services.AddAuthenticatedAltinnPlatformTypedHttpClient
-                <IAltinn2DelegationMigrationClient, Altinn2DelegationMigrationClient>();
             services.AddKubernetesWrapperTypedHttpClient();
             services.AddHttpClient<IPolicyOptions, PolicyOptionsClient>();
             services.AddHttpClient<IResourceRegistryOptions, ResourceRegistryOptionsClients>();
