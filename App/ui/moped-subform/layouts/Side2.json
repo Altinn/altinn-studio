@@ -9,25 +9,25 @@
         "textResourceBindings": {
           "title": "Mopeddetaljer"
         },
-        "children": ["summary-moped-1", "summary-moped-2", "summary-moped-3", "summary-moped-4"]
+        "children": ["summary-moped-a", "summary-moped-b", "summary-moped-c", "summary-moped-d"]
       },
       {
-        "id": "summary-moped-1",
+        "id": "summary-moped-a",
         "type": "Summary",
         "componentRef": "moped-regno"
       },
       {
-        "id": "summary-moped-2",
+        "id": "summary-moped-b",
         "type": "Summary",
         "componentRef": "moped-merke"
       },
       {
-        "id": "summary-moped-3",
+        "id": "summary-moped-c",
         "type": "Summary",
         "componentRef": "moped-modell"
       },
       {
-        "id": "summary-moped-4",
+        "id": "summary-moped-d",
         "type": "Summary",
         "componentRef": "moped-produksjonsaar"
       },
