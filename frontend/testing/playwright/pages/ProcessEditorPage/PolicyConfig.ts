@@ -36,7 +36,7 @@ export class PolicyConfig extends BasePage {
   public async verifyThatPolicyEditorIsOpen(): Promise<void> {
     const heading = this.page.getByRole('heading', {
       name: this.textMock('policy_editor.rules'),
-      level: 3,
+      level: 4,
     });
     await expect(heading).toBeVisible();
   }
@@ -52,7 +52,7 @@ export class PolicyConfig extends BasePage {
   public async verifyThatPolicyEditorIsClosed(): Promise<void> {
     const heading = this.page.getByRole('heading', {
       name: this.textMock('policy_editor.rules'),
-      level: 3,
+      level: 4,
     });
     await expect(heading).toBeHidden();
   }
