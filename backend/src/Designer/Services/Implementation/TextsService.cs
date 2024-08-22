@@ -137,6 +137,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return allKeys;
         }
 
+        private static List<string> MergeKeys(List<string> currentSetOfKeys, List<string> keysToMerge)
+        {
+            foreach (string key in keysToMerge)
+            {
+                if (currentSetOfKeys.Contains(key))
+                {
+                    continue;
+                }
+
+                currentSetOfKeys.Add(key);
+            }
+
+            return currentSetOfKeys;
+        }
+
         /// <inheritdoc />
         public async Task UpdateTexts(string org, string repo, string developer, string languageCode, Dictionary<string, string> jsonTexts)
         {
@@ -343,25 +358,35 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private static void UpdateKeyInLayoutObject(JsonNode layoutObject, TextIdMutation mutation)
         {
-            if (layoutObject["textResourceBindings"] is not null)
+            if (layoutObject["textResourceBindings"] is JsonObject)
             {
-                layoutObject["textResourceBindings"] = UpdateKey(layoutObject["textResourceBindings"], mutation);
+                layoutObject["textResourceBindings"] = UpdateTextResourceKeys(layoutObject["textResourceBindings"], mutation);
             }
-            if (layoutObject["options"] is not null)
+
+            if (layoutObject["options"] is JsonArray optionsArray)
             {
-                var options = JsonSerializer.Deserialize<List<Option>>(layoutObject["options"]);
-                UpdateOptionsKeys(options, mutation);
-                layoutObject["options"] = JsonSerializer.SerializeToNode(options);
+                var options = optionsArray.Deserialize<List<Option>>();
+                if (options != null)
+                {
+                    UpdateOptionListKeys(options, mutation);
+                    layoutObject["options"] = JsonSerializer.SerializeToNode(options);
+                }
             }
+
             if (layoutObject["source"] is JsonObject)
             {
-                JsonElement jsonElement = layoutObject["source"]["label"].AsValue().GetValue<JsonElement>();
-                if (jsonElement.ValueKind == JsonValueKind.String && jsonElement.GetString() == mutation.OldId)
+                UpdateSourceKeys(layoutObject["source"], mutation);
+            }
+        }
+
+        private static void UpdateSourceKeys(JsonNode source, TextIdMutation mutation)
+        {
+            JsonElement jsonElement = source["label"].AsValue().GetValue<JsonElement>();
+            if (jsonElement.ValueKind == JsonValueKind.String && jsonElement.GetString() == mutation.OldId)
+            {
+                if (mutation.NewId.HasValue)
                 {
-                    if (mutation.NewId.HasValue)
-                    {
-                        layoutObject["source"]["label"] = mutation.NewId.Value;
-                    }
+                    source["label"] = mutation.NewId.Value;
                 }
             }
         }
@@ -374,13 +399,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 List<Option> options = await _optionsService.GetOptionsList(org, app, developer, optionListId);
                 foreach (TextIdMutation mutation in keyMutations)
                 {
-                    UpdateOptionsKeys(options, mutation);
+                    UpdateOptionListKeys(options, mutation);
                 }
                 await _optionsService.CreateOrOverwriteOptionsList(org, app, developer, optionListId, options);
             }
         }
 
-        private static void UpdateOptionsKeys(List<Option> options, TextIdMutation keyMutation)
+        private static void UpdateOptionListKeys(List<Option> options, TextIdMutation keyMutation)
         {
             foreach (Option option in options)
             {
@@ -399,9 +424,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
-        private static JsonNode UpdateKey(JsonNode textResourceBindings, TextIdMutation keyMutation)
+        private static JsonNode UpdateTextResourceKeys(JsonNode textResourceBindings, TextIdMutation keyMutation)
         {
-            JsonNode updatedTextResourceBindings = JsonNode.Parse(textResourceBindings.ToJsonString());
+            var updatedTextResourceBindings = textResourceBindings.DeepClone();
             foreach ((string key, JsonNode value) in (textResourceBindings as JsonObject)!)
             {
                 if (value is null or JsonArray)
@@ -425,21 +450,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
             }
             return updatedTextResourceBindings;
-        }
-
-        private static List<string> MergeKeys(List<string> currentSetOfKeys, List<string> keysToMerge)
-        {
-            foreach (string key in keysToMerge)
-            {
-                if (currentSetOfKeys.Contains(key))
-                {
-                    continue;
-                }
-
-                currentSetOfKeys.Add(key);
-            }
-
-            return currentSetOfKeys;
         }
 
         /// <summary>
