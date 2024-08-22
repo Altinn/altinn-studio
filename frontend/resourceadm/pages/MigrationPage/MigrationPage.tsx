@@ -12,7 +12,6 @@ import { useTranslation } from 'react-i18next';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';
 import { MigrationPanel } from '../../components/MigrationPanel';
-import { useGetAltinn2DelegationsCount } from 'resourceadm/hooks/queries/useGetAltinn2DelegationCount';
 
 export type MigrationPageProps = {
   navigateToPageWithError: (page: NavigationBarPage) => void;
@@ -40,13 +39,6 @@ export const MigrationPage = ({
 
   const { org, app, resourceId } = useUrlParams();
 
-  // TODO - This might be a saved value from backend. Issue: #10715
-  const initialDate = new Date().toISOString().split('T')[0];
-  const [migrationDate, setMigrationDate] = useState(initialDate);
-  const [migrationTime, setMigrationTime] = useState('00:00');
-  const [selectedEnv, setSelectedEnv] = useState<EnvId | ''>('');
-  const [isDelegationCountEnabled, setIsDelegationCountEnabled] = useState<boolean>(false);
-
   const { data: validatePolicyData, isPending: isValidatePolicyPending } = useValidatePolicyQuery(
     org,
     app,
@@ -56,15 +48,6 @@ export const MigrationPage = ({
     useValidateResourceQuery(org, app, resourceId);
   const { isPending: isLoadingPublishStatus, data: publishStatusData } =
     useResourcePolicyPublishStatusQuery(org, app, resourceId);
-
-  const { data: numberOfA2Delegations, refetch: refetchNumberOfA2Delegations } =
-    useGetAltinn2DelegationsCount(
-      org,
-      serviceCode,
-      serviceEdition,
-      selectedEnv,
-      !isDelegationCountEnabled,
-    );
 
   const envPublishStatus = getAvailableEnvironments(org).map((env) => {
     const isPublishedInEnv = publishStatusData?.publishedVersions.some(
