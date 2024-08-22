@@ -1,5 +1,6 @@
 using System.Net;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -118,7 +119,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
 
         var headerValue = response.Headers.GetValues("Altinn-DownstreamParameters");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        headerValue.Should().NotContain("nb");
+        headerValue.Should().NotContain(LanguageConst.Nb);
     }
 
     [Fact]

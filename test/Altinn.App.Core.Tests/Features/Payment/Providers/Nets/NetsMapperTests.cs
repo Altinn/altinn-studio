@@ -1,4 +1,4 @@
-﻿using Altinn.App.Core.Features.Payment.Models;
+using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Features.Payment.Processors.Nets;
 using Altinn.App.Core.Features.Payment.Processors.Nets.Models;
 using FluentAssertions;

@@ -87,7 +87,7 @@ public sealed class MaskinportenClient : IMaskinportenClient
                     HasSetExpiration: false
                 );
             },
-            token: cancellationToken,
+            cancellationToken: cancellationToken,
             options: _defaultCacheExpiration
         );
 
@@ -99,7 +99,7 @@ public sealed class MaskinportenClient : IMaskinportenClient
                 cacheKey,
                 result,
                 options: CacheExpiry(result.Expiration),
-                token: cancellationToken
+                cancellationToken: cancellationToken
             );
         }
 

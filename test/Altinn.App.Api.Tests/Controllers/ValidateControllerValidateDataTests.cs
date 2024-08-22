@@ -6,6 +6,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
@@ -95,7 +96,7 @@ public class TestScenariosData : IEnumerable<object[]>
                         ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask,
                         new Dictionary<string, Dictionary<string, string>>(),
                         null,
-                        "nb"
+                        LanguageConst.Nb
                     ),
                     Source = "source"
                 },

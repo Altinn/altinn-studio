@@ -10,6 +10,7 @@ using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
 using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
@@ -41,9 +42,9 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     private const string App = "contributer-restriction";
     private const int UserId = 1337;
     private const int InstanceOwnerPartyId = 500600;
-    private static readonly Guid InstanceGuid = new("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
-    private static readonly string InstanceId = $"{InstanceOwnerPartyId}/{InstanceGuid}";
-    private static readonly Guid DataGuid = new("fc121812-0336-45fb-a75c-490df3ad5109");
+    private static readonly Guid _instanceGuid = new("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+    private static readonly string _instanceId = $"{InstanceOwnerPartyId}/{_instanceGuid}";
+    private static readonly Guid _dataGuid = new("fc121812-0336-45fb-a75c-490df3ad5109");
 
     // Define mocks
     private readonly Mock<IDataProcessor> _dataProcessorMock = new(MockBehavior.Strict);
@@ -64,8 +65,8 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
             services.AddSingleton(_dataProcessorMock.Object);
             services.AddSingleton(_formDataValidatorMock.Object);
         };
-        TestData.DeleteInstanceAndData(Org, App, InstanceOwnerPartyId, InstanceGuid);
-        TestData.PrepareInstance(Org, App, InstanceOwnerPartyId, InstanceGuid);
+        TestData.DeleteInstanceAndData(Org, App, InstanceOwnerPartyId, _instanceGuid);
+        TestData.PrepareInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
     }
 
     // Helper method to call the API
@@ -80,7 +81,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         string? language = null
     )
     {
-        var url = $"/{Org}/{App}/instances/{InstanceId}/data/{DataGuid}";
+        var url = $"/{Org}/{App}/instances/{_instanceId}/data/{_dataGuid}";
         if (language is not null)
         {
             url += $"?language={language}";
@@ -114,7 +115,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         string? language = null
     )
     {
-        var url = $"/{Org}/{App}/instances/{InstanceId}/data";
+        var url = $"/{Org}/{App}/instances/{_instanceId}/data";
         if (language is not null)
         {
             url += $"?language={language}";
@@ -168,7 +169,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
             p =>
                 p.ProcessDataWrite(
                     It.IsAny<Instance>(),
-                    It.Is<Guid>(dataId => dataId == DataGuid),
+                    It.Is<Guid>(dataId => dataId == _dataGuid),
                     It.IsAny<Skjema>(),
                     It.IsAny<Skjema?>(),
                     null
@@ -220,7 +221,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         // Initialize extra data element
         var createExtraElementResponse = await GetClient()
             .PostAsync(
-                $"{Org}/{App}/instances/{InstanceId}/data?dataType={prefillDataType}",
+                $"{Org}/{App}/instances/{_instanceId}/data?dataType={prefillDataType}",
                 new StringContent("""{"melding":{}}""", Encoding.UTF8, "application/json")
             );
         var createExtraElementResponseString = await createExtraElementResponse.Content.ReadAsStringAsync();
@@ -241,7 +242,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         );
         var request = new DataPatchRequestMultiple()
         {
-            Patches = new Dictionary<Guid, JsonPatch> { [DataGuid] = patch, [extraDataGuid] = patch2, },
+            Patches = new Dictionary<Guid, JsonPatch> { [_dataGuid] = patch, [extraDataGuid] = patch2, },
             IgnoredValidators = []
         };
 
@@ -249,9 +250,9 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
 
         parsedResponse.ValidationIssues.Should().ContainKey("Required").WhoseValue.Should().BeEmpty();
 
-        parsedResponse.NewDataModels.Should().HaveCount(2).And.ContainKey(DataGuid).And.ContainKey(extraDataGuid);
+        parsedResponse.NewDataModels.Should().HaveCount(2).And.ContainKey(_dataGuid).And.ContainKey(extraDataGuid);
         var newData = parsedResponse
-            .NewDataModels[DataGuid]
+            .NewDataModels[_dataGuid]
             .Should()
             .BeOfType<JsonElement>()
             .Which.Deserialize<Skjema>()!;
@@ -303,7 +304,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
 
         // Run full validation to see that result is the same
         using var client = GetRootedClient(Org, App, UserId, null);
-        var validationResponse = await client.GetAsync($"/{Org}/{App}/instances/{InstanceId}/validate");
+        var validationResponse = await client.GetAsync($"/{Org}/{App}/instances/{_instanceId}/validate");
         validationResponse.Should().HaveStatusCode(HttpStatusCode.OK);
         var validationResponseString = await validationResponse.Content.ReadAsStringAsync();
         var validationResponseObject = JsonSerializer.Deserialize<List<ValidationIssue>>(
@@ -316,7 +317,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
             p =>
                 p.ProcessDataWrite(
                     It.IsAny<Instance>(),
-                    It.Is<Guid>(dataId => dataId == DataGuid),
+                    It.Is<Guid>(dataId => dataId == _dataGuid),
                     It.IsAny<Skjema>(),
                     It.IsAny<Skjema?>(),
                     null
@@ -427,7 +428,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
             p =>
                 p.ProcessDataWrite(
                     It.IsAny<Instance>(),
-                    It.Is<Guid>(dataId => dataId == DataGuid),
+                    It.Is<Guid>(dataId => dataId == _dataGuid),
                     It.Is<Skjema>(s => s.Melding!.NestedList!.Count == 1),
                     It.Is<Skjema?>(s => s!.Melding!.NestedList!.Count == 0),
                     null
@@ -801,7 +802,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     public async Task DataReadChanges_IsPreservedWhenCallingPatch()
     {
         _dataProcessorMock
-            .Setup(p => p.ProcessDataRead(It.IsAny<Instance>(), It.IsAny<Guid>(), It.IsAny<Skjema>(), "nn"))
+            .Setup(p => p.ProcessDataRead(It.IsAny<Instance>(), It.IsAny<Guid>(), It.IsAny<Skjema>(), LanguageConst.Nn))
             .Returns(
                 (Instance instance, Guid dataGuid, Skjema skjema, string language) =>
                 {
@@ -827,7 +828,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
             .Verifiable(Times.Exactly(1));
 
         // call Read to get the data with changes to Melding.Random from ProcessDataRead
-        var url = $"/{Org}/{App}/instances/{InstanceId}/data/{DataGuid}?language=nn";
+        var url = $"/{Org}/{App}/instances/{_instanceId}/data/{_dataGuid}?language=nn";
         _outputHelper.WriteLine($"Calling GET {url}");
         using var httpClient = GetRootedClient(Org, App);
         string token = PrincipalUtil.GetToken(1337, null);
@@ -886,7 +887,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
             p =>
                 p.ProcessDataWrite(
                     It.IsAny<Instance>(),
-                    It.Is<Guid>(dataId => dataId == DataGuid),
+                    It.Is<Guid>(dataId => dataId == _dataGuid),
                     It.IsAny<Skjema>(),
                     It.IsAny<Skjema?>(),
                     "es"

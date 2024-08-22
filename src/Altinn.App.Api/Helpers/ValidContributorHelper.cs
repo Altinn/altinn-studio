@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Api.Helpers;

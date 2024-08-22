@@ -5,6 +5,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.Extensions;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
@@ -68,9 +69,12 @@ public class PdfService : IPdfService
     public async Task GenerateAndStorePdf(Instance instance, string taskId, CancellationToken ct)
     {
         using var activity = _telemetry?.StartGenerateAndStorePdfActivity(instance, taskId);
-        string language = GetOverriddenLanguage();
-        // Avoid a costly call if the language is allready overriden by the user
-        language = string.IsNullOrEmpty(language) ? await GetLanguage() : language;
+
+        HttpContext? httpContext = _httpContextAccessor.HttpContext;
+        var queries = httpContext?.Request.Query;
+        var user = httpContext?.User;
+
+        var language = GetOverriddenLanguage(queries) ?? await GetLanguage(user);
 
         var pdfContent = await GeneratePdfContent(instance, taskId, language, ct);
 
@@ -85,9 +89,12 @@ public class PdfService : IPdfService
     public async Task<Stream> GeneratePdf(Instance instance, string taskId, CancellationToken ct)
     {
         using var activity = _telemetry?.StartGeneratePdfActivity(instance, taskId);
-        var language = GetOverriddenLanguage();
-        // Avoid a costly call if the language is allready overriden by the user
-        language = string.IsNullOrEmpty(language) ? await GetLanguage() : language;
+
+        HttpContext? httpContext = _httpContextAccessor.HttpContext;
+        var queries = httpContext?.Request.Query;
+        var user = httpContext?.User;
+
+        var language = GetOverriddenLanguage(queries) ?? await GetLanguage(user);
 
         return await GeneratePdfContent(instance, taskId, language, ct);
     }
@@ -128,14 +135,18 @@ public class PdfService : IPdfService
         return new Uri(url);
     }
 
-    private async Task<string> GetLanguage()
+    internal async Task<string> GetLanguage(ClaimsPrincipal? user)
     {
-        string language = "nb";
-        ClaimsPrincipal? user = _httpContextAccessor.HttpContext?.User;
+        string language = LanguageConst.Nb;
+
+        if (user is null)
+        {
+            return language;
+        }
 
         int? userId = user.GetUserIdAsInt();
 
-        if (userId != null)
+        if (userId is not null)
         {
             UserProfile userProfile =
                 await _profileClient.GetUserProfile((int)userId)
@@ -150,33 +161,32 @@ public class PdfService : IPdfService
         return language;
     }
 
-    private string GetOverriddenLanguage()
+    internal static string? GetOverriddenLanguage(IQueryCollection? queries)
     {
-        // If the user has overridden the language from his profile by selecting a
-        // language directly in the form, then use the selected language.
-        if (_httpContextAccessor.HttpContext != null)
+        if (queries is null)
         {
-            StringValues queryLanguage;
-            bool hasQueryLanguage =
-                _httpContextAccessor.HttpContext.Request.Query.TryGetValue("language", out queryLanguage)
-                || _httpContextAccessor.HttpContext.Request.Query.TryGetValue("lang", out queryLanguage);
-            if (hasQueryLanguage)
-            {
-                return queryLanguage.ToString();
-            }
+            return null;
         }
 
-        return string.Empty;
+        if (
+            queries.TryGetValue("language", out StringValues queryLanguage)
+            || queries.TryGetValue("lang", out queryLanguage)
+        )
+        {
+            return queryLanguage.ToString();
+        }
+
+        return null;
     }
 
     private async Task<TextResource?> GetTextResource(string app, string org, string language)
     {
         TextResource? textResource = await _resourceService.GetTexts(org, app, language);
 
-        if (textResource == null && language != "nb")
+        if (textResource == null && language != LanguageConst.Nb)
         {
             // fallback to norwegian if texts does not exist
-            textResource = await _resourceService.GetTexts(org, app, "nb");
+            textResource = await _resourceService.GetTexts(org, app, LanguageConst.Nb);
         }
 
         return textResource;
@@ -189,7 +199,7 @@ public class PdfService : IPdfService
 
         fileName = $"{app}.pdf";
 
-        if (textResource == null)
+        if (textResource is null)
         {
             return GetValidFileName(fileName);
         }
@@ -202,7 +212,7 @@ public class PdfService : IPdfService
                 textResourceElement.Id.Equals("ServiceName", StringComparison.Ordinal)
             );
 
-        if (titleText != null && !string.IsNullOrEmpty(titleText.Value))
+        if (titleText is not null && !string.IsNullOrEmpty(titleText.Value))
         {
             fileName = titleText.Value + ".pdf";
         }

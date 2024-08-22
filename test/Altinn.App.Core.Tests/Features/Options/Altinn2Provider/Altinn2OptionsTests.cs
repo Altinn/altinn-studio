@@ -1,6 +1,7 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Features.Options.Altinn2Provider;
+using Altinn.App.Core.Internal.Language;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -62,7 +63,10 @@ public class Altinn2OptionsTests
             var providers = scope.ServiceProvider.GetRequiredService<IEnumerable<IAppOptionsProvider>>();
             providers.Count().Should().Be(1);
             var optionsProvider = providers.Single(p => p.Id == "ASF_Land1");
-            var landOptions = await optionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
+            var landOptions = await optionsProvider.GetAppOptionsAsync(
+                LanguageConst.Nb,
+                new Dictionary<string, string>()
+            );
             landOptions.Options.Should().HaveCountGreaterThan(4, "ASF_Land needs to have more than 4 countries");
             landOptions.Options.Should().Match(options => options.Any(o => o.Value == "NORGE"));
         }
@@ -85,7 +89,10 @@ public class Altinn2OptionsTests
             var providers = scope.ServiceProvider.GetRequiredService<IEnumerable<IAppOptionsProvider>>();
             providers.Count().Should().Be(1);
             var optionsProvider = providers.Single(p => p.Id == "ASF_Land1");
-            var landOptions = await optionsProvider.GetAppOptionsAsync("en", new Dictionary<string, string>());
+            var landOptions = await optionsProvider.GetAppOptionsAsync(
+                LanguageConst.En,
+                new Dictionary<string, string>()
+            );
             landOptions.Options.Should().HaveCountGreaterThan(4, "ASF_Land needs to have more than 4 countries");
             landOptions.Options.Should().Match(options => options.Any(o => o.Label == "NORWAY"));
         }
@@ -109,7 +116,10 @@ public class Altinn2OptionsTests
             var providers = scope.ServiceProvider.GetRequiredService<IEnumerable<IAppOptionsProvider>>();
             providers.Count().Should().Be(1);
             var optionsProvider = providers.Single(p => p.Id == "OnlyNorway");
-            var landOptions = await optionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
+            var landOptions = await optionsProvider.GetAppOptionsAsync(
+                LanguageConst.Nb,
+                new Dictionary<string, string>()
+            );
             landOptions.Options.Should().HaveCount(1, "We filter out only norway");
             landOptions.Options.Should().Match(options => options.Any(o => o.Value == "NORGE"));
         }
@@ -133,7 +143,10 @@ public class Altinn2OptionsTests
             var providers = scope.ServiceProvider.GetRequiredService<IEnumerable<IAppOptionsProvider>>();
             providers.Count().Should().Be(1);
             var optionsProvider = providers.Single(p => p.Id == "OnlyNorway");
-            var landOptions = await optionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
+            var landOptions = await optionsProvider.GetAppOptionsAsync(
+                LanguageConst.Nb,
+                new Dictionary<string, string>()
+            );
             landOptions.Options.Should().HaveCount(1, "We filter out only norway");
             landOptions.Options.Should().Match(options => options.Any(o => o.Value == "NORGE"));
         }

@@ -4,6 +4,7 @@ using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Features.Payment.Processors;
 using Altinn.App.Core.Features.Payment.Services;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -40,7 +41,7 @@ public class PaymentServiceTests
         PaymentInformation paymentInformation = CreatePaymentInformation();
         PaymentDetails paymentDetails =
             paymentInformation.PaymentDetails ?? throw new NullReferenceException("PaymentDetails should not be null");
-        const string language = "nb";
+        string language = LanguageConst.Nb;
 
         _orderDetailsCalculator.Setup(p => p.CalculateOrderDetails(instance, language)).ReturnsAsync(orderDetails);
         _dataService
@@ -88,7 +89,7 @@ public class PaymentServiceTests
         Instance instance = CreateInstance();
         OrderDetails orderDetails = CreateOrderDetails();
         ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
-        const string language = "nb";
+        string language = LanguageConst.Nb;
 
         _paymentProcessor.Setup(pp => pp.PaymentProcessorId).Returns(orderDetails.PaymentProcessorId);
 
@@ -124,7 +125,7 @@ public class PaymentServiceTests
     {
         Instance instance = CreateInstance();
         ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
-        const string language = "nb";
+        string language = LanguageConst.Nb;
 
         _dataService
             .Setup(ds => ds.GetByType<PaymentInformation>(It.IsAny<Instance>(), It.IsAny<string>()))
@@ -148,7 +149,7 @@ public class PaymentServiceTests
         Instance instance = CreateInstance();
         OrderDetails orderDetails = CreateOrderDetails();
         ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
-        const string language = "nb";
+        string language = LanguageConst.Nb;
 
         _dataService
             .Setup(ds => ds.GetByType<PaymentInformation>(It.IsAny<Instance>(), It.IsAny<string>()))
@@ -173,7 +174,7 @@ public class PaymentServiceTests
         PaymentInformation paymentInformation = CreatePaymentInformation();
         PaymentDetails paymentDetails =
             paymentInformation.PaymentDetails ?? throw new NullReferenceException("PaymentDetails should not be null");
-        const string language = "nb";
+        string language = LanguageConst.Nb;
 
         _orderDetailsCalculator.Setup(p => p.CalculateOrderDetails(instance, language)).ReturnsAsync(orderDetails);
         _dataService
@@ -197,7 +198,7 @@ public class PaymentServiceTests
         Instance instance = CreateInstance();
         OrderDetails orderDetails = CreateOrderDetails();
         ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
-        const string language = "nb";
+        string language = LanguageConst.Nb;
 
         _orderDetailsCalculator.Setup(p => p.CalculateOrderDetails(instance, language)).ReturnsAsync(orderDetails);
 
@@ -226,7 +227,7 @@ public class PaymentServiceTests
         OrderDetails orderDetails = CreateOrderDetails();
         ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
         PaymentInformation paymentInformation = CreatePaymentInformation();
-        const string language = "nb";
+        string language = LanguageConst.Nb;
 
         _orderDetailsCalculator.Setup(odc => odc.CalculateOrderDetails(instance, language)).ReturnsAsync(orderDetails);
 
@@ -260,7 +261,7 @@ public class PaymentServiceTests
         OrderDetails orderDetails = CreateOrderDetails();
         ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
         PaymentInformation paymentInformation = CreatePaymentInformation();
-        const string language = "nb";
+        string language = LanguageConst.Nb;
 
         _orderDetailsCalculator.Setup(p => p.CalculateOrderDetails(instance, language)).ReturnsAsync(orderDetails);
 
@@ -317,7 +318,7 @@ public class PaymentServiceTests
         PaymentInformation paymentInformation = CreatePaymentInformation();
         PaymentDetails paymentDetails =
             paymentInformation.PaymentDetails ?? throw new NullReferenceException("PaymentDetails should not be null");
-        const string language = "nb";
+        string language = LanguageConst.Nb;
 
         paymentInformation.Status = PaymentStatus.Cancelled;
 
@@ -368,7 +369,7 @@ public class PaymentServiceTests
         PaymentInformation paymentInformation = CreatePaymentInformation();
         PaymentDetails paymentDetails =
             paymentInformation.PaymentDetails ?? throw new NullReferenceException("PaymentDetails should not be null");
-        const string language = "nb";
+        string language = LanguageConst.Nb;
 
         _orderDetailsCalculator.Setup(p => p.CalculateOrderDetails(instance, language)).ReturnsAsync(orderDetails);
         _dataService
@@ -408,7 +409,8 @@ public class PaymentServiceTests
         var paymentService = new PaymentService(paymentProcessors, _dataService.Object, _logger.Object);
 
         // Act
-        Func<Task> act = async () => await paymentService.StartPayment(instance, paymentConfiguration, "en");
+        Func<Task> act = async () =>
+            await paymentService.StartPayment(instance, paymentConfiguration, LanguageConst.En);
 
         // Assert
         await act.Should()
@@ -433,7 +435,11 @@ public class PaymentServiceTests
 
         // Act
         Func<Task> act = async () =>
-            await paymentService.CheckAndStorePaymentStatus(instance, paymentConfiguration.Validate(), "en");
+            await paymentService.CheckAndStorePaymentStatus(
+                instance,
+                paymentConfiguration.Validate(),
+                LanguageConst.En
+            );
 
         // Assert
         await act.Should()

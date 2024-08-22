@@ -3,6 +3,7 @@ using System.Net;
 using System.Text;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
+using Altinn.App.Core.Internal.Language;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
@@ -17,34 +18,34 @@ namespace Altinn.App.PlatformServices.Tests.Implementation;
 
 public class TextClientTest
 {
-    private readonly Mock<IOptions<PlatformSettings>> platformSettingsOptions;
-    private readonly Mock<IOptions<AppSettings>> appSettingsOptions;
-    private readonly Mock<HttpMessageHandler> handlerMock;
-    private readonly Mock<IHttpContextAccessor> contextAccessor;
-    private readonly Mock<ILogger<TextClient>> logger;
-    private readonly IMemoryCache memoryCache;
+    private readonly Mock<IOptions<PlatformSettings>> _platformSettingsOptions;
+    private readonly Mock<IOptions<AppSettings>> _appSettingsOptions;
+    private readonly Mock<HttpMessageHandler> _handlerMock;
+    private readonly Mock<IHttpContextAccessor> _contextAccessor;
+    private readonly Mock<ILogger<TextClient>> _logger;
+    private readonly IMemoryCache _memoryCache;
 
     public TextClientTest()
     {
-        platformSettingsOptions = new Mock<IOptions<PlatformSettings>>();
-        appSettingsOptions = new Mock<IOptions<AppSettings>>();
-        handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
-        contextAccessor = new Mock<IHttpContextAccessor>();
-        logger = new Mock<ILogger<TextClient>>();
+        _platformSettingsOptions = new Mock<IOptions<PlatformSettings>>();
+        _appSettingsOptions = new Mock<IOptions<AppSettings>>();
+        _handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        _contextAccessor = new Mock<IHttpContextAccessor>();
+        _logger = new Mock<ILogger<TextClient>>();
 
         var services = new ServiceCollection();
         services.AddMemoryCache();
         var serviceProvider = services.BuildServiceProvider();
 
-        memoryCache = serviceProvider.GetService<IMemoryCache>();
+        _memoryCache = serviceProvider.GetService<IMemoryCache>();
     }
 
     [Fact]
     public async Task GetAppTextNb_SuccessfulCallToStorage()
     {
         // Arrange
-        memoryCache.Remove("org-app-nb");
-        TextResource texts = new TextResource { Language = "nb" };
+        _memoryCache.Remove("org-app-nb");
+        TextResource texts = new TextResource { Language = LanguageConst.Nb };
 
         HttpResponseMessage httpResponseMessage = new HttpResponseMessage
         {
@@ -53,41 +54,41 @@ public class TextClientTest
         };
 
         InitializeMocks(httpResponseMessage, "texts");
-        HttpClient httpClient = new HttpClient(handlerMock.Object);
+        HttpClient httpClient = new HttpClient(_handlerMock.Object);
         TextClient target = new TextClient(
-            appSettingsOptions.Object,
-            platformSettingsOptions.Object,
-            logger.Object,
-            contextAccessor.Object,
+            _appSettingsOptions.Object,
+            _platformSettingsOptions.Object,
+            _logger.Object,
+            _contextAccessor.Object,
             httpClient,
-            memoryCache
+            _memoryCache
         );
 
         // Act
         await target.GetText("org", "app", "nb");
 
         // Assert
-        handlerMock.VerifyAll();
+        _handlerMock.VerifyAll();
     }
 
     [Fact]
     public async Task GetAppTextNb_TextSuccessfullyRetrievedFromCache()
     {
         // Arrange
-        memoryCache.Remove("org-app-nb");
-        TextResource texts = new TextResource { Language = "nb" };
-        memoryCache.Set("org-app-nb", texts);
+        _memoryCache.Remove("org-app-nb");
+        TextResource texts = new TextResource { Language = LanguageConst.Nb };
+        _memoryCache.Set("org-app-nb", texts);
 
         InitializeMocks(new HttpResponseMessage(), "texts");
 
-        HttpClient httpClient = new HttpClient(handlerMock.Object);
+        HttpClient httpClient = new HttpClient(_handlerMock.Object);
         TextClient target = new TextClient(
-            appSettingsOptions.Object,
-            platformSettingsOptions.Object,
-            logger.Object,
-            contextAccessor.Object,
+            _appSettingsOptions.Object,
+            _platformSettingsOptions.Object,
+            _logger.Object,
+            _contextAccessor.Object,
             httpClient,
-            memoryCache
+            _memoryCache
         );
 
         // Act
@@ -101,7 +102,7 @@ public class TextClientTest
     public async Task GetAppTextNb_StorageReturnsError()
     {
         // Arrange
-        memoryCache.Remove("org-app-nb");
+        _memoryCache.Remove("org-app-nb");
 
         HttpResponseMessage httpResponseMessage = new HttpResponseMessage
         {
@@ -109,14 +110,14 @@ public class TextClientTest
         };
 
         InitializeMocks(httpResponseMessage, "texts");
-        HttpClient httpClient = new HttpClient(handlerMock.Object);
+        HttpClient httpClient = new HttpClient(_handlerMock.Object);
         TextClient target = new TextClient(
-            appSettingsOptions.Object,
-            platformSettingsOptions.Object,
-            logger.Object,
-            contextAccessor.Object,
+            _appSettingsOptions.Object,
+            _platformSettingsOptions.Object,
+            _logger.Object,
+            _contextAccessor.Object,
             httpClient,
-            memoryCache
+            _memoryCache
         );
 
         // Act
@@ -133,14 +134,14 @@ public class TextClientTest
             ApiStorageEndpoint = "http://localhost",
             SubscriptionKey = "key"
         };
-        platformSettingsOptions.Setup(s => s.Value).Returns(platformSettings);
+        _platformSettingsOptions.Setup(s => s.Value).Returns(platformSettings);
 
         AppSettings appSettings = new AppSettings { RuntimeCookieName = "AltinnStudioRuntime" };
-        appSettingsOptions.Setup(s => s.Value).Returns(appSettings);
+        _appSettingsOptions.Setup(s => s.Value).Returns(appSettings);
 
-        contextAccessor.Setup(s => s.HttpContext).Returns(new DefaultHttpContext());
+        _contextAccessor.Setup(s => s.HttpContext).Returns(new DefaultHttpContext());
 
-        handlerMock
+        _handlerMock
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
