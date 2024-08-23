@@ -18,7 +18,13 @@
           "description": "Lokasjon for hvor du skal endre navn",
           "help": "Trykk på kartet"
         },
+        "centerLocation": {
+          "latitude": 59.93080398894555,
+          "longitude": 10.8012469132984
+        },
+        "zoom": 6,
         "dataModelBindings": {
+          "simpleBinding": "MapData.Location",
           "geometries": "MapData.Geometries"
         },
         "geometryType": "WKT",
