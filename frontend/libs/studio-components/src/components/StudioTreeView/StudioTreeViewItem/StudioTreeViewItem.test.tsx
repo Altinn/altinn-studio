@@ -18,12 +18,12 @@ const defaultProps: StudioTreeViewItemProps = {
 };
 const rootId = 'rootId';
 const setFocusedId = jest.fn();
-const setSelectedUniqueId = jest.fn();
+const setSelectedId = jest.fn();
 const focusableId = 'focusableId';
 const defaultRootContextProps: TreeViewRootContextProps = {
   rootId,
   setFocusedId,
-  setSelectedUniqueId,
+  setSelectedId,
   focusableId,
 };
 
@@ -61,7 +61,7 @@ describe('StudioTreeViewItem', () => {
   });
 
   it('Is selected when selectedId matches nodeId', () => {
-    renderItem({ label }, { selectedUniqueId: uniqueNodeId });
+    renderItem({ label }, { selectedId: uniqueNodeId });
     expect(getTreeItem({ name: label, selected: true })).toBeInTheDocument();
   });
 
@@ -117,8 +117,8 @@ describe('StudioTreeViewItem', () => {
   it('Calls the `setSelectedId` and `setFocusedId` callbacks with the `nodeId` when clicked', async () => {
     renderItem({ label });
     await user.click(getTreeItem({ name: label }));
-    expect(setSelectedUniqueId).toHaveBeenCalledTimes(1);
-    expect(setSelectedUniqueId).toHaveBeenCalledWith(uniqueNodeId);
+    expect(setSelectedId).toHaveBeenCalledTimes(1);
+    expect(setSelectedId).toHaveBeenCalledWith(uniqueNodeId);
     expect(setFocusedId).toHaveBeenCalledTimes(1);
     expect(setFocusedId).toHaveBeenCalledWith(uniqueNodeId);
   });
@@ -159,11 +159,11 @@ describe('StudioTreeViewItem', () => {
         label,
         children: <StudioTreeViewItem uniqueNodeId={childId} label={childLabel} />,
       },
-      { selectedUniqueId: childId },
+      { selectedId: childId },
     );
     await user.click(getTreeItem({ name: childLabel, hidden: true }));
-    expect(setSelectedUniqueId).toHaveBeenCalledTimes(1);
-    expect(setSelectedUniqueId).toHaveBeenCalledWith(childId);
+    expect(setSelectedId).toHaveBeenCalledTimes(1);
+    expect(setSelectedId).toHaveBeenCalledWith(childId);
     expect(getTreeItem({ name: label, expanded: true })).toBeInTheDocument();
   });
 

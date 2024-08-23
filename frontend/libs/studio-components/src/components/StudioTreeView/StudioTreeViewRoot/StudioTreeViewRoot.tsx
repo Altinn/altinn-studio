@@ -21,20 +21,18 @@ export const StudioTreeViewRoot = ({
   const rootId = useId();
   const [focusedId, setFocusedId] = useState<string | undefined>(undefined);
   const [focusableId, setFocusableId] = useState<string | null>(null);
-  const [selectedUniqueId, setSelectedUniqueId] = useState<string | undefined>(
-    selectedUniqueIdFromProps,
-  );
+  const [selectedId, setSelectedId] = useState<string | undefined>(selectedUniqueIdFromProps);
   useEffect(() => {
-    setSelectedUniqueId(selectedUniqueIdFromProps);
+    setSelectedId(selectedUniqueIdFromProps);
   }, [selectedUniqueIdFromProps]);
 
   useLayoutEffect(() => {
     const firstNodeId = findFirstNodeId(rootId);
-    setFocusableId(focusableNodeId(focusedId, selectedUniqueId, firstNodeId));
-  }, [rootId, selectedUniqueId, focusedId]);
+    setFocusableId(focusableNodeId(focusedId, selectedId, firstNodeId));
+  }, [rootId, selectedId, focusedId]);
 
   const handleSelect = (uniqueNodeId: string) => {
-    setSelectedUniqueId(uniqueNodeId);
+    setSelectedId(uniqueNodeId);
     onSelect?.(uniqueNodeId);
   };
 
@@ -45,8 +43,8 @@ export const StudioTreeViewRoot = ({
         rootId,
         setFocusedId,
         focusableId,
-        selectedUniqueId,
-        setSelectedUniqueId: handleSelect,
+        selectedId,
+        setSelectedId: handleSelect,
       }}
     >
       <ul role='tree' {...rest} id={rootId} className={cn(classes.list, className)}>

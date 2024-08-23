@@ -41,11 +41,11 @@ export const StudioTreeViewItem = ({
   ...rest
 }: StudioTreeViewItemProps) => {
   const [open, setOpen] = useState(false);
-  const { selectedUniqueId, setSelectedUniqueId, rootId, focusedId, setFocusedId, focusableId } =
+  const { selectedId, setSelectedId, rootId, focusedId, setFocusedId, focusableId } =
     useTreeViewRootContext();
   const { level } = useTreeViewItemContext();
   const treeItemRef = useRef<HTMLDivElement>(null);
-  useTreeViewItemOpenOnHierarchySelect(rootId, uniqueNodeId, selectedUniqueId, setOpen);
+  useTreeViewItemOpenOnHierarchySelect(rootId, uniqueNodeId, selectedId, setOpen);
 
   useEffect(() => {
     if (focusedId === uniqueNodeId) {
@@ -53,12 +53,12 @@ export const StudioTreeViewItem = ({
     }
   }, [focusedId, uniqueNodeId]);
 
-  const selected = selectedUniqueId === uniqueNodeId;
+  const selected = selectedId === uniqueNodeId;
   const focusable = focusableId === uniqueNodeId;
 
   const selectNode = () => {
     setOpen((prevOpen) => !prevOpen);
-    setSelectedUniqueId(uniqueNodeId);
+    setSelectedId(uniqueNodeId);
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
