@@ -1,1 +1,0 @@
-export { SmallNavigationMenu } from './SmallNavigationMenu';

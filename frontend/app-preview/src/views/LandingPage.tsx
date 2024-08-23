@@ -13,10 +13,12 @@ import {
   useSelectedFormLayoutSetName,
   useSelectedTaskId,
 } from '@altinn/ux-editor/hooks';
-import { StudioPageHeader, useMediaQuery } from '@studio/components';
+import { StudioPageHeader, type StudioProfileMenuItem, useMediaQuery } from '@studio/components';
 import { AppUserProfileMenu } from 'app-shared/components/AppUserProfileMenu';
 import { PreviewControlHeader } from '../components/PreviewControlHeader';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
+import { altinnDocsUrl } from 'app-shared/ext-urls';
+import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 
 export interface LandingPageProps {
   variant?: 'regular' | 'preview'; // TODO - Import from studio components? // SAME AS StudioProfileMenuProps['color'];
@@ -30,6 +32,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
   const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const previewConnection = usePreviewConnection();
   const { data: user } = useUserQuery();
+  const { mutate: logout } = useLogoutMutation();
   const { data: repository } = useRepoMetadataQuery(org, app);
   const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } =
     useSelectedFormLayoutSetName();
@@ -46,6 +49,18 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
     setSelectedFormLayoutSetName(layoutSet);
     // might need to remove selected layout from local storage to make sure first page is selected
     window.location.reload();
+  };
+
+  const docsMenuItem: StudioProfileMenuItem = {
+    action: { type: 'link', href: altinnDocsUrl('') },
+    itemName: t('sync_header.documentation'),
+    hasDivider: true,
+  };
+
+  // TODO - A better way to use the type here?
+  const logOutMenuItem: StudioProfileMenuItem = {
+    action: { type: 'button', onClick: logout },
+    itemName: t('shared.header_logout'),
   };
 
   if (previewConnection) {
@@ -68,7 +83,12 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
         <StudioPageHeader.Main>
           <StudioPageHeader.Left title={shouldDisplayText && app} />
           <StudioPageHeader.Right>
-            <AppUserProfileMenu user={user} repository={repository} color='light' />
+            <AppUserProfileMenu
+              user={user}
+              repository={repository}
+              color='light'
+              profileMenuItems={[docsMenuItem, logOutMenuItem]}
+            />
           </StudioPageHeader.Right>
         </StudioPageHeader.Main>
         <StudioPageHeader.Sub>

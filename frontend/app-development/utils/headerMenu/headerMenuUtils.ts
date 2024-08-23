@@ -6,6 +6,7 @@ import { type HeaderMenuGroup } from 'app-development/types/HeaderMenu/HeaderMen
 import { DatabaseIcon, Density3Icon, PencilIcon, TenancyIcon, UploadIcon } from '@studio/icons';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { HeaderMenuGroupKey } from 'app-development/enums/HeaderMenuGroupKey';
+import { type NavigationMenuSmallGroup } from 'app-development/types/HeaderMenu/NavigationMenuSmallGroup';
 
 export const topBarMenuItem: HeaderMenuItem[] = [
   {
@@ -110,3 +111,18 @@ export const getRouterRouteByPathname = (pathname: string): string => {
   const pathnameArray = pathname.split('/');
   return pathnameArray[pathnameArray.length - 1];
 };
+
+export const mapHeaderMenuGroupToNavigationMenu = (
+  menuGroup: HeaderMenuGroup,
+): NavigationMenuSmallGroup => ({
+  name: menuGroup.groupName,
+  showName: menuGroup.groupName === HeaderMenuGroupKey.Tools,
+  items: menuGroup.menuItems.map((menuItem: HeaderMenuItem) => ({
+    action: {
+      type: 'link',
+      href: menuItem.link,
+    },
+    name: menuItem.key,
+    isBeta: menuItem.isBeta,
+  })),
+});

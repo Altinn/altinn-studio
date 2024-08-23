@@ -4,44 +4,30 @@ import { useTranslation } from 'react-i18next';
 import { useUserNameAndOrg } from './hooks/useUserNameAndOrg';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import {
-  type StudioProfileMenuItem,
   useMediaQuery,
   StudioProfileMenu,
   StudioAvatar,
   type StudioProfileMenuProps,
 } from '@studio/components';
-import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
-import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 
 export type AppUserProfileMenuProps = {
   user: User;
   repository: Repository;
   color: StudioProfileMenuProps['color']; // TODO - See if we can do this with "StudioProfileMenuItem" too
+  profileMenuItems: StudioProfileMenuProps['profileMenuItems'];
 };
 
 export const AppUserProfileMenu = ({
   user,
   repository,
   color,
+  profileMenuItems,
 }: AppUserProfileMenuProps): ReactElement => {
   const { t } = useTranslation();
   const { org } = useStudioEnvironmentParams();
   const userNameAndOrg = useUserNameAndOrg(user, org, repository);
-  const { mutate: logout } = useLogoutMutation();
-
   const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
-
-  const docsMenuItem: StudioProfileMenuItem = {
-    action: { type: 'link', href: altinnDocsUrl('') },
-    itemName: t('sync_header.documentation'),
-    hasDivider: true,
-  };
-
-  const logOutMenuItem: StudioProfileMenuItem = {
-    action: { type: 'button', onClick: logout },
-    itemName: t('shared.header_logout'),
-  };
 
   return (
     <StudioProfileMenu
@@ -57,7 +43,7 @@ export const AppUserProfileMenu = ({
           }
         />
       }
-      profileMenuItems={[docsMenuItem, logOutMenuItem]}
+      profileMenuItems={profileMenuItems}
       color={color}
     />
   );
