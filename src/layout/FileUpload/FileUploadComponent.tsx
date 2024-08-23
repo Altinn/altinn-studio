@@ -122,39 +122,38 @@ export function FileUploadComponent({ node }: IFileUploadWithTagProps): React.JS
         <Label
           node={node}
           renderLabelAs='plainLabel'
-        >
-          {shouldShowFileUpload && (
-            <>
-              <DropzoneComponent
-                id={id}
-                isMobile={mobileView}
-                maxFileSizeInMB={maxFileSizeInMB}
-                readOnly={!!readOnly}
-                onClick={(e) => e.preventDefault()}
-                onDrop={handleDrop}
-                hasValidationMessages={hasValidationErrors(validations)}
-                hasCustomFileEndings={hasCustomFileEndings}
-                validFileEndings={validFileEndings}
-                textResourceBindings={textResourceBindings}
-              />
+        />
+        {shouldShowFileUpload && (
+          <>
+            <DropzoneComponent
+              id={id}
+              isMobile={mobileView}
+              maxFileSizeInMB={maxFileSizeInMB}
+              readOnly={!!readOnly}
+              onClick={(e) => e.preventDefault()}
+              onDrop={handleDrop}
+              hasValidationMessages={hasValidationErrors(validations)}
+              hasCustomFileEndings={hasCustomFileEndings}
+              validFileEndings={validFileEndings}
+              textResourceBindings={textResourceBindings}
+            />
 
-              <AttachmentsCounter />
-              <ComponentValidations
-                validations={validations}
-                node={node}
-              />
-              {attachments && attachments.length > 0 && <div className={classes.betweenTableAndDropMargin}></div>}
-            </>
-          )}
+            <AttachmentsCounter />
+            <ComponentValidations
+              validations={validations}
+              node={node}
+            />
+            {attachments && attachments.length > 0 && <div className={classes.betweenTableAndDropMargin}></div>}
+          </>
+        )}
 
-          <FileTable
-            node={node}
-            mobileView={mobileView}
-            attachments={attachments}
-            options={options}
-            isFetching={isFetching}
-          />
-        </Label>
+        <FileTable
+          node={node}
+          mobileView={mobileView}
+          attachments={attachments}
+          options={options}
+          isFetching={isFetching}
+        />
 
         {!shouldShowFileUpload && (
           <>
