@@ -12,6 +12,7 @@ export type StudioProfileMenuItemButton = {
 export type StudioProfileMenuItemLink = {
   type: 'link';
   href: string;
+  openInNewTab?: boolean;
 };
 
 export type StudioProfileMenuItem = {
@@ -77,7 +78,11 @@ export const StudioProfileMenu = ({
           return (
             <React.Fragment key={item.itemName}>
               <DropdownMenu.Item key={item.itemName} asChild>
-                <a href={item.action.href} target='_blank' rel='noopener noreferrer'>
+                <a
+                  href={item.action.href}
+                  target={item.action.openInNewTab && '_blank'}
+                  rel={item.action.openInNewTab && 'noopener noreferrer'}
+                >
                   {item.itemName}
                 </a>
               </DropdownMenu.Item>

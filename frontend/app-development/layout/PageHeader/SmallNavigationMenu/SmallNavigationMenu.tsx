@@ -3,9 +3,9 @@ import classes from './SmallNavigationMenu.module.css';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, type StudioButtonProps } from '@studio/components';
-import { Divider, DropdownMenu } from '@digdir/designsystemet-react';
+import { Divider, DropdownMenu, Tag } from '@digdir/designsystemet-react';
 import { getRouterRouteByPathname } from 'app-development/utils/headerMenu/headerMenuUtils';
-import { type NavigationMenuItem } from 'app-development/types/HeaderMenu/NavigationMenuItem';
+import { type NavigationMenuSmallItem } from 'app-development/types/HeaderMenu/NavigationMenuItem';
 import { type NavigationMenuSmallGroup } from 'app-development/types/HeaderMenu/NavigationMenuSmallGroup';
 
 export type SmallNavigationMenuProps = {
@@ -45,18 +45,33 @@ export const SmallNavigationMenu = ({
         {menuGroups.map((menuGroup: NavigationMenuSmallGroup, index: number) => (
           <React.Fragment key={menuGroup.name}>
             <DropdownMenu.Group heading={menuGroup.showName ? t(menuGroup.name) : ''}>
-              {menuGroup.items.map((menuItem: NavigationMenuItem) => {
-                const { name, link } = menuItem;
+              {menuGroup.items.map((menuItem: NavigationMenuSmallItem) => {
+                // TODO COMPONENT
+                if (menuItem.action.type === 'button') {
+                  return (
+                    <DropdownMenu.Item key={menuItem.name} onClick={menuItem.action.onClick}>
+                      {menuItem.name}
+                    </DropdownMenu.Item>
+                  );
+                }
                 return (
                   <DropdownMenu.Item
-                    key={name}
+                    key={menuItem.name}
                     asChild
                     className={
-                      getRouterRouteByPathname(link) === currentRoutePath ? classes.active : ''
+                      getRouterRouteByPathname(menuItem.action.href) === currentRoutePath
+                        ? classes.active
+                        : ''
                     }
                   >
-                    <NavLink to={link} onClick={handleClose}>
-                      {t(name)}
+                    <NavLink
+                      to={menuItem.action.href}
+                      onClick={handleClose}
+                      target={menuItem.action.openInNewTab && '_blank'}
+                      rel={menuItem.action.openInNewTab && 'noopener noreferrer'}
+                    >
+                      {t(menuItem.name)}
+                      {menuItem.isBeta && <Tag color='first'>{t('general.beta')}</Tag>}
                     </NavLink>
                   </DropdownMenu.Item>
                 );

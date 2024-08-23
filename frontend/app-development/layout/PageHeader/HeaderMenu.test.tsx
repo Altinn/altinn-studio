@@ -8,6 +8,7 @@ import { HeaderMenuKey } from 'app-shared/enums/TopBarMenu';
 import { RepositoryType } from 'app-shared/types/global';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
+// TODO OLD CODE
 const mockMenuItems: HeaderMenuItem[] = [
   {
     key: HeaderMenuKey.About,
