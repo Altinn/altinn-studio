@@ -340,7 +340,7 @@
         "textResourceBindings": {
           "title": "Grid.Input.Title"
         },
-        "required": true,
+        "required": false,
         "dataModelBindings": {
           "simpleBinding": "GridExample.ExampleInput"
         }

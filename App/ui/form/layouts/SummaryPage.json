@@ -33,15 +33,6 @@
         }
       },
       {
-        "id": "Summary2-84wghp-page",
-        "type": "Summary2",
-        "hidden": false,
-        "target": {
-          "type": "page",
-          "id": "SummaryPage"
-        }
-      },
-      {
         "size": "M",
         "id": "Header-in-new-summaryaerg",
         "type": "Header",
@@ -101,11 +92,7 @@
       {
         "id": "Summary2-84wghp-layoutset",
         "type": "Summary2",
-        "hidden": false,
-        "target": {
-          "type": "layoutSet",
-          "id": "form"
-        }
+        "hidden": false
       },
       {
         "size": "M",

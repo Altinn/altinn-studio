@@ -11,7 +11,7 @@
         "id": "page2Task2",
         "type": "Header",
         "textResourceBindings": {
-          "title": "Her skal vi rendre hele en enkelt side fra Task_1:"
+          "title": "Her skal vi rendre en enkelt side fra Task_1:"
         }
       },
       {

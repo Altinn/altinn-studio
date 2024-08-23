@@ -109,7 +109,7 @@
                 "dataModelBindings": {
                     "simpleBinding": "shortAnswerInput"
                 },
-                "required": true,
+                "required": false,
                 "showValidations": ["All"]
             },
             {
