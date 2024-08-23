@@ -23,6 +23,7 @@ import {
   FieldType,
   combinationIsNullable,
   ROOT_POINTER,
+  changeNameInPointer,
 } from '@altinn/schema-model';
 import { makeDomFriendlyID } from '../../utils/ui-schema-utils';
 import { Divider } from 'app-shared/primitives';
@@ -101,9 +102,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
           if (newPointer && pointerIsDefinition(newPointer)) {
             setSelectedTypePointer(newPointer);
           }
-          setSelectedUniqueNodePointer(
-            selectedUniqueNodePointer.split('/').slice(0, -1).join('/') + '/' + newNodeName,
-          );
+          setSelectedUniqueNodePointer(changeNameInPointer(selectedUniqueNodePointer, newNodeName));
         },
       }),
     );
