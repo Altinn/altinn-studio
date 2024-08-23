@@ -13,13 +13,7 @@ import {
   useMediaQuery,
   StudioAvatar,
 } from '@studio/components';
-import {
-  repositoryBasePath,
-  repositoryOwnerPath,
-  userLogoutAfterPath,
-  userLogoutPath,
-} from 'app-shared/api/paths';
-import { post } from 'app-shared/utils/networking';
+import { repositoryBasePath, repositoryOwnerPath } from 'app-shared/api/paths';
 import { type Organization } from 'app-shared/types/Organization';
 import { useTranslation } from 'react-i18next';
 import { SelectedContextType } from 'resourceadm/context/HeaderContext';
@@ -30,6 +24,7 @@ import {
   getOrgNameByUsername,
   getOrgUsernameByUsername,
 } from 'resourceadm/context/HeaderContext';
+import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 
 /**
  * @component
@@ -106,7 +101,7 @@ const ResourceadmHeaderMenu = () => {
   const { t } = useTranslation();
   const shouldHideButtonText = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const { org: selectedContext = SelectedContextType.Self } = useUrlParams();
-
+  const { mutate: logout } = useLogoutMutation();
   const { user, selectableOrgs } = useContext(HeaderContext);
   const navigate = useNavigate();
 
@@ -166,16 +161,8 @@ const ResourceadmHeaderMenu = () => {
     itemName: t('shared.header_go_to_gitea'),
   };
 
-  // TODO - CREATE TANSTACK and use onSuccess
-  const handleLogout = () => {
-    // TODO - Can we refactor this to a shared function???
-    post(userLogoutPath())
-      .then(() => window.location.assign(userLogoutAfterPath())) // THis in on success
-      .finally(() => true);
-  };
-
   const logOutMenuItem: StudioProfileMenuItem = {
-    action: { type: 'button', onClick: handleLogout },
+    action: { type: 'button', onClick: logout },
     itemName: t('shared.header_logout'),
   };
 

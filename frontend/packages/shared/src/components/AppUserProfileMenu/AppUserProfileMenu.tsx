@@ -10,10 +10,9 @@ import {
   StudioAvatar,
   type StudioProfileMenuProps,
 } from '@studio/components';
-import { userLogoutAfterPath, userLogoutPath } from 'app-shared/api/paths';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { post } from 'app-shared/utils/networking';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
+import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 
 export type AppUserProfileMenuProps = {
   user: User;
@@ -29,6 +28,7 @@ export const AppUserProfileMenu = ({
   const { t } = useTranslation();
   const { org } = useStudioEnvironmentParams();
   const userNameAndOrg = useUserNameAndOrg(user, org, repository);
+  const { mutate: logout } = useLogoutMutation();
 
   const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
 
@@ -38,15 +38,8 @@ export const AppUserProfileMenu = ({
     hasDivider: true,
   };
 
-  // TODO Fix
-  const handleLogout = () =>
-    // TODO - Can we refactor this to a shared function???
-    post(userLogoutPath())
-      .then(() => window.location.assign(userLogoutAfterPath()))
-      .finally(() => true);
-
   const logOutMenuItem: StudioProfileMenuItem = {
-    action: { type: 'button', onClick: handleLogout },
+    action: { type: 'button', onClick: logout },
     itemName: t('shared.header_logout'),
   };
 

@@ -10,13 +10,7 @@ import {
 } from '@studio/components';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { type Organization } from 'app-shared/types/Organization';
-import {
-  repositoryBasePath,
-  repositoryOwnerPath,
-  userLogoutAfterPath,
-  userLogoutPath,
-} from 'app-shared/api/paths';
-import { post } from 'app-shared/utils/networking';
+import { repositoryBasePath, repositoryOwnerPath } from 'app-shared/api/paths';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import {
   HeaderContext,
@@ -24,6 +18,7 @@ import {
   getOrgUsernameByUsername,
   SelectedContextType,
 } from 'dashboard/context/HeaderContext';
+import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 
 export const DashboardHeader = () => {
   const selectedContext = useSelectedContext();
@@ -49,9 +44,8 @@ export const DashboardHeader = () => {
 const DashboardHeaderMenu = () => {
   const { t } = useTranslation();
   const shouldHideButtonText = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
-
   const selectedContext = useSelectedContext();
-
+  const { mutate: logout } = useLogoutMutation();
   const { user, selectableOrgs } = useContext(HeaderContext);
   const navigate = useNavigate();
 
@@ -111,16 +105,8 @@ const DashboardHeaderMenu = () => {
     itemName: t('shared.header_go_to_gitea'),
   };
 
-  // TAN
-  const handleLogout = () => {
-    // TODO - Can we refactor this to a shared function???
-    post(userLogoutPath())
-      .then(() => window.location.assign(userLogoutAfterPath()))
-      .finally(() => true);
-  };
-
   const logOutMenuItem: StudioProfileMenuItem = {
-    action: { type: 'button', onClick: handleLogout },
+    action: { type: 'button', onClick: logout },
     itemName: t('shared.header_logout'),
   };
 

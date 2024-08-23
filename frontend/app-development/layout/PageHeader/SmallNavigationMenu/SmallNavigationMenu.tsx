@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { StudioButton, type StudioButtonProps } from '@studio/components';
 import { Divider, DropdownMenu, Tag } from '@digdir/designsystemet-react';
 import { getRouterRouteByPathname } from 'app-development/utils/headerMenu/headerMenuUtils';
-import { type NavigationMenuSmallItem } from 'app-development/types/HeaderMenu/NavigationMenuItem';
+import { type NavigationMenuSmallItem } from 'app-development/types/HeaderMenu/NavigationMenuSmallItem';
 import { type NavigationMenuSmallGroup } from 'app-development/types/HeaderMenu/NavigationMenuSmallGroup';
 
 export type SmallNavigationMenuProps = {
@@ -44,7 +44,13 @@ export const SmallNavigationMenu = ({
       <DropdownMenu.Content>
         {menuGroups.map((menuGroup: NavigationMenuSmallGroup, index: number) => (
           <React.Fragment key={menuGroup.name}>
-            <DropdownMenu.Group heading={menuGroup.showName ? t(menuGroup.name) : ''}>
+            <DropdownMenu.Group
+              heading={
+                menuGroup.showName
+                  ? t(menuGroup.name) // TODO FIX LONG NAME. If too long, display some of it and show rest when hover
+                  : ''
+              }
+            >
               {menuGroup.items.map((menuItem: NavigationMenuSmallItem) => {
                 // TODO COMPONENT
                 if (menuItem.action.type === 'button') {

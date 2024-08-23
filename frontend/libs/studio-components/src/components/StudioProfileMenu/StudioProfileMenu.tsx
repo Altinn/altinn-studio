@@ -4,12 +4,12 @@ import { Divider, DropdownMenu } from '@digdir/designsystemet-react';
 import { StudioPageHeaderButton } from '../StudioPageHeader';
 import { type StudioPageHeaderColor } from '../StudioPageHeader/types/StudioPageHeaderColor';
 
-export type StudioProfileMenuItemButton = {
+type StudioProfileMenuItemButton = {
   type: 'button';
   onClick: () => void;
 };
 
-export type StudioProfileMenuItemLink = {
+type StudioProfileMenuItemLink = {
   type: 'link';
   href: string;
   openInNewTab?: boolean;
@@ -54,7 +54,6 @@ export const StudioProfileMenu = ({
     <DropdownMenu onClose={handleClose} open={open}>
       <DropdownMenu.Trigger asChild size='sm'>
         <StudioPageHeaderButton onClick={handleToggleMenu} color={color}>
-          {/* TODO - THE TEXT BELOW LOOKS WEIRED BEFORE RESIZE ON WIDTH 1030px ish (only for localgiteaadmin and testdepartementet) */}
           {triggerButtonText && <span className={classes.userOrgNames}>{triggerButtonText}</span>}
           {profileImage}
         </StudioPageHeaderButton>

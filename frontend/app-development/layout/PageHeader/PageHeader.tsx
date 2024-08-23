@@ -8,7 +8,6 @@ import type { User } from 'app-shared/types/Repository';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { StudioPageHeader, type StudioProfileMenuItem, useMediaQuery } from '@studio/components';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
-// TODO DELETE - import { HeaderMenu } from './HeaderMenu';
 import { AppUserProfileMenu } from 'app-shared/components/AppUserProfileMenu';
 import { SubHeader } from './SubHeader';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
@@ -20,10 +19,11 @@ import { HeaderMenuGroupKey } from 'app-development/enums/HeaderMenuGroupKey';
 import { MenuHamburgerIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { post } from 'app-shared/utils/networking';
-import { userLogoutAfterPath, userLogoutPath } from 'app-shared/api/paths';
 import { useUserNameAndOrg } from 'app-shared/components/AppUserProfileMenu/hooks/useUserNameAndOrg';
 import { LargeNavigationMenu } from './LargeNavigationMenu';
+import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
+
+// TODO - look at possiblity for context around page header
 
 type PageHeaderProps = {
   showSubMenu: boolean;
@@ -41,6 +41,7 @@ export const PageHeader = ({
   const { org, app } = useStudioEnvironmentParams();
   const repoType = getRepositoryType(org, app);
   const { t } = useTranslation();
+  const { mutate: logout } = useLogoutMutation();
 
   const shouldDisplaySmallMenu = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const shouldDisplayText = !shouldDisplaySmallMenu;
@@ -49,20 +50,13 @@ export const PageHeader = ({
 
   // TODO
   const docsMenuItem: StudioProfileMenuItem = {
-    action: { type: 'link', href: altinnDocsUrl(''), openInNewTab: true },
+    action: { type: 'link', href: altinnDocsUrl('nb'), openInNewTab: true },
     itemName: t('sync_header.documentation'),
     hasDivider: true,
   };
 
-  // TODO Fix
-  const handleLogout = () =>
-    // TODO - Can we refactor this to a shared function???
-    post(userLogoutPath())
-      .then(() => window.location.assign(userLogoutAfterPath()))
-      .finally(() => true);
-
   const logOutMenuItem: StudioProfileMenuItem = {
-    action: { type: 'button', onClick: handleLogout },
+    action: { type: 'button', onClick: logout },
     itemName: t('shared.header_logout'),
   };
 
