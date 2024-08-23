@@ -75,7 +75,7 @@
           "addButton": "subform-moped.add"
         },
         "layoutSet": "moped-subform",
-        "dataType": "Moped",
+        "dataType": "moped",
         "showAddButton": true,
         "showDeleteButton": true,
         "tableColumns" : [
@@ -109,7 +109,7 @@
           "addButton": "subform-bok.add"
         },
         "layoutSet": "bok-subform",
-        "dataType": "Bok",
+        "dataType": "bok",
         "showAddButton": true,
         "showDeleteButton": true,
         "tableColumns" : [

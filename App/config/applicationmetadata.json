@@ -39,7 +39,7 @@
       "enabledFileValidators": []
     },
     {
-      "id": "Moped",
+      "id": "moped",
       "allowedContentTypes": [
         "application/xml"
       ],
@@ -60,7 +60,7 @@
       "enabledFileValidators": []
     },
     {
-      "id": "Bok",
+      "id": "bok",
       "allowedContentTypes": [
         "application/xml"
       ],
