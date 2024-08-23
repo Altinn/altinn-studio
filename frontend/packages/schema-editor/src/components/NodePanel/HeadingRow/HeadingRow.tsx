@@ -35,7 +35,7 @@ export const HeadingRow = ({ pointer }: HeadingRowProps) => {
     useSchemaEditorAppContext();
   const isDataModelRoot = !pointer;
   const nodeRootPointer = isDataModelRoot ? ROOT_POINTER : pointer;
-  const node = schemaModel.getNode(nodeRootPointer);
+  const node = schemaModel.getNodeBySchemaPointer(nodeRootPointer);
   const selectNodeRoot = () => setSelectedUniqueNodePointer(nodeRootPointer);
   const title = isDataModelRoot ? name : extractNameFromPointer(pointer);
   const isValidParent = isNodeValidParent(node);

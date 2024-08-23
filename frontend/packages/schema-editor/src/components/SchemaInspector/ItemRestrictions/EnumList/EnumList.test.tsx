@@ -107,7 +107,9 @@ describe('EnumList', () => {
     expect(mockSaveDataModel).toHaveBeenCalledTimes(1);
     expect(mockSaveDataModel).toHaveBeenCalledWith(schemaModel);
 
-    const updatedNode: FieldNode = schemaModel.getNode(fieldNode1Mock.pointer) as FieldNode;
+    const updatedNode: FieldNode = schemaModel.getNodeBySchemaPointer(
+      fieldNode1Mock.pointer,
+    ) as FieldNode;
     const updatedEnum: string[] = updatedNode.enum;
 
     const expectedEnum: string[] = ['a', 'b', 'c', 'aa'];
@@ -130,7 +132,9 @@ describe('EnumList', () => {
     expect(mockSaveDataModel).toHaveBeenCalledTimes(1);
     expect(mockSaveDataModel).toHaveBeenCalledWith(schemaModel);
 
-    const updatedNode: FieldNode = schemaModel.getNode(fieldNode1Mock.pointer) as FieldNode;
+    const updatedNode: FieldNode = schemaModel.getNodeBySchemaPointer(
+      fieldNode1Mock.pointer,
+    ) as FieldNode;
     const updatedEnum: string[] = updatedNode.enum;
 
     const expectedEnum: string[] = ['a', 'bx', 'c'];

@@ -69,20 +69,20 @@ export class SchemaModel {
   }
 
   public getRootNode(): FieldNode | CombinationNode {
-    const rootNode = this.getNode(ROOT_POINTER);
+    const rootNode = this.getNodeBySchemaPointer(ROOT_POINTER);
     if (!isFieldOrCombination(rootNode))
       throw new Error('Root node is not a field nor a combination.');
     return rootNode;
   }
 
-  public getNode(pointer: string): UiSchemaNode {
+  public getNodeBySchemaPointer(pointer: string): UiSchemaNode {
     if (!this.hasNode(pointer)) throw new Error(`Node with pointer ${pointer} not found.`);
     return this.nodeMap.get(pointer);
   }
 
   public getNodeByUniquePointer(uniquePointer: string): UiSchemaNode {
     const schemaPointer = this.getSchemaPointerByUniquePointer(uniquePointer);
-    return this.getNode(schemaPointer);
+    return this.getNodeBySchemaPointer(schemaPointer);
   }
 
   public getSchemaPointerByUniquePointer(uniquePointer: string): string {
@@ -116,7 +116,7 @@ export class SchemaModel {
 
   public getDefinition(name: string): UiSchemaNode {
     const pointer = createDefinitionPointer(name);
-    return this.getNode(pointer);
+    return this.getNodeBySchemaPointer(pointer);
   }
 
   public getDefinitions(): UiSchemaNodes {
@@ -137,16 +137,16 @@ export class SchemaModel {
   }
 
   private getDirectChildNodes(node: FieldNode | CombinationNode): UiSchemaNodes {
-    return node.children.map((childPointer) => this.getNode(childPointer));
+    return node.children.map((childPointer) => this.getNodeBySchemaPointer(childPointer));
   }
 
   public getReferredNode(node: ReferenceNode): UiSchemaNode {
-    return this.getNode(node.reference);
+    return this.getNodeBySchemaPointer(node.reference);
   }
 
   /** Returns the node that the given node refers to, or the given node if it is not a reference. */
   public getFinalNode(pointer: string): FieldNode | CombinationNode {
-    const node = this.getNode(pointer);
+    const node = this.getNodeBySchemaPointer(pointer);
     return isReference(node) ? this.getFinalNode(node.reference) : node;
   }
 
@@ -250,12 +250,12 @@ export class SchemaModel {
   }
 
   public createChildPointer = (pointer: string, childName: string): string => {
-    const node = this.getNode(pointer);
+    const node = this.getNodeBySchemaPointer(pointer);
     return createPropertyPointer(node, childName);
   };
 
   private addChildPointer = (target: NodePosition, newPointer: string): void => {
-    const parent = this.getNode(target.parentPointer) as FieldNode | CombinationNode;
+    const parent = this.getNodeBySchemaPointer(target.parentPointer) as FieldNode | CombinationNode;
     if (!isNodeValidParent(parent)) throw new Error('Invalid parent node.');
     parent.children = insertArrayElementAtPos(parent.children, newPointer, target.index);
   };
@@ -281,7 +281,7 @@ export class SchemaModel {
     const movedNode = isCombination(finalParent)
       ? this.moveNodeToCombination(pointer, finalParent, target.index)
       : this.moveNodeToObject(pointer, finalParent, target.index);
-    const oldParent = this.getNode(currentParentPointer);
+    const oldParent = this.getNodeBySchemaPointer(currentParentPointer);
     if (isCombination(oldParent)) this.synchronizeCombinationChildPointers(oldParent);
     return movedNode;
   }
@@ -308,7 +308,7 @@ export class SchemaModel {
     const finalIndex = ArrayUtils.getValidIndex(parent.children, toIndex);
     parent.children = moveArrayItem(parent.children, fromIndex, finalIndex);
     this.synchronizeCombinationChildPointers(parent);
-    return this.getNode(parent.children[toIndex]);
+    return this.getNodeBySchemaPointer(parent.children[toIndex]);
   };
 
   /** Updates the pointers of the children of the given combination node so that their names correspond to their index. */
@@ -339,7 +339,7 @@ export class SchemaModel {
     this.removeNodeFromParent(pointer);
     this.addChildPointer(target, newPointer);
     this.changePointer(pointer, newPointer);
-    return this.getNode(newPointer);
+    return this.getNodeBySchemaPointer(newPointer);
   };
 
   private moveNodeToObject = (pointer: string, parent: FieldNode, index: number): UiSchemaNode => {
@@ -357,7 +357,7 @@ export class SchemaModel {
     const currentIndex = this.getIndexOfChildNode(pointer);
     const finalIndex = ArrayUtils.getValidIndex(parent.children, newIndex);
     parent.children = moveArrayItem(parent.children, currentIndex, finalIndex);
-    return this.getNode(parent.children[finalIndex]);
+    return this.getNodeBySchemaPointer(parent.children[finalIndex]);
   };
 
   private moveNodeToObjectFromAnotherParent = (
@@ -375,7 +375,7 @@ export class SchemaModel {
     this.removeNodeFromParent(pointer);
     this.addChildPointer({ parentPointer: parent.pointer, index }, newPointer);
     this.changePointer(pointer, newPointer);
-    return this.getNode(newPointer);
+    return this.getNodeBySchemaPointer(newPointer);
   };
 
   private removeNodeFromParent = (pointer: string): void => {
@@ -409,7 +409,7 @@ export class SchemaModel {
   }
 
   private changePointerInMap(oldPointer: string, newPointer: string): void {
-    const oldNode = this.getNode(oldPointer);
+    const oldNode = this.getNodeBySchemaPointer(oldPointer);
     const newNode = { ...oldNode, pointer: newPointer };
     this.nodeMap.delete(oldPointer);
     this.nodeMap.set(newPointer, newNode);
@@ -452,7 +452,7 @@ export class SchemaModel {
   }
 
   private changePointerInChildren(oldPointer: string, newPointer: string): void {
-    const node = this.getNode(newPointer); // Expects the node map to be updated
+    const node = this.getNodeBySchemaPointer(newPointer); // Expects the node map to be updated
     if (isFieldOrCombination(node) && node.children) {
       const makeNewPointer = (pointer: string) => replaceStart(pointer, oldPointer, newPointer);
       node.children.forEach((childPointer) => {
@@ -477,7 +477,7 @@ export class SchemaModel {
   }
 
   private isDefinitionInUse(pointer: string): boolean {
-    const node = this.getNode(pointer);
+    const node = this.getNodeBySchemaPointer(pointer);
     if (!isDefinition(node)) return false;
 
     return this.hasReferringNodes(pointer) || this.areDefinitionParentsInUse(pointer);
@@ -494,7 +494,7 @@ export class SchemaModel {
   }
 
   private deleteChildren(pointer: string): void {
-    const node = this.getNode(pointer);
+    const node = this.getNodeBySchemaPointer(pointer);
     if (isFieldOrCombination(node) && isNodeValidParent(node)) {
       node.children.forEach((childPointer) => {
         this.deleteNodeWithChildrenRecursively(childPointer);
@@ -503,7 +503,7 @@ export class SchemaModel {
   }
 
   public generateUniqueChildName(pointer: string, namePrefix: string = ''): string | undefined {
-    const node = this.getNode(pointer);
+    const node = this.getNodeBySchemaPointer(pointer);
     const childPointers = isFieldOrCombination(node) ? node.children : [];
     const childNames = childPointers.map(extractNameFromPointer);
     return generateUniqueStringWithNumber(childNames, namePrefix);
@@ -517,7 +517,7 @@ export class SchemaModel {
   }
 
   public changeCombinationType(pointer: string, combinationType: CombinationKind): SchemaModel {
-    const combinationNode = this.getNode(pointer);
+    const combinationNode = this.getNodeBySchemaPointer(pointer);
     if (!isCombination(combinationNode)) throw Error(`${pointer} is not a combination.`);
     const newNode: CombinationNode = { ...combinationNode, combinationType };
     this.updateNodeData(pointer, newNode);
@@ -526,7 +526,7 @@ export class SchemaModel {
   }
 
   public toggleIsArray(pointer: string): SchemaModel {
-    const node = this.getNode(pointer);
+    const node = this.getNodeBySchemaPointer(pointer);
     const newNode = { ...node, isArray: !node.isArray };
     this.updateNodeData(pointer, newNode);
     if (isFieldOrCombination(newNode) && isNodeValidParent(newNode)) {

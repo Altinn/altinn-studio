@@ -15,7 +15,9 @@ export interface NodePanelProps {
 export const NodePanel = ({ pointer }: NodePanelProps) => {
   const { schemaModel } = useSchemaEditorAppContext();
   const isDataModelRoot = !pointer;
-  const node = isDataModelRoot ? schemaModel.getRootNode() : schemaModel.getNode(pointer);
+  const node = isDataModelRoot
+    ? schemaModel.getRootNode()
+    : schemaModel.getNodeBySchemaPointer(pointer);
 
   return (
     <>

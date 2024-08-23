@@ -28,7 +28,7 @@ export const setRestriction: UiSchemaReducer<SetRestrictionArgs> = (
   { path, key, value },
 ) => {
   const newSchema = uiSchema.deepClone();
-  const schemaItem = newSchema.getNode(path);
+  const schemaItem = newSchema.getNodeBySchemaPointer(path);
   const restrictions = { ...schemaItem.restrictions };
   restrictions[key] = castRestrictionType(key, value);
   Object.keys(restrictions).forEach((k) => {
@@ -49,7 +49,7 @@ export const setRestrictions: UiSchemaReducer<SetRestrictionsArgs> = (
   { path, restrictions },
 ) => {
   const newSchema = uiSchema.deepClone();
-  const schemaItem = newSchema.getNode(path);
+  const schemaItem = newSchema.getNodeBySchemaPointer(path);
   const schemaItemRestrictions = { ...schemaItem.restrictions };
   Object.keys(restrictions).forEach((key) => {
     schemaItemRestrictions[key] = castRestrictionType(key, restrictions[key]);
@@ -69,7 +69,7 @@ export type SetRefArgs = {
 };
 export const setRef: UiSchemaReducer<SetRefArgs> = (uiSchema, { path, ref }) => {
   const newSchema = uiSchema.deepClone();
-  const uiSchemaNode = newSchema.getNode(path);
+  const uiSchemaNode = newSchema.getNodeBySchemaPointer(path);
   if (isReference(uiSchemaNode)) {
     uiSchemaNode.reference = ref;
     uiSchemaNode.implicitType = true;
@@ -83,7 +83,7 @@ export type SetTypeArgs = {
 };
 export const setType: UiSchemaReducer<SetTypeArgs> = (uiSchema, { path, type }) => {
   const newSchema = uiSchema.deepClone();
-  const uiSchemaNode = newSchema.getNode(path);
+  const uiSchemaNode = newSchema.getNodeBySchemaPointer(path);
   if (isField(uiSchemaNode)) {
     uiSchemaNode.children = [];
     uiSchemaNode.fieldType = type;
@@ -98,7 +98,7 @@ export type SetTitleArgs = {
 };
 export const setTitle: UiSchemaReducer<SetTitleArgs> = (uiSchema, { path, title }) => {
   const newSchema = uiSchema.deepClone();
-  newSchema.getNode(path).title = title;
+  newSchema.getNodeBySchemaPointer(path).title = title;
   return newSchema;
 };
 
@@ -111,7 +111,7 @@ export const setDescription: UiSchemaReducer<SetDescriptionArgs> = (
   { path, description },
 ) => {
   const newSchema = uiSchema.deepClone();
-  newSchema.getNode(path).description = description;
+  newSchema.getNodeBySchemaPointer(path).description = description;
   return newSchema;
 };
 
@@ -121,7 +121,7 @@ export type SetRequiredArgs = {
 };
 export const setRequired: UiSchemaReducer<SetRequiredArgs> = (uiSchema, { path, required }) => {
   const newSchema = uiSchema.deepClone();
-  newSchema.getNode(path).isRequired = required;
+  newSchema.getNodeBySchemaPointer(path).isRequired = required;
   return newSchema;
 };
 
@@ -134,7 +134,7 @@ export const setCustomProperties: UiSchemaReducer<SetCustomPropertiesArgs> = (
   { path, properties },
 ) => {
   const newSchema = uiSchema.deepClone();
-  newSchema.getNode(path).custom = properties;
+  newSchema.getNodeBySchemaPointer(path).custom = properties;
   return newSchema;
 };
 
@@ -179,7 +179,7 @@ export const setPropertyName: UiSchemaReducer<SetPropertyNameArgs> = (
     return uiSchema;
   }
   const newSchema = uiSchema.deepClone();
-  const nodeToRename = newSchema.getNode(path);
+  const nodeToRename = newSchema.getNodeBySchemaPointer(path);
   const newPointer = changeNameInPointer(path, name);
   const newNode = { ...nodeToRename, pointer: newPointer };
   newSchema.updateNode(path, newNode);

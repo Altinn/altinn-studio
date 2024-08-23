@@ -21,7 +21,8 @@ const user = userEvent.setup();
 
 const mockUiSchema = buildUiSchema(dataMock);
 const model = SchemaModel.fromArray(mockUiSchema);
-const getMockSchemaByPath = (selectedId: string): UiSchemaNode => model.getNode(selectedId);
+const getMockSchemaByPath = (selectedId: string): UiSchemaNode =>
+  model.getNodeBySchemaPointer(selectedId);
 
 const saveDataModel = jest.fn();
 const setSelectedTypePointer = jest.fn();
@@ -79,7 +80,7 @@ describe('SchemaInspector', () => {
 
     expect(saveDataModel).toHaveBeenCalled();
     let updatedModel = getSavedModel(saveDataModel, 3);
-    let updatedNode = updatedModel.getNode(pointer) as FieldNode;
+    let updatedNode = updatedModel.getNodeBySchemaPointer(pointer) as FieldNode;
     expect(updatedNode.restrictions.minLength).toEqual(parseInt(minLength));
 
     const maxLengthTextField = await screen.findByLabelText(textMock('schema_editor.maxLength'));
@@ -88,7 +89,7 @@ describe('SchemaInspector', () => {
     await user.tab();
 
     updatedModel = getSavedModel(saveDataModel, 7);
-    updatedNode = updatedModel.getNode(pointer) as FieldNode;
+    updatedNode = updatedModel.getNodeBySchemaPointer(pointer) as FieldNode;
     expect(updatedNode.restrictions.minLength).toEqual(parseInt(minLength));
   });
 

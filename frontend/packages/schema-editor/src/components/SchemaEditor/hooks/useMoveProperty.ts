@@ -19,7 +19,7 @@ export const useMoveProperty = (): HandleMove => {
       const currentParent = savableModel.getParentNode(pointer);
       const isMovingWithinSameParent = position.parentId === currentParent.pointer;
       if (isMovingWithinSameParent) return false;
-      const targetParent = savableModel.getNode(position.parentId);
+      const targetParent = savableModel.getNodeBySchemaPointer(position.parentId);
       const isTargetParentACombination = isCombination(targetParent);
       if (isTargetParentACombination) return false;
       const name = extractNameFromPointer(pointer);

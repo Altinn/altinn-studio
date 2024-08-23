@@ -47,7 +47,7 @@ describe('SchemaNode', () => {
     await user.click(addTextButton);
     expect(save).toHaveBeenCalledTimes(1);
     const savedModel = getSavedModel(save);
-    const updatedNode = savedModel.getNode(pointer) as FieldNode;
+    const updatedNode = savedModel.getNodeBySchemaPointer(pointer) as FieldNode;
     expect(updatedNode.children).toHaveLength(numberOfChildren + 1);
   });
 
@@ -63,7 +63,7 @@ describe('SchemaNode', () => {
     await user.click(addCombinationButton);
     expect(save).toHaveBeenCalledTimes(1);
     const savedModel = getSavedModel(save);
-    const updatedNode = savedModel.getNode(pointer) as FieldNode;
+    const updatedNode = savedModel.getNodeBySchemaPointer(pointer) as FieldNode;
     expect(updatedNode.children).toHaveLength(numberOfChildren + 1);
   });
 
@@ -82,7 +82,7 @@ describe('SchemaNode', () => {
     await user.click(addReferenceButton);
     expect(save).toHaveBeenCalledTimes(1);
     const savedModel = getSavedModel(save);
-    const updatedNode = savedModel.getNode(pointer) as FieldNode;
+    const updatedNode = savedModel.getNodeBySchemaPointer(pointer) as FieldNode;
     expect(updatedNode.children).toHaveLength(numberOfChildren + 1);
   });
 
@@ -148,7 +148,7 @@ describe('SchemaNode', () => {
     await user.click(promoteButton);
     expect(save).toHaveBeenCalledTimes(1);
     const savedModel = getSavedModel(save);
-    const updatedNode = savedModel.getNode(pointer);
+    const updatedNode = savedModel.getNodeBySchemaPointer(pointer);
     expect(updatedNode.objectKind).toEqual(ObjectKind.Reference);
   });
 
@@ -179,7 +179,7 @@ describe('SchemaNode', () => {
     const addTextButton = screen.getByRole('menuitem', { name: addTextButtonName });
     await user.click(addTextButton);
     const savedModel = getSavedModel(save);
-    const updatedNode = savedModel.getNode(pointer) as FieldNode;
+    const updatedNode = savedModel.getNodeBySchemaPointer(pointer) as FieldNode;
     expect(updatedNode.pointer).toEqual(pointer);
   });
 });

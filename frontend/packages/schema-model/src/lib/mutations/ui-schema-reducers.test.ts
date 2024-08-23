@@ -75,7 +75,7 @@ describe('ui-schema-reducers', () => {
       result = promoteProperty(createNewModelMock(), pointer);
       const expectedPointer = `${ROOT_POINTER}/$defs/${substringAfterLast(pointer, '/')}`;
       expect(getPointers(result.asArray())).toContain(expectedPointer);
-      expect(result.getNode(expectedPointer)).toMatchObject({
+      expect(result.getNodeBySchemaPointer(expectedPointer)).toMatchObject({
         fieldType: stringNodeMock.fieldType,
       });
     });
@@ -96,7 +96,7 @@ describe('ui-schema-reducers', () => {
       const value = 144;
       const args: SetRestrictionArgs = { path: pointer, key, value: value.toString() };
       result = setRestriction(createNewModelMock(), args);
-      const updatedNode = result.getNode(pointer);
+      const updatedNode = result.getNodeBySchemaPointer(pointer);
       expect(updatedNode.restrictions[key]).toEqual(value);
     });
   });
@@ -107,7 +107,7 @@ describe('ui-schema-reducers', () => {
       const restrictions = { maxLength: 144, minLength: 12 };
       const args: SetRestrictionsArgs = { path: pointer, restrictions };
       result = setRestrictions(createNewModelMock(), args);
-      const updatedNode = result.getNode(pointer);
+      const updatedNode = result.getNodeBySchemaPointer(pointer);
       expect(updatedNode.restrictions).toEqual(restrictions);
     });
   });
@@ -118,7 +118,7 @@ describe('ui-schema-reducers', () => {
       const ref = unusedDefinitionMock.pointer;
       const args: SetRefArgs = { path, ref };
       result = setRef(createNewModelMock(), args);
-      const updatedNode = result.getNode(path) as ReferenceNode;
+      const updatedNode = result.getNodeBySchemaPointer(path) as ReferenceNode;
       expect(updatedNode.reference).toEqual(ref);
       expect(updatedNode.objectKind).toEqual(ObjectKind.Reference);
       expect(updatedNode.implicitType).toBe(true);
@@ -132,7 +132,7 @@ describe('ui-schema-reducers', () => {
       const type = FieldType.String;
       const args: SetTypeArgs = { path, type };
       result = setType(createNewModelMock(), args);
-      const updatedNode = result.getNode(path) as FieldNode;
+      const updatedNode = result.getNodeBySchemaPointer(path) as FieldNode;
       expect(updatedNode.fieldType).toEqual(type);
       expect(updatedNode.implicitType).toBe(false);
     });
@@ -144,7 +144,7 @@ describe('ui-schema-reducers', () => {
       const title = 'test title';
       const args: SetTitleArgs = { path, title };
       result = setTitle(createNewModelMock(), args);
-      const updatedNode = result.getNode(path);
+      const updatedNode = result.getNodeBySchemaPointer(path);
       expect(updatedNode.title).toEqual(title);
     });
   });
@@ -155,7 +155,7 @@ describe('ui-schema-reducers', () => {
       const description = 'test description';
       const args: SetDescriptionArgs = { path, description };
       result = setDescription(createNewModelMock(), args);
-      const updatedNode = result.getNode(path);
+      const updatedNode = result.getNodeBySchemaPointer(path);
       expect(updatedNode.description).toEqual(description);
     });
   });
@@ -166,12 +166,12 @@ describe('ui-schema-reducers', () => {
 
     it.each([true, false])('Sets "isRequired" to %s when it was false', (required) => {
       result = setRequired(createNewModelMock(), { path: optionalPropertyPath, required });
-      expect(result.getNode(optionalPropertyPath).isRequired).toBe(required);
+      expect(result.getNodeBySchemaPointer(optionalPropertyPath).isRequired).toBe(required);
     });
 
     it.each([true, false])('Sets "isRequired" to %s when it was true', (required) => {
       result = setRequired(createNewModelMock(), { path: requiredPropertyPath, required });
-      expect(result.getNode(requiredPropertyPath).isRequired).toBe(required);
+      expect(result.getNodeBySchemaPointer(requiredPropertyPath).isRequired).toBe(required);
     });
   });
 
@@ -181,7 +181,7 @@ describe('ui-schema-reducers', () => {
       const properties: KeyValuePairs = { someCustomProp: 'test' };
       const args: SetCustomPropertiesArgs = { path, properties };
       result = setCustomProperties(createNewModelMock(), args);
-      const updatedNode = result.getNode(path);
+      const updatedNode = result.getNodeBySchemaPointer(path);
       expect(updatedNode.custom).toEqual(properties);
     });
   });
@@ -193,7 +193,7 @@ describe('ui-schema-reducers', () => {
 
     it('Sets the combination type of the given node', () => {
       result = setCombinationType(createNewModelMock(), args);
-      const updatedNode = result.getNode(path) as CombinationNode;
+      const updatedNode = result.getNodeBySchemaPointer(path) as CombinationNode;
       expect(updatedNode.combinationType).toEqual(combinationType);
     });
 
@@ -230,7 +230,7 @@ describe('ui-schema-reducers', () => {
       const newPointers = getPointers(result.asArray());
       expect(newPointers).toContain(expectedPointer);
       expect(newPointers).not.toContain(pointer);
-      expect(result.getNode(expectedPointer)).toMatchObject({
+      expect(result.getNodeBySchemaPointer(expectedPointer)).toMatchObject({
         ...stringNodeMock,
         pointer: expectedPointer,
       });
@@ -247,7 +247,7 @@ describe('ui-schema-reducers', () => {
     it('Converts an array node to a single field node', () => {
       const { pointer } = arrayNodeMock;
       result = toggleArrayField(createNewModelMock(), pointer);
-      const updatedNode = result.getNode(pointer) as FieldNode;
+      const updatedNode = result.getNodeBySchemaPointer(pointer) as FieldNode;
       expect(updatedNode.fieldType).toEqual(arrayNodeMock.fieldType);
       expect(updatedNode.isArray).toBe(false);
     });
@@ -255,7 +255,7 @@ describe('ui-schema-reducers', () => {
     it('Converts a single field node to an array node', () => {
       const { pointer } = stringNodeMock;
       result = toggleArrayField(createNewModelMock(), pointer);
-      const updatedNode = result.getNode(pointer) as FieldNode;
+      const updatedNode = result.getNodeBySchemaPointer(pointer) as FieldNode;
       expect(updatedNode.fieldType).toEqual(stringNodeMock.fieldType);
       expect(updatedNode.isArray).toBe(true);
     });

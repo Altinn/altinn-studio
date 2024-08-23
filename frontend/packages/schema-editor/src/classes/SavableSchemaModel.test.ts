@@ -102,7 +102,7 @@ describe('SavableSchemaModel', () => {
       expect(savableSchema.doesNodeHaveChildWithName(ROOT_POINTER, name)).toBe(true);
       expect(save).toHaveBeenCalledTimes(1);
       expect(save).toHaveBeenCalledWith(savableSchema);
-      expect(movedNode).toBe(savableSchema.getNode(movedNode.pointer));
+      expect(movedNode).toBe(savableSchema.getNodeBySchemaPointer(movedNode.pointer));
     });
   });
 
@@ -110,10 +110,10 @@ describe('SavableSchemaModel', () => {
     it('Updates a node, saves the model once and returns the object', () => {
       const savableSchema = setupSchema();
       const { pointer } = combinationNodeMock;
-      const newNode = savableSchema.getNode(pointer);
+      const newNode = savableSchema.getNodeBySchemaPointer(pointer);
       newNode.isRequired = true;
       const result = savableSchema.updateNode(pointer, newNode);
-      expect(savableSchema.getNode(pointer).isRequired).toBe(true);
+      expect(savableSchema.getNodeBySchemaPointer(pointer).isRequired).toBe(true);
       expect(save).toHaveBeenCalledTimes(1);
       expect(save).toHaveBeenCalledWith(savableSchema);
       expect(result).toBe(savableSchema);

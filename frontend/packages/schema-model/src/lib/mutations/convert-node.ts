@@ -16,7 +16,7 @@ import { SchemaModel } from '../SchemaModel';
 
 export const convertPropToType = (model: SchemaModel, pointer: string): SchemaModel => {
   const uiNodeIndex = getNodeIndexByPointer(model.asArray(), pointer);
-  const uiNode = model.getNode(pointer);
+  const uiNode = model.getNodeBySchemaPointer(pointer);
 
   if (isReference(uiNode)) {
     throw new Error(`Pointer ${pointer} is already a reference.`);

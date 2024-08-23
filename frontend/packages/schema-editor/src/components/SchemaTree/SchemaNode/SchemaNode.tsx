@@ -25,7 +25,7 @@ export const SchemaNode = ({
 }: SchemaNodeProps): ReactElement => {
   const savableModel = useSavableSchemaModel();
   const { t } = useTranslation();
-  const node = savableModel.getNode(pointer);
+  const node = savableModel.getNodeBySchemaPointer(pointer);
   const label = savableModel.isChildOfCombination(pointer) ? '' : extractNameFromPointer(pointer);
   const index = savableModel.getIndexOfChildNode(pointer);
   const uniqueNodePointer = savableModel.getUniquePointer(
@@ -66,7 +66,7 @@ interface LabelWrapperProps {
 }
 
 const LabelWrapper = ({ label, pointer, uniqueNodePointer, schemaModel }: LabelWrapperProps) => {
-  const node = schemaModel.getNode(pointer);
+  const node = schemaModel.getNodeBySchemaPointer(pointer);
   const className = createWrapperClassNames(schemaModel, node);
   return (
     <div className={className}>

@@ -146,7 +146,7 @@ describe('ItemFieldsTab', () => {
     await user.keyboard('{Enter}');
     expect(saveDataModel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDataModel);
-    const updatedNode = updatedModel.getNode(selectedItem.pointer) as FieldNode;
+    const updatedNode = updatedModel.getNodeBySchemaPointer(selectedItem.pointer) as FieldNode;
     expect(updatedNode.children).toHaveLength(numberOfFields + 1); // eslint-disable-line testing-library/no-node-access
   });
 
@@ -166,7 +166,7 @@ describe('ItemFieldsTab', () => {
 
     expect(saveDataModel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDataModel);
-    const updatedNode = updatedModel.getNode(selectedItem.pointer) as FieldNode;
+    const updatedNode = updatedModel.getNodeBySchemaPointer(selectedItem.pointer) as FieldNode;
     expect(updatedNode.children).toHaveLength(numberOfFields - 1); // eslint-disable-line testing-library/no-node-access
   });
 

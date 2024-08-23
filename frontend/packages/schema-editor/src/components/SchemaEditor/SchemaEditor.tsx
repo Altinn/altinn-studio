@@ -23,7 +23,8 @@ export const SchemaEditor = () => {
 
   if (schemaModel.isEmpty()) return null;
   const definitions: UiSchemaNodes = schemaModel.getDefinitions();
-  const selectedType = selectedTypePointer && schemaModel.getNode(selectedTypePointer);
+  const selectedType =
+    selectedTypePointer && schemaModel.getNodeBySchemaPointer(selectedTypePointer);
 
   return (
     <DragAndDropTree.Provider

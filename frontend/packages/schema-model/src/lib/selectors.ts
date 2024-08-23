@@ -39,7 +39,7 @@ export const getNodeByPointer = (
   pointer: string,
 ): UiSchemaNode | undefined => {
   try {
-    return SchemaModel.fromArray(uiSchemaNodes).getNode(pointer);
+    return SchemaModel.fromArray(uiSchemaNodes).getNodeBySchemaPointer(pointer);
   } catch {
     return undefined;
   }

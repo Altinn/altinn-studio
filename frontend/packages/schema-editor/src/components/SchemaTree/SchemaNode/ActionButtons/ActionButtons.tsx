@@ -19,7 +19,7 @@ export interface ActionButtonsProps {
 export const ActionButtons = ({ pointer, className, uniqueNodePointer }: ActionButtonsProps) => {
   const savableModel = useSavableSchemaModel();
   const deleteNode = useDeleteNode(pointer, savableModel);
-  const node = savableModel.getNode(pointer);
+  const node = savableModel.getNodeBySchemaPointer(pointer);
 
   const convertToReference = () => savableModel.convertToDefinition(pointer);
   const hasReferringNodes = savableModel.hasReferringNodes(pointer);
