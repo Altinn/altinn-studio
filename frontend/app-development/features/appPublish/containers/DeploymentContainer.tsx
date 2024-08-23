@@ -58,9 +58,7 @@ export const DeploymentContainer = () => {
   if (environmentListIsError || orgsIsError || appDeploymentIsError)
     return (
       <div className={classes.deployContainer}>
-        <div className={classes.alert}>
-          <StudioError>{t('app_deployment.error')}</StudioError>
-        </div>
+        <StudioError className={classes.alert}>{t('app_deployment.error')}</StudioError>
       </div>
     );
 

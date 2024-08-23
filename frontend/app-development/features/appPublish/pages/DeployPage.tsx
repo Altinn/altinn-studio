@@ -35,11 +35,7 @@ export function DeployPage() {
   }
 
   if (orgsIsError || permissionsIsError)
-    return (
-      <div className={classes.alert}>
-        <StudioError>{t('app_deployment.error')}</StudioError>;
-      </div>
-    );
+    return <StudioError className={classes.alert}>{t('app_deployment.error')}</StudioError>;
 
   // If org isn't listed, or doesn't have any environments
   if (!orgs[org] || !orgs[org].environments || !orgs[org].environments.length) {

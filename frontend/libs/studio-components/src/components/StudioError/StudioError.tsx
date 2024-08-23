@@ -1,10 +1,12 @@
 import React from 'react';
-import { Alert } from '@digdir/designsystemet-react';
+import { Alert, type AlertProps } from '@digdir/designsystemet-react';
 
-export type StudioErrorProps = {
-  children?: React.ReactNode;
-};
+export type StudioErrorProps = Omit<AlertProps, 'severity'>;
 
-export const StudioError = ({ children }: StudioErrorProps) => {
-  return <Alert severity='danger'>{children}</Alert>;
+export const StudioError = ({ children, ...rest }: StudioErrorProps) => {
+  return (
+    <Alert {...rest} severity='danger'>
+      {children}
+    </Alert>
+  );
 };

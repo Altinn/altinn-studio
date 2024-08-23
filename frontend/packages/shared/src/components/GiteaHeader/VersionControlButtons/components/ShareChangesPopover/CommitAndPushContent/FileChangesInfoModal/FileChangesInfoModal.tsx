@@ -58,7 +58,9 @@ export const FileChangesInfoModal = ({
         );
       case 'error':
         return (
-          <StudioError>{t('sync_header.show_changes_modal.repo_diff_error_title')}</StudioError>
+          <StudioError size='small'>
+            {t('sync_header.show_changes_modal.repo_diff_error_title')}
+          </StudioError>
         );
     }
   };
