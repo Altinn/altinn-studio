@@ -93,9 +93,7 @@ export const ResourceSwitchInput = ({
             className={isChecked ? classes.toggleTextActive : classes.toggleTextInactive}
           >
             {t(toggleTextTranslationKey, {
-              shouldText: isChecked
-                ? t('resourceadm.switch_should')
-                : t('resourceadm.switch_should_not'),
+              shouldText: !isChecked ? t('resourceadm.switch_should_not') : '',
             })}
           </Paragraph>
         </Switch>
