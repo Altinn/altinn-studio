@@ -8,32 +8,32 @@ import cn from 'classnames';
 
 export type StudioTreeViewRootProps = {
   onSelect?: (nodeId: string) => void;
-  selectedUniqueId?: string;
+  selectedId?: string;
 } & Omit<HTMLAttributes<HTMLUListElement>, 'onSelect'>;
 
 export const StudioTreeViewRoot = ({
   children,
   className,
   onSelect,
-  selectedUniqueId: selectedUniqueIdFromProps,
+  selectedId: selectedIdFromProps,
   ...rest
 }: StudioTreeViewRootProps) => {
   const rootId = useId();
   const [focusedId, setFocusedId] = useState<string | undefined>(undefined);
   const [focusableId, setFocusableId] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<string | undefined>(selectedUniqueIdFromProps);
+  const [selectedId, setSelectedId] = useState<string | undefined>(selectedIdFromProps);
   useEffect(() => {
-    setSelectedId(selectedUniqueIdFromProps);
-  }, [selectedUniqueIdFromProps]);
+    setSelectedId(selectedIdFromProps);
+  }, [selectedIdFromProps]);
 
   useLayoutEffect(() => {
     const firstNodeId = findFirstNodeId(rootId);
     setFocusableId(focusableNodeId(focusedId, selectedId, firstNodeId));
   }, [rootId, selectedId, focusedId]);
 
-  const handleSelect = (uniqueNodeId: string) => {
-    setSelectedId(uniqueNodeId);
-    onSelect?.(uniqueNodeId);
+  const handleSelect = (nodeId: string) => {
+    setSelectedId(nodeId);
+    onSelect?.(nodeId);
   };
 
   return (

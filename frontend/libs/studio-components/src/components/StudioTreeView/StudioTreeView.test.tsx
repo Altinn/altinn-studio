@@ -28,29 +28,29 @@ const defaultProps: TestComponentProps = { onSelect };
 
 const simpleComposition = (testProps: Partial<TestComponentProps> = {}) => (
   <StudioTreeView.Root {...defaultProps} {...testProps}>
-    <StudioTreeView.Item uniqueNodeId={rootNodeId1} label={rootNodeLabel1}>
-      <StudioTreeView.Item uniqueNodeId={subNodeId1_1} label={subNodeLabel1_1} />
-      <StudioTreeView.Item uniqueNodeId={subNodeId1_2} label={subNodeLabel1_2}>
-        <StudioTreeView.Item uniqueNodeId={subSubNodeId1_1_1} label={subSubNodeLabel1_1_1} />
+    <StudioTreeView.Item nodeId={rootNodeId1} label={rootNodeLabel1}>
+      <StudioTreeView.Item nodeId={subNodeId1_1} label={subNodeLabel1_1} />
+      <StudioTreeView.Item nodeId={subNodeId1_2} label={subNodeLabel1_2}>
+        <StudioTreeView.Item nodeId={subSubNodeId1_1_1} label={subSubNodeLabel1_1_1} />
       </StudioTreeView.Item>
     </StudioTreeView.Item>
-    <StudioTreeView.Item uniqueNodeId={rootNodeId2} label={rootNodeLabel2}>
-      <StudioTreeView.Item uniqueNodeId={subNodeId2_1} label={subNodeLabel2_1} />
+    <StudioTreeView.Item nodeId={rootNodeId2} label={rootNodeLabel2}>
+      <StudioTreeView.Item nodeId={subNodeId2_1} label={subNodeLabel2_1} />
     </StudioTreeView.Item>
   </StudioTreeView.Root>
 );
 
 const complexComposition = (testProps: Partial<TestComponentProps> = {}) => (
   <StudioTreeView.Root {...defaultProps} {...testProps}>
-    <StudioTreeView.Item uniqueNodeId={rootNodeId1} label={rootNodeLabel1}>
+    <StudioTreeView.Item nodeId={rootNodeId1} label={rootNodeLabel1}>
       <li>
-        <StudioTreeView.Item as='div' uniqueNodeId={subNodeId1_1} label={subNodeLabel1_1} />
+        <StudioTreeView.Item as='div' nodeId={subNodeId1_1} label={subNodeLabel1_1} />
       </li>
       <li>Something in between</li>
       <li>
         <StudioTreeView.Item
           as='div'
-          uniqueNodeId={subNodeId1_2}
+          nodeId={subNodeId1_2}
           label={subNodeLabel1_2}
           labelWrapper={(children) => (
             <div>
@@ -59,13 +59,13 @@ const complexComposition = (testProps: Partial<TestComponentProps> = {}) => (
             </div>
           )}
         >
-          <StudioTreeView.Item uniqueNodeId={subSubNodeId1_1_1} label={subSubNodeLabel1_1_1} />
+          <StudioTreeView.Item nodeId={subSubNodeId1_1_1} label={subSubNodeLabel1_1_1} />
         </StudioTreeView.Item>
       </li>
     </StudioTreeView.Item>
-    <StudioTreeView.Item uniqueNodeId={rootNodeId2} label={rootNodeLabel2}>
+    <StudioTreeView.Item nodeId={rootNodeId2} label={rootNodeLabel2}>
       <div>Something</div>
-      <StudioTreeView.Item uniqueNodeId={subNodeId2_1} label={subNodeLabel2_1} />
+      <StudioTreeView.Item nodeId={subNodeId2_1} label={subNodeLabel2_1} />
       <div>Something</div>
     </StudioTreeView.Item>
   </StudioTreeView.Root>
@@ -123,13 +123,13 @@ describe('StudioTreeView', () => {
     });
 
     it('Selects the node given by the `selectedId` prop', () => {
-      renderTreeView({ selectedUniqueId: rootNodeId2 });
+      renderTreeView({ selectedId: rootNodeId2 });
       expect(getTreeitem({ selected: true })).toBe(getTreeitem({ label: rootNodeLabel2 }));
     });
 
     it('Rerenders with new selected node when the `selectedId` prop changes', () => {
-      const { rerender } = renderTreeView({ selectedUniqueId: rootNodeId2 });
-      rerender({ selectedUniqueId: rootNodeId1 });
+      const { rerender } = renderTreeView({ selectedId: rootNodeId2 });
+      rerender({ selectedId: rootNodeId1 });
       expect(getTreeitem({ selected: true })).toBe(getTreeitem({ label: rootNodeLabel1 }));
     });
 
@@ -148,7 +148,7 @@ describe('StudioTreeView', () => {
     });
 
     it('Focuses on the selected node when the user presses the tab key', async () => {
-      renderTreeView({ selectedUniqueId: rootNodeId2 });
+      renderTreeView({ selectedId: rootNodeId2 });
       await user.tab();
       expect(getTreeitem({ label: rootNodeLabel2 })).toHaveFocus();
     });

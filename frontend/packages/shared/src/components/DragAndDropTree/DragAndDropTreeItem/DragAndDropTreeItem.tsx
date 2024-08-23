@@ -15,7 +15,7 @@ export interface DragAndDropTreeItemProps {
   icon?: ReactNode;
   label: string;
   labelWrapper?: (children: ReactNode) => ReactNode;
-  uniqueNodeId: string;
+  nodeId: string;
   title?: string;
 }
 
@@ -26,7 +26,7 @@ export const DragAndDropTreeItem = ({
   icon,
   label,
   labelWrapper,
-  uniqueNodeId,
+  nodeId,
   title,
 }: DragAndDropTreeItemProps) => {
   const { hoveredNodeParent, setHoveredNodeParent } = useContext(DragAndDropTreeRootContext);
@@ -35,20 +35,20 @@ export const DragAndDropTreeItem = ({
   const isExpandable = expandable || Boolean(children);
   const renderLabel = labelWrapper ?? ((node) => node);
   const handleDragOver = () => setHoveredNodeParent(uniqueParentId);
-  const hasHoveredItemClass = hoveredNodeParent === uniqueNodeId ? classes.hasHoveredItem : null;
+  const hasHoveredItemClass = hoveredNodeParent === nodeId ? classes.hasHoveredItem : null;
   const labelButtonWrapperClass = cn(classes.labelButtonWrapper, hasHoveredItemClass);
 
   return (
     <DragAndDrop.ListItem
       as='li'
-      itemId={uniqueNodeId}
+      itemId={nodeId}
       onDragOver={handleDragOver}
       renderItem={(dragHandleRef) => (
-        <DragAndDropTreeItemContext.Provider value={{ nodeId: uniqueNodeId }}>
+        <DragAndDropTreeItemContext.Provider value={{ nodeId }}>
           <StudioTreeView.Item
             as='div'
             className={cn(classes.item, hasHoveredItemClass)}
-            uniqueNodeId={uniqueNodeId}
+            nodeId={nodeId}
             icon={icon}
             label={label}
             labelWrapper={(node) => (

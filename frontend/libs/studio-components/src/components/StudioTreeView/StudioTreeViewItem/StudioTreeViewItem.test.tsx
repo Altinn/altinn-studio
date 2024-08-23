@@ -11,10 +11,10 @@ const user = userEvent.setup();
 
 // Test data:
 const label = 'label';
-const uniqueNodeId = 'nodeId';
+const nodeId = 'nodeId';
 const defaultProps: StudioTreeViewItemProps = {
   label,
-  uniqueNodeId,
+  nodeId,
 };
 const rootId = 'rootId';
 const setFocusedId = jest.fn();
@@ -51,7 +51,7 @@ describe('StudioTreeViewItem', () => {
   });
 
   it('Focuses the treeitem when focusedId matches nodeId', () => {
-    renderItem({ label }, { focusedId: uniqueNodeId });
+    renderItem({ label }, { focusedId: nodeId });
     expect(getTreeItem({ name: label })).toHaveFocus();
   });
 
@@ -61,7 +61,7 @@ describe('StudioTreeViewItem', () => {
   });
 
   it('Is selected when selectedId matches nodeId', () => {
-    renderItem({ label }, { selectedId: uniqueNodeId });
+    renderItem({ label }, { selectedId: nodeId });
     expect(getTreeItem({ name: label, selected: true })).toBeInTheDocument();
   });
 
@@ -81,7 +81,7 @@ describe('StudioTreeViewItem', () => {
   });
 
   it('Renders a hidden group component owned by the tree item if children are provided', () => {
-    renderItem({ label, children: <StudioTreeViewItem uniqueNodeId='child' label='Test' /> });
+    renderItem({ label, children: <StudioTreeViewItem nodeId='child' label='Test' /> });
     const group = screen.getByRole('group', { hidden: true });
     expect(group).toBeInTheDocument();
     expect(getTreeItem({ name: label })).toHaveAttribute('aria-owns', group.id);
@@ -89,7 +89,7 @@ describe('StudioTreeViewItem', () => {
   });
 
   it('Expands the tree item when it is clicked and closes it again when it is clicked again', async () => {
-    renderItem({ label, children: <StudioTreeViewItem uniqueNodeId='child' label='Test' /> });
+    renderItem({ label, children: <StudioTreeViewItem nodeId='child' label='Test' /> });
     expect(getTreeItem({ name: label, expanded: false })).toBeInTheDocument();
     await user.click(getTreeItem());
     expect(getTreeItem({ name: label, expanded: true })).toBeInTheDocument();
@@ -105,8 +105,8 @@ describe('StudioTreeViewItem', () => {
     renderItem({
       label,
       children: (
-        <StudioTreeViewItem uniqueNodeId='child' label={level2Label}>
-          <StudioTreeViewItem uniqueNodeId='grandchild' label={level3Label} />
+        <StudioTreeViewItem nodeId='child' label={level2Label}>
+          <StudioTreeViewItem nodeId='grandchild' label={level3Label} />
         </StudioTreeViewItem>
       ),
     });
@@ -118,16 +118,16 @@ describe('StudioTreeViewItem', () => {
     renderItem({ label });
     await user.click(getTreeItem({ name: label }));
     expect(setSelectedId).toHaveBeenCalledTimes(1);
-    expect(setSelectedId).toHaveBeenCalledWith(uniqueNodeId);
+    expect(setSelectedId).toHaveBeenCalledWith(nodeId);
     expect(setFocusedId).toHaveBeenCalledTimes(1);
-    expect(setFocusedId).toHaveBeenCalledWith(uniqueNodeId);
+    expect(setFocusedId).toHaveBeenCalledWith(nodeId);
   });
 
   it('Calls the `setFocusedId` callback with the `nodeId` when focused', () => {
     renderItem({ label });
     getTreeItem({ name: label }).focus();
     expect(setFocusedId).toHaveBeenCalledTimes(1);
-    expect(setFocusedId).toHaveBeenCalledWith(uniqueNodeId);
+    expect(setFocusedId).toHaveBeenCalledWith(nodeId);
   });
 
   it('Renders as a `li` element by default', () => {
@@ -157,7 +157,7 @@ describe('StudioTreeViewItem', () => {
     renderItem(
       {
         label,
-        children: <StudioTreeViewItem uniqueNodeId={childId} label={childLabel} />,
+        children: <StudioTreeViewItem nodeId={childId} label={childLabel} />,
       },
       { selectedId: childId },
     );

@@ -22,7 +22,7 @@ export const FormTree = ({ layout, duplicateComponents }: FormTreeProps) => {
     <DragAndDropTree.Root
       onSelect={handleSelect}
       emptyMessage={t('ux_editor.container_empty')}
-      selectedUniqueId={formId}
+      selectedId={formId}
     >
       {renderItemList(layout, duplicateComponents, BASE_CONTAINER_ID)}
     </DragAndDropTree.Root>

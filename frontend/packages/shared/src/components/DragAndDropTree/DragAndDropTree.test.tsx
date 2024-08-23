@@ -27,14 +27,14 @@ const render = () =>
   renderRtl(
     <DragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={rootId}>
       <DragAndDropTree.Root emptyMessage={emptyMessage}>
-        <DragAndDropTree.Item label={rootNodeLabel1} uniqueNodeId={rootNodeId1}>
-          <DragAndDropTree.Item label={subNodeLabel1_1} uniqueNodeId={subNodeId1_1}>
-            <DragAndDropTree.Item label={subSubNodeLabel1_1_1} uniqueNodeId={subSubNodeId1_1_1} />
+        <DragAndDropTree.Item label={rootNodeLabel1} nodeId={rootNodeId1}>
+          <DragAndDropTree.Item label={subNodeLabel1_1} nodeId={subNodeId1_1}>
+            <DragAndDropTree.Item label={subSubNodeLabel1_1_1} nodeId={subSubNodeId1_1_1} />
           </DragAndDropTree.Item>
-          <DragAndDropTree.Item label={subNodeLabel1_2} uniqueNodeId={subNodeId1_2} />
+          <DragAndDropTree.Item label={subNodeLabel1_2} nodeId={subNodeId1_2} />
         </DragAndDropTree.Item>
-        <DragAndDropTree.Item label={rootNodeLabel2} uniqueNodeId={rootNodeId2}>
-          <DragAndDropTree.Item label={subNodeLabel2_1} uniqueNodeId={subNodeId2_1} />
+        <DragAndDropTree.Item label={rootNodeLabel2} nodeId={rootNodeId2}>
+          <DragAndDropTree.Item label={subNodeLabel2_1} nodeId={subNodeId2_1} />
         </DragAndDropTree.Item>
       </DragAndDropTree.Root>
     </DragAndDropTree.Provider>,
@@ -98,7 +98,7 @@ describe('DragAndDropTree', () => {
     rerender(
       <DragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={rootId}>
         <DragAndDropTree.Root emptyMessage={emptyMessage}>
-          <DragAndDropTree.Item label={rootNodeLabel1} uniqueNodeId={rootNodeId1} />
+          <DragAndDropTree.Item label={rootNodeLabel1} nodeId={rootNodeId1} />
         </DragAndDropTree.Root>
       </DragAndDropTree.Provider>,
     );
@@ -109,7 +109,7 @@ describe('DragAndDropTree', () => {
     const { rerender } = renderRtl(
       <DragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={rootId}>
         <DragAndDropTree.Root emptyMessage={emptyMessage}>
-          <DragAndDropTree.Item label={rootNodeLabel1} uniqueNodeId={rootNodeId1} />
+          <DragAndDropTree.Item label={rootNodeLabel1} nodeId={rootNodeId1} />
         </DragAndDropTree.Root>
       </DragAndDropTree.Provider>,
     );

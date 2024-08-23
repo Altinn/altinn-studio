@@ -27,7 +27,7 @@ export type StudioTreeViewItemProps = {
   icon?: ReactNode;
   label: ReactNode;
   labelWrapper?: (children: ReactNode) => ReactNode;
-  uniqueNodeId: string;
+  nodeId: string;
 } & HTMLAttributes<HTMLDivElement>;
 
 export const StudioTreeViewItem = ({
@@ -37,7 +37,7 @@ export const StudioTreeViewItem = ({
   icon,
   label,
   labelWrapper = (lab) => lab,
-  uniqueNodeId,
+  nodeId,
   ...rest
 }: StudioTreeViewItemProps) => {
   const [open, setOpen] = useState(false);
@@ -45,38 +45,38 @@ export const StudioTreeViewItem = ({
     useTreeViewRootContext();
   const { level } = useTreeViewItemContext();
   const treeItemRef = useRef<HTMLDivElement>(null);
-  useTreeViewItemOpenOnHierarchySelect(rootId, uniqueNodeId, selectedId, setOpen);
+  useTreeViewItemOpenOnHierarchySelect(rootId, nodeId, selectedId, setOpen);
 
   useEffect(() => {
-    if (focusedId === uniqueNodeId) {
+    if (focusedId === nodeId) {
       treeItemRef.current?.focus();
     }
-  }, [focusedId, uniqueNodeId]);
+  }, [focusedId, nodeId]);
 
-  const selected = selectedId === uniqueNodeId;
-  const focusable = focusableId === uniqueNodeId;
+  const selected = selectedId === nodeId;
+  const focusable = focusableId === nodeId;
 
   const selectNode = () => {
     setOpen((prevOpen) => !prevOpen);
-    setSelectedId(uniqueNodeId);
+    setSelectedId(nodeId);
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
     switch (event.key) {
       case 'ArrowRight': // Open node if closed, focus on first child if open, do nothing if not expandable
         if (children) {
-          open ? setFocusedId(findFirstChildId(rootId, uniqueNodeId)) : setOpen(true);
+          open ? setFocusedId(findFirstChildId(rootId, nodeId)) : setOpen(true);
         }
         break;
       case 'ArrowLeft': // Close node if open, focus on parent otherwise
-        open ? setOpen(false) : setFocusedId(findParentId(rootId, uniqueNodeId));
+        open ? setOpen(false) : setFocusedId(findParentId(rootId, nodeId));
         break;
       case 'ArrowDown': // Focus on next visible node
-        const nextVisibleNode = findNextVisibleNodeId(rootId, uniqueNodeId);
+        const nextVisibleNode = findNextVisibleNodeId(rootId, nodeId);
         if (nextVisibleNode) setFocusedId(nextVisibleNode);
         break;
       case 'ArrowUp': // Focus on previous visible node
-        const previousVisibleNode = findPreviousVisibleNodeId(rootId, uniqueNodeId);
+        const previousVisibleNode = findPreviousVisibleNodeId(rootId, nodeId);
         if (previousVisibleNode) setFocusedId(previousVisibleNode);
         break;
       case 'Home': // Focus on first node
@@ -91,10 +91,10 @@ export const StudioTreeViewItem = ({
     }
   };
 
-  const handleFocus = () => setFocusedId(uniqueNodeId);
+  const handleFocus = () => setFocusedId(nodeId);
 
-  const treeItemId = makeDomTreeItemId(rootId, uniqueNodeId);
-  const listId = makeDomGroupId(rootId, uniqueNodeId);
+  const treeItemId = makeDomTreeItemId(rootId, nodeId);
+  const listId = makeDomGroupId(rootId, nodeId);
   const hasChildren = !!children;
 
   const renderLabel = () => (

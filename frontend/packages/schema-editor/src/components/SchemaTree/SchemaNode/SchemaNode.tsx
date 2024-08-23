@@ -50,7 +50,7 @@ export const SchemaNode = ({
       icon={renderIcon(savableModel, pointer)}
       label={label}
       labelWrapper={labelWrapper}
-      uniqueNodeId={uniqueNodePointer}
+      nodeId={uniqueNodePointer}
       title={title}
     >
       {renderSchemaNodeList(savableModel, pointer, uniqueNodePointer)}

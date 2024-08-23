@@ -17,7 +17,7 @@ export const SchemaTree = ({ pointer }: SchemaTreeProps) => {
     <DragAndDropTree.Root
       emptyMessage={t('schema_editor.empty_node')}
       onSelect={setSelectedUniqueNodePointer}
-      selectedUniqueId={selectedUniqueNodePointer}
+      selectedId={selectedUniqueNodePointer}
     >
       {renderSchemaNodeList(savableModel, pointer, selectedUniqueNodePointer)}
     </DragAndDropTree.Root>
