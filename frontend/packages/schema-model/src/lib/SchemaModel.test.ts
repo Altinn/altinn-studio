@@ -146,13 +146,13 @@ describe('SchemaModel', () => {
     });
   });
 
-  describe('getUniqueNodePointer', () => {
+  describe('getUniquePointer', () => {
     it('Returns the pointer as is when called on the root node', () => {
-      expect(schemaModel.getUniqueNodePointer(rootNodeMock.pointer)).toEqual(rootNodeMock.pointer);
+      expect(schemaModel.getUniquePointer(rootNodeMock.pointer)).toEqual(rootNodeMock.pointer);
     });
 
     it('Returns the pointer as is when called on a property node', () => {
-      expect(schemaModel.getUniqueNodePointer(referenceToObjectNodeMock.pointer)).toEqual(
+      expect(schemaModel.getUniquePointer(referenceToObjectNodeMock.pointer)).toEqual(
         referenceToObjectNodeMock.pointer,
       );
     });
@@ -163,13 +163,13 @@ describe('SchemaModel', () => {
         '#/properties/referenceToParent/properties/child/properties/grandchild';
 
       expect(
-        schemaModel.getUniqueNodePointer(
+        schemaModel.getUniquePointer(
           defNodeWithChildrenChildMock.pointer,
           referenceToObjectNodeMock.pointer,
         ),
       ).toEqual(expectedChildPointer);
       expect(
-        schemaModel.getUniqueNodePointer(
+        schemaModel.getUniquePointer(
           defNodeWithChildrenGrandchildMock.pointer,
           expectedChildPointer,
         ),

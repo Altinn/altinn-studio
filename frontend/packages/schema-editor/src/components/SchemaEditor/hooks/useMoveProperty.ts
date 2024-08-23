@@ -12,7 +12,7 @@ export const useMoveProperty = (): HandleMove => {
   const { selectedUniqueNodePointer, setSelectedUniqueNodePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
   const selectedNodePointer = selectedUniqueNodePointer
-    ? savableModel.getNodeByUniquePointer(selectedUniqueNodePointer).pointer
+    ? savableModel.getSchemaPointerByUniquePointer(selectedUniqueNodePointer)
     : null;
   const areThereCollidingNames = useCallback(
     (pointer: string, position: ItemPosition): boolean => {

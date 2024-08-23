@@ -28,7 +28,7 @@ export const SchemaNode = ({
   const node = savableModel.getNode(pointer);
   const label = savableModel.isChildOfCombination(pointer) ? '' : extractNameFromPointer(pointer);
   const index = savableModel.getIndexOfChildNode(pointer);
-  const uniqueNodePointer = savableModel.getUniqueNodePointer(
+  const uniqueNodePointer = savableModel.getUniquePointer(
     pointer,
     uniqueParentPointer || parentPointer,
   );

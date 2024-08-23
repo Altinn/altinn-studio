@@ -31,9 +31,7 @@ export const AddPropertyMenu = ({ pointer, uniqueNodePointer }: AddPropertyMenuP
 
   const addPropertyAndClose = (kind: ObjectKind, fieldType?: FieldType) => {
     const childPointer = addProperty(kind, fieldType, pointer);
-    setSelectedUniqueNodePointer(
-      savableModel.getUniqueNodePointer(childPointer, uniqueNodePointer),
-    );
+    setSelectedUniqueNodePointer(savableModel.getUniquePointer(childPointer, uniqueNodePointer));
     closeDropdown();
   };
 

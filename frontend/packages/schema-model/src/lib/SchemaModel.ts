@@ -81,35 +81,28 @@ export class SchemaModel {
   }
 
   public getNodeByUniquePointer(uniquePointer: string): UiSchemaNode {
-    if (this.hasNode(uniquePointer)) return this.getNode(uniquePointer);
-
-    const findNodeInChildren = (
-      children: UiSchemaNodes,
-      parentPointer: string,
-    ): UiSchemaNode | null => {
-      // Recursively search for the child node with the unique pointer
-      for (const child of children) {
-        const childUniquePointer = this.getUniqueNodePointer(child.pointer, parentPointer);
-
-        if (childUniquePointer === uniquePointer) return child;
-
-        const nestedChildren = this.getChildNodes(child.pointer);
-        if (nestedChildren.length > 0)
-          return findNodeInChildren(nestedChildren, childUniquePointer);
-      }
-      return null;
-    };
-
-    const topLvlParentPointer = uniquePointer.split('/').slice(0, 3).join('/'); // Find the top parent of the unique pointer
-    const topLvlChildren = this.getChildNodes(topLvlParentPointer);
-    return findNodeInChildren(topLvlChildren, topLvlParentPointer);
+    const schemaPointer = this.getSchemaPointerByUniquePointer(uniquePointer);
+    return this.getNode(schemaPointer);
   }
 
-  public getUniqueNodePointer(pointer: string, uniqueParentPointer?: string): string {
+  public getSchemaPointerByUniquePointer(uniquePointer: string): string {
+    if (this.hasNode(uniquePointer)) return uniquePointer;
+
+    const definitionPointer = this.extractDefinitionByUniquePointer(uniquePointer);
+    const remainderPointer = uniquePointer.split('/').slice(3).join('/');
+    return `${definitionPointer}/${remainderPointer}`;
+  }
+
+  private extractDefinitionByUniquePointer(uniquePointer: string): string {
+    const parentPointer = uniquePointer.split('/').slice(0, 3).join('/');
+    const firstChildPointer = this.getChildNodes(parentPointer)[0].pointer;
+    return firstChildPointer.split('/').slice(0, 3).join('/');
+  }
+
+  public getUniquePointer(pointer: string, uniqueParentPointer?: string): string {
     if (!uniqueParentPointer || !isDefinitionPointer(pointer)) return pointer;
 
-    const uniquePath = `${uniqueParentPointer}/properties/${extractNameFromPointer(pointer)}`;
-    return uniquePath;
+    return `${uniqueParentPointer}/properties/${extractNameFromPointer(pointer)}`;
   }
 
   public hasNode(pointer: string): boolean {
