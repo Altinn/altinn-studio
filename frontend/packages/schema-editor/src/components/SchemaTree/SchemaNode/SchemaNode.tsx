@@ -28,7 +28,7 @@ export const SchemaNode = ({
   const node = savableModel.getNodeBySchemaPointer(pointer);
   const label = savableModel.isChildOfCombination(pointer) ? '' : extractNameFromPointer(pointer);
   const index = savableModel.getIndexOfChildNode(pointer);
-  const uniqueNodePointer = savableModel.getUniquePointer(
+  const uniquePointer = savableModel.getUniquePointer(
     pointer,
     uniqueParentPointer || parentPointer,
   );
@@ -39,7 +39,7 @@ export const SchemaNode = ({
       label={labelComponent}
       pointer={pointer}
       schemaModel={savableModel}
-      uniqueNodePointer={uniqueNodePointer}
+      uniquePointer={uniquePointer}
     />
   );
 
@@ -50,10 +50,10 @@ export const SchemaNode = ({
       icon={renderIcon(savableModel, pointer)}
       label={label}
       labelWrapper={labelWrapper}
-      nodeId={uniqueNodePointer}
+      nodeId={uniquePointer}
       title={title}
     >
-      {renderSchemaNodeList(savableModel, pointer, uniqueNodePointer)}
+      {renderSchemaNodeList(savableModel, pointer, uniquePointer)}
     </DragAndDropTree.Item>
   );
 };
@@ -62,10 +62,10 @@ interface LabelWrapperProps {
   label: ReactNode;
   pointer: string;
   schemaModel: SchemaModel;
-  uniqueNodePointer: string;
+  uniquePointer: string;
 }
 
-const LabelWrapper = ({ label, pointer, uniqueNodePointer, schemaModel }: LabelWrapperProps) => {
+const LabelWrapper = ({ label, pointer, uniquePointer, schemaModel }: LabelWrapperProps) => {
   const node = schemaModel.getNodeBySchemaPointer(pointer);
   const className = createWrapperClassNames(schemaModel, node);
   return (
@@ -75,7 +75,7 @@ const LabelWrapper = ({ label, pointer, uniqueNodePointer, schemaModel }: LabelW
       <ActionButtons
         className={classes.actionButtons}
         pointer={pointer}
-        uniqueNodePointer={uniqueNodePointer}
+        uniquePointer={uniquePointer}
       />
     </div>
   );

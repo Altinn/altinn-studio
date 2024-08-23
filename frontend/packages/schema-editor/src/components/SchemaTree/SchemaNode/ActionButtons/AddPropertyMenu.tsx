@@ -19,11 +19,11 @@ import type { IconProps } from '@studio/icons';
 
 interface AddPropertyMenuProps {
   pointer: string;
-  uniqueNodePointer: string;
+  uniquePointer: string;
 }
 
-export const AddPropertyMenu = ({ pointer, uniqueNodePointer }: AddPropertyMenuProps) => {
-  const { setSelectedUniqueNodePointer } = useSchemaEditorAppContext();
+export const AddPropertyMenu = ({ pointer, uniquePointer }: AddPropertyMenuProps) => {
+  const { setSelectedUniquePointer } = useSchemaEditorAppContext();
   const savableModel = useSavableSchemaModel();
   const { t } = useTranslation();
   const [isAddDropdownOpen, setIsAddDropdownOpen] = useState(false);
@@ -31,7 +31,7 @@ export const AddPropertyMenu = ({ pointer, uniqueNodePointer }: AddPropertyMenuP
 
   const addPropertyAndClose = (kind: ObjectKind, fieldType?: FieldType) => {
     const childPointer = addProperty(kind, fieldType, pointer);
-    setSelectedUniqueNodePointer(savableModel.getUniquePointer(childPointer, uniqueNodePointer));
+    setSelectedUniquePointer(savableModel.getUniquePointer(childPointer, uniquePointer));
     closeDropdown();
   };
 

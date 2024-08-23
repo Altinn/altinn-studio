@@ -12,11 +12,11 @@ import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchema
 
 export interface ActionButtonsProps {
   pointer: string;
-  uniqueNodePointer: string;
+  uniquePointer: string;
   className: string;
 }
 
-export const ActionButtons = ({ pointer, className, uniqueNodePointer }: ActionButtonsProps) => {
+export const ActionButtons = ({ pointer, className, uniquePointer }: ActionButtonsProps) => {
   const savableModel = useSavableSchemaModel();
   const deleteNode = useDeleteNode(pointer, savableModel);
   const node = savableModel.getNodeBySchemaPointer(pointer);
@@ -30,7 +30,7 @@ export const ActionButtons = ({ pointer, className, uniqueNodePointer }: ActionB
   return (
     <div className={cn(classes.root, className)}>
       {isNodeValidParent(node) && (
-        <AddPropertyMenu pointer={pointer} uniqueNodePointer={uniqueNodePointer} />
+        <AddPropertyMenu pointer={pointer} uniquePointer={uniquePointer} />
       )}
       {!isReference(node) && (
         <ActionButton
@@ -52,15 +52,15 @@ export const ActionButtons = ({ pointer, className, uniqueNodePointer }: ActionB
 
 const useDeleteNode = (pointer: string, savableModel: SavableSchemaModel) => {
   const { t } = useTranslation();
-  const { setSelectedUniqueNodePointer } = useSchemaEditorAppContext();
+  const { setSelectedUniquePointer } = useSchemaEditorAppContext();
 
   return useCallback(() => {
     const confirmMessage = savableModel.areDefinitionParentsInUse(pointer)
       ? t('schema_editor.data_model_definition_field_deletion_text')
       : t('schema_editor.data_model_field_deletion_text');
     if (confirm(confirmMessage)) {
-      setSelectedUniqueNodePointer(null);
+      setSelectedUniquePointer(null);
       savableModel.deleteNode(pointer);
     }
-  }, [savableModel, pointer, t, setSelectedUniqueNodePointer]);
+  }, [savableModel, pointer, t, setSelectedUniquePointer]);
 };

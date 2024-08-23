@@ -144,6 +144,6 @@ const render = (path: string = defaultPath) =>
     appContextProps: {
       schemaModel,
       save: saveDataModel,
-      selectedUniqueNodePointer: path,
+      selectedUniquePointer: path,
     },
   })(<CustomProperties path={path} />);

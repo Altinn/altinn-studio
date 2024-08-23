@@ -17,7 +17,7 @@ import userEvent from '@testing-library/user-event';
 
 const initialModel = SchemaModel.fromArray(uiSchemaNodesMock);
 const createSchemaModel = () => initialModel.deepClone();
-const setSelectedUniqueNodePointer = jest.fn();
+const setSelectedUniquePointer = jest.fn();
 const setSelectedTypePointer = jest.fn();
 const save = jest.fn();
 const name = 'Test';
@@ -28,9 +28,9 @@ const defaultProps: NodePanelProps = {
 
 const defaultAppContextProps: SchemaEditorAppContextProps = {
   schemaModel: initialModel,
-  selectedUniqueNodePointer: null,
+  selectedUniquePointer: null,
   selectedTypePointer: null,
-  setSelectedUniqueNodePointer,
+  setSelectedUniquePointer,
   setSelectedTypePointer,
   save,
   name,
@@ -105,8 +105,8 @@ describe('NodePanel', () => {
       await user.click(backButton);
       expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
       expect(setSelectedTypePointer).toHaveBeenCalledWith(undefined);
-      expect(setSelectedUniqueNodePointer).toHaveBeenCalledTimes(1);
-      expect(setSelectedUniqueNodePointer).toHaveBeenCalledWith(undefined);
+      expect(setSelectedUniquePointer).toHaveBeenCalledTimes(1);
+      expect(setSelectedUniquePointer).toHaveBeenCalledWith(undefined);
     });
 
     const renderNodePanelWithObjectDefinition = () => {

@@ -34,7 +34,7 @@ const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSche
       schemaModel,
       save: saveDataModel,
       setSelectedTypePointer,
-      selectedUniqueNodePointer: selectedItem?.pointer,
+      selectedUniquePointer: selectedItem?.pointer,
     },
   })(<SchemaInspector />);
 };

@@ -31,15 +31,15 @@ export interface HeadingRowProps {
 }
 
 export const HeadingRow = ({ pointer }: HeadingRowProps) => {
-  const { setSelectedUniqueNodePointer, selectedUniqueNodePointer, name, schemaModel } =
+  const { setSelectedUniquePointer, selectedUniquePointer, name, schemaModel } =
     useSchemaEditorAppContext();
   const isDataModelRoot = !pointer;
   const nodeRootPointer = isDataModelRoot ? ROOT_POINTER : pointer;
   const node = schemaModel.getNodeBySchemaPointer(nodeRootPointer);
-  const selectNodeRoot = () => setSelectedUniqueNodePointer(nodeRootPointer);
+  const selectNodeRoot = () => setSelectedUniquePointer(nodeRootPointer);
   const title = isDataModelRoot ? name : extractNameFromPointer(pointer);
   const isValidParent = isNodeValidParent(node);
-  const isSelected = selectedUniqueNodePointer === nodeRootPointer;
+  const isSelected = selectedUniquePointer === nodeRootPointer;
 
   return (
     <div className={cn(classes.root, isSelected && classes.selected)}>
@@ -89,12 +89,12 @@ const AddNodeMenu = ({ pointer }: AddNodeMenuProps) => {
 };
 
 const useAddNodeMenuItems = (pointer: string): AddNodeMenuItemProps[] => {
-  const { setSelectedUniqueNodePointer } = useSchemaEditorAppContext();
+  const { setSelectedUniquePointer } = useSchemaEditorAppContext();
   const addNode = useAddProperty();
 
   const addAndSelectNode = (...params: Parameters<typeof addNode>) => {
     const newPointer = addNode(...params);
-    if (newPointer) setSelectedUniqueNodePointer(newPointer);
+    if (newPointer) setSelectedUniquePointer(newPointer);
   };
 
   return [
@@ -145,12 +145,12 @@ type DeleteButtonProps = HeadingRowProps;
 const DeleteButton = ({ pointer }: DeleteButtonProps) => {
   const { t } = useTranslation();
   const savableModel = useSavableSchemaModel();
-  const { setSelectedUniqueNodePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
+  const { setSelectedUniquePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
 
   const isInUse = savableModel.hasReferringNodes(pointer);
 
   const handleDelete = () => {
-    setSelectedUniqueNodePointer(null);
+    setSelectedUniquePointer(null);
     setSelectedTypePointer(null);
     savableModel.deleteNode(pointer);
   };

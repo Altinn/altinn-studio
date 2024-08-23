@@ -9,10 +9,10 @@ import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchema
 
 export const useMoveProperty = (): HandleMove => {
   const savableModel = useSavableSchemaModel();
-  const { selectedUniqueNodePointer, setSelectedUniqueNodePointer } = useSchemaEditorAppContext();
+  const { selectedUniquePointer, setSelectedUniquePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
-  const selectedNodePointer = selectedUniqueNodePointer
-    ? savableModel.getSchemaPointerByUniquePointer(selectedUniqueNodePointer)
+  const selectedSchemaPointer = selectedUniquePointer
+    ? savableModel.getSchemaPointerByUniquePointer(selectedUniquePointer)
     : null;
   const areThereCollidingNames = useCallback(
     (pointer: string, position: ItemPosition): boolean => {
@@ -40,11 +40,11 @@ export const useMoveProperty = (): HandleMove => {
         alert(t('schema_editor.move_node_same_name_error', { name, parent }));
       } else {
         const movedNode = savableModel.moveNode(pointer, target);
-        if (selectedNodePointer === pointer) {
-          setSelectedUniqueNodePointer(movedNode.pointer);
+        if (selectedSchemaPointer === pointer) {
+          setSelectedUniquePointer(movedNode.pointer);
         }
       }
     },
-    [savableModel, t, areThereCollidingNames, selectedNodePointer, setSelectedUniqueNodePointer],
+    [savableModel, t, areThereCollidingNames, selectedSchemaPointer, setSelectedUniquePointer],
   );
 };

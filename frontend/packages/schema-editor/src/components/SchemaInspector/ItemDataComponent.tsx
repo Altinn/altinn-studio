@@ -43,8 +43,8 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
     schemaModel,
     save,
     setSelectedTypePointer,
-    selectedUniqueNodePointer,
-    setSelectedUniqueNodePointer,
+    selectedUniquePointer,
+    setSelectedUniquePointer,
   } = useSchemaEditorAppContext();
   const { t } = useTranslation();
 
@@ -63,7 +63,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
       save(
         addCombinationItem(schemaModel, {
           pointer,
-          callback: setSelectedUniqueNodePointer,
+          callback: setSelectedUniquePointer,
         }),
       );
       return;
@@ -72,7 +72,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
     getChildNodes().forEach((childNode: UiSchemaNode) => {
       if (isField(childNode) && childNode.fieldType === FieldType.Null) {
         save(deleteNode(schemaModel, childNode.pointer));
-        setSelectedUniqueNodePointer(null);
+        setSelectedUniquePointer(null);
       }
     });
   };
@@ -102,7 +102,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
           if (newPointer && pointerIsDefinition(newPointer)) {
             setSelectedTypePointer(newPointer);
           }
-          setSelectedUniqueNodePointer(changeNameInPointer(selectedUniqueNodePointer, newNodeName));
+          setSelectedUniquePointer(changeNameInPointer(selectedUniquePointer, newNodeName));
         },
       }),
     );

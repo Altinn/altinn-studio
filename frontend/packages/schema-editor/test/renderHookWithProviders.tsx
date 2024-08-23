@@ -17,8 +17,8 @@ export const renderHookWithProviders =
     const allSelectedSchemaContextProps: SchemaEditorAppContextProps = {
       schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
       save: jest.fn(),
-      selectedUniqueNodePointer: null,
-      setSelectedUniqueNodePointer: jest.fn(),
+      selectedUniquePointer: null,
+      setSelectedUniquePointer: jest.fn(),
       selectedTypePointer: null,
       setSelectedTypePointer: jest.fn(),
       name: 'Test',

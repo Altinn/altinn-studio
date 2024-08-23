@@ -20,12 +20,12 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
     save,
     selectedTypePointer,
     setSelectedTypePointer,
-    setSelectedUniqueNodePointer,
+    setSelectedUniquePointer,
   } = useSchemaEditorAppContext();
 
   const setSelectedType = (pointer: string) => {
     setSelectedTypePointer(pointer);
-    setSelectedUniqueNodePointer(pointer);
+    setSelectedUniquePointer(pointer);
   };
 
   const handleAddDefinition = (e: MouseEvent) => {
