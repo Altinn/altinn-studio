@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
@@ -9,13 +10,17 @@ import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { getSharedTests } from 'src/features/expressions/shared';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
+import { useExternalApis } from 'src/features/externalApi/useExternalApi';
 import { fetchApplicationMetadata } from 'src/queries/queries';
 import { renderWithNode } from 'src/test/renderWithProviders';
 import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
 import type { SharedTestFunctionContext } from 'src/features/expressions/shared';
 import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
+import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+
+jest.mock('src/features/externalApi/useExternalApi');
 
 function ExpressionRunner({ node, expression }: { node: LayoutNode; expression: ExprValToActualOrExpr<ExprVal.Any> }) {
   const result = useEvalExpression(ExprVal.Any, node, expression, null);
@@ -86,6 +91,7 @@ describe('Expressions shared function tests', () => {
         frontendSettings,
         textResources,
         profileSettings,
+        externalApis,
       } = test;
 
       if (disabledFrontend) {
@@ -123,7 +129,7 @@ describe('Expressions shared function tests', () => {
             : undefined;
 
       const applicationMetadata = getIncomingApplicationMetadataMock(
-        instance ? {} : { onEntry: { show: 'stateless' } },
+        instance ? {} : { onEntry: { show: 'stateless' }, externalApiIds: ['testId'] },
       );
       if (instanceDataElements) {
         for (const element of instanceDataElements) {
@@ -146,7 +152,8 @@ describe('Expressions shared function tests', () => {
       // Clear localstorage, because LanguageProvider uses it to cache selected languages
       localStorage.clear();
 
-      (fetchApplicationMetadata as any).mockImplementation(() => Promise.resolve(applicationMetadata));
+      (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockResolvedValue(applicationMetadata);
+      (useExternalApis as jest.Mock<typeof useExternalApis>).mockReturnValue(externalApis as ExternalApisResult);
 
       const nodeId = nodeIdFromContext(context);
       await renderWithNode({
@@ -173,7 +180,8 @@ describe('Expressions shared function tests', () => {
       });
 
       const errorMock = window.logError as jest.Mock;
-      const result = JSON.parse((await screen.findByTestId('expr-result')).textContent!);
+      const textContent = (await screen.findByTestId('expr-result')).textContent;
+      const result = textContent ? JSON.parse(textContent) : null;
 
       if (expectsFailure) {
         expect(errorMock).toHaveBeenCalledWith(expect.stringContaining(expectsFailure));

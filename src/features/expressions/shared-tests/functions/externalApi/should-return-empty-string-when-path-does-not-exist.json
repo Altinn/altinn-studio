@@ -1,0 +1,6 @@
+{
+  "name": "Should return null when string path does not exist",
+  "expression": ["externalApi", "testId", "non.existent.path"],
+  "expects": null,
+  "externalApis": { "data": { "testId": { "cars": [{ "brand": "BMW" }, { "brand": "Lada" }] } } }
+}

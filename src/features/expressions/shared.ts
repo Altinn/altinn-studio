@@ -2,11 +2,12 @@ import fs from 'node:fs';
 
 import type { IAttachmentsMap, UploadedAttachment } from 'src/features/attachments';
 import type { Expression } from 'src/features/expressions/types';
+import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
 import type { IRawTextResource } from 'src/features/language/textResources';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { IApplicationSettings, IData, IInstance, IProcess, ITask } from 'src/types/shared';
 
-export interface SharedTest {
+interface SharedTest {
   name: string;
   disabledFrontend?: boolean;
   layouts?: ILayoutCollection;
@@ -20,6 +21,7 @@ export interface SharedTest {
   profileSettings?: {
     language?: string;
   };
+  externalApis?: ExternalApisResult;
 }
 
 export interface SharedTestContext {

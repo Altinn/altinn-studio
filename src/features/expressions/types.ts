@@ -1,8 +1,6 @@
 import type { PickByValue } from 'utility-types';
 
-import type { ExprFunctions } from 'src/features/expressions';
-import type { ExprContext } from 'src/features/expressions/ExprContext';
-import type { ValidationContext } from 'src/features/expressions/validation';
+import type { ExprFunctions } from 'src/features/expressions/expression-functions';
 
 type Functions = typeof ExprFunctions;
 
@@ -28,47 +26,12 @@ export type ExprValToActual<T extends ExprVal = ExprVal> = T extends ExprVal.Str
         ? string | number | boolean | null
         : unknown;
 
-export type ActualToExprVal<T> = T extends string
-  ? ExprVal.String
-  : T extends number
-    ? ExprVal.Number
-    : T extends boolean
-      ? ExprVal.Boolean
-      : T extends null
-        ? ExprVal.Any
-        : never;
-
 /**
  * This type replaces ExprVal with the actual value type, or expression that returns that type.
  */
 export type ExprValToActualOrExpr<T extends ExprVal> =
   | ExprValToActual<T>
   | NonRecursiveExpression<FunctionsReturning<T>>;
-
-type ArgsToActualOrNull<T extends readonly ExprVal[]> = {
-  [Index in keyof T]: ExprValToActual<T[Index]> | null;
-};
-
-export interface FuncDef<Args extends readonly ExprVal[], Ret extends ExprVal> {
-  impl: (this: ExprContext, ...params: ArgsToActualOrNull<Args>) => ExprValToActual<Ret> | null;
-  args: Args;
-  minArguments?: number;
-  returns: Ret;
-
-  // Optional: Set this to true if the last argument type is considered a '...spread' argument, meaning
-  // all the rest of the arguments should be cast to the last type (and that the function allows any
-  // amount  of parameters).
-  lastArgSpreads?: true;
-
-  // Optional: Validator function which runs when the function is validated. This allows a function to add its own
-  // validation requirements. Use the addError() function if any errors are found.
-  validator?: (options: {
-    rawArgs: any[];
-    argTypes: (ExprVal | undefined)[];
-    ctx: ValidationContext;
-    path: string[];
-  }) => void;
-}
 
 type ArgsFor<F extends ExprFunction> = F extends ExprFunction ? Functions[F]['args'] : never;
 

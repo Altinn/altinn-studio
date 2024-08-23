@@ -65,6 +65,7 @@
         { "type": "string", "title": "String constant" },
         { "$ref": "#/definitions/func-component" },
         { "$ref": "#/definitions/func-dataModel" },
+        { "$ref": "#/definitions/func-externalApi" },
         { "$ref": "#/definitions/func-displayValue" },
         { "$ref": "#/definitions/func-instanceContext" },
         { "$ref": "#/definitions/func-frontendSettings" },
@@ -172,6 +173,17 @@
       "type": "array",
       "items": [
         { "const":  "dataModel" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
+    },
+    "func-externalApi": {
+      "title": "External API lookup function",
+      "description": "This function will look up a value from an external API defined in the app metadata. It uses JSON dot notation for referencing the API response structure.",
+      "type": "array",
+      "items": [
+        { "const":  "externalApi" },
+        { "$ref": "#/definitions/string" },
         { "$ref": "#/definitions/string" }
       ],
       "additionalItems": false

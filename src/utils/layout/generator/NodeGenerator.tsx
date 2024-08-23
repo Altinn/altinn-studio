@@ -23,7 +23,6 @@ import { NodePropertiesValidation } from 'src/utils/layout/generator/validation/
 import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { SimpleEval } from 'src/features/expressions';
-import type { ExpressionDataSources } from 'src/features/expressions/ExprContext';
 import type { ExprConfig, ExprResolved, ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { CompDef } from 'src/layout';
 import type { FormComponentProps, SummarizableComponentProps } from 'src/layout/common.generated';
@@ -41,6 +40,7 @@ import type { ChildClaim } from 'src/utils/layout/generator/GeneratorContext';
 import type { LayoutNode, LayoutNodeProps } from 'src/utils/layout/LayoutNode';
 import type { HiddenState } from 'src/utils/layout/NodesContext';
 import type { BaseRow, StateFactoryProps } from 'src/utils/layout/types';
+import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 /**
  * A node generator will always be rendered when a component is present in a layout, even if the component

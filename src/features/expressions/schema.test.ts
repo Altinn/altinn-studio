@@ -1,9 +1,9 @@
 import Ajv from 'ajv';
 import expressionSchema from 'schemas/json/layout/expression.schema.v1.json';
 
-import { ExprFunctions } from 'src/features/expressions/index';
+import { ExprFunctions } from 'src/features/expressions/expression-functions';
 import { ExprVal } from 'src/features/expressions/types';
-import type { FuncDef } from 'src/features/expressions/types';
+import type { FuncDef } from 'src/features/expressions/expression-functions';
 
 type Func = { name: string } & FuncDef<ExprVal[], ExprVal>;
 

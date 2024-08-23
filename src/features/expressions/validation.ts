@@ -1,7 +1,8 @@
-import { argTypeAt, ExprFunctions, ExprTypes } from 'src/features/expressions';
+import { argTypeAt, ExprTypes } from 'src/features/expressions';
+import { ExprFunctions, type FuncDef } from 'src/features/expressions/expression-functions';
 import { prettyErrors } from 'src/features/expressions/prettyErrors';
 import { ExprVal } from 'src/features/expressions/types';
-import type { Expression, ExprFunction, ExprValToActualOrExpr, FuncDef } from 'src/features/expressions/types';
+import type { Expression, ExprFunction, ExprValToActualOrExpr } from 'src/features/expressions/types';
 
 enum ValidationErrorMessage {
   InvalidType = 'Invalid type "%s"',

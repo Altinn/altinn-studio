@@ -9,6 +9,7 @@ import {
   applicationLanguagesUrl,
   applicationMetadataApiUrl,
   applicationSettingsApiUrl,
+  appPath,
   currentPartyUrl,
   getActionsUrl,
   getActiveInstancesUrl,
@@ -261,3 +262,14 @@ export const fetchPostPlace = (zipCode: string): Promise<{ result: string; valid
       pnr: zipCode,
     },
   });
+
+export function fetchExternalApi({
+  instanceId,
+  externalApiId,
+}: {
+  instanceId: string;
+  externalApiId: string;
+}): Promise<unknown> {
+  const externalApiUrl = `${appPath}/instances/${instanceId}/api/external/${externalApiId}`;
+  return httpGet(externalApiUrl);
+}
