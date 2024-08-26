@@ -22,10 +22,11 @@ export const reduceToValidParties = (parties: IParty[], appMetadata: Application
   const allParties = flattenParties(parties);
   const { partyTypesAllowed } = appMetadata;
 
-  const partyTypeFilters = {
+  const partyTypeFilters: { [key in PartyType]: boolean } = {
     [PartyType.Organisation]: partyTypesAllowed.organisation,
     [PartyType.SubUnit]: partyTypesAllowed.subUnit,
     [PartyType.Person]: partyTypesAllowed.person,
+    [PartyType.SelfIdentified]: partyTypesAllowed.person, // Self-identified is treated as a person
     [PartyType.BankruptcyEstate]: partyTypesAllowed.bankruptcyEstate,
   };
 

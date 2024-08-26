@@ -19,6 +19,10 @@
 
     "auditorFullName": "Gjentagende Forelder",
     "auditorFirstName": "Gjentagende",
-    "auditorPartyId": "1002.500000"
+    "auditorPartyId": "1002.500000",
+
+    "selfIdentifiedFullName": "Selvregistrert Bruker",
+    "selfIdentifiedFirstName": "Selvregistrert",
+    "selfIdentifiedPartyId": "1004.510004"
   }
 }

@@ -19,25 +19,46 @@ function login(user: CyUser, authenticationLevel: string = '1') {
       url: `${Cypress.config('baseUrl')}/Home/LogInTestUser`,
       body: formData,
     }).as('login');
+    waitForLogin();
   } else {
     const { userName, userPassword } = cyUserCredentials[user];
-    cy.request({
-      method: 'POST',
-      url: `${Cypress.config('baseUrl')}/api/authentication/authenticatewithpassword`,
-      headers: {
-        'Content-Type': 'application/hal+json',
-      },
-      body: JSON.stringify({
-        UserName: userName,
-        UserPassword: userPassword,
-      }),
-    }).as('login');
+    if (userName === cyUserCredentials.selfIdentified.userName) {
+      tt02_loginSelfIdentified(userName, userPassword);
+    } else {
+      tt02_login(userName, userPassword);
+    }
   }
+}
 
+function tt02_login(user: string, pwd: string) {
+  cy.request({
+    method: 'POST',
+    url: `${Cypress.config('baseUrl')}/api/authentication/authenticatewithpassword`,
+    headers: {
+      'Content-Type': 'application/hal+json',
+    },
+    body: JSON.stringify({
+      UserName: user,
+      UserPassword: pwd,
+    }),
+  }).as('login');
+  waitForLogin();
+}
+
+function waitForLogin() {
   cy.get('@login').should((response) => {
     const r = response as unknown as Cypress.Response<any>;
     expect(r.status).to.eq(200);
   });
+}
+
+function tt02_loginSelfIdentified(user: string, pwd: string) {
+  const loginUrl = 'https://tt02.altinn.no/ui/Authentication/SelfIdentified';
+  cy.intercept('POST', loginUrl).as('login');
+  cy.visit(loginUrl);
+  cy.findByRole('textbox', { name: /Brukernavn/i }).type(user);
+  cy.get('input[type=password]').type(pwd);
+  cy.findByRole('button', { name: /Logg inn/i }).click();
 }
 
 Cypress.Commands.add('startAppInstance', (appName, options) => {

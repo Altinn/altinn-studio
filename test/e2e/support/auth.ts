@@ -2,7 +2,7 @@ import type { RouteHandler } from 'cypress/types/net-stubbing';
 
 import type { IProcess, ITask } from 'src/types/shared';
 
-export type CyUser = 'default' | 'manager' | 'accountant' | 'auditor';
+export type CyUser = 'default' | 'manager' | 'accountant' | 'auditor' | 'selfIdentified';
 
 type UserInfo = {
   displayName: string;
@@ -35,6 +35,12 @@ export const cyUserCredentials: { [K in CyUser]: UserInfo } = {
     userName: Cypress.env('auditorUserName'),
     userPassword: Cypress.env('auditorUserPwd'),
     localPartyId: Cypress.env('auditorPartyId'),
+  },
+  selfIdentified: {
+    displayName: Cypress.env('selfIdentifiedFullName'),
+    userName: Cypress.env('selfIdentifiedUserName'),
+    userPassword: Cypress.env('selfIdentifiedUserPwd'),
+    localPartyId: Cypress.env('selfIdentifiedPartyId'),
   },
 };
 
