@@ -325,7 +325,7 @@ public static class ServiceCollectionExtensions
         services.TryAddTransient<IProcessEngine, ProcessEngine>();
         services.TryAddTransient<IProcessNavigator, ProcessNavigator>();
         services.TryAddSingleton<IProcessReader, ProcessReader>();
-        services.TryAddSingleton<IProcessEventHandlerDelegator, ProcessEventHandlingDelegator>();
+        services.TryAddTransient<IProcessEventHandlerDelegator, ProcessEventHandlingDelegator>();
         services.TryAddTransient<IProcessEventDispatcher, ProcessEventDispatcher>();
         services.AddTransient<IProcessExclusiveGateway, ExpressionsExclusiveGateway>();
         services.TryAddTransient<ExclusiveGatewayFactory>();
