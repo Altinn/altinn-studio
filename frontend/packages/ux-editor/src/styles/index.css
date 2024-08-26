@@ -1,17 +1,3 @@
-.fa,
-.fa-stack {
-  font-size: 2.25em;
-  -webkit-font-smoothing: subpixel-antialiased;
-  line-height: 0;
-  width: 1em;
-  text-align: center;
-  vertical-align: middle;
-}
-
-#collapsable-items .fa {
-  font-size: 1.85em;
-}
-
 input:checked + .slider {
   background-color: #1eaef7;
 }
