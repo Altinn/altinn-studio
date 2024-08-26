@@ -6,6 +6,7 @@ import type { DisplayData } from 'src/features/displayData';
 import type { BaseValidation, ComponentValidation, ValidationDataSources } from 'src/features/validation';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
 import type { CompInternal, CompTypes } from 'src/layout/layout';
+import type { AnyComponent } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodeDataSelector } from 'src/utils/layout/NodesContext';
 import type { BaseRow } from 'src/utils/layout/types';
@@ -30,6 +31,10 @@ export interface PropsFromGenericComponent<T extends CompTypes = CompTypes> exte
   node: LayoutNode<T>;
   overrideItemProps?: Partial<Omit<CompInternal<T>, 'id'>>;
   overrideDisplay?: IGenericComponentProps<T>['overrideDisplay'];
+}
+
+export function getNodeDef<T extends CompTypes>(node: LayoutNode<T>): CompClassMap[T] & AnyComponent<T> {
+  return node.def as any;
 }
 
 export function getComponentDef<T extends keyof CompClassMap>(type: T): CompClassMap[T] {
