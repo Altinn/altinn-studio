@@ -382,12 +382,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private static void UpdateSourceKeys(JsonNode source, TextIdMutation mutation)
         {
             JsonElement jsonElement = source["label"].AsValue().GetValue<JsonElement>();
-            if (jsonElement.ValueKind == JsonValueKind.String && jsonElement.GetString() == mutation.OldId)
+            if (jsonElement.ValueKind == JsonValueKind.String && jsonElement.GetString() == mutation.OldId && mutation.NewId.HasValue)
             {
-                if (mutation.NewId.HasValue)
-                {
-                    source["label"] = mutation.NewId.Value;
-                }
+                source["label"] = mutation.NewId.Value;
             }
         }
 
