@@ -65,12 +65,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
                 />
               )}
             </div>
-            <Link
-              href={'/dashboard/' + selectedContext + '/new'}
-              className={classes.newLink}
-              onMouseEnter={handleNewLinkFocus}
-              onMouseLeave={handleNewLinkFocusOut}
-            >
+            <Link href={'/dashboard/' + selectedContext + '/new'} className={classes.newLink}>
               <span>{t('dashboard.new_service')}</span>
               <PlusCircleFillIcon className={classes.plusFillIcon} />
               <PlusCircleIcon className={classes.plusIcon} />
