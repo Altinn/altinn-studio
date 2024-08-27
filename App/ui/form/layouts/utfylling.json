@@ -19,6 +19,14 @@
         }
       },
       {
+        "id": "personalia",
+        "type": "Group",
+        "textResourceBindings": {
+          "title": "Personalia"
+        },
+        "children": ["Input-JQDlSQ", "Input-kcxhAS", "attachments"]
+      },
+      {
         "dataModelBindings": {
           "simpleBinding": "Navn"
         },
