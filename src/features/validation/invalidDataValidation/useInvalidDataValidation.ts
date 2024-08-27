@@ -8,7 +8,7 @@ import type { FieldValidations } from 'src/features/validation';
 
 const __default__ = {};
 
-function isScalar(value: any): value is string | number | boolean {
+function isScalar(value: unknown): value is string | number | boolean {
   return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean';
 }
 

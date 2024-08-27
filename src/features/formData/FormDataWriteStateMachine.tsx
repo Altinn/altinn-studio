@@ -101,11 +101,13 @@ export interface FDNewValues extends FDChange {
 
 export interface FDAppendToListUnique {
   path: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   newValue: any;
 }
 
 export interface FDAppendToList {
   path: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   newValue: any;
 }
 
@@ -116,12 +118,14 @@ export interface FDRemoveIndexFromList {
 
 export interface FDRemoveValueFromList {
   path: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any;
 }
 
 export interface FDRemoveFromListCallback {
   path: string;
   startAtIndex?: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   callback: (value: any) => boolean;
 }
 
@@ -410,7 +414,9 @@ export const createFormDataWriteStore = (
         const original = actions[fnName];
         const proxyFn = proxies[fnName] as Proxy<keyof FormDataMethods>;
         const { proxy, method } = proxyFn(original);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         actions[fnName] = (...args: any[]) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           proxy({ args: args as any, toCall: method });
         };
       }

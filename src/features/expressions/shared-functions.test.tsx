@@ -161,7 +161,7 @@ describe('Expressions shared function tests', () => {
         renderer: ({ node }) => (
           <ExpressionRunner
             node={node}
-            expression={expression as any}
+            expression={expression}
           />
         ),
         inInstance: !!instance,

@@ -7,19 +7,16 @@ export enum HttpStatusCodes {
   Forbidden = 403,
 }
 
-export async function httpGet<ResponseData = any>(
-  url: string,
-  options?: AxiosRequestConfig,
-): Promise<ResponseData | null> {
+export async function httpGet<T, D = unknown>(url: string, options?: AxiosRequestConfig<D>) {
   const headers = options?.headers as RawAxiosRequestHeaders | undefined;
-  const response: AxiosResponse = await axios.get(url, {
+  const response = await axios.get<T, AxiosResponse<T>, D>(url, {
     ...options,
     headers: { ...headers, Pragma: 'no-cache' },
   });
   return response.data ?? null;
 }
 
-export async function httpGetRaw<ResponseData = any>(
+export async function httpGetRaw<ResponseData = unknown>(
   url: string,
   options?: AxiosRequestConfig,
 ): Promise<AxiosResponse<ResponseData> | null> {
@@ -31,13 +28,17 @@ export async function httpGetRaw<ResponseData = any>(
   return response.data ? response : null;
 }
 
-export async function httpPost(url: string, options?: AxiosRequestConfig, data?: any): Promise<AxiosResponse> {
-  return await axios.post(url, data, options);
+export async function httpPost<T, D = unknown>(
+  url: string,
+  options?: AxiosRequestConfig,
+  data?: D,
+): Promise<AxiosResponse> {
+  return await axios.post<T, AxiosResponse<T>, D>(url, data, options);
 }
 
-export async function httpPatch(url: string, data: any, options?: AxiosRequestConfig): Promise<any> {
-  const response = await axios.patch(url, data, options);
-  return response.data ?? null;
+export async function httpPatch<T, D = unknown>(url: string, data: D, options?: AxiosRequestConfig) {
+  const response = await axios.patch<T, AxiosResponse<T>, D>(url, data, options);
+  return response.data;
 }
 
 export async function httpDelete(url: string, options?: AxiosRequestConfig): Promise<AxiosResponse> {

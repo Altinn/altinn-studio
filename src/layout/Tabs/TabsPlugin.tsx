@@ -89,6 +89,7 @@ export class TabsPlugin<Type extends CompTypes>
   }
 
   itemFactory({ item }: DefPluginStateFactoryProps<Config<Type>>) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tabsInternal = structuredClone((item as any).tabs || []) as TabConfigInternal[];
 
     // Remove all children, as they will be added as nodes later:

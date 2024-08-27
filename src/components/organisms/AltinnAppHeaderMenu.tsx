@@ -37,11 +37,11 @@ const useStyles = makeStyles({
 });
 
 export function AltinnAppHeaderMenu({ party, logoColor }: IAltinnAppHeaderMenuProps) {
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [anchorEl, setAnchorEl] = React.useState<(EventTarget & HTMLButtonElement) | null>(null);
   const classes = useStyles();
   const { langAsString } = useLanguage();
 
-  const handleClick = (event: any) => {
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     setAnchorEl(event.currentTarget);
   };
 

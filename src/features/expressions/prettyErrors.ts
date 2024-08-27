@@ -1,12 +1,13 @@
 export type ErrorList = { [path: string]: string[] };
 
 export interface PrettyErrorsOptions {
-  input: any;
+  input: unknown;
   errors?: ErrorList;
   indentation?: number;
 }
 
 interface In {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   obj: any;
   errors: ErrorList;
   path: string[];

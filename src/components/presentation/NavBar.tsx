@@ -15,7 +15,7 @@ import { useNavigatePage, usePreviousPageKey } from 'src/hooks/useNavigatePage';
 import { PresentationType, ProcessTaskType } from 'src/types';
 import { httpGet } from 'src/utils/network/networking';
 import { getRedirectUrl } from 'src/utils/urls/appUrlHelper';
-import { returnUrlFromQueryParameter, returnUrlToMessagebox } from 'src/utils/urls/urlHelper';
+import { returnUrlToMessagebox } from 'src/utils/urls/urlHelper';
 
 export interface INavBarProps {
   type: PresentationType | ProcessTaskType;
@@ -40,24 +40,17 @@ export const NavBar = ({ type }: INavBarProps) => {
     }
   };
 
-  const handleModalCloseButton = () => {
-    const queryParameterReturnUrl = returnUrlFromQueryParameter();
+  const handleModalCloseButton = async () => {
+    const queryParameterReturnUrl = new URLSearchParams(window.location.search).get('returnUrl');
+
     const messageBoxUrl = returnUrlToMessagebox(window.location.origin, party?.partyId);
-    if (!queryParameterReturnUrl && messageBoxUrl) {
-      window.location.assign(messageBoxUrl);
-      return;
-    }
 
     if (queryParameterReturnUrl) {
-      httpGet<string>(getRedirectUrl(queryParameterReturnUrl))
-        .then((response) => response)
-        .catch(() => messageBoxUrl)
-        .then((returnUrl) => {
-          if (returnUrl == null) {
-            return;
-          }
-          window.location.assign(returnUrl);
-        });
+      const returnUrl =
+        (await httpGet<string>(getRedirectUrl(queryParameterReturnUrl)).catch((_e) => null)) ?? messageBoxUrl;
+      returnUrl && window.location.assign(returnUrl);
+    } else if (messageBoxUrl) {
+      window.location.assign(messageBoxUrl);
     }
   };
 

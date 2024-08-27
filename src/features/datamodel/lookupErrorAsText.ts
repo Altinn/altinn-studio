@@ -41,5 +41,6 @@ const mapping: Mapping = {
 };
 
 export function lookupErrorAsText(error: SchemaLookupError): string {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return mapping[error.error](error as any);
 }

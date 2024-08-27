@@ -24,7 +24,7 @@ export class UnknownSourceType extends ExprRuntimeError {
 }
 
 export class UnexpectedType extends ExprRuntimeError {
-  public constructor(expression: Expression, path: string[], expected: string, actual: any) {
+  public constructor(expression: Expression, path: string[], expected: string, actual: unknown) {
     super(expression, path, `Expected ${expected}, got value ${JSON.stringify(actual)}`);
   }
 }

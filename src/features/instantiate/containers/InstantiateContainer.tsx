@@ -25,6 +25,7 @@ export const InstantiateContainer = () => {
   }, [instantiation, party]);
 
   if (isAxiosError(instantiation.error)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const message = (instantiation.error.response?.data as any)?.message;
     if (instantiation.error.response?.status === HttpStatusCodes.Forbidden) {
       if (message) {

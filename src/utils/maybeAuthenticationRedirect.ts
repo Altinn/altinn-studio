@@ -5,7 +5,7 @@ import { invalidateCookieUrl, redirectToUpgrade } from 'src/utils/urls/appUrlHel
 
 export async function maybeAuthenticationRedirect(error: AxiosError): Promise<boolean> {
   if (error.response && error.response.status === 403 && error.response.data) {
-    const reqAuthLevel = (error.response.data as any).RequiredAuthenticationLevel;
+    const reqAuthLevel = error.response.data['RequiredAuthenticationLevel'];
     if (reqAuthLevel) {
       await putWithoutConfig(invalidateCookieUrl);
       redirectToUpgrade(reqAuthLevel);

@@ -119,6 +119,7 @@ export function LikertSummary({
                     onChangeClick={onChangeClick}
                     changeText={changeText}
                     key={row.itemNode.id}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     targetNode={row.itemNode as any}
                     summaryNode={summaryNode}
                   />

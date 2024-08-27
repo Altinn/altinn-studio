@@ -39,12 +39,16 @@ function DataModelValidation<T extends CompTypes>({ node, intermediateItem }: No
     }
 
     if ('validateDataModelBindings' in node.def) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const ctx: LayoutValidationCtx<any> = {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         node: node as LayoutNode<any>,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         item: intermediateItem as CompIntermediate<any>,
         nodeDataSelector,
         lookupBinding: (binding: string) => schemaLookup.getSchemaForPath(binding),
       };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return node.def.validateDataModelBindings(ctx as any);
     }
 

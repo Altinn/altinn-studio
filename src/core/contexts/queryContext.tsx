@@ -49,6 +49,7 @@ export function createQueryContext<QD, Req extends boolean, CD = QD>(props: Quer
     Loader = DefaultLoader,
     ...rest
   } = props;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { Provider, useCtx, useLaxCtx, useHasProvider } = createContext<CD>({ name, required, ...(rest as any) });
   const defaultValue = ('default' in rest ? rest.default : undefined) as CD;
 

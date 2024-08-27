@@ -329,6 +329,7 @@ function CellWithComponent({
       data-header-title={isSmall ? headerTitle : ''}
     >
       <div className={cn(classes.contentWrapper, { [classes.validationError]: errors.length > 0 })}>
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         {('getDisplayData' in node.def && node.def.getDisplayData(node as LayoutNode<any>, displayDataProps)) || '-'}
         {isSmall && !rowReadOnly && (
           <EditButton

@@ -105,6 +105,7 @@ export function queryPromiseMock<T extends keyof AppQueriesContext>(_name: T) {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const makeMutationMocks = <T extends (name: keyof AppMutations) => any>(
   makeMock: T,
 ): {
@@ -137,6 +138,7 @@ const defaultQueryMocks: AppQueries = {
   fetchRefreshJwtToken: async () => ({}),
   fetchCustomValidationConfig: async () => null,
   fetchFormData: async () => ({}),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fetchOptions: async () => ({ data: [], headers: {} }) as unknown as AxiosResponse<IRawOption[], any>,
   fetchDataList: async () => ({}) as unknown as IDataList,
   fetchPdfFormat: async () => ({ excludedPages: [], excludedComponents: [] }),
@@ -161,13 +163,13 @@ function makeProxy<Name extends keyof FormDataMethods>(name: Name, ref: InitialR
   const proxy: Proxy<Name> = (original) => ({
     proxy: ({ args, toCall }) => {
       if (ref.current) {
-        // eslint-disable-next-line prefer-spread
+        // eslint-disable-next-line prefer-spread, @typescript-eslint/no-explicit-any
         (toCall as any).apply(null, args);
         return;
       }
 
       act(() => {
-        // eslint-disable-next-line prefer-spread
+        // eslint-disable-next-line prefer-spread, @typescript-eslint/no-explicit-any
         (toCall as any).apply(null, args);
       });
     },
@@ -369,6 +371,7 @@ export function setupFakeApp({ queries, mutations }: SetupFakeAppProps = {}) {
   const finalMutations: AppMutations = {
     ...makeMutationMocks((name) => async () => {
       alert(`Mutation called: ${name}`);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return undefined as any;
     }),
     ...mutations,
@@ -441,6 +444,7 @@ const renderBase = async ({
           const mock = (fn as jest.Mock).mock;
           if (mock.calls.length > 0) {
             for (const args of mock.calls) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const argsAsStr = args.map((arg: any) => JSON.stringify(arg)).join(', ');
               queryCalls.push(`- ${name}(${argsAsStr})`);
             }
@@ -707,6 +711,7 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
     id: 'my-test-component-id',
     type,
     ...component,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any;
 
   const Wrapper = ({ node }: { node: LayoutNode<T> }) => {

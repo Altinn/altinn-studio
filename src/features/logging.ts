@@ -13,7 +13,7 @@ function pushLogs() {
   tempLogs.splice(0, tempLogs.length);
 }
 
-function postLog(level: 'info' | 'warn' | 'error', args: any[], once = false) {
+function postLog(level: 'info' | 'warn' | 'error', args: unknown[], once = false) {
   const message = parseErrorArgs(args);
 
   if (once) {
@@ -34,7 +34,7 @@ function postLog(level: 'info' | 'warn' | 'error', args: any[], once = false) {
   }
 }
 
-export function parseErrorArgs(args: any[]): string {
+export function parseErrorArgs(args: unknown[]): string {
   return args
     .map((arg) => {
       if (isAxiosError(arg)) {
@@ -74,7 +74,7 @@ export function parseErrorArgs(args: any[]): string {
   for (const suffix of ['', 'Once'] as const) {
     window[`log${level}${suffix}`] =
       window[`log${level}${suffix}`] ??
-      ((...args: any[]) => {
+      ((...args: unknown[]) => {
         postLog(levelLower, args, suffix === 'Once');
       });
   }
@@ -85,9 +85,12 @@ window.CypressLog = (...args: string[]) => {
     return;
   }
   const dateStamp = new Date().toISOString();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (window as any)._cyLog = (window as any)._cyLog || [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (window as any)._cyLog.push(`${dateStamp}: ${args.join(' ')}`);
 };
 window.CypressSaveLog = () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (window as any)._cyLogSave = true;
 };

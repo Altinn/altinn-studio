@@ -87,6 +87,7 @@ export class GridRowsPlugin<E extends ExternalConfig>
   }
 
   makeConstructorArgs(asGenericArgs = false): string {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.settings.componentType = this.component!.type as any;
     return super.makeConstructorArgsWithoutDefaultSettings(defaultConfig, asGenericArgs);
   }
@@ -106,6 +107,7 @@ export class GridRowsPlugin<E extends ExternalConfig>
   }
 
   claimChildren({ item, claimChild, getProto }: DefPluginChildClaimerProps<ToInternal<E>>): void {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rows = (item as any)[this.settings.externalProp] as GridRows | undefined;
     if (!rows) {
       return;
@@ -145,6 +147,7 @@ export class GridRowsPlugin<E extends ExternalConfig>
     // state as soon as the node state is first created.
     return {
       [this.settings.externalProp]: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       [this.settings.internalProp]: structuredClone((item as any)[this.settings.externalProp]),
     } as DefPluginExtraInItem<ToInternal<E>>;
   }
@@ -186,10 +189,11 @@ export class GridRowsPlugin<E extends ExternalConfig>
     const rowsInternal = [...(state.item?.[this.settings.internalProp] ?? [])] as GridRowsInternal;
     const row =
       rowsInternal[metadata.rowIdx] ??
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       structuredClone((state as any).layout[this.settings.externalProp][metadata.rowIdx]);
 
     const cells = [...(row.cells ?? [])];
-    const overwriteLayout: any = { component: undefined };
+    const overwriteLayout = { component: undefined };
     cells[metadata.cellIdx] = { ...cells[metadata.cellIdx], ...overwriteLayout, node } as GridCellNode;
     rowsInternal[metadata.rowIdx] = { ...row, cells };
 
@@ -210,6 +214,7 @@ export class GridRowsPlugin<E extends ExternalConfig>
     const rowsInternal = [...(state.item?.[this.settings.internalProp] ?? [])] as GridRowsInternal;
     const row =
       rowsInternal[metadata.rowIdx] ??
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       structuredClone((state as any).layout[this.settings.externalProp][metadata.rowIdx]);
 
     const cells = [...(row.cells ?? [])];

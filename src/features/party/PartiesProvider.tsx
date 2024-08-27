@@ -146,7 +146,7 @@ const CurrentPartyProvider = ({ children }: PropsWithChildren) => {
               return party;
             }
             return undefined;
-          } catch (error) {
+          } catch (_err) {
             // Ignoring error here, as it's handled by this provider
           }
         },

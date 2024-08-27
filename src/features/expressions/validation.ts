@@ -115,7 +115,9 @@ function validateFunctionArgLength(
 }
 
 function validateFunction(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   funcName: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rawArgs: any[],
   argTypes: (ExprVal | undefined)[],
   ctx: ValidationContext,
@@ -131,6 +133,7 @@ function validateFunction(
   if (funcName in ExprFunctions) {
     validateFunctionArgs(funcName as ExprFunction, argTypes, ctx, pathArgs);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const def = ExprFunctions[funcName] as FuncDef<any, any>;
     if (def.validator) {
       def.validator({ rawArgs, argTypes, ctx, path: pathArgs });
@@ -144,6 +147,7 @@ function validateFunction(
   addError(ctx, path, ValidationErrorMessage.FuncNotImpl, funcName);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function validateExpr(expr: any[], ctx: ValidationContext, path: string[]) {
   if (expr.length < 1) {
     addError(ctx, path, ValidationErrorMessage.FuncMissing);
@@ -166,6 +170,7 @@ function validateExpr(expr: any[], ctx: ValidationContext, path: string[]) {
   return validateFunction(func, rawArgs, args, ctx, [...path, '[0]']);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function validateRecursively(expr: any, ctx: ValidationContext, path: string[]): ExprVal | undefined {
   if (validBasicTypes[typeof expr]) {
     return validBasicTypes[typeof expr];
@@ -186,6 +191,7 @@ function validateRecursively(expr: any, ctx: ValidationContext, path: string[]):
  * Checks anything and returns true if it _could_ be an expression (but is not guaranteed to be one, and does not
  * validate the expression). This is `asExpression` light, without any error logging to console if it fails.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function canBeExpression(expr: any, checkIfValidFunction = false): expr is [] {
   const firstPass = Array.isArray(expr) && expr.length >= 1 && typeof expr[0] === 'string';
   if (checkIfValidFunction && firstPass) {

@@ -28,6 +28,7 @@ const threeOptions: IRawOption[] = [
 interface Props extends Partial<RenderGenericComponentTestProps<'RadioButtons'>> {
   options?: IRawOption[];
   formData?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   groupData?: any;
 }
 
@@ -44,7 +45,8 @@ const render = async ({ component, options, formData, groupData = getFormDataMoc
     queries: {
       fetchOptions: () =>
         options
-          ? Promise.resolve({ data: options, headers: {} } as AxiosResponse<IRawOption[], any>)
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            Promise.resolve({ data: options, headers: {} } as AxiosResponse<IRawOption[], any>)
           : Promise.reject(new Error('No options provided to render()')),
       fetchFormData: async () => (formData ? { myRadio: formData, ...groupData } : { ...groupData }),
     },

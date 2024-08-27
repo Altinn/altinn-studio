@@ -16,6 +16,7 @@ export function delayedContext<T>(callback: () => T): T {
     Object.assign(realizedProps, callback());
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return new Proxy({} as any, {
     get(_, prop) {
       if (prop in realizedProps) {
@@ -23,7 +24,7 @@ export function delayedContext<T>(callback: () => T): T {
       }
 
       if (!(prop in proxyProps)) {
-        proxyProps[prop] = (...props: any[]) => {
+        proxyProps[prop] = (...props: unknown[]) => {
           if (!(prop in realizedProps)) {
             realize();
           }

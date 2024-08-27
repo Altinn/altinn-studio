@@ -17,7 +17,7 @@ export async function saveFile(targetPath: string, _content: string, removeText?
       await fd.write(content, 0, 'utf-8');
     }
     await fd.close();
-  } catch (e) {
+  } catch (_err) {
     // File does not exist
     await fs.writeFile(targetPath, content, 'utf-8');
     console.log(`Created ${targetPath}`);
@@ -28,7 +28,7 @@ async function fileExists(path: string) {
   try {
     await fs.stat(path);
     return true;
-  } catch (e) {
+  } catch (_err) {
     return false;
   }
 }

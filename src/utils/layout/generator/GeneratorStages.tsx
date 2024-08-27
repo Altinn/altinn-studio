@@ -44,8 +44,10 @@ interface Context {
   restart: (reason: 'hook' | 'component') => void;
   toCommit: {
     addNodes: AddNodeRequest[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setNodeProps: SetNodePropRequest<any, any>[];
     setRowExtras: SetRowExtrasRequest[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setPageProps: SetPagePropRequest<any>[];
   };
 }
@@ -382,6 +384,7 @@ export const NodesStateQueue = {
     const maybeCommit = useCommitWhenFinished();
 
     return useCallback(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (request: SetNodePropRequest<any, any>) => {
         toCommit.setNodeProps.push(request);
         updateCommitsPendingInBody(toCommit);
@@ -408,6 +411,7 @@ export const NodesStateQueue = {
     const maybeCommit = useCommitWhenFinished();
 
     return useCallback(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (request: SetPagePropRequest<any>) => {
         toCommit.setPageProps.push(request);
         updateCommitsPendingInBody(toCommit);

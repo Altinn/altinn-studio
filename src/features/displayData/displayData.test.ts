@@ -10,9 +10,9 @@ describe('Every component implementing DisplayData should have at least one shar
         expect(
           sharedTests?.content.find(
             ({ expression, layouts }) =>
-              expression.at(0) === 'displayValue' &&
+              expression?.[0] === 'displayValue' &&
               Object.values(layouts ?? {}).find((layout) =>
-                layout.data.layout.find((component) => component.id === expression.at(1) && component.type === type),
+                layout.data.layout.find((component) => component.id === expression?.[1] && component.type === type),
               ),
           ),
         ).toBeTruthy();

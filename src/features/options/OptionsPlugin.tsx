@@ -29,6 +29,7 @@ interface ExternalConfig {
 type ToInternal<E extends ExternalConfig> = Config<E['supportsPreselection']>;
 
 export class OptionsPlugin<E extends ExternalConfig> extends NodeDefPlugin<ToInternal<E>> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   makeImport(): GenerateImportedSymbol<any> {
     return new CG.import({
       import: 'OptionsPlugin',

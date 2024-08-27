@@ -11,7 +11,7 @@ export async function httpGet<T>(url: string, options?: AxiosRequestConfig): Pro
   return response.data ? response.data : null;
 }
 
-export async function httpPut(url: string, data: any, config?: AxiosRequestConfig): Promise<any> {
-  const response = await axios.put(url, data, config);
+export async function httpPut<T, D = unknown>(url: string, data: D, config?: AxiosRequestConfig): Promise<T> {
+  const response = await axios.put<T, AxiosResponse<T>, D>(url, data, config);
   return response.data;
 }

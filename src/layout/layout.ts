@@ -120,13 +120,17 @@ export type CompWithPlugin<Plugin> = {
 }[CompTypes];
 
 export type DefFromCategory<C extends CompCategory> = C extends 'presentation'
-  ? PresentationComponent<any>
+  ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    PresentationComponent<any>
   : C extends 'form'
-    ? FormComponent<any>
+    ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      FormComponent<any>
     : C extends 'action'
-      ? ActionComponent<any>
+      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ActionComponent<any>
       : C extends 'container'
-        ? ContainerComponent<any>
+        ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ContainerComponent<any>
         : never;
 
 export type LayoutNodeFromCategory<Type> = Type extends CompCategory ? LayoutNode<TypesFromCategory<Type>> : LayoutNode;

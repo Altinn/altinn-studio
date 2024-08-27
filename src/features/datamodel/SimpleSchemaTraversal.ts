@@ -80,19 +80,19 @@ class SimpleSchemaTraversal {
           }
         }
         if (obj.items && Array.isArray(obj.items)) {
-          (obj as any).items = obj.items.map((i) => recursiveResolve(i));
+          obj.items = obj.items.map((i) => recursiveResolve(i));
           if (!obj.type) {
             obj.type = 'array';
           }
         }
         if (obj.allOf) {
-          (obj as any).allOf = obj.allOf.map((i) => recursiveResolve(i));
+          obj.allOf = obj.allOf.map((i) => recursiveResolve(i));
         }
         if (obj.anyOf) {
-          (obj as any).anyOf = obj.anyOf.map((i) => recursiveResolve(i));
+          obj.anyOf = obj.anyOf.map((i) => recursiveResolve(i));
         }
         if (obj.oneOf) {
-          (obj as any).oneOf = obj.oneOf.map((i) => recursiveResolve(i));
+          obj.oneOf = obj.oneOf.map((i) => recursiveResolve(i));
         }
       }
 

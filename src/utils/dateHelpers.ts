@@ -19,6 +19,7 @@ export function getISOString(potentialDate: string | undefined): string | undefi
   return momentDate.isValid() ? momentDate.toISOString() : undefined;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const locale = window.navigator?.language || (window.navigator as any)?.userLanguage || 'nb';
 moment.locale(locale);
 

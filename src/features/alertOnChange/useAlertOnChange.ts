@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 
-type ChangeFn = (...args: any[]) => any;
+type ChangeFn = (...args: unknown[]) => unknown;
 export interface AlertOnChange<Fn extends ChangeFn> {
   alertOpen: boolean;
   setAlertOpen: (open: boolean) => void;

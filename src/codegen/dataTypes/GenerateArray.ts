@@ -6,6 +6,7 @@ import type { CodeGenerator, Extract } from 'src/codegen/CodeGenerator';
 /**
  * Generates an array with inner items of the given type
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class GenerateArray<Inner extends CodeGenerator<any>> extends DescribableCodeGenerator<Extract<Inner>[]> {
   private _minItems?: number;
   private _maxItems?: number;

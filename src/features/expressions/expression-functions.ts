@@ -37,6 +37,7 @@ export interface FuncDef<Args extends readonly ExprVal[], Ret extends ExprVal> {
   // Optional: Validator function which runs when the function is validated. This allows a function to add its own
   // validation requirements. Use the addError() function if any errors are found.
   validator?: (options: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     rawArgs: any[];
     argTypes: (ExprVal | undefined)[];
     ctx: ValidationContext;
@@ -148,6 +149,7 @@ export const ExprFunctions = {
     lastArgSpreads: true,
   }),
   if: defineFunc({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     impl(...args): any {
       const [condition, result] = args;
       if (condition === true) {
@@ -190,6 +192,7 @@ export const ExprFunctions = {
     returns: ExprVal.String,
   }),
   frontendSettings: defineFunc({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     impl(key): any {
       if (key === null) {
         throw new ExprRuntimeError(this.expr, this.path, `Value cannot be null. (Parameter 'key')`);
@@ -221,6 +224,7 @@ export const ExprFunctions = {
     returns: ExprVal.Boolean,
   }),
   component: defineFunc({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     impl(id): any {
       if (id === null) {
         throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup component null`);
@@ -268,6 +272,7 @@ export const ExprFunctions = {
     returns: ExprVal.Any,
   }),
   dataModel: defineFunc({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     impl(path): any {
       if (path === null) {
         throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup dataModel null`);
@@ -314,6 +319,7 @@ export const ExprFunctions = {
     returns: ExprVal.String,
   }),
   displayValue: defineFunc({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     impl(id): any {
       if (id === null) {
         throw new ExprRuntimeError(this.expr, this.path, `Cannot lookup component null`);
@@ -348,6 +354,7 @@ export const ExprFunctions = {
         return null;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (def as DisplayData<any>).getDisplayData(targetNode, {
         attachmentsSelector: this.dataSources.attachmentsSelector,
         optionsSelector: this.dataSources.optionsSelector,

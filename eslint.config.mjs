@@ -1,4 +1,4 @@
-import { fixupConfigRules, fixupPluginRules } from '@eslint/compat';
+import { fixupConfigRules, fixupPluginRules, includeIgnoreFile } from '@eslint/compat';
 import { FlatCompat } from '@eslint/eslintrc';
 import js from '@eslint/js';
 import pluginCypress from 'eslint-plugin-cypress/flat';
@@ -21,10 +21,12 @@ const compat = new FlatCompat({
   recommendedConfig: js.configs.recommended,
   allConfig: js.configs.all,
 });
+const gitignorePath = path.resolve(__dirname, '.gitignore');
 
 export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  includeIgnoreFile(gitignorePath),
   ...fixupConfigRules(
     compat.extends(
       'eslint:recommended',
@@ -107,10 +109,9 @@ export default tseslint.config(
       'import/no-default-export': ['error'],
 
       '@typescript-eslint/no-unused-expressions': 'off',
-      '@typescript-eslint/no-explicit-any': ['warn'],
       '@typescript-eslint/no-unused-vars': [
         'warn',
-        { vars: 'all', varsIgnorePattern: '^_', args: 'all', argsIgnorePattern: '^_' },
+        { varsIgnorePattern: '^_', argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
       ],
       '@typescript-eslint/consistent-type-imports': ['warn'],
 

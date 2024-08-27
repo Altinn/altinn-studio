@@ -15,6 +15,7 @@ interface IUploadFileArgs {
   idx: number;
   fileName: string;
   verifyTableRow: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   tableRow: any;
   secondPage?: boolean;
 }
@@ -91,6 +92,7 @@ describe('Repeating group attachments', () => {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const expectAttachmentsToBe = (expected: any) => {
     cy.log('Waiting until attachments equals', expected);
     return cy.waitUntil(() =>
@@ -116,7 +118,7 @@ describe('Repeating group attachments', () => {
     );
   };
 
-  const expectFormDataToBe = (expected: any) => {
+  const expectFormDataToBe = (expected: string[][]) => {
     cy.log('Waiting until formData equals', expected);
     return cy.waitUntil(() =>
       cy.window().then((win) => {

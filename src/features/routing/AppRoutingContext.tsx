@@ -32,6 +32,7 @@ function newStore() {
     updateQueryKeys: (queryKeys) => set({ queryKeys }),
     effectCallback: null,
     setEffectCallback: (effectCallback: NavigationEffectCb) => set({ effectCallback }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     navigateRef: { current: undefined as any },
   }));
 }

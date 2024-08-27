@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { screen } from '@testing-library/react';
+import type { jest } from '@jest/globals';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
@@ -109,7 +110,9 @@ describe('Expressions shared context tests', () => {
           }
         }
 
-        (fetchApplicationMetadata as any).mockImplementation(() => Promise.resolve(applicationMetadata));
+        (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementation(() =>
+          Promise.resolve(applicationMetadata),
+        );
 
         await renderWithInstanceAndLayout({
           renderer: () => <TestContexts />,

@@ -55,6 +55,7 @@ export class RepeatingChildrenStorePlugin extends NodeDataPlugin<RepeatingChildr
               changes = true;
               const newRows = [...(existingRows || [])];
               newRows[row.index] = nextRow;
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               nodeData[node.id] = { ...thisNode, item: { ...thisNode.item, [internalProp]: newRows } as any };
             }
           }
@@ -80,8 +81,8 @@ export class RepeatingChildrenStorePlugin extends NodeDataPlugin<RepeatingChildr
 
           // When removing rows, we'll always remove the last one. There is no such thing as removing a row in the
           // middle, as the indexes will always re-flow to the total number of rows left.
-          const newRows = [...existingRows];
-          const removedRow = newRows.pop();
+          const newRows = existingRows.slice(0, -1);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           nodeData[node.id] = { ...thisNode, item: { ...thisNode.item, [internalProp]: newRows } as any };
 
           return { nodeData, readiness: NodesReadiness.NotReady, addRemoveCounter: state.addRemoveCounter + 1 };

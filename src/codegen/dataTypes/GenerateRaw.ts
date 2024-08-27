@@ -3,23 +3,29 @@ import type { JSONSchema7 } from 'json-schema';
 import { CodeGenerator, MaybeOptionalCodeGenerator } from 'src/codegen/CodeGenerator';
 
 type RawTypeScript = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   typeScript: string | (() => string) | CodeGenerator<any>;
 };
 
 type RawJsonSchema = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   jsonSchema: JSONSchema7 | (() => JSONSchema7) | CodeGenerator<any>;
 };
 
 type RawDef = RawTypeScript | RawJsonSchema | (RawTypeScript & RawJsonSchema);
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class GenerateRaw extends MaybeOptionalCodeGenerator<any> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private realJsonSchema?: JSONSchema7 | CodeGenerator<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private realTypeScript?: string | CodeGenerator<any>;
 
   constructor(private readonly raw: RawDef) {
     super();
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private getRealJsonSchema(fail = true): JSONSchema7 | CodeGenerator<any> {
     if (!this.realJsonSchema) {
       if (fail && !('jsonSchema' in this.raw)) {
@@ -34,6 +40,7 @@ export class GenerateRaw extends MaybeOptionalCodeGenerator<any> {
     return this.realJsonSchema;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private getRealTypeScript(fail = true): string | CodeGenerator<any> {
     if (!this.realTypeScript) {
       if (fail && !('typeScript' in this.raw)) {

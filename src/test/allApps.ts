@@ -311,6 +311,7 @@ export class ExternalAppDataModel {
     return metadata.dataTypes.find((dt) => dt.id === this.dataType)!;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   simulateDataModel(_layouts?: ILayoutCollection): any {
     const dataModel = {};
     const layouts = _layouts ?? this.layoutSet?.getLayouts();
@@ -401,7 +402,7 @@ export function ensureAppsDirIsSet(runVoidTest = true) {
 /**
  * Parse JSON that may contain comments, trailing commas, etc.
  */
-function parseJsonTolerantly<T = any>(content: string): T {
+function parseJsonTolerantly<T = unknown>(content: string): T {
   // Remove multiline comments
   content = content.replace(/\/\*([\s\S]*?)\*\//g, '$1');
 

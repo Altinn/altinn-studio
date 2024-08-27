@@ -87,6 +87,7 @@ interface INavigationButton {
 }
 
 const NavigationButton = React.forwardRef(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ({ onClick, hidden = false, children, current, ...rest }: INavigationButton, ref: any) => {
     const classes = useStyles();
 

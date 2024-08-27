@@ -104,6 +104,7 @@ export class CardsPlugin<Type extends CompTypes>
   }
 
   itemFactory({ item }: DefPluginStateFactoryProps<Config<Type>>) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cardsInternal = structuredClone((item as any).cards || []) as CardInternal[];
 
     // Remove all children, as they will be added as nodes later:

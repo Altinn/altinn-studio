@@ -74,6 +74,7 @@ describe('Frontend urlHelper.ts', () => {
       },
     ) => {
       const oldWindowLocation = window.location;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (window as any).location;
       window.location = {
         ...oldWindowLocation,
@@ -130,6 +131,7 @@ describe('Frontend urlHelper.ts', () => {
 
       it('should throw error when host has too many subdomains', () => {
         const oldWindowLocation = window.location;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         delete (window as any).location;
         window.location = {
           ...oldWindowLocation,

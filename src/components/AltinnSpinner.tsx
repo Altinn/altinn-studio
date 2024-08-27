@@ -8,7 +8,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 
 export interface IAltinnSpinnerComponentProvidedProps {
   id?: string;
-  spinnerText?: any;
+  spinnerText?: string;
   styleObj?: ArgumentArray;
 }
 

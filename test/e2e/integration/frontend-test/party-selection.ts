@@ -118,8 +118,9 @@ function mockResponses(whatToMock: Mockable) {
       req.continue((res) => {
         const body =
           whatToMock.allowedToInstantiate instanceof Function
-            ? (whatToMock.allowedToInstantiate(res.body) as any)
-            : (whatToMock.allowedToInstantiate as any);
+            ? whatToMock.allowedToInstantiate(res.body)
+            : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (whatToMock.allowedToInstantiate as any);
         res.send(body);
       });
     });

@@ -139,6 +139,7 @@ export type AnyValidation<Severity extends ValidationSeverity = ValidationSeveri
  * Validation message format used by frontend components.
  * This type is derived from other validation types, but a reference to the node is added.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type NodeValidation<Validation extends AnyValidation<any> = AnyValidation<any>> = Validation & {
   node: LayoutNode;
 };

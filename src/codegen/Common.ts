@@ -819,6 +819,7 @@ function makeTRB(keys: { [key: string]: TRB }) {
   return obj;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const implementationsCache: { [key: string]: MaybeSymbolizedCodeGenerator<any> } = {};
 export function getSourceForCommon(key: ValidCommonKeys) {
   if (implementationsCache[key]) {

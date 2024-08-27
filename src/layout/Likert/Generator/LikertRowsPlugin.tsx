@@ -80,6 +80,7 @@ export class LikertRowsPlugin extends NodeDefPlugin<Config> implements NodeDefCh
     if (rowIndex === undefined || rowIndex !== row?.index) {
       throw new Error(`Child node of Likert component missing 'row' property`);
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const i = state.item as any;
     const rows = (i && 'rows' in i ? [...i.rows] : []) as LikertRow[];
 
@@ -103,6 +104,7 @@ export class LikertRowsPlugin extends NodeDefPlugin<Config> implements NodeDefCh
     if (rowIndex === undefined || rowIndex !== row?.index) {
       throw new Error(`Child node of Likert component missing 'row' property`);
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const i = state.item as any;
     const rows = (i && 'rows' in i ? [...i.rows] : []) as LikertRow[];
 

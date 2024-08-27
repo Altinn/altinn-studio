@@ -146,6 +146,7 @@ function PdfForPage({ pageKey, pdfSettings }: { pageKey: string; pdfSettings: IP
           .children()
           .filter((node) => !isHiddenSelector(node))
           .filter((node) => !pdfSettings?.excludedComponents.includes(node.id))
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .filter((node) => node.def.shouldRenderInAutomaticPDF(node as any, nodeDataSelector))
       : [];
   });

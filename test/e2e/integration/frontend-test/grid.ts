@@ -146,6 +146,7 @@ describe('Grid component', () => {
         }
         const cell2 = component.rows[4].cells[0];
         if (cell2 && 'text' in cell2) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           delete (cell2 as any).text;
           (cell2 as unknown as GridCellLabelFrom).labelFrom = 'fordeling-studie';
         }

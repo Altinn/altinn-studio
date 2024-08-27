@@ -25,11 +25,6 @@ export const returnUrlToMessagebox = (url: string, partyId?: number | undefined)
   return `${baseUrl}ui/Reportee/ChangeReporteeAndRedirect?goTo=${baseUrl}${pathToMessageBox}&R=${partyId}`;
 };
 
-export const returnUrlFromQueryParameter = (): string | null => {
-  const params = new URLSearchParams(window.location.search);
-  return params.get('returnUrl');
-};
-
 export const returnUrlToArchive = (url: string): string | null => {
   const baseUrl = returnBaseUrlToAltinn(url);
   if (!baseUrl) {
@@ -61,25 +56,24 @@ export const returnUrlToAllSchemas = (url: string): string | null => {
 };
 
 export const returnBaseUrlToAltinn = (url: string): string | null => {
-  let result: string | null;
-  if (url.search(prodRegex) >= 0) {
-    const split = url.split('.');
+  const sanitizedUrl = url.replace('http://', '').replace('https://', '');
+
+  const isProd = sanitizedUrl.search(prodRegex) >= 0;
+  if (isProd) {
+    const split = sanitizedUrl.split('.');
     const env = split[split.length - 3];
-    if (env === 'tt02') {
-      result = `https://${env}.${baseHostnameAltinnProd}/`;
-    } else {
-      result = `https://${baseHostnameAltinnProd}/`;
-    }
-  } else if (url.search(testRegex) >= 0) {
-    const split = url.split('.');
-    const env = split[split.length - 3];
-    result = `https://${env}.${baseHostnameAltinnTest}/`;
-  } else if (url.search(localRegex) >= 0) {
-    result = '/';
-  } else {
-    result = null;
+
+    return env === 'tt02' ? `https://${env}.${baseHostnameAltinnProd}/` : `https://${baseHostnameAltinnProd}/`;
   }
-  return result;
+
+  const isTest = sanitizedUrl.search(testRegex) >= 0;
+  if (isTest) {
+    const env = sanitizedUrl.split('.').at(-3);
+    return `https://${env}.${baseHostnameAltinnTest}/`;
+  }
+
+  const isLocal = sanitizedUrl.search(localRegex) >= 0;
+  return isLocal ? `https://${baseHostnameAltinnLocal}/` : null;
 };
 
 export function customEncodeURI(uri: string): string {
@@ -101,7 +95,7 @@ export const makeUrlRelativeIfSameDomain = (url: string, location: Location = wi
     if (parsed.hostname === location.hostname) {
       return parsed.pathname + parsed.search + parsed.hash;
     }
-  } catch (e) {
+  } catch (_err) {
     //ignore invalid (or dummy) urls
   }
   return url;

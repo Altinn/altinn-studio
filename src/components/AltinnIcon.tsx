@@ -2,11 +2,11 @@ import React from 'react';
 
 import classNames from 'classnames';
 
-export interface IAltinnIconCompontentProvidedProps {
+export interface IAltinnIconComponentProvidedProps {
   iconClass: string;
   isActive?: boolean;
   isActiveIconColor?: string;
-  iconColor: any;
+  iconColor: string;
   iconSize?: number | string;
   padding?: string;
   margin?: string;
@@ -22,7 +22,7 @@ export const AltinnIcon = ({
   padding,
   margin,
   weight,
-}: IAltinnIconCompontentProvidedProps) => (
+}: IAltinnIconComponentProvidedProps) => (
   <i
     className={classNames(iconClass)}
     style={{

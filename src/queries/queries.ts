@@ -87,8 +87,8 @@ export const doInstantiateWithPrefill = async (data: Instantiation): Promise<IIn
 export const doInstantiate = async (partyId: number): Promise<IInstance> =>
   cleanUpInstanceData((await httpPost(getCreateInstancesUrl(partyId))).data);
 
-export const doProcessNext = async (instanceId: string, language?: string, action?: IActionType): Promise<IProcess> =>
-  httpPut(getProcessNextUrl(instanceId, language), action ? { action } : null);
+export const doProcessNext = async (instanceId: string, language?: string, action?: IActionType) =>
+  httpPut<IProcess>(getProcessNextUrl(instanceId, language), action ? { action } : null);
 
 export const doAttachmentUpload = async (instanceId: string, dataTypeId: string, file: File): Promise<IData> => {
   const url = getFileUploadUrl(instanceId, dataTypeId);
@@ -134,7 +134,7 @@ export const doAttachmentAddTag = async (instanceId: string, dataGuid: string, t
 export const doPerformAction = async (
   partyId: string,
   dataGuid: string,
-  data: any,
+  data: unknown,
   language?: string,
 ): Promise<ActionResult> => {
   const response = await httpPost(getActionsUrl(partyId, dataGuid, language), undefined, data);
@@ -153,8 +153,8 @@ export const doAttachmentRemove = async (instanceId: string, dataGuid: string, l
 };
 
 // When saving data for normal/stateful apps
-export const doPatchFormData = (url: string, data: IDataModelPatchRequest): Promise<IDataModelPatchResponse> =>
-  httpPatch(url, data);
+export const doPatchFormData = (url: string, data: IDataModelPatchRequest) =>
+  httpPatch<IDataModelPatchResponse>(url, data);
 
 // When saving data for stateless apps
 export const doPostStatelessFormData = async (url: string, data: object): Promise<object> =>
@@ -215,6 +215,7 @@ export const fetchUserProfile = (): Promise<IProfile> => httpGet(profileApiUrl);
 export const fetchDataModelSchema = (dataTypeName: string): Promise<JSONSchema7> =>
   httpGet(getJsonSchemaUrl() + dataTypeName);
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const fetchFormData = (url: string, options?: AxiosRequestConfig): Promise<any> => httpGet(url, options);
 
 export const fetchPdfFormat = (instanceId: string, dataGuid: string): Promise<IPdfFormat> =>

@@ -18,9 +18,10 @@
  * ... and so on
  */
 export class ShallowArrayMap<T> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private data: Map<any, any>[] = [];
 
-  public has(key: any[]): boolean {
+  public has(key: unknown[]): boolean {
     const keyLength = key.length;
     if (this.data[keyLength] === undefined) {
       return false;
@@ -37,7 +38,7 @@ export class ShallowArrayMap<T> {
     return map.has(key[keyLength - 1]);
   }
 
-  public get(key: any[]): T | undefined {
+  public get(key: unknown[]): T | undefined {
     const keyLength = key.length;
     if (this.data[keyLength] === undefined) {
       return undefined;
@@ -54,7 +55,7 @@ export class ShallowArrayMap<T> {
     return map.get(key[keyLength - 1]);
   }
 
-  public set(key: any[], value: T): void {
+  public set(key: unknown[], value: T): void {
     const keyLength = key.length;
     if (this.data[keyLength] === undefined) {
       this.data[keyLength] = this.newMap();
@@ -71,7 +72,7 @@ export class ShallowArrayMap<T> {
     map.set(key[keyLength - 1], value);
   }
 
-  public delete(key: any[]): void {
+  public delete(key: unknown[]): void {
     const keyLength = key.length;
     if (this.data[keyLength] === undefined) {
       return;
@@ -92,12 +93,8 @@ export class ShallowArrayMap<T> {
     return this.entries().map(([, value]) => value);
   }
 
-  public keys(): any[][] {
-    return this.entries().map(([key]) => key);
-  }
-
-  public entries(): [any[], T][] {
-    const out: [any[], T][] = [];
+  public entries(): [unknown[], T][] {
+    const out: [unknown[], T][] = [];
     for (const map of this.data) {
       if (!map) {
         continue;
@@ -111,20 +108,28 @@ export class ShallowArrayMap<T> {
     return out;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private newMap(): Map<any, any> {
     const map = new Map();
 
     // Stamp our map with a unique symbol to prevent it from being mistaken for a value
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (map as any).__shallowArrayMap = true;
 
     return map;
   }
 
-  private isShallowArrayMap(map: any): map is Map<any, any> {
-    return map instanceof Map && (map as any).__shallowArrayMap === true;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private isShallowArrayMap(map: unknown): map is Map<any, any> {
+    return !!map && map instanceof Map && '__shallowArrayMap' in map && map.__shallowArrayMap === true;
   }
 
-  private recurseMap(map: Map<any, any>, callback: (key: any[], value: any) => void, parentKey: any[] = []): void {
+  private recurseMap(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    map: Map<any, any>,
+    callback: (key: unknown[], value: unknown) => void,
+    parentKey: unknown[] = [],
+  ): void {
     for (const [key, value] of map.entries()) {
       if (this.isShallowArrayMap(value)) {
         this.recurseMap(value, callback, [...parentKey, key]);

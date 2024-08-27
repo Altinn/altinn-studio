@@ -426,6 +426,7 @@ function ComponentClaimChildren({ component, claims, getProto }: ComponentClaimC
   // otherwise the page will not know if the first pass is done.
   useEffect(() => {
     if (def instanceof ContainerComponent) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const props: ChildClaimerProps<any, unknown> = {
         item: component,
         claimChild: (pluginKey, childId, metadata) => {
@@ -440,7 +441,8 @@ function ComponentClaimChildren({ component, claims, getProto }: ComponentClaimC
         },
       };
 
-      def.claimChildren(props as unknown as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      def.claimChildren(props as any);
     }
   }, [def, component, getProto, addClaim]);
 
@@ -486,6 +488,7 @@ function GenerateComponent({ layout, claim, childClaims }: ComponentProps) {
   const Generator = def.renderNodeGenerator;
 
   if (!GeneratorDebug.displayState) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return <Generator {...(props as any)} />;
   }
 
@@ -499,8 +502,8 @@ function GenerateComponent({ layout, claim, childClaims }: ComponentProps) {
       <h3>
         {layout.id} ({layout.type})
       </h3>
-
       <span>{childClaims ? `Children: ${Object.keys(childClaims).join(', ')}` : 'No children'}</span>
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       <Generator {...(props as any)} />
     </div>
   );

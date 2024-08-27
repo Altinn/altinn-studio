@@ -354,8 +354,8 @@ const useWaitForSave = () => {
   );
 };
 
-const emptyObject: any = {};
-const emptyArray: never[] = [];
+const emptyObject = {};
+const emptyArray = [];
 
 export const FD = {
   /**
@@ -385,6 +385,7 @@ export const FD = {
           return emptyArray;
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return rawRows.map((row: any, index: number) => ({ uuid: row[ALTINN_ROW_ID], index }));
       },
     });
@@ -442,6 +443,7 @@ export const FD = {
       if (!bindings || Object.keys(bindings).length === 0) {
         return emptyObject;
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const out: any = {};
       for (const key of Object.keys(bindings)) {
         const invalidValue = dot.pick(bindings[key], s.invalidCurrentData);
@@ -478,6 +480,7 @@ export const FD = {
       if (!bindings || Object.keys(bindings).length === 0) {
         return emptyObject;
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const out: any = {};
       for (const key of Object.keys(bindings)) {
         out[key] = dot.pick(bindings[key], s.invalidCurrentData) === undefined;
@@ -509,6 +512,7 @@ export const FD = {
   ): D extends 'raw' ? { [key: string]: FDValue } : { [key: string]: string } =>
     useMemoSelector((s) => {
       const realDataAs = dataAs || 'string';
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const out: any = {};
       if (mapping) {
         for (const key of Object.keys(mapping)) {
@@ -621,6 +625,7 @@ export const FD = {
         return emptyArray;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return rawRows.map((row: any, index: number) => ({ uuid: row[ALTINN_ROW_ID], index }));
     }),
 

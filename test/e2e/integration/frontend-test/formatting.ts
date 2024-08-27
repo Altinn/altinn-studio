@@ -36,6 +36,7 @@ describe('Formatting', () => {
     cy.get(appFrontend.group.currentValue).numberFormatClear();
     cy.get(appFrontend.group.currentValue).type('10000');
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const alternatives: { format: IFormatting; expected: any }[] = [
       {
         format: { currency: 'NOK', number: { prefix: 'SEK ' } },

@@ -142,6 +142,7 @@ export function argTypeAt(func: ExprFunction, argIndex: number): ExprVal | undef
   return undefined;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function innerEvalExpr(params: EvaluateExpressionParams): any {
   const { expr, path } = params;
   const stringPath = stringifyPath(path);
@@ -241,6 +242,7 @@ export const ExprTypes: {
   [Type in ExprVal]: {
     nullable: boolean;
     accepts: ExprVal[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     impl: (this: EvaluateExpressionParams, arg: any) => ExprValToActual<Type> | null;
   };
 } = {

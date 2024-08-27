@@ -76,6 +76,7 @@ export function SummaryGroupComponent({
     if (!child.isCategory(CompCategory.Form) || isHidden(child)) {
       return;
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const RenderCompactSummary = child.def.renderCompactSummary.bind(child.def) as React.FC<SummaryRendererProps<any>>;
     return (
       <RenderCompactSummary

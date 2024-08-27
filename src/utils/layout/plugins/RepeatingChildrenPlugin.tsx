@@ -101,6 +101,7 @@ export class RepeatingChildrenPlugin<E extends ExternalConfig>
   }
 
   makeConstructorArgs(asGenericArgs = false): string {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.settings.componentType = this.component!.type as any;
     return super.makeConstructorArgsWithoutDefaultSettings(defaultConfig, asGenericArgs);
   }
@@ -162,6 +163,7 @@ export class RepeatingChildrenPlugin<E extends ExternalConfig>
     const multiPage =
       this.settings.multiPageSupport !== false && dot.pick(this.settings.multiPageSupport, item) === true;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     for (const id of (item as any)[this.settings.externalProp]) {
       if (multiPage) {
         if (!/^\d+:[^:]+$/u.test(id)) {
@@ -181,6 +183,7 @@ export class RepeatingChildrenPlugin<E extends ExternalConfig>
   pickDirectChildren(state: DefPluginState<ToInternal<E>>, restriction?: TraversalRestriction): LayoutNode[] {
     const out: LayoutNode[] = [];
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rows = (state.item as any)[this.settings.internalProp] as Row<E>[];
     if (!rows) {
       return out;
@@ -209,7 +212,7 @@ export class RepeatingChildrenPlugin<E extends ExternalConfig>
     if (rowIndex === undefined || rowIndex !== row?.index) {
       throw new Error(`Child node of repeating component missing 'rowIndex' property`);
     }
-    const item = state.item as any;
+    const item = state.item;
     const rows = (item && this.settings.internalProp in item ? [...item[this.settings.internalProp]] : []) as Row<E>[];
     const items = [...(rows[rowIndex]?.items || [])];
     items.push(childNode);
@@ -235,7 +238,7 @@ export class RepeatingChildrenPlugin<E extends ExternalConfig>
     if (rowIndex === undefined || rowIndex !== row?.index) {
       throw new Error(`Child node of repeating component missing 'rowIndex' property`);
     }
-    const item = state.item as any;
+    const item = state.item;
     const rows = (item && this.settings.internalProp in item ? [...item[this.settings.internalProp]] : []) as Row<E>[];
     const items = [...(rows[rowIndex]?.items || [])];
     const idx = items.findIndex((item) => item === childNode);

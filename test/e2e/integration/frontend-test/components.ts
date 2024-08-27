@@ -338,6 +338,7 @@ describe('UI Components', () => {
           ['equals', ['component', 'newMiddleName'], 'all_readOnly'],
         ];
       } else if (formTypes.includes(component.type)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (component as any).readOnly = ['equals', ['component', 'newMiddleName'], 'all_readOnly'];
       }
     });
@@ -434,6 +435,7 @@ describe('UI Components', () => {
   it('should display alert on changing multiple-select', () => {
     cy.interceptLayout('changename', (component) => {
       if (component.id === 'colorsCheckboxes' && component.type === 'Checkboxes') {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (component as any).type = 'MultipleSelect';
         component.alertOnChange = true;
       }

@@ -87,6 +87,7 @@ export class NonRepeatingChildrenPlugin<E extends ExternalConfig>
       throw new Error('Component not set, cannot make constructor args for plugin not attached to a component');
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.settings.componentType = this.component.type as any;
     return this.makeConstructorArgsWithoutDefaultSettings(defaultConfig, asGenericArgs);
   }

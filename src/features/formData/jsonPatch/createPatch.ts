@@ -43,10 +43,12 @@ export function createPatch({ prev, next, current }: Props<object>): JsonPatch {
   return patch;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isObject(value: any): value is object {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function compareAny(props: CompareProps<any>) {
   const { prev, next } = props;
   if (isObject(prev) && isObject(next)) {
@@ -72,6 +74,7 @@ function compareObjects({ prev, next, current, path, ...rest }: CompareProps<obj
  * This comparison function is used to determine if two values in an array can be considered the same. This is used to
  * determine if an item (i.e. a row in a repeating group) has been removed or added.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isSameRow(left: any, right: any): boolean {
   if (isObject(left) && isObject(right)) {
     if (!(ALTINN_ROW_ID in left && ALTINN_ROW_ID in right)) {
@@ -99,6 +102,7 @@ function isSameRow(left: any, right: any): boolean {
  * produce the JsonPatch to create. Do not be fooled by the format returned from getPatch, it is not a JsonPatch
  * even if it looks like it at a glance.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function compareArrays({ prev, next, current, hasCurrent, patch, path }: CompareProps<any[]>) {
   const diff = getPatch(prev, next, isSameRow);
   const allNextValuesIsString = next.length > 0 && next.every((item) => typeof item === 'string');
@@ -192,6 +196,7 @@ function compareArrays({ prev, next, current, hasCurrent, patch, path }: Compare
   patch.push(...childPatches);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function compareValues({ prev, next, hasCurrent, current, patch, path }: CompareProps<any>) {
   if (prev === next) {
     return;

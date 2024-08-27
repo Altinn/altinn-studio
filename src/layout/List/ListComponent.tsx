@@ -20,6 +20,7 @@ import type { IDataModelBindingsForList } from 'src/layout/List/config.generated
 
 export type IListProps = PropsFromGenericComponent<'List'>;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const defaultDataList: any[] = [];
 const defaultBindings: IDataModelBindingsForList = {};
 

@@ -3,6 +3,7 @@ import type { JSONSchema7 } from 'json-schema';
 
 import type { IDataType } from 'src/types/shared';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const getRootElementPath = (schema: any, dataType: IDataType | undefined): string => {
   if (![null, undefined].includes(schema.info?.rootNode)) {
     // If rootNode is defined in the schema
@@ -30,6 +31,7 @@ export const getRootElementPath = (schema: any, dataType: IDataType | undefined)
  * @param jsonSchema the json schema to get part from
  * @returns the part, or null if not found
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getSchemaPart(schemaPath: string, jsonSchema: JSONSchema7): any {
   try {
     // want to transform path example format to to /properties/model/properties/person/properties/name
@@ -48,6 +50,7 @@ export function getSchemaPart(schemaPath: string, jsonSchema: JSONSchema7): any 
  * @param rootElementPath the subschema to get part from
  * @returns the part, or null if not found
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getSchemaPartOldGenerator(schemaPath: string, mainSchema: object, rootElementPath: string): any {
   // for old generators we can have a ref to a definition that is placed outside of the subSchema we validate against.
   // if we are looking for #/definitons/x we search in main schema

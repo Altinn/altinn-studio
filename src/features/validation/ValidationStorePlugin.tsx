@@ -49,6 +49,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
           nodesProduce((state) => {
             for (const node of nodes) {
               const nodeData = state.nodeData[node.id];
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               (nodeData as any).validationVisibility = newVisibility;
             }
           }),

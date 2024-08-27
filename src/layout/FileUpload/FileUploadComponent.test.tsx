@@ -382,7 +382,7 @@ async function renderAbstract<T extends Types>({
             { value: 'tag3', label: 'Tag 3' },
           ],
           headers: {},
-        } as AxiosResponse<IRawOption[], any>),
+        } as AxiosResponse<IRawOption[], unknown>),
     },
   });
 

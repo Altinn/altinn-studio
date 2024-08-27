@@ -107,6 +107,7 @@ function _RepeatingGroupTableRow({
       return '';
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (def as DisplayData<any>).getDisplayData(node, displayDataProps);
   });
   const firstCellData = displayData.find((c) => !!c);

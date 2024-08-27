@@ -15,7 +15,7 @@ export function evalFormatting(props: ExprResolver<'Input' | 'Number'>) {
       format: evalStr(out.number.format, ''),
     };
   } else if (out.number) {
-    (out as any).number = { ...out.number };
+    out.number = { ...out.number };
 
     if (out.number!.thousandSeparator) {
       out.number.thousandSeparator = evalAny(out.number.thousandSeparator as ExprVal.Any, false) as

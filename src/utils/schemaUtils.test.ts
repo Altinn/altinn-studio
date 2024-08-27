@@ -144,6 +144,7 @@ describe('schemaUtils', () => {
       let availablePropertiesOnFirstProperty = new Set<string>();
       if (schema.properties && typeof schema.properties === 'object') {
         const firstProperty = Object.keys(schema.properties)[0];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((firstProperty as any).$ref) {
           availablePropertiesOnFirstProperty = lookupPropertiesInSchema(schema, firstProperty);
         }

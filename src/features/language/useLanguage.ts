@@ -72,6 +72,7 @@ export interface TextResourceVariablesDataSources {
  * Using this type helps us get suggestions for valid language keys in useLanguage() functions.
  * Thanks to ChatGPT for refinements to make this work!
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ObjectToDotNotation<T extends Record<string, any>, Prefix extends string = ''> = {
   [K in keyof T]: K extends string
     ? T[K] extends string | number | boolean | null | undefined
@@ -411,8 +412,9 @@ const replaceParameters = (nameString: string, params: SimpleLangParam[]) => {
   return mutatingString;
 };
 
-function isTextReference(obj: any): obj is TextReference {
+function isTextReference(obj: unknown): obj is TextReference {
   return (
+    !!obj &&
     typeof obj === 'object' &&
     'key' in obj &&
     typeof obj.key === 'string' &&

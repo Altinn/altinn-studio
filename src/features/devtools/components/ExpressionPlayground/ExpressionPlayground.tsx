@@ -130,6 +130,7 @@ export const ExpressionPlayground = () => {
       }
 
       const calls: string[] = [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const onAfterFunctionCall = (path: string[], func: ExprFunction, args: any[], result: any) => {
         const indent = '  '.repeat(path.length);
         calls.push(`${indent}${JSON.stringify([func, ...args])} => ${JSON.stringify(result)}`);

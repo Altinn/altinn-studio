@@ -22,6 +22,7 @@ declare global {
 
     // Useful tooling and state when running in Cypress. We need to update state here in order for Cypress to be able
     // to read it in some tests.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Cypress?: any; // Can be used to test if we are running in Cypress
     CypressState?: {
       attachments?: IAttachmentsMap;
@@ -50,19 +51,25 @@ declare global {
      * In React components, hierarchy generators, or other places that are run continuously, use window.logErrorOnce() instead
      * @see window.logErrorOnce
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     logError: (...args: any[]) => void;
     /**
      * In React components, hierarchy generators, or other places that are run continuously, use window.logWarnOnce() instead
      * @see window.logWarnOnce
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     logWarn: (...args: any[]) => void;
     /**
      * In React components, hierarchy generators, or other places that are run continuously, use window.logInfoOnce() instead
      * @see window.logInfoOnce
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     logInfo: (...args: any[]) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     logErrorOnce: (...args: any[]) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     logWarnOnce: (...args: any[]) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     logInfoOnce: (...args: any[]) => void;
   }
 }

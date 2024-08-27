@@ -16,6 +16,7 @@ export function useFormDataQueryDef(
   currentTaskId?: string,
   url?: string,
   options?: AxiosRequestConfig,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): QueryDefinition<any> {
   const { fetchFormData } = useAppQueries();
   return {

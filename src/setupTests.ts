@@ -40,9 +40,9 @@ Object.defineProperty(document, 'fonts', {
 });
 
 // Forcing a low timeout for useDelayedSaveState()
-(global as any).delayedSaveState = 50;
+global.delayedSaveState = 50;
 
-(window as any).forceNodePropertiesValidation = 'off';
+window.forceNodePropertiesValidation = 'off';
 
 window.inUnitTest = true;
 
@@ -65,7 +65,8 @@ jest.setTimeout(env.parsed?.JEST_TIMEOUT ? parseInt(env.parsed.JEST_TIMEOUT, 10)
 
 jest.mock('axios');
 
-(global as any).TextEncoder = TextEncoder;
+global.TextEncoder = TextEncoder;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (global as any).TextDecoder = TextDecoder;
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports

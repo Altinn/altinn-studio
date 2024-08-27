@@ -70,6 +70,7 @@ export type Expression<F extends ExprFunction = ExprFunction> = MaybeRecursive<F
 /**
  * A much simpler variant of the type above, as it only type-checks the very outer function name
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type NonRecursiveExpression<F extends ExprFunction = ExprFunction> = [F, ...any];
 
 /**
@@ -79,9 +80,11 @@ export type NonRecursiveExpression<F extends ExprFunction = ExprFunction> = [F, 
  * @see https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types
  * @see https://stackoverflow.com/a/54487392
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ExprResolved<T> = T extends [FunctionsReturning<any>, ...any]
   ? never
-  : T extends any
+  : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    T extends any
     ? T extends object
       ? {
           [P in keyof T]: ExprResolved<T[P]>;

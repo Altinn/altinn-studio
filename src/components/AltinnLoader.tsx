@@ -1,4 +1,5 @@
 import React from 'react';
+import type { CSSProperties } from 'react';
 
 import classes from 'src/components/AltinnLoader.module.css';
 
@@ -8,7 +9,7 @@ export interface IAltinnLoaderProps {
   /** Content that is read by screen reader */
   srContent: string;
   /** Optional style */
-  style?: any;
+  style?: CSSProperties;
   /** className */
   className?: string;
 }

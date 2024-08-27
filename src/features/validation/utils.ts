@@ -41,7 +41,7 @@ export function validationsOfSeverity<I extends BaseValidation, S extends Valida
 }
 
 export function hasValidationErrors<V extends BaseValidation>(validations: V[] | undefined): boolean {
-  return validations?.some((validation: any) => validation.severity === 'error') ?? false;
+  return validations?.some((validation) => validation.severity === 'error') ?? false;
 }
 
 export function isValidationVisible<T extends AnyValidation>(validation: T, mask: number): boolean {

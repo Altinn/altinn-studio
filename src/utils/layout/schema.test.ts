@@ -8,7 +8,7 @@ import type { ErrorObject } from 'ajv';
 
 import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 
-function withValues(targetObject: any) {
+function withValues(targetObject: object) {
   return (err: ErrorObject) => {
     const pointer = JsonPointer.compile(err.instancePath);
     const value = pointer.get(targetObject);

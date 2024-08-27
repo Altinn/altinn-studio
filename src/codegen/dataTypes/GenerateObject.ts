@@ -7,11 +7,13 @@ import { GenerateCommonImport } from 'src/codegen/dataTypes/GenerateCommonImport
 import type { CodeGenerator, CodeGeneratorWithProperties, Extract } from 'src/codegen/CodeGenerator';
 import type { GenerateProperty } from 'src/codegen/dataTypes/GenerateProperty';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Props = GenerateProperty<any>[];
 export type AsInterface<P extends Props> = {
   [K in P[number]['name']]: Extract<P[number]['type']>;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Extendables = GenerateCommonImport<any> | GenerateObject<any>;
 
 /**
@@ -23,8 +25,10 @@ export class GenerateObject<P extends Props>
   implements CodeGeneratorWithProperties
 {
   private readonly properties: P;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _additionalProperties: CodeGenerator<any> | false = false;
   private _extends: Extendables[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _extendedBy: GenerateObject<any>[] = [];
 
   constructor(...properties: P) {
@@ -59,6 +63,7 @@ export class GenerateObject<P extends Props>
     return this;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private extendObject(obj: GenerateObject<any>) {
     obj.ensureMutable();
     obj._extendedBy.push(this);
@@ -69,6 +74,7 @@ export class GenerateObject<P extends Props>
     return this._extends.length === 1 && this.properties.length === 0;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   additionalProperties(type: CodeGenerator<any> | false) {
     this.ensureMutable();
     this._additionalProperties = type;
@@ -79,6 +85,7 @@ export class GenerateObject<P extends Props>
     return this.properties.some((property) => property.name === name);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   addProperty(prop: GenerateProperty<any>): this {
     this.ensureMutable();
     const { name, insertBefore, insertAfter, insertFirst } = prop.toObject();
@@ -128,6 +135,7 @@ export class GenerateObject<P extends Props>
     return this;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getProperty(name: string): GenerateProperty<any> | undefined {
     if (!this.hasProperty(name)) {
       return undefined;
@@ -135,6 +143,7 @@ export class GenerateObject<P extends Props>
     return this.properties.find((property) => property.name === name);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getProperties(): GenerateProperty<any>[] {
     return this.properties;
   }
@@ -224,9 +233,11 @@ export class GenerateObject<P extends Props>
   }
 
   private getPropertyList(target: 'typeScript' | 'jsonSchema'): {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     all: { [key: string]: GenerateProperty<any> };
     required: string[];
   } {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const all: { [key: string]: GenerateProperty<any> } = {};
     const required: string[] = [];
 

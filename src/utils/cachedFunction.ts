@@ -6,6 +6,7 @@ import { LRUCache } from 'lru-cache';
  * @param options The LRUCache options.
  * @param keyFn A function to generate the cache key from the function's arguments. If the function returns null, the result will not be cached. If the function is not provided, the JSON.stringify function is used.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function cachedFunction<T extends (...args: any[]) => any>(
   fn: T,
   options: LRUCache.Options<string, ReturnType<T>, unknown>,

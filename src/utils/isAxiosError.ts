@@ -7,6 +7,6 @@ import type { AxiosError } from 'axios';
  *
  * @see https://raw.githubusercontent.com/axios/axios/v1.x/lib/helpers/isAxiosError.js
  */
-export function isAxiosError(thing: any): thing is AxiosError {
-  return thing && typeof thing === 'object' && 'isAxiosError' in thing && thing.isAxiosError === true;
+export function isAxiosError(thing: unknown): thing is AxiosError {
+  return !!thing && typeof thing === 'object' && 'isAxiosError' in thing && thing.isAxiosError === true;
 }

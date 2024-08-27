@@ -20,7 +20,7 @@ export function applyLayoutQuirks(layouts: ILayouts, layoutSetId: string) {
       `Layout quirk(s) applied: \n - ${quirk.logMessages.join('\n - ')}.\n` +
         `Please fix your layout configuration. These workarounds will be removed in the future.`,
     );
-  } catch (e) {
+  } catch (_err) {
     return layouts;
   }
 
@@ -117,10 +117,14 @@ export const quirks: { [key: string]: QuirkDef } = {
 
       // Remove children that does not exist ('incidentVictimGroupHeader-summary')
       assert(layouts['99Summary']!.at(14)!.id === 'incident-group');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       assert((layouts['99Summary']!.at(14) as any).children[6] === 'incidentVictimGroupHeader-summary');
       assert(layouts['pdfReceipt']!.at(13)!.id === 'incident-group');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       assert((layouts['pdfReceipt']!.at(13) as any).children[6] === 'incidentVictimGroupHeader-summary');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (layouts['99Summary']!.at(14) as any)!.children.splice(6, 1);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (layouts['pdfReceipt']!.at(13) as any)!.children.splice(6, 1);
 
       layouts['01Introduction']!.at(-1)!.id = 'navButtons1';
@@ -156,6 +160,7 @@ export const quirks: { [key: string]: QuirkDef } = {
       assert(layouts['06FacilityAndEquipmentTypes']!.at(-1)!.id === 'navButtons');
 
       assert(layouts['07Summary']!.at(21)!.id === 'tasks-group');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       assert((layouts['07Summary']!.at(21) as any).children[1] === 'tasksOptionsDLE-summary');
       assert(layouts['07Summary']!.find((c) => c.id === 'tasksOptionsDLE-summary') === undefined);
 
@@ -165,6 +170,7 @@ export const quirks: { [key: string]: QuirkDef } = {
       layouts['05ProfessionalResponsibles']!.at(-1)!.id = 'navButtons5';
       layouts['06FacilityAndEquipmentTypes']!.at(-1)!.id = 'navButtons6';
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (layouts['07Summary']!.at(21) as any).children.splice(1, 1);
     },
     logMessages: [
@@ -722,11 +728,13 @@ export const quirks: { [key: string]: QuirkDef } = {
       layouts['agency-picker']![4].id = 'NavigationButtons-NWIXihDuplicate';
       layouts['already-responsible']![6].id = 'already-responsible-infoDuplicate';
       layouts['summary']![2].id = 'summary-deceased-GroupDuplicate';
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (layouts['summary']![2] as any).children = (layouts['summary']![2] as any).children.map((c: string) =>
         c === 'summary-deceased-multiple' ? c : `${c}Duplicate`,
       );
       layouts['summary']![3].id = 'summary-Paragraph-deceasedDuplicate';
       layouts['summary']![5].id = 'summary-responsible-GroupDuplicate';
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (layouts['summary']![5] as any).children = (layouts['summary']![5] as any).children.map(
         (c: string) => `${c}Duplicate`,
       );
@@ -735,6 +743,7 @@ export const quirks: { [key: string]: QuirkDef } = {
       layouts['summary']![8].id = 'summary-deceased-municipality-unknownDuplicate';
       layouts['summary']![9].id = 'summary-deceased-municipalityDuplicate';
       layouts['summary']![10].id = 'summary-funeralhome-groupDuplicate';
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (layouts['summary']![10] as any).children = (layouts['summary']![10] as any).children.map(
         (c: string) => `${c}Duplicate`,
       );
@@ -742,6 +751,7 @@ export const quirks: { [key: string]: QuirkDef } = {
       layouts['summary']![12].id = 'summary-burial-agencyDuplicate';
       layouts['summary']![13].id = 'summary-burial-agency-contactDuplicate';
       layouts['summary']![14].id = 'summary-burial-GroupDuplicate';
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (layouts['summary']![14] as any).children = (layouts['summary']![14] as any).children.map(
         (c: string) => `${c}Duplicate`,
       );

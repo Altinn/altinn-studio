@@ -70,6 +70,7 @@ export interface ExprResolver<Type extends CompTypes> {
 
 export abstract class AnyComponent<Type extends CompTypes> {
   protected readonly type: Type;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected plugins: { [key: string]: NodeDefPlugin<any> } = {};
 
   /**
@@ -100,7 +101,9 @@ export abstract class AnyComponent<Type extends CompTypes> {
   /**
    * Check if this component has a specific plugin
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public hasPlugin(constructor: new (...args: any[]) => NodeDefPlugin<any>): boolean {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return Object.values(this.plugins).some((plugin: NodeDefPlugin<any>) => plugin instanceof constructor);
   }
 
@@ -307,7 +310,7 @@ abstract class _FormComponent<Type extends CompTypes> extends AnyComponent<Type>
     name = key,
   ): [string[], undefined] | [undefined, JSONSchema7] {
     const { item, lookupBinding } = ctx;
-    const value = ((item.dataModelBindings as any) || {})[key] || '';
+    const value = (item.dataModelBindings ?? {})[key] ?? '';
 
     if (!value) {
       if (isRequired) {

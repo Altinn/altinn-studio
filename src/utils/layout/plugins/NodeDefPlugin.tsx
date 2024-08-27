@@ -10,10 +10,15 @@ import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
 export interface DefPluginConfig {
   componentType: CompTypes;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   expectedFromExternal?: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   extraState?: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   extraInItem?: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   childClaimMetadata?: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   settings?: any;
 }
 
@@ -25,6 +30,7 @@ interface DefPluginBaseNodeData<Config extends DefPluginConfig>
 
 // If the key 'extraInItem' exists in the plugin config, return the type of that key,
 // otherwise return 'undefined'
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type DefPluginExtraInItemFromPlugin<Plugin extends NodeDefPlugin<any>> =
   Plugin extends NodeDefPlugin<infer Config>
     ? DefPluginExtraInItem<Config> extends object
@@ -57,6 +63,7 @@ export type DefPluginChildClaimerProps<Config extends DefPluginConfig> = Omit<
   claimChild(childId: string, metadata: DefPluginClaimMetadata<Config>): void;
 };
 export type DefPluginSettings<Config extends DefPluginConfig> = Config['settings'];
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ConfigFromDefPlugin<C extends NodeDefPlugin<any>> = C extends NodeDefPlugin<infer Config> ? Config : never;
 
 /**
@@ -65,6 +72,7 @@ export type ConfigFromDefPlugin<C extends NodeDefPlugin<any>> = C extends NodeDe
  * generated code for the component.
  */
 export abstract class NodeDefPlugin<Config extends DefPluginConfig> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public import: GenerateImportedSymbol<any>;
 
   public constructor(protected settings?: Config['settings']) {
@@ -82,6 +90,7 @@ export abstract class NodeDefPlugin<Config extends DefPluginConfig> {
   /**
    * Makes the import object. This will run on instantiation of the plugin.
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   abstract makeImport(): GenerateImportedSymbol<any>;
 
   /**
@@ -117,6 +126,7 @@ export abstract class NodeDefPlugin<Config extends DefPluginConfig> {
   protected makeConstructorArgsWithoutDefaultSettings(defaults: unknown, asGenericArgs: boolean): string {
     const settings = this.settings;
     if (settings && typeof settings === 'object' && defaults && typeof defaults === 'object') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const nonDefaultSettings: any = Object.keys(settings)
         .filter((key) => settings[key] !== defaults[key])
         .reduce((acc, key) => {
@@ -145,8 +155,8 @@ export abstract class NodeDefPlugin<Config extends DefPluginConfig> {
       if (
         value &&
         typeof value === 'object' &&
-        typeof (value as any).serializeToTypeDefinition === 'function' &&
-        typeof (value as any).serializeToTypeScript === 'function'
+        typeof value.serializeToTypeDefinition === 'function' &&
+        typeof value.serializeToTypeScript === 'function'
       ) {
         const valueAsInstance = value as SerializableSetting;
         const result = asGenericArgs
@@ -263,8 +273,15 @@ export interface NodeDefChildrenPlugin<Config extends DefPluginConfig> {
   isChildHidden(state: DefPluginState<Config>, childNode: LayoutNode): boolean;
 }
 
-export function isNodeDefChildrenPlugin(plugin: any): plugin is NodeDefChildrenPlugin<any> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function isNodeDefChildrenPlugin(plugin: unknown): plugin is NodeDefChildrenPlugin<any> {
   return (
+    !!plugin &&
+    typeof plugin === 'object' &&
+    'claimChildren' in plugin &&
+    'pickDirectChildren' in plugin &&
+    'addChild' in plugin &&
+    'removeChild' in plugin &&
     typeof plugin.claimChildren === 'function' &&
     typeof plugin.pickDirectChildren === 'function' &&
     typeof plugin.addChild === 'function' &&

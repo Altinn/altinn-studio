@@ -123,10 +123,13 @@ describe('openByDefault', () => {
   }
 
   interface WaitForStateProps {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     state: any;
     mutations: Awaited<ReturnType<typeof render>>['mutations'];
     expectedPatch?: JsonPatch;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     newModelAfterSave?: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expectedWarning?: any;
   }
 

@@ -33,7 +33,7 @@ const buildInstance = (hasPdf = true) =>
   getInstanceDataMock((i) => {
     i.org = 'ttd';
     i.id = exampleInstanceId;
-    i.lastChanged = '2022-02-05T09:19:32.8858042Z' as any;
+    i.lastChanged = '2022-02-05T09:19:32.8858042Z';
     if (hasPdf) {
       i.data.push({
         id: exampleDataGuid,
@@ -50,9 +50,9 @@ const buildInstance = (hasPdf = true) =>
         locked: false,
         refs: [],
         isRead: true,
-        created: '2022-02-05T09:19:32.8710001Z' as any,
+        created: '2022-02-05T09:19:32.8710001Z',
         createdBy: '12345',
-        lastChanged: '2022-02-05T09:19:32.8710001Z' as any,
+        lastChanged: '2022-02-05T09:19:32.8710001Z',
         lastChangedBy: '12345',
       });
     }
@@ -70,9 +70,9 @@ const buildInstance = (hasPdf = true) =>
       locked: true,
       refs: [],
       isRead: true,
-      created: '2022-02-05T09:19:32.5897421Z' as any,
+      created: '2022-02-05T09:19:32.5897421Z',
       createdBy: '12345',
-      lastChanged: '2022-02-05T09:19:32.5897421Z' as any,
+      lastChanged: '2022-02-05T09:19:32.5897421Z',
       lastChangedBy: '12345',
     });
   });

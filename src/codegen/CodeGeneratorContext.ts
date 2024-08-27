@@ -12,8 +12,10 @@ type JsonSchema7WithDefinitions = Required<Pick<JSONSchema7, 'definitions'>> & J
  * to store information about the current file being generated (such as imports, etc).
  */
 export class CodeGeneratorContext {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static fileContext: CodeGeneratorFileContext<any> | undefined;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public static curFile(): CodeGeneratorFileContext<any> {
     if (!this.fileContext) {
       throw new Error(
@@ -168,6 +170,7 @@ export class CodeGeneratorFileContext<T extends FileType> {
     set.add(symbol);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public addSymbol(name: string, exported: boolean, generator: MaybeSymbolizedCodeGenerator<any>) {
     const comment = generator.internal.typeScript.comment
       ? `/**\n * ${generator.internal.typeScript.comment.split('\n').join('\n * ')}\n */\n`

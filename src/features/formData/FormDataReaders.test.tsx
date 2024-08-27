@@ -194,6 +194,7 @@ describe('FormDataReaders', () => {
   it('advanced, should fetch data from multiple models, handle failures', async () => {
     jest.useFakeTimers();
     const missingError = new Error('This should fail when fetching');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (missingError as any).isAxiosError = true;
 
     const model2Promise = new Promise((resolve) => {

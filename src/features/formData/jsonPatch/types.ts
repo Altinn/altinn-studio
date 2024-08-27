@@ -10,6 +10,7 @@
 export interface JsonPatchAddOp {
   op: 'add';
   path: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any;
 }
 
@@ -27,6 +28,7 @@ export interface JsonPatchRemoveOp {
 export interface JsonPatchReplaceOp {
   op: 'replace';
   path: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any;
 }
 
@@ -36,6 +38,7 @@ export interface JsonPatchReplaceOp {
 export interface JsonPatchTestOp {
   op: 'test';
   path: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any;
 }
 

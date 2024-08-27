@@ -20,6 +20,7 @@ import type {
   PresentationComponent,
 } from 'src/layout/LayoutComponent';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CategoryImports: { [Category in CompCategory]: GenerateImportedSymbol<any> } = {
   [CompCategory.Action]: new GenerateImportedSymbol<ActionComponent<CompTypes>>({
     import: 'ActionComponent',
@@ -55,6 +56,7 @@ export class ComponentConfig {
     canHaveOptions: false,
     canHaveAttachments: false,
   };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected plugins: NodeDefPlugin<any>[] = [];
 
   constructor(public readonly config: RequiredComponentConfig) {
@@ -81,6 +83,7 @@ export class ComponentConfig {
     return this;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public addPlugin(plugin: NodeDefPlugin<any>): this {
     for (const existing of this.plugins) {
       if (existing.getKey() === plugin.getKey()) {
@@ -93,6 +96,7 @@ export class ComponentConfig {
     return this;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public addProperty(prop: GenerateProperty<any>): this {
     this.inner.addProperty(prop);
     return this;
@@ -115,6 +119,7 @@ export class ComponentConfig {
     return this;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public extendTextResources(type: GenerateCommonImport<any>): this {
     this.ensureTextResourceBindings();
     this.inner.getProperty('textResourceBindings')?.type.extends(type);
@@ -142,6 +147,7 @@ export class ComponentConfig {
           | 'IDataModelBindingsOptionsSimple'
           | 'IDataModelBindingsLikert'
         >
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       | GenerateObject<any>,
   ): this {
     if (!this.isFormLike()) {
@@ -165,6 +171,7 @@ export class ComponentConfig {
     return this;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   extends(type: GenerateCommonImport<any> | ComponentConfig): this {
     if (type instanceof ComponentConfig) {
       this.inner.extends(type.inner);
@@ -177,6 +184,7 @@ export class ComponentConfig {
 
   // This will not be used at the moment after we split the group to several components.
   // However, this is nice to keep for future components that might need it.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public setLayoutNodeType(type: GenerateImportedSymbol<any>): this {
     this.layoutNodeType = type;
     return this;
@@ -317,6 +325,7 @@ export class ComponentConfig {
     });
     const pluginMap = pluginInstances.length ? `protected plugins = {${pluginInstances.join(',\n')}};` : '';
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     function pluginRef(plugin: NodeDefPlugin<any>): string {
       return `this.plugins['${plugin.getKey()}']`;
     }

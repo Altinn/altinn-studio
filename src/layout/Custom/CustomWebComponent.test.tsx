@@ -47,12 +47,14 @@ describe('CustomWebComponent', () => {
         textResourceBindings: {
           title: 'title',
         },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ...({ 'data-CustomAttributeWithJson': jsonAttributeValue } as any),
         ...component,
       },
       genericProps: {
         isValid: true,
         shouldFocus: false,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ...({ 'data-CustomAttributeWithReact': <span>Hello world</span> } as any),
       },
       queries: {

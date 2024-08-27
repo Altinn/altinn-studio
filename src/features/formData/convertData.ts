@@ -1,6 +1,7 @@
 import type { JSONSchema7, JSONSchema7Definition } from 'json-schema';
 
 interface ReturnType {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   newValue: any;
   error: boolean;
 }
@@ -51,6 +52,7 @@ function convertToType(value: Value, schema: JSONSchema7 | JSONSchema7Definition
     typeof schema === 'object' &&
     schema.type &&
     typeof schema.type === 'string' &&
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     AllValidTypes.includes(schema.type as any)
   ) {
     return convertToScalar(value, schema.type as ValidTypes, schema['@xsdType']);

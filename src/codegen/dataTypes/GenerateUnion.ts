@@ -6,6 +6,7 @@ import type { CodeGenerator, Extract } from 'src/codegen/CodeGenerator';
 /**
  * Generates a union of multiple types. In typescript this is a regular union, and in JsonSchema it is an 'anyOf'.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class GenerateUnion<U extends CodeGenerator<any>[]> extends DescribableCodeGenerator<Extract<U[number]>> {
   private types: U;
 
@@ -14,9 +15,10 @@ export class GenerateUnion<U extends CodeGenerator<any>[]> extends DescribableCo
     this.types = types;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   addType(type: CodeGenerator<any>) {
     this.ensureMutable();
-    this.types.push(type as any);
+    this.types.push(type);
   }
 
   toTypeScriptDefinition(symbol: string | undefined): string {

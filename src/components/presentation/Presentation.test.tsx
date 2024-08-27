@@ -7,7 +7,6 @@ import axios from 'axios';
 
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
-import { mockWindowWithSearch } from 'src/test/mockWindow';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { ProcessTaskType } from 'src/types';
@@ -15,25 +14,34 @@ import { HttpStatusCodes } from 'src/utils/network/networking';
 import { returnUrlToMessagebox } from 'src/utils/urls/urlHelper';
 import type { IPresentationProvidedProps } from 'src/components/presentation/Presentation';
 
-jest.mock('axios');
-
-function flushPromises() {
-  return new Promise((resolve) => window.setTimeout(resolve, 0));
-}
-
-const user = userEvent.setup();
-
 describe('Presentation', () => {
+  const user = userEvent.setup();
+  jest.mock('axios');
+  const mockedAxios = axios as jest.Mocked<typeof axios>;
+  let assignMock = jest.fn();
+  let realLocation: Location = window.location;
+
+  beforeEach(() => {
+    assignMock = jest.fn();
+    realLocation = window.location;
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should change window.location.href to query parameter returnUrl if valid URL', async () => {
     const returnUrl = 'foo';
-    const { mockAssign, clearWindow } = mockWindowWithSearch({ search: `?returnUrl=${returnUrl}` });
 
-    (axios.get as jest.Mock<typeof axios.get>).mockResolvedValue({
+    const mockedLocation = { ...realLocation, search: `?returnUrl=${returnUrl}`, assign: assignMock };
+    jest.spyOn(window, 'location', 'get').mockReturnValue(mockedLocation);
+
+    mockedAxios.get.mockResolvedValueOnce({
       data: returnUrl,
       status: HttpStatusCodes.Ok,
     });
 
-    await render({ type: ProcessTaskType.Data }, returnUrl);
+    await render({ type: ProcessTaskType.Data });
 
     expect(window.location.href).not.toEqual(returnUrl);
 
@@ -42,17 +50,17 @@ describe('Presentation', () => {
     });
     await user.click(closeButton);
 
-    expect(mockAssign).toHaveBeenCalledWith(returnUrl);
-
-    await flushPromises();
-    clearWindow();
+    expect(assignMock).toHaveBeenCalledWith(returnUrl);
   });
 
   it('should change window.location.href to default messagebox url if query parameter returnUrl is not valid', async () => {
     const origin = 'https://local.altinn.cloud';
     const returnUrl = 'https://altinn.cloud.no';
-    const { mockAssign, clearWindow } = mockWindowWithSearch({ search: `?returnUrl=${returnUrl}`, origin });
-    (axios.get as jest.Mock<typeof axios.get>).mockRejectedValue({
+    const mockedLocation = { ...realLocation, search: `?returnUrl=${returnUrl}`, assign: assignMock, origin };
+    jest.spyOn(window, 'location', 'get').mockReturnValue(mockedLocation);
+    const messageBoxUrl = returnUrlToMessagebox(origin, getPartyMock().partyId);
+
+    mockedAxios.get.mockRejectedValueOnce({
       data: 'Error',
       status: HttpStatusCodes.BadRequest,
     });
@@ -60,37 +68,36 @@ describe('Presentation', () => {
     // TODO: Replicate stateWithErrorsAndWarnings?
     await render({ type: ProcessTaskType.Data });
 
-    expect(window.location.href).not.toEqual(returnUrlToMessagebox(origin, getPartyMock().partyId));
+    expect(window.location.href).not.toEqual(messageBoxUrl);
 
     const closeButton = screen.getByRole('button', {
       name: /lukk skjema/i,
     });
+
     await user.click(closeButton);
 
-    expect(mockAssign).toHaveBeenCalledWith(returnUrlToMessagebox(origin, getPartyMock().partyId));
-
-    await flushPromises();
-    clearWindow();
+    expect(assignMock).toHaveBeenCalledWith(messageBoxUrl);
   });
 
   it('should change window.location.href to default messagebox url if query parameter returnUrl is not found', async () => {
     const origin = 'https://local.altinn.cloud';
-    const { mockAssign, clearWindow } = mockWindowWithSearch({ origin });
+    const partyId = getPartyMock().partyId;
+    const messageBoxUrl = returnUrlToMessagebox(origin, partyId);
+    const mockedLocation = { ...realLocation, assign: assignMock, origin, search: '' };
+
+    jest.spyOn(window, 'location', 'get').mockReturnValue(mockedLocation);
 
     // TODO: Replicate stateWithErrorsAndWarnings?
     await render({ type: ProcessTaskType.Data });
 
-    expect(window.location.href).not.toEqual(returnUrlToMessagebox(origin, getPartyMock().partyId));
+    expect(window.location.href).not.toEqual(messageBoxUrl);
 
     const closeButton = screen.getByRole('button', {
       name: /lukk skjema/i,
     });
     await user.click(closeButton);
 
-    expect(mockAssign).toHaveBeenCalledWith(returnUrlToMessagebox(origin, getPartyMock().partyId));
-
-    await flushPromises();
-    clearWindow();
+    expect(assignMock).toHaveBeenCalledWith(messageBoxUrl);
   });
 
   it('should render children', async () => {
@@ -119,7 +126,7 @@ describe('Presentation', () => {
   });
 });
 
-const render = async (props: Partial<IPresentationProvidedProps> = {}, returnUrl?: string) => {
+const render = async (props: Partial<IPresentationProvidedProps> = {}) => {
   const allProps = {
     header: 'Header text',
     type: ProcessTaskType.Unknown,
@@ -128,7 +135,6 @@ const render = async (props: Partial<IPresentationProvidedProps> = {}, returnUrl
 
   await renderWithInstanceAndLayout({
     renderer: () => <PresentationComponent {...allProps} />,
-    initialPage: `1?returnUrl=${returnUrl}`,
     taskId: 'Task_1',
   });
 };

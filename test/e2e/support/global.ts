@@ -78,11 +78,13 @@ declare global {
       /**
        * Typings for tab plugin
        */
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       tab(...args: any[]): Chainable<null>;
 
       /**
        * Missing typings in Cypress, added here for proper TypeScript support
        */
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       state(arg: 'window'): any;
 
       /**

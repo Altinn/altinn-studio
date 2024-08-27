@@ -3,6 +3,7 @@ import { Datalist } from 'test/e2e/pageobjects/datalist';
 import { Likert } from 'test/e2e/pageobjects/likert';
 
 import { breakpoints } from 'src/hooks/useIsMobile';
+import type { IGroupEditProperties } from 'src/layout/RepeatingGroup/config.generated';
 
 const appFrontend = new AppFrontend();
 const likertPage = new Likert();
@@ -59,7 +60,7 @@ function testGroup(mode: Mode) {
 
   // Mobile tables always have two columns
   ensureTableHasNumColumns(appFrontend.group.mainGroup, 6, 2);
-  let editWas: any = {};
+  let editWas: IGroupEditProperties = {};
   cy.changeLayout((c) => {
     if (c.id === 'mainGroup' && c.type === 'RepeatingGroup' && c.edit) {
       editWas = { ...c.edit };

@@ -36,6 +36,7 @@ export function CustomWebComponent({
     getTextResourceAsString: (textResource: string) => langAsString(textResource),
   };
   const HtmlTag = tagName;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const wcRef = React.useRef<any>(null);
   const { formData, setValue } = useDataModelBindings(dataModelBindings);
 
@@ -76,10 +77,12 @@ export function CustomWebComponent({
     return null;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const propsAsAttributes: any = {};
   Object.keys(passThroughProps).forEach((key) => {
     let prop = passThroughProps[key];
     if (React.isValidElement(prop)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       prop = ReactDOMServer.renderToStaticMarkup(prop as any);
     } else if (['object', 'array'].includes(typeof prop)) {
       prop = JSON.stringify(passThroughProps[key]);
@@ -99,7 +102,7 @@ export function CustomWebComponent({
 }
 
 function getTextsForComponent(textResourceBindings: ITextResourceBindings<'Custom'>, langTools: IUseLanguage) {
-  const result: any = {};
+  const result: Record<string, string> = {};
   const bindings = textResourceBindings ?? {};
   Object.keys(bindings).forEach((key) => {
     result[key] = langTools.langAsString(bindings[key]);

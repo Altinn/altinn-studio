@@ -7,6 +7,7 @@ import { ContextNotProvided } from 'src/core/contexts/context';
 
 export type WaitForState<T, RetVal> = (callback: Callback<T, RetVal>) => Promise<RetVal>;
 type Callback<T, RetVal> = (state: T, setReturnValue: (val: RetVal) => void) => boolean;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Subscriber = (state: any) => boolean;
 
 // If ContextNotProvided is a valid state, it will possibly be provided as a direct

@@ -27,10 +27,12 @@ export function useNodeValidation(node: LayoutNode, shouldValidate: boolean): An
     }
 
     if (implementsValidateEmptyField(node.def)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       validations.push(...node.def.runEmptyFieldValidation(node as any, validationDataSources));
     }
 
     if (implementsValidateComponent(node.def)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       validations.push(...node.def.runComponentValidation(node as any, validationDataSources));
     }
 
@@ -84,6 +86,7 @@ function filter<Validation extends BaseValidation>(
     return validations;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const filters = node.def.getValidationFilters(node as any, selector);
   if (filters.length == 0) {
     return validations;

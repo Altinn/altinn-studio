@@ -83,6 +83,7 @@ export const NodeInspector = () => {
                       Rediger konfigurasjonen i Layout-fanen
                     </a>
                   </div>
+                  {/*  eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                   {selectedNode.def.renderDevToolsInspector(selectedNode as any)}
                 </div>
               </Tabs.Content>

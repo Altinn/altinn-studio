@@ -12,6 +12,7 @@ import type { RenderGenericComponentTestProps } from 'src/test/renderWithProvide
 // Mock dateformat
 jest.mock('src/utils/dateHelpers', () => ({
   __esModules: true,
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   ...jest.requireActual<typeof import('src/utils/dateHelpers')>('src/utils/dateHelpers'),
   getDateFormat: jest.fn(() => 'DD.MM.YYYY'),
 }));

@@ -29,6 +29,7 @@ export const useGetOptionsQuery = (
   mapping?: IMapping,
   queryParameters?: Record<string, string>,
   secure?: boolean,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): UseQueryResult<AxiosResponse<IOptionInternal[], any>> => {
   const mappingResult = FD.useMapping(mapping);
   const language = useCurrentLanguage();

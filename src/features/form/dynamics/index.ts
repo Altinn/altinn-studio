@@ -1,4 +1,5 @@
 export type IFormDynamics = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   APIs: any;
   ruleConnection: IRuleConnections | null;
   conditionalRendering: IConditionalRenderingRules | null;

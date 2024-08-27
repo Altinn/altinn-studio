@@ -147,6 +147,7 @@ function ResolveRowExpressions({ internalProp }: ResolveRowProps) {
 
   const setExtra = NodesStateQueue.useSetRowExtras();
   const def = useDef(item!.type);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const resolvedRowExtras = useMemoDeepEqual(() => (def as CompDef).evalExpressionsForRow(props as any), [def, props]);
 
   GeneratorStages.EvaluateExpressions.useEffect(() => {
@@ -175,7 +176,7 @@ function mutateMultiPageIndex(multiPageMapping: MultiPageMapping | undefined): C
       return;
     }
 
-    const id = (item as any).baseComponentId ?? item.id;
+    const id = item.baseComponentId ?? item.id;
     const multiPageIndex = multiPageMapping[id];
     if (multiPageIndex !== undefined) {
       item['multiPageIndex'] = multiPageIndex;
@@ -185,7 +186,7 @@ function mutateMultiPageIndex(multiPageMapping: MultiPageMapping | undefined): C
 
 export function mutateComponentId(row: BaseRow): ChildMutator {
   return (item) => {
-    (item as any).baseComponentId = (item as any).baseComponentId || item.id;
+    item.baseComponentId = item.baseComponentId || item.id;
     item.id += `-${row.index}`;
   };
 }

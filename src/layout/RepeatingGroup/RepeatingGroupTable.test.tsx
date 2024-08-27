@@ -21,7 +21,7 @@ import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
 import type { CompRepeatingGroupExternal } from 'src/layout/RepeatingGroup/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-(global as any).ResizeObserver = ResizeObserverModule;
+global.ResizeObserver = ResizeObserverModule;
 
 const getLayout = (group: CompRepeatingGroupExternal, components: CompExternal[]): ILayoutCollection => ({
   FormLayout: {

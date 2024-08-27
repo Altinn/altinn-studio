@@ -3,6 +3,7 @@ import type { JSONSchema7 } from 'json-schema';
 import { DescribableCodeGenerator } from 'src/codegen/CodeGenerator';
 import type { CodeGenerator, Extract } from 'src/codegen/CodeGenerator';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class GenerateIntersection<U extends CodeGenerator<any>[]> extends DescribableCodeGenerator<Extract<U[number]>> {
   private types: U;
 

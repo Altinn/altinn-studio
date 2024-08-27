@@ -28,6 +28,7 @@ function getDateDisplayString(timeStamp: string) {
   let date = new Date(timeStamp);
   const offset = date.getTimezoneOffset();
   date = new Date(date.getTime() - offset * 60 * 1000);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const locale = window.navigator?.language || (window.navigator as any)?.userLanguage || 'nb-NO';
   return date.toLocaleDateString(locale, {
     year: 'numeric',

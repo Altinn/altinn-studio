@@ -7,7 +7,7 @@ import { HeaderComponent } from 'src/layout/Header/HeaderComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
-(global as any).ResizeObserver = ResizeObserverModule;
+global.ResizeObserver = ResizeObserverModule;
 
 const render = async ({ component, genericProps }: Partial<RenderGenericComponentTestProps<'Header'>> = {}) => {
   await renderGenericComponentTest({

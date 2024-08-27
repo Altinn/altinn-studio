@@ -13,6 +13,7 @@ type SelectorMap<C extends DSConfig> = ShallowArrayMap<{
 }>;
 
 type TypeFromConf<C extends DSConfig> = C extends DSConfig<infer T> ? T : never;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ModeFromConf<C extends DSConfig> = C extends DSConfig<any, infer M> ? M : never;
 
 /**
@@ -162,11 +163,13 @@ export type OnlyReRenderWhen<Type, Internal> = (
   setNewValue: (v: Internal) => void,
 ) => boolean;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface SimpleArgMode<T = unknown, Args extends any[] = unknown[], RetVal = unknown> {
   mode: 'simple';
   selector: (...args: Args) => (state: T) => RetVal;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface InnerSelectorMode<T = unknown, Args extends any[] = unknown[]> {
   mode: 'innerSelector';
   makeArgs: (state: T) => Args;
@@ -174,6 +177,7 @@ export interface InnerSelectorMode<T = unknown, Args extends any[] = unknown[]> 
 
 export type DSMode<T> = SimpleArgMode<T> | InnerSelectorMode<T>;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface DSConfig<Type = any, Mode extends DSMode<Type> = any, Strictness extends SelectorStrictness = any> {
   store: StoreApi<Type> | typeof ContextNotProvided;
   mode: Mode;
@@ -189,6 +193,7 @@ export interface DSProps<C extends DSConfig> {
 
   // State selected from the delayed selector will be compared with this function. The default is deepEqual, meaning
   // that the state will be compared by value, not by reference.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   equalityFn?: (a: any, b: any) => boolean;
 
   // A function that will create a cache key for the delayed selector. This is used to cache the results of the
@@ -203,6 +208,7 @@ export interface DSProps<C extends DSConfig> {
 
   // Any dependencies that should be passed to the delayed selector. This is used to determine when the entire
   // selector should be re-created.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   deps?: any[];
 }
 
@@ -211,5 +217,6 @@ export type DSReturn<C extends DSConfig> =
     ? (...args: Parameters<C['mode']['selector']>) => ReturnType<ReturnType<C['mode']['selector']>>
     : <U>(
         innerSelector: (...args: ReturnType<C['mode']['makeArgs']>) => U,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         deps: any[],
       ) => C['strictness'] extends SelectorStrictness.returnWhenNotProvided ? U | typeof ContextNotProvided : U;

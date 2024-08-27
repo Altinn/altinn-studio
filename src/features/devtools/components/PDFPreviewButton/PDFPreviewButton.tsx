@@ -21,6 +21,7 @@ export const PDFPreviewButton = () => {
     <Fieldset
       legend='Forhåndsvis PDF'
       description={
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         !(window as any).chrome ? (
           <span>
             Vær oppmerksom på at <code>Forhåndsvis PDF</code> ikke vil se riktig ut i andre nettlesere enn Google

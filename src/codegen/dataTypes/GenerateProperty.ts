@@ -7,6 +7,7 @@ import type { Extract } from 'src/codegen/CodeGenerator';
  * Generates a property on an object. Remember to call insertBefore/insertAfter/insertFirst before adding it to
  * the object (by calling obj.addProperty(<this object>)).
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class GenerateProperty<Val extends CodeGenerator<any>> extends CodeGenerator<Extract<Val>> {
   private _insertBefore?: string;
   private _insertAfter?: string;

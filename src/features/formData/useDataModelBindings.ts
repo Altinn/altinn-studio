@@ -15,7 +15,7 @@ import type { IDataModelBindings } from 'src/layout/layout';
 // null, string, number, arrays, objects etc, you can set this to 'raw' and get the data as it is in the data model.
 type DataAs = 'raw' | 'string';
 
-type DataType<DA extends DataAs> = DA extends 'raw' ? any : string;
+type DataType<DA extends DataAs> = DA extends 'raw' ? unknown : string;
 interface Output<B extends IDataModelBindings | undefined, DA extends DataAs> {
   formData: B extends undefined ? Record<string, never> : { [key in keyof B]: DataType<DA> };
   debounce: () => void;
@@ -50,7 +50,7 @@ export function useDataModelBindings<B extends IDataModelBindings | undefined, D
     () =>
       debounceTimeout === DEFAULT_DEBOUNCE_TIMEOUT ||
       debounceTimeout === undefined ||
-      typeof (debounceTimeout as any) === 'boolean'
+      typeof debounceTimeout === 'boolean'
         ? {}
         : { debounceTimeout },
     [debounceTimeout],

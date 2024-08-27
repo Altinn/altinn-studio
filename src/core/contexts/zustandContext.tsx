@@ -20,6 +20,7 @@ type SelectorRefFunc<T> = <U>(selector: Selector<T, U>) => { current: U };
 type SelectorRefFuncLax<T> = <U>(selector: Selector<T, U>) => { current: U | typeof ContextNotProvided };
 type SelectorFuncLax<T> = <U>(selector: Selector<T, U>) => U | typeof ContextNotProvided;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function createZustandContext<Store extends StoreApi<Type>, Type = ExtractFromStoreApi<Store>, Props = any>(
   props: CreateContextProps<Store> & {
     initialCreateStore: (props: Props) => Store;
@@ -37,6 +38,7 @@ export function createZustandContext<Store extends StoreApi<Type>, Type = Extrac
 
   const useSelectorAsRef: SelectorRefFunc<Type> = (selector) => {
     const store = useCtx();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ref = useRef<any>(selector(store.getState()));
 
     useEffect(
@@ -54,6 +56,7 @@ export function createZustandContext<Store extends StoreApi<Type>, Type = Extrac
 
   const useLaxSelectorAsRef: SelectorRefFuncLax<Type> = (selector) => {
     const store = useLaxCtx();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ref = useRef<any>(store === ContextNotProvided ? ContextNotProvided : selector(store.getState() as Type));
 
     useEffect(() => {
@@ -75,6 +78,7 @@ export function createZustandContext<Store extends StoreApi<Type>, Type = Extrac
    * 'fast-deep-equal'.
    */
   const useMemoSelector: SelectorFunc<Type> = (selector) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const prev = useRef<any>(undefined);
     return useSelector((state) => {
       const next = selector(state);
@@ -89,7 +93,9 @@ export function createZustandContext<Store extends StoreApi<Type>, Type = Extrac
   const useLaxMemoSelector: SelectorFuncLax<Type> = (selector) => {
     const _store = useLaxCtx();
     const store = _store === ContextNotProvided ? dummyStore : _store;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const prev = useRef<any>(undefined);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return useStore(store as any, (state: Type) => {
       if (_store === ContextNotProvided) {
         return ContextNotProvided;
@@ -112,7 +118,8 @@ export function createZustandContext<Store extends StoreApi<Type>, Type = Extrac
     const _store = useLaxCtx();
     const store = _store === ContextNotProvided ? dummyStore : _store;
     const selector = _store === ContextNotProvided ? () => ContextNotProvided : _selector;
-    return useStore(store as any, selector as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return useStore(store, selector as any);
   };
 
   function MyProvider({ children, ...props }: PropsWithChildren<Props>) {
@@ -132,6 +139,7 @@ export function createZustandContext<Store extends StoreApi<Type>, Type = Extrac
 
   const useLaxDS = <Mode extends DSMode<Type>>(
     mode: Mode,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     deps?: any[],
   ): DSReturn<DSConfig<Type, Mode, SelectorStrictness.returnWhenNotProvided>> =>
     useDelayedSelector({
@@ -143,7 +151,7 @@ export function createZustandContext<Store extends StoreApi<Type>, Type = Extrac
 
   const useDS = <Mode extends DSMode<Type>>(
     mode: Mode,
-    deps?: any[],
+    deps?: unknown[],
   ): DSReturn<DSConfig<Type, Mode, SelectorStrictness.throwWhenNotProvided>> =>
     useDelayedSelector({
       store: useCtx(),

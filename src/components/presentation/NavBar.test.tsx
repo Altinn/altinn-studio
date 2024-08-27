@@ -5,7 +5,6 @@ import { userEvent } from '@testing-library/user-event';
 import mockAxios from 'jest-mock-axios';
 
 import { NavBar } from 'src/components/presentation/NavBar';
-import { mockWindow } from 'src/test/mockWindow';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { ProcessTaskType } from 'src/types';
 import type { IRawTextResource } from 'src/features/language/textResources';
@@ -46,7 +45,6 @@ const render = async ({
 };
 
 describe('NavBar', () => {
-  const { mockAssign } = mockWindow();
   it('should render nav', async () => {
     await render({
       hideCloseButton: true,
@@ -56,13 +54,16 @@ describe('NavBar', () => {
   });
 
   it('should render close button', async () => {
+    const assignMock = jest.fn();
+    jest.spyOn(window, 'location', 'get').mockReturnValue({ ...window.location, assign: assignMock });
+
     await render({
       hideCloseButton: false,
       showLanguageSelector: false,
     });
     const closeButton = screen.getByRole('button', { name: /Lukk Skjema/i });
     await userEvent.click(closeButton);
-    expect(mockAssign).toHaveBeenCalled();
+    expect(assignMock).toHaveBeenCalled();
   });
 
   it('should hide close button and back button', async () => {

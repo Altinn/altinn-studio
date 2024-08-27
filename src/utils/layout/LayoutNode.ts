@@ -44,6 +44,7 @@ export class BaseLayoutNode<Type extends CompTypes = CompTypes> implements Layou
   }
 
   public isType<T extends CompTypes>(type: T): this is LayoutNode<T> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (this.type as any) === type;
   }
 
@@ -78,6 +79,7 @@ export class BaseLayoutNode<Type extends CompTypes = CompTypes> implements Layou
   }
 
   private childrenAsList(task: TraversalTask) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const def = this.def as CompDef<any>;
     return def.pickDirectChildren(task.getData(this), task.restriction) as LayoutNode[];
   }

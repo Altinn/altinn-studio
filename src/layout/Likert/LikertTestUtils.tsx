@@ -145,6 +145,7 @@ export const render = async ({
   return await renderWithInstanceAndLayout({
     renderer: () => <ContainerTester id={mockLikertLayout.id} />,
     queries: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fetchOptions: async () => ({ data: mockOptions, headers: {} }) as AxiosResponse<IRawOption[], any>,
       fetchTextResources: async () => createTextResource(mockQuestions, extraTextResources),
       fetchFormData: async () => generateMockFormData(mockQuestions),
