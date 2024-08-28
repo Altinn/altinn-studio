@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Tabs } from '@digdir/designsystemet-react';
 import type { IGenericEditComponent } from '@altinn/ux-editor/components/config/componentConfig';
 import type { ComponentType } from 'app-shared/types/ComponentType';
@@ -26,7 +26,6 @@ export interface EditImageProps extends IGenericEditComponent<ComponentType.Imag
 
 export const EditImage = ({ component, handleComponentChange }: EditImageProps) => {
   const { t } = useTranslation();
-  const [tab, setTab] = useState<string>(ImageTab.Import);
   const { org, app } = useStudioEnvironmentParams();
   const {
     data: imageFileNames,
@@ -55,7 +54,7 @@ export const EditImage = ({ component, handleComponentChange }: EditImageProps) 
   };
 
   return (
-    <Tabs size='small' value={tab} onChange={setTab}>
+    <Tabs size='small' defaultValue={ImageTab.Import}>
       <Tabs.List>
         <Tabs.Tab value={ImageTab.Import}>
           {t('ux_editor.properties_panel.images.add_image_tab_title')}

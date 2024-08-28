@@ -29,7 +29,6 @@ export const ExternalImageValidationStatus = ({
 
   const validationMessage = getValidationMessageBasedOnValidationStatus(validationResult);
 
-  debugger;
   switch (validationStatus) {
     case 'pending':
       return (

@@ -14,5 +14,6 @@ export const useValidateImageExternalUrlQuery = (
     queryKey: [QueryKey.ImageUrlValidation, org, app, url],
     queryFn: () => validateImageFromExternalUrl(org, app, url),
     staleTime: 0,
+    enabled: !!url,
   });
 };

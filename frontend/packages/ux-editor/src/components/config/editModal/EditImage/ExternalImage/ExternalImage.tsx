@@ -1,5 +1,5 @@
 import type { ChangeEvent } from 'react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { LinkIcon } from '@studio/icons';
 import { StudioToggleableTextfield } from '@studio/components';
 import { useTranslation } from 'react-i18next';
@@ -25,11 +25,17 @@ export const ExternalImage = ({
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const [url, setUrl] = useState<string>(existingImageUrl);
-  const {
-    data: validationResult,
-    status: validationStatus,
-    refetch: validateNewUrl,
-  } = useValidateImageExternalUrlQuery(org, app, url);
+  const { data: validationResult, status: validationStatus } = useValidateImageExternalUrlQuery(
+    org,
+    app,
+    url,
+  );
+
+  useEffect(() => {
+    if (validationStatus === 'success' && validationResult === 'Ok' && url !== existingImageUrl) {
+      onUrlChange(url);
+    }
+  }, [validationResult, validationStatus, onUrlChange, url, existingImageUrl]);
 
   const handleBlur = async (newUrl: string) => {
     if (newUrl === '') {
@@ -38,11 +44,6 @@ export const ExternalImage = ({
       return;
     }
     setUrl(newUrl);
-    const { data: newValidationResult } = await validateNewUrl();
-    debugger;
-    if (newValidationResult === 'Ok') {
-      onUrlChange(newUrl);
-    }
   };
 
   return (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { EditImage } from './EditImage';
 import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -84,6 +84,11 @@ describe('EditImage', () => {
     });
     await user.type(enterUrlField, externalUrl);
     await waitFor(() => enterUrlField.blur());
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(
+        textMock('ux_editor.properties_panel.images.validating_image_url_pending'),
+      ),
+    );
     expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
     expect(handleComponentChangeMock).toHaveBeenCalledWith({
       ...componentMocks[ComponentType.Image],

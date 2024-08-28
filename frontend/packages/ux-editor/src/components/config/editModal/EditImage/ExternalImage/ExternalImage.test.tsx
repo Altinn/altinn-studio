@@ -83,9 +83,53 @@ describe('ExternalImage', () => {
     );
     expect(validationSpinner).toBeInTheDocument();
     expect(queriesMock.validateImageFromExternalUrl).toHaveBeenCalled();
-    expect(queriesMock.validateImageFromExternalUrl).toHaveBeenCalledTimes(2); // one initial time and another after entering new url
+    expect(queriesMock.validateImageFromExternalUrl).toHaveBeenCalledTimes(1);
   });
   it('shows "invalid url" error message when entering an invalid url', async () => {
+    const user = userEvent.setup();
+    const invalidUrl = 'invalidUrl';
+    const validateImageFromExternalUrlMock = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve('NotValidUrl'));
+    renderExternalImage({}, { validateImageFromExternalUrl: validateImageFromExternalUrlMock });
+    const inputUrlField = screen.getByRole('textbox', {
+      name: textMock('ux_editor.properties_panel.images.enter_external_url'),
+    });
+    await user.type(inputUrlField, invalidUrl);
+    await waitFor(() => inputUrlField.blur());
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(
+        textMock('ux_editor.properties_panel.images.validating_image_url_pending'),
+      ),
+    );
+    const invalidUrlErrorMessage = screen.getByText(
+      textMock('ux_editor.properties_panel.images.invalid_external_url'),
+    );
+    expect(invalidUrlErrorMessage).toBeInTheDocument();
+  });
+  it('shows "not an image" error message when entering a url that is not an image', async () => {
+    const user = userEvent.setup();
+    const notAnImageUrl = 'notAnImageUrl';
+    const validateImageFromExternalUrlMock = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve('NotAnImage'));
+    renderExternalImage({}, { validateImageFromExternalUrl: validateImageFromExternalUrlMock });
+    const inputUrlField = screen.getByRole('textbox', {
+      name: textMock('ux_editor.properties_panel.images.enter_external_url'),
+    });
+    await user.type(inputUrlField, notAnImageUrl);
+    await waitFor(() => inputUrlField.blur());
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(
+        textMock('ux_editor.properties_panel.images.validating_image_url_pending'),
+      ),
+    );
+    const invalidUrlErrorMessage = screen.getByText(
+      textMock('ux_editor.properties_panel.images.invalid_external_url_not_an_image'),
+    );
+    expect(invalidUrlErrorMessage).toBeInTheDocument();
+  });
+  it('does not call onUrlChange when entering an invalid url', async () => {
     const user = userEvent.setup();
     const invalidUrl = 'invalidUrl';
     const queryClientMock = createQueryClientMock();
@@ -99,53 +143,45 @@ describe('ExternalImage', () => {
     });
     await user.type(inputUrlField, invalidUrl);
     await waitFor(() => inputUrlField.blur());
-    const invalidUrlErrorMessage = screen.getByText(
-      textMock('ux_editor.properties_panel.images.invalid_external_url'),
-    );
-    expect(invalidUrlErrorMessage).toBeInTheDocument();
-    expect(queriesMock.validateImageFromExternalUrl).toHaveBeenCalledTimes(2); // Remove this from test
+    expect(onUrlChangeMock).not.toHaveBeenCalled();
   });
-  it('shows "not an image" error message when entering a url that is not an image', async () => {
+  it('calls onUrlChange when entering a valid url', async () => {
     const user = userEvent.setup();
-    const notAnImageUrl = 'notAnImageUrl';
+    const validImageUrl = 'validImageUrl';
     const queryClientMock = createQueryClientMock();
-    queryClientMock.setQueryData(
-      [QueryKey.ImageUrlValidation, org, app, notAnImageUrl],
-      'NotAnImage',
-    );
+    queryClientMock.setQueryData([QueryKey.ImageUrlValidation, org, app, validImageUrl], 'Ok');
     renderExternalImage({}, {}, queryClientMock);
     const inputUrlField = screen.getByRole('textbox', {
       name: textMock('ux_editor.properties_panel.images.enter_external_url'),
     });
-    await user.type(inputUrlField, notAnImageUrl);
+    await user.type(inputUrlField, validImageUrl);
     await waitFor(() => inputUrlField.blur());
-    const invalidUrlErrorMessage = screen.getByText(
-      textMock('ux_editor.properties_panel.images.invalid_external_url_not_an_image'),
-    );
-    expect(invalidUrlErrorMessage).toBeInTheDocument();
+    expect(onUrlChangeMock).toHaveBeenCalled();
   });
-  it('does not call onUrlChange when entering an invalid url', async () => {
+  it('calls onUrlChange when entering a valid url after entering an invalid one', async () => {
     const user = userEvent.setup();
     const invalidUrl = 'invalidUrl';
-    const validateImageFromExternalUrlMock = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve('NotAnImage'));
-    renderExternalImage({}, { validateImageFromExternalUrl: validateImageFromExternalUrlMock });
+    const validImageUrl = 'validImageUrl';
+    const queryClientMock = createQueryClientMock();
+    queryClientMock.setQueryData([QueryKey.ImageUrlValidation, org, app, validImageUrl], 'Ok');
+    queryClientMock.setQueryData([QueryKey.ImageUrlValidation, org, app, invalidUrl], 'NotAnImage');
+    renderExternalImage({}, {}, queryClientMock);
+    // Entering invalid url
     const inputUrlField = screen.getByRole('textbox', {
       name: textMock('ux_editor.properties_panel.images.enter_external_url'),
     });
     await user.type(inputUrlField, invalidUrl);
     await waitFor(() => inputUrlField.blur());
-    expect(onUrlChangeMock).not.toHaveBeenCalled();
-  });
-  it('calls onUrlChange when entering a valid url', async () => {
-    const user = userEvent.setup();
-    renderExternalImage();
-    const inputUrlField = screen.getByRole('textbox', {
+    // Entering valid url
+    const viewModeUrlButton = screen.getByRole('button', {
+      name: textMock('ux_editor.properties_panel.images.enter_external_url') + ' ' + invalidUrl,
+    });
+    await user.click(viewModeUrlButton);
+    const inputUrlField2 = screen.getByRole('textbox', {
       name: textMock('ux_editor.properties_panel.images.enter_external_url'),
     });
-    await user.type(inputUrlField, 'someValidUrl');
-    await waitFor(() => inputUrlField.blur());
+    await user.type(inputUrlField2, validImageUrl);
+    await waitFor(() => inputUrlField2.blur());
     expect(onUrlChangeMock).toHaveBeenCalled();
   });
   it('sets url to view mode when entering a valid url', async () => {
