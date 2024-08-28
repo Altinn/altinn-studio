@@ -28,8 +28,18 @@ namespace Altinn.App.Models.Moped
         [JsonPropertyName("Modell")]
         public string Modell { get; set; }
 
+        [XmlElement("EkstraInfoCheck", Order = 4)]
+        [JsonProperty("EkstraInfoCheck")]
+        [JsonPropertyName("EkstraInfoCheck")]
+        public bool EkstraInfoCheck { get; set; }
+
+        [XmlElement("EkstraInfoData", Order = 5)]
+        [JsonProperty("EkstraInfoData")]
+        [JsonPropertyName("EkstraInfoData")]
+        public string EkstraInfoData { get; set; }
+
         [Range(Double.MinValue, Double.MaxValue)]
-        [XmlElement("Produksjonsaar", Order = 4)]
+        [XmlElement("Produksjonsaar", Order = 6)]
         [JsonProperty("Produksjonsaar")]
         [JsonPropertyName("Produksjonsaar")]
         [Required]

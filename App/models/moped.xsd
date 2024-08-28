@@ -11,6 +11,8 @@
         <xs:element name="RegNo" type="xs:string" />
         <xs:element name="Merke" type="xs:string" />
         <xs:element name="Modell" type="xs:string" />
+        <xs:element name="EkstraInfoCheck" type="xs:boolean" />
+        <xs:element name="EkstraInfoData" type="xs:string" />
         <xs:element name="Produksjonsaar" type="xs:long" />
       </xs:sequence>
     </xs:complexType>

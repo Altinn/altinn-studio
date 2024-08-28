@@ -33,6 +33,12 @@
     "Modell": {
       "type": "string"
     },
+    "EkstraInfoCheck": {
+      "type": "boolean"
+    },
+    "EkstraInfoData": {
+      "type": "string"
+    },
     "Produksjonsaar": {
       "type": "integer"
     }

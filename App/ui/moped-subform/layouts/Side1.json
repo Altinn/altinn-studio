@@ -53,6 +53,32 @@
       },
       {
         "dataModelBindings": {
+          "simpleBinding": "EkstraInfoCheck"
+        },
+        "id": "moped-extrainfo-check",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Har du ekstra data?"
+        },
+        "options": [
+          { "label": "Ja", "value": true },
+          { "label": "Nei", "value": false }
+        ]
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "EkstraInfoData"
+        },
+        "id": "moped-extrainfo-data",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Ekstra info data"
+        },
+        "required": true,
+        "hidden": ["equals", ["component", "moped-extrainfo-check"], false]
+      },
+      {
+        "dataModelBindings": {
           "simpleBinding": "Produksjonsaar"
         },
         "id": "moped-produksjonsaar",
