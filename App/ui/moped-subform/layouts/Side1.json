@@ -58,7 +58,7 @@
         "id": "moped-extrainfo-check",
         "type": "RadioButtons",
         "textResourceBindings": {
-          "title": "Har du ekstra data?"
+          "title": "Har du ekstra info?"
         },
         "options": [
           { "label": "Ja", "value": true },
@@ -72,7 +72,7 @@
         "id": "moped-extrainfo-data",
         "type": "Input",
         "textResourceBindings": {
-          "title": "Ekstra info data"
+          "title": "Ekstra info"
         },
         "required": true,
         "hidden": ["equals", ["component", "moped-extrainfo-check"], false]
@@ -92,6 +92,22 @@
           }
         },
         "required": true
+      },
+      {
+        "id": "moped-ekstrainfo-panel",
+        "type": "Panel",
+        "textResourceBindings": {
+          "title": "Ekstra info?",
+          "body": [
+            "if",
+              ["equals", ["component", "moped-extrainfo-check"], true],
+                "Du har valgt å melde inn ekstra informasjon",
+              "else",
+                "Ingen ekstra informasjon oppgitt"
+          ]
+        },
+        "variant": "info",
+        "showIcon": false
       },
       {
         "id": "button-group-moped",
