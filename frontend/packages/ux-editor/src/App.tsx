@@ -47,22 +47,18 @@ export function App() {
   const t = useText();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
-  const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
-  const { isSuccess: areLayoutSetsFetched, isError: layoutSetsFetchedError } = useLayoutSetsQuery(
+  const { status: widgetsStatus, isError: widgetFetchedError } = useWidgetsQuery(org, app);
+  const { status: layoutSetsStatus, isError: layoutSetsFetchedError } = useLayoutSetsQuery(
     org,
     app,
   );
-  const { isSuccess: isDataModelFetched, isError: dataModelFetchedError } =
-    useDataModelMetadataQuery({
-      org,
-      app,
-      layoutSetName: selectedFormLayoutSetName,
-      hideDefault: true,
-    });
-  const { isSuccess: areTextResourcesFetched, data: textResources } = useTextResourcesQuery(
+  const { status: dataModelStatus, isError: dataModelFetchedError } = useDataModelMetadataQuery({
     org,
     app,
-  );
+    layoutSetName: selectedFormLayoutSetName,
+    hideDefault: true,
+  });
+  const { status: textsStatus, data: textResources } = useTextResourcesQuery(org, app);
 
   const { doReloadPreview } = usePreviewContext();
   useEffect(() => {
@@ -70,8 +66,17 @@ export function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [textResources]);
 
-  const componentIsReady = areWidgetsFetched && isDataModelFetched && areTextResourcesFetched;
-  const componentHasError = dataModelFetchedError || widgetFetchedError;
+  const componentIsPending =
+    widgetsStatus === 'pending' ||
+    layoutSetsStatus === 'pending' ||
+    dataModelStatus === 'pending' ||
+    textsStatus === 'pending';
+  const componentIsReady =
+    widgetsStatus === 'success' &&
+    layoutSetsStatus === 'success' &&
+    dataModelStatus === 'success' &&
+    textsStatus === 'success';
+  const componentHasError = widgetsStatus === 'error' || dataModelStatus === 'error';
 
   const errors: ErrorKinds = {
     layoutSetsError: layoutSetsFetchedError,
@@ -86,7 +91,7 @@ export function App() {
     return <StudioPageError title={mappedError.title} message={mappedError.message} />;
   }
 
-  if (areLayoutSetsFetched) {
+  if (!componentIsPending) {
     // If layoutSets are successfully fetched, show layoutSetsSelector and app
     return (
       <div>
@@ -99,13 +104,9 @@ export function App() {
             <FormDesigner />
           </FormItemContextProvider>
         )}
-        {!componentHasError && !componentIsReady && (
-          <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('ux_editor.loading_page')} />
-        )}
       </div>
     );
   }
 
-  // If any requests are loading show spinner on whole page
-  return <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('ux_editor.loading_page')} />;
+  return <StudioPageSpinner spinnerTitle={t('ux_editor.loading_page')} />;
 }
