@@ -1,0 +1,30 @@
+replicaCount: 1
+
+image:
+  repository: altinntjenestercontainerregistry.azurecr.io/altinn-kuberneteswrapper
+  tag: latest
+  containerPort: 80
+  pullPolicy: Always
+  pullSecrets:
+    # Change this to the name of your pull secret
+    - name: acrsecret
+  serviceAccount: kuberneteswrappersa
+
+hosts:
+  dev: dev.altinn.studio
+  staging: staging.altinn.studio
+  prod: altinn.studio
+
+service:
+  name: kuberneteswrapper
+  externalPort: 3000
+  internalPort: 80
+
+ingress:
+  - metadata:
+      name: kuberneteswrapper-base-path
+      annotations:
+        traefik.ingress.kubernetes.io/rule-type: PathPrefixStrip
+        traefik.frontend.priority: "500"
+    paths:
+      - path: /kuberneteswrapper/

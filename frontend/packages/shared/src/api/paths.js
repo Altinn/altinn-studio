@@ -42,9 +42,6 @@ export const formLayoutPath = (org, app, layout, layoutSetName) => `${basePath}/
 export const formLayoutNamePath = (org, app, layoutName, layoutSetName) => `${basePath}/${org}/${app}/app-development/form-layout-name/${layoutName}?${s({ layoutSetName })}`; // Put
 export const frontEndSettingsPath = (org, app) => `${basePath}/${org}/${app}/app-development/front-end-settings`; // Get
 
-// Frontend-language
-export const frontendLangPath = (locale) => `/designer/frontend/lang/${locale}.json`;
-
 // Gitea
 export const gitCommitPath = (org, app, commitId) => `/repos/${org}/${app}/commit/${commitId}`;
 export const repositoryGitPath = (org, app) => `/repos/${org}/${app}.git`;
