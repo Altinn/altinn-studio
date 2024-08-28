@@ -3,7 +3,6 @@ import classes from './StudioPageHeader.module.css';
 import { type StudioPageHeaderVariant } from './types/StudioPageHeaderVariant';
 import { StudioPageHeaderContextProvider } from './context';
 
-// TODO - Split to separate files and folders with test
 export type StudioPageHeaderProps = {
   children: ReactNode;
   variant?: StudioPageHeaderVariant;

@@ -5,7 +5,7 @@ import { type StudioPageHeaderColor } from '../types/StudioPageHeaderColor';
 import cn from 'classnames';
 import { useStudioPageHeaderContext } from '../context';
 
-type StudioPageHeaderButtonProps = {
+export type StudioPageHeaderButtonProps = {
   color: StudioPageHeaderColor;
 } & Omit<StudioButtonProps, 'color' | 'variant'>;
 

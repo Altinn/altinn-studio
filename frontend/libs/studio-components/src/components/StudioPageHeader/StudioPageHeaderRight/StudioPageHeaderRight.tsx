@@ -1,6 +1,6 @@
 import React, { type ReactNode, type ReactElement } from 'react';
 
-type StudioPageHeaderRightProps = {
+export type StudioPageHeaderRightProps = {
   children: ReactNode;
 };
 
