@@ -1,5 +1,5 @@
-import React from 'react';
-import { StudioButton } from '@studio/components';
+import React, { useEffect } from 'react';
+import { StudioBlobDownloader } from '@studio/components';
 import { useAppContext } from '../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
@@ -7,8 +7,11 @@ import { useOptionListsQuery } from '../../hooks/queries/useOptionListsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { generateExportFormFormat } from '../../utils/exportUtils';
 import { useFormLayoutSettingsQuery } from '@altinn/ux-editor/hooks/queries/useFormLayoutSettingsQuery';
+import type { ExportForm as ExportFormType } from '../../types/ExportForm';
+import { useTranslation } from 'react-i18next';
 
 export const ExportForm = () => {
+  const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
   const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
@@ -17,9 +20,15 @@ export const ExportForm = () => {
   const { data: textResources } = useTextResourcesQuery(org, app);
   const { data: settings } = useFormLayoutSettingsQuery(org, app, selectedFormLayoutSetName);
 
-  const handleExportClick = () => {
+  const [exportFormat, setExportFormat] = React.useState<ExportFormType>({
+    appId: '',
+    formId: '',
+    pages: [],
+  });
+
+  useEffect(() => {
     if (formLayouts && textResources) {
-      const exportFormat = generateExportFormFormat(
+      const generatedExportFormat = generateExportFormFormat(
         settings?.pages?.order,
         formLayouts,
         selectedFormLayoutSetName,
@@ -29,19 +38,16 @@ export const ExportForm = () => {
         'nb',
         false,
       );
-      const blob = new Blob([JSON.stringify(exportFormat)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${selectedFormLayoutSetName}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
+      setExportFormat(generatedExportFormat);
     }
-  };
+  }, [formLayouts, textResources, settings, selectedFormLayoutSetName, app, optionLists]);
 
   return (
-    <StudioButton onClick={handleExportClick} variant='tertiary'>
-      Eksporter skjemadefinisjon
-    </StudioButton>
+    <StudioBlobDownloader
+      fileName={`${selectedFormLayoutSetName}.json`}
+      fileType='application/json'
+      linkText={t('ux_editor.top_bar.export_form')}
+      data={JSON.stringify(exportFormat)}
+    />
   );
 };
