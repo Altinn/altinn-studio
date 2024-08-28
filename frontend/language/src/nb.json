@@ -578,6 +578,7 @@
   "policy_editor.select_auth_level_label": "Velg det sikkerhetsnivået som brukeren minst må ha",
   "policy_editor.verification_modal_text": "Er du sikker på at du vil slette denne regelen?",
   "preview.limitations_info": "Forhåndsvisningen til Altinn Studio lar deg se en forenklet visning av skjemasidene. Visningen tar ikke hensyn til forhåndsutfylling og egendefinerte funksjoner. Du får derfor ikke testet hele flyten i appen her.",
+  "preview.loading_page": "Laster inn forhpndsvisning",
   "preview.subheader.restart": "Start på nytt",
   "preview.subheader.sharelink": "Del lenke",
   "preview.subheader.showas": "Vis som",

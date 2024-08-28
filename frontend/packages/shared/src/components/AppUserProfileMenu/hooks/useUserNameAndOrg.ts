@@ -23,4 +23,5 @@ export const useUserNameAndOrg = (user: User, org: string, repository: Repositor
   return getUsername(user);
 };
 
-const getUsername = (user: User | Repository['owner']) => user.full_name || user.login;
+// This gives error for preview as both full_name and login is undefined.. Happends when
+const getUsername = (user: User | Repository['owner']) => user?.full_name || user.login;

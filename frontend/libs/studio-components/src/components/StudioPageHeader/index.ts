@@ -1,12 +1,10 @@
-import {
-  StudioPageHeader as StudioPageHeaderParent,
-  StudioPageHeaderCenter,
-  StudioPageHeaderLeft,
-  StudioPageHeaderMain,
-  StudioPageHeaderRight,
-  StudioPageHeaderSub,
-} from './StudioPageHeader';
+import { StudioPageHeader as StudioPageHeaderParent } from './StudioPageHeader';
 import { StudioPageHeaderButton } from './StudioPageHeaderButton';
+import { StudioPageHeaderCenter } from './StudioPageHeaderCenter';
+import { StudioPageHeaderLeft } from './StudioPageHeaderLeft';
+import { StudioPageHeaderMain } from './StudioPageHeaderMain';
+import { StudioPageHeaderRight } from './StudioPageHeaderRight';
+import { StudioPageHeaderSub } from './StudioPageHeaderSub';
 
 type StudioPageHeaderComponent = typeof StudioPageHeaderParent & {
   Main: typeof StudioPageHeaderMain;

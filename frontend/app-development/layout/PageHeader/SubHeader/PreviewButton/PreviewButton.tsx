@@ -1,5 +1,5 @@
 import React, { type ReactElement } from 'react';
-import classes from './SubHeader.module.css';
+import classes from './PreviewButton.module.css';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { useSelectedFormLayoutSetName, useSelectedFormLayoutName } from '@altinn/ux-editor/hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

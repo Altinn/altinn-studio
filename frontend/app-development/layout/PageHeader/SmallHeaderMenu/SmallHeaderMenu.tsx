@@ -53,6 +53,7 @@ export const SmallHeaderMenu = (): ReactElement => {
   const menuGroupHeader = (menuGroup: NavigationMenuSmallGroup) =>
     menuGroup.showName ? t(menuGroup.name) : '';
 
+  // TODO - Move the Profile image to the top of this menu
   return (
     <DropdownMenu onClose={handleClose} open={open}>
       <DropdownMenu.Trigger asChild>

@@ -13,7 +13,12 @@ import {
   useSelectedFormLayoutSetName,
   useSelectedTaskId,
 } from '@altinn/ux-editor/hooks';
-import { StudioPageHeader, type StudioProfileMenuItem, useMediaQuery } from '@studio/components';
+import {
+  StudioPageHeader,
+  StudioPageSpinner,
+  type StudioProfileMenuItem,
+  useMediaQuery,
+} from '@studio/components';
 import { AppUserProfileMenu } from 'app-shared/components/AppUserProfileMenu';
 import { PreviewControlHeader } from '../components/PreviewControlHeader';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
@@ -27,7 +32,7 @@ export const LandingPage = () => {
   const { t } = useTranslation();
   const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const previewConnection = usePreviewConnection();
-  const { data: user } = useUserQuery();
+  const { data: user, isPending: isPendingUser } = useUserQuery();
   const { mutate: logout } = useLogoutMutation();
   const { data: repository } = useRepoMetadataQuery(org, app);
   const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } =
@@ -70,6 +75,8 @@ export const LandingPage = () => {
       }
     });
   }
+
+  if (isPendingUser) return <StudioPageSpinner spinnerTitle={t('preview.loading_page')} />;
 
   // TODO - WHY NOT CORRECT FONT FAMILY
   return (

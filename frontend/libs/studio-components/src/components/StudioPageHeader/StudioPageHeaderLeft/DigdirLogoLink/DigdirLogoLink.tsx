@@ -2,8 +2,8 @@ import React from 'react';
 import classes from './DigdirLogoLink.module.css';
 import { DigdirLogo } from './DigdirLogo';
 import { Paragraph } from '@digdir/design-system-react';
-import { StudioPageHeaderButton } from '../StudioPageHeaderButton';
-import { useStudioPageHeaderContext } from '../context';
+import { StudioPageHeaderButton } from '../../StudioPageHeaderButton';
+import { useStudioPageHeaderContext } from '../../context';
 
 export type DigdirLogoLinkProps = {
   title?: string;

@@ -1,0 +1,7 @@
+.regularSub {
+  background-color: var(--studio-button-regular-medium);
+}
+
+.previewSub {
+  background-color: var(--studio-button-preview-dark);
+}
