@@ -32,7 +32,6 @@ export const PageHeader = ({ showSubMenu, isRepoError }: PageHeaderProps): React
           <StudioPageHeader.Center>
             {menuItems && (
               <LargeNavigationMenu
-                // TODO FUNCTION
                 menuItems={menuItems.map((menuItem: HeaderMenuItem) => ({
                   link: menuItem.link,
                   name: t(menuItem.key),

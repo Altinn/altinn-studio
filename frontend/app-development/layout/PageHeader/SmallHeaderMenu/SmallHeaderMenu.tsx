@@ -30,7 +30,7 @@ export const SmallHeaderMenu = (): ReactElement => {
 
   const profileMenuGroup: NavigationMenuSmallGroup = {
     name: userNameAndOrg,
-    showName: true,
+    showName: false,
     items: profileMenuItems.map((item: StudioProfileMenuItem) => ({
       name: item.itemName,
       action: item.action,
@@ -70,10 +70,7 @@ export const SmallHeaderMenu = (): ReactElement => {
       <DropdownMenu.Content>
         {menuGroups.map((menuGroup: NavigationMenuSmallGroup, index: number) => (
           <React.Fragment key={menuGroup.name}>
-            <DropdownMenu.Group
-              // TODO - Fix long name. If too long, display some of it and show full name when hover
-              heading={menuGroupHeader(menuGroup)}
-            >
+            <DropdownMenu.Group heading={menuGroupHeader(menuGroup)}>
               {menuGroup.items.map((menuItem: NavigationMenuSmallItem) => (
                 <SmallHeaderMenuItem
                   key={menuItem.name}

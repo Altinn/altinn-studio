@@ -20,13 +20,9 @@ import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 
-export interface LandingPageProps {
-  variant?: 'regular' | 'preview'; // TODO - Import from studio components? // SAME AS StudioProfileMenuProps['color'];
-}
-
 export type PreviewAsViewSize = 'desktop' | 'mobile';
 
-export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
+export const LandingPage = () => {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
   const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
@@ -56,12 +52,11 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
     itemName: t('sync_header.documentation'),
     hasDivider: true,
   };
-
-  // TODO - A better way to use the type here?
   const logOutMenuItem: StudioProfileMenuItem = {
     action: { type: 'button', onClick: logout },
     itemName: t('shared.header_logout'),
   };
+  const profileMenuItems: StudioProfileMenuItem[] = [docsMenuItem, logOutMenuItem];
 
   if (previewConnection) {
     previewConnection.on('ReceiveMessage', function (message) {
@@ -87,7 +82,7 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
               user={user}
               repository={repository}
               color='light'
-              profileMenuItems={[docsMenuItem, logOutMenuItem]}
+              profileMenuItems={profileMenuItems}
             />
           </StudioPageHeader.Right>
         </StudioPageHeader.Main>
@@ -95,7 +90,6 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
           <AppPreviewSubMenu />
         </StudioPageHeader.Sub>
       </StudioPageHeader>
-      {/* TODO - MOVE TO SEPARATE FILE */}
       <div className={classes.previewArea}>
         <PreviewControlHeader
           setViewSize={setPreviewViewSize}

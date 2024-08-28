@@ -32,7 +32,7 @@ export const PageHeaderContextProvider = ({
   const { mutate: logout } = useLogoutMutation();
 
   const repoType = getRepositoryType(org, app);
-  const menuItems = getTopBarMenuItems(repoType, repoOwnerIsOrg); // TODO - context
+  const menuItems = getTopBarMenuItems(repoType, repoOwnerIsOrg);
 
   const docsMenuItem: StudioProfileMenuItem = {
     action: { type: 'link', href: altinnDocsUrl('nb'), openInNewTab: true },

@@ -1,7 +1,1 @@
-export {
-  HeaderContext,
-  type HeaderContextType,
-  getOrgNameByUsername,
-  getOrgUsernameByUsername,
-  SelectedContextType,
-} from './HeaderContext';
+export { HeaderContext, type HeaderContextType, SelectedContextType } from './HeaderContext';

@@ -12,13 +12,9 @@ import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { type Organization } from 'app-shared/types/Organization';
 import { repositoryBasePath, repositoryOwnerPath } from 'app-shared/api/paths';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
-import {
-  HeaderContext,
-  getOrgNameByUsername,
-  getOrgUsernameByUsername,
-  SelectedContextType,
-} from 'dashboard/context/HeaderContext';
+import { HeaderContext, SelectedContextType } from 'dashboard/context/HeaderContext';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
+import { getOrgNameByUsername, getOrgUsernameByUsername } from 'dashboard/utils/userUtils';
 
 export const DashboardHeader = () => {
   const selectedContext = useSelectedContext();

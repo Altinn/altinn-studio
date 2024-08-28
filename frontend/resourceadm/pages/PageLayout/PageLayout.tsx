@@ -1,7 +1,11 @@
 import React, { useContext, useEffect, useMemo } from 'react';
 import classes from './PageLayout.module.css';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { userHasAccessToOrganization } from '../../utils/userUtils';
+import {
+  getOrgNameByUsername,
+  getOrgUsernameByUsername,
+  userHasAccessToOrganization,
+} from '../../utils/userUtils';
 import { useOrganizationsQuery } from '../../hooks/queries';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
@@ -18,12 +22,7 @@ import { type Organization } from 'app-shared/types/Organization';
 import { useTranslation } from 'react-i18next';
 import { SelectedContextType } from 'resourceadm/context/HeaderContext';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
-import {
-  HeaderContext,
-  type HeaderContextType,
-  getOrgNameByUsername,
-  getOrgUsernameByUsername,
-} from 'resourceadm/context/HeaderContext';
+import { HeaderContext, type HeaderContextType } from 'resourceadm/context/HeaderContext';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 
 /**

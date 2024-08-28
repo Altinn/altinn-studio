@@ -18,3 +18,13 @@ export const userHasAccessToSelectedContext = ({
 
   return Boolean(orgs.find((org) => org.username === selectedContext));
 };
+
+export const getOrgNameByUsername = (username: string, orgs: Organization[]) => {
+  const org = orgs?.find((o) => o.username === username);
+  return org?.full_name || org?.username;
+};
+
+export const getOrgUsernameByUsername = (username: string, orgs: Organization[]) => {
+  const org = orgs?.find((o) => o.username === username);
+  return org?.username;
+};
