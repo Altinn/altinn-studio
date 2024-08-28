@@ -20,9 +20,9 @@
         "hidden": false,
         "target": {
           "taskId": "Task_1",
-          "id": "Task_1"
+          "type": "layoutSet"
         },
-        "showPageInAccordion": true
+        "showPageInAccordion": false
       }
     ]
   }

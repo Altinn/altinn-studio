@@ -150,7 +150,7 @@
             },
             {
                 "dataModelBindings": {
-                    "simpleBinding": "nestedInput"
+                    "simpleBinding": "nestedInput2"
                 },
                 "id": "GroupPage-Nested-Input2",
                 "type": "Input",
