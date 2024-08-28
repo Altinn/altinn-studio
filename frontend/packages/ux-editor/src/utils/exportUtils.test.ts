@@ -1,4 +1,4 @@
-import { generateExportFormFormat } from './exportUtils';
+import { ExportUtils } from './exportUtils';
 import type { IFormLayouts } from '../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { ITextResources } from 'app-shared/types/global';
@@ -107,7 +107,7 @@ describe('generateExportFormFormat', () => {
   it.each(['nb', 'en'])(
     'should generate correct export format for specified default language',
     (language) => {
-      const result = generateExportFormFormat(
+      const generator = new ExportUtils(
         settings.pages.order,
         generateMockInternalFormLayouts([component1, component2]),
         selectedFormLayoutSetName,
@@ -117,6 +117,8 @@ describe('generateExportFormFormat', () => {
         language,
         false,
       );
+
+      const result = generator.generateExportFormFormat();
 
       const expectedExportForm: ExportForm = {
         appId: app,
@@ -190,7 +192,7 @@ describe('generateExportFormFormat', () => {
   );
 
   it('should generate correct export format for all languages if no default language is specified', () => {
-    const result = generateExportFormFormat(
+    const generator = new ExportUtils(
       settings.pages.order,
       generateMockInternalFormLayouts([component1]),
       selectedFormLayoutSetName,
@@ -200,6 +202,8 @@ describe('generateExportFormFormat', () => {
       undefined,
       false,
     );
+
+    const result = generator.generateExportFormFormat();
 
     const expectedExportForm: ExportForm = {
       appId: app,
@@ -240,7 +244,7 @@ describe('generateExportFormFormat', () => {
   });
 
   it('should only include default properties when includeRestProperties is false', () => {
-    const result = generateExportFormFormat(
+    const generator = new ExportUtils(
       settings.pages.order,
       generateMockInternalFormLayouts([component1, component2]),
       selectedFormLayoutSetName,
@@ -251,13 +255,15 @@ describe('generateExportFormFormat', () => {
       false,
     );
 
+    const result = generator.generateExportFormFormat();
+
     expect(result.pages[0].components[0]).not.toHaveProperty('required');
     expect(result.pages[0].components[0]).not.toHaveProperty('readOnly');
     expect(result.pages[0].components[1]).not.toHaveProperty('mapping');
   });
 
   it('should include all properties when includeRestProperties is true', () => {
-    const result = generateExportFormFormat(
+    const generator = new ExportUtils(
       settings.pages.order,
       generateMockInternalFormLayouts([component1, component2]),
       selectedFormLayoutSetName,
@@ -267,6 +273,8 @@ describe('generateExportFormFormat', () => {
       'nb',
       true,
     );
+
+    const result = generator.generateExportFormFormat();
 
     expect(result.pages[0].components[0]).toHaveProperty('required');
     expect(result.pages[0].components[0]).toHaveProperty('readOnly');
@@ -283,7 +291,7 @@ describe('generateExportFormFormat', () => {
       required: true,
       readOnly: false,
     };
-    const result = generateExportFormFormat(
+    const generator = new ExportUtils(
       settings.pages.order,
       generateMockInternalFormLayouts([componentWithoutTextResourceBindings]),
       selectedFormLayoutSetName,
@@ -293,6 +301,8 @@ describe('generateExportFormFormat', () => {
       'nb',
       true,
     );
+
+    const result = generator.generateExportFormFormat();
 
     expect(result.pages[0].components[0].texts).toEqual([]);
   });

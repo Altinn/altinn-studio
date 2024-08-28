@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { StudioBlobDownloader } from '@studio/components';
 import { useAppContext } from '../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { useOptionListsQuery } from '../../hooks/queries/useOptionListsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
-import { generateExportFormFormat } from '../../utils/exportUtils';
+import { ExportUtils } from '../../utils/exportUtils';
 import { useFormLayoutSettingsQuery } from '@altinn/ux-editor/hooks/queries/useFormLayoutSettingsQuery';
 import type { ExportForm as ExportFormType } from '../../types/ExportForm';
 import { useTranslation } from 'react-i18next';
@@ -20,15 +20,9 @@ export const ExportForm = () => {
   const { data: textResources } = useTextResourcesQuery(org, app);
   const { data: settings } = useFormLayoutSettingsQuery(org, app, selectedFormLayoutSetName);
 
-  const [exportFormat, setExportFormat] = React.useState<ExportFormType>({
-    appId: '',
-    formId: '',
-    pages: [],
-  });
-
-  useEffect(() => {
-    if (formLayouts && textResources) {
-      const generatedExportFormat = generateExportFormFormat(
+  const exportUtils = useMemo(
+    () =>
+      new ExportUtils(
         settings?.pages?.order,
         formLayouts,
         selectedFormLayoutSetName,
@@ -37,10 +31,22 @@ export const ExportForm = () => {
         optionLists,
         'nb',
         false,
-      );
+      ),
+    [formLayouts, textResources, settings, selectedFormLayoutSetName, app, optionLists],
+  );
+
+  const [exportFormat, setExportFormat] = React.useState<ExportFormType>({
+    appId: '',
+    formId: '',
+    pages: [],
+  });
+
+  useEffect(() => {
+    if (formLayouts && textResources) {
+      const generatedExportFormat = exportUtils.generateExportFormFormat();
       setExportFormat(generatedExportFormat);
     }
-  }, [formLayouts, textResources, settings, selectedFormLayoutSetName, app, optionLists]);
+  }, [formLayouts, textResources, exportUtils]);
 
   return (
     <StudioBlobDownloader
