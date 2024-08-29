@@ -25,11 +25,15 @@ jobs:
             authentication
             authorization
             contact
+            content-library
             codelist
             dashboard
             data-modeling
             data-storage
+            dependencies
+            designer
             designsystem
+            documentation
             form-layout
             header
             infrastructure
@@ -38,6 +42,7 @@ jobs:
             message
             message-box
             miscellaneous
+            overview
             pdf
             prefill
             process
@@ -47,8 +52,10 @@ jobs:
             resource-registry
             settings
             studio-root
-            test
+            sub-form
+            testing
+            text
             text-editor
             ui-component
             ui-editor
-            overview
+            ux
