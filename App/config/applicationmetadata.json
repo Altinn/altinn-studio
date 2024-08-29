@@ -48,7 +48,8 @@
         "allowAnonymousOnStateless": false,
         "autoDeleteOnProcessEnd": false,
         "allowUserDelete": true,
-        "allowUserCreate": true
+        "allowUserCreate": true,
+        "allowInSubform": true
       },
       "taskId": "Task_1",
       "maxCount": 5,
@@ -69,7 +70,8 @@
         "allowAnonymousOnStateless": false,
         "autoDeleteOnProcessEnd": false,
         "allowUserDelete": true,
-        "allowUserCreate": true
+        "allowUserCreate": true,
+        "allowInSubform": true
       },
       "taskId": "Task_1",
       "maxCount": 0,
