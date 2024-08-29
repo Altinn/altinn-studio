@@ -43,6 +43,10 @@ class BpmnModelerMockImpl {
           newSelection: [getMockBpmnElementForTask(this._currentTaskType)],
           oldSelection: [],
         });
+        listener({
+          newSelection: [],
+          oldSelection: [getMockBpmnElementForTask(this._currentTaskType)],
+        });
       } else {
         listener({ element: getMockBpmnElementForTask(this._currentTaskType) });
       }
@@ -150,8 +154,9 @@ describe('useBpmnEditor', () => {
     const currentEventName = 'selection.changed';
     renderUseBpmnEditor(true, currentEventName);
 
-    await waitFor(() => expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(setBpmnDetailsMock).toHaveBeenCalledTimes(2));
     expect(setBpmnDetailsMock).toHaveBeenCalledWith(mockBpmnDetails);
+    expect(setBpmnDetailsMock).toHaveBeenCalledWith(null);
   });
 });
 
