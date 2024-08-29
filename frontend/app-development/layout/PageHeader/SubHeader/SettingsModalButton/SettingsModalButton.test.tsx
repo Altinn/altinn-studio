@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SettingsModalButton } from './SettingsModalButton';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -8,8 +8,13 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { MemoryRouter } from 'react-router-dom';
-import { AppDevelopmentContextProvider } from '../../contexts/AppDevelopmentContext';
+import { AppDevelopmentContextProvider } from 'app-development/contexts/AppDevelopmentContext';
+import { useMediaQuery } from '@studio/components/src/hooks/useMediaQuery';
+import { renderWithProviders } from 'app-development/test/mocks';
+import { pageHeaderContextMock } from 'app-development/test/headerMocks';
+import { PageHeaderContext } from 'app-development/contexts/PageHeaderContext';
+
+jest.mock('@studio/components/src/hooks/useMediaQuery');
 
 describe('SettingsModal', () => {
   const user = userEvent.setup();
@@ -67,6 +72,25 @@ describe('SettingsModal', () => {
     });
     expect(modalHeadingAfter).not.toBeInTheDocument();
   });
+
+  it('should render the button with text on a large screen', () => {
+    renderSettingsModalButton();
+
+    expect(screen.getByText(textMock('sync_header.settings'))).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: textMock('sync_header.settings') }),
+    ).toBeInTheDocument();
+  });
+
+  it('should not render the button text on a small screen', () => {
+    (useMediaQuery as jest.Mock).mockReturnValue(true);
+    renderSettingsModalButton();
+
+    expect(screen.queryByText(textMock('sync_header.settings'))).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: textMock('sync_header.settings') }),
+    ).toBeInTheDocument();
+  });
 });
 
 const renderSettingsModalButton = (
@@ -77,13 +101,13 @@ const renderSettingsModalButton = (
     ...queriesMock,
     ...queries,
   };
-  return rtlRender(
-    <MemoryRouter>
-      <ServicesContextProvider {...allQueries} client={queryClient}>
-        <AppDevelopmentContextProvider>
+  return renderWithProviders()(
+    <ServicesContextProvider {...allQueries} client={queryClient}>
+      <AppDevelopmentContextProvider>
+        <PageHeaderContext.Provider value={{ ...pageHeaderContextMock }}>
           <SettingsModalButton />
-        </AppDevelopmentContextProvider>
-      </ServicesContextProvider>
-    </MemoryRouter>,
+        </PageHeaderContext.Provider>
+      </AppDevelopmentContextProvider>
+    </ServicesContextProvider>,
   );
 };

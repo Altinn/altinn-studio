@@ -24,6 +24,7 @@ export const SettingsModalButton = (): ReactNode => {
         onClick={() => setSettingsModalOpen(true)}
         icon={<CogIcon />}
         variant={variant}
+        aria-label={t('sync_header.settings')}
       >
         {shouldDisplayText && t('sync_header.settings')}
       </StudioPageHeaderButton>

@@ -21,10 +21,9 @@ export const PreviewButton = (): ReactElement => {
   const packagesRouter = new PackagesRouter({ org, app });
   const previewLink: string = `${packagesRouter.getPackageNavigationUrl('preview')}${layout ? `?layout=${layout}` : ''}`;
 
-  console.log('previewLink', previewLink);
   return (
     <StudioPageHeaderButton asChild color='dark' variant={variant}>
-      <a href={previewLink} className={classes.previewLink}>
+      <a href={previewLink} className={classes.previewLink} aria-label={t('top_menu.preview')}>
         <PlayFillIcon className={classes.playIcon} />
         {shouldDisplayText && t('top_menu.preview')}
       </a>

@@ -42,6 +42,7 @@ describe('PreviewButton', () => {
     renderPreviewButton();
 
     expect(screen.getByText(textMock('top_menu.preview'))).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: textMock('top_menu.preview') })).toBeInTheDocument();
     expect(screen.getByRole('link')).toHaveAttribute('href', `${urlMock}?layout=${layoutMock}`);
   });
 
@@ -50,6 +51,7 @@ describe('PreviewButton', () => {
     renderPreviewButton();
 
     expect(screen.queryByText(textMock('top_menu.preview'))).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: textMock('top_menu.preview') })).toBeInTheDocument();
     expect(screen.getByRole('link')).toHaveAttribute('href', `${urlMock}?layout=${layoutMock}`);
   });
 });
