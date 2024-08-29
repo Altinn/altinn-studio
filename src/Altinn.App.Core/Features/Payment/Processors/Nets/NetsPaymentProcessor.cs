@@ -6,7 +6,6 @@ using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
-using OrderDetails = Altinn.App.Core.Features.Payment.Models.OrderDetails;
 
 namespace Altinn.App.Core.Features.Payment.Processors.Nets;
 
@@ -49,6 +48,13 @@ internal class NetsPaymentProcessor : IPaymentProcessor
         string baseUrl = _generalSettings.FormattedExternalAppBaseUrl(new AppIdentifier(instance));
         var altinnAppUrl = $"{baseUrl}#/instance/{instanceIdentifier}";
 
+        if (_settings.MerchantHandlesConsumerData == true && orderDetails.Payer is null)
+        {
+            throw new PaymentException(
+                "Payer is missing in orderDetails. MerchantHandlesConsumerData is set to true. Payer must be provided."
+            );
+        }
+
         var payment = new NetsCreatePayment()
         {
             Order = new NetsOrder
@@ -82,6 +88,8 @@ internal class NetsPaymentProcessor : IPaymentProcessor
                 TermsUrl = _settings.TermsUrl,
                 ReturnUrl = altinnAppUrl,
                 CancelUrl = altinnAppUrl,
+                Consumer = NetsMapper.MapConsumerDetails(orderDetails.Payer),
+                MerchantHandlesConsumerData = _settings.MerchantHandlesConsumerData ?? orderDetails.Payer is not null,
                 ConsumerType = new NetsConsumerType
                 {
                     SupportedTypes = NetsMapper.MapConsumerTypes(orderDetails.AllowedPayerTypes),
@@ -153,9 +161,9 @@ internal class NetsPaymentProcessor : IPaymentProcessor
         PaymentStatus status = chargedAmount > 0 ? PaymentStatus.Paid : PaymentStatus.Created;
         NetsPaymentDetails? paymentPaymentDetails = payment.PaymentDetails;
 
-        var checkout =
+        NetsCheckoutUrls checkout =
             payment.Checkout ?? throw new PaymentException("Checkout information is missing in the response from Nets");
-        var checkoutUrl =
+        string checkoutUrl =
             checkout.Url ?? throw new PaymentException("Checkout URL is missing in the response from Nets");
 
         PaymentDetails paymentDetails =

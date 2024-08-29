@@ -16,6 +16,7 @@ using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -41,6 +42,7 @@ public class InstancesController_ActiveInstancesTest
     private readonly Mock<IProfileClient> _profile = new();
     private readonly Mock<IProcessEngine> _processEngine = new();
     private readonly Mock<IOrganizationClient> _oarganizationClientMock = new();
+    private readonly Mock<IHostEnvironment> _envMock = new();
 
     private InstancesController SUT =>
         new InstancesController(
@@ -58,7 +60,8 @@ public class InstancesController_ActiveInstancesTest
             _prefill.Object,
             _profile.Object,
             _processEngine.Object,
-            _oarganizationClientMock.Object
+            _oarganizationClientMock.Object,
+            _envMock.Object
         );
 
     private void VerifyNoOtherCalls()

@@ -13,7 +13,7 @@ public static class XacmlRequestAttribute
     public const string AppAttribute = "urn:altinn:app";
 
     /// <summary>
-    /// xacml string that represents isntance
+    /// xacml string that represents instanceid
     /// </summary>
     public const string InstanceAttribute = "urn:altinn:instance-id";
 
@@ -38,6 +38,16 @@ public static class XacmlRequestAttribute
     public const string PartyAttribute = "urn:altinn:partyid";
 
     /// <summary>
+    /// xacml string that represents organization number
+    /// </summary>
+    public const string OrganizationNumberAttribute = "urn:altinn:organization:identifier-no";
+
+    /// <summary>
+    /// Legacu xacml string that represents organization number. Can be removed when all peps are updated
+    /// </summary>
+    public const string LegacyOrganizationNumberAttribute = "urn:altinn:organizationnumber";
+
+    /// <summary>
     /// xacml string that represents user
     /// </summary>
     public const string UserAttribute = "urn:altinn:userid";
@@ -46,4 +56,19 @@ public static class XacmlRequestAttribute
     /// xacml string that represents role
     /// </summary>
     public const string RoleAttribute = "urn:altinn:rolecode";
+
+    /// <summary>
+    /// Digitalt Dodsbo Role Code Attribute match identifier
+    /// </summary>
+    public const string OedRoleAttribute = "urn:digitaltdodsbo:rolecode";
+
+    /// <summary>
+    /// xacml string that represents resource
+    /// </summary>
+    public const string ResourceRegistryAttribute = "urn:altinn:resource";
+
+    /// <summary>
+    /// xacml string that represents person identifier
+    /// </summary>
+    public const string PersonIdAttribute = "urn:altinn:person:identifier-no";
 }

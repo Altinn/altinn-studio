@@ -100,8 +100,9 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
                     It.IsAny<Skjema?>(),
                     null
                 ),
+            // Note: First write circumvents the DataController, through autoCreate=true -> ProcessTaskInitializer
             Times.Exactly(1)
-        ); // TODO: Shouldn't this be 2 because of the first write?
+        );
         _dataProcessor.VerifyNoOtherCalls();
     }
 

@@ -18,6 +18,7 @@ using Altinn.App.Core.Internal.Registers;
 using AltinnCore.Authentication.JwtCookie;
 using App.IntegrationTests.Mocks.Services;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -33,7 +34,8 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(
     new WebApplicationOptions()
     {
         ApplicationName = "Altinn.App.Api.Tests",
-        WebRootPath = Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributer-restriction")
+        WebRootPath = Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributer-restriction"),
+        EnvironmentName = "Production",
     }
 );
 

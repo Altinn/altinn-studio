@@ -16,6 +16,11 @@ public class OrderDetails
     public required PaymentReceiver Receiver { get; set; }
 
     /// <summary>
+    /// The party that will make the payment. How this is used/respected can vary between payment processors. Some payment processors might require this to be set.
+    /// </summary>
+    public Payer? Payer { get; set; }
+
+    /// <summary>
     /// Monetary unit of the prices in the order.
     /// </summary>
     public required string Currency { get; set; }

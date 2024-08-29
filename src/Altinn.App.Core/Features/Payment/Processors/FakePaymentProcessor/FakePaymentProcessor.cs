@@ -1,4 +1,4 @@
-﻿using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;

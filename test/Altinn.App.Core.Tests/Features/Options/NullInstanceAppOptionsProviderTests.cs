@@ -1,4 +1,5 @@
 using Altinn.App.Core.Features.Options;
+using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Models;
 using FluentAssertions;
 
@@ -14,7 +15,7 @@ public class NullInstanceAppOptionsProviderTests
         provider.Id.Should().Be(string.Empty);
         var options = await provider.GetInstanceAppOptionsAsync(
             new InstanceIdentifier(12345, Guid.NewGuid()),
-            "nb",
+            LanguageConst.Nb,
             new Dictionary<string, string>()
         );
         options.Options.Should().BeNull();

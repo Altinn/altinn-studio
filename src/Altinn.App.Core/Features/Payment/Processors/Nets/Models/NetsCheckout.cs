@@ -40,6 +40,12 @@ internal class NetsCheckout
     public string? CancelUrl { get; set; }
 
     /// <summary>
+    /// Contains information about the customer. If provided, this information will be used for initating the consumer data of the payment object.
+    /// See also the property merchantHandlesConsumerData which controls what fields to show on the checkout page.
+    /// </summary>
+    public NetsCheckoutConsumerDetails? Consumer { get; set; }
+
+    /// <summary>
     /// The URL to the terms and conditions of your webshop.
     /// Whitelist: “[&amp;]” =&gt; “”
     /// The following special characters are not supported: &lt;,&gt;,\,’,”,&amp;,\\

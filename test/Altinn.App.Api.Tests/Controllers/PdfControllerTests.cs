@@ -6,6 +6,7 @@ using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.Platform.Storage.Interface.Models;
@@ -22,24 +23,24 @@ namespace Altinn.App.Api.Tests.Controllers;
 
 public class PdfControllerTests
 {
-    private readonly string org = "org";
-    private readonly string app = "app";
-    private readonly Guid instanceId = new Guid("e11e3e0b-a45c-48fb-a968-8d4ddf868c80");
-    private readonly int partyId = 12345;
-    private readonly string taskId = "Task_1";
+    private readonly string _org = "org";
+    private readonly string _app = "app";
+    private readonly Guid _instanceId = new("e11e3e0b-a45c-48fb-a968-8d4ddf868c80");
+    private readonly int _partyId = 12345;
+    private readonly string _taskId = "Task_1";
 
     private readonly Mock<IAppResources> _appResources = new();
     private readonly Mock<IDataClient> _dataClient = new();
     private readonly Mock<IProfileClient> _profile = new();
-    private readonly IOptions<PlatformSettings> _platformSettingsOptions =
-        Microsoft.Extensions.Options.Options.Create<PlatformSettings>(new() { });
+    private readonly IOptions<PlatformSettings> _platformSettingsOptions = Options.Create<PlatformSettings>(new() { });
     private readonly Mock<IInstanceClient> _instanceClient = new();
     private readonly Mock<IPdfFormatter> _pdfFormatter = new();
     private readonly Mock<IAppModel> _appModel = new();
     private readonly Mock<IUserTokenProvider> _userTokenProvider = new();
 
-    private readonly IOptions<PdfGeneratorSettings> _pdfGeneratorSettingsOptions =
-        Microsoft.Extensions.Options.Options.Create<PdfGeneratorSettings>(new() { });
+    private readonly IOptions<PdfGeneratorSettings> _pdfGeneratorSettingsOptions = Options.Create<PdfGeneratorSettings>(
+        new() { }
+    );
 
     public PdfControllerTests()
     {
@@ -49,10 +50,13 @@ public class PdfControllerTests
                 Task.FromResult(
                     new Instance()
                     {
-                        Org = org,
-                        AppId = $"{org}/{app}",
-                        Id = $"{partyId}/{instanceId}",
-                        Process = new ProcessState() { CurrentTask = new ProcessElementInfo() { ElementId = taskId, }, }
+                        Org = _org,
+                        AppId = $"{_org}/{_app}",
+                        Id = $"{_partyId}/{_instanceId}",
+                        Process = new ProcessState()
+                        {
+                            CurrentTask = new ProcessElementInfo() { ElementId = _taskId, },
+                        }
                     }
                 )
             );
@@ -64,12 +68,12 @@ public class PdfControllerTests
         var env = new Mock<IWebHostEnvironment>();
         env.Setup(a => a.EnvironmentName).Returns("Production");
 
-        IOptions<GeneralSettings> generalSettingsOptions = Microsoft.Extensions.Options.Options.Create<GeneralSettings>(
+        IOptions<GeneralSettings> generalSettingsOptions = Options.Create<GeneralSettings>(
             new() { HostName = "org.apps.altinn.no" }
         );
 
         var httpContextAccessor = new Mock<IHttpContextAccessor>();
-        httpContextAccessor.Setup(x => x.HttpContext!.Request!.Query["lang"]).Returns("nb");
+        httpContextAccessor.Setup(x => x.HttpContext!.Request!.Query["lang"]).Returns(LanguageConst.Nb);
 
         var handler = new Mock<HttpMessageHandler>();
         var httpClient = new HttpClient(handler.Object);
@@ -100,7 +104,7 @@ public class PdfControllerTests
             pdfService
         );
 
-        var result = await pdfController.GetPdfPreview(org, app, partyId, instanceId);
+        var result = await pdfController.GetPdfPreview(_org, _app, _partyId, _instanceId);
 
         result.Should().BeOfType(typeof(NotFoundResult));
         handler
@@ -114,12 +118,12 @@ public class PdfControllerTests
         var env = new Mock<IWebHostEnvironment>();
         env.Setup(a => a.EnvironmentName).Returns("Development");
 
-        IOptions<GeneralSettings> generalSettingsOptions = Microsoft.Extensions.Options.Options.Create<GeneralSettings>(
+        IOptions<GeneralSettings> generalSettingsOptions = Options.Create<GeneralSettings>(
             new() { HostName = "local.altinn.cloud" }
         );
 
         var httpContextAccessor = new Mock<IHttpContextAccessor>();
-        httpContextAccessor.Setup(x => x.HttpContext!.Request!.Query["lang"]).Returns("nb");
+        httpContextAccessor.Setup(x => x.HttpContext!.Request!.Query["lang"]).Returns(LanguageConst.Nb);
         string? frontendVersion = null;
         httpContextAccessor
             .Setup(x => x.HttpContext!.Request!.Cookies.TryGetValue("frontendVersion", out frontendVersion))
@@ -175,7 +179,7 @@ public class PdfControllerTests
                 )
                 .ReturnsAsync(mockResponse);
 
-            var result = await pdfController.GetPdfPreview(org, app, partyId, instanceId);
+            var result = await pdfController.GetPdfPreview(_org, _app, _partyId, _instanceId);
             result.Should().BeOfType(typeof(FileStreamResult));
         }
 
@@ -193,12 +197,12 @@ public class PdfControllerTests
         var env = new Mock<IWebHostEnvironment>();
         env.Setup(a => a.EnvironmentName).Returns("Development");
 
-        IOptions<GeneralSettings> generalSettingsOptions = Microsoft.Extensions.Options.Options.Create<GeneralSettings>(
+        IOptions<GeneralSettings> generalSettingsOptions = Options.Create<GeneralSettings>(
             new() { HostName = "local.altinn.cloud" }
         );
 
         var httpContextAccessor = new Mock<IHttpContextAccessor>();
-        httpContextAccessor.Setup(x => x.HttpContext!.Request!.Query["lang"]).Returns("nb");
+        httpContextAccessor.Setup(x => x.HttpContext!.Request!.Query["lang"]).Returns(LanguageConst.Nb);
         string? frontendVersion = "https://altinncdn.no/toolkits/altinn-app-frontend/3/";
         httpContextAccessor
             .Setup(x => x.HttpContext!.Request!.Cookies.TryGetValue("frontendVersion", out frontendVersion))
@@ -254,7 +258,7 @@ public class PdfControllerTests
                 )
                 .ReturnsAsync(mockResponse);
 
-            var result = await pdfController.GetPdfPreview(org, app, partyId, instanceId);
+            var result = await pdfController.GetPdfPreview(_org, _app, _partyId, _instanceId);
             result.Should().BeOfType(typeof(FileStreamResult));
         }
 
@@ -274,12 +278,12 @@ public class PdfControllerTests
         var env = new Mock<IWebHostEnvironment>();
         env.Setup(a => a.EnvironmentName).Returns("Staging");
 
-        IOptions<GeneralSettings> generalSettingsOptions = Microsoft.Extensions.Options.Options.Create<GeneralSettings>(
+        IOptions<GeneralSettings> generalSettingsOptions = Options.Create<GeneralSettings>(
             new() { HostName = "org.apps.tt02.altinn.no" }
         );
 
         var httpContextAccessor = new Mock<IHttpContextAccessor>();
-        httpContextAccessor.Setup(x => x.HttpContext!.Request!.Query["lang"]).Returns("nb");
+        httpContextAccessor.Setup(x => x.HttpContext!.Request!.Query["lang"]).Returns(LanguageConst.Nb);
         string? frontendVersion = "https://altinncdn.no/toolkits/altinn-app-frontend/3/";
         httpContextAccessor
             .Setup(x => x.HttpContext!.Request!.Cookies.TryGetValue("frontendVersion", out frontendVersion))
@@ -335,7 +339,7 @@ public class PdfControllerTests
                 )
                 .ReturnsAsync(mockResponse);
 
-            var result = await pdfController.GetPdfPreview(org, app, partyId, instanceId);
+            var result = await pdfController.GetPdfPreview(_org, _app, _partyId, _instanceId);
             result.Should().BeOfType(typeof(FileStreamResult));
         }
 

@@ -12,6 +12,8 @@ using Microsoft.Extensions.Options;
 
 namespace App.IntegrationTests.Mocks.Services;
 
+public sealed record AppMetadataMutationHook(Action<ApplicationMetadata> Action);
+
 public class AppMetadataMock : IAppMetadata
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions =
@@ -26,6 +28,7 @@ public class AppMetadataMock : IAppMetadata
     private readonly IFrontendFeatures _frontendFeatures;
     private ApplicationMetadata? _application;
     private readonly IHttpContextAccessor _contextAccessor;
+    private readonly IEnumerable<AppMetadataMutationHook> _mutationHooks;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AppMetadata"/> class.
@@ -35,12 +38,14 @@ public class AppMetadataMock : IAppMetadata
     public AppMetadataMock(
         IOptions<AppSettings> settings,
         IFrontendFeatures frontendFeatures,
-        IHttpContextAccessor httpContextAccessor
+        IHttpContextAccessor httpContextAccessor,
+        IEnumerable<AppMetadataMutationHook> mutationHooks
     )
     {
         _settings = settings.Value;
         _frontendFeatures = frontendFeatures;
         _contextAccessor = httpContextAccessor;
+        _mutationHooks = mutationHooks;
     }
 
     /// <inheritdoc />
@@ -79,6 +84,10 @@ public class AppMetadataMock : IAppMetadata
                 }
 
                 application.Features = await _frontendFeatures.GetFrontendFeatures();
+
+                foreach (var hook in _mutationHooks)
+                    hook.Action(application);
+
                 _application = application;
 
                 return _application;

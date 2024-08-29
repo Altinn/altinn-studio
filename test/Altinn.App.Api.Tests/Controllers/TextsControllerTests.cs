@@ -1,5 +1,6 @@
 using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Language;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +16,7 @@ public class TextsControllerTests
         // Arrange
         const string org = "ttd";
         const string app = "unit-app";
-        const string language = "nb";
+        string language = LanguageConst.Nb;
 
         TextResource expected = new TextResource
         {
@@ -49,12 +50,12 @@ public class TextsControllerTests
         // Arrange
         const string org = "ttd";
         const string app = "unit-app";
-        const string language = "en";
+        string language = LanguageConst.En;
 
         TextResource expected = new TextResource
         {
             Id = "test",
-            Language = "nb",
+            Language = LanguageConst.Nb,
             Org = org,
             Resources = new List<TextResourceElement>
             {
@@ -64,7 +65,9 @@ public class TextsControllerTests
 
         var appResourceMock = new Mock<IAppResources>();
         appResourceMock.Setup(a => a.GetTexts(org, app, language)).Returns(Task.FromResult<TextResource?>(null));
-        appResourceMock.Setup(a => a.GetTexts(org, app, "nb")).Returns(Task.FromResult<TextResource?>(null));
+        appResourceMock
+            .Setup(a => a.GetTexts(org, app, LanguageConst.Nb))
+            .Returns(Task.FromResult<TextResource?>(null));
         // Act
         var controller = new TextsController(appResourceMock.Object);
         var result = await controller.Get(org, app, language);
@@ -74,7 +77,7 @@ public class TextsControllerTests
         result.Result.Should().BeOfType<NotFoundResult>();
         resultValue.Should().BeNull();
         appResourceMock.Verify(a => a.GetTexts(org, app, language), Times.Once);
-        appResourceMock.Verify(a => a.GetTexts(org, app, "nb"), Times.Once);
+        appResourceMock.Verify(a => a.GetTexts(org, app, LanguageConst.Nb), Times.Once);
         appResourceMock.VerifyNoOtherCalls();
     }
 

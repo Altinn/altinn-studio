@@ -16,6 +16,9 @@ public static class MaskinportenExtensions
     /// The Jwk is fetched from the secret store using the provided secretKeyName.
     /// When using this locally the secret should be fetched from the local secret store using dotnet user-secrets.
     /// </summary>
+    [Obsolete(
+        "Use Altinn.App.Api.ServiceCollectionExtensions.ConfigureMaskinportenClient instead. This method will be removed in V9."
+    )]
     public static IServiceCollection AddMaskinportenJwkTokenProvider(
         this IServiceCollection services,
         string secretKeyName

@@ -31,7 +31,7 @@ public class Address
     public string? City { get; set; }
 
     /// <summary>
-    /// The country of the address.
+    /// The country of the address. What format this is expected in might differ between payment processors. For instance, Nets Easy requires 3-letter ISO 3166 country codes.
     /// </summary>
     public string? Country { get; set; }
 }

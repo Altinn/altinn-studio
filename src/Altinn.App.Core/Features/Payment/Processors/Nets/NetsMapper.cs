@@ -63,6 +63,54 @@ internal static class NetsMapper
     }
 
     /// <summary>
+    /// Map from out Payer type to NetsCheckoutConsumerDetails.
+    /// </summary>
+    public static NetsCheckoutConsumerDetails? MapConsumerDetails(Payer? payer)
+    {
+        if (payer == null)
+        {
+            return null;
+        }
+
+        if (payer.PrivatePerson != null && payer.Company != null)
+        {
+            throw new ArgumentException("Use either PrivatePerson or Company fields, not both.");
+        }
+
+        string? email = payer.PrivatePerson != null ? payer.PrivatePerson.Email : payer.Company?.ContactPerson?.Email;
+        PhoneNumber? phoneNumber =
+            payer.PrivatePerson != null ? payer.PrivatePerson.PhoneNumber : payer.Company?.ContactPerson?.PhoneNumber;
+
+        return new NetsCheckoutConsumerDetails
+        {
+            Email = email,
+            PhoneNumber = new NetsPhoneNumber { Prefix = phoneNumber?.Prefix, Number = phoneNumber?.Number, },
+            Company =
+                payer.Company != null
+                    ? new NetsCheckoutCompany
+                    {
+                        Name = payer.Company.Name,
+                        Contact = new NetsCheckoutPrivatePerson
+                        {
+                            FirstName = payer.Company.ContactPerson?.FirstName,
+                            LastName = payer.Company.ContactPerson?.LastName,
+                        }
+                    }
+                    : null,
+            PrivatePerson =
+                payer.PrivatePerson != null
+                    ? new NetsCheckoutPrivatePerson()
+                    {
+                        FirstName = payer.PrivatePerson.FirstName,
+                        LastName = payer.PrivatePerson.LastName,
+                    }
+                    : null,
+            ShippingAddress = MapNetsAddress(payer.ShippingAddress),
+            BillingAddress = MapNetsAddress(payer.BillingAddress),
+        };
+    }
+
+    /// <summary>
     /// Map from our PayerType enum to Nets consumer types.
     /// </summary>
     public static List<string> MapConsumerTypes(PayerType[]? payerTypes)
@@ -118,6 +166,25 @@ internal static class NetsMapper
         return new Address
         {
             Name = address.ReceiverLine,
+            AddressLine1 = address.AddressLine1,
+            AddressLine2 = address.AddressLine2,
+            PostalCode = address.PostalCode,
+            City = address.City,
+            Country = address.Country,
+        };
+    }
+
+    /// <summary>
+    /// Map from NetsAddress to our Address type.
+    /// </summary>
+    public static NetsAddress? MapNetsAddress(Address? address)
+    {
+        if (address == null)
+            return null;
+
+        return new NetsAddress
+        {
+            ReceiverLine = address.Name,
             AddressLine1 = address.AddressLine1,
             AddressLine2 = address.AddressLine2,
             PostalCode = address.PostalCode,

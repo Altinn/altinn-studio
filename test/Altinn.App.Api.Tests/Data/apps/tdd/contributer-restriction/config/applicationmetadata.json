@@ -9,18 +9,24 @@
         "nb": "Endring av navn (RF-1453)",
         "nb-NO": "Endring av navn (RF-1453)"
     },
+    "copyInstanceSettings": {
+        "enabled": true
+    },
     "dataTypes": [
         {
             "id": "default",
             "allowedContentTypes": [
                 "application/xml"
             ],
-            "maxCount": 1,
+            "maxCount": 2,
             "appLogic": {
                 "autoCreate": true,
                 "ClassRef": "Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema"
             },
-            "taskId": "Task_1"
+            "taskId": "Task_1",
+            "AllowedKeysForUserDefinedMetadata": [
+                "TheKey"
+            ]
         },
         {
             "id": "customElement",
@@ -58,10 +64,25 @@
             ]
         },
         {
+            "id": "userInteractionUnspecified",
+            "allowedContentTypes": [
+                "application/xml"
+            ],
+            "maxCount": 10,
+            "appLogic": {
+                "ClassRef": "Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema"
+            },
+            "taskId": "Task_1",
+            "AllowedKeysForUserDefinedMetadata": [
+                "TheKey"
+            ]
+        },
+        {
             "id": "userCreateEnabled",
             "allowedContentTypes": [
                 "application/xml"
             ],
+            "maxCount": 10,
             "appLogic": {
                 "ClassRef": "Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema",
                 "allowUserCreate": true
@@ -73,6 +94,7 @@
             "allowedContentTypes": [
                 "application/xml"
             ],
+            "maxCount": 10,
             "appLogic": {
                 "ClassRef": "Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema",
                 "allowUserDelete": true

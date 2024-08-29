@@ -2687,6 +2687,90 @@ paths:
             text/xml:
               schema:
                 $ref: '#/components/schemas/TextResource'
+  '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/user-defined-metadata':
+    get:
+      tags:
+        - UserDefinedMetadata
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: dataGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDefinedMetadataDto'
+    put:
+      tags:
+        - UserDefinedMetadata
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: instanceOwnerPartyId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: instanceGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: dataGuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserDefinedMetadataDto'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDefinedMetadataDto'
   '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/validate':
     get:
       tags:
@@ -2912,6 +2996,8 @@ components:
         allowUserCreate:
           type: boolean
         allowUserDelete:
+          type: boolean
+        allowInSubform:
           type: boolean
         shadowFields:
           $ref: '#/components/schemas/ShadowFields'
@@ -3629,8 +3715,11 @@ components:
     JsonNodeOptions:
       type: object
       properties:
-        propertyNameCaseInsensitive:
+        hasValue:
           type: boolean
+          readOnly: true
+        value:
+          $ref: '#/components/schemas/JsonNodeOptions'
       additionalProperties: false
     JsonPatch:
       type: object
@@ -3708,6 +3797,8 @@ components:
           nullable: true
         receiver:
           $ref: '#/components/schemas/PaymentReceiver'
+        payer:
+          $ref: '#/components/schemas/Payer'
         currency:
           type: string
           nullable: true
@@ -4201,6 +4292,15 @@ components:
         redirectUrl:
           type: string
           format: uri
+          nullable: true
+      additionalProperties: false
+    UserDefinedMetadataDto:
+      type: object
+      properties:
+        userDefinedMetadata:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeyValueEntry'
           nullable: true
       additionalProperties: false
     ValidationIssue:

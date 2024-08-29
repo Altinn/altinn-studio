@@ -3,6 +3,7 @@ using Altinn.App.Core.Features.Payment.Exceptions;
 using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Features.Payment.Processors.Nets;
 using Altinn.App.Core.Features.Payment.Processors.Nets.Models;
+using Altinn.App.Core.Internal.Language;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
@@ -59,7 +60,7 @@ public class NetsPaymentProcessorTests
             );
 
         // Act
-        PaymentDetails result = await _processor.StartPayment(instance, orderDetails, "nb");
+        PaymentDetails result = await _processor.StartPayment(instance, orderDetails, LanguageConst.Nb);
 
         // Assert
         Assert.NotNull(result);
@@ -116,7 +117,7 @@ public class NetsPaymentProcessorTests
             );
 
         // Act
-        PaymentDetails result = await _processor.StartPayment(instance, orderDetails, "nb");
+        PaymentDetails result = await _processor.StartPayment(instance, orderDetails, LanguageConst.Nb);
 
         // Assert
         result.Should().NotBeNull();
@@ -199,7 +200,7 @@ public class NetsPaymentProcessorTests
         Instance instance = CreateInstance();
         const string paymentReference = "12345";
         const decimal expectedTotalIncVat = 100;
-        const string language = "nb";
+        string language = LanguageConst.Nb;
 
         _netsClientMock
             .Setup(x => x.RetrievePayment(paymentReference))
