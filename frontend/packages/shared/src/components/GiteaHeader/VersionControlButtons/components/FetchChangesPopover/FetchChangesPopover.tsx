@@ -59,6 +59,7 @@ export const FetchChangesPopover = (): React.ReactElement => {
           disabled={hasMergeConflict}
           icon={<DownloadIcon />}
           color='light'
+          variant='regular'
           aria-label={t('sync_header.fetch_changes')}
         >
           {shouldDisplayText && t('sync_header.fetch_changes')}

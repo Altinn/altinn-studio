@@ -3,16 +3,15 @@ import classes from './StudioPageHeaderButton.module.css';
 import { StudioButton, type StudioButtonProps } from '../../StudioButton';
 import { type StudioPageHeaderColor } from '../types/StudioPageHeaderColor';
 import cn from 'classnames';
-import { useStudioPageHeaderContext } from '../context';
+import { type StudioPageHeaderVariant } from '../types/StudioPageHeaderVariant';
 
 export type StudioPageHeaderButtonProps = {
   color: StudioPageHeaderColor;
+  variant: StudioPageHeaderVariant;
 } & Omit<StudioButtonProps, 'color' | 'variant'>;
 
 export const StudioPageHeaderButton = forwardRef<HTMLButtonElement, StudioPageHeaderButtonProps>(
-  ({ color, ...rest }, ref): ReactElement => {
-    const { variant } = useStudioPageHeaderContext();
-
+  ({ color, variant, ...rest }, ref): ReactElement => {
     const getClassName = (): string => {
       if (variant === 'regular' && color === 'dark') return classes.regularDark;
       if (variant === 'regular' && color === 'light') return classes.regularLight;

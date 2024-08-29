@@ -29,6 +29,7 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
           icon={<MenuElipsisVerticalIcon />}
           title={t('sync_header.gitea_menu')}
           color='light'
+          variant='regular'
         />
       </StudioPopover.Trigger>
       <StudioPopover.Content className={classes.popover}>

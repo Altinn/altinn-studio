@@ -15,7 +15,7 @@ export const DigdirLogoLink = ({ title }: DigdirLogoLinkProps): React.ReactEleme
 
   return (
     <div className={classes.wrapper}>
-      <StudioPageHeaderButton asChild color={color}>
+      <StudioPageHeaderButton asChild color={color} variant={variant}>
         <a href='/'>
           <DigdirLogo />
         </a>

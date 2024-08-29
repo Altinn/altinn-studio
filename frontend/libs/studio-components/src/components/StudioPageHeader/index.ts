@@ -1,4 +1,7 @@
-import { StudioPageHeader as StudioPageHeaderParent } from './StudioPageHeader';
+import {
+  StudioPageHeader as StudioPageHeaderParent,
+  type StudioPageHeaderProps,
+} from './StudioPageHeader';
 import { StudioPageHeaderButton } from './StudioPageHeaderButton';
 import { StudioPageHeaderCenter } from './StudioPageHeaderCenter';
 import { StudioPageHeaderLeft } from './StudioPageHeaderLeft';
@@ -22,4 +25,4 @@ StudioPageHeader.Center = StudioPageHeaderCenter;
 StudioPageHeader.Right = StudioPageHeaderRight;
 StudioPageHeader.Sub = StudioPageHeaderSub;
 
-export { StudioPageHeader, StudioPageHeaderButton };
+export { StudioPageHeader, type StudioPageHeaderProps, StudioPageHeaderButton };

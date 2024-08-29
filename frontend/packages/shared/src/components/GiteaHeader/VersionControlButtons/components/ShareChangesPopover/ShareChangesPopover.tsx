@@ -67,6 +67,7 @@ export const ShareChangesPopover = () => {
         title={renderCorrectTitle()}
         icon={<UploadIcon />}
         color='light'
+        variant='regular'
       >
         {shouldDisplayText && t('sync_header.changes_to_share')}
         {displayNotification && <Notification />}

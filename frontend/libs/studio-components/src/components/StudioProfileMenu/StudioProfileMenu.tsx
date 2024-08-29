@@ -3,6 +3,7 @@ import classes from './StudioProfileMenu.module.css';
 import { Divider, DropdownMenu } from '@digdir/designsystemet-react';
 import { StudioPageHeaderButton } from '../StudioPageHeader';
 import { type StudioPageHeaderColor } from '../StudioPageHeader/types/StudioPageHeaderColor';
+import { type StudioPageHeaderVariant } from '../StudioPageHeader/types/StudioPageHeaderVariant';
 
 type StudioProfileMenuItemButton = {
   type: 'button';
@@ -27,6 +28,7 @@ export type StudioProfileMenuProps = {
   profileImage: ReactNode;
   profileMenuItems: StudioProfileMenuItem[];
   color: StudioPageHeaderColor;
+  variant: StudioPageHeaderVariant;
 };
 
 export const StudioProfileMenu = ({
@@ -34,6 +36,7 @@ export const StudioProfileMenu = ({
   profileImage,
   profileMenuItems,
   color,
+  variant,
 }: StudioProfileMenuProps): ReactElement => {
   const [open, setOpen] = useState(false);
 
@@ -53,7 +56,7 @@ export const StudioProfileMenu = ({
   return (
     <DropdownMenu onClose={handleClose} open={open}>
       <DropdownMenu.Trigger asChild size='sm'>
-        <StudioPageHeaderButton onClick={handleToggleMenu} color={color}>
+        <StudioPageHeaderButton onClick={handleToggleMenu} color={color} variant={variant}>
           {triggerButtonText && <span className={classes.userOrgNames}>{triggerButtonText}</span>}
           {profileImage}
         </StudioPageHeaderButton>

@@ -1,9 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { StudioPageHeaderButton } from './StudioPageHeaderButton';
-import { StudioPageHeaderContext } from '../context';
-import { type StudioPageHeaderColor } from '../types/StudioPageHeaderColor';
-import { type StudioPageHeaderVariant } from '../types/StudioPageHeaderVariant';
+import { StudioPageHeaderButton, type StudioPageHeaderButtonProps } from './StudioPageHeaderButton';
 
 describe('StudioPageHeaderButton', () => {
   it('should apply the correct class based on variant and color - regular dark', () => {
@@ -42,22 +39,18 @@ describe('StudioPageHeaderButton', () => {
   });
 });
 
-type Props = {
-  color: StudioPageHeaderColor;
-  variant: StudioPageHeaderVariant;
+const defaultProps: StudioPageHeaderButtonProps = {
+  color: 'dark',
+  variant: 'regular',
 };
 
 const renderStudioPageHeaderButton = (
-  props: Partial<Props> = {},
+  props: Partial<StudioPageHeaderButtonProps> = {},
   ref?: React.Ref<HTMLButtonElement>,
 ) => {
-  const { color = 'dark', variant = 'regular', ...restProps } = props;
-
   return render(
-    <StudioPageHeaderContext.Provider value={{ variant }}>
-      <StudioPageHeaderButton ref={ref} color={color} {...restProps}>
-        Button
-      </StudioPageHeaderButton>
-    </StudioPageHeaderContext.Provider>,
+    <StudioPageHeaderButton ref={ref} {...defaultProps} {...props}>
+      Button
+    </StudioPageHeaderButton>,
   );
 };

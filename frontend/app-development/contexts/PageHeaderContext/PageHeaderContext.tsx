@@ -1,7 +1,7 @@
 import React, { type ReactElement, type ReactNode, createContext, useContext } from 'react';
 import { type User } from 'app-shared/types/Repository';
 import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenuItem';
-import { type StudioProfileMenuItem } from '@studio/components';
+import { type StudioProfileMenuItem, type StudioPageHeaderProps } from '@studio/components';
 import { getTopBarMenuItems } from 'app-development/utils/headerMenu/headerMenuUtils';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -14,6 +14,7 @@ export type PageHeaderContextProps = {
   menuItems: HeaderMenuItem[];
   profileMenuItems: StudioProfileMenuItem[]; // TODO - a better way for this type?
   repoOwnerIsOrg: boolean;
+  variant: StudioPageHeaderProps['variant'];
 };
 
 export const PageHeaderContext = createContext<Partial<PageHeaderContextProps>>(undefined);
@@ -48,7 +49,7 @@ export const PageHeaderContextProvider = ({
   const profileMenuItems: StudioProfileMenuItem[] = [docsMenuItem, logOutMenuItem];
 
   return (
-    <PageHeaderContext.Provider value={{ user, menuItems, profileMenuItems }}>
+    <PageHeaderContext.Provider value={{ user, menuItems, profileMenuItems, variant: 'regular' }}>
       {children}
     </PageHeaderContext.Provider>
   );

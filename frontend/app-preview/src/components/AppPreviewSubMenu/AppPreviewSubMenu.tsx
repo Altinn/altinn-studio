@@ -20,7 +20,7 @@ export const AppPreviewSubMenu = () => {
 
   return (
     <div className={classes.subHeader}>
-      <StudioPageHeaderButton asChild color='dark'>
+      <StudioPageHeaderButton asChild color='dark' variant='preview'>
         <a href={backToEditLink}>
           <ArrowLeftIcon className={classes.icon} />
           {shouldDisplayText && t('top_menu.preview_back_to_editing')}

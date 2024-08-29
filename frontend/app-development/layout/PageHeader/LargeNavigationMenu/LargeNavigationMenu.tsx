@@ -6,6 +6,7 @@ import { StudioPageHeaderButton } from '@studio/components';
 import { Tag } from '@digdir/designsystemet-react';
 import { getRouterRouteByPathname } from 'app-development/utils/headerMenu/headerMenuUtils';
 import { type NavigationMenuItem } from 'app-development/types/HeaderMenu/NavigationMenuItem';
+import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 
 export type LargeNavigationMenuProps = {
   menuItems: NavigationMenuItem[];
@@ -13,6 +14,8 @@ export type LargeNavigationMenuProps = {
 
 export const LargeNavigationMenu = ({ menuItems }: LargeNavigationMenuProps): ReactElement => {
   const { t } = useTranslation();
+  const { variant } = usePageHeaderContext();
+
   const location = useLocation();
   const currentRoutePath: string = getRouterRouteByPathname(location.pathname);
 
@@ -21,7 +24,7 @@ export const LargeNavigationMenu = ({ menuItems }: LargeNavigationMenuProps): Re
       <ul className={classes.menu}>
         {menuItems.map((menuItem: NavigationMenuItem) => (
           <li key={menuItem.name}>
-            <StudioPageHeaderButton asChild color='dark'>
+            <StudioPageHeaderButton asChild color='dark' variant={variant}>
               <NavLink to={menuItem.link}>
                 <span
                   className={
