@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { BlobDownloader } from '@studio/pure-functions';
-import { StudioButton, StudioButtonProps } from '@studio/components';
+import { StudioButton } from '../StudioButton';
+import type { StudioButtonProps } from '../StudioButton';
 
 export type StudioBlobDownloaderProps = {
   data: string;
