@@ -140,6 +140,12 @@
     "nestedInput": {
       "type": "string"
     },
+    "nestedInput2": {
+      "type": "string"
+    },
+    "nestedInput3": {
+      "type": "string"
+    },
     "streetnr": {
       "type": "string"
     },

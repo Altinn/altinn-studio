@@ -64,29 +64,6 @@
                 }
             },
             {
-                "size": "h3",
-                "id": "GroupPage-Header-Summary2-Compact",
-                "type": "Header",
-                "textResourceBindings": {
-                    "title": "Header.Summary2.Compact"
-                }
-            },
-            {
-                "id": "GroupPage-Summary2-Compact",
-                "type": "Summary2",
-                "hidden": false,
-                "target": {
-                    "type": "component",
-                    "id": "GroupPage-Group"
-                },
-                "overrides": [
-                    {
-                        "componentId": "GroupPage-Group",
-                        "compact": true
-                    }
-                ]
-            },
-            {
                 "id": "NavigationButtons",
                 "showBackButton": true,
                 "textResourceBindings": {},
@@ -150,7 +127,7 @@
             },
             {
                 "dataModelBindings": {
-                    "simpleBinding": "nestedInput"
+                    "simpleBinding": "nestedInput2"
                 },
                 "id": "GroupPage-Nested-Input2",
                 "type": "Input",
@@ -210,7 +187,7 @@
             },
             {
                 "dataModelBindings": {
-                    "simpleBinding": "nestedInput"
+                    "simpleBinding": "nestedInput3"
                 },
                 "id": "GroupPage-Nested-Nested-Input",
                 "type": "Input",

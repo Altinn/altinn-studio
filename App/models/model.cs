@@ -93,6 +93,16 @@ namespace Altinn.App.Models.model
     [JsonPropertyName("nestedRepeatingGroup")]
     public List<RepeatingGroupWithNestedGroup> nestedRepeatingGroup { get; set; }
 
+    [XmlElement("nestedInput2", Order = 17)]
+    [JsonProperty("nestedInput2")]
+    [JsonPropertyName("nestedInput2")]
+    public string nestedInput2 { get; set; }
+    
+    [XmlElement("nestedInput3", Order = 18)]
+    [JsonProperty("nestedInput3")]
+    [JsonPropertyName("nestedInput3")]
+    public string nestedInput3 { get; set; }
+    
   }
 
   public class GridExample
