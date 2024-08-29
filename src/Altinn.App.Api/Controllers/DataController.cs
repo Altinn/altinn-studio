@@ -162,24 +162,25 @@ public class DataController : ControllerBase
                 );
             }
 
+            int existingElements = instance.Data.Count(d => d.DataType == dataTypeFromMetadata.Id);
+            if (dataTypeFromMetadata.MaxCount > 0 && existingElements >= dataTypeFromMetadata.MaxCount)
+            {
+                return Conflict(
+                    $"Element type `{dataType}` has reached its maximum allowed count ({dataTypeFromMetadata.MaxCount})"
+                );
+            }
+
             if (dataTypeFromMetadata.AppLogic is not null)
             {
-                // TODO: How does this affect other implementations??
-                // TODO: Is the `urn:altinn:org` claim how we identify instance creation by service owners/automation, as opposed to users?
                 if (!dataTypeFromMetadata.AppLogic.AllowUserCreate && !UserHasValidOrgClaim())
                 {
                     return BadRequest($"Element type `{dataType}` cannot be manually created.");
                 }
 
-                int existingElements = instance.Data.Count(d => d.DataType == dataTypeFromMetadata.Id);
-                if (dataTypeFromMetadata.MaxCount > 0 && existingElements >= dataTypeFromMetadata.MaxCount)
+                if (dataTypeFromMetadata.AppLogic.ClassRef is not null)
                 {
-                    return Conflict(
-                        $"Element type `{dataType}` has reached its maximum allowed count ({dataTypeFromMetadata.MaxCount})"
-                    );
+                    return await CreateAppModelData(org, app, instance, dataType);
                 }
-
-                return await CreateAppModelData(org, app, instance, dataType);
             }
 
             (bool validationRestrictionSuccess, List<ValidationIssue> errors) =
