@@ -386,6 +386,17 @@ export const isComponentTypeValidChild = (
 export const getChildIds = (layout: IInternalLayout, parentId: string): string[] =>
   layout.order?.[parentId] || [];
 
+/**
+ * Recursively finds all the children of a container.
+ * @param layout The layout to search in.
+ * @param parentId The id of the container to find all children of.
+ * @returns An array of all the children of the container.
+ */
+export const getAllDescendants = (layout: IInternalLayout, parentId: string): string[] =>
+  getChildIds(layout, parentId).flatMap((id) =>
+    ArrayUtils.prepend(getAllDescendants(layout, id), id),
+  );
+
 export const getItem = (layout: IInternalLayout, itemId: string): FormComponent | FormContainer =>
   layout.components[itemId] || layout.containers[itemId];
 
@@ -471,3 +482,11 @@ export const getDuplicatedIds = (layout: IInternalLayout): string[] => {
   const uniqueDuplicatedIds = Array.from(new Set(duplicatedIds));
   return uniqueDuplicatedIds;
 };
+
+/**
+ * Get all (valid) ids in the layout
+ * @param layout The layout
+ * @returns An array of all ids in the layout
+ * */
+export const getAllFormItemIds = (layout: IInternalLayout): string[] =>
+  flattenObjectValues(layout.order);
