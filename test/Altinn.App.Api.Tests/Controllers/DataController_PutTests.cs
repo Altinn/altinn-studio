@@ -43,23 +43,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         );
         var createResponseParsed = await VerifyStatusAndDeserialize<Instance>(createResponse, HttpStatusCode.Created);
         var instanceId = createResponseParsed.Id;
-
-        // Create data element (not sure why it isn't created when the instance is created, autoCreate is true)
-        using var createDataElementContent = new StringContent(
-            """{"melding":{"name": "Ivar"}}""",
-            System.Text.Encoding.UTF8,
-            "application/json"
-        );
-        var createDataElementResponse = await client.PostAsync(
-            $"/{org}/{app}/instances/{instanceId}/data?dataType=default",
-            createDataElementContent
-        );
-
-        var createDataElementResponseParsed = await VerifyStatusAndDeserialize<DataElement>(
-            createDataElementResponse,
-            HttpStatusCode.Created
-        );
-        var dataGuid = createDataElementResponseParsed.Id;
+        var dataGuid = createResponseParsed.Data.First(x => x.DataType.Equals("default")).Id;
 
         // Update data element
         using var updateDataElementContent = new StringContent(
@@ -148,22 +132,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         );
         var createResponseParsed = await VerifyStatusAndDeserialize<Instance>(createResponse, HttpStatusCode.Created);
         var instanceId = createResponseParsed.Id;
-
-        // Create data element (not sure why it isn't created when the instance is created, autoCreate is true)
-        using var createDataElementContent = new StringContent(
-            """{"melding":{"name": "Ivar"}}""",
-            System.Text.Encoding.UTF8,
-            "application/json"
-        );
-        var createDataElementResponse = await client.PostAsync(
-            $"/{org}/{app}/instances/{instanceId}/data?dataType=default",
-            createDataElementContent
-        );
-        var createDataElementResponseParsed = await VerifyStatusAndDeserialize<DataElement>(
-            createDataElementResponse,
-            HttpStatusCode.Created
-        )!;
-        var dataGuid = createDataElementResponseParsed.Id;
+        var dataGuid = createResponseParsed.Data.First(x => x.DataType.Equals("default")).Id;
 
         // Verify stored data
         var firstReadDataElementResponse = await client.GetAsync(
@@ -173,8 +142,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
             firstReadDataElementResponse,
             HttpStatusCode.OK
         );
-        firstReadDataElementResponseParsed.Melding!.Name.Should().Be("Ivar");
-        firstReadDataElementResponseParsed.Melding.Toggle.Should().BeFalse();
+        firstReadDataElementResponseParsed.Melding.Should().BeNull();
 
         // Update data element
         using var updateDataElementContent = new StringContent(
