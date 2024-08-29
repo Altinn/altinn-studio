@@ -6,9 +6,11 @@ import { useGetAllImageFileNamesQuery } from 'app-shared/hooks/queries/useGetAll
 import { imagePath } from 'app-shared/api/paths';
 import { useTranslation } from 'react-i18next';
 import classes from './ChooseFromLibrary.module.css';
+import { extractFilename } from 'app-shared/utils/filenameUtils';
+import { WWWROOT_FILE_PATH } from '@altinn/ux-editor/components/config/editModal/EditImage/EditImage';
 
 interface ChooseFromLibraryProps {
-  onAddImageReference: (fileName: string) => void;
+  onAddImageReference: (imageFilePath: string) => void;
 }
 
 export const ChooseFromLibrary = ({ onAddImageReference }: ChooseFromLibraryProps) => {
@@ -23,12 +25,12 @@ export const ChooseFromLibrary = ({ onAddImageReference }: ChooseFromLibraryProp
           {t('ux_editor.properties_panel.images.no_images_in_library')}
         </StudioParagraph>
       ) : (
-        imagesFileNames.map((imageFileName) => (
+        imagesFileNames.map((imageFilePath) => (
           <ImageFromLibrary
-            key={imageFileName}
-            imageFileName={imageFileName}
+            key={imageFilePath}
+            imageFilePath={imageFilePath}
             onAddImageReference={onAddImageReference}
-            imageSource={imagePath(org, app, imageFileName)}
+            imageSource={imagePath(org, app, imageFilePath)}
           />
         ))
       )}
@@ -37,13 +39,13 @@ export const ChooseFromLibrary = ({ onAddImageReference }: ChooseFromLibraryProp
 };
 
 interface ImageFromLibraryProps {
-  imageFileName: string;
-  onAddImageReference: (fileName: string) => void;
+  imageFilePath: string;
+  onAddImageReference: (imageFilePath: string) => void;
   imageSource: string;
 }
 
 const ImageFromLibrary = ({
-  imageFileName,
+  imageFilePath,
   onAddImageReference,
   imageSource,
 }: ImageFromLibraryProps) => {
@@ -51,13 +53,13 @@ const ImageFromLibrary = ({
   // The img component requires an alt which we can set to be the descriptions from the metadata in the library when this is available.
   return (
     <div className={classes.card}>
-      <Card onClick={() => onAddImageReference(imageFileName)}>
+      <Card onClick={() => onAddImageReference(`${WWWROOT_FILE_PATH}${imageFilePath}`)}>
         <Card.Media>
-          <img src={imageSource} alt={imageFileName} />
+          <img src={imageSource} alt={imageFilePath} />
         </Card.Media>
         <Card.Header>
-          <Heading size='xs' className={classes.fileName} title={imageFileName}>
-            {imageFileName}
+          <Heading size='xs' className={classes.fileName} title={extractFilename(imageFilePath)}>
+            {extractFilename(imageFilePath)}
           </Heading>
         </Card.Header>
         <Card.Content className={classes.missingFileDescription}>

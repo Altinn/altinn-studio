@@ -18,7 +18,6 @@ export const LocalImage = ({
   onDeleteImageReferenceOnly,
   onImageChange,
 }: LocalImageProps) => {
-  // Can we return null if the image source is not a file from app? Then we can check here if fileName is null and not use imageOriginsFromLibrary
   return !!fileName ? (
     <PreviewImageSummary
       existingImageUrl={fileName}

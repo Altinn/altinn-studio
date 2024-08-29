@@ -13,9 +13,6 @@ public enum ImageUrlValidationResult
     [EnumMember(Value = "NotAnImage")]
     NotAnImage,
 
-    [EnumMember(Value = "Unathorized")]
-    Unathorized,
-
     [EnumMember(Value = "NotValidUrl")]
     NotValidUrl
 }

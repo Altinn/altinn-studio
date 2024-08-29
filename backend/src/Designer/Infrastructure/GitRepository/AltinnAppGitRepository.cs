@@ -860,25 +860,28 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <summary>
         /// Gets all image filePathNames from App/wwwroot folder of local repo
         /// </summary>
-        /// <returns>The image as stream</returns>
+        /// <returns>Array of file paths to all images in App/wwwroot</returns>
         public List<string> GetAllImageFileNames()
         {
-            List<string> allFileNames = new List<string>();
+            List<string> allFilePaths = new List<string>();
+
+            // Check if the directory exists
             if (!DirectoryExistsByRelativePath(ImagesFolderName))
             {
-                return allFileNames;
+                return allFilePaths;
             }
-            // Case sensitive?
-            string[] directoryFilesPng = GetFilesByRelativeDirectory(ImagesFolderName, "*.png");
-            string[] directoryFilesJpg = GetFilesByRelativeDirectory(ImagesFolderName, "*.jpg");
-            string[] directoryFilesJpeg = GetFilesByRelativeDirectory(ImagesFolderName, "*.jpeg");
-            string[] directoryFilesSvg = GetFilesByRelativeDirectory(ImagesFolderName, "*.svg");
-            string[] allFilePaths = directoryFilesPng.Concat(directoryFilesJpeg).Concat(directoryFilesSvg).Concat(directoryFilesJpg).ToArray();
-            foreach (var filePath in allFilePaths)
-            {
-                allFileNames.Add(Path.GetFileName(filePath));
-            }
-            return allFileNames;
+
+            // Define allowed extensions
+            string[] allowedExtensions = { ".png", ".jpg", ".jpeg", ".svg" };
+
+            // Get all files in the directory and subdirectories that match the allowed extensions
+            IEnumerable<string> files = GetFilesByRelativeDirectory(ImagesFolderName, "*.*", true)
+                .Where(file => allowedExtensions.Contains(Path.GetExtension(file).ToLower())).Select(file => Path.GetRelativePath(GetAbsoluteFileOrDirectoryPathSanitized(ImagesFolderName), file));
+
+            // Add the file paths to the list
+            allFilePaths.AddRange(files);
+
+            return allFilePaths;
         }
 
         /// <summary>

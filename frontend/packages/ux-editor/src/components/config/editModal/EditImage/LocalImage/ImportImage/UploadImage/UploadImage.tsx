@@ -2,6 +2,7 @@ import React from 'react';
 import { UploadIcon } from '@studio/icons';
 import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
+import classes from './UploadImage.module.css';
 
 export interface UploadImageProps {
   onHandleSubmit: () => void;
@@ -18,7 +19,7 @@ export const UploadImage = ({
     <form onSubmit={onHandleSubmit}>
       <input
         type='file'
-        className='sr-only'
+        className={classes.fileInput}
         accept='image/*'
         ref={imageRef}
         onChange={onHandleInputChange}

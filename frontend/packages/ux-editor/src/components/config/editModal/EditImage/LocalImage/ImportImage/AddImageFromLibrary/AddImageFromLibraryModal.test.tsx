@@ -8,6 +8,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { imagePath } from 'app-shared/api/paths';
 import userEvent from '@testing-library/user-event';
+import { WWWROOT_FILE_PATH } from '@altinn/ux-editor/components/config/editModal/EditImage/EditImage';
 
 const onCloseMock = jest.fn();
 const onAddImageReferenceMock = jest.fn();
@@ -62,7 +63,7 @@ describe('AddImageFromLibraryModal', () => {
     const fileName = screen.getByRole('heading', { name: existingImageFileName });
     await user.click(fileName);
     expect(onAddImageReferenceMock).toHaveBeenCalledTimes(1);
-    expect(onAddImageReferenceMock).toHaveBeenCalledWith(existingImageFileName);
+    expect(onAddImageReferenceMock).toHaveBeenCalledWith(WWWROOT_FILE_PATH + existingImageFileName);
   });
 });
 const renderAddImageFromLibraryModal = (imageFileNames: string[] = []) => {

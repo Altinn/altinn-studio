@@ -18,7 +18,7 @@ public class ImageClient
         try
         {
             // Send a HEAD request to the URL to check if the resource exists and fetch the headers
-            var request = new HttpRequestMessage(HttpMethod.Head, url);
+            using var request = new HttpRequestMessage(HttpMethod.Head, url);
             var response = await _httpClient.SendAsync(request);
 
             // If the response status is not successful, return null
@@ -37,7 +37,7 @@ public class ImageClient
         {
             return null;
         }
-        catch (HttpRequestException ex)
+        catch (HttpRequestException)
         {
             return null;
         }

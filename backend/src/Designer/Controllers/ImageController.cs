@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Net;
+using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -42,15 +43,16 @@ public class ImageController : ControllerBase
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="repo">Application identifier which is unique within an organisation.</param>
-    /// <param name="imageName">Name of image file to fetch</param>
+    /// <param name="encodedImagePath">Relative encoded path of image to fetch</param>
     /// <returns>Image</returns>
-    [HttpGet("{imageName}")]
+    [HttpGet("{encodedImagePath}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public FileStreamResult GetImageByName(string org, string repo, [FromRoute] string imageName)
+    public FileStreamResult GetImageByName(string org, string repo, [FromRoute] string encodedImagePath)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        string decodedImagePath = HttpUtility.UrlDecode(encodedImagePath);
 
-        return _imagesService.GetImage(org, repo, developer, imageName);
+        return _imagesService.GetImage(org, repo, developer, decodedImagePath);
     }
 
     /// <summary>
@@ -76,10 +78,7 @@ public class ImageController : ControllerBase
     /// <param name="url">An external url to fetch an image to represent in the image component in the form.</param>
     /// <returns>204 if an image is fetched, 404 if no response from url, 401 if url requires authentication, 415 if response is not an image</returns>
     [HttpGet("validate")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status415UnsupportedMediaType)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ImageUrlValidationResult> ValidateExternalImageUrl([FromQuery] string url)
     {
         var response = await _imageClient.ValidateUrlAsync(url);
@@ -87,11 +86,6 @@ public class ImageController : ControllerBase
         if (response == null)
         {
             return ImageUrlValidationResult.NotValidUrl;
-        }
-
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-        {
-            return ImageUrlValidationResult.Unathorized;
         }
 
         var contentType = response.Content.Headers.ContentType.MediaType;
@@ -109,14 +103,21 @@ public class ImageController : ControllerBase
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="repo">Application identifier which is unique within an organisation.</param>
     /// <param name="image">The actual image</param>
+    /// <param name="overrideExisting">Optional parameter that overrides existing image if set. Default is false</param>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> UploadImage(string org, string repo, [FromForm(Name = "image")] IFormFile image, [FromForm(Name = "overrideExisting")] bool overrideExisting = false)
     {
         if (image == null || image.Length == 0)
         {
             return BadRequest("No file uploaded.");
         }
+        if (!IsValidImageContentType(image.ContentType))
+        {
+            return BadRequest("The uploaded file is not a valid image.");
+        }
+
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
         string imageName = GetFileNameFromUploadedFile(image);
@@ -136,14 +137,16 @@ public class ImageController : ControllerBase
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="repo">Application identifier which is unique within an organisation.</param>
-    /// <param name="imageName">Name of image file to delete</param>
-    [HttpDelete("{imageName}")]
+    /// <param name="encodedImagePath">Relative encoded path of image to delete</param>
+    [HttpDelete("{encodedImagePath}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult> DeleteImage(string org, string repo, string imageName)
+    public async Task<ActionResult> DeleteImage(string org, string repo, [FromRoute] string encodedImagePath)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        await _imagesService.DeleteImage(org, repo, developer, imageName);
+        string decodedImagePath = HttpUtility.UrlDecode(encodedImagePath);
+
+        await _imagesService.DeleteImage(org, repo, developer, decodedImagePath);
 
         return NoContent();
     }
@@ -151,6 +154,15 @@ public class ImageController : ControllerBase
     private static string GetFileNameFromUploadedFile(IFormFile image)
     {
         return ContentDispositionHeaderValue.Parse(new StringSegment(image.ContentDisposition)).FileName.ToString();
+    }
+
+    // TODO: Implement a more secure way to check that the content is actually an image since the content-type header can be manipulated
+    private bool IsValidImageContentType(string contentType)
+    {
+        // Common image MIME types
+        string[] validImageTypes = { "image/jpeg", "image/png", "image/jpg", "image/svg+xml" };
+
+        return validImageTypes.Contains(contentType.ToLower());
     }
 
 }
