@@ -32,7 +32,7 @@ export const SchemaEditor = () => {
     >
       <StudioResizableLayout.Container
         orientation='horizontal'
-        localStorageContext={`datamodel:${user.id}:${org}`}
+        localStorageContext={user && `datamodel:${user.id}:${org}`}
       >
         <StudioResizableLayout.Element minimumSize={100} maximumSize={280}>
           <aside className={classes.inspector}>
