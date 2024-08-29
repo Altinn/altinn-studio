@@ -1,6 +1,6 @@
-import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { flattenParties, reduceToValidParties } from 'src/features/party/partyProviderUtils';
 import { PartyType } from 'src/types/shared';
+import type { IPartyTypesAllowed } from 'src/features/applicationMetadata/types';
 import type { IParty } from 'src/types/shared';
 
 const setupParties = (): IParty[] => [
@@ -82,53 +82,49 @@ describe('flattenParties', () => {
 describe('getValidParties', () => {
   it('should return all parties if non are allowed', () => {
     const parties = setupParties();
-    const appMetadata = getApplicationMetadataMock();
-    appMetadata.partyTypesAllowed = {
+    const partyTypesAllowed: IPartyTypesAllowed = {
       organisation: false,
       subUnit: false,
       person: false,
       bankruptcyEstate: false,
     };
 
-    const result = reduceToValidParties(parties, appMetadata);
+    const result = reduceToValidParties(parties, partyTypesAllowed);
     expect(result.length).toBe(3);
     expect(result).toEqual(expect.arrayContaining(parties));
   });
 
   it('should return all parties if all party types are allowed', () => {
     const parties = setupParties();
-    const appMetadata = getApplicationMetadataMock();
-    appMetadata.partyTypesAllowed = {
+    const partyTypesAllowed: IPartyTypesAllowed = {
       organisation: true,
       subUnit: true,
       person: true,
       bankruptcyEstate: true,
     };
 
-    const result = reduceToValidParties(parties, appMetadata);
+    const result = reduceToValidParties(parties, partyTypesAllowed);
     expect(result.length).toBe(3);
     expect(result).toEqual(expect.arrayContaining(parties));
   });
 
   it('should return only parties that are allowed by app metadata', () => {
     const parties = setupParties();
-    const appMetadata = getApplicationMetadataMock();
-    appMetadata.partyTypesAllowed = {
+    const partyTypesAllowed: IPartyTypesAllowed = {
       organisation: true,
       subUnit: false,
       person: false,
       bankruptcyEstate: false,
     };
 
-    const result = reduceToValidParties(parties, appMetadata);
+    const result = reduceToValidParties(parties, partyTypesAllowed);
     expect(result.length).toBe(1);
     expect(result).toEqual(expect.arrayContaining([parties[0]]));
   });
 
   it('should return only parties that are allowed by app metadata and with access', () => {
     const parties = setupParties();
-    const appMetadata = getApplicationMetadataMock();
-    appMetadata.partyTypesAllowed = {
+    const partyTypesAllowed: IPartyTypesAllowed = {
       organisation: true,
       subUnit: false,
       person: true,
@@ -137,14 +133,13 @@ describe('getValidParties', () => {
 
     parties[1].onlyHierarchyElementWithNoAccess = true;
 
-    const result = reduceToValidParties(parties, appMetadata);
+    const result = reduceToValidParties(parties, partyTypesAllowed);
     expect(result.length).toBe(1);
     expect(result).toEqual(expect.arrayContaining([parties[0]]));
   });
   it('should return only parties that are allowed by app metadata and not deleted', () => {
     const parties = setupParties();
-    const appMetadata = getApplicationMetadataMock();
-    appMetadata.partyTypesAllowed = {
+    const partyTypesAllowed: IPartyTypesAllowed = {
       organisation: true,
       subUnit: false,
       person: true,
@@ -153,22 +148,21 @@ describe('getValidParties', () => {
 
     parties[1].isDeleted = true;
 
-    const result = reduceToValidParties(parties, appMetadata);
+    const result = reduceToValidParties(parties, partyTypesAllowed);
     expect(result.length).toBe(1);
     expect(result).toEqual(expect.arrayContaining([parties[0]]));
   });
 
   it('should return only parties that are allowed by app metadata', () => {
     const parties = setupParties();
-    const appMetadata = getApplicationMetadataMock();
-    appMetadata.partyTypesAllowed = {
+    const partyTypesAllowed: IPartyTypesAllowed = {
       organisation: false,
       subUnit: true,
       person: false,
       bankruptcyEstate: false,
     };
 
-    const result = reduceToValidParties(parties, appMetadata);
+    const result = reduceToValidParties(parties, partyTypesAllowed);
     expect(result.length).toBe(1);
     expect(result).toEqual(expect.arrayContaining([parties[0].childParties![0]]));
   });

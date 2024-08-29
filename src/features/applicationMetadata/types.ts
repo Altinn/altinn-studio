@@ -42,7 +42,7 @@ export type IInstanceSelection = {
   sortDirection: 'asc' | 'desc';
 };
 
-interface IPartyTypesAllowed {
+export interface IPartyTypesAllowed {
   bankruptcyEstate: boolean;
   organisation: boolean;
   person: boolean;

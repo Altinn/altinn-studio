@@ -1,5 +1,5 @@
 import { type IParty, PartyType } from 'src/types/shared';
-import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
+import type { IPartyTypesAllowed } from 'src/features/applicationMetadata/types';
 
 export const flattenParties = (parties: IParty[]): IParty[] => {
   const result: IParty[] = [];
@@ -18,9 +18,8 @@ export const flattenParties = (parties: IParty[]): IParty[] => {
   return result;
 };
 
-export const reduceToValidParties = (parties: IParty[], appMetadata: ApplicationMetadata): IParty[] => {
+export const reduceToValidParties = (parties: IParty[], partyTypesAllowed: IPartyTypesAllowed): IParty[] => {
   const allParties = flattenParties(parties);
-  const { partyTypesAllowed } = appMetadata;
 
   const partyTypeFilters: { [key in PartyType]: boolean } = {
     [PartyType.Organisation]: partyTypesAllowed.organisation,

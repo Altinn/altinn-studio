@@ -108,11 +108,13 @@ const { Provider: RealCurrentPartyProvider, useCtx: useCurrentPartyCtx } = creat
 });
 
 const CurrentPartyProvider = ({ children }: PropsWithChildren) => {
-  const validParties = reduceToValidParties(usePartiesCtx() as IParty[], useApplicationMetadata());
+  const { partyTypesAllowed } = useApplicationMetadata();
+  const validParties = reduceToValidParties(usePartiesCtx() as IParty[], partyTypesAllowed);
   const [sentToMutation, setSentToMutation] = useState<IParty | undefined>(undefined);
   const { mutateAsync, data: dataFromMutation, error: errorFromMutation } = useSetCurrentPartyMutation();
   const { data: partyFromQuery, isLoading, error: errorFromQuery } = useCurrentPartyQuery(true);
   const [userHasSelectedParty, setUserHasSelectedParty] = useState(false);
+
   if (isLoading) {
     return <Loader reason={'current-party'} />;
   }

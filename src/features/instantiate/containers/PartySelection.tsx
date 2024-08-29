@@ -71,7 +71,7 @@ const useStyles = makeStyles((theme) => ({
     paddingTop: 24,
     padding: 12,
   },
-  checkboxLabes: {
+  checkboxLabels: {
     paddingTop: '0.75rem',
   },
 }));
@@ -80,13 +80,13 @@ export const PartySelection = () => {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.white);
   const classes = useStyles();
   const match = useMatch(`/party-selection/:errorCode`);
-  const errorCode = match?.params.errorCode as 'error' | 'explained' | '403' | undefined;
+  const errorCode = match?.params.errorCode;
 
   const selectParty = useSetCurrentParty();
   const selectedParty = useCurrentParty();
   const setUserHasSelectedParty = useSetHasSelectedParty();
 
-  const parties = useParties() || [];
+  const parties = useParties() ?? [];
   const appMetadata = useApplicationMetadata();
 
   const appPromptForPartyOverride = appMetadata.promptForParty;
@@ -104,32 +104,26 @@ export const PartySelection = () => {
     navigate('/');
   };
 
-  function renderParties() {
-    let numberOfPartiesRendered = 0;
+  const filteredParties = parties
+    .filter(
+      (party) => party.name.toUpperCase().includes(filterString.toUpperCase()) && !(party.isDeleted && !showDeleted),
+    )
+    .slice(0, numberOfPartiesShown);
 
+  const hasMoreParties = filteredParties.length < parties.length;
+
+  function renderParties() {
     return (
       <>
-        {parties.map((party: IParty, index: number) =>
-          party.name.toUpperCase().indexOf(filterString.toUpperCase()) > -1
-            ? numberOfPartiesShown > numberOfPartiesRendered
-              ? (() => {
-                  numberOfPartiesRendered += 1;
-                  if (party.isDeleted && !showDeleted) {
-                    return null;
-                  }
-                  return (
-                    <AltinnParty
-                      key={index}
-                      party={party}
-                      onSelectParty={onSelectParty}
-                      showSubUnits={showSubUnits}
-                    />
-                  );
-                })()
-              : null
-            : null,
-        )}
-        {numberOfPartiesRendered === numberOfPartiesShown && numberOfPartiesRendered < parties.length ? (
+        {filteredParties.map((party, index) => (
+          <AltinnParty
+            key={index}
+            party={party}
+            onSelectParty={onSelectParty}
+            showSubUnits={showSubUnits}
+          />
+        ))}
+        {hasMoreParties ? (
           <Grid
             container={true}
             direction='row'
