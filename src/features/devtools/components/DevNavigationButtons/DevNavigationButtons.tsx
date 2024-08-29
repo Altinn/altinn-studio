@@ -5,12 +5,12 @@ import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/DevNavigationButtons/DevNavigationButtons.module.css';
 import { useIsInFormContext } from 'src/features/form/FormContext';
+import { useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { useLayoutSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import comboboxClasses from 'src/styles/combobox.module.css';
 import { Hidden } from 'src/utils/layout/NodesContext';
-import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
 
 export function DevNavigationButtons() {
   const isInForm = useIsInFormContext();
@@ -27,7 +27,7 @@ const InnerDevNavigationButtons = () => {
   const isHiddenPage = Hidden.useIsHiddenPageSelector();
   const orderWithHidden = useLayoutSettings().pages.order;
   const order = orderWithHidden ?? [];
-  const allPages = useNodeTraversal((t) => t.children().map((p) => p.pageKey));
+  const allPages = Object.keys(useLayouts() ?? {});
 
   function handleChange(values: string[]) {
     const newView = values.at(0);

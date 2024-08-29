@@ -9,7 +9,7 @@ import classes from 'src/layout/RepeatingGroup/Summary/LargeGroupSummaryContaine
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { Hidden } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { useNodeDirectChildren, useNodeItem } from 'src/utils/layout/useNodeItem';
 import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
 import type { HeadingLevel } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -34,7 +34,7 @@ export function LargeGroupSummaryContainer({ groupNode, id, restriction, renderL
   const item = useNodeItem(groupNode);
   const isHidden = Hidden.useIsHidden(groupNode);
   const depth = useNodeTraversal((t) => t.parents().length, groupNode);
-  const children = useNodeTraversal((t) => t.children(undefined, restriction), groupNode);
+  const children = useNodeDirectChildren(groupNode, restriction);
   if (isHidden) {
     return null;
   }

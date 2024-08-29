@@ -59,7 +59,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
         set(
           nodesProduce((state) => {
             const nodeData = state.nodeData[node.id];
-            if ('validations' in nodeData) {
+            if (nodeData && 'validations' in nodeData) {
               for (const validation of nodeData.validations) {
                 if ('attachmentId' in validation && validation.attachmentId === attachmentId) {
                   const v = validation as AttachmentValidation;

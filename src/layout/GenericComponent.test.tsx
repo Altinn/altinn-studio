@@ -60,9 +60,13 @@ describe('GenericComponent', () => {
       .mockName('window.logError');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await render({ type: 'unknown-type' as any }, false);
-    await waitFor(() => expect(spy).toHaveBeenCalledWith(`No component definition found for type 'unknown-type'`), {
-      timeout: 15000,
-    });
+    await waitFor(
+      () =>
+        expect(spy).toHaveBeenCalledWith(`No component definition found for type 'unknown-type' (component 'mockId')`),
+      {
+        timeout: 15000,
+      },
+    );
   });
 
   it('should render Input component when passing Input type', async () => {

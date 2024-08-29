@@ -109,35 +109,6 @@ export class LayoutPage implements LayoutObject {
     return undefined;
   }
 
-  public findAllById(task: TraversalTask, id: string | undefined, traversePages = true): LayoutNode[] {
-    if (!id) {
-      return [];
-    }
-
-    const baseId = splitDashedKey(id).baseComponentId;
-    const out: Set<LayoutNode> = new Set();
-    if (this.allChildren.has(id)) {
-      out.add(this.allChildren.get(id) as LayoutNode);
-    }
-    if (this.allChildren.has(baseId)) {
-      out.add(this.allChildren.get(baseId) as LayoutNode);
-    }
-
-    for (const key of this.allChildren.keys()) {
-      if (key.startsWith(`${baseId}-`)) {
-        out.add(this.allChildren.get(key) as LayoutNode);
-      }
-    }
-
-    if (traversePages && this.layoutSet) {
-      for (const item of this.layoutSet.findAllById(task, id, this.pageKey)) {
-        out.add(item);
-      }
-    }
-
-    return [...out.values()];
-  }
-
   public isRegisteredInCollection(layoutSet: LayoutPages): boolean {
     return this.pageKey !== undefined && layoutSet.isPageRegistered(this.pageKey, this);
   }

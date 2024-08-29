@@ -5,7 +5,7 @@ import { jest } from '@jest/globals';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { SummaryRepeatingGroup } from 'src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup';
 import { renderWithNode } from 'src/test/renderWithProviders';
-import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
+import { useNode } from 'src/utils/layout/NodesContext';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 describe('SummaryGroupComponent', () => {
@@ -21,7 +21,7 @@ describe('SummaryGroupComponent', () => {
   });
 
   function TestComponent({ node, groupId }: { node: LayoutNode<'Summary'>; groupId: string }) {
-    const groupNode = useNodeTraversal((t) => t.findById(groupId)) as LayoutNode<'RepeatingGroup'>;
+    const groupNode = useNode(groupId) as LayoutNode<'RepeatingGroup'>;
     return (
       <SummaryRepeatingGroup
         changeText={'Change'}

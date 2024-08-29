@@ -139,7 +139,7 @@ describe('Grid component', () => {
 
   it("should allow adding help text to Grid's text cells or referencing a component", () => {
     cy.interceptLayout('changename', (component) => {
-      if (component.type === 'Grid') {
+      if (component.type === 'Grid' && component.id === 'page3-grid') {
         const cell1 = component.rows[3].cells[0];
         if (cell1 && 'text' in cell1) {
           cell1.help = 'Help text';
@@ -168,5 +168,6 @@ describe('Grid component', () => {
     }).should('exist');
     cy.findByRole('button', { name: /Hjelpetekst for Prosentandel av gjeld i studielån/i }).click();
     cy.focused().should('have.attr', 'id', 'label-fordeling-studie-helptext');
+    cy.get(appFrontend.helpText.alert).should('contain.text', 'Dette er en hjelpetekst');
   });
 });

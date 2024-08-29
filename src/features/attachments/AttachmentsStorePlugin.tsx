@@ -7,6 +7,7 @@ import type { UseMutationOptions } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
+import { ContextNotProvided } from 'src/core/contexts/context';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { isAttachmentUploaded } from 'src/features/attachments/index';
 import { sortAttachmentsByName } from 'src/features/attachments/sortAttachments';
@@ -19,15 +20,14 @@ import { useWaitForState } from 'src/hooks/useWaitForState';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { nodesProduce } from 'src/utils/layout/NodesContext';
 import { NodeDataPlugin } from 'src/utils/layout/plugins/NodeDataPlugin';
-import type { ContextNotProvided } from 'src/core/contexts/context';
 import type {
   FileUploaderNode,
   IAttachment,
+  IAttachmentsMap,
   TemporaryAttachment,
   UploadedAttachment,
 } from 'src/features/attachments/index';
 import type { BackendValidationIssue } from 'src/features/validation';
-import type { DSMode } from 'src/hooks/delayedSelectors';
 import type { IDataModelBindingsList, IDataModelBindingsSimple } from 'src/layout/common.generated';
 import type { CompWithBehavior } from 'src/layout/layout';
 import type { IData } from 'src/types/shared';
@@ -78,8 +78,10 @@ export interface AttachmentsStorePluginConfig {
 
     useAttachments: (node: FileUploaderNode) => IAttachment[];
     useAttachmentsSelector: () => AttachmentsSelector;
-    useLaxAttachmentsSelector: () => typeof ContextNotProvided | AttachmentsSelector;
     useWaitUntilUploaded: () => (node: FileUploaderNode, attachment: TemporaryAttachment) => Promise<IData | false>;
+
+    useHasPendingAttachments: () => boolean;
+    useAllAttachments: () => IAttachmentsMap;
   };
 }
 
@@ -210,20 +212,6 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
     };
   }
   extraHooks(store: NodesStoreFull): AttachmentsStorePluginConfig['extraHooks'] {
-    const selectorArg: DSMode<NodesContext> = {
-      mode: 'simple',
-      selector: (node: LayoutNode) => (state) => {
-        const nodeData = state.nodeData[node.id];
-        if (!nodeData) {
-          return emptyArray;
-        }
-        if ('attachments' in nodeData) {
-          return Object.values(nodeData.attachments).sort(sortAttachmentsByName);
-        }
-        return emptyArray;
-      },
-    };
-
     return {
       useAttachmentsUpload() {
         const { changeData: changeInstanceData } = useLaxInstance() || {};
@@ -429,10 +417,19 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
         });
       },
       useAttachmentsSelector() {
-        return store.useDelayedSelector(selectorArg) as AttachmentsSelector;
-      },
-      useLaxAttachmentsSelector() {
-        return store.useLaxDelayedSelector(selectorArg) as AttachmentsSelector;
+        return store.useDelayedSelector({
+          mode: 'simple',
+          selector: (node: LayoutNode) => (state) => {
+            const nodeData = state.nodeData[node.id];
+            if (!nodeData) {
+              return emptyArray;
+            }
+            if ('attachments' in nodeData) {
+              return Object.values(nodeData.attachments).sort(sortAttachmentsByName);
+            }
+            return emptyArray;
+          },
+        }) satisfies AttachmentsSelector;
       },
       useWaitUntilUploaded() {
         const zustandStore = store.useStore();
@@ -468,6 +465,39 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
             }),
           [waitFor],
         );
+      },
+      useHasPendingAttachments() {
+        const out = store.useLaxSelector((state) => {
+          for (const id of Object.keys(state.nodeData)) {
+            const nodeData = state.nodeData[id];
+            if (!nodeData || !('attachments' in nodeData)) {
+              continue;
+            }
+
+            const attachments = Object.values(nodeData.attachments);
+            if (attachments.some((a) => !a.uploaded || a.updating || a.deleting)) {
+              return true;
+            }
+          }
+          return false;
+        });
+
+        return out === ContextNotProvided ? false : out;
+      },
+      useAllAttachments() {
+        return store.useMemoSelector((state) => {
+          const map: IAttachmentsMap = {};
+          for (const id of Object.keys(state.nodeData)) {
+            const nodeData = state.nodeData[id];
+            if (!nodeData || !('attachments' in nodeData)) {
+              continue;
+            }
+
+            map[id] = Object.values(nodeData.attachments);
+          }
+
+          return map;
+        });
       },
     };
   }

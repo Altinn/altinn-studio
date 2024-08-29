@@ -9,8 +9,7 @@ import classes from 'src/features/devtools/components/LayoutInspector/LayoutInsp
 import { useComponentHighlighter } from 'src/features/devtools/hooks/useComponentHighlighter';
 import { nodesFromGridRow } from 'src/layout/Grid/tools';
 import { Hidden } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
+import { useNodeDirectChildren, useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { GridRowsInternal } from 'src/layout/Grid/types';
 import type { CompInternal } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -63,7 +62,7 @@ export const NodeHierarchyItem = ({ node, onClick, selected }: INodeHierarchyIte
   const nodeType = node.type;
   const nodeMultiPageIndex = node.multiPageIndex;
   const { onMouseEnter, onMouseLeave } = useComponentHighlighter(nodeId, false);
-  const children = useNodeTraversal((t) => t.children(), node);
+  const children = useNodeDirectChildren(node);
   const hasChildren = children.length > 0;
   const isHidden = Hidden.useIsHidden(node, { respectDevTools: false });
 

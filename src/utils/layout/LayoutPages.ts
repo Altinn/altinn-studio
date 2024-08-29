@@ -39,18 +39,6 @@ export class LayoutPages implements LayoutObject<LayoutPage> {
     return undefined;
   }
 
-  public findAllById(task: TraversalTask, id: string, exceptInPage?: string): LayoutNode[] {
-    const out: LayoutNode[] = [];
-
-    for (const key of Object.keys(this.objects)) {
-      if (key !== exceptInPage) {
-        out.push(...this.objects[key].findAllById(task, id, false));
-      }
-    }
-
-    return out;
-  }
-
   public findLayout(_task: TraversalTask, key: keyof Collection | string | undefined): LayoutPage | undefined {
     if (!key) {
       return undefined;

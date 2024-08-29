@@ -480,8 +480,18 @@ function GenerateComponent({ layout, claim, childClaims }: ComponentProps) {
     return out;
   }, [def, claim, layout, childClaims]);
 
-  if (!def) {
-    window.logError(`No component definition found for type '${layout.type}'`);
+  if (!layout.id && layout.type) {
+    window.logError(`Encountered '${layout.type}' component with no ID (ignoring)`);
+    return null;
+  }
+
+  if (!layout.id) {
+    window.logError(`Encountered component with no ID (ignoring)`);
+    return null;
+  }
+
+  if (!def || !layout.type) {
+    window.logError(`No component definition found for type '${layout.type}' (component '${layout.id}')`);
     return null;
   }
 

@@ -12,15 +12,14 @@ import { SplitView } from 'src/features/devtools/components/SplitView/SplitView'
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { implementsAnyValidation } from 'src/layout';
+import { useGetPage, useNode } from 'src/utils/layout/NodesContext';
 import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
 
 export const NodeInspector = () => {
   const pageKey = useCurrentView();
-  const currentPage = useNodeTraversal((t) => t.findPage(pageKey));
+  const currentPage = useGetPage(pageKey);
   const selectedId = useDevToolsStore((state) => state.nodeInspector.selectedNodeId);
-  const selectedNode = useNodeTraversal((t) =>
-    currentPage && selectedId ? t.with(currentPage).findById(selectedId) : undefined,
-  );
+  const selectedNode = useNode(selectedId);
   const children = useNodeTraversal((t) => (currentPage ? t.with(currentPage).children() : undefined));
   const setSelected = useDevToolsStore((state) => state.actions.nodeInspectorSet);
   const focusLayoutInspector = useDevToolsStore((state) => state.actions.focusLayoutInspector);

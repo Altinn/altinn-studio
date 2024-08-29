@@ -1,5 +1,6 @@
 import { getComponentDef } from 'src/layout';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
+import { typedBoolean } from 'src/utils/typing';
 import type { CompClassMap, CompDef } from 'src/layout';
 import type { CompCategory } from 'src/layout/common';
 import type { ComponentTypeConfigs } from 'src/layout/components.generated';
@@ -81,7 +82,7 @@ export class BaseLayoutNode<Type extends CompTypes = CompTypes> implements Layou
   private childrenAsList(task: TraversalTask) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const def = this.def as CompDef<any>;
-    return def.pickDirectChildren(task.getData(this), task.restriction) as LayoutNode[];
+    return def.pickDirectChildren(task.getData(this), task.restriction).filter(typedBoolean) as LayoutNode[];
   }
 
   public firstChild(task: TraversalTask): LayoutNode | undefined {

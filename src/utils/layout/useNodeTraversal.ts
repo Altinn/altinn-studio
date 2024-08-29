@@ -17,8 +17,6 @@ type DataFrom<T extends Node> = T extends LayoutPage ? PageData : T extends Layo
 export type TraversalRestriction = number | undefined;
 export type TraversalMatcher = (state: AnyData) => boolean | undefined;
 
-const emptyArray: never[] = [];
-
 export class TraversalTask {
   constructor(
     private state: NodesContext,
@@ -184,23 +182,6 @@ export class NodeTraversal<T extends Node = LayoutPages> {
   }
 
   /**
-   * Find all nodes with a specific ID
-   */
-  findAllById(id: string | undefined): LayoutNode[] {
-    if (this.target instanceof BaseLayoutNode) {
-      throw new Error('Cannot call findAllById() on a LayoutNode object');
-    }
-
-    if (!id) {
-      return emptyArray;
-    }
-    return (this.target as LayoutPage | LayoutPages).findAllById(
-      new TraversalTask(this.state, this.rootNode, undefined, undefined),
-      id,
-    );
-  }
-
-  /**
    * Find a node (never a page) by the given ID
    */
   findById(id: string | undefined): LayoutNode | undefined {
@@ -242,10 +223,7 @@ export type NodeTraversalFrom<N extends Node> = N extends LayoutPages
 export type NodeTraversalFromAny = NodeTraversalFromRoot | NodeTraversalFromPage | NodeTraversalFromNode<LayoutNode>;
 export type NodeTraversalFromRoot = Omit<NodeTraversal, 'parents'>;
 export type NodeTraversalFromPage = Omit<NodeTraversal<LayoutPage>, 'allNodes' | 'findPage'>;
-export type NodeTraversalFromNode<N extends LayoutNode> = Omit<
-  NodeTraversal<N>,
-  'allNodes' | 'findPage' | 'findById' | 'findAllById'
->;
+export type NodeTraversalFromNode<N extends LayoutNode> = Omit<NodeTraversal<N>, 'allNodes' | 'findPage' | 'findById'>;
 
 enum Strictness {
   // If the context or nodes are not provided, throw an error upon traversal
@@ -303,34 +281,6 @@ function useNodeTraversalProto<Out>(selector: (traverser: never) => Out, node?: 
   }
 
   return out;
-}
-
-export function useNodeTraversalLax<Out>(
-  selector: (traverser: NodeTraversalFromRoot | typeof ContextNotProvided) => Out,
-): Out;
-// eslint-disable-next-line no-redeclare
-export function useNodeTraversalLax<N extends LayoutPage, Out>(
-  selector: (traverser: NodeTraversalFromPage | typeof ContextNotProvided) => Out,
-  node: N,
-): Out;
-// eslint-disable-next-line no-redeclare
-export function useNodeTraversalLax<N extends LayoutPage, Out>(
-  selector: (traverser: NodeTraversalFromPage | NodeTraversalFromRoot | typeof ContextNotProvided) => Out,
-  node: N | undefined,
-): Out;
-// eslint-disable-next-line no-redeclare
-export function useNodeTraversalLax<N extends LayoutNode, Out>(
-  selector: (traverser: NodeTraversalFromNode<N> | typeof ContextNotProvided) => Out,
-  node: N,
-): Out;
-// eslint-disable-next-line no-redeclare
-export function useNodeTraversalLax<N extends LayoutNode, Out>(
-  selector: (traverser: NodeTraversalFromNode<N> | NodeTraversalFromRoot | typeof ContextNotProvided) => Out,
-  node: N | undefined,
-): Out;
-// eslint-disable-next-line no-redeclare
-export function useNodeTraversalLax<Out>(selector: (traverser: never) => Out, node?: never): Out {
-  return useNodeTraversalProto(selector, node, Strictness.returnContextNotProvided);
 }
 
 export function useNodeTraversal<Out>(selector: (traverser: NodeTraversalFromRoot) => Out): Out;
@@ -439,11 +389,4 @@ export function useNodeTraversalSelectorSilent() {
   return useNodeTraversalSelectorProto(Strictness.returnUndefined);
 }
 
-export type NodeTraversalSelector = ReturnType<typeof useNodeTraversalSelector>;
 export type NodeTraversalSelectorLax = ReturnType<typeof useNodeTraversalSelectorLax>;
-export type NodeTraversalSelectorSilent = ReturnType<typeof useNodeTraversalSelectorSilent>;
-
-export function nodeTraversalSelectorForTests(nodes: LayoutPages): NodeTraversalSelector {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (selector: (traverser: NodeTraversalFromRoot) => any) => selector(new NodeTraversal({} as any, nodes, nodes));
-}

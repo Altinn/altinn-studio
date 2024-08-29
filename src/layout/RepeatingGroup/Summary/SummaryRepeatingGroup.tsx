@@ -11,8 +11,7 @@ import classes from 'src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup.mod
 import { EditButton } from 'src/layout/Summary/EditButton';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import { Hidden } from 'src/utils/layout/NodesContext';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
+import { useNodeDirectChildren, useNodeItem } from 'src/utils/layout/useNodeItem';
 import { typedBoolean } from 'src/utils/typing';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { RepGroupRow, RepGroupRows } from 'src/layout/RepeatingGroup/types';
@@ -145,7 +144,7 @@ function RegularRepeatingGroupRow({
   summaryNode,
 }: FullRowProps) {
   const isHidden = Hidden.useIsHiddenSelector();
-  const children = useNodeTraversal((t) => t.children(undefined, row.index), targetNode);
+  const children = useNodeDirectChildren(targetNode, row.index);
 
   const childSummaryComponents = children
     .filter((n) => !inExcludedChildren(n))

@@ -25,7 +25,7 @@ import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
 import { SearchParams, useCurrentView, useNavigatePage, useStartUrl } from 'src/hooks/useNavigatePage';
 import { GenericComponentById } from 'src/layout/GenericComponent';
 import { extractBottomButtons } from 'src/utils/formLayout';
-import { useNode } from 'src/utils/layout/NodesContext';
+import { useGetPage, useNode } from 'src/utils/layout/NodesContext';
 import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
 import type { NodeData } from 'src/utils/layout/types';
 
@@ -187,7 +187,7 @@ function nodeDataIsRequired(n: NodeData) {
  */
 function ErrorProcessing({ setFormState }: ErrorProcessingProps) {
   const currentPageId = useCurrentView();
-  const page = useNodeTraversal((traverser) => traverser.findPage(currentPageId));
+  const page = useGetPage(currentPageId);
 
   const topLevelNodeIds = useNodeTraversal((traverser) => {
     if (!page) {

@@ -25,13 +25,11 @@ import {
 import { getColumnStyles } from 'src/utils/formComponentUtils';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
-import { Hidden } from 'src/utils/layout/NodesContext';
+import { Hidden, useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { ITableColumnFormatting, ITableColumnProperties } from 'src/layout/common.generated';
 import type { GridRowInternal } from 'src/layout/Grid/types';
-import type { ITextResourceBindings } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
@@ -138,7 +136,6 @@ export function GridRowRenderer({ row, isNested, mutableColumnSettings, node }: 
               className={className}
               isHeader={row.header}
               columnStyleOptions={textCellSettings}
-              node={node}
               labelFrom={cell.labelFrom}
             />
           );
@@ -196,7 +193,6 @@ interface CellWithTextProps extends PropsWithChildren, CellProps {
 }
 
 interface CellWithLabelProps extends CellProps {
-  node: LayoutNode;
   labelFrom?: string;
 }
 
@@ -261,19 +257,18 @@ function CellWithText({ children, className, columnStyleOptions, help, isHeader 
   );
 }
 
-function CellWithLabel({ className, columnStyleOptions, labelFrom, node, isHeader = false }: CellWithLabelProps) {
+function CellWithLabel({ className, columnStyleOptions, labelFrom, isHeader = false }: CellWithLabelProps) {
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
-  const labelFromNode = useNodeTraversal((t) => t.flat().find((n) => n.baseId === labelFrom), node);
-  const refItem = useNodeItem(labelFromNode);
-  const trb = (refItem && 'textResourceBindings' in refItem ? refItem.textResourceBindings : {}) as
-    | ITextResourceBindings
-    | undefined;
+  const labelFromNode = useNode(labelFrom);
+  const { trb, required = false } =
+    useNodeItem(labelFromNode, (i) => ({
+      trb: 'textResourceBindings' in i ? i.textResourceBindings : {},
+      required: 'required' in i ? i.required : false,
+    })) ?? {};
+
   const title = trb && 'title' in trb ? trb.title : undefined;
   const help = trb && 'help' in trb ? trb.help : undefined;
-  const description = trb && 'description' in trb ? trb.description : undefined;
-  const required = (refItem && 'required' in refItem && refItem.required) ?? false;
-  const componentId = labelFromNode?.id;
-
+  const description = trb && 'description' in trb && typeof trb.description === 'string' ? trb.description : undefined;
   const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
 
   return (
@@ -281,9 +276,9 @@ function CellWithLabel({ className, columnStyleOptions, labelFrom, node, isHeade
       className={cn(css.tableCellFormatting, className)}
       style={columnStyles}
     >
-      {componentId && (
+      {labelFromNode && (
         <LabelContent
-          id={`label-${componentId}`}
+          id={`label-${labelFromNode.id}`}
           label={title}
           required={required}
           help={help}

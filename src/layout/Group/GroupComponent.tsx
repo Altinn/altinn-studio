@@ -87,7 +87,7 @@ export function GroupComponent({
           data-testid='display-group-container'
           className={cn({ [classes.groupingIndicator]: isIndented && !isNested }, classes.groupContainer)}
         >
-          {children?.map((n) => renderLayoutNode(n))}
+          {children.map((n) => renderLayoutNode(n))}
         </div>
       </Fieldset>
     </ConditionalWrapper>
