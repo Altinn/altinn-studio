@@ -15,3 +15,40 @@ jobs:
       - uses: amannn/action-semantic-pull-request@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          scopes: |
+            accessibility
+            analytics
+            app-deploy
+            app-preview
+            attachments
+            authentication
+            authorization
+            contact
+            codelist
+            dashboard
+            data-modeling
+            data-storage
+            designsystem
+            form-layout
+            header
+            infrastructure
+            language
+            login
+            message
+            message-box
+            miscellaneous
+            pdf
+            prefill
+            process
+            receipt
+            register
+            resource-adm
+            resource-registry
+            settings
+            studio-root
+            test
+            text-editor
+            ui-component
+            ui-editor
+            overview
