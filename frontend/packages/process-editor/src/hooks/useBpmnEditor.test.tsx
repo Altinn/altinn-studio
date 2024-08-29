@@ -38,7 +38,14 @@ class BpmnModelerMockImpl {
 
   on(eventName: string, listener: (event: any) => void) {
     if (eventName === this._currentEventName) {
-      listener({ element: getMockBpmnElementForTask(this._currentTaskType) });
+      if (eventName === 'selection.changed') {
+        listener({
+          newSelection: [getMockBpmnElementForTask(this._currentTaskType)],
+          oldSelection: [],
+        });
+      } else {
+        listener({ element: getMockBpmnElementForTask(this._currentTaskType) });
+      }
     }
   }
 
@@ -139,11 +146,11 @@ describe('useBpmnEditor', () => {
     await waitFor(() => expect(onProcessTaskRemoveMock).toHaveBeenCalledTimes(1));
   });
 
-  it('should call setBpmnDetails when "element.click" event is triggered on eventBus', () => {
-    const currentEventName = 'element.click';
+  it('should call setBpmnDetails when "selection.changed" event is triggered on eventBus', async () => {
+    const currentEventName = 'selection.changed';
     renderUseBpmnEditor(true, currentEventName);
 
-    expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1));
     expect(setBpmnDetailsMock).toHaveBeenCalledWith(mockBpmnDetails);
   });
 });
