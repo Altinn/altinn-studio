@@ -80,11 +80,10 @@ export class ExportUtils {
       dataModelBindings,
     } as ExportFormComponent;
     exportComponent.texts = this.mapTextResourceBindingsToExportFormat(textResourceBindings);
-    exportComponent.options = component.options
-      ? this.mapOptionsToExportFormat(component.options)
-      : optionsId
-        ? this.mapOptionsToExportFormat(this.optionLists[optionsId])
-        : undefined;
+    const options = this.getComponentOptionsOrUndefined(component);
+    if (options) {
+      exportComponent.options = this.mapOptionsToExportFormat(options);
+    }
 
     exportComponent.sortOrder = index;
 
@@ -135,8 +134,19 @@ export class ExportUtils {
     }));
   };
 
+  private getComponentOptionsOrUndefined = (
+    component: ExternalComponent,
+  ): IOption[] | undefined => {
+    if (component.options) {
+      return component.options;
+    }
+    if (component.optionsId) {
+      return this.optionLists[component.optionsId];
+    }
+    return undefined;
+  };
+
   private mapOptionsToExportFormat = (options: IOption[]): ExportOption[] => {
-    if (!options) return undefined;
     const result: ExportOption[] = options.map((option) => {
       const textValues = this.getTextValues(
         option.label,
