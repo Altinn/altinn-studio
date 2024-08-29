@@ -9,6 +9,9 @@ import type { FormItem } from '../../../../types/FormItem';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { useFormLayouts } from '../../../../hooks';
 import { findLayoutsContainingDuplicateComponents } from '../../../../utils/formLayoutUtils';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { ComponentType } from 'app-shared/types/ComponentType';
+import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
 
 export interface EditComponentIdRowProps {
   handleComponentUpdate: (component: FormItem) => void;
@@ -25,6 +28,8 @@ export const EditComponentIdRow = ({
   const [{ data: layoutSchema }, , { data: expressionSchema }, { data: numberFormatSchema }] =
     useLayoutSchemaQuery();
 
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: appMetadata } = useAppMetadataModelIdsQuery(org, app);
   const [isViewMode, setIsViewMode] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(null);
 
@@ -49,6 +54,16 @@ export const EditComponentIdRow = ({
     if (value !== component.id && idExists(value, formLayouts)) {
       return t('ux_editor.modal_properties_component_id_not_unique_error');
     }
+    const duplicateDatatypeId = appMetadata.find((modelId) => modelId === value);
+    if (
+      value !== component.id &&
+      (component.type === ComponentType.FileUpload ||
+        component.type === ComponentType.FileUploadWithTag) &&
+      duplicateDatatypeId
+    ) {
+      return t('ux_editor.modal_properties_component_id_not_unique_error');
+    }
+
     return '';
   };
 
