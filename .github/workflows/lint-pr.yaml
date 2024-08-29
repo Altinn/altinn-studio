@@ -51,7 +51,6 @@ jobs:
             resource-adm
             resource-registry
             settings
-            studio-root
             sub-form
             testing
             text
@@ -59,3 +58,4 @@ jobs:
             ui-component
             ui-editor
             ux
+            workspace
