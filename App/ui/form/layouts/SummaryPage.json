@@ -34,42 +34,10 @@
       },
       {
         "size": "M",
-        "id": "Header-in-new-summaryaerg",
-        "type": "Header",
-        "textResourceBindings": {
-          "title": "Denne tittelen skal gjemmes dersom det står 'test' i input feltet"
-        },
-        "hidden": [
-          "equals",
-          [
-            "component",
-            "Input-Test"
-          ],
-          "test"
-        ]
-      },
-      {
-        "size": "M",
-        "id": "Header-in-new-summaryegr",
-        "type": "Header",
-        "textResourceBindings": {
-          "title": "Denne tittelen skal gjemmes dersom det står 'test' i input feltet"
-        },
-        "hidden": [
-          "equals",
-          [
-            "component",
-            "Input-Test"
-          ],
-          "test"
-        ]
-      },
-      {
-        "size": "M",
         "id": "Header-in-new-summaryerg",
         "type": "Header",
         "textResourceBindings": {
-          "title": "Her rendres side 1:"
+          "title": "Her vises Summary en enkelt side:"
         }
       },
       {
@@ -86,30 +54,13 @@
         "id": "whole-layoutset",
         "type": "Header",
         "textResourceBindings": {
-          "title": "Her rendres hele layout settet:"
+          "title": "Her vises summary av et helt layoutSet:"
         }
       },
       {
         "id": "Summary2-84wghp-layoutset",
         "type": "Summary2",
         "hidden": false
-      },
-      {
-        "size": "M",
-        "id": "page3summary",
-        "type": "Header",
-        "textResourceBindings": {
-          "title": "Her rendres hele side 3:"
-        }
-      },
-      {
-        "id": "Summary2-84wghp-page3dag",
-        "type": "Summary2",
-        "hidden": false,
-        "target": {
-          "type": "page",
-          "id": "GroupPage"
-        }
       },
       {
         "id": "Button-qHGXDg",
