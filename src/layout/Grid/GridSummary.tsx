@@ -395,7 +395,7 @@ function CellWithLabel({ cell, columnStyleOptions, isHeader = false, headerTitle
     >
       {componentId && (
         <LabelContent
-          id={`label-${componentId}`}
+          labelId={`label-${componentId}`}
           label={title}
           required={required}
         />

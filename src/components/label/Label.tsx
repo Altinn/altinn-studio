@@ -23,7 +23,7 @@ export type LabelProps = PropsWithChildren<{
   renderLabelAs: LabelType;
   className?: string;
 
-  id?: string;
+  overrideId?: string;
   textResourceBindings?: ExprResolved<TRBLabel>;
 }> &
   DesignsystemetLabelProps;
@@ -32,9 +32,9 @@ export function Label(props: LabelProps) {
   const { children, ...propsWithoutChildren } = props;
   const {
     node,
+    overrideId,
     renderLabelAs,
     className,
-    id: overriddenId,
     textResourceBindings: overriddenTrb,
     ...designsystemetLabelProps
   } = props;
@@ -48,7 +48,7 @@ export function Label(props: LabelProps) {
   const labelSettings = 'labelSettings' in item ? item.labelSettings : undefined;
 
   // These can be overridden by props, but are otherwise retrieved from the node item
-  const id = overriddenId ?? nodeId;
+  const id = overrideId ?? nodeId;
   const textResourceBindings = (overriddenTrb ?? _trb) as ExprResolved<TRBLabel> | undefined;
 
   if (!textResourceBindings?.title) {
@@ -56,7 +56,8 @@ export function Label(props: LabelProps) {
   }
 
   const labelId = `label-${id}`;
-  const labelContentProps: Omit<LabelContentProps, 'id'> = {
+  const labelContentProps: LabelContentProps = {
+    labelId,
     label: textResourceBindings.title,
     description: textResourceBindings.description,
     help: textResourceBindings.help,
@@ -74,6 +75,7 @@ export function Label(props: LabelProps) {
             <Label
               {...propsWithoutChildren}
               renderLabelAs='span'
+              overrideId={id}
             />
           }
         >
@@ -119,7 +121,10 @@ export function Label(props: LabelProps) {
     case 'span':
     default:
       return (
-        <span className={cn(classes.fieldWrapper, className)}>
+        <span
+          id={labelId}
+          className={cn(classes.fieldWrapper, className)}
+        >
           {/* we want this "label" not to be rendered as a <label>,
            because it does not belong to an input element */}
           <LabelGridItemWrapper labelGrid={grid?.labelGrid}>
@@ -128,8 +133,8 @@ export function Label(props: LabelProps) {
               {...designsystemetLabelProps}
             >
               <LabelContent
-                id={labelId}
                 {...labelContentProps}
+                labelId={labelId}
               />
             </DesignsystemetLabel>
           </LabelGridItemWrapper>
