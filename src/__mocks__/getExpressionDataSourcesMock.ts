@@ -11,13 +11,9 @@ export function getExpressionDataSourcesMock(): ExpressionDataSources {
     attachmentsSelector: () => {
       throw new Error('Not implemented: attachmentsSelector()');
     },
-    layoutSettings: { pages: { order: [] } },
     optionsSelector: () => ({ isFetching: false, options: [] }),
     applicationSettings: getApplicationSettingsMock(),
     instanceDataSources: {} as IInstanceDataSources | null,
-    authContext: null,
-    devToolsIsOpen: false,
-    devToolsHiddenComponents: 'hide',
     langToolsSelector: () => staticUseLanguageForTests(),
     currentLanguage: 'nb',
     isHiddenSelector: () => false,

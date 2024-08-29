@@ -7,6 +7,7 @@ import { ExprVal } from 'src/features/expressions/types';
 import { addError } from 'src/features/expressions/validation';
 import { SearchParams } from 'src/hooks/useNavigatePage';
 import { implementsDisplayData } from 'src/layout';
+import { buildAuthContext } from 'src/utils/authContext';
 import { isDate } from 'src/utils/dateHelpers';
 import { formatDateLocale } from 'src/utils/formatDateLocale';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
@@ -218,7 +219,8 @@ export const ExprFunctions = {
         throw new ExprRuntimeError(this.expr, this.path, `Unknown auth context property ${key}`);
       }
 
-      return Boolean(this.dataSources.authContext?.[key]);
+      const authContext = buildAuthContext(this.dataSources.process?.currentTask);
+      return Boolean(authContext?.[key]);
     },
     args: [ExprVal.String] as const,
     returns: ExprVal.Boolean,
