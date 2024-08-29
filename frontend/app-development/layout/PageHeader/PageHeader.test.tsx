@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import { PageHeader, type PageHeaderProps } from './PageHeader';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { PageHeaderContext } from 'app-development/contexts/PageHeaderContext';
-import { app, org } from '@studio/testing/testids';
+import { app } from '@studio/testing/testids';
 import { type PageHeaderContextProps } from 'app-development/contexts/PageHeaderContext/PageHeaderContext';
 import { pageHeaderContextMock, previewContextMock } from 'app-development/test/headerMocks';
 import { PreviewContext } from 'app-development/contexts/PreviewContext';
@@ -13,13 +13,6 @@ import { useMediaQuery } from '@studio/components/src/hooks/useMediaQuery';
 
 jest.mock('@studio/components/src/hooks/useMediaQuery');
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => {
-    return { org, app };
-  },
-}));
-
 const defaultProps: PageHeaderProps = {
   showSubMenu: true,
   isRepoError: false,
@@ -27,8 +20,6 @@ const defaultProps: PageHeaderProps = {
 
 describe('PageHeader', () => {
   afterEach(() => jest.clearAllMocks());
-
-  afterEach(jest.clearAllMocks);
 
   it('should render the app title when on a large screen', () => {
     renderPageHeader();
