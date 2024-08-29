@@ -98,6 +98,7 @@ test('that the user can add a sequence arrow between two tasks', async ({ page, 
 
   const initialTaskSelector: string = await bpmnJSQuery.getTaskByIdAndType(initialId, 'g');
   await processEditorPage.clickOnTaskInBpmnEditor(initialTaskSelector);
+  await page.waitForTimeout(500); // avoid double click, causing name editor to open
   await processEditorPage.clickOnTaskInBpmnEditor(initialTaskSelector);
   await processEditorPage.waitForInitialTaskHeaderToBeVisible();
 
