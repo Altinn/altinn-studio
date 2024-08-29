@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { LargeNavigationMenu } from './LargeNavigationMenu';
 import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 
-type PageHeaderProps = {
+export type PageHeaderProps = {
   showSubMenu: boolean;
   isRepoError?: boolean;
 };
@@ -45,7 +45,7 @@ export const PageHeader = ({ showSubMenu, isRepoError }: PageHeaderProps): React
           <RightContent />
         </StudioPageHeader.Right>
       </StudioPageHeader.Main>
-      {(showSubMenu || !isRepoError) && (
+      {showSubMenu && !isRepoError && (
         <StudioPageHeader.Sub>
           <SubHeader hasRepoError={isRepoError} />
         </StudioPageHeader.Sub>
@@ -58,7 +58,7 @@ const RightContent = (): ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: repository } = useRepoMetadataQuery(org, app);
   const isSmallScreen = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
-  const { user, profileMenuItems } = usePageHeaderContext();
+  const { user, profileMenuItems, variant } = usePageHeaderContext();
 
   if (isSmallScreen) {
     return <SmallHeaderMenu />;
@@ -67,6 +67,7 @@ const RightContent = (): ReactElement => {
     <AppUserProfileMenu
       repository={repository}
       color='dark'
+      variant={variant}
       user={user}
       profileMenuItems={profileMenuItems}
     />

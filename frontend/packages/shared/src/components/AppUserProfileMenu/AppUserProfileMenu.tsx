@@ -15,6 +15,7 @@ export type AppUserProfileMenuProps = {
   user: User;
   repository: Repository;
   color: StudioProfileMenuProps['color']; // TODO - See if we can do this with "StudioProfileMenuItem" too
+  variant: StudioProfileMenuProps['variant'];
   profileMenuItems: StudioProfileMenuProps['profileMenuItems'];
 };
 
@@ -22,6 +23,7 @@ export const AppUserProfileMenu = ({
   user,
   repository,
   color,
+  variant,
   profileMenuItems,
 }: AppUserProfileMenuProps): ReactElement => {
   const { t } = useTranslation();
@@ -45,6 +47,7 @@ export const AppUserProfileMenu = ({
       }
       profileMenuItems={profileMenuItems}
       color={color}
+      variant={variant}
     />
   );
 };

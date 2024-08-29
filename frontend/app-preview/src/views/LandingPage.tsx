@@ -90,6 +90,7 @@ export const LandingPage = () => {
               user={user}
               repository={repository}
               color='light'
+              variant='preview'
               profileMenuItems={profileMenuItems}
             />
           </StudioPageHeader.Right>

@@ -5,13 +5,6 @@ import { MemoryRouter } from 'react-router-dom';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { type NavigationMenuItem } from 'app-development/types/HeaderMenu/NavigationMenuItem';
 import { PageHeaderContext } from 'app-development/contexts/PageHeaderContext';
-/*
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => {
-    return { org, app };
-  },
-}));*/
 
 const menuItems: NavigationMenuItem[] = [
   { name: 'Active Item', link: '/link1', isBeta: true },

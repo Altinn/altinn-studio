@@ -169,6 +169,7 @@ const ResourceadmHeaderMenu = () => {
     <StudioProfileMenu
       triggerButtonText={getTriggerButtonText()}
       color='dark'
+      variant='regular'
       profileImage={
         <StudioAvatar
           imageDetails={
