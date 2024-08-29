@@ -1,6 +1,7 @@
 import {
   CombinationKind,
   FieldType,
+  Keyword,
   type NodePosition,
   type UiSchemaNode,
   type UiSchemaNodes,
@@ -31,6 +32,7 @@ import {
   createDefinitionPointer,
   createPropertyPointer,
   extractNameFromPointer,
+  makePointerFromArray,
 } from './pointerUtils';
 import {
   defaultCombinationNode,
@@ -88,15 +90,24 @@ export class SchemaModel {
   public getSchemaPointerByUniquePointer(uniquePointer: string): string {
     if (this.hasNode(uniquePointer)) return uniquePointer;
 
-    const definitionPointer = this.extractDefinitionByUniquePointer(uniquePointer);
-    const remainderPointer = uniquePointer.split('/').slice(3).join('/');
-    return `${definitionPointer}/${remainderPointer}`;
+    const parentNodePointer = this.getParentSchemaPointerByUniquePointer(uniquePointer);
+    return makePointerFromArray([
+      parentNodePointer,
+      Keyword.Properties,
+      extractNameFromPointer(uniquePointer),
+    ]);
   }
 
-  private extractDefinitionByUniquePointer(uniquePointer: string): string {
-    const parentPointer = uniquePointer.split('/').slice(0, 3).join('/');
-    const firstChildPointer = this.getChildNodes(parentPointer)[0].pointer;
-    return firstChildPointer.split('/').slice(0, 3).join('/');
+  private getParentSchemaPointerByUniquePointer(uniquePointer: string): string {
+    const parentPropertyNode = this.getParentPropertyNodeByUniquePointer(uniquePointer);
+    return isReference(parentPropertyNode)
+      ? parentPropertyNode.reference
+      : parentPropertyNode.pointer;
+  }
+
+  private getParentPropertyNodeByUniquePointer(uniquePointer: string): UiSchemaNode {
+    const parentUniquePointer = uniquePointer.split('/').slice(0, -2).join('/');
+    return this.getNodeByUniquePointer(parentUniquePointer);
   }
 
   public getUniquePointer(pointer: string, uniqueParentPointer?: string): string {

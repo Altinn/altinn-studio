@@ -146,6 +146,21 @@ describe('SchemaModel', () => {
     });
   });
 
+  describe('getSchemaPointerByUniquePointer', () => {
+    const uniqueGrandChildPointer =
+      '#/properties/referenceToParent/properties/child/properties/grandchild';
+    const uniqueChildPointer = '#/properties/referenceToParent/properties/child';
+
+    it('Returns the schema pointer for a given unique pointer', () => {
+      expect(schemaModel.getSchemaPointerByUniquePointer(uniqueChildPointer)).toEqual(
+        defNodeWithChildrenChildMock.pointer,
+      );
+      expect(schemaModel.getSchemaPointerByUniquePointer(uniqueGrandChildPointer)).toEqual(
+        defNodeWithChildrenGrandchildMock.pointer,
+      );
+    });
+  });
+
   describe('getUniquePointer', () => {
     it('Returns the pointer as is when called on the root node', () => {
       expect(schemaModel.getUniquePointer(rootNodeMock.pointer)).toEqual(rootNodeMock.pointer);
