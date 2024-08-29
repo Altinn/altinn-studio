@@ -41,7 +41,6 @@ jobs:
             login
             message
             message-box
-            miscellaneous
             overview
             pdf
             prefill
