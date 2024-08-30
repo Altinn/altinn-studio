@@ -18,6 +18,9 @@ import { MemoryRouter } from 'react-router-dom';
 import { app, org } from '@studio/testing/testids';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { repository } from 'app-shared/mocks/mocks';
+import { useMediaQuery } from '@studio/components';
+
+jest.mock('@studio/components/src/hooks/useMediaQuery');
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -182,6 +185,25 @@ describe('shareChanges', () => {
     );
     expect(screen.queryByText(textMock('sync_header.nothing_to_push'))).not.toBeInTheDocument();
     expect(screen.getByText(textMock('sync_header.changes_to_share'))).toBeInTheDocument();
+  });
+
+  it('should render the button with text on a large screen', () => {
+    renderShareChangesPopover();
+
+    expect(screen.getByText(textMock('sync_header.changes_to_share'))).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: textMock('sync_header.changes_to_share') }),
+    ).toBeInTheDocument();
+  });
+
+  it('should not render the button text on a small screen', () => {
+    (useMediaQuery as jest.Mock).mockReturnValue(true);
+    renderShareChangesPopover();
+
+    expect(screen.queryByText(textMock('sync_header.changes_to_share'))).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: textMock('sync_header.changes_to_share') }),
+    ).toBeInTheDocument();
   });
 });
 

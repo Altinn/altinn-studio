@@ -68,6 +68,7 @@ export const ShareChangesPopover = () => {
         icon={<UploadIcon />}
         color='light'
         variant='regular'
+        aria-label={t('sync_header.changes_to_share')}
       >
         {shouldDisplayText && t('sync_header.changes_to_share')}
         {displayNotification && <Notification />}

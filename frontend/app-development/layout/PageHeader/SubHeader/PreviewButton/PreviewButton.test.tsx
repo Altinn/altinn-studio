@@ -2,7 +2,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { PreviewButton } from './PreviewButton';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { useMediaQuery } from '@studio/components/src/hooks/useMediaQuery';
+import { useMediaQuery } from '@studio/components';
 import { PageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
