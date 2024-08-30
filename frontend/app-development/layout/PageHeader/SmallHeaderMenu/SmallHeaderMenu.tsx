@@ -1,7 +1,14 @@
 import React, { useState, type ReactElement } from 'react';
+import classes from './SmallHeaderMenu.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, type StudioProfileMenuItem } from '@studio/components';
-import { Divider, DropdownMenu } from '@digdir/designsystemet-react';
+import {
+  StudioAvatar,
+  StudioButton,
+  StudioDivider,
+  StudioParagraph,
+  type StudioProfileMenuItem,
+} from '@studio/components';
+import { DropdownMenu } from '@digdir/designsystemet-react';
 import { type NavigationMenuSmallItem } from 'app-development/types/HeaderMenu/NavigationMenuSmallItem';
 import { type NavigationMenuSmallGroup } from 'app-development/types/HeaderMenu/NavigationMenuSmallGroup';
 import { MenuHamburgerIcon } from '@studio/icons';
@@ -53,7 +60,6 @@ export const SmallHeaderMenu = (): ReactElement => {
   const menuGroupHeader = (menuGroup: NavigationMenuSmallGroup) =>
     menuGroup.showName ? t(menuGroup.name) : '';
 
-  // TODO - Move the Profile image to the top of this menu
   return (
     <DropdownMenu onClose={handleClose} open={open}>
       <DropdownMenu.Trigger asChild>
@@ -69,6 +75,21 @@ export const SmallHeaderMenu = (): ReactElement => {
         </StudioButton>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content>
+        <div className={classes.profileWrapper}>
+          <StudioAvatar
+            imageDetails={
+              user?.avatar_url && {
+                src: user.avatar_url,
+                alt: t('general.profile_icon'),
+                title: t('shared.header_profile_icon_text'),
+              }
+            }
+          />
+          <StudioParagraph size='md' className={classes.profileText}>
+            {userNameAndOrg}
+          </StudioParagraph>
+        </div>
+        <StudioDivider />
         {menuGroups.map((menuGroup: NavigationMenuSmallGroup, index: number) => (
           <React.Fragment key={menuGroup.name}>
             <DropdownMenu.Group heading={menuGroupHeader(menuGroup)}>
@@ -80,7 +101,7 @@ export const SmallHeaderMenu = (): ReactElement => {
                 />
               ))}
             </DropdownMenu.Group>
-            {index !== menuGroups.length - 1 && <Divider />}
+            {index !== menuGroups.length - 1 && <StudioDivider />}
           </React.Fragment>
         ))}
       </DropdownMenu.Content>

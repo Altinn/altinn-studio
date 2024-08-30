@@ -1,0 +1,12 @@
+.profileWrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.profileText {
+  margin-top: var(--fds-spacing-1);
+  white-space: pre-line;
+  text-align: center;
+}
