@@ -51,7 +51,7 @@ jobs:
             resource-adm
             resource-registry
             settings
-            sub-form
+            subform
             testing
             text
             text-editor
