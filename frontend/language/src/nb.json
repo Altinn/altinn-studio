@@ -899,6 +899,7 @@
   "schema_editor.pattern_test_field": "Testfelt for regex",
   "schema_editor.promote": "Konverter til type",
   "schema_editor.properties": "Egenskaper",
+  "schema_editor.reference": "Referanse",
   "schema_editor.reference_to": "Refererer til",
   "schema_editor.regex": "Regex",
   "schema_editor.required": "Påkrevd",

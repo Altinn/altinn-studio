@@ -1,7 +1,7 @@
 import type { BaseSyntheticEvent } from 'react';
 import React, { useEffect, useState } from 'react';
-import type { FieldType, FieldNode } from '@altinn/schema-model';
-import { isField, isReference, ObjectKind } from '@altinn/schema-model';
+import type { FieldType, FieldNode, ObjectKind } from '@altinn/schema-model';
+import { isField, isReference } from '@altinn/schema-model';
 import classes from './ItemFieldsTab.module.css';
 import { StudioButton, usePrevious } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
@@ -10,7 +10,7 @@ import { ItemFieldsTable } from './ItemFieldsTable';
 import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
 import { getLastNameField } from '@altinn/schema-editor/components/SchemaInspector/ItemFieldsTab/domUtils';
 import { DropdownMenu } from '@digdir/designsystemet-react';
-import { useTypeOptions } from '../hooks/useTypeOptions';
+import { propertyItems } from '../../SchemaTree/SchemaNode/ActionButtons/AddPropertyMenu';
 
 export interface ItemFieldsTabProps {
   selectedItem: FieldNode;
@@ -21,7 +21,6 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
 
   const numberOfChildNodes = selectedItem.children.length;
   const prevNumberOfChildNodes = usePrevious<number>(numberOfChildNodes) ?? 0;
-  const typeOptions = useTypeOptions();
 
   useEffect(() => {
     // If the number of fields has increased, a new field has been added and should get focus
@@ -35,10 +34,13 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
   const { t } = useTranslation();
   const [isAddDropdownOpen, setIsAddDropdownOpen] = useState(false);
 
-  const onAddPropertyClicked = (event: BaseSyntheticEvent, fieldType: FieldType) => {
+  const onAddPropertyClicked = (
+    event: BaseSyntheticEvent,
+    kind: ObjectKind,
+    fieldType?: FieldType,
+  ) => {
     event.preventDefault();
-
-    addProperty(ObjectKind.Field, fieldType, selectedItem.pointer);
+    addProperty(kind, fieldType, selectedItem.pointer);
   };
   const readonly = isReference(selectedItem);
 
@@ -69,13 +71,14 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
         </DropdownMenu.Trigger>
         <DropdownMenu.Content>
           <DropdownMenu.Group>
-            {typeOptions.map(({ value: fieldType, label }) => (
+            {propertyItems.map(({ kind, fieldType, icon: Icon }) => (
               <DropdownMenu.Item
-                key={fieldType}
+                key={`${kind}-${fieldType}`}
                 value={fieldType}
-                onClick={(e) => onAddPropertyClicked(e, fieldType)}
+                onClick={(e) => onAddPropertyClicked(e, kind, fieldType)}
               >
-                {label}
+                {<Icon />}
+                {t(`schema_editor.${fieldType || kind}`)}
               </DropdownMenu.Item>
             ))}
           </DropdownMenu.Group>

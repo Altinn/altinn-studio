@@ -68,7 +68,7 @@ type PropertyItems = {
   icon: (IconProps: IconProps) => JSX.Element;
 };
 
-const propertyItems: PropertyItems[] = [
+export const propertyItems: PropertyItems[] = [
   { kind: ObjectKind.Field, fieldType: FieldType.Object, icon: ObjectIcon },
   { kind: ObjectKind.Field, fieldType: FieldType.String, icon: StringIcon },
   { kind: ObjectKind.Field, fieldType: FieldType.Integer, icon: NumberIcon },

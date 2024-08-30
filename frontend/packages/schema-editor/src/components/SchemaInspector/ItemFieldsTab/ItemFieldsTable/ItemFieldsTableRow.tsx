@@ -2,8 +2,15 @@ import type { ReactNode, KeyboardEvent, ChangeEventHandler } from 'react';
 import React, { useState } from 'react';
 import classes from './ItemFieldsTable.module.css';
 import cn from 'classnames';
-import type { UiSchemaNode } from '@altinn/schema-model';
-import { deleteNode, isField, setRequired, setPropertyName } from '@altinn/schema-model';
+import {
+  deleteNode,
+  isField,
+  setRequired,
+  setPropertyName,
+  type UiSchemaNode,
+  isReference,
+  ObjectKind,
+} from '@altinn/schema-model';
 import { NameField } from '../../NameField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 import { Switch } from '@digdir/designsystemet-react';
@@ -14,6 +21,8 @@ import { TrashIcon } from '@studio/icons';
 import { StudioButton, StudioCenter } from '@studio/components';
 import { useTypeOptions } from '@altinn/schema-editor/components/SchemaInspector/hooks/useTypeOptions';
 import { nameFieldClass } from '@altinn/schema-editor/components/SchemaInspector/ItemFieldsTab/domUtils';
+import { ReferenceButton } from '@altinn/schema-editor/components/SchemaTree/SchemaNode/ReferenceButton';
+import { useKindOptions } from '../../hooks/useKindOption';
 
 export type ItemFieldsTableRowProps = {
   fieldNode: UiSchemaNode;
@@ -36,6 +45,7 @@ export const ItemFieldsTableRow = ({
 
   const typeOptions = useTypeOptions();
   const fullPath = fieldNode.pointer;
+  const kindOptions = useKindOptions();
 
   const handleChangeNodeName = (newNodeName: string) => {
     save(
@@ -44,6 +54,18 @@ export const ItemFieldsTableRow = ({
         name: newNodeName,
       }),
     );
+  };
+
+  const typeLabel =
+    isField(fieldNode) && typeOptions.find(({ value }) => value === fieldNode.fieldType)?.label;
+
+  const kindLabel = kindOptions.find(
+    ({ kind }) => kind !== ObjectKind.Reference && kind === fieldNode.objectKind,
+  )?.label;
+
+  const referenceLabel = () => {
+    const node = schemaModel.getNode(fullPath);
+    return <div>{isReference(node) && <ReferenceButton node={node} />}</div>;
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
@@ -78,8 +100,7 @@ export const ItemFieldsTableRow = ({
         />
       </td>
       <td className={cn(classes.tableColumnType, classes.tableCell)}>
-        {isField(fieldNode) &&
-          typeOptions.find(({ value }) => value === fieldNode.fieldType)?.label}
+        {typeLabel || kindLabel || referenceLabel() || ''}
       </td>
       <td className={cn(classes.tableColumnRequired, classes.tableCell)}>
         <StudioCenter>
