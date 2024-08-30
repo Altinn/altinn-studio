@@ -1,6 +1,5 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-
 import { EditManualOptions } from './EditManualOptions';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';

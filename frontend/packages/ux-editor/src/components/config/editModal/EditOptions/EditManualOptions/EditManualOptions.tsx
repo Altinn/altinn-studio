@@ -4,7 +4,6 @@ import classes from '../EditOptions.module.css';
 import type { IGenericEditComponent } from '../../../componentConfig';
 import { useComponentErrorMessage } from '../../../../../hooks';
 import { addOptionToComponent, generateRandomOption } from '../../../../../utils/component';
-
 import { StudioProperty } from '@studio/components';
 import type { SelectionComponentType } from '../../../../../types/FormComponent';
 import { EditOption } from '../../EditOption';
