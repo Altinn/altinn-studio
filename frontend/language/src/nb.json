@@ -642,7 +642,7 @@
   "process_editor.configuration_panel_header_help_text_confirmation": "Du bruker oppgaven Bekreftelse (confirmation) til å vise sluttbrukerne en oppsummering som de kan bekrefte.",
   "process_editor.configuration_panel_header_help_text_data": "Du bruker oppgaven Utfylling (data) hvis du skal samle inn eller vise data.",
   "process_editor.configuration_panel_header_help_text_feedback": "Du bruker oppgaven Tilbakemelding (feedback) når du vil at sluttbrukerne skal vente på en tilbakemelding fra tjenesteeier før de kan gå videre i prosessen eller avslutte den.",
-  "process_editor.configuration_panel_header_help_text_payment": Du bruker oppgaven Betaling (payment) når du vil at sluttbrukerne skal betale for noe.
+  "process_editor.configuration_panel_header_help_text_payment": "Du bruker oppgaven Betaling (payment) når du vil at sluttbrukerne skal betale for noe.",
   "process_editor.configuration_panel_header_help_text_signing": "Du bruker oppgaven Signering (signing) når du vil at sluttbrukerne skal bekrefte med signatur.",
   "process_editor.configuration_panel_header_help_text_title": "Informasjon om valgt oppgave",
   "process_editor.configuration_panel_id_label": "ID:",
