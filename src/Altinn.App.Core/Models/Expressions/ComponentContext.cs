@@ -16,13 +16,15 @@ public sealed class ComponentContext
         BaseComponent? component,
         int[]? rowIndices,
         int? rowLength,
+        DataElementId dataElementId,
         IEnumerable<ComponentContext>? childContexts = null
     )
     {
+        DataElementId = dataElementId;
         Component = component;
         RowIndices = rowIndices;
         RowLength = rowLength;
-        ChildContexts = childContexts ?? Enumerable.Empty<ComponentContext>();
+        ChildContexts = childContexts ?? [];
         foreach (var child in ChildContexts)
         {
             child.Parent = this;
@@ -35,7 +37,7 @@ public sealed class ComponentContext
     public BaseComponent? Component { get; }
 
     /// <summary>
-    /// The indicies for this context (in case the component is part of a repeating group)
+    /// The indexes for this context (in case the component is part of a repeating group)
     /// </summary>
     public int[]? RowIndices { get; }
 
@@ -45,7 +47,7 @@ public sealed class ComponentContext
     public int? RowLength { get; }
 
     /// <summary>
-    /// Whether or not the component is hidden
+    /// Whether the component is hidden
     /// </summary>
     public bool? IsHidden { get; set; }
 
@@ -62,7 +64,12 @@ public sealed class ComponentContext
     /// <summary>
     /// Parent context or null, if this is a root context, or a context created without setting parent
     /// </summary>
-    public ComponentContext? Parent { get; set; }
+    public ComponentContext? Parent { get; private set; }
+
+    /// <summary>
+    /// The Id of the default data element in this context
+    /// </summary>
+    public DataElementId DataElementId { get; }
 
     /// <summary>
     /// Get all children and children of children of this componentContext (not including this)
@@ -81,24 +88,4 @@ public sealed class ComponentContext
             }
         }
     }
-
-    // /// <summary>
-    // /// Custom equals that makes sure the component has the same ID and page, and that the shortest RowIndicies match
-    // /// </summary>
-    // public override bool Equals(object? obj)
-    // {
-    //     return obj is ComponentContext context &&
-    //            context.Component.Id == Component.Id &&
-    //            context.Component.PageId == Component.PageId &&
-    //            (context.RowIndices?.Zip(RowIndices??Enumerable.Empty<int>()).All((i)=> i.First == i.Second) ?? true);
-    // }
-
-    // /// <summary>
-    // /// Implement to remove warning when overriding <see cref="Equals" />. It is likely never used as a Dictionary Key.
-    // /// </summary>
-    // public override int GetHashCode()
-    // {
-    //     // Ignore RowIndicies and ChildContexts
-    //     return HashCode.Combine(Component.PageId, Component.Id);
-    // }
 }

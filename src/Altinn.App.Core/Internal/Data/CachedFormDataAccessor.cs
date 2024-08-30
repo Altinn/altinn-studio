@@ -3,6 +3,7 @@ using System.Globalization;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Data;
@@ -14,7 +15,6 @@ namespace Altinn.App.Core.Internal.Data;
 /// </summary>
 internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
 {
-    private readonly Instance _instance;
     private readonly string _org;
     private readonly string _app;
     private readonly Guid _instanceGuid;
@@ -22,7 +22,7 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
     private readonly IDataClient _dataClient;
     private readonly IAppMetadata _appMetadata;
     private readonly IAppModel _appModel;
-    private readonly LazyCache<string, object> _cache = new();
+    private readonly LazyCache<DataElementId, object> _cache = new();
 
     public CachedInstanceDataAccessor(
         Instance instance,
@@ -37,34 +37,59 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
         var splitId = instance.Id.Split("/");
         _instanceOwnerPartyId = int.Parse(splitId[0], CultureInfo.InvariantCulture);
         _instanceGuid = Guid.Parse(splitId[1]);
-        _instance = instance;
+        Instance = instance;
         _dataClient = dataClient;
         _appMetadata = appMetadata;
         _appModel = appModel;
     }
 
-    public Instance Instance => _instance;
+    public Instance Instance { get; }
+
+    public async Task<object?> GetSingleDataByType(string dataType)
+    {
+        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var dataTypeObj = appMetadata.DataTypes.Find(d => d.Id == dataType);
+        if (dataTypeObj == null)
+        {
+            throw new InvalidOperationException($"Data type {dataType} not found in app metadata");
+        }
+        if (dataTypeObj?.MaxCount != 1)
+        {
+            throw new InvalidOperationException($"Data type {dataType} is not a single data type");
+        }
+        var dataElement = Instance.Data.Find(d => d.DataType == dataType);
+        if (dataElement == null)
+        {
+            return null;
+        }
+
+        return await GetData(dataElement);
+    }
 
     /// <inheritdoc />
-    public async Task<object> GetData(DataElement dataElement)
+    public async Task<object> GetData(DataElementId dataElementId)
     {
         return await _cache.GetOrCreate(
-            dataElement.Id,
+            dataElementId,
             async _ =>
             {
                 var appMetadata = await _appMetadata.GetApplicationMetadata();
-                var dataType = appMetadata.DataTypes.Find(d => d.Id == dataElement.DataType);
+                var dataElementIdString = dataElementId.Id.ToString();
+                var dataElementType = Instance.Data.Find(d => d.Id == dataElementIdString)?.DataType;
+                var dataType = appMetadata.DataTypes.Find(d => d.Id == dataElementType);
                 if (dataType == null)
                 {
-                    throw new InvalidOperationException($"Data type {dataElement.DataType} not found in app metadata");
+                    throw new InvalidOperationException(
+                        $"Data type {dataElementType ?? "null"} for data element id {dataElementId} not found in app metadata"
+                    );
                 }
 
                 if (dataType.AppLogic?.ClassRef != null)
                 {
-                    return await GetFormData(dataElement, dataType);
+                    return await GetFormData(dataElementId, dataType);
                 }
 
-                return await GetBinaryData(dataElement);
+                return await GetBinaryData(dataElementId);
             }
         );
     }
@@ -72,11 +97,9 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
     /// <summary>
     /// Add data to the cache, so that it won't be fetched again
     /// </summary>
-    /// <param name="dataElement"></param>
-    /// <param name="data"></param>
-    public void Set(DataElement dataElement, object data)
+    public void Set(DataElementId dataElementId, object data)
     {
-        _cache.Set(dataElement.Id, data);
+        _cache.Set(dataElementId, data);
     }
 
     /// <summary>
@@ -113,19 +136,13 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
         }
     }
 
-    private async Task<Stream> GetBinaryData(DataElement dataElement)
+    private async Task<Stream> GetBinaryData(DataElementId dataElementId)
     {
-        var data = await _dataClient.GetBinaryData(
-            _org,
-            _app,
-            _instanceOwnerPartyId,
-            _instanceGuid,
-            Guid.Parse(dataElement.Id)
-        );
+        var data = await _dataClient.GetBinaryData(_org, _app, _instanceOwnerPartyId, _instanceGuid, dataElementId.Id);
         return data;
     }
 
-    private async Task<object> GetFormData(DataElement dataElement, DataType dataType)
+    private async Task<object> GetFormData(DataElementId dataElementId, DataType dataType)
     {
         var modelType = _appModel.GetModelType(dataType.AppLogic.ClassRef);
 
@@ -135,7 +152,7 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
             _org,
             _app,
             _instanceOwnerPartyId,
-            Guid.Parse(dataElement.Id)
+            dataElementId.Id
         );
         return data;
     }

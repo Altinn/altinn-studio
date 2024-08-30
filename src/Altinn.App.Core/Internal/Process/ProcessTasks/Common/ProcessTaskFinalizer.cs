@@ -146,7 +146,7 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
                 gatewayAction: null,
                 language
             );
-            LayoutEvaluator.RemoveHiddenData(evaluationState, RowRemovalOption.Ignore);
+            await LayoutEvaluator.RemoveHiddenData(evaluationState, RowRemovalOption.DeleteRow);
             // TODO: Make RemoveHiddenData return a bool indicating if data was removed
             isModified = true;
         }

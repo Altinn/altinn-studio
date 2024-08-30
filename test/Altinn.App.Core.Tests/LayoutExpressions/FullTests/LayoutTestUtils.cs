@@ -8,6 +8,7 @@ using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
+using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -50,8 +51,14 @@ public static class LayoutTestUtils
             AppId = AppId,
             Org = Org,
             InstanceOwner = new() { PartyId = InstanceOwnerPartyId.ToString() },
-            Data = [new DataElement() { Id = _dataGuid.ToString(), DataType = "default", }]
+            Data = []
         };
+
+    private static readonly DataElement _dataElement = new DataElement()
+    {
+        Id = _dataGuid.ToString(),
+        DataType = "default",
+    };
 
     public static async Task<LayoutEvaluatorState> GetLayoutModelTools(object model, string folder)
     {
@@ -90,8 +97,8 @@ public static class LayoutTestUtils
         resources.Setup(r => r.GetLayoutModelForTask(TaskId)).Returns(layoutModel);
 
         services.AddSingleton(resources.Object);
-        services.AddSingleton(appMetadata.Object);
-        services.AddSingleton(appModel.Object);
+        // services.AddSingleton(appMetadata.Object);
+        // services.AddSingleton(appModel.Object);
         services.AddScoped<ILayoutEvaluatorStateInitializer, LayoutEvaluatorStateInitializer>();
 
         services.AddOptions<FrontEndSettings>().Configure(fes => fes.Add("test", "value"));
@@ -100,8 +107,7 @@ public static class LayoutTestUtils
         using var scope = serviceProvider.CreateScope();
         var initializer = scope.ServiceProvider.GetRequiredService<ILayoutEvaluatorStateInitializer>();
 
-        var dataAccessor = new CachedInstanceDataAccessor(_instance, data.Object, appMetadata.Object, appModel.Object);
-        dataAccessor.Set(_instance.Data[0], model);
+        var dataAccessor = new TestInstanceDataAccessor(_instance) { { _dataElement, data } };
 
         return await initializer.Init(_instance, dataAccessor, TaskId);
     }

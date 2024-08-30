@@ -1,5 +1,6 @@
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers.DataModel;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
@@ -13,12 +14,12 @@ namespace Altinn.App.Core.Internal.Expressions;
 public class LayoutEvaluatorState
 {
     private readonly DataModel _dataModel;
-    private readonly LayoutModel _componentModel;
+    private readonly LayoutModel? _componentModel;
+    private readonly DataElementId _defaultDataElementId;
     private readonly FrontEndSettings _frontEndSettings;
     private readonly Instance _instanceContext;
     private readonly string? _gatewayAction;
     private readonly string? _language;
-    private readonly ComponentContext[]? _pageContexts;
 
     /// <summary>
     /// Constructor for LayoutEvaluatorState. Usually called via <see cref="LayoutEvaluatorStateInitializer" /> that can be fetched from dependency injection.
@@ -38,68 +39,72 @@ public class LayoutEvaluatorState
         _instanceContext = instance;
         _gatewayAction = gatewayAction;
         _language = language;
-
-        if (dataModel is not null && componentModel is not null)
-        {
-            _pageContexts = GenerateComponentContexts(dataModel, componentModel);
-            EvaluateHiddenExpressions();
-        }
+        var defaultDataType = _componentModel.DefaultDataType.Id;
+        _defaultDataElementId =
+            _instanceContext.Data.Find(d => d.DataType == defaultDataType)
+            ?? throw new ArgumentException($"Could not find data element with data type {defaultDataType}");
     }
-
-    /// <summary>
-    /// Get the default data element for the layout when <see cref="ModelBinding.Field"/> is null
-    /// </summary>
-    public DataElement DefaultDataElement => _dataModel.DefaultDataElement;
 
     /// <summary>
     /// Get a hierarchy of the different contexts in the component model (remember to iterate <see cref="ComponentContext.ChildContexts" />)
     /// </summary>
-    public IEnumerable<ComponentContext> GetComponentContexts()
+    public async Task<IEnumerable<ComponentContext>> GetComponentContexts()
     {
-        if (_pageContexts is null)
-        {
-            throw new ArgumentException("ComponentContexts have not been generated");
-        }
-        return _pageContexts;
-    }
-
-    private static ComponentContext[] GenerateComponentContexts(DataModel dataModel, LayoutModel componentModel)
-    {
-        return componentModel.Pages.Values.Select(((page) => GeneratePageContext(page, dataModel))).ToArray();
-    }
-
-    private static ComponentContext GeneratePageContext(PageComponent page, DataModel dataModel) =>
-        new ComponentContext(
-            page,
-            null,
-            null,
-            page.Children.Select(c => GenerateComponentContextsRecurs(c, dataModel, [])).ToArray()
+        var contexts = await Task.WhenAll(
+            _componentModel.Pages.Values.Select(
+                (async (page) => await GeneratePageContext(page, _dataModel, _defaultDataElementId))
+            )
         );
 
-    private static ComponentContext GenerateComponentContextsRecurs(
+        await EvaluateHiddenExpressions(contexts);
+        return contexts;
+    }
+
+    private static async Task<ComponentContext> GeneratePageContext(
+        PageComponent page,
+        DataModel dataModel,
+        DataElementId dataElementId
+    )
+    {
+        var children = new List<ComponentContext>();
+        foreach (var child in page.Children)
+        {
+            children.Add(await GenerateComponentContextsRecurs(child, dataModel, dataElementId, []));
+        }
+
+        return new ComponentContext(page, null, null, dataElementId, children);
+    }
+
+    private static async Task<ComponentContext> GenerateComponentContextsRecurs(
         BaseComponent component,
         DataModel dataModel,
-        ReadOnlySpan<int> indexes
+        DataElementId defaultDataElementId,
+        int[]? indexes
     )
     {
         var children = new List<ComponentContext>();
         int? rowLength = null;
 
+        if (
+            true /*TODO: type is subform*/
+        ) { }
         if (component is RepeatingGroupComponent repeatingGroupComponent)
         {
             if (repeatingGroupComponent.DataModelBindings.TryGetValue("group", out var groupBinding))
             {
-                rowLength = dataModel.GetModelDataCount(groupBinding, indexes.ToArray()) ?? 0;
+                rowLength = await dataModel.GetModelDataCount(groupBinding, defaultDataElementId, indexes) ?? 0;
                 foreach (var index in Enumerable.Range(0, rowLength.Value))
                 {
                     foreach (var child in repeatingGroupComponent.Children)
                     {
                         // concatenate [...indexes, index]
-                        var subIndexes = new int[indexes.Length + 1];
+                        var subIndexes = new int[(indexes?.Length ?? 0) + 1];
                         indexes.CopyTo(subIndexes.AsSpan());
                         subIndexes[^1] = index;
 
-                        children.Add(GenerateComponentContextsRecurs(child, dataModel, subIndexes));
+                        children.Add(
+                            await GenerateComponentContextsRecurs(child, dataModel, defaultDataElementId, subIndexes)
+                        );
                     }
                 }
             }
@@ -108,16 +113,17 @@ public class LayoutEvaluatorState
         {
             foreach (var child in groupComponent.Children)
             {
-                children.Add(GenerateComponentContextsRecurs(child, dataModel, indexes));
+                children.Add(await GenerateComponentContextsRecurs(child, dataModel, defaultDataElementId, indexes));
             }
         }
 
-        return new ComponentContext(component, ToArrayOrNullForEmpty(indexes), rowLength, children);
-    }
-
-    private static T[]? ToArrayOrNullForEmpty<T>(ReadOnlySpan<T> span)
-    {
-        return span.Length > 0 ? span.ToArray() : null;
+        return new ComponentContext(
+            component,
+            indexes?.Length > 0 ? indexes : null,
+            rowLength,
+            defaultDataElementId,
+            children
+        );
     }
 
     /// <summary>
@@ -125,7 +131,7 @@ public class LayoutEvaluatorState
     /// </summary>
     public string? GetFrontendSetting(string key)
     {
-        return _frontEndSettings.TryGetValue(key, out var setting) ? setting : null;
+        return _frontEndSettings.GetValueOrDefault(key);
     }
 
     /// <summary>
@@ -144,83 +150,58 @@ public class LayoutEvaluatorState
     /// <summary>
     /// Get a specific component context based on
     /// </summary>
-    public ComponentContext GetComponentContext(string pageName, string componentId, int[]? rowIndicies = null)
+    public async Task<ComponentContext> GetComponentContext(
+        string pageName,
+        string componentId,
+        DataElementId defaultDataElementId,
+        int[]? rowIndexes = null
+    )
     {
-        if (_pageContexts is null)
-        {
-            throw new ArgumentException("ComponentContexts have not been generated");
-        }
         // First look only on the relevant page
-        var pageContext = _pageContexts.FirstOrDefault(c => c.Component?.Id == pageName);
-        if (pageContext is null)
+        _componentModel.Pages.TryGetValue(pageName, out var page);
+        if (page is null)
         {
             throw new ArgumentException($"Unknown page name {pageName}");
         }
-        // Find all descendant contexts that matches componentId and all the given rowIndicies
-        var matches = pageContext
-            .Descendants.Where(context =>
-                context.Component?.Id == componentId
-                && (
-                    context.RowIndices?.Zip(rowIndicies ?? Enumerable.Empty<int>()).All((i) => i.First == i.Second)
-                    ?? true
-                )
-            )
-            .ToArray();
-        if (matches.Length == 1)
+        page.ComponentLookup.TryGetValue(componentId, out var component);
+        if (component is null)
         {
-            return matches[0];
-        }
-        else if (matches.Length > 1)
-        {
-            throw new ArgumentException(
-                $"Expected 1 matching component context for [\"component\"] lookup on page {pageName}. Found {matches.Length}"
-            );
+            // Look for component on other pages
+            component = _componentModel
+                .Pages.Values.Select(p => p.ComponentLookup.GetValueOrDefault(componentId))
+                .Single(c => c is not null);
         }
 
-        // If no components was found on the same page, look for component on all pages
-        // Find all decendent contexts that matches componentId and all the given rowIndicies
-        matches = _pageContexts
-            .SelectMany(p =>
-                p.Descendants.Where(context =>
-                    context.Component?.Id == componentId
-                    && (
-                        context.RowIndices?.Zip(rowIndicies ?? Enumerable.Empty<int>()).All((i) => i.First == i.Second)
-                        ?? true
-                    )
-                )
-            )
-            .ToArray();
-        if (matches.Length != 1)
+        if (component is null)
         {
-            throw new ArgumentException(
-                "Expected 1 matching component context for [\"component\"] lookup. Found " + matches.Length
-            );
+            throw new ArgumentException($"Unknown component id {componentId}");
         }
-        return matches[0];
+
+        return await GenerateComponentContextsRecurs(component, _dataModel, defaultDataElementId, rowIndexes);
     }
 
     /// <summary>
     /// Get field from dataModel with key and context
     /// </summary>
-    public object? GetModelData(ModelBinding key, ComponentContext? context = null)
+    public async Task<object?> GetModelData(ModelBinding key, DataElementId defaultDataElementId, int[]? indexes)
     {
-        return _dataModel.GetModelData(key, context?.RowIndices);
+        return await _dataModel.GetModelData(key, defaultDataElementId, indexes);
     }
 
     /// <summary>
     /// Get all of the resolved keys (including all possible indexes) from a data model key
     /// </summary>
-    public ModelBinding[] GetResolvedKeys(ModelBinding key)
+    public async Task<DataReference[]> GetResolvedKeys(DataReference reference)
     {
-        return _dataModel.GetResolvedKeys(key);
+        return await _dataModel.GetResolvedKeys(reference);
     }
 
     /// <summary>
     /// Set the value of a field to null.
     /// </summary>
-    public void RemoveDataField(ModelBinding key, RowRemovalOption rowRemovalOption)
+    public void RemoveDataField(ModelBinding key, DataElementId dataElementId, RowRemovalOption rowRemovalOption)
     {
-        _dataModel.RemoveField(key, rowRemovalOption);
+        _dataModel.RemoveField(key, dataElementId, rowRemovalOption);
     }
 
     /// <summary>
@@ -265,83 +246,85 @@ public class LayoutEvaluatorState
     /// indicies = [1,2]
     /// => "bedrift[1].ansatte[2].navn"
     /// </example>
-    public ModelBinding AddInidicies(ModelBinding binding, ComponentContext context)
+    public async Task<ModelBinding> AddInidicies(ModelBinding binding, ComponentContext context)
     {
-        return _dataModel.AddIndicies(binding, context.RowIndices);
+        return await _dataModel.AddIndexes(binding, context.DataElementId, context.RowIndices);
     }
 
     /// <summary>
-    /// Return a full dataModelBiding from a context aware binding by adding indicies
+    /// Return a full dataModelBiding from a context aware binding by adding indexes
     /// </summary>
-    public ModelBinding AddInidicies(ModelBinding binding, ReadOnlySpan<int> indices)
+    public async Task<ModelBinding> AddInidicies(ModelBinding binding, DataElementId dataElementId, int[]? indexes)
     {
-        return _dataModel.AddIndicies(binding, indices);
+        return await _dataModel.AddIndexes(binding, dataElementId, indexes);
     }
 
-    /// <summary>
-    /// Verify all components that dataModel references are correct
-    /// </summary>
-    public List<string> GetModelErrors()
+    // /// <summary>
+    // /// Verify all components that dataModel references are correct
+    // /// </summary>
+    // public List<string> GetModelErrors()
+    // {
+    //     var errors = new List<string>();
+    //     foreach (var context in GetComponentContexts())
+    //     {
+    //         var component = context.Component;
+    //         GetModelErrorsForExpression(component.Hidden, component, errors);
+    //         GetModelErrorsForExpression(component.Required, component, errors);
+    //         GetModelErrorsForExpression(component.ReadOnly, component, errors);
+    //         foreach (var (bindingName, binding) in component.DataModelBindings)
+    //         {
+    //             if (!_dataModel.VerifyKey(binding, context.DataElementId))
+    //             {
+    //                 errors.Add($"Invalid binding \"{binding}\" on component {component.PageId}.{component.Id}");
+    //             }
+    //         }
+    //     }
+    //     return errors;
+    // }
+
+    // private void GetModelErrorsForExpression(Expression expr, BaseComponent component, List<string> errors)
+    // {
+    //     if (!expr.IsFunctionExpression)
+    //     {
+    //         return;
+    //     }
+    //
+    //     if (expr.Function == ExpressionFunction.dataModel)
+    //     {
+    //         if (expr.Args.Count != 1 || expr.Args[0].Value is not string binding)
+    //         {
+    //             errors.Add(
+    //                 $"function \"dataModel\" requires a single string argument on component {component.PageId}.{component.Id}"
+    //             );
+    //             return;
+    //         }
+    //         var dataType = expr.Args.ElementAtOrDefault(1).Value as string;
+    //         if (!_dataModel.VerifyKey(new ModelBinding { Field = binding, DataType = dataType }, dataElementId))
+    //         {
+    //             errors.Add($"Invalid binding \"{binding}\" on component {component.PageId}.{component.Id}");
+    //         }
+    //         return;
+    //     }
+    //
+    //     // check args recursively
+    //     foreach (var arg in expr.Args)
+    //     {
+    //         GetModelErrorsForExpression(arg, component, errors);
+    //     }
+    // }
+
+    private async Task EvaluateHiddenExpressions(IEnumerable<ComponentContext> contexts)
     {
-        var errors = new List<string>();
-        foreach (var component in _componentModel.GetComponents())
+        foreach (var context in contexts)
         {
-            GetModelErrorsForExpression(component.Hidden, component, errors);
-            GetModelErrorsForExpression(component.Required, component, errors);
-            GetModelErrorsForExpression(component.ReadOnly, component, errors);
-            foreach (var (bindingName, binding) in component.DataModelBindings)
-            {
-                if (!_dataModel.VerifyKey(binding))
-                {
-                    errors.Add($"Invalid binding \"{binding}\" on component {component.PageId}.{component.Id}");
-                }
-            }
+            await EvaluateHiddenExpressionRecurs(context);
         }
-        return errors;
     }
 
-    private void GetModelErrorsForExpression(Expression expr, BaseComponent component, List<string> errors)
+    private async Task EvaluateHiddenExpressionRecurs(ComponentContext context, bool parentIsHidden = false)
     {
-        if (!expr.IsFunctionExpression)
-        {
-            return;
-        }
-
-        if (expr.Function == ExpressionFunction.dataModel)
-        {
-            if (expr.Args.Count != 1 || expr.Args[0].Value is not string binding)
-            {
-                errors.Add(
-                    $"function \"dataModel\" requires a single string argument on component {component.PageId}.{component.Id}"
-                );
-                return;
-            }
-            var dataType = expr.Args.ElementAtOrDefault(1).Value as string;
-            if (!_dataModel.VerifyKey(new ModelBinding { Field = binding, DataType = dataType }))
-            {
-                errors.Add($"Invalid binding \"{binding}\" on component {component.PageId}.{component.Id}");
-            }
-            return;
-        }
-
-        // check args recursivly
-        foreach (var arg in expr.Args)
-        {
-            GetModelErrorsForExpression(arg, component, errors);
-        }
-    }
-
-    private void EvaluateHiddenExpressions()
-    {
-        foreach (var context in GetComponentContexts())
-        {
-            EvaluateHiddenExpressionRecurs(context);
-        }
-    }
-
-    private void EvaluateHiddenExpressionRecurs(ComponentContext context, bool parentIsHidden = false)
-    {
-        var hidden = parentIsHidden || ExpressionEvaluator.EvaluateBooleanExpression(this, context, "hidden", false);
+        var hidden =
+            parentIsHidden || await ExpressionEvaluator.EvaluateBooleanExpression(this, context, "hidden", false);
         context.IsHidden = hidden;
 
         if (
@@ -354,9 +337,20 @@ public class LayoutEvaluatorState
             foreach (var index in Enumerable.Range(0, context.RowLength.Value))
             {
                 var rowIndices = context.RowIndices?.Append(index).ToArray() ?? [index];
-                var childContexts = context.ChildContexts.Where(c => c.RowIndices?.Last() == index);
-                var rowContext = new ComponentContext(context.Component, rowIndices, null, childContexts);
-                var rowHidden = ExpressionEvaluator.EvaluateBooleanExpression(this, rowContext, "hiddenRow", false);
+                var childContexts = context.ChildContexts.Where(c => c.RowIndices?[^1] == index);
+                var rowContext = new ComponentContext(
+                    context.Component,
+                    rowIndices,
+                    rowLength: null,
+                    dataElementId: context.DataElementId,
+                    childContexts: childContexts
+                );
+                var rowHidden = await ExpressionEvaluator.EvaluateBooleanExpression(
+                    this,
+                    rowContext,
+                    "hiddenRow",
+                    false
+                );
                 if (rowHidden)
                 {
                     hiddenRows.Add(index);
@@ -373,20 +367,12 @@ public class LayoutEvaluatorState
                 var currentRow = childContext.RowIndices?.Last();
                 rowIsHidden = currentRow is not null && context.HiddenRows.Contains(currentRow.Value);
             }
-            EvaluateHiddenExpressionRecurs(childContext, hidden || rowIsHidden);
+            await EvaluateHiddenExpressionRecurs(childContext, hidden || rowIsHidden);
         }
     }
 
-    /// <summary>
-    /// Get the data element that this ModelBinding is pointing to
-    /// </summary>
-    public DataElement? GetDataElement(ModelBinding field)
+    public DataElementId GetDefaultElementId()
     {
-        if (field.DataType is null)
-        {
-            return DefaultDataElement;
-        }
-        var dataElement = _instanceContext.Data.Find(d => d.DataType == field.DataType);
-        return dataElement;
+        return _defaultDataElementId;
     }
 }

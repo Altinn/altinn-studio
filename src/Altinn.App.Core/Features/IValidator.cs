@@ -71,21 +71,3 @@ public class DataElementChange
     /// </summary>
     public required object CurrentValue { get; init; }
 }
-
-/// <summary>
-/// Service for accessing data from other data elements in the
-/// </summary>
-public interface IInstanceDataAccessor
-{
-    /// <summary>
-    /// The instance that the accessor can access data for.
-    /// </summary>
-    Instance Instance { get; }
-
-    /// <summary>
-    /// Get the actual data represented in the data element.
-    /// </summary>
-    /// <param name="dataElement">The data element to retrieve. Must be from the instance that is currently active</param>
-    /// <returns>The deserialized data model for this data element or a stream for binary elements</returns>
-    Task<object> GetData(DataElement dataElement);
-}

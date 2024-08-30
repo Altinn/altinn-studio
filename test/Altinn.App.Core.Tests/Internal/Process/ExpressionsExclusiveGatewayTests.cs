@@ -33,6 +33,7 @@ public class ExpressionsExclusiveGatewayTests
     private const string App = "test";
     private const string AppId = $"{Org}/{App}";
     private const string TaskId = "Task_1";
+    private const string DefaultDataTypeName = "testDefaultModel";
     private static readonly string _classRef = typeof(DummyModel).FullName!;
 
     public ExpressionsExclusiveGatewayTests()
@@ -48,8 +49,8 @@ public class ExpressionsExclusiveGatewayTests
         {
             new()
             {
-                Id = "test",
-                AppLogic = new() { ClassRef = "Altinn.App.Core.Tests.Internal.Process.TestData.DummyModel", }
+                Id = DefaultDataTypeName,
+                AppLogic = new() { ClassRef = _classRef, }
             }
         };
 
@@ -64,11 +65,11 @@ public class ExpressionsExclusiveGatewayTests
         {
             Id = "500000/60226acd-b821-4aae-82cd-97a342071bd3",
             InstanceOwner = new() { PartyId = "500000" },
-            AppId = "ttd/test",
-            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+            AppId = AppId,
+            Process = new() { CurrentTask = new() { ElementId = TaskId } },
             Data = new()
             {
-                new() { Id = "cd9204e7-9b83-41b4-b2f2-9b196b4fafcf", DataType = "test" }
+                new() { Id = "cd9204e7-9b83-41b4-b2f2-9b196b4fafcf", DataType = DefaultDataTypeName }
             }
         };
         var processGatewayInformation = new ProcessGatewayInformation { Action = "confirm", };
@@ -92,7 +93,7 @@ public class ExpressionsExclusiveGatewayTests
         {
             new()
             {
-                Id = "test",
+                Id = DefaultDataTypeName,
                 AppLogic = new() { ClassRef = "Altinn.App.Core.Tests.Internal.Process.TestData.DummyModel", }
             }
         };
@@ -107,11 +108,11 @@ public class ExpressionsExclusiveGatewayTests
         {
             Id = "500000/60226acd-b821-4aae-82cd-97a342071bd3",
             InstanceOwner = new() { PartyId = "500000" },
-            AppId = "ttd/test",
-            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+            AppId = AppId,
+            Process = new() { CurrentTask = new() { ElementId = TaskId } },
             Data = new()
             {
-                new() { Id = "cd9204e7-9b83-41b4-b2f2-9b196b4fafcf", DataType = "test" }
+                new() { Id = "cd9204e7-9b83-41b4-b2f2-9b196b4fafcf", DataType = DefaultDataTypeName }
             }
         };
         var processGatewayInformation = new ProcessGatewayInformation { Action = "confirm", };
@@ -134,13 +135,15 @@ public class ExpressionsExclusiveGatewayTests
         {
             new()
             {
-                Id = "aa",
+                Id = "not-found",
+                TaskId = TaskId,
                 AppLogic = new() { ClassRef = "Altinn.App.Core.Tests.Internal.Process.TestData.NotFound", }
             },
             new()
             {
-                Id = "test",
-                AppLogic = new() { ClassRef = "Altinn.App.Core.Tests.Internal.Process.TestData.DummyModel", }
+                Id = DefaultDataTypeName,
+                TaskId = TaskId,
+                AppLogic = new() { ClassRef = _classRef, }
             }
         };
         object formData = new DummyModel() { Amount = 1000, Submitter = "test" };
@@ -165,11 +168,11 @@ public class ExpressionsExclusiveGatewayTests
         {
             Id = "500000/60226acd-b821-4aae-82cd-97a342071bd3",
             InstanceOwner = new() { PartyId = "500000" },
-            AppId = "ttd/test",
-            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+            AppId = AppId,
+            Process = new() { CurrentTask = new() { ElementId = TaskId } },
             Data = new()
             {
-                new() { Id = "cd9204e7-9b83-41b4-b2f2-9b196b4fafcf", DataType = "test" }
+                new() { Id = "cd9204e7-9b83-41b4-b2f2-9b196b4fafcf", DataType = DefaultDataTypeName }
             }
         };
         var processGatewayInformation = new ProcessGatewayInformation { Action = "confirm", };
@@ -198,12 +201,12 @@ public class ExpressionsExclusiveGatewayTests
             new()
             {
                 Id = "aa",
-                AppLogic = new() { ClassRef = "Altinn.App.Core.Tests.Internal.Process.TestData.DummyModel", }
+                AppLogic = new() { ClassRef = "Altinn.App.Core.Tests.Internal.Process.TestData.NotFound", }
             },
             new()
             {
-                Id = "test",
-                AppLogic = new() { ClassRef = "Altinn.App.Core.Tests.Internal.Process.TestData.DummyModel", }
+                Id = DefaultDataTypeName,
+                AppLogic = new() { ClassRef = _classRef, }
             }
         };
 
@@ -216,7 +219,7 @@ public class ExpressionsExclusiveGatewayTests
                 {
                     Id = "test",
                     Tasks = new() { "Task_1" },
-                    DataType = "test"
+                    DataType = DefaultDataTypeName
                 }
             }
         };
@@ -233,7 +236,7 @@ public class ExpressionsExclusiveGatewayTests
             Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
             Data = new()
             {
-                new() { Id = "cd9204e7-9b83-41b4-b2f2-9b196b4fafcf", DataType = "test" }
+                new() { Id = "cd9204e7-9b83-41b4-b2f2-9b196b4fafcf", DataType = "aa" }
             }
         };
         var processGatewayInformation = new ProcessGatewayInformation { Action = "confirm", DataTypeId = "aa" };
@@ -269,7 +272,7 @@ public class ExpressionsExclusiveGatewayTests
             .Returns(
                 new LayoutModel()
                 {
-                    DefaultDataType = new() { Id = "test", },
+                    DefaultDataType = dataTypes.Single(d => d.Id == DefaultDataTypeName),
                     Pages = new Dictionary<string, PageComponent>()
                     {
                         {
@@ -301,6 +304,8 @@ public class ExpressionsExclusiveGatewayTests
                     )
                 )
                 .ReturnsAsync(formData);
+
+            _appModel.Setup(am => am.GetModelType(_classRef)).Returns(formData.GetType());
         }
 
         var frontendSettings = Options.Create(new FrontEndSettings());

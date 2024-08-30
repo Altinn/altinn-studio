@@ -1,8 +1,11 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout;
+using Altinn.App.Core.Models.Layout.Components;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
@@ -41,7 +44,7 @@ public class ExpressionTestCaseRoot
 
     [JsonPropertyName("layouts")]
     [JsonConverter(typeof(LayoutModelConverterFromObject))]
-    public LayoutModel ComponentModel { get; set; } = default!;
+    public IReadOnlyDictionary<string, PageComponent> Layouts { get; set; } = default!;
 
     [JsonPropertyName("dataModel")]
     public JsonElement? DataModel { get; set; }
@@ -53,7 +56,7 @@ public class ExpressionTestCaseRoot
     public FrontEndSettings? FrontEndSettings { get; set; }
 
     [JsonPropertyName("instance")]
-    public Instance? Instance { get; set; }
+    public Instance Instance { get; set; } = new Instance();
 
     [JsonPropertyName("gatewayAction")]
     public string? GatewayAction { get; set; }
@@ -97,9 +100,14 @@ public class ComponentContextForTestSpec
     public IEnumerable<ComponentContextForTestSpec> ChildContexts { get; set; } =
         Enumerable.Empty<ComponentContextForTestSpec>();
 
-    public ComponentContext ToContext(LayoutModel model)
+    public ComponentContext ToContext(LayoutModel model, LayoutEvaluatorState state)
     {
-        return new ComponentContext(model.GetComponent(CurrentPageName, ComponentId), RowIndices, null);
+        return new ComponentContext(
+            model.GetComponent(CurrentPageName, ComponentId),
+            RowIndices,
+            null,
+            state.GetDefaultElementId()
+        );
     }
 
     public static ComponentContextForTestSpec FromContext(ComponentContext context)

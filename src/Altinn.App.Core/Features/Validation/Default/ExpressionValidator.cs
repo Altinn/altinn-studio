@@ -107,14 +107,14 @@ public class ExpressionValidator : IValidator
             gatewayAction: null,
             language
         );
-        var hiddenFields = LayoutEvaluator.GetHiddenFieldsForRemoval(evaluatorState, true);
+        var hiddenFields = await LayoutEvaluator.GetHiddenFieldsForRemoval(evaluatorState, true);
 
         var validationIssues = new List<ValidationIssue>();
         var expressionValidations = ParseExpressionValidationConfig(validationConfig.RootElement, _logger);
         foreach (var validationObject in expressionValidations)
         {
-            var baseField = new ModelBinding { Field = validationObject.Key, DataType = dataElement.DataType };
-            var resolvedFields = evaluatorState.GetResolvedKeys(baseField);
+            var baseField = new DataReference() { Field = validationObject.Key, DataElementId = dataElement };
+            var resolvedFields = await evaluatorState.GetResolvedKeys(baseField);
             var validations = validationObject.Value;
             foreach (var resolvedField in resolvedFields)
             {
@@ -124,8 +124,9 @@ public class ExpressionValidator : IValidator
                 }
                 var context = new ComponentContext(
                     component: null,
-                    rowIndices: DataModel.GetRowIndices(resolvedField),
-                    rowLength: null
+                    rowIndices: DataModel.GetRowIndices(resolvedField.Field),
+                    rowLength: null,
+                    dataElementId: resolvedField.DataElementId
                 );
                 var positionalArguments = new object[] { resolvedField };
                 foreach (var validation in validations)
@@ -137,7 +138,7 @@ public class ExpressionValidator : IValidator
                             continue;
                         }
 
-                        var validationResult = ExpressionEvaluator.EvaluateExpression(
+                        var validationResult = await ExpressionEvaluator.EvaluateExpression(
                             evaluatorState,
                             validation.Condition.Value,
                             context,
@@ -149,7 +150,7 @@ public class ExpressionValidator : IValidator
                                 var validationIssue = new ValidationIssue
                                 {
                                     Field = resolvedField.Field,
-                                    DataElementId = resolvedField.DataType,
+                                    DataElementId = resolvedField.DataElementId.Id.ToString(),
                                     Severity = validation.Severity ?? ValidationIssueSeverity.Error,
                                     CustomTextKey = validation.Message,
                                     Code = validation.Message,

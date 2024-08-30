@@ -2,7 +2,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
-using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 
@@ -14,10 +13,14 @@ namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 /// standard json parser to convert to an object graph. Using <see cref="Utf8JsonReader"/>
 /// directly I can convert to a more suitable C# representation directly
 /// </remarks>
-public class LayoutModelConverterFromObject : JsonConverter<LayoutModel>
+public class LayoutModelConverterFromObject : JsonConverter<IReadOnlyDictionary<string, PageComponent>>
 {
     /// <inheritdoc />
-    public override LayoutModel? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override IReadOnlyDictionary<string, PageComponent>? Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options
+    )
     {
         if (reader.TokenType != JsonTokenType.StartObject)
         {
@@ -52,15 +55,15 @@ public class LayoutModelConverterFromObject : JsonConverter<LayoutModel>
             pages[pageName] = converter.ReadNotNull(ref reader, pageName, options);
         }
 
-        return new LayoutModel()
-        {
-            DefaultDataType = new DataType() { Id = "default", },
-            Pages = pages
-        };
+        return pages;
     }
 
     /// <inheritdoc />
-    public override void Write(Utf8JsonWriter writer, LayoutModel value, JsonSerializerOptions options)
+    public override void Write(
+        Utf8JsonWriter writer,
+        IReadOnlyDictionary<string, PageComponent> value,
+        JsonSerializerOptions options
+    )
     {
         throw new NotImplementedException();
     }

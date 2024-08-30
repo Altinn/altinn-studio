@@ -19,6 +19,10 @@ public class UserActionResponse
     /// Gets a dictionary of updated validation issues. The first key is the data model id, the second key is the validator id
     /// Validators that are not listed in the dictionary are assumed to have not been executed
     /// </summary>
+    /// <remarks>
+    /// The validation logic has changed, so the extra separation on data element is kept only for backwards compatibility
+    /// To implement correct incremental validation, you must concatenate issues for all data elements.
+    /// </remarks>
     [JsonPropertyName("updatedValidationIssues")]
     public Dictionary<
         string,

@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
@@ -14,7 +15,7 @@ public static class ExpressionEvaluator
     /// <summary>
     /// Shortcut for evaluating a boolean expression on a given property on a <see cref="BaseComponent" />
     /// </summary>
-    public static bool EvaluateBooleanExpression(
+    public static async Task<bool> EvaluateBooleanExpression(
         LayoutEvaluatorState state,
         ComponentContext context,
         string property,
@@ -33,7 +34,7 @@ public static class ExpressionEvaluator
                 _ => throw new ExpressionEvaluatorTypeErrorException($"unknown boolean expression property {property}")
             };
 
-            return EvaluateExpression(state, expr, context) switch
+            return await EvaluateExpression(state, expr, context) switch
             {
                 true => true,
                 false => false,
@@ -53,10 +54,10 @@ public static class ExpressionEvaluator
     /// <summary>
     /// Evaluate a <see cref="Expression" /> from a given <see cref="LayoutEvaluatorState" /> in a <see cref="ComponentContext" />
     /// </summary>
-    public static object? EvaluateExpression(
+    public static async Task<object?> EvaluateExpression(
         LayoutEvaluatorState state,
         Expression expr,
-        ComponentContext? context,
+        ComponentContext context,
         object[]? positionalArguments = null
     )
     {
@@ -64,13 +65,17 @@ public static class ExpressionEvaluator
         {
             return expr.Value;
         }
-
-        var args = expr.Args.Select(a => EvaluateExpression(state, a, context, positionalArguments)).ToArray();
+        var args = new object?[expr.Args.Count];
+        for (var i = 0; i < args.Length; i++)
+        {
+            args[i] = await EvaluateExpression(state, expr.Args[i], context, positionalArguments);
+        }
+        // var args = expr.Args.Select(a => await EvaluateExpression(state, a, context, positionalArguments)).ToArray();
         // ! TODO: should find better ways to deal with nulls here for the next major version
         var ret = expr.Function switch
         {
-            ExpressionFunction.dataModel => DataModel(args, context, state),
-            ExpressionFunction.component => Component(args, context, state),
+            ExpressionFunction.dataModel => await DataModel(args, context, state),
+            ExpressionFunction.component => await Component(args, context, state),
             ExpressionFunction.instanceContext => state.GetInstanceContext(args.First()?.ToString()!),
             ExpressionFunction.@if => IfImpl(args),
             ExpressionFunction.frontendSettings => state.GetFrontendSetting(args.First()?.ToString()!),
@@ -101,11 +106,15 @@ public static class ExpressionEvaluator
         return ret;
     }
 
-    private static object? DataModel(object?[] args, ComponentContext? context, LayoutEvaluatorState state)
+    private static async Task<object?> DataModel(object?[] args, ComponentContext context, LayoutEvaluatorState state)
     {
+        if (args is [DataReference dataReference])
+        {
+            return await DataModel(dataReference.Field, dataReference.DataElementId, context.RowIndices, state);
+        }
         var key = args switch
         {
-            [string field] => new ModelBinding { Field = field, DataType = state.DefaultDataElement.DataType },
+            [string field] => new ModelBinding { Field = field },
             [string field, string dataType] => new ModelBinding { Field = field, DataType = dataType },
             [ModelBinding binding] => binding,
             [null] => throw new ExpressionEvaluatorTypeErrorException("Cannot lookup dataModel null"),
@@ -114,12 +123,17 @@ public static class ExpressionEvaluator
                     $"""Expected ["dataModel", ...] to have 1-2 argument(s), got {args.Length}"""
                 )
         };
-        return DataModel(key, context, state);
+        return await DataModel(key, context.DataElementId, context.RowIndices, state);
     }
 
-    private static object? DataModel(ModelBinding key, ComponentContext? context, LayoutEvaluatorState state)
+    private static async Task<object?> DataModel(
+        ModelBinding key,
+        DataElementId defaultDataElementId,
+        int[]? indexes,
+        LayoutEvaluatorState state
+    )
     {
-        var data = state.GetModelData(key, context);
+        var data = await state.GetModelData(key, defaultDataElementId, indexes);
 
         // Only allow IConvertible types to be returned from data model
         // Objects and arrays should return null
@@ -130,7 +144,7 @@ public static class ExpressionEvaluator
         };
     }
 
-    private static object? Component(object?[] args, ComponentContext? context, LayoutEvaluatorState state)
+    private static async Task<object?> Component(object?[] args, ComponentContext? context, LayoutEvaluatorState state)
     {
         var componentId = args.First()?.ToString();
         if (componentId is null)
@@ -143,7 +157,12 @@ public static class ExpressionEvaluator
             throw new ArgumentException("The component expression requires a component context");
         }
 
-        var targetContext = state.GetComponentContext(context.Component.PageId, componentId, context.RowIndices);
+        var targetContext = await state.GetComponentContext(
+            context.Component.PageId,
+            componentId,
+            context.DataElementId,
+            context.RowIndices
+        );
 
         if (targetContext.Component is GroupComponent)
         {
@@ -157,7 +176,7 @@ public static class ExpressionEvaluator
         ComponentContext? parent = targetContext;
         while (parent is not null)
         {
-            if (EvaluateBooleanExpression(state, parent, "hidden", false))
+            if (await EvaluateBooleanExpression(state, parent, "hidden", false))
             {
                 // Don't lookup data in hidden components
                 return null;
@@ -165,7 +184,7 @@ public static class ExpressionEvaluator
             parent = parent.Parent;
         }
 
-        return DataModel(binding, context, state);
+        return await DataModel(binding, context.DataElementId, context.RowIndices, state);
     }
 
     private static string? Concat(object?[] args)

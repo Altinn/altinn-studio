@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Models.Layout;
+using Altinn.App.Core.Models.Layout.Components;
 
 namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 
@@ -26,7 +27,7 @@ public class ContextListRoot
 
     [JsonPropertyName("layouts")]
     [JsonConverter(typeof(LayoutModelConverterFromObject))]
-    public LayoutModel ComponentModel { get; set; } = default!;
+    public IReadOnlyDictionary<string, PageComponent> Layouts { get; set; } = default!;
 
     [JsonPropertyName("dataModel")]
     public JsonElement? DataModel { get; set; }

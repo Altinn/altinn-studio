@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 using Altinn.Platform.Storage.Interface.Models;
@@ -123,7 +124,7 @@ public class DynamicClassBuilder
         UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
     };
 
-    private static object DataObjectFromJsonDocument(JsonElement doc)
+    public static object DataObjectFromJsonDocument(JsonElement doc)
     {
         var type = CreateClassFromJsonElement(doc, "DynamicClass");
 
@@ -134,20 +135,25 @@ public class DynamicClassBuilder
         return instance;
     }
 
-    public static DataModel DataModelFromJsonDocument(JsonElement doc, DataElement? dataElement = null)
+    public static DataModel DataModelFromJsonDocument(
+        Instance instance,
+        JsonElement doc,
+        DataElement? dataElement = null
+    )
     {
-        object instance = DataObjectFromJsonDocument(doc);
-        return new DataModel(
-            [KeyValuePair.Create(dataElement ?? new DataElement() { DataType = "default" }, instance)]
-        );
+        object data = DataObjectFromJsonDocument(doc);
+        var dataAccessor = new TestInstanceDataAccessor(instance) { { dataElement, data } };
+        return new DataModel(dataAccessor);
     }
 
-    public static DataModel DataModelFromJsonDocument(List<DataModelAndElement> dataModels)
+    public static DataModel DataModelFromJsonDocument(Instance instance, List<DataModelAndElement> dataModels)
     {
-        return new DataModel(
-            dataModels.Select(dataModel =>
-                KeyValuePair.Create(dataModel.DataElement, DataObjectFromJsonDocument(dataModel.Data))
-            )
-        );
+        var dataAccessor = new TestInstanceDataAccessor(instance);
+        foreach (var pair in dataModels)
+        {
+            dataAccessor.Add(pair.DataElement, DataObjectFromJsonDocument(pair.Data));
+        }
+
+        return new DataModel(dataAccessor);
     }
 }

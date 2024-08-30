@@ -3,6 +3,8 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Options;
 
@@ -27,6 +29,50 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
     }
 
     /// <summary>
+    /// Helper class to keep compatibility with old interface
+    /// delete when <see cref="LayoutEvaluatorStateInitializer.Init(Altinn.Platform.Storage.Interface.Models.Instance,object,string?,string?)"/>
+    /// is removed
+    /// </summary>
+    private class SingleDataElementAccessor : IInstanceDataAccessor
+    {
+        private readonly DataElement _dataElement;
+        private readonly object _data;
+
+        public SingleDataElementAccessor(Instance instance, DataElement dataElement, object data)
+        {
+            Instance = instance;
+            _dataElement = dataElement;
+            _data = data;
+        }
+
+        public Instance Instance { get; }
+
+        public Task<object> GetData(DataElementId dataElementId)
+        {
+            if (dataElementId != _dataElement)
+            {
+                return Task.FromException<object>(
+                    new InvalidOperationException(
+                        "Use the new ILayoutEvaluatorStateInitializer interface to support multiple data models and subforms"
+                    )
+                );
+            }
+            return Task.FromResult(_data);
+        }
+
+        public Task<object?> GetSingleDataByType(string dataType)
+        {
+            if (_dataElement.DataType != dataType)
+            {
+                return Task.FromException<object?>(
+                    new InvalidOperationException("Data type does not match the data element")
+                );
+            }
+            return Task.FromResult<object?>(_data);
+        }
+    }
+
+    /// <summary>
     /// Initialize LayoutEvaluatorState with given Instance, data object and layoutSetId
     /// </summary>
     [Obsolete("Use the overload with ILayoutEvaluatorStateInitializer instead")]
@@ -40,14 +86,9 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
         var layouts = _appResources.GetLayoutModel(layoutSetId);
         var dataElement = instance.Data.Find(d => d.DataType == layouts.DefaultDataType.Id);
         Debug.Assert(dataElement is not null);
+        var dataAccessor = new SingleDataElementAccessor(instance, dataElement, data);
         return Task.FromResult(
-            new LayoutEvaluatorState(
-                new DataModel([KeyValuePair.Create(dataElement, data)]),
-                layouts,
-                _frontEndSettings,
-                instance,
-                gatewayAction
-            )
+            new LayoutEvaluatorState(new DataModel(dataAccessor), layouts, _frontEndSettings, instance, gatewayAction)
         );
     }
 
@@ -62,38 +103,8 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
     {
         var layouts = _appResources.GetLayoutModelForTask(taskId);
 
-        var defaultDataTypeId = layouts.DefaultDataType.Id;
-        var defaultDataElement = instance.Data.Find(d => d.DataType == defaultDataTypeId);
-        if (defaultDataElement is null)
-        {
-            throw new InvalidOperationException($"No data element found for data type {defaultDataTypeId}");
-        }
-
-        var dataTasks = new List<Task<KeyValuePair<DataElement, object>>>();
-        foreach (var dataType in layouts.GetReferencedDataTypeIds())
-        {
-            // Find first data element of type dataType
-            var dataElement = instance.Data.Find(d => d.DataType == dataType);
-            if (dataElement is not null)
-            {
-                dataTasks.Add(
-                    Task.Run(async () => KeyValuePair.Create(dataElement, await dataAccessor.GetData(dataElement)))
-                );
-            }
-            // TODO: This will change when subforms use the same data type for multiple data elemetns.
-            // dataTasks.AddRange(
-            //     instance
-            //         .Data.Where(dataElement => dataElement.DataType == dataType)
-            //         .Select(async dataElement =>
-            //             KeyValuePair.Create(dataElement, await dataAccessor.GetData(dataElement))
-            //         )
-            // );
-        }
-
-        var extraModels = await Task.WhenAll(dataTasks);
-
         return new LayoutEvaluatorState(
-            new DataModel(extraModels),
+            new DataModel(dataAccessor),
             layouts,
             _frontEndSettings,
             instance,

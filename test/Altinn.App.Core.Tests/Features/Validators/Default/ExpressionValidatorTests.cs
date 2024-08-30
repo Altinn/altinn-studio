@@ -9,6 +9,7 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
+using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Models.Validation;
 using Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
@@ -54,9 +55,9 @@ public class ExpressionValidatorTests
         );
     }
 
-    public ExpressionValidationTestModel LoadData(string fileName, string folder)
+    public async Task<ExpressionValidationTestModel> LoadData(string fileName, string folder)
     {
-        var data = File.ReadAllText(Path.Join(folder, fileName));
+        var data = await File.ReadAllTextAsync(Path.Join(folder, fileName));
         return JsonSerializer.Deserialize<ExpressionValidationTestModel>(data, _jsonSerializerOptions)!;
     }
 
@@ -76,14 +77,19 @@ public class ExpressionValidatorTests
 
     private async Task RunExpressionValidationTest(string fileName, string folder)
     {
-        var testCase = LoadData(fileName, folder);
+        var testCase = await LoadData(fileName, folder);
 
         var instance = new Instance() { Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d", AppId = "org/app", };
         var dataElement = new DataElement { DataType = "default", };
 
-        var dataModel = DynamicClassBuilder.DataModelFromJsonDocument(testCase.FormData, dataElement);
+        var dataModel = DynamicClassBuilder.DataModelFromJsonDocument(instance, testCase.FormData, dataElement);
 
-        var evaluatorState = new LayoutEvaluatorState(dataModel, testCase.Layouts, _frontendSettings.Value, instance);
+        var layoutModel = new LayoutModel()
+        {
+            DefaultDataType = new DataType() { Id = "default" },
+            Pages = testCase.Layouts,
+        };
+        var evaluatorState = new LayoutEvaluatorState(dataModel, layoutModel, _frontendSettings.Value, instance);
         _layoutInitializer
             .Setup(init =>
                 init.Init(
@@ -143,7 +149,7 @@ public record ExpressionValidationTestModel
 
     [JsonPropertyName("layouts")]
     [JsonConverter(typeof(LayoutModelConverterFromObject))]
-    public required LayoutModel Layouts { get; set; }
+    public required IReadOnlyDictionary<string, PageComponent> Layouts { get; set; }
 
     public class ExpectedObject
     {

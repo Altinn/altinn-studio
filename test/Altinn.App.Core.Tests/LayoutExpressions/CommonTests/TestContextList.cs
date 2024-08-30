@@ -1,8 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.App.Core.Tests.TestUtils;
+using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Xunit.Abstractions;
 
@@ -22,24 +24,24 @@ public class TestContextList
 
     [Theory]
     [SharedTestContextList("simple")]
-    public void Simple_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task Simple_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTestContextList("groups")]
-    public void Group_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task Group_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTestContextList("nonRepeatingGroups")]
-    public void NonRepeatingGroup_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task NonRepeatingGroup_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTestContextList("recursiveGroups")]
-    public void RecursiveGroup_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task RecursiveGroup_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
-    private static ContextListRoot LoadTestData(string testName, string folder)
+    private static async Task<ContextListRoot> LoadTestData(string testName, string folder)
     {
         ContextListRoot testCase = new();
-        var data = File.ReadAllText(Path.Join(folder, testName));
+        var data = await File.ReadAllTextAsync(Path.Join(folder, testName));
         try
         {
             testCase = JsonSerializer.Deserialize<ContextListRoot>(data, _jsonSerializerOptions)!;
@@ -56,23 +58,34 @@ public class TestContextList
         return testCase;
     }
 
-    private void RunTestCase(string filename, string folder)
+    private async Task RunTestCase(string filename, string folder)
     {
-        var test = LoadTestData(filename, folder);
+        var test = await LoadTestData(filename, folder);
         _output.WriteLine($"{test.Filename} in {test.Folder}");
         _output.WriteLine(test.RawJson);
         _output.WriteLine(test.FullPath);
 
+        var instance = new Instance() { Data = [] };
+        var componentModel = new LayoutModel()
+        {
+            DefaultDataType = new DataType() { Id = "default" },
+            Pages = test.Layouts,
+        };
         var state = new LayoutEvaluatorState(
-            DynamicClassBuilder.DataModelFromJsonDocument(test.DataModel ?? JsonDocument.Parse("{}").RootElement),
-            test.ComponentModel,
+            DynamicClassBuilder.DataModelFromJsonDocument(
+                instance,
+                test.DataModel ?? JsonDocument.Parse("{}").RootElement
+            ),
+            componentModel,
             new(),
-            new()
+            instance
         );
 
         test.ParsingException.Should().BeNull("Loading of test failed");
 
-        var results = state.GetComponentContexts().Select(c => ComponentContextForTestSpec.FromContext(c)).ToList();
+        var results = (await state.GetComponentContexts())
+            .Select(c => ComponentContextForTestSpec.FromContext(c))
+            .ToList();
         _output.WriteLine(JsonSerializer.Serialize(new { resultContexts = results }, _jsonSerializerOptions));
 
         foreach (var (result, expected, index) in results.Zip(test.Expected, Enumerable.Range(0, int.MaxValue)))

@@ -37,7 +37,7 @@ public record LayoutModel
     }
 
     /// <summary>
-    /// Get all components by recursivly walking all the pages.
+    /// Get all components by recursively walking all the pages.
     /// </summary>
     public IEnumerable<BaseComponent> GetComponents()
     {
@@ -53,43 +53,43 @@ public record LayoutModel
         }
     }
 
-    /// <summary>
-    /// Get all external model references used in the layout model
-    /// </summary>
-    public IEnumerable<string> GetReferencedDataTypeIds()
-    {
-        var externalModelReferences = new HashSet<string>();
-        foreach (var component in GetComponents())
-        {
-            // Add data model references from DataModelBindings
-            externalModelReferences.UnionWith(
-                component.DataModelBindings.Values.Select(d => d.DataType).OfType<string>()
-            );
-
-            // Add data model references from expressions
-            AddExternalModelReferences(component.Hidden, externalModelReferences);
-            AddExternalModelReferences(component.ReadOnly, externalModelReferences);
-            AddExternalModelReferences(component.Required, externalModelReferences);
-            //TODO: add more expressions when backend uses them
-        }
-
-        //Ensure that the defaultData type is first in the resulting enumerable.
-        externalModelReferences.Remove(DefaultDataType.Id);
-        return externalModelReferences.Prepend(DefaultDataType.Id);
-    }
-
-    private static void AddExternalModelReferences(Expression expression, HashSet<string> externalModelReferences)
-    {
-        if (
-            expression is
-            { Function: ExpressionFunction.dataModel, Args: [_, { Value: string externalModelReference }] }
-        )
-        {
-            externalModelReferences.Add(externalModelReference);
-        }
-        else
-        {
-            expression.Args?.ForEach(arg => AddExternalModelReferences(arg, externalModelReferences));
-        }
-    }
+    // /// <summary>
+    // /// Get all external model references used in the layout model
+    // /// </summary>
+    // public IEnumerable<string> GetReferencedDataTypeIds()
+    // {
+    //     var externalModelReferences = new HashSet<string>();
+    //     foreach (var component in GetComponents())
+    //     {
+    //         // Add data model references from DataModelBindings
+    //         externalModelReferences.UnionWith(
+    //             component.DataModelBindings.Values.Select(d => d.DataType).OfType<string>()
+    //         );
+    //
+    //         // Add data model references from expressions
+    //         AddExternalModelReferences(component.Hidden, externalModelReferences);
+    //         AddExternalModelReferences(component.ReadOnly, externalModelReferences);
+    //         AddExternalModelReferences(component.Required, externalModelReferences);
+    //         //TODO: add more expressions when backend uses them
+    //     }
+    //
+    //     //Ensure that the defaultData type is first in the resulting enumerable.
+    //     externalModelReferences.Remove(DefaultDataType.Id);
+    //     return externalModelReferences.Prepend(DefaultDataType.Id);
+    // }
+    //
+    // private static void AddExternalModelReferences(Expression expression, HashSet<string> externalModelReferences)
+    // {
+    //     if (
+    //         expression is
+    //         { Function: ExpressionFunction.dataModel, Args: [_, { Value: string externalModelReference }] }
+    //     )
+    //     {
+    //         externalModelReferences.Add(externalModelReference);
+    //     }
+    //     else
+    //     {
+    //         expression.Args?.ForEach(arg => AddExternalModelReferences(arg, externalModelReferences));
+    //     }
+    // }
 }

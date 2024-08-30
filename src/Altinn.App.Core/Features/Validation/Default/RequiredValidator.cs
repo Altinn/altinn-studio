@@ -45,7 +45,7 @@ public class RequiredLayoutValidator : IValidator
             language
         );
 
-        return LayoutEvaluator.RunLayoutValidationsForRequired(evaluationState);
+        return await LayoutEvaluator.RunLayoutValidationsForRequired(evaluationState);
     }
 
     /// <summary>

@@ -43,41 +43,50 @@ public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
         ProcessGatewayInformation processGatewayInformation
     )
     {
-        var state = await GetLayoutEvaluatorState(
+        var taskId = instance.Process.CurrentTask.ElementId;
+        var state = await _layoutStateInit.Init(
             instance,
             dataAccessor,
-            instance.Process.CurrentTask.ElementId,
+            taskId,
             processGatewayInformation.Action,
             language: null
         );
 
-        return outgoingFlows.Where(outgoingFlow => EvaluateSequenceFlow(state, outgoingFlow)).ToList();
+        var flows = new List<SequenceFlow>();
+        foreach (var outgoingFlow in outgoingFlows)
+        {
+            if (await EvaluateSequenceFlow(state, outgoingFlow, processGatewayInformation))
+            {
+                flows.Add(outgoingFlow);
+            }
+        }
+
+        return flows;
     }
 
-    private async Task<LayoutEvaluatorState> GetLayoutEvaluatorState(
-        Instance instance,
-        IInstanceDataAccessor dataAccessor,
-        string taskId,
-        string? gatewayAction,
-        string? language
-    )
-    {
-        var state = await _layoutStateInit.Init(instance, dataAccessor, taskId, gatewayAction, language);
-        return state;
-    }
-
-    private static bool EvaluateSequenceFlow(LayoutEvaluatorState state, SequenceFlow sequenceFlow)
+    private static async Task<bool> EvaluateSequenceFlow(LayoutEvaluatorState state, SequenceFlow sequenceFlow, ProcessGatewayInformation processGatewayInformation)
     {
         if (sequenceFlow.ConditionExpression != null)
         {
             var expression = GetExpressionFromCondition(sequenceFlow.ConditionExpression);
+
             // If there is no component context in the state, evaluate the expression once without a component context
-            var stateComponentContexts = state.GetComponentContexts().Any()
-                ? state.GetComponentContexts().ToList()
-                : [null];
+            var stateComponentContexts = (await state.GetComponentContexts()).ToList();
+            if (stateComponentContexts.Count == 0)
+            {
+                stateComponentContexts.Add(
+                    new ComponentContext(
+                        component: null,
+                        rowIndices: null,
+                        rowLength: null,
+                        dataElementId: processGatewayInformation.DataTypeId,
+                        childContexts: null
+                    )
+                );
+            }
             foreach (ComponentContext? componentContext in stateComponentContexts)
             {
-                var result = ExpressionEvaluator.EvaluateExpression(state, expression, componentContext);
+                var result = await ExpressionEvaluator.EvaluateExpression(state, expression, componentContext);
                 if (result is true)
                 {
                     return true;

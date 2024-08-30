@@ -1,7 +1,9 @@
 using System.Text.Json;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.App.Core.Tests.TestUtils;
+using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Xunit.Abstractions;
 
@@ -21,33 +23,42 @@ public class TestInvalid
 
     [Theory]
     [FileNamesInFolderData(["LayoutExpressions", "CommonTests", "shared-tests", "invalid"])]
-    public void Simple_Theory(string testName, string folder)
+    public async Task Simple_Theory(string testName, string folder)
     {
-        var testCase = LoadData(testName, folder);
+        var testCase = await LoadData(testName, folder);
         _output.WriteLine($"{testCase.Filename} in {testCase.Folder}");
         _output.WriteLine(testCase.RawJson);
         _output.WriteLine(testCase.FullPath);
-        Action act = () =>
+        Func<Task> act = async () =>
         {
             var test = JsonSerializer.Deserialize<ExpressionTestCaseRoot>(testCase.RawJson!, _jsonSerializerOptions)!;
+            var componentModel = new LayoutModel()
+            {
+                DefaultDataType = new DataType() { Id = "default", },
+                Pages = test.Layouts,
+            };
+
             var state = new LayoutEvaluatorState(
-                DynamicClassBuilder.DataModelFromJsonDocument(test.DataModel ?? JsonDocument.Parse("{}").RootElement),
-                test.ComponentModel,
+                DynamicClassBuilder.DataModelFromJsonDocument(
+                    test.Instance,
+                    test.DataModel ?? JsonDocument.Parse("{}").RootElement
+                ),
+                componentModel,
                 test.FrontEndSettings ?? new(),
                 test.Instance ?? new()
             );
-            ExpressionEvaluator.EvaluateExpression(
+            await ExpressionEvaluator.EvaluateExpression(
                 state,
                 test.Expression,
-                test.Context?.ToContext(test.ComponentModel) ?? null!
+                test.Context?.ToContext(componentModel, state) ?? null!
             );
         };
-        act.Should().Throw<Exception>().WithMessage(testCase.ExpectsFailure);
+        (await act.Should().ThrowAsync<Exception>()).WithMessage(testCase.ExpectsFailure);
     }
 
-    private static InvalidTestCase LoadData(string testName, string folder)
+    private static async Task<InvalidTestCase> LoadData(string testName, string folder)
     {
-        var data = File.ReadAllText(Path.Join(folder, testName));
+        var data = await File.ReadAllTextAsync(Path.Join(folder, testName));
         using var document = JsonDocument.Parse(data);
         return new InvalidTestCase()
         {
