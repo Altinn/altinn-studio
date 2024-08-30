@@ -88,7 +88,11 @@ export const DeploymentEnvironmentStatus = ({
             version: kubernetesDeployment.version,
           }}
           components={{
-            a: <Link href={urlToApp}> </Link>,
+            a: (
+              <Link href={urlToApp} rel='noopener noreferrer' target='_blank'>
+                {' '}
+              </Link>
+            ),
           }}
         />
       }
