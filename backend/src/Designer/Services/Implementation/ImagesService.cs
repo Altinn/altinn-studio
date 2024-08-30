@@ -2,9 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
-using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -22,24 +20,10 @@ public class ImagesService : IImagesService
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
     }
 
-    public FileStreamResult GetImage(string org, string repo, string developer, string imageFilePath)
+    public Stream GetImage(string org, string repo, string developer, string imageFilePath)
     {
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
-        Stream imageStream = altinnAppGitRepository.GetImageAsStreamByFilePath(imageFilePath);
-        return new FileStreamResult(imageStream, MimeTypeMap.GetMimeType(Path.GetExtension(imageFilePath).ToLower()));
-    }
-
-    public List<Stream> GetAllImages(string org, string repo, string developer)
-    {
-        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
-        List<Stream> images = new List<Stream>();
-        List<string> imageFileNames = altinnAppGitRepository.GetAllImageFileNames();
-        foreach (var imageFilePath in imageFileNames)
-        {
-            Stream imageStream = altinnAppGitRepository.GetImageAsStreamByFilePath(imageFilePath);
-            images.Add(imageStream);
-        }
-        return images;
+        return altinnAppGitRepository.GetImageAsStreamByFilePath(imageFilePath);
     }
 
     public List<string> GetAllImageFileNames(string org, string repo, string developer)
@@ -65,6 +49,5 @@ public class ImagesService : IImagesService
     {
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
         await altinnAppGitRepository.DeleteImageByImageFilePath(imageFilePath);
-        await Task.CompletedTask;
     }
 }

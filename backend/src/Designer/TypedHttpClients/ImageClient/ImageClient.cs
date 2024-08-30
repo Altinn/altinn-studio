@@ -1,6 +1,7 @@
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Enums;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.ImageClient;
 
@@ -13,7 +14,7 @@ public class ImageClient
         _httpClient = httpClient;
     }
 
-    public async Task<HttpResponseMessage> ValidateUrlAsync(string url)
+    public async Task<ImageUrlValidationResult> ValidateUrlAsync(string url)
     {
         try
         {
@@ -21,25 +22,24 @@ public class ImageClient
             using var request = new HttpRequestMessage(HttpMethod.Head, url);
             var response = await _httpClient.SendAsync(request);
 
-            // If the response status is not successful, return null
+            // If the response status is not successful return NotValidUrl
             if (!response.IsSuccessStatusCode)
             {
-                return null;
+                return ImageUrlValidationResult.NotValidUrl;
+            }
+            var contentType = response.Content.Headers.ContentType.MediaType;
+            if (!contentType.StartsWith("image/"))
+            {
+                // If the response did not return an image in its content return NotAnImage
+                return ImageUrlValidationResult.NotAnImage;
             }
 
-            return response;
+            return ImageUrlValidationResult.Ok;
         }
-        catch (UriFormatException)
+        // If the request fails for some other reason return NotValidUrl
+        catch (Exception ex) when (ex is UriFormatException or InvalidOperationException or HttpRequestException)
         {
-            return null;
-        }
-        catch (InvalidOperationException)
-        {
-            return null;
-        }
-        catch (HttpRequestException)
-        {
-            return null;
+            return ImageUrlValidationResult.NotValidUrl;
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
@@ -47,7 +48,7 @@ public class ImageController : ControllerBase
     /// <returns>Image</returns>
     [HttpGet("{encodedImagePath}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public FileStreamResult GetImageByName(string org, string repo, [FromRoute] string encodedImagePath)
+    public Stream GetImageByName(string org, string repo, [FromRoute] string encodedImagePath)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         string decodedImagePath = HttpUtility.UrlDecode(encodedImagePath);
@@ -76,25 +77,12 @@ public class ImageController : ControllerBase
     /// Endpoint to validate a given url for fetching an external image.
     /// </summary>
     /// <param name="url">An external url to fetch an image to represent in the image component in the form.</param>
-    /// <returns>204 if an image is fetched, 404 if no response from url, 401 if url requires authentication, 415 if response is not an image</returns>
+    /// <returns>NotAnImage if url does not point at an image or NotValidUrl if url is invalid for any other reason</returns>
     [HttpGet("validate")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ImageUrlValidationResult> ValidateExternalImageUrl([FromQuery] string url)
     {
-        var response = await _imageClient.ValidateUrlAsync(url);
-
-        if (response == null)
-        {
-            return ImageUrlValidationResult.NotValidUrl;
-        }
-
-        var contentType = response.Content.Headers.ContentType.MediaType;
-        if (!contentType.StartsWith("image/"))
-        {
-            return ImageUrlValidationResult.NotAnImage;
-        }
-
-        return ImageUrlValidationResult.Ok;
+        return await _imageClient.ValidateUrlAsync(url);
     }
 
     /// <summary>
