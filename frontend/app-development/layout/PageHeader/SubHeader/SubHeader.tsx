@@ -8,7 +8,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import { PreviewButton } from './PreviewButton';
 
-type SubHeaderProps = {
+export type SubHeaderProps = {
   hasRepoError?: boolean;
 };
 
