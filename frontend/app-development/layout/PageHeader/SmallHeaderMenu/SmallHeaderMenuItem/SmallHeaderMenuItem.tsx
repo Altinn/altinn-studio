@@ -36,8 +36,8 @@ export const SmallHeaderMenuItem = ({
       <NavLink
         to={menuItem.action.href}
         onClick={onClick}
-        target={menuItem.action.openInNewTab && '_blank'}
-        rel={menuItem.action.openInNewTab && 'noopener noreferrer'}
+        target={menuItem.action.openInNewTab ? '_blank' : ''}
+        rel={menuItem.action.openInNewTab ? 'noopener noreferrer' : ''}
       >
         {t(menuItem.name)}
         {menuItem.isBeta && <Tag color='first'>{t('general.beta')}</Tag>}
