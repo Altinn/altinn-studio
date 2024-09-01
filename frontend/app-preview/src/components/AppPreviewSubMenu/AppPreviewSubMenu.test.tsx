@@ -1,60 +1,63 @@
 import React from 'react';
-import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
-import { layoutSet1NameMock, layoutSetsMock } from '@altinn/ux-editor/testing/layoutSetsMock';
-import type { AppPreviewSubMenuProps } from './AppPreviewSubMenu';
-import { AppPreviewSubMenu } from './AppPreviewSubMenu';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { AppPreviewSubMenu } from './AppPreviewSubMenu';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { app, org } from '@studio/testing/testids';
+import { useMediaQuery } from '@studio/components/src/hooks/useMediaQuery';
+import { renderWithProviders } from 'app-preview/test/mocks';
+import { useInstanceIdQuery } from 'app-shared/hooks/queries';
+import { RoutePaths } from 'app-development/enums/RoutePaths';
 
-const user = userEvent.setup();
+const mockGetItem = jest.fn();
+
+Object.defineProperty(window, 'localStorage', {
+  value: {
+    getItem: (...args: string[]) => mockGetItem(...args),
+  },
+});
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => ({
+    org,
+    app,
+  }),
+}));
+
+jest.mock('@studio/components/src/hooks/useMediaQuery');
+jest.mock('app-shared/hooks/queries');
+
+const mockLayoutId: string = 'layout1';
+const uiEditorPath: string = `/editor/${org}/${app}/${RoutePaths.UIEditor}?layout=${mockLayoutId}`;
 
 describe('AppPreviewSubMenu', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(() => jest.clearAllMocks());
 
-  const props: AppPreviewSubMenuProps = {
-    viewSize: 'desktop',
-    setViewSize: jest.fn(),
-    selectedLayoutSet: layoutSet1NameMock,
-    handleChangeLayoutSet: jest.fn(),
-  };
+  it('should render the back-to-editing link with text on large screens', () => {
+    (useMediaQuery as jest.Mock).mockReturnValue(false);
+    (useInstanceIdQuery as jest.Mock).mockReturnValue(mockLayoutId);
+    (mockGetItem as jest.Mock).mockReturnValue(mockLayoutId);
 
-  it('renders the component with desktop viewSize', () => {
-    setQueryData(null);
-    renderWithProviders(<AppPreviewSubMenu {...props} />);
-    const desktopButton = screen.getByRole('radio', {
-      name: textMock('preview.view_size_desktop'),
-    });
-    const mobileButton = screen.getByRole('radio', { name: textMock('preview.view_size_mobile') });
-    expect(desktopButton).toHaveAttribute('aria-checked', 'true');
-    expect(mobileButton).toHaveAttribute('aria-checked', 'false');
+    renderAppPreviewSubMenu();
+
+    expect(screen.getByRole('link')).toHaveAttribute('href', uiEditorPath);
+    expect(screen.getByText(textMock('top_menu.preview_back_to_editing'))).toBeInTheDocument();
   });
 
-  it('renders the component with mobile viewSize', () => {
-    setQueryData(null);
-    renderWithProviders(<AppPreviewSubMenu {...props} viewSize='mobile' />);
-    const desktopButton = screen.getByRole('radio', {
-      name: textMock('preview.view_size_desktop'),
-    });
-    const mobileButton = screen.getByRole('radio', { name: textMock('preview.view_size_mobile') });
-    expect(mobileButton).toHaveAttribute('aria-checked', 'true');
-    expect(desktopButton).toHaveAttribute('aria-checked', 'false');
-  });
+  it('should render the back-to-editing link without text on small screens', () => {
+    (useMediaQuery as jest.Mock).mockReturnValue(true);
+    (useInstanceIdQuery as jest.Mock).mockReturnValue(mockLayoutId);
+    (mockGetItem as jest.Mock).mockReturnValue(mockLayoutId);
 
-  it('renders the component with layout sets in select list', async () => {
-    setQueryData(layoutSetsMock);
-    renderWithProviders(<AppPreviewSubMenu {...props} />);
-    const layoutSetSelector = screen.getByRole('combobox');
-    await user.click(layoutSetSelector);
-    const options = screen.getAllByRole('option');
-    expect(options.length).toBe(layoutSetsMock.sets.length);
+    renderAppPreviewSubMenu();
+
+    expect(screen.getByRole('link')).toHaveAttribute('href', uiEditorPath);
+    expect(
+      screen.queryByText(textMock('top_menu.preview_back_to_editing')),
+    ).not.toBeInTheDocument();
   });
 });
 
-const setQueryData = (layoutSets: LayoutSets | null) => {
-  queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSets);
+const renderAppPreviewSubMenu = () => {
+  return renderWithProviders()(<AppPreviewSubMenu />);
 };

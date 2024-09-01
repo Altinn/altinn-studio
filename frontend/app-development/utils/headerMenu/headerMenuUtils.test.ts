@@ -1,5 +1,3 @@
-// OLD appBarConfig test:
-
 import { RepositoryType } from 'app-shared/types/global';
 import {
   getFilteredTopBarMenu,
