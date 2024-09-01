@@ -6,8 +6,7 @@ import { userMock } from './userMock';
 import { type StudioProfileMenuItem } from '@studio/components';
 import { type PreviewContextProps } from 'app-development/contexts/PreviewContext';
 
-// TODO - Used more than one place?
-export const menuItemsMock: HeaderMenuItem[] = [
+const menuItemsMock: HeaderMenuItem[] = [
   {
     key: HeaderMenuItemKey.About,
     link: '/a',
