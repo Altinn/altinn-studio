@@ -1,7 +1,7 @@
 .dialog {
   overflow: hidden; /* Avoid double scrollbars; overflow is handled by Modal.Content */
-  display: grid;
-  grid-template-rows: min-content 1fr min-content;
+  display: flex;
+  flex-direction: column;
 }
 
 .heading {
@@ -26,6 +26,7 @@
 
 .content {
   padding: 0;
+  flex: 1;
 }
 
 .dialog.withContentPadding .content,
