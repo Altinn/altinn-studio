@@ -6,4 +6,6 @@
   --studio-button-preview-dark: #0c6536;
   --studio-button-preview-medium: #118849;
   --studio-button-preview-light: #67b38a;
+
+  z-index: 9999;
 }

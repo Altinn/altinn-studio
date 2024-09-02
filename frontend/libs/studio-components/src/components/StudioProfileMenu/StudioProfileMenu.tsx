@@ -42,6 +42,11 @@ export const StudioProfileMenu = ({
 }: StudioProfileMenuProps): ReactElement => {
   const [open, setOpen] = useState(false);
 
+  const truncatedText =
+    triggerButtonText && triggerButtonText.length > 30
+      ? `${triggerButtonText.slice(0, 30)}...`
+      : triggerButtonText;
+
   const handleToggleMenu = () => {
     setOpen((isOpen) => !isOpen);
   };
@@ -63,8 +68,9 @@ export const StudioProfileMenu = ({
           color={color}
           variant={variant}
           aria-label={ariaLabelTriggerButton}
+          title={triggerButtonText}
         >
-          {triggerButtonText && <span className={classes.userOrgNames}>{triggerButtonText}</span>}
+          {truncatedText && <span className={classes.userOrgNames}>{truncatedText}</span>}
           {profileImage}
         </StudioPageHeaderButton>
       </DropdownMenu.Trigger>
