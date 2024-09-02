@@ -30,7 +30,11 @@ export const StudioModalDialog = forwardRef<HTMLDialogElement, StudioModalDialog
   ): ReactNode => {
     const dialogRef = useForwardedRef<HTMLDialogElement>(ref);
 
-    const className = cn(givenClassName, contentPadding && classes.withContentPadding);
+    const className = cn(
+      givenClassName,
+      classes.dialog,
+      contentPadding && classes.withContentPadding,
+    );
 
     const closeModal = () => {
       dialogRef.current?.close();
