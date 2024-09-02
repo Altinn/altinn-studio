@@ -17,3 +17,7 @@
 ## Documentation
 
 - [ ] User documentation is updated with a separate linked PR in [altinn-studio-docs.](https://github.com/Altinn/altinn-studio-docs) (if applicable)
+  - [ ] Yes
+  - [ ] No
+    - If No, please explain why:
+      <!--- Provide your reason here -->
