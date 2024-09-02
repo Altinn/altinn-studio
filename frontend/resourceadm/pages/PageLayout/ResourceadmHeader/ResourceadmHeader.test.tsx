@@ -1,14 +1,21 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { DashboardHeader } from './DashboardHeader';
-import { HeaderContext, SelectedContextType } from 'dashboard/context/HeaderContext';
-import { useParams } from 'react-router-dom';
+import { ResourceadmHeader } from './ResourceadmHeader';
+import { HeaderContext, SelectedContextType } from 'resourceadm/context/HeaderContext';
+import { MemoryRouter, useParams } from 'react-router-dom';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { type User } from 'app-shared/types/Repository';
 import { type Organization } from 'app-shared/types/Organization';
-import { type HeaderContextType } from 'dashboard/context/HeaderContext';
-import { MockServicesContextWrapper } from 'dashboard/dashboardTestUtils';
+import { type HeaderContextType } from 'resourceadm/context/HeaderContext';
+import {
+  type ServicesContextProps,
+  ServicesContextProvider,
+  type ServicesContextProviderProps,
+} from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { createQueryClientMock, queryClientConfigMock } from 'app-shared/mocks/queryClientMock';
+import { type QueryClient } from '@tanstack/react-query';
 
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
@@ -40,7 +47,7 @@ const mockOrg2: Organization = {
 };
 const mockOrganizations: Organization[] = [mockOrg1, mockOrg2];
 
-describe('DashboardHeader', () => {
+describe('ResourceadmHeader', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -50,26 +57,9 @@ describe('DashboardHeader', () => {
       selectedContext: SelectedContextType.Self,
     });
 
-    renderDashboardHeader();
+    renderResourceadmHeader();
 
     expect(screen.getByRole('button', { name: userMock.full_name })).toBeInTheDocument();
-  });
-
-  it('should render the organization name when selected context is an organization', () => {
-    (useParams as jest.Mock).mockReturnValue({
-      selectedContext: 'ttd',
-    });
-
-    renderDashboardHeader();
-
-    expect(
-      screen.getByRole('button', {
-        name: textMock('shared.header_user_for_org', {
-          user: userMock.full_name,
-          org: mockOrg1.full_name,
-        }),
-      }),
-    ).toBeInTheDocument();
   });
 
   it('should show the profile menu with all its menuitem when the avatar is clicked', async () => {
@@ -78,7 +68,7 @@ describe('DashboardHeader', () => {
       selectedContext: SelectedContextType.Self,
     });
 
-    renderDashboardHeader();
+    renderResourceadmHeader();
 
     const avatarButton = screen.getByRole('button', { name: userMock.full_name });
     await user.click(avatarButton);
@@ -108,7 +98,7 @@ describe('DashboardHeader', () => {
       selectedContext: SelectedContextType.Self,
     });
 
-    renderDashboardHeader();
+    renderResourceadmHeader();
 
     const avatarButton = screen.getByRole('button', { name: userMock.full_name });
     await user.click(avatarButton);
@@ -126,12 +116,29 @@ const headerContextValue: HeaderContextType = {
   selectableOrgs: mockOrganizations,
 };
 
-const renderDashboardHeader = () => {
+type Props = {
+  customServices?: Partial<ServicesContextProps>;
+  client?: QueryClient;
+};
+
+const renderResourceadmHeader = ({
+  customServices,
+  client = createQueryClientMock(),
+}: Partial<Props> = {}) => {
+  const queries: ServicesContextProviderProps = {
+    ...queriesMock,
+    ...customServices,
+    client,
+    clientConfig: queryClientConfigMock,
+  };
+
   return render(
-    <MockServicesContextWrapper>
-      <HeaderContext.Provider value={headerContextValue}>
-        <DashboardHeader />
-      </HeaderContext.Provider>
-    </MockServicesContextWrapper>,
+    <MemoryRouter>
+      <ServicesContextProvider {...queries}>
+        <HeaderContext.Provider value={headerContextValue}>
+          <ResourceadmHeader />
+        </HeaderContext.Provider>
+      </ServicesContextProvider>
+    </MemoryRouter>,
   );
 };
