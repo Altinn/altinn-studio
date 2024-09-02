@@ -36,9 +36,6 @@ class BpmnModelerMockImpl {
 
   on(eventName: string, listener: (event: any) => void) {
     if (eventName === this._currentEventName) {
-      console.log(
-        'calling ' + this._currentEventName + ' listener with data ' + this._currentEvent,
-      );
       listener(this._currentEvent);
     }
   }
