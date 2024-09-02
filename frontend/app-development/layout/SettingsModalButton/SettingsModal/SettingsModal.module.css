@@ -7,7 +7,7 @@
 
 .modalContent {
   display: flex;
-  max-height: 80vh;
+  height: 80vh;
 }
 
 .leftNavWrapper {
