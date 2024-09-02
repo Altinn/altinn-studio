@@ -57,7 +57,7 @@ export function EditOptions<T extends SelectionComponentType>({
 
   return (
     <div className={classes.root}>
-      <Heading level={3} size='xxsmall' spacing={true}>
+      <Heading level={3} size='xxsmall' spacing={true} className={classes.optionsHeading}>
         {t('ux_editor.options.section_heading')}
       </Heading>
       {isPending ? (
@@ -72,6 +72,7 @@ export function EditOptions<T extends SelectionComponentType>({
       ) : (
         <StudioTabs
           value={initialSelectedOptionType}
+          size='small'
           onChange={(value) => {
             setInitialSelectedOptionType(value as SelectedOptionsType);
           }}
@@ -90,7 +91,10 @@ export function EditOptions<T extends SelectionComponentType>({
           <StudioTabs.Content value={SelectedOptionsType.CodeList}>
             <EditCodeList component={component} handleComponentChange={handleComponentChange} />
           </StudioTabs.Content>
-          <StudioTabs.Content value={SelectedOptionsType.Manual}>
+          <StudioTabs.Content
+            className={classes.manualTabContent}
+            value={SelectedOptionsType.Manual}
+          >
             {renderOptions.onlyCodeListOptions ? (
               <Alert severity='info'>{t('ux_editor.options.codelist_only')}</Alert>
             ) : (
