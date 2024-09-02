@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ReactElement, type ChangeEvent } from 'react';
 import classes from './PreviewControlHeader.module.css';
 import { useTranslation } from 'react-i18next';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
@@ -6,23 +6,26 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { StudioNativeSelect } from '@studio/components';
 import { ToggleGroup } from '@digdir/designsystemet-react';
 
-export interface PreviewControlHeaderProps {
+export type PreviewControlHeaderProps = {
   viewSize: 'desktop' | 'mobile';
   setViewSize: (value: any) => void;
   selectedLayoutSet: string | null;
-  handleChangeLayoutSet: (value: any) => void;
-}
+  handleChangeLayoutSet: (value: string) => void;
+};
 
-// TODO - Refactor this. Issue: #TODO, url: TODO
 export const PreviewControlHeader = ({
   viewSize,
   setViewSize,
   selectedLayoutSet,
   handleChangeLayoutSet,
-}: PreviewControlHeaderProps) => {
+}: PreviewControlHeaderProps): ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
+
+  const handleLayoutSetChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    handleChangeLayoutSet(event.target.value);
+  };
 
   return (
     <div className={classes.wrapper}>
@@ -38,10 +41,7 @@ export const PreviewControlHeader = ({
       </div>
       {layoutSets && (
         <div className={classes.layoutSetSelector}>
-          <StudioNativeSelect
-            onChange={(layoutSet) => handleChangeLayoutSet(layoutSet)}
-            value={selectedLayoutSet}
-          >
+          <StudioNativeSelect onChange={handleLayoutSetChange} value={selectedLayoutSet}>
             {layoutSets.sets.map((layoutSet) => (
               <option key={layoutSet.id} value={layoutSet.id}>
                 {layoutSet.id}
