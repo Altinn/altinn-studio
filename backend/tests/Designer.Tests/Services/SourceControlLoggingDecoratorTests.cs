@@ -1,19 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
-using AltinnCore.Authentication.Constants;
 using FluentAssertions;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -423,7 +418,7 @@ namespace Designer.Tests.Services
 
         public IServiceProvider GetServiceProvider(Mock<ILoggerFactory> loggerFactoryMock)
         {
-            HttpContext httpContext = GetHttpContextForTestUser("testUser");
+            HttpContext httpContext = new DefaultHttpContext();
 
             Mock<IHttpContextAccessor> httpContextAccessorMock = new Mock<IHttpContextAccessor>();
             httpContextAccessorMock.Setup(s => s.HttpContext).Returns(httpContext);
@@ -443,23 +438,6 @@ namespace Designer.Tests.Services
 
             // Create a scope to obtain a reference to a scoped service provider
             return services.CreateScope().ServiceProvider;
-        }
-
-        private static HttpContext GetHttpContextForTestUser(string userName)
-        {
-            var claims = new List<Claim>();
-            claims.Add(new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, "altinn.no"));
-            claims.Add(new Claim(ClaimTypes.Name, userName));
-            ClaimsIdentity identity = new ClaimsIdentity("TestUserLogin");
-            identity.AddClaims(claims);
-
-            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-            HttpContext c = new DefaultHttpContext();
-            c.Request.HttpContext.User = principal;
-            c.Request.RouteValues.Add("org", "ttd");
-            c.Request.RouteValues.Add("app", "apps-test-tba");
-
-            return c;
         }
     }
 

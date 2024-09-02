@@ -36,7 +36,6 @@ services:
       - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.conf
       - NGINX_HOST=localhost
       - NGINX_PORT=80
-      - TEST_DOMAIN=${TEST_DOMAIN:-local.altinn.cloud}
     depends_on:
       studio_repositories:
         condition: service_healthy
@@ -45,9 +44,8 @@ services:
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     volumes:
-      - ./frontend/language/src:/www-root/designer/frontend/lang:ro
-      - ./development/load-balancer:/etc/nginx/templates/:ro
-      - ./development/load-balancer:/www/:ro
+      - ./development/load-balancer/templates:/etc/nginx/templates:ro
+      - ./development/load-balancer/www:/www:ro
 
   studio_designer:
     container_name: studio-designer
@@ -161,7 +159,6 @@ services:
       - '5432:5432'
     volumes:
       - ./development/db/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./development/db/data.sql:/data.sql
       - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U designer_admin -d designerdb" ]

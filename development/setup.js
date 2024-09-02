@@ -160,15 +160,6 @@ const addUserToSomeTestDepTeams = async (env) => {
   }
 };
 
-const addReleaseAndDeployTestDataToDb = async () =>
-  runCommand(
-    [
-      `docker exec -i studio-db psql`,
-      `-U designer_admin designerdb`,
-      `< development/db/data.sql`,
-    ].join(' '),
-  );
-
 const setupEnvironment = async (env) => {
   buildAndStartComposeService('studio_db');
   buildAndStartComposeService('studio_repositories');
@@ -200,7 +191,6 @@ const script = async () => {
   startingDockerCompose();
   await waitFor('http://studio.localhost', 120);
 
-  await addReleaseAndDeployTestDataToDb();
   process.exit(0);
 };
 

@@ -26,7 +26,7 @@ export const InformationPanelComponent = ({
 }: InformationPanelProvidedProps) => {
   const { t } = useTranslation();
   return (
-    <StudioPopover open={isOpen} onClose={onClose} placement='right'>
+    <StudioPopover open={isOpen} onClose={onClose} portal placement='right'>
       <StudioPopover.Trigger size='small' onClick={onOpen} variant='tertiary'>
         <InformationIcon />
       </StudioPopover.Trigger>
