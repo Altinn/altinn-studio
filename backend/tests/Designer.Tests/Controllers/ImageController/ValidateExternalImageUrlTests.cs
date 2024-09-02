@@ -25,10 +25,9 @@ public class ValidateExternalImageUrlTests : DesignerEndpointsTestsBase<Validate
     {
         string urlPointingToImage = "https://img5.custompublish.com/getfile.php/4807754.2665.zq7ukqkamizuiu/Logo+Sogndal.png";
         string path = $"{VersionPrefix}/{Org}/{EmptyApp}/images/validate?url={urlPointingToImage}";
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, path);
-        HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, path);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string validationResult = await response.Content.ReadAsStringAsync();
-        //ImageUrlValidationResult validationResult = JsonSerializer.Deserialize<ImageUrlValidationResult>(response.Content.ReadAsStream());
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(ImageUrlValidationResult.Ok.ToString(), validationResult.Trim('"'));
     }
@@ -38,10 +37,9 @@ public class ValidateExternalImageUrlTests : DesignerEndpointsTestsBase<Validate
     {
         string unExistingUrl = "https://someNonExistingUrl.com";
         string path = $"{VersionPrefix}/{Org}/{EmptyApp}/images/validate?url={unExistingUrl}";
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, path);
-        HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, path);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string validationResult = await response.Content.ReadAsStringAsync();
-        //ImageUrlValidationResult validationResult = JsonSerializer.Deserialize<ImageUrlValidationResult>(responseContent);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(ImageUrlValidationResult.NotValidUrl.ToString(), validationResult.Trim('"'));
     }
@@ -52,10 +50,9 @@ public class ValidateExternalImageUrlTests : DesignerEndpointsTestsBase<Validate
     {
         string urlPointingToSomethingThatIsNotAnImage = "https://vg.no";
         string path = $"{VersionPrefix}/{Org}/{EmptyApp}/images/validate?url={urlPointingToSomethingThatIsNotAnImage}";
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, path);
-        HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, path);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string validationResult = await response.Content.ReadAsStringAsync();
-        //ImageUrlValidationResult validationResult = JsonSerializer.Deserialize<ImageUrlValidationResult>(responseContent);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(ImageUrlValidationResult.NotAnImage.ToString(), validationResult.Trim('"'));
     }

@@ -45,7 +45,7 @@ public class UploadImageTests : DesignerEndpointsTestsBase<UploadImageTests>, IC
         var imageContent = new ByteArrayContent(imageBytes);
         imageContent.Headers.ContentType = new MediaTypeHeaderValue("image/png");
         content.Add(imageContent, "image", ExistingRootImage);
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, path)
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, path)
         {
             Content = content
         };
@@ -72,7 +72,7 @@ public class UploadImageTests : DesignerEndpointsTestsBase<UploadImageTests>, IC
         string path = $"{VersionPrefix}/{Org}/{targetRepository}/images";
         var content = new MultipartFormDataContent();
         content.Add(new ByteArrayContent(imageBytes), "image", ExistingRootImage);
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, path)
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, path)
         {
             Content = content
         };
@@ -103,7 +103,7 @@ public class UploadImageTests : DesignerEndpointsTestsBase<UploadImageTests>, IC
         // Uploading a different image using an existing file name
         content.Add(imageContent, "image", ExistingRootImage);
         content.Add(new StringContent("true"), "overrideExisting");
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, path)
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, path)
         {
             Content = content
         };
@@ -129,7 +129,7 @@ public class UploadImageTests : DesignerEndpointsTestsBase<UploadImageTests>, IC
         string path = $"{VersionPrefix}/{Org}/{targetRepository}/images";
         var content = new MultipartFormDataContent();
         content.Add(new ByteArrayContent(bytes), "image", NotAnImage);
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, path)
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, path)
         {
             Content = content
         };

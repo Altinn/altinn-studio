@@ -36,7 +36,7 @@ public class DeleteImageTests : DesignerEndpointsTestsBase<DeleteImageTests>, IC
         Assert.True(File.Exists(imagePath), "Image should exist before deletion.");
 
         string path = $"{VersionPrefix}/{Org}/{targetRepository}/images/{ExistingRootImage}";
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, path);
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, path);
         await HttpClient.SendAsync(httpRequestMessage);
 
         // Check that image is deleted from targetRepository
@@ -59,7 +59,7 @@ public class DeleteImageTests : DesignerEndpointsTestsBase<DeleteImageTests>, IC
         string encodedImageFilePath = Uri.EscapeDataString(relativeImageFilePath).Replace("/", "%2F");
 
         string path = $"{VersionPrefix}/{Org}/{targetRepository}/images/{encodedImageFilePath}";
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, path);
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, path);
         await HttpClient.SendAsync(httpRequestMessage);
 
         // Check that image is deleted from targetRepository
@@ -78,8 +78,8 @@ public class DeleteImageTests : DesignerEndpointsTestsBase<DeleteImageTests>, IC
         Assert.False(File.Exists(imagePath), "Image should not exist before deletion.");
 
         string path = $"{VersionPrefix}/{Org}/{targetRepository}/images/{NonExistingImage}";
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, path);
-        HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, path);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
 }

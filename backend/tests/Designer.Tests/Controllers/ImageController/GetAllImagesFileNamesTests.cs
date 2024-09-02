@@ -25,10 +25,9 @@ public class GetAllImagesFileNamesTests : DesignerEndpointsTestsBase<GetAllImage
     public async Task GetAllImagesFileNames_ReturnsArrayOfImageFilePathsRelativeFromWwwroot()
     {
         string path = $"{VersionPrefix}/{Org}/{App}/images/fileNames";
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, path);
-        HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, path);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
         string responseBody = await response.Content.ReadAsStringAsync();
         List<string> responseList = JsonSerializer.Deserialize<List<string>>(responseBody);
         responseList = responseList.Select(filePath => filePath.Replace("\\", "/")).ToList(); // Needed for test to run on Windows
@@ -41,8 +40,8 @@ public class GetAllImagesFileNamesTests : DesignerEndpointsTestsBase<GetAllImage
     public async Task GetAllImagesFileNames_WhenNonExists_ReturnsEmptyArray()
     {
         string path = $"{VersionPrefix}/{Org}/{EmptyApp}/images/fileNames";
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, path);
-        HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, path);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string responseBody = await response.Content.ReadAsStringAsync();

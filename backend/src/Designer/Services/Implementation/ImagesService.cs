@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
@@ -20,21 +21,21 @@ public class ImagesService : IImagesService
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
     }
 
-    public Stream GetImage(string org, string repo, string developer, string imageFilePath)
+    public Stream GetImage(AltinnRepoEditingContext altinnRepoEditingContext, string imageFilePath)
     {
-        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
         return altinnAppGitRepository.GetImageAsStreamByFilePath(imageFilePath);
     }
 
-    public List<string> GetAllImageFileNames(string org, string repo, string developer)
+    public List<string> GetAllImageFileNames(AltinnRepoEditingContext altinnRepoEditingContext)
     {
-        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
         return altinnAppGitRepository.GetAllImageFileNames();
     }
 
-    public async Task UploadImage(string org, string repo, string developer, string imageName, Stream imageStream, bool overrideExisting)
+    public async Task UploadImage(AltinnRepoEditingContext altinnRepoEditingContext, string imageName, Stream imageStream, bool overrideExisting)
     {
-        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
         bool imageExists = altinnAppGitRepository.DoesImageExist(imageName);
         if (imageExists && !overrideExisting)
         {
@@ -45,9 +46,9 @@ public class ImagesService : IImagesService
         await altinnAppGitRepository.SaveImageAsMemoryStream(imageMemoryStream, imageName);
     }
 
-    public async Task DeleteImage(string org, string repo, string developer, string imageFilePath)
+    public async Task DeleteImage(AltinnRepoEditingContext altinnRepoEditingContext, string imageFilePath)
     {
-        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
         await altinnAppGitRepository.DeleteImageByImageFilePath(imageFilePath);
     }
 }

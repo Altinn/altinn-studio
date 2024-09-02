@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.ImageClient;
 using Microsoft.AspNetCore.Authorization;
@@ -21,7 +22,7 @@ namespace Altinn.Studio.Designer.Controllers;
 /// </summary>
 [Authorize]
 [AutoValidateAntiforgeryToken]
-[Route("designer/api/{org}/{repo:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/images")]
+[Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/images")]
 public class ImageController : ControllerBase
 {
 
@@ -43,32 +44,34 @@ public class ImageController : ControllerBase
     /// Endpoint for getting a specific image
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <param name="app">Application identifier which is unique within an organisation.</param>
     /// <param name="encodedImagePath">Relative encoded path of image to fetch</param>
     /// <returns>Image</returns>
     [HttpGet("{encodedImagePath}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public Stream GetImageByName(string org, string repo, [FromRoute] string encodedImagePath)
+    public Stream GetImageByName(string org, string app, [FromRoute] string encodedImagePath)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         string decodedImagePath = HttpUtility.UrlDecode(encodedImagePath);
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-        return _imagesService.GetImage(org, repo, developer, decodedImagePath);
+        return _imagesService.GetImage(editingContext, decodedImagePath);
     }
 
     /// <summary>
     /// Endpoint for getting all image file names in application
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <param name="app">Application identifier which is unique within an organisation.</param>
     /// <returns>All image file names</returns>
     [HttpGet("fileNames")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public ActionResult<List<string>> GetAllImagesFileNames(string org, string repo)
+    public ActionResult<List<string>> GetAllImagesFileNames(string org, string app)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-        List<string> imageFileNames = _imagesService.GetAllImageFileNames(org, repo, developer);
+        List<string> imageFileNames = _imagesService.GetAllImageFileNames(editingContext);
 
         return Ok(imageFileNames);
     }
@@ -89,13 +92,13 @@ public class ImageController : ControllerBase
     /// Endpoint for uploading image to application.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <param name="app">Application identifier which is unique within an organisation.</param>
     /// <param name="image">The actual image</param>
     /// <param name="overrideExisting">Optional parameter that overrides existing image if set. Default is false</param>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult> UploadImage(string org, string repo, [FromForm(Name = "image")] IFormFile image, [FromForm(Name = "overrideExisting")] bool overrideExisting = false)
+    public async Task<ActionResult> UploadImage(string org, string app, [FromForm(Name = "image")] IFormFile image, [FromForm(Name = "overrideExisting")] bool overrideExisting = false)
     {
         if (image == null || image.Length == 0)
         {
@@ -111,7 +114,8 @@ public class ImageController : ControllerBase
         string imageName = GetFileNameFromUploadedFile(image);
         try
         {
-            await _imagesService.UploadImage(org, repo, developer, imageName, image.OpenReadStream(), overrideExisting);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+            await _imagesService.UploadImage(editingContext, imageName, image.OpenReadStream(), overrideExisting);
             return NoContent();
         }
         catch (InvalidOperationException e)
@@ -124,17 +128,17 @@ public class ImageController : ControllerBase
     /// Endpoint for deleting image from application.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <param name="app">Application identifier which is unique within an organisation.</param>
     /// <param name="encodedImagePath">Relative encoded path of image to delete</param>
     [HttpDelete("{encodedImagePath}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult> DeleteImage(string org, string repo, [FromRoute] string encodedImagePath)
+    public async Task<ActionResult> DeleteImage(string org, string app, [FromRoute] string encodedImagePath)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
         string decodedImagePath = HttpUtility.UrlDecode(encodedImagePath);
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-        await _imagesService.DeleteImage(org, repo, developer, decodedImagePath);
+        await _imagesService.DeleteImage(editingContext, decodedImagePath);
 
         return NoContent();
     }

@@ -34,8 +34,8 @@ public class GetImageByNameTests : DesignerEndpointsTestsBase<GetImageByNameTest
         byte[] expectedImageContent = await File.ReadAllBytesAsync(imagePath);
 
         string path = $"{VersionPrefix}/{Org}/{targetRepository}/images/{ExistingRootImage}";
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, path);
-        HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, path);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         byte[] actualImageContent = await response.Content.ReadAsByteArrayAsync();
@@ -54,8 +54,8 @@ public class GetImageByNameTests : DesignerEndpointsTestsBase<GetImageByNameTest
 
         string encodedImageFilePath = Uri.EscapeDataString(relativeImageFilePath).Replace("/", "%2F");
         string path = $"{VersionPrefix}/{Org}/{targetRepository}/images/{encodedImageFilePath}";
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, path);
-        HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, path);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         byte[] actualImageContent = await response.Content.ReadAsByteArrayAsync();
@@ -69,8 +69,8 @@ public class GetImageByNameTests : DesignerEndpointsTestsBase<GetImageByNameTest
         await CopyRepositoryForTest(Org, App, Developer, targetRepository);
 
         string path = $"{VersionPrefix}/{Org}/{targetRepository}/images/{NonExistingImage}";
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, path);
-        HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, path);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }
