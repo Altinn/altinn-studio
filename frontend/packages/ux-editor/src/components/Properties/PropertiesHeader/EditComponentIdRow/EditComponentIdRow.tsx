@@ -48,7 +48,10 @@ export const EditComponentIdRow = ({
   };
 
   const hasDuplicateDataType = (id: string) => {
-    if (ComponentType.FileUpload || ComponentType.FileUploadWithTag) {
+    if (
+      component.type === ComponentType.FileUpload ||
+      component.type === ComponentType.FileUploadWithTag
+    ) {
       const dataTypeExists = appMetadata.dataTypes?.find((modelId) => modelId.id === id);
       if (dataTypeExists) {
         return t('ux_editor.modal_properties_component_id_not_unique_error');
