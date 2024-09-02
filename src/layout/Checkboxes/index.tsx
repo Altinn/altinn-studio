@@ -39,12 +39,14 @@ export class Checkboxes extends CheckboxesDef {
 
   renderSummary2(props: Summary2Props<'Checkboxes'>): JSX.Element | null {
     const displayData = this.useDisplayData(props.target);
+    const ourOverride = props.overrides?.find((override) => override.componentId === props.target.id);
     return (
       <CheckboxesSummary
         componentNode={props.target}
         displayData={displayData}
         summaryOverrides={props.overrides}
         isCompact={props.isCompact}
+        emptyFieldText={ourOverride?.emptyFieldText}
       />
     );
   }

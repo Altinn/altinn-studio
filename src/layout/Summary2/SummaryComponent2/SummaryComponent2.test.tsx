@@ -207,6 +207,239 @@ describe('SummaryComponent', () => {
     expect(element).not.toBeInTheDocument();
   });
 
+  test('Input: Should render custom empty field text if set in overrides', async () => {
+    const emptyFieldText = 'Dette feltet må fylles ut';
+    const { container } = await render({
+      layout: {
+        FormLayout: {
+          data: {
+            layout: [
+              {
+                id: 'Input',
+                type: 'Input',
+                dataModelBindings: { simpleBinding: 'field' },
+                required: false,
+              },
+            ],
+          },
+        },
+      },
+      summary2Config: {
+        type: 'Summary2',
+        id: 'Summary2',
+        target: {
+          id: 'Input',
+          type: 'component',
+        },
+        overrides: [
+          {
+            componentId: 'Input',
+            emptyFieldText,
+          },
+        ],
+      },
+    });
+    expect(container).toHaveTextContent(emptyFieldText);
+  });
+
+  test('TextArea: Should render custom empty field text if set in overrides', async () => {
+    const emptyFieldText = 'Dette feltet må fylles ut';
+    const { container } = await render({
+      layout: {
+        FormLayout: {
+          data: {
+            layout: [
+              {
+                id: 'TextAreaId',
+                type: 'TextArea',
+                dataModelBindings: { simpleBinding: 'field' },
+                required: false,
+              },
+            ],
+          },
+        },
+      },
+      summary2Config: {
+        type: 'Summary2',
+        id: 'Summary2',
+        target: {
+          id: 'TextAreaId',
+          type: 'component',
+        },
+        overrides: [
+          {
+            componentId: 'TextAreaId',
+            emptyFieldText,
+          },
+        ],
+      },
+    });
+    expect(container).toHaveTextContent(emptyFieldText);
+  });
+
+  test('RadioButtons: Should render custom empty field text if set in overrides', async () => {
+    const emptyFieldText = 'Dette feltet må fylles ut';
+    const { container } = await render({
+      layout: {
+        FormLayout: {
+          data: {
+            layout: [
+              {
+                id: 'RadioButtonsId',
+                type: 'RadioButtons',
+                dataModelBindings: { simpleBinding: 'field' },
+                required: false,
+              },
+            ],
+          },
+        },
+      },
+      summary2Config: {
+        type: 'Summary2',
+        id: 'Summary2',
+        target: {
+          id: 'RadioButtonsId',
+          type: 'component',
+        },
+        overrides: [
+          {
+            componentId: 'RadioButtonsId',
+            emptyFieldText,
+          },
+        ],
+      },
+    });
+    expect(container).toHaveTextContent(emptyFieldText);
+  });
+
+  test('CheckButtons: Should render custom empty field text if set in overrides', async () => {
+    const emptyFieldText = 'Dette feltet må fylles ut';
+    const { container } = await render({
+      layout: {
+        FormLayout: {
+          data: {
+            layout: [
+              {
+                id: 'CheckboxesId',
+                type: 'Checkboxes',
+                dataModelBindings: { simpleBinding: 'field' },
+                required: false,
+              },
+            ],
+          },
+        },
+      },
+      summary2Config: {
+        type: 'Summary2',
+        id: 'Summary2',
+        target: {
+          id: 'CheckboxesId',
+          type: 'component',
+        },
+        overrides: [
+          {
+            componentId: 'CheckboxesId',
+            emptyFieldText,
+          },
+        ],
+      },
+    });
+    expect(container).toHaveTextContent(emptyFieldText);
+  });
+
+  test('Dropdown: Should render custom empty field text if set in overrides', async () => {
+    const emptyFieldText = 'Dette feltet må fylles ut';
+    const { container } = await render({
+      layout: {
+        FormLayout: {
+          data: {
+            layout: [
+              {
+                id: 'DropdownId',
+                type: 'Dropdown',
+                dataModelBindings: { simpleBinding: 'field' },
+                required: false,
+              },
+            ],
+          },
+        },
+      },
+      summary2Config: {
+        type: 'Summary2',
+        id: 'Summary2',
+        target: {
+          id: 'DropdownId',
+          type: 'component',
+        },
+        overrides: [
+          {
+            componentId: 'DropdownId',
+            emptyFieldText,
+          },
+        ],
+      },
+    });
+    expect(container).toHaveTextContent(emptyFieldText);
+  });
+
+  test.only('MultipleSelect: Should render custom empty field text if set in overrides', async () => {
+    const emptyFieldText = 'Dette feltet må fylles ut';
+    const { container } = await render({
+      layout: {
+        FormLayout: {
+          data: {
+            layout: [
+              {
+                id: 'MultipleSelectPage',
+                type: 'MultipleSelect',
+                dataModelBindings: {
+                  simpleBinding: 'multipleSelect',
+                },
+                textResourceBindings: {
+                  title: 'MultipleSelectPage.MultipleSelect.title',
+                },
+                options: [
+                  {
+                    label: 'Kjøre til hytta på fjellet',
+                    value: 'kjoreTilHyttaPaaFjellet',
+                  },
+                  {
+                    label: 'Kjøring i skogen',
+                    value: 'kjoringISkogen',
+                  },
+                  {
+                    label: 'Korte strekninger med bykjøring, eller annen moro',
+                    value: 'korteStrekningerMedBykjoring',
+                  },
+                  {
+                    label: 'Lange strekninger på større veier i Norge',
+                    value: 'langeStrekningerPaStorreVeierINorge',
+                  },
+                ],
+                required: false,
+              },
+            ],
+          },
+        },
+      },
+      summary2Config: {
+        type: 'Summary2',
+        id: 'MultipleSelectPage-Summary',
+        target: {
+          id: 'MultipleSelectPage',
+          type: 'component',
+        },
+        overrides: [
+          {
+            componentId: 'MultipleSelectPage',
+            emptyFieldText,
+          },
+        ],
+      },
+    });
+    expect(container).toHaveTextContent(emptyFieldText);
+  });
+
   type IRenderProps = {
     currentPageId?: string;
     layout?: ILayoutCollection;
@@ -229,6 +462,7 @@ describe('SummaryComponent', () => {
         id: summary2Config.target?.id || '',
         type: summary2Config.target?.type,
       },
+      overrides: summary2Config?.overrides ?? [],
     });
 
     return await renderWithNode<true, LayoutNode<'Summary2'>>({

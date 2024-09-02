@@ -18,12 +18,13 @@ import type { IComponentFormData } from 'src/utils/formComponentUtils';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodeFormDataSelector } from 'src/utils/layout/useNodeItem';
 
-type MultipleValueSummaryProps = {
+interface MultipleValueSummaryProps {
   title: React.ReactNode;
   componentNode: LayoutNode;
   showAsList?: boolean;
   isCompact?: boolean;
-};
+  emptyFieldText?: string;
+}
 
 function getSummaryData(
   node: LayoutNode,
@@ -50,7 +51,13 @@ function getDisplayType(
   return 'list';
 }
 
-export const MultipleValueSummary = ({ title, componentNode, showAsList, isCompact }: MultipleValueSummaryProps) => {
+export const MultipleValueSummary = ({
+  title,
+  componentNode,
+  showAsList,
+  isCompact,
+  emptyFieldText,
+}: MultipleValueSummaryProps) => {
   const nodeFormDataSelector = useNodeFormDataSelector();
 
   const langTools = useLanguage();
@@ -101,7 +108,7 @@ export const MultipleValueSummary = ({ title, componentNode, showAsList, isCompa
               className={classes.emptyValue}
             >
               <span>
-                <Lang id={'general.empty_summary'}></Lang>
+                <Lang id={emptyFieldText ?? 'general.empty_summary'}></Lang>
               </span>
             </Paragraph>
           )}

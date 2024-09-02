@@ -7,17 +7,21 @@ import type { CompInternal } from 'src/layout/layout';
 import type { CheckboxSummaryOverrideProps } from 'src/layout/Summary2/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
+interface CheckboxesSummaryProps {
+  componentNode: LayoutNode<'Checkboxes'>;
+  summaryOverrides?: CompInternal<'Summary2'>['overrides'];
+  displayData: string;
+  isCompact?: boolean;
+  emptyFieldText?: string;
+}
+
 export function CheckboxesSummary({
   componentNode,
   summaryOverrides,
   displayData,
   isCompact,
-}: {
-  componentNode: LayoutNode<'Checkboxes'>;
-  summaryOverrides?: CompInternal<'Summary2'>['overrides'];
-  displayData: string;
-  isCompact?: boolean;
-}) {
+  emptyFieldText,
+}: CheckboxesSummaryProps) {
   const maxStringLength = 75;
   const overrides = summaryOverrides?.find((override) => override.componentId === componentNode.baseId) as
     | CheckboxSummaryOverrideProps
@@ -32,6 +36,7 @@ export function CheckboxesSummary({
       componentNode={componentNode}
       showAsList={showAsList}
       isCompact={isCompact}
+      emptyFieldText={emptyFieldText}
     />
   );
 }

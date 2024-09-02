@@ -5,16 +5,15 @@ import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/
 import { validationsOfSeverity } from 'src/features/validation/utils';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import type { CompInternal } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type InputComponentSummaryProps = {
   isCompact?: boolean;
   componentNode: LayoutNode<'Input'>;
   displayData: string;
-  summaryOverrides?: CompInternal<'Summary2'>['overrides'];
+  emptyFieldText?: string;
 };
-export const InputSummary = ({ componentNode, displayData, isCompact }: InputComponentSummaryProps) => {
+export const InputSummary = ({ componentNode, displayData, isCompact, emptyFieldText }: InputComponentSummaryProps) => {
   const validations = useUnifiedValidationsForNode(componentNode);
   const errors = validationsOfSeverity(validations, 'error');
   const title = useNodeItem(componentNode, (i) => i.textResourceBindings?.title);
@@ -26,6 +25,7 @@ export const InputSummary = ({ componentNode, displayData, isCompact }: InputCom
       errors={errors}
       componentNode={componentNode}
       isCompact={isCompact}
+      emptyFieldText={emptyFieldText}
     />
   );
 };
