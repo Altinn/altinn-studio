@@ -1,14 +1,17 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { Navigation } from './Navigation';
-import { getFilteredTopBarMenu, topBarMenuItem } from 'app-development/layout/AppBar/appBarConfig';
+import {
+  getFilteredTopBarMenu,
+  topBarMenuItem,
+} from 'app-development/utils/headerMenu/headerMenuUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from 'app-development/test/testUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
-import { HeaderMenuKey } from 'app-shared/enums/TopBarMenu';
+import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
 import { RepositoryType } from 'app-shared/types/global';
 import { typedLocalStorage } from '@studio/components/src/hooks/webStorage';
-import type { HeaderMenuItem } from 'app-shared/types/TopBarMenuItem';
+import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenuItem';
 
 describe('Navigation', () => {
   beforeEach(() => {
@@ -20,7 +23,9 @@ describe('Navigation', () => {
     });
 
     getFilteredTopBarMenu(RepositoryType.App)
-      .filter((item) => item.key !== HeaderMenuKey.About)
+      .filter(
+        (item) => item.key !== HeaderMenuItemKey.About && item.key !== HeaderMenuItemKey.Deploy,
+      )
       .forEach((link) => {
         expect(screen.getByRole('link', { name: getLinkName(link) })).toBeInTheDocument();
       });
@@ -32,7 +37,9 @@ describe('Navigation', () => {
     });
 
     topBarMenuItem
-      .filter((item) => item.key !== HeaderMenuKey.About)
+      .filter(
+        (item) => item.key !== HeaderMenuItemKey.About && item.key !== HeaderMenuItemKey.Deploy,
+      )
       .forEach((link) => {
         if (link.featureFlagName) {
           expect(screen.queryByRole('link', { name: getLinkName(link) })).not.toBeInTheDocument();
@@ -50,7 +57,9 @@ describe('Navigation', () => {
     });
 
     topBarMenuItem
-      .filter((item) => item.key !== HeaderMenuKey.About)
+      .filter(
+        (item) => item.key !== HeaderMenuItemKey.About && item.key !== HeaderMenuItemKey.Deploy,
+      )
       .forEach((link) => {
         expect(screen.getByRole('link', { name: getLinkName(link) })).toBeInTheDocument();
       });

@@ -9,13 +9,12 @@ import type { QueryClient, UseMutationResult } from '@tanstack/react-query';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { AppConfig } from 'app-shared/types/AppConfig';
-import { useAppConfigMutation } from '../../../hooks/mutations';
+import { useAppConfigMutation } from 'app-development/hooks/mutations';
 import { MemoryRouter } from 'react-router-dom';
+import { SettingsModalContextProvider } from 'app-development/contexts/SettingsModalContext';
+import { PreviewContextProvider } from 'app-development/contexts/PreviewContext';
 
-import { SettingsModalContextProvider } from '../../../contexts/SettingsModalContext';
-import { PreviewContextProvider } from '../../../contexts/PreviewContext';
-
-jest.mock('../../../hooks/mutations/useAppConfigMutation');
+jest.mock('app-development/hooks/mutations/useAppConfigMutation');
 const updateAppConfigMutation = jest.fn();
 const mockUpdateAppConfigMutation = useAppConfigMutation as jest.MockedFunction<
   typeof useAppConfigMutation

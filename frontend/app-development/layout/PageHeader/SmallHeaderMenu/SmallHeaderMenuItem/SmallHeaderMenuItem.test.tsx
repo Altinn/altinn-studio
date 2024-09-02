@@ -69,13 +69,13 @@ describe('SmallHeaderMenuItem', () => {
           action: {
             type: 'link',
             href: menuItemLink,
-            openInNewTab: false,
+            openInNewTab: true,
           },
         },
       },
     });
 
-    const linkElement = screen.getByRole('link', {
+    const linkElement = screen.getByRole('menuitem', {
       name: `${textMock('testMenuItem')} ${textMock('general.beta')}`,
     });
     expect(linkElement).toHaveAttribute('target', '_blank');

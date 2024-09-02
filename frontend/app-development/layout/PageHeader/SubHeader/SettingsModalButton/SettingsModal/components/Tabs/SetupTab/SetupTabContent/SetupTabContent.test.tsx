@@ -21,7 +21,7 @@ jest.mock('react-router-dom', () => ({
   },
 }));
 
-jest.mock('../../../../../../../hooks/mutations/useAppMetadataMutation');
+jest.mock('app-development/hooks/mutations/useAppMetadataMutation');
 const updateAppMetadataMutation = jest.fn();
 const mockUpdateAppMetadataMutation = useAppMetadataMutation as jest.MockedFunction<
   typeof useAppMetadataMutation

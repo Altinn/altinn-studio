@@ -1,10 +1,11 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { PageHeaderContextProvider, usePageHeaderContext } from './PageHeaderContext';
+import { renderWithProviders } from 'app-development/test/mocks';
 
 describe('PageHeaderContext', () => {
   it('should render children', () => {
-    render(
+    renderWithProviders()(
       <PageHeaderContextProvider>
         <button>My button</button>
       </PageHeaderContextProvider>,
@@ -19,7 +20,7 @@ describe('PageHeaderContext', () => {
       return <div data-testid='context'></div>;
     };
 
-    render(
+    renderWithProviders()(
       <PageHeaderContextProvider>
         <TestComponent />
       </PageHeaderContextProvider>,

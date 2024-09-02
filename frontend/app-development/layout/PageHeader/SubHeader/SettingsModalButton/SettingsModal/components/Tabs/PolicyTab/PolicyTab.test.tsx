@@ -41,7 +41,7 @@ const mockSubjects: PolicySubject[] = [
   },
 ];
 
-jest.mock('../../../../../../hooks/mutations/useAppPolicyMutation');
+jest.mock('app-development/hooks/mutations/useAppPolicyMutation');
 const updateAppPolicyMutation = jest.fn();
 const mockUpdateAppPolicyMutation = useAppPolicyMutation as jest.MockedFunction<
   typeof useAppPolicyMutation

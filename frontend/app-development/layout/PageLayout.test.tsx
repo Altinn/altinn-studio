@@ -7,7 +7,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { repoStatus } from 'app-shared/mocks/mocks';
-import { HeaderMenuKey } from 'app-shared/enums/TopBarMenu';
+import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
 import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { SyncEventsWebSocketHub } from 'app-shared/api/paths';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
@@ -66,10 +66,10 @@ describe('PageLayout', () => {
     (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
     await resolveAndWaitForSpinnerToDisappear();
 
-    expect(screen.getByRole('link', { name: textMock(HeaderMenuKey.Preview) })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: textMock('top_menu.preview') })).toBeInTheDocument();
 
     expect(
-      screen.queryByRole('button', { name: textMock(HeaderMenuKey.Deploy) }),
+      screen.queryByRole('button', { name: textMock(HeaderMenuItemKey.Deploy) }),
     ).not.toBeInTheDocument();
   });
 

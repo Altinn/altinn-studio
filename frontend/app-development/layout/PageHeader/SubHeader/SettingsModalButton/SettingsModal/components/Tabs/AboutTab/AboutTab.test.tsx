@@ -16,11 +16,8 @@ import { formatDateToDateAndTimeString } from 'app-development/utils/dateUtils';
 import { MemoryRouter } from 'react-router-dom';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { app, org } from '@studio/testing/testids';
-import { SettingsModalContextProvider } from '../../../../../../contexts/SettingsModalContext';
-import {
-  PreviewContext,
-  type PreviewContextProps,
-} from '../../../../../../contexts/PreviewContext';
+import { SettingsModalContextProvider } from 'app-development/contexts/SettingsModalContext';
+import { PreviewContext, type PreviewContextProps } from 'app-development/contexts/PreviewContext';
 
 const mockNewText: string = 'test';
 
@@ -36,7 +33,7 @@ const defaultPreviewContextProps: PreviewContextProps = {
   previewHasLoaded: jest.fn(),
 };
 
-jest.mock('../../../../../../hooks/mutations/useAppConfigMutation');
+jest.mock('app-development/hooks/mutations/useAppConfigMutation');
 const updateAppConfigMutation = jest.fn();
 const mockUpdateAppConfigMutation = useAppConfigMutation as jest.MockedFunction<
   typeof useAppConfigMutation
