@@ -121,6 +121,22 @@ describe('StudioProfileMenu', () => {
     expect(dividers.length).toBe(1);
   });
 
+  it('should close the menu when clicking a menuitem', async () => {
+    const user = userEvent.setup();
+    renderStudioProfileMenu();
+
+    expect(screen.queryByRole('menuitem', { name: menuItem1 })).not.toBeInTheDocument();
+
+    const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
+    await user.click(triggerButton);
+
+    expect(screen.getByRole('menuitem', { name: menuItem1 })).toBeInTheDocument();
+    await user.click(screen.getByRole('menuitem', { name: menuItem1 }));
+
+    expect(mockOnClick).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('menuitem', { name: menuItem1 })).not.toBeInTheDocument();
+  });
+
   it('should render aria-label on trigger button', () => {
     renderStudioProfileMenu();
 
