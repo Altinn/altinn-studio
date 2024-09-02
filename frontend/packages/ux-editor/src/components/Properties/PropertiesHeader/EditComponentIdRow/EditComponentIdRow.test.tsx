@@ -107,4 +107,18 @@ describe('EditComponentIdRow', () => {
       screen.getByText(textMock('ux_editor.modal_properties_component_id_not_unique_error')),
     ).toBeInTheDocument();
   });
+
+  it('should not allow name that will result in duplicate id with a datamodel', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdate = jest.fn();
+    await studioRender({ handleComponentUpdate });
+    const testIdButton = screen.getByRole('button', { name: textMock('ux_editor.id_identifier') });
+    await user.click(testIdButton);
+    const textField = screen.getByRole('textbox', {
+      name: textMock('ux_editor.modal_properties_component_change_id'),
+    });
+    await user.type(textField, 'newTestId');
+    await user.click(document.body);
+    expect(handleComponentUpdate).toHaveBeenCalled();
+  });
 });

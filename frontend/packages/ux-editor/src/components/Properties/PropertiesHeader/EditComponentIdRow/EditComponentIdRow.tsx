@@ -11,7 +11,7 @@ import { useFormLayouts } from '../../../../hooks';
 import { findLayoutsContainingDuplicateComponents } from '../../../../utils/formLayoutUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { useAppMetadataQuery } from 'app-development/hooks/queries';
+import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 
 export interface EditComponentIdRowProps {
   handleComponentUpdate: (component: FormItem) => void;
