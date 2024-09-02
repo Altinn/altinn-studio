@@ -113,7 +113,7 @@ test('That it is possible to navigate from overview to the dashboard page by cli
   const dashboardPage = new DashboardPage(page, { app: testAppName });
   const header = new Header(page, { app: testAppName });
 
-  await header.clickOnNavigateToPageInTopMenuHeader('dashboard');
+  await header.clickOnNavigateToDashboard();
   await dashboardPage.verifyDashboardPage();
 });
 
@@ -126,10 +126,10 @@ test('That it is possible to navigate from overview to the preview page and back
   const uiEditor = new UiEditorPage(page, { app: testAppName });
   const header = new Header(page, { app: testAppName });
 
-  await header.clickOnNavigateToPageInTopMenuHeader('preview');
+  await header.clickOnPreviewButton();
   await previewPage.verifyPreviewPage();
 
-  await header.clickOnNavigateToPageInTopMenuHeader('preview_back_to_editing');
+  await header.clickOnBackToCreatePage();
   await uiEditor.verifyUiEditorPage(null);
 });
 
