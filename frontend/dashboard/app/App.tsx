@@ -79,7 +79,7 @@ export const App = (): JSX.Element => {
 
   return (
     <div className={classes.appDashboardSpinner}>
-      <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('dashboard.loading')} />
+      <StudioPageSpinner spinnerTitle={t('dashboard.loading')} />
     </div>
   );
 };
