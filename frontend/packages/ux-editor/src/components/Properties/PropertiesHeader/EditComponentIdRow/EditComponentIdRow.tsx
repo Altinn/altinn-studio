@@ -47,23 +47,24 @@ export const EditComponentIdRow = ({
     }
   };
 
+  const hasDuplicateDataType = (id: string) => {
+    if (ComponentType.FileUpload || ComponentType.FileUploadWithTag) {
+      const dataTypeExists = appMetadata.dataTypes?.find((modelId) => modelId.id === id);
+      if (dataTypeExists) {
+        return t('ux_editor.modal_properties_component_id_not_unique_error');
+      }
+    }
+  };
+
   const validateId = (value: string) => {
     if (value?.length === 0) {
       return t('validation_errors.required');
     }
-    if (value !== component.id && idExists(value, formLayouts)) {
-      return t('ux_editor.modal_properties_component_id_not_unique_error');
+    if (value !== component.id) {
+      if (idExists(value, formLayouts) || hasDuplicateDataType(value)) {
+        return t('ux_editor.modal_properties_component_id_not_unique_error');
+      }
     }
-    const duplicateDatatypeId = appMetadata.dataTypes?.find((modelId) => modelId.id === value);
-    if (
-      value !== component.id &&
-      (component.type === ComponentType.FileUpload ||
-        component.type === ComponentType.FileUploadWithTag) &&
-      duplicateDatatypeId
-    ) {
-      return t('ux_editor.modal_properties_component_id_not_unique_error');
-    }
-
     return '';
   };
 
