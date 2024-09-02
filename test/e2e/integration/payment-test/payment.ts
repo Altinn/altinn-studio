@@ -77,4 +77,18 @@ describe('Payment', () => {
       });
     });
   });
+
+  describe('PaymentInformation component', () => {
+    it('should re-fetch stale data when rendering the component for the first time after the relevant data in the datamodel has changed', () => {
+      // hiding the payment details component on the page where the orderlines are created in order to test the
+      // payment information component fetching order details on first render. Another payment details component exists
+      // on the last page of the data task, where this test is being performed.
+      cy.interceptLayout('05GoodsAndServices', (component) => {
+        if (component.id === 'paymentDetails' && component.type === 'PaymentDetails') {
+          component.hidden = true;
+        }
+      });
+      cy.findByRole('row', { name: /1 - test 1 1000 NOK/ }).should('exist');
+    });
+  });
 });
