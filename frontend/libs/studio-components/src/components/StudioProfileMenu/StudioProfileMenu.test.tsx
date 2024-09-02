@@ -36,6 +36,7 @@ const defaultProfileMenuItems: StudioProfileMenuItem[] = [
 ];
 
 const mockTriggerButtonText: string = 'Trigger';
+const mockAriaLabel: string = 'Trigger';
 
 const defaultProps: StudioProfileMenuProps = {
   triggerButtonText: mockTriggerButtonText,
@@ -43,6 +44,7 @@ const defaultProps: StudioProfileMenuProps = {
   profileMenuItems: defaultProfileMenuItems,
   color: 'dark',
   variant: 'regular',
+  ariaLabelTriggerButton: mockAriaLabel,
 };
 
 describe('StudioProfileMenu', () => {
@@ -53,7 +55,7 @@ describe('StudioProfileMenu', () => {
   it('should render trigger button with text and image', () => {
     renderStudioProfileMenu();
 
-    expect(screen.getByText(mockTriggerButtonText)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: mockTriggerButtonText })).toBeInTheDocument();
     expect(screen.getByAltText(mockImageAlt)).toBeInTheDocument();
   });
 
@@ -61,7 +63,7 @@ describe('StudioProfileMenu', () => {
     const user = userEvent.setup();
     renderStudioProfileMenu();
 
-    const triggerButton = screen.getByText(mockTriggerButtonText);
+    const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
     await user.click(triggerButton);
 
     expect(screen.getByText(menuItem1)).toBeInTheDocument();
@@ -73,7 +75,7 @@ describe('StudioProfileMenu', () => {
     const user = userEvent.setup();
     renderStudioProfileMenu();
 
-    const triggerButton = screen.getByText(mockTriggerButtonText);
+    const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
     await user.click(triggerButton);
 
     await user.click(screen.getByRole('menuitem', { name: menuItem1 }));
@@ -86,7 +88,7 @@ describe('StudioProfileMenu', () => {
     const user = userEvent.setup();
     renderStudioProfileMenu();
 
-    const triggerButton = screen.getByText(mockTriggerButtonText);
+    const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
     await user.click(triggerButton);
 
     const link = screen.getByRole('menuitem', { name: menuItem2 });
@@ -99,7 +101,7 @@ describe('StudioProfileMenu', () => {
     const user = userEvent.setup();
     renderStudioProfileMenu();
 
-    const triggerButton = screen.getByText(mockTriggerButtonText);
+    const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
     await user.click(triggerButton);
 
     const link = screen.getByRole('menuitem', { name: menuItem3 });
@@ -112,11 +114,18 @@ describe('StudioProfileMenu', () => {
     const user = userEvent.setup();
     renderStudioProfileMenu();
 
-    const triggerButton = screen.getByText(mockTriggerButtonText);
+    const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
     await user.click(triggerButton);
 
     const dividers = screen.getAllByRole('separator');
     expect(dividers.length).toBe(1);
+  });
+
+  it('should render aria-label on trigger button', () => {
+    renderStudioProfileMenu();
+
+    const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
+    expect(triggerButton).toHaveAttribute('aria-label', mockAriaLabel);
   });
 });
 

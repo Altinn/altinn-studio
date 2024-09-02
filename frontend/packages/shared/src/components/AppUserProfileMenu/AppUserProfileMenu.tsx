@@ -14,7 +14,7 @@ import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 export type AppUserProfileMenuProps = {
   user: User;
   repository: Repository;
-  color: StudioProfileMenuProps['color']; // TODO - See if we can do this with "StudioProfileMenuItem" too
+  color: StudioProfileMenuProps['color'];
   variant: StudioProfileMenuProps['variant'];
   profileMenuItems: StudioProfileMenuProps['profileMenuItems'];
 };
@@ -34,6 +34,7 @@ export const AppUserProfileMenu = ({
   return (
     <StudioProfileMenu
       triggerButtonText={shouldDisplayText ? userNameAndOrg : undefined}
+      ariaLabelTriggerButton={userNameAndOrg}
       profileImage={
         <StudioAvatar
           imageDetails={

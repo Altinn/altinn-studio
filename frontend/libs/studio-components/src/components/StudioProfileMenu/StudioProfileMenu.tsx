@@ -29,6 +29,7 @@ export type StudioProfileMenuProps = {
   profileMenuItems: StudioProfileMenuItem[];
   color: StudioPageHeaderColor;
   variant: StudioPageHeaderVariant;
+  ariaLabelTriggerButton: string;
 };
 
 export const StudioProfileMenu = ({
@@ -37,6 +38,7 @@ export const StudioProfileMenu = ({
   profileMenuItems,
   color,
   variant,
+  ariaLabelTriggerButton,
 }: StudioProfileMenuProps): ReactElement => {
   const [open, setOpen] = useState(false);
 
@@ -56,7 +58,12 @@ export const StudioProfileMenu = ({
   return (
     <DropdownMenu onClose={handleClose} open={open}>
       <DropdownMenu.Trigger asChild size='sm'>
-        <StudioPageHeaderButton onClick={handleToggleMenu} color={color} variant={variant}>
+        <StudioPageHeaderButton
+          onClick={handleToggleMenu}
+          color={color}
+          variant={variant}
+          aria-label={ariaLabelTriggerButton}
+        >
           {triggerButtonText && <span className={classes.userOrgNames}>{triggerButtonText}</span>}
           {profileImage}
         </StudioPageHeaderButton>

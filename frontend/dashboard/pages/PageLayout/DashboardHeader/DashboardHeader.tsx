@@ -109,6 +109,7 @@ const DashboardHeaderMenu = () => {
   return (
     <StudioProfileMenu
       triggerButtonText={getTriggerButtonText()}
+      ariaLabelTriggerButton={getTriggerButtonText()}
       color='dark'
       variant='regular'
       profileImage={
