@@ -21,8 +21,8 @@ import { TrashIcon } from '@studio/icons';
 import { StudioButton, StudioCenter } from '@studio/components';
 import { useTypeOptions } from '@altinn/schema-editor/components/SchemaInspector/hooks/useTypeOptions';
 import { nameFieldClass } from '@altinn/schema-editor/components/SchemaInspector/ItemFieldsTab/domUtils';
-import { ReferenceButton } from '@altinn/schema-editor/components/SchemaTree/SchemaNode/ReferenceButton';
 import { useKindOptions } from '../../hooks/useKindOption';
+import { ReferenceButton } from '@altinn/schema-editor/components/SchemaTree/SchemaNode/ReferenceButton';
 
 export type ItemFieldsTableRowProps = {
   fieldNode: UiSchemaNode;
@@ -46,6 +46,7 @@ export const ItemFieldsTableRow = ({
   const typeOptions = useTypeOptions();
   const fullPath = fieldNode.pointer;
   const kindOptions = useKindOptions();
+  const node = schemaModel.getNode(fullPath);
 
   const handleChangeNodeName = (newNodeName: string) => {
     save(
@@ -62,11 +63,6 @@ export const ItemFieldsTableRow = ({
   const kindLabel = kindOptions.find(
     ({ kind }) => kind !== ObjectKind.Reference && kind === fieldNode.objectKind,
   )?.label;
-
-  const referenceLabel = () => {
-    const node = schemaModel.getNode(fullPath);
-    return <div>{isReference(node) && <ReferenceButton node={node} />}</div>;
-  };
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
     e?.key === 'Enter' && onEnterKeyPress && onEnterKeyPress();
@@ -100,7 +96,7 @@ export const ItemFieldsTableRow = ({
         />
       </td>
       <td className={cn(classes.tableColumnType, classes.tableCell)}>
-        {typeLabel || kindLabel || referenceLabel() || ''}
+        {typeLabel || kindLabel || (isReference(node) && <ReferenceButton node={node} />) || ''}
       </td>
       <td className={cn(classes.tableColumnRequired, classes.tableCell)}>
         <StudioCenter>

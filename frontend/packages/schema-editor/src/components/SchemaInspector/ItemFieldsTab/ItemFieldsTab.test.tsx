@@ -123,6 +123,20 @@ describe('ItemFieldsTab', () => {
     expect(
       screen.getByRole('menuitem', { name: textMock('schema_editor.object') }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: textMock('schema_editor.combination') }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: textMock('schema_editor.reference') }),
+    ).toBeInTheDocument();
+  });
+
+  test('Should close the dropdown menu when user clicks outside the menu', async () => {
+    renderItemFieldsTab();
+    await user.click(screen.getByText(textAdd));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    await user.click(document.body);
+    expect(screen.queryByRole('dialog')).toBeFalsy();
   });
 
   test('should save the model when user clicks the dropdown menu items', async () => {
