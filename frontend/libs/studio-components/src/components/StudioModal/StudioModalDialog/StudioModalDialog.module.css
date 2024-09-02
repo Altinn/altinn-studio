@@ -1,6 +1,7 @@
 .heading {
   border-bottom: 1px solid var(--fds-semantic-border-divider-default);
   padding: var(--studio-modal-spacing);
+  height: calc(2.5vh);
 }
 
 .heading > * {

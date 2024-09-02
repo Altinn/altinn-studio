@@ -8,16 +8,14 @@
 
 .modalContent {
   display: flex;
-  height: calc(80vw - 76px);
+  height: calc(77.5vh);
 }
 
 .leftNavWrapper {
-  height: 100%;
   overflow-y: auto;
 }
 
 .contentWrapper {
-  height: 100%;
   overflow: auto;
   padding: var(--studio-modal-spacing);
 }
