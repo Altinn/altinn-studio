@@ -54,7 +54,7 @@ export const EditComponentIdRow = ({
     if (value !== component.id && idExists(value, formLayouts)) {
       return t('ux_editor.modal_properties_component_id_not_unique_error');
     }
-    const duplicateDatatypeId = appMetadata.dataTypes.find((modelId) => modelId.id === value);
+    const duplicateDatatypeId = appMetadata.dataTypes?.find((modelId) => modelId.id === value);
     if (
       value !== component.id &&
       (component.type === ComponentType.FileUpload ||
