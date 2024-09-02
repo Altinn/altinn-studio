@@ -1,14 +1,13 @@
 .settingsModal[open] {
   --settings-modal-width: min(80vw, 64rem);
 
-  height: 80vh;
   max-width: unset;
   width: var(--settings-modal-width);
 }
 
 .modalContent {
   display: flex;
-  height: calc(77.5vh);
+  max-height: 80vh;
 }
 
 .leftNavWrapper {
