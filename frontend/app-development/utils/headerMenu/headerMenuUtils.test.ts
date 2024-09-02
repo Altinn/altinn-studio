@@ -1,5 +1,6 @@
 import { RepositoryType } from 'app-shared/types/global';
 import {
+  filterRoutesByFeatureFlag,
   getFilteredTopBarMenu,
   getTopBarMenuItems,
   groupMenuItemsByGroup,
@@ -12,6 +13,9 @@ import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { DatabaseIcon } from '@studio/icons';
 import { HeaderMenuGroupKey } from 'app-development/enums/HeaderMenuGroupKey';
 import { typedLocalStorage } from '@studio/components';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+
+jest.mock('app-shared/utils/featureToggleUtils');
 
 describe('headerMenuUtils', () => {
   describe('getFilteredTopBarMenu', () => {
@@ -86,6 +90,50 @@ describe('headerMenuUtils', () => {
       expect(mappedGroup.name).toBe(HeaderMenuGroupKey.Tools);
       expect(mappedGroup.items.length).toBe(1);
       expect(mappedGroup.items[0].name).toBe(HeaderMenuItemKey.Create);
+    });
+  });
+
+  describe('filterRoutesByFeatureFlag', () => {
+    it('should return true if menuItem does not have a featureFlagName', () => {
+      const menuItem: HeaderMenuItem = {
+        key: HeaderMenuItemKey.DataModel,
+        link: RoutePaths.DataModel,
+        icon: DatabaseIcon,
+        repositoryTypes: [RepositoryType.App, RepositoryType.DataModels],
+        group: HeaderMenuGroupKey.Tools,
+      };
+
+      expect(filterRoutesByFeatureFlag(menuItem)).toBe(true);
+    });
+
+    it('should return true if feature flag is active', () => {
+      (shouldDisplayFeature as jest.Mock).mockReturnValue(true);
+
+      const menuItem: HeaderMenuItem = {
+        key: HeaderMenuItemKey.DataModel,
+        link: RoutePaths.DataModel,
+        icon: DatabaseIcon,
+        repositoryTypes: [RepositoryType.App, RepositoryType.DataModels],
+        group: HeaderMenuGroupKey.Tools,
+        featureFlagName: 'shouldOverrideAppLibCheck',
+      };
+
+      expect(filterRoutesByFeatureFlag(menuItem)).toBe(true);
+    });
+
+    it('should return false if feature flag is not active', () => {
+      (shouldDisplayFeature as jest.Mock).mockReturnValue(false);
+
+      const menuItem: HeaderMenuItem = {
+        key: HeaderMenuItemKey.DataModel,
+        link: RoutePaths.DataModel,
+        icon: DatabaseIcon,
+        repositoryTypes: [RepositoryType.App, RepositoryType.DataModels],
+        group: HeaderMenuGroupKey.Tools,
+        featureFlagName: 'shouldOverrideAppLibCheck',
+      };
+
+      expect(filterRoutesByFeatureFlag(menuItem)).toBe(false);
     });
   });
 });

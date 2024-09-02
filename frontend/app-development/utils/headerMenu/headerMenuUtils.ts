@@ -68,7 +68,7 @@ export const getTopBarMenuItems = (
   return filterOutDeployItem(filteredMenuItems, repoOwnerIsOrg, repositoryType);
 };
 
-const filterRoutesByFeatureFlag = (menuItem: HeaderMenuItem): boolean => {
+export const filterRoutesByFeatureFlag = (menuItem: HeaderMenuItem): boolean => {
   if (!menuItem.featureFlagName) return true;
 
   return menuItem.featureFlagName && shouldDisplayFeature(menuItem.featureFlagName);
