@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -46,28 +45,6 @@ namespace Altinn.Studio.Designer.Controllers
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
             _textsService = textsService;
-        }
-
-        /// <summary>
-        /// The View for text resources
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The view with JSON editor</returns>
-        [HttpGet]
-        [Route("/designer/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/Text")]
-        public IActionResult Index(string org, string app)
-        {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            IList<string> languages = _textsService.GetLanguages(org, app, developer);
-
-            if (Request.Headers["accept"] == "application/json")
-            {
-                Dictionary<string, Dictionary<string, TextResourceElement>> resources = _repository.GetServiceTexts(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer));
-                return Json(resources);
-            }
-
-            return View(languages);
         }
 
         /// <summary>
@@ -252,18 +229,6 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             return BadRequest($"Resource.{languageCode}.json could not be deleted.");
-        }
-
-        /// <summary>
-        /// Get the JSON schema for resource files
-        /// </summary>
-        /// <returns>JSON content</returns>
-        [HttpGet]
-        [Route("json-schema")]
-        public IActionResult GetResourceSchema()
-        {
-            string schema = System.IO.File.ReadAllText(_hostingEnvironment.WebRootPath + "/designer/json/schema/resource-schema.json");
-            return Content(schema, "application/json", Encoding.UTF8);
         }
     }
 }

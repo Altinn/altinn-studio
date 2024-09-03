@@ -9,6 +9,8 @@ import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnConte
 import { useInvalidator } from '../../../hooks/useInvalidator';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Alert, Link } from '@digdir/designsystemet-react';
+import { EmailContactProvider } from 'app-shared/getInTouch/providers';
+import { GetInTouchWith } from 'app-shared/getInTouch';
 
 export function DeployPage() {
   const { org, app } = useStudioEnvironmentParams();
@@ -20,6 +22,7 @@ export function DeployPage() {
     isError: permissionsIsError,
   } = useDeployPermissionsQuery(org, app);
   useInvalidator();
+
   if (orgsIsPending || permissionsIsPending) {
     return (
       <AltinnContentLoader width={1200} height={600} title={t('app_deployment.loading')}>
@@ -39,15 +42,13 @@ export function DeployPage() {
 
   // If org isn't listed, or doesn't have any environments
   if (!orgs[org] || !orgs[org].environments || !orgs[org].environments.length) {
+    const contactByEmail = new GetInTouchWith(new EmailContactProvider());
     return (
       <InfoCard headerText={t('app_deployment.no_env_title')} shadow={true}>
         <div>
-          <Trans
-            i18nKey={'app_deployment.no_env_1'}
-            components={{
-              a: <Link href='/contact'> </Link>,
-            }}
-          ></Trans>
+          <Trans i18nKey='app_deployment.no_env_1'>
+            <Link href={contactByEmail.url('serviceOwner')}> </Link>
+          </Trans>
         </div>
         <div style={{ paddingTop: '2.4rem' }}>
           <Trans i18nKey={'app_deployment.no_env_2'}>

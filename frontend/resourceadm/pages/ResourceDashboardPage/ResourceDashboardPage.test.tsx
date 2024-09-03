@@ -215,7 +215,7 @@ describe('ResourceDashBoardPage', () => {
     );
 
     expect(
-      screen.queryByText(textMock('resourceadm.dashboard_no_resources_result')),
+      screen.queryByText(textMock('dashboard.resource_table_no_resources_result')),
     ).not.toBeInTheDocument();
   });
 
@@ -239,7 +239,7 @@ describe('ResourceDashBoardPage', () => {
     expect(resourceRowsAfterFilter.length).toBe(1); // Only the <th />
 
     expect(
-      screen.getByText(textMock('resourceadm.dashboard_no_resources_result')),
+      screen.getByText(textMock('dashboard.resource_table_no_resources_result')),
     ).toBeInTheDocument();
   });
 
@@ -274,7 +274,7 @@ describe('ResourceDashBoardPage', () => {
     );
 
     const importButton = screen.getByText(
-      textMock('resourceadm.dashboard_table_row_import', {
+      textMock('dashboard.resource_table_row_import', {
         resourceName: mockResourceListItem5Title,
       }),
     );
@@ -306,7 +306,7 @@ describe('ResourceDashBoardPage', () => {
     );
 
     const importButton = screen.getByText(
-      textMock('resourceadm.dashboard_table_row_import', {
+      textMock('dashboard.resource_table_row_import', {
         resourceName: mockResourceListItem5Title,
       }),
     );
@@ -335,7 +335,7 @@ describe('ResourceDashBoardPage', () => {
     );
 
     const importButton = screen.getByText(
-      textMock('resourceadm.dashboard_table_row_import', {
+      textMock('dashboard.resource_table_row_import', {
         resourceName: mockResourceListItem5Title,
       }),
     );

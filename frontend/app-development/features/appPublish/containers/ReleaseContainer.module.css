@@ -41,26 +41,6 @@
   color: #1eaef7;
 }
 
-.cannotCreateReleaseContainer {
-  background-color: #f9cad3;
-  height: 100%;
-  margin: var(--release-panel-padding);
-}
-
-.cannotCreateReleaseTitle {
-  padding: var(--release-panel-padding);
-}
-
-.cannotCreateReleaseSubTitle {
-  font-size: 1.4rem;
-  padding: var(--release-panel-padding);
-}
-
-.renderCannotCreateReleaseIcon {
-  padding-top: var(--release-panel-padding);
-  color: var(--fds-semantic-text-danger-default);
-}
-
 .versionHeader {
   border-bottom: 1px solid #bcc7cc;
   padding: 1rem 2rem 0;

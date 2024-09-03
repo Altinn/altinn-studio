@@ -10,6 +10,7 @@ import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { getMockBpmnElementForTask, mockBpmnDetails } from '../../test/mocks/bpmnDetailsMock';
 import { mockModelerRef } from '../../test/mocks/bpmnModelerMock';
 import { getBpmnEditorDetailsFromBusinessObject } from '../utils/bpmnObjectBuilders';
+import { StudioRecommendedNextActionContextProvider } from '@studio/components';
 
 const layoutSetId = 'someLayoutSetId';
 const layoutSetsMock: LayoutSets = {
@@ -108,7 +109,9 @@ const wrapper = ({ children }) => (
       onProcessTaskRemove={onProcessTaskRemoveMock}
       layoutSets={layoutSetsMock}
     >
-      {children}
+      <StudioRecommendedNextActionContextProvider>
+        {children}
+      </StudioRecommendedNextActionContextProvider>
     </BpmnApiContextProvider>
   </BpmnContextProvider>
 );
@@ -127,8 +130,8 @@ describe('useBpmnEditor', () => {
     await waitFor(() => expect(saveBpmnMock).toHaveBeenCalledTimes(1));
   });
 
-  it('should handle "shape.add" event', async () => {
-    renderUseBpmnEditor(false, 'shape.add');
+  it('should handle "shape.added" event', async () => {
+    renderUseBpmnEditor(false, 'shape.added');
 
     await waitFor(() => expect(onProcessTaskAddMock).toHaveBeenCalledTimes(1));
   });
@@ -144,7 +147,7 @@ describe('useBpmnEditor', () => {
     renderUseBpmnEditor(true, currentEventName);
 
     expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1);
-    expect(setBpmnDetailsMock).toHaveBeenCalledWith(mockBpmnDetails);
+    expect(setBpmnDetailsMock).toHaveBeenCalledWith(expect.objectContaining(mockBpmnDetails));
   });
 });
 

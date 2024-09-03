@@ -133,26 +133,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
         }
 
-        /// <inheritdoc/>
-        public Dictionary<string, Dictionary<string, TextResourceElement>> GetServiceTexts(AltinnRepoEditingContext altinnRepoEditingContext)
-        {
-            Dictionary<string, Dictionary<string, TextResourceElement>> appTextsAllLanguages = new();
-
-            // Get app level text resources
-            string resourcePath = _settings.GetLanguageResourcePath(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-            appTextsAllLanguages = MergeResourceTexts(resourcePath, appTextsAllLanguages);
-
-            // Get Org level text resources
-            string orgResourcePath = _settings.GetOrgTextResourcePath(altinnRepoEditingContext.Org, altinnRepoEditingContext.Developer);
-            appTextsAllLanguages = MergeResourceTexts(orgResourcePath, appTextsAllLanguages);
-
-            // Get Altinn common level text resources
-            string commonResourcePath = _settings.GetCommonTextResourcePath(altinnRepoEditingContext.Developer);
-            appTextsAllLanguages = MergeResourceTexts(commonResourcePath, appTextsAllLanguages);
-
-            return appTextsAllLanguages;
-        }
-
         /// <summary>
         /// Merges the provided resource texts with the resource text in the the given path
         /// </summary>

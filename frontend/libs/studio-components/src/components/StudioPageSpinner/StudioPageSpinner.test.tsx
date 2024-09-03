@@ -14,7 +14,7 @@ describe('StudioPageSpinner', () => {
   afterEach(jest.clearAllMocks);
 
   it('should render default loading message as accessibility title when spinnerText is not provided', () => {
-    render(<StudioPageSpinner spinnerTitle={mockSpinnerText} showSpinnerTitle={false} />);
+    render(<StudioPageSpinner spinnerTitle={mockSpinnerText} />);
 
     expect(screen.getByTitle(mockSpinnerText));
 

@@ -82,6 +82,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("/preview/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/{*AllValues}")]
         public IActionResult Index(string org, string app)
         {
+            ViewBag.App = "app-preview";
             return View();
         }
 

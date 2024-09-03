@@ -1,14 +1,6 @@
 import { ArrayUtils } from '@studio/pure-functions';
 
 /**
- * Adds an item to the beginning of an array..
- * @param array The array of interest.
- * @param item The item to prepend.
- * @returns The array with the item prepended.
- */
-export const prepend = <T>(array: T[], item: T): T[] => [item, ...array];
-
-/**
  * Replaces the last item in an array.
  * @param array The array of interest.
  * @param replaceWith The item to replace the last item with.

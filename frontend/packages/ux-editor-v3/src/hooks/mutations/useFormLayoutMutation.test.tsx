@@ -62,20 +62,22 @@ describe('useFormLayoutMutation', () => {
       layoutName,
       selectedLayoutSet,
       expect.objectContaining({
-        data: {
-          layout: [
-            {
-              id: containerId,
-              type: ComponentTypeV3.Group,
-              children: [componentId],
-            },
-            {
-              id: componentId,
-              type: componentType,
-              dataModelBindings: {},
-            },
-          ],
-        },
+        layout: expect.objectContaining({
+          data: {
+            layout: [
+              {
+                id: containerId,
+                type: ComponentTypeV3.Group,
+                children: [componentId],
+              },
+              {
+                id: componentId,
+                type: componentType,
+                dataModelBindings: {},
+              },
+            ],
+          },
+        }),
       }),
     );
   });

@@ -1,12 +1,12 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioProperty } from '@studio/components';
+import { useUniqueKeys } from '@studio/hooks';
 import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
 import { useChecksum } from './useChecksum';
 import { ActionsEditor } from './ActionsEditor';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { type Action, BpmnActionModeler } from '../../../../utils/bpmnModeler/BpmnActionModeler';
-
 import classes from './EditActions.module.css';
 
 export const EditActions = (): React.ReactElement => {
@@ -16,8 +16,18 @@ export const EditActions = (): React.ReactElement => {
   // This is a custom hook that is used to force re-render the component, since the actions from bpmnjs are not reactive
   const { updateChecksum: forceReRenderComponent } = useChecksum();
   const actions: Action[] = bpmnActionModeler.actionElements?.action || [];
+  const { getUniqueKey, addUniqueKey, removeUniqueKey } = useUniqueKeys({
+    numberOfKeys: actions.length,
+  });
+
+  const onDeleteActionItemSideEffect = (index: number): void => {
+    // Removes the item at the specified index to ensure new unique IDs are generated for the action list.
+    // This approach is necessary because the list may contain non-unique data or IDs.
+    removeUniqueKey(index);
+  };
 
   const onNewActionAddClicked = (): void => {
+    addUniqueKey();
     const shouldUpdateExistingActions = bpmnActionModeler.hasActionsAlready;
     if (shouldUpdateExistingActions) {
       const existingActionElement = bpmnActionModeler.actionElements;
@@ -39,12 +49,12 @@ export const EditActions = (): React.ReactElement => {
   return (
     <>
       {actions.map((actionElement: ModdleElement, index: number) => (
-        // Using the index as key, since we do not have a unique identifier for the action elements
-        <div key={index} className={classes.container}>
+        <div key={getUniqueKey(index)} className={classes.container}>
           <ActionsEditor
             actionElement={actionElement}
             actionIndex={index}
             mode={!actionElement.action ? 'edit' : 'view'}
+            onDeleteClick={() => onDeleteActionItemSideEffect(index)}
           />
         </div>
       ))}

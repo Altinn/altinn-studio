@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using AltinnCore.Authentication.Constants;
+using Altinn.Studio.Designer.Helpers;
 using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Designer.Repository.Models
@@ -22,11 +19,10 @@ namespace Altinn.Studio.Designer.Repository.Models
         /// <returns></returns>
         public static BaseEntity PopulateBaseProperties(this BaseEntity entity, string org, string app, HttpContext httpContext)
         {
-            List<Claim> claims = httpContext.User.Claims.ToList();
             entity.Org = org;
             entity.App = app;
             entity.Created = DateTime.UtcNow;
-            entity.CreatedBy = claims.FirstOrDefault(x => x.Type == AltinnCoreClaimTypes.Developer)?.Value;
+            entity.CreatedBy = AuthenticationHelper.GetDeveloperUserName(httpContext);
 
             return entity;
         }

@@ -1,6 +1,5 @@
 const commonConfig = require('./webpack.common');
-const setupMiddlewares = require('@altinn-studio/mockend/src');
-const devServerPorts = require('./testing/mockend/ports.json');
+const devServerPorts = require('./ports.json');
 
 module.exports = {
   ...commonConfig,
@@ -29,7 +28,6 @@ module.exports = {
   },
   plugins: [...commonConfig.plugins],
   devServer: {
-    setupMiddlewares,
     hot: true,
     allowedHosts: 'all',
     port: devServerPorts[process.env.npm_package_name],

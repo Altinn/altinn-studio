@@ -198,7 +198,5 @@ export const FormDesigner = (): JSX.Element => {
       </DragAndDropTree.Provider>
     );
   }
-  return (
-    <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('ux_editor.loading_form_layout')} />
-  );
+  return <StudioPageSpinner spinnerTitle={t('ux_editor.loading_form_layout')} />;
 };

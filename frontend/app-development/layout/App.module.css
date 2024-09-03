@@ -9,10 +9,13 @@
   --left-menu-width: 68px;
 
   background: var(--fds-semantic-background-default);
-  min-height: 100vh;
   width: 100%;
-  display: flex;
-  flex-direction: column;
+}
+
+.appContainer {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100vh;
 }
 
 @media screen and (max-width: 600px) {

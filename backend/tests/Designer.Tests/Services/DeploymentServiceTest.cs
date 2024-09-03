@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Events;
@@ -17,14 +16,13 @@ using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
-using AltinnCore.Authentication.Constants;
 using MediatR;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Designer.Tests.Services
 {
@@ -39,10 +37,10 @@ namespace Designer.Tests.Services
         private readonly Mock<IAzureDevOpsBuildClient> _azureDevOpsBuildClient;
         private readonly Mock<IPublisher> _mediatrMock;
 
-        public DeploymentServiceTest()
+        public DeploymentServiceTest(ITestOutputHelper testOutputHelper)
         {
             _httpContextAccessor = new Mock<IHttpContextAccessor>();
-            _httpContextAccessor.Setup(req => req.HttpContext).Returns(GetHttpContextForTestUser("testuser"));
+            _httpContextAccessor.Setup(req => req.HttpContext).Returns(new DefaultHttpContext());
             _deploymentLogger = new Mock<ILogger<DeploymentService>>();
             _deploymentRepository = new Mock<IDeploymentRepository>();
             _releaseRepository = new Mock<IReleaseRepository>();
@@ -103,6 +101,13 @@ namespace Designer.Tests.Services
 
             // Assert
             Assert.NotNull(deploymentEntity);
+
+            var properties = deploymentEntity.GetType().GetProperties();
+            foreach (var property in properties)
+            {
+                Assert.NotNull(property.GetValue(deploymentEntity));
+            }
+
             _releaseRepository.Verify(
                 r => r.GetSucceededReleaseFromDb(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
                 Times.Once);
@@ -187,24 +192,6 @@ namespace Designer.Tests.Services
             // Assert
             _deploymentRepository.Verify(r => r.Get(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
             _deploymentRepository.Verify(r => r.Update(It.IsAny<DeploymentEntity>()), Times.Once);
-        }
-
-        private static HttpContext GetHttpContextForTestUser(string userName)
-        {
-            List<Claim> claims = new()
-            {
-                new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, "altinn.no")
-            };
-            ClaimsIdentity identity = new("TestUserLogin");
-            identity.AddClaims(claims);
-
-            ClaimsPrincipal principal = new(identity);
-            HttpContext c = new DefaultHttpContext();
-            c.Request.HttpContext.User = principal;
-            c.Request.RouteValues.Add("org", "ttd");
-            c.Request.RouteValues.Add("app", "apps-test-tba");
-
-            return c;
         }
 
         private static List<ReleaseEntity> GetReleases(string filename)

@@ -35,7 +35,7 @@ export const PageLayout = (): React.ReactNode => {
   if (isRepoStatusPending || isUserPending) {
     return (
       <StudioCenter>
-        <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('repo_status.loading')} />
+        <StudioPageSpinner spinnerTitle={t('repo_status.loading')} />
       </StudioCenter>
     );
   }

@@ -57,4 +57,14 @@ export class ArrayUtils {
   /** Returns the provided array if it has at least one item, otherwise returns undefined */
   public static getNonEmptyArrayOrUndefined = <T>(array: T[]): T[] | undefined =>
     array.length > 0 ? array : undefined;
+
+  /**
+   * Adds an item to the beginning of an array..
+   * @param array The array of interest.
+   * @param item The item to prepend.
+   * @returns The array with the item prepended.
+   */
+  public static prepend<T>(array: T[], item: T): T[] {
+    return [item, ...array];
+  }
 }

@@ -4,7 +4,6 @@ import {
   insertArrayElementAtPos,
   mapByKey,
   moveArrayItem,
-  prepend,
   removeEmptyStrings,
   replaceByPredicate,
   replaceItemsByValue,
@@ -12,13 +11,6 @@ import {
 } from './arrayUtils';
 
 describe('arrayUtils', () => {
-  describe('prepend', () => {
-    it('Prepends item to array', () => {
-      expect(prepend([1, 2, 3], 0)).toEqual([0, 1, 2, 3]);
-      expect(prepend(['a', 'b', 'c'], 'd')).toEqual(['d', 'a', 'b', 'c']);
-    });
-  });
-
   describe('areItemsUnique', () => {
     it('Returns true if all items are unique', () => {
       expect(areItemsUnique([1, 2, 3])).toBe(true);

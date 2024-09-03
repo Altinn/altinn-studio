@@ -73,7 +73,7 @@ export const EditStringValue = ({
             >
               {enumValues.map((value) => (
                 <option key={value} value={value}>
-                  {value}
+                  {componentEnumValue(value)}
                 </option>
               ))}
             </StudioNativeSelect>

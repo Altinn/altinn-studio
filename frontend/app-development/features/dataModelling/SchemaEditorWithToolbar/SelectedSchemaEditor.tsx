@@ -27,12 +27,7 @@ export const SelectedSchemaEditor = ({ modelPath }: SelectedSchemaEditorProps) =
 
   switch (status) {
     case 'pending':
-      return (
-        <StudioPageSpinner
-          showSpinnerTitle={false}
-          spinnerTitle={t('schema_editor.loading_page')}
-        />
-      );
+      return <StudioPageSpinner spinnerTitle={t('schema_editor.loading_page')} />;
 
     case 'error':
       return (

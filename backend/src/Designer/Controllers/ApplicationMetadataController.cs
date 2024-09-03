@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -18,14 +19,17 @@ namespace Altinn.Studio.Designer.Controllers
     public class ApplicationMetadataController : ControllerBase
     {
         private readonly IApplicationMetadataService _applicationMetadataService;
+        private readonly IUserRequestsSynchronizationService _userRequestsSynchronizationService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationMetadataController"/> class.
         /// </summary>
         /// <param name="applicationMetadataService">The application metadata service</param>
-        public ApplicationMetadataController(IApplicationMetadataService applicationMetadataService)
+        /// <param name="userRequestsSynchronizationService">The user requests synchronization service</param>
+        public ApplicationMetadataController(IApplicationMetadataService applicationMetadataService, IUserRequestsSynchronizationService userRequestsSynchronizationService)
         {
             _applicationMetadataService = applicationMetadataService;
+            _userRequestsSynchronizationService = userRequestsSynchronizationService;
         }
 
         /// <summary>
@@ -141,6 +145,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("attachment-component")]
         public async Task<ActionResult> DeleteMetadataForAttachment(string org, string app, [FromBody] string id)
         {
+            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, app, "");
+            await semaphore.WaitAsync();
             try
             {
                 await _applicationMetadataService.DeleteMetadataForAttachment(org, app, id);
@@ -149,6 +155,10 @@ namespace Altinn.Studio.Designer.Controllers
             catch (IOException)
             {
                 return BadRequest("Could not delete metadata");
+            }
+            finally
+            {
+                semaphore.Release();
             }
         }
     }

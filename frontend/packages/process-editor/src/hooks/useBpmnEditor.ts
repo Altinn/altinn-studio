@@ -6,6 +6,7 @@ import { useBpmnConfigPanelFormContext } from '../contexts/BpmnConfigPanelContex
 import { useBpmnApiContext } from '../contexts/BpmnApiContext';
 import type { TaskEvent } from '../types/TaskEvent';
 import { getBpmnEditorDetailsFromBusinessObject } from '../utils/bpmnObjectBuilders';
+import { useStudioRecommendedNextActionContext } from '@studio/components';
 
 // Wrapper around bpmn-js to Reactify it
 
@@ -19,6 +20,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const { metadataFormRef, resetForm } = useBpmnConfigPanelFormContext();
   const { getModeler, destroyModeler } = useBpmnModeler();
+  const { addAction } = useStudioRecommendedNextActionContext();
 
   const { saveBpmn, onProcessTaskAdd, onProcessTaskRemove } = useBpmnApiContext();
 
@@ -33,6 +35,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
       taskEvent,
       taskType: bpmnDetails.taskType,
     });
+    addAction(bpmnDetails.id);
     updateBpmnDetailsByTaskEvent(taskEvent);
   };
 
@@ -57,6 +60,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   );
 
   const initializeEditor = async () => {
+    if (!modelerRef.current) return;
     try {
       await modelerRef.current.importXML(bpmnXml);
       const canvas: any = modelerRef.current.get('canvas');
@@ -70,7 +74,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
     modelerRef.current.on('commandStack.changed', async (): Promise<void> => {
       await handleCommandStackChanged();
     });
-    modelerRef.current.on('shape.add', (taskEvent: TaskEvent): void => {
+    modelerRef.current.on('shape.added', (taskEvent: TaskEvent): void => {
       handleShapeAdd(taskEvent);
     });
     modelerRef.current.on('shape.remove', (taskEvent: TaskEvent): void => {
@@ -96,6 +100,7 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
   }, []); // Missing dependencies are not added to avoid getModeler to be called multiple times
 
   useEffect(() => {
+    if (!modelerRef.current) return;
     const eventBus: BpmnModeler = modelerRef.current.get('eventBus');
     eventBus.on('element.click', updateBpmnDetailsByTaskEvent);
   }, [modelerRef, updateBpmnDetailsByTaskEvent]);

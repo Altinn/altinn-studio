@@ -79,6 +79,7 @@ namespace Altinn.Studio.Designer.Controllers
         public IActionResult Index()
         {
             ViewBag.AiConnectionString = _applicationInsightsSettings.ConnectionString;
+            ViewBag.App = "studio-root";
             return View();
         }
 
@@ -92,34 +93,8 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult Dashboard()
         {
             ViewBag.AiConnectionString = _applicationInsightsSettings.ConnectionString;
-            return View("Dashboard");
-        }
-
-        /// <summary>
-        /// Action for presenting the Not Authorized View
-        /// </summary>
-        /// <returns>The view telling user that user was not authorized</returns>
-        public IActionResult NotAuthorized()
-        {
-            return View();
-        }
-
-        /// <summary>
-        /// Action for presenting documentation
-        /// </summary>
-        /// <returns>The Doc view</returns>
-        public IActionResult Docs()
-        {
-            return View();
-        }
-
-        /// <summary>
-        /// Action for presenting error
-        /// </summary>
-        /// <returns>The Error view</returns>
-        public IActionResult Error()
-        {
-            return View();
+            ViewBag.App = "dashboard";
+            return View("Index");
         }
 
         /// <summary>

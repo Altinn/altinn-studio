@@ -27,8 +27,10 @@ describe('useDeleteFormContainerMutation', () => {
       layout1NameMock,
       selectedLayoutSet,
       expect.objectContaining({
-        data: expect.objectContaining({
-          layout: expect.not.arrayContaining([expect.objectContaining({ id })]),
+        layout: expect.objectContaining({
+          data: expect.objectContaining({
+            layout: expect.not.arrayContaining([expect.objectContaining({ id })]),
+          }),
         }),
       }),
     );

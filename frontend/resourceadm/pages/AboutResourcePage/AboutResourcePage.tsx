@@ -242,7 +242,7 @@ export const AboutResourcePage = ({
         )}
         {resourceData.resourceType !== 'MaskinportenSchema' && (
           <ResourceSwitchInput
-            id='resourceType'
+            id='enterpriseUserEnabled'
             label={t('resourceadm.about_resource_enterprise_label')}
             description={t('resourceadm.about_resource_enterprise_text')}
             value={resourceData.enterpriseUserEnabled ?? false}

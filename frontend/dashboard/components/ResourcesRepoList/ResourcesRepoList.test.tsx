@@ -144,7 +144,7 @@ describe('RepoList', () => {
 
     await user.click(
       screen.getByText(
-        textMock('resourceadm.dashboard_table_row_edit', { resourceName: resourceTitle }),
+        textMock('dashboard.resource_table_row_edit', { resourceName: resourceTitle }),
       ),
     );
 

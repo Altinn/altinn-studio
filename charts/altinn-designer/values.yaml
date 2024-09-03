@@ -7,6 +7,10 @@ image:
   containerPort: 5000
   imagePullSecret: acrsecret
 
+dbMigrationsJob:
+  image:
+    repository: altinntjenestercontainerregistry.azurecr.io/altinn-designer-db-migrations
+
 hosts:
   dev: dev.altinn.studio
   staging: staging.altinn.studio
@@ -108,6 +112,8 @@ environmentVariables:
       value: "true"
     - name: OidcLoginSettings__CookieExpiryTimeInMinutes
       value: 59
+
+dbMigrationsEnvironmentVariablesSecretName: altinn-designer-db-migrations-secret
 
 volumeMounts:
   - name: altinn-repo-storage

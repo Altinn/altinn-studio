@@ -2,6 +2,11 @@ name: Calculate short sha
 
 on:
   workflow_call:
+    inputs:
+      checkout-repository:
+        required: false
+        type: string
+        default: ''
     outputs:
       short-sha:
         description: "Short sha commit"
@@ -15,6 +20,8 @@ jobs:
       short-sha: ${{ steps.set-short-sha.outputs.short-sha }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.checkout-repository }}
 
       - name: Set short SHA
         id: set-short-sha

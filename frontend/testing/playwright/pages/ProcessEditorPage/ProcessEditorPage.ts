@@ -62,6 +62,11 @@ export class ProcessEditorPage extends BasePage {
     await this.stopDragElement(targetX, targetY);
   }
 
+  public async skipRecommendedTask(): Promise<void> {
+    const skipButton = this.page.getByRole('button', { name: this.textMock('general.skip') });
+    await skipButton.click();
+  }
+
   public async waitForTaskToBeVisibleInConfigPanel(task: BpmnTaskType): Promise<void> {
     const text = this.page.getByText(`Navn: Altinn ${task} task`);
     await expect(text).toBeVisible();

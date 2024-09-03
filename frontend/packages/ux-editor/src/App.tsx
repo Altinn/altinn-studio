@@ -8,6 +8,7 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResources
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { FormItemContextProvider } from './containers/FormItemContext';
 import { cleanupStaleLocalStorageKeys } from './utils/localStorageUtils';
+import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import { FormDesignerToolbar } from '@altinn/ux-editor/containers/FormDesignerToolbar';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 
@@ -46,22 +47,36 @@ export function App() {
   const t = useText();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
-  const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
-  const { isSuccess: areLayoutSetsFetched, isError: layoutSetsFetchedError } = useLayoutSetsQuery(
+  const { status: widgetsStatus, isError: widgetFetchedError } = useWidgetsQuery(org, app);
+  const { status: layoutSetsStatus, isError: layoutSetsFetchedError } = useLayoutSetsQuery(
     org,
     app,
   );
-  const { isSuccess: isDataModelFetched, isError: dataModelFetchedError } =
-    useDataModelMetadataQuery({
-      org,
-      app,
-      layoutSetName: selectedFormLayoutSetName,
-      hideDefault: true,
-    });
-  const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
+  const { status: dataModelStatus, isError: dataModelFetchedError } = useDataModelMetadataQuery({
+    org,
+    app,
+    layoutSetName: selectedFormLayoutSetName,
+    hideDefault: true,
+  });
+  const { status: textsStatus, data: textResources } = useTextResourcesQuery(org, app);
 
-  const componentIsReady = areWidgetsFetched && isDataModelFetched && areTextResourcesFetched;
-  const componentHasError = dataModelFetchedError || widgetFetchedError;
+  const { doReloadPreview } = usePreviewContext();
+  useEffect(() => {
+    doReloadPreview();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [textResources]);
+
+  const componentIsPending =
+    widgetsStatus === 'pending' ||
+    layoutSetsStatus === 'pending' ||
+    dataModelStatus === 'pending' ||
+    textsStatus === 'pending';
+  const componentIsReady =
+    widgetsStatus === 'success' &&
+    layoutSetsStatus === 'success' &&
+    dataModelStatus === 'success' &&
+    textsStatus === 'success';
+  const componentHasError = widgetsStatus === 'error' || dataModelStatus === 'error';
 
   const errors: ErrorKinds = {
     layoutSetsError: layoutSetsFetchedError,
@@ -76,10 +91,10 @@ export function App() {
     return <StudioPageError title={mappedError.title} message={mappedError.message} />;
   }
 
-  if (areLayoutSetsFetched) {
+  if (!componentIsPending) {
     // If layoutSets are successfully fetched, show layoutSetsSelector and app
     return (
-      <>
+      <div>
         <FormDesignerToolbar />
         {componentHasError && (
           <StudioPageError title={mappedError.title} message={mappedError.message} />
@@ -89,10 +104,9 @@ export function App() {
             <FormDesigner />
           </FormItemContextProvider>
         )}
-      </>
+      </div>
     );
   }
 
-  // If any requests are loading show spinner on whole page
-  return <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('ux_editor.loading_page')} />;
+  return <StudioPageSpinner spinnerTitle={t('ux_editor.loading_page')} />;
 }

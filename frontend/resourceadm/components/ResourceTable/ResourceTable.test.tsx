@@ -52,7 +52,7 @@ describe('ResourceTable', () => {
 
     const listItemsBeforeSort = screen.getAllByRole('row').map((row) => row.textContent);
     const sortButton = screen.getByRole('button', {
-      name: textMock('resourceadm.dashboard_table_header_name'),
+      name: textMock('dashboard.resource_table_header_name'),
     });
 
     expect(sortButton).toBeInTheDocument();
@@ -80,7 +80,7 @@ describe('ResourceTable', () => {
       />,
     );
 
-    const titleCell = screen.getByText(textMock('resourceadm.dashboard_table_row_missing_title'));
+    const titleCell = screen.getByText(textMock('dashboard.resource_table_row_missing_title'));
     expect(titleCell).toBeInTheDocument();
   });
 
@@ -110,7 +110,7 @@ describe('ResourceTable', () => {
     render(<ResourceTable {...defaultProps} />);
 
     const editButton = screen.getByText(
-      textMock('resourceadm.dashboard_table_row_edit', { resourceName: resource1Title }),
+      textMock('dashboard.resource_table_row_edit', { resourceName: resource1Title }),
     );
     await user.click(editButton);
 
@@ -127,10 +127,10 @@ describe('ResourceTable', () => {
     );
 
     const editButton = screen.queryByText(
-      textMock('resourceadm.dashboard_table_row_edit', { resourceName: resource3Title }),
+      textMock('dashboard.resource_table_row_edit', { resourceName: resource3Title }),
     );
     const importButton = screen.queryByText(
-      textMock('resourceadm.dashboard_table_row_import', { resourceName: resource3Title }),
+      textMock('dashboard.resource_table_row_import', { resourceName: resource3Title }),
     );
 
     expect(editButton).not.toBeInTheDocument();
@@ -142,7 +142,7 @@ describe('ResourceTable', () => {
     render(<ResourceTable {...defaultProps} />);
 
     const importButton = screen.getByText(
-      textMock('resourceadm.dashboard_table_row_import', { resourceName: resource3Title }),
+      textMock('dashboard.resource_table_row_import', { resourceName: resource3Title }),
     );
     await user.click(importButton);
 
@@ -152,7 +152,7 @@ describe('ResourceTable', () => {
   it('should show spinner when importing resource', () => {
     render(<ResourceTable {...defaultProps} importResourceId={mockResourceListItem3.identifier} />);
 
-    const importSpinner = screen.getByText(textMock('resourceadm.dashboard_table_row_importing'));
+    const importSpinner = screen.getByText(textMock('dashboard.resource_table_row_importing'));
     expect(importSpinner).toBeInTheDocument();
   });
 });

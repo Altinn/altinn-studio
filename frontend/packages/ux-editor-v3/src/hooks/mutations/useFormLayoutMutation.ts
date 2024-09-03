@@ -6,6 +6,7 @@ import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionCont
 import type { ExternalFormLayoutV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
 import { useAppContext } from '../useAppContext';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
+import type { FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
 
 export const useFormLayoutMutation = (
   org: string,
@@ -21,7 +22,12 @@ export const useFormLayoutMutation = (
   return useMutation({
     mutationFn: (layout: IInternalLayout) => {
       const convertedLayout: ExternalFormLayoutV3 = internalLayoutToExternal(layout);
-      return saveFormLayoutV3(org, app, layoutName, layoutSetName, convertedLayout).then(
+
+      const requestPayload = {
+        layout: convertedLayout,
+      } as unknown as FormLayoutRequest;
+
+      return saveFormLayoutV3(org, app, layoutName, layoutSetName, requestPayload).then(
         () => layout,
       );
     },

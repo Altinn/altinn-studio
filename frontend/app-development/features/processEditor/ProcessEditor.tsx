@@ -112,8 +112,8 @@ export const ProcessEditor = (): React.ReactElement => {
     onProcessTaskRemoveHandler.handleOnProcessTaskRemove(taskMetadata);
   };
 
-  if (appLibDataLoading) {
-    return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} showSpinnerTitle />;
+  if (appLibDataLoading || appMetadataPending) {
+    return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} />;
   }
 
   // TODO: Handle error will be handled better after issue #10735 is resolved

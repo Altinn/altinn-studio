@@ -32,13 +32,23 @@ describe('ProcessEditor', () => {
   });
 
   it('renders spinner when appLibVersion is not fetched', () => {
-    renderProcessEditor();
+    const queryClientMock = createQueryClientMock();
+    queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], []);
+    renderProcessEditor({ queryClient: queryClientMock });
+    screen.getByText(textMock('process_editor.loading'));
+  });
+
+  it('renders spinner when appMetadata is not fetched', () => {
+    const queryClientMock = createQueryClientMock();
+    queryClientMock.setQueryData([QueryKey.AppVersion, org, app], defaultAppVersion);
+    renderProcessEditor({ queryClient: queryClientMock });
     screen.getByText(textMock('process_editor.loading'));
   });
 
   it('renders processEditor with "noBpmnFound" error message when appLibVersion is fetched but no bpmn is found', () => {
     const queryClientMock = createQueryClientMock();
     queryClientMock.setQueryData([QueryKey.AppVersion, org, app], defaultAppVersion);
+    queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], []);
     renderProcessEditor({ queryClient: queryClientMock });
     screen.getByRole('heading', { name: textMock('process_editor.fetch_bpmn_error_title') });
   });
@@ -46,6 +56,7 @@ describe('ProcessEditor', () => {
   it('renders processEditor with "No task selected" message in config panel when appLibVersion is fetched but no bpmnDetails are found', () => {
     const queryClientMock = createQueryClientMock();
     queryClientMock.setQueryData([QueryKey.AppVersion, org, app], defaultAppVersion);
+    queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], []);
     (useBpmnContext as jest.Mock).mockReturnValue({
       bpmnDetails: null,
     });
