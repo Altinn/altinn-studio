@@ -113,7 +113,7 @@ export const ProcessEditor = (): React.ReactElement => {
   };
 
   if (appLibDataLoading || appMetadataPending) {
-    return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} showSpinnerTitle />;
+    return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} />;
   }
 
   // TODO: Handle error will be handled better after issue #10735 is resolved

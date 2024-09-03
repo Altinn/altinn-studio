@@ -4,6 +4,15 @@
   gap: var(--fds-spacing-2);
 }
 
+.recommendedActionBackdrop {
+  background-color: var(--fds-semantic-border-divider-default);
+}
+
+.recommendedActionContentBackdrop {
+  background-color: var(--fds-semantic-border-divider-default);
+  height: 100%;
+}
+
 .accordion {
   padding-inline: 0;
 }
