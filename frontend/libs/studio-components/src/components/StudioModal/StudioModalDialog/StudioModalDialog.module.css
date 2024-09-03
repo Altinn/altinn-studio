@@ -1,5 +1,7 @@
 .dialog {
   overflow: hidden; /* Avoid double scrollbars; overflow is handled by Modal.Content */
+  display: flex;
+  flex-direction: column;
 }
 
 .heading {
