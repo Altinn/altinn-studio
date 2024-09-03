@@ -64,7 +64,7 @@ async function getComponentList() {
     const tsPathConfig = `src/layout/${key}/config.generated.ts`;
     const tsPathDef = `src/layout/${key}/config.def.generated.tsx`;
 
-    const content = await CodeGeneratorContext.generateTypeScript(tsPathConfig, () => {
+    const config = await CodeGeneratorContext.generateTypeScript(tsPathConfig, () => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const config = require(`src/layout/${key}/config`).Config;
       config.setType(componentList[key], key);
@@ -76,7 +76,7 @@ async function getComponentList() {
       return `import React from 'react';\n\n${def}`;
     });
 
-    promises.push(saveTsFile(tsPathConfig, content));
+    promises.push(saveTsFile(tsPathConfig, config));
     promises.push(saveTsFile(tsPathDef, defClass));
   }
 
