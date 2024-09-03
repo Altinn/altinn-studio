@@ -143,6 +143,15 @@ describe('StudioProfileMenu', () => {
     const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
     expect(triggerButton).toHaveAttribute('aria-label', mockAriaLabel);
   });
+
+  it('should truncate triggerButtonText if it exceeds 30 characters', () => {
+    const longText = 'This is a very long trigger button text that exceeds 30 characters';
+    renderStudioProfileMenu({ triggerButtonText: longText });
+
+    const truncatedText = `${longText.slice(0, 30)}...`;
+    expect(screen.getByText(truncatedText)).toBeInTheDocument();
+    expect(screen.getByText(truncatedText)).toHaveTextContent(truncatedText);
+  });
 });
 
 const renderStudioProfileMenu = (props?: Partial<StudioProfileMenuProps>) => {

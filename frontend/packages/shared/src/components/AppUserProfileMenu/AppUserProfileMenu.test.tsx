@@ -62,7 +62,7 @@ describe('AppUserProfileMenu', () => {
     renderAppUserProfileMenu();
 
     expect(
-      screen.getByText(
+      screen.getByTitle(
         textMock('shared.header_user_for_org', { user: userMock.full_name, org: '' }),
       ),
     ).toBeInTheDocument();
@@ -74,7 +74,7 @@ describe('AppUserProfileMenu', () => {
     renderAppUserProfileMenu();
 
     expect(
-      screen.queryByText(
+      screen.queryByTitle(
         textMock('shared.header_user_for_org', { user: userMock.full_name, org: '' }),
       ),
     ).not.toBeInTheDocument();
