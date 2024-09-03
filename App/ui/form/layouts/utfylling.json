@@ -24,7 +24,11 @@
         "textResourceBindings": {
           "title": "Personalia"
         },
-        "children": ["Input-JQDlSQ", "Input-kcxhAS", "attachments"]
+        "children": [
+          "Input-JQDlSQ",
+          "Input-kcxhAS",
+          "attachments"
+        ]
       },
       {
         "dataModelBindings": {
@@ -73,7 +77,9 @@
         "textResourceBindings": {
           "title": "Garasje"
         },
-        "children": ["subform-mopeder"]
+        "children": [
+          "subform-mopeder"
+        ]
       },
       {
         "id": "subform-mopeder",
@@ -83,10 +89,9 @@
           "addButton": "subform-moped.add"
         },
         "layoutSet": "moped-subform",
-        "dataType": "moped",
         "showAddButton": true,
         "showDeleteButton": true,
-        "tableColumns" : [
+        "tableColumns": [
           {
             "headerContent": "subform-moped.regno",
             "cellContent": {
@@ -114,7 +119,9 @@
         "textResourceBindings": {
           "title": "Bokhylle"
         },
-        "children": ["subform-boker"]
+        "children": [
+          "subform-boker"
+        ]
       },
       {
         "id": "subform-boker",
@@ -124,10 +131,9 @@
           "addButton": "subform-bok.add"
         },
         "layoutSet": "bok-subform",
-        "dataType": "bok",
         "showAddButton": true,
         "showDeleteButton": true,
-        "tableColumns" : [
+        "tableColumns": [
           {
             "headerContent": "subform-bok.tittel",
             "cellContent": {
@@ -157,7 +163,9 @@
         },
         "validateOnNext": {
           "page": "current",
-          "show": ["All"]
+          "show": [
+            "All"
+          ]
         }
       }
     ]
