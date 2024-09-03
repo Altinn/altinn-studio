@@ -11,7 +11,7 @@
         }
       },
       {
-        "id": "nav",
+        "id": "nav2",
         "type": "NavigationButtons",
         "textResourceBindings": {
           "back": "Tilbake"

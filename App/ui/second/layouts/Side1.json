@@ -215,10 +215,10 @@
       {
         "id": "btngroup",
         "type": "ButtonGroup",
-        "children": ["submit", "nav"]
+        "children": ["submit", "nav1"]
       },
       {
-        "id": "nav",
+        "id": "nav1",
         "type": "NavigationButtons",
         "textResourceBindings": { "next": "Neste" }
       },
