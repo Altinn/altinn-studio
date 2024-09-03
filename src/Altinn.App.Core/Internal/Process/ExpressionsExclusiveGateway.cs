@@ -155,7 +155,7 @@ public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
                 layoutSetsString,
                 _jsonSerializerOptionsCamelCase
             );
-            layoutSet = layoutSets?.Sets?.Find(t => t.Tasks.Contains(taskId));
+            layoutSet = layoutSets?.Sets?.Find(t => t.Tasks?.Contains(taskId) is true);
         }
 
         return layoutSet;
