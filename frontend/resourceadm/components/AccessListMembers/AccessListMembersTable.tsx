@@ -83,7 +83,7 @@ export const AccessListMembersTable = ({
       headerCellClass: cn(hiddenHeaderClassName, classes.smallColumn),
       bodyCellFormatter: (value: string) => (
         <>
-          <div className='sr-only'>{stringNumberToAriaLabel(value)}</div>
+          <div className={classes.srOnly}>{stringNumberToAriaLabel(value)}</div>
           <div aria-hidden='true'>{value}</div>
         </>
       ),
