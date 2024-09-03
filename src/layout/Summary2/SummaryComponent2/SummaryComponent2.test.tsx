@@ -382,7 +382,7 @@ describe('SummaryComponent', () => {
     expect(container).toHaveTextContent(emptyFieldText);
   });
 
-  test.only('MultipleSelect: Should render custom empty field text if set in overrides', async () => {
+  test('MultipleSelect: Should render custom empty field text if set in overrides', async () => {
     const emptyFieldText = 'Dette feltet må fylles ut';
     const { container } = await render({
       layout: {
