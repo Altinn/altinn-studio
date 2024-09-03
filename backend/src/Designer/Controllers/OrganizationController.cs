@@ -34,7 +34,6 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         public async Task<List<Organization>> Organizations()
         {
-            Console.WriteLine("ORGS");
             List<Organization> orglist = await _giteaApi.GetUserOrganizations();
             return orglist ?? new List<Organization>();
         }

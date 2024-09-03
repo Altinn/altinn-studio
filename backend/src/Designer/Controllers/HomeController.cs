@@ -58,7 +58,6 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet("/")]
         public async Task<ActionResult> Index()
         {
-            Console.WriteLine("Index");
             await Task.CompletedTask;
             bool isUserLoggedIn = User.Identity?.IsAuthenticated ?? false;
 
@@ -80,7 +79,6 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet("/dashboard/{*AllValues}")]
         public ActionResult Dashboard()
         {
-            Console.WriteLine("Dashboard");
             ViewBag.AiConnectionString = _applicationInsightsSettings.ConnectionString;
             ViewBag.App = "dashboard";
             return View("Index");
