@@ -13,12 +13,14 @@ export type StudioModalDialogProps = ModalDialogProps & {
   footer?: ReactNode;
   heading: string;
   icon?: ReactNode;
+  contentClassName?: string;
 };
 export const StudioModalDialog = forwardRef<HTMLDialogElement, StudioModalDialogProps>(
   (
     {
       children,
       className: givenClassName,
+      contentClassName,
       closeButtonTitle,
       contentPadding = true,
       footer,
@@ -55,7 +57,7 @@ export const StudioModalDialog = forwardRef<HTMLDialogElement, StudioModalDialog
           )}
           <span>{heading}</span>
         </Modal.Header>
-        <Modal.Content className={classes.content}>{children}</Modal.Content>
+        <Modal.Content className={cn(classes.content, contentClassName)}>{children}</Modal.Content>
         {footer && <Modal.Footer className={classes.footer}>{footer}</Modal.Footer>}
       </Modal.Dialog>
     );

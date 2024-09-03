@@ -90,13 +90,12 @@ export const SettingsModal = forwardRef<SettingsModalHandle, {}>(({}, ref): Reac
       heading={t('settings_modal.heading')}
       icon={<CogIcon />}
       ref={dialogRef}
+      contentClassName={classes.modalContent}
     >
-      <div className={classes.modalContent}>
-        <div className={classes.leftNavWrapper}>
-          <LeftNavigationBar tabs={leftNavigationTabs} selectedTab={currentTab} />
-        </div>
-        <div className={classes.contentWrapper}>{displayTabs()}</div>
+      <div className={classes.leftNavWrapper}>
+        <LeftNavigationBar tabs={leftNavigationTabs} selectedTab={currentTab} />
       </div>
+      <div className={classes.contentWrapper}>{displayTabs()}</div>
     </StudioModal.Dialog>
   );
 });
