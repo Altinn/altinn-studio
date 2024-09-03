@@ -25,6 +25,7 @@ describe('EditImageUtils', () => {
       });
     });
   });
+
   describe('updateComponentWithDeletedImageReference', () => {
     it('updates component that already has an image source with deleted image source reference', () => {
       const imageComponentWithImageSource = {
@@ -47,6 +48,7 @@ describe('EditImageUtils', () => {
         },
       });
     });
+
     it('updates component that does not have an image source with deleted image source reference', () => {
       const updatedComponent = updateComponentWithDeletedImageReference(
         componentMocks[ComponentType.Image],
@@ -60,6 +62,7 @@ describe('EditImageUtils', () => {
       });
     });
   });
+
   describe('extractFileNameFromImageSrc', () => {
     it.each(['ttd/frontend-test', 'someRandomOrg/someRandomApp'])(
       'extracts fileName from relative path when org/app is %s',
@@ -72,6 +75,7 @@ describe('EditImageUtils', () => {
         expect(extractedFileName).toBe(fileName);
       },
     );
+
     it('returns undefined if org or app is not matching', () => {
       const org = 'ttd';
       const app = 'frontend-test';
@@ -80,12 +84,14 @@ describe('EditImageUtils', () => {
       const extractedFileName = extractFileNameFromImageSrc(imageSource, org, app);
       expect(extractedFileName).toBe(undefined);
     });
+
     it('extracts fileName from wwwroot path', () => {
       const fileName = 'image.png';
       const imageSource = `wwwroot/${fileName}`;
       const extractedFileName = extractFileNameFromImageSrc(imageSource, 'ttd', 'frontend-test');
       expect(extractedFileName).toBe(fileName);
     });
+
     it('returns original string if source is neither relative or wwwroot', () => {
       const imageSource = `http://someExternalUrl/image.png`;
       const extractedFileName = extractFileNameFromImageSrc(imageSource, 'ttd', 'frontend-test');

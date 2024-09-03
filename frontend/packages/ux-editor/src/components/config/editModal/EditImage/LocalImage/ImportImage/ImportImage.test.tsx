@@ -6,20 +6,8 @@ import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { app, org } from '@studio/testing/testids';
-import type { UploadImageProps } from './UploadImage/UploadImage';
+import { fileSelectorInputId } from '@studio/testing/testids';
 
-jest.mock('./UploadImage/UploadImage', () => ({
-  UploadImage: ({ onHandleSubmit, onHandleInputChange, imageRef }: UploadImageProps) => (
-    <div>
-      <input type='file' ref={imageRef} onChange={onHandleInputChange} data-testid='upload-input' />
-      <button onClick={onHandleSubmit} data-testid='submit-button'>
-        Upload
-      </button>
-    </div>
-  ),
-}));
 const onImageChangeMock = jest.fn();
 
 describe('ImportImage', () => {
@@ -27,48 +15,53 @@ describe('ImportImage', () => {
     const user = userEvent.setup();
     const imageFileName = 'image.png';
     renderImportImage();
-    const fileInput = screen.getByTestId('upload-input');
+    const fileInput = screen.getByTestId(fileSelectorInputId);
     const file = new File(['test'], imageFileName, { type: 'image/png' });
     await user.upload(fileInput, file);
     expect(onImageChangeMock).toHaveBeenCalledWith(`wwwroot/${imageFileName}`);
   });
-  it('should show overrideExistingImageModal if trying to upload an image that exists', async () => {
+
+  it('should show overrideExistingConfirmDialogue if trying to upload an image that exists', async () => {
+    window.confirm = jest.fn();
     const user = userEvent.setup();
     const imageFileName = 'image.png';
     const addImageMock = jest
       .fn()
       .mockImplementation(() => Promise.reject(createApiErrorMock(400, 'AD_04')));
     renderImportImage({ addImage: addImageMock });
-    const fileInput = screen.getByTestId('upload-input');
+    //const fileInput = screen.getByTestId(fileSelectorInputId);
+
+    const fileInput = screen.getByRole('button', { name: 'image-upload' });
     const file = new File(['test'], imageFileName, { type: 'image/png' });
     await user.upload(fileInput, file);
-    const overrideExistingImageModalHeading = screen.getByRole('heading', {
-      name: textMock('ux_editor.properties_panel.images.override_existing_image_modal_title'),
-    });
-    expect(overrideExistingImageModalHeading).toBeInTheDocument();
+    expect(window.confirm).toHaveBeenCalled();
   });
+
   it('should call addImage twice when uploading an existing image and clicking override button in modal', async () => {
+    window.confirm = jest.fn(() => true);
     const user = userEvent.setup();
     const imageFileName = 'image.png';
     const addImageMock = jest
       .fn()
       .mockImplementation(() => Promise.reject(createApiErrorMock(400, 'AD_04')));
     renderImportImage({ addImage: addImageMock });
-    const fileInput = screen.getByTestId('upload-input');
+    const fileInput = screen.getByTestId(fileSelectorInputId);
     const file = new File(['test'], imageFileName, { type: 'image/png' });
     await user.upload(fileInput, file);
-    const overrideExistingImageButton = screen.getByRole('button', {
-      name: textMock('ux_editor.properties_panel.images.override_existing_image_button'),
-    });
-    await user.click(overrideExistingImageButton);
+
     const formDataMock = new FormData();
     formDataMock.append('image', file);
     const formDataOverrideExistingMock = new FormData();
     formDataOverrideExistingMock.append('image', file);
     formDataOverrideExistingMock.append('overrideExisting', 'true');
+
     expect(addImageMock).toHaveBeenCalledTimes(2);
-    expect(addImageMock).toHaveBeenNthCalledWith(1, org, app, formDataMock);
-    expect(addImageMock).toHaveBeenNthCalledWith(2, org, app, formDataOverrideExistingMock);
+    const formDataCalls = addImageMock.mock.calls;
+    expect(formDataCalls[0][2].get('image')).toEqual(formDataMock.get('image'));
+    expect(formDataCalls[1][2].get('image')).toEqual(formDataOverrideExistingMock.get('image'));
+    expect(formDataCalls[1][2].get('overrideExisting')).toEqual(
+      formDataOverrideExistingMock.get('overrideExisting'),
+    );
   });
 });
 

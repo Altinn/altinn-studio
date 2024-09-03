@@ -11,7 +11,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, fileSelectorInputId, org } from '@studio/testing/testids';
 import type { QueryClient } from '@tanstack/react-query';
 
 const handleComponentChangeMock = jest.fn();
@@ -23,24 +23,14 @@ describe('EditImage', () => {
   });
   it('renders tabs for adding image and for pasting url', () => {
     renderEditImage();
-    const addImageTab = screen.getByRole('tab', {
-      name: textMock('ux_editor.properties_panel.images.add_image_tab_title'),
-    });
-    const pasteUrlTab = screen.getByRole('tab', {
-      name: textMock('ux_editor.properties_panel.images.enter_external_url_tab_title'),
-    });
+    const { addImageTab, pasteUrlTab } = getTabs();
     expect(addImageTab).toBeInTheDocument();
     expect(pasteUrlTab).toBeInTheDocument();
   });
 
   it('renders tab for adding image as selected by default', () => {
     renderEditImage();
-    const addImageTab = screen.getByRole('tab', {
-      name: textMock('ux_editor.properties_panel.images.add_image_tab_title'),
-    });
-    const pasteUrlTab = screen.getByRole('tab', {
-      name: textMock('ux_editor.properties_panel.images.enter_external_url_tab_title'),
-    });
+    const { addImageTab, pasteUrlTab } = getTabs();
     expect(addImageTab).toHaveAttribute('aria-selected', 'true');
     expect(pasteUrlTab).toHaveAttribute('aria-selected', 'false');
   });
@@ -48,12 +38,7 @@ describe('EditImage', () => {
   it('toggles to paste url tab when clicking', async () => {
     const user = userEvent.setup();
     renderEditImage();
-    const addImageTab = screen.getByRole('tab', {
-      name: textMock('ux_editor.properties_panel.images.add_image_tab_title'),
-    });
-    const pasteUrlTab = screen.getByRole('tab', {
-      name: textMock('ux_editor.properties_panel.images.enter_external_url_tab_title'),
-    });
+    const { addImageTab, pasteUrlTab } = getTabs();
     await user.click(pasteUrlTab);
     expect(addImageTab).toHaveAttribute('aria-selected', 'false');
     expect(pasteUrlTab).toHaveAttribute('aria-selected', 'true');
@@ -61,13 +46,13 @@ describe('EditImage', () => {
 
   it('calls handleComponentChange when image is added', async () => {
     const user = userEvent.setup();
+    const imageFileName = 'image.png';
     renderEditImage();
-    const uploadImageButton = screen.getByRole('button', {
-      name: textMock('ux_editor.properties_panel.images.upload_image'),
-    });
+    const uploadImageButton = screen.getByTestId(fileSelectorInputId);
     await user.click(uploadImageButton);
-    // How to mock the file upload?
-    //expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
+    const file = new File(['test'], imageFileName, { type: 'image/png' });
+    await user.upload(uploadImageButton, file);
+    expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
   });
 
   it('calls handleComponentChange when image url is pasted', async () => {
@@ -221,6 +206,17 @@ describe('EditImage', () => {
     expect(queriesMock.deleteImage).toHaveBeenCalledWith(org, app, existingFileFromLibrary);
   });
 });
+
+const getTabs = (): { addImageTab: HTMLElement; pasteUrlTab: HTMLElement } => {
+  return {
+    addImageTab: screen.getByRole('tab', {
+      name: textMock('ux_editor.properties_panel.images.add_image_tab_title'),
+    }),
+    pasteUrlTab: screen.getByRole('tab', {
+      name: textMock('ux_editor.properties_panel.images.enter_external_url_tab_title'),
+    }),
+  };
+};
 
 const renderEditImage = (
   imageComponent: FormItem<ComponentType.Image> = imageComponentMock,

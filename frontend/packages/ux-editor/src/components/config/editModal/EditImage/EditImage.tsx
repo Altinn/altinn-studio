@@ -15,8 +15,6 @@ import {
   updateComponentWithImage,
 } from './EditImageUtils';
 
-export const WWWROOT_FILE_PATH = 'wwwroot/';
-
 enum ImageTab {
   Import = 'import',
   ExternalUrl = 'externalUrl',

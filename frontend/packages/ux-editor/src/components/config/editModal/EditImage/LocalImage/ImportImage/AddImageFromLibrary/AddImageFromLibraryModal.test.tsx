@@ -8,7 +8,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { imagePath } from 'app-shared/api/paths';
 import userEvent from '@testing-library/user-event';
-import { WWWROOT_FILE_PATH } from '@altinn/ux-editor/components/config/editModal/EditImage/EditImage';
+import { WWWROOT_FILE_PATH } from '../../../RelativeImageSourceIdentifyer';
 
 const onCloseMock = jest.fn();
 const onAddImageReferenceMock = jest.fn();
@@ -31,6 +31,7 @@ describe('AddImageFromLibraryModal', () => {
     );
     expect(noImagesInLibraryMessage).toBeInTheDocument();
   });
+
   it('renders modal with image, fileName and missing description', () => {
     (imagePath as jest.Mock).mockImplementation(
       (mockOrg, mockApp, imageFileName) => `/images/${mockOrg}/${mockApp}/${imageFileName}`,
@@ -49,6 +50,7 @@ describe('AddImageFromLibraryModal', () => {
     expect(missingFileDescription).toBeInTheDocument();
     expect(imagePath).toHaveBeenCalledWith(org, app, existingImageFileName);
   });
+
   it('should call onClose when clicking on close modal button', async () => {
     const user = userEvent.setup();
     renderAddImageFromLibraryModal();
@@ -56,6 +58,7 @@ describe('AddImageFromLibraryModal', () => {
     await user.click(closeModalButton);
     expect(onCloseMock).toHaveBeenCalled();
   });
+
   it('should call onAddImageReference when clicking on an image', async () => {
     const user = userEvent.setup();
     const existingImageFileName = 'image.png';
@@ -66,6 +69,7 @@ describe('AddImageFromLibraryModal', () => {
     expect(onAddImageReferenceMock).toHaveBeenCalledWith(WWWROOT_FILE_PATH + existingImageFileName);
   });
 });
+
 const renderAddImageFromLibraryModal = (imageFileNames: string[] = []) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.ImageFileNames, org, app], imageFileNames);

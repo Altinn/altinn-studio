@@ -18,6 +18,7 @@ const imageOriginsFromLibrary = false;
 
 describe('ExternalImage', () => {
   afterEach(() => jest.clearAllMocks());
+
   it('shows input field by default when no url exists', () => {
     renderExternalImage();
     const inputUrlField = screen.getByRole('textbox', {
@@ -25,6 +26,7 @@ describe('ExternalImage', () => {
     });
     expect(inputUrlField).toBeInTheDocument();
   });
+
   it('shows conflictingImageSourceAlert when imageOriginsFromLibrary is true', () => {
     renderExternalImage({ imageOriginsFromLibrary: true });
     const conflictingImageSourceAlert = screen.getByText(
@@ -32,6 +34,7 @@ describe('ExternalImage', () => {
     );
     expect(conflictingImageSourceAlert).toBeInTheDocument();
   });
+
   it('shows existing url in view mode if exist', () => {
     const existingUrl = 'someExistingUrl';
     renderExternalImage({ existingImageUrl: existingUrl });
@@ -40,6 +43,7 @@ describe('ExternalImage', () => {
     });
     expect(existingUrlButton).toBeInTheDocument();
   });
+
   it('shows "invalid url" error message by default if existing url is validated as invalid url', () => {
     const existingUrl = 'someExistingUrl';
     const queryClientMock = createQueryClientMock();
@@ -55,6 +59,7 @@ describe('ExternalImage', () => {
     expect(queriesMock.validateImageFromExternalUrl).toHaveBeenCalled();
     expect(queriesMock.validateImageFromExternalUrl).toHaveBeenCalledTimes(1);
   });
+
   it('shows "not an image" error message by default if existing url is validated as not an image', () => {
     const existingUrl = 'someExistingUrl';
     const queryClientMock = createQueryClientMock();
@@ -70,6 +75,7 @@ describe('ExternalImage', () => {
     expect(queriesMock.validateImageFromExternalUrl).toHaveBeenCalled();
     expect(queriesMock.validateImageFromExternalUrl).toHaveBeenCalledTimes(1);
   });
+
   it('shows loading spinner when entering a new url that is being validated in backend', async () => {
     const user = userEvent.setup();
     renderExternalImage();
@@ -85,6 +91,7 @@ describe('ExternalImage', () => {
     expect(queriesMock.validateImageFromExternalUrl).toHaveBeenCalled();
     expect(queriesMock.validateImageFromExternalUrl).toHaveBeenCalledTimes(1);
   });
+
   it('shows "invalid url" error message when entering an invalid url', async () => {
     const user = userEvent.setup();
     const invalidUrl = 'invalidUrl';
@@ -107,6 +114,7 @@ describe('ExternalImage', () => {
     );
     expect(invalidUrlErrorMessage).toBeInTheDocument();
   });
+
   it('shows "not an image" error message when entering a url that is not an image', async () => {
     const user = userEvent.setup();
     const notAnImageUrl = 'notAnImageUrl';
@@ -129,6 +137,7 @@ describe('ExternalImage', () => {
     );
     expect(invalidUrlErrorMessage).toBeInTheDocument();
   });
+
   it('does not call onUrlChange when entering an invalid url', async () => {
     const user = userEvent.setup();
     const invalidUrl = 'invalidUrl';
@@ -145,6 +154,7 @@ describe('ExternalImage', () => {
     await waitFor(() => inputUrlField.blur());
     expect(onUrlChangeMock).not.toHaveBeenCalled();
   });
+
   it('calls onUrlChange when entering a valid url', async () => {
     const user = userEvent.setup();
     const validImageUrl = 'validImageUrl';
@@ -158,6 +168,7 @@ describe('ExternalImage', () => {
     await waitFor(() => inputUrlField.blur());
     expect(onUrlChangeMock).toHaveBeenCalled();
   });
+
   it('calls onUrlChange when entering a valid url after entering an invalid one', async () => {
     const user = userEvent.setup();
     const invalidUrl = 'invalidUrl';
@@ -184,6 +195,7 @@ describe('ExternalImage', () => {
     await waitFor(() => inputUrlField2.blur());
     expect(onUrlChangeMock).toHaveBeenCalled();
   });
+
   it('sets url to view mode when entering a valid url', async () => {
     const user = userEvent.setup();
     const validUrl = 'someValidUrl';
@@ -198,6 +210,7 @@ describe('ExternalImage', () => {
     });
     expect(existingUrlButton).toBeInTheDocument();
   });
+
   it('calls onUrlDelete when entering an empty url', async () => {
     const user = userEvent.setup();
     renderExternalImage();
@@ -209,6 +222,7 @@ describe('ExternalImage', () => {
     expect(onUrlDeleteMock).toHaveBeenCalledTimes(1);
     expect(onUrlDeleteMock).toHaveBeenCalledWith();
   });
+
   it('sets field to view mode with placeholder text when entering an empty url', async () => {
     const user = userEvent.setup();
     renderExternalImage();

@@ -7,7 +7,7 @@ import { imagePath } from 'app-shared/api/paths';
 import { useTranslation } from 'react-i18next';
 import classes from './ChooseFromLibrary.module.css';
 import { extractFilename } from 'app-shared/utils/filenameUtils';
-import { WWWROOT_FILE_PATH } from '@altinn/ux-editor/components/config/editModal/EditImage/EditImage';
+import { WWWROOT_FILE_PATH } from '../../../RelativeImageSourceIdentifyer';
 
 interface ChooseFromLibraryProps {
   onAddImageReference: (imageFilePath: string) => void;

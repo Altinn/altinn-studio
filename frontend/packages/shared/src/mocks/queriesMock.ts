@@ -99,7 +99,6 @@ export const queriesMock: ServicesContextProps = {
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponse>({})),
   getFormLayoutsV3: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponseV3>({})),
   getFrontEndSettings: jest.fn().mockImplementation(() => Promise.resolve<IFrontEndSettings>({})),
-  getImage: jest.fn().mockImplementation(() => Promise.resolve<any>([])),
   getImageFileNames: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
   getLayoutNames: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),

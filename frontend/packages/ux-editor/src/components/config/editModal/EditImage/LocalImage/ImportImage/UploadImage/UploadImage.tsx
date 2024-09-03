@@ -3,7 +3,7 @@ import { UploadIcon } from '@studio/icons';
 import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './UploadImage.module.css';
-
+import { fileSelectorInputId } from '@studio/testing/testids';
 export interface UploadImageProps {
   onHandleSubmit: () => void;
   onHandleInputChange: () => void;
@@ -23,6 +23,7 @@ export const UploadImage = ({
         accept='image/*'
         ref={imageRef}
         onChange={onHandleInputChange}
+        data-testid={fileSelectorInputId}
       />
       <StudioButton
         size='small'

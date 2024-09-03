@@ -26,6 +26,7 @@ describe('PreviewImageSummary', () => {
     expect(fileName).toBeInTheDocument();
     expect(fileDescription).toBeInTheDocument();
   });
+
   it('previews the fileName and description placeholder if missing description', () => {
     renderPreviewImageSummary({ existingImageDescription: undefined });
     const fileName = screen.getByRole('paragraph', { name: existingImageUrl });
@@ -35,6 +36,7 @@ describe('PreviewImageSummary', () => {
     expect(fileName).toBeInTheDocument();
     expect(missingFileDescription).toBeInTheDocument();
   });
+
   it('opens delete options modal with correct texts when clicking delete button', async () => {
     const user = userEvent.setup();
     renderPreviewImageSummary();
@@ -57,6 +59,7 @@ describe('PreviewImageSummary', () => {
     expect(deleteOptionsModalInfoDeleteRefOnly).toBeInTheDocument();
     expect(deleteOptionsModalInfoDeleteRefAndImage).toBeInTheDocument();
   });
+
   it('calls onDeleteImage when clicking delete image in modal', async () => {
     const user = userEvent.setup();
     renderPreviewImageSummary();
@@ -73,6 +76,7 @@ describe('PreviewImageSummary', () => {
     expect(onDeleteImageMock).toHaveBeenCalledTimes(1);
     expect(onDeleteImageMock).toHaveBeenCalledWith(existingImageUrl);
   });
+
   it('calls onDeleteImageReferenceOnly when clicking delete image reference only in modal', async () => {
     const user = userEvent.setup();
     renderPreviewImageSummary();

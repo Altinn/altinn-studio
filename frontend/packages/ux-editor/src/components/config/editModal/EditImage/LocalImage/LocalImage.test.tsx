@@ -21,6 +21,7 @@ describe('LocalImage', () => {
     expect(addImageButton).toBeInTheDocument();
     expect(uploadImageButton).toBeInTheDocument();
   });
+
   it('renders alert that external image reference exists when componentHasExternalImageReference is true', () => {
     renderLocalImage({ componentHasExternalImageReference: true });
     const externalImageRefExistsAlert = screen.getByText(
@@ -28,6 +29,7 @@ describe('LocalImage', () => {
     );
     expect(externalImageRefExistsAlert).toBeInTheDocument();
   });
+
   it('renders library modal when clicking on "add from library" button', async () => {
     const user = userEvent.setup();
     const queryClientMock = createQueryClientMock();
