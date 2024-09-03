@@ -152,6 +152,34 @@ describe('StudioProfileMenu', () => {
     expect(screen.getByText(truncatedText)).toBeInTheDocument();
     expect(screen.getByText(truncatedText)).toHaveTextContent(truncatedText);
   });
+
+  it('should toggle the dropdown menu open and close when the trigger button is clicked multiple times', async () => {
+    const user = userEvent.setup();
+    renderStudioProfileMenu();
+
+    const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
+
+    await user.click(triggerButton);
+    expect(screen.getByRole('menuitem', { name: menuItem1 })).toBeInTheDocument();
+
+    await user.click(triggerButton);
+    expect(screen.queryByRole('menuitem', { name: menuItem1 })).not.toBeInTheDocument();
+  });
+
+  it('should close the dropdown menu when handleClose is called', async () => {
+    const user = userEvent.setup();
+    renderStudioProfileMenu();
+
+    const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
+    await user.click(triggerButton);
+
+    expect(screen.getByRole('menuitem', { name: menuItem1 })).toBeInTheDocument();
+
+    const handleCloseButton = screen.getByRole('button', { name: mockTriggerButtonText });
+    await user.click(handleCloseButton);
+
+    expect(screen.queryByRole('menuitem', { name: menuItem1 })).not.toBeInTheDocument();
+  });
 });
 
 const renderStudioProfileMenu = (props?: Partial<StudioProfileMenuProps>) => {

@@ -27,18 +27,5 @@ export const renderWithProviders =
         </PreviewConnectionContextProvider>
       </ServicesContextProvider>,
     );
-    const rerender = (rerenderedComponent) =>
-      renderResult.rerender(
-        <ServicesContextProvider
-          {...queriesMock}
-          {...queries}
-          client={queryClient}
-          clientConfig={queryClientConfigMock}
-        >
-          <PreviewConnectionContextProvider>
-            <BrowserRouter>{rerenderedComponent}</BrowserRouter>
-          </PreviewConnectionContextProvider>
-        </ServicesContextProvider>,
-      );
-    return { renderResult: { ...renderResult, rerender } };
+    return { renderResult: { ...renderResult } };
   };
