@@ -51,7 +51,11 @@ public class RunTest3
         var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(state);
 
         // Should try to remove "some.data[0].binding2", because it is not nullable int and the parent object exists
-        hidden.Should().BeEquivalentTo([new ModelBinding { Field = "some.data[2]", DataType = "default" }]);
+        hidden
+            .Should()
+            .BeEquivalentTo(
+                [new DataReference() { Field = "some.data[2]", DataElementId = state.GetDefaultElementId() }]
+            );
 
         // Verify before removing data
         data.Some.Data.Should().HaveCount(3);
@@ -62,7 +66,7 @@ public class RunTest3
         data.Some.Data[2].Binding.Should().Be("hideRow");
         data.Some.Data[2].Binding2.Should().Be(3);
         data.Some.Data[2].Binding3.Should().Be("text");
-        await LayoutEvaluator.RemoveHiddenData(state, RowRemovalOption.DeleteRow);
+        await LayoutEvaluator.RemoveHiddenData(state, RowRemovalOption.SetToNull);
 
         // Verify row not deleted but fields null
         data.Some.Data.Should().HaveCount(3);
@@ -108,7 +112,11 @@ public class RunTest3
         var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(state);
 
         // Should try to remove "some.data[0].binding2", because it is not nullable int and the parent object exists
-        hidden.Should().BeEquivalentTo([new ModelBinding { Field = "some.data[2]", DataType = "default" }]);
+        hidden
+            .Should()
+            .BeEquivalentTo(
+                [new DataReference() { Field = "some.data[2]", DataElementId = state.GetDefaultElementId() }]
+            );
 
         // Verify before removing data
         data.Some.Data.Should().HaveCount(3);

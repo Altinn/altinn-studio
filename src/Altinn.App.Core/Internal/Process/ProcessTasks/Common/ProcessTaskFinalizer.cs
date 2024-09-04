@@ -140,7 +140,6 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
             // implementing frontend removal of hidden data, so
             //this is not updated to remove from multiple data models at once.
             LayoutEvaluatorState evaluationState = await _layoutEvaluatorStateInitializer.Init(
-                instance,
                 dataAccessor,
                 taskId,
                 gatewayAction: null,

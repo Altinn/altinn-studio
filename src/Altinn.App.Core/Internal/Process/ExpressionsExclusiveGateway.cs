@@ -1,9 +1,12 @@
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
+using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -20,16 +23,23 @@ public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
             AllowTrailingCommas = true,
             ReadCommentHandling = JsonCommentHandling.Skip,
             PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         };
 
     private readonly ILayoutEvaluatorStateInitializer _layoutStateInit;
 
+    private readonly IAppResources _resources;
+
     /// <summary>
     /// Constructor for <see cref="ExpressionsExclusiveGateway" />
     /// </summary>
-    public ExpressionsExclusiveGateway(ILayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer)
+    public ExpressionsExclusiveGateway(
+        ILayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
+        IAppResources resources
+    )
     {
         _layoutStateInit = layoutEvaluatorStateInitializer;
+        _resources = resources;
     }
 
     /// <inheritdoc />
@@ -43,11 +53,9 @@ public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
         ProcessGatewayInformation processGatewayInformation
     )
     {
-        var taskId = instance.Process.CurrentTask.ElementId;
         var state = await _layoutStateInit.Init(
-            instance,
             dataAccessor,
-            taskId,
+            taskId: null, // don't load layout for task
             processGatewayInformation.Action,
             language: null
         );
@@ -55,7 +63,7 @@ public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
         var flows = new List<SequenceFlow>();
         foreach (var outgoingFlow in outgoingFlows)
         {
-            if (await EvaluateSequenceFlow(state, outgoingFlow, processGatewayInformation))
+            if (await EvaluateSequenceFlow(instance, state, outgoingFlow, processGatewayInformation))
             {
                 flows.Add(outgoingFlow);
             }
@@ -64,33 +72,36 @@ public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
         return flows;
     }
 
-    private static async Task<bool> EvaluateSequenceFlow(LayoutEvaluatorState state, SequenceFlow sequenceFlow, ProcessGatewayInformation processGatewayInformation)
+    private async Task<bool> EvaluateSequenceFlow(
+        Instance instance,
+        LayoutEvaluatorState state,
+        SequenceFlow sequenceFlow,
+        ProcessGatewayInformation processGatewayInformation
+    )
     {
-        if (sequenceFlow.ConditionExpression != null)
+        if (sequenceFlow.ConditionExpression is not null)
         {
-            var expression = GetExpressionFromCondition(sequenceFlow.ConditionExpression);
-
-            // If there is no component context in the state, evaluate the expression once without a component context
-            var stateComponentContexts = (await state.GetComponentContexts()).ToList();
-            if (stateComponentContexts.Count == 0)
+            var dataTypeId = processGatewayInformation.DataTypeId;
+            if (dataTypeId is null)
             {
-                stateComponentContexts.Add(
-                    new ComponentContext(
-                        component: null,
-                        rowIndices: null,
-                        rowLength: null,
-                        dataElementId: processGatewayInformation.DataTypeId,
-                        childContexts: null
-                    )
-                );
+                // TODO: getting the data type from layout is kind of sketchy, because it depends on the previous task
+                //       and in a future version we should probably require <altinn:connectedDataTypeId>
+                var layoutSet = _resources.GetLayoutSetForTask(instance.Process.CurrentTask.ElementId);
+                dataTypeId = layoutSet?.DataType;
             }
-            foreach (ComponentContext? componentContext in stateComponentContexts)
+            var expression = GetExpressionFromCondition(sequenceFlow.ConditionExpression);
+            DataElementId dataElement = instance.Data.Find(d => d.DataType == dataTypeId) ?? new DataElementId();
+
+            var componentContext = new ComponentContext(
+                component: null,
+                rowIndices: null,
+                rowLength: null,
+                dataElement
+            );
+            var result = await ExpressionEvaluator.EvaluateExpression(state, expression, componentContext);
+            if (result is true)
             {
-                var result = await ExpressionEvaluator.EvaluateExpression(state, expression, componentContext);
-                if (result is true)
-                {
-                    return true;
-                }
+                return true;
             }
         }
         else

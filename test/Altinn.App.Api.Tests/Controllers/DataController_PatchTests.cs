@@ -300,7 +300,9 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         var requiredList = parsedResponse.ValidationIssues.Should().ContainKey("Required").WhoseValue;
         var requiredName = requiredList.Should().ContainSingle().Which;
         requiredName.Field.Should().Be("melding.name");
-        requiredName.Description.Should().Be("melding.name is required in component with id name");
+        requiredName
+            .Description.Should()
+            .Be("melding.name is required in component with id name for binding simpleBinding");
 
         // Run full validation to see that result is the same
         using var client = GetRootedClient(Org, App, UserId, null);

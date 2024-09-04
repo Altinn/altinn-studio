@@ -93,7 +93,7 @@ public class DataModel
     private static readonly Regex _rowIndexRegex = new Regex(
         @"^([^[\]]+(\[(\d+)])?)+$",
         RegexOptions.None,
-        TimeSpan.FromMilliseconds(1)
+        TimeSpan.FromMilliseconds(10)
     );
 
     /// <summary>
@@ -114,11 +114,11 @@ public class DataModel
     /// indicies = [1,2]
     /// => "bedrift[1].ansatte[2].navn"
     /// </example>
-    public async Task<ModelBinding> AddIndexes(ModelBinding key, DataElementId dataElementId, int[]? rowIndexes)
+    public async Task<DataReference> AddIndexes(ModelBinding key, DataElementId dataElementId, int[]? rowIndexes)
     {
         if (rowIndexes?.Length < 0)
         {
-            return key;
+            return new DataReference() { Field = key.Field, DataElementId = dataElementId };
         }
         var serviceModel = await ServiceModel(key, dataElementId);
         if (serviceModel is null)
@@ -128,7 +128,7 @@ public class DataModel
 
         var modelWrapper = new DataModelWrapper(serviceModel);
         var field = modelWrapper.AddIndicies(key.Field, rowIndexes);
-        return key with { Field = field };
+        return new DataReference() { Field = field, DataElementId = dataElementId };
     }
 
     /// <summary>

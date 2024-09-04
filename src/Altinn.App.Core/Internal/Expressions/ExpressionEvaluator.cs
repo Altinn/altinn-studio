@@ -164,6 +164,11 @@ public static class ExpressionEvaluator
             context.RowIndices
         );
 
+        if (targetContext is null)
+        {
+            return null;
+        }
+
         if (targetContext.Component is GroupComponent)
         {
             throw new NotImplementedException("Component lookup for components in groups not implemented");
@@ -173,15 +178,9 @@ public static class ExpressionEvaluator
         {
             throw new ArgumentException("component lookup requires the target component to have a simpleBinding");
         }
-        ComponentContext? parent = targetContext;
-        while (parent is not null)
+        if (await targetContext.IsHidden(state))
         {
-            if (await EvaluateBooleanExpression(state, parent, "hidden", false))
-            {
-                // Don't lookup data in hidden components
-                return null;
-            }
-            parent = parent.Parent;
+            return null;
         }
 
         return await DataModel(binding, context.DataElementId, context.RowIndices, state);

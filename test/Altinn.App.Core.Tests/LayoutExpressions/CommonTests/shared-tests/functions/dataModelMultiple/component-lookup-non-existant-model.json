@@ -4,7 +4,7 @@
     "component",
     "current-component"
   ],
-  "expects": null,
+  "expectsFailure": "non-existant",
   "dataModels": [
     {
       "dataElement": {

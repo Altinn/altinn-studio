@@ -101,8 +101,8 @@ public class ExpressionsExclusiveGatewayTests
         var data = new DummyModel();
         var outgoingFlows = new List<SequenceFlow>
         {
-            new SequenceFlow { Id = "1", ConditionExpression = "[\"equals\", [\"gatewayAction\"], \"confirm\"]", },
-            new SequenceFlow { Id = "2", ConditionExpression = "[\"equals\", [\"gatewayAction\"], \"reject\"]", },
+            new SequenceFlow { Id = "1", ConditionExpression = """["equals", ["gatewayAction"], "confirm"]""", },
+            new SequenceFlow { Id = "2", ConditionExpression = """["equals", ["gatewayAction"], "reject"]""", },
         };
         var instance = new Instance()
         {
@@ -147,18 +147,13 @@ public class ExpressionsExclusiveGatewayTests
             }
         };
         object formData = new DummyModel() { Amount = 1000, Submitter = "test" };
-        LayoutSets layoutSets = new LayoutSets()
-        {
-            Sets = new()
+        LayoutSet layoutSet =
+            new()
             {
-                new()
-                {
-                    Id = "test",
-                    Tasks = new() { "Task_1" },
-                    DataType = "test"
-                }
-            }
-        };
+                Id = "test",
+                Tasks = new() { "Task_1" },
+                DataType = DefaultDataTypeName
+            };
         var outgoingFlows = new List<SequenceFlow>
         {
             new SequenceFlow { Id = "1", ConditionExpression = "[\"notEquals\", [\"dataModel\", \"Amount\"], 1000]", },
@@ -180,8 +175,8 @@ public class ExpressionsExclusiveGatewayTests
         var (gateway, dataAccessor) = SetupExpressionsGateway(
             instance,
             dataTypes: dataTypes,
-            formData: formData,
-            layoutSets: LayoutSetsToString(layoutSets)
+            layoutSet: layoutSet,
+            formData: formData
         );
 
         // Act
@@ -201,7 +196,7 @@ public class ExpressionsExclusiveGatewayTests
             new()
             {
                 Id = "aa",
-                AppLogic = new() { ClassRef = "Altinn.App.Core.Tests.Internal.Process.TestData.NotFound", }
+                AppLogic = new() { ClassRef = _classRef, }
             },
             new()
             {
@@ -211,18 +206,13 @@ public class ExpressionsExclusiveGatewayTests
         };
 
         object formData = new DummyModel() { Amount = 1000, Submitter = "test" };
-        LayoutSets layoutSets = new LayoutSets()
-        {
-            Sets = new()
+        LayoutSet layoutSet =
+            new()
             {
-                new()
-                {
-                    Id = "test",
-                    Tasks = new() { "Task_1" },
-                    DataType = DefaultDataTypeName
-                }
-            }
-        };
+                Id = "test",
+                Tasks = new() { "Task_1" },
+                DataType = DefaultDataTypeName
+            };
         var outgoingFlows = new List<SequenceFlow>
         {
             new SequenceFlow { Id = "1", ConditionExpression = "[\"notEquals\", [\"dataModel\", \"Amount\"], 1000]", },
@@ -241,12 +231,7 @@ public class ExpressionsExclusiveGatewayTests
         };
         var processGatewayInformation = new ProcessGatewayInformation { Action = "confirm", DataTypeId = "aa" };
 
-        var (gateway, dataAccessor) = SetupExpressionsGateway(
-            instance,
-            dataTypes,
-            LayoutSetsToString(layoutSets),
-            formData
-        );
+        var (gateway, dataAccessor) = SetupExpressionsGateway(instance, dataTypes, layoutSet, formData);
 
         // Act
         var result = await gateway.FilterAsync(outgoingFlows, instance, dataAccessor, processGatewayInformation);
@@ -259,37 +244,15 @@ public class ExpressionsExclusiveGatewayTests
     private (ExpressionsExclusiveGateway gateway, IInstanceDataAccessor dataAccessor) SetupExpressionsGateway(
         Instance instance,
         List<DataType> dataTypes,
-        string? layoutSets = null,
+        LayoutSet? layoutSet = null,
         object? formData = null
     )
     {
-        _resources.Setup(r => r.GetLayoutSets()).Returns(layoutSets ?? string.Empty);
+        _resources.Setup(r => r.GetLayoutSetForTask("Task_1")).Returns(layoutSet);
         _appMetadata
             .Setup(m => m.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("ttd/test-app") { DataTypes = dataTypes });
-        _resources
-            .Setup(r => r.GetLayoutModelForTask(It.IsAny<string>()))
-            .Returns(
-                new LayoutModel()
-                {
-                    DefaultDataType = dataTypes.Single(d => d.Id == DefaultDataTypeName),
-                    Pages = new Dictionary<string, PageComponent>()
-                    {
-                        {
-                            "Page1",
-                            new(
-                                "Page1",
-                                new List<BaseComponent>(),
-                                new Dictionary<string, BaseComponent>(),
-                                Expression.False,
-                                Expression.False,
-                                Expression.False,
-                                null
-                            )
-                        }
-                    }
-                }
-            );
+            .ReturnsAsync(new ApplicationMetadata("ttd/test-app") { DataTypes = dataTypes })
+            .Verifiable(Times.Once);
         if (formData != null)
         {
             _dataClient
@@ -318,7 +281,7 @@ public class ExpressionsExclusiveGatewayTests
         );
 
         var layoutStateInit = new LayoutEvaluatorStateInitializer(_resources.Object, frontendSettings);
-        return (new ExpressionsExclusiveGateway(layoutStateInit), dataAccessor);
+        return (new ExpressionsExclusiveGateway(layoutStateInit, _resources.Object), dataAccessor);
     }
 
     private static string LayoutSetsToString(LayoutSets layoutSets) =>

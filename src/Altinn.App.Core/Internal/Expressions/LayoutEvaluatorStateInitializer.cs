@@ -3,8 +3,8 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Layout;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Options;
 
@@ -94,20 +94,21 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
 
     /// <inheritdoc />
     public async Task<LayoutEvaluatorState> Init(
-        Instance instance,
         IInstanceDataAccessor dataAccessor,
-        string taskId,
+        string? taskId,
         string? gatewayAction = null,
         string? language = null
     )
     {
-        var layouts = _appResources.GetLayoutModelForTask(taskId);
+        LayoutModel? layouts = null;
+        if (taskId is not null)
+            layouts = _appResources.GetLayoutModelForTask(taskId);
 
         return new LayoutEvaluatorState(
             new DataModel(dataAccessor),
             layouts,
             _frontEndSettings,
-            instance,
+            dataAccessor.Instance,
             gatewayAction,
             language
         );

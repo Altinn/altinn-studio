@@ -71,11 +71,6 @@ public static class LayoutTestUtils
         var modelType = model.GetType();
         appModel.Setup(am => am.GetModelType(ClassRef)).Returns(modelType);
 
-        var data = new Mock<IDataClient>(MockBehavior.Strict);
-        data.Setup(d => d.GetFormData(_instanceGuid, modelType, Org, App, InstanceOwnerPartyId, _dataGuid))
-            .ReturnsAsync(model);
-        services.AddSingleton(data.Object);
-
         var resources = new Mock<IAppResources>();
         var pages = new Dictionary<string, PageComponent>();
         var layoutsPath = Path.Join("LayoutExpressions", "FullTests", folder);
@@ -107,8 +102,8 @@ public static class LayoutTestUtils
         using var scope = serviceProvider.CreateScope();
         var initializer = scope.ServiceProvider.GetRequiredService<ILayoutEvaluatorStateInitializer>();
 
-        var dataAccessor = new TestInstanceDataAccessor(_instance) { { _dataElement, data } };
+        var dataAccessor = new TestInstanceDataAccessor(_instance) { { _dataElement, model } };
 
-        return await initializer.Init(_instance, dataAccessor, TaskId);
+        return await initializer.Init(dataAccessor, TaskId);
     }
 }

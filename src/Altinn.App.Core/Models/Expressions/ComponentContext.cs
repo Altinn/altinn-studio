@@ -1,3 +1,4 @@
+using System.Collections;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
@@ -9,6 +10,8 @@ namespace Altinn.App.Core.Models.Expressions;
 /// </summary>
 public sealed class ComponentContext
 {
+    private readonly int? _rowLength;
+
     /// <summary>
     /// Constructor for ComponentContext
     /// </summary>
@@ -23,7 +26,7 @@ public sealed class ComponentContext
         DataElementId = dataElementId;
         Component = component;
         RowIndices = rowIndices;
-        RowLength = rowLength;
+        _rowLength = rowLength;
         ChildContexts = childContexts ?? [];
         foreach (var child in ChildContexts)
         {
@@ -41,20 +44,69 @@ public sealed class ComponentContext
     /// </summary>
     public int[]? RowIndices { get; }
 
-    /// <summary>
-    /// The number of rows in case the component is a repeating group
-    /// </summary>
-    public int? RowLength { get; }
+    private bool? _isHidden;
 
     /// <summary>
-    /// Whether the component is hidden
+    /// Memoized way to check if the component is hidden
     /// </summary>
-    public bool? IsHidden { get; set; }
+    public async Task<bool> IsHidden(LayoutEvaluatorState state)
+    {
+        if (_isHidden.HasValue)
+        {
+            return _isHidden.Value;
+        }
+        if (Parent is not null && await Parent.IsHidden(state))
+        {
+            _isHidden = true;
+            return _isHidden.Value;
+        }
+
+        _isHidden = await ExpressionEvaluator.EvaluateBooleanExpression(state, this, "hidden", false);
+        return _isHidden.Value;
+    }
+
+    private BitArray? _hiddenRows;
 
     /// <summary>
     /// Hidden rows for repeating group
     /// </summary>
-    public int[]? HiddenRows { get; set; }
+    public async Task<BitArray> GetHiddenRows(LayoutEvaluatorState state)
+    {
+        if (Component is not RepeatingGroupComponent repeatingGroupComponent)
+        {
+            throw new InvalidOperationException("HiddenRows can only be called on a repeating group");
+        }
+        if (_rowLength is null)
+        {
+            throw new InvalidOperationException("RowLength must be set to call HiddenRows on repeating group");
+        }
+        if (_hiddenRows is not null)
+        {
+            return _hiddenRows;
+        }
+
+        var hiddenRows = new BitArray(_rowLength.Value);
+        foreach (var index in Enumerable.Range(0, hiddenRows.Length))
+        {
+            var rowIndices = RowIndices?.Append(index).ToArray() ?? [index];
+            var childContexts = ChildContexts.Where(c => c.RowIndices?[RowIndices?.Length ?? 0] == index);
+            // Row contexts are not in the tree, so we need to create them here
+            var rowContext = new ComponentContext(
+                Component,
+                rowIndices,
+                rowLength: hiddenRows.Length,
+                dataElementId: DataElementId,
+                childContexts: childContexts
+            );
+            var rowHidden = await ExpressionEvaluator.EvaluateBooleanExpression(state, rowContext, "hiddenRow", false);
+
+            hiddenRows[index] = rowHidden;
+        }
+
+        // Set the hidden rows so that it does not need to be recomputed
+        _hiddenRows = hiddenRows;
+        return _hiddenRows;
+    }
 
     /// <summary>
     /// Contexts that logically belongs under this context (eg cell => row => group=> page)

@@ -153,6 +153,7 @@ public class TestFunctions
         testCase.FullPath = file;
         testCase.Folder = folder;
         testCase.RawJson = data;
+        testCase.Instance ??= new Instance();
         return testCase;
     }
 
@@ -200,7 +201,7 @@ public class TestFunctions
                         test.Context?.ToContext(componentModel, state)!
                     );
                 };
-                (await act.Should().ThrowAsync<Exception>()).WithMessage(test.ExpectsFailure);
+                (await act.Should().ThrowAsync<Exception>()).WithMessage($"*{test.ExpectsFailure}*");
             }
 
             return;

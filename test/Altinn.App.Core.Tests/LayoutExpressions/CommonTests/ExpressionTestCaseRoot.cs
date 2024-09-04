@@ -102,11 +102,14 @@ public class ComponentContextForTestSpec
 
     public ComponentContext ToContext(LayoutModel model, LayoutEvaluatorState state)
     {
+        var component = model.GetComponent(CurrentPageName, ComponentId);
         return new ComponentContext(
-            model.GetComponent(CurrentPageName, ComponentId),
+            component,
             RowIndices,
-            null,
-            state.GetDefaultElementId()
+            rowLength: component is RepeatingGroupComponent ? 0 : null,
+            // TODO: get from data model, but currently not important for tests
+            state.GetDefaultElementId(),
+            ChildContexts.Select(c => c.ToContext(model, state))
         );
     }
 
@@ -120,8 +123,7 @@ public class ComponentContextForTestSpec
         {
             ComponentId = context.Component.Id,
             CurrentPageName = context.Component.PageId,
-            ChildContexts =
-                context.ChildContexts?.Select(c => FromContext(c)) ?? Enumerable.Empty<ComponentContextForTestSpec>(),
+            ChildContexts = context.ChildContexts?.Select(FromContext) ?? [],
             RowIndices = context.RowIndices
         };
     }

@@ -80,7 +80,7 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
                 if (dataType == null)
                 {
                     throw new InvalidOperationException(
-                        $"Data type {dataElementType ?? "null"} for data element id {dataElementId} not found in app metadata"
+                        $"Data type {dataElementType ?? "unknown"} for data element id {dataElementId} not found in app metadata"
                     );
                 }
 

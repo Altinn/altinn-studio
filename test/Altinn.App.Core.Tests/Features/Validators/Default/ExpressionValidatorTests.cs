@@ -30,8 +30,6 @@ public class ExpressionValidatorTests
     private readonly Mock<ILogger<ExpressionValidator>> _logger = new();
     private readonly Mock<IAppResources> _appResources = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadata = new(MockBehavior.Strict);
-    private readonly Mock<IDataClient> _dataClient = new(MockBehavior.Strict);
-    private readonly Mock<IAppModel> _appModel = new(MockBehavior.Strict);
     private readonly IOptions<FrontEndSettings> _frontendSettings = Microsoft.Extensions.Options.Options.Create(
         new FrontEndSettings()
     );
@@ -41,12 +39,6 @@ public class ExpressionValidatorTests
     public ExpressionValidatorTests(ITestOutputHelper output)
     {
         _output = output;
-        _appMetadata
-            .Setup(ar => ar.GetApplicationMetadata())
-            .ReturnsAsync(
-                new ApplicationMetadata("org/app") { DataTypes = new List<DataType> { new() { Id = "default" } } }
-            );
-        _appResources.Setup(ar => ar.GetLayoutSetForTask("Task_1")).Returns(new LayoutSet());
         _validator = new ExpressionValidator(
             _logger.Object,
             _appResources.Object,
@@ -58,6 +50,7 @@ public class ExpressionValidatorTests
     public async Task<ExpressionValidationTestModel> LoadData(string fileName, string folder)
     {
         var data = await File.ReadAllTextAsync(Path.Join(folder, fileName));
+        _output.WriteLine(data);
         return JsonSerializer.Deserialize<ExpressionValidationTestModel>(data, _jsonSerializerOptions)!;
     }
 
@@ -92,13 +85,7 @@ public class ExpressionValidatorTests
         var evaluatorState = new LayoutEvaluatorState(dataModel, layoutModel, _frontendSettings.Value, instance);
         _layoutInitializer
             .Setup(init =>
-                init.Init(
-                    It.Is<Instance>(i => i == instance),
-                    It.IsAny<IInstanceDataAccessor>(),
-                    "Task_1",
-                    It.IsAny<string?>(),
-                    It.IsAny<string?>()
-                )
+                init.Init(It.IsAny<IInstanceDataAccessor>(), "Task_1", It.IsAny<string?>(), It.IsAny<string?>())
             )
             .ReturnsAsync(evaluatorState);
         _appResources
@@ -106,12 +93,7 @@ public class ExpressionValidatorTests
             .Returns(JsonSerializer.Serialize(testCase.ValidationConfig));
         _appResources.Setup(ar => ar.GetLayoutSetForTask(null!)).Returns(new LayoutSet() { DataType = "default", });
 
-        var dataAccessor = new CachedInstanceDataAccessor(
-            instance,
-            _dataClient.Object,
-            _appMetadata.Object,
-            _appModel.Object
-        );
+        var dataAccessor = new TestInstanceDataAccessor(instance) { { dataElement, dataModel } };
 
         var validationIssues = await _validator.ValidateFormData(instance, dataElement, dataAccessor, "Task_1", null);
 

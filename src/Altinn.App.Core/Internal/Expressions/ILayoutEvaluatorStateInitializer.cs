@@ -14,9 +14,8 @@ public interface ILayoutEvaluatorStateInitializer
     /// The remaining data will be fetched from dependency injection services
     /// </summary>
     Task<LayoutEvaluatorState> Init(
-        Instance instance,
         IInstanceDataAccessor dataAccessor,
-        string taskId,
+        string? taskId,
         string? gatewayAction = null,
         string? language = null
     );

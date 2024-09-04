@@ -47,7 +47,11 @@ public class RunTest1
             "Test1"
         );
         var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(state);
-        hidden.Should().BeEquivalentTo([new ModelBinding { Field = "some.data.binding2", DataType = "default" }]);
+        hidden
+            .Should()
+            .BeEquivalentTo(
+                [new DataReference() { Field = "some.data.binding2", DataElementId = state.GetDefaultElementId() }]
+            );
     }
 
     [Fact]
@@ -80,7 +84,7 @@ public class RunTest1
             },
             "Test1"
         );
-        var validationIssues = LayoutEvaluator.RunLayoutValidationsForRequired(state);
+        var validationIssues = await LayoutEvaluator.RunLayoutValidationsForRequired(state);
         validationIssues
             .Should()
             .BeEquivalentTo(new object[] { new { Code = "required", Field = "some.data.binding3" } });

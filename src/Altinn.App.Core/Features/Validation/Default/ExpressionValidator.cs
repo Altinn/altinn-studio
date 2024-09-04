@@ -101,7 +101,6 @@ public class ExpressionValidator : IValidator
         using var validationConfig = JsonDocument.Parse(rawValidationConfig);
 
         var evaluatorState = await _layoutEvaluatorStateInitializer.Init(
-            instance,
             dataAccessor,
             taskId,
             gatewayAction: null,

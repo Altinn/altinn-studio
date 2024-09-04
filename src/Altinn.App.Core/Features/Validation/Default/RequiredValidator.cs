@@ -38,7 +38,6 @@ public class RequiredLayoutValidator : IValidator
     )
     {
         var evaluationState = await _layoutEvaluatorStateInitializer.Init(
-            instance,
             instanceDataAccessor,
             taskId,
             gatewayAction: null,

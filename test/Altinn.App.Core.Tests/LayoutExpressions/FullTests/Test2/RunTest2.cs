@@ -49,9 +49,13 @@ public class RunTest2
             .Should()
             .BeEquivalentTo(
                 [
-                    new ModelBinding { Field = "some.data[0].binding2", DataType = "default" },
-                    new ModelBinding { Field = "some.data[1].binding", DataType = "default" },
-                    new ModelBinding { Field = "some.data[1].binding2", DataType = "default" }
+                    new DataReference()
+                    {
+                        Field = "some.data[0].binding2",
+                        DataElementId = state.GetDefaultElementId()
+                    },
+                    new DataReference { Field = "some.data[1].binding", DataElementId = state.GetDefaultElementId() },
+                    new DataReference { Field = "some.data[1].binding2", DataElementId = state.GetDefaultElementId() }
                 ]
             );
 
@@ -89,7 +93,11 @@ public class RunTest2
         );
         var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(state);
 
-        hidden.Should().BeEquivalentTo([new ModelBinding() { Field = "some.data[1].binding2", DataType = "default" }]);
+        hidden
+            .Should()
+            .BeEquivalentTo(
+                [new DataReference() { Field = "some.data[1].binding2", DataElementId = state.GetDefaultElementId() }]
+            );
     }
 }
 

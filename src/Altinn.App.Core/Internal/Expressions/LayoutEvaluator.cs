@@ -1,6 +1,4 @@
-using System.Diagnostics;
 using Altinn.App.Core.Helpers.DataModel;
-using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
@@ -59,10 +57,11 @@ public static class LayoutEvaluator
         foreach (var childContext in context.ChildContexts)
         {
             // Ignore children of hidden rows if includeHiddenRowChildren is false
-            if (!includeHiddenRowChildren && context.HiddenRows is not null)
+            if (!includeHiddenRowChildren && context.Component is RepeatingGroupComponent)
             {
-                var currentRow = childContext.RowIndices?.Last();
-                var rowIsHidden = currentRow is not null && context.HiddenRows.Contains(currentRow.Value);
+                var hiddenRows = await childContext.GetHiddenRows(state);
+                var currentRow = childContext.RowIndices?[^1];
+                var rowIsHidden = currentRow is not null && hiddenRows[currentRow.Value];
                 if (rowIsHidden)
                 {
                     continue;
@@ -78,36 +77,27 @@ public static class LayoutEvaluator
             );
         }
 
-        // Remove data for hidden rows
-        if (
-            context.Component is RepeatingGroupComponent repGroup
-            && context.RowLength is not null
-            && context.HiddenRows is not null
-        )
+        // Get dataReference for hidden rows
+        if (context is { Component: RepeatingGroupComponent repGroup })
         {
-            foreach (var index in Enumerable.Range(0, context.RowLength.Value).Reverse())
+            var hiddenRows = await context.GetHiddenRows(state);
+            // Reverse order to get the last hidden row first so that the index is correct when removing from the data object
+            foreach (var index in Enumerable.Range(0, hiddenRows.Length).Reverse())
             {
                 var rowIndices = context.RowIndices?.Append(index).ToArray() ?? [index];
-                var newContext = new ComponentContext(
-                    context.Component,
-                    rowIndices,
-                    rowLength: null,
-                    dataElementId: context.DataElementId,
-                    childContexts: context.ChildContexts
+                var indexedBinding = await state.AddInidicies(
+                    repGroup.DataModelBindings["group"],
+                    context.DataElementId,
+                    rowIndices
                 );
-                var indexedBinding = await state.AddInidicies(repGroup.DataModelBindings["group"], newContext);
-                var fieldReference = new DataReference()
+
+                if (hiddenRows[index])
                 {
-                    Field = indexedBinding.Field,
-                    DataElementId = newContext.DataElementId
-                };
-                if (context.HiddenRows.Contains(index))
-                {
-                    hiddenModelBindings.Add(fieldReference);
+                    hiddenModelBindings.Add(indexedBinding);
                 }
                 else
                 {
-                    nonHiddenModelBindings.Add(fieldReference);
+                    nonHiddenModelBindings.Add(indexedBinding);
                 }
             }
         }
@@ -123,19 +113,15 @@ public static class LayoutEvaluator
                 }
 
                 var indexedBinding = await state.AddInidicies(binding, context);
-                var fieldReference = new DataReference()
-                {
-                    Field = indexedBinding.Field,
-                    DataElementId = context.DataElementId
-                };
+                var isHidden = await context.IsHidden(state);
 
-                if (context.IsHidden == true)
+                if (isHidden)
                 {
-                    hiddenModelBindings.Add(fieldReference);
+                    hiddenModelBindings.Add(indexedBinding);
                 }
                 else
                 {
-                    nonHiddenModelBindings.Add(fieldReference);
+                    nonHiddenModelBindings.Add(indexedBinding);
                 }
             }
         }
@@ -174,7 +160,8 @@ public static class LayoutEvaluator
         ComponentContext context
     )
     {
-        if (context.IsHidden == false)
+        var hidden = await context.IsHidden(state);
+        if (!hidden)
         {
             foreach (var childContext in context.ChildContexts)
             {
@@ -189,15 +176,14 @@ public static class LayoutEvaluator
                     if (await state.GetModelData(binding, context.DataElementId, context.RowIndices) is null)
                     {
                         var field = await state.AddInidicies(binding, context);
-                        DataElementId dataElementId = context.DataElementId;
-                        if (field.DataType is not null) { }
                         validationIssues.Add(
                             new ValidationIssue()
                             {
                                 Severity = ValidationIssueSeverity.Error,
-                                DataElementId = dataElementId.ToString(),
+                                DataElementId = field.DataElementId.ToString(),
                                 Field = field.Field,
-                                Description = $"{field.Field} is required in component with id {context.Component.Id}",
+                                Description =
+                                    $"{field.Field} is required in component with id {context.Component.Id} for binding {bindingName}",
                                 Code = "required",
                             }
                         );
