@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
-import { ImportImage } from '@altinn/ux-editor/components/config/editModal/EditImage/LocalImage/ImportImage/ImportImage';
+import { renderWithProviders } from '../../../../../../testing/mocks';
+import { ImportImage } from './ImportImage';
 import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -29,9 +29,7 @@ describe('ImportImage', () => {
       .fn()
       .mockImplementation(() => Promise.reject(createApiErrorMock(400, 'AD_04')));
     renderImportImage({ addImage: addImageMock });
-    //const fileInput = screen.getByTestId(fileSelectorInputId);
-
-    const fileInput = screen.getByRole('button', { name: 'image-upload' });
+    const fileInput = screen.getByTestId(fileSelectorInputId);
     const file = new File(['test'], imageFileName, { type: 'image/png' });
     await user.upload(fileInput, file);
     expect(window.confirm).toHaveBeenCalled();

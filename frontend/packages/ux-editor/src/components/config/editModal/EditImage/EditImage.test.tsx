@@ -49,7 +49,6 @@ describe('EditImage', () => {
     const imageFileName = 'image.png';
     renderEditImage();
     const uploadImageButton = screen.getByTestId(fileSelectorInputId);
-    await user.click(uploadImageButton);
     const file = new File(['test'], imageFileName, { type: 'image/png' });
     await user.upload(uploadImageButton, file);
     expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);

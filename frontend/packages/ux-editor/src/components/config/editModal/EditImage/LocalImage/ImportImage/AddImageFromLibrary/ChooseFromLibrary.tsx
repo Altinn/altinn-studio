@@ -7,7 +7,7 @@ import { imagePath } from 'app-shared/api/paths';
 import { useTranslation } from 'react-i18next';
 import classes from './ChooseFromLibrary.module.css';
 import { extractFilename } from 'app-shared/utils/filenameUtils';
-import { WWWROOT_FILE_PATH } from '../../../RelativeImageSourceIdentifyer';
+import { WWWROOT_FILE_PATH } from '../../../constants';
 
 interface ChooseFromLibraryProps {
   onAddImageReference: (imageFilePath: string) => void;
@@ -51,6 +51,7 @@ const ImageFromLibrary = ({
 }: ImageFromLibraryProps) => {
   const { t } = useTranslation();
   // The img component requires an alt which we can set to be the descriptions from the metadata in the library when this is available.
+  // TODO: Add description when we know how to store them. See analysis issue: https://github.com/Altinn/altinn-studio/issues/13346
   return (
     <div className={classes.card}>
       <Card onClick={() => onAddImageReference(`${WWWROOT_FILE_PATH}${imageFilePath}`)}>

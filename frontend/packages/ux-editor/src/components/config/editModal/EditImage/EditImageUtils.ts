@@ -1,6 +1,6 @@
 import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { WWWROOT_FILE_PATH } from './RelativeImageSourceIdentifyer';
+import { WWWROOT_FILE_PATH } from './constants';
 
 export const updateComponentWithImage = (
   component: FormItem<ComponentType.Image>,

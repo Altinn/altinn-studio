@@ -64,11 +64,12 @@ describe('EditImageUtils', () => {
   });
 
   describe('extractFileNameFromImageSrc', () => {
-    it.each(['ttd/frontend-test', 'someRandomOrg/someRandomApp'])(
-      'extracts fileName from relative path when org/app is %s',
-      (orgApp: string) => {
-        const org = orgApp.split('/')[0];
-        const app = orgApp.split('/')[1];
+    it.each([
+      ['ttd', 'frontend-test'],
+      ['someRandomOrg', 'someRandomApp'],
+    ])(
+      'extracts file name from relative path when org is %s and app is %s',
+      (org: string, app: string) => {
         const fileName = 'image.png';
         const imageSource = `/${org}/${app}/${fileName}`;
         const extractedFileName = extractFileNameFromImageSrc(imageSource, org, app);

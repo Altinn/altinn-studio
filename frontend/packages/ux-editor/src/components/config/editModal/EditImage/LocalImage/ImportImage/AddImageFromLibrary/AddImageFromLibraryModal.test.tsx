@@ -8,7 +8,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { imagePath } from 'app-shared/api/paths';
 import userEvent from '@testing-library/user-event';
-import { WWWROOT_FILE_PATH } from '../../../RelativeImageSourceIdentifyer';
+import { WWWROOT_FILE_PATH } from '../../../constants';
 
 const onCloseMock = jest.fn();
 const onAddImageReferenceMock = jest.fn();
