@@ -17,34 +17,6 @@
   },
   "@xsdRootElement": "model",
   "type": "object",
-<<<<<<< HEAD
-  "$defs": {
-    "bil": {
-      "type": "object",
-      "properties": {
-        "registreringsnummer": {
-          "type": "string"
-        },
-        "merke": {
-          "type": "string"
-        },
-        "modell": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "registreringsnummer"
-      ]
-    }
-  },
-  "properties": {
-    "biler": {
-      "type": "object",
-      "properties": {
-        "bil": {
-          "$ref": "#/$defs/bil"
-        }
-=======
   "required": [
     "Navn",
     "Alder"
@@ -62,7 +34,6 @@
       "type": "array",
       "items": {
         "type": "string"
->>>>>>> master
       }
     }
   }

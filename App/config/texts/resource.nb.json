@@ -3,10 +3,7 @@
   "resources": [
     {
       "id": "appName",
-<<<<<<< HEAD
       "value": "Underskjema Test"
-=======
-      "value": "subform-test-ds"
     },
     {
       "id": "Side1.Input-kcxhAS.title",
@@ -115,7 +112,6 @@
     {
       "id": "bok-serie.value.default",
       "value": "[ingen serie]"
->>>>>>> master
     }
   ]
 }

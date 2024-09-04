@@ -1,15 +1,8 @@
 {
-<<<<<<< HEAD
   "id": "ttd/subform-test",
   "org": "ttd",
   "title": {
     "nb": "Underskjema Test"
-=======
-  "id": "ttd/subform-test-ds",
-  "org": "ttd",
-  "title": {
-    "nb": "subform-test-ds"
->>>>>>> master
   },
   "dataTypes": [
     {
@@ -44,8 +37,6 @@
       "validationErrorOnPendingFileScan": false,
       "enabledFileAnalysers": [],
       "enabledFileValidators": []
-<<<<<<< HEAD
-=======
     },
     {
       "id": "moped",
@@ -101,7 +92,6 @@
       "enablePdfCreation": false,
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false
->>>>>>> master
     }
   ],
   "partyTypesAllowed": {
@@ -112,15 +102,8 @@
   },
   "autoDeleteOnProcessEnd": false,
   "disallowUserInstantiation": false,
-<<<<<<< HEAD
-  "created": "2024-07-11T10:07:48.4415549Z",
-  "createdBy": "HauklandJ",
-  "lastChanged": "2024-07-11T10:07:48.4415557Z",
-  "lastChangedBy": "HauklandJ"
-=======
   "created": "2024-07-22T06:44:55.5362123Z",
   "createdBy": "danielskovli",
   "lastChanged": "2024-07-22T06:44:55.5362131Z",
   "lastChangedBy": "danielskovli"
->>>>>>> master
 }
