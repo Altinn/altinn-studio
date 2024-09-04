@@ -111,7 +111,12 @@ export class SchemaModel {
   }
 
   public getUniquePointer(pointer: string, uniqueParentPointer?: string): string {
-    if (!uniqueParentPointer || !isDefinitionPointer(pointer)) return pointer;
+    if (
+      !uniqueParentPointer ||
+      !isDefinitionPointer(pointer) ||
+      isDefinitionPointer(uniqueParentPointer) // this to avoid adding definitions to definitions in Type's Node Panel
+    )
+      return pointer;
 
     return `${uniqueParentPointer}/properties/${extractNameFromPointer(pointer)}`;
   }
