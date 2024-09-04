@@ -208,6 +208,10 @@ namespace Altinn.App.logic.DataProcessing
                     model.GridData.Studie.Belop = model.GridData.TotalGjeld * model.GridData.Studie.Prosent / 100;
                     model.GridData.Kredittkort.Belop = model.GridData.TotalGjeld * model.GridData.Kredittkort.Prosent / 100;
                 }
+
+                if (model?.MapData != null) {
+                  model.MapData.Geometries = GeometryData.GetGeometryData(model.MapData.Selected);
+                }
             }
 
             return Task.CompletedTask;

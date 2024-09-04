@@ -1,4 +1,3 @@
-using System;
 using Altinn.App.Core.Features;
 using Altinn.App.Models;
 using Altinn.Platform.Register.Models;
@@ -16,7 +15,6 @@ namespace Altinn.App.logic.DataProcessing
         public InstantiationProcessor(IAltinnPartyClient registerService)
         {
             _registerService = registerService;
-
         }
 
         public async Task DataCreation(Instance instance, object data, Dictionary<string, string> prefill)
@@ -39,6 +37,9 @@ namespace Altinn.App.logic.DataProcessing
                         }
                     };
                 }
+
+                var selectedGeometries = "1,2,3,4,5";
+                model.MapData = new() { Location = "", Geometries = GeometryData.GetGeometryData(selectedGeometries), Selected = selectedGeometries };
             }
 
             if (data.GetType() == typeof(NestedGroup))
@@ -53,36 +54,12 @@ namespace Altinn.App.logic.DataProcessing
 
                 survey.Questions = new List<Question>
                 {
-                    new Question
-                    {
-                        Id = "question-1",
-                        Answer = ""
-                    },
-                    new Question
-                    {
-                        Id = "question-2",
-                        Answer = ""
-                    },
-                    new Question
-                    {
-                        Id = "question-3",
-                        Answer = ""
-                    },
-                    new Question
-                    {
-                        Id = "question-4",
-                        Answer = ""
-                    },
-                    new Question
-                    {
-                        Id = "question-5",
-                        Answer = ""
-                    },
-                    new Question
-                    {
-                        Id = "question-6",
-                        Answer = ""
-                    }
+                    new Question { Id = "question-1", Answer = "" },
+                    new Question { Id = "question-2", Answer = "" },
+                    new Question { Id = "question-3", Answer = "" },
+                    new Question { Id = "question-4", Answer = "" },
+                    new Question { Id = "question-5", Answer = "" },
+                    new Question { Id = "question-6", Answer = "" }
                 };
             }
 
