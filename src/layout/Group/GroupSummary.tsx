@@ -8,14 +8,13 @@ import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupSummary.module.css';
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import type { CompInternal } from 'src/layout/layout';
 import type { GroupSummaryOverrideProps } from 'src/layout/Summary2/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type GroupComponentSummaryProps = {
   componentNode: LayoutNode<'Group'>;
   hierarchyLevel?: number;
-  summaryOverrides?: CompInternal<'Summary2'>['overrides'];
+  summaryOverride?: GroupSummaryOverrideProps;
   parentId?: string;
 };
 
@@ -33,7 +32,7 @@ function getHeadingLevel(hierarchyLevel: number): HeadingLevel {
   }
 }
 
-const ChildComponents = ({ componentNode, hierarchyLevel, summaryOverrides, parentId }: GroupComponentSummaryProps) => {
+const ChildComponents = ({ componentNode, hierarchyLevel, summaryOverride, parentId }: GroupComponentSummaryProps) => {
   const childComponents = useNodeItem(componentNode, (i) => i.childComponents);
   return (
     childComponents.length &&
@@ -44,15 +43,11 @@ const ChildComponents = ({ componentNode, hierarchyLevel, summaryOverrides, pare
             componentNode={child}
             hierarchyLevel={hierarchyLevel ? hierarchyLevel + 1 : 1}
             key={componentNode.id}
-            summaryOverrides={summaryOverrides}
+            summaryOverride={summaryOverride}
           />
         );
       } else {
-        const isCompact = (
-          summaryOverrides?.find((override) => override.componentId === parentId) as
-            | GroupSummaryOverrideProps
-            | undefined
-        )?.isCompact;
+        const isCompact = summaryOverride?.isCompact;
 
         return (
           <div
@@ -61,7 +56,6 @@ const ChildComponents = ({ componentNode, hierarchyLevel, summaryOverrides, pare
           >
             <ComponentSummary
               componentNode={child}
-              summaryOverrides={summaryOverrides}
               isCompact={isCompact}
             />
           </div>
@@ -71,7 +65,7 @@ const ChildComponents = ({ componentNode, hierarchyLevel, summaryOverrides, pare
   );
 };
 
-export const GroupSummary = ({ componentNode, hierarchyLevel = 0, summaryOverrides }: GroupComponentSummaryProps) => {
+export const GroupSummary = ({ componentNode, hierarchyLevel = 0, summaryOverride }: GroupComponentSummaryProps) => {
   const title = useNodeItem(componentNode, (i) => i.textResourceBindings?.title);
   const summaryTitle = useNodeItem(componentNode, (i) => i.textResourceBindings?.summaryTitle);
   const description = useNodeItem(componentNode, (i) => i.textResourceBindings?.description);
@@ -80,7 +74,7 @@ export const GroupSummary = ({ componentNode, hierarchyLevel = 0, summaryOverrid
   return (
     <section
       className={isNestedGroup ? cn(classes.groupContainer, classes.nested) : cn(classes.groupContainer)}
-      data-testid={'summary-group-component'}
+      data-testid={`summary-group-component${hierarchyLevel > 0 ? `-${hierarchyLevel}` : ''}`}
     >
       <div className={cn(classes.groupHeading)}>
         <Heading
@@ -96,7 +90,7 @@ export const GroupSummary = ({ componentNode, hierarchyLevel = 0, summaryOverrid
       <ChildComponents
         componentNode={componentNode}
         hierarchyLevel={hierarchyLevel}
-        summaryOverrides={summaryOverrides}
+        summaryOverride={summaryOverride}
         parentId={componentNode.baseId}
       />
     </section>

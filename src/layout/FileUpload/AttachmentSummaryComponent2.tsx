@@ -34,7 +34,7 @@ export function AttachmentSummaryComponent2({ targetNode }: IAttachmentSummaryCo
         node={targetNode}
         mobileView={isSmall}
         attachments={attachments.filter((attachment) => {
-          // If we have file upload with tags, we should hide files where the use have not yet
+          // If we have file upload with tags, we should hide files where the user have not yet
           // selected a tag, in the summary.
           if (!hasTag) {
             return attachment;

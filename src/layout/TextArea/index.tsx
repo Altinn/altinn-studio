@@ -29,12 +29,11 @@ export class TextArea extends TextAreaDef {
   }
 
   renderSummary2(props: Summary2Props<'TextArea'>): JSX.Element | null {
-    const ourOverride = props.overrides?.find((override) => override.componentId === props.target.id);
     return (
       <TextAreaSummary
         componentNode={props.target}
         displayData={this.useDisplayData(props.target)}
-        emptyFieldText={ourOverride?.emptyFieldText}
+        emptyFieldText={props.override?.emptyFieldText}
       />
     );
   }

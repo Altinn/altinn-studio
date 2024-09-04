@@ -52,7 +52,7 @@ export function FileTable({
   return (
     <table
       className={!mobileView ? classes.table : classes.tableMobile}
-      data-testid={hasTag ? 'tagFile' : 'file-upload-table'}
+      data-testid={`${hasTag ? 'tagFile' : 'file-upload-table'}${isSummary ? '-summary' : ''}`}
       id={hasTag ? 'tagFile' : 'file-upload-table'}
     >
       {(atLeastOneTagExists(attachments) || !hasTag) && (

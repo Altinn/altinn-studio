@@ -35,7 +35,7 @@ export class Group extends GroupDef {
     return (
       <GroupSummary
         componentNode={props.target}
-        summaryOverrides={props.overrides}
+        summaryOverride={props.override}
       />
     );
   }

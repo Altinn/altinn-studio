@@ -32,8 +32,7 @@ export const Config = new CG.component({
           'type',
           new CG.enum('page', 'layoutSet', 'component').optional({ default: 'component' }).setTitle('Mode'),
         ),
-        new CG.prop('id', new CG.str()),
-
+        new CG.prop('id', new CG.str().optional()),
         new CG.prop(
           'taskId',
           new CG.str()
