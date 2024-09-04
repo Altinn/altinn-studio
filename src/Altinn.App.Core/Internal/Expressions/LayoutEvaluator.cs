@@ -34,15 +34,7 @@ public static class LayoutEvaluator
         }
 
         var forRemoval = hiddenModelBindings.Except(nonHiddenModelBindings);
-        var existsForRemoval = new List<DataReference>();
-        foreach (var keyToRemove in forRemoval)
-        {
-            if (await state.GetModelData(keyToRemove.Field, keyToRemove.DataElementId, default) is not null)
-            {
-                existsForRemoval.Add(keyToRemove);
-            }
-        }
-        return existsForRemoval;
+        return forRemoval.ToList();
     }
 
     private static async Task HiddenFieldsForRemovalRecurs(

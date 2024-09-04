@@ -49,13 +49,16 @@ public class RunTest2
             .Should()
             .BeEquivalentTo(
                 [
+                    new DataReference { Field = "some.data[0].binding", DataElementId = state.GetDefaultElementId() },
                     new DataReference()
                     {
                         Field = "some.data[0].binding2",
                         DataElementId = state.GetDefaultElementId()
                     },
+                    new DataReference { Field = "some.data[0].binding3", DataElementId = state.GetDefaultElementId() },
                     new DataReference { Field = "some.data[1].binding", DataElementId = state.GetDefaultElementId() },
-                    new DataReference { Field = "some.data[1].binding2", DataElementId = state.GetDefaultElementId() }
+                    new DataReference { Field = "some.data[1].binding2", DataElementId = state.GetDefaultElementId() },
+                    new DataReference { Field = "some.data[1].binding3", DataElementId = state.GetDefaultElementId() }
                 ]
             );
 
