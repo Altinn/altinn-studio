@@ -3,7 +3,119 @@
   "resources": [
     {
       "id": "appName",
+<<<<<<< HEAD
       "value": "Underskjema Test"
+=======
+      "value": "subform-test-ds"
+    },
+    {
+      "id": "Side1.Input-kcxhAS.title",
+      "value": "Alder"
+    },
+    {
+      "id": "Side1.Input-JQDlSQ.title",
+      "value": "Navn"
+    },
+    {
+      "id": "Side1.Paragraph-kuSAR3.title",
+      "value": "Sub-form komponenten finner du nederst på denne siden, under et par felter med personalia."
+    },
+    {
+      "id": "Side1.Header-wtBlvU.title",
+      "value": "Fancy app med sub-form komponent"
+    },
+    {
+      "id": "moped-header.title",
+      "value": "Mopedregistrering"
+    },
+    {
+      "id": "moped-blurb.title",
+      "value": "Fyll inn dette skjemaet for å registrere en moped i din garasje."
+    },
+    {
+      "id": "moped-regno.title",
+      "value": "Registreringsnummer"
+    },
+    {
+      "id": "moped-produksjonsaar.title",
+      "value": "Produksjonsår"
+    },
+    {
+      "id": "moped-merke.title",
+      "value": "Merke"
+    },
+    {
+      "id": "moped-modell.title",
+      "value": "Modell"
+    },
+    {
+      "id": "subform-moped.title",
+      "value": "Dine mopeder"
+    },
+    {
+      "id": "subform-moped.add",
+      "value": "Legg til moped"
+    },
+    {
+      "id": "subform-moped.regno",
+      "value": "Regnummer"
+    },
+    {
+      "id": "subform-moped.merke",
+      "value": "Merke"
+    },
+    {
+      "id": "attachments.title",
+      "value": "Vedlegg"
+    },
+    {
+      "id": "bok-header.title",
+      "value": "Bokregistrering"
+    },
+    {
+      "id": "bok-blurb.title",
+      "value": "Fyll inn dette skjemaet for å registrere en bok i din bokhylle."
+    },
+    {
+      "id": "bok-tittel.title",
+      "value": "Tittel"
+    },
+    {
+      "id": "bok-publikasjonsaar.title",
+      "value": "Publikasjonsår"
+    },
+    {
+      "id": "bok-serie.title",
+      "value": "Serie"
+    },
+    {
+      "id": "bok-forfatter.title",
+      "value": "Forfatter"
+    },
+    {
+      "id": "subform-bok.title",
+      "value": "Dine bøker"
+    },
+    {
+      "id": "subform-bok.add",
+      "value": "Legg til bok"
+    },
+    {
+      "id": "subform-bok.tittel",
+      "value": "Tittel"
+    },
+    {
+      "id": "subform-bok.serie",
+      "value": "Serie"
+    },
+    {
+      "id": "subform-bok.forfatter",
+      "value": "Forfatter"
+    },
+    {
+      "id": "bok-serie.value.default",
+      "value": "[ingen serie]"
+>>>>>>> master
     }
   ]
 }

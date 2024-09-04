@@ -17,6 +17,7 @@
   },
   "@xsdRootElement": "model",
   "type": "object",
+<<<<<<< HEAD
   "$defs": {
     "bil": {
       "type": "object",
@@ -43,6 +44,25 @@
         "bil": {
           "$ref": "#/$defs/bil"
         }
+=======
+  "required": [
+    "Navn",
+    "Alder"
+  ],
+  "description": "",
+  "title": "Datamodell for hovedskjema",
+  "properties": {
+    "Navn": {
+      "type": "string"
+    },
+    "Alder": {
+      "type": "integer"
+    },
+    "AttachmentId": {
+      "type": "array",
+      "items": {
+        "type": "string"
+>>>>>>> master
       }
     }
   }

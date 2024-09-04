@@ -1,0 +1,77 @@
+{
+  "$schema": "http://localhost:8080/schemas/json/layout/layout.schema.v1.json?dummy=1",
+  "data": {
+    "hidden": false,
+    "layout": [
+      {
+        "id": "moped-detaljer",
+        "type": "Group",
+        "textResourceBindings": {
+          "title": "Mopeddetaljer"
+        },
+        "children": [
+          "summary-moped-a",
+          "summary-moped-b",
+          "summary-moped-c",
+          "summary-moped-d"
+        ]
+      },
+      {
+        "id": "summary-moped-a",
+        "type": "Summary",
+        "componentRef": "moped-regno"
+      },
+      {
+        "id": "summary-moped-b",
+        "type": "Summary",
+        "componentRef": "moped-merke"
+      },
+      {
+        "id": "summary-moped-c",
+        "type": "Summary",
+        "componentRef": "moped-modell"
+      },
+      {
+        "id": "summary-moped-d",
+        "type": "Summary",
+        "componentRef": "moped-produksjonsaar"
+      },
+      {
+        "id": "button-group-moped2",
+        "type": "ButtonGroup",
+        "children": [
+          "subform-moped-backButton",
+          "subform-moped-exitButton"
+        ]
+      },
+      {
+        "id": "subform-moped-backButton",
+        "type": "CustomButton",
+        "textResourceBindings": {
+          "title": "general.back"
+        },
+        "actions": [
+          {
+            "type": "ClientAction",
+            "id": "previousPage"
+          }
+        ],
+        "buttonStyle": "secondary",
+        "buttonColor": "second",
+        "buttonSize": "sm"
+      },
+      {
+        "id": "subform-moped-exitButton",
+        "type": "CustomButton",
+        "textResourceBindings": {},
+        "actions": [
+          {
+            "type": "ClientAction",
+            "id": "closeSubform"
+          }
+        ],
+        "buttonSize": "sm"
+      }
+    ]
+  }
+}

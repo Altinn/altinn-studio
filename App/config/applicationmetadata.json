@@ -1,8 +1,15 @@
 {
+<<<<<<< HEAD
   "id": "ttd/subform-test",
   "org": "ttd",
   "title": {
     "nb": "Underskjema Test"
+=======
+  "id": "ttd/subform-test-ds",
+  "org": "ttd",
+  "title": {
+    "nb": "subform-test-ds"
+>>>>>>> master
   },
   "dataTypes": [
     {
@@ -37,6 +44,64 @@
       "validationErrorOnPendingFileScan": false,
       "enabledFileAnalysers": [],
       "enabledFileValidators": []
+<<<<<<< HEAD
+=======
+    },
+    {
+      "id": "moped",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "classRef": "Altinn.App.Models.Moped.Moped",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false,
+        "allowUserDelete": true,
+        "allowUserCreate": true,
+        "allowInSubform": true
+      },
+      "taskId": "Task_1",
+      "maxCount": 5,
+      "minCount": 1,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "bok",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "classRef": "Altinn.App.Models.Bok.Bok",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false,
+        "allowUserDelete": true,
+        "allowUserCreate": true,
+        "allowInSubform": true
+      },
+      "taskId": "Task_1",
+      "maxCount": 0,
+      "minCount": 0,
+      "enablePdfCreation": true,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "attachments",
+      "taskId": "Task_1",
+      "allowedContentTypes": ["image/png"],
+      "maxSize": 10,
+      "maxCount": 2,
+      "minCount": 0,
+      "enablePdfCreation": false,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false
+>>>>>>> master
     }
   ],
   "partyTypesAllowed": {
@@ -47,8 +112,15 @@
   },
   "autoDeleteOnProcessEnd": false,
   "disallowUserInstantiation": false,
+<<<<<<< HEAD
   "created": "2024-07-11T10:07:48.4415549Z",
   "createdBy": "HauklandJ",
   "lastChanged": "2024-07-11T10:07:48.4415557Z",
   "lastChangedBy": "HauklandJ"
+=======
+  "created": "2024-07-22T06:44:55.5362123Z",
+  "createdBy": "danielskovli",
+  "lastChanged": "2024-07-22T06:44:55.5362131Z",
+  "lastChangedBy": "danielskovli"
+>>>>>>> master
 }

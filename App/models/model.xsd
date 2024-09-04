@@ -5,6 +5,7 @@
       <xsd:attribute name="rootNode" fixed="" />
     </xs:documentation>
   </xs:annotation>
+<<<<<<< HEAD
   <xs:complexType name="bil">
     <xs:sequence>
       <xs:element name="registreringsnummer" type="xs:string" />
@@ -22,6 +23,13 @@
             </xs:sequence>
           </xs:complexType>
         </xs:element>
+=======
+  <xs:element name="model">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="Navn" type="xs:string" />
+        <xs:element minOccurs="0" name="Alder" type="xs:long" />
+>>>>>>> master
       </xs:sequence>
     </xs:complexType>
   </xs:element>

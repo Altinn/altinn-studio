@@ -1,0 +1,77 @@
+{
+  "$schema": "http://localhost:8080/schemas/json/layout/layout.schema.v1.json?dummy=1",
+  "data": {
+    "hidden": false,
+    "layout": [
+      {
+        "id": "moped-detaljer",
+        "type": "Group",
+        "textResourceBindings": {
+          "title": "Bokdetaljer"
+        },
+        "children": [
+          "summary-bok-a",
+          "summary-bok-b",
+          "summary-bok-c",
+          "summary-bok-d"
+        ]
+      },
+      {
+        "id": "summary-bok-a",
+        "type": "Summary",
+        "componentRef": "bok-tittel"
+      },
+      {
+        "id": "summary-bok-b",
+        "type": "Summary",
+        "componentRef": "bok-serie"
+      },
+      {
+        "id": "summary-bok-c",
+        "type": "Summary",
+        "componentRef": "bok-forfatter"
+      },
+      {
+        "id": "summary-bok-d",
+        "type": "Summary",
+        "componentRef": "bok-publikasjonsaar"
+      },
+      {
+        "id": "button-group-bok2",
+        "type": "ButtonGroup",
+        "children": [
+          "subform-bok-backButton",
+          "subform-bok-exitButton"
+        ]
+      },
+      {
+        "id": "subform-bok-backButton",
+        "type": "CustomButton",
+        "textResourceBindings": {
+          "title": "general.back"
+        },
+        "actions": [
+          {
+            "type": "ClientAction",
+            "id": "previousPage"
+          }
+        ],
+        "buttonStyle": "secondary",
+        "buttonColor": "second",
+        "buttonSize": "sm"
+      },
+      {
+        "id": "subform-bok-exitButton",
+        "type": "CustomButton",
+        "textResourceBindings": {},
+        "actions": [
+          {
+            "type": "ClientAction",
+            "id": "closeSubform"
+          }
+        ],
+        "buttonSize": "sm"
+      }
+    ]
+  }
+}
