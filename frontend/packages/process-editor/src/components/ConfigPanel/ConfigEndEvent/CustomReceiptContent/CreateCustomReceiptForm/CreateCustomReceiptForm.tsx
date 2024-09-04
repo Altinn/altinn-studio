@@ -47,6 +47,10 @@ export const CreateCustomReceiptForm = ({
   const updateErrors = (customReceiptForm: CustomReceiptType) => {
     const { layoutSetId, dataModelId } = customReceiptForm;
     setLayoutSetError(!layoutSetId ? t('validation_errors.required') : null);
+    layoutSetId.length === 1 &&
+      setLayoutSetError(
+        t('process_editor.configuration_panel_custom_receipt_layout_set_name_validation'),
+      );
 
     setDataModelError(
       !dataModelId
