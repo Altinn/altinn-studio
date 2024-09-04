@@ -72,7 +72,7 @@ public sealed class ComponentContext
     /// </summary>
     public async Task<BitArray> GetHiddenRows(LayoutEvaluatorState state)
     {
-        if (Component is not RepeatingGroupComponent repeatingGroupComponent)
+        if (Component is not RepeatingGroupComponent)
         {
             throw new InvalidOperationException("HiddenRows can only be called on a repeating group");
         }

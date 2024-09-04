@@ -220,11 +220,9 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
             .Verifiable(Times.Exactly(2));
 
         // Initialize extra data element
+        using var content = new StringContent("""{"melding":{}}""", Encoding.UTF8, "application/json");
         var createExtraElementResponse = await GetClient()
-            .PostAsync(
-                $"{Org}/{App}/instances/{_instanceId}/data?dataType={prefillDataType}",
-                new StringContent("""{"melding":{}}""", Encoding.UTF8, "application/json")
-            );
+            .PostAsync($"{Org}/{App}/instances/{_instanceId}/data?dataType={prefillDataType}", content);
         var createExtraElementResponseString = await createExtraElementResponse.Content.ReadAsStringAsync();
         _outputHelper.WriteLine(createExtraElementResponseString);
         createExtraElementResponse.Should().HaveStatusCode(HttpStatusCode.Created);

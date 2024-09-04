@@ -1,7 +1,5 @@
-using System.Collections;
 using System.Text.RegularExpressions;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
 
@@ -13,7 +11,7 @@ namespace Altinn.App.Core.Helpers.DataModel;
 public class DataModel
 {
     private readonly IInstanceDataAccessor _dataAccessor;
-    private readonly Dictionary<string, DataElementId> _dataIdsByType = new();
+    private readonly Dictionary<string, DataElementId> _dataIdsByType = [];
 
     /// <summary>
     /// Constructor that wraps a POCO data model, and gives extra tool for working with the data
@@ -98,11 +96,8 @@ public class DataModel
             .ToArray();
     }
 
-    private static readonly Regex _rowIndexRegex = new Regex(
-        @"^([^[\]]+(\[(\d+)])?)+$",
-        RegexOptions.None,
-        TimeSpan.FromMilliseconds(10)
-    );
+    private static readonly Regex _rowIndexRegex =
+        new(@"^([^[\]]+(\[(\d+)])?)+$", RegexOptions.Compiled, TimeSpan.FromMilliseconds(10));
 
     /// <summary>
     /// Get the row indices from a key

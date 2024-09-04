@@ -25,7 +25,7 @@ public class TestBackendExclusiveFunctions
     [ExclusiveTest("gatewayAction")]
     public async Task GatewayAction_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
-    private async Task<ExpressionTestCaseRoot> LoadTestCase(string testName, string folder)
+    private static async Task<ExpressionTestCaseRoot> LoadTestCase(string testName, string folder)
     {
         var file = Path.Join(folder, testName);
 

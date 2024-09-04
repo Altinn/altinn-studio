@@ -102,8 +102,8 @@ public class DynamicClassBuilderChatGptTests
         var deserializedObject = JsonSerializer.Deserialize(jsonString, dynamicType);
         var numbersProperty = dynamicType.GetProperty("Numbers")!.GetValue(deserializedObject) as List<double?>;
 
-        numbersProperty.Should().NotBeNull();
-        numbersProperty.Should().BeEquivalentTo(new List<double?> { 1.0, 2.0, 3.0 });
+        numbersProperty!.Should().NotBeNull();
+        numbersProperty!.Should().BeEquivalentTo(new List<double?> { 1.0, 2.0, 3.0 });
     }
 
     [Fact]

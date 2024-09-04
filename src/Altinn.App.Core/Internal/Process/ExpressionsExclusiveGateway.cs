@@ -6,7 +6,6 @@ using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
-using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
 

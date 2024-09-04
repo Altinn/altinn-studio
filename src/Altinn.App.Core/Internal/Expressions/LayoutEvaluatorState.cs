@@ -1,4 +1,3 @@
-using System.Collections;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Models;
@@ -67,7 +66,7 @@ public class LayoutEvaluatorState
         return pageContexts;
     }
 
-    private async Task<ComponentContext> GenerateComponentContextsRecurs(
+    private static async Task<ComponentContext> GenerateComponentContextsRecurs(
         BaseComponent component,
         DataModel dataModel,
         DataElementId defaultDataElementId,
@@ -184,7 +183,7 @@ public class LayoutEvaluatorState
         );
     }
 
-    private bool CompareRowIndexes(int[]? targetRowIndexes, int[]? sourceRowIndexes)
+    private static bool CompareRowIndexes(int[]? targetRowIndexes, int[]? sourceRowIndexes)
     {
         if (targetRowIndexes is null)
         {

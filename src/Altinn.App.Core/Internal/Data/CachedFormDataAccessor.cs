@@ -53,7 +53,7 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
         {
             throw new InvalidOperationException($"Data type {dataType} not found in app metadata");
         }
-        if (dataTypeObj?.MaxCount != 1)
+        if (dataTypeObj.MaxCount != 1)
         {
             throw new InvalidOperationException($"Data type {dataType} is not a single data type");
         }

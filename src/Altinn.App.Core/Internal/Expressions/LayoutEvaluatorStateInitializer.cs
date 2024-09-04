@@ -33,7 +33,7 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
     /// delete when <see cref="LayoutEvaluatorStateInitializer.Init(Altinn.Platform.Storage.Interface.Models.Instance,object,string?,string?)"/>
     /// is removed
     /// </summary>
-    private class SingleDataElementAccessor : IInstanceDataAccessor
+    private sealed class SingleDataElementAccessor : IInstanceDataAccessor
     {
         private readonly DataElement _dataElement;
         private readonly object _data;

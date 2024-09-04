@@ -324,7 +324,8 @@ public class DataController : ControllerBase
 
             if (dataType is null)
             {
-                var error = $"Could not determine if {dataType} requires app logic for application {org}/{app}";
+                var error =
+                    $"Could not determine if {dataElement?.DataType} requires app logic for application {org}/{app}";
                 _logger.LogError(error);
                 return BadRequest(error);
             }
@@ -551,7 +552,7 @@ public class DataController : ControllerBase
                 {
                     _logger.LogError(
                         "Could not determine if {dataType} requires app logic for application {org}/{app}",
-                        dataType,
+                        dataType?.Id,
                         org,
                         app
                     );

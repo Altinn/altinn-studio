@@ -123,13 +123,13 @@ public class DataModelWrapper
 
     private static string JoinFieldKeyParts(string? currentKey, string? key)
     {
-        if (String.IsNullOrEmpty(currentKey))
+        if (string.IsNullOrEmpty(currentKey))
         {
             return key ?? "";
         }
-        if (String.IsNullOrEmpty(key))
+        if (string.IsNullOrEmpty(key))
         {
-            return currentKey ?? "";
+            return currentKey;
         }
 
         return currentKey + "." + key;
@@ -153,7 +153,7 @@ public class DataModelWrapper
         }
 
         var (key, groupIndex) = ParseKeyPart(keyParts[currentIndex]);
-        var prop = currentModel.GetType().GetProperties().FirstOrDefault(p => IsPropertyWithJsonName(p, key));
+        var prop = Array.Find(currentModel.GetType().GetProperties(), p => IsPropertyWithJsonName(p, key));
         var childModel = prop?.GetValue(currentModel);
         if (childModel is null)
         {
@@ -208,7 +208,8 @@ public class DataModelWrapper
         return null;
     }
 
-    private static readonly Regex _keyPartRegex = new Regex(@"^([^\s\[\]\.]+)\[(\d+)\]?$");
+    private static readonly Regex _keyPartRegex =
+        new(@"^([^\s\[\]\.]+)\[(\d+)\]?$", RegexOptions.Compiled, TimeSpan.FromMicroseconds(10));
 
     internal static (string key, int? index) ParseKeyPart(string keyPart)
     {
@@ -236,7 +237,7 @@ public class DataModelWrapper
             return;
         }
         var (key, groupIndex) = ParseKeyPart(keys[0]);
-        var prop = currentModelType.GetProperties().FirstOrDefault(p => IsPropertyWithJsonName(p, key));
+        var prop = Array.Find(currentModelType.GetProperties(), p => IsPropertyWithJsonName(p, key));
         if (prop is null)
         {
             throw new DataModelException($"Unknown model property {key} in {string.Join(".", ret)}.{key}");
@@ -357,10 +358,7 @@ public class DataModelWrapper
             throw new NotImplementedException($"Tried to remove field {field}, ended in an enumerable");
         }
 
-        var property = containingObject
-            .GetType()
-            .GetProperties()
-            .FirstOrDefault(p => IsPropertyWithJsonName(p, lastKey));
+        var property = Array.Find(containingObject.GetType().GetProperties(), p => IsPropertyWithJsonName(p, lastKey));
         if (property is null)
         {
             return;
@@ -401,54 +399,54 @@ public class DataModelWrapper
         }
     }
 
-    /// <summary>
-    /// Verify that a key is valid for the model
-    /// </summary>
-    public bool VerifyKey(string field)
-    {
-        return VerifyKeyRecursive(field.Split('.'), 0, _dataModel.GetType());
-    }
+    // /// <summary>
+    // /// Verify that a key is valid for the model
+    // /// </summary>
+    // public bool VerifyKey(string field)
+    // {
+    //     return VerifyKeyRecursive(field.Split('.'), 0, _dataModel.GetType());
+    // }
 
-    private bool VerifyKeyRecursive(string[] keys, int index, Type currentModel)
-    {
-        if (index == keys.Length)
-        {
-            return true;
-        }
-        if (keys[index].Length == 0)
-        {
-            return false; // invalid key part
-        }
+    // private bool VerifyKeyRecursive(string[] keys, int index, Type currentModel)
+    // {
+    //     if (index == keys.Length)
+    //     {
+    //         return true;
+    //     }
+    //     if (keys[index].Length == 0)
+    //     {
+    //         return false; // invalid key part
+    //     }
 
-        var (key, groupIndex) = ParseKeyPart(keys[index]);
-        var prop = currentModel.GetProperties().FirstOrDefault(p => IsPropertyWithJsonName(p, key));
-        if (prop is null)
-        {
-            return false;
-        }
+    //     var (key, groupIndex) = ParseKeyPart(keys[index]);
+    //     var prop = currentModel.GetProperties().FirstOrDefault(p => IsPropertyWithJsonName(p, key));
+    //     if (prop is null)
+    //     {
+    //         return false;
+    //     }
 
-        var childType = prop.PropertyType;
+    //     var childType = prop.PropertyType;
 
-        // Strings are enumerable in C#
-        // Other enumerable types is treated as an collection
-        if (childType != typeof(string) && childType.IsAssignableTo(typeof(System.Collections.IEnumerable)))
-        {
-            var childTypeEnumerableParameter = childType
-                .GetInterfaces()
-                .Where(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                .Select(t => t.GetGenericArguments()[0])
-                .FirstOrDefault();
+    //     // Strings are enumerable in C#
+    //     // Other enumerable types is treated as an collection
+    //     if (childType != typeof(string) && childType.IsAssignableTo(typeof(System.Collections.IEnumerable)))
+    //     {
+    //         var childTypeEnumerableParameter = childType
+    //             .GetInterfaces()
+    //             .Where(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+    //             .Select(t => t.GetGenericArguments()[0])
+    //             .FirstOrDefault();
 
-            if (childTypeEnumerableParameter is not null)
-            {
-                return VerifyKeyRecursive(keys, index + 1, childTypeEnumerableParameter);
-            }
-        }
-        else if (groupIndex is not null)
-        {
-            return false; // Key parts with group index must be IEnumerable
-        }
+    //         if (childTypeEnumerableParameter is not null)
+    //         {
+    //             return VerifyKeyRecursive(keys, index + 1, childTypeEnumerableParameter);
+    //         }
+    //     }
+    //     else if (groupIndex is not null)
+    //     {
+    //         return false; // Key parts with group index must be IEnumerable
+    //     }
 
-        return VerifyKeyRecursive(keys, index + 1, childType);
-    }
+    //     return VerifyKeyRecursive(keys, index + 1, childType);
+    // }
 }

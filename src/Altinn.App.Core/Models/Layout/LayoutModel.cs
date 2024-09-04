@@ -1,4 +1,3 @@
-using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout.Components;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -52,44 +51,4 @@ public record LayoutModel
                     nodes.Push(n);
         }
     }
-
-    // /// <summary>
-    // /// Get all external model references used in the layout model
-    // /// </summary>
-    // public IEnumerable<string> GetReferencedDataTypeIds()
-    // {
-    //     var externalModelReferences = new HashSet<string>();
-    //     foreach (var component in GetComponents())
-    //     {
-    //         // Add data model references from DataModelBindings
-    //         externalModelReferences.UnionWith(
-    //             component.DataModelBindings.Values.Select(d => d.DataType).OfType<string>()
-    //         );
-    //
-    //         // Add data model references from expressions
-    //         AddExternalModelReferences(component.Hidden, externalModelReferences);
-    //         AddExternalModelReferences(component.ReadOnly, externalModelReferences);
-    //         AddExternalModelReferences(component.Required, externalModelReferences);
-    //         //TODO: add more expressions when backend uses them
-    //     }
-    //
-    //     //Ensure that the defaultData type is first in the resulting enumerable.
-    //     externalModelReferences.Remove(DefaultDataType.Id);
-    //     return externalModelReferences.Prepend(DefaultDataType.Id);
-    // }
-    //
-    // private static void AddExternalModelReferences(Expression expression, HashSet<string> externalModelReferences)
-    // {
-    //     if (
-    //         expression is
-    //         { Function: ExpressionFunction.dataModel, Args: [_, { Value: string externalModelReference }] }
-    //     )
-    //     {
-    //         externalModelReferences.Add(externalModelReference);
-    //     }
-    //     else
-    //     {
-    //         expression.Args?.ForEach(arg => AddExternalModelReferences(arg, externalModelReferences));
-    //     }
-    // }
 }
