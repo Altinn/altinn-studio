@@ -121,7 +121,7 @@ public class DataModelWrapper
         return GetResolvedKeysRecursive(fieldParts, _dataModel);
     }
 
-    internal static string JoinFieldKeyParts(string? currentKey, string? key)
+    private static string JoinFieldKeyParts(string? currentKey, string? key)
     {
         if (String.IsNullOrEmpty(currentKey))
         {
@@ -134,12 +134,6 @@ public class DataModelWrapper
 
         return currentKey + "." + key;
     }
-
-    private static readonly Regex _rowIndexRegex = new Regex(
-        @"^([^[\]]+(\[(\d+)])?)+$",
-        RegexOptions.None,
-        TimeSpan.FromSeconds(1)
-    );
 
     private static string[] GetResolvedKeysRecursive(
         string[] keyParts,

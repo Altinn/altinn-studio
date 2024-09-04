@@ -57,7 +57,7 @@ public static class LayoutEvaluator
         foreach (var childContext in context.ChildContexts)
         {
             // Ignore children of hidden rows if includeHiddenRowChildren is false
-            if (!includeHiddenRowChildren && context.Component is RepeatingGroupComponent)
+            if (!includeHiddenRowChildren && childContext.Component is RepeatingGroupComponent)
             {
                 var hiddenRows = await childContext.GetHiddenRows(state);
                 var currentRow = childContext.RowIndices?[^1];

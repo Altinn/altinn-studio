@@ -31,14 +31,22 @@ public class DataModel
 
     private async Task<object> ServiceModel(ModelBinding key, DataElementId defaultDataElementId)
     {
+        return (await ServiceModelAndDataElementId(key, defaultDataElementId)).model;
+    }
+
+    private async Task<(DataElementId dataElementId, object model)> ServiceModelAndDataElementId(
+        ModelBinding key,
+        DataElementId defaultDataElementId
+    )
+    {
         if (key.DataType == null)
         {
-            return await _dataAccessor.GetData(defaultDataElementId);
+            return (defaultDataElementId, await _dataAccessor.GetData(defaultDataElementId));
         }
 
         if (_dataIdsByType.TryGetValue(key.DataType, out var dataElementId))
         {
-            return await _dataAccessor.GetData(dataElementId);
+            return (dataElementId, await _dataAccessor.GetData(dataElementId));
         }
 
         throw new InvalidOperationException("Data model with type " + key.DataType + " not found");
@@ -114,13 +122,13 @@ public class DataModel
     /// indicies = [1,2]
     /// => "bedrift[1].ansatte[2].navn"
     /// </example>
-    public async Task<DataReference> AddIndexes(ModelBinding key, DataElementId dataElementId, int[]? rowIndexes)
+    public async Task<DataReference> AddIndexes(ModelBinding key, DataElementId defaultDataElementId, int[]? rowIndexes)
     {
         if (rowIndexes?.Length < 0)
         {
-            return new DataReference() { Field = key.Field, DataElementId = dataElementId };
+            return new DataReference() { Field = key.Field, DataElementId = defaultDataElementId };
         }
-        var serviceModel = await ServiceModel(key, dataElementId);
+        var (dataElementId, serviceModel) = await ServiceModelAndDataElementId(key, defaultDataElementId);
         if (serviceModel is null)
         {
             throw new DataModelException("Could not find service model for dataType " + key.DataType);

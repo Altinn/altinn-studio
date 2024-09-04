@@ -2,6 +2,7 @@ using System.Text.Json;
 using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Validation;
@@ -106,18 +107,24 @@ public class ExpressionValidator : IValidator
             gatewayAction: null,
             language
         );
-        var hiddenFields = await LayoutEvaluator.GetHiddenFieldsForRemoval(evaluatorState, true);
+        var hiddenFields = await LayoutEvaluator.GetHiddenFieldsForRemoval(evaluatorState);
 
         var validationIssues = new List<ValidationIssue>();
         var expressionValidations = ParseExpressionValidationConfig(validationConfig.RootElement, _logger);
+        DataElementId dataElementId = dataElement;
         foreach (var validationObject in expressionValidations)
         {
-            var baseField = new DataReference() { Field = validationObject.Key, DataElementId = dataElement };
+            var baseField = new DataReference() { Field = validationObject.Key, DataElementId = dataElementId };
             var resolvedFields = await evaluatorState.GetResolvedKeys(baseField);
             var validations = validationObject.Value;
             foreach (var resolvedField in resolvedFields)
             {
-                if (hiddenFields.Contains(resolvedField))
+                if (
+                    hiddenFields.Exists(d =>
+                        d.DataElementId == dataElementId
+                        && resolvedField.Field.StartsWith(d.Field, StringComparison.InvariantCulture)
+                    )
+                )
                 {
                     continue;
                 }
