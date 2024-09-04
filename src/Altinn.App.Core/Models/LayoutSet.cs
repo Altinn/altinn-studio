@@ -17,8 +17,14 @@ public class LayoutSet
     public string DataType { get; set; }
 
     /// <summary>
-    /// List of tasks where layuout should be used
+    /// List of tasks where layout should be used
     /// </summary>
     public List<string> Tasks { get; set; }
+
 #nullable restore
+
+    /// <summary>
+    /// The type description for the layout
+    /// </summary>
+    public string? Type { get; set; }
 }

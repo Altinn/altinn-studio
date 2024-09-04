@@ -3100,6 +3100,12 @@ components:
           type: boolean
         autoDeleteOnProcessEnd:
           type: boolean
+        allowUserCreate:
+          type: boolean
+        allowUserDelete:
+          type: boolean
+        allowInSubform:
+          type: boolean
         shadowFields:
           $ref: '#/components/schemas/ShadowFields'
       additionalProperties: false

@@ -137,7 +137,7 @@ public class DataController : ControllerBase
                 e.Id.Equals(dataType, StringComparison.OrdinalIgnoreCase)
             );
 
-            if (dataTypeFromMetadata == null)
+            if (dataTypeFromMetadata is null)
             {
                 return BadRequest(
                     $"Element type {dataType} not allowed for instance {instanceOwnerPartyId}/{instanceGuid}."
@@ -149,10 +149,8 @@ public class DataController : ControllerBase
                 return Forbid();
             }
 
-            bool appLogic = dataTypeFromMetadata.AppLogic?.ClassRef != null;
-
             Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-            if (instance == null)
+            if (instance is null)
             {
                 return NotFound($"Did not find instance {instance}");
             }
@@ -164,78 +162,89 @@ public class DataController : ControllerBase
                 );
             }
 
-            if (appLogic)
+            int existingElements = instance.Data.Count(d => d.DataType == dataTypeFromMetadata.Id);
+            if (dataTypeFromMetadata.MaxCount > 0 && existingElements >= dataTypeFromMetadata.MaxCount)
             {
-                return await CreateAppModelData(org, app, instance, dataType);
-            }
-            else
-            {
-                (bool validationRestrictionSuccess, List<ValidationIssue> errors) =
-                    DataRestrictionValidation.CompliesWithDataRestrictions(Request, dataTypeFromMetadata);
-                if (!validationRestrictionSuccess)
-                {
-                    return BadRequest(await GetErrorDetails(errors));
-                }
-
-                StreamContent streamContent = Request.CreateContentStream();
-
-                using Stream fileStream = new MemoryStream();
-                await streamContent.CopyToAsync(fileStream);
-                if (fileStream.Length == 0)
-                {
-                    const string errorMessage = "Invalid data provided. Error: The file is zero bytes.";
-                    var error = new ValidationIssue
-                    {
-                        Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
-                        Severity = ValidationIssueSeverity.Error,
-                        Description = errorMessage
-                    };
-                    _logger.LogError(errorMessage);
-                    return BadRequest(await GetErrorDetails(new List<ValidationIssue> { error }));
-                }
-
-                bool parseSuccess = Request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues);
-                string? filename = parseSuccess ? DataRestrictionValidation.GetFileNameFromHeader(headerValues) : null;
-
-                IEnumerable<FileAnalysisResult> fileAnalysisResults = new List<FileAnalysisResult>();
-                if (FileAnalysisEnabledForDataType(dataTypeFromMetadata))
-                {
-                    fileAnalysisResults = await _fileAnalyserService.Analyse(
-                        dataTypeFromMetadata,
-                        fileStream,
-                        filename
-                    );
-                }
-
-                bool fileValidationSuccess = true;
-                List<ValidationIssue> validationIssues = new();
-                if (FileValidationEnabledForDataType(dataTypeFromMetadata))
-                {
-                    (fileValidationSuccess, validationIssues) = await _fileValidationService.Validate(
-                        dataTypeFromMetadata,
-                        fileAnalysisResults
-                    );
-                }
-
-                if (!fileValidationSuccess)
-                {
-                    return BadRequest(await GetErrorDetails(validationIssues));
-                }
-
-                if (streamContent.Headers.ContentType is null)
-                {
-                    return StatusCode(500, "Content-Type not defined");
-                }
-
-                fileStream.Seek(0, SeekOrigin.Begin);
-                return await CreateBinaryData(
-                    instance,
-                    dataType,
-                    streamContent.Headers.ContentType.ToString(),
-                    filename,
-                    fileStream
+                return Conflict(
+                    $"Element type `{dataType}` has reached its maximum allowed count ({dataTypeFromMetadata.MaxCount})"
                 );
             }
+
+            if (dataTypeFromMetadata.AppLogic is not null)
+            {
+                if (!dataTypeFromMetadata.AppLogic.AllowUserCreate && !UserHasValidOrgClaim())
+                {
+                    return BadRequest($"Element type `{dataType}` cannot be manually created.");
+                }
+
+                if (dataTypeFromMetadata.AppLogic.ClassRef is not null)
+                {
+                    return await CreateAppModelData(org, app, instance, dataType);
+                }
+            }
+
+            (bool validationRestrictionSuccess, List<ValidationIssue> errors) =
+                DataRestrictionValidation.CompliesWithDataRestrictions(Request, dataTypeFromMetadata);
+
+            if (!validationRestrictionSuccess)
+            {
+                return BadRequest(await GetErrorDetails(errors));
+            }
+
+            StreamContent streamContent = Request.CreateContentStream();
+
+            using Stream fileStream = new MemoryStream();
+            await streamContent.CopyToAsync(fileStream);
+            if (fileStream.Length is 0)
+            {
+                const string errorMessage = "Invalid data provided. Error: The file is zero bytes.";
+                var error = new ValidationIssue
+                {
+                    Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
+                    Severity = ValidationIssueSeverity.Error,
+                    Description = errorMessage
+                };
+                _logger.LogError(errorMessage);
+                return BadRequest(await GetErrorDetails([error]));
+            }
+
+            bool parseSuccess = Request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues);
+            string? filename = parseSuccess ? DataRestrictionValidation.GetFileNameFromHeader(headerValues) : null;
+
+            IEnumerable<FileAnalysisResult> fileAnalysisResults = new List<FileAnalysisResult>();
+            if (FileAnalysisEnabledForDataType(dataTypeFromMetadata))
+            {
+                fileAnalysisResults = await _fileAnalyserService.Analyse(dataTypeFromMetadata, fileStream, filename);
+            }
+
+            var fileValidationSuccess = true;
+            List<ValidationIssue> validationIssues = [];
+            if (FileValidationEnabledForDataType(dataTypeFromMetadata))
+            {
+                (fileValidationSuccess, validationIssues) = await _fileValidationService.Validate(
+                    dataTypeFromMetadata,
+                    fileAnalysisResults
+                );
+            }
+
+            if (!fileValidationSuccess)
+            {
+                return BadRequest(await GetErrorDetails(validationIssues));
+            }
+
+            if (streamContent.Headers.ContentType is null)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, "Content-Type not defined");
+            }
+
+            fileStream.Seek(0, SeekOrigin.Begin);
+            return await CreateBinaryData(
+                instance,
+                dataType,
+                streamContent.Headers.ContentType.ToString(),
+                filename,
+                fileStream
+            );
         }
         catch (PlatformHttpException e)
         {
@@ -263,13 +272,12 @@ public class DataController : ControllerBase
 
     private static bool FileAnalysisEnabledForDataType(DataType dataTypeFromMetadata)
     {
-        return dataTypeFromMetadata.EnabledFileAnalysers != null && dataTypeFromMetadata.EnabledFileAnalysers.Count > 0;
+        return dataTypeFromMetadata.EnabledFileAnalysers is { Count: > 0 };
     }
 
     private static bool FileValidationEnabledForDataType(DataType dataTypeFromMetadata)
     {
-        return dataTypeFromMetadata.EnabledFileValidators != null
-            && dataTypeFromMetadata.EnabledFileValidators.Count > 0;
+        return dataTypeFromMetadata.EnabledFileValidators is { Count: > 0 };
     }
 
     /// <summary>
@@ -298,7 +306,7 @@ public class DataController : ControllerBase
         try
         {
             Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-            if (instance == null)
+            if (instance is null)
             {
                 return NotFound($"Did not find instance {instance}");
             }
@@ -307,7 +315,7 @@ public class DataController : ControllerBase
                 m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal)
             );
 
-            if (dataElement == null)
+            if (dataElement is null)
             {
                 return NotFound("Did not find data element");
             }
@@ -316,11 +324,12 @@ public class DataController : ControllerBase
 
             if (dataType is null)
             {
-                string error = $"Could not determine if {dataType} requires app logic for application {org}/{app}";
+                var error = $"Could not determine if {dataType} requires app logic for application {org}/{app}";
                 _logger.LogError(error);
                 return BadRequest(error);
             }
-            else if (dataType.AppLogic?.ClassRef is not null)
+
+            if (dataType.AppLogic?.ClassRef is not null)
             {
                 return await GetFormData(
                     org,
@@ -387,7 +396,7 @@ public class DataController : ControllerBase
                 m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal)
             );
 
-            if (dataElement == null)
+            if (dataElement is null)
             {
                 return NotFound("Did not find data element");
             }
@@ -404,13 +413,15 @@ public class DataController : ControllerBase
                 );
                 return BadRequest($"Could not determine if data type {dataType} requires application logic.");
             }
-            else if (dataType.AppLogic?.ClassRef is not null)
+
+            if (dataType.AppLogic?.ClassRef is not null)
             {
                 return await PutFormData(org, app, instance, dataGuid, dataType, language);
             }
 
             (bool validationRestrictionSuccess, List<ValidationIssue> errors) =
                 DataRestrictionValidation.CompliesWithDataRestrictions(Request, dataType);
+
             if (!validationRestrictionSuccess)
             {
                 return BadRequest(await GetErrorDetails(errors));
@@ -615,7 +626,7 @@ public class DataController : ControllerBase
         try
         {
             Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-            if (instance == null)
+            if (instance is null)
             {
                 return NotFound("Did not find instance");
             }
@@ -631,23 +642,27 @@ public class DataController : ControllerBase
                 m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal)
             );
 
-            if (dataElement == null)
+            if (dataElement is null)
             {
                 return NotFound("Did not find data element");
             }
 
             DataType? dataType = await GetDataType(dataElement);
 
-            if (dataType == null)
+            if (dataType is null)
             {
                 string errorMsg =
                     $"Could not determine if {dataElement.DataType} requires app logic for application {org}/{app}";
                 _logger.LogError(errorMsg);
                 return BadRequest(errorMsg);
             }
-            else if (dataType.AppLogic?.ClassRef is not null)
+
+            if (
+                dataType.AppLogic?.ClassRef is not null
+                && !dataType.AppLogic.AllowUserDelete
+                && !UserHasValidOrgClaim()
+            )
             {
-                // trying deleting a form element
                 return BadRequest("Deleting form data is not possible at this moment.");
             }
 
@@ -670,12 +685,13 @@ public class DataController : ControllerBase
         {
             return StatusCode((int)phe.Response.StatusCode, phe.Message);
         }
-        else if (exception is ServiceException se)
+
+        if (exception is ServiceException se)
         {
             return StatusCode((int)se.StatusCode, se.Message);
         }
 
-        return StatusCode(500, $"{message}");
+        return StatusCode((int)HttpStatusCode.InternalServerError, $"{message}");
     }
 
     private async Task<ActionResult> CreateBinaryData(
@@ -699,7 +715,10 @@ public class DataController : ControllerBase
 
         if (Guid.Parse(dataElement.Id) == Guid.Empty)
         {
-            return StatusCode(500, $"Cannot store form attachment on instance {instanceOwnerPartyId}/{instanceGuid}");
+            return StatusCode(
+                (int)HttpStatusCode.InternalServerError,
+                $"Cannot store form attachment on instance {instanceOwnerPartyId}/{instanceGuid}"
+            );
         }
 
         SelfLinkHelper.SetDataAppSelfLinks(instanceOwnerPartyId, instanceGuid, dataElement, Request);
@@ -714,7 +733,7 @@ public class DataController : ControllerBase
 
         string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
 
-        if (Request.ContentType == null)
+        if (Request.ContentType is null)
         {
             appModel = _appModel.Create(classRef);
         }
@@ -737,7 +756,7 @@ public class DataController : ControllerBase
         await UpdatePresentationTextsOnInstance(instance, dataType, appModel);
         await UpdateDataValuesOnInstance(instance, dataType, appModel);
 
-        int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
+        var instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
 
         ObjectUtils.InitializeAltinnRowId(appModel);
         ObjectUtils.PrepareModelForXmlStorage(appModel);
@@ -771,20 +790,18 @@ public class DataController : ControllerBase
     {
         Stream dataStream = await _dataClient.GetBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
 
-        if (dataStream != null)
+        if (dataStream is not null)
         {
             string? userOrgClaim = User.GetOrg();
-            if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.OrdinalIgnoreCase))
+            if (userOrgClaim is null || !org.Equals(userOrgClaim, StringComparison.OrdinalIgnoreCase))
             {
                 await _instanceClient.UpdateReadStatus(instanceOwnerPartyId, instanceGuid, "read");
             }
 
             return File(dataStream, dataElement.ContentType, dataElement.Filename);
         }
-        else
-        {
-            return NotFound();
-        }
+
+        return NotFound();
     }
 
     private async Task<ActionResult> DeleteBinaryData(
@@ -808,13 +825,11 @@ public class DataController : ControllerBase
         {
             return Ok();
         }
-        else
-        {
-            return StatusCode(
-                500,
-                $"Something went wrong when deleting data element {dataGuid} for instance {instanceGuid}"
-            );
-        }
+
+        return StatusCode(
+            (int)HttpStatusCode.InternalServerError,
+            $"Something went wrong when deleting data element {dataGuid} for instance {instanceGuid}"
+        );
     }
 
     private async Task<DataType?> GetDataType(DataElement element)
@@ -852,7 +867,7 @@ public class DataController : ControllerBase
             dataGuid
         );
 
-        if (appModel == null)
+        if (appModel is null)
         {
             return BadRequest($"Did not find form data for data element {dataGuid}");
         }
@@ -863,7 +878,7 @@ public class DataController : ControllerBase
         foreach (var dataProcessor in _dataProcessors)
         {
             _logger.LogInformation(
-                "ProcessDataRead for {modelType} using {dataProcesor}",
+                "ProcessDataRead for {ModelType} using {DataProcessor}",
                 appModel.GetType().Name,
                 dataProcessor.GetType().Name
             );
@@ -890,7 +905,7 @@ public class DataController : ControllerBase
                     dataGuid
                 );
             }
-            catch (PlatformHttpException e) when (e.Response.StatusCode == HttpStatusCode.Forbidden)
+            catch (PlatformHttpException e) when (e.Response.StatusCode is HttpStatusCode.Forbidden)
             {
                 _logger.LogInformation("User does not have write access to the data element. Skipping update.");
             }
@@ -904,7 +919,7 @@ public class DataController : ControllerBase
 
         // This is likely not required as the instance is already read
         string? userOrgClaim = User.GetOrg();
-        if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.OrdinalIgnoreCase))
+        if (userOrgClaim is null || !org.Equals(userOrgClaim, StringComparison.OrdinalIgnoreCase))
         {
             await _instanceClient.UpdateReadStatus(instanceOwnerId, instanceGuid, "read");
         }
@@ -955,7 +970,7 @@ public class DataController : ControllerBase
             return BadRequest(deserializer.Error);
         }
 
-        if (serviceModel == null)
+        if (serviceModel is null)
         {
             return BadRequest("No data found in content");
         }
@@ -1038,32 +1053,18 @@ public class DataController : ControllerBase
 
     private ActionResult HandlePlatformHttpException(PlatformHttpException e, string defaultMessage)
     {
-        if (e.Response.StatusCode == HttpStatusCode.Forbidden)
+        return e.Response.StatusCode switch
         {
-            return Forbid();
-        }
-        else if (e.Response.StatusCode == HttpStatusCode.NotFound)
-        {
-            return NotFound();
-        }
-        else if (e.Response.StatusCode == HttpStatusCode.Conflict)
-        {
-            return Conflict();
-        }
-        else
-        {
-            return ExceptionResponse(e, defaultMessage);
-        }
+            HttpStatusCode.Forbidden => Forbid(),
+            HttpStatusCode.NotFound => NotFound(),
+            HttpStatusCode.Conflict => Conflict(),
+            _ => ExceptionResponse(e, defaultMessage)
+        };
     }
 
     private static bool InstanceIsActive(Instance i)
     {
-        if (i?.Status?.Archived != null || i?.Status?.SoftDeleted != null || i?.Status?.HardDeleted != null)
-        {
-            return false;
-        }
-
-        return true;
+        return i?.Status?.Archived is null && i?.Status?.SoftDeleted is null && i?.Status?.HardDeleted is null;
     }
 
     private ObjectResult Problem(DataPatchError error)
@@ -1074,6 +1075,7 @@ public class DataController : ControllerBase
             DataPatchErrorType.DeserializationFailed => (int)HttpStatusCode.UnprocessableContent,
             _ => (int)HttpStatusCode.InternalServerError
         };
+
         return StatusCode(
             code,
             new ProblemDetails()
@@ -1086,4 +1088,9 @@ public class DataController : ControllerBase
             }
         );
     }
+
+    /// <summary>
+    /// Checks if the current claims principal has a valid `urn:altinn:org` claim
+    /// </summary>
+    private bool UserHasValidOrgClaim() => !string.IsNullOrWhiteSpace(User.GetOrg());
 }

@@ -33,7 +33,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         string app = "contributer-restriction";
         int instanceOwnerPartyId = 501337;
         HttpClient client = GetRootedClient(org, app);
-        string token = PrincipalUtil.GetToken(1337, null);
+        string token = PrincipalUtil.GetToken(1337, null, org: "abc");
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         // Create instance
@@ -43,23 +43,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         );
         var createResponseParsed = await VerifyStatusAndDeserialize<Instance>(createResponse, HttpStatusCode.Created);
         var instanceId = createResponseParsed.Id;
-
-        // Create data element (not sure why it isn't created when the instance is created, autoCreate is true)
-        using var createDataElementContent = new StringContent(
-            """{"melding":{"name": "Ivar"}}""",
-            System.Text.Encoding.UTF8,
-            "application/json"
-        );
-        var createDataElementResponse = await client.PostAsync(
-            $"/{org}/{app}/instances/{instanceId}/data?dataType=default",
-            createDataElementContent
-        );
-
-        var createDataElementResponseParsed = await VerifyStatusAndDeserialize<DataElement>(
-            createDataElementResponse,
-            HttpStatusCode.Created
-        );
-        var dataGuid = createDataElementResponseParsed.Id;
+        var dataGuid = createResponseParsed.Data.First(x => x.DataType.Equals("default")).Id;
 
         // Update data element
         using var updateDataElementContent = new StringContent(
@@ -100,8 +84,9 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
                     It.IsAny<Skjema?>(),
                     null
                 ),
+            // Note: First write circumvents the DataController, through autoCreate=true -> ProcessTaskInitializer
             Times.Exactly(1)
-        ); // TODO: Shouldn't this be 2 because of the first write?
+        );
         _dataProcessor.VerifyNoOtherCalls();
     }
 
@@ -137,7 +122,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         string app = "contributer-restriction";
         int instanceOwnerPartyId = 501337;
         HttpClient client = GetRootedClient(org, app);
-        string token = PrincipalUtil.GetToken(1337, null);
+        string token = PrincipalUtil.GetToken(1337, null, org: "abc");
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         // Create instance
@@ -147,22 +132,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         );
         var createResponseParsed = await VerifyStatusAndDeserialize<Instance>(createResponse, HttpStatusCode.Created);
         var instanceId = createResponseParsed.Id;
-
-        // Create data element (not sure why it isn't created when the instance is created, autoCreate is true)
-        using var createDataElementContent = new StringContent(
-            """{"melding":{"name": "Ivar"}}""",
-            System.Text.Encoding.UTF8,
-            "application/json"
-        );
-        var createDataElementResponse = await client.PostAsync(
-            $"/{org}/{app}/instances/{instanceId}/data?dataType=default",
-            createDataElementContent
-        );
-        var createDataElementResponseParsed = await VerifyStatusAndDeserialize<DataElement>(
-            createDataElementResponse,
-            HttpStatusCode.Created
-        )!;
-        var dataGuid = createDataElementResponseParsed.Id;
+        var dataGuid = createResponseParsed.Data.First(x => x.DataType.Equals("default")).Id;
 
         // Verify stored data
         var firstReadDataElementResponse = await client.GetAsync(
@@ -172,8 +142,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
             firstReadDataElementResponse,
             HttpStatusCode.OK
         );
-        firstReadDataElementResponseParsed.Melding!.Name.Should().Be("Ivar");
-        firstReadDataElementResponseParsed.Melding.Toggle.Should().BeFalse();
+        firstReadDataElementResponseParsed.Melding.Should().BeNull();
 
         // Update data element
         using var updateDataElementContent = new StringContent(

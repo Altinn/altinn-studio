@@ -282,7 +282,7 @@ public class AppResourcesSI : IAppResources
     {
         using var activity = _telemetry?.StartGetLayoutSetsForTaskActivity();
         var sets = GetLayoutSet();
-        return sets?.Sets?.Find(s => s?.Tasks?.Contains(taskId) ?? false);
+        return sets?.Sets?.Find(s => s?.Tasks?.Contains(taskId) is true);
     }
 
     /// <inheritdoc />
