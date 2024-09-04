@@ -1,0 +1,16 @@
+import { Canvas, Meta } from '@storybook/blocks';
+import { Heading, Paragraph } from '@digdir/designsystemet-react';
+import * as StudioFileUploaderStories from './StudioFileUploader.stories';
+
+<Meta of={StudioFileUploaderStories} />
+
+<Heading level={1} size='small'>
+  StudioFileUploader
+</Heading>
+<Paragraph>
+  StudioFileUploader is a component that renders a file upload button. It allows optionally file
+  name validation with regEx. However, it does not handle displaying the error message, it only does
+  a callback to let the consumer handle the invalidation.
+</Paragraph>
+
+<Canvas of={StudioFileUploaderStories.Preview} />
