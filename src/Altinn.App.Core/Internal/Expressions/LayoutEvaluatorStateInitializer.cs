@@ -93,24 +93,31 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
     }
 
     /// <inheritdoc />
-    public async Task<LayoutEvaluatorState> Init(
+    public Task<LayoutEvaluatorState> Init(
         IInstanceDataAccessor dataAccessor,
         string? taskId,
         string? gatewayAction = null,
         string? language = null
     )
     {
-        LayoutModel? layouts = null;
-        if (taskId is not null)
-            layouts = _appResources.GetLayoutModelForTask(taskId);
+        try
+        {
+            LayoutModel? layouts = taskId is not null ? _appResources.GetLayoutModelForTask(taskId) : null;
 
-        return new LayoutEvaluatorState(
-            new DataModel(dataAccessor),
-            layouts,
-            _frontEndSettings,
-            dataAccessor.Instance,
-            gatewayAction,
-            language
-        );
+            return Task.FromResult(
+                new LayoutEvaluatorState(
+                    new DataModel(dataAccessor),
+                    layouts,
+                    _frontEndSettings,
+                    dataAccessor.Instance,
+                    gatewayAction,
+                    language
+                )
+            );
+        }
+        catch (Exception e)
+        {
+            return Task.FromException<LayoutEvaluatorState>(e);
+        }
     }
 }
