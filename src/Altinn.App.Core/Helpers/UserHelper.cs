@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Security.Claims;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
@@ -19,6 +20,7 @@ public class UserHelper
     private readonly IProfileClient _profileClient;
     private readonly IAltinnPartyClient _altinnPartyClientService;
     private readonly GeneralSettings _settings;
+    private readonly Telemetry? _telemetry;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UserHelper"/> class
@@ -26,15 +28,18 @@ public class UserHelper
     /// <param name="profileClient">The ProfileService (defined in Startup.cs)</param>
     /// <param name="altinnPartyClientService">The RegisterService (defined in Startup.cs)</param>
     /// <param name="settings">The general settings</param>
+    /// <param name="telemetry">Telemetry</param>
     public UserHelper(
         IProfileClient profileClient,
         IAltinnPartyClient altinnPartyClientService,
-        IOptions<GeneralSettings> settings
+        IOptions<GeneralSettings> settings,
+        Telemetry? telemetry = null
     )
     {
         _profileClient = profileClient;
         _altinnPartyClientService = altinnPartyClientService;
         _settings = settings.Value;
+        _telemetry = telemetry;
     }
 
     /// <summary>
@@ -44,6 +49,8 @@ public class UserHelper
     /// <returns>The UserContext</returns>
     public async Task<UserContext> GetUserContext(HttpContext context)
     {
+        using var activity = _telemetry?.StartGetUserContextActivity();
+
         UserContext userContext = new UserContext() { User = context.User };
 
         foreach (Claim claim in context.User.Claims)
@@ -52,21 +59,23 @@ public class UserHelper
             {
                 userContext.UserName = claim.Value;
             }
-
-            if (claim.Type.Equals(AltinnCoreClaimTypes.UserId, StringComparison.Ordinal))
+            else if (claim.Type.Equals(AltinnCoreClaimTypes.UserId, StringComparison.Ordinal))
             {
                 userContext.UserId = Convert.ToInt32(claim.Value, CultureInfo.InvariantCulture);
             }
-
-            if (claim.Type.Equals(AltinnCoreClaimTypes.PartyID, StringComparison.Ordinal))
+            else if (claim.Type.Equals(AltinnCoreClaimTypes.PartyID, StringComparison.Ordinal))
             {
                 userContext.PartyId = Convert.ToInt32(claim.Value, CultureInfo.InvariantCulture);
             }
-
-            if (claim.Type.Equals(AltinnCoreClaimTypes.AuthenticationLevel, StringComparison.Ordinal))
+            else if (claim.Type.Equals(AltinnCoreClaimTypes.AuthenticationLevel, StringComparison.Ordinal))
             {
                 userContext.AuthenticationLevel = Convert.ToInt32(claim.Value, CultureInfo.InvariantCulture);
             }
+        }
+
+        if (userContext.UserId == default)
+        {
+            throw new Exception("Could not get user profile - could not retrieve user ID from claims");
         }
 
         UserProfile userProfile =
