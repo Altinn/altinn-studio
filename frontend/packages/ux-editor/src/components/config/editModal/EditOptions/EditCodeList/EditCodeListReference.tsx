@@ -24,10 +24,10 @@ export function EditCodeListReference<T extends SelectionComponentType>({
 
   return (
     <div>
-      <StudioParagraph spacing>
+      <StudioParagraph spacing size='small'>
         {t('ux_editor.options.codelist_referenceId.description')}
       </StudioParagraph>
-      <StudioParagraph spacing>
+      <StudioParagraph spacing size='small'>
         {t('ux_editor.options.codelist_referenceId.description_details')}
       </StudioParagraph>
       <StudioTextfield
@@ -35,6 +35,7 @@ export function EditCodeListReference<T extends SelectionComponentType>({
         label={t('ux_editor.modal_properties_custom_code_list_id')}
         onChange={(event) => handleOptionsIdChange(event.target.value)}
         value={component.optionsId}
+        size='small'
       />
       <p style={{ marginBottom: 0 }}>
         <Trans i18nKey={'ux_editor.modal_properties_code_list_read_more'}>

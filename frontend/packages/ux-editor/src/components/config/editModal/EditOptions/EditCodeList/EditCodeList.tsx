@@ -44,7 +44,9 @@ export function EditCodeList<T extends SelectionComponentType>({
         </ErrorMessage>
       ) : optionListIds?.length === 0 ? (
         <>
-          <Alert severity='info'>{t('ux_editor.modal_properties_no_options_found_message')}</Alert>
+          <Alert severity='info' size='small'>
+            {t('ux_editor.modal_properties_no_options_found_message')}
+          </Alert>
           <ManualCodelistUploadSteps />
         </>
       ) : (

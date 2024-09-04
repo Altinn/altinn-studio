@@ -1436,7 +1436,7 @@
   "ux_editor.modal_properties_maximum_file_size_helper": "MB",
   "ux_editor.modal_properties_maximum_files": "Maksimalt antall filvedlegg",
   "ux_editor.modal_properties_minimum_files": "Minimalt antall filvedlegg",
-  "ux_editor.modal_properties_no_options_found_message": "Appen din inneholder ingen statiske kodelister. Last opp kodeliste for å velge fra listen. Foreløpig må dette gjøres manuelt, ved å laste opp filen i appens repository. Se beskrivelsen under for eksempel på hvordan dette gjøres. Det vil snart bli mulig å laste opp kodeliste-fil direkte i Studio.",
+  "ux_editor.modal_properties_no_options_found_message": "Appen din inneholder ingen statiske kodelister. Last opp kodeliste for å velge fra listen. Foreløpig må dette gjøres manuelt, ved å laste opp filen i appens repository. Se beskrivelsen under for eksempel på hvordan dette gjøres. Det vil snart bli mulig å laste opp kodelistefil direkte i Studio.",
   "ux_editor.modal_properties_textResourceBindings_add_button": "Avsluttende tekst for 'Legg til ny'-knapp",
   "ux_editor.modal_properties_textResourceBindings_add_button_add": "Legg til avsluttende tekst for 'Legg til ny'-knapp",
   "ux_editor.modal_properties_textResourceBindings_add_button_full": "Hele teksten for 'Legg til ny'-knapp",
