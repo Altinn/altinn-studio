@@ -53,7 +53,6 @@ const handleError = (
 
   if (unAuthorizedErrorCode) {
     return renderToast(errorCode || 'Unauthorized', {
-      // TODO : Add tests for the onClose method once https://github.com/fkhadra/react-toastify/issues/1010#issuecomment-2186278133 is solved
       onClose: () => logout().then(() => window.location.assign(userLogoutAfterPath())),
       autoClose: LOG_OUT_TIMER_MS,
     });

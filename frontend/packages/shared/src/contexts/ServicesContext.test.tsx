@@ -1,5 +1,5 @@
 import React, { type ReactNode } from 'react';
-import { renderHook, screen, waitFor } from '@testing-library/react';
+import { fireEvent, renderHook, screen, waitFor } from '@testing-library/react';
 import type { ServicesContextProps } from './ServicesContext';
 import { ServicesContextProvider, useServicesContext } from './ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -38,6 +38,37 @@ const wrapper = ({
 };
 
 describe('ServicesContext', () => {
+  it('logs the user out after displaying a toast for a given time when the api says unauthorized', async () => {
+    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
+    jest.spyOn(global, 'setTimeout');
+    renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(401)),
+          retry: false,
+        }),
+      {
+        wrapper: ({ children }) => {
+          return wrapper({ children });
+        },
+      },
+    );
+
+    const progressBar = await screen.findByRole('progressbar');
+    fireEvent.animationEnd(progressBar);
+
+    const container = await screen.findByText(textMock('api_errors.Unauthorized'));
+    expect(container).toBeInTheDocument();
+    fireEvent.animationEnd(container);
+
+    await waitFor(() => {
+      expect(queriesMock.logout).toHaveBeenCalled();
+    });
+
+    expect(mockConsoleError).toHaveBeenCalled();
+  });
+
   it('displays the api error when the session is invalid or expired', async () => {
     const logout = jest.fn().mockImplementation(() => Promise.resolve());
 
