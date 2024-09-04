@@ -69,12 +69,14 @@ public class ProcessEngine : IProcessEngine
 
         if (processStartRequest.Instance.Process != null)
         {
-            return new ProcessChangeResult()
+            var result = new ProcessChangeResult()
             {
                 Success = false,
                 ErrorMessage = "Process is already started. Use next.",
                 ErrorType = ProcessErrorType.Conflict
             };
+            activity?.SetProcessChangeResult(result);
+            return result;
         }
 
         string? validStartElement = ProcessHelper.GetValidStartEventOrError(
@@ -84,12 +86,14 @@ public class ProcessEngine : IProcessEngine
         );
         if (startEventError is not null)
         {
-            return new ProcessChangeResult()
+            var result = new ProcessChangeResult()
             {
                 Success = false,
                 ErrorMessage = "No matching startevent",
                 ErrorType = ProcessErrorType.Conflict
             };
+            activity?.SetProcessChangeResult(result);
+            return result;
         }
 
         // TODO: assert can be removed when we improve nullability annotation in GetValidStartEventOrError
@@ -128,25 +132,29 @@ public class ProcessEngine : IProcessEngine
 
         _telemetry?.ProcessStarted();
 
-        return new ProcessChangeResult() { Success = true, ProcessStateChange = processStateChange };
+        var changeResult = new ProcessChangeResult() { Success = true, ProcessStateChange = processStateChange };
+        activity?.SetProcessChangeResult(changeResult);
+        return changeResult;
     }
 
     /// <inheritdoc/>
     public async Task<ProcessChangeResult> Next(ProcessNextRequest request)
     {
-        using var activity = _telemetry?.StartProcessNextActivity(request.Instance);
+        using var activity = _telemetry?.StartProcessNextActivity(request.Instance, request.Action);
 
         Instance instance = request.Instance;
         string? currentElementId = instance.Process?.CurrentTask?.ElementId;
 
         if (currentElementId == null)
         {
-            return new ProcessChangeResult()
+            var result = new ProcessChangeResult()
             {
                 Success = false,
                 ErrorMessage = $"Instance does not have current task information!",
                 ErrorType = ProcessErrorType.Conflict
             };
+            activity?.SetProcessChangeResult(result);
+            return result;
         }
 
         // Removes existing/stale data elements previously generated from this task
@@ -162,12 +170,14 @@ public class ProcessEngine : IProcessEngine
 
         if (actionResult.ResultType != ResultType.Success)
         {
-            return new ProcessChangeResult()
+            var result = new ProcessChangeResult()
             {
                 Success = false,
                 ErrorMessage = $"Action handler for action {request.Action} failed!",
                 ErrorType = actionResult.ErrorType
             };
+            activity?.SetProcessChangeResult(result);
+            return result;
         }
 
         ProcessStateChange? nextResult = await HandleMoveToNext(instance, request.User, request.Action);
@@ -177,7 +187,9 @@ public class ProcessEngine : IProcessEngine
             _telemetry?.ProcessEnded(nextResult);
         }
 
-        return new ProcessChangeResult() { Success = true, ProcessStateChange = nextResult };
+        var changeResult = new ProcessChangeResult() { Success = true, ProcessStateChange = nextResult };
+        activity?.SetProcessChangeResult(changeResult);
+        return changeResult;
     }
 
     /// <inheritdoc/>
@@ -187,8 +199,14 @@ public class ProcessEngine : IProcessEngine
         List<InstanceEvent>? events
     )
     {
-        await _processEventHandlerDelegator.HandleEvents(instance, prefill, events);
-        return await _processEventDispatcher.DispatchToStorage(instance, events);
+        using (var activity = _telemetry?.StartProcessHandleEventsActivity(instance))
+        {
+            await _processEventHandlerDelegator.HandleEvents(instance, prefill, events);
+        }
+        using (var activity = _telemetry?.StartProcessStoreEventsActivity(instance))
+        {
+            return await _processEventDispatcher.DispatchToStorage(instance, events);
+        }
     }
 
     /// <summary>

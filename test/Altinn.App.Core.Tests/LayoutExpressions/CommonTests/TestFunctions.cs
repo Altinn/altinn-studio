@@ -12,7 +12,7 @@ public class TestFunctions
     private readonly ITestOutputHelper _output;
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new() { ReadCommentHandling = JsonCommentHandling.Skip, PropertyNamingPolicy = JsonNamingPolicy.CamelCase, };
+        new() { ReadCommentHandling = JsonCommentHandling.Skip, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
     public TestFunctions(ITestOutputHelper output)
     {
@@ -221,6 +221,7 @@ public class TestFunctions
         var jsonTestFolders = Directory
             .GetDirectories(Path.Join("LayoutExpressions", "CommonTests", "shared-tests", "functions"))
             .Select(d => Path.GetFileName(d))
+            .OrderBy(s => s)
             .ToArray();
         var testMethods = this.GetType()
             .GetMethods()
@@ -229,6 +230,7 @@ public class TestFunctions
                     ?.ConstructorArguments.FirstOrDefault()
                     .Value
             )
+            .OrderBy(s => s)
             .OfType<string>()
             .ToArray();
         testMethods

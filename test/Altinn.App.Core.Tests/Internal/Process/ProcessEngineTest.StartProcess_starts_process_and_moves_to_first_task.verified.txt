@@ -1,8 +1,38 @@
 ﻿{
   Activities: [
     {
-      ActivityName: Process.Start,
+      ActivityName: Process.StoreEvents,
       IdFormat: W3C
+    },
+    {
+      ActivityName: Process.HandleEvents,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: Process.Start,
+      IdFormat: W3C,
+      Status: Ok,
+      Events: [
+        {
+          Name: change,
+          Timestamp: DateTimeOffset_1,
+          Tags: [
+            {
+              events: [
+                Type=process_StartEvent DataId=,
+                Type=process_StartTask DataId=
+              ]
+            },
+            {
+              to.started: DateTime_1
+            },
+            {
+              to.task.name: Utfylling
+            },
+            {}
+          ]
+        }
+      ]
     }
   ],
   Metrics: [
