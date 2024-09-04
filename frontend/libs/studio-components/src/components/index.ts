@@ -36,3 +36,7 @@ export * from './StudioTextfield';
 export * from './StudioToggleableTextfield';
 export * from './StudioToggleableTextfieldSchema';
 export * from './StudioTreeView';
+export * from './StudioTabs';
+export * from './StudioDivider';
+export * from './StudioPageError';
+export * from './StudioError';
