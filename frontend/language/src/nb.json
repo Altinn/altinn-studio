@@ -1566,6 +1566,7 @@
   "ux_editor.text_resource_bindings.delete_confirm": "Ja, fjern teksten",
   "ux_editor.text_resource_bindings.delete_confirm_question": "Er du sikker på at du vil fjerne denne teksten fra komponenten?",
   "ux_editor.text_resource_bindings.delete_info": "Merk at selve tekstressursen ikke slettes, kun knytningen fra denne komponenten.",
+  "ux_editor.top_bar.export_form": "Eksporter skjema",
   "ux_editor.unknown_group_reference": "Referansen med ID {{id}} er ugyldig, da det ikke eksisterer noen komponent med denne ID-en. Vennligst slett denne referansen for å rette feilen.",
   "ux_editor.unknown_group_reference_help_text_title": "Ukjent referanse",
   "ux_editor.unsupported_version_message.too_new_1": "Denne siden er foreløpig ikke tilgjengelig for apper som kjører på {{version}} av app-frontend. Dette er fordi det er en del konfigurasjon i skjemaene som endrer seg fra {{closestSupportedVersion}} til {{version}}.",
