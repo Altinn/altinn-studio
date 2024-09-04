@@ -2,26 +2,16 @@ import { expect, test } from '@playwright/test';
 import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
 import { ResourcePage } from '../../pages/ResourcePage';
-import { GiteaApi } from '../../helpers/GiteaApi';
 
 const resourceId = 'playwright_deploy_resource';
 
 test.beforeAll(async ({ request, storageState }) => {
-  // re-create resources repo
-  const giteaApi = new GiteaApi();
-  await giteaApi.deleteResourcesRepo(request);
-  await giteaApi.createResourcesRepo(request);
-
   const designerApi = new DesignerApi(resourceId);
   const resetResponse = await designerApi.resetResourceRepo(request, storageState as StorageState);
   expect(resetResponse.ok()).toBeTruthy();
 
-  // create resource
-  const createResourceResponse = await designerApi.createResource(
-    request,
-    storageState as StorageState,
-  );
-  expect(createResourceResponse.ok()).toBeTruthy();
+  // create resource (if it does not exist)
+  await designerApi.createResource(request, storageState as StorageState);
 });
 
 test('should be able to validate resource so it is ready to be deployed', async ({
@@ -43,9 +33,7 @@ test('should be able to validate resource so it is ready to be deployed', async 
   await resourcePage.writeCategoryTextField('category');
   await resourcePage.setAvailableForType();
   await resourcePage.gotoPolicyTab();
-  await resourcePage.clickAddPolicyRule();
-  await resourcePage.setPolicyAction();
-  await resourcePage.setPolicySubject();
+  await resourcePage.addPolicyRule();
   await resourcePage.gotoPublishTab();
   await resourcePage.writeVersionTextField(`${Date.now()}`);
   await resourcePage.verifyRepoNotInSyncVisible();

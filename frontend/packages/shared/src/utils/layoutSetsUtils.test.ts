@@ -1,4 +1,7 @@
-import { getLayoutSetNameForCustomReceipt } from 'app-shared/utils/layoutSetsUtils';
+import {
+  getLayoutSetIdValidationErrorKey,
+  getLayoutSetNameForCustomReceipt,
+} from 'app-shared/utils/layoutSetsUtils';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
 // Test data
@@ -42,5 +45,31 @@ describe('getLayoutSetNameForCustomReceipt', () => {
       sets: [],
     };
     expect(getLayoutSetNameForCustomReceipt(layoutSetsWithEmptySets)).toBeUndefined();
+  });
+
+  it('should return error message when the user types just one character', () => {
+    const newLayoutSetId = 'a';
+    expect(getLayoutSetIdValidationErrorKey({ sets: [] }, layoutSetName, newLayoutSetId)).toBe(
+      'process_editor.configuration_panel_custom_receipt_layout_set_name_validation',
+    );
+  });
+
+  it('should return error message when the user types whitespace', () => {
+    const newLayoutSetId = ' ';
+    expect(getLayoutSetIdValidationErrorKey({ sets: [] }, layoutSetName, newLayoutSetId)).toBe(
+      'validation_errors.required',
+    );
+  });
+
+  it('should return undefined if layoutSets has a set with no task ids', () => {
+    const layoutSetsWithUndefinedTasks: LayoutSets = {
+      sets: [
+        {
+          id: layoutSetName,
+          tasks: null,
+        },
+      ],
+    };
+    expect(getLayoutSetNameForCustomReceipt(layoutSetsWithUndefinedTasks)).toBeUndefined();
   });
 });

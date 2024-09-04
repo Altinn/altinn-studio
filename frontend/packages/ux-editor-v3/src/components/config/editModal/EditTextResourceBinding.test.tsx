@@ -71,7 +71,8 @@ describe('EditTextResourceBindings component', () => {
     await user.click(select);
 
     // Select text from available options
-    await user.click(screen.getByRole('option', { name: textResources[0].id }));
+    await user.selectOptions(select, textResources[0].id);
+    // await user.click(screen.getByRole('option', { name: textResources[0].id }));
 
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
     expect(handleComponentChange).toHaveBeenCalledWith({

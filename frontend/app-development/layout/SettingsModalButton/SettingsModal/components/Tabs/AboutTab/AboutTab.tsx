@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
 import type { AppConfig } from 'app-shared/types/AppConfig';
-import { ErrorMessage } from '@digdir/design-system-react';
+import { ErrorMessage } from '@digdir/designsystemet-react';
 import { Divider } from 'app-shared/primitives';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';

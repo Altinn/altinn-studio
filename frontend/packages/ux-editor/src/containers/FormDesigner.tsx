@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Properties } from '../components/Properties';
 import { DesignView } from './DesignView';
 import classes from './FormDesigner.module.css';
@@ -8,11 +8,15 @@ import { useAppContext, useText } from '../hooks';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
 import { useRuleModelQuery } from '../hooks/queries/useRuleModelQuery';
-import { ErrorPage } from '../components/ErrorPage';
-import { StudioPageSpinner } from '@studio/components';
+import {
+  StudioPageError,
+  StudioPageSpinner,
+  StudioResizableLayout,
+  useLocalStorage,
+} from '@studio/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
-import { useInstanceIdQuery } from 'app-shared/hooks/queries';
+import { useInstanceIdQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { HandleAdd, HandleMove } from 'app-shared/types/dndTypes';
 import type { ComponentType } from 'app-shared/types/ComponentType';
@@ -32,6 +36,7 @@ import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 export const FormDesigner = (): JSX.Element => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: instanceId } = useInstanceIdQuery(org, app);
+  const { data: user } = useUserQuery();
   const { selectedFormLayoutSetName, selectedFormLayoutName, refetchLayouts } = useAppContext();
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(
     org,
@@ -61,6 +66,15 @@ export const FormDesigner = (): JSX.Element => {
     selectedFormLayoutSetName,
   );
   const { handleEdit } = useFormItemContext();
+  const [previewCollapsed, setPreviewCollapsed] = useLocalStorage<boolean>(
+    `form-designer-main:previewCollapsed:${user.id}:${org}`,
+    false,
+  );
+  const [elementsCollapsed, setElementsCollapsed] = useLocalStorage<boolean>(
+    `form-designer-main:elementsCollapsed:${user.id}:${org}`,
+    false,
+  );
+  const [hidePreview, setHidePreview] = useState<boolean>(false);
 
   const t = useText();
 
@@ -88,7 +102,7 @@ export const FormDesigner = (): JSX.Element => {
 
   if (layoutFetchedError) {
     const mappedError = mapErrorToDisplayError();
-    return <ErrorPage title={mappedError.title} message={mappedError.message} />;
+    return <StudioPageError title={mappedError.title} message={mappedError.message} />;
   }
 
   if (formLayoutIsReady) {
@@ -143,16 +157,46 @@ export const FormDesigner = (): JSX.Element => {
       <DragAndDropTree.Provider rootId={BASE_CONTAINER_ID} onMove={moveItem} onAdd={addItem}>
         <div className={classes.root}>
           <div className={classes.container}>
-            <Elements />
-            <DesignView />
-            <Properties />
-            <Preview />
+            <StudioResizableLayout.Container
+              orientation='horizontal'
+              localStorageContext={`form-designer-main:${user.id}:${org}`}
+            >
+              <StudioResizableLayout.Element
+                collapsed={elementsCollapsed}
+                collapsedSize={49}
+                minimumSize={262}
+                maximumSize={300}
+              >
+                <Elements
+                  collapsed={elementsCollapsed}
+                  onCollapseToggle={() => setElementsCollapsed(!elementsCollapsed)}
+                />
+              </StudioResizableLayout.Element>
+              <StudioResizableLayout.Element minimumSize={250}>
+                <DesignView />
+              </StudioResizableLayout.Element>
+              <StudioResizableLayout.Element
+                minimumSize={250}
+                onResizing={(resizing) => setHidePreview(resizing)}
+              >
+                <Properties />
+              </StudioResizableLayout.Element>
+              <StudioResizableLayout.Element
+                collapsed={previewCollapsed}
+                collapsedSize={49}
+                minimumSize={400}
+              >
+                <Preview
+                  collapsed={previewCollapsed}
+                  onCollapseToggle={() => setPreviewCollapsed(!previewCollapsed)}
+                  hidePreview={hidePreview}
+                />
+              </StudioResizableLayout.Element>
+            </StudioResizableLayout.Container>
           </div>
         </div>
       </DragAndDropTree.Provider>
     );
   }
-  return (
-    <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('ux_editor.loading_form_layout')} />
-  );
+  return <StudioPageSpinner spinnerTitle={t('ux_editor.loading_form_layout')} />;
 };

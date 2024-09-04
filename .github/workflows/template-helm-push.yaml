@@ -1,0 +1,66 @@
+name: Helm build and push workflow
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+      chart-name:
+        required: true
+        type: string
+      registry-name:
+        required: true
+        type: string
+      environment:
+        required: false
+        type: string
+        default: ''
+
+    secrets:
+      client-id:
+        required: true
+      tenant-id:
+        required: true
+      subscription-id:
+        required: true
+
+jobs:
+  helm-build-push:
+    name: Helm build and push
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 'Azure login'
+        uses: azure/login@v2
+        with:
+            client-id: ${{ secrets.client-id }}
+            tenant-id: ${{ secrets.tenant-id }}
+            subscription-id: ${{ secrets.subscription-id }}
+
+      - name: 'Install helm'
+        uses: azure/setup-helm@v4.2.0
+        with:
+          version: '3.15.3'
+        id: install
+
+      - name: Log in to Container registry
+        run: |
+          az acr login --name ${{ inputs.registry-name }} \
+          --expose-token --output tsv \
+          --query accessToken \
+          --subscription ${{ secrets.subscription-id }} \
+          --only-show-errors |  helm registry login ${{ inputs.registry-name }} \
+                                --username 00000000-0000-0000-0000-000000000000 \
+                                --password-stdin
+
+      - name: Helm build
+        run: |
+          helm package charts/${{ inputs.chart-name }} --version ${{ inputs.tag }}
+
+      - name: Helm push
+        run: |
+          helm push ${{ inputs.chart-name }}-${{ inputs.tag }}.tgz oci://${{ inputs.registry-name }}/charts
+

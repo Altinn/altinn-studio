@@ -1,6 +1,6 @@
 import React from 'react';
 import { StudioTextfield } from '../StudioTextfield';
-import { Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import * as StudioIcons from '@studio/icons';
 
 import classes from './IconViewer.module.css';

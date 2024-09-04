@@ -1,4 +1,4 @@
-import { typedLocalStorage, typedSessionStorage } from 'app-shared/utils/webStorage';
+import { typedLocalStorage, typedSessionStorage } from '@studio/components/src/hooks/webStorage';
 
 const featureFlagKey = 'featureFlags';
 const persistFeatureKey = 'persistFeatureFlag';
@@ -8,7 +8,7 @@ export type SupportedFeatureFlags =
   | 'componentConfigBeta'
   | 'shouldOverrideAppLibCheck'
   | 'resourceMigration'
-  | 'displayPaymentTaskProcessEditor';
+  | 'multipleDataModelsPerTask';
 
 /*
  * Please add all the features that you want to be toggle on by default here.

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './ResourcePageInputs.module.css';
-import { Label, Paragraph, Switch } from '@digdir/design-system-react';
+import { Label, Paragraph, Switch } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 
 type ResourceSwitchInputProps = {
@@ -93,9 +93,7 @@ export const ResourceSwitchInput = ({
             className={isChecked ? classes.toggleTextActive : classes.toggleTextInactive}
           >
             {t(toggleTextTranslationKey, {
-              shouldText: isChecked
-                ? t('resourceadm.switch_should')
-                : t('resourceadm.switch_should_not'),
+              shouldText: !isChecked ? t('resourceadm.switch_should_not') : '',
             })}
           </Paragraph>
         </Switch>

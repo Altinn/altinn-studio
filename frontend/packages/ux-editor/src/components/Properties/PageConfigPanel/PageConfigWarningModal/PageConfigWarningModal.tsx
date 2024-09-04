@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './PageConfigWarningModal.module.css';
-import { Modal } from '@digdir/design-system-react';
+import { Modal } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 
 export interface PageConfigWarningModalProps {

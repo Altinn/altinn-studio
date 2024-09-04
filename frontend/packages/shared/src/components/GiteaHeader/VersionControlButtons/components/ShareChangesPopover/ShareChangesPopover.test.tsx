@@ -106,7 +106,7 @@ describe('shareChanges', () => {
     );
   });
 
-  it('should render number of changes when displayNotification is true and there are no merge conflicts', () => {
+  it('should render notificationIcon when there are no merge conflicts', () => {
     renderShareChangesPopover({
       versionControlButtonsContextProps: {
         ...mockVersionControlButtonsContextValue,
@@ -114,51 +114,27 @@ describe('shareChanges', () => {
           ...mockVersionControlButtonsContextValue.repoStatus,
           contentStatus: [{ filePath: '', fileStatus: '' }],
         },
+      },
+    });
+    const notificationIcon = screen.getByLabelText('sync_header.notification_label');
+
+    expect(notificationIcon).toBeInTheDocument();
+  });
+
+  it('should render share changes button as disabled when there are merge conflicts', () => {
+    renderShareChangesPopover({
+      versionControlButtonsContextProps: {
+        ...mockVersionControlButtonsContextValue,
+        repoStatus: {
+          ...mockVersionControlButtonsContextValue.repoStatus,
+          contentStatus: [{ filePath: '', fileStatus: '' }],
+        },
+        hasMergeConflict: true,
       },
     });
 
     const shareButton = screen.getByRole('button', {
       name: textMock('sync_header.changes_to_share'),
-    });
-
-    expect(shareButton).toHaveTextContent(textMock('sync_header.changes_to_share') + 1);
-  });
-
-  it('should not render number of changes when displayNotification is true and there are merge conflicts', () => {
-    renderShareChangesPopover({
-      versionControlButtonsContextProps: {
-        ...mockVersionControlButtonsContextValue,
-        repoStatus: {
-          ...mockVersionControlButtonsContextValue.repoStatus,
-          contentStatus: [{ filePath: '', fileStatus: '' }],
-        },
-        hasMergeConflict: true,
-        hasPushRights: true,
-      },
-    });
-
-    const shareButton = screen.getByRole('button', {
-      name: textMock('sync_header.merge_conflict'),
-    });
-
-    expect(shareButton).not.toHaveTextContent(textMock('sync_header.merge_conflict') + 1);
-    expect(screen.getByTitle(textMock('sync_header.merge_conflict_title'))).toBeInTheDocument();
-  });
-
-  it('should render merge conflict button as disabled when there are merge conflicts', () => {
-    renderShareChangesPopover({
-      versionControlButtonsContextProps: {
-        ...mockVersionControlButtonsContextValue,
-        repoStatus: {
-          ...mockVersionControlButtonsContextValue.repoStatus,
-          contentStatus: [{ filePath: '', fileStatus: '' }],
-        },
-        hasMergeConflict: true,
-      },
-    });
-
-    const shareButton = screen.getByRole('button', {
-      name: textMock('sync_header.merge_conflict'),
     });
 
     expect(shareButton).toHaveAttribute('disabled');

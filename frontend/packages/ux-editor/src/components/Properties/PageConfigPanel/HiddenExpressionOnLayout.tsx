@@ -8,7 +8,8 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useSelectedFormLayoutWithName, useAppContext } from '../../../hooks';
 import { Trans } from 'react-i18next';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
-import { useDebounce } from 'app-shared/hooks/useDebounce';
+import { useDebounce } from '@studio/hooks';
+import classes from './HiddenExpressionOnLayout.module.css';
 
 export const HiddenExpressionOnLayout = () => {
   const { app, org } = useStudioEnvironmentParams();
@@ -48,7 +49,10 @@ export const HiddenExpressionOnLayout = () => {
         <Trans
           i18nKey={'right_menu.expressions_property_preview_hidden'}
           values={{ componentName: layoutName }}
-          components={{ bold: <strong /> }}
+          components={{
+            componentName: <span className={classes.componentName} />,
+            textElement: <span className={classes.textElement} />,
+          }}
         />
       }
       onChange={(expression) => handleChangeHiddenExpressionOnLayout(expression)}

@@ -9,7 +9,7 @@ import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
 import type { PolicyRuleResource } from '../../../../types';
-import { ErrorMessage } from '@digdir/design-system-react';
+import { ErrorMessage } from '@digdir/designsystemet-react';
 
 export const SubResources = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -59,7 +59,6 @@ export const SubResources = (): React.ReactElement => {
           type='button'
           onClick={handleClickAddResource}
           color='second'
-          size='small'
           fullWidth
           icon={<PlusIcon fontSize='1.5rem' />}
         >

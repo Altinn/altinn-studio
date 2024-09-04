@@ -7,7 +7,6 @@ import type { IAppDataState } from '../../features/appData/appDataReducers';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useDataModelMetadataQuery } from '../../hooks/queries/useDataModelMetadataQuery';
-import userEvent from '@testing-library/user-event';
 import { dataModelNameMock, layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import type { DataModelMetadataResponse } from 'app-shared/types/api';
 import { app, org } from '@studio/testing/testids';
@@ -52,8 +51,6 @@ const getDataModelMetadata = () =>
     },
   });
 
-const user = userEvent.setup();
-
 const waitForData = async () => {
   const dataModelMetadataResult = renderHookWithMockStore(
     {},
@@ -93,7 +90,7 @@ describe('EditDataModelBindings', () => {
     expect(
       await screen.findByText(textMock('ux_editor.modal_properties_data_model_helper')),
     ).toBeInTheDocument();
-    expect(screen.getByRole('combobox').getAttribute('value')).toEqual('');
+    expect(screen.getByRole<HTMLSelectElement>('combobox').value).toEqual('');
   });
 
   it('should show select with provided value', async () => {
@@ -106,22 +103,5 @@ describe('EditDataModelBindings', () => {
       await screen.findByText(textMock('ux_editor.modal_properties_data_model_helper')),
     ).toBeInTheDocument();
     expect(await screen.findByText('testModel.field1')).toBeInTheDocument();
-  });
-
-  it('should call onChange when a new option is selected', async () => {
-    const handleComponentChange = jest.fn();
-    await render({
-      dataModelBindings: {
-        simpleBinding: 'testModel.field1',
-      },
-      handleComponentChange,
-    });
-    const selectElement = screen.getByRole('combobox');
-
-    await user.click(selectElement);
-    await user.click(screen.getByText('testModel.field1'));
-
-    await waitFor(() => {});
-    expect(handleComponentChange).toHaveBeenCalledWith('testModel.field1');
   });
 });

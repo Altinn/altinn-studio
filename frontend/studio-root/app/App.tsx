@@ -2,19 +2,19 @@ import React from 'react';
 import classes from './App.module.css';
 import { Route, Routes } from 'react-router-dom';
 import { StudioNotFoundPage } from '@studio/components';
-import { Paragraph, Link } from '@digdir/design-system-react';
+import { Paragraph, Link } from '@digdir/designsystemet-react';
 import { useTranslation, Trans } from 'react-i18next';
 
 import './App.css';
 import { PageLayout } from '../pages/PageLayout';
-import { Contact } from '../pages/Contact/Contact';
+import { ContactPage } from '../pages/Contact/ContactPage';
 
 export const App = (): JSX.Element => {
   return (
     <div className={classes.root}>
       <Routes>
         <Route element={<PageLayout />}>
-          <Route path='/contact' element={<Contact />} />
+          <Route path='/contact' element={<ContactPage />} />
           <Route path='*' element={<NotFoundPage />} />
         </Route>
       </Routes>
@@ -30,9 +30,12 @@ const NotFoundPage = () => {
       title={t('not_found_page.heading')}
       body={
         <Paragraph size='small'>
-          <Trans i18nKey='not_found_page.text'>
-            <Link href='mailto:tjenesteeier@altinn.no'>tjenesteeier@altinn.no</Link>
-          </Trans>
+          <Trans
+            i18nKey='not_found_page.text'
+            components={{
+              a: <Link href='/contact'> </Link>,
+            }}
+          ></Trans>
         </Paragraph>
       }
       redirectHref='/'

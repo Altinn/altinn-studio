@@ -1,5 +1,5 @@
 import React from 'react';
-import { DropdownMenu } from '@digdir/design-system-react';
+import { DropdownMenu } from '@digdir/designsystemet-react';
 import { PlusIcon } from '@studio/icons';
 import { useText } from '../../../hooks';
 import type { ExpressionProperty } from '../../../types/Expressions';
@@ -31,7 +31,6 @@ export const NewExpressionButton = ({ options, onAddExpression }: NewExpressionB
           fullWidth
           icon={<PlusIcon />}
           onClick={() => setShowDropdown(!showDropdown)}
-          size='small'
           title={t('right_menu.expressions_add')}
           variant='secondary'
         >

@@ -5,11 +5,17 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { VersionControlButtonsContext } from '../../../context';
 import { mockVersionControlButtonsContextValue } from '../../../test/mocks/versionControlContextMock';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
-const mockHandleClonsePopover = jest.fn();
+const mockOnHidePopover = jest.fn();
+const mockOnClosePopover = jest.fn();
 
 const defaultProps: CommitAndPushContentProps = {
-  handleClosePopover: mockHandleClonsePopover,
+  onHidePopover: mockOnHidePopover,
+  onClosePopover: mockOnClosePopover,
+  fileChanges: [],
 };
 
 describe('CommitAndPushContent', () => {
@@ -21,9 +27,6 @@ describe('CommitAndPushContent', () => {
     expect(screen.getByText(textMock('sync_header.describe_and_validate'))).toBeInTheDocument();
     expect(
       screen.getByText(textMock('sync_header.describe_and_validate_sub_message')),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(textMock('sync_header.describe_and_validate_sub_sub_message')),
     ).toBeInTheDocument();
     expect(
       screen.getByLabelText(textMock('sync_header.describe_changes_made')),
@@ -60,14 +63,52 @@ describe('CommitAndPushContent', () => {
     expect(mockVersionControlButtonsContextValue.commitAndPushChanges).toHaveBeenCalledWith(
       commitMessage,
     );
-    expect(mockHandleClonsePopover).toHaveBeenCalled();
+    expect(mockOnClosePopover).toHaveBeenCalled();
+  });
+
+  it('should open fileChangesInfoModal when clicking review changes button', async () => {
+    const user = userEvent.setup();
+    renderCommitAndPushContent();
+
+    const modalBeforeClick = screen.queryByRole('dialog');
+    expect(modalBeforeClick).not.toBeInTheDocument();
+
+    const reviewChangesButton = screen.getByRole('button', {
+      name: textMock('sync_header.review_file_changes'),
+    });
+    await user.click(reviewChangesButton);
+
+    const modalAfterClick = screen.getByRole('dialog');
+    expect(modalAfterClick).toBeInTheDocument();
+    expect(mockOnHidePopover).toHaveBeenCalledWith(true);
+  });
+
+  it('should close fileChangesInfoModal when clicking close', async () => {
+    const user = userEvent.setup();
+    renderCommitAndPushContent();
+    const reviewChangesButton = screen.getByRole('button', {
+      name: textMock('sync_header.review_file_changes'),
+    });
+    await user.click(reviewChangesButton);
+    const closeModalButton = screen.getByRole('button', {
+      name: textMock('sync_header.show_changes_modal.close_button'),
+    });
+    await user.click(closeModalButton);
+
+    const modalAfterClose = screen.queryByRole('dialog');
+    expect(modalAfterClose).not.toBeInTheDocument();
+
+    expect(mockOnHidePopover).toHaveBeenCalledWith(false);
   });
 });
 
 const renderCommitAndPushContent = () => {
   return render(
-    <VersionControlButtonsContext.Provider value={mockVersionControlButtonsContextValue}>
-      <CommitAndPushContent {...defaultProps} />
-    </VersionControlButtonsContext.Provider>,
+    <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
+      <VersionControlButtonsContext.Provider value={mockVersionControlButtonsContextValue}>
+        <CommitAndPushContent {...defaultProps} />
+      </VersionControlButtonsContext.Provider>
+      ,
+    </ServicesContextProvider>,
   );
 };

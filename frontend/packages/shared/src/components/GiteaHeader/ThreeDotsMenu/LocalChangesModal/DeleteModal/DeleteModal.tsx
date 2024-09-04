@@ -5,7 +5,7 @@ import { StudioButton, StudioModal, StudioSpinner } from '@studio/components';
 import { TrashIcon } from '@studio/icons';
 import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
 import { toast } from 'react-toastify';
-import { Heading, Paragraph, Textfield } from '@digdir/design-system-react';
+import { Heading, Paragraph, Textfield } from '@digdir/designsystemet-react';
 import { useQueryClient } from '@tanstack/react-query';
 
 export type DeleteModalProps = {
@@ -79,11 +79,10 @@ export const DeleteModal = ({ isOpen, onClose, app, org }: DeleteModalProps): JS
                 color='danger'
                 onClick={handleDelete}
                 disabled={app !== nameToDelete}
-                size='small'
               >
                 {t('local_changes.modal_confirm_delete_button')}
               </StudioButton>
-              <StudioButton variant='secondary' onClick={handleClose} size='small'>
+              <StudioButton variant='secondary' onClick={handleClose}>
                 {t('general.cancel')}
               </StudioButton>
             </>

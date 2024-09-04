@@ -9,12 +9,11 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
     /// <summary>
-    /// Interface for dealing with texts in new format in an app repository.
+    /// Service for handling texts in new format in an app repository.
     /// </summary>
     public class TextsService : ITextsService
     {
@@ -116,7 +115,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc />
         public async Task<List<string>> GetKeys(string org, string repo, string developer, IList<string> languages)
         {
-            if (languages.IsNullOrEmpty())
+            if (languages == null || languages.Count == 0)
             {
                 throw new FileNotFoundException();
             }
@@ -237,7 +236,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc />
         public async Task<string> UpdateKey(string org, string repo, string developer, IList<string> languages, string oldKey, string newKey)
         {
-            if (languages.IsNullOrEmpty())
+            if (languages == null || languages.Count == 0)
             {
                 throw new FileNotFoundException();
             }
@@ -252,12 +251,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     Dictionary<string, string> jsonTexts = await altinnAppGitRepository.GetTextsV2(languageCode);
                     oldKeyExistsOriginally = jsonTexts.ContainsKey(oldKey) || oldKeyExistsOriginally;
-                    if (!newKey.IsNullOrEmpty() && jsonTexts.ContainsKey(newKey) && jsonTexts.ContainsKey(oldKey))
+                    if (!string.IsNullOrEmpty(newKey) && jsonTexts.ContainsKey(newKey) && jsonTexts.ContainsKey(oldKey))
                     {
                         throw new ArgumentException();
                     }
 
-                    if (!newKey.IsNullOrEmpty() && jsonTexts.ContainsKey(oldKey))
+                    if (!string.IsNullOrEmpty(newKey) && jsonTexts.ContainsKey(oldKey))
                     {
                         string value = jsonTexts[oldKey];
                         jsonTexts[newKey] = value;
@@ -267,7 +266,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     tempUpdatedTexts[languageCode] = jsonTexts;
                 }
 
-                response = newKey.IsNullOrEmpty() ? $"the key, {oldKey}, was deleted." : $"The old key, {oldKey}, have been replaced with the new key, {newKey}.";
+                response = string.IsNullOrEmpty(newKey) ? $"the key, {oldKey}, was deleted." : $"The old key, {oldKey}, have been replaced with the new key, {newKey}.";
 
                 if (!oldKeyExistsOriginally)
                 {

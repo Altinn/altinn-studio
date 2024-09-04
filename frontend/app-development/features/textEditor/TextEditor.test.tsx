@@ -143,8 +143,7 @@ describe('TextEditor', () => {
     expect(addBtn).toBeDisabled();
     const select = screen.getByRole('combobox');
 
-    await user.type(select, 'nordsamisk');
-    await user.click(screen.getByText('nordsamisk'));
+    await user.selectOptions(select, screen.getByRole('option', { name: 'nordsamisk' }));
 
     expect(addBtn).not.toBeDisabled();
     await user.click(addBtn);

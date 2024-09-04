@@ -1,7 +1,7 @@
 import { SimpleSubexpressionValueType } from '../../../../../enums/SimpleSubexpressionValueType';
 import type { ChangeEvent } from 'react';
 import React from 'react';
-import { NativeSelect } from '@digdir/design-system-react';
+import { NativeSelect } from '@digdir/designsystemet-react';
 import { useStudioExpressionContext } from '../../../../../StudioExpressionContext';
 
 export type SubexpressionValueTypeSelectorProps = {

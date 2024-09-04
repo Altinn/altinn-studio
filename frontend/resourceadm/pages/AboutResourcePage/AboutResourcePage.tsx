@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
-import { ErrorSummary, Heading } from '@digdir/design-system-react';
+import { ErrorSummary, Heading } from '@digdir/designsystemet-react';
 import type { Translation } from '../../types/Translation';
 import type {
   Resource,
@@ -242,7 +242,7 @@ export const AboutResourcePage = ({
         )}
         {resourceData.resourceType !== 'MaskinportenSchema' && (
           <ResourceSwitchInput
-            id='resourceType'
+            id='enterpriseUserEnabled'
             label={t('resourceadm.about_resource_enterprise_label')}
             description={t('resourceadm.about_resource_enterprise_text')}
             value={resourceData.enterpriseUserEnabled ?? false}

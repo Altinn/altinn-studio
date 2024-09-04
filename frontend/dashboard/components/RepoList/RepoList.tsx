@@ -3,17 +3,13 @@ import type { RepoIncludingStarredData } from 'dashboard/utils/repoUtils/repoUti
 import { useTranslation } from 'react-i18next';
 import type { DATAGRID_PAGE_SIZE_TYPE } from '../../constants';
 import { DATAGRID_DEFAULT_PAGE_SIZE, DATAGRID_PAGE_SIZE_OPTIONS } from '../../constants';
-import {
-  StudioSpinner,
-  StudioTableLocalPagination,
-  StudioTableRemotePagination,
-} from '@studio/components';
+import { StudioTableLocalPagination, StudioTableRemotePagination } from '@studio/components';
 import type { Columns, PaginationTexts, RemotePaginationProps } from '@studio/components';
 import { ActionLinks } from './ActionLinks';
 import { FavoriteButton } from './FavoriteButton';
 import classes from './RepoList.module.css';
 import { RepoNameWithLink } from './RepoNameWithLink';
-import { Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 
 export interface RepoListProps {
   repos: RepoIncludingStarredData[];
@@ -84,7 +80,8 @@ export const RepoList = ({
     },
   ];
 
-  // The local table can sort all columns, but Gitea API does not support sorting by createdBy or description
+  // The local table can sort all columns, but the Gitea API does not support sorting by createdBy or description
+  // Therefore, we remove the sortable property from these columns when using server-side sorting
   const nonSortableAccessors = ['createdBy', 'description'];
   const remotePaginationColumns = columns.map((column) => ({
     ...column,
@@ -101,9 +98,7 @@ export const RepoList = ({
     actionIcons: <ActionLinks repo={repo} />,
   }));
 
-  const emptyTableFallback = isLoading ? (
-    <StudioSpinner spinnerTitle={t('general.loading')} />
-  ) : (
+  const emptyTableFallback = (
     <Paragraph size={tableSize}>{t('dashboard.no_repos_result')}</Paragraph>
   );
 
@@ -133,6 +128,8 @@ export const RepoList = ({
           columns={remotePaginationColumns}
           rows={rows}
           size={tableSize}
+          isLoading={isLoading}
+          loadingText={t('general.loading')}
           emptyTableFallback={emptyTableFallback}
           pagination={paginationProps}
           onSortClick={onSortClick}
@@ -142,6 +139,8 @@ export const RepoList = ({
           columns={columns}
           rows={rows}
           size={tableSize}
+          isLoading={isLoading}
+          loadingText={t('general.loading')}
           emptyTableFallback={emptyTableFallback}
           pagination={paginationProps}
         />

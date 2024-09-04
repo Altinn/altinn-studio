@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Checkbox, Heading, Link as DigdirLink } from '@digdir/design-system-react';
+import { Checkbox, Heading, Link as DigdirLink } from '@digdir/designsystemet-react';
 import classes from './ResourceAccessLists.module.css';
 import { StudioSpinner, StudioButton } from '@studio/components';
 import { PencilWritingIcon, PlusIcon } from '@studio/icons';
@@ -125,7 +125,6 @@ export const ResourceAccessLists = ({
                 {list.name}
               </Checkbox>
               <StudioButton
-                size='small'
                 variant='tertiary'
                 asChild
                 aria-label={`${t('resourceadm.listadmin_edit_list')} ${list.name}`}
@@ -148,7 +147,6 @@ export const ResourceAccessLists = ({
         {hasNextPage && (
           <StudioButton
             disabled={isFetchingNextPage}
-            size='small'
             variant='tertiary'
             onClick={() => fetchNextPage()}
           >
@@ -160,7 +158,6 @@ export const ResourceAccessLists = ({
       </div>
       <StudioButton
         variant='tertiary'
-        size='small'
         icon={<PlusIcon />}
         iconPlacement='left'
         onClick={() => createAccessListModalRef.current?.showModal()}

@@ -57,7 +57,7 @@ test('That it is possible to create a text at the ux-editor page, and that the t
   const uiEditorPage = new UiEditorPage(page, { app: testAppName });
 
   await navigateToUiEditorAndVerifyPage(header, uiEditorPage);
-  await uiEditorPage.dragComponentInToDroppableList(ComponentType.Input);
+  await uiEditorPage.dragComponentIntoDroppableList(ComponentType.Input);
 
   await uiEditorPage.deleteOldComponentId();
   await uiEditorPage.writeNewComponentId(COMPONENT_ID);
@@ -123,8 +123,7 @@ test('That it is possible to add a new text, edit the id, and add a new language
     TEXT_VALUE_IN_TEXTAREA,
   );
 
-  await textEditorPage.openSelectLanguageCombobox();
-  await textEditorPage.selectOptionFromLanguageCombobox(LanguageCode.En);
+  await textEditorPage.selectLanguageFromCombobox(LanguageCode.En);
   await textEditorPage.clickOnAddLanguageButton();
   await textEditorPage.waitForLanguageCheckboxToAppear(LanguageCode.En);
 

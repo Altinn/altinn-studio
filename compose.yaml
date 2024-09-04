@@ -36,15 +36,16 @@ services:
       - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.conf
       - NGINX_HOST=localhost
       - NGINX_PORT=80
-      - TEST_DOMAIN=${TEST_DOMAIN:-local.altinn.cloud}
     depends_on:
-      - studio_repositories
+      studio_repositories:
+        condition: service_healthy
+      studio_designer:
+        condition: service_healthy
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     volumes:
-      - ./frontend/language/src:/www-root/designer/frontend/lang:ro
-      - ./development/load-balancer:/etc/nginx/templates/:ro
-      - ./development/load-balancer:/www/:ro
+      - ./development/load-balancer/templates:/etc/nginx/templates:ro
+      - ./development/load-balancer/www:/www:ro
 
   studio_designer:
     container_name: studio-designer
@@ -77,14 +78,27 @@ services:
       - ServiceRepositorySettings:RepositoryLocation=/AltinnCore/Repos/
       - TestdataRepositorySettings:RepositoryLocation=/Testdata
       - Integrations:AzureDevOpsSettings:BaseUri=http://studio-azure-mock:6161/_apis/
+      - OidcLoginSettings:ClientId=${CLIENT_ID}
+      - OidcLoginSettings:ClientSecret=${CLIENT_SECRET}
+      - OidcLoginSettings:Authority=http://studio.localhost/repos/
+      - OidcLoginSettings:RequireHttpsMetadata=false
+      - OidcLoginSettings:CookieExpiryTimeInMinutes=59
+      - OidcLoginSettings:FetchClientIdAndSecretFromRootEnvFile=false
     ports:
       - '6000:6000'
     depends_on:
-      - studio_repositories
+      studio_db:
+        condition: service_healthy
     build:
       context: .
     extra_hosts:
       - 'host.docker.internal:host-gateway'
+      - 'studio.localhost:host-gateway'
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://localhost:6000/health" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
 
   studio_repositories:
     container_name: studio-repositories
@@ -123,6 +137,15 @@ services:
       context: ./gitea/
     extra_hosts:
       - 'host.docker.internal:host-gateway'
+    depends_on:
+      studio_db:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://localhost:3000/api/healthz" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
 
   studio_db:
     container_name: studio-db
@@ -136,5 +159,24 @@ services:
       - '5432:5432'
     volumes:
       - ./development/db/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./development/db/data.sql:/data.sql
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U designer_admin -d designerdb" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  database_migrations:
+    container_name: db-database_migrations
+    depends_on:
+      studio_db:
+        condition: service_healthy
+    build:
+      context: backend
+      dockerfile: Migrations.Dockerfile
+    environment:
+      - PGHOST=studio_db
+      - PGPORT=5432
+      - PGUSER=designer_admin
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+      - PGDATABASE=designerdb

@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import classes from './ResourceDashboardPage.module.css';
 import { PlusCircleIcon, MigrationIcon, TasklistIcon } from '@studio/icons';
-import { Spinner, Heading } from '@digdir/design-system-react';
+import { Spinner, Heading } from '@digdir/designsystemet-react';
 import { ResourceTable } from '../../components/ResourceTable';
 import { SearchBox } from '../../components/ResourceSeachBox';
 import { useGetResourceListQuery, useOrganizationsQuery } from '../../hooks/queries';

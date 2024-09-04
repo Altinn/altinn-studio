@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { CheckmarkIcon, TrashIcon, PencilWritingIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import type { ButtonProps } from '@digdir/design-system-react';
+import type { ButtonProps } from '@digdir/designsystemet-react';
 import classes from './InputActionWrapper.module.css';
 import { StudioButton } from '@studio/components';
 
@@ -108,7 +108,6 @@ export const InputActionWrapper = ({
         {actions.map((action) => (
           <StudioButton
             variant={mode === 'standBy' ? 'tertiary' : 'secondary'}
-            size='small'
             color={actionToColorMap[action]}
             key={action}
             onClick={() => handleActionClick(action)}

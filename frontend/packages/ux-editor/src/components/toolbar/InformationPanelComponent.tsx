@@ -9,7 +9,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { StudioLabelAsParagraph, StudioPopover } from '@studio/components';
 import { InformationIcon } from '@studio/icons';
-import { Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 
 export type InformationPanelProvidedProps = {
   isOpen: boolean;
@@ -26,7 +26,7 @@ export const InformationPanelComponent = ({
 }: InformationPanelProvidedProps) => {
   const { t } = useTranslation();
   return (
-    <StudioPopover open={isOpen} onClose={onClose} placement='right'>
+    <StudioPopover open={isOpen} onClose={onClose} portal placement='right'>
       <StudioPopover.Trigger size='small' onClick={onOpen} variant='tertiary'>
         <InformationIcon />
       </StudioPopover.Trigger>

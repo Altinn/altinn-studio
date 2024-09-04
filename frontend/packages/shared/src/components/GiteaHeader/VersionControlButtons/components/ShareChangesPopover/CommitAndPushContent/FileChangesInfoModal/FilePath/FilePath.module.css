@@ -1,0 +1,59 @@
+.filePathWithDiffContainer {
+  color: var(--fds-semantic-surface-action-default);
+  text-decoration: underline;
+  align-items: center;
+  cursor: pointer;
+}
+
+.filePathWithDiffContainer:hover {
+  color: var(--fds-semantic-surface-action-hover);
+}
+
+.filePathWithDiffContainer,
+.filePathContainer {
+  display: grid;
+  grid-template-columns: auto auto auto 1fr;
+}
+
+.filePath {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.details summary {
+  list-style: none;
+}
+
+.chevronIcon {
+  font-weight: bold;
+  transform: rotate(0deg);
+  transition: transform 0.2s ease-in-out;
+}
+
+details[open] .chevronIcon {
+  transform: rotate(90deg);
+}
+
+.gitDiffViewer {
+  padding: var(--fds-spacing-4);
+  border-radius: var(--fds-sizing-2);
+  margin-top: var(--fds-spacing-2);
+  background-color: var(--fds-semantic-surface-action-first-no_fill);
+  font-family: monospace;
+  font-size: small;
+}
+
+.diffLine {
+  white-space: pre-wrap;
+}
+
+.removedLine {
+  background-color: var(--fds-semantic-surface-danger-subtle);
+  color: var(--fds-semantic-text-danger-default);
+}
+
+.addedLine {
+  background-color: var(--fds-semantic-surface-success-subtle);
+  color: var(--fds-semantic-text-success-default);
+}

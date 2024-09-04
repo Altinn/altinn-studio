@@ -6,4 +6,6 @@
   font-family: 'Courier New', monospace;
   font-size: 0.8em;
   padding: 0 var(--fds-spacing-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

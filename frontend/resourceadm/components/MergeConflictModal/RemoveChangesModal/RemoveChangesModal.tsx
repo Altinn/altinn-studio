@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import { Textfield, Paragraph } from '@digdir/design-system-react';
+import { Textfield, Paragraph } from '@digdir/designsystemet-react';
 import classes from './RemoveChangesModal.module.css';
 import { Modal } from '../../../components/Modal';
 import { StudioButton } from '@studio/components';
@@ -88,11 +88,10 @@ export const RemoveChangesModal = ({
           aria-disabled={isRemoveButtonDisabled}
           onClick={() => (!isRemoveButtonDisabled ? handleClickResetRepo() : undefined)}
           variant='secondary'
-          size='small'
         >
           {t('local_changes.modal_confirm_delete_button')}
         </StudioButton>
-        <StudioButton onClick={handleClose} variant='tertiary' size='small'>
+        <StudioButton onClick={handleClose} variant='tertiary'>
           {t('general.cancel')}
         </StudioButton>
       </div>

@@ -31,10 +31,16 @@ test.afterAll(async ({ request, testAppName }) => {
 const setupAndVerifyUiEditorPage = async (
   page: Page,
   testAppName: string,
+  featureFlag?: string[],
 ): Promise<UiEditorPage> => {
   const uiEditorPage = new UiEditorPage(page, { app: testAppName });
   await uiEditorPage.loadUiEditorPage();
   await uiEditorPage.verifyUiEditorPage();
+  if (featureFlag) {
+    await page.evaluate((flag) => {
+      localStorage.setItem('featureFlags', JSON.stringify(flag));
+    }, featureFlag);
+  }
   return uiEditorPage;
 };
 
@@ -53,14 +59,13 @@ test('That it is possible to add a data model binding, and that the files are up
   await uiEditorPage.verifyThatPageIsEmpty();
 
   const newInputLabel: string = 'Input Label 1';
-  await uiEditorPage.dragComponentInToDroppableList(ComponentType.Input);
+  await uiEditorPage.dragComponentIntoDroppableList(ComponentType.Input);
   await uiEditorPage.waitForComponentTreeItemToBeVisibleInDroppableList(ComponentType.Input);
   await addNewLabelToTreeItemComponent(uiEditorPage, newInputLabel);
 
   await uiEditorPage.clickOnComponentDataModelBindingConfigAccordion();
   await uiEditorPage.clickOnAddDataModelButton(ComponentType.Input);
-  await uiEditorPage.clickOnDataModelBindingsCombobox(ComponentType.Input);
-  await uiEditorPage.verifyThatThereAreNoOptionsInTheDataModelList();
+  await uiEditorPage.clickOnDataModelFieldBindingCombobox();
 
   await header.clickOnThreeDotsMenu();
   await header.clickOnGoToGiteaRepository();
@@ -91,11 +96,11 @@ test('That it is possible to add a data model binding, and that the files are up
 
   await uiEditorPage.clickOnComponentDataModelBindingConfigAccordion();
   await uiEditorPage.clickOnAddDataModelButton(ComponentType.Input);
-  await uiEditorPage.clickOnDataModelBindingsCombobox(ComponentType.Input);
-  await uiEditorPage.verifyThatThereAreOptionsInTheDataModelList(ComponentType.Input);
+  await uiEditorPage.clickOnDataModelFieldBindingCombobox();
+  await uiEditorPage.verifyThatThereAreOptionsInTheDataModelFieldList();
 
   const dataModelBindingName = 'property1';
-  await uiEditorPage.clickOnDataModelPropertyOption(dataModelBindingName);
+  await uiEditorPage.clickOnDataModelFieldPropertyOption(dataModelBindingName);
   await uiEditorPage.clickOnSaveDataModel();
   await uiEditorPage.waitForDataModelToBeSelected();
 
@@ -107,7 +112,58 @@ test('That it is possible to add a data model binding, and that the files are up
   await header.clickOnGoToGiteaRepository();
 
   await navigateInToLayoutJsonFile(giteaPage, pageName);
-  await giteaPage.verifyThatDataModelBindingsAreVisible(dataModelBindingName);
+  await giteaPage.verifyThatDataModelBindingsAreVisible(
+    `"simpleBinding": "${dataModelBindingName}"`,
+  );
+});
+
+test('That is possible to select a different data model binding, and that the files are updated accordingly in Gitea', async ({
+  page,
+  testAppName,
+}): Promise<void> => {
+  const app = getAppTestName(testAppName);
+  const header = new Header(page, { app });
+  const dataModelPage = new DataModelPage(page, { app });
+  const uiEditorPage = await setupAndVerifyUiEditorPage(page, app, ['multipleDataModelsPerTask']);
+  const pageName: string = 'Side1';
+  const giteaPage = new GiteaPage(page, { app });
+
+  await header.clickOnNavigateToPageInTopMenuHeader('data_model');
+
+  const newDataModel = 'testDataModel';
+  await dataModelPage.clickOnCreateNewDataModelButton();
+  await dataModelPage.typeDataModelName(newDataModel);
+  await dataModelPage.clickOnCreateModelButton();
+  await dataModelPage.waitForDataModelToAppear(newDataModel);
+  await dataModelPage.clickOnGenerateDataModelButton();
+  await dataModelPage.checkThatSuccessAlertIsVisibleOnScreen();
+  await dataModelPage.waitForSuccessAlertToDisappear();
+
+  await header.clickOnNavigateToPageInTopMenuHeader('create');
+  await uiEditorPage.verifyUiEditorPage();
+  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, pageName);
+
+  await uiEditorPage.dragComponentIntoDroppableList(ComponentType.Input);
+  await uiEditorPage.waitForComponentTreeItemToBeVisibleInDroppableList(ComponentType.Input);
+
+  await uiEditorPage.clickOnComponentDataModelBindingConfigAccordion();
+  await uiEditorPage.clickOnAddDataModelButton(ComponentType.Input);
+  await uiEditorPage.clickOnDataModelBindingCombobox();
+  await uiEditorPage.clickOnDataModelPropertyOption(newDataModel);
+  await uiEditorPage.clickOnSaveDataModel();
+  await uiEditorPage.waitForDataModelToBeSelected();
+
+  await header.clickOnUploadLocalChangesButton();
+  await header.clickOnValidateChanges();
+  await header.waitForPushToGiteaSpinnerToDisappear();
+  await header.checkThatUploadSuccessMessageIsVisible();
+  await header.clickOnThreeDotsMenu();
+  await header.clickOnGoToGiteaRepository();
+
+  await navigateInToLayoutJsonFile(giteaPage, pageName);
+  await giteaPage.verifyThatDataModelBindingsAreVisible(
+    `"simpleBinding": { "field: "", dataType: "${newDataModel}" }`,
+  );
 });
 
 const navigateInToLayoutJsonFile = async (giteaPage: GiteaPage, layoutName: string) => {

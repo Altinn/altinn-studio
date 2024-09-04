@@ -16,7 +16,6 @@ export const ActionButton = forwardRef<HTMLButtonElement, ActionButtonProps>(
       <StudioButton
         className={classes.actionButton}
         ref={ref}
-        size='small'
         title={t(titleKey)}
         variant='tertiary'
         {...rest}

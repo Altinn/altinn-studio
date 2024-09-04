@@ -115,7 +115,7 @@ export const NewApplicationForm = ({
           <StudioSpinner showSpinnerTitle spinnerTitle={t('dashboard.creating_your_service')} />
         ) : (
           <>
-            <StudioButton type='submit' variant='primary' size='small'>
+            <StudioButton type='submit' variant='primary'>
               {submitButtonText}
             </StudioButton>
             <CancelComponent actionableElement={actionableElement} />
@@ -135,7 +135,7 @@ const CancelComponent = ({ actionableElement }: CancelComponentProps) => {
   switch (actionableElement.type) {
     case 'button':
       return (
-        <StudioButton onClick={actionableElement.onClick} variant='tertiary' size='small'>
+        <StudioButton onClick={actionableElement.onClick} variant='tertiary'>
           {t('general.cancel')}
         </StudioButton>
       );

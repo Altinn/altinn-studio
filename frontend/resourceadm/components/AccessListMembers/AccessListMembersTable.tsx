@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
-import { ErrorMessage } from '@digdir/design-system-react';
+import { ErrorMessage } from '@digdir/designsystemet-react';
 import type { AccessListMember } from 'app-shared/types/ResourceAdm';
 import { StudioButton, StudioTableLocalPagination } from '@studio/components';
 import type { Columns } from '@studio/components';
@@ -58,7 +58,6 @@ export const AccessListMembersTable = ({
           (disabledItems && disabledItems.some((existingItem) => existingItem.orgNr === item.orgNr))
         }
         variant='tertiary'
-        size='small'
       >
         {buttonText}
         {buttonIcon}
@@ -84,7 +83,7 @@ export const AccessListMembersTable = ({
       headerCellClass: cn(hiddenHeaderClassName, classes.smallColumn),
       bodyCellFormatter: (value: string) => (
         <>
-          <div className='sr-only'>{stringNumberToAriaLabel(value)}</div>
+          <div className={classes.srOnly}>{stringNumberToAriaLabel(value)}</div>
           <div aria-hidden='true'>{value}</div>
         </>
       ),

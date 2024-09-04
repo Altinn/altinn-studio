@@ -1,1 +1,4 @@
-export { Card as StudioCard, type CardProps as StudioCardProps } from '@digdir/design-system-react';
+export {
+  Card as StudioCard,
+  type CardProps as StudioCardProps,
+} from '@digdir/designsystemet-react';

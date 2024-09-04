@@ -40,7 +40,7 @@ const config = {
   moduleNameMapper: {
     // prettier-ignore
     '\\.(jpg|jpeg|png|gif|eot|otf|svg|webp|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': path.join(__dirname, 'testing/mocks/fileMock.js'),
-    '\\.(css|less)$': path.join(__dirname, 'testing/mocks/styleMock.js'),
+    '\\.(css|less)$': 'identity-obj-proxy',
     '^preact(/(.*)|$)': 'preact$1',
     '^@altinn/policy-editor/(.*)': path.join(__dirname, 'packages/policy-editor/src/$1'),
     '^@altinn/process-editor/(.*)': path.join(__dirname, 'packages/process-editor/src/$1'),
@@ -50,9 +50,10 @@ const config = {
     '^@altinn/text-editor/(.*)': path.join(__dirname, 'packages/text-editor/src/$1'),
     '^@altinn/ux-editor/(.*)': path.join(__dirname, 'packages/ux-editor/src/$1'),
     '^@altinn/ux-editor-v3/(.*)': path.join(__dirname, 'packages/ux-editor-v3/src/$1'),
-    '^@studio/icons': path.join(__dirname, 'libs/studio-icons/src/$1'),
-    '^@studio/components': path.join(__dirname, 'libs/studio-components/src/$1'),
-    '^@studio/pure-functions': path.join(__dirname, 'libs/studio-pure-functions/src/$1'),
+    '^@studio/icons/(.*)': path.join(__dirname, 'libs/studio-icons/$1'),
+    '^@studio/components/(.*)': path.join(__dirname, 'libs/studio-components/$1'),
+    '^@studio/hooks/(.*)': path.join(__dirname, 'libs/studio-hooks/$1'),
+    '^@studio/pure-functions/(.*)': path.join(__dirname, 'libs/studio-pure-functions/$1'),
     '^@studio/testing/(.*)': path.join(__dirname, 'testing/$1'),
   },
   testRegex: '(\\.(test))\\.(ts|tsx)$',

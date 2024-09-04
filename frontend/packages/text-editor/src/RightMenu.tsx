@@ -3,7 +3,7 @@ import classes from './RightMenu.module.css';
 import type { LangCode } from './types';
 import { LangSelector } from './LangSelector';
 import { getLangName, langOptions } from './utils';
-import { Checkbox, Fieldset, Heading } from '@digdir/design-system-react';
+import { Checkbox, Fieldset, Heading } from '@digdir/designsystemet-react';
 import { defaultLangCode } from './constants';
 import { useTranslation } from 'react-i18next';
 import { AltinnConfirmDialog } from 'app-shared/components';
@@ -43,20 +43,20 @@ export const RightMenu = ({
   };
 
   return (
-    <aside className={classes.RightMenu__sidebar}>
-      <div className={classes.RightMenu__verticalContent}>
+    <aside className={classes.rightMenuSidebar}>
+      <div className={classes.rightMenuVerticalContent}>
         <Heading level={2} size='small'>
           {t('schema_editor.language')}
         </Heading>
         <div> {t('schema_editor.language_info_melding')}</div>
       </div>
-      <div className={classes.RightMenu__verticalContent}>
+      <div className={classes.rightMenuVerticalContent}>
         <Fieldset legend={t('schema_editor.active_languages')}>
-          <div className={classes.RightMenu__radioGroup}>
+          <div className={classes.rightMenuRadioGroup}>
             {availableLanguages?.map((langCode) => {
               return (
                 <div key={langCode}>
-                  <div className={classes.RightMenu__radio}>
+                  <div className={classes.rightMenuRadio}>
                     <Checkbox
                       value={getLangName({ code: langCode })}
                       name={langCode}
@@ -82,7 +82,6 @@ export const RightMenu = ({
                           }
                           disabled={!canDeleteLang(langCode)}
                           aria-label={t('schema_editor.language_delete_button')}
-                          size='small'
                         >
                           {t('schema_editor.language_delete_button')}
                         </StudioButton>

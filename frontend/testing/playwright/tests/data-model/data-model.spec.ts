@@ -19,7 +19,7 @@ test.afterAll(async ({ request, testAppName }) => {
   expect(response.ok()).toBeTruthy();
 });
 
-test('Allows to add a data model, include an object with custom name and fields in it, generate a C# model from it, and then delete it', async ({
+test('Allows to add a data model, include an object with properties and a combination, check for visibility of type selector, generate a C# model from it, and then delete it', async ({
   page,
   testAppName,
 }): Promise<void> => {
@@ -46,7 +46,7 @@ test('Allows to add a data model, include an object with custom name and fields 
    * the newName sent in, and then checking that the newName is on the screen.
    */
   const replaceName0WithNewTextValue = async (newName: string) => {
-    await dataModelPage.checkThatTreeItemProperyExistsOnScreen(name0);
+    await dataModelPage.checkThatTreeItemPropertyExistsOnScreen(name0);
     await dataModelPage.clickOnTreeItemProperty(name0);
     const nameFieldValue = await dataModelPage.getNameFieldValue();
     expect(nameFieldValue).toEqual(name0);
@@ -55,7 +55,7 @@ test('Allows to add a data model, include an object with custom name and fields 
     await dataModelPage.tabOutOfNameField();
     const newNameFieldValue = await dataModelPage.getNameFieldValue();
     expect(newNameFieldValue).toEqual(newName);
-    await dataModelPage.checkThatTreeItemProperyExistsOnScreen(newName);
+    await dataModelPage.checkThatTreeItemPropertyExistsOnScreen(newName);
   };
 
   // Rename the object
@@ -63,38 +63,32 @@ test('Allows to add a data model, include an object with custom name and fields 
   await replaceName0WithNewTextValue(treeItemTestName);
   await dataModelPage.clickOnTreeItemProperty(treeItemTestName);
 
-  // Helper function to add a new field to the test object added
-  const addFieldToTheTestNode = async () => {
+  // Helper function to add a new property to the test object added
+  const addPropertyToTheObjectNode = async (property: 'string' | 'number') => {
     await dataModelPage.focusOnTreeItemProperty(treeItemTestName);
-    await dataModelPage.clickOnAddNodeToPropertyButton();
-    await dataModelPage.clickOnAddFieldToNodeButton();
+    await dataModelPage.clickOnObjectAddPropertyButton();
+    await dataModelPage.clickOnAddPropertyToObjectButton(property);
   };
 
-  // Add 'text1' field to the object
-  await addFieldToTheTestNode();
+  // Add 'text' property to the object
+  await addPropertyToTheObjectNode('string');
   await replaceName0WithNewTextValue('text1');
+  await dataModelPage.checkThatTypeComboboxIsHidden();
 
-  // Add 'text2' field to the object
-  await addFieldToTheTestNode();
-  await replaceName0WithNewTextValue('text2');
-
-  // Add 'number' field to the object
-  await addFieldToTheTestNode();
-  await dataModelPage.checkThatTreeItemProperyExistsOnScreen(name0);
+  // Add 'number' property to the object
+  await addPropertyToTheObjectNode('number');
+  await dataModelPage.checkThatTreeItemPropertyExistsOnScreen(name0);
   await dataModelPage.clickOnTreeItemProperty(name0);
-  const oldComboboxValue = await dataModelPage.getTypeComboboxValue();
-  const textOption = dataModelPage.getTypeComboboxOption('text');
-  expect(oldComboboxValue).toEqual(textOption);
-
-  // Change type to integer
-  await dataModelPage.clickOnTypeCombobox();
-  await dataModelPage.clickOnIntegerOption();
-  const newComboboxValue = await dataModelPage.getTypeComboboxValue();
-  const integerOption = dataModelPage.getTypeComboboxOption('integer');
-  expect(newComboboxValue).toEqual(integerOption);
-
-  // Rename the integer
   await replaceName0WithNewTextValue('number1');
+  await dataModelPage.checkThatTypeComboboxIsHidden();
+
+  // Add 'combo' combination property to the object
+  await dataModelPage.clickOnAddPropertyButton();
+  await dataModelPage.clickOnCombinationPropertyMenuItem();
+  await dataModelPage.checkThatTypeComboboxVisible();
+  await dataModelPage.clickOnTypeCombobox();
+  const typeValue = await dataModelPage.getTypeComboboxValue();
+  await dataModelPage.checkThatCorrectValueIsSelected(typeValue);
 
   // Generate the data model
   await dataModelPage.clickOnGenerateDataModelButton();

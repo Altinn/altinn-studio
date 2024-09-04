@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
-import { Tag, Paragraph, Spinner, Alert } from '@digdir/design-system-react';
+import { Tag, Paragraph, Spinner, Alert } from '@digdir/designsystemet-react';
 import classes from './ResourceDeployEnvCard.module.css';
 import { ArrowRightIcon } from '@studio/icons';
 import { StudioButton } from '@studio/components';
@@ -83,11 +83,7 @@ export const ResourceDeployEnvCard = ({
               </>
             )}
           </div>
-          <StudioButton
-            disabled={!isDeployPossible || hasNoPublishAccess}
-            onClick={handlePublish}
-            size='small'
-          >
+          <StudioButton disabled={!isDeployPossible || hasNoPublishAccess} onClick={handlePublish}>
             {t('resourceadm.deploy_card_publish', { env: t(env.label) })}
           </StudioButton>
           {hasNoPublishAccess && (

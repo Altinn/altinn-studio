@@ -1,10 +1,11 @@
 import React from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { ArrRestrictionKey } from '@altinn/schema-model';
-import { Switch, LegacyTextField } from '@digdir/design-system-react';
+import { Switch } from '@digdir/designsystemet-react';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import classes from './ArrayRestrictions.module.css';
+import { StudioTextfield } from '@studio/components';
 
 export function ArrayRestrictions({
   restrictions,
@@ -17,23 +18,33 @@ export function ArrayRestrictions({
       <Divider marginless />
       <div className={classes.items}>
         <div className={classes.item}>
-          <LegacyTextField
+          <StudioTextfield
             label={t('schema_editor.' + ArrRestrictionKey.minItems)}
             onChange={(e) =>
-              onChangeRestrictionValue(path, ArrRestrictionKey.minItems, e.target.value)
+              onChangeRestrictionValue(
+                path,
+                ArrRestrictionKey.minItems,
+                e.target.value ? parseInt(e.target.value).toString() : undefined,
+              )
             }
             value={restrictions[ArrRestrictionKey.minItems]}
-            formatting={{ number: {} }}
+            type='number'
+            size='sm'
           />
         </div>
         <div className={classes.item}>
-          <LegacyTextField
+          <StudioTextfield
             label={t('schema_editor.' + ArrRestrictionKey.maxItems)}
             onChange={(e) =>
-              onChangeRestrictionValue(path, ArrRestrictionKey.maxItems, e.target.value)
+              onChangeRestrictionValue(
+                path,
+                ArrRestrictionKey.maxItems,
+                e.target.value ? parseInt(e.target.value).toString() : undefined,
+              )
             }
             value={restrictions[ArrRestrictionKey.maxItems]}
-            formatting={{ number: {} }}
+            type='number'
+            size='sm'
           />
         </div>
       </div>

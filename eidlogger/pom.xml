@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.3.1</version>
+		<version>3.3.3</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>no.altinn</groupId>
@@ -17,7 +17,19 @@
 		<java.version>21</java.version>
     <springdoc.version>2.6.0</springdoc.version>
     <log-event.version>1.2.2</log-event.version>
+    <spring-cloud-azure.version>5.15.0</spring-cloud-azure.version>
 	</properties>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.azure.spring</groupId>
+        <artifactId>spring-cloud-azure-dependencies</artifactId>
+        <version>${spring-cloud-azure.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -46,7 +58,15 @@
       <artifactId>log-event-spring-boot-starter</artifactId>
       <version>${log-event.version}</version>
     </dependency>
-	</dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.azure.spring</groupId>
+      <artifactId>spring-cloud-azure-starter-keyvault-secrets</artifactId>
+    </dependency>
+  </dependencies>
 
   <repositories>
     <repository>

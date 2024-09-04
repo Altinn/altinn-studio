@@ -8,15 +8,14 @@ using Altinn.Studio.Designer.RepositoryClient.Model;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
 namespace Designer.Tests.GiteaIntegrationTests
 {
-    public class UserControllerGiteaIntegrationTests : GiteaIntegrationTestsBase<UserControllerGiteaIntegrationTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class UserControllerGiteaIntegrationTests : GiteaIntegrationTestsBase<UserControllerGiteaIntegrationTests>
     {
 
-        public UserControllerGiteaIntegrationTests(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture) : base(factory, giteaFixture)
+        public UserControllerGiteaIntegrationTests(GiteaWebAppApplicationFactoryFixture<Program> factory, GiteaFixture giteaFixture, SharedDesignerHttpClientProvider sharedDesignerHttpClientProvider) : base(factory, giteaFixture, sharedDesignerHttpClientProvider)
         {
         }
 
@@ -30,7 +29,7 @@ namespace Designer.Tests.GiteaIntegrationTests
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            response.Headers.First(h => h.Key == "Set-Cookie").Value.Should().Satisfy(e => e.Contains("XSRF-TOKEN"));
+            response.Headers.First(h => h.Key == "Set-Cookie").Value.Should().Contain(e => e.Contains("XSRF-TOKEN"));
             string content = await response.Content.ReadAsStringAsync();
             var user = JsonSerializer.Deserialize<User>(content, new JsonSerializerOptions
             {

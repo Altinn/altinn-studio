@@ -9,11 +9,54 @@ import { BpmnApiContext } from '../../../contexts/BpmnApiContext';
 import type { BpmnApiContextProps } from '../../../contexts/BpmnApiContext';
 import { type BpmnTaskType } from '../../../types/BpmnTaskType';
 import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
-import { mockBpmnDetails } from '../../../../test/mocks/bpmnDetailsMock';
+import { getMockBpmnElementForTask, mockBpmnDetails } from '../../../../test/mocks/bpmnDetailsMock';
 import {
   mockBpmnApiContextValue,
   mockBpmnContextValue,
 } from '../../../../test/mocks/bpmnContextMock';
+import { useStudioRecommendedNextActionContext } from '@studio/components';
+
+const tasks = [
+  {
+    id: 'task_1',
+    businessObject: {
+      extensionElements: {
+        values: [{ taskType: 'signing' }],
+      },
+    },
+  },
+  {
+    id: 'task_2',
+    businessObject: {
+      extensionElements: {
+        values: [{ taskType: 'signing' }],
+      },
+    },
+  },
+];
+
+jest.mock('../../../utils/bpmnModeler/StudioModeler', () => {
+  return {
+    StudioModeler: jest.fn().mockImplementation(() => {
+      return {
+        getAllTasksByType: jest.fn().mockReturnValue(tasks),
+      };
+    }),
+  };
+});
+
+(useStudioRecommendedNextActionContext as jest.Mock).mockReturnValue({
+  removeAction: jest.fn(),
+  addAction: jest.fn(),
+  shouldDisplayAction: jest.fn(),
+});
+
+jest.mock(
+  '@studio/components/src/components/StudioRecommendedNextAction/context/useStudioRecommendedNextActionContext.ts',
+  () => ({
+    useStudioRecommendedNextActionContext: jest.fn(),
+  }),
+);
 
 describe('ConfigContent', () => {
   afterEach(() => {
@@ -97,19 +140,6 @@ describe('ConfigContent', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should render helpText for selected task', async () => {
-    const user = userEvent.setup();
-    renderConfigContent();
-    const helpTextButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_header_help_text_title'),
-    });
-    await user.click(helpTextButton);
-
-    expect(
-      screen.getByText(textMock('process_editor.configuration_panel_header_help_text_data')),
-    ).toBeInTheDocument();
-  });
-
   it('should display the connected data model as selected by default when data type is connected to task', () => {
     const connectedDataType = mockBpmnApiContextValue.layoutSets.sets[0].dataType;
     renderConfigContent();
@@ -134,6 +164,84 @@ describe('ConfigContent', () => {
       textMock('process_editor.configuration_panel.edit_policy_open_policy_editor_button'),
     );
     expect(editPolicyButton).toBeInTheDocument();
+  });
+
+  describe('Unique signature', () => {
+    const element = getMockBpmnElementForTask('signing');
+    element.businessObject.extensionElements.values[0].signatureConfig.uniqueFromSignaturesInDataTypes =
+      { dataTypes: [] };
+
+    it('should not show the unique signature field to first signing task', async () => {
+      renderConfigContent(
+        {},
+        {
+          bpmnDetails: {
+            ...mockBpmnDetails,
+            id: 'task_1',
+            taskType: 'signing',
+            element,
+          },
+        },
+      );
+
+      expect(
+        screen.queryByRole('button', {
+          name: textMock(
+            'process_editor.configuration_panel_set_unique_from_signatures_in_data_types_link',
+          ),
+        }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('should show the unique signature field to other signing tasks', async () => {
+      renderConfigContent(
+        {},
+        {
+          bpmnDetails: {
+            ...mockBpmnDetails,
+            id: 'task_2',
+            taskType: 'signing',
+            element,
+          },
+        },
+      );
+
+      expect(
+        screen.getByRole('button', {
+          name: textMock(
+            'process_editor.configuration_panel_set_unique_from_signatures_in_data_types_link',
+          ),
+        }),
+      ).toBeInTheDocument();
+    });
+
+    it('should show recommended action when selected task is in recommended action queue', async () => {
+      const shouldDisplayAction = jest.fn().mockReturnValue(true);
+      (useStudioRecommendedNextActionContext as jest.Mock).mockReturnValue({
+        removeAction: jest.fn(),
+        addAction: jest.fn(),
+        shouldDisplayAction,
+      });
+      renderConfigContent(
+        {},
+        {
+          bpmnDetails: {
+            ...mockBpmnDetails,
+            id: 'task_2',
+            taskType: 'signing',
+            element,
+          },
+        },
+      );
+
+      expect(shouldDisplayAction).toHaveBeenCalledWith('task_2');
+
+      expect(
+        screen.getByRole('textbox', {
+          name: textMock('process_editor.recommended_action.new_name_label'),
+        }),
+      ).toBeInTheDocument();
+    });
   });
 });
 

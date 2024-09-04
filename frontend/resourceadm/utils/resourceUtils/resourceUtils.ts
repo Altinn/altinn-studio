@@ -131,13 +131,13 @@ export const getMissingInputLanguageString = (
 
   // Return different messages based on the length
   if (missingLanguages.length === 1) {
-    return translationFunction('resourceadm.about_resource_langauge_error_missing_1', {
+    return translationFunction('resourceadm.about_resource_language_error_missing_1', {
       usageString,
       lang: mapLanguageKeyToLanguageText(missingLanguages[0], translationFunction),
     });
   } else if (missingLanguages.length > 1) {
     const lastLang = missingLanguages.pop();
-    return translationFunction('resourceadm.about_resource_langauge_error_missing_2', {
+    return translationFunction('resourceadm.about_resource_language_error_missing_2', {
       usageString,
       lang1: missingLanguages
         .map((lang) => mapLanguageKeyToLanguageText(lang, translationFunction))
@@ -437,4 +437,16 @@ export const validateResource = (
   });
 
   return errors;
+};
+
+export const getAltinn2Reference = (
+  resource: Resource,
+): [serviceCode: string, serviceEdition: string] | null => {
+  const serviceCode = resource?.resourceReferences?.find(
+    (ref) => ref.referenceSource === 'Altinn2' && ref.referenceType === 'ServiceCode',
+  )?.reference;
+  const serviceEdition = resource?.resourceReferences?.find(
+    (ref) => ref.referenceSource === 'Altinn2' && ref.referenceType === 'ServiceEditionCode',
+  )?.reference;
+  return serviceCode && serviceEdition ? [serviceCode, serviceEdition] : null;
 };

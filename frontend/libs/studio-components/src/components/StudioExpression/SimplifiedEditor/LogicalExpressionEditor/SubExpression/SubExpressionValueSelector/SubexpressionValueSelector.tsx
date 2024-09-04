@@ -4,7 +4,7 @@ import type { SimpleSubexpressionValueType } from '../../../../enums/SimpleSubex
 import { SubexpressionValueContentInput } from './SubExpressionValueContentInput';
 import { SubexpressionValueTypeSelector } from './SubExpressionValueTypeSelector';
 import { SubexpressionValueReadonly } from './SubExpressionValueReadonly';
-import { Fieldset } from '@digdir/design-system-react';
+import { Fieldset } from '@digdir/designsystemet-react';
 import classes from './SubexpressionValueSelector.module.css';
 import { getDefaultValueOfType } from './getDefaultValueOfType';
 
@@ -23,7 +23,7 @@ export const SubexpressionValueSelector = ({
   onChange,
   value,
 }: SubexpressionValueSelectorProps) => (
-  <div className={className}>
+  <div className={`${className} ${classes.wrapper}`}>
     {isInEditMode ? (
       <EditMode value={value} onChange={onChange} legend={legend} />
     ) : (

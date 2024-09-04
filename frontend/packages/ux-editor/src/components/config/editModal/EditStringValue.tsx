@@ -2,8 +2,10 @@ import React from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useTranslation } from 'react-i18next';
 import { FormField } from '../../FormField';
-import { LegacySelect, Textfield } from '@digdir/design-system-react';
+import { Combobox, Textfield } from '@digdir/designsystemet-react';
 import { useComponentPropertyLabel } from '../../../hooks/useComponentPropertyLabel';
+import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks/useComponentPropertyEnumValue';
+import { StudioNativeSelect } from '@studio/components';
 
 export interface EditStringValueProps extends IGenericEditComponent {
   propertyKey: string;
@@ -22,8 +24,9 @@ export const EditStringValue = ({
 }: EditStringValueProps) => {
   const { t } = useTranslation();
   const componentPropertyLabel = useComponentPropertyLabel();
+  const componentEnumValue = useComponentPropertyEnumValue();
 
-  const handleValueChange = (newValue: string) => {
+  const handleValueChange = (newValue): void => {
     handleComponentChange({
       ...component,
       [propertyKey]: newValue,
@@ -45,16 +48,36 @@ export const EditStringValue = ({
       }}
       renderField={({ fieldProps }) =>
         enumValues ? (
-          <LegacySelect
-            {...fieldProps}
-            options={enumValues.map((value) => ({
-              label: value,
-              value: value,
-            }))}
-            onChange={(e: any) => fieldProps.onChange(e)}
-            multiple={multiple}
-            inputId={`component-${propertyKey}-select${component.id}`}
-          />
+          multiple ? (
+            <Combobox
+              label={fieldProps.label}
+              value={fieldProps.value?.length > 0 ? fieldProps.value : []}
+              onValueChange={(values) => fieldProps.onChange(values)}
+              id={`component-${propertyKey}-select${component.id}`}
+              multiple
+              size='sm'
+            >
+              {enumValues.map((value) => (
+                <Combobox.Option key={value} value={value}>
+                  {componentEnumValue(value)}
+                </Combobox.Option>
+              ))}
+            </Combobox>
+          ) : (
+            <StudioNativeSelect
+              label={fieldProps.label}
+              value={fieldProps.value}
+              onChange={(e: any) => fieldProps.onChange(e.target.value)}
+              id={`component-${propertyKey}-select${component.id}`}
+              size='sm'
+            >
+              {enumValues.map((value) => (
+                <option key={value} value={value}>
+                  {componentEnumValue(value)}
+                </option>
+              ))}
+            </StudioNativeSelect>
+          )
         ) : (
           <Textfield
             {...fieldProps}

@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FormDesigner } from './containers/FormDesigner';
 import { useText, useAppContext } from './hooks';
-import { StudioPageSpinner } from '@studio/components';
-import { ErrorPage } from './components/ErrorPage';
+import { StudioPageSpinner, StudioPageError } from '@studio/components';
 import { useDataModelMetadataQuery } from './hooks/queries/useDataModelMetadataQuery';
 import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { FormItemContextProvider } from './containers/FormItemContext';
+import { cleanupStaleLocalStorageKeys } from './utils/localStorageUtils';
+import { usePreviewContext } from 'app-development/contexts/PreviewContext';
+import { FormDesignerToolbar } from '@altinn/ux-editor/containers/FormDesignerToolbar';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 
 /**
  * This is the main React component responsible for controlling
@@ -15,49 +18,95 @@ import { FormItemContextProvider } from './containers/FormItemContext';
  * application
  */
 
+type ErrorKinds = {
+  dataModelError: boolean;
+  layoutSetsError: boolean;
+  widgetError: boolean;
+};
+
+const mapErrorToDisplayError = (t, errors: ErrorKinds) => {
+  const defaultTitle = t('general.fetch_error_title');
+  const defaultMessage = t('general.fetch_error_message');
+  const createErrorMessage = (resource) => ({
+    title: `${defaultTitle} ${resource}`,
+    message: defaultMessage,
+  });
+
+  if (errors.layoutSetsError) return createErrorMessage(t('general.layout_sets'));
+  if (errors.dataModelError) return createErrorMessage(t('general.data_model'));
+  if (errors.widgetError) return createErrorMessage(t('general.widget'));
+  return createErrorMessage(t('general.unknown_error'));
+};
+
 export function App() {
+  // Remove local storage keys that are no longer supported
+  useEffect(() => {
+    cleanupStaleLocalStorageKeys();
+  }, []);
+
   const t = useText();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
-  const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
-  const { isSuccess: isDataModelFetched, isError: dataModelFetchedError } =
-    useDataModelMetadataQuery(org, app, selectedFormLayoutSetName, undefined);
-  const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
+  const { status: widgetsStatus, isError: widgetFetchedError } = useWidgetsQuery(org, app);
+  const { status: layoutSetsStatus, isError: layoutSetsFetchedError } = useLayoutSetsQuery(
+    org,
+    app,
+  );
+  const { status: dataModelStatus, isError: dataModelFetchedError } = useDataModelMetadataQuery({
+    org,
+    app,
+    layoutSetName: selectedFormLayoutSetName,
+    hideDefault: true,
+  });
+  const { status: textsStatus, data: textResources } = useTextResourcesQuery(org, app);
 
-  const componentIsReady = areWidgetsFetched && isDataModelFetched && areTextResourcesFetched;
+  const { doReloadPreview } = usePreviewContext();
+  useEffect(() => {
+    doReloadPreview();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [textResources]);
 
-  const componentHasError = dataModelFetchedError || widgetFetchedError;
+  const componentIsPending =
+    widgetsStatus === 'pending' ||
+    layoutSetsStatus === 'pending' ||
+    dataModelStatus === 'pending' ||
+    textsStatus === 'pending';
+  const componentIsReady =
+    widgetsStatus === 'success' &&
+    layoutSetsStatus === 'success' &&
+    dataModelStatus === 'success' &&
+    textsStatus === 'success';
+  const componentHasError = widgetsStatus === 'error' || dataModelStatus === 'error';
 
-  const mapErrorToDisplayError = (): { title: string; message: string } => {
-    const defaultTitle = t('general.fetch_error_title');
-    const defaultMessage = t('general.fetch_error_message');
-
-    const createErrorMessage = (resource: string): { title: string; message: string } => ({
-      title: `${defaultTitle} ${resource}`,
-      message: defaultMessage,
-    });
-
-    if (dataModelFetchedError) {
-      return createErrorMessage(t('general.data_model'));
-    }
-    if (widgetFetchedError) {
-      return createErrorMessage(t('general.widget'));
-    }
-
-    return createErrorMessage(t('general.unknown_error'));
+  const errors: ErrorKinds = {
+    layoutSetsError: layoutSetsFetchedError,
+    dataModelError: dataModelFetchedError,
+    widgetError: widgetFetchedError,
   };
 
-  if (componentHasError) {
-    const mappedError = mapErrorToDisplayError();
-    return <ErrorPage title={mappedError.title} message={mappedError.message} />;
+  const mappedError = mapErrorToDisplayError(t, errors);
+
+  if (layoutSetsFetchedError) {
+    // If error fetching layoutSets show errorPage on whole page
+    return <StudioPageError title={mappedError.title} message={mappedError.message} />;
   }
 
-  if (componentIsReady) {
+  if (!componentIsPending) {
+    // If layoutSets are successfully fetched, show layoutSetsSelector and app
     return (
-      <FormItemContextProvider>
-        <FormDesigner />
-      </FormItemContextProvider>
+      <div>
+        <FormDesignerToolbar />
+        {componentHasError && (
+          <StudioPageError title={mappedError.title} message={mappedError.message} />
+        )}
+        {componentIsReady && (
+          <FormItemContextProvider>
+            <FormDesigner />
+          </FormItemContextProvider>
+        )}
+      </div>
     );
   }
-  return <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('ux_editor.loading_page')} />;
+
+  return <StudioPageSpinner spinnerTitle={t('ux_editor.loading_page')} />;
 }

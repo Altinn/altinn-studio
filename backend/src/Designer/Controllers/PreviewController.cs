@@ -82,6 +82,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("/preview/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/{*AllValues}")]
         public IActionResult Index(string org, string app)
         {
+            ViewBag.App = "app-preview";
             return View();
         }
 
@@ -854,7 +855,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-                string options = await altinnAppGitRepository.GetOptions(optionListId, cancellationToken);
+                string options = await altinnAppGitRepository.GetOptionsList(optionListId, cancellationToken);
                 return Ok(options);
             }
             catch (NotFoundException)
@@ -883,7 +884,7 @@ namespace Altinn.Studio.Designer.Controllers
                 // TODO: Need code to get dynamic options list based on language and source?
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-                string options = await altinnAppGitRepository.GetOptions(optionListId, cancellationToken);
+                string options = await altinnAppGitRepository.GetOptionsList(optionListId, cancellationToken);
                 return Ok(options);
             }
             catch (NotFoundException)

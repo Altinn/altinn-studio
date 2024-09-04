@@ -91,7 +91,6 @@ export const ResourceNarrowingList = ({
             type='button'
             onClick={handleClickAddResourceNarrowing}
             color='second'
-            size='small'
             variant='secondary'
             icon={<PlusIcon fontSize='1.5rem' />}
           >

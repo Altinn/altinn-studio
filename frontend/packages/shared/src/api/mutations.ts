@@ -45,8 +45,7 @@ import type { ApplicationAttachmentMetadata } from 'app-shared/types/Application
 import type { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploymentPayload';
 import type { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload';
 import type { CreateRepoCommitPayload } from 'app-shared/types/api/CreateRepoCommitPayload';
-import type { ExternalFormLayoutV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
-import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetPayload } from 'app-shared/types/api/LayoutSetsResponse';
 import type { ILayoutSettings, ITextResourcesObjectFormat } from 'app-shared/types/global';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import type { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
@@ -70,7 +69,7 @@ const headers = {
 
 export const addAppAttachmentMetadata = (org: string, app: string, payload: ApplicationAttachmentMetadata) => post<void, ApplicationAttachmentMetadata>(appMetadataAttachmentPath(org, app), payload);
 export const addLanguageCode = (org: string, app: string, language: string, payload: AddLanguagePayload) => post<void, AddLanguagePayload>(textResourcesPath(org, app, language), payload);
-export const addLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string, payload: LayoutSetConfig) => post<AddLayoutSetResponse>(layoutSetPath(org, app, layoutSetIdToUpdate), payload);
+export const addLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string, payload: LayoutSetPayload) => post<AddLayoutSetResponse>(layoutSetPath(org, app, layoutSetIdToUpdate), payload);
 export const deleteLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string) => del(layoutSetPath(org, app, layoutSetIdToUpdate));
 export const updateLayoutSetId = (org: string, app: string, layoutSetIdToUpdate: string, newLayoutSetId: string) => put(layoutSetPath(org, app, layoutSetIdToUpdate), newLayoutSetId, { headers: { 'Content-Type': 'application/json' } });
 export const addRepo = (repoToAdd: AddRepoParams) => post<Repository>(`${createRepoPath()}${buildQueryParams(repoToAdd)}`);
@@ -95,7 +94,7 @@ export const pushRepoChanges = (org: string, app: string) => post(repoPushPath(o
 export const resetRepoChanges = (org: string, app: string) => get(repoResetPath(org, app)); //Technically a mutation, but currently only implemented as a GET
 export const saveDataModel = (org: string, app: string, modelPath: string, payload: JsonSchema) => put<void, JsonSchema>(dataModelPath(org, app, modelPath, true), payload);
 export const saveFormLayout = (org: string, app: string, layoutName: string, layoutSetName: string, payload: FormLayoutRequest) => post<void, FormLayoutRequest>(formLayoutPath(org, app, layoutName, layoutSetName), payload);
-export const saveFormLayoutV3 = (org: string, app: string, layoutName: string, layoutSetName: string, payload: ExternalFormLayoutV3) => post<void, ExternalFormLayoutV3>(formLayoutPath(org, app, layoutName, layoutSetName), payload);
+export const saveFormLayoutV3 = (org: string, app: string, layoutName: string, layoutSetName: string, payload: FormLayoutRequest) => post<void, FormLayoutRequest>(formLayoutPath(org, app, layoutName, layoutSetName), payload);
 export const saveFormLayoutSettings = (org: string, app: string, layoutSetName: string, payload: ILayoutSettings) => post<ILayoutSettings>(layoutSettingsPath(org, app, layoutSetName), payload);
 export const saveRuleConfig = (org: string, app: string, layoutSetName: string, payload: RuleConfig) => post<RuleConfig>(ruleConfigPath(org, app, layoutSetName), payload);
 export const setStarredRepo = (org: string, app: string) => put(userStarredRepoPath(org, app), {});

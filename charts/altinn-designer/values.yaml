@@ -1,0 +1,167 @@
+replicaCount: 1
+
+environment: dev
+
+image:
+  repository: altinntjenestercontainerregistry.azurecr.io/altinn-core
+  containerPort: 5000
+  imagePullSecret: acrsecret
+
+dbMigrationsJob:
+  image:
+    repository: altinntjenestercontainerregistry.azurecr.io/altinn-designer-db-migrations
+
+hosts:
+  dev: dev.altinn.studio
+  staging: staging.altinn.studio
+  prod: altinn.studio
+
+service:
+  externalPort: 3000
+  internalPort: 5000
+
+environmentVariables:
+  dev:
+    - name: ASPNETCORE_ENVIRONMENT
+      value: Staging
+    - name: ASPNETCORE_URLS
+      value: http://+:5000
+    - name: GeneralSettings__HostName
+      value: dev.altinn.studio
+    - name: GeneralSettings__TemplateLocation
+      value: Templates/AspNet
+    - name: GeneralSettings__DeploymentLocation
+      value: Templates/AspNet/deployment
+    - name: GeneralSettings__AppLocation
+      value: Templates/AspNet/App
+    - name: GeneralSettings__CheckTeamMembershipForDeploy
+      value: true
+    - name: ServiceRepositorySettings__ApiEndPointHost
+      value: altinn-repositories
+    - name: ServiceRepositorySettings__ApiEndPoint
+      value: http://altinn-repositories:3000/api/v1/
+    - name: ServiceRepositorySettings__GiteaLoginUrl
+      value: https://dev.altinn.studio/repos/user/login
+    - name: ServiceRepositorySettings__RepositoryLocation
+      value: /AltinnCore/Repos/
+    - name: ServiceRepositorySettings__RepositoryBaseURL
+      value: http://altinn-repositories:3000
+    - name: OidcLoginSettings__Authority
+      value: https://dev.altinn.studio/repos/
+    - name: OidcLoginSettings__RequireHttpsMetadata
+      value: "true"
+    - name: OidcLoginSettings__CookieExpiryTimeInMinutes
+      value: 59
+  staging:
+    - name: ASPNETCORE_ENVIRONMENT
+      value: Staging
+    - name: ASPNETCORE_URLS
+      value: http://+:5000
+    - name: GeneralSettings__HostName
+      value: staging.altinn.studio
+    - name: GeneralSettings__TemplateLocation
+      value: Templates/AspNet
+    - name: GeneralSettings__DeploymentLocation
+      value: Templates/AspNet/deployment
+    - name: GeneralSettings__AppLocation
+      value: Templates/AspNet/App
+    - name: GeneralSettings__CheckTeamMembershipForDeploy
+      value: true
+    - name: ServiceRepositorySettings__ApiEndPointHost
+      value: altinn-repositories
+    - name: ServiceRepositorySettings__ApiEndPoint
+      value: http://altinn-repositories:3000/api/v1/
+    - name: ServiceRepositorySettings__GiteaLoginUrl
+      value: https://staging.altinn.studio/repos/user/login
+    - name: ServiceRepositorySettings__RepositoryLocation
+      value: /AltinnCore/Repos/
+    - name: ServiceRepositorySettings__RepositoryBaseURL
+      value: http://altinn-repositories:3000
+    - name: OidcLoginSettings__Authority
+      value: https://staging.altinn.studio/repos/
+    - name: OidcLoginSettings__RequireHttpsMetadata
+      value: "true"
+    - name: OidcLoginSettings__CookieExpiryTimeInMinutes
+      value: 59
+  prod:
+    - name: ASPNETCORE_ENVIRONMENT
+      value: Production
+    - name: ASPNETCORE_URLS
+      value: http://+:5000
+    - name: GeneralSettings__HostName
+      value: altinn.studio
+    - name: GeneralSettings__TemplateLocation
+      value: Templates/AspNet
+    - name: GeneralSettings__DeploymentLocation
+      value: Templates/AspNet/deployment
+    - name: GeneralSettings__AppLocation
+      value: Templates/AspNet/App
+    - name: ServiceRepositorySettings__ApiEndPointHost
+      value: altinn-repositories
+    - name: ServiceRepositorySettings__ApiEndPoint
+      value: http://altinn-repositories:3000/api/v1/
+    - name: ServiceRepositorySettings__GiteaLoginUrl
+      value: https://altinn.studio/repos/user/login
+    - name: ServiceRepositorySettings__RepositoryLocation
+      value: /AltinnCore/Repos/
+    - name: ServiceRepositorySettings__RepositoryBaseURL
+      value: http://altinn-repositories:3000
+    - name: OidcLoginSettings__Authority
+      value: https://altinn.studio/repos/
+    - name: OidcLoginSettings__RequireHttpsMetadata
+      value: "true"
+    - name: OidcLoginSettings__CookieExpiryTimeInMinutes
+      value: 59
+
+dbMigrationsEnvironmentVariablesSecretName: altinn-designer-db-migrations-secret
+
+volumeMounts:
+  - name: altinn-repo-storage
+    mountPath: "/AltinnCore/Repos"
+  - name: altinn-appsettings
+    mountPath: "/app/altinn-appsettings"
+  - name: datakeys
+    mountPath: /mnt/keys
+  - name: accesstoken
+    mountPath: "/accesstoken"
+
+volumes:
+  - name: altinn-repo-storage
+    persistentVolumeClaim:
+      claimName: altinn-storage-repo-premium-volume-claim
+  - name: altinn-appsettings
+    secret:
+      secretName: altinn-appsettings-secret
+  - name: accesstoken
+    secret:
+      secretName: accesstoken
+  - name : datakeys
+    persistentVolumeClaim:
+      claimName: keys
+
+ingress:
+  - metadata:
+      name: altinn-designer-base-path
+      annotations:
+        traefik.ingress.kubernetes.io/rule-type: Path
+        traefik.frontend.priority: "1000"
+    paths:
+      - path: /
+  - metadata:
+      name: altinn-designer-home-path
+      annotations:
+        traefik.frontend.priority: "800"
+    paths:
+      - path: /Home/
+  - metadata:
+      name: altinn-designer-designer-path
+      annotations:
+        traefik.frontend.priority: "700"
+    paths:
+      - path: /designer/
+  - metadata:
+      name: altinn-designer-designerapi-path
+      annotations:
+        traefik.frontend.priority: "600"
+    paths:
+      - path: /designerapi/
