@@ -70,7 +70,10 @@
       {
         "id": "button-group-bok1",
         "type": "ButtonGroup",
-        "children": ["subform-bok-cancelButton", "subform-bok-nextButton"]
+        "children": [
+          "subform-bok-cancelButton",
+          "subform-bok-nextButton"
+        ]
       },
       {
         "id": "subform-bok-cancelButton",
@@ -81,7 +84,7 @@
         "actions": [
           {
             "type": "ClientAction",
-            "id": "closeSubForm"
+            "id": "closeSubform"
           }
         ],
         "buttonSize": "sm",
@@ -100,7 +103,9 @@
             "id": "nextPage",
             "validation": {
               "page": "all",
-              "show": ["All"]
+              "show": [
+                "All"
+              ]
             }
           }
         ],

@@ -9,7 +9,12 @@
         "textResourceBindings": {
           "title": "Bokdetaljer"
         },
-        "children": ["summary-bok-a", "summary-bok-b", "summary-bok-c", "summary-bok-d"]
+        "children": [
+          "summary-bok-a",
+          "summary-bok-b",
+          "summary-bok-c",
+          "summary-bok-d"
+        ]
       },
       {
         "id": "summary-bok-a",
@@ -34,7 +39,10 @@
       {
         "id": "button-group-bok2",
         "type": "ButtonGroup",
-        "children": ["subform-bok-backButton", "subform-bok-exitButton"]
+        "children": [
+          "subform-bok-backButton",
+          "subform-bok-exitButton"
+        ]
       },
       {
         "id": "subform-bok-backButton",
@@ -59,7 +67,7 @@
         "actions": [
           {
             "type": "ClientAction",
-            "id": "closeSubForm"
+            "id": "closeSubform"
           }
         ],
         "buttonSize": "sm"

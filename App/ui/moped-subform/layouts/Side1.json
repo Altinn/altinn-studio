@@ -61,8 +61,14 @@
           "title": "Har du ekstra info?"
         },
         "options": [
-          { "label": "Ja", "value": true },
-          { "label": "Nei", "value": false }
+          {
+            "label": "Ja",
+            "value": true
+          },
+          {
+            "label": "Nei",
+            "value": false
+          }
         ]
       },
       {
@@ -75,7 +81,14 @@
           "title": "Ekstra info"
         },
         "required": true,
-        "hidden": ["equals", ["component", "moped-extrainfo-check"], false]
+        "hidden": [
+          "equals",
+          [
+            "component",
+            "moped-extrainfo-check"
+          ],
+          false
+        ]
       },
       {
         "dataModelBindings": {
@@ -100,10 +113,17 @@
           "title": "Ekstra info?",
           "body": [
             "if",
-              ["equals", ["component", "moped-extrainfo-check"], true],
-                "Du har valgt å melde inn ekstra informasjon",
-              "else",
-                "Ingen ekstra informasjon oppgitt"
+            [
+              "equals",
+              [
+                "component",
+                "moped-extrainfo-check"
+              ],
+              true
+            ],
+            "Du har valgt å melde inn ekstra informasjon",
+            "else",
+            "Ingen ekstra informasjon oppgitt"
           ]
         },
         "variant": "info",
@@ -112,7 +132,10 @@
       {
         "id": "button-group-moped",
         "type": "ButtonGroup",
-        "children": ["subform-moped-cancelButton", "subform-moped-nextButton"]
+        "children": [
+          "subform-moped-cancelButton",
+          "subform-moped-nextButton"
+        ]
       },
       {
         "id": "subform-moped-cancelButton",
@@ -123,7 +146,7 @@
         "actions": [
           {
             "type": "ClientAction",
-            "id": "closeSubForm"
+            "id": "closeSubform"
           }
         ],
         "buttonSize": "sm",
@@ -142,7 +165,9 @@
             "id": "nextPage",
             "validation": {
               "page": "all",
-              "show": ["All"]
+              "show": [
+                "All"
+              ]
             }
           }
         ],

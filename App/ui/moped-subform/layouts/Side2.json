@@ -9,7 +9,12 @@
         "textResourceBindings": {
           "title": "Mopeddetaljer"
         },
-        "children": ["summary-moped-a", "summary-moped-b", "summary-moped-c", "summary-moped-d"]
+        "children": [
+          "summary-moped-a",
+          "summary-moped-b",
+          "summary-moped-c",
+          "summary-moped-d"
+        ]
       },
       {
         "id": "summary-moped-a",
@@ -34,7 +39,10 @@
       {
         "id": "button-group-moped2",
         "type": "ButtonGroup",
-        "children": ["subform-moped-backButton", "subform-moped-exitButton"]
+        "children": [
+          "subform-moped-backButton",
+          "subform-moped-exitButton"
+        ]
       },
       {
         "id": "subform-moped-backButton",
@@ -59,7 +67,7 @@
         "actions": [
           {
             "type": "ClientAction",
-            "id": "closeSubForm"
+            "id": "closeSubform"
           }
         ],
         "buttonSize": "sm"
