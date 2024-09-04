@@ -124,10 +124,6 @@ public class DataModel
     /// </example>
     public async Task<DataReference> AddIndexes(ModelBinding key, DataElementId defaultDataElementId, int[]? rowIndexes)
     {
-        if (rowIndexes?.Length < 0)
-        {
-            return new DataReference() { Field = key.Field, DataElementId = defaultDataElementId };
-        }
         var (dataElementId, serviceModel) = await ServiceModelAndDataElementId(key, defaultDataElementId);
         if (serviceModel is null)
         {
@@ -142,7 +138,7 @@ public class DataModel
     /// <summary>
     /// Set the value of a field in the model to default (null)
     /// </summary>
-    public async void RemoveField(
+    public async Task RemoveField(
         ModelBinding key,
         DataElementId defaultDataElementId,
         RowRemovalOption rowRemovalOption

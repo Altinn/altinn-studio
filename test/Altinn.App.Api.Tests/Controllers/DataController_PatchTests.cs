@@ -198,6 +198,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
                                 {
                                     ClassRef =
                                         "Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema",
+                                    AllowUserCreate = true, // We use api to initialize this as a user.
                                 },
                             }
                         );
