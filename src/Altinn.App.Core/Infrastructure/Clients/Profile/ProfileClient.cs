@@ -84,6 +84,12 @@ public class ProfileClient : IProfileClient
         using var activity = _telemetry?.StartGetUserProfileActivity(userId);
         UserProfile? userProfile = null;
 
+        if (userId == default)
+        {
+            _logger.LogError("Tried to get user profile with 0 as user ID");
+            return null;
+        }
+
         string endpointUrl = $"users/{userId}";
         string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 

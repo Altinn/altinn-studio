@@ -1,6 +1,8 @@
 using System.Diagnostics;
+using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
 using OpenTelemetry.Trace;
+using InternalLabels = Altinn.App.Core.Features.Telemetry.InternalLabels;
 using Labels = Altinn.App.Core.Features.Telemetry.Labels;
 
 namespace Altinn.App.Core.Features;
@@ -258,6 +260,56 @@ public static class TelemetryActivityExtensions
         if (!string.IsNullOrWhiteSpace(organisationNumber))
         {
             activity.SetTag(Labels.OrganisationNumber, organisationNumber);
+        }
+
+        return activity;
+    }
+
+    internal static Activity? SetProcessChangeResult(this Activity? activity, ProcessChangeResult result)
+    {
+        if (activity is null)
+            return null;
+
+        if (result.Success)
+        {
+            activity.SetStatus(ActivityStatusCode.Ok);
+        }
+        else
+        {
+            activity.SetStatus(ActivityStatusCode.Error, result.ErrorMessage);
+            activity.SetTag(InternalLabels.ProcessErrorType, result.ErrorType.ToString());
+        }
+
+        var change = result.ProcessStateChange;
+
+        if (change is not null)
+        {
+            var tags = new ActivityTagsCollection();
+            tags.Add("events", change.Events?.Select(e => $"Type={e.EventType} DataId={e.DataId}"));
+            var from = change.OldProcessState;
+            if (from is not null)
+            {
+                tags.Add("from.started", from.Started);
+                tags.Add("from.ended", from.Ended);
+                var fromTask = from.CurrentTask;
+                if (fromTask is not null)
+                {
+                    tags.Add("from.task.name", fromTask.Name);
+                    tags.Add("from.task.validation.status", fromTask.Validated?.ToString());
+                }
+            }
+            var to = change.NewProcessState;
+            if (to is not null)
+            {
+                tags.Add("to.started", to.Started);
+                var toTask = to.CurrentTask;
+                if (toTask is not null)
+                {
+                    tags.Add("to.task.name", toTask.Name);
+                    tags.Add("to.task.validation.status", toTask.Validated?.ToString());
+                }
+            }
+            activity.AddEvent(new ActivityEvent("change", tags: tags));
         }
 
         return activity;
