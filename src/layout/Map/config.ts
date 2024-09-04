@@ -16,7 +16,17 @@ export const Config = new CG.component({
     customExpressions: false,
   },
 })
-  .addDataModelBinding(CG.common('IDataModelBindingsSimple').optional())
+  .addDataModelBinding(
+    new CG.obj(
+      new CG.prop('simpleBinding', new CG.str().optional()),
+      new CG.prop(
+        'geometries',
+        new CG.str()
+          .optional()
+          .setDescription('Should point to an array of objects like {data: string, label: string}'),
+      ),
+    ).exportAs('IDataModelBindingsForMap'),
+  )
   .addProperty(
     new CG.prop(
       'layers',
@@ -63,5 +73,11 @@ export const Config = new CG.component({
     ),
   )
   .addProperty(new CG.prop('zoom', new CG.num().optional()))
+  .addProperty(
+    new CG.prop(
+      'geometryType',
+      new CG.enum('GeoJSON', 'WKT').optional({ default: 'GeoJSON' }).exportAs('IGeometryType'),
+    ),
+  )
   .extends(CG.common('LabeledComponentProps'))
   .extendTextResources(CG.common('TRBLabel'));

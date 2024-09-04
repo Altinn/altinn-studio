@@ -8,7 +8,7 @@
     "component": "position",
     "currentLayout": "Page"
   },
-  "expects": "59.930562,10.799492",
+  "expects": "59.930562, 10.799492",
   "layouts": {
     "Page": {
       "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",

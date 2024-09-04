@@ -63,3 +63,7 @@
 .errorFallback + .errorFallback {
   margin-top: 12px;
 }
+
+.errorFallback li {
+  white-space: pre-line;
+}

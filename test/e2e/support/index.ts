@@ -19,6 +19,17 @@ before(() => {
   chai.use(chaiExtensions);
 });
 
+// Clear media emulation before each test
+beforeEach(() => {
+  cy.wrap(
+    Cypress.automation('remote:debugger:protocol', {
+      command: 'Emulation.setEmulatedMedia',
+      params: {},
+    }),
+    { log: false },
+  );
+});
+
 afterEach(function () {
   if (this.currentTest?.state !== 'failed') {
     cy.waitUntilSaved();

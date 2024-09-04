@@ -1,4 +1,4 @@
-import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+import { AppFrontend, component } from 'test/e2e/pageobjects/app-frontend';
 import { Likert } from 'test/e2e/pageobjects/likert';
 
 const appFrontend = new AppFrontend();
@@ -8,7 +8,7 @@ describe('PDF', () => {
   it('should generate PDF for message step', () => {
     cy.goto('message');
 
-    cy.testPdf(() => {
+    cy.testPdf('message', () => {
       cy.findByRole('heading', { level: 1, name: /frontend-test/i }).should('be.visible');
       cy.findByRole('table').should('contain.text', 'Mottaker:Testdepartementet');
       cy.findByRole('heading', { level: 2, name: /appen for test av app frontend/i }).should('be.visible');
@@ -34,28 +34,31 @@ describe('PDF', () => {
     cy.dsSelect(appFrontend.changeOfName.reference2, 'Dole');
     cy.findByRole('textbox', { name: /Adresse/i }).type('Økern 1');
     cy.findByRole('textbox', { name: /Zip Code/i }).type('0101');
-
     cy.findByRole('textbox', { name: /Post Place/i }).should('have.value', 'OSLO');
 
-    cy.testPdf(() => {
-      cy.findByRole('table').should('contain.text', 'Mottaker:Testdepartementet');
-      cy.getSummary('Nytt fornavn').should('contain.text', 'Ola');
-      cy.getSummary('Nytt etternavn').should('contain.text', 'Nordmann');
-      cy.getSummary('Nytt mellomnavn').should('contain.text', '"Big G"');
-      cy.getSummary('Til:').should('contain.text', 'Ola "Big G" Nordmann');
-      cy.getSummary('begrunnelse for endring av navn').should('contain.text', 'Adoptivforelders etternavn');
-      cy.getSummary('Gårdsbruk du vil ta navnet fra').should('not.exist');
-      cy.getSummary('Kommune gårdsbruket ligger i').should('not.exist');
-      cy.getSummary('Gårdsnummer').should('not.exist');
-      cy.getSummary('Bruksnummer').should('not.exist');
-      cy.getSummary('Forklar din tilknytning til gårdsbruket').should('not.exist');
-      cy.getSummary('Når vil du at navnendringen').should('contain.text', '01/01/2020');
-      cy.getSummary('Mobil nummer').should('contain.text', '+47 987 65 432');
-      cy.getSummary('hvor fikk du vite om skjemaet').should('contain.text', 'Digitaliseringsdirektoratet');
-      cy.getSummary('Referanse').should('contain.text', 'Sophie Salt');
-      cy.getSummary('Referanse 2').should('contain.text', 'Dole');
-      cy.getSummary('Adresse').should('contain.text', 'Økern 1');
-    }, true);
+    cy.testPdf(
+      'changeName 1',
+      () => {
+        cy.findByRole('table').should('contain.text', 'Mottaker:Testdepartementet');
+        cy.getSummary('Nytt fornavn').should('contain.text', 'Ola');
+        cy.getSummary('Nytt etternavn').should('contain.text', 'Nordmann');
+        cy.getSummary('Nytt mellomnavn').should('contain.text', '"Big G"');
+        cy.getSummary('Til:').should('contain.text', 'Ola "Big G" Nordmann');
+        cy.getSummary('begrunnelse for endring av navn').should('contain.text', 'Adoptivforelders etternavn');
+        cy.getSummary('Gårdsbruk du vil ta navnet fra').should('not.exist');
+        cy.getSummary('Kommune gårdsbruket ligger i').should('not.exist');
+        cy.getSummary('Gårdsnummer').should('not.exist');
+        cy.getSummary('Bruksnummer').should('not.exist');
+        cy.getSummary('Forklar din tilknytning til gårdsbruket').should('not.exist');
+        cy.getSummary('Når vil du at navnendringen').should('contain.text', '01/01/2020');
+        cy.getSummary('Mobil nummer').should('contain.text', '+47 987 65 432');
+        cy.getSummary('hvor fikk du vite om skjemaet').should('contain.text', 'Digitaliseringsdirektoratet');
+        cy.getSummary('Referanse').should('contain.text', 'Sophie Salt');
+        cy.getSummary('Referanse 2').should('contain.text', 'Dole');
+        cy.getSummary('Adresse').should('contain.text', 'Økern 1');
+      },
+      true,
+    );
 
     cy.findByRole('radio', { name: /gårdsbruk/i }).check();
     cy.findByRole('textbox', { name: /gårdsbruk du vil ta navnet fra/i }).type('Økern gård');
@@ -69,7 +72,16 @@ describe('PDF', () => {
     cy.dsSelect(appFrontend.changeOfName.reference, 'Ola Nordmann');
     cy.dsSelect(appFrontend.changeOfName.reference2, 'Ole');
 
-    cy.testPdf(() => {
+    // Add a delay to simulate slow loading map tiles
+    cy.intercept('GET', 'https://cache.kartverket.no/**/*.png', { fixture: 'map-tile.png', delay: 50 });
+    cy.intercept('GET', 'https://tile.openstreetmap.org/**/*.png', { fixture: 'map-tile.png', delay: 50 });
+    cy.get('#choose-extra').findByText('Kart').click();
+    cy.gotoNavPage('map');
+    cy.findByTestId(/^map-container/).click();
+    cy.get(component('map')).should('contain.text', 'Valgt lokasjon:');
+    cy.gotoNavPage('form'); // Go back to form to avoid waiting for map to load while zoom animation is happending
+
+    cy.testPdf('changeName 2', () => {
       cy.findByRole('table').should('contain.text', 'Mottaker:Testdepartementet');
       cy.getSummary('Nytt fornavn').should('contain.text', 'Ola');
       cy.getSummary('Nytt etternavn').should('contain.text', 'Nordmann');
@@ -87,6 +99,10 @@ describe('PDF', () => {
       cy.getSummary('Referanse').should('contain.text', 'Ola Nordmann');
       cy.getSummary('Referanse 2').should('contain.text', 'Ole');
       cy.getSummary('Adresse').should('contain.text', 'Økern 1');
+      cy.getSummary('Velg lokasjon').findByAltText('Marker').should('be.visible');
+      cy.getSummary('Velg lokasjon')
+        .findByText(/Valgt lokasjon: 67(\.\d{1,6})?° nord, 16(\.\d{1,6})?° øst/)
+        .should('be.visible');
     });
   });
 
@@ -117,7 +133,7 @@ describe('PDF', () => {
     cy.gotoNavPage('hide');
     cy.findByRole('textbox', { name: /oppgave giver/i }).type('Ola Nordmann');
 
-    cy.testPdf(() => {
+    cy.testPdf('group', () => {
       cy.findByRole('table').should('contain.text', 'Mottaker:Testdepartementet');
 
       cy.getSummary('Group summary title').should('contain.text', 'Endre fra : NOK 1');
@@ -144,7 +160,7 @@ describe('PDF', () => {
       });
     });
 
-    cy.testPdf(() => {
+    cy.testPdf('likert', () => {
       cy.findByRole('table').should('contain.text', 'Mottaker:Testdepartementet');
 
       cy.getSummary('Skolearbeid').should('contain.text', 'Gjør du leksene dine? : Alltid');
@@ -166,7 +182,7 @@ describe('PDF', () => {
   it('should generate PDF for datalist step', () => {
     cy.gotoAndComplete('datalist');
 
-    cy.testPdf(() => {
+    cy.testPdf('datalist', () => {
       cy.findByRole('table').should('contain.text', 'Mottaker:Testdepartementet');
       cy.getSummary('Hvem gjelder saken?').should('contain.text', 'Caroline');
     });
@@ -208,7 +224,7 @@ describe('PDF', () => {
 
     cy.goto('changename');
 
-    cy.testPdf(() => {
+    cy.testPdf(false, () => {
       cy.findByRole('heading', { name: /this is a custom pdf/i }).should('be.visible');
     });
   });
@@ -243,7 +259,7 @@ describe('PDF', () => {
 
     cy.goto('changename');
 
-    cy.testPdf(() => {
+    cy.testPdf(false, () => {
       cy.findByRole('heading', { name: /grid gruppe/i }).should('be.visible');
       cy.findByText('Prosentandel av gjeld i boliglån').should('be.visible');
       cy.findByText('Utregnet totalprosent').should('be.visible');

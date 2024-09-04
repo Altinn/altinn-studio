@@ -517,8 +517,15 @@ Cypress.Commands.add('getSummary', (label) => {
 });
 
 const DEFAULT_COMMAND_TIMEOUT = Cypress.config().defaultCommandTimeout;
-Cypress.Commands.add('testPdf', (callback, returnToForm = false) => {
+Cypress.Commands.add('testPdf', (snapshotName, callback, returnToForm = false) => {
   cy.log('Testing PDF');
+
+  // Store initial viewport size for later
+  const size = { width: 0, height: 0 };
+  cy.window().then((win) => {
+    size.width = win.innerWidth;
+    size.height = win.innerHeight;
+  });
 
   // Make sure instantiation is completed before we get the url
   cy.location('hash').should('contain', '#/instance/');
@@ -543,25 +550,55 @@ Cypress.Commands.add('testPdf', (callback, returnToForm = false) => {
     // the current task as a PDF.
     cy.visit(visitUrl);
   });
-  cy.reload();
 
-  // Wait for readyForPrint, after this everything should be rendered so using timeout: 0
-  cy.get('#pdfView > #readyForPrint')
-    .should('exist')
-    .then(() => {
-      Cypress.config('defaultCommandTimeout', 0);
+  cy.readFile('test/percy.css').then((percyCSS) => {
+    cy.reload();
 
-      // Verify that generic elements that should be hidden are not present
-      cy.findAllByRole('button').should('not.exist');
-      // Run tests from callback
-      callback();
+    // Wait for readyForPrint, after this everything should be rendered so using timeout: 0
+    cy.get('#pdfView > #readyForPrint')
+      .should('exist')
+      .then(() => {
+        // Enable print media emulation
+        cy.wrap(
+          Cypress.automation('remote:debugger:protocol', {
+            command: 'Emulation.setEmulatedMedia',
+            params: { media: 'print' },
+          }),
+          { log: false },
+        );
+        // Set viewport to A4 paper + scrollbar width
+        cy.viewport(794 + 15, 1123);
+        cy.get('body').invoke('css', 'margin', '0.75in');
 
-      cy.then(() => {
-        Cypress.config('defaultCommandTimeout', DEFAULT_COMMAND_TIMEOUT);
+        cy.then(() => Cypress.config('defaultCommandTimeout', 0));
+
+        // Verify that generic elements that should be hidden are not present
+        cy.findAllByRole('button').should('not.exist');
+        // Run tests from callback
+        callback();
+
+        cy.then(() => Cypress.config('defaultCommandTimeout', DEFAULT_COMMAND_TIMEOUT));
+
+        if (snapshotName) {
+          // Take snapshot of PDF
+          cy.percySnapshot(`${snapshotName} (PDF)`, { percyCSS, widths: [794] });
+        }
       });
-    });
+  });
 
   if (returnToForm) {
+    // Disable media emulation
+    cy.wrap(
+      Cypress.automation('remote:debugger:protocol', {
+        command: 'Emulation.setEmulatedMedia',
+        params: {},
+      }),
+      { log: false },
+    );
+    // Revert to original viewport
+    cy.then(() => cy.viewport(size.width, size.height));
+    cy.get('body').invoke('css', 'margin', '');
+
     cy.location('href').then((href) => {
       cy.visit(href.replace('?pdf=1', ''));
     });

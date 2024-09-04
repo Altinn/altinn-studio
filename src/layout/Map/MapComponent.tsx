@@ -1,40 +1,42 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 
-import { Map } from '@altinn/altinn-design-system';
-import { makeStyles, Typography } from '@material-ui/core';
-import type { Location } from '@altinn/altinn-design-system';
+import { Paragraph } from '@digdir/designsystemet-react';
+import cn from 'classnames';
 
+import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { markerIcon } from 'src/layout/Map/MapIcons';
+import { Map } from 'src/layout/Map/Map';
+import classes from 'src/layout/Map/MapComponent.module.css';
+import { isLocationValid, parseLocation } from 'src/layout/Map/utils';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
+import type { Location } from 'src/layout/Map/config.generated';
+import type { RawGeometry } from 'src/layout/Map/types';
 
 export type IMapComponentProps = PropsFromGenericComponent<'Map'>;
 
-export const useStyles = makeStyles(() => ({
-  footer: {
-    paddingTop: '12px',
-  },
-  container: {
-    width: '100%',
-  },
-}));
-
 export function MapComponent({ node }: IMapComponentProps) {
-  const { readOnly, layers, centerLocation, zoom, dataModelBindings } = useNodeItem(node);
   const isValid = useIsValid(node);
-  const classes = useStyles();
-  const { formData, setValue } = useDataModelBindings(dataModelBindings);
-  const value = 'simpleBinding' in formData ? formData.simpleBinding : undefined;
-  const location = parseLocation(value);
+  const dataModelBindings = useNodeItem(node, (item) => item.dataModelBindings);
+  const markerBinding = dataModelBindings.simpleBinding;
 
-  const handleMapClicked = ({ latitude, longitude }: Location) => {
-    const fractionDigits = 6;
-    setValue('simpleBinding', `${latitude.toFixed(fractionDigits)},${longitude.toFixed(fractionDigits)}`);
-  };
+  const { formData, setValue } = useDataModelBindings(dataModelBindings, DEFAULT_DEBOUNCE_TIMEOUT, 'raw');
+
+  const markerLocation = parseLocation(formData.simpleBinding as string | undefined);
+  const markerLocationIsValid = isLocationValid(markerLocation);
+
+  const geometries = formData.geometries as RawGeometry[] | undefined;
+
+  const setMarkerLocation = useCallback(
+    ({ latitude, longitude }: Location) => {
+      const d = 6;
+      setValue('simpleBinding', `${latitude.toFixed(d)},${longitude.toFixed(d)}`);
+    },
+    [setValue],
+  );
 
   return (
     <ComponentStructureWrapper
@@ -42,53 +44,37 @@ export function MapComponent({ node }: IMapComponentProps) {
       label={{
         node,
         renderLabelAs: 'span',
-        className: classes.container,
+        className: classes.label,
       }}
     >
-      <div className={`map-component${isValid ? '' : ' validation-error'}`}>
+      <div
+        data-testid={`map-container-${node.id}`}
+        className={cn({ [classes.mapError]: !isValid })}
+      >
         <Map
-          layers={layers}
-          centerLocation={location ?? centerLocation}
-          zoom={location ? 16 : zoom}
-          markerLocation={location}
-          readOnly={readOnly}
-          onClick={handleMapClicked}
-          markerIcon={markerIcon}
+          mapNode={node}
+          markerLocation={markerLocation}
+          setMarkerLocation={markerBinding ? setMarkerLocation : undefined}
+          geometries={geometries}
         />
-        <Typography className={classes.footer}>
-          {location ? (
-            <Lang
-              id={'map_component.selectedLocation'}
-              params={[location.latitude, location.longitude]}
-            />
-          ) : (
-            <Lang id={'map_component.noSelectedLocation'} />
-          )}
-        </Typography>
       </div>
+      <Paragraph
+        size='sm'
+        className={classes.footer}
+      >
+        {markerBinding && (
+          <>
+            {markerLocationIsValid ? (
+              <Lang
+                id={'map_component.selectedLocation'}
+                params={[markerLocation.latitude, markerLocation.longitude]}
+              />
+            ) : (
+              <Lang id={'map_component.noSelectedLocation'} />
+            )}
+          </>
+        )}
+      </Paragraph>
     </ComponentStructureWrapper>
   );
-}
-
-export function parseLocation(locationString: string | undefined): Location | undefined {
-  if (!locationString) {
-    return undefined;
-  }
-  const latLonArray = locationString.split(',');
-  if (latLonArray.length != 2) {
-    window.logErrorOnce(`Invalid location string: ${locationString}`);
-    return undefined;
-  }
-  const latString = latLonArray[0];
-  const lonString = latLonArray[1];
-  const lat = parseFloat(latString);
-  const lon = parseFloat(lonString);
-  if (isNaN(lat) || isNaN(lon)) {
-    window.logErrorOnce(`Invalid location string: ${locationString}`);
-    return undefined;
-  }
-  return {
-    latitude: lat,
-    longitude: lon,
-  } as Location;
 }

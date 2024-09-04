@@ -384,3 +384,5 @@ export function makeUploaderSelectors<T extends Type>(
     test: '#group-subGroup-0-table-body > tr > td:nth-child(2)',
   };
 }
+
+export const component = (id: string) => `[data-componentid="${id}"]`;

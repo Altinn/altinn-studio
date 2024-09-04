@@ -217,7 +217,7 @@ declare global {
       clearSelectionAndWait(viewport?: 'desktop' | 'tablet' | 'mobile'): Chainable<null>;
 
       getSummary(label: string): Chainable<Element>;
-      testPdf(callback: () => void, returnToForm?: boolean): Chainable<null>;
+      testPdf(snapshotName: string | false, callback: () => void, returnToForm?: boolean): Chainable<null>;
       getCurrentPageId(): Chainable<string>;
 
       /**

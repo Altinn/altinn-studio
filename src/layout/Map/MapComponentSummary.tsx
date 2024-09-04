@@ -1,81 +1,53 @@
 import React from 'react';
 
-import { Map } from '@altinn/altinn-design-system';
-import { Grid, makeStyles, Typography } from '@material-ui/core';
+import { Typography } from '@material-ui/core';
 
 import { Lang } from 'src/features/language/Lang';
-import { parseLocation } from 'src/layout/Map/MapComponent';
-import { markerIcon } from 'src/layout/Map/MapIcons';
-import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { Map } from 'src/layout/Map/Map';
+import classes from 'src/layout/Map/MapComponent.module.css';
+import { isLocationValid, parseLocation } from 'src/layout/Map/utils';
+import { useNodeFormData, useNodeItem } from 'src/utils/layout/useNodeItem';
+import type { RawGeometry } from 'src/layout/Map/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export interface IMapComponentSummary {
   targetNode: LayoutNode<'Map'>;
 }
 
-export const useStyles = makeStyles(() => ({
-  mapContainer: {
-    marginTop: 12,
-    // The marker has role=button, and will therefore be hidden from PDF by default
-    // This makes sure it is visible after all
-    '& img.leaflet-marker-icon': {
-      display: 'block !important',
-    },
-    // The tiles fade in from opacity 0, meaning that they are not fully visible in PDF when print is called
-    // This overrides the opacity so that the tiles are visible immediately
-    '& img.leaflet-tile': {
-      opacity: '1 !important',
-    },
-  },
-  footer: {
-    paddingTop: '12px',
-  },
-  emptyField: {
-    fontStyle: 'italic',
-    fontSize: '1rem',
-    lineHeight: 1.6875,
-  },
-}));
-
 export function MapComponentSummary({ targetNode }: IMapComponentSummary) {
-  const classes = useStyles();
-  const layers = useNodeItem(targetNode).layers;
-  const formData = targetNode.def.useDisplayData(targetNode);
-  const location = parseLocation(formData);
+  const markerBinding = useNodeItem(targetNode, (item) => item.dataModelBindings.simpleBinding);
+  const formData = useNodeFormData(targetNode);
+  const markerLocation = parseLocation(formData.simpleBinding);
+  const markerLocationIsValid = isLocationValid(markerLocation);
+  const geometries = formData.geometries as RawGeometry[] | undefined;
+
+  if (markerBinding && !markerLocationIsValid) {
+    return (
+      <Typography
+        variant='body1'
+        className={classes.emptyField}
+      >
+        <Lang id={'general.empty_summary'} />
+      </Typography>
+    );
+  }
 
   return (
-    <Grid
-      item
-      xs={12}
-      className={location ? classes.mapContainer : undefined}
-    >
-      {location ? (
-        <>
-          <Map
-            readOnly={true}
-            layers={layers}
-            centerLocation={location}
-            zoom={16}
-            markerLocation={location}
-            markerIcon={markerIcon}
+    <>
+      <Map
+        mapNode={targetNode}
+        markerLocation={markerLocation}
+        geometries={geometries}
+        isSummary={true}
+      />
+      {markerLocation && (
+        <Typography className={classes.footer}>
+          <Lang
+            id={'map_component.selectedLocation'}
+            params={[markerLocation.latitude, markerLocation.longitude]}
           />
-          <Typography className={classes.footer}>
-            {location && (
-              <Lang
-                id={'map_component.selectedLocation'}
-                params={[location.latitude, location.longitude]}
-              />
-            )}
-          </Typography>
-        </>
-      ) : (
-        <Typography
-          variant='body1'
-          className={classes.emptyField}
-        >
-          <Lang id={'general.empty_summary'} />
         </Typography>
       )}
-    </Grid>
+    </>
   );
 }
