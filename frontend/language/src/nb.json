@@ -1040,7 +1040,7 @@
   "ux_editor.collapsable_standard_components": "Standard",
   "ux_editor.collapsable_text_advanced_components": "Avansert",
   "ux_editor.collapsable_text_components": "Tekst",
-  "ux_editor.collapsable_text_widgets": "Miniprogrammer",
+  "ux_editor.collapsable_text_widgets": "Widgets",
   "ux_editor.component_deletion_confirm": "Ja, slett komponenten",
   "ux_editor.component_deletion_text": "Er du sikker på at du vil slette denne komponenten?",
   "ux_editor.component_dropdown_set_preselected": "Sett forhåndsvalgt verdi for nedtrekksliste",
