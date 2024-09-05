@@ -96,7 +96,6 @@ export function RuleModal(props: IRuleModalProps) {
           />
         )}
       </Modal>
-      <h1>FOUND IT!!!!</h1>
       {renderRuleConnections()}
     </>
   );

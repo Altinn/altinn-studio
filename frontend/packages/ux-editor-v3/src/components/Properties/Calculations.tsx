@@ -33,7 +33,6 @@ export const Calculations = () => {
             variant='tertiary'
           />
         </div>
-        <h1>ONE STEP AWAY!!</h1>
         <RuleModal
           modalOpen={modalOpen}
           handleClose={() => setModalOpen(false)}

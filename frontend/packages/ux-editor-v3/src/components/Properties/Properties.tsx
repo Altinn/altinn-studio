@@ -55,7 +55,6 @@ export const Properties = () => {
           </Accordion.Content>
         </Accordion.Item>
       </Accordion>
-      <h2>2 steps away!!</h2>
     </div>
   );
 };
