@@ -5,9 +5,8 @@ module.exports = {
   entry: path.resolve(__dirname, process.env.npm_package_name, 'index.tsx'),
   output: {
     path: path.resolve(__dirname, 'dist', process.env.npm_package_name),
-    filename: `${process.env.npm_package_name}.js`,
+    filename: `${process.env.npm_package_name}.[name].js`,
   },
-
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss', '.svg'],
     alias: {
@@ -79,7 +78,7 @@ module.exports = {
   },
   plugins: [
     new MiniCssExtractPlugin({
-      filename: `${process.env.npm_package_name}.css`,
+      filename: `${process.env.npm_package_name}.[name].css`,
     }),
   ],
 };

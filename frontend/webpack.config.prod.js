@@ -10,7 +10,6 @@ module.exports = {
     hints: false,
   },
   optimization: {
-    chunkIds: false,
     minimize: true,
     minimizer: [
       new TerserPlugin({
@@ -18,6 +17,10 @@ module.exports = {
       }),
       new CssMinimizerPlugin(),
     ],
+    splitChunks: {
+      chunks: 'all',
+      maxSize: 244000,
+    },
   },
   module: {
     rules: [
