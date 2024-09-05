@@ -5,9 +5,6 @@
       Tags: [
         {
           instance.guid: Guid_1
-        },
-        {
-          result: error
         }
       ],
       IdFormat: W3C

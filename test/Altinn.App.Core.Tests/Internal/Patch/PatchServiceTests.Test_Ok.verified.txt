@@ -1,16 +1,16 @@
 ﻿{
   Activities: [
     {
-      ActivityName: Data.ProcessWrite.IDataProcessorProxy,
-      IdFormat: W3C
-    },
-    {
       ActivityName: Data.Patch,
       Tags: [
         {
           instance.guid: Guid_1
         }
       ],
+      IdFormat: W3C
+    },
+    {
+      ActivityName: Data.ProcessWrite.IDataProcessorProxy,
       IdFormat: W3C
     }
   ],

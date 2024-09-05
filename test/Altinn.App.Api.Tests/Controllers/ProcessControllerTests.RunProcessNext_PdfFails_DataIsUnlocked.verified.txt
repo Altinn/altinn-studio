@@ -9,6 +9,14 @@
       IdFormat: W3C
     },
     {
+      ActivityName: ApplicationMetadata.Service.GetLayoutSet,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ApplicationMetadata.Service.GetLayoutSets,
+      IdFormat: W3C
+    },
+    {
       ActivityName: ApplicationMetadata.Service.GetLayoutSets,
       IdFormat: W3C
     },
@@ -197,19 +205,7 @@
       IdFormat: W3C
     },
     {
-      ActivityName: Validation.RunDataElementValidator,
-      Tags: [
-        {
-          validator.source: Altinn.App.Core.Features.Validation.Default.DefaultDataElementValidator-*
-        },
-        {
-          validator.type: DefaultDataElementValidator
-        }
-      ],
-      IdFormat: W3C
-    },
-    {
-      ActivityName: Validation.RunFormDataValidator,
+      ActivityName: Validation.RunValidator,
       Tags: [
         {
           validator.source: Required
@@ -221,7 +217,7 @@
       IdFormat: W3C
     },
     {
-      ActivityName: Validation.RunFormDataValidator,
+      ActivityName: Validation.RunValidator,
       Tags: [
         {
           validator.source: Expression
@@ -233,61 +229,49 @@
       IdFormat: W3C
     },
     {
-      ActivityName: Validation.RunFormDataValidator,
-      Tags: [
-        {
-          validator.source: DataAnnotations
-        },
-        {
-          validator.type: DataAnnotationValidator
-        }
-      ],
-      IdFormat: W3C
-    },
-    {
-      ActivityName: Validation.RunTaskValidator,
-      Tags: [
-        {
-          validator.source: Altinn.App.Core.Features.Validation.Default.LegacyIInstanceValidatorTaskValidator
-        },
-        {
-          validator.type: LegacyIInstanceValidatorTaskValidator
-        }
-      ],
-      IdFormat: W3C
-    },
-    {
-      ActivityName: Validation.RunTaskValidator,
+      ActivityName: Validation.RunValidator,
       Tags: [
         {
           validator.source: Altinn.App.Core.Features.Validation.Default.DefaultTaskValidator-*
         },
         {
-          validator.type: DefaultTaskValidator
+          validator.type: TaskValidatorWrapper
         }
       ],
       IdFormat: W3C
     },
     {
-      ActivityName: Validation.ValidateDataElement,
+      ActivityName: Validation.RunValidator,
       Tags: [
         {
-          data.guid: Guid_3
+          validator.source: Altinn.App.Core.Features.Validation.Default.DefaultDataElementValidator-*
         },
         {
-          instance.guid: Guid_1
+          validator.type: DataElementValidatorWrapper
         }
       ],
       IdFormat: W3C
     },
     {
-      ActivityName: Validation.ValidateFormData,
+      ActivityName: Validation.RunValidator,
       Tags: [
         {
-          data.guid: Guid_3
+          validator.source: DataAnnotations
         },
         {
-          instance.guid: Guid_1
+          validator.type: FormDataValidatorWrapper
+        }
+      ],
+      IdFormat: W3C
+    },
+    {
+      ActivityName: Validation.RunValidator,
+      Tags: [
+        {
+          validator.source: Not a valid validation source
+        },
+        {
+          validator.type: FormDataValidatorWrapper
         }
       ],
       IdFormat: W3C

@@ -691,7 +691,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         var pointer = JsonPointer.Create("melding", "tag-with-attribute");
         var createFirstElementPatch = new JsonPatch(
             PatchOperation.Test(pointer, JsonNode.Parse("null")),
-            PatchOperation.Add(pointer, JsonNode.Parse("""{"value": "" }"""))
+            PatchOperation.Add(pointer, JsonNode.Parse("""{"value": "test" }"""))
         );
 
         var (_, _, firstResponse) = await CallPatchApi<DataPatchResponse>(
@@ -701,16 +701,17 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         );
 
         var firstData = firstResponse.NewDataModel.Should().BeOfType<JsonElement>().Which;
-        var firstListItem = firstData.GetProperty("melding").GetProperty("tag-with-attribute");
-        firstListItem.ValueKind.Should().Be(JsonValueKind.Null);
+        var firstListItem = firstData.GetProperty("melding").GetProperty("tag-with-attribute").GetProperty("value");
+        firstListItem.ValueKind.Should().Be(JsonValueKind.String);
+        firstListItem.GetString().Should().Be("test");
 
         var addValuePatch = new JsonPatch(
-            PatchOperation.Test(pointer, JsonNode.Parse("null")),
-            PatchOperation.Add(pointer.Combine("value"), JsonNode.Parse("null"))
+            PatchOperation.Test(pointer, JsonNode.Parse("""{"orid":34730,"value":"test"}""")),
+            PatchOperation.Add(pointer.Combine("value"), JsonNode.Parse("\"\""))
         );
         var (_, _, secondResponse) = await CallPatchApi<DataPatchResponse>(addValuePatch, null, HttpStatusCode.OK);
         var secondData = secondResponse.NewDataModel.Should().BeOfType<JsonElement>().Which;
-        var secondValue = secondData.GetProperty("melding").GetProperty("name");
+        var secondValue = secondData.GetProperty("melding").GetProperty("tag-with-attribute");
         secondValue.ValueKind.Should().Be(JsonValueKind.Null);
     }
 

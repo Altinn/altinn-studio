@@ -48,7 +48,8 @@ public class ProcessNavigatorTests
     {
         var processFile = "with-double-sign.bpmn";
         IProcessNavigator processNavigator = SetupProcessNavigator(processFile, [new SingleSignGateway()]);
-        ProcessElement? nextElements = await processNavigator.GetNextTask(new Instance(), "Task_Sign1", "sign");
+        var instance = new Instance() { Id = $"123/{Guid.NewGuid()}", AppId = "org/app", };
+        ProcessElement? nextElements = await processNavigator.GetNextTask(instance, "Task_Sign1", "sign");
         nextElements!.Id.Should().Be("EndEvent_1");
     }
 
@@ -74,8 +75,10 @@ public class ProcessNavigatorTests
     {
         var processFile = "with-double-sign.bpmn";
         IProcessNavigator processNavigator = SetupProcessNavigator(processFile, [new ZeroPathsGateway()]);
+        var instance = new Instance() { Id = $"123/{Guid.NewGuid()}", AppId = "org/app", };
+
         await Assert.ThrowsAsync<ProcessException>(
-            async () => await processNavigator.GetNextTask(new Instance(), "Task_Sign1", "sign")
+            async () => await processNavigator.GetNextTask(instance, "Task_Sign1", "sign")
         );
     }
 
