@@ -9,8 +9,7 @@
     {
       "id": "moped-subform",
       "dataType": "moped",
-      "type": "subform",
-      "tasks": ["Task_1"]
+      "type": "subform"
     },
     {
       "id": "bok-subform",

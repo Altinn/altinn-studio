@@ -134,7 +134,7 @@
         "type": "ButtonGroup",
         "children": [
           "subform-moped-cancelButton",
-          "subform-moped-nextButton"
+          "subform-moped-exitButton"
         ]
       },
       {
@@ -154,15 +154,12 @@
         "buttonColor": "second"
       },
       {
-        "id": "subform-moped-nextButton",
+        "id": "subform-moped-exitButton",
         "type": "CustomButton",
-        "textResourceBindings": {
-          "title": "general.next"
-        },
         "actions": [
           {
             "type": "ClientAction",
-            "id": "nextPage",
+            "id": "closeSubform",
             "validation": {
               "page": "all",
               "show": [
@@ -171,8 +168,6 @@
             }
           }
         ],
-        "buttonStyle": "primary",
-        "buttonColor": "first",
         "buttonSize": "sm"
       }
     ]
