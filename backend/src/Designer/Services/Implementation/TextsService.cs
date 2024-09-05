@@ -341,16 +341,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
             foreach (string layoutName in layoutNames)
             {
                 JsonNode layout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
+                JsonNode originalLayout = layout.DeepClone();
                 if (layout?["data"]?["layout"] is not JsonArray layoutArray)
                 {
                     continue;
                 }
-                foreach (var layoutObject in layoutArray)
+                foreach (JsonNode layoutObject in layoutArray)
                 {
                     foreach (TextIdMutation mutation in keyMutations)
                     {
                         UpdateKeyInLayoutObject(layoutObject, mutation);
                     }
+                }
+                if (!JsonNode.DeepEquals(layout, originalLayout))
+                {
                     await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, layout);
                 }
             }
