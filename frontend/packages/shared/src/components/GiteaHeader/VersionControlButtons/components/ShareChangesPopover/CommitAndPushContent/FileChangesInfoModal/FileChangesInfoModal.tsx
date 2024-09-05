@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import type { FileStatus, RepoContentStatus } from 'app-shared/types/RepoStatus';
-import { StudioModal, StudioSpinner } from '@studio/components';
-import { Alert, Table, Tag } from '@digdir/designsystemet-react';
+import { StudioError, StudioModal, StudioSpinner } from '@studio/components';
+import { Table, Tag } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './FileChangesInfoModal.module.css';
 import { ClockDashedIcon } from '@studio/icons';
@@ -92,9 +92,9 @@ const DiffStatus = ({ status }: DiffStatusProps) => {
       );
     case 'error':
       return (
-        <Alert size='small' severity='danger'>
+        <StudioError size='small'>
           {t('sync_header.show_changes_modal.repo_diff_error_title')}
-        </Alert>
+        </StudioError>
       );
     default:
       return null;
