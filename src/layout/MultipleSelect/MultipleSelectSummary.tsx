@@ -9,14 +9,16 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 export function MultipleSelectSummary({
   componentNode,
   summaryOverride,
-  displayData,
   emptyFieldText,
+  isCompact,
 }: {
   componentNode: LayoutNode<'MultipleSelect'>;
   summaryOverride?: MultipleSelectSummaryOverrideProps;
-  displayData: string;
   emptyFieldText?: string;
+  isCompact?: boolean;
 }) {
+  const displayData = componentNode.def.useDisplayData(componentNode);
+
   const maxStringLength = 75;
 
   const showAsList =
@@ -29,6 +31,7 @@ export function MultipleSelectSummary({
       title={<Lang id={title} />}
       componentNode={componentNode}
       showAsList={showAsList}
+      isCompact={isCompact}
       emptyFieldText={emptyFieldText}
     />
   );

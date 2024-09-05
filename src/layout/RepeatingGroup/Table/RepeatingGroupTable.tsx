@@ -9,16 +9,16 @@ import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { GridRowRenderer } from 'src/layout/Grid/GridComponent';
 import { useNodesFromGridRows } from 'src/layout/Grid/tools';
-import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
+import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/EditContainer/RepeatingGroupsEditContainer';
+import { RepeatingGroupPagination } from 'src/layout/RepeatingGroup/Pagination/RepeatingGroupPagination';
 import {
   useRepeatingGroup,
   useRepeatingGroupPagination,
   useRepeatingGroupRowState,
-} from 'src/layout/RepeatingGroup/RepeatingGroupContext';
-import { RepeatingGroupPagination } from 'src/layout/RepeatingGroup/RepeatingGroupPagination';
-import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/RepeatingGroupsEditContainer';
-import { RepeatingGroupTableRow } from 'src/layout/RepeatingGroup/RepeatingGroupTableRow';
-import { RepeatingGroupTableTitle } from 'src/layout/RepeatingGroup/RepeatingGroupTableTitle';
+} from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
+import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
+import { RepeatingGroupTableRow } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableRow';
+import { RepeatingGroupTableTitle } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableTitle';
 import { useTableNodes } from 'src/layout/RepeatingGroup/useTableNodes';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';

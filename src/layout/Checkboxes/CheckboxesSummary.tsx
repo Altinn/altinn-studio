@@ -9,16 +9,15 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 export function CheckboxesSummary({
   componentNode,
   summaryOverride,
-  displayData,
   isCompact,
   emptyFieldText,
 }: {
   componentNode: LayoutNode<'Checkboxes'>;
   summaryOverride?: CheckboxSummaryOverrideProps;
-  displayData: string;
   isCompact?: boolean;
   emptyFieldText?: string;
 }) {
+  const displayData = componentNode.def.useDisplayData(componentNode);
   const maxStringLength = 75;
   const showAsList =
     summaryOverride?.displayType === 'list' ||
@@ -29,8 +28,8 @@ export function CheckboxesSummary({
     <MultipleValueSummary
       title={<Lang id={title} />}
       componentNode={componentNode}
-      showAsList={showAsList}
       isCompact={isCompact}
+      showAsList={showAsList}
       emptyFieldText={emptyFieldText}
     />
   );

@@ -7,12 +7,12 @@ import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsMini, useIsMobile, useIsMobileOrTablet } from 'src/hooks/useIsMobile';
+import classes from 'src/layout/RepeatingGroup/Pagination/RepeatingGroupPagination.module.css';
 import {
   useRepeatingGroup,
   useRepeatingGroupPagination,
   useRepeatingGroupRowState,
-} from 'src/layout/RepeatingGroup/RepeatingGroupContext';
-import classes from 'src/layout/RepeatingGroup/RepeatingGroupPagination.module.css';
+} from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { useNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';

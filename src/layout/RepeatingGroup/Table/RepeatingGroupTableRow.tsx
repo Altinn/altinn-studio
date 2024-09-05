@@ -16,9 +16,9 @@ import { useDeepValidationsForNode } from 'src/features/validation/selectors/dee
 import { useIsMobile } from 'src/hooks/useIsMobile';
 import { implementsDisplayData } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
+import { useRepeatingGroup } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
+import { useRepeatingGroupsFocusContext } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupFocusContext';
 import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
-import { useRepeatingGroup } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
-import { useRepeatingGroupsFocusContext } from 'src/layout/RepeatingGroup/RepeatingGroupFocusContext';
 import { useTableNodes } from 'src/layout/RepeatingGroup/useTableNodes';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
@@ -246,7 +246,7 @@ function _RepeatingGroupTableRow({
                   color='second'
                   size='small'
                   onClick={() => toggleEditing({ index: row.index, uuid: row.uuid })}
-                  aria-label={`${editButtonText} ${firstCellData}`}
+                  aria-label={`${editButtonText} ${firstCellData ?? ''}`}
                   data-testid='edit-button'
                   className={classes.tableButton}
                 >
@@ -304,7 +304,7 @@ function _RepeatingGroupTableRow({
                 size='small'
                 icon={!isEditingRow && mobileViewSmall}
                 onClick={() => toggleEditing({ index, uuid })}
-                aria-label={`${editButtonText} ${firstCellData}`}
+                aria-label={`${editButtonText} ${firstCellData ?? ''}`}
                 data-testid='edit-button'
                 className={classes.tableButton}
               >

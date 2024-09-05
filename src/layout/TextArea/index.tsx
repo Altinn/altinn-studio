@@ -32,7 +32,7 @@ export class TextArea extends TextAreaDef {
     return (
       <TextAreaSummary
         componentNode={props.target}
-        displayData={this.useDisplayData(props.target)}
+        isCompact={props.isCompact}
         emptyFieldText={props.override?.emptyFieldText}
       />
     );

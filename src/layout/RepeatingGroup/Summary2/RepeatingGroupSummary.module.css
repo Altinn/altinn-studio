@@ -1,0 +1,29 @@
+.repeatingGroupRowDivider {
+  border-bottom: solid 1px var(--fds-semantic-border-neutral-default);
+}
+
+.repeatingGroupSummaryRow {
+  display: flex;
+  gap: var(--fds-spacing-8);
+  flex-direction: column;
+  padding: var(--fds-spacing-5) 0;
+}
+
+.nestedRepeatingGroupSummaryWrapper {
+  display: flex;
+  gap: var(--fds-spacing-3);
+  flex-direction: column;
+}
+
+.nestedRepeatingGroupContentWrapper {
+  border: dashed 1px var(--fds-semantic-border-neutral-default);
+  padding: var(--fds-spacing-2) var(--fds-spacing-4);
+  border-radius: var(--fds-border_radius-medium);
+}
+
+.errorMessage {
+  display: flex;
+  flex-direction: row;
+  gap: var(--fds-spacing-2);
+  align-items: center;
+}

@@ -10,7 +10,7 @@ import { useAttachmentDeletionInRepGroups } from 'src/features/attachments/useAt
 import { FD } from 'src/features/formData/FormDataWrite';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useOnGroupCloseValidation } from 'src/features/validation/callbacks/onGroupCloseValidation';
-import { OpenByDefaultProvider } from 'src/layout/RepeatingGroup/OpenByDefaultProvider';
+import { OpenByDefaultProvider } from 'src/layout/RepeatingGroup/Providers/OpenByDefaultProvider';
 import { useNodeItem, useNodeItemRef, useWaitForNodeItem } from 'src/utils/layout/useNodeItem';
 import type { CompInternal } from 'src/layout/layout';
 import type { IGroupEditProperties } from 'src/layout/RepeatingGroup/config.generated';

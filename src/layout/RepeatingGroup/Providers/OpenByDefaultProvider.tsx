@@ -6,7 +6,7 @@ import {
   useRepeatingGroup,
   useRepeatingGroupRowState,
   useRepeatingGroupSelector,
-} from 'src/layout/RepeatingGroup/RepeatingGroupContext';
+} from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 

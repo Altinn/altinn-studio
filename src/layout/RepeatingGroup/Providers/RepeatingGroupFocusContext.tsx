@@ -3,7 +3,7 @@ import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
 import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
-import { useRepeatingGroup } from 'src/layout/RepeatingGroup/RepeatingGroupContext';
+import { useRepeatingGroup } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { useNodeItemRef } from 'src/utils/layout/useNodeItem';
 import { useNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';

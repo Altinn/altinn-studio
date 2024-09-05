@@ -11,7 +11,7 @@ import {
   useRepeatingGroup,
   useRepeatingGroupRowState,
   useRepeatingGroupSelector,
-} from 'src/layout/RepeatingGroup/RepeatingGroupContext';
+} from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { renderWithNode } from 'src/test/renderWithProviders';
 import type { JsonPatch } from 'src/features/formData/jsonPatch/types';
 import type { ILayout } from 'src/layout/layout';

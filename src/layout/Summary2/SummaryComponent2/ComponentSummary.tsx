@@ -7,7 +7,7 @@ import { useDataModelBindings } from 'src/features/formData/useDataModelBindings
 import classes from 'src/layout/Summary2/SummaryComponent2/SummaryComponent2.module.css';
 import { useSummary2Store } from 'src/layout/Summary2/summaryStoreContext';
 import { gridBreakpoints, pageBreakStyles } from 'src/utils/formComponentUtils';
-import { useNode } from 'src/utils/layout/NodesContext';
+import { Hidden, useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -29,6 +29,8 @@ export function ComponentSummary({ componentNode, isCompact }: ComponentSummaryP
 
   const { formData } = useDataModelBindings(componentNodeItem.dataModelBindings);
 
+  const isHidden = Hidden.useIsHidden(componentNode);
+
   const noUserInput = Object.values(formData).every((value) => value?.length < 1);
 
   const renderedComponent = componentNode.def.renderSummary2
@@ -40,6 +42,10 @@ export function ComponentSummary({ componentNode, isCompact }: ComponentSummaryP
     : null;
 
   if (!renderedComponent) {
+    return null;
+  }
+
+  if (isHidden) {
     return null;
   }
 

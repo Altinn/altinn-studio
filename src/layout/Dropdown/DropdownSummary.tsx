@@ -9,20 +9,23 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type DropdownComponentSummaryProps = {
   componentNode: LayoutNode<'Dropdown'>;
-  displayData: string;
+  isCompact?: boolean;
   emptyFieldText?: string;
 };
 
-export const DropdownSummary = ({ componentNode, displayData, emptyFieldText }: DropdownComponentSummaryProps) => {
+export const DropdownSummary = ({ componentNode, isCompact, emptyFieldText }: DropdownComponentSummaryProps) => {
+  const displayData = componentNode.def.useDisplayData(componentNode);
   const validations = useUnifiedValidationsForNode(componentNode);
   const errors = validationsOfSeverity(validations, 'error');
   const title = useNodeItem(componentNode, (i) => i.textResourceBindings?.title);
+
   return (
     <SingleValueSummary
       title={title && <Lang id={title} />}
       displayData={displayData}
       errors={errors}
       componentNode={componentNode}
+      isCompact={isCompact}
       emptyFieldText={emptyFieldText}
     />
   );

@@ -7,13 +7,13 @@ import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-type InputComponentSummaryProps = {
+type DatepickerComponentSummaryProps = {
   isCompact?: boolean;
-  componentNode: LayoutNode<'Input'>;
+  componentNode: LayoutNode<'Datepicker'>;
   emptyFieldText?: string;
 };
 
-export const InputSummary = ({ componentNode, isCompact, emptyFieldText }: InputComponentSummaryProps) => {
+export const DatepickerSummary = ({ componentNode, isCompact, emptyFieldText }: DatepickerComponentSummaryProps) => {
   const displayData = componentNode.def.useDisplayData(componentNode);
   const validations = useUnifiedValidationsForNode(componentNode);
   const errors = validationsOfSeverity(validations, 'error');
