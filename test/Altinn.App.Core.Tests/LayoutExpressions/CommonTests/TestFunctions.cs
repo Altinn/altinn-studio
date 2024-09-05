@@ -164,23 +164,25 @@ public class TestFunctions
         _output.WriteLine(test.RawJson);
         _output.WriteLine(test.FullPath);
 
-        var dataModel = test.DataModels is null
-            ? DynamicClassBuilder.DataModelFromJsonDocument(
+        var dataAccessor = test.DataModels is null
+            ? DynamicClassBuilder.DataAccessorFromJsonDocument(
                 test.Instance,
                 test.DataModel ?? JsonDocument.Parse("{}").RootElement
             )
-            : DynamicClassBuilder.DataModelFromJsonDocument(test.Instance, test.DataModels);
+            : DynamicClassBuilder.DataAccessorFromJsonDocument(test.Instance, test.DataModels);
 
-        var componentModel = new LayoutModel()
+        var dataType = new DataType() { Id = "default" };
+
+        LayoutModel? componentModel = null;
+        if (test.Layouts is not null)
         {
-            DefaultDataType = new DataType() { Id = "default", },
-            Pages = test.Layouts,
-        };
+            var layout = new LayoutSetComponent(test.Layouts.Values.ToList(), "layout", dataType);
+            componentModel = new LayoutModel([layout], null);
+        }
         var state = new LayoutEvaluatorState(
-            dataModel,
+            dataAccessor,
             componentModel,
             test.FrontEndSettings ?? new FrontEndSettings(),
-            test.Instance,
             test.GatewayAction,
             test.ProfileSettings?.Language
         );

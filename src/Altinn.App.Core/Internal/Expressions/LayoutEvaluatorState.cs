@@ -1,4 +1,5 @@
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
@@ -19,105 +20,38 @@ public class LayoutEvaluatorState
     private readonly Instance _instanceContext;
     private readonly string? _gatewayAction;
     private readonly string? _language;
-    private readonly Lazy<Task<List<ComponentContext>>> _rootContext;
+    private readonly Lazy<Task<List<ComponentContext>>?> _rootContext;
 
     /// <summary>
     /// Constructor for LayoutEvaluatorState. Usually called via <see cref="LayoutEvaluatorStateInitializer" /> that can be fetched from dependency injection.
     /// </summary>
     public LayoutEvaluatorState(
-        DataModel dataModel,
+        IInstanceDataAccessor dataAccessor,
         LayoutModel? componentModel,
         FrontEndSettings frontEndSettings,
-        Instance instance,
         string? gatewayAction = null,
         string? language = null
     )
     {
-        _dataModel = dataModel;
+        _dataModel = new DataModel(dataAccessor);
         _componentModel = componentModel;
         _frontEndSettings = frontEndSettings;
-        _instanceContext = instance;
+        _instanceContext = dataAccessor.Instance;
         _gatewayAction = gatewayAction;
         _language = language;
-        _rootContext = new(GenerateComponentContexts);
+        _rootContext = new(() => _componentModel?.GenerateComponentContexts(_instanceContext, _dataModel));
     }
 
     /// <summary>
     /// Get a hierarchy of the different contexts in the component model (remember to iterate <see cref="ComponentContext.ChildContexts" />)
     /// </summary>
-    public async Task<IEnumerable<ComponentContext>> GetComponentContexts()
+    public async Task<List<ComponentContext>> GetComponentContexts()
     {
-        return (await _rootContext.Value);
-    }
-
-    private async Task<List<ComponentContext>> GenerateComponentContexts()
-    {
-        var defaultDataElementId = GetDefaultElementId();
-        if (_componentModel is null)
+        if (_rootContext.Value is null)
         {
             throw new InvalidOperationException("Component model not loaded");
         }
-        var pageContexts = new List<ComponentContext>();
-        foreach (var page in _componentModel.Pages.Values)
-        {
-            pageContexts.Add(await GenerateComponentContextsRecurs(page, _dataModel, defaultDataElementId, []));
-        }
-
-        return pageContexts;
-    }
-
-    private static async Task<ComponentContext> GenerateComponentContextsRecurs(
-        BaseComponent component,
-        DataModel dataModel,
-        DataElementId defaultDataElementId,
-        int[]? indexes
-    )
-    {
-        var children = new List<ComponentContext>();
-        int? rowLength = null;
-
-        if (false)
-        {
-            /*TODO: type is subform*/
-        }
-        if (component is RepeatingGroupComponent repeatingGroupComponent)
-        {
-            if (repeatingGroupComponent.DataModelBindings.TryGetValue("group", out var groupBinding))
-            {
-                rowLength = await dataModel.GetModelDataCount(groupBinding, defaultDataElementId, indexes) ?? 0;
-                foreach (var index in Enumerable.Range(0, rowLength.Value))
-                {
-                    foreach (var child in repeatingGroupComponent.Children)
-                    {
-                        // concatenate [...indexes, index]
-                        var subIndexes = new int[(indexes?.Length ?? 0) + 1];
-                        indexes.CopyTo(subIndexes.AsSpan());
-                        subIndexes[^1] = index;
-
-                        children.Add(
-                            await GenerateComponentContextsRecurs(child, dataModel, defaultDataElementId, subIndexes)
-                        );
-                    }
-                }
-            }
-        }
-        else if (component is GroupComponent groupComponent)
-        {
-            foreach (var child in groupComponent.Children)
-            {
-                children.Add(await GenerateComponentContextsRecurs(child, dataModel, defaultDataElementId, indexes));
-            }
-        }
-
-        var context = new ComponentContext(
-            component,
-            indexes?.Length > 0 ? indexes : null,
-            rowLength,
-            defaultDataElementId,
-            children
-        );
-
-        return context;
+        return (await _rootContext.Value);
     }
 
     /// <summary>
@@ -148,7 +82,6 @@ public class LayoutEvaluatorState
     public async Task<ComponentContext?> GetComponentContext(
         string pageName,
         string componentId,
-        DataElementId defaultDataElementId,
         int[]? rowIndexes = null
     )
     {
@@ -282,6 +215,15 @@ public class LayoutEvaluatorState
         return await _dataModel.AddIndexes(binding, dataElementId, indexes);
     }
 
+    /// <summary>
+    /// This is the wrong abstraction, but used in tests that work
+    /// </summary>
+    internal DataElementId GetDefaultDataElementId()
+    {
+        return _componentModel?.GetDefaultDataElementId(_instanceContext)
+            ?? throw new InvalidOperationException("Component model not loaded");
+    }
+
     // /// <summary>
     // /// Verify all components that dataModel references are correct
     // /// </summary>
@@ -335,19 +277,4 @@ public class LayoutEvaluatorState
     //         GetModelErrorsForExpression(arg, component, errors);
     //     }
     // }
-
-
-    /// <summary>
-    /// Get the default data element id for the current layout
-    /// </summary>
-    /// <exception cref="InvalidOperationException"></exception>
-    public DataElementId GetDefaultElementId(string? dataType = null)
-    {
-        var defaultDataType =
-            dataType
-            ?? _componentModel?.DefaultDataType.Id
-            ?? throw new InvalidOperationException("No component model, or no default data type");
-        return _instanceContext.Data.Find(d => d.DataType == defaultDataType)
-            ?? throw new InvalidOperationException($"Could not find data element with data type {defaultDataType}");
-    }
 }

@@ -109,7 +109,17 @@ public class DataModelWrapper
         return GetModelDataRecursive(keys, index + 1, elementAt, rowIndexes.Length > 0 ? rowIndexes[1..] : rowIndexes);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Get all valid indexed keys for the field, depending on the number of rows in repeating groups
+    /// </summary>
+    /// <example>
+    /// GetResolvedKeys("data.bedrifter.styre.medlemmer") =>
+    /// [
+    ///     "data.bedrifter[0].styre.medlemmer",
+    ///     "data.bedrifter[1].styre.medlemmer"
+    ///     ...
+    /// ]
+    /// </example>
     public string[] GetResolvedKeys(string field)
     {
         if (_dataModel is null)
@@ -211,7 +221,7 @@ public class DataModelWrapper
     private static readonly Regex _keyPartRegex =
         new(@"^([^\s\[\]\.]+)\[(\d+)\]?$", RegexOptions.Compiled, TimeSpan.FromMicroseconds(10));
 
-    internal static (string key, int? index) ParseKeyPart(string keyPart)
+    private static (string key, int? index) ParseKeyPart(string keyPart)
     {
         if (keyPart.Length == 0)
         {
@@ -225,11 +235,11 @@ public class DataModelWrapper
         return (match.Groups[1].Value, int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture));
     }
 
-    private static void AddIndiciesRecursive(
+    private static void AddIndexesRecursive(
         List<string> ret,
         Type currentModelType,
         ReadOnlySpan<string> keys,
-        ReadOnlySpan<int> indicies
+        ReadOnlySpan<int> indexes
     )
     {
         if (keys.Length == 0)
@@ -243,7 +253,7 @@ public class DataModelWrapper
             throw new DataModelException($"Unknown model property {key} in {string.Join(".", ret)}.{key}");
         }
 
-        var currentIndex = groupIndex ?? (indicies.Length > 0 ? indicies[0] : null);
+        var currentIndex = groupIndex ?? (indexes.Length > 0 ? indexes[0] : null);
 
         var childType = prop.PropertyType;
         // Strings are enumerable in C#
@@ -263,12 +273,12 @@ public class DataModelWrapper
             }
 
             ret.Add($"{key}[{currentIndex}]");
-            if (indicies.Length > 0)
+            if (indexes.Length > 0)
             {
-                indicies = indicies.Slice(1);
+                indexes = indexes.Slice(1);
             }
 
-            AddIndiciesRecursive(ret, childTypeEnumerableParameter, keys.Slice(1), indicies);
+            AddIndexesRecursive(ret, childTypeEnumerableParameter, keys.Slice(1), indexes);
         }
         else
         {
@@ -278,7 +288,7 @@ public class DataModelWrapper
             }
 
             ret.Add(key);
-            AddIndiciesRecursive(ret, childType, keys.Slice(1), indicies);
+            AddIndexesRecursive(ret, childType, keys.Slice(1), indexes);
         }
     }
 
@@ -298,7 +308,7 @@ public class DataModelWrapper
         }
 
         var ret = new List<string>();
-        AddIndiciesRecursive(ret, _dataModel.GetType(), field.Split('.'), rowIndexes);
+        AddIndexesRecursive(ret, _dataModel.GetType(), field.Split('.'), rowIndexes);
         return string.Join('.', ret);
     }
 

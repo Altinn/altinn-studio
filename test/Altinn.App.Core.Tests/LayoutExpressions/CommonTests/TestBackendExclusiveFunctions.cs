@@ -60,19 +60,16 @@ public class TestBackendExclusiveFunctions
         _output.WriteLine($"{test.Filename} in {test.Folder}");
         _output.WriteLine(test.RawJson);
         _output.WriteLine(test.FullPath);
-        var componentModel = new LayoutModel()
-        {
-            DefaultDataType = new DataType() { Id = "default", },
-            Pages = test.Layouts,
-        };
+        var dataType = new DataType() { Id = "default", };
+        var layout = new LayoutSetComponent(test.Layouts!.Values.ToList(), "layout", dataType);
+        var componentModel = new LayoutModel([layout], null);
         var state = new LayoutEvaluatorState(
-            DynamicClassBuilder.DataModelFromJsonDocument(
+            DynamicClassBuilder.DataAccessorFromJsonDocument(
                 test.Instance,
                 test.DataModel ?? JsonDocument.Parse("{}").RootElement
             ),
             componentModel,
             test.FrontEndSettings ?? new(),
-            test.Instance ?? new(),
             test.GatewayAction,
             test.ProfileSettings?.Language
         );

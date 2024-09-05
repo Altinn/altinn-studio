@@ -66,19 +66,16 @@ public class TestContextList
         _output.WriteLine(test.FullPath);
 
         var instance = new Instance() { Data = [] };
-        var componentModel = new LayoutModel()
-        {
-            DefaultDataType = new DataType() { Id = "default" },
-            Pages = test.Layouts,
-        };
+        var dataType = new DataType() { Id = "default" };
+        var layout = new LayoutSetComponent(test.Layouts.Values.ToList(), "layout", dataType);
+        var componentModel = new LayoutModel([layout], null);
         var state = new LayoutEvaluatorState(
-            DynamicClassBuilder.DataModelFromJsonDocument(
+            DynamicClassBuilder.DataAccessorFromJsonDocument(
                 instance,
                 test.DataModel ?? JsonDocument.Parse("{}").RootElement
             ),
             componentModel,
-            new(),
-            instance
+            new()
         );
 
         test.ParsingException.Should().BeNull("Loading of test failed");

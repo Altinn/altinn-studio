@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Utils;
+using Altinn.App.Common.Tests;
 using Altinn.App.Core.Configuration;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
@@ -129,28 +130,8 @@ public class ApiTestBase
                         LogLevel.Critical
                     };
                 }
-                options.OutputFormatter = log =>
-                    $"""
-                    [{ShortLogLevel(log.Level)}] {log.Category}:
-                    {log.Message}{(log.Exception is not null ? "\n" : "")}{log.Exception}
-                    
-                    """;
+                options.OutputFormatter = FakeLoggerXunit.OutputFormatter;
             });
-    }
-
-    private static string ShortLogLevel(LogLevel logLevel)
-    {
-        return logLevel switch
-        {
-            LogLevel.Trace => "trac",
-            LogLevel.Debug => "debu",
-            LogLevel.Information => "info",
-            LogLevel.Warning => "warn",
-            LogLevel.Error => "erro",
-            LogLevel.Critical => "crit",
-            LogLevel.None => "none",
-            _ => "????",
-        };
     }
 
     private void ConfigureFakeHttpClientHandler(IServiceCollection services)

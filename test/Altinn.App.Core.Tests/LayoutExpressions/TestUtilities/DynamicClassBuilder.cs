@@ -135,25 +135,28 @@ public class DynamicClassBuilder
         return instance;
     }
 
-    public static DataModel DataModelFromJsonDocument(
+    public static IInstanceDataAccessor DataAccessorFromJsonDocument(
         Instance instance,
         JsonElement doc,
         DataElement? dataElement = null
     )
     {
         object data = DataObjectFromJsonDocument(doc);
-        var dataAccessor = new TestInstanceDataAccessor(instance) { { dataElement, data } };
-        return new DataModel(dataAccessor);
+        var dataAccessor = new InstanceDataAccessorFake(instance) { { dataElement, data } };
+        return dataAccessor;
     }
 
-    public static DataModel DataModelFromJsonDocument(Instance instance, List<DataModelAndElement> dataModels)
+    public static IInstanceDataAccessor DataAccessorFromJsonDocument(
+        Instance instance,
+        List<DataModelAndElement> dataModels
+    )
     {
-        var dataAccessor = new TestInstanceDataAccessor(instance);
+        var dataAccessor = new InstanceDataAccessorFake(instance);
         foreach (var pair in dataModels)
         {
             dataAccessor.Add(pair.DataElement, DataObjectFromJsonDocument(pair.Data));
         }
 
-        return new DataModel(dataAccessor);
+        return dataAccessor;
     }
 }

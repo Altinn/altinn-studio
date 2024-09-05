@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Helpers.DataModel;
 
@@ -26,6 +27,11 @@ public class DataModel
             _dataIdsByType.TryAdd(dataElement.DataType, dataElement);
         }
     }
+
+    /// <summary>
+    /// Get access to the instance object
+    /// </summary>
+    public Instance Instance => _dataAccessor.Instance;
 
     private async Task<object> ServiceModel(ModelBinding key, DataElementId defaultDataElementId)
     {

@@ -87,9 +87,7 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
         var dataElement = instance.Data.Find(d => d.DataType == layouts.DefaultDataType.Id);
         Debug.Assert(dataElement is not null);
         var dataAccessor = new SingleDataElementAccessor(instance, dataElement, data);
-        return Task.FromResult(
-            new LayoutEvaluatorState(new DataModel(dataAccessor), layouts, _frontEndSettings, instance, gatewayAction)
-        );
+        return Task.FromResult(new LayoutEvaluatorState(dataAccessor, layouts, _frontEndSettings, gatewayAction));
     }
 
     /// <inheritdoc />
@@ -105,14 +103,7 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
             LayoutModel? layouts = taskId is not null ? _appResources.GetLayoutModelForTask(taskId) : null;
 
             return Task.FromResult(
-                new LayoutEvaluatorState(
-                    new DataModel(dataAccessor),
-                    layouts,
-                    _frontEndSettings,
-                    dataAccessor.Instance,
-                    gatewayAction,
-                    language
-                )
+                new LayoutEvaluatorState(dataAccessor, layouts, _frontEndSettings, gatewayAction, language)
             );
         }
         catch (Exception e)

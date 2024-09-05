@@ -31,20 +31,20 @@ public class ExpressionTestCaseRoot
     public string? Name { get; set; }
 
     [JsonPropertyName("expression")]
-    public Expression Expression { get; set; } = default!;
+    public Expression Expression { get; set; }
 
     [JsonPropertyName("context")]
-    public ComponentContextForTestSpec? Context { get; set; } = default!;
+    public ComponentContextForTestSpec? Context { get; set; }
 
     [JsonPropertyName("expects")]
-    public JsonElement Expects { get; set; } = default!;
+    public JsonElement Expects { get; set; }
 
     [JsonPropertyName("expectsFailure")]
     public string? ExpectsFailure { get; set; }
 
     [JsonPropertyName("layouts")]
     [JsonConverter(typeof(LayoutModelConverterFromObject))]
-    public IReadOnlyDictionary<string, PageComponent> Layouts { get; set; } = default!;
+    public IReadOnlyDictionary<string, PageComponent>? Layouts { get; set; }
 
     [JsonPropertyName("dataModel")]
     public JsonElement? DataModel { get; set; }
@@ -100,15 +100,15 @@ public class ComponentContextForTestSpec
     public IEnumerable<ComponentContextForTestSpec> ChildContexts { get; set; } =
         Enumerable.Empty<ComponentContextForTestSpec>();
 
-    public ComponentContext ToContext(LayoutModel model, LayoutEvaluatorState state)
+    public ComponentContext ToContext(LayoutModel? model, LayoutEvaluatorState state)
     {
-        var component = model.GetComponent(CurrentPageName, ComponentId);
+        var component = model?.GetComponent(CurrentPageName, ComponentId);
         return new ComponentContext(
             component,
             RowIndices,
             rowLength: component is RepeatingGroupComponent ? 0 : null,
             // TODO: get from data model, but currently not important for tests
-            state.GetDefaultElementId(),
+            state.GetDefaultDataElementId(),
             ChildContexts.Select(c => c.ToContext(model, state))
         );
     }

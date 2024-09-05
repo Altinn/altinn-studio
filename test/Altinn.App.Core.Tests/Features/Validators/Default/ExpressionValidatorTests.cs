@@ -72,15 +72,13 @@ public class ExpressionValidatorTests
 
         var instance = new Instance() { Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d", AppId = "org/app", };
         var dataElement = new DataElement { DataType = "default", };
+        var dataType = new DataType() { Id = "default" };
 
-        var dataModel = DynamicClassBuilder.DataModelFromJsonDocument(instance, testCase.FormData, dataElement);
+        var dataModel = DynamicClassBuilder.DataAccessorFromJsonDocument(instance, testCase.FormData, dataElement);
 
-        var layoutModel = new LayoutModel()
-        {
-            DefaultDataType = new DataType() { Id = "default" },
-            Pages = testCase.Layouts,
-        };
-        var evaluatorState = new LayoutEvaluatorState(dataModel, layoutModel, _frontendSettings.Value, instance);
+        var layout = new LayoutSetComponent(testCase.Layouts.Values.ToList(), "layout", dataType);
+        var componentModel = new LayoutModel([layout], null);
+        var evaluatorState = new LayoutEvaluatorState(dataModel, componentModel, _frontendSettings.Value);
         _layoutInitializer
             .Setup(init =>
                 init.Init(It.IsAny<IInstanceDataAccessor>(), "Task_1", It.IsAny<string?>(), It.IsAny<string?>())
@@ -89,9 +87,11 @@ public class ExpressionValidatorTests
         _appResources
             .Setup(ar => ar.GetValidationConfiguration("default"))
             .Returns(JsonSerializer.Serialize(testCase.ValidationConfig));
-        _appResources.Setup(ar => ar.GetLayoutSetForTask(null!)).Returns(new LayoutSet() { DataType = "default", });
+        _appResources
+            .Setup(ar => ar.GetLayoutSetForTask(null!))
+            .Returns(new LayoutSet() { Id = "layout", DataType = "default", });
 
-        var dataAccessor = new TestInstanceDataAccessor(instance) { { dataElement, dataModel } };
+        var dataAccessor = new InstanceDataAccessorFake(instance) { { dataElement, dataModel } };
 
         var validationIssues = await _validator.ValidateFormData(instance, dataElement, dataAccessor, "Task_1", null);
 

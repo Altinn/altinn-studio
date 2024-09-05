@@ -32,20 +32,21 @@ public class TestInvalid
         Func<Task> act = async () =>
         {
             var test = JsonSerializer.Deserialize<ExpressionTestCaseRoot>(testCase.RawJson!, _jsonSerializerOptions)!;
-            var componentModel = new LayoutModel()
+            var dataType = new DataType() { Id = "default", };
+            LayoutModel? componentModel = null;
+            if (test.Layouts is not null)
             {
-                DefaultDataType = new DataType() { Id = "default", },
-                Pages = test.Layouts,
-            };
+                var layout = new LayoutSetComponent(test.Layouts.Values.ToList(), "layout", dataType);
+                componentModel = new LayoutModel([layout], null);
+            }
 
             var state = new LayoutEvaluatorState(
-                DynamicClassBuilder.DataModelFromJsonDocument(
+                DynamicClassBuilder.DataAccessorFromJsonDocument(
                     test.Instance,
                     test.DataModel ?? JsonDocument.Parse("{}").RootElement
                 ),
                 componentModel,
-                test.FrontEndSettings ?? new(),
-                test.Instance ?? new()
+                test.FrontEndSettings ?? new()
             );
             await ExpressionEvaluator.EvaluateExpression(
                 state,

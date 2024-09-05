@@ -272,7 +272,7 @@ public class PageComponentConverter : JsonConverter<PageComponent>
         Expression? required = null;
         Expression? readOnly = null;
         // Custom properities for group
-        List<string>? children = null;
+        List<string>? childIDs = null;
         int maxCount = 1; // > 1 is repeating, but might not be specified for non-repeating groups
         // Custom properties for Summary
         string? componentRef = null;
@@ -281,6 +281,11 @@ public class PageComponentConverter : JsonConverter<PageComponent>
         List<AppOption>? literalOptions = null;
         OptionsSource? optionsSource = null;
         bool secure = false;
+        // Custom properties for subform
+        string? layoutSetId = null;
+        // List<SubFormComponent.TableColumn>? tableColumns = null;
+        // bool showAddButton = true;
+        // bool showDeleteButton = true;
 
         // extra properties that are not stored in a specific class.
         Dictionary<string, string> additionalProperties = new();
@@ -316,13 +321,13 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                 // case "textresourcebindings":
                 //     break;
                 case "children":
-                    children = JsonSerializer
+                    childIDs = JsonSerializer
                         .Deserialize<List<string>>(ref reader, options)
                         ?.Select(GetIdWithoutMultiPageIndex)
                         .ToList();
                     break;
                 case "rows":
-                    children = GridConfig.ReadGridChildren(ref reader, options);
+                    childIDs = GridConfig.ReadGridChildren(ref reader, options);
                     break;
                 case "maxcount":
                     maxCount = reader.GetInt32();
@@ -356,6 +361,19 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                 case "secure":
                     secure = reader.TokenType == JsonTokenType.True;
                     break;
+                // subform
+                case "layoutsetid":
+                    layoutSetId = reader.GetString();
+                    break;
+                // case "tablecolumns":
+                //     tableColumns = JsonSerializer.Deserialize<List<SubFormComponent.TableColumn>>(ref reader, options);
+                //     break;
+                // case "showaddbutton":
+                //     showAddButton = reader.TokenType != JsonTokenType.False;
+                //     break;
+                // case "showdeletebutton":
+                //     showDeleteButton = reader.TokenType != JsonTokenType.False;
+                //     break;
                 default:
                     // store extra fields as json
                     additionalProperties[propertyName] = reader.SkipReturnString();
@@ -368,10 +386,6 @@ public class PageComponentConverter : JsonConverter<PageComponent>
         switch (type.ToLowerInvariant())
         {
             case "repeatinggroup":
-                ThrowJsonExceptionIfNull(
-                    children,
-                    "Component with \"type\": \"Group\" requires a \"children\" property"
-                );
                 if (!(dataModelBindings?.ContainsKey("group") ?? false))
                 {
                     throw new JsonException(
@@ -384,7 +398,10 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                     type,
                     dataModelBindings,
                     new List<BaseComponent>(),
-                    children,
+                    childIDs
+                        ?? throw new JsonException(
+                            "Component with \"type\": \"Group\" requires a \"children\" property"
+                        ),
                     maxCount,
                     hidden ?? Expression.False,
                     hiddenRow ?? Expression.False,
@@ -396,7 +413,7 @@ public class PageComponentConverter : JsonConverter<PageComponent>
 
             case "group":
                 ThrowJsonExceptionIfNull(
-                    children,
+                    childIDs,
                     "Component with \"type\": \"Group\" requires a \"children\" property"
                 );
 
@@ -414,7 +431,7 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                         type,
                         dataModelBindings,
                         new List<BaseComponent>(),
-                        children,
+                        childIDs,
                         maxCount,
                         hidden ?? Expression.False,
                         hiddenRow ?? Expression.False,
@@ -431,7 +448,7 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                         type,
                         dataModelBindings,
                         new List<BaseComponent>(),
-                        children,
+                        childIDs,
                         hidden ?? Expression.False,
                         required ?? Expression.False,
                         readOnly ?? Expression.False,
@@ -445,7 +462,7 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                     type,
                     dataModelBindings,
                     new List<BaseComponent>(),
-                    children,
+                    childIDs,
                     hidden ?? Expression.False,
                     required ?? Expression.False,
                     readOnly ?? Expression.False,
@@ -453,8 +470,16 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                 );
                 return gridComponent;
             case "summary":
-                ValidateSummary(componentRef);
-                return new SummaryComponent(id, type, hidden ?? Expression.False, componentRef, additionalProperties);
+                return new SummaryComponent(
+                    id,
+                    type,
+                    hidden ?? Expression.False,
+                    componentRef
+                        ?? throw new JsonException(
+                            "Component with \"type\": \"Summary\" requires the \"componentRef\" property"
+                        ),
+                    additionalProperties
+                );
             case "checkboxes":
             case "radiobuttons":
             case "dropdown":
@@ -470,6 +495,20 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                     literalOptions,
                     optionsSource,
                     secure,
+                    additionalProperties
+                );
+            case "subform":
+                return new SubFormComponent(
+                    id,
+                    type,
+                    dataModelBindings,
+                    layoutSetId ?? throw new JsonException("Subform requires a layoutSetId"),
+                    // tableColumns ?? new(),
+                    // showAddButton,
+                    // showDeleteButton,
+                    hidden ?? Expression.False,
+                    required ?? Expression.False,
+                    readOnly ?? Expression.False,
                     additionalProperties
                 );
         }
@@ -552,14 +591,6 @@ public class PageComponentConverter : JsonConverter<PageComponent>
             throw new JsonException(
                 "\"secure\": true is invalid for components that reference a repeating group \"source\""
             );
-        }
-    }
-
-    private static void ValidateSummary([NotNull] string? componentRef)
-    {
-        if (componentRef is null)
-        {
-            throw new JsonException("Component with \"type\": \"Summary\" requires the \"componentRef\" property");
         }
     }
 

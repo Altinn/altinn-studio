@@ -320,39 +320,47 @@ public class AppResourcesSI : IAppResources
     public LayoutModel GetLayoutModelForTask(string taskId)
     {
         using var activity = _telemetry?.StartGetLayoutModelActivity();
-        var layoutSet = GetLayoutSetForTask(taskId);
-        var order =
-            GetLayoutSettingsForSet(layoutSet?.Id)?.Pages?.Order
-            ?? throw new InvalidDataException(
-                "No $Pages.Order field found" + (layoutSet?.Id is null ? "" : $" for layoutSet {layoutSet.Id}")
-            );
+        var layoutSets = GetLayoutSet() ?? throw new InvalidOperationException("no layout sets found");
+        var dataTypes = _appMetadata.GetApplicationMetadata().Result.DataTypes;
 
-        var pages = new Dictionary<string, PageComponent>();
-        string folder = Path.Join(_settings.AppBasePath, _settings.UiFolder, layoutSet?.Id, "layouts");
+        var layouts = layoutSets.Sets.Select(set => LoadLayout(set, dataTypes)).ToList();
+
+        var layoutSet =
+            GetLayoutSetForTask(taskId)
+            ?? throw new InvalidOperationException("No layout set found for task " + taskId);
+
+        return new LayoutModel(layouts, layoutSet);
+    }
+
+    private LayoutSetComponent LoadLayout(LayoutSet layoutSet, List<DataType> dataTypes)
+    {
+        var order =
+            GetLayoutSettingsForSet(layoutSet.Id)?.Pages?.Order
+            ?? throw new InvalidDataException($"No $Pages.Order field found for layoutSet {layoutSet.Id}");
+
+        var pages = new List<PageComponent>();
+        string folder = Path.Join(_settings.AppBasePath, _settings.UiFolder, layoutSet.Id, "layouts");
         foreach (var page in order)
         {
             var pageBytes = File.ReadAllBytes(Path.Join(folder, page + ".json"));
             // Set the PageName using AsyncLocal before deserializing.
             PageComponentConverter.SetAsyncLocalPageName(page);
-            pages[page] =
+            pages.Add(
                 System.Text.Json.JsonSerializer.Deserialize<PageComponent>(
                     pageBytes.RemoveBom(),
                     _jsonSerializerOptions
-                ) ?? throw new InvalidDataException(page + ".json is \"null\"");
+                ) ?? throw new InvalidDataException(page + ".json is \"null\"")
+            );
         }
 
-        return new LayoutModel() { DefaultDataType = GetDefaultDataType(taskId, layoutSet), Pages = pages, };
-    }
-
-    private DataType GetDefaultDataType(string taskId, LayoutSet? layoutSet)
-    {
-        var appMetadata = _appMetadata.GetApplicationMetadata().Result;
-        // First look for the layoutSet.DataType, then look for the first DataType with a classRef
-        return appMetadata.DataTypes.Find(d => layoutSet?.DataType == d.Id)
-            ?? appMetadata.DataTypes.Find(d => d.AppLogic?.ClassRef is not null && d.TaskId == taskId)
+        // First look at the specified data type, but
+        var dataType =
+            dataTypes.Find(d => d.Id == layoutSet.DataType)
+            ?? dataTypes.Find(d => d.AppLogic?.ClassRef is not null)
             ?? throw new InvalidOperationException(
-                $"No data type found for task {taskId} and layoutSet {layoutSet?.Id}"
+                $"LayoutSet {layoutSet.Id} asks for dataType {layoutSet.DataType}, but it does not exist in applicationmetadata.json"
             );
+        return new LayoutSetComponent(pages, layoutSet.Id, dataType);
     }
 
     /// <inheritdoc />

@@ -156,12 +156,7 @@ public static class ExpressionEvaluator
             throw new ArgumentException("The component expression requires a component context");
         }
 
-        var targetContext = await state.GetComponentContext(
-            context.Component.PageId,
-            componentId,
-            context.DataElementId,
-            context.RowIndices
-        );
+        var targetContext = await state.GetComponentContext(context.Component.PageId, componentId, context.RowIndices);
 
         if (targetContext is null)
         {

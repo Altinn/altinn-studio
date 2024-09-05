@@ -72,22 +72,20 @@ public static class LayoutTestUtils
         appModel.Setup(am => am.GetModelType(ClassRef)).Returns(modelType);
 
         var resources = new Mock<IAppResources>();
-        var pages = new Dictionary<string, PageComponent>();
+        var pages = new List<PageComponent>();
         var layoutsPath = Path.Join("LayoutExpressions", "FullTests", folder);
         foreach (var layoutFile in Directory.GetFiles(layoutsPath, "*.json"))
         {
-            var layout = await File.ReadAllBytesAsync(layoutFile);
+            var layoutBytes = await File.ReadAllBytesAsync(layoutFile);
             string pageName = layoutFile.Replace(layoutsPath + "/", string.Empty).Replace(".json", string.Empty);
 
             PageComponentConverter.SetAsyncLocalPageName(pageName);
 
-            pages[pageName] = JsonSerializer.Deserialize<PageComponent>(layout.RemoveBom(), _jsonSerializerOptions)!;
+            pages.Add(JsonSerializer.Deserialize<PageComponent>(layoutBytes.RemoveBom(), _jsonSerializerOptions)!);
         }
-        var layoutModel = new LayoutModel()
-        {
-            DefaultDataType = new DataType() { Id = DataTypeId, },
-            Pages = pages
-        };
+        var dataType = new DataType() { Id = DataTypeId, };
+        var layout = new LayoutSetComponent(pages, "layout", dataType);
+        var layoutModel = new LayoutModel([layout], null);
 
         resources.Setup(r => r.GetLayoutModelForTask(TaskId)).Returns(layoutModel);
 
@@ -102,7 +100,7 @@ public static class LayoutTestUtils
         using var scope = serviceProvider.CreateScope();
         var initializer = scope.ServiceProvider.GetRequiredService<ILayoutEvaluatorStateInitializer>();
 
-        var dataAccessor = new TestInstanceDataAccessor(_instance) { { _dataElement, model } };
+        var dataAccessor = new InstanceDataAccessorFake(_instance) { { _dataElement, model } };
 
         return await initializer.Init(dataAccessor, TaskId);
     }
