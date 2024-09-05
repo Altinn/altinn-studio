@@ -8,6 +8,7 @@ using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
 using Altinn.App.Api.Tests.Utils;
+using Altinn.App.Common.Tests;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Models.Validation;
@@ -26,7 +27,7 @@ namespace Altinn.App.Api.Tests.Controllers;
 
 public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
-    private static new readonly JsonSerializerOptions _jsonSerializerOptions =
+    protected static new readonly JsonSerializerOptions JsonSerializerOptions =
         new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -78,15 +79,15 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         {
             url += $"?language={language}";
         }
-        _outputHelper.WriteLine($"Calling PATCH {url}");
+        OutputHelper.WriteLine($"Calling PATCH {url}");
         using var httpClient = GetRootedClient(Org, App);
         string token = PrincipalUtil.GetToken(1337, null);
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var serializedPatch = JsonSerializer.Serialize(
             new DataPatchRequest() { Patch = patch, IgnoredValidators = ignoredValidators, },
-            _jsonSerializerOptions
+            JsonSerializerOptions
         );
-        _outputHelper.WriteLine(serializedPatch);
+        OutputHelper.WriteLine(serializedPatch);
         using var updateDataElementContent = new StringContent(
             serializedPatch,
             System.Text.Encoding.UTF8,
@@ -95,10 +96,10 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         var response = await httpClient.PatchAsync(url, updateDataElementContent);
         var responseString = await response.Content.ReadAsStringAsync();
         using var responseParsedRaw = JsonDocument.Parse(responseString);
-        _outputHelper.WriteLine("\nResponse:");
-        _outputHelper.WriteLine(JsonSerializer.Serialize(responseParsedRaw, _jsonSerializerOptions));
+        OutputHelper.WriteLine("\nResponse:");
+        OutputHelper.WriteLine(JsonSerializer.Serialize(responseParsedRaw, JsonSerializerOptions));
         response.Should().HaveStatusCode(expectedStatus);
-        var responseObject = JsonSerializer.Deserialize<TResponse>(responseString, _jsonSerializerOptions)!;
+        var responseObject = JsonSerializer.Deserialize<TResponse>(responseString, JsonSerializerOptions)!;
         return (response, responseString, responseObject);
     }
 
@@ -198,6 +199,14 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     [Fact]
     public async Task InvalidTestValue_ReturnsConflict()
     {
+        this.OverrideServicesForThisTest = (services) =>
+        {
+            services.AddTelemetrySink(
+                shouldAlsoListenToActivities: (sp, source) => source.Name == "Microsoft.AspNetCore",
+                activityFilter: this.ActivityFilter
+            );
+        };
+
         // Update data element
         var patch = new JsonPatch(
             PatchOperation.Test(
@@ -208,10 +217,13 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         );
 
         var (_, _, parsedResponse) = await CallPatchApi<ProblemDetails>(patch, null, HttpStatusCode.Conflict);
+        var telemetry = this.Services.GetRequiredService<TelemetrySink>();
 
         parsedResponse.Detail.Should().Be("Path `/melding/name` is not equal to the indicated value.");
 
         _dataProcessorMock.VerifyNoOtherCalls();
+
+        await telemetry.SnapshotActivities();
     }
 
     [Fact]
@@ -697,17 +709,17 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
 
         // call Read to get the data with changes to Melding.Random from ProcessDataRead
         var url = $"/{Org}/{App}/instances/{_instanceId}/data/{_dataGuid}?language=nn";
-        _outputHelper.WriteLine($"Calling GET {url}");
+        OutputHelper.WriteLine($"Calling GET {url}");
         using var httpClient = GetRootedClient(Org, App);
         string token = PrincipalUtil.GetToken(1337, null);
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await httpClient.GetAsync(url);
         var responseString = await response.Content.ReadAsStringAsync();
         using var responseParsedRaw = JsonDocument.Parse(responseString);
-        _outputHelper.WriteLine("\nResponse:");
-        _outputHelper.WriteLine(JsonSerializer.Serialize(responseParsedRaw, _jsonSerializerOptions));
+        OutputHelper.WriteLine("\nResponse:");
+        OutputHelper.WriteLine(JsonSerializer.Serialize(responseParsedRaw, JsonSerializerOptions));
         response.Should().HaveStatusCode(HttpStatusCode.OK);
-        var responseObject = JsonSerializer.Deserialize<Skjema>(responseString, _jsonSerializerOptions)!;
+        var responseObject = JsonSerializer.Deserialize<Skjema>(responseString, JsonSerializerOptions)!;
 
         responseObject.Melding!.Random.Should().Be("randomFromDataRead");
 

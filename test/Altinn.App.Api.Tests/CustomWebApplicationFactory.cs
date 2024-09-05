@@ -4,9 +4,13 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Utils;
+using Altinn.App.Common.Tests;
 using Altinn.App.Core.Configuration;
 using FluentAssertions;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
@@ -21,22 +25,74 @@ namespace Altinn.App.Api.Tests;
 
 public class ApiTestBase
 {
-    protected static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
+    protected static readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true,
     };
 
-    protected readonly ITestOutputHelper _outputHelper;
+    protected readonly ITestOutputHelper OutputHelper;
     private readonly WebApplicationFactory<Program> _factory;
 
     protected IServiceProvider Services { get; private set; }
+
+    protected readonly Func<TestId?, Activity, bool> ActivityFilter = static (thisTestId, activity) =>
+    {
+        Assert.NotNull(thisTestId);
+        var current = activity;
+        do
+        {
+            if (current.GetTagItem(nameof(TestId)) is Guid testId && testId == thisTestId.Value)
+                return true;
+            current = current.Parent;
+        } while (current is not null);
+
+        return false;
+    };
 
     public ApiTestBase(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
     {
         _factory = factory;
         Services = _factory.Services;
-        _outputHelper = outputHelper;
+        OutputHelper = outputHelper;
+    }
+
+    internal class ApiTestBaseStartupFilter : IStartupFilter
+    {
+        private readonly TestId _testId;
+
+        public ApiTestBaseStartupFilter(TestId testId) => _testId = testId;
+
+        public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next)
+        {
+            return builder =>
+            {
+                builder.UseMiddleware<AddTestIdTagMiddleware>(_testId.Value);
+                next(builder);
+            };
+        }
+    }
+
+    private sealed class AddTestIdTagMiddleware
+    {
+        private readonly RequestDelegate _next;
+        private readonly Guid _testId;
+
+        public AddTestIdTagMiddleware(RequestDelegate next, Guid testId)
+        {
+            _next = next;
+            _testId = testId;
+        }
+
+        public Task Invoke(HttpContext httpContext)
+        {
+            var activity = httpContext.Features.GetRequiredFeature<IHttpActivityFeature>()?.Activity;
+            if (activity is not null)
+            {
+                activity.AddTag(nameof(TestId), _testId);
+            }
+            return _next(httpContext);
+        }
     }
 
     public HttpClient GetRootedClient(string org, string app, int userId, int? partyId, int authenticationLevel = 2)
@@ -63,14 +119,15 @@ public class ApiTestBase
             configuration.GetSection("AppSettings:AppBasePath").Value = appRootPath;
             IConfigurationSection appSettingSection = configuration.GetSection("AppSettings");
 
-            builder.ConfigureLogging(logging => ConfigureFakeLogging(logging, _outputHelper));
+            builder.ConfigureLogging(logging => ConfigureFakeLogging(logging, OutputHelper));
 
             builder.ConfigureServices(services => services.Configure<AppSettings>(appSettingSection));
             builder.ConfigureTestServices(services => OverrideServicesForAllTests(services));
             builder.ConfigureTestServices(OverrideServicesForThisTest);
             builder.ConfigureTestServices(ConfigureFakeHttpClientHandler);
         });
-        Services = factory.Services;
+        var services = Services = factory.Services;
+        _ = services.GetService<TelemetrySink>(); // The sink starts listening when it is constructed, so we make sure to construct here
 
         var client = includeTraceContext
             ? factory.CreateDefaultClient(new DiagnosticHandler())
@@ -179,19 +236,19 @@ public class ApiTestBase
         var content = await response.Content.ReadAsStringAsync();
         try
         {
-            return JsonSerializer.Deserialize<T>(content, _jsonSerializerOptions)
+            return JsonSerializer.Deserialize<T>(content, JsonSerializerOptions)
                 ?? throw new JsonException("Content was \"null\"");
         }
         catch (Exception)
         {
-            _outputHelper.WriteLine(string.Empty);
-            _outputHelper.WriteLine(string.Empty);
-            _outputHelper.WriteLine(
+            OutputHelper.WriteLine(string.Empty);
+            OutputHelper.WriteLine(string.Empty);
+            OutputHelper.WriteLine(
                 $"Failed to deserialize content of {response.RequestMessage?.Method} request to {response.RequestMessage?.RequestUri} as {ReflectionUtils.GetTypeNameWithGenericArguments<T>()}:"
             );
 
-            _outputHelper.WriteLine(JsonUtils.IndentJson(content));
-            _outputHelper.WriteLine(string.Empty);
+            OutputHelper.WriteLine(JsonUtils.IndentJson(content));
+            OutputHelper.WriteLine(string.Empty);
             throw;
         }
     }

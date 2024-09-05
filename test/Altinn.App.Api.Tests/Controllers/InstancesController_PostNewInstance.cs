@@ -67,7 +67,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         var createResponseContent = await createResponse.Content.ReadAsStringAsync();
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created, createResponseContent);
 
-        var createResponseParsed = JsonSerializer.Deserialize<Instance>(createResponseContent, _jsonSerializerOptions)!;
+        var createResponseParsed = JsonSerializer.Deserialize<Instance>(createResponseContent, JsonSerializerOptions)!;
 
         // Verify Data id
         var instanceId = createResponseParsed.Id;
@@ -108,7 +108,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         var createResponseContent = await createResponse.Content.ReadAsStringAsync();
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created, createResponseContent);
 
-        var createResponseParsed = JsonSerializer.Deserialize<Instance>(createResponseContent, _jsonSerializerOptions)!;
+        var createResponseParsed = JsonSerializer.Deserialize<Instance>(createResponseContent, JsonSerializerOptions)!;
 
         // Verify Data id
         var instanceId = createResponseParsed.Id;
@@ -332,9 +332,9 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
         var serializedPatch = JsonSerializer.Serialize(
             new DataPatchRequest() { Patch = patch, IgnoredValidators = [], },
-            _jsonSerializerOptions
+            JsonSerializerOptions
         );
-        _outputHelper.WriteLine(serializedPatch);
+        OutputHelper.WriteLine(serializedPatch);
         using var updateDataElementContent = new StringContent(serializedPatch, Encoding.UTF8, "application/json");
         using var response = await client.PatchAsync(
             $"/{org}/{app}/instances/{instanceId}/data/{dataGuid}",
@@ -349,7 +349,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
         using var nextResponse = await client.PutAsync($"{org}/{app}/instances/{instanceId}/process/next", null);
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
-        _outputHelper.WriteLine(nextResponseContent);
+        OutputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
     }
 }

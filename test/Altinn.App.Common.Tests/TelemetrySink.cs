@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using System.Runtime.CompilerServices;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
@@ -20,8 +21,9 @@ public static class TelemetryDI
         string org = "ttd",
         string name = "test",
         string version = "v1",
-        Func<IServiceProvider, ActivitySource, bool>? shouldAlsoListenToActivities = null,
-        Func<IServiceProvider, Meter, bool>? shouldAlsoListenToMetrics = null
+        Func<TestId?, ActivitySource, bool>? shouldAlsoListenToActivities = null,
+        Func<TestId?, Meter, bool>? shouldAlsoListenToMetrics = null,
+        Func<TestId?, Activity, bool>? activityFilter = null
     )
     {
         var telemetryRegistration = services.FirstOrDefault(s => s.ServiceType == typeof(Telemetry));
@@ -35,7 +37,8 @@ public static class TelemetryDI
             version,
             telemetry: null,
             shouldAlsoListenToActivities,
-            shouldAlsoListenToMetrics
+            shouldAlsoListenToMetrics,
+            activityFilter
         ));
         services.AddSingleton<Telemetry>(sp => sp.GetRequiredService<TelemetrySink>().Object);
 
@@ -45,7 +48,8 @@ public static class TelemetryDI
 
 public sealed record TelemetrySink : IDisposable
 {
-    public bool IsDisposed { get; private set; }
+    private long _disposal = 0;
+    public bool IsDisposed => Interlocked.Read(ref _disposal) == 1;
 
     public static ConcurrentDictionary<Scope, byte> Scopes { get; } = [];
 
@@ -55,13 +59,19 @@ public sealed record TelemetrySink : IDisposable
 
     public MeterListener MeterListener { get; }
 
+    private bool _waitForServerActivity = true;
+    private readonly TaskCompletionSource _serverActivityTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    public async Task WaitForServerActivity() => await _serverActivityTcs.Task;
+
     private readonly ConcurrentBag<Activity> _activities = [];
     private readonly ConcurrentDictionary<string, IReadOnlyList<MetricMeasurement>> _metricValues = [];
     private readonly IServiceProvider? _serviceProvider;
 
     public readonly record struct MetricMeasurement(long Value, IReadOnlyDictionary<string, object?> Tags);
 
-    public IEnumerable<Activity> CapturedActivities => _activities;
+    public IEnumerable<Activity> CapturedActivities =>
+        _activities.OrderBy(a => a.OperationName).ThenBy(a => a.StartTimeUtc).ToArray();
 
     public IReadOnlyDictionary<string, IReadOnlyList<MetricMeasurement>> CapturedMetrics => _metricValues;
 
@@ -69,6 +79,41 @@ public sealed record TelemetrySink : IDisposable
 
     public TelemetrySnapshot GetSnapshot(Activity activity) =>
         new([activity], new Dictionary<string, IReadOnlyList<MetricMeasurement>>());
+
+    public TelemetrySnapshot GetSnapshot(IEnumerable<Activity> activities) =>
+        new(activities, new Dictionary<string, IReadOnlyList<MetricMeasurement>>());
+
+    public async Task Snapshot(
+        Activity activity,
+        Func<SettingsTask, SettingsTask>? configure = null,
+        VerifySettings? settings = null,
+        [CallerFilePath] string sourceFile = ""
+    ) => await SnapshotActivitiesInternal([activity], configure, settings, sourceFile);
+
+    public async Task SnapshotActivities(
+        Func<SettingsTask, SettingsTask>? configure = null,
+        VerifySettings? settings = null,
+        [CallerFilePath] string sourceFile = ""
+    )
+    {
+        if (_waitForServerActivity)
+            await _serverActivityTcs.Task;
+        await SnapshotActivitiesInternal(CapturedActivities, configure, settings, sourceFile);
+    }
+
+    private async Task SnapshotActivitiesInternal(
+        IEnumerable<Activity> activities,
+        Func<SettingsTask, SettingsTask>? configure = null,
+        VerifySettings? settings = null,
+        [CallerFilePath] string sourceFile = ""
+    )
+    {
+        TryFlush();
+        var task = Verify(GetSnapshot(activities), settings: settings, sourceFile: sourceFile);
+        if (configure is not null)
+            task = configure(task);
+        await task;
+    }
 
     public void TryFlush()
     {
@@ -89,8 +134,9 @@ public sealed record TelemetrySink : IDisposable
         string name = "test",
         string version = "v1",
         Telemetry? telemetry = null,
-        Func<IServiceProvider, ActivitySource, bool>? shouldAlsoListenToActivities = null,
-        Func<IServiceProvider, Meter, bool>? shouldAlsoListenToMetrics = null
+        Func<TestId?, ActivitySource, bool>? shouldAlsoListenToActivities = null,
+        Func<TestId?, Meter, bool>? shouldAlsoListenToMetrics = null,
+        Func<TestId?, Activity, bool>? activityFilter = null
     )
     {
         _serviceProvider = serviceProvider;
@@ -98,6 +144,10 @@ public sealed record TelemetrySink : IDisposable
             Assert.NotNull(_serviceProvider);
         if (shouldAlsoListenToMetrics is not null)
             Assert.NotNull(_serviceProvider);
+        if (activityFilter is not null)
+            Assert.NotNull(_serviceProvider);
+
+        var testId = serviceProvider?.GetService<TestId>();
 
         var appId = new AppIdentifier(org, name);
         var options = new AppSettings { AppVersion = version, };
@@ -108,14 +158,27 @@ public sealed record TelemetrySink : IDisposable
         {
             ShouldListenTo = (activitySource) =>
             {
+                if (IsDisposed)
+                    return false;
                 var sameSource = ReferenceEquals(activitySource, Object.ActivitySource);
-                return sameSource || (shouldAlsoListenToActivities?.Invoke(_serviceProvider!, activitySource) ?? false);
+                return sameSource || (shouldAlsoListenToActivities?.Invoke(testId, activitySource) ?? false);
             },
             Sample = (ref ActivityCreationOptions<ActivityContext> options) =>
-                ActivitySamplingResult.AllDataAndRecorded,
-            ActivityStarted = activity =>
             {
+                if (IsDisposed)
+                    return ActivitySamplingResult.None;
+                return ActivitySamplingResult.AllDataAndRecorded;
+            },
+            ActivityStopped = activity =>
+            {
+                if (IsDisposed)
+                    return;
+
+                if (activityFilter is not null && !activityFilter(testId, activity))
+                    return;
                 _activities.Add(activity);
+                if (activity.Kind == ActivityKind.Server)
+                    _serverActivityTcs.TrySetResult();
             },
         };
         ActivitySource.AddActivityListener(ActivityListener);
@@ -124,13 +187,12 @@ public sealed record TelemetrySink : IDisposable
         {
             InstrumentPublished = (instrument, listener) =>
             {
+                if (IsDisposed)
+                    return;
                 var sameSource = ReferenceEquals(instrument.Meter, Object.Meter);
                 if (
                     !sameSource
-                    && (
-                        shouldAlsoListenToMetrics is null
-                        || !shouldAlsoListenToMetrics(serviceProvider!, instrument.Meter)
-                    )
+                    && (shouldAlsoListenToMetrics is null || !shouldAlsoListenToMetrics(testId, instrument.Meter))
                 )
                 {
                     return;
@@ -145,6 +207,8 @@ public sealed record TelemetrySink : IDisposable
             {
                 Debug.Assert(state is not null);
                 var self = (TelemetrySink)state!;
+                if (self.IsDisposed)
+                    return;
                 Debug.Assert(self._metricValues[instrument.Name] is List<MetricMeasurement>);
                 var measurements = (List<MetricMeasurement>)self._metricValues[instrument.Name];
                 var tags = new Dictionary<string, object?>(tagSpan.Length);
@@ -166,14 +230,16 @@ public sealed record TelemetrySink : IDisposable
 
     public void Dispose()
     {
-        ActivityListener.Dispose();
-        MeterListener.Dispose();
-        Object.Dispose();
-        IsDisposed = true;
-
-        foreach (var (scope, _) in Scopes)
+        if (Interlocked.CompareExchange(ref _disposal, 1, 0) == 0)
         {
-            scope.IsDisposed = true;
+            ActivityListener.Dispose();
+            MeterListener.Dispose();
+            Object.Dispose();
+
+            foreach (var (scope, _) in Scopes)
+            {
+                scope.IsDisposed = true;
+            }
         }
     }
 
@@ -204,6 +270,7 @@ public class TelemetrySnapshot(
         Tags = a
             .TagObjects.Select(tag => new KeyValuePair<string, string?>(tag.Key, tag.Value?.ToString()))
             .Where(tag => tag.Key != "_MS.ProcessedByMetricExtractors")
+            .OrderBy(tag => tag.Key)
             .ToList(),
         a.IdFormat,
         a.Status,

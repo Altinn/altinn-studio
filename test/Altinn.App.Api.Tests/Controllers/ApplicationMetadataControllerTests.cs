@@ -23,7 +23,7 @@ public class ApplicationMetadataControllerTests : ApiTestBase, IClassFixture<Web
         var appId = "contributer-restriction";
         var appMetadataSample =
             $"{{\"id\":\"{org}/{appId}\",\"org\":\"{org}\",\"title\":{{\"nb\":\"Bestillingseksempelapp\"}},\"dataTypes\":[],\"partyTypesAllowed\":{{}},\"extra_Unknown_list\":[3,\"tre\",{{\"verdi\":3}}]}}";
-        var application = JsonSerializer.Deserialize<ApplicationMetadata>(appMetadataSample, _jsonSerializerOptions)!;
+        var application = JsonSerializer.Deserialize<ApplicationMetadata>(appMetadataSample, JsonSerializerOptions)!;
         _appMetadataMock.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(application);
         OverrideServicesForThisTest = (services) =>
         {

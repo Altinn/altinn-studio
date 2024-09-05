@@ -183,6 +183,11 @@ public sealed partial class Telemetry : IDisposable
 
         internal const string ProcessErrorType = "process.error.type";
         internal const string ProcessAction = "process.action";
+
+        internal const string ProblemType = "problem.type";
+        internal const string ProblemTitle = "problem.title";
+        internal const string ProblemStatus = "problem.status";
+        internal const string ProblemDetail = "problem.detail";
     }
 
     private void InitMetricCounter(InitContext context, string name, Action<Counter<long>> init)

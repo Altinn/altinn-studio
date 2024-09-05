@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
+using Altinn.App.Common.Tests;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Models.Validation;
@@ -26,7 +27,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     private static readonly Guid InstanceGuid = new("5a2fa5ec-f97c-4816-b57a-dc78a981917e");
     private static readonly string InstanceId = $"{InstanceOwnerPartyId}/{InstanceGuid}";
     private static readonly Guid DataGuid = new("cd691c32-ae36-4555-8aee-0b7054a413e4");
-    private static new readonly JsonSerializerOptions _jsonSerializerOptions =
+    protected static new readonly JsonSerializerOptions JsonSerializerOptions =
         new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -130,9 +131,9 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
 
             var content = await message.Content!.ReadAsStringAsync();
 
-            _outputHelper.WriteLine("pdf request content:");
-            _outputHelper.WriteLine(content);
-            _outputHelper.WriteLine("");
+            OutputHelper.WriteLine("pdf request content:");
+            OutputHelper.WriteLine(content);
+            OutputHelper.WriteLine("");
 
             using var document = JsonDocument.Parse(content);
             document.RootElement.GetProperty("url").GetString().Should().Contain($"lang={language}");
@@ -149,7 +150,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             null
         );
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
-        _outputHelper.WriteLine(nextResponseContent);
+        OutputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
     }
 
@@ -163,9 +164,9 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
 
             var content = await message.Content!.ReadAsStringAsync();
 
-            _outputHelper.WriteLine("pdf request content:");
-            _outputHelper.WriteLine(content);
-            _outputHelper.WriteLine("");
+            OutputHelper.WriteLine("pdf request content:");
+            OutputHelper.WriteLine(content);
+            OutputHelper.WriteLine("");
 
             using var document = JsonDocument.Parse(content);
             document.RootElement.GetProperty("url").GetString().Should().Contain($"lang={language}");
@@ -182,13 +183,21 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             null
         );
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
-        _outputHelper.WriteLine(nextResponseContent);
+        OutputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task RunProcessNext_PdfFails_DataIsUnlocked()
     {
+        this.OverrideServicesForThisTest = (services) =>
+        {
+            services.AddTelemetrySink(
+                shouldAlsoListenToActivities: (sp, source) => source.Name == "Microsoft.AspNetCore",
+                activityFilter: this.ActivityFilter
+            );
+        };
+
         bool sendAsyncCalled = false;
         var dataElementPath = TestData.GetDataElementPath(Org, App, InstanceOwnerPartyId, InstanceGuid, DataGuid);
 
@@ -197,13 +206,13 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             message.RequestUri!.PathAndQuery.Should().Be($"/pdf");
             var content = await message.Content!.ReadAsStringAsync();
 
-            _outputHelper.WriteLine("pdf request content:");
-            _outputHelper.WriteLine(content);
-            _outputHelper.WriteLine("");
+            OutputHelper.WriteLine("pdf request content:");
+            OutputHelper.WriteLine(content);
+            OutputHelper.WriteLine("");
 
             // Verify that data element is locked while pdf is being generated
             var lockedInstanceString = await File.ReadAllTextAsync(dataElementPath);
-            var lockedInstance = JsonSerializer.Deserialize<DataElement>(lockedInstanceString, _jsonSerializerOptions)!;
+            var lockedInstance = JsonSerializer.Deserialize<DataElement>(lockedInstanceString, JsonSerializerOptions)!;
             lockedInstance.Locked.Should().BeTrue();
 
             sendAsyncCalled = true;
@@ -214,14 +223,18 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
         var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{InstanceId}/process/next", null);
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
-        _outputHelper.WriteLine(nextResponseContent);
+        OutputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.InternalServerError);
         sendAsyncCalled.Should().BeTrue();
 
+        var telemetry = this.Services.GetRequiredService<TelemetrySink>();
+
         // Verify that the instance is not locked after pdf failed
         var unLockedInstanceString = await File.ReadAllTextAsync(dataElementPath);
-        var unLockedInstance = JsonSerializer.Deserialize<DataElement>(unLockedInstanceString, _jsonSerializerOptions)!;
+        var unLockedInstance = JsonSerializer.Deserialize<DataElement>(unLockedInstanceString, JsonSerializerOptions)!;
         unLockedInstance.Locked.Should().BeFalse();
+
+        await telemetry.SnapshotActivities();
     }
 
     [Fact]
@@ -253,11 +266,15 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         OverrideServicesForThisTest = (services) =>
         {
             services.AddSingleton(dataValidator.Object);
+            services.AddTelemetrySink(
+                shouldAlsoListenToActivities: (sp, source) => source.Name == "Microsoft.AspNetCore",
+                activityFilter: this.ActivityFilter
+            );
         };
         using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
         var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{InstanceId}/process/next", null);
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
-        _outputHelper.WriteLine(nextResponseContent);
+        OutputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.Conflict);
         using var document = JsonDocument.Parse(nextResponseContent);
         var issues = document.RootElement.GetProperty("validationIssues").EnumerateArray().ToList();
@@ -268,10 +285,14 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                 && p.GetProperty("description").GetString() == "test-description"
             );
 
+        var telemetry = this.Services.GetRequiredService<TelemetrySink>();
+
         // Verify that the instance is not updated
         var instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, InstanceGuid);
         instance.Process.CurrentTask.Should().NotBeNull();
         instance.Process.CurrentTask!.ElementId.Should().Be("Task_1");
+
+        await telemetry.SnapshotActivities();
     }
 
     [Fact]
@@ -329,7 +350,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
         var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{InstanceId}/process/next", null);
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
-        _outputHelper.WriteLine(nextResponseContent);
+        OutputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
         using var document = JsonDocument.Parse(nextResponseContent);
         document.RootElement.EnumerateObject().Should().NotContain(p => p.Name == "validationIssues");
@@ -353,7 +374,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
         var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{InstanceId}/process/completeProcess", null);
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
-        _outputHelper.WriteLine(nextResponseContent);
+        OutputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
         // Verify that the instance is updated to the ended state
@@ -380,7 +401,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         );
         var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{InstanceId}/process/next", content);
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
-        _outputHelper.WriteLine(nextResponseContent);
+        OutputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.Forbidden);
     }
 

@@ -1,10 +1,6 @@
 ﻿{
   Activities: [
     {
-      ActivityName: Process.StoreEvents,
-      IdFormat: W3C
-    },
-    {
       ActivityName: Process.HandleEvents,
       IdFormat: W3C
     },
@@ -33,6 +29,10 @@
           ]
         }
       ]
+    },
+    {
+      ActivityName: Process.StoreEvents,
+      IdFormat: W3C
     }
   ],
   Metrics: [
