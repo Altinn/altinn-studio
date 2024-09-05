@@ -50,9 +50,7 @@ export const TextEditor = () => {
   const { mutate: upsertTextResource } = useUpsertTextResourceMutation(org, app);
 
   if (isInitialLoadingLang || !textResources) {
-    return (
-      <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('text_editor.loading_page')} />
-    );
+    return <StudioPageSpinner spinnerTitle={t('text_editor.loading_page')} />;
   }
 
   return (

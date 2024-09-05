@@ -18,6 +18,7 @@ import {
   layoutSetsPath,
   layoutSettingsPath,
   optionListIdsPath,
+  optionListsPath,
   orgsListPath,
   accessListsPath,
   accessListPath,
@@ -99,6 +100,7 @@ export const getInstanceIdForPreview = (owner: string, app: string) => get<strin
 export const getLayoutNames = (owner: string, app: string) => get<string[]>(layoutNamesPath(owner, app));
 export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
 export const getNewsList = (language: 'nb' | 'en') => get<NewsList>(newsListUrl(language));
+export const getOptionLists = (owner: string, app: string) => get<string[]>(optionListsPath(owner, app));
 export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));
 export const getOrgList = () => get<OrgList>(orgListUrl());
 export const getOrganizations = () => get<Organization[]>(orgsListPath());
