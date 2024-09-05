@@ -103,6 +103,12 @@ public class ProcessNavigator : IProcessNavigator
                     };
 
                 filteredList = await gatewayFilter.FilterAsync(outgoingFlows, instance, gatewayInformation);
+                if (filteredList.Count != 1)
+                {
+                    throw new ProcessException(
+                        $"Exclusive gateway {gatewayFilter.GatewayId} returned {filteredList.Count} flows. Expected 1"
+                    );
+                }
             }
             var defaultSequenceFlow = filteredList.Find(s => s.Id == gateway.Default);
             if (defaultSequenceFlow != null)

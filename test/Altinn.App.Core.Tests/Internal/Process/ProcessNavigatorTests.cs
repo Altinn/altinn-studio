@@ -3,6 +3,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
+using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Tests.Internal.Process.TestUtils;
 using Altinn.App.PlatformServices.Tests.Internal.Process.StubGatewayFilters;
 using Altinn.Platform.Storage.Interface.Models;
@@ -16,10 +17,7 @@ public class ProcessNavigatorTests
     [Fact]
     public async Task GetNextTask_returns_next_element_if_no_gateway()
     {
-        IProcessNavigator processNavigator = SetupProcessNavigator(
-            "simple-linear.bpmn",
-            new List<IProcessExclusiveGateway>()
-        );
+        IProcessNavigator processNavigator = SetupProcessNavigator("simple-linear.bpmn", []);
         ProcessElement nextElements = await processNavigator.GetNextTask(new Instance(), "Task1", null);
         nextElements
             .Should()
@@ -39,12 +37,58 @@ public class ProcessNavigatorTests
     }
 
     [Fact]
+    public async Task GetNextTask_single_sign_to_process_end()
+    {
+        var processFile = "with-double-sign.bpmn";
+        IProcessNavigator processNavigator = SetupProcessNavigator(processFile, [new SingleSignGateway()]);
+        ProcessElement nextElements = await processNavigator.GetNextTask(new Instance(), "Task_Sign1", "sign");
+        nextElements.Id.Should().Be("EndEvent_1");
+    }
+
+    private sealed class SingleSignGateway : IProcessExclusiveGateway
+    {
+        public string GatewayId => "AltinnExpressionsExclusiveGateway";
+
+        public Task<List<SequenceFlow>> FilterAsync(
+            List<SequenceFlow> outgoingFlows,
+            Instance instance,
+            ProcessGatewayInformation processGatewayInformation
+        )
+        {
+            return Task.FromResult(
+                outgoingFlows.Where(f => f.Id == "Flow_sign1_sign" || f.Id == "Flow_SingleSign").ToList()
+            );
+        }
+    }
+
+    [Fact]
+    public async Task GetNextTask_exclusive_gateway_zero_paths_should_fail()
+    {
+        var processFile = "with-double-sign.bpmn";
+        IProcessNavigator processNavigator = SetupProcessNavigator(processFile, [new ZeroPathsGateway()]);
+        await Assert.ThrowsAsync<ProcessException>(
+            async () => await processNavigator.GetNextTask(new Instance(), "Task_Sign1", "sign")
+        );
+    }
+
+    private sealed class ZeroPathsGateway : IProcessExclusiveGateway
+    {
+        public string GatewayId => "AltinnExpressionsExclusiveGateway";
+
+        public Task<List<SequenceFlow>> FilterAsync(
+            List<SequenceFlow> outgoingFlows,
+            Instance instance,
+            ProcessGatewayInformation processGatewayInformation
+        )
+        {
+            return Task.FromResult(new List<SequenceFlow>());
+        }
+    }
+
+    [Fact]
     public async Task NextFollowAndFilterGateways_returns_empty_list_if_no_outgoing_flows()
     {
-        IProcessNavigator processNavigator = SetupProcessNavigator(
-            "simple-linear.bpmn",
-            new List<IProcessExclusiveGateway>()
-        );
+        IProcessNavigator processNavigator = SetupProcessNavigator("simple-linear.bpmn", []);
         ProcessElement nextElements = await processNavigator.GetNextTask(new Instance(), "EndEvent", null);
         nextElements.Should().BeNull();
     }
@@ -52,10 +96,7 @@ public class ProcessNavigatorTests
     [Fact]
     public async Task GetNextTask_returns_default_if_no_filtering_is_implemented_and_default_set()
     {
-        IProcessNavigator processNavigator = SetupProcessNavigator(
-            "simple-gateway-default.bpmn",
-            new List<IProcessExclusiveGateway>()
-        );
+        IProcessNavigator processNavigator = SetupProcessNavigator("simple-gateway-default.bpmn", []);
         ProcessElement nextElements = await processNavigator.GetNextTask(new Instance(), "Task1", null);
         nextElements
             .Should()
@@ -83,7 +124,7 @@ public class ProcessNavigatorTests
     {
         IProcessNavigator processNavigator = SetupProcessNavigator(
             "simple-gateway-with-join-gateway.bpmn",
-            new List<IProcessExclusiveGateway>() { new DataValuesFilter("Gateway1", "choose") }
+            [new DataValuesFilter("Gateway1", "choose")]
         );
         Instance i = new Instance() { DataValues = new Dictionary<string, string>() { { "choose", "Flow3" } } };
 
@@ -149,7 +190,7 @@ public class ProcessNavigatorTests
     }
 
     [Fact]
-    public async Task GetNextTask_runs_custom_filter_and_returns_empty_list_if_all_filtered_out()
+    public async Task GetNextTask_runs_custom_filter_and_throws_exception_when_no_paths_are_found()
     {
         IProcessNavigator processNavigator = SetupProcessNavigator(
             "simple-gateway-with-join-gateway.bpmn",
@@ -164,8 +205,7 @@ public class ProcessNavigatorTests
             DataValues = new Dictionary<string, string>() { { "choose1", "Flow4" }, { "choose2", "Bar" } }
         };
 
-        ProcessElement nextElements = await processNavigator.GetNextTask(i, "Task1", null);
-        nextElements.Should().BeNull();
+        await Assert.ThrowsAsync<ProcessException>(async () => await processNavigator.GetNextTask(i, "Task1", null));
     }
 
     [Fact]
