@@ -15,6 +15,11 @@
       "date": "2024-07-18",
       "title": "Vi har fjernet regler for beregninger og betingede visninger",
       "content": "Verktøyene er utdaterte, så vi har tatt de bort fra Lage-siden. Du kan fortsatt lage regler for beregninger og betingede visninger i koden, men vi anbefaler å heller bruke dynamiske uttrykk."
+    },
+    {
+      "date": "2024-09-04",
+      "title": "Vi har endret noen begreper i Studio",
+    "content": "Accordion - Trekkspilliste, Lage - Utforming, Grid - Rutenett, Paragraf - Avsnitt og Likert - Likert-skala. Vi har også endret Kort svar og Langt svar til Lite tekstefelt og Stort tekstfelt."
     }
   ]
 }
