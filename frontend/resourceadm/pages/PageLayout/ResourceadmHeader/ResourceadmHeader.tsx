@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import classes from './ResourceadmHeader.module.css';
 import { useNavigate } from 'react-router-dom';
-import { getOrgNameByUsername, getOrgUsernameByUsername } from '../../../utils/userUtils';
+import { getOrgNameByUsername } from '../../../utils/userUtils';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { useUrlParams } from '../../../hooks/useUrlParams';
 import {
@@ -11,15 +11,15 @@ import {
   useMediaQuery,
   StudioAvatar,
 } from '@studio/components';
-import { repositoryBasePath, repositoryOwnerPath } from 'app-shared/api/paths';
+import { repositoryOwnerPath } from 'app-shared/api/paths';
 import { type Organization } from 'app-shared/types/Organization';
 import { useTranslation } from 'react-i18next';
-import { SelectedContextType, HeaderContext } from 'resourceadm/context/HeaderContext';
+import { type SelectedContextType, HeaderContext } from 'resourceadm/context/HeaderContext';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 
 export const ResourceadmHeader = () => {
-  const { org = SelectedContextType.Self } = useUrlParams();
+  const { org } = useUrlParams();
   const selectedContext = org;
 
   const { selectableOrgs } = useContext(HeaderContext);
@@ -27,13 +27,7 @@ export const ResourceadmHeader = () => {
   return (
     <StudioPageHeader>
       <StudioPageHeader.Main>
-        <StudioPageHeader.Left
-          title={
-            selectedContext !== SelectedContextType.All &&
-            selectedContext !== SelectedContextType.Self &&
-            getOrgNameByUsername(selectedContext, selectableOrgs)
-          }
-        />
+        <StudioPageHeader.Left title={getOrgNameByUsername(selectedContext, selectableOrgs)} />
         <StudioPageHeader.Right>
           <ResourceadmHeaderMenu />
         </StudioPageHeader.Right>
@@ -48,7 +42,7 @@ export const ResourceadmHeader = () => {
 const ResourceadmHeaderMenu = () => {
   const { t } = useTranslation();
   const shouldHideButtonText = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
-  const { org: selectedContext = SelectedContextType.Self } = useUrlParams();
+  const { org: selectedContext } = useUrlParams();
   const { mutate: logout } = useLogoutMutation();
   const { user, selectableOrgs } = useContext(HeaderContext);
   const navigate = useNavigate();
@@ -58,36 +52,18 @@ const ResourceadmHeaderMenu = () => {
 
     const username = user.full_name || user.login;
 
-    if (
-      selectedContext !== SelectedContextType.All &&
-      selectedContext !== SelectedContextType.Self
-    ) {
-      return t('shared.header_user_for_org', {
-        user: username,
-        org: getOrgNameByUsername(selectedContext, selectableOrgs),
-      });
-    }
-    return username;
+    return t('shared.header_user_for_org', {
+      user: username,
+      org: getOrgNameByUsername(selectedContext, selectableOrgs),
+    });
   };
 
   const handleSetSelectedContext = (context: string | SelectedContextType) => {
-    navigate('/' + context + location.search);
+    navigate(`/${context}/${context}-resources`);
   };
-
-  const org = getOrgUsernameByUsername(selectedContext, selectableOrgs);
 
   const getRepoPath = () => {
-    const owner = org || user?.login;
-    if (owner) {
-      return repositoryOwnerPath(owner);
-    }
-    return repositoryBasePath();
-  };
-
-  const allMenuItem: StudioProfileMenuItem = {
-    action: { type: 'button', onClick: () => handleSetSelectedContext(SelectedContextType.All) },
-    itemName: t('shared.header_all'),
-    isActive: selectedContext === SelectedContextType.All,
+    return repositoryOwnerPath(selectedContext);
   };
 
   const selectableOrgMenuItems: StudioProfileMenuItem[] =
@@ -96,13 +72,6 @@ const ResourceadmHeaderMenu = () => {
       itemName: selectableOrg?.full_name || selectableOrg.username,
       isActive: selectedContext === selectableOrg.username,
     })) ?? [];
-
-  const selfMenuItem: StudioProfileMenuItem = {
-    action: { type: 'button', onClick: () => handleSetSelectedContext(SelectedContextType.Self) },
-    itemName: user?.full_name || user?.login,
-    hasDivider: true,
-    isActive: selectedContext === SelectedContextType.Self,
-  };
 
   const giteaMenuItem: StudioProfileMenuItem = {
     action: { type: 'link', href: getRepoPath() },
@@ -131,13 +100,7 @@ const ResourceadmHeaderMenu = () => {
           }
         />
       }
-      profileMenuItems={[
-        allMenuItem,
-        ...selectableOrgMenuItems,
-        selfMenuItem,
-        giteaMenuItem,
-        logOutMenuItem,
-      ]}
+      profileMenuItems={[...selectableOrgMenuItems, giteaMenuItem, logOutMenuItem]}
     />
   );
 };
