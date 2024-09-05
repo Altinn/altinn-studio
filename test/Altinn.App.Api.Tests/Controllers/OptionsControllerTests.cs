@@ -30,7 +30,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         string url = $"/{org}/{app}/api/options/test?language=esperanto";
         HttpResponseMessage response = await client.GetAsync(url);
         var content = await response.Content.ReadAsStringAsync();
-        _outputHelper.WriteLine(content);
+        OutputHelper.WriteLine(content);
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var headerValue = response.Headers.GetValues("Altinn-DownstreamParameters");
@@ -114,7 +114,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         string url = $"/{org}/{app}/api/options/test";
         HttpResponseMessage response = await client.GetAsync(url);
         var content = await response.Content.ReadAsStringAsync();
-        _outputHelper.WriteLine(content);
+        OutputHelper.WriteLine(content);
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var headerValue = response.Headers.GetValues("Altinn-DownstreamParameters");
@@ -132,7 +132,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         string url = $"/{org}/{app}/api/options/fileSourceOptions";
         HttpResponseMessage response = await client.GetAsync(url);
         var content = await response.Content.ReadAsStringAsync();
-        _outputHelper.WriteLine(content);
+        OutputHelper.WriteLine(content);
         response.Should().HaveStatusCode(HttpStatusCode.OK);
         content
             .Should()
@@ -151,7 +151,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         string url = $"/{org}/{app}/api/options/non-existent-option-list";
         HttpResponseMessage response = await client.GetAsync(url);
         var content = await response.Content.ReadAsStringAsync();
-        _outputHelper.WriteLine(content);
+        OutputHelper.WriteLine(content);
         response.Should().HaveStatusCode(HttpStatusCode.NotFound);
     }
 
@@ -170,7 +170,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         string url = $"/{org}/{app}/api/options/test";
         HttpResponseMessage response = await client.GetAsync(url);
         var content = await response.Content.ReadAsStringAsync();
-        _outputHelper.WriteLine(content);
+        OutputHelper.WriteLine(content);
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         content

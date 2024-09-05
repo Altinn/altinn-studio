@@ -5,6 +5,7 @@ using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Api.Tests.Mocks.Authentication;
 using Altinn.App.Api.Tests.Mocks.Event;
+using Altinn.App.Common.Tests;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
@@ -40,6 +41,9 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(
 );
 
 ApiTestBase.ConfigureFakeLogging(builder.Logging);
+
+builder.Services.AddSingleton<TestId>(_ => new TestId(Guid.NewGuid()));
+builder.Services.AddSingleton<IStartupFilter, ApiTestBase.ApiTestBaseStartupFilter>();
 
 builder.Configuration.AddJsonFile(
     Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributer-restriction", "appsettings.json")

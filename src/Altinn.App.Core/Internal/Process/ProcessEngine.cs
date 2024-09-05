@@ -306,7 +306,11 @@ public class ProcessEngine : IProcessEngine
         }
 
         // ending process if next element is end event
-        var nextElementId = nextElement?.Id;
+        if (nextElement is null)
+        {
+            throw new ProcessException("Next process element was unexpectedly null");
+        }
+        var nextElementId = nextElement.Id;
         if (_processReader.IsEndEvent(nextElementId))
         {
             using var activity = _telemetry?.StartProcessEndActivity(instance);
@@ -324,11 +328,6 @@ public class ProcessEngine : IProcessEngine
         }
         else if (_processReader.IsProcessTask(nextElementId))
         {
-            if (nextElement is null)
-            {
-                throw new Exception("Next process element was unexpectedly null");
-            }
-
             var task = nextElement as ProcessTask;
             currentState.CurrentTask = new ProcessElementInfo
             {

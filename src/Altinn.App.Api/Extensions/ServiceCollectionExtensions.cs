@@ -3,6 +3,7 @@ using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Infrastructure.Health;
+using Altinn.App.Api.Infrastructure.Middleware;
 using Altinn.App.Api.Infrastructure.Telemetry;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
@@ -17,7 +18,6 @@ using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
 using Microsoft.IdentityModel.Tokens;
 using OpenTelemetry;
@@ -40,7 +40,10 @@ public static class ServiceCollectionExtensions
     public static void AddAltinnAppControllersWithViews(this IServiceCollection services)
     {
         // Add API controllers from Altinn.App.Api
-        IMvcBuilder mvcBuilder = services.AddControllersWithViews();
+        IMvcBuilder mvcBuilder = services.AddControllersWithViews(options =>
+        {
+            options.Filters.Add<TelemetryEnrichingResultFilter>();
+        });
         mvcBuilder
             .AddApplicationPart(typeof(InstancesController).Assembly)
             .AddXmlSerializerFormatters()
@@ -430,7 +433,7 @@ public static class ServiceCollectionExtensions
                     ValidateAudience = false,
                     RequireExpirationTime = true,
                     ValidateLifetime = true,
-                    ClockSkew = TimeSpan.Zero
+                    ClockSkew = TimeSpan.Zero,
                 };
                 options.JwtCookieName = Altinn.App.Core.Constants.General.RuntimeCookieName;
                 options.MetadataAddress = config["AppSettings:OpenIdWellKnownEndpoint"];

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.AspNetCore.Mvc;
 using OpenTelemetry.Trace;
 using InternalLabels = Altinn.App.Core.Features.Telemetry.InternalLabels;
 using Labels = Altinn.App.Core.Features.Telemetry.Labels;
@@ -261,6 +262,21 @@ public static class TelemetryActivityExtensions
         {
             activity.SetTag(Labels.OrganisationNumber, organisationNumber);
         }
+
+        return activity;
+    }
+
+    internal static Activity SetProblemDetails(this Activity activity, ProblemDetails problemDetails)
+    {
+        // Leave activity status to ASP.NET Core, as it will be set depending on status code?
+        // activity.SetStatus(ActivityStatusCode.Error, problemDetails.Title);
+
+        activity.SetTag(InternalLabels.ProblemType, problemDetails.Type);
+        activity.SetTag(InternalLabels.ProblemTitle, problemDetails.Title);
+        activity.SetTag(InternalLabels.ProblemStatus, problemDetails.Status);
+
+        // Is it safe to use detail here? In some cases the detail field is set from exception message
+        // activity.SetTag(InternalLabels.ProblemDetail, problemDetails.Detail);
 
         return activity;
     }

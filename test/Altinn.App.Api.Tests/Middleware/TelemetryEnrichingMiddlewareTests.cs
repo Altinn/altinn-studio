@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Api.Tests.Utils;
@@ -22,7 +23,8 @@ public class TelemetryEnrichingMiddlewareTests : ApiTestBase, IClassFixture<WebA
         this.OverrideServicesForThisTest = (services) =>
         {
             services.AddTelemetrySink(
-                shouldAlsoListenToActivities: (_, source) => source.Name == "Microsoft.AspNetCore"
+                shouldAlsoListenToActivities: (_, source) => source.Name == "Microsoft.AspNetCore",
+                activityFilter: this.ActivityFilter
             );
         };
 
@@ -45,22 +47,18 @@ public class TelemetryEnrichingMiddlewareTests : ApiTestBase, IClassFixture<WebA
 
         var (telemetry, request) = AnalyzeTelemetry(token);
         await request();
-        telemetry.TryFlush();
+        await telemetry.WaitForServerActivity();
+
         var activities = telemetry.CapturedActivities;
-        var activity = Assert.Single(
-            activities,
-            a => a.TagObjects.Any(t => t.Key == Telemetry.Labels.OrganisationName && (t.Value as string) == org)
-        );
+        var activity = Assert.Single(activities, a => a.Kind == ActivityKind.Server);
         Assert.True(activity.IsAllDataRequested);
         Assert.True(activity.Recorded);
         Assert.Equal("Microsoft.AspNetCore", activity.Source.Name);
         Assert.Null(activity.Parent);
         Assert.Null(activity.ParentId);
         Assert.Equal(default, activity.ParentSpanId);
-        // Some tags are added after the telemetry is captured, I don't know any mechanism to wait for that,
-        // so for now we just wait a little bit and hopefully that makes the race condition less likely
-        await Task.Delay(100);
-        await Verify(telemetry.GetSnapshot(activity));
+
+        await telemetry.Snapshot(activity);
     }
 
     [Fact]
@@ -72,22 +70,18 @@ public class TelemetryEnrichingMiddlewareTests : ApiTestBase, IClassFixture<WebA
 
         var (telemetry, request) = AnalyzeTelemetry(token);
         await request();
-        telemetry.TryFlush();
+        await telemetry.WaitForServerActivity();
+
         var activities = telemetry.CapturedActivities;
-        var activity = Assert.Single(
-            activities,
-            a => a.TagObjects.Any(t => t.Key == Telemetry.Labels.UserPartyId && (t.Value as int?) == partyId)
-        );
+        var activity = Assert.Single(activities, a => a.Kind == ActivityKind.Server);
         Assert.True(activity.IsAllDataRequested);
         Assert.True(activity.Recorded);
         Assert.Equal("Microsoft.AspNetCore", activity.Source.Name);
         Assert.Null(activity.Parent);
         Assert.Null(activity.ParentId);
         Assert.Equal(default, activity.ParentSpanId);
-        // Some tags are added after the telemetry is captured, I don't know any mechanism to wait for that,
-        // so for now we just wait a little bit and hopefully that makes the race condition less likely
-        await Task.Delay(100);
-        await Verify(telemetry.GetSnapshot(activity)).ScrubMember(Telemetry.Labels.UserPartyId);
+
+        await telemetry.Snapshot(activity, c => c.ScrubMember(Telemetry.Labels.UserPartyId));
     }
 
     [Fact]
@@ -103,21 +97,17 @@ public class TelemetryEnrichingMiddlewareTests : ApiTestBase, IClassFixture<WebA
             Assert.NotNull(parentActivity);
             await request();
         }
-        telemetry.TryFlush();
+        await telemetry.WaitForServerActivity();
+
         var activities = telemetry.CapturedActivities;
-        var activity = Assert.Single(
-            activities,
-            a => a.TagObjects.Any(t => t.Key == Telemetry.Labels.UserPartyId && (t.Value as int?) == partyId)
-        );
+        var activity = Assert.Single(activities, a => a.Kind == ActivityKind.Server);
         Assert.True(activity.IsAllDataRequested);
         Assert.True(activity.Recorded);
         Assert.Equal("Microsoft.AspNetCore", activity.Source.Name);
         Assert.Null(activity.Parent);
         Assert.Null(activity.ParentId);
         Assert.Equal(default, activity.ParentSpanId);
-        // Some tags are added after the telemetry is captured, I don't know any mechanism to wait for that,
-        // so for now we just wait a little bit and hopefully that makes the race condition less likely
-        await Task.Delay(100);
-        await Verify(telemetry.GetSnapshot(activity)).ScrubMember(Telemetry.Labels.UserPartyId);
+
+        await telemetry.Snapshot(activity, c => c.ScrubMember(Telemetry.Labels.UserPartyId));
     }
 }

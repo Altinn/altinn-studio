@@ -1,0 +1,309 @@
+﻿{
+  Activities: [
+    {
+      ActivityName: ApplicationMetadata.Service.GetLayoutModel,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ApplicationMetadata.Service.GetLayoutSet,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ApplicationMetadata.Service.GetLayoutSets,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ApplicationMetadata.Service.GetLayoutSetsForTask,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ApplicationMetadata.Service.GetLayoutSettingsForSet,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ApplicationMetadata.Service.GetValidationConfiguration,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: Authorization.Service.AuthorizeAction,
+      Tags: [
+        {
+          authorization.action: write
+        },
+        {
+          instance.guid: Guid_1
+        },
+        {
+          instance.owner.party.id: 500600
+        },
+        {
+          task.id: Task_1
+        }
+      ],
+      IdFormat: W3C
+    },
+    {
+      ActivityName: PUT {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next,
+      Tags: [
+        {
+          http.request.method: PUT
+        },
+        {
+          http.response.status_code: 500
+        },
+        {
+          http.route: {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next
+        },
+        {
+          instance.owner.party.id: 500600
+        },
+        {
+          network.protocol.version: 1.1
+        },
+        {
+          problem.status: 500
+        },
+        {
+          problem.title: Process next failed.
+        },
+        {
+          server.address: localhost
+        },
+        {
+          TestId: Guid_2
+        },
+        {
+          url.path: /tdd/contributer-restriction/instances/500600/5a2fa5ec-f97c-4816-b57a-dc78a981917e/process/next
+        },
+        {
+          url.scheme: http
+        },
+        {
+          user.authentication.level: 2
+        },
+        {
+          user.authentication.method: Mock
+        },
+        {
+          user.id: 1337
+        },
+        {
+          user.name: User1337
+        },
+        {
+          user.party.id: 500600
+        }
+      ],
+      IdFormat: W3C,
+      Status: Error,
+      Kind: Server
+    },
+    {
+      ActivityName: PdfService.GenerateAndStorePdf,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        },
+        {
+          task.id: Task_1
+        }
+      ],
+      IdFormat: W3C
+    },
+    {
+      ActivityName: Process.End,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        }
+      ],
+      IdFormat: W3C
+    },
+    {
+      ActivityName: Process.HandleEvents,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        }
+      ],
+      IdFormat: W3C
+    },
+    {
+      ActivityName: Process.Next,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        },
+        {
+          process.action: write
+        }
+      ],
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ProcessClient.GetProcessDefinition,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ProcessReader.GetAllFlowElements,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ProcessReader.GetEndEventIds,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ProcessReader.GetEndEvents,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ProcessReader.GetEndEvents,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ProcessReader.GetExclusiveGateways,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ProcessReader.GetNextElements,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ProcessReader.GetProcessTaskIds,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ProcessReader.GetProcessTasks,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ProcessReader.GetProcessTasks,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ProcessReader.GetSequenceFlows,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ProcessReader.GetStartEvents,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ProcessReader.IsEndEvent,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ProcessReader.IsProcessTask,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: Validation.RunDataElementValidator,
+      Tags: [
+        {
+          validator.source: Altinn.App.Core.Features.Validation.Default.DefaultDataElementValidator-*
+        },
+        {
+          validator.type: DefaultDataElementValidator
+        }
+      ],
+      IdFormat: W3C
+    },
+    {
+      ActivityName: Validation.RunFormDataValidator,
+      Tags: [
+        {
+          validator.source: Required
+        },
+        {
+          validator.type: RequiredLayoutValidator
+        }
+      ],
+      IdFormat: W3C
+    },
+    {
+      ActivityName: Validation.RunFormDataValidator,
+      Tags: [
+        {
+          validator.source: Expression
+        },
+        {
+          validator.type: ExpressionValidator
+        }
+      ],
+      IdFormat: W3C
+    },
+    {
+      ActivityName: Validation.RunFormDataValidator,
+      Tags: [
+        {
+          validator.source: DataAnnotations
+        },
+        {
+          validator.type: DataAnnotationValidator
+        }
+      ],
+      IdFormat: W3C
+    },
+    {
+      ActivityName: Validation.RunTaskValidator,
+      Tags: [
+        {
+          validator.source: Altinn.App.Core.Features.Validation.Default.LegacyIInstanceValidatorTaskValidator
+        },
+        {
+          validator.type: LegacyIInstanceValidatorTaskValidator
+        }
+      ],
+      IdFormat: W3C
+    },
+    {
+      ActivityName: Validation.RunTaskValidator,
+      Tags: [
+        {
+          validator.source: Altinn.App.Core.Features.Validation.Default.DefaultTaskValidator-*
+        },
+        {
+          validator.type: DefaultTaskValidator
+        }
+      ],
+      IdFormat: W3C
+    },
+    {
+      ActivityName: Validation.ValidateDataElement,
+      Tags: [
+        {
+          data.guid: Guid_3
+        },
+        {
+          instance.guid: Guid_1
+        }
+      ],
+      IdFormat: W3C
+    },
+    {
+      ActivityName: Validation.ValidateFormData,
+      Tags: [
+        {
+          data.guid: Guid_3
+        },
+        {
+          instance.guid: Guid_1
+        }
+      ],
+      IdFormat: W3C
+    },
+    {
+      ActivityName: Validation.ValidateInstanceAtTask,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        },
+        {
+          task.id: Task_1
+        }
+      ],
+      IdFormat: W3C
+    }
+  ],
+  Metrics: []
+}

@@ -4,16 +4,13 @@
       ActivityName: GET {org}/{app}/api/v1/applicationmetadata,
       Tags: [
         {
-          server.address: localhost
-        },
-        {
           http.request.method: GET
         },
         {
-          url.scheme: http
+          http.response.status_code: 200
         },
         {
-          url.path: /tdd/contributer-restriction/api/v1/applicationmetadata
+          http.route: {org}/{app}/api/v1/applicationmetadata
         },
         {
           network.protocol.version: 1.1
@@ -25,16 +22,22 @@
           organisation.number: 160694123
         },
         {
-          user.authentication.method: Mock
+          server.address: localhost
+        },
+        {
+          TestId: Guid_2
+        },
+        {
+          url.path: /tdd/contributer-restriction/api/v1/applicationmetadata
+        },
+        {
+          url.scheme: http
         },
         {
           user.authentication.level: 4
         },
         {
-          http.route: {org}/{app}/api/v1/applicationmetadata
-        },
-        {
-          http.response.status_code: 200
+          user.authentication.method: Mock
         }
       ],
       IdFormat: W3C,

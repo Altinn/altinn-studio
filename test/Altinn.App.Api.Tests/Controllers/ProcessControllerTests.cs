@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
+using Altinn.App.Common.Tests;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Pdf;
@@ -137,9 +138,9 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
 
             var content = await message.Content!.ReadAsStringAsync();
 
-            _outputHelper.WriteLine("pdf request content:");
-            _outputHelper.WriteLine(content);
-            _outputHelper.WriteLine("");
+            OutputHelper.WriteLine("pdf request content:");
+            OutputHelper.WriteLine(content);
+            OutputHelper.WriteLine("");
 
             using var document = JsonDocument.Parse(content);
             document.RootElement.GetProperty("url").GetString().Should().Contain($"lang={language}");
@@ -156,7 +157,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             null
         );
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
-        _outputHelper.WriteLine(nextResponseContent);
+        OutputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
     }
 
@@ -170,9 +171,9 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
 
             var content = await message.Content!.ReadAsStringAsync();
 
-            _outputHelper.WriteLine("pdf request content:");
-            _outputHelper.WriteLine(content);
-            _outputHelper.WriteLine("");
+            OutputHelper.WriteLine("pdf request content:");
+            OutputHelper.WriteLine(content);
+            OutputHelper.WriteLine("");
 
             using var document = JsonDocument.Parse(content);
             document.RootElement.GetProperty("url").GetString().Should().Contain($"lang={language}");
@@ -189,13 +190,21 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             null
         );
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
-        _outputHelper.WriteLine(nextResponseContent);
+        OutputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task RunProcessNext_PdfFails_DataIsUnlocked()
     {
+        this.OverrideServicesForThisTest = (services) =>
+        {
+            services.AddTelemetrySink(
+                shouldAlsoListenToActivities: (sp, source) => source.Name == "Microsoft.AspNetCore",
+                activityFilter: this.ActivityFilter
+            );
+        };
+
         bool sendAsyncCalled = false;
         var dataElementPath = TestData.GetDataElementPath(Org, App, InstanceOwnerPartyId, _instanceGuid, _dataGuid);
 
@@ -204,13 +213,13 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             message.RequestUri!.PathAndQuery.Should().Be($"/pdf");
             var content = await message.Content!.ReadAsStringAsync();
 
-            _outputHelper.WriteLine("pdf request content:");
-            _outputHelper.WriteLine(content);
-            _outputHelper.WriteLine("");
+            OutputHelper.WriteLine("pdf request content:");
+            OutputHelper.WriteLine(content);
+            OutputHelper.WriteLine("");
 
             // Verify that data element is locked while pdf is being generated
             var lockedInstanceString = await File.ReadAllTextAsync(dataElementPath);
-            var lockedInstance = JsonSerializer.Deserialize<DataElement>(lockedInstanceString, _jsonSerializerOptions)!;
+            var lockedInstance = JsonSerializer.Deserialize<DataElement>(lockedInstanceString, JsonSerializerOptions)!;
             lockedInstance.Locked.Should().BeTrue();
 
             sendAsyncCalled = true;
@@ -221,14 +230,18 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
         var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
-        _outputHelper.WriteLine(nextResponseContent);
+        OutputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.InternalServerError);
         sendAsyncCalled.Should().BeTrue();
 
+        var telemetry = this.Services.GetRequiredService<TelemetrySink>();
+
         // Verify that the instance is not locked after pdf failed
         var unLockedInstanceString = await File.ReadAllTextAsync(dataElementPath);
-        var unLockedInstance = JsonSerializer.Deserialize<DataElement>(unLockedInstanceString, _jsonSerializerOptions)!;
+        var unLockedInstance = JsonSerializer.Deserialize<DataElement>(unLockedInstanceString, JsonSerializerOptions)!;
         unLockedInstance.Locked.Should().BeFalse();
+
+        await telemetry.SnapshotActivities();
     }
 
     [Fact]
@@ -260,11 +273,15 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         OverrideServicesForThisTest = (services) =>
         {
             services.AddSingleton(dataValidator.Object);
+            services.AddTelemetrySink(
+                shouldAlsoListenToActivities: (sp, source) => source.Name == "Microsoft.AspNetCore",
+                activityFilter: this.ActivityFilter
+            );
         };
         using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
         var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
-        _outputHelper.WriteLine(nextResponseContent);
+        OutputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.Conflict);
         using var document = JsonDocument.Parse(nextResponseContent);
         var issues = document.RootElement.GetProperty("validationIssues").EnumerateArray().ToList();
@@ -275,10 +292,14 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                 && p.GetProperty("description").GetString() == "test-description"
             );
 
+        var telemetry = this.Services.GetRequiredService<TelemetrySink>();
+
         // Verify that the instance is not updated
         var instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
         instance.Process.CurrentTask.Should().NotBeNull();
         instance.Process.CurrentTask!.ElementId.Should().Be("Task_1");
+
+        await telemetry.SnapshotActivities();
     }
 
     [Fact]
@@ -327,7 +348,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             },
             _jsonSerializerOptions
         );
-        _outputHelper.WriteLine(serializedPatch);
+        OutputHelper.WriteLine(serializedPatch);
         using var updateDataElementContent = new StringContent(serializedPatch, Encoding.UTF8, "application/json");
         using var response = await client.PatchAsync(
             $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{_instanceGuid}/data/{_dataGuid}",
@@ -337,20 +358,20 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
 
         // Verify that hidden is stored
         var dataString = await File.ReadAllTextAsync(dataPath);
-        _outputHelper.WriteLine("Data before process next:");
-        _outputHelper.WriteLine(dataString);
+        OutputHelper.WriteLine("Data before process next:");
+        OutputHelper.WriteLine(dataString);
         dataString.Should().Contain("<hidden>value that is hidden</hidden>");
 
         // Run process next
         var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
-        _outputHelper.WriteLine(nextResponseContent);
+        OutputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
         // Verify that the instance is updated to the ended state
         dataString = await File.ReadAllTextAsync(dataPath);
-        _outputHelper.WriteLine("Data after process next:");
-        _outputHelper.WriteLine(dataString);
+        OutputHelper.WriteLine("Data after process next:");
+        OutputHelper.WriteLine(dataString);
         dataString.Should().NotContain("<hidden>value that is hidden</hidden>");
 
         _dataProcessorMock.Verify();
@@ -417,7 +438,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             },
             _jsonSerializerOptions
         );
-        _outputHelper.WriteLine(serializedPatch);
+        OutputHelper.WriteLine(serializedPatch);
         using var updateDataElementContent = new StringContent(serializedPatch, Encoding.UTF8, "application/json");
         using var response = await client.PatchAsync(
             $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{_instanceGuid}/data/{_dataGuid}",
@@ -428,14 +449,14 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         // Verify that hidden is stored
         var dataPath = TestData.GetDataBlobPath(Org, App, InstanceOwnerPartyId, _instanceGuid, _dataGuid);
         var dataString = await File.ReadAllTextAsync(dataPath);
-        _outputHelper.WriteLine("Data before process next:");
-        _outputHelper.WriteLine(dataString);
+        OutputHelper.WriteLine("Data before process next:");
+        OutputHelper.WriteLine(dataString);
         dataString.Should().Contain("<SF_test>value that is in shadow field</SF_test>");
 
         // Run process next
         using var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
-        _outputHelper.WriteLine(nextResponseContent);
+        OutputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
         // Get data path if the data element with shadow fields removed is saved to another data type
@@ -448,8 +469,8 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         }
         // Verify that the instance is updated to the ended state
         dataString = await File.ReadAllTextAsync(dataPath);
-        _outputHelper.WriteLine("Data after process next:");
-        _outputHelper.WriteLine(dataString);
+        OutputHelper.WriteLine("Data after process next:");
+        OutputHelper.WriteLine(dataString);
         dataString.Should().NotContain("<SF_test>value that is in shadow field</SF_test>");
 
         _dataProcessorMock.Verify();
@@ -510,7 +531,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
         var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
-        _outputHelper.WriteLine(nextResponseContent);
+        OutputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
         using var document = JsonDocument.Parse(nextResponseContent);
         document.RootElement.EnumerateObject().Should().NotContain(p => p.Name == "validationIssues");
@@ -534,7 +555,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
         var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/completeProcess", null);
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
-        _outputHelper.WriteLine(nextResponseContent);
+        OutputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
         // Verify that the instance is updated to the ended state
@@ -561,7 +582,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         );
         var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", content);
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
-        _outputHelper.WriteLine(nextResponseContent);
+        OutputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.Forbidden);
     }
 
