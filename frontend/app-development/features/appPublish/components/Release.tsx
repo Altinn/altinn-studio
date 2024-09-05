@@ -9,6 +9,7 @@ import type { Build } from 'app-shared/types/Build';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import type { AppRelease } from 'app-shared/types/AppRelease';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { CheckmarkCircleIcon, ExclamationmarkTriangleIcon } from '@studio/icons';
 
 interface IReleaseComponent {
   release: AppRelease;
@@ -21,10 +22,10 @@ export function Release(props: IReleaseComponent) {
 
   function renderStatusIcon(status: Build) {
     if (status.result === BuildResult.succeeded) {
-      return <i className={`${classes.buildSucceededIcon} ai ai-check-circle`} />;
+      return <CheckmarkCircleIcon className={`${classes.buildSucceededIcon}`} />;
     }
     if (status.result === BuildResult.failed) {
-      return <i className={`${classes.buildFailedIcon} ai ai-circle-exclamation`} />;
+      return <ExclamationmarkTriangleIcon className={`${classes.buildFailedIcon}`} />;
     }
     if (status.status !== BuildStatus.completed) {
       return (

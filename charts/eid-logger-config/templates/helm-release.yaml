@@ -16,12 +16,14 @@ spec:
       retries: 1
   chart:
     spec:
-      version: "0.1.0+{{ .Values.gitSha }}"
+      version: "{{ .Values.chartVersion }}"
       chart: eid-logger
       sourceRef:
         kind: HelmRepository
-        name: eid-logger
+        name: studio-charts
         namespace: default
   values:
     image:
-      tag: "{{ .Values.gitSha }}"
+      tag: "{{ .Values.imageTag }}"
+    env:
+      environmentName: "{{ .Values.environmentName }}"

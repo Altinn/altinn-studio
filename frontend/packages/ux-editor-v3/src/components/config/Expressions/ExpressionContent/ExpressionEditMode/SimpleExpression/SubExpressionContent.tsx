@@ -1,5 +1,4 @@
-import React from 'react';
-import { LegacySelect } from '@digdir/design-system-react';
+import React, { type ChangeEvent } from 'react';
 import type { SubExpression } from '../../../../../../types/Expressions';
 import {
   DataSource,
@@ -16,7 +15,7 @@ import {
   addFunctionToSubExpression,
 } from '../../../../../../utils/expressionsUtils';
 import { useText } from '../../../../../../hooks';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioNativeSelect } from '@studio/components';
 
 export interface SubExpressionContentProps {
   subExpression: SubExpression;
@@ -24,11 +23,10 @@ export interface SubExpressionContentProps {
   onRemoveSubExpression: (subExpression: SubExpression) => void;
 }
 
-export const SubExpressionContent = ({
-  subExpression,
-  onUpdateSubExpression,
-  onRemoveSubExpression,
-}: SubExpressionContentProps) => {
+export const SubExpressionContent = (
+  { subExpression, onUpdateSubExpression, onRemoveSubExpression }: SubExpressionContentProps,
+  index,
+) => {
   const t = useText();
 
   const allowToSpecifyExpression = Object.values(ExpressionFunction).includes(
@@ -63,38 +61,37 @@ export const SubExpressionContent = ({
           color='danger'
           onClick={() => onRemoveSubExpression(subExpression)}
           variant='tertiary'
-          size='small'
           icon={<TrashIcon />}
         />
       </div>
-      <LegacySelect // TODO: Consider only representing the function selection between the data source dropdowns - where it is actually used. Issue: #10858
+      <StudioNativeSelect // TODO: Consider only representing the function selection between the data source dropdowns - where it is actually used. Issue: #10858
         label={t('right_menu.expressions_function')}
-        hideLabel={true}
-        onChange={(func: string) => addFunction(func)}
-        options={[{ label: t('right_menu.expressions_function_select'), value: 'default' }].concat(
-          Object.values(ExpressionFunction).map((func: string) => ({
-            label: expressionFunctionTexts(t)[func],
-            value: func,
-          })),
-        )}
+        onChange={(event: ChangeEvent<HTMLSelectElement>) => addFunction(event.target.value)}
         value={subExpression.function || 'default'}
-      />
+      >
+        <option value='default'>{t('right_menu.expressions_function_select')}</option>
+        {Object.values(ExpressionFunction).map((func: string) => (
+          <option key={func} value={func}>
+            {expressionFunctionTexts(t)[func]}
+          </option>
+        ))}
+      </StudioNativeSelect>
       {allowToSpecifyExpression && (
         <div className={classes.subExpression}>
-          <LegacySelect
+          <StudioNativeSelect
             label={t('right_menu.expressions_data_source')}
-            hideLabel={true}
-            onChange={(dataSource: string) => addDataSource(dataSource, false)}
-            options={[
-              { label: t('right_menu.expressions_data_source_select'), value: 'default' },
-            ].concat(
-              Object.values(DataSource).map((ds: string) => ({
-                label: expressionDataSourceTexts(t)[ds],
-                value: ds,
-              })),
-            )}
+            onChange={(event: ChangeEvent<HTMLSelectElement>) =>
+              addDataSource(event.target.value, false)
+            }
             value={subExpression.dataSource || 'default'}
-          />
+          >
+            <option value='default'>{t('right_menu.expressions_data_source_select')}</option>
+            {Object.values(DataSource).map((ds: string) => (
+              <option key={ds} value={ds}>
+                {expressionDataSourceTexts(t)[ds]}
+              </option>
+            ))}
+          </StudioNativeSelect>
           {subExpression.dataSource && (
             <DataSourceValue
               subExpression={subExpression}
@@ -108,20 +105,20 @@ export const SubExpressionContent = ({
           <p className={classes.expressionFunction}>
             {expressionFunctionTexts(t)[subExpression.function]}
           </p>
-          <LegacySelect
+          <StudioNativeSelect
             label={t('right_menu.expressions_comparable_data_source')}
-            hideLabel={true}
-            onChange={(compDataSource: string) => addDataSource(compDataSource, true)}
-            options={[
-              { label: t('right_menu.expressions_data_source_select'), value: 'default' },
-            ].concat(
-              Object.values(DataSource).map((cds: string) => ({
-                label: expressionDataSourceTexts(t)[cds],
-                value: cds,
-              })),
-            )}
+            onChange={(event: ChangeEvent<HTMLSelectElement>) =>
+              addDataSource(event.target.value, true)
+            }
             value={subExpression.comparableDataSource || 'default'}
-          />
+          >
+            <option value='default'>{t('right_menu.expressions_data_source_select')}</option>
+            {Object.values(DataSource).map((cds: string) => (
+              <option key={cds} value={cds}>
+                {expressionDataSourceTexts(t)[cds]}
+              </option>
+            ))}
+          </StudioNativeSelect>
           {subExpression.comparableDataSource && (
             <DataSourceValue
               subExpression={subExpression}

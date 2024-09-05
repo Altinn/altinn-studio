@@ -89,15 +89,10 @@ export const TextEditor = ({
   const handleSearchChange = (event: any) => setSearchQuery(event.target.value);
 
   return (
-    <div className={classes.TextEditor}>
-      <div className={classes.TextEditor__main}>
-        <div className={classes.TextEditor__topRow}>
-          <StudioButton
-            variant='primary'
-            color='first'
-            onClick={handleAddNewEntryClick}
-            size='small'
-          >
+    <div className={classes.textEditor}>
+      <div className={classes.textEditorMain}>
+        <div className={classes.textEditorTopRow}>
+          <StudioButton variant='primary' color='first' onClick={handleAddNewEntryClick}>
             {t('text_editor.new_text')}
           </StudioButton>
           <div className={classes.filterAndSearch}>
@@ -122,7 +117,7 @@ export const TextEditor = ({
             </div>
           </div>
         </div>
-        <div className={classes.TextEditor__body}>
+        <div className={classes.textEditorBody}>
           <TextList
             removeEntry={removeEntry}
             resourceRows={resourceRows}

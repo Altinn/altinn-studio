@@ -5,7 +5,7 @@ import { LandingPagePanel } from './LandingPagePanel';
 import userEvent from '@testing-library/user-event';
 import { fileSelectorInputId } from '@studio/testing/testids';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { renderWithMockStore } from '../../../test/mocks';
+import { renderWithProviders } from '../../../test/mocks';
 
 const user = userEvent.setup();
 
@@ -45,4 +45,4 @@ describe('LandingPagePanel', () => {
 });
 
 const renderLandingPagePanel = (props: Partial<LandingPagePanelProps> = {}) =>
-  renderWithMockStore()(<LandingPagePanel {...landingPagePropsMock} {...props} />);
+  renderWithProviders()(<LandingPagePanel {...landingPagePropsMock} {...props} />);

@@ -7,11 +7,9 @@ import type * as mutations from '../api/mutations';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import type { ToastOptions } from 'react-toastify';
 import { ToastContainer, Slide, toast } from 'react-toastify';
-import { ErrorBoundary } from 'react-error-boundary';
 import type { AxiosError } from 'axios';
 import type { i18n } from 'i18next';
 import { Trans, useTranslation } from 'react-i18next';
-import { ErrorBoundaryFallback } from '../components/ErrorBoundaryFallback';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 
 import 'react-toastify/dist/ReactToastify.css';
@@ -122,18 +120,13 @@ export const ServicesContextProvider = ({
   );
 
   return (
-    <ErrorBoundary
-      FallbackComponent={ErrorBoundaryFallback}
-      onError={() => {
-        // TODO : log rendering errors
-      }}
-    >
+    <>
       <ToastContainer position='top-center' theme='colored' transition={Slide} draggable={false} />
       <QueryClientProvider client={queryClient}>
         <ServicesContext.Provider value={{ ...queries }}>{children}</ServicesContext.Provider>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
-    </ErrorBoundary>
+    </>
   );
 };
 

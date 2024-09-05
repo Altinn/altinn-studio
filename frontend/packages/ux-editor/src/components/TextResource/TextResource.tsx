@@ -58,7 +58,7 @@ export const TextResource = ({
 
   const handleClose = () => {
     if (currentValue === '') {
-      handleRemoveTextResource();
+      handleRemoveTextResource?.();
     }
     setIsOpen(false);
   };
@@ -125,7 +125,6 @@ const TextResourceFieldset = ({
           <StudioButton
             icon={<XMarkIcon />}
             onClick={onClose}
-            size='small'
             title={t('general.close')}
             variant='secondary'
           />

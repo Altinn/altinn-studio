@@ -52,7 +52,6 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
             variant='tertiary'
             icon={<PlusIcon height={40} />}
             onClick={handleAddDefinition}
-            size='small'
           />
         </div>
 

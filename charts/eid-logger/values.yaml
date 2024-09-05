@@ -2,6 +2,12 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+env:
+  environmentName: dev
+  sourceSecretName: eid-logger-secret
+  enableLogging: true
+  sourceFromKeyvault: true
+
 replicaCount: 1
 
 image:
@@ -105,3 +111,4 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+

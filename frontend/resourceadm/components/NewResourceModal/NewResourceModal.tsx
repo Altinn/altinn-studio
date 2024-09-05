@@ -109,12 +109,11 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
           <StudioButton
             onClick={() => (hasValidValues ? handleCreateNewResource() : undefined)}
             color='first'
-            size='small'
             aria-disabled={!hasValidValues}
           >
             {t('resourceadm.dashboard_create_modal_create_button')}
           </StudioButton>
-          <StudioButton onClick={handleClose} color='first' variant='tertiary' size='small'>
+          <StudioButton onClick={handleClose} color='first' variant='tertiary'>
             {t('general.cancel')}
           </StudioButton>
         </Modal.Footer>

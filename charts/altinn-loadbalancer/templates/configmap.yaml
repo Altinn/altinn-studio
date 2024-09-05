@@ -1,0 +1,151 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loadbalancer-config
+data:
+  nginx.conf: |
+    worker_processes 1;
+
+    events { worker_connections 1024; }
+
+    http {
+      server_tokens off;
+
+      proxy_buffer_size    128k;
+      proxy_buffers   8 256k;
+      proxy_busy_buffers_size   512k;
+      large_client_header_buffers 64 16k;
+
+      client_max_body_size 50M;
+
+      upstream designer {
+        server altinn-designer:3000;
+      }
+
+      upstream repositories {
+        server altinn-repositories:3000;
+      }
+
+      upstream kwlocation {
+        server kuberneteswrapper:3000;
+      }
+
+      server {
+        listen 80;
+        {{- if not (hasKey $.Values.hosts $.Values.environment) }}
+          {{ fail "the chosen environment has no host" }}
+        {{- end }}
+        {{- $host := index $.Values.hosts $.Values.environment }}
+        server_name {{ $host }};
+        # Redirect all HTTP requests to HTTPS with a 301 Moved Permanently response.
+        return 301 https://{{ $host }}$request_uri;
+      }
+
+      server {
+        listen 443 ssl http2;
+
+        ssl_protocols TLSv1.2 TLSv1.3;
+
+        ssl_prefer_server_ciphers on;
+        ssl_ciphers ECDH+AESGCM:ECDH+AES256:ECDH+AES128:DH+3DES:!ADH:!AECDH:!MD5;
+
+        ssl_certificate /etc/nginx/ssl/altinn_studio/star.altinn.studio.cert;
+        ssl_certificate_key /etc/nginx/ssl/altinn_studio/star.altinn.studio.key;
+
+        ssl_stapling on;
+        ssl_stapling_verify on;
+        ssl_trusted_certificate /etc/nginx/ssl/altinn_studio/star.altinn.studio.cert;
+
+        ssl_session_cache   shared:SSL:40m;
+        ssl_session_timeout 4h;
+
+        ssl_session_tickets on;
+
+        server_name {{ $host }};
+
+        proxy_cookie_path ~*^/.* /;
+
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+        location / {
+          proxy_pass 			    http://designer/;
+          proxy_set_header 	  Host {{ $host }};
+          proxy_set_header 	  X-Forwarded-For $remote_addr;
+          proxy_set_header    X-Forwarded-Proto $scheme;
+        }
+
+        location /editor {
+          proxy_pass         	http://designer/editor;
+          proxy_set_header 	  Host {{ $host }};
+          proxy_set_header 	  X-Forwarded-For $remote_addr;
+          proxy_set_header    X-Forwarded-Proto $scheme;
+        }
+
+        location /dashboard {
+          proxy_pass         	http://designer/dashboard;
+          proxy_set_header 	  Host {{ $host }};
+          proxy_set_header 	  X-Forwarded-For $remote_addr;
+          proxy_set_header    X-Forwarded-Proto $scheme;
+        }
+
+        location /preview {
+          proxy_pass         	http://designer/preview;
+          proxy_set_header 	  Host {{ $host }};
+          proxy_set_header 	  X-Forwarded-For $remote_addr;
+          proxy_set_header    X-Forwarded-Proto $scheme;
+        }
+
+        location /previewHub {
+          proxy_pass            http://designer/previewHub;
+          proxy_http_version  1.1;
+          proxy_set_header    Upgrade $http_upgrade;
+          proxy_set_header    Connection "Upgrade";
+          proxy_set_header    Host {{ $host }};
+          proxy_set_header 	  X-Forwarded-For $remote_addr;
+          proxy_set_header    X-Forwarded-Proto $scheme;
+        }
+
+        location /sync-hub {
+          proxy_pass          http://designer/sync-hub;
+          proxy_http_version  1.1;
+          proxy_set_header    Upgrade $http_upgrade;
+          proxy_set_header    Connection "Upgrade";
+          proxy_set_header    Host {{ $host }};
+          proxy_set_header 	  X-Forwarded-For $remote_addr;
+          proxy_set_header    X-Forwarded-Proto $scheme;
+        }
+
+        location /Home/  {
+          proxy_pass         	http://designer/Home/;
+          proxy_set_header 	  Host {{ $host }};
+          proxy_set_header 	  X-Forwarded-For $remote_addr;
+          proxy_set_header    X-Forwarded-Proto $scheme;
+        }
+
+        location /designer/ {
+          proxy_pass         	http://designer/designer/;
+          proxy_set_header 	  Host {{ $host }};
+          proxy_set_header 	  X-Forwarded-For $remote_addr;
+          proxy_set_header    X-Forwarded-Proto $scheme;
+        }
+
+        location /designerapi/ {
+          proxy_pass          http://designer/designerapi/;
+          proxy_set_header  	Host {{ $host }};
+          proxy_set_header 	  X-Forwarded-For $remote_addr;
+          proxy_set_header    X-Forwarded-Proto $scheme;
+        }
+
+        location /repos/ {
+          proxy_pass         	http://repositories/;
+          proxy_set_header 	  Host {{ $host }};
+          proxy_set_header 	  X-Forwarded-For $remote_addr;
+        }
+
+        location /kuberneteswrapper/ {
+          proxy_pass         	http://kwlocation/;
+          proxy_set_header 	  Host {{ $host }};
+          proxy_set_header 	  X-Forwarded-For $remote_addr;
+        }
+      }
+    }

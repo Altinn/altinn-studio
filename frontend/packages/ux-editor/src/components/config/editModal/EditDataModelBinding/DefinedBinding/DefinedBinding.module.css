@@ -7,3 +7,8 @@
 .error {
   background-color: var(--fds-semantic-surface-danger-subtle);
 }
+
+.currentLinkedDataModel {
+  text-overflow: ellipsis;
+  overflow: hidden;
+}

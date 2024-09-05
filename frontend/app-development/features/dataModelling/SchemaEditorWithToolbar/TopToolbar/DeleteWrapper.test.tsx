@@ -11,9 +11,12 @@ import {
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertMetadataToOption } from '../../../../utils/metadataUtils';
-import { renderWithMockStore } from '../../../../test/mocks';
+import { renderWithProviders } from '../../../../test/mocks';
 import type { QueryClient } from '@tanstack/react-query';
 import { app, org } from '@studio/testing/testids';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { getDataTypesToSignMock } from 'app-shared/mocks/bpmnDefinitionsMock';
 
 const user = userEvent.setup();
 
@@ -26,15 +29,25 @@ const confirmText = textMock('schema_editor.delete_model_confirm');
 const selectedOption = convertMetadataToOption(jsonMetadata1Mock);
 const defaultProps: DeleteWrapperProps = { selectedOption };
 
+jest.mock('bpmn-moddle', () =>
+  jest.fn(() => ({
+    fromXML: jest.fn().mockResolvedValue({
+      rootElement: getDataTypesToSignMock(['dataModel1', 'dataModel2', 'dataModel3']),
+    }),
+    toXML: jest.fn().mockResolvedValue({ xml: '<newXml></newXml>' }),
+  })),
+);
+
 const render = (
   props: Partial<DeleteWrapperProps> = {},
+  queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
   queryClient.setQueryData(
     [QueryKey.DataModelsMetadata, org, app],
     [jsonMetadata1Mock, jsonMetadata2Mock],
   );
-  return renderWithMockStore({}, {}, queryClient)(<DeleteWrapper {...defaultProps} {...props} />);
+  return renderWithProviders(queries, queryClient)(<DeleteWrapper {...defaultProps} {...props} />);
 };
 
 describe('DeleteWrapper', () => {
@@ -66,6 +79,22 @@ describe('DeleteWrapper', () => {
     expect(getDeleteMessage()).toBeInTheDocument();
     await user.click(getCancelButton());
     expect(queryDeleteMessage()).not.toBeInTheDocument();
+  });
+
+  it('should remove deleted data types from signing tasks', async () => {
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.DataModelsJson, org, app], []);
+    queryClient.setQueryData([QueryKey.DataModelsXsd, org, app], []);
+    render({}, {}, queryClient);
+    await user.click(getDeleteButton());
+    await user.click(getContinueButton());
+    expect(queryDeleteMessage()).not.toBeInTheDocument();
+    expect(queriesMock.deleteDataModel).toHaveBeenCalledWith(
+      org,
+      app,
+      jsonMetadata1Mock.repositoryRelativeUrl,
+    );
+    expect(queriesMock.updateBpmnXml).toHaveBeenCalled();
   });
 });
 

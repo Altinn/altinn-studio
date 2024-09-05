@@ -56,30 +56,32 @@ export const ResourceTable = ({
           variant='tertiary'
           icon={
             <PencilIcon
-              title={t('resourceadm.dashboard_table_row_edit', {
+              title={t('dashboard.resource_table_row_edit', {
                 resourceName: getListItemTitle(listItem),
               })}
               className={classes.editLink}
             />
           }
           onClick={() => onClickEditResource(listItem.identifier)}
+          size='medium'
         />
       );
     } else if (!!onClickImportResource && importResourceId === listItem.identifier) {
-      return <StudioSpinner spinnerTitle={t('resourceadm.dashboard_table_row_importing')} />;
+      return <StudioSpinner spinnerTitle={t('dashboard.resource_table_row_importing')} />;
     } else if (!!onClickImportResource) {
       return (
         <StudioButton
           variant='tertiary'
           icon={
             <FileImportIcon
-              title={t('resourceadm.dashboard_table_row_import', {
+              title={t('dashboard.resource_table_row_import', {
                 resourceName: getListItemTitle(listItem),
               })}
               className={classes.editLink}
             />
           }
           onClick={() => onClickImportResource(listItem.identifier, listItem.environments)}
+          size='medium'
         />
       );
     } else {
@@ -91,7 +93,7 @@ export const ResourceTable = ({
     return (
       listItem.title[i18n?.language] ||
       listItem.title.nb ||
-      t('resourceadm.dashboard_table_row_missing_title')
+      t('dashboard.resource_table_row_missing_title')
     );
   };
 
@@ -107,9 +109,9 @@ export const ResourceTable = ({
           {listItem.environments.map((env: string) => {
             let tagText = env.toUpperCase();
             if (env === 'prod') {
-              tagText = t('resourceadm.dashboard_table_row_in_prod');
+              tagText = t('dashboard.resource_table_row_in_prod');
             } else if (env === 'gitea') {
-              tagText = t('resourceadm.dashboard_table_row_in_gitea');
+              tagText = t('dashboard.resource_table_row_in_gitea');
             }
             return (
               <Tag key={env} color='info' size='small'>
@@ -126,22 +128,22 @@ export const ResourceTable = ({
   const columns: Columns = [
     {
       accessor: 'title',
-      heading: t('resourceadm.dashboard_table_header_name'),
+      heading: t('dashboard.resource_table_header_name'),
       sortable: true,
     },
     {
       accessor: 'identifier',
-      heading: t('resourceadm.dashboard_table_header_resourceid'),
+      heading: t('dashboard.resource_table_header_resourceid'),
       sortable: true,
     },
     {
       accessor: 'createdBy',
-      heading: t('resourceadm.dashboard_table_header_createdby'),
+      heading: t('dashboard.resource_table_header_createdby'),
       sortable: true,
     },
     {
       accessor: 'lastChanged',
-      heading: t('resourceadm.dashboard_table_header_last_changed'),
+      heading: t('dashboard.resource_table_header_last_changed'),
       sortable: true,
       bodyCellFormatter: (value: string) =>
         value
@@ -154,7 +156,7 @@ export const ResourceTable = ({
     },
     {
       accessor: 'environments',
-      heading: t('resourceadm.dashboard_table_header_environment'),
+      heading: t('dashboard.resource_table_header_environment'),
     },
     {
       accessor: 'links',
@@ -167,7 +169,7 @@ export const ResourceTable = ({
       columns={columns}
       rows={listData}
       size='small'
-      emptyTableFallback={t('resourceadm.dashboard_no_resources_result')}
+      emptyTableFallback={t('dashboard.resource_table_no_resources_result')}
     />
   );
 };

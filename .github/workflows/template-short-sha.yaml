@@ -1,0 +1,30 @@
+name: Calculate short sha
+
+on:
+  workflow_call:
+    inputs:
+      checkout-repository:
+        required: false
+        type: string
+        default: ''
+    outputs:
+      short-sha:
+        description: "Short sha commit"
+        value: ${{ jobs.set-short-sha.outputs.short-sha }}
+
+jobs:
+  set-short-sha:
+    name: Output short sha
+    runs-on: ubuntu-latest
+    outputs:
+      short-sha: ${{ steps.set-short-sha.outputs.short-sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.checkout-repository }}
+
+      - name: Set short SHA
+        id: set-short-sha
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          echo "short-sha=$SHORT_SHA" >> $GITHUB_OUTPUT

@@ -14,6 +14,7 @@ import {
   mockBpmnApiContextValue,
   mockBpmnContextValue,
 } from '../../../../test/mocks/bpmnContextMock';
+import { useStudioRecommendedNextActionContext } from '@studio/components';
 
 const tasks = [
   {
@@ -43,6 +44,19 @@ jest.mock('../../../utils/bpmnModeler/StudioModeler', () => {
     }),
   };
 });
+
+(useStudioRecommendedNextActionContext as jest.Mock).mockReturnValue({
+  removeAction: jest.fn(),
+  addAction: jest.fn(),
+  shouldDisplayAction: jest.fn(),
+});
+
+jest.mock(
+  '@studio/components/src/components/StudioRecommendedNextAction/context/useStudioRecommendedNextActionContext.ts',
+  () => ({
+    useStudioRecommendedNextActionContext: jest.fn(),
+  }),
+);
 
 describe('ConfigContent', () => {
   afterEach(() => {
@@ -126,19 +140,6 @@ describe('ConfigContent', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should render helpText for selected task', async () => {
-    const user = userEvent.setup();
-    renderConfigContent();
-    const helpTextButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_header_help_text_title'),
-    });
-    await user.click(helpTextButton);
-
-    expect(
-      screen.getByText(textMock('process_editor.configuration_panel_header_help_text_data')),
-    ).toBeInTheDocument();
-  });
-
   it('should display the connected data model as selected by default when data type is connected to task', () => {
     const connectedDataType = mockBpmnApiContextValue.layoutSets.sets[0].dataType;
     renderConfigContent();
@@ -210,6 +211,34 @@ describe('ConfigContent', () => {
           name: textMock(
             'process_editor.configuration_panel_set_unique_from_signatures_in_data_types_link',
           ),
+        }),
+      ).toBeInTheDocument();
+    });
+
+    it('should show recommended action when selected task is in recommended action queue', async () => {
+      const shouldDisplayAction = jest.fn().mockReturnValue(true);
+      (useStudioRecommendedNextActionContext as jest.Mock).mockReturnValue({
+        removeAction: jest.fn(),
+        addAction: jest.fn(),
+        shouldDisplayAction,
+      });
+      renderConfigContent(
+        {},
+        {
+          bpmnDetails: {
+            ...mockBpmnDetails,
+            id: 'task_2',
+            taskType: 'signing',
+            element,
+          },
+        },
+      );
+
+      expect(shouldDisplayAction).toHaveBeenCalledWith('task_2');
+
+      expect(
+        screen.getByRole('textbox', {
+          name: textMock('process_editor.recommended_action.new_name_label'),
         }),
       ).toBeInTheDocument();
     });

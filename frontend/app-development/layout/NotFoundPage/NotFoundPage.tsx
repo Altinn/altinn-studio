@@ -11,9 +11,12 @@ export const NotFoundPage = () => {
       title={t('not_found_page.heading')}
       body={
         <Paragraph size='small'>
-          <Trans i18nKey='not_found_page.text'>
-            <Link href='mailto:tjenesteeier@altinn.no'>tjenesteeier@altinn.no</Link>
-          </Trans>
+          <Trans
+            i18nKey='not_found_page.text'
+            components={{
+              a: <Link href='/contact'> </Link>,
+            }}
+          ></Trans>
         </Paragraph>
       }
       redirectHref='/'

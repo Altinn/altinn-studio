@@ -11,6 +11,7 @@ import { layoutSetsMock } from './testing/layoutSetsMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { user as userMock } from 'app-shared/mocks/mocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { PreviewContextProvider } from 'app-development/contexts/PreviewContext';
 
 const mockQueries: Partial<ServicesContextProps> = {
   getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve('test')),
@@ -27,11 +28,16 @@ const renderApp = (
 ) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.CurrentUser], [userMock]);
-  return renderWithProviders(<App />, {
-    queries,
-    appContextProps,
-    queryClient,
-  });
+  return renderWithProviders(
+    <PreviewContextProvider>
+      <App />
+    </PreviewContextProvider>,
+    {
+      queries,
+      appContextProps,
+      queryClient,
+    },
+  );
 };
 
 describe('App', () => {
@@ -49,6 +55,38 @@ describe('App', () => {
     renderApp(mockQueries);
     await waitForLoadingToFinish();
   });
+
+  it('should render layoutSetsSelector when component has errors', async () => {
+    const mockGetDataModelMetadata = jest.fn().mockImplementation(() => Promise.reject());
+    renderApp({ ...mockQueries, getDataModelMetadata: mockGetDataModelMetadata });
+    await waitForLoadingToFinish();
+    const layoutSetsContainer = screen.getByRole('combobox', {
+      name: textMock('left_menu.layout_dropdown_menu_label'),
+    });
+    expect(layoutSetsContainer).toBeInTheDocument();
+  });
+
+  it.each(['layout_sets', 'data_model', 'widget'])(
+    'should render errorPage for %s when component has errors',
+    async (resource) => {
+      const errorQueries = {
+        layout_sets: { getLayoutSets: jest.fn().mockImplementation(() => Promise.reject()) },
+        data_model: { getDataModelMetadata: jest.fn().mockImplementation(() => Promise.reject()) },
+        widget: { getWidgetSettings: jest.fn().mockImplementation(() => Promise.reject()) },
+      };
+      const errorQuery = errorQueries[resource];
+
+      renderApp({ ...mockQueries, ...errorQuery });
+      await waitForLoadingToFinish();
+
+      expect(
+        screen.getByText(
+          textMock('general.fetch_error_title') + ' ' + textMock(`general.${resource}`),
+        ),
+      ).toBeInTheDocument();
+      expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
+    },
+  );
 });
 
 const waitForLoadingToFinish = async () =>

@@ -108,7 +108,6 @@ export const InputActionWrapper = ({
         {actions.map((action) => (
           <StudioButton
             variant={mode === 'standBy' ? 'tertiary' : 'secondary'}
-            size='small'
             color={actionToColorMap[action]}
             key={action}
             onClick={() => handleActionClick(action)}

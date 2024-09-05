@@ -49,7 +49,6 @@ export const HeadingRow = ({ pointer }: HeadingRowProps) => {
           color='second'
           icon={<NodeIcon node={node} />}
           onClick={selectNodeRoot}
-          size='small'
           variant='tertiary'
         >
           {title}

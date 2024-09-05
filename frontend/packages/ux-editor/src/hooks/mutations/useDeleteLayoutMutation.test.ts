@@ -32,22 +32,6 @@ describe('useDeleteLayoutMutation', () => {
     );
   });
 
-  it('Calls deleteFormLayout with the name of the receipt layout when deleting custom receipt', async () => {
-    const { result } = renderDeleteLayoutMutation();
-    await result.current.mutateAsync(formLayoutSettingsMock.receiptLayoutName);
-    expect(queriesMock.deleteFormLayout).toHaveBeenCalledTimes(1);
-    expect(queriesMock.deleteFormLayout).toHaveBeenCalledWith(
-      org,
-      app,
-      formLayoutSettingsMock.receiptLayoutName,
-      selectedLayoutSet,
-    );
-    expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledWith(org, app, selectedLayoutSet, {
-      ...formLayoutSettingsMock,
-      receiptLayoutName: undefined,
-    });
-  });
-
   it('Selects a new layout when deleting the selected layout', async () => {
     const { result } = renderDeleteLayoutMutation();
     await result.current.mutateAsync(layout1NameMock);

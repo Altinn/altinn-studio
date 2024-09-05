@@ -1,5 +1,5 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderHookWithMockStore } from '../../test/mocks';
+import { renderHookWithProviders } from '../../test/mocks';
 import { useUpdateProcessDataTypesMutation } from './useUpdateProcessDataTypesMutation';
 import { waitFor } from '@testing-library/react';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -21,8 +21,7 @@ const renderHook = async ({
 }: {
   queryClient?: QueryClient;
 } = {}) => {
-  const updateProcessDataTypesResult = renderHookWithMockStore(
-    {},
+  const updateProcessDataTypesResult = renderHookWithProviders(
     {},
     queryClient,
   )(() => useUpdateProcessDataTypesMutation(org, app)).renderHookResult.result;

@@ -1,10 +1,10 @@
+import type { ChangeEvent } from 'react';
 import React, { useEffect, useMemo, useState } from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
-import { LegacyTextField, LegacyPopover } from '@digdir/design-system-react';
 import { stringToArray, arrayToString } from '../../../utils/stringUtils';
 import { replaceLastItem } from 'app-shared/utils/arrayUtils';
 import { FormField } from '../../FormField';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioPopover, StudioTextfield } from '@studio/components';
 
 const getLastWord = (value: string) => value.split(' ').pop();
 const stdAutocompleteOpts = [
@@ -107,42 +107,42 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
         onChange={handleWordClick}
         propertyPath={`${component.propertyPath}/properties/autocomplete`}
         renderField={({ fieldProps }) => (
-          <LegacyTextField
+          <StudioTextfield
             {...fieldProps}
             onFocus={(): void => setSearchFieldFocused(true)}
             onBlur={(): void => {
               if (searchFieldFocused) setSearchFieldFocused(false);
             }}
-            onChange={(event) => {
-              const { value } = event.target;
+            onChange={(event: ChangeEvent<HTMLInputElement>) => {
+              const value = event.target.value;
               handleChange(value);
               fieldProps.onChange(value);
             }}
           />
         )}
       />
-      <LegacyPopover
+      <StudioPopover
         variant='default'
         open={searchFieldFocused && autoCompleteOptions.length > 0}
         placement='bottom-start'
-        arrow={false}
-        trigger={<div />}
       >
-        {autoCompleteOptions.map(
-          (option): JSX.Element => (
-            <StudioButton
-              role='option'
-              key={option}
-              size='small'
-              color='second'
-              variant='tertiary'
-              onMouseDown={() => handleWordClick(option)}
-            >
-              {option}
-            </StudioButton>
-          ),
-        )}
-      </LegacyPopover>
+        <StudioPopover.Trigger asChild>{<div />}</StudioPopover.Trigger>
+        <StudioPopover.Content>
+          {autoCompleteOptions.map(
+            (option): JSX.Element => (
+              <StudioButton
+                role='option'
+                key={option}
+                color='second'
+                variant='tertiary'
+                onMouseDown={() => handleWordClick(option)}
+              >
+                {option}
+              </StudioButton>
+            ),
+          )}
+        </StudioPopover.Content>
+      </StudioPopover>
     </div>
   );
 };

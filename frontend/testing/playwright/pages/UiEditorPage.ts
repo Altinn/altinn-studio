@@ -51,32 +51,19 @@ export class UiEditorPage extends BasePage {
     await this.page.getByText(this.textMock('ux_editor.container_empty')).isVisible();
   }
 
-  // This is for when the list is empty
-  public async dragComponentInToDroppableList(component: ComponentType): Promise<void> {
-    const dropDestination = this.getDroppableList();
-
-    await this.getToolbarItems()
-      .getByText(this.textMock(`ux_editor.component_title.${component}`))
-      .dragTo(dropDestination);
-  }
-
-  // This is for when the list is is not empty
-  public async dragComponentInToDroppableListItem(
+  public async dragComponentIntoDroppableListItem(
     components: DragAndDropComponents,
   ): Promise<void> {
     const { componentToDrag, componentToDropOn } = components;
+    const dragLocator = await this.getDraggableComponent(componentToDrag);
+    const dropLocator = await this.getComponentInListByType(componentToDropOn);
+    await this.dragAndDropManually(dragLocator, dropLocator);
+  }
 
-    await this.hoverOverComponentToDrag(componentToDrag);
-    await this.startDragComponent();
-
-    // Dragging manually requires the hover over the droppable list treeitem to be called at least 2 times: https://playwright.dev/docs/input#dragging-manually
-    const numberOfTimesToHoverOverDroppableListTreeItem: number = 5;
-
-    for (let i = 0; i < numberOfTimesToHoverOverDroppableListTreeItem; i++) {
-      await this.hoverOverDroppableListTreeItem(componentToDropOn);
-    }
-
-    await this.dropComponent();
+  public async dragComponentIntoDroppableList(component: ComponentType): Promise<void> {
+    const dropDestination = this.getDroppableList();
+    const componentToDrag = await this.getDraggableComponent(component);
+    await this.dragAndDropManually(componentToDrag, dropDestination);
   }
 
   public async waitForComponentTreeItemToBeVisibleInDroppableList(
@@ -273,34 +260,19 @@ export class UiEditorPage extends BasePage {
     await this.page.getByRole('textbox', { name: this.textMock(`language.${lang}`) }).isVisible();
   }
 
-  private getToolbarItems(): Locator {
-    return this.page.getByTestId(DataTestId.DraggableToolbarItem);
-  }
-
   private getDroppableList(): Locator {
     return this.page.getByTestId(DataTestId.DroppableList);
   }
 
-  private async hoverOverComponentToDrag(componentToDrag: ComponentType): Promise<void> {
-    await this.page
+  private async getDraggableComponent(componentToDrag: ComponentType): Promise<Locator> {
+    return this.page
       .getByTestId(DataTestId.DraggableToolbarItem)
-      .getByText(this.textMock(`ux_editor.component_title.${componentToDrag}`))
-      .hover();
+      .getByText(this.textMock(`ux_editor.component_title.${componentToDrag}`));
   }
 
-  private async startDragComponent(): Promise<void> {
-    await this.page.mouse.down();
-  }
-
-  private async hoverOverDroppableListTreeItem(componentToDropOn: ComponentType): Promise<void> {
-    await this.page
-      .getByRole('treeitem', {
-        name: this.textMock(`ux_editor.component_title.${componentToDropOn}`),
-      })
-      .hover();
-  }
-
-  private async dropComponent(): Promise<void> {
-    await this.page.mouse.up();
+  private async getComponentInListByType(componentType: ComponentType): Promise<Locator> {
+    return this.page.getByRole('treeitem', {
+      name: this.textMock(`ux_editor.component_title.${componentType}`),
+    });
   }
 }

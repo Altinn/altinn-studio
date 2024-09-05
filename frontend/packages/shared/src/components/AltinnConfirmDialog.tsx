@@ -1,11 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import classes from './AltinnConfirmDialog.module.css';
-import type { LegacyPopoverProps } from '@digdir/design-system-react';
-import { LegacyPopover } from '@digdir/design-system-react';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
-import { StudioButton } from '@studio/components';
-import type { StudioButtonProps } from '@studio/components';
+import { StudioButton, StudioPopover } from '@studio/components';
+import type { StudioButtonProps, StudioPopoverProps } from '@studio/components';
 
 export type AltinnConfirmDialogProps = {
   confirmText?: string;
@@ -13,7 +11,9 @@ export type AltinnConfirmDialogProps = {
   cancelText?: string;
   onConfirm: (event: React.MouseEvent<HTMLButtonElement>) => void;
   onClose: (event: React.MouseEvent<HTMLButtonElement> | MouseEvent) => void;
-} & Partial<Pick<LegacyPopoverProps, 'open' | 'trigger' | 'placement' | 'children' | 'className'>>;
+  trigger?: React.ReactNode;
+  className?: string;
+} & Partial<Pick<StudioPopoverProps, 'open' | 'placement' | 'children'>>;
 
 export function AltinnConfirmDialog({
   confirmText,
@@ -47,40 +47,37 @@ export function AltinnConfirmDialog({
 
   return (
     <div ref={dialogRef}>
-      <LegacyPopover
-        variant='warning'
-        className={cn(className, classes.popover)}
-        trigger={trigger}
-        placement={placement}
-        open={open}
-      >
-        {children}
-        <div className={classes.buttonContainer}>
-          <StudioButton
-            color={confirmColor}
-            variant='primary'
-            onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-              event.stopPropagation();
-              onConfirm(event);
-              onClose(event);
-            }}
-            size='small'
-          >
-            {confirmText || t('general.yes')}
-          </StudioButton>
-          <StudioButton
-            color='second'
-            variant='tertiary'
-            onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-              event.stopPropagation();
-              onClose(event);
-            }}
-            size='small'
-          >
-            {cancelText || t('general.cancel')}
-          </StudioButton>
-        </div>
-      </LegacyPopover>
+      <StudioPopover variant='warning' placement={placement} open={open}>
+        <StudioPopover.Trigger asChild>{trigger}</StudioPopover.Trigger>
+        <StudioPopover.Content className={cn(className, classes.popover)}>
+          {children}
+          <div className={classes.buttonContainer}>
+            <StudioButton
+              color={confirmColor}
+              variant='primary'
+              onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                event.stopPropagation();
+                onConfirm(event);
+                onClose(event);
+              }}
+              size='small'
+            >
+              {confirmText || t('general.yes')}
+            </StudioButton>
+            <StudioButton
+              color='second'
+              variant='tertiary'
+              onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                event.stopPropagation();
+                onClose(event);
+              }}
+              size='small'
+            >
+              {cancelText || t('general.cancel')}
+            </StudioButton>
+          </div>
+        </StudioPopover.Content>
+      </StudioPopover>
     </div>
   );
 }

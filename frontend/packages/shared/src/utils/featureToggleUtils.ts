@@ -8,8 +8,8 @@ export type SupportedFeatureFlags =
   | 'componentConfigBeta'
   | 'shouldOverrideAppLibCheck'
   | 'resourceMigration'
-  | 'displayPaymentTaskProcessEditor'
-  | 'multipleDataModelsPerTask';
+  | 'multipleDataModelsPerTask'
+  | 'exportForm';
 
 /*
  * Please add all the features that you want to be toggle on by default here.

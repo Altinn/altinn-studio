@@ -1,7 +1,7 @@
 import React from 'react';
 import { StudioTextfield } from '@studio/components';
+import { useDebounce } from '@studio/hooks';
 import { HelpText, Switch } from '@digdir/designsystemet-react';
-import { useDebounce } from 'app-shared/hooks/useDebounce';
 import {
   BpmnActionModeler,
   ActionType,

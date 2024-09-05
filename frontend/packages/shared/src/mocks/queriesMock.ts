@@ -68,6 +68,7 @@ import {
 } from './mocks';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
+import type { RepoDiffResponse } from 'app-shared/types/api/RepoDiffResponse';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
@@ -91,6 +92,7 @@ export const queriesMock: ServicesContextProps = {
   getDeployments: jest
     .fn()
     .mockImplementation(() => Promise.resolve<DeploymentsResponse>(deploymentsResponse)),
+  getRepoDiff: jest.fn().mockImplementation(() => Promise.resolve<RepoDiffResponse>({})),
   getEnvironments: jest.fn().mockImplementation(() => Promise.resolve<Environment[]>([])),
   getFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponse>({})),
@@ -101,6 +103,7 @@ export const queriesMock: ServicesContextProps = {
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets)),
   getNewsList: jest.fn().mockImplementation(() => Promise.resolve<NewsList>(newsList)),
   getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
+  getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgList>(orgList)),
   getOrganizations: jest.fn().mockImplementation(() => Promise.resolve<Organization[]>([])),
   getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
@@ -156,6 +159,7 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<BrregSubPartySearchResult>(null)),
   getAccessListMembers: jest.fn().mockImplementation(() => Promise.resolve({ data: [] })),
+  getAltinn2DelegationsCount: jest.fn().mockImplementation(() => Promise.resolve({})),
 
   // Queries - PrgetBpmnFile
   getBpmnFile: jest.fn().mockImplementation(() => Promise.resolve<string>('')),

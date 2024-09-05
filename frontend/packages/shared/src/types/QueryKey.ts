@@ -24,6 +24,7 @@ export enum QueryKey {
   LayoutSchema = 'LayoutSchema',
   LayoutSets = 'LayoutSets',
   NewsList = 'NewsList',
+  OptionLists = 'OptionLists',
   OptionListIds = 'OptionListIds',
   OrgList = 'OrgList',
   Organizations = 'Organizations',
@@ -32,6 +33,7 @@ export enum QueryKey {
   RepoPullData = 'RepoPullData',
   RepoReset = 'RepoReset',
   RepoStatus = 'RepoStatus',
+  RepoDiff = 'RepoDiff',
   RuleConfig = 'RuleConfig',
   RuleHandler = 'RuleHandler',
   SearchRepos = 'SearchRepos',
@@ -62,4 +64,5 @@ export enum QueryKey {
   ResourceAccessLists = 'ResourceAccessLists',
   PartiesRegistrySearch = 'PartiesRegistrySearch',
   SubPartiesRegistrySearch = 'SubPartiesRegistrySearch',
+  Altinn2DelegationCount = 'Altinn2DelegationCount',
 }

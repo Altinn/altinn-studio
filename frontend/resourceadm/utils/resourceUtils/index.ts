@@ -13,5 +13,6 @@ export {
   mapKeywordsArrayToString,
   resourceTypeMap,
   validateResource,
+  getAltinn2Reference,
 } from './resourceUtils';
 export type { EnvId, Environment } from './resourceUtils';
