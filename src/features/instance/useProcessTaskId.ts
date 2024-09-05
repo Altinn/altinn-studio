@@ -1,6 +1,6 @@
+import { useTaskStore } from 'src/core/contexts/taskStoreContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
-import { useTaskStore } from 'src/layout/Summary2/taskIdStore';
 
 export function useProcessTaskId() {
   const { overriddenTaskId } = useTaskStore(({ overriddenTaskId }) => ({

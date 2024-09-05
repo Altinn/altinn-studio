@@ -1,9 +1,9 @@
 import { ContextNotProvided } from 'src/core/contexts/context';
+import { useTaskStore } from 'src/core/contexts/taskStoreContext';
 import { useLaxApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { getLayoutSetIdForApplication } from 'src/features/applicationMetadata/appMetadataUtils';
 import { useLaxLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
-import { useTaskStore } from 'src/layout/Summary2/taskIdStore';
 import type { ILayoutSet } from 'src/layout/common.generated';
 
 export function useCurrentLayoutSetId() {

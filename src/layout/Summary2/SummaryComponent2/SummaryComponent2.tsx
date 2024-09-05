@@ -1,9 +1,10 @@
 import React from 'react';
 
+import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
 import { ResolveComponent } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { LayoutSetSummary } from 'src/layout/Summary2/SummaryComponent2/LayoutSetSummary';
 import { TaskSummaryWrapper } from 'src/layout/Summary2/SummaryComponent2/TaskSummaryWrapper';
-import { Summary2StoreProvider } from 'src/layout/Summary2/taskIdStore';
+import { Summary2StoreProvider } from 'src/layout/Summary2/summaryStoreContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { CompSummary2External } from 'src/layout/Summary2/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -37,13 +38,15 @@ function SummaryBody({ target }: SummaryBodyProps) {
 export function SummaryComponent2({ summaryNode }: ISummaryComponent2) {
   const item = useNodeItem(summaryNode);
   return (
-    <Summary2StoreProvider
-      summaryNode={summaryNode}
-      summaryItem={item}
-    >
-      <TaskSummaryWrapper taskId={item?.target?.taskId}>
-        <SummaryBody target={item?.target} />
-      </TaskSummaryWrapper>
-    </Summary2StoreProvider>
+    <TaskStoreProvider>
+      <Summary2StoreProvider
+        summaryNode={summaryNode}
+        summaryItem={item}
+      >
+        <TaskSummaryWrapper taskId={item?.target?.taskId}>
+          <SummaryBody target={item?.target} />
+        </TaskSummaryWrapper>
+      </Summary2StoreProvider>
+    </TaskStoreProvider>
   );
 }

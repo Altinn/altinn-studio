@@ -5,7 +5,7 @@ import cn from 'classnames';
 
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import classes from 'src/layout/Summary2/SummaryComponent2/SummaryComponent2.module.css';
-import { useTaskStore } from 'src/layout/Summary2/taskIdStore';
+import { useSummary2Store } from 'src/layout/Summary2/summaryStoreContext';
 import { gridBreakpoints, pageBreakStyles } from 'src/utils/formComponentUtils';
 import { useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
@@ -20,7 +20,7 @@ interface ResolveComponentProps {
   targetId: string;
 }
 export function ComponentSummary({ componentNode, isCompact }: ComponentSummaryProps) {
-  const summaryNodeItem = useTaskStore((state) => state.summaryItem);
+  const summaryNodeItem = useSummary2Store((state) => state.summaryItem);
   const componentNodeItem = useNodeItem(componentNode);
 
   const override = summaryNodeItem?.overrides?.find((override) => override.componentId === componentNode.id);

@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 
+import { useTaskStore } from 'src/core/contexts/taskStoreContext';
 import { FormProvider } from 'src/features/form/FormContext';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
-import { useTaskStore } from 'src/layout/Summary2/taskIdStore';
 
 interface TaskSummaryProps {
   taskId?: string;
@@ -11,12 +11,14 @@ interface TaskSummaryProps {
 }
 
 export function TaskSummaryWrapper({ taskId, children }: React.PropsWithChildren<TaskSummaryProps>) {
-  const { setTaskId, setOverriddenDataModelId, setOverriddenLayoutSetId, overriddenTaskId } = useTaskStore((state) => ({
-    setTaskId: state.setTaskId,
-    setOverriddenDataModelId: state.setOverriddenDataModelId,
-    setOverriddenLayoutSetId: state.setOverriddenLayoutSetId,
-    overriddenTaskId: state.overriddenTaskId,
-  }));
+  const { setTaskId, setOverriddenDataModelUuid, setOverriddenLayoutSetId, overriddenTaskId } = useTaskStore(
+    (state) => ({
+      setTaskId: state.setTaskId,
+      setOverriddenDataModelUuid: state.setOverriddenDataModelUuid,
+      setOverriddenLayoutSetId: state.setOverriddenLayoutSetId,
+      overriddenTaskId: state.overriddenTaskId,
+    }),
+  );
 
   const layoutSets = useLayoutSets();
 
@@ -25,11 +27,11 @@ export function TaskSummaryWrapper({ taskId, children }: React.PropsWithChildren
       const layoutSetForTask = layoutSets.sets.find((set) => set.tasks?.includes(taskId));
       setTaskId && setTaskId(taskId);
       if (layoutSetForTask) {
-        setOverriddenDataModelId && setOverriddenDataModelId(layoutSetForTask.dataType);
+        setOverriddenDataModelUuid && setOverriddenDataModelUuid(layoutSetForTask.dataType);
         setOverriddenLayoutSetId && setOverriddenLayoutSetId(layoutSetForTask.id);
       }
     }
-  }, [layoutSets.sets, setOverriddenDataModelId, setOverriddenLayoutSetId, setTaskId, taskId]);
+  }, [layoutSets.sets, setOverriddenDataModelUuid, setOverriddenLayoutSetId, setTaskId, taskId]);
 
   if (overriddenTaskId) {
     return <FormProvider>{children}</FormProvider>;

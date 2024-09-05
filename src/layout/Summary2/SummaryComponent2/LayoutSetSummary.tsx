@@ -6,7 +6,7 @@ import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { Lang } from 'src/features/language/Lang';
 import { usePageOrder } from 'src/hooks/useNavigatePage';
 import { PageSummary } from 'src/layout/Summary2/SummaryComponent2/PageSummary';
-import { useTaskStore } from 'src/layout/Summary2/taskIdStore';
+import { useSummary2Store } from 'src/layout/Summary2/summaryStoreContext';
 
 interface LayoutSetSummaryProps {
   pageKey?: string;
@@ -35,7 +35,7 @@ export function TaskSummaryAccordion({ pageKey, children }: React.PropsWithChild
 export function LayoutSetSummary({ pageKey }: LayoutSetSummaryProps) {
   const pageOrder = usePageOrder();
 
-  const { summaryItem } = useTaskStore((state) => ({
+  const { summaryItem } = useSummary2Store((state) => ({
     summaryItem: state.summaryItem,
   }));
 

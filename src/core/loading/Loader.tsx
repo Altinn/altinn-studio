@@ -3,9 +3,9 @@ import React from 'react';
 import { AltinnContentIconFormData } from 'src/components/atoms/AltinnContentIconFormData';
 import { AltinnContentLoader } from 'src/components/molecules/AltinnContentLoader';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
+import { useTaskStore } from 'src/core/contexts/taskStoreContext';
 import { LoadingProvider } from 'src/core/loading/LoadingContext';
 import { Lang } from 'src/features/language/Lang';
-import { useTaskStore } from 'src/layout/Summary2/taskIdStore';
 import { ProcessTaskType } from 'src/types';
 
 interface LoaderProps {

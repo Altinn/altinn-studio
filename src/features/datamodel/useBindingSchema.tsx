@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 
 import type { JSONSchema7 } from 'json-schema';
 
+import { useTaskStore } from 'src/core/contexts/taskStoreContext';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import {
   getCurrentDataTypeForApplication,
@@ -15,7 +16,6 @@ import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLa
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
-import { useTaskStore } from 'src/layout/Summary2/taskIdStore';
 import {
   getAnonymousStatelessDataModelUrl,
   getDataModelUrl,

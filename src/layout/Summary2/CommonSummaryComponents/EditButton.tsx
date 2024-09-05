@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@digdir/designsystemet-react';
 import { Edit } from '@navikt/ds-icons';
 
+import { useTaskStore } from 'src/core/contexts/taskStoreContext';
 import { useNavigateToNode } from 'src/features/form/layout/NavigateToNode';
 import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { Lang } from 'src/features/language/Lang';
@@ -10,7 +11,6 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
 import { useIsMobile } from 'src/hooks/useIsMobile';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
-import { useTaskStore } from 'src/layout/Summary2/taskIdStore';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
