@@ -6,7 +6,7 @@ import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { getDataTypeFromLayoutSetsWithExistingId } from '../../../../../utils/configPanelUtils';
 import { RedirectToCreatePageButton } from '../RedirectToCreatePageButton';
 import { useTranslation } from 'react-i18next';
-import { EditDataTypes } from '../../../EditDataTypes';
+import { EditDataTypes } from '../../../ConfigContent/EditDataTypes';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import { getLayoutSetIdValidationErrorKey } from 'app-shared/utils/layoutSetsUtils';
 import { Paragraph } from '@digdir/designsystemet-react';

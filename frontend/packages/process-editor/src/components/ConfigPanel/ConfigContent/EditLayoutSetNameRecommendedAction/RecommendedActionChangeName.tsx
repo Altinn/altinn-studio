@@ -1,4 +1,3 @@
-import { useValidateBpmnTaskId } from '../../../../hooks/useValidateBpmnId';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import {
   StudioIconTextfield,
@@ -8,29 +7,34 @@ import {
 import { KeyVerticalIcon } from '@studio/icons';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioModeler } from '../../../../utils/bpmnModeler/StudioModeler';
+import { getLayoutSetIdValidationErrorKey } from 'app-shared/utils/layoutSetsUtils';
+import { useBpmnApiContext } from '@altinn/process-editor/contexts/BpmnApiContext';
 
 export const RecommendedActionChangeName = (): React.ReactElement => {
-  const { bpmnDetails, setBpmnDetails } = useBpmnContext();
-  const studioModeler = new StudioModeler(bpmnDetails.element);
+  const { bpmnDetails } = useBpmnContext();
+  const { layoutSets, mutateLayoutSetId } = useBpmnApiContext();
   const { t } = useTranslation();
-  const { validateBpmnTaskId } = useValidateBpmnTaskId();
   const { removeAction } = useStudioRecommendedNextActionContext();
 
   const [newName, setNewName] = useState('');
   const [newNameError, setNewNameError] = useState('');
+
+  const handleValidation = (newLayoutSetId: string): string => {
+    const validationResult = getLayoutSetIdValidationErrorKey(
+      layoutSets,
+      bpmnDetails.element.id,
+      newLayoutSetId,
+    );
+    return validationResult ? t(validationResult) : undefined;
+  };
 
   const saveNewName = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (newNameError || newName === '') {
       return false;
     }
+    mutateLayoutSetId({ layoutSetIdToUpdate: bpmnDetails.element.id, newLayoutSetId: newName });
     removeAction(bpmnDetails.element.id);
-    studioModeler.updateElementProperties({ id: newName });
-    setBpmnDetails({
-      ...bpmnDetails,
-      id: newName,
-    });
   };
 
   const cancelAction = () => {
@@ -54,7 +58,7 @@ export const RecommendedActionChangeName = (): React.ReactElement => {
         label={t('process_editor.recommended_action.new_name_label')}
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
           setNewName(event.target.value);
-          setNewNameError(validateBpmnTaskId(event.target.value));
+          setNewNameError(handleValidation(event.target.value));
         }}
         value={newName}
       />

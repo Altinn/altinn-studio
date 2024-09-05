@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { useBpmnContext } from '../../../contexts/BpmnContext';
+import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { PersonPencilIcon } from '@studio/icons';
 import { SelectUniqueFromSignaturesInDataTypes } from './SelectUniqueFromSignaturesInDataTypes';
 import classes from './EditUniqueFromSignaturesInDataTypes.module.css';
 import { getSelectedDataTypes } from './UniqueFromSignaturesInDataTypesUtils';
-import { StudioModeler } from '../../../utils/bpmnModeler/StudioModeler';
+import { StudioModeler } from '../../../../utils/bpmnModeler/StudioModeler';
 
 export const EditUniqueFromSignaturesInDataTypes = () => {
   const { t } = useTranslation();

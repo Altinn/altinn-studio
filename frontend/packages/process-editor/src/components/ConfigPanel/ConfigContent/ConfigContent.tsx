@@ -4,16 +4,17 @@ import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { EditTaskId } from './EditTaskId/EditTaskId';
 import { StudioDisplayTile, useStudioRecommendedNextActionContext } from '@studio/components';
-import { EditDataTypes } from '../EditDataTypes';
+import { EditDataTypes } from './EditDataTypes';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { Accordion } from '@digdir/designsystemet-react';
 import { EditActions } from './EditActions';
 import { EditPolicy } from './EditPolicy';
-import { EditDataTypesToSign } from '../EditDataTypesToSign';
-import { EditUniqueFromSignaturesInDataTypes } from '../EditUniqueFromSignaturesInDataTypes';
+import { EditDataTypesToSign } from './EditDataTypesToSign';
+import { EditUniqueFromSignaturesInDataTypes } from './EditUniqueFromSignaturesInDataTypes';
 import { StudioModeler } from '../../../utils/bpmnModeler/StudioModeler';
-import { RecommendedActionChangeName } from './EditTaskRecommendedActions/RecommendedActionChangeName';
+import { RecommendedActionChangeName } from './EditLayoutSetNameRecommendedAction/RecommendedActionChangeName';
 import { ConfigContentContainer } from './ConfigContentContainer';
+import { EditLayoutSetName } from '@altinn/process-editor/components/ConfigPanel/ConfigContent/EditLayoutSetName';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -53,11 +54,14 @@ export const ConfigContent = (): React.ReactElement => {
           showPadlock={false}
         />
         {taskHasConnectedLayoutSet && (
-          <EditDataTypes
-            connectedTaskId={layoutSet.tasks[0]}
-            dataModelIds={availableDataModelIds}
-            existingDataTypeForTask={existingDataTypeForTask}
-          />
+          <>
+            <EditLayoutSetName existingLayoutSetName={layoutSet.id} />
+            <EditDataTypes
+              connectedTaskId={layoutSet.tasks[0]}
+              dataModelIds={availableDataModelIds}
+              existingDataTypeForTask={existingDataTypeForTask}
+            />
+          </>
         )}
         {isSigningTask && (
           <>

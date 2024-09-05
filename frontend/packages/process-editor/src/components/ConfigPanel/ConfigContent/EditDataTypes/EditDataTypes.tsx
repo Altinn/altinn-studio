@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { LinkIcon } from '@studio/icons';
 import { SelectDataTypes } from './SelectDataTypes';
 import classes from './EditDataTypes.module.css';
-import { useBpmnContext } from '../../../contexts/BpmnContext';
+import { useBpmnContext } from '../../../../contexts/BpmnContext';
 
 export type EditDataTypesProps = {
   dataModelIds: string[];

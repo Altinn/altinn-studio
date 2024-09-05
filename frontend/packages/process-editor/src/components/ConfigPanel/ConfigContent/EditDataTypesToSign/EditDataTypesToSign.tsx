@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { LinkIcon } from '@studio/icons';
 import { SelectDataTypesToSign } from './SelectDataTypesToSign';
 import classes from './EditDataTypesToSign.module.css';
-import { useGetDataTypesToSign } from '../../../hooks/dataTypesToSign/useGetDataTypesToSign';
+import { useGetDataTypesToSign } from '../../../../hooks/dataTypesToSign/useGetDataTypesToSign';
 
 export const EditDataTypesToSign = () => {
   const { t } = useTranslation();

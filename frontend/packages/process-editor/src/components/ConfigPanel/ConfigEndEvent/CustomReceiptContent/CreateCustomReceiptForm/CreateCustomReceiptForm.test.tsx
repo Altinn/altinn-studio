@@ -38,7 +38,7 @@ describe('CreateCustomReceiptForm', () => {
     renderCreateCustomReceiptForm();
 
     const layoutSetInput = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
+      textMock('process_editor.configuration_panel_layout_set_name_label'),
     );
     const newId: string = 'newLayoutSetId';
     await user.type(layoutSetInput, newId);
@@ -149,7 +149,7 @@ describe('CreateCustomReceiptForm', () => {
     });
 
     const inputField = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
+      textMock('process_editor.configuration_panel_layout_set_name_label'),
     );
 
     await user.type(inputField, 'a');
@@ -195,7 +195,7 @@ describe('CreateCustomReceiptForm', () => {
     const invalidFormatLayoutSetName: string = 'Receipt/';
 
     const inputField = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
+      textMock('process_editor.configuration_panel_layout_set_name_label'),
     );
 
     await user.type(inputField, invalidFormatLayoutSetName);
@@ -217,7 +217,7 @@ describe('CreateCustomReceiptForm', () => {
     });
 
     const layoutSetInput = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
+      textMock('process_editor.configuration_panel_layout_set_name_label'),
     );
     await user.type(layoutSetInput, 'newLayoutSetId');
 
