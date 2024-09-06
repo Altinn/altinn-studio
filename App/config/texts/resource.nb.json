@@ -122,6 +122,14 @@
       "value": "Min Liste"
     },
     {
+      "id": "MapPage.Map.title",
+      "value": "Min Kartkomponent"
+    },
+    {
+      "id": "MapPage",
+      "value": "Kart"
+    },
+    {
       "id": "CheckboxesPage",
       "value": "Avkryssningsbokser"
     },
