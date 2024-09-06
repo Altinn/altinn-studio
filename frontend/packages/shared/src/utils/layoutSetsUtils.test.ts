@@ -62,14 +62,14 @@ describe('getLayoutSetNameForCustomReceipt', () => {
 describe('getLayoutSetIdValidationErrorKey', () => {
   it('should return error message when the user types just one character', () => {
     const newLayoutSetId = 'a';
-    expect(getLayoutSetIdValidationErrorKey({ sets: [] }, newLayoutSetId)).toBe(
+    expect(getLayoutSetIdValidationErrorKey(newLayoutSetId, { sets: [] })).toBe(
       'process_editor.configuration_panel_custom_receipt_layout_set_name_validation',
     );
   });
 
   it('should return error message when the user types whitespace', () => {
     const newLayoutSetId = ' ';
-    expect(getLayoutSetIdValidationErrorKey({ sets: [] }, newLayoutSetId)).toBe(
+    expect(getLayoutSetIdValidationErrorKey(newLayoutSetId, { sets: [] })).toBe(
       'validation_errors.required',
     );
   });
@@ -84,8 +84,15 @@ describe('getLayoutSetIdValidationErrorKey', () => {
         },
       ],
     };
-    expect(getLayoutSetIdValidationErrorKey(layoutSets, existingLayoutSetId)).toBe(
+    expect(getLayoutSetIdValidationErrorKey(existingLayoutSetId, layoutSets)).toBe(
       'process_editor.configuration_panel_layout_set_id_not_unique',
     );
+  });
+
+  it('should return null when the user types the same name as the original name', () => {
+    const existingLayoutSetId = 'layoutSetId';
+    expect(
+      getLayoutSetIdValidationErrorKey(existingLayoutSetId, { sets: [] }, existingLayoutSetId),
+    ).toBe(null);
   });
 });

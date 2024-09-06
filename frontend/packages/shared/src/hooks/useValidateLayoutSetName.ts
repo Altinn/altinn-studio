@@ -5,8 +5,16 @@ import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 export const useValidateLayoutSetName = () => {
   const { t } = useTranslation();
 
-  const validateLayoutSetName = (newLayoutSetId: string, layoutSets: LayoutSets): string => {
-    const validationResult = getLayoutSetIdValidationErrorKey(layoutSets, newLayoutSetId);
+  const validateLayoutSetName = (
+    newLayoutSetId: string,
+    layoutSets: LayoutSets,
+    oldLayoutSetId?: string,
+  ): string => {
+    const validationResult = getLayoutSetIdValidationErrorKey(
+      newLayoutSetId,
+      layoutSets,
+      oldLayoutSetId,
+    );
     return validationResult ? t(validationResult) : '';
   };
 

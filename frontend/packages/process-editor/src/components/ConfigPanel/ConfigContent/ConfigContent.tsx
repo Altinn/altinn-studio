@@ -53,16 +53,6 @@ export const ConfigContent = (): React.ReactElement => {
           className={classes.displayTile}
           showPadlock={false}
         />
-        {taskHasConnectedLayoutSet && (
-          <>
-            <EditLayoutSetName existingLayoutSetName={layoutSet.id} />
-            <EditDataTypes
-              connectedTaskId={layoutSet.tasks[0]}
-              dataModelIds={availableDataModelIds}
-              existingDataTypeForTask={existingDataTypeForTask}
-            />
-          </>
-        )}
         {isSigningTask && (
           <>
             <EditDataTypesToSign key={`${bpmnDetails.id}-dataTypes`} />
@@ -72,6 +62,21 @@ export const ConfigContent = (): React.ReactElement => {
           </>
         )}
         <Accordion color='neutral'>
+          {taskHasConnectedLayoutSet && (
+            <Accordion.Item>
+              <Accordion.Header>
+                {t('process_editor.configuration_panel_design_title')}
+              </Accordion.Header>
+              <Accordion.Content className={classes.accordion}>
+                <EditLayoutSetName existingLayoutSetName={layoutSet.id} />
+                <EditDataTypes
+                  connectedTaskId={layoutSet.tasks[0]}
+                  dataModelIds={availableDataModelIds}
+                  existingDataTypeForTask={existingDataTypeForTask}
+                />
+              </Accordion.Content>
+            </Accordion.Item>
+          )}
           <Accordion.Item>
             <Accordion.Header>
               {t('process_editor.configuration_panel_actions_title')}

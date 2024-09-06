@@ -8,9 +8,11 @@ export const getLayoutSetNameForCustomReceipt = (layoutSets: LayoutSets): string
 };
 
 export const getLayoutSetIdValidationErrorKey = (
-  layoutSets: LayoutSets,
   newLayoutSetId: string,
+  layoutSets: LayoutSets,
+  oldLayoutSetId?: string,
 ): string => {
+  if (oldLayoutSetId === newLayoutSetId) return null;
   if (!newLayoutSetId || newLayoutSetId.trim() === '') return 'validation_errors.required';
   if (!validateLayoutNameAndLayoutSetName(newLayoutSetId)) return 'ux_editor.pages_error_format';
   if (newLayoutSetId.length === 1)

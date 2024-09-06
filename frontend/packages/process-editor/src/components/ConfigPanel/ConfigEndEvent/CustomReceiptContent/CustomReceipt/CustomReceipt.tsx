@@ -47,7 +47,7 @@ export const CustomReceipt = (): React.ReactElement => {
       <div className={classes.inputFields}>
         <StudioToggleableTextfield
           customValidation={(newLayoutSetName: string) =>
-            validateLayoutSetName(newLayoutSetName, layoutSets)
+            validateLayoutSetName(newLayoutSetName, layoutSets, existingCustomReceiptLayoutSetId)
           }
           inputProps={{
             className: classes.textfield,

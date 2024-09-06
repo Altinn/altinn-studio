@@ -5,6 +5,7 @@ import { KeyVerticalIcon } from '@studio/icons';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { Paragraph } from '@digdir/designsystemet-react';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
+import { useBpmnContext } from '../../../../contexts/BpmnContext';
 
 interface EditLayoutSetNameProps {
   existingLayoutSetName: string;
@@ -13,6 +14,7 @@ export const EditLayoutSetName = ({
   existingLayoutSetName,
 }: EditLayoutSetNameProps): React.ReactElement => {
   const { t } = useTranslation();
+  const { bpmnDetails } = useBpmnContext();
   const { layoutSets, mutateLayoutSetId } = useBpmnApiContext();
   const { validateLayoutSetName } = useValidateLayoutSetName();
 
@@ -25,7 +27,7 @@ export const EditLayoutSetName = ({
   return (
     <StudioToggleableTextfield
       customValidation={(newLayoutSetName: string) =>
-        validateLayoutSetName(newLayoutSetName, layoutSets)
+        validateLayoutSetName(newLayoutSetName, layoutSets, existingLayoutSetName)
       }
       inputProps={{
         icon: <KeyVerticalIcon />,
@@ -37,7 +39,9 @@ export const EditLayoutSetName = ({
       viewProps={{
         children: (
           <Paragraph size='small'>
-            <strong>{t('process_editor.configuration_panel_layout_set_name')}</strong>
+            <strong>
+              {t('process_editor.configuration_panel_layout_set_name', { taskId: bpmnDetails.id })}
+            </strong>
             {existingLayoutSetName}
           </Paragraph>
         ),
