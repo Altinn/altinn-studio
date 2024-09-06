@@ -53,6 +53,8 @@
         <xs:element minOccurs="0" name="radioButtonInput" type="xs:string" />
         <xs:element minOccurs="0" name="checkboxesInput" type="xs:string" />
         <xs:element minOccurs="0" name="nestedInput" type="xs:string" />
+        <xs:element minOccurs="0" name="nestedInput2" type="xs:string" />
+        <xs:element minOccurs="0" name="nestedInput3" type="xs:string" />
         <xs:element name="streetnr" type="xs:string" />
         <xs:element name="postnr" type="xs:string" />
         <xs:element minOccurs="0" name="city" type="xs:string" />
@@ -63,6 +65,7 @@
         <xs:element minOccurs="0" name="multipleSelect" type="xs:string" />
         <xs:element minOccurs="0" maxOccurs="unbounded" name="repeatingGroup" type="RepeatingGroupExample" />
         <xs:element minOccurs="0" maxOccurs="3" name="nestedRepeatingGroup" type="RepeatingGroupWithNestedGroup" />
+        <xs:element minOccurs="0" name="list" type="xs:string" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

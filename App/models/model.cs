@@ -43,66 +43,71 @@ namespace Altinn.App.Models.model
     [JsonPropertyName("nestedInput")]
     public string nestedInput { get; set; }
 
-    [XmlElement("streetnr", Order = 7)]
+    [XmlElement("nestedInput2", Order = 7)]
+    [JsonProperty("nestedInput2")]
+    [JsonPropertyName("nestedInput2")]
+    public string nestedInput2 { get; set; }
+
+    [XmlElement("nestedInput3", Order = 8)]
+    [JsonProperty("nestedInput3")]
+    [JsonPropertyName("nestedInput3")]
+    public string nestedInput3 { get; set; }
+
+    [XmlElement("streetnr", Order = 9)]
     [JsonProperty("streetnr")]
     [JsonPropertyName("streetnr")]
     public string streetnr { get; set; }
 
-    [XmlElement("postnr", Order = 8)]
+    [XmlElement("postnr", Order = 10)]
     [JsonProperty("postnr")]
     [JsonPropertyName("postnr")]
     public string postnr { get; set; }
 
-    [XmlElement("city", Order = 9)]
+    [XmlElement("city", Order = 11)]
     [JsonProperty("city")]
     [JsonPropertyName("city")]
     public string city { get; set; }
 
-    [XmlElement("co", Order = 10)]
+    [XmlElement("co", Order = 12)]
     [JsonProperty("co")]
     [JsonPropertyName("co")]
     public string co { get; set; }
 
-    [XmlElement("street", Order = 11)]
+    [XmlElement("street", Order = 13)]
     [JsonProperty("street")]
     [JsonPropertyName("street")]
     public string street { get; set; }
 
-    [XmlElement("GridExample", Order = 12)]
+    [XmlElement("GridExample", Order = 14)]
     [JsonProperty("GridExample")]
     [JsonPropertyName("GridExample")]
     public GridExample GridExample { get; set; }
 
-    [XmlElement("dropdown", Order = 13)]
+    [XmlElement("dropdown", Order = 15)]
     [JsonProperty("dropdown")]
     [JsonPropertyName("dropdown")]
     public string dropdown { get; set; }
 
-    [XmlElement("multipleSelect", Order = 14)]
+    [XmlElement("multipleSelect", Order = 16)]
     [JsonProperty("multipleSelect")]
     [JsonPropertyName("multipleSelect")]
     public string multipleSelect { get; set; }
 
-    [XmlElement("repeatingGroup", Order = 15)]
+    [XmlElement("repeatingGroup", Order = 17)]
     [JsonProperty("repeatingGroup")]
     [JsonPropertyName("repeatingGroup")]
     public List<RepeatingGroupExample> repeatingGroup { get; set; }
 
-    [XmlElement("nestedRepeatingGroup", Order = 16)]
+    [XmlElement("nestedRepeatingGroup", Order = 18)]
     [JsonProperty("nestedRepeatingGroup")]
     [JsonPropertyName("nestedRepeatingGroup")]
     public List<RepeatingGroupWithNestedGroup> nestedRepeatingGroup { get; set; }
 
-    [XmlElement("nestedInput2", Order = 17)]
-    [JsonProperty("nestedInput2")]
-    [JsonPropertyName("nestedInput2")]
-    public string nestedInput2 { get; set; }
-    
-    [XmlElement("nestedInput3", Order = 18)]
-    [JsonProperty("nestedInput3")]
-    [JsonPropertyName("nestedInput3")]
-    public string nestedInput3 { get; set; }
-    
+    [XmlElement("list", Order = 19)]
+    [JsonProperty("list")]
+    [JsonPropertyName("list")]
+    public string list { get; set; }
+
   }
 
   public class GridExample
