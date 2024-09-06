@@ -1,0 +1,42 @@
+﻿[
+  {
+    Severity: Error,
+    DataElementId: Guid_1,
+    Field: Address,
+    Code: The field Address must be a string or array type with a minimum length of '44'.,
+    Description: The field Address must be a string or array type with a minimum length of '44'.,
+    Source: DataAnnotations
+  },
+  {
+    Severity: Error,
+    DataElementId: Guid_2,
+    Field: Address,
+    Code: required,
+    Description: Address is required in component with id subFormLayout.SubPage.Address for binding simpleBinding,
+    Source: Required
+  },
+  {
+    Severity: Error,
+    DataElementId: Guid_2,
+    Field: Name,
+    Code: required,
+    Description: Name is required in component with id subFormLayout.SubPage.Name for binding simpleBinding,
+    Source: Required
+  },
+  {
+    Severity: Error,
+    DataElementId: Guid_2,
+    Field: Phone,
+    Code: required,
+    Description: Phone is required in component with id subFormLayout.SubPage.Phone for binding simpleBinding,
+    Source: Required
+  },
+  {
+    Severity: Error,
+    DataElementId: Guid_3,
+    Field: Phone,
+    Code: The field Phone must match the regular expression '^\+47\d+'.,
+    Description: The field Phone must match the regular expression '^\+47\d+'.,
+    Source: DataAnnotations
+  }
+]

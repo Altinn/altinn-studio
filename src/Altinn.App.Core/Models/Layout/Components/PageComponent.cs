@@ -9,6 +9,8 @@ namespace Altinn.App.Core.Models.Layout.Components;
 [JsonConverter(typeof(PageComponentConverter))]
 public record PageComponent : GroupComponent
 {
+    private readonly string _layoutId;
+
     /// <summary>
     /// Constructor for PageComponent
     /// </summary>
@@ -24,7 +26,7 @@ public record PageComponent : GroupComponent
     )
         : base(id, "page", null, children, null, hidden, required, readOnly, extra)
     {
-        LayoutId = layoutId;
+        _layoutId = layoutId;
         ComponentLookup = componentLookup;
     }
 
@@ -32,10 +34,11 @@ public record PageComponent : GroupComponent
     public override string PageId => Id;
 
     /// <inheritdoc />
-    public override string LayoutId { get; }
+    // ReSharper disable once ConvertToAutoProperty (can't set the virtual auto property in constructor (as per sonar cloud))
+    public override string LayoutId => _layoutId;
 
     /// <summary>
-    /// Helper dictionary to find components without traversing childern.
+    /// Helper dictionary to find components without traversing children.
     /// </summary>
     public Dictionary<string, BaseComponent> ComponentLookup { get; }
 
