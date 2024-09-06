@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { createTheme, ThemeProvider } from '@material-ui/core';
 
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useIsMobile, useIsTablet } from 'src/hooks/useIsMobile';
+import { useIsMobile, useIsTablet } from 'src/hooks/useDeviceWidths';
 import { rightToLeftISOLanguageCodes } from 'src/language/languages';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 

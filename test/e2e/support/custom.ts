@@ -6,7 +6,7 @@ import type { Options as AxeOptions } from 'cypress-axe';
 
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
-import { breakpoints } from 'src/hooks/useIsMobile';
+import { breakpoints } from 'src/hooks/useDeviceWidths';
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 import type { LayoutContextValue } from 'src/features/form/layout/LayoutsContext';
 import JQueryWithSelector = Cypress.JQueryWithSelector;

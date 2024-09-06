@@ -5,7 +5,7 @@ import cn from 'classnames';
 
 import { Caption } from 'src/components/form/Caption';
 import { Lang } from 'src/features/language/Lang';
-import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
+import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { GridRowRenderer } from 'src/layout/Grid/GridComponent';
 import { useNodesFromGridRows } from 'src/layout/Grid/tools';

@@ -3,7 +3,7 @@ import React from 'react';
 import { Label } from 'src/components/label/Label';
 import { useNodeOptions } from 'src/features/options/useNodeOptions';
 import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
-import { useIsMobileOrTablet } from 'src/hooks/useIsMobile';
+import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { FileTable } from 'src/layout/FileUpload/FileUploadTable/FileTable';
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableComponent.module.css';
 import { useUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';

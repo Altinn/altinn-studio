@@ -2,7 +2,7 @@ import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Datalist } from 'test/e2e/pageobjects/datalist';
 import { Likert } from 'test/e2e/pageobjects/likert';
 
-import { breakpoints } from 'src/hooks/useIsMobile';
+import { breakpoints } from 'src/hooks/useDeviceWidths';
 import type { IGroupEditProperties } from 'src/layout/RepeatingGroup/config.generated';
 
 const appFrontend = new AppFrontend();

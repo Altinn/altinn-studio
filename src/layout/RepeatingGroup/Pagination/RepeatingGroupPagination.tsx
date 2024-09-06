@@ -6,7 +6,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from '@navikt/aksel-icons';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useIsMini, useIsMobile, useIsMobileOrTablet } from 'src/hooks/useIsMobile';
+import { useIsMini, useIsMobile, useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import classes from 'src/layout/RepeatingGroup/Pagination/RepeatingGroupPagination.module.css';
 import {
   useRepeatingGroup,
