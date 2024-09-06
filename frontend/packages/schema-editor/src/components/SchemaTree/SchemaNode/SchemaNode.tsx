@@ -14,24 +14,16 @@ import { useSavableSchemaModel } from '../../../hooks/useSavableSchemaModel';
 
 export interface SchemaNodeProps {
   pointer: string;
-  parentPointer?: string;
   uniqueParentPointer?: string;
 }
 
-export const SchemaNode = ({
-  pointer,
-  parentPointer,
-  uniqueParentPointer,
-}: SchemaNodeProps): ReactElement => {
+export const SchemaNode = ({ pointer, uniqueParentPointer }: SchemaNodeProps): ReactElement => {
   const savableModel = useSavableSchemaModel();
   const { t } = useTranslation();
   const node = savableModel.getNodeBySchemaPointer(pointer);
   const label = savableModel.isChildOfCombination(pointer) ? '' : extractNameFromPointer(pointer);
   const index = savableModel.getIndexOfChildNode(pointer);
-  const uniquePointer = savableModel.getUniquePointer(
-    pointer,
-    uniqueParentPointer || parentPointer,
-  );
+  const uniquePointer = savableModel.getUniquePointer(pointer, uniqueParentPointer);
 
   const title = label || t('schema_editor.tree.combination_child_title', { index });
   const labelWrapper = (labelComponent: ReactNode) => (

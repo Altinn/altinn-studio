@@ -5,7 +5,7 @@ import type { SavableSchemaModel } from '../../classes/SavableSchemaModel';
 export const renderSchemaNodeList = (
   schema: SavableSchemaModel,
   parentPointer?: string,
-  uniquePointer?: string,
+  uniqueParentPointer?: string,
 ) => {
   const properties = parentPointer
     ? schema.getChildNodes(parentPointer)
@@ -13,7 +13,7 @@ export const renderSchemaNodeList = (
   return properties.length ? (
     <>
       {properties.map(({ pointer }) => (
-        <SchemaNode key={pointer} pointer={pointer} parentPointer={uniquePointer} />
+        <SchemaNode key={pointer} pointer={pointer} uniqueParentPointer={uniqueParentPointer} />
       ))}
     </>
   ) : null;
