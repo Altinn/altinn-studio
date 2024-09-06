@@ -1376,6 +1376,7 @@
   "ux_editor.modal_header_type_helper": "Velg titteltype",
   "ux_editor.modal_new_option": "Legg til alternativ",
   "ux_editor.modal_properties_add_radio_button_options": "Hvordan vil du legge til radioknapper?",
+  "ux_editor.modal_properties_code_list_helper": "Velg kodeliste",
   "ux_editor.modal_properties_code_list_id": "Kodeliste-ID",
   "ux_editor.modal_properties_code_list_read_more": "<0 href=\"{{optionsDocs}}\" >Les mer om kodelister</0>",
   "ux_editor.modal_properties_component_change_id": "Komponent-ID",
