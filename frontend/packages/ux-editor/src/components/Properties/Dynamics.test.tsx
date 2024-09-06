@@ -12,13 +12,9 @@ import type { FormComponent } from '../../types/FormComponent';
 const user = userEvent.setup();
 
 // Test data:
-const conditionalRenderingTestId = 'conditional-rendering';
 const expressionsTestId = 'expressions';
 
 // Mocks:
-jest.mock('./ConditionalRendering', () => ({
-  ConditionalRendering: () => <div data-testid={conditionalRenderingTestId} />,
-}));
 jest.mock('../config/Expressions', () => ({
   Expressions: () => <div data-testid={expressionsTestId} />,
 }));
@@ -29,7 +25,6 @@ describe('Dynamics', () => {
   it('should render new expressions editor by default', async () => {
     await render();
     expect(screen.getByTestId(expressionsTestId)).toBeInTheDocument();
-    expect(screen.queryByTestId(conditionalRenderingTestId)).not.toBeInTheDocument();
   });
 
   it('should not render switch if ruleHandler is not found', async () => {
