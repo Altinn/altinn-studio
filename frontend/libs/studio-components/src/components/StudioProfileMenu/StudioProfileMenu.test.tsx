@@ -144,11 +144,13 @@ describe('StudioProfileMenu', () => {
     expect(triggerButton).toHaveAttribute('aria-label', mockAriaLabel);
   });
 
-  it('should truncate triggerButtonText if it exceeds 30 characters', () => {
+  it('should truncate triggerButtonText if it exceeds "truncateAt" characters', () => {
     const longText = 'This is a very long trigger button text that exceeds 30 characters';
-    renderStudioProfileMenu({ triggerButtonText: longText });
+    const truncateAt: number = 30;
 
-    const truncatedText = `${longText.slice(0, 30)}...`;
+    renderStudioProfileMenu({ triggerButtonText: longText, truncateAt });
+
+    const truncatedText = `${longText.slice(0, truncateAt)}...`;
     expect(screen.getByText(truncatedText)).toBeInTheDocument();
     expect(screen.getByText(truncatedText)).toHaveTextContent(truncatedText);
   });

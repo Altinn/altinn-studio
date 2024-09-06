@@ -11,6 +11,8 @@ import {
 } from '@studio/components';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 
+const TRUNCATE_APP_USERNAME = 30;
+
 export type AppUserProfileMenuProps = {
   user: User;
   repository: Repository;
@@ -49,6 +51,7 @@ export const AppUserProfileMenu = ({
       profileMenuItems={profileMenuItems}
       color={color}
       variant={variant}
+      truncateAt={TRUNCATE_APP_USERNAME}
     />
   );
 };

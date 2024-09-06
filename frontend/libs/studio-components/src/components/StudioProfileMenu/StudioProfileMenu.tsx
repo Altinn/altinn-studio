@@ -30,6 +30,7 @@ export type StudioProfileMenuProps = {
   color: StudioPageHeaderColor;
   variant: StudioPageHeaderVariant;
   ariaLabelTriggerButton: string;
+  truncateAt?: number;
 };
 
 export const StudioProfileMenu = ({
@@ -39,12 +40,13 @@ export const StudioProfileMenu = ({
   color,
   variant,
   ariaLabelTriggerButton,
+  truncateAt,
 }: StudioProfileMenuProps): ReactElement => {
   const [open, setOpen] = useState(false);
 
   const truncatedText =
-    triggerButtonText && triggerButtonText.length > 30
-      ? `${triggerButtonText.slice(0, 30)}...`
+    triggerButtonText && truncateAt
+      ? `${triggerButtonText.slice(0, truncateAt)}...`
       : triggerButtonText;
 
   const handleToggleMenu = () => {
