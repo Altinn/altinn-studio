@@ -1,8 +1,9 @@
-import { type NumericFormatProps, type PatternFormatProps } from 'react-number-format';
+import type { NumberFormatProps, PatternFormatProps } from 'src/layout/common.generated';
 
 export const isPatternFormat = (
-  numberFormat: NumericFormatProps | PatternFormatProps,
-): numberFormat is PatternFormatProps => (numberFormat as PatternFormatProps).format !== undefined;
-export const isNumericFormat = (
-  numberFormat: NumericFormatProps | PatternFormatProps,
-): numberFormat is NumericFormatProps => (numberFormat as PatternFormatProps).format === undefined;
+  format: NumberFormatProps | PatternFormatProps | undefined,
+): format is PatternFormatProps => (format ? (format as PatternFormatProps).format !== undefined : false);
+
+export const isNumberFormat = (
+  format: NumberFormatProps | PatternFormatProps | undefined,
+): format is NumberFormatProps => (format ? (format as PatternFormatProps).format === undefined : false);

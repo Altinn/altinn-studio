@@ -3,6 +3,7 @@ import path from 'path';
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend, component } from 'test/e2e/pageobjects/app-frontend';
 
+import { isNumberFormat } from 'src/layout/Input/number-format-helpers';
 import type { CompInputExternal } from 'src/layout/Input/config.generated';
 import type { CompExternal } from 'src/layout/layout';
 
@@ -841,5 +842,47 @@ describe('UI Components', () => {
     }
 
     cy.snapshot('components:map-geometries');
+  });
+
+  it('number formatting should never update/change the form data', () => {
+    cy.goto('changename');
+    cy.get(appFrontend.changeOfName.newFirstName).type('123');
+    cy.get('#choose-extra').findByText('Tall-input').click();
+    cy.gotoNavPage('numeric-fields');
+    cy.get(appFrontend.errorReport).should('not.exist');
+
+    // Fill out a specific number in the field that we'll round later when setting up decimalScale
+    cy.get('#decimalAsNumber').type('123.456789');
+    cy.get('#decimalAsNumber').should('have.value', '123,456789 flis');
+    cy.get('#decimalAsString').should('have.value', '123.456789');
+
+    cy.changeLayout((c) => {
+      if (c.id === 'decimalAsNumber' && c.type === 'Input' && isNumberFormat(c.formatting?.number)) {
+        c.formatting.number.decimalScale = 2;
+      }
+      // Also unlock the stringy field so that we can write to it
+      if (c.id === 'decimalAsString' && c.type === 'Input') {
+        delete c.readOnly;
+      }
+    });
+
+    cy.get('#decimalAsNumber').should('have.value', '123,46 flis');
+    cy.get('#decimalAsString').should('have.value', '123.456789');
+    cy.waitUntilSaved();
+
+    // Change the stringy field to see if the rounding is reflected in the number field
+    cy.get('#decimalAsString').type('{selectall}123.759358');
+    cy.get('#decimalAsNumber').should('have.value', '123,76 flis');
+    cy.get('#decimalAsString').should('have.value', '123.759358');
+
+    // Removing the decimal scale should not change the value
+    cy.changeLayout((c) => {
+      if (c.id === 'decimalAsNumber' && c.type === 'Input' && isNumberFormat(c.formatting?.number)) {
+        delete c.formatting.number.decimalScale;
+      }
+    });
+
+    cy.get('#decimalAsNumber').should('have.value', '123,759358 flis');
+    cy.get('#decimalAsString').should('have.value', '123.759358');
   });
 });

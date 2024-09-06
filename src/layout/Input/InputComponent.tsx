@@ -8,7 +8,7 @@ import { useDataModelBindings } from 'src/features/formData/useDataModelBindings
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import classes from 'src/layout/Input/InputComponent.module.css';
-import { isNumericFormat, isPatternFormat } from 'src/layout/Input/number-format-helpers';
+import { isNumberFormat, isPatternFormat } from 'src/layout/Input/number-format-helpers';
 import { useCharacterLimit } from 'src/utils/inputUtils';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -146,7 +146,10 @@ export const InputComponent: React.FunctionComponent<IInputProps> = ({ node, ove
       return (
         <PatternFormat
           value={formValue}
-          onValueChange={(values) => {
+          onValueChange={(values, sourceInfo) => {
+            if (sourceInfo.source === 'prop') {
+              return;
+            }
             setValue('simpleBinding', values.value);
           }}
           customInput={TextfieldWrapped as React.ComponentType}
@@ -157,11 +160,16 @@ export const InputComponent: React.FunctionComponent<IInputProps> = ({ node, ove
       );
     }
 
-    if (isNumericFormat(reactNumberFormatConfig.number)) {
+    if (isNumberFormat(reactNumberFormatConfig.number)) {
       return (
         <NumericFormat
           value={formValue}
-          onValueChange={(values) => {
+          onValueChange={(values, sourceInfo) => {
+            if (sourceInfo.source === 'prop') {
+              // Do not update the value if the change is from props (i.e. let's not send form data updates when
+              // visual-only decimalScale changes)
+              return;
+            }
             setValue('simpleBinding', values.value);
           }}
           onPaste={(event) => {
