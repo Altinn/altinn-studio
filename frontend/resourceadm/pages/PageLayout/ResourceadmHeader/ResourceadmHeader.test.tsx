@@ -59,7 +59,11 @@ describe('ResourceadmHeader', () => {
 
     renderResourceadmHeader();
 
-    expect(screen.getByRole('button', { name: userMock.full_name })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: textMock('shared.header_user_for_org', { user: userMock.full_name }),
+      }),
+    ).toBeInTheDocument();
   });
 
   it('should show the profile menu with all its menuitem when the avatar is clicked', async () => {
@@ -70,20 +74,16 @@ describe('ResourceadmHeader', () => {
 
     renderResourceadmHeader();
 
-    const avatarButton = screen.getByRole('button', { name: userMock.full_name });
+    const avatarButton = screen.getByRole('button', {
+      name: textMock('shared.header_user_for_org', { user: userMock.full_name }),
+    });
     await user.click(avatarButton);
-
-    const allItem = screen.getByRole('menuitem', { name: textMock('shared.header_all') });
-    expect(allItem).toBeInTheDocument();
 
     const org1Item = screen.getByRole('menuitem', { name: mockOrg1.full_name });
     expect(org1Item).toBeInTheDocument();
 
     const org2Item = screen.getByRole('menuitem', { name: mockOrg2.full_name });
     expect(org2Item).toBeInTheDocument();
-
-    const userItem = screen.getByRole('menuitem', { name: userMock.full_name });
-    expect(userItem).toBeInTheDocument();
 
     const giteaItem = screen.getByRole('menuitem', { name: textMock('shared.header_go_to_gitea') });
     expect(giteaItem).toBeInTheDocument();
@@ -100,13 +100,17 @@ describe('ResourceadmHeader', () => {
 
     renderResourceadmHeader();
 
-    const avatarButton = screen.getByRole('button', { name: userMock.full_name });
+    const avatarButton = screen.getByRole('button', {
+      name: textMock('shared.header_user_for_org', { user: userMock.full_name }),
+    });
     await user.click(avatarButton);
 
     const org1Item = screen.getByRole('menuitem', { name: mockOrg1.full_name });
     await user.click(org1Item);
 
-    expect(mockNavigate).toHaveBeenCalledWith(`/${mockOrg1.username}`);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      `/${mockOrg1.username}/${mockOrg1.username}-resources`,
+    );
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 });
