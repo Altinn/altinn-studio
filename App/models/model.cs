@@ -108,10 +108,10 @@ namespace Altinn.App.Models.model
     [JsonPropertyName("list")]
     public string list { get; set; }
 
-    [XmlElement("map", Order = 20)]
-    [JsonProperty("map")]
-    [JsonPropertyName("map")]
-    public string map { get; set; }
+    [XmlElement("mapComponent", Order = 20)]
+    [JsonProperty("mapComponent")]
+    [JsonPropertyName("mapComponent")]
+    public string mapComponent { get; set; }
 
   }
 

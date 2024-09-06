@@ -186,7 +186,7 @@
     "list": {
       "type": "string"
     },
-    "map": {
+    "mapComponent": {
       "type": "string"
     }
   }
