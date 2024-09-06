@@ -39,7 +39,7 @@
     },
     {
       "id": "InputPage.Input.title",
-      "value": "Eksempel på kort svar komponent",
+      "value": "Eksempel på kort svar komponent"
     },
     {
       "id": "InputPage.Input.Grid.title-1",
@@ -90,6 +90,10 @@
       "value": "Poeng"
     },
     {
+      "id": "InputPage.Summary2.emptyFieldText",
+      "value": "Dette er test"
+    },
+    {
       "id": "RepeatingGroup.Date",
       "value": "Dato"
     },
@@ -108,6 +112,14 @@
     {
       "id": "RepeatingGroup.ModelYear",
       "value": "Årsmodell"
+    },
+    {
+      "id": "ListPage",
+      "value": "Liste (tabell)"
+    },
+    {
+      "id": "ListPage.List.title",
+      "value": "Min Liste"
     },
     {
       "id": "CheckboxesPage",
