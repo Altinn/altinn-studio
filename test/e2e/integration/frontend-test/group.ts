@@ -818,10 +818,13 @@ describe('Group', () => {
     cy.get(appFrontend.group.mainGroupTableBody).find('tr').eq(1).should('contain.text', 'NOK 1 233');
   });
 
-  it('verify that hidden rows are not shown in summary', () => {
+  it('Non-standard modes (showAll, hideTable, onlyTable), hidden rows, editing and label visibility', () => {
     cy.interceptLayout('group', (c) => {
       if (c.id === 'summary1' && c.type === 'Summary') {
         c.largeGroup = false;
+      }
+      if (c.id === 'mainGroup' && c.type === 'RepeatingGroup' && c.edit) {
+        c.edit.mode = 'showAll';
       }
     });
     cy.goto('group');
@@ -832,10 +835,123 @@ describe('Group', () => {
     cy.get(appFrontend.group.prefill.enorm).check();
     cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
-    cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
-    cy.get(appFrontend.group.hideRepeatingGroupRow).type('1000');
+
+    function hideAllRows() {
+      // Make sure we don't have any rows open for editing before hiding them
+      cy.get(appFrontend.group.saveMainGroup).should('not.exist');
+
+      cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
+      cy.get(appFrontend.group.hideRepeatingGroupRow).type('0');
+    }
+
+    function showSomeRows() {
+      cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
+      cy.get(appFrontend.group.hideRepeatingGroupRow).type('1000');
+    }
+
+    showSomeRows();
+
+    // Testing that hidden rows are not shown in the summary
     cy.gotoNavPage('summary');
     cy.get('[data-testid="summary-repeating-row"]').should('have.length', 2);
+
+    function assertGroupLabelAsFieldSet(insideGroup: string, rowLength: number, addButtonVisbible = true) {
+      cy.findByRole('caption', { name: 'Group title' }).should('not.exist');
+      cy.findByRole('table', { name: 'Group title' }).should('not.exist');
+      cy.findByRole('group', { name: 'Group title' }).find(insideGroup).should('have.length', rowLength);
+      if (addButtonVisbible) {
+        cy.findByRole('group', { name: 'Group title' }).find(appFrontend.group.addNewItem).should('be.visible');
+      } else {
+        cy.get(appFrontend.group.addNewItem).should('not.exist');
+      }
+    }
+
+    function assertGroupLabelAsCaption(numRows: number) {
+      cy.findByRole('group', { name: 'Group title' }).should('not.exist');
+
+      cy.findByRole('table', { name: 'Group title' })
+        .find(appFrontend.group.mainGroupTableBody)
+        .find('tr')
+        .should('have.length', numRows);
+
+      // The caption itself is a role inside the table, but it does not 'contain' the table rows themselves
+      cy.findByRole('caption', { name: 'Group title' }).find(appFrontend.group.mainGroupTableBody).should('not.exist');
+
+      // The caption and table roles does not cover the add button (maybe it should? the add button is not a part of the
+      // table, but it is a part of the group component)
+      cy.findByRole('caption', { name: 'Group title' }).find(appFrontend.group.addNewItem).should('not.exist');
+      cy.findByRole('table', { name: 'Group title' }).find(appFrontend.group.addNewItem).should('not.exist');
+
+      // But the button should be visible outside the table
+      cy.get(appFrontend.group.addNewItem).should('be.visible');
+
+      // No headers should be visible when there are no rows
+      const numHeaders = numRows === 0 ? 0 : 1;
+      cy.get(appFrontend.group.mainGroup)
+        .find('tr')
+        .should('have.length', numRows + numHeaders);
+    }
+
+    cy.gotoNavPage('repeating');
+    const editContainers = '[id^="group-edit-container-mainGroup-"]';
+    cy.get(editContainers).should('have.length', 2);
+
+    // Assert that the label is a fieldset that covers all rows and the add button
+    assertGroupLabelAsFieldSet(editContainers, 2);
+
+    // Take a snapshot to make sure we don't get visual regressions for mode:showAll. Make sure we go to the next
+    // page in one of the rows in order to also snapshot the Cards component inside a repeating group edit container.
+    cy.get(editContainers).eq(1).findByRole('button', { name: 'Neste' }).click();
+    cy.get(editContainers).eq(1).should('contain.text', 'Hvem tipset deg om dette skjemaet?');
+    cy.snapshot('group:showAll');
+
+    // Verify that the label and add button still shows up when there are no rows in this mode
+    hideAllRows();
+    cy.get(editContainers).should('not.exist');
+    cy.get(appFrontend.group.mainGroupTableBody).should('not.exist');
+    assertGroupLabelAsFieldSet(editContainers, 0);
+
+    cy.changeLayout((c) => {
+      if (c.id === 'mainGroup' && c.type === 'RepeatingGroup' && c.edit) {
+        c.edit.mode = 'hideTable';
+      }
+    });
+
+    // In the hideTable mode, the table should be visible except when any row is being edited.
+    showSomeRows();
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', 2);
+    cy.get(appFrontend.group.editContainer).should('not.exist');
+
+    // When showing a table, the label is a caption inside that table
+    assertGroupLabelAsCaption(2);
+
+    // Opening a row for editing should hide the table
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').eq(0).find(appFrontend.group.edit).click();
+    cy.get(appFrontend.group.mainGroupTableBody).should('not.exist');
+    cy.get(appFrontend.group.editContainer).should('be.visible');
+    assertGroupLabelAsFieldSet(editContainers, 1, false); // No AddButton in this mode unless you close for editing
+    cy.get(appFrontend.group.saveMainGroup).clickAndGone();
+
+    hideAllRows();
+
+    // When all the rows are hidden, the label and add button should still show up in the hideTable mode, but
+    // the table should not be visible
+    assertGroupLabelAsCaption(0);
+
+    cy.changeLayout((c) => {
+      if (c.id === 'mainGroup' && c.type === 'RepeatingGroup' && c.edit) {
+        c.edit.mode = 'onlyTable';
+      }
+    });
+
+    // In the onlyTable mode, the table should be visible, and the edit container should not be visible
+    showSomeRows();
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', 2);
+    assertGroupLabelAsCaption(2);
+    cy.get(appFrontend.group.edit).should('not.exist');
+
+    hideAllRows();
+    assertGroupLabelAsCaption(0);
   });
 
   it('Adding new nodes while nodes are already being generated', () => {

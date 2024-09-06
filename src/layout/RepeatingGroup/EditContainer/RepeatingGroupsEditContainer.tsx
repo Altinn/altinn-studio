@@ -84,11 +84,17 @@ function RepeatingGroupsEditContainerInternal({
   };
 
   const isNested = typeof group.baseComponentId === 'string';
-  const saveButtonVisible =
+  let saveButtonVisible =
     !forceHideSaveButton &&
     (editForRow?.saveButton !== false || (editForRow.saveAndNextButton === true && !moreVisibleRowsAfterEditIndex));
   const saveAndNextButtonVisible =
     !forceHideSaveButton && editForRow?.saveAndNextButton === true && moreVisibleRowsAfterEditIndex;
+
+  if (editForGroup?.mode === 'hideTable' && !saveButtonVisible && !saveAndNextButtonVisible) {
+    // If the save button was not visible in this mode, it would not be
+    // possible to exit the edit mode. Therefore, we force it to be visible.
+    saveButtonVisible = true;
+  }
 
   const hideTable = editForGroup?.mode === 'hideTable' || editForGroup?.mode === 'showAll';
 
