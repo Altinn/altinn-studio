@@ -65,7 +65,7 @@ const signingTasks = [
   },
 ];
 
-jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
+jest.mock('../../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
     StudioModeler: jest.fn().mockImplementation(() => {
       return {

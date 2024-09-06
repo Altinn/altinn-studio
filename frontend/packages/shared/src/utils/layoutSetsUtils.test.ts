@@ -47,20 +47,6 @@ describe('getLayoutSetNameForCustomReceipt', () => {
     expect(getLayoutSetNameForCustomReceipt(layoutSetsWithEmptySets)).toBeUndefined();
   });
 
-  it('should return error message when the user types just one character', () => {
-    const newLayoutSetId = 'a';
-    expect(getLayoutSetIdValidationErrorKey({ sets: [] }, layoutSetName, newLayoutSetId)).toBe(
-      'process_editor.configuration_panel_custom_receipt_layout_set_name_validation',
-    );
-  });
-
-  it('should return error message when the user types whitespace', () => {
-    const newLayoutSetId = ' ';
-    expect(getLayoutSetIdValidationErrorKey({ sets: [] }, layoutSetName, newLayoutSetId)).toBe(
-      'validation_errors.required',
-    );
-  });
-
   it('should return undefined if layoutSets has a set with no task ids', () => {
     const layoutSetsWithUndefinedTasks: LayoutSets = {
       sets: [
@@ -71,5 +57,35 @@ describe('getLayoutSetNameForCustomReceipt', () => {
       ],
     };
     expect(getLayoutSetNameForCustomReceipt(layoutSetsWithUndefinedTasks)).toBeUndefined();
+  });
+});
+describe('getLayoutSetIdValidationErrorKey', () => {
+  it('should return error message when the user types just one character', () => {
+    const newLayoutSetId = 'a';
+    expect(getLayoutSetIdValidationErrorKey({ sets: [] }, newLayoutSetId)).toBe(
+      'process_editor.configuration_panel_custom_receipt_layout_set_name_validation',
+    );
+  });
+
+  it('should return error message when the user types whitespace', () => {
+    const newLayoutSetId = ' ';
+    expect(getLayoutSetIdValidationErrorKey({ sets: [] }, newLayoutSetId)).toBe(
+      'validation_errors.required',
+    );
+  });
+
+  it('should return error message when the user types an existing layout set name', () => {
+    const existingLayoutSetId = 'layoutSetId';
+    const layoutSets: LayoutSets = {
+      sets: [
+        {
+          id: existingLayoutSetId,
+          tasks: ['task_1'],
+        },
+      ],
+    };
+    expect(getLayoutSetIdValidationErrorKey(layoutSets, existingLayoutSetId)).toBe(
+      'process_editor.configuration_panel_layout_set_id_not_unique',
+    );
   });
 });

@@ -11,7 +11,10 @@ import {
   mockBpmnApiContextValue,
   mockBpmnContextValue,
 } from '../../../../../test/mocks/bpmnContextMock';
-import { getMockBpmnElementForTask, mockBpmnDetails } from '../../../../../test/mocks/bpmnDetailsMock';
+import {
+  getMockBpmnElementForTask,
+  mockBpmnDetails,
+} from '../../../../../test/mocks/bpmnDetailsMock';
 
 const existingDataTypes = [
   { id: 'dataType1', name: 'Name 1' },
@@ -63,7 +66,7 @@ const signingTasks = [
   },
 ];
 
-jest.mock('../../../utils/bpmnModeler/StudioModeler', () => {
+jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
     StudioModeler: jest.fn().mockImplementation(() => {
       return {

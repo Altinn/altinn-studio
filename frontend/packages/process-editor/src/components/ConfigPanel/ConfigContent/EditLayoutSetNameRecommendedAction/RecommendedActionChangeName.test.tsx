@@ -1,102 +1,116 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { RecommendedActionChangeName } from './RecommendedActionChangeName';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
-import { useValidateBpmnTaskId } from '../../../../hooks/useValidateBpmnId';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { StudioRecommendedNextActionContextProvider } from '@studio/components';
+import { StudioRecommendedNextActionContext } from '@studio/components';
+import { BpmnApiContext, type BpmnApiContextProps } from '../../../../contexts/BpmnApiContext';
+import { mockBpmnApiContextValue } from '../../../../../test/mocks/bpmnContextMock';
+import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
 
 jest.mock('../../../../contexts/BpmnContext', () => ({
   useBpmnContext: jest.fn(),
 }));
 
-jest.mock('../../../../hooks/useValidateBpmnId', () => ({
-  useValidateBpmnTaskId: jest.fn(),
+jest.mock('app-shared/hooks/useValidateLayoutSetName', () => ({
+  useValidateLayoutSetName: jest.fn(),
 }));
 
-jest.mock('../../../../utils/bpmnModeler/StudioModeler.ts', () => ({
-  StudioModeler: jest.fn().mockImplementation(() => ({
-    updateElementProperties: jest.fn(),
-  })),
-}));
+const removeActionMock = jest.fn();
+const validateLayoutSetNameMock = jest.fn();
 
 describe('RecommendedActionChangeName', () => {
-  const setBpmnDetails = jest.fn();
-  const validateBpmnTaskId = jest.fn();
   const DEFAULT_ID = 'test_id';
 
   beforeEach(() => {
     (useBpmnContext as jest.Mock).mockReturnValue({
       bpmnDetails: { id: DEFAULT_ID, element: { id: 'test_id' }, metadata: {} },
-      setBpmnDetails: setBpmnDetails,
-      modelerRef: { current: { get: () => ({ updateProperties: jest.fn() }) } },
     });
-    (useValidateBpmnTaskId as jest.Mock).mockReturnValue({
-      validateBpmnTaskId: validateBpmnTaskId,
+    (useValidateLayoutSetName as jest.Mock).mockReturnValue({
+      validateLayoutSetName: validateLayoutSetNameMock,
     });
     jest.clearAllMocks();
   });
 
   it('calls validation on name input', async () => {
     const user = userEvent.setup();
-    renderWithContext(<RecommendedActionChangeName />);
+    const newLayoutSetName = 'newName';
+    const mutateLayoutSetIdMock = jest.fn();
+    renderRecommendedActionChangeName({ mutateLayoutSetId: mutateLayoutSetIdMock });
     const newNameInput = screen.getByRole('textbox', {
       name: textMock('process_editor.recommended_action.new_name_label'),
     });
-    await user.type(newNameInput, 'newName');
+    await user.type(newNameInput, newLayoutSetName);
 
-    expect(validateBpmnTaskId).toHaveBeenCalledWith('newName');
+    expect(validateLayoutSetNameMock).toHaveBeenCalledTimes(newLayoutSetName.length);
+    expect(validateLayoutSetNameMock).toHaveBeenCalledWith(newLayoutSetName, expect.any(Object));
   });
 
-  it('calls saveNewName when save button is clicked with a valid name', async () => {
+  it('calls mutateLayoutSetId and removeAction when save button is clicked with a valid name', async () => {
     const user = userEvent.setup();
-    renderWithContext(<RecommendedActionChangeName />);
+    const newLayoutSetName = 'newName';
+    const mutateLayoutSetIdMock = jest.fn();
+    renderRecommendedActionChangeName({ mutateLayoutSetId: mutateLayoutSetIdMock });
     const newNameInput = screen.getByRole('textbox', {
       name: textMock('process_editor.recommended_action.new_name_label'),
     });
-    await user.type(newNameInput, 'newName');
-
+    await user.type(newNameInput, newLayoutSetName);
     const saveButton = screen.getByRole('button', { name: textMock('general.save') });
-    fireEvent.submit(saveButton);
+    await user.click(saveButton);
 
-    expect(setBpmnDetails).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: 'newName',
-      }),
-    );
+    expect(mutateLayoutSetIdMock).toHaveBeenCalledTimes(1);
+    expect(mutateLayoutSetIdMock).toHaveBeenCalledWith({
+      layoutSetIdToUpdate: DEFAULT_ID,
+      newLayoutSetId: newLayoutSetName,
+    });
+    expect(removeActionMock).toHaveBeenCalledTimes(1);
   });
 
-  it('calls saveNewName when pressing enter in input field', async () => {
+  it('calls mutateLayoutSetId and removeAction when pressing enter in input field', async () => {
     const user = userEvent.setup();
-    renderWithContext(<RecommendedActionChangeName />);
+    const newLayoutSetName = 'newName';
+    const mutateLayoutSetIdMock = jest.fn();
+    renderRecommendedActionChangeName({ mutateLayoutSetId: mutateLayoutSetIdMock });
     const newNameInput = screen.getByRole('textbox', {
       name: textMock('process_editor.recommended_action.new_name_label'),
     });
-    await user.type(newNameInput, 'newName{enter}');
-
-    expect(setBpmnDetails).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: 'newName',
-      }),
-    );
+    await user.type(newNameInput, `${newLayoutSetName}{enter}`);
+    expect(mutateLayoutSetIdMock).toHaveBeenCalledTimes(1);
+    expect(mutateLayoutSetIdMock).toHaveBeenCalledWith({
+      layoutSetIdToUpdate: DEFAULT_ID,
+      newLayoutSetId: newLayoutSetName,
+    });
+    expect(removeActionMock).toHaveBeenCalledTimes(1);
   });
 
-  it('calls cancelAction when skip button is clicked', async () => {
+  it('calls removeAction, but not mutateLayoutSetId, when skip button is clicked', async () => {
     const user = userEvent.setup();
-    renderWithContext(<RecommendedActionChangeName />);
+    const mutateLayoutSetIdMock = jest.fn();
+    renderRecommendedActionChangeName({ mutateLayoutSetId: mutateLayoutSetIdMock });
 
     const skipButton = screen.getByRole('button', { name: textMock('general.skip') });
     await user.click(skipButton);
 
-    expect(setBpmnDetails).not.toHaveBeenCalled();
+    expect(mutateLayoutSetIdMock).not.toHaveBeenCalled();
+    expect(removeActionMock).toHaveBeenCalledTimes(1);
   });
 
-  const renderWithContext = (children) => {
+  const renderRecommendedActionChangeName = (
+    bpmnApiContextProps: Partial<BpmnApiContextProps> = {},
+  ) => {
     render(
-      <StudioRecommendedNextActionContextProvider>
-        {children}
-      </StudioRecommendedNextActionContextProvider>,
+      <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
+        <StudioRecommendedNextActionContext.Provider
+          value={{
+            removeAction: removeActionMock,
+            shouldDisplayAction: jest.fn(),
+            addAction: jest.fn(),
+          }}
+        >
+          <RecommendedActionChangeName />
+        </StudioRecommendedNextActionContext.Provider>
+      </BpmnApiContext.Provider>,
     );
   };
 });

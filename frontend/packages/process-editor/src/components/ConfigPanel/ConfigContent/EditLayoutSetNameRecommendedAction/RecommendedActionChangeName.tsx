@@ -7,26 +7,18 @@ import {
 import { KeyVerticalIcon } from '@studio/icons';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getLayoutSetIdValidationErrorKey } from 'app-shared/utils/layoutSetsUtils';
 import { useBpmnApiContext } from '@altinn/process-editor/contexts/BpmnApiContext';
+import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
 
 export const RecommendedActionChangeName = (): React.ReactElement => {
   const { bpmnDetails } = useBpmnContext();
   const { layoutSets, mutateLayoutSetId } = useBpmnApiContext();
+  const { validateLayoutSetName } = useValidateLayoutSetName();
   const { t } = useTranslation();
   const { removeAction } = useStudioRecommendedNextActionContext();
 
   const [newName, setNewName] = useState('');
   const [newNameError, setNewNameError] = useState('');
-
-  const handleValidation = (newLayoutSetId: string): string => {
-    const validationResult = getLayoutSetIdValidationErrorKey(
-      layoutSets,
-      bpmnDetails.element.id,
-      newLayoutSetId,
-    );
-    return validationResult ? t(validationResult) : undefined;
-  };
 
   const saveNewName = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -58,7 +50,7 @@ export const RecommendedActionChangeName = (): React.ReactElement => {
         label={t('process_editor.recommended_action.new_name_label')}
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
           setNewName(event.target.value);
-          setNewNameError(handleValidation(event.target.value));
+          setNewNameError(validateLayoutSetName(event.target.value, layoutSets));
         }}
         value={newName}
       />
