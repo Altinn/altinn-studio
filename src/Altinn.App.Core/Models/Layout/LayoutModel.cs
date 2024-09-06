@@ -8,7 +8,7 @@ namespace Altinn.App.Core.Models.Layout;
 /// <summary>
 /// Class for handling a full layout/layoutset
 /// </summary>
-public record LayoutModel
+public class LayoutModel
 {
     private readonly List<LayoutSetComponent> _layouts;
     private readonly Dictionary<string, LayoutSetComponent> _layoutsLookup;
@@ -125,7 +125,7 @@ public record LayoutModel
                     {
                         // concatenate [...indexes, index]
                         var subIndexes = new int[(indexes?.Length ?? 0) + 1];
-                        indexes.CopyTo(subIndexes.AsSpan());
+                        indexes?.CopyTo(subIndexes.AsSpan());
                         subIndexes[^1] = index;
 
                         children.Add(

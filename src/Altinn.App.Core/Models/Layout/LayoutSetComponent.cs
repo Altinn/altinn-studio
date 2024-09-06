@@ -56,6 +56,6 @@ public record LayoutSetComponent
     {
         var dataType = DefaultDataType.Id;
         return instance.Data.Find(d => d.DataType == dataType)
-            ?? throw new ArgumentException($"Data element with type {DefaultDataType} not found");
+            ?? throw new ArgumentException($"Data element with type {dataType} not found");
     }
 }

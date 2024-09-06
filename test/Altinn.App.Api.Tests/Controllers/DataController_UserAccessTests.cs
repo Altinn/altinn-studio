@@ -28,10 +28,10 @@ public class DataController_UserAccessTests : ApiTestBase, IClassFixture<WebAppl
     }
 
     [Theory]
-    [InlineData("userInteractionUnspecified", null, HttpStatusCode.BadRequest)]
+    [InlineData("userInteractionUnspecified", null, HttpStatusCode.Created)]
     [InlineData("userInteractionUnspecified", OrgId, HttpStatusCode.Created)]
-    [InlineData("userCreateEnabled", null, HttpStatusCode.Created)]
-    [InlineData("userCreateEnabled", OrgId, HttpStatusCode.Created)]
+    [InlineData("disallowUserCreate", null, HttpStatusCode.BadRequest)]
+    [InlineData("disallowUserCreate", OrgId, HttpStatusCode.Created)]
     public async Task CreateDataElement_ImplementsAndValidates_AllowUserCreateProperty(
         string dataModelId,
         string? tokenOrgClaim,
@@ -52,10 +52,10 @@ public class DataController_UserAccessTests : ApiTestBase, IClassFixture<WebAppl
     }
 
     [Theory]
-    [InlineData("userInteractionUnspecified", null, HttpStatusCode.BadRequest)]
+    [InlineData("userInteractionUnspecified", null, HttpStatusCode.OK)]
     [InlineData("userInteractionUnspecified", OrgId, HttpStatusCode.OK)]
-    [InlineData("userDeleteEnabled", null, HttpStatusCode.OK)]
-    [InlineData("userDeleteEnabled", OrgId, HttpStatusCode.OK)]
+    [InlineData("disallowUserDelete", null, HttpStatusCode.OK)]
+    [InlineData("disallowUserDelete", OrgId, HttpStatusCode.OK)]
     public async Task DeleteDataElement_ImplementsAndValidates_AllowUserDeleteProperty(
         string dataModelId,
         string? tokenOrgClaim,

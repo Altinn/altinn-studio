@@ -78,26 +78,26 @@
             ]
         },
         {
-            "id": "userCreateEnabled",
+            "id": "disallowUserCreate",
             "allowedContentTypes": [
                 "application/xml"
             ],
             "maxCount": 10,
             "appLogic": {
                 "ClassRef": "Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema",
-                "allowUserCreate": true
+                "disallowUserCreate": true
             },
             "taskId": "Task_1"
         },
         {
-            "id": "userDeleteEnabled",
+            "id": "disallowUserDelete",
             "allowedContentTypes": [
                 "application/xml"
             ],
             "maxCount": 10,
             "appLogic": {
                 "ClassRef": "Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema",
-                "allowUserDelete": true
+                "diallowUserDelete": true
             },
             "taskId": "Task_1"
         }
