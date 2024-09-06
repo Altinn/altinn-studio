@@ -172,7 +172,7 @@ public class DataController : ControllerBase
 
             if (dataTypeFromMetadata.AppLogic is not null)
             {
-                if (!dataTypeFromMetadata.AppLogic.AllowUserCreate && !UserHasValidOrgClaim())
+                if (dataTypeFromMetadata.AppLogic.DisallowUserCreate && !UserHasValidOrgClaim())
                 {
                     return BadRequest($"Element type `{dataType}` cannot be manually created.");
                 }
@@ -660,7 +660,7 @@ public class DataController : ControllerBase
 
             if (
                 dataType.AppLogic?.ClassRef is not null
-                && !dataType.AppLogic.AllowUserDelete
+                && dataType.AppLogic.DisallowUserDelete
                 && !UserHasValidOrgClaim()
             )
             {

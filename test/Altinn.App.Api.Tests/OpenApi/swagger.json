@@ -5051,10 +5051,10 @@
           "autoDeleteOnProcessEnd": {
             "type": "boolean"
           },
-          "allowUserCreate": {
+          "disallowUserCreate": {
             "type": "boolean"
           },
-          "allowUserDelete": {
+          "disallowUserDelete": {
             "type": "boolean"
           },
           "allowInSubform": {
@@ -5155,6 +5155,11 @@
           },
           "copyInstanceSettings": {
             "$ref": "#/components/schemas/CopyInstanceSettings"
+          },
+          "storageContainerNumber": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           },
           "disallowUserInstantiation": {
             "type": "boolean"

@@ -3100,9 +3100,9 @@ components:
           type: boolean
         autoDeleteOnProcessEnd:
           type: boolean
-        allowUserCreate:
+        disallowUserCreate:
           type: boolean
-        allowUserDelete:
+        disallowUserDelete:
           type: boolean
         allowInSubform:
           type: boolean
@@ -3176,6 +3176,10 @@ components:
           $ref: '#/components/schemas/MessageBoxConfig'
         copyInstanceSettings:
           $ref: '#/components/schemas/CopyInstanceSettings'
+        storageContainerNumber:
+          type: integer
+          format: int32
+          nullable: true
         disallowUserInstantiation:
           type: boolean
         id:

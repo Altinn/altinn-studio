@@ -152,6 +152,7 @@ public static class LayoutEvaluator
         ComponentContext context
     )
     {
+        ArgumentNullException.ThrowIfNull(context.Component);
         var hidden = await context.IsHidden(state);
         if (!hidden)
         {
@@ -161,7 +162,7 @@ public static class LayoutEvaluator
             }
 
             var required = await ExpressionEvaluator.EvaluateBooleanExpression(state, context, "required", false);
-            if (required && context.Component is not null)
+            if (required)
             {
                 foreach (var (bindingName, binding) in context.Component.DataModelBindings)
                 {
