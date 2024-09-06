@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import type { FC } from 'react';
 
-import { useCurrentDataModelSchemaLookup } from 'src/features/datamodel/DataModelSchemaProvider';
+import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { formatLayoutSchemaValidationError } from 'src/features/devtools/utils/layoutSchemaValidation';
 import { getNodeDef } from 'src/layout';
 import { GeneratorStages } from 'src/utils/layout/generator/GeneratorStages';
@@ -30,11 +30,11 @@ export function NodePropertiesValidation<T extends CompTypes>(props: NodeValidat
 
 function DataModelValidation<T extends CompTypes>({ node, intermediateItem }: NodeValidationProps<T>) {
   const addError = NodesInternal.useAddError();
-  const schemaLookup = useCurrentDataModelSchemaLookup();
+  const lookupBinding = DataModels.useLookupBinding();
   const nodeDataSelector = NodesInternal.useNodeDataSelector();
 
   const errors = useMemo(() => {
-    if (window.forceNodePropertiesValidation === 'off') {
+    if (!lookupBinding || window.forceNodePropertiesValidation === 'off') {
       return [];
     }
 
@@ -46,14 +46,14 @@ function DataModelValidation<T extends CompTypes>({ node, intermediateItem }: No
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         item: intermediateItem as CompIntermediate<any>,
         nodeDataSelector,
-        lookupBinding: (binding: string) => schemaLookup.getSchemaForPath(binding),
+        lookupBinding,
       };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return node.def.validateDataModelBindings(ctx as any);
     }
 
     return [];
-  }, [intermediateItem, node, schemaLookup, nodeDataSelector]);
+  }, [intermediateItem, node, lookupBinding, nodeDataSelector]);
 
   // Must run after nodes have been added for the errors to actually be added
   GeneratorStages.MarkHidden.useEffect(() => {

@@ -15,7 +15,7 @@ import type { IApplicationSettings, ILanguage } from 'src/types/shared';
 
 export type LimitedTextResourceVariablesDataSources = Omit<
   TextResourceVariablesDataSources,
-  'node' | 'currentDataModel' | 'currentDataModelName' | 'transposeSelector'
+  'node' | 'defaultDataType' | 'formDataTypes' | 'formDataSelector' | 'transposeSelector'
 >;
 export interface LangDataSources extends LimitedTextResourceVariablesDataSources {
   textResources: TextResourceMap;

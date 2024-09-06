@@ -4,6 +4,8 @@ import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { AxiosError } from 'axios';
 
+import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { Form } from 'src/components/form/Form';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -28,7 +30,7 @@ describe('ErrorReport', () => {
                   id: 'input',
                   type: 'Input',
                   dataModelBindings: {
-                    simpleBinding: 'boundField',
+                    simpleBinding: { dataType: defaultDataTypeMock, field: 'boundField' },
                   },
                 },
               ],
@@ -92,6 +94,7 @@ describe('ErrorReport', () => {
       {
         customTextKey: 'some unbound mapped error',
         field: 'unboundField',
+        dataElementId: defaultMockDataElementId,
         severity: BackendValidationSeverity.Error,
         source: 'custom',
       } as BackendValidationIssue,
@@ -111,6 +114,7 @@ describe('ErrorReport', () => {
       {
         customTextKey: 'some mapped error',
         field: 'boundField',
+        dataElementId: defaultMockDataElementId,
         severity: BackendValidationSeverity.Error,
         source: 'custom',
       } as BackendValidationIssue,

@@ -3,6 +3,8 @@ import React from 'react';
 import { screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { Form } from 'src/components/form/Form';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -15,7 +17,7 @@ describe('Form', () => {
       id: 'field1',
       type: 'Input',
       dataModelBindings: {
-        simpleBinding: 'Group.prop1',
+        simpleBinding: { dataType: defaultDataTypeMock, field: 'Group.prop1' },
       },
       textResourceBindings: {
         title: 'First title',
@@ -27,7 +29,7 @@ describe('Form', () => {
       id: 'field2',
       type: 'Input',
       dataModelBindings: {
-        simpleBinding: 'Group.prop2',
+        simpleBinding: { dataType: defaultDataTypeMock, field: 'Group.prop2' },
       },
       textResourceBindings: {
         title: 'Second title',
@@ -39,7 +41,7 @@ describe('Form', () => {
       id: 'field3',
       type: 'Input',
       dataModelBindings: {
-        simpleBinding: 'Group.prop3',
+        simpleBinding: { dataType: defaultDataTypeMock, field: 'Group.prop3' },
       },
       textResourceBindings: {
         title: 'Third title',
@@ -73,7 +75,7 @@ describe('Form', () => {
         id: 'non-rep-child',
         type: 'Input',
         dataModelBindings: {
-          simpleBinding: 'Group.prop3',
+          simpleBinding: { dataType: defaultDataTypeMock, field: 'Group.prop3' },
         },
         textResourceBindings: {
           title: 'Title from non repeating child',
@@ -102,7 +104,7 @@ describe('Form', () => {
         id: 'panel-group-child',
         type: 'Input',
         dataModelBindings: {
-          simpleBinding: 'Group.prop3',
+          simpleBinding: { dataType: defaultDataTypeMock, field: 'Group.prop3' },
         },
         textResourceBindings: {
           title: 'Title from panel child',
@@ -141,6 +143,7 @@ describe('Form', () => {
       {
         customTextKey: 'some error message',
         field: 'Group.prop1',
+        dataElementId: defaultMockDataElementId,
         source: 'custom',
         severity: BackendValidationSeverity.Error,
         showImmediately: true,
@@ -166,6 +169,7 @@ describe('Form', () => {
         {
           code: 'some unmapped error message',
           field: 'Group[0].prop1',
+          dataElementId: defaultMockDataElementId,
           severity: BackendValidationSeverity.Error,
           source: 'custom',
         } as BackendValidationIssue,
@@ -191,6 +195,7 @@ describe('Form', () => {
         {
           customTextKey: 'some error message',
           field: 'Group.prop1',
+          dataElementId: defaultMockDataElementId,
           source: 'custom',
           severity: BackendValidationSeverity.Error,
           showImmediately: true,

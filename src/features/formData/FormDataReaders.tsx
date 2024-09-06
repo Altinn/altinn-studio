@@ -4,13 +4,15 @@ import type { PropsWithChildren } from 'react';
 import dot from 'dot-object';
 
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
+import { getFirstDataElementId } from 'src/features/applicationMetadata/appMetadataUtils';
 import { useAvailableDataModels } from 'src/features/datamodel/useAvailableDataModels';
 import { useDataModelUrl } from 'src/features/datamodel/useBindingSchema';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
+import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useAsRef } from 'src/hooks/useAsRef';
-import { getUrlWithLanguage } from 'src/utils/urls/urlHelper';
+import type { IDataModelReference } from 'src/layout/common.generated';
 
 type ReaderMap = { [name: string]: DataModelReader };
 
@@ -35,11 +37,11 @@ export class DataModelReader {
     protected status: Status = 'loading',
   ) {}
 
-  getAsString(path: string): string | undefined {
-    if (!this.model) {
+  getAsString(reference: IDataModelReference): string | undefined {
+    if (!this.model || this.name !== reference.dataType) {
       return undefined;
     }
-    const realValue = dot.pick(path, this.model);
+    const realValue = dot.pick(reference.field, this.model);
     if (typeof realValue === 'string' || typeof realValue === 'number' || typeof realValue === 'boolean') {
       return realValue.toString();
     }
@@ -193,7 +195,10 @@ export function DataModelFetcher() {
 }
 
 function SpecificDataModelFetcher({ reader, isAvailable }: { reader: DataModelReader; isAvailable: boolean }) {
-  const url = getUrlWithLanguage(useDataModelUrl(false, reader.getName()), useCurrentLanguage());
+  const instance = useLaxInstanceData();
+  const dataType = reader.getName();
+  const dataElementId = getFirstDataElementId(instance, dataType);
+  const url = useDataModelUrl({ includeRowIds: false, dataType, dataElementId, language: useCurrentLanguage() });
   const enabled = isAvailable && reader.isLoading();
   const { data, error } = useFormDataQuery(enabled ? url : undefined);
   const { updateModel } = useCtx();

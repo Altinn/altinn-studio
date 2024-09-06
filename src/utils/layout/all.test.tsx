@@ -93,11 +93,6 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
     .filter((set) => set.isValid())
     .map((set) => ({ appName: set.app.getName(), setName: set.getName(), set }));
 
-  const appsToSkip = ['multiple-datamodels-test'];
-  const filteredSets = allSets.filter(
-    ({ set }) => !appsToSkip.map((app) => set.app.getName().includes(app)).some((x) => x),
-  );
-
   async function testSet(set: ExternalAppLayoutSet) {
     window.location.hash = set.simulateValidUrlHash();
     const [org, app] = set.app.getOrgApp();
@@ -149,12 +144,12 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
     expect(alwaysFail).toBe(false);
   }
 
-  it.each(filteredSets)('$appName/$setName', async ({ set }) => testSet(set));
+  it.each(allSets)('$appName/$setName', async ({ set }) => testSet(set));
 
   if (env.parsed?.ALTINN_ALL_APPS_TEST_FOR_LAST_QUIRK === 'true') {
     it(`last quirk`, async () => {
       const lastQuirk = Object.keys(quirks).at(-1);
-      const found = filteredSets.find(({ set }) => {
+      const found = allSets.find(({ set }) => {
         const [org, app] = set.app.getOrgApp();
         return `${org}/${app}/${set.getName()}` === lastQuirk;
       });

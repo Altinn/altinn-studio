@@ -10,6 +10,7 @@ import { breakpoints } from 'src/hooks/useDeviceWidths';
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 import type { LayoutContextValue } from 'src/features/form/layout/LayoutsContext';
 import JQueryWithSelector = Cypress.JQueryWithSelector;
+import type { BackendValidationIssue } from 'src/features/validation';
 import type { ILayoutFile } from 'src/layout/common.generated';
 
 const appFrontend = new AppFrontend();
@@ -619,6 +620,76 @@ Cypress.Commands.add(
       });
     }),
 );
+
+Cypress.Commands.add('runAllBackendValidations', () => {
+  cy.intercept('PATCH', '**/data', (req) => {
+    req.body.ignoredValidators = [];
+  }).as('runBackendValidations');
+});
+
+Cypress.Commands.add('getNextPatchValidations', (result) => {
+  // We don't want to accidentally intercept a request caused by a change before this method is called
+  cy.waitUntilSaved();
+
+  // Clear existing data first
+  cy.then(() => {
+    result.validations = null;
+  });
+  cy.intercept({ method: 'PATCH', url: '**/data', times: 1 }, (req) => {
+    req.on('response', (res) => {
+      // Consider finding out what data element id corresponds to each type at the beginning of the test instead, for more explicit checking
+      result.validations = res.body.validationIssues;
+    });
+  }).as('getNextValidations');
+});
+
+Cypress.Commands.add('expectValidationToExist', (result, group, predicate) => {
+  cy.wrap(result, { log: false }).should(({ validations }) => {
+    const ready = Boolean(validations);
+    if (ready) {
+      expect(ready, 'Found validations from backend').to.be.true;
+    } else {
+      expect(ready, 'Did not find validations from backend').to.be.true;
+    }
+
+    const validation = validations?.[group]?.find((v: BackendValidationIssue) => predicate(v));
+    if (validation) {
+      expect(
+        validation,
+        `Backend validation with predicate ${predicate.toString().replaceAll('\n', ' ')} exists in validation group '${group}'`,
+      ).to.exist;
+    } else {
+      expect(
+        validation,
+        `Unable to find backend validation with predicate ${predicate.toString().replaceAll('\n', ' ')}} in validation group '${group}'. Validations: ${JSON.stringify(validations?.[group])}.`,
+      ).to.exist;
+    }
+  });
+});
+
+Cypress.Commands.add('expectValidationNotToExist', (result, group, predicate) => {
+  cy.wrap(result, { log: false }).should(({ validations }) => {
+    const ready = Boolean(validations);
+    if (ready) {
+      expect(ready, 'Found validations from backend').to.be.true;
+    } else {
+      expect(ready, 'Did not find validations from backend').to.be.true;
+    }
+
+    const validation = validations?.[group]?.find((v) => predicate(v));
+    if (!validation) {
+      expect(
+        validation,
+        `Backend validation with predicate ${predicate.toString().replaceAll('\n', ' ')} does not exist in validation group '${group}'`,
+      ).not.to.exist;
+    } else {
+      expect(
+        validation,
+        `Expected backend validation with predicate ${predicate.toString().replaceAll('\n', ' ')}} not to exist in validation group '${group}'. Validations: ${JSON.stringify(validations?.[group])}.`,
+      ).not.to.exist;
+    }
+  });
+});
 
 Cypress.Commands.add('allowFailureOnEnd', function () {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

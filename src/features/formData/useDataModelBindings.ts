@@ -5,7 +5,7 @@ import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import type { FDLeafValue } from 'src/features/formData/FormDataWrite';
 import type { FDNewValue } from 'src/features/formData/FormDataWriteStateMachine';
-import type { SaveWhileTyping } from 'src/layout/common.generated';
+import type { IDataModelReference, SaveWhileTyping } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
 
 // Describes how you want the data to be returned from the useDataModelBindings hook. Usually, if you're
@@ -18,13 +18,12 @@ type DataAs = 'raw' | 'string';
 type DataType<DA extends DataAs> = DA extends 'raw' ? unknown : string;
 interface Output<B extends IDataModelBindings | undefined, DA extends DataAs> {
   formData: B extends undefined ? Record<string, never> : { [key in keyof B]: DataType<DA> };
-  debounce: () => void;
   setValue: (key: keyof Exclude<B, undefined>, value: FDLeafValue) => void;
   setValues: (values: Partial<{ [key in keyof B]: FDLeafValue }>) => void;
   isValid: { [key in keyof B]: boolean };
 }
 
-type SaveOptions = Omit<FDNewValue, 'path' | 'newValue' | 'schema'>;
+type SaveOptions = Omit<FDNewValue, 'reference' | 'newValue' | 'schema'>;
 
 const defaultBindings = {};
 
@@ -42,7 +41,6 @@ export function useDataModelBindings<B extends IDataModelBindings | undefined, D
 
   const setLeafValue = FD.useSetLeafValue();
   const setMultiLeafValue = FD.useSetMultiLeafValues();
-  const debounce = FD.useDebounceImmediately();
   const formData = FD.useFreshBindings(bindings, dataAs);
   const isValid = FD.useBindingsAreValid(bindings);
 
@@ -59,7 +57,7 @@ export function useDataModelBindings<B extends IDataModelBindings | undefined, D
   const setValue = useCallback(
     (key: keyof B, newValue: FDLeafValue) =>
       setLeafValue({
-        path: bindings[key] as string,
+        reference: bindings[key] as IDataModelReference,
         newValue,
         ...saveOptions,
       }),
@@ -71,7 +69,7 @@ export function useDataModelBindings<B extends IDataModelBindings | undefined, D
       const newValues: FDNewValue[] = [];
       Object.entries(values).forEach(([key, value]) => {
         newValues.push({
-          path: bindings[key as keyof B] as string,
+          reference: bindings[key as keyof B] as IDataModelReference,
           newValue: value as FDLeafValue,
         });
       });
@@ -84,7 +82,7 @@ export function useDataModelBindings<B extends IDataModelBindings | undefined, D
   );
 
   return useMemo(
-    () => ({ formData: formData as Output<B, DA>['formData'], debounce, setValue, setValues, isValid }),
-    [debounce, formData, isValid, setValue, setValues],
+    () => ({ formData: formData as Output<B, DA>['formData'], setValue, setValues, isValid }),
+    [formData, isValid, setValue, setValues],
   );
 }

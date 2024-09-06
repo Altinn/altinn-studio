@@ -8,6 +8,7 @@ import type { IInstantiationButtonComponentProvidedProps } from 'src/layout/Inst
 
 type Props = Omit<React.PropsWithChildren<IInstantiationButtonComponentProvidedProps>, 'text'>;
 
+// TODO(Datamodels): This uses mapping and therefore only supports the "default" data model
 export const InstantiationButton = ({ children, ...props }: Props) => {
   const { instantiateWithPrefill, error, isLoading } = useInstantiation();
   const prefill = FD.useMapping(props.mapping);

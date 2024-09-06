@@ -1,3 +1,4 @@
+import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import type { CompRepeatingGroupExternal } from 'src/layout/RepeatingGroup/config.generated';
 
 export const getFormLayoutRepeatingGroupMock = (
@@ -8,7 +9,7 @@ export const getFormLayoutRepeatingGroupMock = (
   children: ['field1', 'field2', 'field3', 'field4'],
   maxCount: 8,
   dataModelBindings: {
-    group: 'some-group',
+    group: { dataType: defaultDataTypeMock, field: 'some-group' },
   },
   ...customMock,
 });

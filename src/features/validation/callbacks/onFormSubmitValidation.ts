@@ -65,7 +65,7 @@ export function useOnFormSubmitValidation() {
     );
 
     if (nodesWithAnyError !== ContextNotProvided && nodesWithAnyError.length > 0) {
-      setNodeVisibility(nodesWithAnyError, ValidationMask.All);
+      setNodeVisibility(nodesWithAnyError, ValidationMask.AllIncludingBackend);
       return true;
     }
 
@@ -75,7 +75,9 @@ export function useOnFormSubmitValidation() {
      */
     const backendMask = getVisibilityMask(['Backend', 'CustomBackend']);
     const hasFieldErrors =
-      Object.values(state.fields).flatMap((field) => selectValidations(field, backendMask, 'error')).length > 0;
+      Object.values(state.dataModels)
+        .flatMap((fields) => Object.values(fields))
+        .flatMap((field) => selectValidations(field, backendMask, 'error')).length > 0;
 
     if (hasFieldErrors) {
       setShowAllErrors(true);

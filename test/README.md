@@ -34,7 +34,7 @@ npx cypress run --env environment=tt02 -s 'test/e2e/integration/*/*.ts'
 
 1. Clone [app-localtest](https://github.com/Altinn/app-localtest) and follow the [instructions in the README](https://github.com/Altinn/app-localtest/blob/main/README.md) to start the local environment.
 
-2. Clone one or more of the apps we've made automatic tests for:
+1. Clone one or more of the apps we've made automatic tests for:
 
 - [ttd/frontend-test](https://dev.altinn.studio/repos/ttd/frontend-test)
 - [ttd/anonymous-stateless-app](https://dev.altinn.studio/repos/ttd/anonymous-stateless-app)
@@ -43,6 +43,7 @@ npx cypress run --env environment=tt02 -s 'test/e2e/integration/*/*.ts'
 - [ttd/expression-validation-test](https://dev.altinn.studio/repos/ttd/expression-validation-test)
 - [ttd/payment-test](https://dev.altinn.studio/repos/ttd/payment-test)
 - [ttd/component-library](https://altinn.studio/repos/ttd/component-library.git)
+- [ttd/multiple-datamodels-test](https://dev.altinn.studio/repos/ttd/multiple-datamodels-test)
 
 3. Start the app you want to test:
 

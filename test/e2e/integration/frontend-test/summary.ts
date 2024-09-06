@@ -35,6 +35,7 @@ describe('Summary', () => {
     cy.gotoNavPage('form');
     cy.fillOut('changename');
     cy.gotoNavPage('summary');
+    cy.waitUntilSaved();
     cy.get(appFrontend.backButton).should('be.visible');
 
     // Summary displays change button for editable fields and does not for readonly fields
@@ -654,7 +655,10 @@ function injectExtraPageAndSetTriggers(pageValidationConfig?: PageValidation | u
             title: 'Page3required',
           },
           dataModelBindings: {
-            simpleBinding: 'etatid',
+            simpleBinding: {
+              field: 'etatid',
+              dataType: 'ServiceModel-test',
+            },
           },
           required: true,
         },

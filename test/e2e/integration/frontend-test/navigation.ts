@@ -2,6 +2,14 @@ import type { IncomingApplicationMetadata } from 'src/features/applicationMetada
 
 describe('Navigation', () => {
   it('Should redirect to the current task and the first page of that task when navigating directly to the instance', () => {
+    /**
+     * This test has twice been able to reproduce a bug where stale form data is fetched from the tanstack query client
+     * when loading initial data to the form data provider, which causes us to try to PATCH form data later with an
+     * outdated initial model (causing a 409). This test is not made to reproduce the bug, but try to avoid
+     * changing the exact implementation so that the bug will be easier to reproduce if it happens again.
+     * @see updateQueryCache
+     */
+
     cy.intercept('PATCH', '**/data/**').as('saveFormData');
     cy.goto('changename');
 

@@ -7,6 +7,7 @@ import { CalendarIcon } from '@navikt/aksel-icons';
 import moment from 'moment';
 import type { MaterialUiPickersDate } from '@material-ui/pickers/typings/date';
 
+import { FD } from 'src/features/formData/FormDataWrite';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -129,7 +130,8 @@ export function DatepickerComponent({ node, overrideDisplay }: IDatepickerProps)
   const calculatedFormat = getDateFormat(format, languageLocale);
   const isMobile = useIsMobile();
 
-  const { setValue, debounce, formData } = useDataModelBindings(dataModelBindings);
+  const { setValue, formData } = useDataModelBindings(dataModelBindings);
+  const debounce = FD.useDebounceImmediately();
   const value = formData.simpleBinding;
   const dateValue = moment(formData.simpleBinding, moment.ISO_8601);
   const [date, input] = dateValue.isValid() ? [dateValue, undefined] : [null, value ?? ''];

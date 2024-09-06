@@ -18,10 +18,10 @@ export const Config = new CG.component({
 })
   .addDataModelBinding(
     new CG.obj(
-      new CG.prop('simpleBinding', new CG.str().optional()),
+      new CG.prop('simpleBinding', new CG.dataModelBinding().optional()),
       new CG.prop(
         'geometries',
-        new CG.str()
+        new CG.dataModelBinding()
           .optional()
           .setDescription('Should point to an array of objects like {data: string, label: string}'),
       ),

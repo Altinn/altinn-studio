@@ -21,8 +21,8 @@ export function MultipleSelectComponent({ node, overrideDisplay }: IMultipleSele
   const item = useNodeItem(node);
   const isValid = useIsValid(node);
   const { id, readOnly, textResourceBindings, alertOnChange } = item;
-  const debounce = FD.useDebounceImmediately();
   const { options, isFetching, selectedValues, setData } = useGetOptions(node, 'multi');
+  const debounce = FD.useDebounceImmediately();
   const { langAsString, lang } = useLanguage(node);
 
   const changeMessageGenerator = useCallback(

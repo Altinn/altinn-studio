@@ -17,7 +17,7 @@ export const Config = new CG.component({
   },
 })
   .addDataModelBinding(
-    new CG.obj().optional().additionalProperties(new CG.str()).exportAs('IDataModelBindingsForCustom'),
+    new CG.obj().optional().additionalProperties(new CG.dataModelBinding()).exportAs('IDataModelBindingsForCustom'),
   )
   .addTextResource(
     new CG.trb({

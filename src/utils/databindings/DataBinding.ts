@@ -1,3 +1,5 @@
+import type { IDataModelReference } from 'src/layout/common.generated';
+
 /**
  * Simple class to let you work with (and mutate) a data model binding (possibly including array index accessors)
  * It breaks the data binding into DataBindingPart classes.
@@ -5,16 +7,19 @@
 export class DataBinding {
   public readonly parts: DataBindingPart[];
 
-  public constructor(public readonly binding: string) {
-    this.parts = binding.split('.').map((part, index) => new DataBindingPart(this, index, part));
+  public constructor(public readonly binding: IDataModelReference) {
+    this.parts = binding.field.split('.').map((part, index) => new DataBindingPart(this, index, part));
   }
 
   public at(index: number): DataBindingPart | undefined {
     return this.parts[index];
   }
 
-  public toString(): string {
-    return this.parts.map((part) => part.toString()).join('.');
+  public export(): IDataModelReference {
+    return {
+      dataType: this.binding.dataType,
+      field: this.parts.map((part) => part.toString()).join('.'),
+    };
   }
 }
 
@@ -50,8 +55,8 @@ export class DataBindingPart {
 }
 
 interface TransposeDataBindingParams {
-  subject: string;
-  currentLocation: string;
+  subject: IDataModelReference;
+  currentLocation: IDataModelReference;
   rowIndex?: number;
   currentLocationIsRepGroup?: boolean;
 }
@@ -61,7 +66,11 @@ export function transposeDataBinding({
   currentLocation,
   rowIndex,
   currentLocationIsRepGroup,
-}: TransposeDataBindingParams): string {
+}: TransposeDataBindingParams): IDataModelReference {
+  if (currentLocation.dataType !== subject.dataType) {
+    return subject;
+  }
+
   const ourBinding = new DataBinding(currentLocation);
   const theirBinding = new DataBinding(subject);
   const lastIdx = ourBinding.parts.length - 1;
@@ -88,5 +97,5 @@ export function transposeDataBinding({
     theirs.arrayIndex = arrayIndex;
   }
 
-  return theirBinding.toString();
+  return theirBinding.export();
 }

@@ -4,6 +4,7 @@ import { jest } from '@jest/globals';
 import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { ListComponent } from 'src/layout/List/ListComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
@@ -84,9 +85,9 @@ const render = async ({ component, ...rest }: Partial<RenderGenericComponentTest
         FlagLink: 'FlagLink',
       },
       dataModelBindings: {
-        Name: 'CountryName',
-        Population: 'CountryPopulation',
-        HighestMountain: 'CountryHighestMountain',
+        Name: { dataType: defaultDataTypeMock, field: 'CountryName' },
+        Population: { dataType: defaultDataTypeMock, field: 'CountryPopulation' },
+        HighestMountain: { dataType: defaultDataTypeMock, field: 'CountryHighestMountain' },
       },
       sortableColumns: ['population', 'highestMountain'],
       pagination: paginationData,
@@ -155,9 +156,9 @@ describe('ListComponent', () => {
     expect(formDataMethods.setMultiLeafValues).toHaveBeenCalledWith({
       debounceTimeout: undefined,
       changes: [
-        { path: 'CountryName', newValue: 'Sweden' },
-        { path: 'CountryPopulation', newValue: 10 },
-        { path: 'CountryHighestMountain', newValue: 1738 },
+        { reference: { field: 'CountryName', dataType: defaultDataTypeMock }, newValue: 'Sweden' },
+        { reference: { field: 'CountryPopulation', dataType: defaultDataTypeMock }, newValue: 10 },
+        { reference: { field: 'CountryHighestMountain', dataType: defaultDataTypeMock }, newValue: 1738 },
       ],
     });
     expect(screen.getByTestId('render-count')).toHaveTextContent('2');
@@ -168,9 +169,9 @@ describe('ListComponent', () => {
     expect(formDataMethods.setMultiLeafValues).toHaveBeenCalledWith({
       debounceTimeout: undefined,
       changes: [
-        { path: 'CountryName', newValue: 'Denmark' },
-        { path: 'CountryPopulation', newValue: 6 },
-        { path: 'CountryHighestMountain', newValue: 170 },
+        { reference: { field: 'CountryName', dataType: defaultDataTypeMock }, newValue: 'Denmark' },
+        { reference: { field: 'CountryPopulation', dataType: defaultDataTypeMock }, newValue: 6 },
+        { reference: { field: 'CountryHighestMountain', dataType: defaultDataTypeMock }, newValue: 170 },
       ],
     });
     expect(screen.getByTestId('render-count')).toHaveTextContent('3');

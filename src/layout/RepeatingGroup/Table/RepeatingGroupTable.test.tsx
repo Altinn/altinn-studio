@@ -6,6 +6,7 @@ import ResizeObserverModule from 'resize-observer-polyfill';
 import { v4 as uuidv4 } from 'uuid';
 
 import { getFormLayoutRepeatingGroupMock } from 'src/__mocks__/getFormLayoutGroupMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import {
   RepeatingGroupProvider,
@@ -41,7 +42,7 @@ describe('RepeatingGroupTable', () => {
       id: 'field1',
       type: 'Input',
       dataModelBindings: {
-        simpleBinding: 'some-group.prop1',
+        simpleBinding: { dataType: defaultDataTypeMock, field: 'some-group.prop1' },
       },
       showValidations: [],
       textResourceBindings: {
@@ -54,7 +55,7 @@ describe('RepeatingGroupTable', () => {
       id: 'field2',
       type: 'Input',
       dataModelBindings: {
-        simpleBinding: 'some-group.prop2',
+        simpleBinding: { dataType: defaultDataTypeMock, field: 'some-group.prop2' },
       },
       showValidations: [],
       textResourceBindings: {
@@ -67,7 +68,7 @@ describe('RepeatingGroupTable', () => {
       id: 'field3',
       type: 'Input',
       dataModelBindings: {
-        simpleBinding: 'some-group.prop3',
+        simpleBinding: { dataType: defaultDataTypeMock, field: 'some-group.prop3' },
       },
       showValidations: [],
       textResourceBindings: {
@@ -80,7 +81,7 @@ describe('RepeatingGroupTable', () => {
       id: 'field4',
       type: 'Checkboxes',
       dataModelBindings: {
-        simpleBinding: 'some-group.checkboxBinding',
+        simpleBinding: { dataType: defaultDataTypeMock, field: 'some-group.checkboxBinding' },
       },
       showValidations: [],
       textResourceBindings: {
@@ -131,7 +132,7 @@ describe('RepeatingGroupTable', () => {
 
       expect(formDataMethods.removeFromListCallback).toBeCalledTimes(1);
       expect(formDataMethods.removeFromListCallback).toBeCalledWith({
-        path: 'some-group',
+        reference: { field: 'some-group', dataType: defaultDataTypeMock },
         startAtIndex: 0,
         callback: expect.any(Function),
       });

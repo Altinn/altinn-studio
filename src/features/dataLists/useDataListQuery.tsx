@@ -21,16 +21,20 @@ export const useDataListQuery = (
   dataListId: string,
   secure?: boolean,
   mapping?: IMapping,
+  queryParameters?: Record<string, string>,
 ): UseQueryResult<IDataList> => {
   const { fetchDataList } = useAppQueries();
   const selectedLanguage = useCurrentLanguage();
   const instanceId = useLaxInstance()?.instanceId;
-  const mappedData = FD.useMapping(mapping);
+  const mappingResult = FD.useMapping(mapping);
   const { pageSize, pageNumber, sortColumn, sortDirection } = filter || {};
 
   const url = getDataListsUrl({
     dataListId,
-    mappedData,
+    queryParameters: {
+      ...mappingResult,
+      ...queryParameters,
+    },
     language: selectedLanguage,
     secure,
     instanceId,

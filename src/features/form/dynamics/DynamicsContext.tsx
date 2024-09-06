@@ -6,7 +6,7 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
-import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSetId';
+import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import type { IFormDynamics } from 'src/features/form/dynamics';
 

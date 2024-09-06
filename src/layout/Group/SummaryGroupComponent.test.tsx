@@ -2,6 +2,7 @@ import React from 'react';
 
 import { jest } from '@jest/globals';
 
+import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { SummaryGroupComponent } from 'src/layout/Group/SummaryGroupComponent';
 import { renderWithNode } from 'src/test/renderWithProviders';
@@ -60,7 +61,7 @@ describe('SummaryGroupComponent', () => {
                   type: 'RepeatingGroup',
                   id: 'groupComponent',
                   dataModelBindings: {
-                    group: 'mockGroup',
+                    group: { dataType: defaultDataTypeMock, field: 'mockGroup' },
                   },
                   textResourceBindings: {
                     title: 'mockGroupTitle',
@@ -75,7 +76,7 @@ describe('SummaryGroupComponent', () => {
                   type: 'Input',
                   id: 'mockId1',
                   dataModelBindings: {
-                    simpleBinding: 'mockGroup.mockDataBinding1',
+                    simpleBinding: { dataType: defaultDataTypeMock, field: 'mockGroup.mockDataBinding1' },
                   },
                   readOnly: false,
                   required: false,
@@ -87,7 +88,7 @@ describe('SummaryGroupComponent', () => {
                   type: 'Input',
                   id: 'mockId2',
                   dataModelBindings: {
-                    simpleBinding: 'mockGroup.mockDataBinding2',
+                    simpleBinding: { dataType: defaultDataTypeMock, field: 'mockGroup.mockDataBinding2' },
                   },
                   readOnly: false,
                   required: false,

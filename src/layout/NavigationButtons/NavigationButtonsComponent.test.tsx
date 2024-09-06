@@ -2,6 +2,7 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
+import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { NavigationButtonsComponent } from 'src/layout/NavigationButtons/NavigationButtonsComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { CompNavigationButtonsExternal } from 'src/layout/NavigationButtons/config.generated';
@@ -41,7 +42,7 @@ describe('NavigationButtons', () => {
                   type: 'Input',
                   id: 'mockId1',
                   dataModelBindings: {
-                    simpleBinding: 'mockDataBinding1',
+                    simpleBinding: { dataType: defaultDataTypeMock, field: 'mockDataBinding1' },
                   },
                   readOnly: false,
                   required: false,
@@ -58,7 +59,7 @@ describe('NavigationButtons', () => {
                   type: 'Input',
                   id: 'mockId2',
                   dataModelBindings: {
-                    simpleBinding: 'mockDataBinding2',
+                    simpleBinding: { dataType: defaultDataTypeMock, field: 'mockDataBinding2' },
                   },
                   readOnly: false,
                   required: false,

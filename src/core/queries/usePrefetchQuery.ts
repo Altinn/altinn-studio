@@ -6,7 +6,6 @@ export type QueryDefinition<T> = {
   queryFn: QueryFunction<T> | SkipToken;
   enabled?: boolean;
   gcTime?: UseQueryOptions<T>['gcTime'];
-  staleTime?: UseQueryOptions<T>['staleTime'];
   refetchInterval?: UseQueryOptions<T>['refetchInterval'];
 };
 

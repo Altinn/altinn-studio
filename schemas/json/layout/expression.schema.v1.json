@@ -169,10 +169,11 @@
     },
     "func-dataModel": {
       "title": "Data model lookup function",
-      "description": "This function will look up a value in the data model, using the JSON dot notation for referencing the data model structure. Relative positioning inside repeating groups will be resolved automatically if no positional indexes are specified.",
+      "description": "This function will look up a value in the data model, using the JSON dot notation for referencing the data model structure. Relative positioning inside repeating groups will be resolved automatically if no positional indexes are specified. The final parameter is optional and specifies the data type to look up.",
       "type": "array",
       "items": [
         { "const":  "dataModel" },
+        { "$ref": "#/definitions/string" },
         { "$ref": "#/definitions/string" }
       ],
       "additionalItems": false

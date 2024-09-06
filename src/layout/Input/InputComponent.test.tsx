@@ -3,6 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { InputComponent } from 'src/layout/Input/InputComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
@@ -44,7 +45,10 @@ describe('InputComponent', () => {
     await userEvent.type(inputComponent, typedValue);
 
     expect(inputComponent).toHaveValue(typedValue);
-    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'some.field', newValue: typedValue });
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
+      reference: { field: 'some.field', dataType: defaultDataTypeMock },
+      newValue: typedValue,
+    });
     expect(inputComponent).toHaveValue(typedValue);
   });
 
@@ -74,7 +78,10 @@ describe('InputComponent', () => {
     await userEvent.tab();
 
     expect(inputComponent).toHaveValue(finalValueFormatted);
-    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'some.field', newValue: finalValuePlainText });
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
+      reference: { field: 'some.field', dataType: defaultDataTypeMock },
+      newValue: finalValuePlainText,
+    });
   });
 
   it('should show aria-describedby if textResourceBindings.description is present', async () => {
@@ -112,7 +119,10 @@ describe('InputComponent', () => {
     const inputComponent = screen.getByRole('textbox');
     await userEvent.type(inputComponent, typedValue);
     expect(inputComponent).toHaveValue(formattedValue);
-    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'some.field', newValue: typedValue });
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
+      reference: { field: 'some.field', dataType: defaultDataTypeMock },
+      newValue: typedValue,
+    });
     expect(inputComponent).toHaveValue(formattedValue);
   });
 
@@ -132,7 +142,10 @@ describe('InputComponent', () => {
     const inputComponent = screen.getByRole('textbox');
     await userEvent.type(inputComponent, typedValue);
     expect(inputComponent).toHaveValue(formattedValue);
-    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'some.field', newValue: typedValue });
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
+      reference: { field: 'some.field', dataType: defaultDataTypeMock },
+      newValue: typedValue,
+    });
     expect(inputComponent).toHaveValue(formattedValue);
   });
 
@@ -145,7 +158,7 @@ describe('InputComponent', () => {
         readOnly: false,
         required: false,
         dataModelBindings: {
-          simpleBinding: 'some.field',
+          simpleBinding: { dataType: defaultDataTypeMock, field: 'some.field' },
         },
         ...component,
       },

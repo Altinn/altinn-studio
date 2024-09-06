@@ -60,7 +60,7 @@ export const LayoutInspector = () => {
 
         if (currentView) {
           window.queryClient.setQueriesData<LayoutContextValue>(
-            { queryKey: ['formLayouts', currentLayoutSetId, true] },
+            { queryKey: ['formLayouts', currentLayoutSetId] },
             (_queryData) => {
               const queryData = structuredClone(_queryData);
               if (!queryData?.layouts?.[currentView]) {

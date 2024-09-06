@@ -1,5 +1,7 @@
 import type { IInstance } from 'src/types/shared';
 
+export const defaultMockDataElementId = '4f2610c9-911a-46a3-bc2d-5191602193f4';
+
 export function getInstanceDataMock(mutate?: (data: IInstance) => void): IInstance {
   const out: IInstance = {
     instanceOwner: {
@@ -10,7 +12,7 @@ export function getInstanceDataMock(mutate?: (data: IInstance) => void): IInstan
     created: new Date('2020-01-01').toISOString(),
     data: [
       {
-        id: '4f2610c9-911a-46a3-bc2d-5191602193f4',
+        id: defaultMockDataElementId,
         instanceGuid: '91cefc5e-c47b-40ff-a8a4-05971205f783',
         dataType: 'test-data-model',
         contentType: 'application/xml',

@@ -50,11 +50,7 @@
             "dataModelBindings": {
               "simpleBinding": "Bedrifter.Ansatte.Alder"
             },
-            "hidden": [
-              "if",
-              ["dataModel", "Bedrifter.Ansatte.AlderSkjult"],
-              true
-            ]
+            "hidden": ["if", ["dataModel", "Bedrifter.Ansatte.AlderSkjult"], true]
           },
           {
             "id": "myndig",
@@ -79,7 +75,8 @@
           {
             "altinnRowId": "company0-emplyee0",
             "Navn": "Kaare",
-            "Alder": 24
+            "Alder": 24,
+            "AlderSkjult": false
           },
           {
             "altinnRowId": "company0-emplyee1",
@@ -110,6 +107,6 @@
   "context": {
     "component": "alder",
     "currentLayout": "Page1",
-    "rowIndices": [1,0]
+    "rowIndices": [1, 0]
   }
 }

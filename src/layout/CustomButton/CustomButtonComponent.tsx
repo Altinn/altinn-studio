@@ -5,7 +5,6 @@ import { Button } from '@digdir/designsystemet-react';
 import { useMutation } from '@tanstack/react-query';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
-import { useCurrentDataModelGuid } from 'src/features/datamodel/useBindingSchema';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { Lang } from 'src/features/language/Lang';
@@ -28,6 +27,12 @@ type UpdatedDataModels = {
   [dataModelGuid: string]: object;
 };
 
+/**
+ * This is the format we get from app-lib, it turns out mapping BackendValidationIssueGroups on a per-dataelement basis is unecessary,
+ * and so this mapping is simply un-done after receiving it. To avoid breaking changes which would require handling multiple
+ * formats in app-frontend, we decided to leave it as is for now, as it does not have any practical consequences. In a future
+ * major/breaking release which would require a specific backend version, this could be changed to simply return a single BackendValidationIssueGroups object.
+ */
 type UpdatedValidationIssues = {
   [dataModelGuid: string]: BackendValidationIssueGroups;
 };
@@ -56,7 +61,6 @@ const isClientAction = (action: CBTypes.CustomAction): action is CBTypes.ClientA
 const isServerAction = (action: CBTypes.CustomAction): action is CBTypes.ServerAction => action.type === 'ServerAction';
 
 function useHandleClientActions(): UseHandleClientActions {
-  const currentDataModelGuid = useCurrentDataModelGuid();
   const { navigateToPage, navigateToNextPage, navigateToPreviousPage } = useNavigatePage();
 
   const frontendActions: ClientActionHandlers = useMemo(
@@ -93,23 +97,28 @@ function useHandleClientActions(): UseHandleClientActions {
 
   const handleDataModelUpdate: UseHandleClientActions['handleDataModelUpdate'] = useCallback(
     async (lockTools, result) => {
-      const newDataModel =
-        currentDataModelGuid && result.updatedDataModels ? result.updatedDataModels[currentDataModelGuid] : undefined;
-      const validationIssues =
-        currentDataModelGuid && result.updatedValidationIssues
-          ? result.updatedValidationIssues[currentDataModelGuid]
-          : undefined;
+      const updatedDataModels = result.updatedDataModels;
+      const _updatedValidationIssues = result.updatedValidationIssues;
 
-      if (newDataModel && validationIssues) {
-        lockTools.unlock({
-          newDataModel,
-          validationIssues,
-        });
-      } else {
-        lockTools.unlock();
-      }
+      // Undo data element mapping from backend by combining sources into a single BackendValidationIssueGroups object
+      const updatedValidationIssues = _updatedValidationIssues
+        ? Object.values(_updatedValidationIssues).reduce((issueGroups, currentGroups) => {
+            for (const [source, group] of Object.entries(currentGroups)) {
+              if (!issueGroups[source]) {
+                issueGroups[source] = [];
+              }
+              issueGroups[source].push(...group);
+              return issueGroups;
+            }
+          }, {})
+        : undefined;
+
+      lockTools.unlock({
+        updatedDataModels,
+        updatedValidationIssues,
+      });
     },
-    [currentDataModelGuid],
+    [],
   );
 
   return { handleClientActions, handleDataModelUpdate };

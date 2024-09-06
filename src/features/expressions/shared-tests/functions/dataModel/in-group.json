@@ -51,18 +51,26 @@
       }
     }
   },
-  "dataModel": {
-    "Mennesker": [
-      {
-        "altinnRowId": "person0",
-        "Navn": "Kåre",
-        "Alder": 24
+  "dataModels": [
+    {
+      "dataElement": {
+        "id": "345",
+        "dataType": "default"
       },
-      {
-        "altinnRowId": "person1",
-        "Navn": "Arild",
-        "Alder": 14
+      "data": {
+        "Mennesker": [
+          {
+            "altinnRowId": "person0",
+            "Navn": "Kåre",
+            "Alder": 24
+          },
+          {
+            "altinnRowId": "person1",
+            "Navn": "Arild",
+            "Alder": 14
+          }
+        ]
       }
-    ]
-  }
+    }
+  ]
 }

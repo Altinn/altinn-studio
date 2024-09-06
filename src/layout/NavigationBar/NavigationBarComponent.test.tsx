@@ -3,6 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { NavigationBarComponent } from 'src/layout/NavigationBar/NavigationBarComponent';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
@@ -34,7 +35,7 @@ const render = async () =>
                   title: 'page1',
                 },
                 dataModelBindings: {
-                  simpleBinding: 'InternInformasjon.periodeFritekst',
+                  simpleBinding: { dataType: defaultDataTypeMock, field: 'InternInformasjon.periodeFritekst' },
                 },
                 required: true,
                 readOnly: false,
@@ -56,7 +57,7 @@ const render = async () =>
                   title: 'page2',
                 },
                 dataModelBindings: {
-                  simpleBinding: 'InternInformasjon.raNummer',
+                  simpleBinding: { dataType: defaultDataTypeMock, field: 'InternInformasjon.raNummer' },
                 },
                 required: true,
                 readOnly: false,
@@ -78,7 +79,10 @@ const render = async () =>
                   title: 'page3',
                 },
                 dataModelBindings: {
-                  simpleBinding: 'InternInformasjon.sendtFraSluttbrukersystem',
+                  simpleBinding: {
+                    dataType: defaultDataTypeMock,
+                    field: 'InternInformasjon.sendtFraSluttbrukersystem',
+                  },
                 },
                 required: true,
                 readOnly: false,

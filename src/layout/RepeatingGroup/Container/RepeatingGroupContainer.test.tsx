@@ -6,6 +6,8 @@ import { userEvent } from '@testing-library/user-event';
 import { v4 as uuidv4 } from 'uuid';
 
 import { getFormLayoutRepeatingGroupMock } from 'src/__mocks__/getFormLayoutGroupMock';
+import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
 import { RepeatingGroupContainer } from 'src/layout/RepeatingGroup/Container/RepeatingGroupContainer';
@@ -37,7 +39,7 @@ async function render({ container, numRows = 3, validationIssues = [] }: IRender
       id: 'field1',
       type: 'Input',
       dataModelBindings: {
-        simpleBinding: 'Group.prop1',
+        simpleBinding: { dataType: defaultDataTypeMock, field: 'Group.prop1' },
       },
       showValidations: [],
       textResourceBindings: {
@@ -50,7 +52,7 @@ async function render({ container, numRows = 3, validationIssues = [] }: IRender
       id: 'field2',
       type: 'Input',
       dataModelBindings: {
-        simpleBinding: 'Group.prop2',
+        simpleBinding: { dataType: defaultDataTypeMock, field: 'Group.prop2' },
       },
       showValidations: [],
       textResourceBindings: {
@@ -63,7 +65,7 @@ async function render({ container, numRows = 3, validationIssues = [] }: IRender
       id: 'field3',
       type: 'Input',
       dataModelBindings: {
-        simpleBinding: 'Group.prop3',
+        simpleBinding: { dataType: defaultDataTypeMock, field: 'Group.prop3' },
       },
       showValidations: [],
       textResourceBindings: {
@@ -76,7 +78,7 @@ async function render({ container, numRows = 3, validationIssues = [] }: IRender
       id: 'field4',
       type: 'Checkboxes',
       dataModelBindings: {
-        simpleBinding: 'Group.checkboxBinding',
+        simpleBinding: { dataType: defaultDataTypeMock, field: 'Group.checkboxBinding' },
       },
       showValidations: [],
       textResourceBindings: {
@@ -92,7 +94,7 @@ async function render({ container, numRows = 3, validationIssues = [] }: IRender
     ...mockContainer,
     ...container,
     dataModelBindings: {
-      group: 'Group',
+      group: { dataType: defaultDataTypeMock, field: 'Group' },
     },
   });
 
@@ -218,6 +220,7 @@ describe('RepeatingGroupContainer', () => {
         {
           customTextKey: 'Feltet er feil',
           field: 'Group[0].prop1',
+          dataElementId: defaultMockDataElementId,
           severity: BackendValidationSeverity.Error,
           source: 'custom',
         } as BackendValidationIssue,
@@ -245,6 +248,7 @@ describe('RepeatingGroupContainer', () => {
         {
           customTextKey: 'Feltet er feil',
           field: 'Group[0].prop1',
+          dataElementId: defaultMockDataElementId,
           severity: BackendValidationSeverity.Error,
           source: 'custom',
         } as BackendValidationIssue,

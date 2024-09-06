@@ -24,9 +24,8 @@ export function DropdownComponent({ node, overrideDisplay }: IDropdownProps) {
   const { id, readOnly, textResourceBindings, alertOnChange } = item;
   const { langAsString, lang } = useLanguage(node);
 
-  const debounce = FD.useDebounceImmediately();
-
   const { options, isFetching, selectedValues, setData, key } = useGetOptions(node, 'single');
+  const debounce = FD.useDebounceImmediately();
 
   const changeMessageGenerator = useCallback(
     (values: string[]) => {

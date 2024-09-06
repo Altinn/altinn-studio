@@ -26,7 +26,16 @@ const defaultBindings: IDataModelBindingsForList = {};
 
 export const ListComponent = ({ node }: IListProps) => {
   const item = useNodeItem(node);
-  const { tableHeaders, pagination, sortableColumns, tableHeadersMobile, mapping, secure, dataListId } = item;
+  const {
+    tableHeaders,
+    pagination,
+    sortableColumns,
+    tableHeadersMobile,
+    mapping,
+    queryParameters,
+    secure,
+    dataListId,
+  } = item;
   const { langAsString, language, lang } = useLanguage();
   const [pageSize, setPageSize] = useState<number>(pagination?.default || 0);
   const [pageNumber, setPageNumber] = useState<number>(0);
@@ -42,8 +51,7 @@ export const ListComponent = ({ node }: IListProps) => {
       }) as Filter,
     [pageNumber, pageSize, sortColumn, sortDirection],
   );
-  const { data } = useDataListQuery(filter, dataListId, secure, mapping);
-
+  const { data } = useDataListQuery(filter, dataListId, secure, mapping, queryParameters);
   const calculatedDataList = (data && data.listItems) || defaultDataList;
 
   const bindings = item.dataModelBindings || defaultBindings;

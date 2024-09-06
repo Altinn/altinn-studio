@@ -435,7 +435,7 @@ function useExtendedRepeatingGroupState(node: LayoutNode<'RepeatingGroup'>): Ext
     }
     const uuid = uuidv4();
     appendToList({
-      path: groupBinding,
+      reference: groupBinding,
       newValue: { [ALTINN_ROW_ID]: uuid },
     });
     startAddingRow(uuid);
@@ -484,7 +484,7 @@ function useExtendedRepeatingGroupState(node: LayoutNode<'RepeatingGroup'>): Ext
       const attachmentDeletionSuccessful = await onBeforeRowDeletion(row.index);
       if (attachmentDeletionSuccessful && groupBinding) {
         removeFromList({
-          path: groupBinding,
+          reference: groupBinding,
           startAtIndex: row.index,
           callback: (item) => item[ALTINN_ROW_ID] === row.uuid,
         });

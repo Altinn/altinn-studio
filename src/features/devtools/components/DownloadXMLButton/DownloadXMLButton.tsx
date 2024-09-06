@@ -5,7 +5,6 @@ import { Button, Fieldset } from '@digdir/designsystemet-react';
 import { DownloadIcon, UploadIcon } from '@navikt/aksel-icons';
 import axios from 'axios';
 
-import { useCurrentDataModelUrl } from 'src/features/datamodel/useBindingSchema';
 import { useIsInFormContext } from 'src/features/form/FormContext';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 
@@ -20,7 +19,8 @@ export function DownloadXMLButton() {
 
 const InnerDownloadXMLButton = () => {
   const instance = useLaxInstanceData();
-  const dataUrl = useCurrentDataModelUrl(false);
+  // TODO(Datamodels): How should this work with multiple data models?
+  const dataUrl = ''; //useCurrentDataModelUrl(false);
 
   const downloadXML = async () => {
     if (dataUrl) {
@@ -57,6 +57,7 @@ const InnerDownloadXMLButton = () => {
           variant='secondary'
           size='small'
           onClick={downloadXML}
+          disabled={true}
         >
           {
             <DownloadIcon
@@ -78,6 +79,7 @@ const InnerDownloadXMLButton = () => {
               })}
               variant='secondary'
               size='small'
+              disabled={true}
             >
               {
                 <UploadIcon

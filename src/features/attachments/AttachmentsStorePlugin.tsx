@@ -240,12 +240,12 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
               }
               if (action.dataModelBindings && 'list' in action.dataModelBindings) {
                 appendToListUnique({
-                  path: action.dataModelBindings.list,
+                  reference: action.dataModelBindings.list,
                   newValue: reply.id,
                 });
               } else if (action.dataModelBindings && 'simpleBinding' in action.dataModelBindings) {
                 setLeafValue({
-                  path: action.dataModelBindings.simpleBinding,
+                  reference: action.dataModelBindings.simpleBinding,
                   newValue: reply.id,
                 });
               }
@@ -370,12 +370,12 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
               await removeAttachment(action.attachment.data.id);
               if (action.dataModelBindings && 'list' in action.dataModelBindings) {
                 removeValueFromList({
-                  path: action.dataModelBindings.list,
+                  reference: action.dataModelBindings.list,
                   value: action.attachment.data.id,
                 });
               } else if (action.dataModelBindings && 'simpleBinding' in action.dataModelBindings) {
                 setLeafValue({
-                  path: action.dataModelBindings.simpleBinding,
+                  reference: action.dataModelBindings.simpleBinding,
                   newValue: undefined,
                 });
               }

@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import { evalQueryParameters } from 'src/features/options/evalQueryParameters';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { ListDef } from 'src/layout/List/config.def.generated';
 import { ListComponent } from 'src/layout/List/ListComponent';
@@ -11,7 +12,7 @@ import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation
 import type { DisplayDataProps } from 'src/features/displayData';
 import type { ComponentValidation, ValidationDataSources } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -25,10 +26,16 @@ export class List extends ListDef {
   getDisplayData(node: LayoutNode<'List'>, { nodeFormDataSelector, nodeDataSelector }: DisplayDataProps): string {
     const formData = nodeFormDataSelector(node);
     const dmBindings = nodeDataSelector((picker) => picker(node)?.layout.dataModelBindings, [node]);
-    const dmBindingForSummary = nodeDataSelector((picker) => picker(node)?.item?.bindingToShowInSummary, [node]);
-    for (const [key, binding] of Object.entries(dmBindings || {})) {
-      if (binding == dmBindingForSummary) {
-        return formData[key] || '';
+    const summaryBinding = nodeDataSelector((picker) => picker(node)?.item?.summaryBinding, [node]);
+    const legacySummaryBinding = nodeDataSelector((picker) => picker(node)?.item?.bindingToShowInSummary, [node]);
+
+    if (summaryBinding && dmBindings) {
+      return formData[summaryBinding] ?? '';
+    } else if (legacySummaryBinding && dmBindings) {
+      for (const [key, binding] of Object.entries(dmBindings)) {
+        if (binding.field === legacySummaryBinding) {
+          return formData[key] ?? '';
+        }
       }
     }
 
@@ -66,13 +73,13 @@ export class List extends ListDef {
       return [];
     }
 
-    const fields = Object.values(dataModelBindings);
+    const references = Object.values(dataModelBindings);
     const validations: ComponentValidation[] = [];
     const textResourceBindings = nodeDataSelector((picker) => picker(node)?.item?.textResourceBindings, [node]);
 
     let listHasErrors = false;
-    for (const field of fields) {
-      const data = formDataSelector(field) ?? invalidDataSelector(field);
+    for (const reference of references) {
+      const data = formDataSelector(reference) ?? invalidDataSelector(reference);
       const dataAsString =
         typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean' ? String(data) : undefined;
 
@@ -104,10 +111,10 @@ export class List extends ListDef {
   }
 
   validateDataModelBindings(ctx: LayoutValidationCtx<'List'>): string[] {
-    const possibleBindings = Object.keys(ctx.item.tableHeaders || {});
+    const possibleBindings = Object.keys(ctx.item.tableHeaders ?? {});
 
     const errors: string[] = [];
-    for (const binding of possibleBindings) {
+    for (const binding of Object.keys(ctx.item.dataModelBindings ?? {})) {
       if (possibleBindings.includes(binding)) {
         const [newErrors] = this.validateDataModelBindingsAny(
           ctx,
@@ -124,5 +131,12 @@ export class List extends ListDef {
     }
 
     return errors;
+  }
+
+  evalExpressions(props: ExprResolver<'List'>) {
+    return {
+      ...this.evalDefaultExpressions(props),
+      queryParameters: evalQueryParameters(props),
+    };
   }
 }

@@ -3,6 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { TextAreaComponent } from 'src/layout/TextArea/TextAreaComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
@@ -38,7 +39,7 @@ describe('TextAreaComponent', () => {
     await userEvent.type(textarea, addedText);
 
     expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
-      path: 'myTextArea',
+      reference: { field: 'myTextArea', dataType: defaultDataTypeMock },
       newValue: `${initialText}${addedText}`,
     });
   });
@@ -102,7 +103,7 @@ const render = async ({ component, ...rest }: Partial<RenderGenericComponentTest
     renderer: (props) => <TextAreaComponent {...props} />,
     component: {
       dataModelBindings: {
-        simpleBinding: 'myTextArea',
+        simpleBinding: { dataType: defaultDataTypeMock, field: 'myTextArea' },
       },
       ...component,
     },

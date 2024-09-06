@@ -7,11 +7,17 @@ import type { IRawTextResource } from 'src/features/language/textResources';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { IApplicationSettings, IData, IInstance, IProcess, ITask } from 'src/types/shared';
 
+export type DataModelAndElement = {
+  dataElement: IData;
+  data: unknown;
+};
+
 interface SharedTest {
   name: string;
   disabledFrontend?: boolean;
   layouts?: ILayoutCollection;
   dataModel?: unknown;
+  dataModels?: DataModelAndElement[];
   instance?: IInstance;
   process?: IProcess;
   instanceDataElements?: IData[];

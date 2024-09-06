@@ -19,7 +19,7 @@ import type { IDataModelBindingsForAddress } from 'src/layout/Address/config.gen
 
 export type IAddressProps = PropsFromGenericComponent<'Address'>;
 
-const bindingKeys: IDataModelBindingsForAddress = {
+const bindingKeys: { [k in keyof IDataModelBindingsForAddress]: k } = {
   address: 'address',
   postPlace: 'postPlace',
   zipCode: 'zipCode',
@@ -33,7 +33,8 @@ export function AddressComponent({ node }: IAddressProps) {
 
   const bindingValidations = useBindingValidationsForNode(node);
   const componentValidations = useComponentValidationsForNode(node);
-  const { formData, setValue, debounce } = useDataModelBindings(dataModelBindings, saveWhileTyping);
+  const { formData, setValue } = useDataModelBindings(dataModelBindings, saveWhileTyping);
+  const debounce = FD.useDebounceImmediately();
   const { address, careOf, postPlace, zipCode, houseNumber } = formData;
 
   const updatePostPlace = useEffectEvent((newPostPlace) => {

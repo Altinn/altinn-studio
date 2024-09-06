@@ -4,10 +4,12 @@ import { useDataModelBindings } from 'src/features/formData/useDataModelBindings
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
+import { resolveQueryParameters } from 'src/features/options/evalQueryParameters';
 import { useGetOptionsQuery } from 'src/features/options/useGetOptionsQuery';
 import { useNodeOptions } from 'src/features/options/useNodeOptions';
 import { useSourceOptions } from 'src/hooks/useSourceOptions';
 import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
+import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { filterDuplicateOptions, verifyOptions } from 'src/utils/options';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
@@ -205,6 +207,10 @@ function useRemoveStaleValues(props: EffectProps) {
 
 export function useFetchOptions({ node, valueType, item }: FetchOptionsProps): GetOptionsResult {
   const { options, optionsId, secure, source, mapping, queryParameters, sortOrder, dataModelBindings } = item;
+
+  const dataSources = useExpressionDataSources();
+  const resolvedQueryParameters = resolveQueryParameters(queryParameters, node, dataSources);
+
   const preselectedOptionIndex = 'preselectedOptionIndex' in item ? item.preselectedOptionIndex : undefined;
   const { langAsString } = useLanguage();
   const selectedLanguage = useCurrentLanguage();
@@ -213,7 +219,11 @@ export function useFetchOptions({ node, valueType, item }: FetchOptionsProps): G
 
   const sourceOptions = useSourceOptions({ source, node });
   const staticOptions = useMemo(() => (optionsId ? undefined : castOptionsToStrings(options)), [options, optionsId]);
-  const { data: fetchedOptions, isFetching, isError } = useGetOptionsQuery(optionsId, mapping, queryParameters, secure);
+  const {
+    data: fetchedOptions,
+    isFetching,
+    isError,
+  } = useGetOptionsQuery(optionsId, mapping, resolvedQueryParameters, secure);
   const isNodeHidden = Hidden.useIsHidden(node);
   const isNodesReady = NodesInternal.useIsReady();
 

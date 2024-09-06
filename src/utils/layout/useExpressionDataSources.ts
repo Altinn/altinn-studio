@@ -3,7 +3,9 @@ import { useMemo } from 'react';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { useAttachmentsSelector } from 'src/features/attachments/hooks';
+import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
+import { useCurrentLayoutSet } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxInstanceDataSources } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
@@ -19,6 +21,7 @@ import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { NodeOptionsSelector } from 'src/features/options/OptionsStorePlugin';
 import type { FormDataRowsSelector, FormDataSelector } from 'src/layout';
+import type { ILayoutSet } from 'src/layout/common.generated';
 import type { IApplicationSettings, IInstanceDataSources, IProcess } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodeDataSelector } from 'src/utils/layout/NodesContext';
@@ -30,12 +33,14 @@ export interface ExpressionDataSources {
   process?: IProcess;
   instanceDataSources: IInstanceDataSources | null;
   applicationSettings: IApplicationSettings | null;
+  dataModelNames: string[];
   formDataSelector: FormDataSelector;
   formDataRowsSelector: FormDataRowsSelector;
   attachmentsSelector: AttachmentsSelector;
   optionsSelector: NodeOptionsSelector;
   langToolsSelector: (node: LayoutNode | undefined) => IUseLanguage;
   currentLanguage: string;
+  currentLayoutSet: ILayoutSet | null;
   isHiddenSelector: ReturnType<typeof Hidden.useIsHiddenSelector>;
   nodeFormDataSelector: NodeFormDataSelector;
   nodeDataSelector: NodeDataSelector;
@@ -59,6 +64,8 @@ export function useExpressionDataSources(): ExpressionDataSources {
   const nodeDataSelector = NodesInternal.useNodeDataSelector();
   const nodeTraversal = useNodeTraversalSelectorLax();
   const transposeSelector = useDataModelBindingTranspose();
+  const currentLayoutSet = useCurrentLayoutSet() ?? null;
+  const readableDataModels = DataModels.useReadableDataTypes();
 
   const externalApiIds = useApplicationMetadata().externalApiIds ?? [];
   const externalApis = useExternalApis(externalApiIds);
@@ -79,7 +86,9 @@ export function useExpressionDataSources(): ExpressionDataSources {
       nodeDataSelector,
       nodeTraversal,
       transposeSelector,
+      currentLayoutSet,
       externalApis,
+      dataModelNames: readableDataModels,
     }),
     [
       formDataSelector,
@@ -96,7 +105,9 @@ export function useExpressionDataSources(): ExpressionDataSources {
       nodeDataSelector,
       nodeTraversal,
       transposeSelector,
+      currentLayoutSet,
       externalApis,
+      readableDataModels,
     ],
   );
 }

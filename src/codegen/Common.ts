@@ -128,38 +128,61 @@ const common = {
       ),
     ),
 
+  IDataModelReference: () =>
+    new CG.obj(
+      new CG.prop(
+        'dataType',
+        new CG.str().setTitle('Data type').setDescription('The name of the datamodel type to reference'),
+      ),
+      new CG.prop(
+        'field',
+        new CG.str().setTitle('Field').setDescription('The path to the property using dot-notation'),
+      ),
+    ),
+  IRawDataModelBinding: () => new CG.union(new CG.str(), CG.common('IDataModelReference')),
+
   // Data model bindings:
   IDataModelBindingsSimple: () =>
-    new CG.obj(new CG.prop('simpleBinding', new CG.str()))
-      .setTitle('Data model binding')
-      .setDescription(
-        'Describes the location in the data model where the component should store its value(s). A simple ' +
-          'binding is used for components that only store a single value, usually a string.',
-      ),
-  IDataModelBindingsOptionsSimple: () =>
     new CG.obj(
-      new CG.prop('simpleBinding', new CG.str()),
-      new CG.prop('label', new CG.str().optional()),
       new CG.prop(
-        'metadata',
-        new CG.str()
-          .optional()
+        'simpleBinding',
+        new CG.dataModelBinding()
+          .setTitle('Data model binding')
           .setDescription(
-            'Describes the location where metadata for the option based component should be stored in the datamodel.',
+            'Describes the location in the data model where the component should store its value(s). ' +
+              'A simple binding is used for components that only store a single value, usually a string.',
           ),
       ),
-    )
-      .setTitle('Data model binding')
-      .setDescription(
-        'Describes the location in the data model where the component should store its value(s). A simple ' +
-          'binding is used for components that only store a single value, usually a string.',
+    ),
+  IDataModelBindingsOptionsSimple: () =>
+    new CG.obj(
+      new CG.prop(
+        'simpleBinding',
+        new CG.dataModelBinding()
+          .setTitle('Data model binding for value')
+          .setDescription('Describes the location in the data model where the component should store its values.'),
       ),
+      new CG.prop(
+        'label',
+        new CG.dataModelBinding()
+          .setTitle('Data model binding for label')
+          .setDescription('Describes the location in the data model where the component should store its labels')
+          .optional(),
+      ),
+      new CG.prop(
+        'metadata',
+        new CG.dataModelBinding()
+          .setTitle('Data model binding for metadata')
+          .setDescription('Describes the location in the data model where the component should store its metadata')
+          .optional(),
+      ),
+    ),
   IDataModelBindingsLikert: () =>
     new CG.obj(
       new CG.prop(
         'answer',
-        new CG.str()
-          .setTitle('Answer')
+        new CG.dataModelBinding()
+          .setTitle('Data model binding for answer')
           .setDescription(
             'Dot notation location for the answers. This must point to a property of the objects inside the ' +
               'question array. The answer for each question will be stored in the answer property of the ' +
@@ -168,25 +191,24 @@ const common = {
       ),
       new CG.prop(
         'questions',
-        new CG.str()
-          .setTitle('Questions')
+        new CG.dataModelBinding()
+          .setTitle('Data model binding for questions')
           .setDescription('Dot notation location for a likert structure (array of objects), where the data is stored'),
       ),
-    )
-      .setTitle('Data model binding')
-      .setDescription(
-        'Describes the location in the data model where the component should store its value(s). A list binding ' +
-          'should be pointed to an array structure in the data model, and is used for components that store multiple ' +
-          'simple values (e.g. a list of strings).',
-      ),
+    ),
   IDataModelBindingsList: () =>
-    new CG.obj(new CG.prop('list', new CG.str()))
-      .setTitle('Data model binding')
-      .setDescription(
-        'Describes the location in the data model where the component should store its value(s). A list binding ' +
-          'should be pointed to an array structure in the data model, and is used for components that store multiple ' +
-          'simple values (e.g. a list of strings).',
+    new CG.obj(
+      new CG.prop(
+        'list',
+        new CG.dataModelBinding()
+          .setTitle('Data model binding for values')
+          .setDescription(
+            'Describes the location in the data model where the component should store its values. A list binding ' +
+              'should be pointed to an array structure in the data model, and is used for components that store multiple ' +
+              'simple values (e.g. a list of strings).',
+          ),
       ),
+    ),
 
   // Text resource bindings:
   TRBSummarizable: () =>
@@ -256,13 +278,22 @@ const common = {
       ),
   IQueryParameters: () =>
     new CG.obj()
-      .additionalProperties(new CG.str())
+      .additionalProperties(new CG.expr(ExprVal.String))
       .setTitle('Query parameters')
       .setDescription(
         'A mapping of query string parameters to values. Will be appended to the URL when fetching options.',
       ),
   IOptionSource: () =>
     new CG.obj(
+      new CG.prop(
+        'dataType',
+        new CG.str()
+          .setTitle('Data type')
+          .setDescription(
+            'The datamodel where the repeating group data is stored. If not specified, the data model defined in the layout-set will be used.',
+          )
+          .optional(),
+      ),
       new CG.prop(
         'group',
         new CG.str()
@@ -318,7 +349,12 @@ const common = {
           .setTitle('Dynamic options (fetched from server)')
           .setDescription('ID of the option list to fetch from the server'),
       ),
-      new CG.prop('mapping', CG.common('IMapping').optional()),
+      new CG.prop(
+        'mapping',
+        CG.common('IMapping')
+          .optional()
+          .setDeprecated('Will be removed in the next major version. Use `queryParameters` with expressions instead.'),
+      ),
       new CG.prop('queryParameters', CG.common('IQueryParameters').optional()),
       new CG.prop(
         'options',

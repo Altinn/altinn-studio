@@ -66,40 +66,48 @@
       }
     }
   },
-  "dataModel": {
-    "Bedrifter": [
-      {
-        "altinnRowId": "company0",
-        "Navn": "Hell og lykke AS",
-        "Ansatte": [
-          {
-            "altinnRowId": "company0-employee0",
-            "Navn": "Kaare",
-            "Alder": 24
-          },
-          {
-            "altinnRowId": "company0-employee1",
-            "Navn": "Per",
-            "Alder": 25
-          }
-        ]
+  "dataModels": [
+    {
+      "dataElement": {
+        "id": "345",
+        "dataType": "default"
       },
-      {
-        "altinnRowId": "company1",
-        "Navn": "Nedtur og motgang AS",
-        "Ansatte": [
+      "data": {
+        "Bedrifter": [
           {
-            "altinnRowId": "company1-employee0",
-            "Navn": "Arne",
-            "Alder": 26
+            "altinnRowId": "bedrift0",
+            "Navn": "Hell og lykke AS",
+            "Ansatte": [
+              {
+                "altinnRowId": "person0",
+                "Navn": "Kaare",
+                "Alder": 24
+              },
+              {
+                "altinnRowId": "person1",
+                "Navn": "Per",
+                "Alder": 25
+              }
+            ]
           },
           {
-            "altinnRowId": "company1-employee1",
-            "Navn": "Vidar",
-            "Alder": 14
+            "altinnRowId": "bedrift1",
+            "Navn": "Nedtur og motgang AS",
+            "Ansatte": [
+              {
+                "altinnRowId": "person0",
+                "Navn": "Arne",
+                "Alder": 26
+              },
+              {
+                "altinnRowId": "person1",
+                "Navn": "Vidar",
+                "Alder": 14
+              }
+            ]
           }
         ]
       }
-    ]
-  }
+    }
+  ]
 }

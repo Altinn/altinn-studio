@@ -6,6 +6,8 @@ export interface JsonSchemaExt<T> {
   title: string | undefined;
   description: string | undefined;
   examples: T[];
+  deprecated: boolean | undefined;
+  deprecationWarning: string | undefined;
 }
 
 export interface TypeScriptExt {
@@ -40,20 +42,36 @@ export abstract class CodeGenerator<T> {
       title: undefined,
       description: undefined,
       examples: [],
+      deprecated: undefined,
+      deprecationWarning: undefined,
     },
     typeScript: {},
     optional: false,
     frozen: false,
   };
 
+  /**
+   * Gets the schemas description, and prepends a deprecation warning if the property is deprecated
+   */
+  private getSchemaDescription(): string | undefined {
+    const description = this.internal.jsonSchema.description;
+    if (this.internal.jsonSchema.deprecated) {
+      const deprecationMessage = `**Deprecated**: ${this.internal.jsonSchema.deprecationWarning}`;
+      return description ? [deprecationMessage, description].join('\n') : deprecationMessage;
+    }
+    return description;
+  }
+
   protected getInternalJsonSchema(): JSONSchema7 {
     this.freeze('getInternalJsonSchema');
     return {
       title: this.internal.jsonSchema.title || this.internal.symbol?.name || undefined,
-      description: this.internal.jsonSchema.description,
+      description: this.getSchemaDescription(),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       examples: this.internal.jsonSchema.examples.length ? (this.internal.jsonSchema.examples as any) : undefined,
       default: this.internal.optional ? (this.internal.optional.default as JSONSchema7Type) : undefined,
+      // @ts-expect-error Although not included in JSON schema version 7, this is implemented in more recent versions, and works in VS Code
+      deprecated: this.internal.jsonSchema.deprecated,
     };
   }
 
@@ -168,6 +186,13 @@ export abstract class MaybeOptionalCodeGenerator<T> extends MaybeSymbolizedCodeG
 }
 
 export abstract class DescribableCodeGenerator<T> extends MaybeOptionalCodeGenerator<T> {
+  setDeprecated(warning: string): this {
+    this.ensureMutable();
+    this.internal.jsonSchema.deprecated = true;
+    this.internal.jsonSchema.deprecationWarning = warning;
+    return this;
+  }
+
   setTitle(title: string): this {
     this.ensureMutable();
     this.internal.jsonSchema.title = title;

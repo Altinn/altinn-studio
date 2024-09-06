@@ -1,10 +1,9 @@
 import type { JSONSchema7 } from 'json-schema';
 
 import { CG } from 'src/codegen/CG';
-import { MaybeOptionalCodeGenerator } from 'src/codegen/CodeGenerator';
+import { type CodeGeneratorWithProperties, DescribableCodeGenerator } from 'src/codegen/CodeGenerator';
 import { getSourceForCommon } from 'src/codegen/Common';
 import { GenerateObject } from 'src/codegen/dataTypes/GenerateObject';
-import type { CodeGeneratorWithProperties } from 'src/codegen/CodeGenerator';
 import type { ValidCommonKeys } from 'src/codegen/Common';
 import type { GenerateProperty } from 'src/codegen/dataTypes/GenerateProperty';
 
@@ -14,7 +13,7 @@ import type { GenerateProperty } from 'src/codegen/dataTypes/GenerateProperty';
  */
 export class GenerateCommonImport<T extends ValidCommonKeys>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  extends MaybeOptionalCodeGenerator<any>
+  extends DescribableCodeGenerator<any>
   implements CodeGeneratorWithProperties
 {
   public readonly realKey?: string;
@@ -29,7 +28,10 @@ export class GenerateCommonImport<T extends ValidCommonKeys>
 
   toJsonSchema(): JSONSchema7 {
     this.freeze('toJsonSchema');
-    return { $ref: `#/definitions/${this.key}` };
+    return {
+      ...this.getInternalJsonSchema(),
+      $ref: `#/definitions/${this.key}`,
+    };
   }
 
   toJsonSchemaDefinition(): JSONSchema7 {

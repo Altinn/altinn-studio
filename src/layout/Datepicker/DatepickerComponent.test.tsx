@@ -4,6 +4,7 @@ import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { DatepickerComponent } from 'src/layout/Datepicker/DatepickerComponent';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
@@ -25,7 +26,7 @@ const render = async ({ component, ...rest }: Partial<RenderGenericComponentTest
       minDate: '1900-01-01T12:00:00.000Z',
       maxDate: '2100-01-01T12:00:00.000Z',
       dataModelBindings: {
-        simpleBinding: 'myDate',
+        simpleBinding: { dataType: defaultDataTypeMock, field: 'myDate' },
       },
       ...component,
     },
@@ -106,7 +107,7 @@ describe('DatepickerComponent', () => {
     // Ignore TZ part of timestamp to avoid test failing when this changes
     // Calendar opens up on current year/month by default, so we need to cater for this in the expected output
     expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
-      path: 'myDate',
+      reference: { field: 'myDate', dataType: defaultDataTypeMock },
       newValue: expect.stringContaining(`${currentYearNumeric}-${currentMonthNumeric}-15T12:00:00.000+`),
     });
   });
@@ -120,7 +121,10 @@ describe('DatepickerComponent', () => {
 
     await userEvent.clear(screen.getByRole('textbox'));
 
-    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'myDate', newValue: '' });
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
+      reference: { field: 'myDate', dataType: defaultDataTypeMock },
+      newValue: '',
+    });
   });
 
   it('should call setLeafValue with formatted value (timestamp=true) if date is valid', async () => {
@@ -129,7 +133,7 @@ describe('DatepickerComponent', () => {
     await userEvent.type(screen.getByRole('textbox'), '31122022');
 
     expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
-      path: 'myDate',
+      reference: { field: 'myDate', dataType: defaultDataTypeMock },
       newValue: expect.stringContaining('2022-12-31T12:00:00.000+'),
     });
   });
@@ -139,7 +143,10 @@ describe('DatepickerComponent', () => {
 
     await userEvent.type(screen.getByRole('textbox'), '31122022');
 
-    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'myDate', newValue: '2022-12-31' });
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
+      reference: { field: 'myDate', dataType: defaultDataTypeMock },
+      newValue: '2022-12-31',
+    });
   });
 
   it('should call setLeafValue with formatted value (timestamp=undefined) if date is valid', async () => {
@@ -148,7 +155,7 @@ describe('DatepickerComponent', () => {
     await userEvent.type(screen.getByRole('textbox'), '31122022');
 
     expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
-      path: 'myDate',
+      reference: { field: 'myDate', dataType: defaultDataTypeMock },
       newValue: expect.stringContaining('2022-12-31T12:00:00.000+'),
     });
   });
@@ -158,7 +165,10 @@ describe('DatepickerComponent', () => {
 
     await userEvent.type(screen.getByRole('textbox'), '12345678');
 
-    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'myDate', newValue: '12.34.5678' });
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
+      reference: { field: 'myDate', dataType: defaultDataTypeMock },
+      newValue: '12.34.5678',
+    });
   });
 
   it('should call setLeafValue if not finished filling out the date', async () => {
@@ -166,7 +176,10 @@ describe('DatepickerComponent', () => {
 
     await userEvent.type(screen.getByRole('textbox'), `1234`);
 
-    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'myDate', newValue: '12.34.____' });
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
+      reference: { field: 'myDate', dataType: defaultDataTypeMock },
+      newValue: '12.34.____',
+    });
   });
 
   it('should have aria-describedby if textResourceBindings.description is present', async () => {

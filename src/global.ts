@@ -26,7 +26,7 @@ declare global {
     Cypress?: any; // Can be used to test if we are running in Cypress
     CypressState?: {
       attachments?: IAttachmentsMap;
-      formData?: object;
+      formData?: { [key: string]: unknown };
       nodesStore?: NodesContextStore;
     };
 

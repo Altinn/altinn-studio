@@ -6,13 +6,12 @@ export function getLayoutSetForDataElement(
   datatype: string | undefined,
   layoutSets: ILayoutSets,
 ) {
-  const foundLayout = layoutSets.sets.find((layoutSet: ILayoutSet) => {
+  return layoutSets.sets.find((layoutSet: ILayoutSet) => {
     if (layoutSet.dataType !== datatype) {
       return false;
     }
     return layoutSet.tasks?.find((taskId: string) => taskId === currentTaskId);
   });
-  return foundLayout?.id;
 }
 
 export const shouldUseRowLayout = ({ layout, optionsCount }) => {

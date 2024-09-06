@@ -22,6 +22,9 @@ export class AppFrontend {
 
     /** @see https://altinn.studio/repos/ttd/component-library.git */
     componentLibrary: 'component-library',
+
+    /** @see https://dev.altinn.studio/repos/ttd/multiple-datamodels-test */
+    multipleDatamodelsTest: 'multiple-datamodels-test',
   };
 
   //Start app instance page
@@ -340,6 +343,22 @@ export class AppFrontend {
     bosted: '#bosted',
     groupTag: 'input[id^=attachment-tag]',
     uploaders: '[id^=Vedlegg-]',
+  };
+
+  public multipleDatamodelsTest = {
+    variableParagraph: '#variableParagraph',
+    repeatingParagraph: '[id^=repeatingParagraph]',
+    textField1: '#Input-bhWSyO',
+    textField2: '#Input-aWlSF3',
+    addressField: '#Address-xdZ7PE',
+    chooseIndusty: '#choose-industry',
+    textField1Summary: '[data-testid="summary-text1"]',
+    textField2Summary: '[data-testid="summary-text2"]',
+    textField3Summary: '[data-testid="summary-text3"]',
+    textField2Paragraph: '[data-testid="paragraph-component-text2"]',
+    sectorSummary: '[data-testid="summary-sector"]',
+    industrySummary: '[data-testid="summary-industry"]',
+    personsSummary: '[data-testid="summary-persons"]',
   };
 }
 

@@ -1,0 +1,56 @@
+{
+  "name": "dataModel non-existing datamodel reference",
+  "expression": [
+    "dataModel",
+    "a.value",
+    "non-existing"
+  ],
+  "expectsFailure": "Unknown data model 'non-existing'",
+  "dataModels": [
+    {
+      "dataElement": {
+        "id": "345",
+        "dataType": "default"
+      },
+      "data": {
+        "a": {
+          "value": "ABC"
+        }
+      }
+    },
+    {
+      "dataElement": {
+        "id": "123",
+        "dataType": "non-default"
+      },
+      "data": {
+        "a": {
+          "value": "valueFromNonDefaultModel"
+        }
+      }
+    }
+  ],
+  "layouts": {
+    "Page1": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "current-component",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": {
+                "dataType": "non-default",
+                "field": "a.value"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "context": {
+    "component": "current-component",
+    "currentLayout": "Page1"
+  }
+}

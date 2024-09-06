@@ -5,6 +5,8 @@ import { screen, within } from '@testing-library/react';
 import { v4 as uuidv4 } from 'uuid';
 import type { AxiosResponse } from 'axios';
 
+import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
 import { LikertComponent } from 'src/layout/Likert/LikertComponent';
@@ -41,6 +43,7 @@ export const generateValidations = (validations: { index: number; message: strin
       ({
         customTextKey: message,
         field: `${groupBinding}[${index}].${answerBinding}`,
+        dataElementId: defaultMockDataElementId,
         severity: BackendValidationSeverity.Error,
         source: 'custom',
         showImmediately: true,
@@ -79,8 +82,8 @@ const createLikertLayout = (props: Partial<CompLikertExternal> | undefined): Com
     questions: 'likert-questions',
   },
   dataModelBindings: {
-    answer: `${groupBinding}.${answerBinding}`,
-    questions: groupBinding,
+    answer: { dataType: defaultDataTypeMock, field: `${groupBinding}.${answerBinding}` },
+    questions: { dataType: defaultDataTypeMock, field: groupBinding },
   },
   optionsId: 'option-test',
   readOnly: false,
@@ -89,7 +92,10 @@ const createLikertLayout = (props: Partial<CompLikertExternal> | undefined): Com
 });
 
 export const createFormDataUpdateProp = (index: number, optionValue: string): FDNewValue => ({
-  path: `Questions[${index}].Answer`,
+  reference: {
+    dataType: defaultDataTypeMock,
+    field: `Questions[${index}].Answer`,
+  },
   newValue: optionValue,
 });
 

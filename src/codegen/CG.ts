@@ -3,6 +3,7 @@ import { GenerateArray } from 'src/codegen/dataTypes/GenerateArray';
 import { GenerateBoolean } from 'src/codegen/dataTypes/GenerateBoolean';
 import { GenerateCommonImport } from 'src/codegen/dataTypes/GenerateCommonImport';
 import { GenerateConst } from 'src/codegen/dataTypes/GenerateConst';
+import { GenerateDataModelBinding } from 'src/codegen/dataTypes/GenerateDataModelBinding';
 import { GenerateEnum } from 'src/codegen/dataTypes/GenerateEnum';
 import { GenerateExpressionOr } from 'src/codegen/dataTypes/GenerateExpressionOr';
 import { GenerateImportedSymbol } from 'src/codegen/dataTypes/GenerateImportedSymbol';
@@ -42,6 +43,7 @@ export const CG = {
   obj: GenerateObject,
   prop: GenerateProperty,
   trb: GenerateTextResourceBinding,
+  dataModelBinding: GenerateDataModelBinding,
 
   // Known values that we have types for elsewhere, or other imported types
   common: generateCommonImport,

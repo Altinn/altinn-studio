@@ -122,7 +122,7 @@ describe('Repeating group attachments', () => {
     cy.log('Waiting until formData equals', expected);
     return cy.waitUntil(() =>
       cy.window().then((win) => {
-        const formData = win.CypressState?.formData || {};
+        const formData = win.CypressState?.formData?.['nested-group'] || {};
         const actual: [string, string][] = [];
         const idToNameMapping: { [attachmentId: string]: string } = {};
 

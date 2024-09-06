@@ -29,3 +29,13 @@ export interface IDataModelPatchResponse {
   validationIssues: BackendValidationIssueGroups;
   newDataModel: object;
 }
+
+export interface IDataModelMultiPatchRequest {
+  patches: { [dataElementId: string]: JsonPatch };
+  ignoredValidators: BuiltInValidationIssueSources[];
+}
+
+export interface IDataModelMultiPatchResponse {
+  validationIssues: BackendValidationIssueGroups;
+  newDataModels: { [dataElementId: string]: object };
+}

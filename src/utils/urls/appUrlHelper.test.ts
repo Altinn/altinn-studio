@@ -43,8 +43,8 @@ describe('Frontend urlHelper.ts', () => {
       );
     });
     it('should return the expected url for getValidationUrl', () => {
-      expect(getValidationUrl('12345/instanceId-1234')).toBe(
-        'https://local.altinn.cloud/ttd/test/instances/12345/instanceId-1234/validate',
+      expect(getValidationUrl('12345/instanceId-1234', 'nb')).toBe(
+        'https://local.altinn.cloud/ttd/test/instances/12345/instanceId-1234/validate?language=nb',
       );
     });
     it('should return the expected url for getDataValidationUrl', () => {
@@ -322,7 +322,7 @@ describe('Frontend urlHelper.ts', () => {
     it('should return correct url when formData/dataMapping is provided', () => {
       const result = getDataListsUrl({
         dataListId: 'country',
-        mappedData: {
+        queryParameters: {
           selectedCountry: 'Norway',
         },
       });
@@ -333,7 +333,7 @@ describe('Frontend urlHelper.ts', () => {
     it('should render correct url when formData/Mapping, language, pagination and sorting paramters are provided', () => {
       const result = getDataListsUrl({
         dataListId: 'country',
-        mappedData: {
+        queryParameters: {
           selectedCountry: 'Norway',
         },
         pageSize: '10',

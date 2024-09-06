@@ -65,7 +65,8 @@
           {
             "altinnRowId": "company0-employee0",
             "Navn": "Kaare",
-            "Alder": 24
+            "Alder": 24,
+            "AlderSkjult": false
           },
           {
             "altinnRowId": "company0-employee1",

@@ -2,6 +2,8 @@ import React from 'react';
 
 import { fireEvent, screen } from '@testing-library/react';
 
+import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import { renderWithNode } from 'src/test/renderWithProviders';
@@ -19,7 +21,8 @@ describe('SummaryComponent', () => {
               ({
                 id: t,
                 type: t,
-                dataModelBindings: t === 'Input' ? { simpleBinding: 'field' } : {},
+                dataModelBindings:
+                  t === 'Input' ? { simpleBinding: { dataType: defaultDataTypeMock, field: 'field' } } : {},
                 textResourceBindings: {},
                 children: [],
                 maxCount: 10,
@@ -57,6 +60,7 @@ describe('SummaryComponent', () => {
         {
           customTextKey: 'Error message',
           field: 'field',
+          dataElementId: defaultMockDataElementId,
           severity: BackendValidationSeverity.Error,
           source: 'custom',
           showImmediately: true,

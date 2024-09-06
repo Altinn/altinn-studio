@@ -8,7 +8,12 @@ import type { FDNewValue } from 'src/features/formData/FormDataWriteStateMachine
  * This function has been copied from checkIfRuleShouldRun() and modified to work with the new formData feature.
  * It runs the legacy rules after a field has been updated.
  */
-export function runLegacyRules(ruleConnections: IRuleConnections | null, oldFormData: object, newFormData: object) {
+export function runLegacyRules(
+  ruleConnections: IRuleConnections | null,
+  oldFormData: object,
+  newFormData: object,
+  dataType: string,
+) {
   const changes: FDNewValue[] = [];
   if (!ruleConnections) {
     return changes;
@@ -63,7 +68,7 @@ export function runLegacyRules(ruleConnections: IRuleConnections | null, oldForm
 
     if (updatedDataBinding) {
       changes.push({
-        path: updatedDataBinding,
+        reference: { field: updatedDataBinding, dataType },
         newValue: result,
       });
     }

@@ -4,6 +4,7 @@ import { getComponentConfigs } from 'src/layout/components.generated';
 import type { CompBehaviors } from 'src/codegen/Config';
 import type { DisplayData } from 'src/features/displayData';
 import type { BaseValidation, ComponentValidation, ValidationDataSources } from 'src/features/validation';
+import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
 import type { CompInternal, CompTypes } from 'src/layout/layout';
 import type { AnyComponent } from 'src/layout/LayoutComponent';
@@ -113,8 +114,8 @@ export interface ValidationFilter {
   getValidationFilters: (node: LayoutNode, nodeDataSelector: NodeDataSelector) => ValidationFilterFunction[];
 }
 
-export type FormDataSelector = (path: string) => unknown;
-export type FormDataRowsSelector = (path: string) => BaseRow[];
+export type FormDataSelector = (reference: IDataModelReference) => unknown;
+export type FormDataRowsSelector = (reference: IDataModelReference) => BaseRow[];
 
 export function implementsDisplayData<Def extends CompDef>(def: Def): def is Def & DisplayData<TypeFromDef<Def>> {
   return 'getDisplayData' in def && 'useDisplayData' in def;

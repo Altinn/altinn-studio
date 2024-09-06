@@ -17,6 +17,7 @@ export type IInputProps = PropsFromGenericComponent<'Input'>;
 
 import type { TextfieldProps } from '@digdir/designsystemet-react/dist/types/components/form/Textfield/Textfield';
 
+import { FD } from 'src/features/formData/FormDataWrite';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 
@@ -85,8 +86,8 @@ export const InputComponent: React.FunctionComponent<IInputProps> = ({ node, ove
   const {
     formData: { simpleBinding: formValue },
     setValue,
-    debounce,
   } = useDataModelBindings(dataModelBindings, saveWhileTyping);
+  const debounce = FD.useDebounceImmediately();
 
   const { langAsString } = useLanguage();
 

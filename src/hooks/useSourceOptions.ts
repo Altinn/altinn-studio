@@ -6,7 +6,7 @@ import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
-import type { IOptionSource } from 'src/layout/common.generated';
+import type { IDataModelReference, IOptionSource } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
@@ -24,24 +24,34 @@ export const useSourceOptions = ({ source, node }: IUseSourceOptionsArgs): IOpti
     }
 
     const { formDataRowsSelector, formDataSelector, langToolsSelector } = dataSources;
+    const output: IOptionInternal[] = [];
     const langTools = langToolsSelector(node);
-    const { group, value, label, helpText, description } = source;
+    const { group, value, label, helpText, description, dataType } = source;
     const cleanValue = getKeyWithoutIndexIndicators(value);
     const cleanGroup = getKeyWithoutIndexIndicators(group);
-    const groupPath = dataSources.transposeSelector(node, cleanGroup) || group;
-    const output: IOptionInternal[] = [];
-
-    if (!groupPath) {
+    const groupDataType = dataType ?? dataSources.currentLayoutSet?.dataType;
+    if (!groupDataType) {
       return output;
     }
-    const groupRows = formDataRowsSelector(groupPath);
+    const rawReference: IDataModelReference = { dataType: groupDataType, field: cleanGroup };
+    const groupReference = dataSources.transposeSelector(node, rawReference);
+    if (!groupReference) {
+      return output;
+    }
+
+    const valueReference: IDataModelReference = { dataType: groupDataType, field: cleanValue };
+    const groupRows = formDataRowsSelector(groupReference);
     if (!groupRows.length) {
       return output;
     }
 
     for (const idx in groupRows) {
-      const path = `${groupPath}[${idx}]`;
-      const valuePath = transposeDataBinding({ subject: cleanValue, currentLocation: path });
+      const path = `${groupReference.field}[${idx}]`;
+      const nonTransposed = { dataType: groupDataType, field: path };
+      const transposed = transposeDataBinding({
+        subject: valueReference,
+        currentLocation: nonTransposed,
+      });
 
       /**
        * Running evalExpression is all that is needed to support dynamic expressions in
@@ -58,16 +68,17 @@ export const useSourceOptions = ({ source, node }: IUseSourceOptionsArgs): IOpti
         ...dataSources,
         langToolsSelector: () => ({
           ...langTools,
-          langAsString: (key: string) => langTools.langAsStringUsingPathInDataModel(key, path),
-          langAsNonProcessedString: (key: string) => langTools.langAsNonProcessedStringUsingPathInDataModel(key, path),
+          langAsString: (key: string) => langTools.langAsStringUsingPathInDataModel(key, nonTransposed),
+          langAsNonProcessedString: (key: string) =>
+            langTools.langAsNonProcessedStringUsingPathInDataModel(key, nonTransposed),
         }),
       };
 
       output.push({
-        value: String(formDataSelector(valuePath)),
-        label: resolveText(label, node, modifiedDataSources, path) as string,
-        description: resolveText(description, node, modifiedDataSources, path),
-        helpText: resolveText(helpText, node, modifiedDataSources, path),
+        value: String(formDataSelector(transposed)),
+        label: resolveText(label, node, modifiedDataSources, nonTransposed) as string,
+        description: resolveText(description, node, modifiedDataSources, nonTransposed),
+        helpText: resolveText(helpText, node, modifiedDataSources, nonTransposed),
       });
     }
 
@@ -79,13 +90,13 @@ function resolveText(
   text: ExprValToActualOrExpr<ExprVal.String> | undefined,
   node: LayoutNode,
   dataSources: ExpressionDataSources,
-  path: string,
+  reference: IDataModelReference,
 ): string | undefined {
   if (text && ExprValidation.isValid(text)) {
     return evalExpr(text, node, dataSources);
   }
   if (text) {
-    return dataSources.langToolsSelector(node).langAsStringUsingPathInDataModel(text as string, path);
+    return dataSources.langToolsSelector(node).langAsStringUsingPathInDataModel(text as string, reference);
   }
   return undefined;
 }

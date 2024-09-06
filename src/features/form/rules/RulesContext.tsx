@@ -5,7 +5,7 @@ import { skipToken, useQuery } from '@tanstack/react-query';
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
-import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSetId';
+import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 
 const RULES_SCRIPT_ID = 'rules-script';

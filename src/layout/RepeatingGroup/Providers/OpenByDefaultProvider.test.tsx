@@ -4,6 +4,7 @@ import { afterAll, beforeAll, jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import {
@@ -38,7 +39,7 @@ describe('openByDefault', () => {
     const { deleteRow } = useRepeatingGroup();
     const { visibleRows, hiddenRows } = useRepeatingGroupRowState();
 
-    const data = FD.useDebouncedPick('MyGroup');
+    const data = FD.useDebouncedPick({ field: 'MyGroup', dataType: defaultDataTypeMock });
     return (
       <>
         <div data-testid='state'>
@@ -78,7 +79,7 @@ describe('openByDefault', () => {
         id: 'myGroup',
         type: 'RepeatingGroup',
         dataModelBindings: {
-          group: 'MyGroup',
+          group: { dataType: defaultDataTypeMock, field: 'MyGroup' },
         },
         children: ['name'],
         edit: {
@@ -90,7 +91,7 @@ describe('openByDefault', () => {
         id: 'name',
         type: 'Input',
         dataModelBindings: {
-          simpleBinding: 'MyGroup.name',
+          simpleBinding: { dataType: defaultDataTypeMock, field: 'MyGroup.name' },
         },
         showValidations: [],
       },

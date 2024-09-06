@@ -378,6 +378,7 @@ describe('Validation', () => {
     // Validation message should now have changed, since we filled out currentValue and saved
     cy.get(appFrontend.errorReport).findByText('Du må fylle ut 2. endre verdi 123 til').should('be.visible');
     cy.get(appFrontend.group.row(2).deleteBtn).click();
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', 2);
     cy.waitUntilNodesReady();
 
     // Check that nested group with multipage gets focus

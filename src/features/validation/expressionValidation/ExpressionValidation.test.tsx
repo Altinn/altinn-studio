@@ -1,18 +1,20 @@
 import React from 'react';
 
-import { screen } from '@testing-library/react';
+import { jest } from '@jest/globals';
 import fs from 'node:fs';
 
-import * as CustomValidationContext from 'src/features/customValidation/CustomValidationContext';
+import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
-import { useExpressionValidation } from 'src/features/validation/expressionValidation/useExpressionValidation';
+import { ExpressionValidation } from 'src/features/validation/expressionValidation/ExpressionValidation';
+import { Validation } from 'src/features/validation/validationContext';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import * as NodesContext from 'src/utils/layout/NodesContext';
-import type { IExpressionValidationConfig } from 'src/features/validation';
+import type { FieldValidations, IExpressionValidationConfig } from 'src/features/validation';
 import type { ILayoutCollection } from 'src/layout/layout';
 
 interface SimpleValidation {
-  message: string | undefined;
+  message: string;
   severity: string;
   field: string;
 }
@@ -50,22 +52,6 @@ function sortValidations(validations: SimpleValidation[]) {
   });
 }
 
-function ExprValidationTester() {
-  const result = useExpressionValidation();
-
-  // Format results in a way that makes it easier to compare
-  const validationsArray: SimpleValidation[] = Object.entries(result).flatMap(([field, V]) =>
-    V.map(({ message, severity }) => ({
-      message: message.key,
-      severity,
-      field,
-    })),
-  );
-  const validations = JSON.stringify(sortValidations(validationsArray), null, 2);
-
-  return <div data-testid='validations'>{validations}</div>;
-}
-
 function getSharedTests() {
   const fullPath = `${__dirname}/shared-expression-validation-tests`;
   const out: ExpressionValidationTest[] = [];
@@ -84,14 +70,22 @@ function getSharedTests() {
 describe('Expression validation shared tests', () => {
   beforeEach(() => {
     jest.spyOn(FD, 'useDebounced').mockRestore();
-    jest.spyOn(CustomValidationContext, 'useCustomValidationConfig').mockRestore();
+    jest.spyOn(DataModels, 'useExpressionValidationConfig').mockRestore();
     jest.spyOn(NodesContext, 'useNodes').mockRestore();
+    jest.spyOn(Validation, 'useUpdateDataModelValidations').mockRestore();
   });
 
   const sharedTests = getSharedTests();
   it.each(sharedTests)('$name', async ({ name: _, expects, validationConfig, formData, layouts }) => {
+    // Mock updateDataModelValidations
+    let result: FieldValidations = {};
+    const updateDataModelValidations = jest.fn((_key, _dataType, validations: FieldValidations) => {
+      result = validations;
+    });
+    jest.spyOn(Validation, 'useUpdateDataModelValidations').mockImplementation(() => updateDataModelValidations);
+
     await renderWithInstanceAndLayout({
-      renderer: () => <ExprValidationTester />,
+      renderer: () => <ExpressionValidation />,
       queries: {
         fetchLayouts: async () => layouts,
         fetchCustomValidationConfig: async () => validationConfig,
@@ -99,10 +93,33 @@ describe('Expression validation shared tests', () => {
       },
     });
 
-    const expectedValidations = sortValidations(
-      expects.map(({ message, severity, field }) => ({ message, severity, field })),
+    expect(updateDataModelValidations).toHaveBeenCalledWith(
+      'expression',
+      defaultDataTypeMock,
+      expect.objectContaining({}),
     );
-    const validations = JSON.parse(screen.getByTestId('validations').textContent!);
+
+    // Format results in a way that makes it easier to compare
+    const validations = JSON.stringify(
+      sortValidations(
+        Object.entries(result).flatMap(([field, V]) =>
+          V.map(({ message, severity }) => ({
+            message: message.key!,
+            severity,
+            field,
+          })),
+        ) satisfies SimpleValidation[],
+      ),
+      null,
+      2,
+    );
+
+    const expectedValidations = JSON.stringify(
+      sortValidations(expects.map(({ message, severity, field }) => ({ message, severity, field }))),
+      null,
+      2,
+    );
+
     expect(validations).toEqual(expectedValidations);
   });
 });

@@ -9,23 +9,33 @@ import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { useCurrentDataModelSchemaLookup } from 'src/features/datamodel/DataModelSchemaProvider';
+import { DataModels } from 'src/features/datamodel/DataModelsProvider';
+import { useCurrentDataModelName, useGetDataModelUrl } from 'src/features/datamodel/useBindingSchema';
 import { useRuleConnections } from 'src/features/form/dynamics/DynamicsContext';
+import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useFormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import { createFormDataWriteStore } from 'src/features/formData/FormDataWriteStateMachine';
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { getFormDataQueryKey } from 'src/features/formData/useFormDataQuery';
+import { useLaxInstance } from 'src/features/instance/InstanceContext';
+import { type BackendValidationIssueGroups, IgnoredValidators } from 'src/features/validation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
-import { getUrlWithLanguage } from 'src/utils/urls/urlHelper';
-import type { SchemaLookupTool } from 'src/features/datamodel/DataModelSchemaProvider';
+import { doPatchMultipleFormData } from 'src/queries/queries';
+import { getMultiPatchUrl } from 'src/utils/urls/appUrlHelper';
+import type { SchemaLookupTool } from 'src/features/datamodel/useDataModelSchemaQuery';
 import type { IRuleConnections } from 'src/features/form/dynamics';
 import type { FormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
-import type { FDSaveFinished, FDSaveResult, FormDataContext } from 'src/features/formData/FormDataWriteStateMachine';
-import type { BackendValidationIssueGroups } from 'src/features/validation';
+import type {
+  DataModelState,
+  FDActionResult,
+  FDSaveFinished,
+  FormDataContext,
+  UpdatedDataModel,
+} from 'src/features/formData/FormDataWriteStateMachine';
 import type { FormDataRowsSelector, FormDataSelector } from 'src/layout';
-import type { IMapping } from 'src/layout/common.generated';
+import type { IDataModelReference, IMapping } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { BaseRow } from 'src/utils/layout/types';
 
@@ -33,12 +43,11 @@ export type FDLeafValue = string | number | boolean | null | undefined | string[
 export type FDValue = FDLeafValue | object | FDValue[];
 
 interface FormDataContextInitialProps {
-  url: string;
-  initialData: object;
+  initialDataModels: { [dataType: string]: DataModelState };
   autoSaving: boolean;
   proxies: FormDataWriteProxies;
   ruleConnections: IRuleConnections | null;
-  schemaLookup: SchemaLookupTool;
+  schemaLookup: { [dataType: string]: SchemaLookupTool };
 }
 
 const {
@@ -56,42 +65,66 @@ const {
   name: 'FormDataWrite',
   required: true,
   initialCreateStore: ({
-    url,
-    initialData,
+    initialDataModels,
     autoSaving,
     proxies,
     ruleConnections,
     schemaLookup,
   }: FormDataContextInitialProps) =>
-    createFormDataWriteStore(url, initialData, autoSaving, proxies, ruleConnections, schemaLookup),
+    createFormDataWriteStore(initialDataModels, autoSaving, proxies, ruleConnections, schemaLookup),
 });
 
 function useFormDataSaveMutation() {
   const { doPatchFormData, doPostStatelessFormData } = useAppMutations();
-  const dataModelUrl = useSelector((s) => s.controlState.saveUrl);
-  const currentLanguageRef = useAsRef(useCurrentLanguage());
+  const getDataModelUrl = useGetDataModelUrl();
+  const instanceId = useLaxInstance()?.instanceId;
+  const multiPatchUrl = instanceId ? getMultiPatchUrl(instanceId) : undefined;
+  const dataModelsRef = useAsRef(useSelector((state) => state.dataModels));
   const saveFinished = useSelector((s) => s.saveFinished);
   const cancelSave = useSelector((s) => s.cancelSave);
   const isStateless = useApplicationMetadata().isStatelessApp;
   const debounce = useSelector((s) => s.debounce);
-  const waitFor = useWaitForState<{ prev: object; next: object }, FormDataContext>(useStore());
+  const waitFor = useWaitForState<
+    { prev: { [dataType: string]: object }; next: { [dataType: string]: object } },
+    FormDataContext
+  >(useStore());
   const useIsSavingRef = useAsRef(useIsSaving());
   const onSaveFinishedRef = useSelectorAsRef((s) => s.onSaveFinished);
+  const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationKey: ['saveFormData', dataModelUrl],
-    mutationFn: async (): Promise<FDSaveFinished | undefined> => {
-      if (useIsSavingRef.current) {
-        return;
+  // This updates the query cache with the new data models every time a save has finished. This means we won't have to
+  // refetch the data from the backend if the providers suddenly change (i.e. when navigating back and forth between
+  // the main form and a subform).
+  function updateQueryCache(result: FDSaveFinished) {
+    for (const { dataType, data, dataElementId } of result.newDataModels) {
+      const url = getDataModelUrl({ dataType, dataElementId, includeRowIds: true });
+      if (!url) {
+        continue;
       }
+      const queryKey = getFormDataQueryKey(url);
+      queryClient.setQueryData(queryKey, data);
+    }
+  }
 
+  const mutation = useMutation({
+    mutationKey: ['saveFormData'],
+    mutationFn: async (): Promise<FDSaveFinished | undefined> => {
       // While we could get the next model from a ref, we want to make sure we get the latest model after debounce
       // at the moment we're saving. This is especially important when automatically saving (and debouncing) when
       // navigating away from the form context.
       debounce();
       const { next, prev } = await waitFor((state, setReturnValue) => {
-        if (state.debouncedCurrentData === state.currentData) {
-          setReturnValue({ next: state.debouncedCurrentData, prev: state.lastSavedData });
+        if (!hasUnDebouncedCurrentChanges(state)) {
+          setReturnValue({
+            next: Object.entries(state.dataModels).reduce((next, [dataType, { debouncedCurrentData }]) => {
+              next[dataType] = debouncedCurrentData;
+              return next;
+            }, {}),
+            prev: Object.entries(state.dataModels).reduce((prev, [dataType, { lastSavedData }]) => {
+              prev[dataType] = lastSavedData;
+              return prev;
+            }, {}),
+          });
           return true;
         }
         return false;
@@ -101,63 +134,168 @@ function useFormDataSaveMutation() {
         return;
       }
 
-      // Add current language as a query parameter
-      const urlWithLanguage = getUrlWithLanguage(dataModelUrl, currentLanguageRef.current);
-
       if (isStateless) {
-        const newDataModel = await doPostStatelessFormData(urlWithLanguage, next);
-        onSaveFinishedRef.current?.();
-        return { newDataModel, savedData: next, validationIssues: undefined };
-      } else {
-        const patch = createPatch({ prev, next });
-        if (patch.length === 0) {
+        // Stateless does not support multi patch, so we need to save each model independently
+        const newDataModels: Promise<UpdatedDataModel>[] = [];
+
+        for (const dataType of Object.keys(dataModelsRef.current)) {
+          if (next[dataType] === prev[dataType]) {
+            continue;
+          }
+          const url = getDataModelUrl({ dataType });
+          if (!url) {
+            throw new Error(`Cannot post data, url for dataType '${dataType}' could not be determined`);
+          }
+          newDataModels.push(
+            doPostStatelessFormData(url, next[dataType]).then((newDataModel) => ({
+              dataType,
+              data: newDataModel,
+              dataElementId: undefined,
+            })),
+          );
+        }
+
+        if (newDataModels.length === 0) {
           return;
         }
 
-        const result = await doPatchFormData(urlWithLanguage, {
-          patch,
-          ignoredValidators: [],
-        });
         onSaveFinishedRef.current?.();
-        return { ...result, patch, savedData: next };
+        return { newDataModels: await Promise.all(newDataModels), savedData: next, validationIssues: undefined };
+      } else {
+        // Stateful needs to use either old patch or multi patch
+
+        const dataTypes = Object.keys(dataModelsRef.current);
+        const shouldUseMultiPatch = dataTypes.length > 1;
+        if (shouldUseMultiPatch) {
+          if (!multiPatchUrl) {
+            throw new Error(`Cannot patch data, multipatch url could not be determined`);
+          }
+
+          const patches = dataTypes.reduce((patches, dataType) => {
+            const { dataElementId, debouncedCurrentData, lastSavedData } = dataModelsRef.current[dataType];
+            if (dataElementId && debouncedCurrentData !== lastSavedData) {
+              const patch = createPatch({ prev: prev[dataType], next: next[dataType] });
+              if (patch.length > 0) {
+                patches[dataElementId] = patch;
+              }
+            }
+            return patches;
+          }, {});
+
+          if (Object.keys(patches).length === 0) {
+            return;
+          }
+
+          const { newDataModels, validationIssues } = await doPatchMultipleFormData(multiPatchUrl, {
+            patches,
+            // Ignore validations that require layout parsing in the backend which will slow down requests significantly
+            ignoredValidators: IgnoredValidators,
+          });
+
+          const dataModelChanges: UpdatedDataModel[] = [];
+          for (const dataElementId of Object.keys(newDataModels)) {
+            const dataType = Object.keys(dataModelsRef.current).find(
+              (dataType) => dataModelsRef.current[dataType].dataElementId === dataElementId,
+            );
+            if (dataType) {
+              dataModelChanges.push({ dataType, data: newDataModels[dataElementId], dataElementId });
+            }
+          }
+
+          onSaveFinishedRef.current?.();
+          return { newDataModels: dataModelChanges, validationIssues, savedData: next };
+        } else {
+          const dataType = dataTypes[0];
+          const patch = createPatch({ prev: prev[dataType], next: next[dataType] });
+          if (patch.length === 0) {
+            return;
+          }
+
+          const dataElementId = dataModelsRef.current[dataType].dataElementId;
+          if (!dataElementId) {
+            throw new Error(`Cannot patch data, dataElementId for dataType '${dataType}' could not be determined`);
+          }
+          const url = getDataModelUrl({ dataElementId });
+          if (!url) {
+            throw new Error(`Cannot patch data, url for dataType '${dataType}' could not be determined`);
+          }
+          const { newDataModel, validationIssues } = await doPatchFormData(url, {
+            patch,
+            // Ignore validations that require layout parsing in the backend which will slow down requests significantly
+            ignoredValidators: IgnoredValidators,
+          });
+          onSaveFinishedRef.current?.();
+          return {
+            newDataModels: [{ dataType, data: newDataModel, dataElementId }],
+            validationIssues,
+            savedData: next,
+          };
+        }
       }
     },
     onError: () => {
       cancelSave();
     },
     onSuccess: (result) => {
+      result && updateQueryCache(result);
       result && saveFinished(result);
       !result && cancelSave();
     },
   });
+
+  // Check if save has already started before calling mutate
+  const _mutate = mutation.mutate;
+  const mutate: typeof mutation.mutate = useCallback(
+    (...args) => !useIsSavingRef.current && _mutate(...args),
+    [useIsSavingRef, _mutate],
+  );
+
+  return {
+    ...mutation,
+    mutate,
+  };
 }
 
 function useIsSaving() {
-  const dataModelUrl = useLaxSelector((s) => s.controlState.saveUrl);
   return (
     useIsMutating({
-      mutationKey: ['saveFormData', dataModelUrl === ContextNotProvided ? '__never__' : dataModelUrl],
+      mutationKey: ['saveFormData'],
     }) > 0
   );
 }
 
-interface FormDataWriterProps extends PropsWithChildren {
-  url: string;
-  initialData: object;
-  autoSaving: boolean;
-}
-
-export function FormDataWriteProvider({ url, initialData, autoSaving, children }: FormDataWriterProps) {
+export function FormDataWriteProvider({ children }: PropsWithChildren) {
   const proxies = useFormDataWriteProxies();
   const ruleConnections = useRuleConnections();
-  const schemaLookup = useCurrentDataModelSchemaLookup();
+  const { allDataTypes, writableDataTypes, defaultDataType, initialData, schemaLookup, dataElementIds } =
+    DataModels.useFullState();
+  const autoSaveBehaviour = usePageSettings().autoSaveBehavior;
+
+  if (!writableDataTypes || !allDataTypes) {
+    throw new Error('FormDataWriteProvider failed because data types have not been loaded, see DataModelsProvider.');
+  }
+
+  const initialDataModels = allDataTypes.reduce((dm, dt) => {
+    const emptyInvalidData = {};
+    dm[dt] = {
+      currentData: initialData[dt],
+      invalidCurrentData: emptyInvalidData,
+      debouncedCurrentData: initialData[dt],
+      invalidDebouncedCurrentData: emptyInvalidData,
+      lastSavedData: initialData[dt],
+      hasUnsavedChanges: false,
+      dataElementId: dataElementIds[dt],
+      readonly: !writableDataTypes.includes(dt),
+      isDefault: dt === defaultDataType,
+    };
+    return dm;
+  }, {});
 
   return (
     <Provider
-      url={url}
-      autoSaving={autoSaving}
+      initialDataModels={initialDataModels}
+      autoSaving={!autoSaveBehaviour || autoSaveBehaviour === 'onChangeFormData'}
       proxies={proxies}
-      initialData={initialData}
       ruleConnections={ruleConnections}
       schemaLookup={schemaLookup}
     >
@@ -168,20 +306,13 @@ export function FormDataWriteProvider({ url, initialData, autoSaving, children }
 }
 
 function FormDataEffects() {
-  const state = useSelector((s) => s);
-  const {
-    currentData,
-    debouncedCurrentData,
-    lastSavedData,
-    controlState,
-    invalidCurrentData,
-    invalidDebouncedCurrentData,
-  } = state;
-  const { debounceTimeout, autoSaving, manualSaveRequested, lockedBy } = controlState;
+  const { autoSaving, lockedBy, debounceTimeout, manualSaveRequested } = useSelector((s) => s);
+  const hasUnsavedChanges = useHasUnsavedChanges();
+  const setUnsavedAttrTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
   const { mutate: performSave, error } = useFormDataSaveMutation();
   const isSaving = useIsSaving();
   const debounce = useDebounceImmediately();
-  const hasUnsavedChanges = useHasUnsavedChanges();
   const hasUnsavedChangesNow = useHasUnsavedChangesNow();
 
   // If errors occur, we want to throw them so that the user can see them, and they
@@ -189,28 +320,6 @@ function FormDataEffects() {
   if (error) {
     throw error;
   }
-
-  // Debounce the data model when the user stops typing. This has the effect of triggering the useEffect below,
-  // saving the data model to the backend. Freezing can also be triggered manually, when a manual save is requested.
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (currentData !== debouncedCurrentData || invalidCurrentData !== invalidDebouncedCurrentData) {
-        debounce();
-      }
-    }, debounceTimeout);
-
-    return () => clearTimeout(timer);
-  }, [debounce, currentData, debouncedCurrentData, debounceTimeout, invalidCurrentData, invalidDebouncedCurrentData]);
-
-  // Save the data model when the data has been frozen/debounced, and we're ready
-  const needsToSave = lastSavedData !== debouncedCurrentData;
-  const canSaveNow = !isSaving && !lockedBy;
-  const shouldSave = (needsToSave && canSaveNow && autoSaving) || manualSaveRequested;
-  const setUnsavedAttrTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-
-  useEffect(() => {
-    shouldSave && performSave();
-  }, [performSave, shouldSave]);
 
   // Marking the document as having unsaved changes. The data attribute is used in tests, while the beforeunload
   // event is used to warn the user when they try to navigate away from the page with unsaved changes.
@@ -232,6 +341,28 @@ function FormDataEffects() {
     };
   }, [hasUnsavedChanges]);
 
+  // Debounce the data model when the user stops typing. This has the effect of triggering the useEffect below,
+  // saving the data model to the backend. Freezing can also be triggered manually, when a manual save is requested.
+  const shouldDebounce = useSelector(hasUnDebouncedChanges);
+  useEffect(() => {
+    const timer = shouldDebounce.hasChanges
+      ? setTimeout(() => {
+          debounce();
+        }, debounceTimeout)
+      : undefined;
+
+    return () => clearTimeout(timer);
+  }, [debounce, debounceTimeout, shouldDebounce]);
+
+  // Save the data model when the data has been frozen/debounced, and we're ready
+  const needsToSave = useSelector(hasDebouncedUnsavedChanges);
+  const canSaveNow = !isSaving && !lockedBy;
+  const shouldSave = (needsToSave && canSaveNow && autoSaving) || manualSaveRequested;
+
+  useEffect(() => {
+    shouldSave && performSave();
+  }, [performSave, shouldSave]);
+
   // Always save unsaved changes when the user navigates away from the page and this component is unmounted.
   // We cannot put the current and last saved data in the dependency array, because that would cause the effect
   // to trigger when the user is typing, which is not what we want.
@@ -245,11 +376,16 @@ function FormDataEffects() {
   );
 
   // Sets the debounced data in the window object, so that Cypress tests can access it.
-  useEffect(() => {
+  useSelector((state) => {
     if (window.Cypress) {
-      window.CypressState = { ...window.CypressState, formData: debouncedCurrentData };
+      const formData: { [key: string]: unknown } = {};
+      for (const [dataType, { debouncedCurrentData }] of Object.entries(state.dataModels)) {
+        formData[dataType] = debouncedCurrentData;
+      }
+
+      window.CypressState = { ...window.CypressState, formData };
     }
-  }, [debouncedCurrentData]);
+  });
 
   return null;
 }
@@ -275,11 +411,37 @@ const useDebounceImmediately = () => {
   }, [debounce]);
 };
 
+function hasDebouncedUnsavedChanges(state: FormDataContext) {
+  return Object.values(state.dataModels).some(
+    ({ debouncedCurrentData, lastSavedData }) => debouncedCurrentData !== lastSavedData,
+  );
+}
+
+/**
+ * Checks if we need to debounce. This returns a new object so that the useEffect where it is used gets rerun whenever FormDataEffects renders.
+ * If it returned the boolean directly, it would not extend the timeout beyond the first time which causes the debounce timeout not to work as intendend.
+ * This may not be an optimal solution, it would ideally cause a rerender whenever any of the items it checks changes with some sort of selector.
+ */
+function hasUnDebouncedChanges(state: FormDataContext) {
+  return {
+    hasChanges: Object.values(state.dataModels).some(
+      ({ currentData, debouncedCurrentData, invalidCurrentData, invalidDebouncedCurrentData }) =>
+        currentData !== debouncedCurrentData || invalidCurrentData !== invalidDebouncedCurrentData,
+    ),
+  };
+}
+
+function hasUnDebouncedCurrentChanges(state: FormDataContext) {
+  return Object.values(state.dataModels).some(
+    ({ currentData, debouncedCurrentData }) => currentData !== debouncedCurrentData,
+  );
+}
+
 function hasUnsavedChanges(state: FormDataContext) {
-  if (state.currentData !== state.lastSavedData) {
-    return true;
-  }
-  return state.debouncedCurrentData !== state.lastSavedData;
+  return Object.values(state.dataModels).some(
+    ({ currentData, lastSavedData, debouncedCurrentData }) =>
+      currentData !== lastSavedData || debouncedCurrentData !== lastSavedData,
+  );
 }
 
 const useHasUnsavedChanges = () => {
@@ -305,22 +467,21 @@ const useHasUnsavedChangesNow = () => {
 };
 
 const useIsSavingNow = () => {
-  const dataModelUrl = useLaxSelector((s) => s.controlState.saveUrl);
   const queryClient = useQueryClient();
 
   return useCallback(() => {
     const numRequests = queryClient.getMutationCache().findAll({
       status: 'pending',
-      mutationKey: ['saveFormData', dataModelUrl === ContextNotProvided ? '__never__' : dataModelUrl],
+      mutationKey: ['saveFormData'],
     }).length;
 
     return numRequests > 0;
-  }, [queryClient, dataModelUrl]);
+  }, [queryClient]);
 };
 
 const useWaitForSave = () => {
   const requestSave = useRequestManualSave();
-  const url = useLaxSelector((s) => s.controlState.saveUrl);
+  const dataTypes = useLaxMemoSelector((s) => Object.keys(s.dataModels));
   const waitFor = useWaitForState<
     BackendValidationIssueGroups | undefined,
     FormDataContext | typeof ContextNotProvided
@@ -328,7 +489,7 @@ const useWaitForSave = () => {
 
   return useCallback(
     async (requestManualSave = false): Promise<BackendValidationIssueGroups | undefined> => {
-      if (url === ContextNotProvided) {
+      if (dataTypes === ContextNotProvided) {
         return Promise.resolve(undefined);
       }
 
@@ -350,12 +511,17 @@ const useWaitForSave = () => {
         return true;
       });
     },
-    [requestSave, url, waitFor],
+    [requestSave, dataTypes, waitFor],
   );
 };
 
 const emptyObject = {};
 const emptyArray = [];
+
+const debouncedSelector = (reference: IDataModelReference) => (state: FormDataContext) =>
+  dot.pick(reference.field, state.dataModels[reference.dataType].debouncedCurrentData);
+const invalidDebouncedSelector = (reference: IDataModelReference) => (state: FormDataContext) =>
+  dot.pick(reference.field, state.dataModels[reference.dataType].invalidDebouncedCurrentData);
 
 export const FD = {
   /**
@@ -367,7 +533,7 @@ export const FD = {
   useDebouncedSelector(): FormDataSelector {
     return useDelayedSelector({
       mode: 'simple',
-      selector: (path: string) => (state) => dot.pick(path, state.debouncedCurrentData),
+      selector: debouncedSelector,
     });
   },
 
@@ -379,8 +545,8 @@ export const FD = {
   useDebouncedRowsSelector(): FormDataRowsSelector {
     return useDelayedSelector({
       mode: 'simple',
-      selector: (path: string) => (state) => {
-        const rawRows = dot.pick(path, state.debouncedCurrentData);
+      selector: (reference: IDataModelReference) => (state) => {
+        const rawRows = dot.pick(reference.field, state.dataModels[reference.dataType].debouncedCurrentData);
         if (!Array.isArray(rawRows) || !rawRows.length) {
           return emptyArray;
         }
@@ -397,7 +563,7 @@ export const FD = {
   useInvalidDebouncedSelector(): FormDataSelector {
     return useDelayedSelector({
       mode: 'simple',
-      selector: (path: string) => (state) => dot.pick(path, state.invalidDebouncedCurrentData),
+      selector: invalidDebouncedSelector,
     });
   },
 
@@ -405,8 +571,8 @@ export const FD = {
    * This will return the form data as a deep object, just like the server sends it to us (and the way we send it back).
    * This will always give you the debounced data, which may or may not be saved to the backend yet.
    */
-  useDebounced(): object {
-    return useSelector((v) => v.debouncedCurrentData);
+  useDebounced(dataType: string): object {
+    return useSelector((v) => v.dataModels[dataType].debouncedCurrentData);
   },
 
   /**
@@ -416,7 +582,7 @@ export const FD = {
   useLaxDebouncedSelector(): FormDataSelector | typeof ContextNotProvided {
     return useLaxDelayedSelector({
       mode: 'simple',
-      selector: (path: string) => (state) => dot.pick(path, state.debouncedCurrentData),
+      selector: debouncedSelector,
     });
   },
 
@@ -425,8 +591,8 @@ export const FD = {
    * the value will be returned as-is. If the value is not found, undefined is returned. Null may also be returned if
    * the value is explicitly set to null.
    */
-  useDebouncedPick(path: string): FDValue {
-    return useSelector((v) => dot.pick(path, v.debouncedCurrentData));
+  useDebouncedPick(reference: IDataModelReference): FDValue {
+    return useSelector((v) => dot.pick(reference.field, v.dataModels[reference.dataType].debouncedCurrentData));
   },
 
   /**
@@ -446,13 +612,15 @@ export const FD = {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const out: any = {};
       for (const key of Object.keys(bindings)) {
-        const invalidValue = dot.pick(bindings[key], s.invalidCurrentData);
+        const field = bindings[key].field;
+        const dataType = bindings[key].dataType;
+        const invalidValue = dot.pick(field, s.dataModels[dataType].invalidCurrentData);
         if (invalidValue !== undefined) {
           out[key] = invalidValue;
           continue;
         }
 
-        const value = dot.pick(bindings[key], s.currentData);
+        const value = dot.pick(field, s.dataModels[dataType].currentData);
         if (dataAs === 'raw') {
           out[key] = value;
         } else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
@@ -483,7 +651,9 @@ export const FD = {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const out: any = {};
       for (const key of Object.keys(bindings)) {
-        out[key] = dot.pick(bindings[key], s.invalidCurrentData) === undefined;
+        const field = bindings[key].field;
+        const dataType = bindings[key].dataType;
+        out[key] = dot.pick(field, s.dataModels[dataType].invalidCurrentData) === undefined;
       }
       return out;
     }),
@@ -494,8 +664,8 @@ export const FD = {
    * later, such as `-5`). As this is the debounced data, it will only be updated when the user stops typing for a
    * while, so that this model can be used for i.e. validation messages.
    */
-  useInvalidDebounced(): object {
-    return useSelector((v) => v.invalidDebouncedCurrentData);
+  useInvalidDebounced(dataType: string): object {
+    return useSelector((v) => v.dataModels[dataType].invalidDebouncedCurrentData);
   },
 
   /**
@@ -509,15 +679,16 @@ export const FD = {
   useMapping: <D extends 'string' | 'raw' = 'string'>(
     mapping: IMapping | undefined,
     dataAs?: D,
-  ): D extends 'raw' ? { [key: string]: FDValue } : { [key: string]: string } =>
-    useMemoSelector((s) => {
+  ): D extends 'raw' ? { [key: string]: FDValue } : { [key: string]: string } => {
+    const currentDataType = useCurrentDataModelName();
+    return useMemoSelector((s) => {
       const realDataAs = dataAs || 'string';
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const out: any = {};
-      if (mapping) {
+      if (mapping && currentDataType) {
         for (const key of Object.keys(mapping)) {
           const outputKey = mapping[key];
-          const value = dot.pick(key, s.debouncedCurrentData);
+          const value = dot.pick(key, s.dataModels[currentDataType].debouncedCurrentData);
 
           if (realDataAs === 'raw') {
             out[outputKey] = value;
@@ -531,7 +702,8 @@ export const FD = {
         }
       }
       return out;
-    }),
+    });
+  },
 
   /**
    * This returns the raw method for setting a value in the form data. This is useful if you want to
@@ -558,8 +730,8 @@ export const FD = {
     const rawLock = useSelector((s) => s.lock);
     const rawUnlock = useSelector((s) => s.unlock);
 
-    const lockedBy = useSelector((s) => s.controlState.lockedBy);
-    const lockedByRef = useSelectorAsRef((s) => s.controlState.lockedBy);
+    const lockedBy = useSelector((s) => s.lockedBy);
+    const lockedByRef = useSelectorAsRef((s) => s.lockedBy);
     const isLocked = lockedBy !== undefined;
     const isLockedRef = useAsRef(isLocked);
     const isLockedByMe = lockedBy === lockId;
@@ -587,7 +759,7 @@ export const FD = {
     }, [hasUnsavedChangesNow, isLockedByMeRef, isLockedRef, lockId, lockedByRef, rawLock, waitForSave]);
 
     const unlock = useCallback(
-      (saveResult?: FDSaveResult) => {
+      (actionResult?: FDActionResult) => {
         if (!isLockedRef.current) {
           window.logWarn(`Form data is not locked, cannot unlock it (requested by ${lockId})`);
         }
@@ -598,7 +770,7 @@ export const FD = {
           return false;
         }
 
-        rawUnlock(saveResult);
+        rawUnlock(actionResult);
         return true;
       },
       [isLockedByMeRef, isLockedRef, lockId, lockedByRef, rawUnlock],
@@ -614,13 +786,13 @@ export const FD = {
    * Returns a list of rows, given a binding/path that points to a repeating-group-like structure (i.e. an array of
    * objects). This will always be 'fresh', meaning it will update immediately when a new row is added/removed.
    */
-  useFreshRows: (binding: string | undefined): BaseRow[] =>
+  useFreshRows: (reference: IDataModelReference | undefined): BaseRow[] =>
     useMemoSelector((s) => {
-      if (!binding) {
+      if (!reference) {
         return emptyArray;
       }
 
-      const rawRows = dot.pick(binding, s.currentData);
+      const rawRows = dot.pick(reference.field, s.dataModels[reference.dataType].currentData);
       if (!Array.isArray(rawRows) || !rawRows.length) {
         return emptyArray;
       }
@@ -684,6 +856,18 @@ export const FD = {
    * Returns the latest validation issues from the backend, from the last time the form data was saved.
    */
   useLastSaveValidationIssues: () => useSelector((s) => s.validationIssues),
+
+  useGetDataTypeForElementId: () => {
+    const map: Record<string, string | undefined> = useMemoSelector((s) =>
+      Object.fromEntries(
+        Object.entries(s.dataModels)
+          .filter(([_, dataModel]) => dataModel.dataElementId)
+          .map(([dataType, dataModel]) => [dataModel.dataElementId, dataType]),
+      ),
+    );
+
+    return useCallback((dataElementId: string) => map[dataElementId], [map]);
+  },
 
   /**
    * This lets you set to a function that will be called as soon as the saving operation finishes.

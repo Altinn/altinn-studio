@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 
+import { useCurrentDataModelName } from 'src/features/datamodel/useBindingSchema';
 import { useDynamics } from 'src/features/form/dynamics/DynamicsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
@@ -8,6 +9,7 @@ import { useNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 import type { IConditionalRenderingRule } from 'src/features/form/dynamics/index';
 import type { FormDataSelector } from 'src/layout';
+import type { IDataModelReference } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { DataModelTransposeSelector } from 'src/utils/layout/useDataModelBindingTranspose';
 
@@ -37,13 +39,14 @@ function useLegacyHiddenComponents() {
   const nodeDataSelector = NodesInternal.useNodeDataSelector();
   const traversalSelector = useNodeTraversalSelector();
   const hiddenNodes: { [nodeId: string]: true } = {};
+  const defaultDataType = useCurrentDataModelName() ?? '';
 
   if (!window.conditionalRuleHandlerObject || !rules || Object.keys(rules).length === 0) {
     // Rules have not been initialized
     return hiddenNodes;
   }
 
-  const props = [hiddenNodes, formDataSelector, transposeSelector] as const;
+  const props = [defaultDataType, hiddenNodes, formDataSelector, transposeSelector] as const;
   const topLevelNode = traversalSelector((t) => t.allNodes()[0], []);
   for (const key of Object.keys(rules)) {
     if (!key) {
@@ -95,6 +98,7 @@ function useLegacyHiddenComponents() {
 function runConditionalRenderingRule(
   rule: IConditionalRenderingRule,
   node: LayoutNode | undefined,
+  defaultDataType: string,
   hiddenNodes: { [nodeId: string]: true },
   formDataSelector: FormDataSelector,
   transposeSelector: DataModelTransposeSelector,
@@ -105,7 +109,8 @@ function runConditionalRenderingRule(
   const inputObj = {} as Record<string, string | number | boolean | null>;
   for (const key of inputKeys) {
     const param = rule.inputParams[key].replace(/{\d+}/g, '');
-    const transposed = (node ? transposeSelector(node, param) : undefined) ?? param;
+    const binding: IDataModelReference = { dataType: defaultDataType, field: param };
+    const transposed = (node ? transposeSelector(node, binding) : undefined) ?? binding;
     const value = formDataSelector(transposed);
 
     if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {

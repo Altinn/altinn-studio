@@ -5,6 +5,7 @@ import { userEvent } from '@testing-library/user-event';
 import type { AxiosResponse } from 'axios';
 
 import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepGroup';
+import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGroup';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { IRawOption } from 'src/layout/common.generated';
@@ -39,7 +40,7 @@ const render = async ({ component, options, formData, groupData = getFormDataMoc
     component: {
       optionsId: 'countries',
       preselectedOptionIndex: undefined,
-      dataModelBindings: { simpleBinding: 'myRadio' },
+      dataModelBindings: { simpleBinding: { dataType: defaultDataTypeMock, field: 'myRadio' } },
       ...component,
     },
     queries: {
@@ -74,7 +75,10 @@ describe('RadioButtonsContainerComponent', () => {
     });
 
     await waitFor(() =>
-      expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'myRadio', newValue: 'sweden' }),
+      expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
+        reference: { field: 'myRadio', dataType: defaultDataTypeMock },
+        newValue: 'sweden',
+      }),
     );
   });
 
@@ -125,7 +129,10 @@ describe('RadioButtonsContainerComponent', () => {
     await userEvent.click(denmark);
 
     await waitFor(() =>
-      expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'myRadio', newValue: 'denmark' }),
+      expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
+        reference: { field: 'myRadio', dataType: defaultDataTypeMock },
+        newValue: 'denmark',
+      }),
     );
   });
 
@@ -179,7 +186,10 @@ describe('RadioButtonsContainerComponent', () => {
 
     expect(formDataMethods.setLeafValue).not.toHaveBeenCalled();
     await userEvent.click(getRadio({ name: /The value from the group is: Label for first/ }));
-    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({ path: 'myRadio', newValue: 'Value for first' });
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
+      reference: { field: 'myRadio', dataType: defaultDataTypeMock },
+      newValue: 'Value for first',
+    });
   });
 
   it('should present the options list in the order it is provided when sortOrder is not specified', async () => {

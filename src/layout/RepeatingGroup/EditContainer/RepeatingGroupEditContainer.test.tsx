@@ -3,6 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getMultiPageGroupMock } from 'src/__mocks__/getMultiPageGroupMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/EditContainer/RepeatingGroupsEditContainer';
@@ -25,7 +26,7 @@ describe('RepeatingGroupsEditContainer', () => {
       id: 'field1',
       type: 'Input',
       dataModelBindings: {
-        simpleBinding: 'Group.prop1',
+        simpleBinding: { dataType: defaultDataTypeMock, field: 'Group.prop1' },
       },
       textResourceBindings: {
         title: 'Title1',
@@ -37,7 +38,7 @@ describe('RepeatingGroupsEditContainer', () => {
       id: 'field2',
       type: 'Input',
       dataModelBindings: {
-        simpleBinding: 'Group.prop2',
+        simpleBinding: { dataType: defaultDataTypeMock, field: 'Group.prop2' },
       },
       textResourceBindings: {
         title: 'Title2',
@@ -49,7 +50,7 @@ describe('RepeatingGroupsEditContainer', () => {
       id: 'field3',
       type: 'Input',
       dataModelBindings: {
-        simpleBinding: 'Group.prop3',
+        simpleBinding: { dataType: defaultDataTypeMock, field: 'Group.prop3' },
       },
       textResourceBindings: {
         title: 'Title3',
@@ -61,7 +62,7 @@ describe('RepeatingGroupsEditContainer', () => {
       id: 'field4',
       type: 'Checkboxes',
       dataModelBindings: {
-        simpleBinding: 'some-group.checkboxBinding',
+        simpleBinding: { dataType: defaultDataTypeMock, field: 'some-group.checkboxBinding' },
       },
       textResourceBindings: {
         title: 'Title4',
