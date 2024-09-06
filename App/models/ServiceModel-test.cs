@@ -176,6 +176,16 @@ namespace Altinn.App.Models
 
     public class Geometry
     {
+        [XmlAttribute("altinnRowId")]
+        [JsonPropertyName("altinnRowId")]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public Guid AltinnRowId { get; set; }
+
+        public bool AltinnRowIdSpecified()
+        {
+            return AltinnRowId == default;
+        }
+
         [XmlElement("data")]
         [JsonProperty("data")]
         [JsonPropertyName("data")]
