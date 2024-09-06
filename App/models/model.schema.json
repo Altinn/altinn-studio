@@ -185,6 +185,9 @@
     },
     "list": {
       "type": "string"
+    },
+    "map": {
+      "type": "string"
     }
   }
 }
