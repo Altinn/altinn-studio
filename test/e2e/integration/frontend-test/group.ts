@@ -388,8 +388,7 @@ describe('Group', () => {
           c.edit.openByDefault = openByDefault;
         }
       });
-      cy.navPage('prefill').click();
-      cy.navPage('repeating').click();
+      cy.gotoNavPage('repeating');
 
       cy.log('Testing whether whether existing item is opened when openByDefault =', openByDefault);
 
@@ -420,8 +419,7 @@ describe('Group', () => {
         c.edit.openByDefault = true;
       }
     });
-    cy.navPage('prefill').click();
-    cy.navPage('repeating').click();
+    cy.gotoNavPage('repeating');
 
     // Test that deleting an item does not cause another group to open if there are more elements in the group
     cy.get(appFrontend.group.mainGroupTableBody).children().eq(0).find(appFrontend.group.delete).click();
@@ -477,11 +475,11 @@ describe('Group', () => {
       }
     });
 
-    cy.navPage('prefill').click();
+    cy.gotoNavPage('prefill');
     cy.get(appFrontend.group.prefill.liten).check();
     cy.get(appFrontend.group.prefill.middels).check();
     cy.get(appFrontend.group.prefill.enorm).check();
-    cy.navPage('repeating').click();
+    cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', 3);
     cy.snapshot('group:edit-in-table');

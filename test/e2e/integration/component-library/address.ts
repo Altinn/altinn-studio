@@ -19,7 +19,7 @@ describe('Address component', () => {
     const houseNumber = 'U0101';
 
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
-    cy.get('#navigation-menu').find('button').contains('8. Adresse').click();
+    cy.gotoNavPage('Adresse');
     cy.get('#address_address_AddressPage-Address').type(address);
     cy.get('#address_care_of_AddressPage-Address').type(co);
     cy.get('#address_zip_code_AddressPage-Address').type(zip);

@@ -5,7 +5,7 @@ const appFrontend = new AppFrontend();
 describe('Group summary test', () => {
   beforeEach(() => {
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
-    cy.get('#navigation-menu').find('button').contains('7. Gruppe').click();
+    cy.gotoNavPage('Gruppe');
   });
 
   it('Fills in an input in the base level group, the text appears in summary', () => {

@@ -7,7 +7,7 @@ describe('Input component', () => {
     const testText = 'I type some text';
 
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
-    cy.get('#navigation-menu').find('button').contains('1. Kort svar').click();
+    cy.gotoNavPage('Kort svar');
     cy.get('#InputPage-Input').type(testText);
 
     // Verify Gateadresse (Street address)

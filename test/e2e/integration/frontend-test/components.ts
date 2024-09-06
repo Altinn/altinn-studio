@@ -231,7 +231,7 @@ describe('UI Components', () => {
       .should('have.attr', 'aria-current', 'page')
       .and('have.css', 'background-color', 'rgb(2, 47, 81)');
     cy.navPage('summary').should('have.css', 'background-color', 'rgba(0, 0, 0, 0)');
-    cy.navPage('summary').click();
+    cy.gotoNavPage('summary');
     cy.navPage('form').should('not.have.attr', 'aria-current', 'page');
     cy.navPage('summary')
       .should('have.attr', 'aria-current', 'page')
@@ -508,7 +508,7 @@ describe('UI Components', () => {
     });
 
     cy.goto('changename');
-    cy.navPage('grid').click();
+    cy.gotoNavPage('grid');
     // dialog pops up when unchecking a checkbox
     cy.get('[data-testid="checkboxes-fieldset"]').find('label').contains('Ja').dblclick();
     //Make sure that the alert popover for only one checkbox is displayed, if several dialogs are displayed, the test will fail

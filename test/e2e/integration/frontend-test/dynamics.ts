@@ -62,7 +62,7 @@ describe('Dynamics', () => {
       }
     });
     cy.gotoAndComplete('changename');
-    cy.navPage('form').click();
+    cy.gotoNavPage('form');
     cy.get(appFrontend.changeOfName.newFirstName).clear();
     cy.findByRole('tab', { name: /nytt etternavn/i }).click();
     cy.get(appFrontend.changeOfName.newLastName).clear();
@@ -115,10 +115,10 @@ describe('Dynamics', () => {
     cy.get(appFrontend.navMenuButtons).should('have.length', 3);
 
     // Typing 1234 into the field should hide the last name component
-    cy.navPage('summary').click();
+    cy.gotoNavPage('summary');
     cy.get('#testInputOnSummary').clear();
     cy.get('#testInputOnSummary').type('1234');
-    cy.navPage('form').click();
+    cy.gotoNavPage('form');
     cy.findByRole('tab', { name: /nytt etternavn/i }).click();
     cy.get(appFrontend.changeOfName.newLastName).should('not.exist');
 

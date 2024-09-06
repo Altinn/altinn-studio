@@ -21,7 +21,7 @@ describe('Grid component', () => {
     cy.get(appFrontend.changeOfName.dateOfEffect).siblings().children(mui.buttonIcon).click();
     cy.get(mui.selectedDate).click();
 
-    cy.navPage('grid').click();
+    cy.gotoNavPage('grid');
 
     // Dynamics hiding the entire grid table
     cy.get(appFrontend.grid.gridWithAll).should('be.visible');
@@ -64,7 +64,7 @@ describe('Grid component', () => {
     cy.get(appFrontend.grid.grid).find('tr').eq(3).find('td').eq(0).should('contain.text', 'Mitt boliglån');
 
     // Verify that the summary is correct
-    cy.navPage('summary').click();
+    cy.gotoNavPage('summary');
     cy.get(appFrontend.grid.summary).should('be.visible');
     cy.get(appFrontend.grid.summary).find(appFrontend.grid.bolig.percentSummary).should('contain.text', '70 %');
     cy.get(appFrontend.grid.summary).find(appFrontend.grid.bolig.amountSummary).should('contain.text', '700 000 kr');
@@ -85,7 +85,7 @@ describe('Grid component', () => {
       .should('contain.text', texts.emptySummary);
 
     // Testing that mobile view breaks down into regular components without a table
-    cy.navPage('grid').click();
+    cy.gotoNavPage('grid');
     cy.get(`${appFrontend.grid.grid} tr`).should('exist');
     cy.viewport('samsung-s10');
     cy.get(appFrontend.grid.grid).should('be.visible');
@@ -128,7 +128,7 @@ describe('Grid component', () => {
 
     cy.goto('group');
     cy.get(appFrontend.group.prefill.liten).check();
-    cy.navPage('repeating').click();
+    cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.showGroupToContinue).find('input').check();
     cy.get(appFrontend.group.row(0).editBtn).click();
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
@@ -158,7 +158,7 @@ describe('Grid component', () => {
     });
 
     cy.goto('changename');
-    cy.navPage('grid').click();
+    cy.gotoNavPage('grid');
 
     cy.findByRole('button', { name: /Hjelpetekst for Boliglån/i }).click();
     cy.get(appFrontend.helpText.alert).should('contain.text', 'Help text');

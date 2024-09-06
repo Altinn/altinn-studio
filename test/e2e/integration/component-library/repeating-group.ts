@@ -5,7 +5,7 @@ const appFrontend = new AppFrontend();
 describe('Group summary test', () => {
   beforeEach(() => {
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
-    cy.get('#navigation-menu').find('button').contains('11. Repeterende gruppe').click();
+    cy.gotoNavPage('Repeterende gruppe');
   });
 
   it('Fills in an input in the repeating group, the text appears in summary', () => {

@@ -40,7 +40,7 @@ describe('Tabs', () => {
       .invoke('attr', 'aria-selected')
       .should('equal', 'false');
 
-    cy.navPage('grid').click();
+    cy.gotoNavPage('grid');
     cy.findByRole('button', { name: 'Send inn' }).click();
     cy.findByRole('button', { name: /du må fylle ut nytt etternavn/i }).click();
 

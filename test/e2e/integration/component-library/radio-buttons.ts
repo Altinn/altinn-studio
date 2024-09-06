@@ -7,7 +7,7 @@ describe('RadioButtons component', () => {
     const testText = 'Bil';
 
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
-    cy.get('#navigation-menu').find('button').contains('3. Radioknapper').click();
+    cy.gotoNavPage('Radioknapper');
     cy.contains('label', testText).click();
     cy.get('[data-testid="summary-single-value-component"]')
       .eq(0)

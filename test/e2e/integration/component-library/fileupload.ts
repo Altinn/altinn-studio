@@ -5,7 +5,7 @@ const appFrontend = new AppFrontend();
 describe('FileUpload summary test', () => {
   beforeEach(() => {
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
-    cy.get('#navigation-menu').find('button').contains('9. FileUploadPage').click();
+    cy.gotoNavPage('FileUploadPage');
   });
   const makeTestFile = (fileName: string) => ({
     fileName,

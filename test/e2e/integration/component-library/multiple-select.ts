@@ -5,7 +5,7 @@ const appFrontend = new AppFrontend();
 describe('Multiple select component', () => {
   it('Renders the summary2 component with correct text for MultipleSelext', () => {
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
-    cy.get('#navigation-menu').find('button').contains('6. MultipleSelectPage').click();
+    cy.gotoNavPage('MultipleSelectPage');
 
     // Define the text for the last three checkboxes
 

@@ -5,7 +5,7 @@ const appFrontend = new AppFrontend();
 describe('Checkboxes component', () => {
   it('Renders the summary2 component with correct text for Checkboxes', () => {
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
-    cy.get('#navigation-menu').find('button').contains('4. Avkryssningsbokser').click();
+    cy.gotoNavPage('Avkryssningsbokser');
 
     // Define the text for the last three checkboxes
     const checkboxText1 = 'Korte strekninger med bykjøring, eller annen moro';

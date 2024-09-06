@@ -67,7 +67,7 @@ it('should be possible to hide rows when "Endre fra" is greater or equals to [..
   cy.snapshot('hide-row-in-group');
 
   // Adding a new row to the repeating group should automatically move it to the overflow group on the next page
-  cy.navPage('repeating').click();
+  cy.gotoNavPage('repeating');
   cy.get(appFrontend.group.addNewItem).click();
   cy.get(appFrontend.group.newValue).type('987554');
   cy.get(appFrontend.group.currentValue).type('1500');
@@ -93,7 +93,7 @@ it('should be possible to hide rows when "Endre fra" is greater or equals to [..
   // This should change the value to NOK 150, and move the row back to the first group
   cy.get('@newRow').eq(1).find('input').type('{moveToEnd}{moveToEnd}{moveToEnd}{backspace}');
 
-  cy.navPage('repeating').click();
+  cy.gotoNavPage('repeating');
 
   // When we had the bug mentioned above, the row would be moved back to the first group, but still be in edit-mode
   // according to our internal state. No that this is fixed, there should be no edit-container.
