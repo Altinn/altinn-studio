@@ -72,16 +72,6 @@
         }
       },
       {
-        "id": "garasje",
-        "type": "Group",
-        "textResourceBindings": {
-          "title": "Garasje"
-        },
-        "children": [
-          "subform-mopeder"
-        ]
-      },
-      {
         "id": "subform-mopeder",
         "type": "Subform",
         "textResourceBindings": {
@@ -111,16 +101,6 @@
               "default": "🥺"
             }
           }
-        ]
-      },
-      {
-        "id": "bokhylle",
-        "type": "Group",
-        "textResourceBindings": {
-          "title": "Bokhylle"
-        },
-        "children": [
-          "subform-boker"
         ]
       },
       {
