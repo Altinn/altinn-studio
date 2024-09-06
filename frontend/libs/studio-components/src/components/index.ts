@@ -1,5 +1,6 @@
 export * from './StudioAnimateHeight';
 export * from './StudioAvatar';
+export * from './StudioBlobDownloader';
 export * from './StudioBooleanToggleGroup';
 export * from './StudioButton';
 export * from './StudioCard';
@@ -39,3 +40,7 @@ export * from './StudioTextfield';
 export * from './StudioToggleableTextfield';
 export * from './StudioToggleableTextfieldSchema';
 export * from './StudioTreeView';
+export * from './StudioTabs';
+export * from './StudioDivider';
+export * from './StudioPageError';
+export * from './StudioError';
