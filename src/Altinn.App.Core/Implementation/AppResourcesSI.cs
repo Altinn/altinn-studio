@@ -344,7 +344,7 @@ public class AppResourcesSI : IAppResources
         {
             var pageBytes = File.ReadAllBytes(Path.Join(folder, page + ".json"));
             // Set the PageName using AsyncLocal before deserializing.
-            PageComponentConverter.SetAsyncLocalPageName(page);
+            PageComponentConverter.SetAsyncLocalPageName(layoutSet.Id, page);
             pages.Add(
                 System.Text.Json.JsonSerializer.Deserialize<PageComponent>(
                     pageBytes.RemoveBom(),

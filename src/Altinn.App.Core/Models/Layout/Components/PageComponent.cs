@@ -14,6 +14,7 @@ public record PageComponent : GroupComponent
     /// </summary>
     public PageComponent(
         string id,
+        string layoutId,
         List<BaseComponent> children,
         Dictionary<string, BaseComponent> componentLookup,
         Expression hidden,
@@ -23,8 +24,15 @@ public record PageComponent : GroupComponent
     )
         : base(id, "page", null, children, null, hidden, required, readOnly, extra)
     {
+        LayoutId = layoutId;
         ComponentLookup = componentLookup;
     }
+
+    /// <inheritdoc />
+    public override string PageId => Id;
+
+    /// <inheritdoc />
+    public override string LayoutId { get; }
 
     /// <summary>
     /// Helper dictionary to find components without traversing childern.

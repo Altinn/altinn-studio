@@ -166,7 +166,8 @@ public static class LayoutEvaluator
             {
                 foreach (var (bindingName, binding) in context.Component.DataModelBindings)
                 {
-                    if (await state.GetModelData(binding, context.DataElementId, context.RowIndices) is null)
+                    var value = await state.GetModelData(binding, context.DataElementId, context.RowIndices);
+                    if (value is null)
                     {
                         var field = await state.AddInidicies(binding, context);
                         validationIssues.Add(
@@ -176,7 +177,7 @@ public static class LayoutEvaluator
                                 DataElementId = field.DataElementId.ToString(),
                                 Field = field.Field,
                                 Description =
-                                    $"{field.Field} is required in component with id {context.Component.Id} for binding {bindingName}",
+                                    $"{field.Field} is required in component with id {context.Component.LayoutId}.{context.Component.PageId}.{context.Component.Id} for binding {bindingName}",
                                 Code = "required",
                             }
                         );

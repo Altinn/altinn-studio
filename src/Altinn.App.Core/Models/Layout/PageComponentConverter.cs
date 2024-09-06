@@ -19,7 +19,7 @@ namespace Altinn.App.Core.Models.Layout;
 /// </remarks>
 public class PageComponentConverter : JsonConverter<PageComponent>
 {
-    private static readonly AsyncLocal<string?> _pageName = new();
+    private static readonly AsyncLocal<(string layoutId, string pageName)?> _asyncLocal = new();
 
     /// <summary>
     /// Store pageName to be used for deserialization
@@ -30,25 +30,32 @@ public class PageComponentConverter : JsonConverter<PageComponent>
     ///
     /// This uses a AsyncLocal to pass the pageName as an additional parameter
     /// </remarks>
-    public static void SetAsyncLocalPageName(string pageName)
+    public static void SetAsyncLocalPageName(string layoutId, string pageName)
     {
-        _pageName.Value = pageName;
+        _asyncLocal.Value = (layoutId, pageName);
     }
 
     /// <inheritdoc />
     public override PageComponent Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         // Try to get pagename from metadata in this.AddPageName
-        var pageName = _pageName.Value ?? "UnknownPageName";
-        _pageName.Value = null;
+        var pageName = _asyncLocal.Value?.pageName ?? "UnknownPageName";
+        var layoutId = _asyncLocal.Value?.layoutId ?? "UnknownLayoutSetId";
 
-        return ReadNotNull(ref reader, pageName, options);
+        _asyncLocal.Value = null;
+
+        return ReadNotNull(ref reader, pageName, layoutId, options);
     }
 
     /// <summary>
     /// Similar to read, but not nullable, and no pageName hack.
     /// </summary>
-    public PageComponent ReadNotNull(ref Utf8JsonReader reader, string pageName, JsonSerializerOptions options)
+    public PageComponent ReadNotNull(
+        ref Utf8JsonReader reader,
+        string pageName,
+        string layoutId,
+        JsonSerializerOptions options
+    )
     {
         if (reader.TokenType != JsonTokenType.StartObject)
         {
@@ -72,7 +79,7 @@ public class PageComponentConverter : JsonConverter<PageComponent>
             reader.Read();
             if (propertyName == "data")
             {
-                page = ReadData(ref reader, pageName, options);
+                page = ReadData(ref reader, pageName, layoutId, options);
             }
             else
             {
@@ -87,7 +94,12 @@ public class PageComponentConverter : JsonConverter<PageComponent>
         return page;
     }
 
-    private PageComponent ReadData(ref Utf8JsonReader reader, string pageName, JsonSerializerOptions options)
+    private PageComponent ReadData(
+        ref Utf8JsonReader reader,
+        string pageName,
+        string layoutId,
+        JsonSerializerOptions options
+    )
     {
         if (reader.TokenType != JsonTokenType.StartObject)
         {
@@ -155,6 +167,7 @@ public class PageComponentConverter : JsonConverter<PageComponent>
 
         return new PageComponent(
             pageName,
+            layoutId,
             layout,
             componentLookup,
             hidden ?? Expression.False,

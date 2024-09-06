@@ -79,7 +79,7 @@ public static class LayoutTestUtils
             var layoutBytes = await File.ReadAllBytesAsync(layoutFile);
             string pageName = layoutFile.Replace(layoutsPath + "/", string.Empty).Replace(".json", string.Empty);
 
-            PageComponentConverter.SetAsyncLocalPageName(pageName);
+            PageComponentConverter.SetAsyncLocalPageName("layout", pageName);
 
             pages.Add(JsonSerializer.Deserialize<PageComponent>(layoutBytes.RemoveBom(), _jsonSerializerOptions)!);
         }

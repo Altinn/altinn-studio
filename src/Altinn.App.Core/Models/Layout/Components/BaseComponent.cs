@@ -43,14 +43,15 @@ public record BaseComponent
     /// <summary>
     /// Get the page for the component
     /// </summary>
-    public string PageId
-    {
-        get
-        {
-            //Get the Id of the first component without a parent.
-            return Parent?.PageId ?? Id;
-        }
-    }
+    public virtual string PageId =>
+        Parent?.PageId ?? throw new InvalidOperationException("Component is not part of a page");
+
+    /// <summary>
+    /// Get the layout
+    /// </summary>
+    /// <exception cref="InvalidOperationException"></exception>
+    public virtual string LayoutId =>
+        Parent?.LayoutId ?? throw new InvalidOperationException("Component is not part of a layout");
 
     /// <summary>
     /// Component type as written in the json file
