@@ -1,6 +1,8 @@
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.App.Core.Tests.TestUtils;
@@ -164,25 +166,44 @@ public class TestFunctions
         _output.WriteLine(test.RawJson);
         _output.WriteLine(test.FullPath);
 
-        var dataAccessor = test.DataModels is null
-            ? DynamicClassBuilder.DataAccessorFromJsonDocument(
+        IInstanceDataAccessor dataAccessor;
+        List<DataType> dataTypes = new();
+        if (test.DataModels is null)
+        {
+            dataTypes.Add(new DataType() { Id = "default" });
+            dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(
                 test.Instance,
                 test.DataModel ?? JsonDocument.Parse("{}").RootElement
-            )
-            : DynamicClassBuilder.DataAccessorFromJsonDocument(test.Instance, test.DataModels);
+            );
+        }
+        else
+        {
+            dataTypes.AddRange(
+                test.DataModels.Select(d => d.DataElement.DataType)
+                    .Distinct()
+                    .Select(dt => new DataType()
+                    {
+                        Id = dt,
+                        MaxCount = 1,
+                        AppLogic = new() { ClassRef = "not-in-user" }
+                    })
+            );
+            dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(test.Instance, test.DataModels);
+        }
 
-        var dataType = new DataType() { Id = "default" };
+        var appMedatada = new ApplicationMetadata("org/app") { DataTypes = dataTypes, };
 
         LayoutModel? componentModel = null;
         if (test.Layouts is not null)
         {
-            var layout = new LayoutSetComponent(test.Layouts.Values.ToList(), "layout", dataType);
+            var layout = new LayoutSetComponent(test.Layouts.Values.ToList(), "layout", dataTypes[0]);
             componentModel = new LayoutModel([layout], null);
         }
         var state = new LayoutEvaluatorState(
             dataAccessor,
             componentModel,
             test.FrontEndSettings ?? new FrontEndSettings(),
+            appMedatada,
             test.GatewayAction,
             test.ProfileSettings?.Language
         );

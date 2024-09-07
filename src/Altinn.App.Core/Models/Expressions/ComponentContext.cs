@@ -72,6 +72,10 @@ public sealed class ComponentContext
     /// </summary>
     public async Task<BitArray> GetHiddenRows(LayoutEvaluatorState state)
     {
+        if (_hiddenRows is not null)
+        {
+            return _hiddenRows;
+        }
         if (Component is not RepeatingGroupComponent)
         {
             throw new InvalidOperationException("HiddenRows can only be called on a repeating group");
@@ -79,10 +83,6 @@ public sealed class ComponentContext
         if (_rowLength is null)
         {
             throw new InvalidOperationException("RowLength must be set to call HiddenRows on repeating group");
-        }
-        if (_hiddenRows is not null)
-        {
-            return _hiddenRows;
         }
 
         var hiddenRows = new BitArray(_rowLength.Value);

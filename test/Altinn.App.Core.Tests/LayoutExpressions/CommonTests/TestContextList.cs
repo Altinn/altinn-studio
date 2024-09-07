@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.App.Core.Tests.TestUtils;
@@ -67,6 +68,7 @@ public class TestContextList
 
         var instance = new Instance() { Data = [] };
         var dataType = new DataType() { Id = "default" };
+        var appMetadata = new ApplicationMetadata("org/app") { DataTypes = [dataType], };
         var layout = new LayoutSetComponent(test.Layouts.Values.ToList(), "layout", dataType);
         var componentModel = new LayoutModel([layout], null);
         var state = new LayoutEvaluatorState(
@@ -75,7 +77,8 @@ public class TestContextList
                 test.DataModel ?? JsonDocument.Parse("{}").RootElement
             ),
             componentModel,
-            new()
+            new(),
+            appMetadata
         );
 
         test.ParsingException.Should().BeNull("Loading of test failed");

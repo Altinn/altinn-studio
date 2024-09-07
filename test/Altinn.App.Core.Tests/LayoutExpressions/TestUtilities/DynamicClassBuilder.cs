@@ -3,7 +3,6 @@ using System.Reflection.Emit;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 using Altinn.Platform.Storage.Interface.Models;
 

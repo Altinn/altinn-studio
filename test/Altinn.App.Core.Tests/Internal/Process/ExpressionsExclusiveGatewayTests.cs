@@ -249,10 +249,8 @@ public class ExpressionsExclusiveGatewayTests
     )
     {
         _resources.Setup(r => r.GetLayoutSetForTask("Task_1")).Returns(layoutSet);
-        _appMetadata
-            .Setup(m => m.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("ttd/test-app") { DataTypes = dataTypes })
-            .Verifiable(Times.Once);
+        var appMetadata = new ApplicationMetadata("ttd/test-app") { DataTypes = dataTypes };
+        _appMetadata.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(appMetadata).Verifiable(Times.AtLeastOnce);
         if (formData != null)
         {
             _dataClient
@@ -280,7 +278,11 @@ public class ExpressionsExclusiveGatewayTests
             _appModel.Object
         );
 
-        var layoutStateInit = new LayoutEvaluatorStateInitializer(_resources.Object, frontendSettings);
+        var layoutStateInit = new LayoutEvaluatorStateInitializer(
+            _resources.Object,
+            _appMetadata.Object,
+            frontendSettings
+        );
         return (new ExpressionsExclusiveGateway(layoutStateInit, _resources.Object), dataAccessor);
     }
 

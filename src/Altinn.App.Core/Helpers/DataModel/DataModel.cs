@@ -12,19 +12,26 @@ namespace Altinn.App.Core.Helpers.DataModel;
 public class DataModel
 {
     private readonly IInstanceDataAccessor _dataAccessor;
-    private readonly Dictionary<string, DataElementId> _dataIdsByType = [];
+    private readonly Dictionary<string, DataElementId?> _dataIdsByType = [];
 
     /// <summary>
     /// Constructor that wraps a POCO data model, and gives extra tool for working with the data
     /// </summary>
-    public DataModel(IInstanceDataAccessor dataAccessor)
+    public DataModel(IInstanceDataAccessor dataAccessor, ApplicationMetadata appMetadata)
     {
         _dataAccessor = dataAccessor;
         foreach (var dataElement in dataAccessor.Instance.Data)
         {
-            // TODO: only add data elements with maxCount == 1
-            //       for now only add the first one as this requires reading appMetadata
-            _dataIdsByType.TryAdd(dataElement.DataType, dataElement);
+            var dataTypeId = dataElement.DataType;
+            var dataType = appMetadata.DataTypes.Find(d => d.Id == dataTypeId);
+            if (dataType is { MaxCount: 1, AppLogic.ClassRef: not null })
+            {
+                _dataIdsByType.TryAdd(dataElement.DataType, dataElement);
+            }
+            else
+            {
+                _dataIdsByType.TryAdd(dataElement.Id, null);
+            }
         }
     }
 
@@ -50,10 +57,18 @@ public class DataModel
 
         if (_dataIdsByType.TryGetValue(key.DataType, out var dataElementId))
         {
-            return (dataElementId, await _dataAccessor.GetData(dataElementId));
+            if (dataElementId is null)
+            {
+                throw new InvalidOperationException(
+                    $"{key.DataType} has maxCount different from 1 in applicationmetadata.json or don't have a classRef in appLogic"
+                );
+            }
+            return (dataElementId.Value, await _dataAccessor.GetData(dataElementId.Value));
         }
 
-        throw new InvalidOperationException("Data model with type " + key.DataType + " not found");
+        throw new InvalidOperationException(
+            $"Data model with type {key.DataType} not found in applicationmetadata.json"
+        );
     }
 
     /// <summary>
@@ -128,7 +143,7 @@ public class DataModel
         var (dataElementId, serviceModel) = await ServiceModelAndDataElementId(key, defaultDataElementId);
         if (serviceModel is null)
         {
-            throw new DataModelException("Could not find service model for dataType " + key.DataType);
+            throw new DataModelException($"Could not find service model for dataType {key.DataType}");
         }
 
         var modelWrapper = new DataModelWrapper(serviceModel);
@@ -148,7 +163,7 @@ public class DataModel
         var serviceModel = await ServiceModel(key, defaultDataElementId);
         if (serviceModel is null)
         {
-            throw new DataModelException("Could not find service model for dataType " + key.DataType);
+            throw new DataModelException($"Could not find service model for dataType {key.DataType}");
         }
 
         var modelWrapper = new DataModelWrapper(serviceModel);

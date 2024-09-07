@@ -3,14 +3,12 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
@@ -90,7 +88,7 @@ public static class LayoutTestUtils
         resources.Setup(r => r.GetLayoutModelForTask(TaskId)).Returns(layoutModel);
 
         services.AddSingleton(resources.Object);
-        // services.AddSingleton(appMetadata.Object);
+        services.AddSingleton(appMetadata.Object);
         // services.AddSingleton(appModel.Object);
         services.AddScoped<ILayoutEvaluatorStateInitializer, LayoutEvaluatorStateInitializer>();
 

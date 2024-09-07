@@ -24,7 +24,7 @@ public class ProcessNavigatorTests
     [Fact]
     public async Task GetNextTask_returns_next_element_if_no_gateway()
     {
-        IProcessNavigator processNavigator = SetupProcessNavigator("simple-linear.bpmn", []);
+        var processNavigator = SetupProcessNavigator("simple-linear.bpmn", []);
         ProcessElement? nextElements = await processNavigator.GetNextTask(new Instance(), "Task1", null);
         nextElements
             .Should()
@@ -47,7 +47,7 @@ public class ProcessNavigatorTests
     public async Task GetNextTask_single_sign_to_process_end()
     {
         var processFile = "with-double-sign.bpmn";
-        IProcessNavigator processNavigator = SetupProcessNavigator(processFile, [new SingleSignGateway()]);
+        var processNavigator = SetupProcessNavigator(processFile, [new SingleSignGateway()]);
         var instance = new Instance() { Id = $"123/{Guid.NewGuid()}", AppId = "org/app", };
         ProcessElement? nextElements = await processNavigator.GetNextTask(instance, "Task_Sign1", "sign");
         nextElements!.Id.Should().Be("EndEvent_1");
@@ -74,7 +74,7 @@ public class ProcessNavigatorTests
     public async Task GetNextTask_exclusive_gateway_zero_paths_should_fail()
     {
         var processFile = "with-double-sign.bpmn";
-        IProcessNavigator processNavigator = SetupProcessNavigator(processFile, [new ZeroPathsGateway()]);
+        var processNavigator = SetupProcessNavigator(processFile, [new ZeroPathsGateway()]);
         var instance = new Instance() { Id = $"123/{Guid.NewGuid()}", AppId = "org/app", };
 
         await Assert.ThrowsAsync<ProcessException>(
@@ -100,7 +100,7 @@ public class ProcessNavigatorTests
     [Fact]
     public async Task NextFollowAndFilterGateways_returns_empty_list_if_no_outgoing_flows()
     {
-        IProcessNavigator processNavigator = SetupProcessNavigator("simple-linear.bpmn", []);
+        var processNavigator = SetupProcessNavigator("simple-linear.bpmn", []);
         ProcessElement? nextElements = await processNavigator.GetNextTask(new Instance(), "EndEvent", null);
         nextElements.Should().BeNull();
     }
@@ -108,7 +108,7 @@ public class ProcessNavigatorTests
     [Fact]
     public async Task GetNextTask_returns_default_if_no_filtering_is_implemented_and_default_set()
     {
-        IProcessNavigator processNavigator = SetupProcessNavigator("simple-gateway-default.bpmn", []);
+        var processNavigator = SetupProcessNavigator("simple-gateway-default.bpmn", []);
         ProcessElement? nextElements = await processNavigator.GetNextTask(new Instance(), "Task1", null);
         nextElements
             .Should()
@@ -134,7 +134,7 @@ public class ProcessNavigatorTests
     [Fact]
     public async Task GetNextTask_runs_custom_filter_and_returns_result()
     {
-        IProcessNavigator processNavigator = SetupProcessNavigator(
+        var processNavigator = SetupProcessNavigator(
             "simple-gateway-with-join-gateway.bpmn",
             [new DataValuesFilter("Gateway1", "choose")]
         );
@@ -170,7 +170,7 @@ public class ProcessNavigatorTests
     [Fact]
     public async Task GetNextTask_throws_ProcessException_if_multiple_targets_found()
     {
-        IProcessNavigator processNavigator = SetupProcessNavigator(
+        var processNavigator = SetupProcessNavigator(
             "simple-gateway-with-join-gateway.bpmn",
             new List<IProcessExclusiveGateway>() { new DataValuesFilter("Foobar", "choose") }
         );
@@ -187,7 +187,7 @@ public class ProcessNavigatorTests
     [Fact]
     public async Task GetNextTask_follows_downstream_gateways()
     {
-        IProcessNavigator processNavigator = SetupProcessNavigator(
+        var processNavigator = SetupProcessNavigator(
             "simple-gateway-with-join-gateway.bpmn",
             new List<IProcessExclusiveGateway>() { new DataValuesFilter("Gateway1", "choose1") }
         );
@@ -214,7 +214,7 @@ public class ProcessNavigatorTests
     [Fact]
     public async Task GetNextTask_runs_custom_filter_and_throws_exception_when_no_paths_are_found()
     {
-        IProcessNavigator processNavigator = SetupProcessNavigator(
+        var processNavigator = SetupProcessNavigator(
             "simple-gateway-with-join-gateway.bpmn",
             new List<IProcessExclusiveGateway>()
             {
@@ -235,7 +235,7 @@ public class ProcessNavigatorTests
     [Fact]
     public async Task GetNextTask_returns_empty_list_if_element_has_no_next()
     {
-        IProcessNavigator processNavigator = SetupProcessNavigator(
+        var processNavigator = SetupProcessNavigator(
             "simple-gateway-with-join-gateway.bpmn",
             new List<IProcessExclusiveGateway>()
         );

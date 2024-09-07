@@ -17,14 +17,20 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
 {
     // Dependency injection properties (set in ctor)
     private readonly IAppResources _appResources;
+    private readonly IAppMetadata _appMetadata;
     private readonly FrontEndSettings _frontEndSettings;
 
     /// <summary>
     /// Constructor with services from dependency injection
     /// </summary>
-    public LayoutEvaluatorStateInitializer(IAppResources appResources, IOptions<FrontEndSettings> frontEndSettings)
+    public LayoutEvaluatorStateInitializer(
+        IAppResources appResources,
+        IAppMetadata appMetadata,
+        IOptions<FrontEndSettings> frontEndSettings
+    )
     {
         _appResources = appResources;
+        _appMetadata = appMetadata;
         _frontEndSettings = frontEndSettings.Value;
     }
 
@@ -76,7 +82,7 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
     /// Initialize LayoutEvaluatorState with given Instance, data object and layoutSetId
     /// </summary>
     [Obsolete("Use the overload with ILayoutEvaluatorStateInitializer instead")]
-    public Task<LayoutEvaluatorState> Init(
+    public async Task<LayoutEvaluatorState> Init(
         Instance instance,
         object data,
         string? layoutSetId,
@@ -86,29 +92,22 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
         var layouts = _appResources.GetLayoutModel(layoutSetId);
         var dataElement = instance.Data.Find(d => d.DataType == layouts.DefaultDataType.Id);
         Debug.Assert(dataElement is not null);
+        var appMetadata = await _appMetadata.GetApplicationMetadata();
         var dataAccessor = new SingleDataElementAccessor(instance, dataElement, data);
-        return Task.FromResult(new LayoutEvaluatorState(dataAccessor, layouts, _frontEndSettings, gatewayAction));
+        return new LayoutEvaluatorState(dataAccessor, layouts, _frontEndSettings, appMetadata, gatewayAction);
     }
 
     /// <inheritdoc />
-    public Task<LayoutEvaluatorState> Init(
+    public async Task<LayoutEvaluatorState> Init(
         IInstanceDataAccessor dataAccessor,
         string? taskId,
         string? gatewayAction = null,
         string? language = null
     )
     {
-        try
-        {
-            LayoutModel? layouts = taskId is not null ? _appResources.GetLayoutModelForTask(taskId) : null;
+        LayoutModel? layouts = taskId is not null ? _appResources.GetLayoutModelForTask(taskId) : null;
+        var appMetadata = await _appMetadata.GetApplicationMetadata();
 
-            return Task.FromResult(
-                new LayoutEvaluatorState(dataAccessor, layouts, _frontEndSettings, gatewayAction, language)
-            );
-        }
-        catch (Exception e)
-        {
-            return Task.FromException<LayoutEvaluatorState>(e);
-        }
+        return new LayoutEvaluatorState(dataAccessor, layouts, _frontEndSettings, appMetadata, gatewayAction, language);
     }
 }

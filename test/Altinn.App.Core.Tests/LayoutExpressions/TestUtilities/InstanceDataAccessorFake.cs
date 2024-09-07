@@ -18,6 +18,7 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
 
     private readonly Dictionary<DataElementId, object> _dataById = new();
     private readonly Dictionary<string, object> _dataByType = new();
+    private readonly List<KeyValuePair<DataElement, object>> _data = new();
 
     public void Add(DataElement? dataElement, object data)
     {
@@ -52,6 +53,7 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
             // We don't have application metadata, so just add the first element we see
             _dataByType.TryAdd(dataElement.DataType, data);
         }
+        _data.Add(KeyValuePair.Create(dataElement, data));
     }
 
     public Instance Instance { get; }
@@ -68,8 +70,8 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
 
     public IEnumerator<KeyValuePair<DataElement?, object>> GetEnumerator()
     {
-        // We implement IEnumerable so that we can use the collection initializer syntax
-        throw new NotImplementedException();
+        // We implement IEnumerable so that we can use the collection initializer syntax, but we also store the elements for debugger visualization
+        return _data.GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.App.Core.Tests.TestUtils;
@@ -46,7 +47,8 @@ public class TestInvalid
                     test.DataModel ?? JsonDocument.Parse("{}").RootElement
                 ),
                 componentModel,
-                test.FrontEndSettings ?? new()
+                test.FrontEndSettings ?? new(),
+                new ApplicationMetadata("org/app") { DataTypes = [dataType], }
             );
             await ExpressionEvaluator.EvaluateExpression(
                 state,
