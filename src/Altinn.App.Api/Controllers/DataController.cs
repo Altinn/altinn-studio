@@ -257,10 +257,10 @@ public class DataController : ControllerBase
 
     /// <summary>
     /// File validation requires json object in response and is introduced in the
-    /// the methods above validating files. In order to be consistent for the return types
+    /// methods above validating files. In order to be consistent for the return types
     /// of this controller, old methods are updated to return json object in response.
     /// Since this is a breaking change, a feature flag is introduced to control the behaviour,
-    /// and the developer need to opt-in to the new behaviour. Json object are by default
+    /// and the developer need to opt in to the new behaviour. Json object are by default
     /// returned as part of file validation which is a new feature.
     /// </summary>
     private async Task<object> GetErrorDetails(List<ValidationIssue> errors)
@@ -325,7 +325,7 @@ public class DataController : ControllerBase
             if (dataType is null)
             {
                 var error =
-                    $"Could not determine if {dataElement?.DataType} requires app logic for application {org}/{app}";
+                    $"Could not determine if {dataElement.DataType} requires app logic for application {org}/{app}";
                 _logger.LogError(error);
                 return BadRequest(error);
             }
@@ -360,7 +360,7 @@ public class DataController : ControllerBase
     /// <summary>
     ///  Updates an existing data element with new content.
     /// </summary>
-    /// <param name="org">unique identfier of the organisation responsible for the app</param>
+    /// <param name="org">unique identifier of the organisation responsible for the app</param>
     /// <param name="app">application identifier which is unique within an organisation</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
@@ -442,7 +442,7 @@ public class DataController : ControllerBase
     /// <summary>
     /// Updates an existing form data element with a patch of changes.
     /// </summary>
-    /// <param name="org">unique identfier of the organisation responsible for the app</param>
+    /// <param name="org">unique identifier of the organisation responsible for the app</param>
     /// <param name="app">application identifier which is unique within an organisation</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
@@ -489,9 +489,9 @@ public class DataController : ControllerBase
     }
 
     /// <summary>
-    /// Updates an existing form data element with patches to mulitple data elements.
+    /// Updates an existing form data element with patches to multiple data elements.
     /// </summary>
-    /// <param name="org">unique identfier of the organisation responsible for the app</param>
+    /// <param name="org">unique identifier of the organisation responsible for the app</param>
     /// <param name="app">application identifier which is unique within an organisation</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
@@ -608,7 +608,7 @@ public class DataController : ControllerBase
     /// <summary>
     ///  Delete a data element.
     /// </summary>
-    /// <param name="org">unique identfier of the organisation responsible for the app</param>
+    /// <param name="org">unique identifier of the organisation responsible for the app</param>
     /// <param name="app">application identifier which is unique within an organisation</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
@@ -836,12 +836,12 @@ public class DataController : ControllerBase
     private async Task<DataType?> GetDataType(DataElement element)
     {
         Application application = await _appMetadata.GetApplicationMetadata();
-        return application?.DataTypes.Find(e => e.Id == element.DataType);
+        return application.DataTypes.Find(e => e.Id == element.DataType);
     }
 
     /// <summary>
     ///  Gets a data element (form data) from storage and performs business logic on it (e.g. to calculate certain fields) before it is returned.
-    ///  If more there are more data elements of the same dataType only the first one is returned. In that case use the more spesific
+    ///  If more there are more data elements of the same dataType only the first one is returned. In that case use the more specific
     ///  GET method to fetch a particular data element.
     /// </summary>
     /// <returns>data element is returned in response body</returns>

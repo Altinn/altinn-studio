@@ -137,55 +137,70 @@ public class ExpressionValidator : IValidator
                 var positionalArguments = new object[] { resolvedField };
                 foreach (var validation in validations)
                 {
-                    try
-                    {
-                        if (validation.Condition == null)
-                        {
-                            continue;
-                        }
-
-                        var validationResult = await ExpressionEvaluator.EvaluateExpression(
-                            evaluatorState,
-                            validation.Condition.Value,
-                            context,
-                            positionalArguments
-                        );
-                        switch (validationResult)
-                        {
-                            case true:
-                                var validationIssue = new ValidationIssue
-                                {
-                                    Field = resolvedField.Field,
-                                    DataElementId = resolvedField.DataElementId.Id.ToString(),
-                                    Severity = validation.Severity ?? ValidationIssueSeverity.Error,
-                                    CustomTextKey = validation.Message,
-                                    Code = validation.Message,
-                                };
-                                validationIssues.Add(validationIssue);
-
-                                break;
-                            case false:
-                                break;
-                            default:
-                                throw new ArgumentException(
-                                    $"Validation condition for {resolvedField} did not evaluate to a boolean"
-                                );
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.LogError(
-                            e,
-                            "Error while evaluating expression validation for {resolvedField}",
-                            resolvedField
-                        );
-                        throw;
-                    }
+                    await RunValidation(
+                        evaluatorState,
+                        validationIssues,
+                        resolvedField,
+                        context,
+                        positionalArguments,
+                        validation
+                    );
                 }
             }
         }
 
         return validationIssues;
+    }
+
+    private async Task RunValidation(
+        LayoutEvaluatorState evaluatorState,
+        List<ValidationIssue> validationIssues,
+        DataReference resolvedField,
+        ComponentContext context,
+        object[] positionalArguments,
+        ExpressionValidation validation
+    )
+    {
+        try
+        {
+            if (validation.Condition == null)
+            {
+                return;
+            }
+
+            var validationResult = await ExpressionEvaluator.EvaluateExpression(
+                evaluatorState,
+                validation.Condition.Value,
+                context,
+                positionalArguments
+            );
+            switch (validationResult)
+            {
+                case true:
+                    var validationIssue = new ValidationIssue
+                    {
+                        Field = resolvedField.Field,
+                        DataElementId = resolvedField.DataElementId.Id.ToString(),
+                        Severity = validation.Severity ?? ValidationIssueSeverity.Error,
+                        CustomTextKey = validation.Message,
+                        Code = validation.Message,
+                    };
+                    validationIssues.Add(validationIssue);
+
+                    break;
+                case false:
+                    break;
+                default:
+                    throw new ArgumentException(
+                        $"Validation condition for {resolvedField} did not evaluate to a boolean"
+                    );
+            }
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error while evaluating expression validation for {resolvedField}", resolvedField);
+            throw;
+        }
     }
 
     private static RawExpressionValidation? ResolveValidationDefinition(
