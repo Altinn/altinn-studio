@@ -172,7 +172,7 @@ public static class ServiceCollectionExtensions
         services.TryAddTransient<IDataListsService, DataListsService>();
         services.TryAddTransient<ILayoutEvaluatorStateInitializer, LayoutEvaluatorStateInitializer>();
         services.TryAddTransient<LayoutEvaluatorStateInitializer>();
-        services.TryAddScoped<IPatchService, PatchService>();
+        services.TryAddTransient<IPatchService, PatchService>();
         services.AddTransient<IDataService, DataService>();
         services.Configure<Common.PEP.Configuration.PepSettings>(configuration.GetSection("PEPSettings"));
         services.Configure<Common.PEP.Configuration.PlatformSettings>(configuration.GetSection("PlatformSettings"));
@@ -206,7 +206,7 @@ public static class ServiceCollectionExtensions
     private static void AddValidationServices(IServiceCollection services, IConfiguration configuration)
     {
         services.AddTransient<IValidatorFactory, ValidatorFactory>();
-        services.AddScoped<IValidationService, ValidationService>();
+        services.AddTransient<IValidationService, ValidationService>();
         if (configuration.GetSection("AppSettings").Get<AppSettings>()?.RequiredValidation == true)
         {
             services.AddTransient<IValidator, RequiredLayoutValidator>();
@@ -321,7 +321,7 @@ public static class ServiceCollectionExtensions
 
     private static void AddProcessServices(IServiceCollection services)
     {
-        services.TryAddScoped<IProcessEngine, ProcessEngine>();
+        services.TryAddTransient<IProcessEngine, ProcessEngine>();
         services.TryAddTransient<IProcessNavigator, ProcessNavigator>();
         services.TryAddSingleton<IProcessReader, ProcessReader>();
         services.TryAddTransient<IProcessEventHandlerDelegator, ProcessEventHandlingDelegator>();
