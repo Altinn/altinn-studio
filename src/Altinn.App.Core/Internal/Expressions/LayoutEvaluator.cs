@@ -127,7 +127,7 @@ public static class LayoutEvaluator
         var fields = await GetHiddenFieldsForRemoval(state);
         foreach (var dataReference in fields)
         {
-            await state.RemoveDataField(dataReference.Field, dataReference.DataElementId, rowRemovalOption);
+            await state.RemoveDataField(dataReference, rowRemovalOption);
         }
     }
 

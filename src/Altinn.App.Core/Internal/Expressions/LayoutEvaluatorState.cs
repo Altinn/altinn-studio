@@ -156,9 +156,9 @@ public class LayoutEvaluatorState
     /// <summary>
     /// Set the value of a field to null.
     /// </summary>
-    public async Task RemoveDataField(ModelBinding key, DataElementId dataElementId, RowRemovalOption rowRemovalOption)
+    public async Task RemoveDataField(DataReference key, RowRemovalOption rowRemovalOption)
     {
-        await _dataModel.RemoveField(key, dataElementId, rowRemovalOption);
+        await _dataModel.RemoveField(key, rowRemovalOption);
     }
 
     /// <summary>

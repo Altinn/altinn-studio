@@ -109,7 +109,7 @@ public class DataModel
     /// </example>
     public async Task<DataReference[]> GetResolvedKeys(DataReference reference)
     {
-        var model = await ServiceModel(reference.Field, reference.DataElementId);
+        var model = await _dataAccessor.GetData(reference.DataElementId);
         var modelWrapper = new DataModelWrapper(model);
         return modelWrapper
             .GetResolvedKeys(reference.Field)
@@ -154,20 +154,18 @@ public class DataModel
     /// <summary>
     /// Set the value of a field in the model to default (null)
     /// </summary>
-    public async Task RemoveField(
-        ModelBinding key,
-        DataElementId defaultDataElementId,
-        RowRemovalOption rowRemovalOption
-    )
+    public async Task RemoveField(DataReference reference, RowRemovalOption rowRemovalOption)
     {
-        var serviceModel = await ServiceModel(key, defaultDataElementId);
+        var serviceModel = await _dataAccessor.GetData(reference.DataElementId);
         if (serviceModel is null)
         {
-            throw new DataModelException($"Could not find service model for dataType {key.DataType}");
+            throw new DataModelException(
+                $"Could not find service model for data element id {reference.DataElementId} to remove values"
+            );
         }
 
         var modelWrapper = new DataModelWrapper(serviceModel);
-        modelWrapper.RemoveField(key.Field, rowRemovalOption);
+        modelWrapper.RemoveField(reference.Field, rowRemovalOption);
     }
 
     // /// <summary>

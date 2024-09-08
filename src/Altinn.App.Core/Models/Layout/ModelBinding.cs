@@ -18,13 +18,4 @@ public readonly record struct ModelBinding
     /// </summary>
     [JsonPropertyName("dataType")]
     public string? DataType { get; init; }
-
-    /// <summary>
-    /// Implicit conversion from string to <see cref="ModelBinding" /> for
-    /// backwards convenience
-    /// </summary>
-    public static implicit operator ModelBinding(string field)
-    {
-        return new ModelBinding { Field = field, };
-    }
 }

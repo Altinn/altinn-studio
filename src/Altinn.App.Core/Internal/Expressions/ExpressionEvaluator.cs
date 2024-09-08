@@ -109,7 +109,12 @@ public static class ExpressionEvaluator
     {
         if (args is [DataReference dataReference])
         {
-            return await DataModel(dataReference.Field, dataReference.DataElementId, context.RowIndices, state);
+            return await DataModel(
+                new ModelBinding() { Field = dataReference.Field },
+                dataReference.DataElementId,
+                context.RowIndices,
+                state
+            );
         }
         var key = args switch
         {
