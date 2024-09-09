@@ -11,6 +11,7 @@
   },
   "Logo": null,
   "AltinnNugetVersion": "--AltinnNugetVersion--",
+  "ExternalApiIds": [],
   "VersionId": null,
   "Org": "tdd",
   "Title": {

@@ -2,7 +2,9 @@ using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.ExternalApi;
 using Altinn.App.Core.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Internal.App;
@@ -22,6 +24,7 @@ public class AppMetadata : IAppMetadata
 
     private readonly AppSettings _settings;
     private readonly IFrontendFeatures _frontendFeatures;
+    private readonly IExternalApiFactory _externalApiFactory;
     private readonly Telemetry? _telemetry;
     private ApplicationMetadata? _application;
 
@@ -30,12 +33,19 @@ public class AppMetadata : IAppMetadata
     /// </summary>
     /// <param name="settings">The app repository settings.</param>
     /// <param name="frontendFeatures">Application features service</param>
+    /// <param name="serviceProvider"></param>
     /// <param name="telemetry">Telemetry for traces and metrics.</param>
-    public AppMetadata(IOptions<AppSettings> settings, IFrontendFeatures frontendFeatures, Telemetry? telemetry = null)
+    public AppMetadata(
+        IOptions<AppSettings> settings,
+        IFrontendFeatures frontendFeatures,
+        IServiceProvider serviceProvider,
+        Telemetry? telemetry = null
+    )
     {
         _settings = settings.Value;
         _frontendFeatures = frontendFeatures;
         _telemetry = telemetry;
+        _externalApiFactory = serviceProvider.GetRequiredService<IExternalApiFactory>();
     }
 
     /// <inheritdoc />
@@ -72,6 +82,8 @@ public class AppMetadata : IAppMetadata
                 }
 
                 application.Features = await _frontendFeatures.GetFrontendFeatures();
+                application.ExternalApiIds = _externalApiFactory.GetAllExternalApiIds();
+
                 _application = application;
 
                 return _application;

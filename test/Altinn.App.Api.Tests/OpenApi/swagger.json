@@ -5182,6 +5182,13 @@
           "altinnNugetVersion": {
             "type": "string",
             "nullable": true
+          },
+          "externalApiIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": { }
