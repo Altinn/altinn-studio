@@ -13,13 +13,15 @@ export const SchemaTree = ({ pointer }: SchemaTreeProps) => {
   const savableModel = useSavableSchemaModel();
   const { selectedUniquePointer, setSelectedUniquePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
+
+  const uniquePointer = savableModel.getUniquePointer(pointer);
   return (
     <DragAndDropTree.Root
       emptyMessage={t('schema_editor.empty_node')}
       onSelect={setSelectedUniquePointer}
       selectedId={selectedUniquePointer}
     >
-      {renderSchemaNodeList(savableModel, pointer, selectedUniquePointer)}
+      {renderSchemaNodeList(savableModel, pointer, uniquePointer)}
     </DragAndDropTree.Root>
   );
 };
