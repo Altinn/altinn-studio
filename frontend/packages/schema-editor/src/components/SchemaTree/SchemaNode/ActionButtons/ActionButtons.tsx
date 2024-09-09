@@ -11,18 +11,18 @@ import type { SavableSchemaModel } from '../../../../classes/SavableSchemaModel'
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export interface ActionButtonsProps {
-  pointer: string;
+  schemaPointer: string;
   uniquePointer: string;
   className: string;
 }
 
-export const ActionButtons = ({ pointer, className, uniquePointer }: ActionButtonsProps) => {
+export const ActionButtons = ({ schemaPointer, className, uniquePointer }: ActionButtonsProps) => {
   const savableModel = useSavableSchemaModel();
-  const deleteNode = useDeleteNode(pointer, savableModel);
-  const node = savableModel.getNodeBySchemaPointer(pointer);
+  const deleteNode = useDeleteNode(schemaPointer, savableModel);
+  const node = savableModel.getNodeBySchemaPointer(schemaPointer);
 
-  const convertToReference = () => savableModel.convertToDefinition(pointer);
-  const hasReferringNodes = savableModel.hasReferringNodes(pointer);
+  const convertToReference = () => savableModel.convertToDefinition(schemaPointer);
+  const hasReferringNodes = savableModel.hasReferringNodes(schemaPointer);
   const actionButtonTitleKey = hasReferringNodes
     ? 'schema_editor.disable_deletion_info_for_used_definition'
     : 'general.delete';
@@ -30,7 +30,7 @@ export const ActionButtons = ({ pointer, className, uniquePointer }: ActionButto
   return (
     <div className={cn(classes.root, className)}>
       {isNodeValidParent(node) && (
-        <AddPropertyMenu pointer={pointer} uniquePointer={uniquePointer} />
+        <AddPropertyMenu schemaPointer={schemaPointer} uniquePointer={uniquePointer} />
       )}
       {!isReference(node) && (
         <ActionButton
@@ -50,17 +50,17 @@ export const ActionButtons = ({ pointer, className, uniquePointer }: ActionButto
   );
 };
 
-const useDeleteNode = (pointer: string, savableModel: SavableSchemaModel) => {
+const useDeleteNode = (schemaPointer: string, savableModel: SavableSchemaModel) => {
   const { t } = useTranslation();
   const { setSelectedUniquePointer } = useSchemaEditorAppContext();
 
   return useCallback(() => {
-    const confirmMessage = savableModel.areDefinitionParentsInUse(pointer)
+    const confirmMessage = savableModel.areDefinitionParentsInUse(schemaPointer)
       ? t('schema_editor.data_model_definition_field_deletion_text')
       : t('schema_editor.data_model_field_deletion_text');
     if (confirm(confirmMessage)) {
       setSelectedUniquePointer(null);
-      savableModel.deleteNode(pointer);
+      savableModel.deleteNode(schemaPointer);
     }
-  }, [savableModel, pointer, t, setSelectedUniquePointer]);
+  }, [savableModel, schemaPointer, t, setSelectedUniquePointer]);
 };

@@ -9,23 +9,23 @@ import { HeadingRow } from './HeadingRow';
 import { isNodeValidParent } from '@altinn/schema-model';
 
 export interface NodePanelProps {
-  pointer?: string;
+  schemaPointer?: string;
 }
 
-export const NodePanel = ({ pointer }: NodePanelProps) => {
+export const NodePanel = ({ schemaPointer }: NodePanelProps) => {
   const { schemaModel } = useSchemaEditorAppContext();
-  const isDataModelRoot = !pointer;
+  const isDataModelRoot = !schemaPointer;
   const node = isDataModelRoot
     ? schemaModel.getRootNode()
-    : schemaModel.getNodeBySchemaPointer(pointer);
+    : schemaModel.getNodeBySchemaPointer(schemaPointer);
 
   return (
     <>
       <div className={classes.top}>
         {!isDataModelRoot && <BackButton />}
-        <HeadingRow pointer={pointer} />
+        <HeadingRow schemaPointer={schemaPointer} />
       </div>
-      {isNodeValidParent(node) && <SchemaTree pointer={pointer} />}
+      {isNodeValidParent(node) && <SchemaTree schemaPointer={schemaPointer} />}
     </>
   );
 };

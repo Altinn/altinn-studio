@@ -152,24 +152,24 @@ export const setCombinationType: UiSchemaReducer<SetCombinationTypeArgs> = (
 };
 
 export type AddCombinationItemArgs = {
-  pointer: string;
-  callback: (pointer: string) => void;
+  schemaPointer: string;
+  callback: (schemaPointer: string) => void;
 };
 export const addCombinationItem: UiSchemaReducer<AddCombinationItemArgs> = (
   uiSchema,
-  { pointer, callback },
+  { schemaPointer, callback },
 ) => {
   const newSchema = uiSchema.deepClone();
-  const target: NodePosition = { parentPointer: pointer, index: -1 };
+  const target: NodePosition = { parentPointer: schemaPointer, index: -1 };
   const newNode = newSchema.addField(undefined, FieldType.Null, target);
-  callback(newNode.pointer);
+  callback(newNode.schemaPointer);
   return newSchema;
 };
 
 export type SetPropertyNameArgs = {
   path: string;
   name: string;
-  callback?: (pointer: string) => void;
+  callback?: (schemaPointer: string) => void;
 };
 export const setPropertyName: UiSchemaReducer<SetPropertyNameArgs> = (
   uiSchema,
@@ -180,16 +180,16 @@ export const setPropertyName: UiSchemaReducer<SetPropertyNameArgs> = (
   }
   const newSchema = uiSchema.deepClone();
   const nodeToRename = newSchema.getNodeBySchemaPointer(path);
-  const newPointer = changeNameInPointer(path, name);
-  const newNode = { ...nodeToRename, pointer: newPointer };
+  const newSchemaPointer = changeNameInPointer(path, name);
+  const newNode = { ...nodeToRename, schemaPointer: newSchemaPointer };
   newSchema.updateNode(path, newNode);
-  callback?.(newPointer);
+  callback?.(newSchemaPointer);
   return newSchema;
 };
 
-export const toggleArrayField: UiSchemaReducer<string> = (uiSchema, pointer) => {
+export const toggleArrayField: UiSchemaReducer<string> = (uiSchema, newSchemaPointer) => {
   const newSchema = uiSchema.deepClone();
-  newSchema.toggleIsArray(pointer);
+  newSchema.toggleIsArray(newSchemaPointer);
   return newSchema;
 };
 

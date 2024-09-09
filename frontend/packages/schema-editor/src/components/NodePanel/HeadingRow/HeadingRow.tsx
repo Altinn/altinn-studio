@@ -27,17 +27,17 @@ import { useAddProperty } from '../../../hooks/useAddProperty';
 import cn from 'classnames';
 
 export interface HeadingRowProps {
-  pointer?: string;
+  schemaPointer?: string;
 }
 
-export const HeadingRow = ({ pointer }: HeadingRowProps) => {
+export const HeadingRow = ({ schemaPointer }: HeadingRowProps) => {
   const { setSelectedUniquePointer, selectedUniquePointer, name, schemaModel } =
     useSchemaEditorAppContext();
-  const isDataModelRoot = !pointer;
-  const nodeRootPointer = isDataModelRoot ? ROOT_POINTER : pointer;
+  const isDataModelRoot = !schemaPointer;
+  const nodeRootPointer = isDataModelRoot ? ROOT_POINTER : schemaPointer;
   const node = schemaModel.getNodeBySchemaPointer(nodeRootPointer);
   const selectNodeRoot = () => setSelectedUniquePointer(nodeRootPointer);
-  const title = isDataModelRoot ? name : extractNameFromPointer(pointer);
+  const title = isDataModelRoot ? name : extractNameFromPointer(schemaPointer);
   const isValidParent = isNodeValidParent(node);
   const isSelected = selectedUniquePointer === nodeRootPointer;
 
@@ -54,8 +54,8 @@ export const HeadingRow = ({ pointer }: HeadingRowProps) => {
           {title}
         </StudioButton>
       </Heading>
-      {isValidParent && <AddNodeMenu pointer={pointer} />}
-      {!isDataModelRoot && <DeleteButton pointer={pointer} />}
+      {isValidParent && <AddNodeMenu schemaPointer={schemaPointer} />}
+      {!isDataModelRoot && <DeleteButton schemaPointer={schemaPointer} />}
     </div>
   );
 };
@@ -68,9 +68,9 @@ type AddNodeMenuItemProps = {
   action: () => void;
 };
 
-const AddNodeMenu = ({ pointer }: AddNodeMenuProps) => {
+const AddNodeMenu = ({ schemaPointer }: AddNodeMenuProps) => {
   const { t } = useTranslation();
-  const addNodeMenuItems = useAddNodeMenuItems(pointer);
+  const addNodeMenuItems = useAddNodeMenuItems(schemaPointer);
 
   return (
     <StudioDropdownMenu
@@ -88,7 +88,7 @@ const AddNodeMenu = ({ pointer }: AddNodeMenuProps) => {
   );
 };
 
-const useAddNodeMenuItems = (pointer: string): AddNodeMenuItemProps[] => {
+const useAddNodeMenuItems = (schemaPointer: string): AddNodeMenuItemProps[] => {
   const { setSelectedUniquePointer } = useSchemaEditorAppContext();
   const addNode = useAddProperty();
 
@@ -101,32 +101,32 @@ const useAddNodeMenuItems = (pointer: string): AddNodeMenuItemProps[] => {
     {
       titleKey: 'schema_editor.object',
       icon: <ObjectIcon />,
-      action: () => addAndSelectNode(ObjectKind.Field, FieldType.Object, pointer),
+      action: () => addAndSelectNode(ObjectKind.Field, FieldType.Object, schemaPointer),
     },
     {
       titleKey: 'schema_editor.string',
       icon: <StringIcon />,
-      action: () => addAndSelectNode(ObjectKind.Field, FieldType.String, pointer),
+      action: () => addAndSelectNode(ObjectKind.Field, FieldType.String, schemaPointer),
     },
     {
       titleKey: 'schema_editor.integer',
       icon: <NumberIcon />,
-      action: () => addAndSelectNode(ObjectKind.Field, FieldType.Integer, pointer),
+      action: () => addAndSelectNode(ObjectKind.Field, FieldType.Integer, schemaPointer),
     },
     {
       titleKey: 'schema_editor.number',
       icon: <NumberIcon />,
-      action: () => addAndSelectNode(ObjectKind.Field, FieldType.Number, pointer),
+      action: () => addAndSelectNode(ObjectKind.Field, FieldType.Number, schemaPointer),
     },
     {
       titleKey: 'schema_editor.boolean',
       icon: <BooleanIcon />,
-      action: () => addAndSelectNode(ObjectKind.Field, FieldType.Boolean, pointer),
+      action: () => addAndSelectNode(ObjectKind.Field, FieldType.Boolean, schemaPointer),
     },
     {
       titleKey: 'schema_editor.combination',
       icon: <CombinationIcon />,
-      action: () => addAndSelectNode(ObjectKind.Combination, undefined, pointer),
+      action: () => addAndSelectNode(ObjectKind.Combination, undefined, schemaPointer),
     },
   ];
 };
@@ -142,17 +142,17 @@ const AddNodeMenuItem = ({ titleKey, icon, action }: AddNodeMenuItemProps) => {
 
 type DeleteButtonProps = HeadingRowProps;
 
-const DeleteButton = ({ pointer }: DeleteButtonProps) => {
+const DeleteButton = ({ schemaPointer }: DeleteButtonProps) => {
   const { t } = useTranslation();
   const savableModel = useSavableSchemaModel();
   const { setSelectedUniquePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
 
-  const isInUse = savableModel.hasReferringNodes(pointer);
+  const isInUse = savableModel.hasReferringNodes(schemaPointer);
 
   const handleDelete = () => {
     setSelectedUniquePointer(null);
     setSelectedTypePointer(null);
-    savableModel.deleteNode(pointer);
+    savableModel.deleteNode(schemaPointer);
   };
 
   return (

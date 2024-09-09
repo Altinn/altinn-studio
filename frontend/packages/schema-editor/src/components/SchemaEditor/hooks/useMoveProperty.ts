@@ -17,7 +17,7 @@ export const useMoveProperty = (): HandleMove => {
   const areThereCollidingNames = useCallback(
     (schemaPointer: string, schemaParentPointer: string): boolean => {
       const currentParent = savableModel.getParentNode(schemaPointer);
-      const isMovingWithinSameParent = schemaParentPointer === currentParent.pointer;
+      const isMovingWithinSameParent = schemaParentPointer === currentParent.schemaPointer;
       if (isMovingWithinSameParent) return false;
       const targetParent = savableModel.getNodeBySchemaPointer(schemaParentPointer);
       const isTargetParentACombination = isCombination(targetParent);
@@ -41,7 +41,7 @@ export const useMoveProperty = (): HandleMove => {
       } else {
         const movedNode = savableModel.moveNode(schemaPointer, target);
         if (selectedSchemaPointer === schemaPointer) {
-          setSelectedUniquePointer(movedNode.pointer);
+          setSelectedUniquePointer(movedNode.schemaPointer);
         }
       }
     },

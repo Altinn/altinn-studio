@@ -18,11 +18,11 @@ import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchema
 import type { IconProps } from '@studio/icons';
 
 interface AddPropertyMenuProps {
-  pointer: string;
+  schemaPointer: string;
   uniquePointer: string;
 }
 
-export const AddPropertyMenu = ({ pointer, uniquePointer }: AddPropertyMenuProps) => {
+export const AddPropertyMenu = ({ schemaPointer, uniquePointer }: AddPropertyMenuProps) => {
   const { setSelectedUniquePointer } = useSchemaEditorAppContext();
   const savableModel = useSavableSchemaModel();
   const { t } = useTranslation();
@@ -30,7 +30,7 @@ export const AddPropertyMenu = ({ pointer, uniquePointer }: AddPropertyMenuProps
   const addProperty = useAddProperty();
 
   const addPropertyAndClose = (kind: ObjectKind, fieldType?: FieldType) => {
-    const childPointer = addProperty(kind, fieldType, pointer);
+    const childPointer = addProperty(kind, fieldType, schemaPointer);
     setSelectedUniquePointer(savableModel.getUniquePointer(childPointer, uniquePointer));
     closeDropdown();
   };

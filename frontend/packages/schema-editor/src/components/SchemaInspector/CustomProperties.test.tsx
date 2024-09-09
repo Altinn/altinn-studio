@@ -31,13 +31,13 @@ const customProperties: KeyValuePairs = {
 };
 const node: UiSchemaNode = {
   ...nodeMockBase,
-  pointer: defaultPath,
+  schemaPointer: defaultPath,
   custom: customProperties,
 };
 const rootNode: UiSchemaNode = {
   ...nodeMockBase,
   fieldType: FieldType.Object,
-  pointer: ROOT_POINTER,
+  schemaPointer: ROOT_POINTER,
   children: [defaultPath],
 };
 const uiSchema: UiSchemaNodes = [rootNode, node];

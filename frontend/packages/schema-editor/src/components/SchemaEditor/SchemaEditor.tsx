@@ -31,7 +31,7 @@ export const SchemaEditor = () => {
       onMove={moveProperty}
       rootId={ROOT_POINTER}
       itemId={selectedTypePointer ?? null}
-      key={selectedType?.pointer}
+      key={selectedType?.schemaPointer}
     >
       <StudioResizableLayout.Container
         orientation='horizontal'
@@ -44,7 +44,7 @@ export const SchemaEditor = () => {
         </StudioResizableLayout.Element>
         <StudioResizableLayout.Element>
           <div className={classes.editor}>
-            <NodePanel pointer={selectedType?.pointer} />
+            <NodePanel schemaPointer={selectedType?.schemaPointer} />
           </div>
         </StudioResizableLayout.Element>
         <StudioResizableLayout.Element

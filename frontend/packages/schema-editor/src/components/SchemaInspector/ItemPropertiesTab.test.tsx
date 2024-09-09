@@ -26,17 +26,17 @@ describe('ItemPropertiesTab', () => {
       ...nodeMockBase,
       objectKind: ObjectKind.Combination,
       combinationType,
-      pointer: selectedNodePointer,
+      schemaPointer: selectedNodePointer,
       children: [],
     };
     const uiSchemaNodes: UiSchemaNodes = [rootNode, selectedNode];
     ['0', '1'].forEach((childNodeName) => {
-      const pointer = `${selectedNodePointer}/${combinationType}/${childNodeName}`;
+      const schemaPointer = `${selectedNodePointer}/${combinationType}/${childNodeName}`;
       const node: FieldNode = {
         ...nodeMockBase,
-        pointer,
+        schemaPointer,
       };
-      selectedNode.children.push(node.pointer); // eslint-disable-line testing-library/no-node-access
+      selectedNode.children.push(node.schemaPointer); // eslint-disable-line testing-library/no-node-access
       uiSchemaNodes.push(node);
     });
     validateTestUiSchema(uiSchemaNodes);
@@ -58,7 +58,7 @@ describe('ItemPropertiesTab', () => {
       ...nodeMockBase,
       objectKind: ObjectKind.Field,
       fieldType: FieldType.String,
-      pointer: selectedUniquePointer,
+      schemaPointer: selectedUniquePointer,
     };
     const nodes = [rootNode, selectedNode];
     validateTestUiSchema(nodes);

@@ -4,8 +4,8 @@ import type { SchemaModel } from '@altinn/schema-model';
 import { isField, isObject } from '@altinn/schema-model';
 import { NodeIcon } from '@altinn/schema-editor/components/NodeIcon';
 
-export const renderIcon = (schemaModel: SchemaModel, pointer: string): ReactElement => {
-  const node = schemaModel.getNodeBySchemaPointer(pointer);
+export const renderIcon = (schemaModel: SchemaModel, schemaPointer: string): ReactElement => {
+  const node = schemaModel.getNodeBySchemaPointer(schemaPointer);
   if (isField(node) && isObject(node)) return null;
   else return <NodeIcon node={node} />;
 };

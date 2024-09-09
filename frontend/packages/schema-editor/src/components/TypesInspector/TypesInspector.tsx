@@ -23,16 +23,16 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
     setSelectedUniquePointer,
   } = useSchemaEditorAppContext();
 
-  const setSelectedType = (pointer: string) => {
-    setSelectedTypePointer(pointer);
-    setSelectedUniquePointer(pointer);
+  const setSelectedType = (schemaPointer: string) => {
+    setSelectedTypePointer(schemaPointer);
+    setSelectedUniquePointer(schemaPointer);
   };
 
   const handleAddDefinition = (e: MouseEvent) => {
     e.stopPropagation();
     const name = schemaModel.generateUniqueDefinitionName('name');
     const newNode = schemaModel.addFieldType(name);
-    setSelectedType(newNode.pointer);
+    setSelectedType(newNode.schemaPointer);
     save(schemaModel);
   };
 
@@ -63,8 +63,8 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
         {schemaItems.map((item) => (
           <TypeItem
             uiSchemaNode={item}
-            key={item.pointer}
-            selected={item.pointer === selectedTypePointer}
+            key={item.schemaPointer}
+            selected={item.schemaPointer === selectedTypePointer}
             setSelectedTypePointer={setSelectedType}
           />
         ))}

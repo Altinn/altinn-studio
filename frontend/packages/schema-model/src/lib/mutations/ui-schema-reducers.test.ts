@@ -71,9 +71,9 @@ describe('ui-schema-reducers', () => {
 
   describe('promoteProperty', () => {
     it('Converts a property to a root level definition', () => {
-      const { pointer } = stringNodeMock;
-      result = promoteProperty(createNewModelMock(), pointer);
-      const expectedPointer = `${ROOT_POINTER}/$defs/${substringAfterLast(pointer, '/')}`;
+      const { schemaPointer } = stringNodeMock;
+      result = promoteProperty(createNewModelMock(), schemaPointer);
+      const expectedPointer = `${ROOT_POINTER}/$defs/${substringAfterLast(schemaPointer, '/')}`;
       expect(getPointers(result.asArray())).toContain(expectedPointer);
       expect(result.getNodeBySchemaPointer(expectedPointer)).toMatchObject({
         fieldType: stringNodeMock.fieldType,
@@ -83,39 +83,39 @@ describe('ui-schema-reducers', () => {
 
   describe('deleteNode', () => {
     it('Deletes the given node', () => {
-      const { pointer } = stringNodeMock;
-      result = deleteNode(createNewModelMock(), pointer);
-      expect(getPointers(result.asArray())).not.toContain(pointer);
+      const { schemaPointer } = stringNodeMock;
+      result = deleteNode(createNewModelMock(), schemaPointer);
+      expect(getPointers(result.asArray())).not.toContain(schemaPointer);
     });
   });
 
   describe('setRestriction', () => {
     it('Sets a restriction of the given node', () => {
-      const { pointer } = stringNodeMock;
+      const { schemaPointer } = stringNodeMock;
       const key = StrRestrictionKey.maxLength;
       const value = 144;
-      const args: SetRestrictionArgs = { path: pointer, key, value: value.toString() };
+      const args: SetRestrictionArgs = { path: schemaPointer, key, value: value.toString() };
       result = setRestriction(createNewModelMock(), args);
-      const updatedNode = result.getNodeBySchemaPointer(pointer);
+      const updatedNode = result.getNodeBySchemaPointer(schemaPointer);
       expect(updatedNode.restrictions[key]).toEqual(value);
     });
   });
 
   describe('setRestrictions', () => {
     it('Sets restrictions of the given node', () => {
-      const { pointer } = stringNodeMock;
+      const { schemaPointer } = stringNodeMock;
       const restrictions = { maxLength: 144, minLength: 12 };
-      const args: SetRestrictionsArgs = { path: pointer, restrictions };
+      const args: SetRestrictionsArgs = { path: schemaPointer, restrictions };
       result = setRestrictions(createNewModelMock(), args);
-      const updatedNode = result.getNodeBySchemaPointer(pointer);
+      const updatedNode = result.getNodeBySchemaPointer(schemaPointer);
       expect(updatedNode.restrictions).toEqual(restrictions);
     });
   });
 
   describe('setRef', () => {
     it('Sets a reference to a type on the given node', () => {
-      const path = referenceNodeMock.pointer;
-      const ref = unusedDefinitionMock.pointer;
+      const path = referenceNodeMock.schemaPointer;
+      const ref = unusedDefinitionMock.schemaPointer;
       const args: SetRefArgs = { path, ref };
       result = setRef(createNewModelMock(), args);
       const updatedNode = result.getNodeBySchemaPointer(path) as ReferenceNode;
@@ -128,7 +128,7 @@ describe('ui-schema-reducers', () => {
 
   describe('setType', () => {
     it('Sets the type of the given node', () => {
-      const path = numberNodeMock.pointer;
+      const path = numberNodeMock.schemaPointer;
       const type = FieldType.String;
       const args: SetTypeArgs = { path, type };
       result = setType(createNewModelMock(), args);
@@ -140,7 +140,7 @@ describe('ui-schema-reducers', () => {
 
   describe('setTitle', () => {
     it('Sets the title of the given node', () => {
-      const path = numberNodeMock.pointer;
+      const path = numberNodeMock.schemaPointer;
       const title = 'test title';
       const args: SetTitleArgs = { path, title };
       result = setTitle(createNewModelMock(), args);
@@ -151,7 +151,7 @@ describe('ui-schema-reducers', () => {
 
   describe('setDescription', () => {
     it('Sets the description of the given node', () => {
-      const path = numberNodeMock.pointer;
+      const path = numberNodeMock.schemaPointer;
       const description = 'test description';
       const args: SetDescriptionArgs = { path, description };
       result = setDescription(createNewModelMock(), args);
@@ -161,8 +161,8 @@ describe('ui-schema-reducers', () => {
   });
 
   describe('setRequired', () => {
-    const optionalPropertyPath = optionalNodeMock.pointer;
-    const requiredPropertyPath = requiredNodeMock.pointer;
+    const optionalPropertyPath = optionalNodeMock.schemaPointer;
+    const requiredPropertyPath = requiredNodeMock.schemaPointer;
 
     it.each([true, false])('Sets "isRequired" to %s when it was false', (required) => {
       result = setRequired(createNewModelMock(), { path: optionalPropertyPath, required });
@@ -177,7 +177,7 @@ describe('ui-schema-reducers', () => {
 
   describe('setCustomProperties', () => {
     it('Sets custom properties of the given node', () => {
-      const path = numberNodeMock.pointer;
+      const path = numberNodeMock.schemaPointer;
       const properties: KeyValuePairs = { someCustomProp: 'test' };
       const args: SetCustomPropertiesArgs = { path, properties };
       result = setCustomProperties(createNewModelMock(), args);
@@ -187,7 +187,7 @@ describe('ui-schema-reducers', () => {
   });
 
   describe('setCombinationType', () => {
-    const path = allOfNodeMock.pointer;
+    const path = allOfNodeMock.schemaPointer;
     const combinationType = CombinationKind.OneOf;
     const args: SetCombinationTypeArgs = { path, type: combinationType };
 
@@ -201,38 +201,38 @@ describe('ui-schema-reducers', () => {
       result = setCombinationType(createNewModelMock(), args);
       expect(result.getChildNodes(path).length).toEqual(allOfNodeMock.children.length);
       getChildNodesByFieldPointer(result.asArray(), path).forEach((childNode) => {
-        expect(childNode.pointer.startsWith(`${path}/${combinationType}`)).toBe(true);
+        expect(childNode.schemaPointer.startsWith(`${path}/${combinationType}`)).toBe(true);
       });
     });
   });
 
   describe('addCombinationItem', () => {
     it('Adds a new item to the given combination node and calls the callback function with its pointer', () => {
-      const { pointer } = allOfNodeMock;
+      const { schemaPointer } = allOfNodeMock;
       const callback = jest.fn();
-      const args: AddCombinationItemArgs = { pointer, callback };
+      const args: AddCombinationItemArgs = { schemaPointer, callback };
       result = addCombinationItem(createNewModelMock(), args);
       const newItemPointer = callback.mock.calls[0][0];
       expect(result.hasNode(newItemPointer)).toBe(true);
-      expect(getPointers(result.getChildNodes(pointer))).toContain(newItemPointer);
+      expect(getPointers(result.getChildNodes(schemaPointer))).toContain(newItemPointer);
     });
   });
 
   describe('setPropertyName', () => {
-    const { pointer } = stringNodeMock;
+    const { schemaPointer } = stringNodeMock;
     const name = 'new name';
     const callback = jest.fn();
-    const args: SetPropertyNameArgs = { path: pointer, name, callback };
-    const expectedPointer = substringBeforeLast(pointer, '/') + '/' + name;
+    const args: SetPropertyNameArgs = { path: schemaPointer, name, callback };
+    const expectedPointer = substringBeforeLast(schemaPointer, '/') + '/' + name;
 
     it('Sets the name of the given property', () => {
       result = setPropertyName(createNewModelMock(), args);
       const newPointers = getPointers(result.asArray());
       expect(newPointers).toContain(expectedPointer);
-      expect(newPointers).not.toContain(pointer);
+      expect(newPointers).not.toContain(schemaPointer);
       expect(result.getNodeBySchemaPointer(expectedPointer)).toMatchObject({
         ...stringNodeMock,
-        pointer: expectedPointer,
+        schemaPointer: expectedPointer,
       });
     });
 
@@ -245,35 +245,35 @@ describe('ui-schema-reducers', () => {
 
   describe('toggleArrayField', () => {
     it('Converts an array node to a single field node', () => {
-      const { pointer } = arrayNodeMock;
-      result = toggleArrayField(createNewModelMock(), pointer);
-      const updatedNode = result.getNodeBySchemaPointer(pointer) as FieldNode;
+      const { schemaPointer } = arrayNodeMock;
+      result = toggleArrayField(createNewModelMock(), schemaPointer);
+      const updatedNode = result.getNodeBySchemaPointer(schemaPointer) as FieldNode;
       expect(updatedNode.fieldType).toEqual(arrayNodeMock.fieldType);
       expect(updatedNode.isArray).toBe(false);
     });
 
     it('Converts a single field node to an array node', () => {
-      const { pointer } = stringNodeMock;
-      result = toggleArrayField(createNewModelMock(), pointer);
-      const updatedNode = result.getNodeBySchemaPointer(pointer) as FieldNode;
+      const { schemaPointer } = stringNodeMock;
+      result = toggleArrayField(createNewModelMock(), schemaPointer);
+      const updatedNode = result.getNodeBySchemaPointer(schemaPointer) as FieldNode;
       expect(updatedNode.fieldType).toEqual(stringNodeMock.fieldType);
       expect(updatedNode.isArray).toBe(true);
     });
 
     it("should update the children's pointers, and add /Items/ when isArray toggles to true", () => {
-      const { pointer } = simpleParentNodeMock;
-      result = toggleArrayField(createNewModelMock(), pointer);
-      const children = result.getChildNodes(pointer);
+      const { schemaPointer } = simpleParentNodeMock;
+      result = toggleArrayField(createNewModelMock(), schemaPointer);
+      const children = result.getChildNodes(schemaPointer);
       expect(children.length).toEqual(simpleParentNodeMock.children.length);
       children.forEach((childNode) => {
-        expect(childNode.pointer).toContain(Keyword.Items);
+        expect(childNode.schemaPointer).toContain(Keyword.Items);
       });
     });
 
     it("should update the children's pointers without adding /Items/ when isArray toggles to false", () => {
-      const { pointer } = simpleArrayMock;
-      result = toggleArrayField(createNewModelMock(), pointer);
-      const children = result.getChildNodes(pointer);
+      const { schemaPointer } = simpleArrayMock;
+      result = toggleArrayField(createNewModelMock(), schemaPointer);
+      const children = result.getChildNodes(schemaPointer);
       expect(children.length).toEqual(simpleArrayMock.children.length);
       children.forEach((childNode) => {
         expect(childNode).not.toContain(Keyword.Items);
@@ -283,13 +283,13 @@ describe('ui-schema-reducers', () => {
 
   describe('changeChildrenOrder', () => {
     it('Changes the order of the children of the given node', () => {
-      const { pointer: parentPointer, children } = parentNodeMock;
+      const { schemaPointer: parentPointer, children } = parentNodeMock;
       const [pointerA, pointerB] = children;
       const args: ChangeChildrenOrderArgs = { pointerA, pointerB };
       result = changeChildrenOrder(createNewModelMock(), args);
       const updatedChildren = result.getChildNodes(parentPointer);
-      expect(updatedChildren[0].pointer).toBe(pointerB);
-      expect(updatedChildren[1].pointer).toBe(pointerA);
+      expect(updatedChildren[0].schemaPointer).toBe(pointerB);
+      expect(updatedChildren[1].schemaPointer).toBe(pointerA);
     });
   });
 });

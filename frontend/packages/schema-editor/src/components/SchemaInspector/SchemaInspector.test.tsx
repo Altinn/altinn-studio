@@ -34,7 +34,7 @@ const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSche
       schemaModel,
       save: saveDataModel,
       setSelectedTypePointer,
-      selectedUniquePointer: selectedItem?.pointer,
+      selectedUniquePointer: selectedItem?.schemaPointer,
     },
   })(<SchemaInspector />);
 };
@@ -66,9 +66,9 @@ describe('SchemaInspector', () => {
   });
 
   it('Saves data model correctly when changing restriction value', async () => {
-    const pointer = '#/$defs/Kommentar2000Restriksjon';
+    const schemaPointer = '#/$defs/Kommentar2000Restriksjon';
 
-    renderSchemaInspector(mockUiSchema, getMockSchemaByPath(pointer));
+    renderSchemaInspector(mockUiSchema, getMockSchemaByPath(schemaPointer));
 
     const minLength = '100';
     const maxLength = '666';
@@ -80,7 +80,7 @@ describe('SchemaInspector', () => {
 
     expect(saveDataModel).toHaveBeenCalled();
     let updatedModel = getSavedModel(saveDataModel, 3);
-    let updatedNode = updatedModel.getNodeBySchemaPointer(pointer) as FieldNode;
+    let updatedNode = updatedModel.getNodeBySchemaPointer(schemaPointer) as FieldNode;
     expect(updatedNode.restrictions.minLength).toEqual(parseInt(minLength));
 
     const maxLengthTextField = await screen.findByLabelText(textMock('schema_editor.maxLength'));
@@ -89,7 +89,7 @@ describe('SchemaInspector', () => {
     await user.tab();
 
     updatedModel = getSavedModel(saveDataModel, 7);
-    updatedNode = updatedModel.getNodeBySchemaPointer(pointer) as FieldNode;
+    updatedNode = updatedModel.getNodeBySchemaPointer(schemaPointer) as FieldNode;
     expect(updatedNode.restrictions.minLength).toEqual(parseInt(minLength));
   });
 
@@ -102,13 +102,13 @@ describe('SchemaInspector', () => {
     };
     const parentNode: FieldNode = {
       ...nodeMockBase,
-      pointer: parentNodePointer,
+      schemaPointer: parentNodePointer,
       fieldType: FieldType.Object,
       children: [childNodePointer],
     };
     const childNode: FieldNode = {
       ...nodeMockBase,
-      pointer: childNodePointer,
+      schemaPointer: childNodePointer,
       fieldType: FieldType.String,
     };
     const testUiSchema: UiSchemaNodes = [rootNode, parentNode, childNode];
@@ -134,7 +134,7 @@ describe('SchemaInspector', () => {
     };
     const item: FieldNode = {
       ...nodeMockBase,
-      pointer: itemPointer,
+      schemaPointer: itemPointer,
       fieldType: FieldType.String,
       enum: [enumValue],
     };
@@ -163,7 +163,7 @@ describe('SchemaInspector', () => {
     };
     const item: CombinationNode = {
       ...nodeMockBase,
-      pointer: itemPointer,
+      schemaPointer: itemPointer,
       objectKind: ObjectKind.Combination,
       combinationType: CombinationKind.AnyOf,
     };

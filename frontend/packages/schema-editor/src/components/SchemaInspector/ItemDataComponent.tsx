@@ -38,7 +38,7 @@ export type IItemDataComponentProps = {
 };
 
 export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
-  const { pointer, title = '', description = '', isArray, custom } = schemaNode;
+  const { schemaPointer, title = '', description = '', isArray, custom } = schemaNode;
   const {
     schemaModel,
     save,
@@ -50,10 +50,12 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
 
   const [itemTitle, setItemItemTitle] = useState<string>(title);
   const [itemDescription, setItemItemDescription] = useState<string>(description);
-  const nodeName = extractNameFromPointer(pointer);
+  const nodeName = extractNameFromPointer(schemaPointer);
 
   const getChildNodes = () =>
-    pointer && pointer.endsWith(nodeName) ? schemaModel.getChildNodes(pointer) : [];
+    schemaPointer && schemaPointer.endsWith(nodeName)
+      ? schemaModel.getChildNodes(schemaPointer)
+      : [];
 
   const onChangeRef = (path: string, ref: string) => save(setRef(schemaModel, { path, ref }));
 
@@ -62,7 +64,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
     if (isChecked) {
       save(
         addCombinationItem(schemaModel, {
-          pointer,
+          schemaPointer,
           callback: setSelectedUniquePointer,
         }),
       );
@@ -71,16 +73,17 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
 
     getChildNodes().forEach((childNode: UiSchemaNode) => {
       if (isField(childNode) && childNode.fieldType === FieldType.Null) {
-        save(deleteNode(schemaModel, childNode.pointer));
+        save(deleteNode(schemaModel, childNode.schemaPointer));
         setSelectedUniquePointer(null);
       }
     });
   };
 
-  const onChangeTitle = () => save(setTitle(schemaModel, { path: pointer, title: itemTitle }));
+  const onChangeTitle = () =>
+    save(setTitle(schemaModel, { path: schemaPointer, title: itemTitle }));
 
   const onChangeDescription = () =>
-    save(setDescription(schemaModel, { path: pointer, description: itemDescription }));
+    save(setDescription(schemaModel, { path: schemaPointer, description: itemDescription }));
 
   const onGoToDefButtonClick = () => {
     if (isReference(schemaNode)) {
@@ -89,14 +92,14 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
   };
 
   const onChangeCombinationType = (value: CombinationKind) =>
-    save(setCombinationType(schemaModel, { path: pointer, type: value }));
+    save(setCombinationType(schemaModel, { path: schemaPointer, type: value }));
 
-  const handleArrayPropertyToggle = () => save(toggleArrayField(schemaModel, pointer));
+  const handleArrayPropertyToggle = () => save(toggleArrayField(schemaModel, schemaPointer));
 
   const handleChangeNodeName = (newNodeName: string) => {
     save(
       setPropertyName(schemaModel, {
-        path: pointer,
+        path: schemaPointer,
         name: newNodeName,
         callback: (newPointer: string) => {
           if (newPointer && pointerIsDefinition(newPointer)) {
@@ -110,19 +113,19 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
 
   const hasCustomProps = custom !== undefined && Object.keys(custom).length > 0;
 
-  const titleId = makeDomFriendlyID(pointer, { suffix: 'title' });
-  const descriptionId = makeDomFriendlyID(pointer, { suffix: 'description' });
+  const titleId = makeDomFriendlyID(schemaPointer, { suffix: 'title' });
+  const descriptionId = makeDomFriendlyID(schemaPointer, { suffix: 'description' });
 
   return (
     <div className={classes.root}>
-      {pointer !== ROOT_POINTER && (
+      {schemaPointer !== ROOT_POINTER && (
         <>
-          {!schemaModel.isChildOfCombination(pointer) && (
+          {!schemaModel.isChildOfCombination(schemaPointer) && (
             <NameField
               id='selectedItemName'
               label={t('schema_editor.name')}
               handleSave={handleChangeNodeName}
-              pointer={pointer}
+              schemaPointer={schemaPointer}
               size='small'
             />
           )}
@@ -135,7 +138,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
               selectedNode={schemaNode}
             />
           )}
-          {!isCombination(schemaNode) && !pointerIsDefinition(pointer) && (
+          {!isCombination(schemaNode) && !pointerIsDefinition(schemaPointer) && (
             <Switch
               className={classes.switch}
               size='small'
@@ -175,7 +178,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
       )}
       {hasCustomProps && (
         <>
-          <CustomProperties path={pointer} />
+          <CustomProperties path={schemaPointer} />
           <Divider marginless />
         </>
       )}
