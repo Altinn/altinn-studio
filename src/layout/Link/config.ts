@@ -30,6 +30,14 @@ export const Config = new CG.component({
       description: 'The title/text of the link',
     }),
   )
+  .addTextResource(
+    new CG.trb({
+      name: 'download',
+      title: 'Download',
+      description:
+        'Download target instead of navigating to it. Non-blank value is passed to the download attribute and becomes the filename of the downloaded file. Blank value means default filename is used.',
+    }),
+  )
   .addProperty(
     new CG.prop(
       'style',

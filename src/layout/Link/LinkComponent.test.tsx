@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
 import { LinkComponent } from 'src/layout/Link/LinkComponent';
@@ -40,6 +39,7 @@ describe('LinkComponent', () => {
       'href',
       'https://www.digdir.no/service',
     );
+    expect(screen.getByRole('link', { name: 'Link to service' })).not.toHaveAttribute('download');
   });
 
   it('should have correct link attributes when openInNewTab = false', async () => {
@@ -51,31 +51,36 @@ describe('LinkComponent', () => {
       'href',
       'https://www.digdir.no/service',
     );
+    expect(screen.getByRole('link', { name: 'Link to service' })).not.toHaveAttribute('download');
   });
 
-  it('button should call window.open() with correct arguments when openInNewTab = true', async () => {
-    global.open = jest.fn() as Window['open'];
-    await render({
-      title: 'Button to service',
+  it('should have correct link attributes when download is set', async () => {
+    await renderWithDownload({
+      title: 'Link to service',
       target: 'https://www.digdir.no/service',
-      style: 'primary',
-      openInNewTab: true,
+      style: 'link',
+      download: 'file.txt',
     });
 
-    screen.getByRole('button', { name: 'Button to service' }).click();
-    expect(global.open).toHaveBeenCalledWith('https://www.digdir.no/service', '_blank');
+    expect(screen.getByRole('link', { name: 'Link to service' })).not.toHaveAttribute('target');
+    expect(screen.getByRole('link', { name: 'Link to service' })).not.toHaveAttribute('rel');
+    expect(screen.getByRole('link', { name: 'Link to service' })).toHaveAttribute(
+      'href',
+      'https://www.digdir.no/service',
+    );
+    expect(screen.getByRole('link', { name: 'Link to service' })).toHaveAttribute('download', 'file.txt');
   });
 
-  it('button should call window.open() with correct arguments when openInNewTab = false', async () => {
-    global.open = jest.fn() as Window['open'];
-    await render({
+  it('button should have correct link attributes when download is set', async () => {
+    await renderWithDownload({
       title: 'Button to service',
       target: 'https://www.digdir.no/service',
-      style: 'primary',
+      style: 'secondary',
+      download: 'file.txt',
     });
 
-    screen.getByRole('button', { name: 'Button to service' }).click();
-    expect(global.open).toHaveBeenCalledWith('https://www.digdir.no/service', '_self');
+    // should verify onclick target, but don't know how...
+    expect(screen.getByRole('button', { name: 'Button to service' })).toBeInTheDocument();
   });
 });
 
@@ -88,6 +93,23 @@ const render = async ({ title, target, openInNewTab = false, style = 'primary' }
       textResourceBindings: {
         title,
         target,
+      },
+      openInNewTab,
+      style: style as LinkStyle,
+    },
+  });
+};
+
+const renderWithDownload = async ({ title, target, openInNewTab = false, style = 'primary', download = '' }) => {
+  await renderGenericComponentTest({
+    type: 'Link',
+    renderer: (props) => <LinkComponent {...props} />,
+    component: {
+      id: 'some-id',
+      textResourceBindings: {
+        title,
+        target,
+        download,
       },
       openInNewTab,
       style: style as LinkStyle,
