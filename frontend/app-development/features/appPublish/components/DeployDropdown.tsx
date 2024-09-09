@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import classes from './DeployDropdown.module.css';
 import { AltinnConfirmDialog } from 'app-shared/components';
-import { StudioButton, StudioSpinner } from '@studio/components';
-import { Alert, Combobox, Spinner } from '@digdir/designsystemet-react';
+import { StudioButton, StudioError, StudioSpinner } from '@studio/components';
+import { Combobox, Spinner } from '@digdir/designsystemet-react';
 import type { ImageOption } from './ImageOption';
 import { useTranslation } from 'react-i18next';
 import { useAppReleasesQuery } from 'app-development/hooks/queries';
@@ -42,7 +42,7 @@ export const DeployDropdown = ({
       <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('app_deployment.releases_loading')} />
     );
 
-  if (releasesIsError) return <Alert severity='danger'>{t('app_deployment.releases_error')}</Alert>;
+  if (releasesIsError) return <StudioError>{t('app_deployment.releases_error')}</StudioError>;
 
   const imageOptions: ImageOption[] = releases
     .filter((image) => image.build.result === BuildResult.succeeded)

@@ -11,8 +11,8 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { DeploymentEnvironment } from '../components/DeploymentEnvironment';
 import { getAppLink } from 'app-shared/ext-urls';
 import { useTranslation } from 'react-i18next';
-import { Alert } from '@digdir/designsystemet-react';
 import { PROD_ENV_TYPE } from 'app-shared/constants';
+import { StudioError } from '@studio/components';
 
 export const DeploymentContainer = () => {
   const { org, app } = useStudioEnvironmentParams();
@@ -58,9 +58,7 @@ export const DeploymentContainer = () => {
   if (environmentListIsError || orgsIsError || appDeploymentIsError)
     return (
       <div className={classes.deployContainer}>
-        <Alert severity='danger' className={classes.alert}>
-          {t('app_deployment.error')}
-        </Alert>
+        <StudioError className={classes.alert}>{t('app_deployment.error')}</StudioError>
       </div>
     );
 

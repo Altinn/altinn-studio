@@ -8,9 +8,10 @@ import { Trans, useTranslation } from 'react-i18next';
 import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
 import { useInvalidator } from '../../../hooks/useInvalidator';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { Alert, Link } from '@digdir/designsystemet-react';
+import { Link } from '@digdir/designsystemet-react';
 import { EmailContactProvider } from 'app-shared/getInTouch/providers';
 import { GetInTouchWith } from 'app-shared/getInTouch';
+import { StudioError } from '@studio/components';
 
 export function DeployPage() {
   const { org, app } = useStudioEnvironmentParams();
@@ -34,11 +35,7 @@ export function DeployPage() {
   }
 
   if (orgsIsError || permissionsIsError)
-    return (
-      <Alert severity='danger' className={classes.alert}>
-        {t('app_deployment.error')}
-      </Alert>
-    );
+    return <StudioError className={classes.alert}>{t('app_deployment.error')}</StudioError>;
 
   // If org isn't listed, or doesn't have any environments
   if (!orgs[org] || !orgs[org].environments || !orgs[org].environments.length) {
