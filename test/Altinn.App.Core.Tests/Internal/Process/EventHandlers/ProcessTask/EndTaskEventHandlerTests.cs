@@ -106,6 +106,33 @@ public class EndTaskEventHandlerTests
     }
 
     [Fact]
+    public async Task Calls_unlock_if_eFormidling_fails()
+    {
+        EndTaskEventHandler eteh =
+            new(_processTaskDataLocker.Object, _processTaskFinisher.Object, ServiceTasks, _processTaskEnds, _logger);
+
+        var instance = new Instance() { Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d", AppId = "ttd/test", };
+
+        var taskId = "Task_1";
+        Mock<IProcessTask> mockProcessTask = new();
+
+        // Make PDF service task throw exception to simulate a failure situation.
+        _eformidlingServiceTask.Setup(x => x.Execute(It.IsAny<string>(), instance)).ThrowsAsync(new Exception());
+
+        // Expect exception to be thrown
+        await Assert.ThrowsAsync<Exception>(async () => await eteh.Execute(mockProcessTask.Object, taskId, instance));
+
+        // Assert normal flow until the exception is thrown
+        _processTaskDataLocker.Verify(p => p.Lock(taskId, instance));
+        _processTaskFinisher.Verify(p => p.Finalize(taskId, instance));
+        mockProcessTask.Verify(p => p.End(taskId, instance));
+        _pdfServiceTask.Verify(p => p.Execute(taskId, instance));
+
+        // Make sure unlock data is called
+        _processTaskDataLocker.Verify(p => p.Unlock(taskId, instance));
+    }
+
+    [Fact]
     public void Throws_If_Missing_Pdf_ServiceTask()
     {
         IServiceTask[] serviceTasks = [_eformidlingServiceTask.Object];

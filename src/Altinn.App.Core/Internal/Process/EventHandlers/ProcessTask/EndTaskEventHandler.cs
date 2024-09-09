@@ -63,7 +63,16 @@ public class EndTaskEventHandler : IEndTaskEventHandler
             throw;
         }
 
-        await _eformidlingServiceTask.Execute(taskId, instance);
+        try
+        {
+            await _eformidlingServiceTask.Execute(taskId, instance);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error executing eFormidling service task. Unlocking data again.");
+            await _processTaskDataLocker.Unlock(taskId, instance);
+            throw;
+        }
     }
 
     /// <summary>
