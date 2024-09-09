@@ -11,10 +11,10 @@ export interface SchemaTreeProps {
 
 export const SchemaTree = ({ schemaPointer }: SchemaTreeProps) => {
   const savableModel = useSavableSchemaModel();
+  const uniquePointer = savableModel.getUniquePointer(schemaPointer);
   const { selectedUniquePointer, setSelectedUniquePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
 
-  const uniquePointer = savableModel.getUniquePointer(schemaPointer);
   return (
     <DragAndDropTree.Root
       emptyMessage={t('schema_editor.empty_node')}
