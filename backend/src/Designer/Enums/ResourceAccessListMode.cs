@@ -8,5 +8,5 @@ namespace Altinn.Studio.Designer.Enums
         Disabled = 0,
 
         Enabled = 1,
-     }
+    }
 }

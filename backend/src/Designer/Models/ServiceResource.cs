@@ -100,7 +100,7 @@ namespace Altinn.Studio.Designer.Models
         /// Sets the access list mode for the resource
         /// </summary>
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        public ResourceAccessListMode AccessListMode { get; set;  }
+        public ResourceAccessListMode AccessListMode { get; set; }
 
         /// <summary>
         /// The user acting on behalf of party can be a selfidentifed users
