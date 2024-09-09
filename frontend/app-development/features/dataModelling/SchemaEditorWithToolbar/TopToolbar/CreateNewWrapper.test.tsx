@@ -52,11 +52,7 @@ describe('CreateNewWrapper', () => {
     const user = userEvent.setup();
     render({ createNewOpen: true });
     expect(screen.getByRole('textbox')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', {
-        name: textMock('schema_editor.create_model_confirm_button'),
-      }),
-    ).toBeInTheDocument();
+    expect(okButton()).toBeInTheDocument();
 
     const newButton = screen.getByRole('button', {
       name: textMock('general.create_new'),
@@ -73,11 +69,8 @@ describe('CreateNewWrapper', () => {
       render({ createNewOpen: true });
 
       const textInput = screen.getByRole('textbox');
-      const okButton = screen.getByRole('button', {
-        name: textMock('schema_editor.create_model_confirm_button'),
-      });
       await user.type(textInput, 'new-model');
-      await user.click(okButton);
+      await user.click(okButton());
       expect(handleCreateSchema).toHaveBeenCalledWith({
         name: 'new-model',
         relativePath: undefined,
@@ -103,11 +96,8 @@ describe('CreateNewWrapper', () => {
       render({ createNewOpen: true, createPathOption: true });
 
       const textInput = screen.getByRole('textbox');
-      const okButton = screen.getByRole('button', {
-        name: textMock('schema_editor.create_model_confirm_button'),
-      });
       await user.type(textInput, 'new-model');
-      await user.click(okButton);
+      await user.click(okButton());
       expect(handleCreateSchema).toHaveBeenCalledWith({
         name: 'new-model',
         relativePath: '',
@@ -121,14 +111,11 @@ describe('CreateNewWrapper', () => {
       render({ createNewOpen: true, dataModels: [jsonMetadata1Mock] });
 
       const textInput = screen.getByRole('textbox');
-      const okButton = screen.getByRole('button', {
-        name: textMock('schema_editor.create_model_confirm_button'),
-      });
 
       expect(screen.queryByText(errMessage)).not.toBeInTheDocument();
       await user.type(textInput, newModelName);
 
-      expect(okButton).toBeDisabled();
+      expect(okButton()).toBeDisabled();
       expect(handleCreateSchema).not.toHaveBeenCalled();
       expect(screen.getByText(errMessage)).toBeInTheDocument();
     });
@@ -139,36 +126,38 @@ describe('CreateNewWrapper', () => {
       });
       render({ createNewOpen: true, dataModels: [jsonMetadata1Mock] });
 
-      const okButton = screen.getByRole('button', {
-        name: textMock('schema_editor.create_model_confirm_button'),
-      });
-
-      await userWithNoPointerEventCheck.click(okButton);
+      await userWithNoPointerEventCheck.click(okButton());
 
       expect(handleCreateSchema).not.toHaveBeenCalled();
     });
 
     it('should not allow a name already in use in applicationmetadata json file', async () => {
       const user = userEvent.setup();
+
+      const dataTypeName = 'testmodel';
       const queryClient = createQueryClientMock();
       queryClient.setQueryData([QueryKey.AppMetadata, org, app], {
-        dataTypes: [{ id: 'testmodel' }],
+        dataTypes: [{ id: dataTypeName }],
       });
       render({ createNewOpen: true, dataModels: [jsonMetadata1Mock] }, queryClient);
 
-      const okButton = screen.getByRole('button', {
-        name: textMock('schema_editor.create_model_confirm_button'),
-      });
-      await user.type(screen.getByRole('textbox'), 'testmodel');
+      await user.type(screen.getByRole('textbox'), dataTypeName);
       expect(
         screen.getByText(
-          textMock('schema_editor.error_model_name_exists', { newModelName: 'testmodel' }),
+          textMock('schema_editor.error_model_name_exists', { newModelName: dataTypeName }),
         ),
       ).toBeInTheDocument();
-      expect(okButton).toBeDisabled();
+
+      expect(okButton()).toBeDisabled();
     });
   });
 });
+
+const okButton = () => {
+  return screen.getByRole('button', {
+    name: textMock('schema_editor.create_model_confirm_button'),
+  });
+};
 
 const render = (
   props: Partial<CreateNewWrapperProps> = {},
