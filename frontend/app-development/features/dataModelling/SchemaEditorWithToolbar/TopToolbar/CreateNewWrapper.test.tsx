@@ -10,8 +10,6 @@ import {
 } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
 import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 
-const user = userEvent.setup();
-
 // Test data:
 const handleCreateSchema = jest.fn();
 const setCreateNewOpen = jest.fn();
@@ -27,6 +25,7 @@ describe('CreateNewWrapper', () => {
   afterEach(jest.clearAllMocks);
 
   it('should open the popup when clicking "new" button', async () => {
+    const user = userEvent.setup();
     render();
 
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
@@ -46,6 +45,7 @@ describe('CreateNewWrapper', () => {
   });
 
   it('should close the popup when clicking "new" button', async () => {
+    const user = userEvent.setup();
     render({ createNewOpen: true });
     expect(screen.getByRole('textbox')).toBeInTheDocument();
     expect(
@@ -65,6 +65,7 @@ describe('CreateNewWrapper', () => {
 
   describe('createAction', () => {
     it('should call handleCreateSchema callback when ok button is clicked', async () => {
+      const user = userEvent.setup();
       render({ createNewOpen: true });
 
       const textInput = screen.getByRole('textbox');
@@ -80,6 +81,7 @@ describe('CreateNewWrapper', () => {
     });
 
     it('should call handleCreateSchema callback when input is focused and Enter key is pressed', async () => {
+      const user = userEvent.setup();
       render({ createNewOpen: true });
 
       const textInput = screen.getByRole('textbox');
@@ -93,6 +95,7 @@ describe('CreateNewWrapper', () => {
     });
 
     it('should call handleCreateSchema callback with relativePath when createPathOption is set and ok button is clicked', async () => {
+      const user = userEvent.setup();
       render({ createNewOpen: true, createPathOption: true });
 
       const textInput = screen.getByRole('textbox');
@@ -108,6 +111,7 @@ describe('CreateNewWrapper', () => {
     });
 
     it('should not call handleCreateSchema callback and show error message when trying to create a new model with the same name as an existing one when ok button is clicked', async () => {
+      const user = userEvent.setup();
       const newModelName = dataModel1NameMock;
       const errMessage = textMock('schema_editor.error_model_name_exists', { newModelName });
       render({ createNewOpen: true, dataModels: [jsonMetadata1Mock] });
@@ -126,6 +130,7 @@ describe('CreateNewWrapper', () => {
     });
 
     it('should not call handleCreateSchema callback when trying to create a new model with no name when ok button is clicked', async () => {
+      const user = userEvent.setup();
       const userWithNoPointerEventCheck = userEvent.setup({
         pointerEventsCheck: PointerEventsCheckLevel.Never,
       });
