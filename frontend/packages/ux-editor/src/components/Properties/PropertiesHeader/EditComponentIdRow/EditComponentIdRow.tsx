@@ -52,10 +52,9 @@ export const EditComponentIdRow = ({
       component.type === ComponentType.FileUpload ||
       component.type === ComponentType.FileUploadWithTag
     ) {
-      const dataTypeExists = appMetadata.dataTypes?.find((dataType) => dataType.id === id);
-      if (dataTypeExists) {
-        return t('ux_editor.modal_properties_component_id_not_unique_error');
-      }
+      return appMetadata.dataTypes?.find(
+        (dataType) => dataType.id.toLowerCase() === id.toLowerCase(),
+      );
     }
   };
 
@@ -63,7 +62,7 @@ export const EditComponentIdRow = ({
     if (value?.length === 0) {
       return t('validation_errors.required');
     }
-    if (value !== component.id) {
+    if (value.toLowerCase() !== component.id.toLowerCase()) {
       if (idExists(value, formLayouts) || hasDuplicateDataType(value)) {
         return t('ux_editor.modal_properties_component_id_not_unique_error');
       }
