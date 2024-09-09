@@ -29,7 +29,6 @@
           "textResourceBindings": {
             "title": "MapPage.Map.title"
           },
-          "required": true,
           "dataModelBindings": {
             "simpleBinding": "mapComponent"
           },
