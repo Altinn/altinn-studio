@@ -19,8 +19,6 @@ export const SchemaEditor = () => {
   const { data: user } = useUserQuery();
   const moveProperty = useMoveProperty();
   const addReference = useAddReference();
-
-  if (schemaModel.isEmpty()) return null;
   const definitions: UiSchemaNodes = schemaModel.getDefinitions();
   const selectedType = selectedTypePointer && schemaModel.getNode(selectedTypePointer);
 
