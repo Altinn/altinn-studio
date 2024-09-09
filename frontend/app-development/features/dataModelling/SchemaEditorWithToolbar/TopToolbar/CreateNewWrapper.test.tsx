@@ -8,6 +8,7 @@ import {
   dataModel1NameMock,
   jsonMetadata1Mock,
 } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
+import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 
 const user = userEvent.setup();
 
@@ -116,11 +117,10 @@ describe('CreateNewWrapper', () => {
         name: textMock('schema_editor.create_model_confirm_button'),
       });
 
-      await user.type(textInput, newModelName);
       expect(screen.queryByText(errMessage)).not.toBeInTheDocument();
+      await user.type(textInput, newModelName);
 
-      await user.click(okButton);
-
+      expect(okButton).toBeDisabled();
       expect(handleCreateSchema).not.toHaveBeenCalled();
       expect(screen.getByText(errMessage)).toBeInTheDocument();
     });
@@ -143,4 +143,4 @@ describe('CreateNewWrapper', () => {
 });
 
 const render = (props: Partial<CreateNewWrapperProps> = {}) =>
-  renderRtl(<CreateNewWrapper {...defaultProps} {...props} />);
+  renderWithProviders(<CreateNewWrapper {...defaultProps} {...props} />);

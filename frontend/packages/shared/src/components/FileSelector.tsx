@@ -42,7 +42,7 @@ export const FileSelector = ({
     event?.preventDefault();
     const file = fileInput?.current?.files?.item(0);
     if (!file.name.match(/^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/)) {
-      toast.error(t('app_data_modelling.upload_xsd_invalid_error'));
+      toast.error(t('schema_editor.invalid_datamodel_name'));
       fileInput.current.value = '';
       return;
     }
