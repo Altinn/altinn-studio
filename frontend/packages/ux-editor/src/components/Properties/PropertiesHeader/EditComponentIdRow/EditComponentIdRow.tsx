@@ -47,7 +47,7 @@ export const EditComponentIdRow = ({
     }
   };
 
-  const hasDuplicateDataType = (id: string) => {
+  const dataTypeWithNameExists = (id: string) => {
     if (
       component.type === ComponentType.FileUpload ||
       component.type === ComponentType.FileUploadWithTag
@@ -63,7 +63,7 @@ export const EditComponentIdRow = ({
       return t('validation_errors.required');
     }
     if (value.toLowerCase() !== component.id.toLowerCase()) {
-      if (idExists(value, formLayouts) || hasDuplicateDataType(value)) {
+      if (idExists(value, formLayouts) || dataTypeWithNameExists(value)) {
         return t('ux_editor.modal_properties_component_id_not_unique_error');
       }
     }
