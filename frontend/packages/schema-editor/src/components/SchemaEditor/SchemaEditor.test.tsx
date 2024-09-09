@@ -100,6 +100,21 @@ describe('SchemaEditor', () => {
     expect(updatedModel.asArray().length).toBe(uiSchemaNodesMock.length + 1);
   });
 
+  test('should show context menu when there are no nodes on root', async () => {
+    const jsonSchema: JsonSchema = {
+      [Keyword.Properties]: {},
+      [Keyword.Definitions]: {},
+    };
+    const schemaModel = SchemaModel.fromArray(buildUiSchema(jsonSchema));
+    renderEditor({ appContextProps: { schemaModel } });
+
+    const noItemsSelectedMessage = screen.getByText(textMock('schema_editor.no_item_selected'));
+    expect(noItemsSelectedMessage).toBeInTheDocument();
+
+    await clickOpenAddNodeButton();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
   test('should show context menu and trigger correct dispatch when adding text field on a specific node', async () => {
     const jsonSchema: JsonSchema = {
       [Keyword.Properties]: { mockItem: { [Keyword.Type]: FieldType.Object } },

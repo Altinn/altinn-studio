@@ -15,4 +15,4 @@ script.js
 /testing/playwright/test-results
 
 *storybook.log
-storybook-static/
+/libs/studio-components/storybook-static/*

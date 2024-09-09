@@ -4,6 +4,8 @@ import { NativeSelect } from '@digdir/designsystemet-react';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useText, useAppContext } from '../../hooks';
 import classes from './LayoutSetsContainer.module.css';
+import { ExportForm } from './ExportForm';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export function LayoutSetsContainer() {
   const { org, app } = useStudioEnvironmentParams();
@@ -37,7 +39,7 @@ export function LayoutSetsContainer() {
   if (!layoutSetNames) return null;
 
   return (
-    <div>
+    <div className={classes.root}>
       <NativeSelect
         aria-label={t('left_menu.layout_dropdown_menu_label')}
         onChange={(event) => onLayoutSetClick(event.target.value)}
@@ -53,6 +55,7 @@ export function LayoutSetsContainer() {
           );
         })}
       </NativeSelect>
+      {shouldDisplayFeature('exportForm') && <ExportForm />}
     </div>
   );
 }
