@@ -109,25 +109,20 @@ export const DeploymentStatus = ({
     <DeploymentStatusAlert
       severity='success'
       content={
-        <>
-          <Trans
-            i18nKey={'app_deployment.status.succeeded'}
-            values={{
-              version: kubernetesDeployment.version,
-            }}
-            components={{
-              a: (
-                <Link href={urlToApp} rel='noopener noreferrer' target='_blank'>
-                  {' '}
-                </Link>
-              ),
-              ext: <ExternalLinkIcon />,
-            }}
-          />
-          <span className={classes.srOnly}>
-            {t('app_deployment.status.open_app_in_new_window')}
-          </span>
-        </>
+        <Trans
+          i18nKey={'app_deployment.status.succeeded'}
+          values={{
+            version: kubernetesDeployment.version,
+          }}
+          components={{
+            a: (
+              <Link href={urlToApp} rel='noopener noreferrer' target='_blank'>
+                {' '}
+              </Link>
+            ),
+            ext: <ExternalLinkIcon title={t('app_deployment.status.open_app_in_new_window')} />,
+          }}
+        />
       }
       footer={
         lastPublishedDate && (
