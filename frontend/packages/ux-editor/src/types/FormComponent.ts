@@ -45,3 +45,10 @@ export type FormComponent<T extends SimpleComponentType = SimpleComponentType> =
   [componentType in ComponentType]: FormComponentBase<componentType> &
     ComponentSpecificConfig<componentType>;
 }[T];
+
+export type SelectionComponentType =
+  | ComponentType.Checkboxes
+  | ComponentType.Dropdown
+  | ComponentType.Likert
+  | ComponentType.MultipleSelect
+  | ComponentType.RadioButtons;
