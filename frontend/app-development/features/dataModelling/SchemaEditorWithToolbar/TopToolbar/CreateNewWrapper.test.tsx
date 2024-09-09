@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as renderRtl, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
 import type { CreateNewWrapperProps } from './CreateNewWrapper';
 import { CreateNewWrapper } from './CreateNewWrapper';
@@ -8,7 +8,9 @@ import {
   dataModel1NameMock,
   jsonMetadata1Mock,
 } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
-import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
+import { renderWithProviders } from '../../../../test/testUtils';
+import { app, org } from '@studio/testing/testids';
+import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 
 // Test data:
 const handleCreateSchema = jest.fn();
@@ -130,7 +132,6 @@ describe('CreateNewWrapper', () => {
     });
 
     it('should not call handleCreateSchema callback when trying to create a new model with no name when ok button is clicked', async () => {
-      const user = userEvent.setup();
       const userWithNoPointerEventCheck = userEvent.setup({
         pointerEventsCheck: PointerEventsCheckLevel.Never,
       });
@@ -148,4 +149,6 @@ describe('CreateNewWrapper', () => {
 });
 
 const render = (props: Partial<CreateNewWrapperProps> = {}) =>
-  renderWithProviders(<CreateNewWrapper {...defaultProps} {...props} />);
+  renderWithProviders(<CreateNewWrapper {...defaultProps} {...props} />, {
+    startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/ui-editor`,
+  });
