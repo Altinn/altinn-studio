@@ -70,4 +70,10 @@ public class ApplicationMetadata : Application
     /// </summary>
     [System.Text.Json.Serialization.JsonExtensionData]
     public Dictionary<string, object>? UnmappedProperties { get; set; }
+
+    /// <summary>
+    /// List of ids for the external APIs registered in the application
+    /// </summary>
+    [JsonProperty(PropertyName = "externalApiIds")]
+    public string[]? ExternalApiIds { get; set; }
 }

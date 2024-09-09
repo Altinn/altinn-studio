@@ -1,4 +1,5 @@
 using Altinn.App.Core.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Core.Features.ExternalApi;
@@ -30,11 +31,12 @@ public interface IExternalApiService
 /// <summary>
 /// Service for handling external api data
 /// </summary>
-public class ExternalApiService(ILogger<ExternalApiService> logger, IExternalApiFactory externalApiFactory)
+public class ExternalApiService(ILogger<ExternalApiService> logger, IServiceProvider serviceProvider)
     : IExternalApiService
 {
     private readonly ILogger<ExternalApiService> _logger = logger;
-    private readonly IExternalApiFactory _externalApiFactory = externalApiFactory;
+    private readonly IExternalApiFactory _externalApiFactory =
+        serviceProvider.GetRequiredService<IExternalApiFactory>();
 
     /// <inheritdoc/>
     public async Task<ExternalApiDataResult> GetExternalApiData(

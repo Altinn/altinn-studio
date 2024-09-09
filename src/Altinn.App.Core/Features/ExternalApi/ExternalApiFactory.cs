@@ -3,12 +3,14 @@ namespace Altinn.App.Core.Features.ExternalApi;
 /// <summary>
 /// Interface of factory class for resolving <see cref="IExternalApiClient"/> implementations
 /// </summary>
-public interface IExternalApiFactory
+internal interface IExternalApiFactory
 {
     /// <summary>
     /// Finds the implementation of <see cref="IExternalApiClient"/> based on the external api id
     /// </summary>
     IExternalApiClient? GetExternalApiClient(string externalApiId);
+
+    string[] GetAllExternalApiIds();
 }
 
 /// <summary>
@@ -32,5 +34,10 @@ internal sealed class ExternalApiFactory : IExternalApiFactory
     public IExternalApiClient? GetExternalApiClient(string externalApiId)
     {
         return _externalApiClients.FirstOrDefault(e => e.Id.Equals(externalApiId, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public string[] GetAllExternalApiIds()
+    {
+        return _externalApiClients.Select(e => e.Id).ToArray();
     }
 }

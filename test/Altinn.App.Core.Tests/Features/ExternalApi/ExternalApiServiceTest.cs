@@ -12,6 +12,7 @@ public class ExternalApiServiceTests
     private readonly Mock<IExternalApiFactory> _externalApiFactoryMock;
     private readonly Mock<IExternalApiClient> _externalApiClientMock;
     private readonly Mock<InstanceIdentifier> _instanceIdentifierMock;
+    private readonly Mock<IServiceProvider> _serviceProviderMock;
 
     public ExternalApiServiceTests()
     {
@@ -19,6 +20,7 @@ public class ExternalApiServiceTests
         _externalApiFactoryMock = new Mock<IExternalApiFactory>();
         _externalApiClientMock = new Mock<IExternalApiClient>();
         _instanceIdentifierMock = new Mock<InstanceIdentifier>(1, Guid.NewGuid());
+        _serviceProviderMock = new Mock<IServiceProvider>();
     }
 
     [Fact]
@@ -36,8 +38,11 @@ public class ExternalApiServiceTests
         _externalApiFactoryMock
             .Setup(f => f.GetExternalApiClient(externalApiId))
             .Returns(_externalApiClientMock.Object);
+        _serviceProviderMock
+            .Setup(s => s.GetService(typeof(IExternalApiFactory)))
+            .Returns(_externalApiFactoryMock.Object);
 
-        var externalApiService = new ExternalApiService(_loggerMock.Object, _externalApiFactoryMock.Object);
+        var externalApiService = new ExternalApiService(_loggerMock.Object, _serviceProviderMock.Object);
 
         // Act
         var data = await externalApiService.GetExternalApiData(
@@ -63,7 +68,10 @@ public class ExternalApiServiceTests
         Dictionary<string, string> queryParams = [];
 
         _externalApiFactoryMock.Setup(f => f.GetExternalApiClient(externalApiId)).Returns((IExternalApiClient?)null);
-        var externalApiService = new ExternalApiService(_loggerMock.Object, _externalApiFactoryMock.Object);
+        _serviceProviderMock
+            .Setup(s => s.GetService(typeof(IExternalApiFactory)))
+            .Returns(_externalApiFactoryMock.Object);
+        var externalApiService = new ExternalApiService(_loggerMock.Object, _serviceProviderMock.Object);
 
         // Act
         var result = await externalApiService.GetExternalApiData(
@@ -91,8 +99,11 @@ public class ExternalApiServiceTests
         _externalApiFactoryMock
             .Setup(f => f.GetExternalApiClient(externalApiId))
             .Returns(_externalApiClientMock.Object);
+        _serviceProviderMock
+            .Setup(s => s.GetService(typeof(IExternalApiFactory)))
+            .Returns(_externalApiFactoryMock.Object);
 
-        var externalApiService = new ExternalApiService(_loggerMock.Object, _externalApiFactoryMock.Object);
+        var externalApiService = new ExternalApiService(_loggerMock.Object, _serviceProviderMock.Object);
 
         // Assert
         await Assert.ThrowsAsync<HttpRequestException>(
