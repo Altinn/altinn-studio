@@ -11,6 +11,8 @@ import {
 import { renderWithProviders } from '../../../../test/testUtils';
 import { app, org } from '@studio/testing/testids';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 // Test data:
 const handleCreateSchema = jest.fn();
@@ -145,10 +147,35 @@ describe('CreateNewWrapper', () => {
 
       expect(handleCreateSchema).not.toHaveBeenCalled();
     });
+
+    it('should not allow a name already in use in applicationmetadata json file', async () => {
+      const user = userEvent.setup();
+      const queryClient = createQueryClientMock();
+      queryClient.setQueryData([QueryKey.AppMetadata, org, app], {
+        dataTypes: [{ id: 'testmodel' }],
+      });
+      render({ createNewOpen: true, dataModels: [jsonMetadata1Mock] }, queryClient);
+
+      const okButton = screen.getByRole('button', {
+        name: textMock('schema_editor.create_model_confirm_button'),
+      });
+      await user.type(screen.getByRole('textbox'), 'testmodel');
+      expect(
+        screen.getByText(
+          textMock('schema_editor.error_model_name_exists', { newModelName: 'testmodel' }),
+        ),
+      ).toBeInTheDocument();
+      expect(okButton).toBeDisabled();
+    });
   });
 });
 
-const render = (props: Partial<CreateNewWrapperProps> = {}) =>
+const render = (
+  props: Partial<CreateNewWrapperProps> = {},
+  queryClient = createQueryClientMock(),
+) => {
   renderWithProviders(<CreateNewWrapper {...defaultProps} {...props} />, {
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/ui-editor`,
+    queryClient,
   });
+};
