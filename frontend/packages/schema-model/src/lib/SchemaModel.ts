@@ -66,10 +66,6 @@ export class SchemaModel {
     return Array.from(this.nodeMap.values());
   }
 
-  public isEmpty(): boolean {
-    return this.nodeMap.size <= 1;
-  }
-
   public getRootNode(): FieldNode | CombinationNode {
     const rootNode = this.getNodeBySchemaPointer(ROOT_POINTER);
     if (!isFieldOrCombination(rootNode))

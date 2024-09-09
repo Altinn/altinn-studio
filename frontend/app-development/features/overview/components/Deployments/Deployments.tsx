@@ -2,9 +2,8 @@ import type { HTMLAttributes } from 'react';
 import React from 'react';
 import { useOrgListQuery } from 'app-development/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { Alert } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner } from '@studio/components';
+import { StudioError, StudioSpinner } from '@studio/components';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { RepoOwnedByPersonInfo } from './RepoOwnedByPersonInfo';
 import { NoEnvironmentsAlert } from './NoEnvironmentsAlert';
@@ -38,7 +37,7 @@ export const Deployments = ({ className }: DeploymentsProps) => {
   }
 
   if (isOrgsError || repositoryIsError)
-    return <Alert severity='danger'>{t('overview.deployments_error')}</Alert>;
+    return <StudioError>{t('overview.deployments_error')}</StudioError>;
 
   // If repo-owner is an organisation
   const repoOwnerIsOrg = orgs && Object.keys(orgs).includes(repository?.owner.login);

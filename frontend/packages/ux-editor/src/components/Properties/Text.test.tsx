@@ -17,6 +17,7 @@ import { componentSchemaMocks } from '../../testing/componentSchemaMocks';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { app, org } from '@studio/testing/testids';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 // Test data:
 const labelTextId = 'labelTextId';
@@ -120,42 +121,47 @@ describe('TextTab', () => {
           ...props,
           formItem: {
             ...layoutMock.components.ComponentWithOptionsMock,
+            optionsId: undefined,
             options: [{ label: labelTextId, value: 'value' }],
           },
         },
       });
-      screen.getByRole('checkbox', {
-        name: textMock('ux_editor.properties_panel.options.use_code_list_label'),
-      });
+
+      expect(screen.getByText(textMock('ux_editor.options.section_heading'))).toBeInTheDocument();
     });
 
-    it('should render options section with codelist view if component has optionId defined', () => {
+    it('should render options section if component schema has optionsId property', () => {
       render({
         props: {
           ...props,
           formItem: {
             ...layoutMock.components.ComponentWithOptionsMock,
-            options: [],
+            optionsId: 'optionsId',
+            options: undefined,
+          },
+        },
+      });
+
+      expect(screen.getByText(textMock('ux_editor.options.section_heading'))).toBeInTheDocument();
+    });
+
+    it('should NOT render options section if component schema has neither options nor optionsId property', () => {
+      render({
+        props: {
+          ...props,
+          formItem: {
+            id: 'ComponentWithoutOptionsMock',
+            type: ComponentType.Input,
+            itemType: 'COMPONENT',
+            propertyPath: 'definitions/inputComponent',
+            dataModelBindings: { simpleBinding: 'some-path' },
           },
         },
       });
 
       expect(
-        screen.getByText(textMock('ux_editor.modal_properties_custom_code_list_id')),
-      ).toBeInTheDocument();
-    });
-
-    it('should render options section with manual view if component has options', () => {
-      render({
-        props: {
-          ...props,
-          formItem: {
-            ...layoutMock.components.ComponentWithOptionsMock,
-            options: [{ label: labelTextId, value: 'value' }],
-          },
-        },
-      });
-      screen.getByRole('button', { name: textMock('ux_editor.modal_new_option') });
+        screen.queryByText(textMock('ux_editor.options.section_heading')),
+      ).not.toBeInTheDocument();
     });
   });
 });
