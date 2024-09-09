@@ -26,3 +26,10 @@
 .loadingSpinner * {
   font-size: inherit !important;
 }
+
+.srOnly {
+  position: absolute;
+  clip: rect(0, 0, 0, 0);
+  overflow: hidden;
+  white-space: nowrap;
+}
