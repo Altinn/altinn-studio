@@ -461,6 +461,8 @@ namespace Altinn.Platform.Storage.Controllers
                 { "/refs", dataElement.Refs },
                 { "/references", dataElement.References },
                 { "/tags", dataElement.Tags },
+                { "/userDefinedMetadata", dataElement.UserDefinedMetadata },
+                { "/metadata", dataElement.Metadata },
                 { "/deleteStatus", dataElement.DeleteStatus },
                 { "/lastChanged", dataElement.LastChanged },
                 { "/lastChangedBy", dataElement.LastChangedBy }

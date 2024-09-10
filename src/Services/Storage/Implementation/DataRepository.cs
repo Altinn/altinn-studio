@@ -167,8 +167,16 @@ namespace LocalTest.Services.Storage.Implementation
                                 dataElement.Tags = (List<string>)property.Value;
                                 break;
                             }
-                        default:
-                            break;
+                        case "userDefinedMetadata":
+                            {
+                                dataElement.UserDefinedMetadata = (List<KeyValueEntry>)property.Value;
+                                break;
+                            }
+                        case "metadata":
+                            {
+                                dataElement.Metadata = (List<KeyValueEntry>)property.Value;
+                                break;
+                            }
                     }
                 }
                 await Update(dataElement);
