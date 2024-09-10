@@ -13,7 +13,7 @@ permissions:
 jobs:
   login-to-production:
     runs-on: ubuntu-latest
-    environment: production
+    environment: preapproved-prod
     steps:
       - name: 'Azure login'
         uses: azure/login@v2
