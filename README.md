@@ -87,7 +87,7 @@ parts of the solution. The load balancer is configured to route the traffic to t
 particular use case. This is done by placing a `.env`-file in the same folder as compose.yaml. The load balancer
 is configured with the following variables.
 
-```ini
+```dotenv
 DEVELOP_BACKEND=0
 DEVELOP_DASHBOARD=0
 DEVELOP_APP_DEVELOPMENT=0
