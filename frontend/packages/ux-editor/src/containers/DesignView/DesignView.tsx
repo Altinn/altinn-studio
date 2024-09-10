@@ -104,7 +104,7 @@ export const DesignView = (): ReactNode => {
     if (layout === undefined) return null;
 
     // Check if the layout has unique component IDs
-    const isValidLayout = !duplicatedIdsExistsInLayout(layout.data);
+    const isInvalidLayout = duplicatedIdsExistsInLayout(layout.data);
 
     return (
       <PageAccordion
@@ -112,13 +112,13 @@ export const DesignView = (): ReactNode => {
         pageName={layout.page}
         isOpen={layout.page === selectedFormLayoutName}
         onClick={() => handleClickAccordion(layout.page)}
-        isValid={isValidLayout}
-        hasUniqueIds={!layoutsWithDuplicateComponents.duplicateLayouts.includes(layout.page)}
+        isInvalid={isInvalidLayout}
+        hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(layout.page)}
       >
         {layout.page === selectedFormLayoutName && (
           <FormLayout
             layout={layout.data}
-            isValid={isValidLayout}
+            isInvalid={isInvalidLayout}
             duplicateComponents={layoutsWithDuplicateComponents.duplicateComponents}
           />
         )}
@@ -150,6 +150,9 @@ export const DesignView = (): ReactNode => {
               pdfLayoutName={pdfLayoutName}
               selectedFormLayoutName={selectedFormLayoutName}
               onAccordionClick={() => handleClickAccordion(pdfLayoutName)}
+              hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(
+                pdfLayoutName,
+              )}
             />
           </div>
         </div>

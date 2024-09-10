@@ -16,8 +16,8 @@ export type PageAccordionProps = {
   children: ReactNode;
   isOpen: boolean;
   onClick: () => void;
-  isValid?: boolean;
-  hasUniqueIds?: boolean;
+  isInvalid?: boolean;
+  hasDuplicatedIds?: boolean;
   pageIsReceipt?: boolean;
   pageIsPdf?: boolean;
   showNavigationMenu?: boolean;
@@ -32,11 +32,7 @@ export type PageAccordionProps = {
  * @property {ReactNode}[children] - The children of the component
  * @property {boolean}[isOpen] - If the accordion is open or not
  * @property {function}[onClick] - Function to execute when the accordion is clicked
-<<<<<<< HEAD
-=======
- * @property {boolean}[pageIsReceipt] - If the page is receipt or not
  * @property {boolean}[pageIsPdf] - If the page is pdf or not
->>>>>>> 5633f518a (Add PDF config for page and layoutset)
  *
  * @returns {ReactNode} - The rendered component
  */
@@ -45,9 +41,8 @@ export const PageAccordion = ({
   children,
   isOpen,
   onClick,
-  isValid,
-  hasUniqueIds,
-  pageIsReceipt,
+  isInvalid,
+  hasDuplicatedIds,
   pageIsPdf,
   showNavigationMenu = true,
 }: PageAccordionProps): ReactNode => {
@@ -72,11 +67,11 @@ export const PageAccordion = ({
   };
 
   return (
-    <Accordion.Item className={pageIsReceipt && classes.receiptItem} open={isOpen}>
+    <Accordion.Item open={isOpen}>
       <div className={classes.accordionHeaderRow}>
         <Accordion.Header
           className={
-            isValid && hasUniqueIds ? classes.accordionHeader : classes.accordionHeaderWarning
+            isInvalid || hasDuplicatedIds ? classes.accordionHeaderWarning : classes.accordionHeader
           }
           level={3}
           onHeaderClick={onClick}

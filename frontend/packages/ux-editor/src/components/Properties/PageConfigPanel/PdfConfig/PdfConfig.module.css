@@ -6,5 +6,6 @@
   padding-top: var(--fds-spacing-5);
   padding-inline: var(--fds-spacing-5);
   display: grid;
+  justify-items: flex-start;
   gap: var(--fds-spacing-5);
 }

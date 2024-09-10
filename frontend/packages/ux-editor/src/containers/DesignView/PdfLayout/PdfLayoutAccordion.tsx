@@ -10,11 +10,13 @@ export interface PdfLayoutAccordionProps {
   pdfLayoutName: string;
   selectedFormLayoutName: string;
   onAccordionClick: () => void;
+  hasDuplicatedIds: boolean;
 }
 export const PdfLayoutAccordion = ({
   pdfLayoutName,
   selectedFormLayoutName,
   onAccordionClick,
+  hasDuplicatedIds,
 }: PdfLayoutAccordionProps): React.ReactNode => {
   const layouts = useFormLayouts();
   const formLayoutData = mapFormLayoutsToFormLayoutPages(layouts);
@@ -25,14 +27,15 @@ export const PdfLayoutAccordion = ({
         pageName={pdfLayoutData.page}
         isOpen={pdfLayoutData.page === selectedFormLayoutName}
         onClick={onAccordionClick}
-        isValid={!duplicatedIdsExistsInLayout(pdfLayoutData.data)}
+        isInvalid={duplicatedIdsExistsInLayout(pdfLayoutData.data)}
+        hasDuplicatedIds={hasDuplicatedIds}
         showNavigationMenu={false}
         pageIsPdf={true}
       >
         {pdfLayoutData.page === selectedFormLayoutName && (
           <FormLayout
             layout={pdfLayoutData.data}
-            isValid={!duplicatedIdsExistsInLayout(pdfLayoutData.data)}
+            isInvalid={duplicatedIdsExistsInLayout(pdfLayoutData.data)}
           />
         )}
       </PageAccordion>

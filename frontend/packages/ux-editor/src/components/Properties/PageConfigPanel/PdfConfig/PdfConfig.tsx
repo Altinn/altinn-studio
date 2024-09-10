@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudioModal, StudioProperty } from '@studio/components';
+import { StudioButton, StudioModal, StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { FileIcon } from '@studio/icons';
 import { Alert, Combobox, Heading, Switch } from '@digdir/designsystemet-react';
@@ -72,20 +72,27 @@ export const PdfConfig = () => {
   const handleConvertPageToPdfWhenExistingPdf = (deleteCurrent?: boolean) => {
     // Remove all layouts in exclude when setting a dedicated PDF or converting a current into PDF?
     const pdfLayoutName = formLayoutSettings.pages.pdfLayoutName;
-    // Delete current pdfLayout if it exists. Should include a choice here to convert it back to regular layout or delete it
     if (deleteCurrent) {
       deleteLayout(pdfLayoutName);
     } else {
       formLayoutSettings.pages.order.push(pdfLayoutName);
     }
     handleConvertPageToPdf();
+    setShowConvertChoices(false);
   };
 
   const handleConvertPageToPdf = () => {
     formLayoutSettings.pages.pdfLayoutName = selectedFormLayoutName;
     formLayoutSettings.pages.order.splice(
       formLayoutSettings.pages.order.indexOf(selectedFormLayoutName),
+      1,
     );
+    mutateFormLayoutSettings(formLayoutSettings);
+  };
+
+  const convertExistingPdfToFormLayout = () => {
+    delete formLayoutSettings.pages.pdfLayoutName;
+    formLayoutSettings.pages.order.push(selectedFormLayoutName);
     mutateFormLayoutSettings(formLayoutSettings);
   };
 
@@ -146,7 +153,12 @@ export const PdfConfig = () => {
           {t('ux_editor.page_config_pdf_exclude_page_from_default_pdf')}
         </Switch>
         {currentPageIsPdf && (
-          <Alert>{t('ux_editor.page_config_pdf_current_page_is_pdf_info')}</Alert>
+          <>
+            <StudioButton size='small' onClick={convertExistingPdfToFormLayout}>
+              {t('ux_editor.page_config_pdf_convert_existing_pdf')}
+            </StudioButton>
+            <Alert size='small'>{t('ux_editor.page_config_pdf_current_page_is_pdf_info')}</Alert>
+          </>
         )}
         {!usePdfLayout && (
           <Combobox
