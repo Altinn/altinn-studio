@@ -68,6 +68,16 @@ public class ProcessNavigatorTests
                 outgoingFlows.Where(f => f.Id == "Flow_sign1_sign" || f.Id == "Flow_SingleSign").ToList()
             );
         }
+
+        Task<List<SequenceFlow>> IProcessExclusiveGateway.FilterAsync(
+            List<SequenceFlow> outgoingFlows,
+            Instance instance,
+            ProcessGatewayInformation processGatewayInformation
+        )
+        {
+            //TODO: Remove legacy method when removed from interface
+            throw new NotImplementedException();
+        }
     }
 
     [Fact]
@@ -94,6 +104,16 @@ public class ProcessNavigatorTests
         )
         {
             return Task.FromResult(new List<SequenceFlow>());
+        }
+
+        Task<List<SequenceFlow>> IProcessExclusiveGateway.FilterAsync(
+            List<SequenceFlow> outgoingFlows,
+            Instance instance,
+            ProcessGatewayInformation processGatewayInformation
+        )
+        {
+            //TODO: Remove legacy method when removed from interface in v9
+            throw new NotImplementedException();
         }
     }
 

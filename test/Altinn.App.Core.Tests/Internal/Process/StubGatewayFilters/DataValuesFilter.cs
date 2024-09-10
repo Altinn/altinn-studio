@@ -27,4 +27,14 @@ public class DataValuesFilter : IProcessExclusiveGateway
         var targetFlow = instance.DataValues[_filterOnDataValue];
         return await Task.FromResult(outgoingFlows.FindAll(e => e.Id == targetFlow));
     }
+
+    Task<List<SequenceFlow>> IProcessExclusiveGateway.FilterAsync(
+        List<SequenceFlow> outgoingFlows,
+        Instance instance,
+        ProcessGatewayInformation processGatewayInformation
+    )
+    {
+        //TODO: Remove when obsolete method is removed from interface
+        throw new NotImplementedException();
+    }
 }

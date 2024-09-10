@@ -319,7 +319,7 @@ public class ValidationServiceTests : IAsyncLifetime
             null,
             null
         );
-        var issue = issues.Should().ContainSingle().Which;
+        issues.Should().HaveCount(1);
 
         var telemetry = _serviceProvider.Value.GetRequiredService<TelemetrySink>();
 

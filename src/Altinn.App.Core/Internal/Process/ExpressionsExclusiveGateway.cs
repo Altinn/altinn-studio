@@ -118,4 +118,17 @@ public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
         var expressionFromCondition = ExpressionConverter.ReadStatic(ref reader, _jsonSerializerOptions);
         return expressionFromCondition;
     }
+
+    /// <summary>
+    /// Legacy method kept for backwards compatibility
+    /// </summary>
+    Task<List<SequenceFlow>> IProcessExclusiveGateway.FilterAsync(
+        List<SequenceFlow> outgoingFlows,
+        Instance instance,
+        ProcessGatewayInformation processGatewayInformation
+    )
+    {
+        //TODO: Remove when obsolete method is removed from interface in v9
+        throw new NotImplementedException();
+    }
 }
