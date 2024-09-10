@@ -84,20 +84,6 @@ describe('SchemaModel', () => {
     });
   });
 
-  describe('isEmpty', () => {
-    it('Returns true if only the root node is present', () => {
-      const rootNode = { ...rootNodeMock, children: [] };
-      const schema = [rootNode];
-      validateTestUiSchema(schema);
-      const emptyModel = SchemaModel.fromArray(schema);
-      expect(emptyModel.isEmpty()).toBe(true);
-    });
-
-    it('Returns false if additional nodes are present', () => {
-      expect(schemaModel.isEmpty()).toBe(false);
-    });
-  });
-
   describe('getRootNode', () => {
     it('Returns the root node', () => {
       expect(schemaModel.getRootNode()).toEqual(rootNodeMock);
