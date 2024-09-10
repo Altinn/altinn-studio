@@ -87,8 +87,8 @@ const isFileNameValid = (
   onInvalidFileName: () => void,
 ): boolean => {
   if (!file) return false;
-  const handleFileNameError = !!fileNameRegEx && !!onInvalidFileName;
-  if (!handleFileNameError) return true;
+  const enableFileNameErrorHandling = !!fileNameRegEx && !!onInvalidFileName;
+  if (!enableFileNameErrorHandling) return true;
   if (!file.name.match(fileNameRegEx)) {
     onInvalidFileName();
     fileRef.current.value = '';
