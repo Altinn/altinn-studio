@@ -253,6 +253,7 @@ public class ValidationControllerValidateDataTests
                         testScenario.ReceivedInstance,
                         "Task_1",
                         It.IsAny<IInstanceDataAccessor>(),
+                        null,
                         null
                     )
                 )

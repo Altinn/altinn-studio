@@ -12,21 +12,17 @@ public interface IValidationService
     /// <summary>
     /// Validates the instance with all data elements on the current task and ensures that the instance is ready for process next.
     /// </summary>
-    /// <remarks>
-    /// This method executes validations in the following interfaces
-    /// * <see cref="ITaskValidator"/> for the current task
-    /// * <see cref="IDataElementValidator"/> for all data elements on the current task
-    /// * <see cref="IFormDataValidator"/> for all data elements with app logic on the current task
-    /// </remarks>
     /// <param name="instance">The instance to validate</param>
     /// <param name="taskId">instance.Process?.CurrentTask?.ElementId</param>
     /// <param name="dataAccessor">Accessor for instance data to be validated</param>
+    /// <param name="ignoredValidators">List of validators to ignore</param>
     /// <param name="language">The language to run validations in</param>
     /// <returns>List of validation issues for this data element</returns>
     Task<List<ValidationIssueWithSource>> ValidateInstanceAtTask(
         Instance instance,
         string taskId,
         IInstanceDataAccessor dataAccessor,
+        List<string>? ignoredValidators,
         string? language
     );
 

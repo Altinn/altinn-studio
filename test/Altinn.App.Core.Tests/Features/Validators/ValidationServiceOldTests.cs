@@ -78,6 +78,7 @@ public class ValidationServiceOldTests
             instance,
             "Task_1",
             dataAccessor.Object,
+            null,
             null
         );
 
@@ -106,6 +107,7 @@ public class ValidationServiceOldTests
             instance,
             "Task_1",
             dataAccessorMock.Object,
+            null,
             null
         );
 
@@ -134,6 +136,7 @@ public class ValidationServiceOldTests
             instance,
             "Task_1",
             dataAccessorMock.Object,
+            null,
             null
         );
 
@@ -161,6 +164,7 @@ public class ValidationServiceOldTests
             instance,
             "Task_1",
             dataAccessorMock.Object,
+            null,
             null
         );
 
@@ -202,7 +206,13 @@ public class ValidationServiceOldTests
         };
         var dataAccessorMock = new Mock<IInstanceDataAccessor>();
 
-        var issues = await validationService.ValidateInstanceAtTask(instance, taskId, dataAccessorMock.Object, null);
+        var issues = await validationService.ValidateInstanceAtTask(
+            instance,
+            taskId,
+            dataAccessorMock.Object,
+            null,
+            null
+        );
         issues.Should().BeEmpty();
 
         // instance.Process?.CurrentTask?.Validated.CanCompleteTask.Should().BeTrue();
@@ -254,7 +264,13 @@ public class ValidationServiceOldTests
         };
         var dataAccessorMock = new Mock<IInstanceDataAccessor>();
 
-        var issues = await validationService.ValidateInstanceAtTask(instance, taskId, dataAccessorMock.Object, null);
+        var issues = await validationService.ValidateInstanceAtTask(
+            instance,
+            taskId,
+            dataAccessorMock.Object,
+            null,
+            null
+        );
         issues.Should().HaveCount(1);
         issues.Should().ContainSingle(i => i.Code == ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType);
     }

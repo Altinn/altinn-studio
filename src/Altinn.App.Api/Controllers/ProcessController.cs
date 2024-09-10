@@ -254,6 +254,7 @@ public class ProcessController : ControllerBase
             instance,
             currentTaskId,
             dataAcceesor,
+            ignoredValidators: null, // run full validation
             language
         );
         var success = validationIssues.TrueForAll(v => v.Severity != ValidationIssueSeverity.Error);

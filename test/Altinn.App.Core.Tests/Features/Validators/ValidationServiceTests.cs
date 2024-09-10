@@ -274,6 +274,7 @@ public class ValidationServiceTests : IDisposable
             _defaultInstance,
             DefaultTaskId,
             _dataAccessor,
+            null,
             DefaultLanguage
         );
         resultTask.Should().BeEmpty();
@@ -456,6 +457,7 @@ public class ValidationServiceTests : IDisposable
             _defaultInstance,
             DefaultTaskId,
             dataAccessor,
+            null,
             DefaultLanguage
         );
 
@@ -518,6 +520,7 @@ public class ValidationServiceTests : IDisposable
             _defaultInstance,
             DefaultTaskId,
             _dataAccessor,
+            null,
             DefaultLanguage
         );
 

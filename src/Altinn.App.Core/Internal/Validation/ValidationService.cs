@@ -33,6 +33,7 @@ public class ValidationService : IValidationService
         Instance instance,
         string taskId,
         IInstanceDataAccessor dataAccessor,
+        List<string>? ignoredValidators,
         string? language
     )
     {
@@ -43,30 +44,32 @@ public class ValidationService : IValidationService
 
         // Run task validations (but don't await yet)
         var validators = _validatorFactory.GetValidators(taskId);
-        var validationTasks = validators.Select(async v =>
-        {
-            using var validatorActivity = _telemetry?.StartRunValidatorActivity(v);
-            try
+        var validationTasks = validators
+            .Where(v => ignoredValidators?.Contains(v.ValidationSource, StringComparer.InvariantCulture) ?? true)
+            .Select(async v =>
             {
-                var issues = await v.Validate(instance, dataAccessor, taskId, language);
-                return KeyValuePair.Create(
-                    v.ValidationSource,
-                    issues.Select(issue => ValidationIssueWithSource.FromIssue(issue, v.ValidationSource))
-                );
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(
-                    e,
-                    "Error while running validator {ValidatorName} for task {TaskId} on instance {InstanceId}",
-                    v.ValidationSource,
-                    taskId,
-                    instance.Id
-                );
-                validatorActivity?.Errored(e);
-                throw;
-            }
-        });
+                using var validatorActivity = _telemetry?.StartRunValidatorActivity(v);
+                try
+                {
+                    var issues = await v.Validate(instance, dataAccessor, taskId, language);
+                    return KeyValuePair.Create(
+                        v.ValidationSource,
+                        issues.Select(issue => ValidationIssueWithSource.FromIssue(issue, v.ValidationSource))
+                    );
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(
+                        e,
+                        "Error while running validator {ValidatorName} for task {TaskId} on instance {InstanceId}",
+                        v.ValidationSource,
+                        taskId,
+                        instance.Id
+                    );
+                    validatorActivity?.Errored(e);
+                    throw;
+                }
+            });
         var lists = await Task.WhenAll(validationTasks);
 
         // Flatten the list of lists to a single list of issues

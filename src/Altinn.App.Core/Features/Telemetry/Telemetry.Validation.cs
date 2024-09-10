@@ -30,7 +30,12 @@ partial class Telemetry
         var activity = ActivitySource.StartActivity($"{Prefix}.ValidateIncremental");
         activity?.SetTaskId(taskId);
         activity?.SetInstanceId(instance);
-        // TODO: record the guid for the changed elements in a sensible list
+        // Log the IDs of the elements that have changed together with their data type
+        // default:123-678-8900-54,group:123-678-8900-55
+        activity?.SetTag(
+            InternalLabels.ValidatorChangedElementsIds,
+            string.Join(',', changes.Select(c => $"{c.DataElement.DataType}:{c.DataElement.Id}"))
+        );
         return activity;
     }
 

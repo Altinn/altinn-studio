@@ -4743,6 +4743,13 @@
             }
           },
           {
+            "name": "ignoredValidators",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "language",
             "in": "query",
             "schema": {

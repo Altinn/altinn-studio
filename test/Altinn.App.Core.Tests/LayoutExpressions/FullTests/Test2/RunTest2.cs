@@ -8,6 +8,7 @@ namespace Altinn.App.Core.Tests.LayoutExpressions.FullTests.Test2;
 
 public class RunTest2
 {
+    // Functionality for validation data model references has been removed, but might be reintroduced in the future
     // [Fact]
     // public async Task ValidateDataModel()
     // {

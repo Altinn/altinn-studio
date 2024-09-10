@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Altinn.App.Common.Tests;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
@@ -14,7 +16,6 @@ using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Tests.Features.Validators.Default;
 using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.Platform.Storage.Interface.Models;
-using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,14 +32,15 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
         [Required] string? Name,
         [MinLength(44)] string? Address,
         string? Phone,
-        string? Email = null
+        string? Email
     );
 
     private record SubFormModel(
-        string? Name,
+        [Required] string? Name,
         string? Address,
         [RegularExpression(@"^\+47\d+")] string? Phone,
-        string? Email = null
+        string? Email,
+        bool? RequireEmail = false
     );
 
     private readonly ITestOutputHelper _output;
@@ -58,6 +60,8 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
     private static readonly Guid _mainDataElementGuid = Guid.Parse("12345678-1234-1234-1234-123456789013");
     private static readonly Guid _subFormGuid1 = Guid.Parse("12345678-1234-1234-1234-123456789014");
     private static readonly Guid _subFormGuid2 = Guid.Parse("12345678-1234-1234-1234-123456789015");
+    private static readonly Guid _subFormGuid3 = Guid.Parse("12345678-1234-1234-1234-123456789016");
+
     private readonly Instance _instance =
         new()
         {
@@ -69,7 +73,8 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
             [
                 new DataElement() { Id = $"{_mainDataElementGuid}", DataType = DefaultDataType },
                 new DataElement() { Id = $"{_subFormGuid1}", DataType = SubformDataType },
-                new DataElement() { Id = $"{_subFormGuid2}", DataType = SubformDataType }
+                new DataElement() { Id = $"{_subFormGuid2}", DataType = SubformDataType },
+                new DataElement() { Id = $"{_subFormGuid3}", DataType = SubformDataType }
             ],
         };
 
@@ -94,6 +99,7 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
                 },
             ]
         };
+
     private readonly IOptions<GeneralSettings> _generalSettings = Options.Create(new GeneralSettings());
 
     private static readonly LayoutSetComponent _mainLayoutComponent =
@@ -145,6 +151,7 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
             MainLayoutId,
             _applicationMetadata.DataTypes[0]
         );
+
     private static readonly LayoutSetComponent _subLayoutComponent =
         new(
             [
@@ -179,6 +186,14 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
                             "simpleBinding": "Phone"
                           },
                           "required": true
+                        },
+                        {
+                          "id": "Email",
+                          "type": "Input",
+                          "dataModelBindings": {
+                            "simpleBinding": "Email"
+                          },
+                          "required": ["dataModel", "RequireEmail"]
                         }
                       ]
                     }}
@@ -194,7 +209,25 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new(MockBehavior.Loose);
 
     private readonly IServiceCollection _services = new ServiceCollection();
-    private static readonly JsonSerializerOptions _options = new JsonSerializerOptions { WriteIndented = true };
+    private static readonly JsonSerializerOptions _options =
+        new()
+        {
+            WriteIndented = true,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        };
+    private VerifySettings _verifySettings
+    {
+        get
+        {
+            var settings = new VerifySettings();
+            settings.AddNamedGuid(_mainDataElementGuid, "MainDataElementGuid");
+            settings.AddNamedGuid(_subFormGuid1, "SubForm1_Guid");
+            settings.AddNamedGuid(_subFormGuid2, "SubForm2_Guid");
+            settings.AddNamedGuid(_subFormGuid3, "SubForm3_Guid");
+            return settings;
+        }
+    }
 
     public SubFormTests(ITestOutputHelper output, DataAnnotationsTestFixture fixture)
     {
@@ -226,16 +259,17 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
         var validationService = serviceProvider.GetRequiredService<IValidationService>();
         var dataAccessor = new InstanceDataAccessorFake(_instance)
         {
-            { _instance.Data[0], new MainFormModel("Name", "Address", "Phone") },
-            { _instance.Data[1], new SubFormModel(null, null, null) },
-            { _instance.Data[2], new SubFormModel("Name2", "Address2", "Phone2") }
+            { _instance.Data[0], new MainFormModel("Name", "Address", "Phone", null) },
+            { _instance.Data[1], new SubFormModel(null, null, null, null, false) },
+            { _instance.Data[2], new SubFormModel("Name2", "Address2", "Phone2", null, true) },
+            { _instance.Data[3], new SubFormModel(null, null, null, null, null) }
         };
 
-        var issues = await validationService.ValidateInstanceAtTask(_instance, TaskId, dataAccessor, null);
+        var issues = await validationService.ValidateInstanceAtTask(_instance, TaskId, dataAccessor, null, null);
         _output.WriteLine(JsonSerializer.Serialize(issues, _options));
 
         // Order of issues is not guaranteed, so we sort them before verification
-        await Verify(issues.OrderBy(i => JsonSerializer.Serialize(i)));
+        await Verify(issues.OrderBy(i => JsonSerializer.Serialize(i)), _verifySettings);
     }
 
     private static PageComponent ParsePage(string layoutId, string pageName, [StringSyntax("json")] string json)

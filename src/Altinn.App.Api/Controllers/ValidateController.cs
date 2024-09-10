@@ -50,6 +50,7 @@ public class ValidateController : ControllerBase
     /// <param name="app">Application identifier which is unique within an organisation</param>
     /// <param name="instanceOwnerPartyId">Unique id of the party that is the owner of the instance.</param>
     /// <param name="instanceGuid">Unique id to identify the instance</param>
+    /// <param name="ignoredValidators">Comma separated list of validators to ignore</param>
     /// <param name="language">The currently used language by the user (or null if not available)</param>
     [HttpGet]
     [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/validate")]
@@ -59,6 +60,7 @@ public class ValidateController : ControllerBase
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
+        [FromQuery] string? ignoredValidators = null,
         [FromQuery] string? language = null
     )
     {
@@ -77,10 +79,12 @@ public class ValidateController : ControllerBase
         try
         {
             var dataAccessor = new CachedInstanceDataAccessor(instance, _dataClient, _appMetadata, _appModel);
+            var ignoredSources = ignoredValidators?.Split(',').ToList();
             List<ValidationIssueWithSource> messages = await _validationService.ValidateInstanceAtTask(
                 instance,
                 taskId,
                 dataAccessor,
+                ignoredSources,
                 language
             );
             return Ok(messages);
@@ -151,7 +155,13 @@ public class ValidateController : ControllerBase
         var dataAccessor = new CachedInstanceDataAccessor(instance, _dataClient, _appMetadata, _appModel);
 
         // Run validations for all data elements, but only return the issues for the specific data element
-        var issues = await _validationService.ValidateInstanceAtTask(instance, dataType.TaskId, dataAccessor, language);
+        var issues = await _validationService.ValidateInstanceAtTask(
+            instance,
+            dataType.TaskId,
+            dataAccessor,
+            ignoredValidators: null,
+            language
+        );
         messages.AddRange(issues.Where(i => i.DataElementId == element.Id));
 
         string taskId = instance.Process.CurrentTask.ElementId;
