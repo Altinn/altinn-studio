@@ -1,6 +1,7 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
 import type { IRawOption } from 'src/layout/common.generated';
+import type { CompExternal } from 'src/layout/layout';
 
 const appFrontend = new AppFrontend();
 
@@ -159,17 +160,26 @@ describe('Options', () => {
     cy.get(appFrontend.changeOfName.summaryReference).should('not.contain.text', 'nordmann');
   });
 
-  it('does not clear options when source changes and the old value is still valid', () => {
-    cy.intercept({ method: 'GET', url: '**/options/references*source=digdir' }, (req) => {
+  function interceptAndChangeOptions(matching: (url: string) => boolean, mutator: (options: IRawOption[]) => void) {
+    cy.intercept({ method: 'GET', url: '**/options/**' }, (req) => {
       req.reply((res) => {
+        if (!matching(req.url)) {
+          res.send(JSON.stringify(res.body));
+          return;
+        }
+
         const options = res.body as IRawOption[];
-        options.push({
-          value: 'nordmann',
-          label: 'Fortsatt Ola Nordmann',
-        });
+        mutator(options);
         res.send(JSON.stringify(options));
       });
     });
+  }
+
+  it('does not clear options when source changes and the old value is still valid', () => {
+    interceptAndChangeOptions(
+      (url) => url.includes('references') && url.includes('source=digdir'),
+      (options) => options.push({ value: 'nordmann', label: 'Fortsatt Ola Nordmann' }),
+    );
     cy.goto('changename');
 
     cy.get(appFrontend.changeOfName.sources).should('be.visible');
@@ -181,5 +191,82 @@ describe('Options', () => {
     cy.get(appFrontend.changeOfName.sources).should('have.value', 'Digitaliseringsdirektoratet');
 
     cy.get(appFrontend.changeOfName.reference).should('have.value', 'Fortsatt Ola Nordmann');
+  });
+
+  it('should not clear stale values when the component is hidden', () => {
+    interceptAndChangeOptions(
+      (url) => url.includes('firstName='),
+      (options) => {
+        options.length = 0;
+        options.push({ value: 'alt', label: 'This is the only option' });
+      },
+    );
+    cy.interceptLayout('changename', undefined, (set) => {
+      const layout = set['form'].data.layout;
+
+      // Find 'reference-group' and duplicate it (and its children) to create a variant that includes extra options
+      const group = structuredClone(layout.find((comp) => comp.id === 'reference-group')) as CompExternal<'Group'>;
+      const idx = layout.indexOf(group);
+      const children = structuredClone(
+        layout.filter((comp) => group.children.includes(comp.id)),
+      ) as CompExternal<'Dropdown'>[];
+
+      children.forEach((child) => {
+        child.id += '-alt';
+        child.mapping = {
+          ...child.mapping,
+          'NyttNavn-grp-9313.NyttNavn-grp-9314.PersonFornavnNytt-datadef-34758.value': 'firstName',
+        };
+      });
+
+      group.id += '-other';
+      group.children = children.map((child) => child.id);
+      group.hidden = ['notEquals', ['component', 'newFirstName'], 'alt'];
+      layout.splice(idx, 0, group, ...children);
+
+      // Also make the original group hidden
+      layout.find((comp) => comp.id === 'reference-group')!.hidden = ['equals', ['component', 'newFirstName'], 'alt'];
+
+      // Hide everything else (making it easier to see the effect of the hidden components)
+      const doNotHide = [
+        'reference-group',
+        'newFirstName',
+        'sources',
+        'reference',
+        'reference2',
+        group.id,
+        ...children.map((child) => child.id),
+      ];
+      layout.forEach((comp) => {
+        if (!doNotHide.includes(comp.id)) {
+          comp.hidden = true;
+        }
+      });
+    });
+    cy.goto('changename');
+
+    // Even though two different dropdowns bind to the same path in the data model, these should not
+    // interfere with each other when only one is visible at a time.
+    cy.get(appFrontend.changeOfName.sources).should('have.value', 'Altinn');
+    cy.dsSelect(appFrontend.changeOfName.reference, 'Ola Nordmann');
+    cy.dsSelect(appFrontend.changeOfName.reference2, 'Ole');
+
+    cy.waitUntilSaved();
+    cy.waitUntilNodesReady();
+
+    cy.get(appFrontend.changeOfName.reference2).should('have.value', 'Ole');
+    cy.get(appFrontend.changeOfName.newFirstName).type('alt');
+
+    cy.get(`${appFrontend.changeOfName.sources}-alt`).should('have.value', 'This is the only option');
+    cy.get(`${appFrontend.changeOfName.reference}-alt`).should('have.value', '');
+    cy.get(`${appFrontend.changeOfName.reference2}-alt`).should('have.value', '');
+
+    cy.dsSelect(`${appFrontend.changeOfName.reference}-alt`, 'This is the only option');
+    cy.dsSelect(`${appFrontend.changeOfName.reference2}-alt`, 'This is the only option');
+
+    cy.waitUntilSaved();
+    cy.waitUntilNodesReady();
+
+    cy.get(`${appFrontend.changeOfName.reference2}-alt`).should('have.value', 'This is the only option');
   });
 });
