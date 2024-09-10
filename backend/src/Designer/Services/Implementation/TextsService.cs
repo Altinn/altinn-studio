@@ -308,7 +308,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task UpdateRelatedFiles(string org, string app, string developer, List<TextIdMutation> keyMutations)
         {
             // handle if no layout exists
-            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             string[] layoutSetNames = altinnAppGitRepository.GetLayoutSetNames();
 
             if (altinnAppGitRepository.AppUsesLayoutSets())
@@ -336,7 +336,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="keyMutations">A list of the keys that are updated</param>
         private async Task UpdateKeysInLayoutsInLayoutSet(string org, string app, string developer, string layoutSetName, List<TextIdMutation> keyMutations)
         {
-            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             string[] layoutNames = altinnAppGitRepository.GetLayoutNames(layoutSetName);
             foreach (string layoutName in layoutNames)
             {
@@ -345,51 +345,63 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     continue;
                 }
-                JsonNode originalLayout = layout.DeepClone();
+
+                // Track if any mutations occur
+                bool hasMutated = false;
                 foreach (JsonNode layoutObject in layoutArray)
                 {
                     foreach (TextIdMutation mutation in keyMutations)
                     {
-                        UpdateKeyInLayoutObject(layoutObject, mutation);
+                        if (UpdateKeyInLayoutObject(layoutObject, mutation))
+                        {
+                            hasMutated = true;
+                        }
                     }
                 }
-                if (!JsonNode.DeepEquals(layout, originalLayout))
+
+                if (hasMutated)
                 {
                     await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, layout);
                 }
             }
         }
 
-        private static void UpdateKeyInLayoutObject(JsonNode layoutObject, TextIdMutation mutation)
+        private static bool UpdateKeyInLayoutObject(JsonNode layoutObject, TextIdMutation mutation)
         {
+            bool mutated = false;
+
             if (layoutObject["textResourceBindings"] is JsonObject)
             {
-                layoutObject["textResourceBindings"] = UpdateTextResourceKeys(layoutObject["textResourceBindings"], mutation);
+                mutated |= UpdateTextResourceKeys(layoutObject["textResourceBindings"], mutation);
             }
 
             if (layoutObject["options"] is JsonArray optionsArray)
             {
-                var options = optionsArray.Deserialize<List<Option>>();
-                if (options != null)
+                List<Option> options = optionsArray.Deserialize<List<Option>>();
+                if (options != null && UpdateOptionListKeys(options, mutation))
                 {
-                    UpdateOptionListKeys(options, mutation);
                     layoutObject["options"] = JsonSerializer.SerializeToNode(options);
+                    mutated = true;
                 }
             }
 
             if (layoutObject["source"] is JsonObject)
             {
-                UpdateSourceKeys(layoutObject["source"], mutation);
+                mutated |= UpdateSourceKeys(layoutObject["source"], mutation);
             }
+
+            return mutated;
         }
 
-        private static void UpdateSourceKeys(JsonNode source, TextIdMutation mutation)
+        private static bool UpdateSourceKeys(JsonNode source, TextIdMutation mutation)
         {
             JsonElement jsonElement = source["label"].AsValue().GetValue<JsonElement>();
             if (jsonElement.ValueKind == JsonValueKind.String && jsonElement.GetString() == mutation.OldId && mutation.NewId.HasValue)
             {
                 source["label"] = mutation.NewId.Value;
+                return true;
             }
+            return false;
         }
 
         private async Task UpdateKeysInOptionLists(string org, string app, string developer, List<TextIdMutation> keyMutations)
@@ -398,59 +410,84 @@ namespace Altinn.Studio.Designer.Services.Implementation
             foreach (string optionListId in optionListIds)
             {
                 List<Option> options = await _optionsService.GetOptionsList(org, app, developer, optionListId);
+                bool hasMutated = false;
                 foreach (TextIdMutation mutation in keyMutations)
                 {
-                    UpdateOptionListKeys(options, mutation);
+                    hasMutated |= UpdateOptionListKeys(options, mutation);
                 }
-                await _optionsService.CreateOrOverwriteOptionsList(org, app, developer, optionListId, options);
+
+                if (hasMutated)
+                {
+                    await _optionsService.CreateOrOverwriteOptionsList(org, app, developer, optionListId, options);
+                }
             }
         }
 
-        private static void UpdateOptionListKeys(List<Option> options, TextIdMutation keyMutation)
+        private static bool UpdateOptionListKeys(List<Option> options, TextIdMutation keyMutation)
         {
+            if (!keyMutation.NewId.HasValue)
+            {
+                return false;
+            }
+
+            bool mutated = false;
             foreach (Option option in options)
             {
-                if (option.Label == keyMutation.OldId && keyMutation.NewId.HasValue)
+                if (option.Label == keyMutation.OldId)
                 {
                     option.Label = keyMutation.NewId.Value;
+                    mutated = true;
                 }
-                if (option.Description == keyMutation.OldId && keyMutation.NewId.HasValue)
+                if (option.Description == keyMutation.OldId)
                 {
                     option.Description = keyMutation.NewId.Value;
+                    mutated = true;
                 }
-                if (option.HelpText == keyMutation.OldId && keyMutation.NewId.HasValue)
+                if (option.HelpText == keyMutation.OldId)
                 {
                     option.HelpText = keyMutation.NewId.Value;
+                    mutated = true;
                 }
             }
+
+            return mutated;
         }
 
-        private static JsonNode UpdateTextResourceKeys(JsonNode textResourceBindings, TextIdMutation keyMutation)
+        private static bool UpdateTextResourceKeys(JsonNode textResourceBindings, TextIdMutation keyMutation)
         {
-            var updatedTextResourceBindings = textResourceBindings.DeepClone();
-            foreach ((string key, JsonNode value) in (textResourceBindings as JsonObject)!)
+            if (textResourceBindings is not JsonObject textBindings)
+            {
+                throw new ArgumentException("Expected textResourceBindings to be a JsonObject.");
+            }
+
+            List<string> keysToUpdate = [];
+            foreach ((string key, JsonNode value) in textBindings)
             {
                 if (value is null or JsonArray)
                 {
                     continue;
                 }
-                var valueElement = value.AsValue().GetValue<JsonElement>();
-                // Only update if the value is a string and the value is the same as the old key
-                if (valueElement.ValueKind != JsonValueKind.String || valueElement.GetString() != keyMutation.OldId)
-                {
-                    continue;
-                }
 
+                JsonElement valueElement = value.AsValue().GetValue<JsonElement>();
+                if (valueElement.ValueKind == JsonValueKind.String && valueElement.GetString() == keyMutation.OldId)
+                {
+                    keysToUpdate.Add(key);
+                }
+            }
+
+            foreach (string key in keysToUpdate)
+            {
                 if (keyMutation.NewId.HasValue)
                 {
-                    updatedTextResourceBindings![key] = keyMutation.NewId.Value;
+                    textBindings[key] = keyMutation.NewId.Value;
                 }
                 else
                 {
-                    (updatedTextResourceBindings as JsonObject)!.Remove(key);
+                    textBindings.Remove(key);
                 }
             }
-            return updatedTextResourceBindings;
+
+            return keysToUpdate.Count > 0;
         }
 
         /// <summary>
