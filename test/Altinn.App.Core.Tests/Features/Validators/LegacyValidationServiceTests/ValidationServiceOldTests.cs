@@ -17,7 +17,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Altinn.App.Core.Tests.Features.Validators;
+namespace Altinn.App.Core.Tests.Features.Validators.LegacyValidationServiceTests;
 
 public class ValidationServiceOldTests
 {
@@ -76,8 +76,8 @@ public class ValidationServiceOldTests
 
         List<ValidationIssueWithSource> validationIssues = await validationService.ValidateInstanceAtTask(
             instance,
-            "Task_1",
             dataAccessor.Object,
+            "Task_1",
             null,
             null
         );
@@ -105,8 +105,8 @@ public class ValidationServiceOldTests
 
         List<ValidationIssueWithSource> validationIssues = await validationService.ValidateInstanceAtTask(
             instance,
-            "Task_1",
             dataAccessorMock.Object,
+            "Task_1",
             null,
             null
         );
@@ -134,8 +134,8 @@ public class ValidationServiceOldTests
 
         List<ValidationIssueWithSource> validationIssues = await validationService.ValidateInstanceAtTask(
             instance,
-            "Task_1",
             dataAccessorMock.Object,
+            "Task_1",
             null,
             null
         );
@@ -162,8 +162,8 @@ public class ValidationServiceOldTests
 
         List<ValidationIssueWithSource> validationIssues = await validationService.ValidateInstanceAtTask(
             instance,
-            "Task_1",
             dataAccessorMock.Object,
+            "Task_1",
             null,
             null
         );
@@ -208,8 +208,8 @@ public class ValidationServiceOldTests
 
         var issues = await validationService.ValidateInstanceAtTask(
             instance,
-            taskId,
             dataAccessorMock.Object,
+            taskId,
             null,
             null
         );
@@ -266,8 +266,8 @@ public class ValidationServiceOldTests
 
         var issues = await validationService.ValidateInstanceAtTask(
             instance,
-            taskId,
             dataAccessorMock.Object,
+            taskId,
             null,
             null
         );

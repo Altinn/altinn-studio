@@ -9,13 +9,12 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Altinn.App.Core.Tests.Features.Validators;
+namespace Altinn.App.Core.Tests.Features.Validators.LegacyValidationServiceTests;
 
 public class ValidationServiceTests : IDisposable
 {
@@ -272,8 +271,8 @@ public class ValidationServiceTests : IDisposable
 
         var resultTask = await validatorService.ValidateInstanceAtTask(
             _defaultInstance,
-            DefaultTaskId,
             _dataAccessor,
+            DefaultTaskId,
             null,
             DefaultLanguage
         );
@@ -315,6 +314,7 @@ public class ValidationServiceTests : IDisposable
         SetupDataClient(data);
         var result = await validatorService.ValidateIncrementalFormData(
             _defaultInstance,
+            _dataAccessor,
             "Task_1",
             new List<DataElementChange>
             {
@@ -325,7 +325,6 @@ public class ValidationServiceTests : IDisposable
                     CurrentValue = data
                 }
             },
-            _dataAccessor,
             null,
             DefaultLanguage
         );
@@ -369,6 +368,7 @@ public class ValidationServiceTests : IDisposable
         dataAccessor.Set(_defaultDataElement, data);
         var resultData = await validatorService.ValidateIncrementalFormData(
             _defaultInstance,
+            dataAccessor,
             "Task_1",
             [
                 new DataElementChange()
@@ -378,7 +378,6 @@ public class ValidationServiceTests : IDisposable
                     PreviousValue = data,
                 }
             ],
-            dataAccessor,
             null,
             DefaultLanguage
         );
@@ -455,8 +454,8 @@ public class ValidationServiceTests : IDisposable
 
         var taskResult = await validationService.ValidateInstanceAtTask(
             _defaultInstance,
-            DefaultTaskId,
             dataAccessor,
+            DefaultTaskId,
             null,
             DefaultLanguage
         );
@@ -518,8 +517,8 @@ public class ValidationServiceTests : IDisposable
 
         var result = await validationService.ValidateInstanceAtTask(
             _defaultInstance,
-            DefaultTaskId,
             _dataAccessor,
+            DefaultTaskId,
             null,
             DefaultLanguage
         );

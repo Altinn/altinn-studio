@@ -31,8 +31,8 @@ public class ValidationService : IValidationService
     /// <inheritdoc/>
     public async Task<List<ValidationIssueWithSource>> ValidateInstanceAtTask(
         Instance instance,
-        string taskId,
         IInstanceDataAccessor dataAccessor,
+        string taskId,
         List<string>? ignoredValidators,
         string? language
     )
@@ -40,48 +40,53 @@ public class ValidationService : IValidationService
         ArgumentNullException.ThrowIfNull(instance);
         ArgumentNullException.ThrowIfNull(taskId);
 
-        using var activity = _telemetry?.StartValidateInstanceAtTaskActivity(instance, taskId);
+        using var activity = _telemetry?.StartValidateInstanceAtTaskActivity(taskId);
 
-        // Run task validations (but don't await yet)
-        var validators = _validatorFactory.GetValidators(taskId);
-        var validationTasks = validators
-            .Where(v => ignoredValidators?.Contains(v.ValidationSource, StringComparer.InvariantCulture) ?? true)
-            .Select(async v =>
+        var validators = _validatorFactory
+            .GetValidators(taskId)
+            .Where(v => !(ignoredValidators?.Contains(v.ValidationSource, StringComparer.InvariantCulture)) ?? true);
+        // Start the validation tasks (but don't await yet, so that they can run in parallel)
+        var validationTasks = validators.Select(async v =>
+        {
+            using var validatorActivity = _telemetry?.StartRunValidatorActivity(v);
+            try
             {
-                using var validatorActivity = _telemetry?.StartRunValidatorActivity(v);
-                try
-                {
-                    var issues = await v.Validate(instance, dataAccessor, taskId, language);
-                    return KeyValuePair.Create(
-                        v.ValidationSource,
-                        issues.Select(issue => ValidationIssueWithSource.FromIssue(issue, v.ValidationSource))
-                    );
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(
-                        e,
-                        "Error while running validator {ValidatorName} for task {TaskId} on instance {InstanceId}",
-                        v.ValidationSource,
-                        taskId,
-                        instance.Id
-                    );
-                    validatorActivity?.Errored(e);
-                    throw;
-                }
-            });
+                var issues = await v.Validate(instance, dataAccessor, taskId, language);
+                validatorActivity?.SetTag(Telemetry.InternalLabels.ValidatorIssueCount, issues.Count);
+                return KeyValuePair.Create(
+                    v.ValidationSource,
+                    issues.Select(issue => ValidationIssueWithSource.FromIssue(issue, v.ValidationSource))
+                );
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(
+                    e,
+                    "Error while running validator {ValidatorName} for task {TaskId} on instance {InstanceId}",
+                    v.ValidationSource,
+                    taskId,
+                    instance.Id
+                );
+                validatorActivity?.Errored(e);
+                throw;
+            }
+        });
+
+        // Wait for all validation tasks to complete
         var lists = await Task.WhenAll(validationTasks);
 
         // Flatten the list of lists to a single list of issues
-        return lists.SelectMany(x => x.Value).ToList();
+        var issues = lists.SelectMany(x => x.Value).ToList();
+        activity?.SetTag(Telemetry.InternalLabels.ValidationTotalIssueCount, issues.Count);
+        return issues;
     }
 
     /// <inheritdoc/>
     public async Task<Dictionary<string, List<ValidationIssueWithSource>>> ValidateIncrementalFormData(
         Instance instance,
+        IInstanceDataAccessor dataAccessor,
         string taskId,
         List<DataElementChange> changes,
-        IInstanceDataAccessor dataAccessor,
         List<string>? ignoredValidators,
         string? language
     )
@@ -90,7 +95,7 @@ public class ValidationService : IValidationService
         ArgumentNullException.ThrowIfNull(taskId);
         ArgumentNullException.ThrowIfNull(changes);
 
-        using var activity = _telemetry?.StartValidateIncrementalActivity(instance, taskId, changes);
+        using var activity = _telemetry?.StartValidateIncrementalActivity(taskId, changes);
 
         var validators = _validatorFactory
             .GetValidators(taskId)
@@ -99,17 +104,18 @@ public class ValidationService : IValidationService
 
         ThrowIfDuplicateValidators(validators, taskId);
 
-        // Run task validations (but don't await yet)
+        // Start the validation tasks (but don't await yet, so that they can run in parallel)
         var validationTasks = validators.Select(async validator =>
         {
             using var validatorActivity = _telemetry?.StartRunValidatorActivity(validator);
             try
             {
                 var hasRelevantChanges = await validator.HasRelevantChanges(instance, taskId, changes, dataAccessor);
-                validatorActivity?.SetTag(Telemetry.InternalLabels.ValidatorRelevantChanges, hasRelevantChanges);
+                validatorActivity?.SetTag(Telemetry.InternalLabels.ValidatorHasRelevantChanges, hasRelevantChanges);
                 if (hasRelevantChanges)
                 {
                     var issues = await validator.Validate(instance, dataAccessor, taskId, language);
+                    validatorActivity?.SetTag(Telemetry.InternalLabels.ValidatorIssueCount, issues.Count);
                     var issuesWithSource = issues
                         .Select(i => ValidationIssueWithSource.FromIssue(i, validator.ValidationSource))
                         .ToList();
@@ -135,7 +141,10 @@ public class ValidationService : IValidationService
             }
         });
 
+        // Wait for all validation tasks to complete
         var lists = await Task.WhenAll(validationTasks);
+        var errorCount = lists.Sum(k => k.Value?.Count ?? 0);
+        activity?.SetTag(Telemetry.InternalLabels.ValidationTotalIssueCount, errorCount);
 
         // ! Value is null if no relevant changes. Filter out these before return with ! because ofType don't filter nullables.
         return lists.Where(k => k.Value is not null).ToDictionary(kv => kv.Key, kv => kv.Value!);

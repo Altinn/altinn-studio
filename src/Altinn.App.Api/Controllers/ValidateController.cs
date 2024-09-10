@@ -82,8 +82,8 @@ public class ValidateController : ControllerBase
             var ignoredSources = ignoredValidators?.Split(',').ToList();
             List<ValidationIssueWithSource> messages = await _validationService.ValidateInstanceAtTask(
                 instance,
-                taskId,
                 dataAccessor,
+                taskId,
                 ignoredSources,
                 language
             );
@@ -157,10 +157,10 @@ public class ValidateController : ControllerBase
         // Run validations for all data elements, but only return the issues for the specific data element
         var issues = await _validationService.ValidateInstanceAtTask(
             instance,
-            dataType.TaskId,
             dataAccessor,
+            dataType.TaskId,
             ignoredValidators: null,
-            language
+            language: language
         );
         messages.AddRange(issues.Where(i => i.DataElementId == element.Id));
 

@@ -58,6 +58,9 @@ internal class DataElementValidatorWrapper : IValidator
                     dataType,
                     language
                 );
+
+                // Assume that issues from a IDataElementValidator is for the data element it was run for
+                dataElementValidationResult.ForEach(i => i.DataElementId ??= dataElement.Id);
                 issues.AddRange(dataElementValidationResult);
             }
         }

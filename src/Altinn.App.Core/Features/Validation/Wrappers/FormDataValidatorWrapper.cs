@@ -49,6 +49,8 @@ internal class FormDataValidatorWrapper : IValidator
                 data,
                 language
             );
+            // Assume issues from a IFormDataValidator are related to the data element
+            dataElementValidationResult.ForEach(i => i.DataElementId ??= dataElement.Id);
             issues.AddRange(dataElementValidationResult);
         }
 

@@ -8,10 +8,19 @@ namespace Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyValuePair<DataElement?, object>>
 {
     private readonly ApplicationMetadata? _applicationMetadata;
+    private readonly string? _defaultTaskId;
+    private readonly string _defaultDataType;
 
-    public InstanceDataAccessorFake(Instance instance, ApplicationMetadata? applicationMetadata = null)
+    public InstanceDataAccessorFake(
+        Instance instance,
+        ApplicationMetadata? applicationMetadata = null,
+        string defaultTaskId = "Task_1",
+        string defaultDataType = "default"
+    )
     {
         _applicationMetadata = applicationMetadata;
+        _defaultTaskId = defaultTaskId;
+        _defaultDataType = defaultDataType;
         Instance = instance;
         Instance.Data ??= new();
     }
@@ -20,10 +29,10 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
     private readonly Dictionary<string, object> _dataByType = new();
     private readonly List<KeyValuePair<DataElement, object>> _data = new();
 
-    public void Add(DataElement? dataElement, object data)
+    public void Add(DataElement? dataElement, object data, int maxCount = 1)
     {
         dataElement ??= new DataElement();
-        dataElement.DataType ??= "default";
+        dataElement.DataType ??= _defaultDataType;
         dataElement.Id ??= Guid.NewGuid().ToString();
         if (!Instance.Data.Contains(dataElement))
         {
@@ -33,9 +42,20 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
         _dataById.Add(dataElement, data);
         if (_applicationMetadata is not null)
         {
-            var dataType =
-                _applicationMetadata.DataTypes.Find(d => d.Id == dataElement.DataType)
-                ?? throw new ArgumentException($"Data type {dataElement.DataType} not found in application metadata");
+            var dataType = _applicationMetadata.DataTypes.Find(d => d.Id == dataElement.DataType);
+            if (dataType is null)
+            {
+                // Create a new dataType if it doesn't exist in the application metadata yet
+                dataType = new DataType()
+                {
+                    Id = dataElement.DataType,
+                    TaskId = _defaultTaskId,
+                    AppLogic = new() { ClassRef = data.GetType().FullName },
+                    MaxCount = maxCount
+                };
+                _applicationMetadata.DataTypes.Add(dataType);
+            }
+
             if (dataType.AppLogic is not null)
             {
                 if (dataType.AppLogic.ClassRef != data.GetType().FullName)

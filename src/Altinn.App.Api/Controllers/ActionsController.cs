@@ -242,9 +242,9 @@ public class ActionsController : ControllerBase
         var taskId = instance.Process.CurrentTask.ElementId;
         var validationIssues = await _validationService.ValidateIncrementalFormData(
             instance,
+            dataAccessor,
             taskId,
             changes,
-            dataAccessor,
             ignoredValidators,
             language
         );

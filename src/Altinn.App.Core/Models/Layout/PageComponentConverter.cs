@@ -375,7 +375,7 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                     secure = reader.TokenType == JsonTokenType.True;
                     break;
                 // subform
-                case "layoutsetid":
+                case "layoutset":
                     layoutSetId = reader.GetString();
                     break;
                 // case "tablecolumns":

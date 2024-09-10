@@ -1,0 +1,28 @@
+﻿{
+  Activities: [
+    {
+      ActivityName: Validation.ValidateIncremental,
+      Tags: [
+        {
+          task.id: Task_1
+        },
+        {
+          validation.total_issue_count: 0
+        }
+      ],
+      IdFormat: W3C,
+      Events: [
+        {
+          Name: ChangedDataElements,
+          Timestamp: DateTimeOffset_1,
+          Tags: [
+            {
+              ChangedDataElements.count: 0
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  Metrics: []
+}

@@ -252,10 +252,10 @@ public class ProcessController : ControllerBase
         var dataAcceesor = new CachedInstanceDataAccessor(instance, _dataClient, _appMetadata, _appModel);
         var validationIssues = await _validationService.ValidateInstanceAtTask(
             instance,
-            currentTaskId,
             dataAcceesor,
-            ignoredValidators: null, // run full validation
-            language
+            currentTaskId, // run full validation
+            ignoredValidators: null,
+            language: language
         );
         var success = validationIssues.TrueForAll(v => v.Severity != ValidationIssueSeverity.Error);
 

@@ -8,34 +8,34 @@ partial class Telemetry
 {
     private void InitValidation(InitContext context) { }
 
-    internal Activity? StartValidateInstanceAtTaskActivity(Instance instance, string taskId)
+    internal Activity? StartValidateInstanceAtTaskActivity(string taskId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(taskId);
 
         var activity = ActivitySource.StartActivity($"{Prefix}.ValidateInstanceAtTask");
         activity?.SetTaskId(taskId);
-        activity?.SetInstanceId(instance);
         return activity;
     }
 
-    internal Activity? StartValidateIncrementalActivity(
-        Instance instance,
-        string taskId,
-        List<DataElementChange> changes
-    )
+    internal Activity? StartValidateIncrementalActivity(string taskId, List<DataElementChange> changes)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(taskId);
         ArgumentNullException.ThrowIfNull(changes);
 
         var activity = ActivitySource.StartActivity($"{Prefix}.ValidateIncremental");
         activity?.SetTaskId(taskId);
-        activity?.SetInstanceId(instance);
         // Log the IDs of the elements that have changed together with their data type
         // default:123-678-8900-54,group:123-678-8900-55
-        activity?.SetTag(
-            InternalLabels.ValidatorChangedElementsIds,
-            string.Join(',', changes.Select(c => $"{c.DataElement.DataType}:{c.DataElement.Id}"))
-        );
+        var changesPrefix = "ChangedDataElements";
+        var now = DateTimeOffset.UtcNow;
+
+        ActivityTagsCollection tags = new([new($"{changesPrefix}.count", changes.Count)]);
+        for (var i = 0; i < changes.Count; i++)
+        {
+            var change = changes[i];
+            tags.Add(new($"{changesPrefix}.{i}.Id", change.DataElement.Id));
+        }
+        activity?.AddEvent(new ActivityEvent(changesPrefix, now, tags));
         return activity;
     }
 

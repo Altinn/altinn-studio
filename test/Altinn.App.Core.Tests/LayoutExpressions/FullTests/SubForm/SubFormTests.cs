@@ -140,7 +140,7 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
                             {
                               "id": "SubForm",
                               "type": "SubForm",
-                              "layoutSetId": "{{SubLayoutId}}"
+                              "layoutSet": "{{SubLayoutId}}"
                             }
                           ]
                         }
@@ -265,7 +265,7 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
             { _instance.Data[3], new SubFormModel(null, null, null, null, null) }
         };
 
-        var issues = await validationService.ValidateInstanceAtTask(_instance, TaskId, dataAccessor, null, null);
+        var issues = await validationService.ValidateInstanceAtTask(_instance, dataAccessor, TaskId, null, null);
         _output.WriteLine(JsonSerializer.Serialize(issues, _options));
 
         // Order of issues is not guaranteed, so we sort them before verification

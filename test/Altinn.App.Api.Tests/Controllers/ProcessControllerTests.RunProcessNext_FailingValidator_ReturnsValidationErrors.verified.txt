@@ -113,6 +113,9 @@
       ActivityName: Validation.RunValidator,
       Tags: [
         {
+          validation.issue_count: 0
+        },
+        {
           validator.source: Required
         },
         {
@@ -124,6 +127,9 @@
     {
       ActivityName: Validation.RunValidator,
       Tags: [
+        {
+          validation.issue_count: 0
+        },
         {
           validator.source: Expression
         },
@@ -137,6 +143,9 @@
       ActivityName: Validation.RunValidator,
       Tags: [
         {
+          validation.issue_count: 0
+        },
+        {
           validator.source: Altinn.App.Core.Features.Validation.Default.DefaultTaskValidator-*
         },
         {
@@ -148,6 +157,9 @@
     {
       ActivityName: Validation.RunValidator,
       Tags: [
+        {
+          validation.issue_count: 0
+        },
         {
           validator.source: Altinn.App.Core.Features.Validation.Default.DefaultDataElementValidator-*
         },
@@ -161,6 +173,9 @@
       ActivityName: Validation.RunValidator,
       Tags: [
         {
+          validation.issue_count: 0
+        },
+        {
           validator.source: DataAnnotations
         },
         {
@@ -172,6 +187,9 @@
     {
       ActivityName: Validation.RunValidator,
       Tags: [
+        {
+          validation.issue_count: 0
+        },
         {
           validator.source: Not a valid validation source
         },
@@ -185,6 +203,9 @@
       ActivityName: Validation.RunValidator,
       Tags: [
         {
+          validation.issue_count: 1
+        },
+        {
           validator.source: test-source
         },
         {
@@ -197,10 +218,10 @@
       ActivityName: Validation.ValidateInstanceAtTask,
       Tags: [
         {
-          instance.guid: Guid_1
+          task.id: Task_1
         },
         {
-          task.id: Task_1
+          validation.total_issue_count: 1
         }
       ],
       IdFormat: W3C
