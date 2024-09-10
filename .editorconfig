@@ -146,6 +146,9 @@ dotnet_diagnostic.CA2201.severity = suggestion
 # TODO: fixing this would be breaking
 dotnet_diagnostic.CA1720.severity = suggestion
 
+# CA1816: Call GC.SuppressFinalize correctly
+dotnet_diagnostic.CA1816.severity = warning
+
 [Program.cs]
 dotnet_diagnostic.CA1050.severity = none
 dotnet_diagnostic.S1118.severity = none

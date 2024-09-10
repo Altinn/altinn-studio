@@ -20,7 +20,7 @@ using Newtonsoft.Json;
 
 namespace Altinn.App.Core.Tests.Internal.Process;
 
-public class ProcessEngineTest : IDisposable
+public sealed class ProcessEngineTest : IDisposable
 {
     private Mock<IProcessReader> _processReaderMock;
     private readonly Mock<IProfileClient> _profileMock;

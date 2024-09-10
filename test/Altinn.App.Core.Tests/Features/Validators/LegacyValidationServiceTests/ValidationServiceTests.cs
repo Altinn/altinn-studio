@@ -16,7 +16,7 @@ using Moq;
 
 namespace Altinn.App.Core.Tests.Features.Validators.LegacyValidationServiceTests;
 
-public class ValidationServiceTests : IDisposable
+public sealed class ValidationServiceTests : IDisposable
 {
     private class MyModel
     {

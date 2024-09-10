@@ -168,7 +168,7 @@ public class DataAnnotationValidatorTests : IClassFixture<DataAnnotationsTestFix
 ///
 /// A full WebApplicationFactory seemed a little overkill, so we just use a WebApplicationBuilder.
 /// </summary>
-public class DataAnnotationsTestFixture : IAsyncDisposable
+public sealed class DataAnnotationsTestFixture : IAsyncDisposable
 {
     public const string DataType = "test";
 

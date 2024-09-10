@@ -17,7 +17,7 @@ using Newtonsoft.Json;
 
 namespace Altinn.App.PlatformServices.Tests.Implementation;
 
-public class InstanceClientTests : IDisposable
+public sealed class InstanceClientTests : IDisposable
 {
     private readonly Mock<IOptions<PlatformSettings>> platformSettingsOptions;
     private readonly Mock<IOptionsMonitor<AppSettings>> appSettingsOptions;

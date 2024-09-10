@@ -21,7 +21,7 @@ using DataType = Altinn.Platform.Storage.Interface.Models.DataType;
 
 namespace Altinn.App.Core.Tests.Internal.Patch;
 
-public class PatchServiceTests : IDisposable
+public sealed class PatchServiceTests : IDisposable
 {
     // Test data
     private static readonly Guid _dataGuid = new("12345678-1234-1234-1234-123456789123");
