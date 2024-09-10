@@ -52,7 +52,7 @@
         "allowInSubform": true
       },
       "taskId": "Task_1",
-      "maxCount": 5,
+      "maxCount": 3,
       "minCount": 1,
       "enablePdfCreation": true,
       "enableFileScan": false,
@@ -85,7 +85,9 @@
     {
       "id": "attachments",
       "taskId": "Task_1",
-      "allowedContentTypes": ["image/png"],
+      "allowedContentTypes": [
+        "image/png"
+      ],
       "maxSize": 10,
       "maxCount": 2,
       "minCount": 0,
