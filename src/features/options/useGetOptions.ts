@@ -191,8 +191,8 @@ function usePreselectedOptionIndex(props: EffectProps) {
  */
 function useRemoveStaleValues(props: EffectProps) {
   useEffect(() => {
-    const { options, unsafeSelectedValues, setValue } = props;
-    if (!options) {
+    const { options, unsafeSelectedValues, setValue, isNodeHidden, isNodesReady } = props;
+    if (!options || !isNodesReady || isNodeHidden) {
       return;
     }
 
