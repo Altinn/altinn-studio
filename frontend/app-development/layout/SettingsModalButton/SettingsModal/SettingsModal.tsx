@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import React, { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
 import classes from './SettingsModal.module.css';
 import {
   CogIcon,
@@ -26,12 +26,17 @@ export const SettingsModal = forwardRef<SettingsModalHandle, {}>(({}, ref): Reac
   const [currentTab, setCurrentTab] = useState<SettingsModalTab>('about');
   const dialogRef = useRef<HTMLDialogElement>();
 
-  const openSettings = (tab: SettingsModalTab = 'about') => {
-    setCurrentTab(tab);
-    dialogRef.current?.showModal();
-  };
+  const openSettings = useCallback(
+    (tab: SettingsModalTab = currentTab) => {
+      setCurrentTab(tab);
+      dialogRef.current?.showModal();
+    },
+    [currentTab],
+  );
 
-  useImperativeHandle<SettingsModalHandle, SettingsModalHandle>(ref, () => ({ openSettings }), []);
+  useImperativeHandle<SettingsModalHandle, SettingsModalHandle>(ref, () => ({ openSettings }), [
+    openSettings,
+  ]);
 
   const aboutTabId: SettingsModalTab = 'about';
   const setupTabId: SettingsModalTab = 'setup';

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useCallback } from 'react';
 import { Modal } from '@digdir/designsystemet-react';
 import type { ModalDialogProps } from '@digdir/designsystemet-react';
 import cn from 'classnames';
@@ -38,9 +38,9 @@ export const StudioModalDialog = forwardRef<HTMLDialogElement, StudioModalDialog
       contentPadding && classes.withContentPadding,
     );
 
-    const closeModal = () => {
+    const closeModal = useCallback(() => {
       dialogRef.current?.close();
-    };
+    }, [dialogRef]);
 
     return (
       <Modal.Dialog
