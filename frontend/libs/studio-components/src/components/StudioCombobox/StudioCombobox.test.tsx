@@ -58,6 +58,17 @@ describe('StudioCombobox', () => {
     await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(3));
     expect(onValueChange).toHaveBeenCalledWith(['Ole', 'Dole', 'Doffen']);
   });
+
+  it('should be possible to clear the selected options', async () => {
+    const user = userEvent.setup();
+    const onValueChange = jest.fn();
+    renderTestCombobox({ multiple: true, onValueChange, value: ['Ole', 'Dole', 'Doffen'] });
+
+    const clearButton = screen.getByRole('button', { name: 'Fjern alt' });
+    await user.click(clearButton);
+    await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(1));
+    expect(onValueChange).toHaveBeenCalledWith([]);
+  });
 });
 
 const renderTestCombobox = (props?: StudioComboboxProps) => {
