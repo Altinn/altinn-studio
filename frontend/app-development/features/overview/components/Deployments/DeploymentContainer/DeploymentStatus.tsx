@@ -6,6 +6,7 @@ import { Alert, Heading, Paragraph, Spinner, Link } from '@digdir/designsystemet
 import { DateUtils } from '@studio/pure-functions';
 import { publishPath } from 'app-shared/api/paths';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
+import { ExternalLinkIcon } from '@studio/icons';
 
 export type DeploymentStatusProps = {
   kubernetesDeployment?: KubernetesDeployment;
@@ -114,7 +115,12 @@ export const DeploymentStatus = ({
             version: kubernetesDeployment.version,
           }}
           components={{
-            a: <Link href={urlToApp}> </Link>,
+            a: (
+              <Link href={urlToApp} rel='noopener noreferrer' target='_blank'>
+                {' '}
+              </Link>
+            ),
+            ext: <ExternalLinkIcon title={t('app_deployment.status.open_app_in_new_window')} />,
           }}
         />
       }
