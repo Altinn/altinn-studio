@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 
+import { useTaskStore } from 'src/core/contexts/taskStoreContext';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
@@ -46,14 +47,19 @@ function useNodeAttachments(): Record<string, IAttachment> {
   const node = GeneratorInternal.useParent() as LayoutNode<CompWithBehavior<'canHaveAttachments'>>;
   const nodeData = useNodeFormData(node);
 
+  const { overriddenTaskId } = useTaskStore(({ overriddenTaskId }) => ({
+    overriddenTaskId,
+  }));
+
   const application = useApplicationMetadata();
   const currentTask = useLaxProcessData()?.currentTask?.elementId;
   const data = useLaxInstanceData()?.data;
 
-  const mappedAttachments = useMemoDeepEqual(
-    () => mapAttachments(node, data ?? [], application, currentTask, nodeData),
-    [node, data, application, currentTask, nodeData],
-  );
+  const mappedAttachments = useMemoDeepEqual(() => {
+    const taskId = overriddenTaskId ? overriddenTaskId : currentTask;
+
+    return mapAttachments(node, data ?? [], application, taskId, nodeData);
+  }, [node, data, application, currentTask, nodeData, overriddenTaskId]);
 
   const prevAttachments = useRef<Record<string, IAttachment>>({});
   return useMemoDeepEqual(() => {

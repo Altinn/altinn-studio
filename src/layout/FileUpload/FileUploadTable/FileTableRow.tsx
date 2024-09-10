@@ -3,6 +3,7 @@ import React from 'react';
 import classNames from 'classnames';
 
 import { AltinnLoader } from 'src/components/AltinnLoader';
+import { useTaskStore } from 'src/core/contexts/taskStoreContext';
 import { isAttachmentUploaded } from 'src/features/attachments';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -34,6 +35,12 @@ export function FileTableRow({ node, attachment, mobileView, tagLabel, isSummary
     'form_filler.file_uploader_mb',
   )}`;
 
+  const { overriddenTaskId } = useTaskStore(({ overriddenTaskId }) => ({
+    overriddenTaskId,
+  }));
+
+  const hasOverridenTaskId = !!overriddenTaskId;
+
   const uniqueId = isAttachmentUploaded(attachment) ? attachment.data.id : attachment.data.temporaryId;
 
   const status = attachment.uploaded
@@ -51,6 +58,7 @@ export function FileTableRow({ node, attachment, mobileView, tagLabel, isSummary
       className={rowStyle}
       id={`altinn-file-list-row-${uniqueId}`}
       tabIndex={0}
+      style={hasOverridenTaskId ? { padding: '8px 0' } : {}}
     >
       <NameCell
         attachment={attachment}
