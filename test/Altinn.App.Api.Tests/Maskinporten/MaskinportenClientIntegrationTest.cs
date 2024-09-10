@@ -84,6 +84,42 @@ public class MaskinportenClientIntegrationTests
         settings.Authority.Should().Be(authority);
     }
 
+    [Fact]
+    public void ConfigureMaskinportenClient_BindsToSpecifiedConfigPath()
+    {
+        // Arrange
+        var clientId = "the-client-id";
+        var authority = "https://maskinporten.dev/";
+        var jwkBase64 = "gibberish";
+
+        List<KeyValuePair<string, string?>> configData =
+        [
+            new("CustomMaskinportenSettings:clientId", clientId),
+            new("CustomMaskinportenSettings:authority", authority),
+            new("CustomMaskinportenSettings:jwkBase64", jwkBase64),
+        ];
+
+        // Act
+        var app = AppBuilder.Build(
+            configData: configData,
+            registerCustomAppServices: services =>
+            {
+                services.ConfigureMaskinportenClient("CustomMaskinportenSettings");
+            }
+        );
+
+        // Assert
+        var optionsMonitor = app.Services.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>();
+        Assert.NotNull(optionsMonitor);
+
+        var settings = optionsMonitor.CurrentValue;
+        Assert.NotNull(settings);
+
+        settings.ClientId.Should().Be(clientId);
+        settings.Authority.Should().Be(authority);
+        settings.JwkBase64.Should().Be(jwkBase64);
+    }
+
     [Theory]
     [InlineData("client1", "scope1")]
     [InlineData("client2", "scope1", "scope2", "scope3")]
