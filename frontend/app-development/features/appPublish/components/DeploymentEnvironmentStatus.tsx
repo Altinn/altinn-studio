@@ -4,6 +4,7 @@ import { Alert, Heading, Link, Paragraph, Spinner } from '@digdir/designsystemet
 import { Trans, useTranslation } from 'react-i18next';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { DateUtils } from '@studio/pure-functions';
+import { ExternalLinkIcon } from '@studio/icons';
 
 export interface DeploymentEnvironmentStatusProps {
   lastPublishedDate?: string;
@@ -88,19 +89,18 @@ export const DeploymentEnvironmentStatus = ({
             version: kubernetesDeployment.version,
           }}
           components={{
-            a: <Link href={urlToApp}> </Link>,
+            a: (
+              <Link href={urlToApp} rel='noopener noreferrer' target='_blank'>
+                {' '}
+              </Link>
+            ),
+            ext: <ExternalLinkIcon title={t('app_deployment.status.open_app_in_new_window')} />,
           }}
         />
       }
       footer={
-        lastPublishedDate && (
-          <Trans
-            i18nKey={'app_deployment.last_published'}
-            values={{
-              lastPublishedDate: formatDateTime(lastPublishedDate),
-            }}
-          />
-        )
+        lastPublishedDate &&
+        t('app_deployment.last_published', { lastPublishedDate: formatDateTime(lastPublishedDate) })
       }
     />
   );
