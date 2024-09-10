@@ -10,6 +10,7 @@ import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { MINIMUM_APPLICATION_VERSION } from 'src/features/applicationMetadata/minVersion';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
+import type { IFormDynamics } from 'src/features/form/dynamics';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { ILayoutFile, ILayoutSet, ILayoutSets, ILayoutSettings } from 'src/layout/common.generated';
 import type { ILayoutCollection } from 'src/layout/layout';
@@ -146,6 +147,23 @@ export class ExternalApp {
     return out;
   }
 
+  getRuleHandler(layoutSetId: string): string {
+    const path = `/App/ui/${layoutSetId}/RuleHandler.js`;
+    if (!this.fileExists(path)) {
+      return '';
+    }
+    return this.readFile(path);
+  }
+
+  getRuleConfiguration(layoutSetId: string): { data: IFormDynamics } | null {
+    const path = `/App/ui/${layoutSetId}/RuleConfiguration.json`;
+    if (!this.fileExists(path)) {
+      return null;
+    }
+
+    return this.readJson<{ data: IFormDynamics }>(path);
+  }
+
   getRawLayoutSets(): ILayoutSets {
     const layoutSets = this.readJson<ILayoutSets>('/App/ui/layout-sets.json');
 
@@ -267,6 +285,14 @@ export class ExternalAppLayoutSet {
 
   getModel() {
     return new ExternalAppDataModel(this.app, this.config.dataType, this);
+  }
+
+  getRuleHandler() {
+    return this.app.getRuleHandler(this.id);
+  }
+
+  getRuleConfiguration() {
+    return this.app.getRuleConfiguration(this.id);
   }
 
   simulateInstance(): IInstance {

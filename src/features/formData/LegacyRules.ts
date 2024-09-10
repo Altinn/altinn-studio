@@ -58,7 +58,13 @@ export function runLegacyRules(ruleConnections: IRuleConnections | null, oldForm
       newObj[key] = typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' ? value : null;
     }
 
-    const result = window.ruleHandlerObject[functionToRun](newObj);
+    const func = window.ruleHandlerObject[functionToRun];
+    if (!func || typeof func !== 'function') {
+      window.logErrorOnce(`Rule function '${functionToRun}' not found, rules referencing this function will not run.`);
+      continue;
+    }
+
+    const result = func(newObj);
     const updatedDataBinding = rule.outParams.outParam0;
 
     if (updatedDataBinding) {

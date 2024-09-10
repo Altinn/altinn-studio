@@ -118,6 +118,8 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
         fetchInstanceData: async () => set.simulateInstance(),
         fetchProcessState: async () => set.simulateProcess(),
         fetchLayoutSchema: async () => layoutSchema as unknown as JSONSchema7,
+        fetchRuleHandler: async () => set.getRuleHandler(),
+        fetchDynamics: async () => set.getRuleConfiguration(),
       },
       alwaysRouteToChildren: true,
     });
