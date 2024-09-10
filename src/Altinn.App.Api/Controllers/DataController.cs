@@ -503,6 +503,8 @@ public class DataController : ControllerBase
     [ProducesResponseType(typeof(DataPatchResponseMultiple), 200)]
     [ProducesResponseType(typeof(ProblemDetails), 409)]
     [ProducesResponseType(typeof(ProblemDetails), 422)]
+    [ProducesResponseType(typeof(ProblemDetails), 400)]
+    [ProducesResponseType(typeof(ProblemDetails), 404)]
     public async Task<ActionResult<DataPatchResponseMultiple>> PatchFormDataMultiple(
         [FromRoute] string org,
         [FromRoute] string app,
