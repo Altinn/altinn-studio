@@ -7,6 +7,7 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponent } from 'src/layout/GenericComponent';
+import classes from 'src/layout/Tabs/Tabs.module.css';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { useNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
 import { typedBoolean } from 'src/utils/typing';
@@ -57,9 +58,7 @@ export const Tabs = ({ node }: PropsFromGenericComponent<'Tabs'>) => {
             key={tab.id}
             value={tab.id}
             role='tabpanel'
-            style={{
-              backgroundColor: 'white',
-            }}
+            className={classes.tabContent}
           >
             {tab.children.filter(typedBoolean).map((node) => (
               <GenericComponent
@@ -112,9 +111,7 @@ function TabHeader({
         <img
           src={icon}
           alt=''
-          style={{
-            width: '24px',
-          }}
+          className={classes.icon}
         />
       )}
       <Lang id={translatedTitle} />
