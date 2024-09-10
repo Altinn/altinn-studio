@@ -8,7 +8,7 @@
             validation.issue_count: 1
           },
           {
-            validator.source: Altinn.App.Core.Tests.Features.Validators.ValidationServiceTestsNew+GenericValidatorFake-default
+            validator.source: Altinn.App.Core.Tests.Features.Validators.ValidationServiceTests+GenericValidatorFake-default
           },
           {
             validator.type: FormDataValidatorWrapper
@@ -37,7 +37,7 @@
       DataElementId: DataElementId_0,
       Code: TestCode,
       Description: Test error,
-      Source: Altinn.App.Core.Tests.Features.Validators.ValidationServiceTestsNew+GenericValidatorFake-default
+      Source: Altinn.App.Core.Tests.Features.Validators.ValidationServiceTests+GenericValidatorFake-default
     }
   ]
 }

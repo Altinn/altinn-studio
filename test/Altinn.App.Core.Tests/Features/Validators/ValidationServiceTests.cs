@@ -15,7 +15,7 @@ using Exception = System.Exception;
 
 namespace Altinn.App.Core.Tests.Features.Validators;
 
-public class ValidationServiceTestsNew : IAsyncLifetime
+public class ValidationServiceTests : IAsyncLifetime
 {
     private const string Org = "ttd";
     private const string App = "app";
@@ -36,7 +36,7 @@ public class ValidationServiceTestsNew : IAsyncLifetime
     private readonly IServiceCollection _services = new ServiceCollection();
     private readonly Lazy<ServiceProvider> _serviceProvider;
 
-    public ValidationServiceTestsNew(ITestOutputHelper output)
+    public ValidationServiceTests(ITestOutputHelper output)
     {
         _instanceDataAccessor = new InstanceDataAccessorFake(_instance, _appMetadata, TaskId);
         _services.AddScoped<IValidationService, ValidationService>();
