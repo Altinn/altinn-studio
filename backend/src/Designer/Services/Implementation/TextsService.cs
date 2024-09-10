@@ -352,10 +352,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     foreach (TextIdMutation mutation in keyMutations)
                     {
-                        if (UpdateKeyInLayoutObject(layoutObject, mutation))
-                        {
-                            hasMutated = true;
-                        }
+                        hasMutated |= UpdateKeyInLayoutObject(layoutObject, mutation);
                     }
                 }
 
