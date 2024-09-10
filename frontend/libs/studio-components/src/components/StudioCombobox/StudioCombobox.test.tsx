@@ -30,6 +30,9 @@ describe('StudioCombobox', () => {
     await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(1));
     expect(onValueChange).toHaveBeenCalledWith(['Ole']);
 
+    // Make sure that combobox is closed
+    expect(screen.queryByRole('option', { name: 'Dole' })).not.toBeInTheDocument();
+
     await user.click(studioCombobox);
     await user.click(screen.getByRole('option', { name: 'Dole' }));
     await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(2));
