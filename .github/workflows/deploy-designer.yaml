@@ -103,10 +103,10 @@ jobs:
       tag: ${{ needs.determine-tag.outputs.tag }}
       registry-name: altinntjenestercontainerregistry.azurecr.io
       environment: ${{ matrix.environment }}
-      artifact-environment: ${{ matrix.environment == 'preapproved-prod' && 'prod ||  matrix.environment }}
+      artifact-environment: ${{ matrix.environment == 'preapproved-prod' && 'prod' ||  matrix.environment }}
       config-chart-name: altinn-designer-config
       artifact-name: altinn-designer
-      helm-set-arguments: environmentName=${{ matrix.environment == 'preapproved-prod' && 'prod ||  matrix.environment }},chartVersion=0.1.0+${{ needs.determine-tag.outputs.tag }},imageTag=${{ needs.determine-tag.outputs.tag }},dbMigrationsTag=${{ needs.determine-tag.outputs.tag }}
+      helm-set-arguments: environmentName=${{ matrix.environment == 'preapproved-prod' && 'prod' ||  matrix.environment }},chartVersion=0.1.0+${{ needs.determine-tag.outputs.tag }},imageTag=${{ needs.determine-tag.outputs.tag }},dbMigrationsTag=${{ needs.determine-tag.outputs.tag }}
     secrets:
       client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
       tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
