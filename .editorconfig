@@ -111,7 +111,7 @@ csharp_style_namespace_declarations = file_scoped:error
 dotnet_diagnostic.IDE1006.severity = error
 
 # Unused usings
-dotnet_diagnostic.IDE0005.severity = suggestion
+dotnet_diagnostic.IDE0005.severity = warning
 
 # CA1848: Use the LoggerMessage delegates
 dotnet_diagnostic.CA1848.severity = none
@@ -123,7 +123,7 @@ dotnet_diagnostic.CA1727.severity = suggestion
 dotnet_diagnostic.CA2254.severity = none
 
 # CA1822: Mark members as static
-dotnet_diagnostic.CA1822.severity = suggestion
+dotnet_diagnostic.CA1822.severity = warning
 
 # IDE0080: Remove unnecessary suppression operator
 dotnet_diagnostic.IDE0080.severity = error

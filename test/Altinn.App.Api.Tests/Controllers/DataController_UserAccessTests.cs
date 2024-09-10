@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Headers;
-using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
 using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;

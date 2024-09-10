@@ -49,9 +49,7 @@ public class LayoutModelConverterFromObject : JsonConverter<IReadOnlyDictionary<
                 );
             reader.Read();
 
-            var converter = new PageComponentConverter();
-
-            pages[pageName] = converter.ReadNotNull(ref reader, pageName, "test-layout", options);
+            pages[pageName] = PageComponentConverter.ReadNotNull(ref reader, pageName, "test-layout", options);
         }
 
         return pages;

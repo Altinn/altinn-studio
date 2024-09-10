@@ -1,6 +1,5 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
 
 namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;

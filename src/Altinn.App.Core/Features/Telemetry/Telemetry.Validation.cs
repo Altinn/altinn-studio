@@ -1,12 +1,11 @@
 using System.Diagnostics;
-using Altinn.Platform.Storage.Interface.Models;
 using static Altinn.App.Core.Features.Telemetry.Validation;
 
 namespace Altinn.App.Core.Features;
 
 partial class Telemetry
 {
-    private void InitValidation(InitContext context) { }
+    private static void InitValidation(InitContext context) { }
 
     internal Activity? StartValidateInstanceAtTaskActivity(string taskId)
     {
