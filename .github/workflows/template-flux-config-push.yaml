@@ -12,6 +12,9 @@ on:
       environment:
         required: true
         type: string
+      artifact-environment:
+        required: false
+        type: string
       config-chart-name:
         required: true
         type: string
@@ -72,12 +75,14 @@ jobs:
 
       - name: Push config artifact
         run: |
-          flux push artifact oci://${{ inputs.registry-name }}/configs/${{ inputs.artifact-name }}-${{ inputs.environment }}:${{ inputs.tag }} \
+          artifact_env=${{ inputs.artifact-environment || inputs.environment }}
+          flux push artifact oci://${{ inputs.registry-name }}/configs/${{ inputs.artifact-name }}-${artifact_env}:${{ inputs.tag }} \
           --path="./${{ inputs.config-chart-name }}-rendered" \
           --source="$(git config --get remote.origin.url)" \
           --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
 
       - name: Tag artifact as latest
         run: |
-          flux tag artifact oci://${{ inputs.registry-name }}/configs/${{ inputs.artifact-name }}-${{ inputs.environment }}:${{ inputs.tag }} --tag latest
+          artifact_env=${{ inputs.artifact-environment || inputs.environment }}
+          flux tag artifact oci://${{ inputs.registry-name }}/configs/${{ inputs.artifact-name }}-${artifact_env}:${{ inputs.tag }} --tag latest
 
