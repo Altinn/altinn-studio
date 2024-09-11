@@ -4,7 +4,7 @@ import { StudioCombobox, type StudioComboboxProps } from './index';
 import userEvent from '@testing-library/user-event';
 
 describe('StudioCombobox', () => {
-  it('should render the component', async () => {
+  it('should render the component', () => {
     renderTestCombobox();
     const studioCombobox = screen.getByRole('combobox');
     expect(studioCombobox).toBeInTheDocument();
@@ -24,11 +24,13 @@ describe('StudioCombobox', () => {
     const onValueChange = jest.fn();
     renderTestCombobox({ onValueChange });
     const studioCombobox = screen.getByRole('combobox');
+    expect(studioCombobox).toHaveValue('');
 
     await user.click(studioCombobox);
     await user.click(screen.getByRole('option', { name: 'Ole' }));
     await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(1));
     expect(onValueChange).toHaveBeenCalledWith(['Ole']);
+    expect(studioCombobox).toHaveValue('Ole');
 
     const comboboxIsClosed = screen.queryByRole('option', { name: 'Ole' });
     expect(comboboxIsClosed).toBeNull();
@@ -37,6 +39,7 @@ describe('StudioCombobox', () => {
     await user.click(screen.getByRole('option', { name: 'Dole' }));
     await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(2));
     expect(onValueChange).toHaveBeenCalledWith(['Dole']);
+    expect(studioCombobox).toHaveValue('Dole');
   });
 
   it('should be possible to select multiple options', async () => {
@@ -68,6 +71,12 @@ describe('StudioCombobox', () => {
     await user.click(clearButton);
     await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(1));
     expect(onValueChange).toHaveBeenCalledWith([]);
+  });
+
+  it('should display preselected option as selected', async () => {
+    renderTestCombobox({ value: ['Ole'] });
+    const combobox = screen.getByRole('combobox');
+    expect(combobox).toHaveValue('Ole');
   });
 });
 
