@@ -55,7 +55,11 @@ const StudioResizableLayoutContainer = ({
     >
       <div
         className={classes.root}
-        style={{ ...style, flexDirection: orientation === 'horizontal' ? 'row' : 'column' }}
+        style={{
+          ...style,
+          flexDirection: orientation === 'horizontal' ? 'row' : 'column',
+          maxWidth: '100VW',
+        }}
       >
         {renderChildren()}
       </div>

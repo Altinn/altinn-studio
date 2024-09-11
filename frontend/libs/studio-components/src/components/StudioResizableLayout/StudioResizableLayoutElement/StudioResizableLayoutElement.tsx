@@ -46,8 +46,8 @@ const StudioResizableLayoutElement = forwardRef<HTMLDivElement, StudioResizableL
           style={{
             ...style,
             flexGrow: containerSize,
-            maxWidth: collapsed ? collapsedSize : maximumSize,
-            minWidth: collapsed ? collapsedSize : minimumSize,
+            maxWidth: collapsed ? `${collapsedSize}rem` : `${maximumSize}rem`,
+            minWidth: collapsed ? `${collapsedSize}rem` : `${minimumSize}rem`,
           }}
           ref={ref}
         >

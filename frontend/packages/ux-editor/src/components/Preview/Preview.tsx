@@ -31,6 +31,7 @@ export const Preview = ({ collapsed, onCollapseToggle, hidePreview }: PreviewPro
       className={classes.openPreviewButton}
       title={t('ux_editor.open_preview')}
       onClick={onCollapseToggle}
+      fullWidth
     >
       {t('ux_editor.open_preview')}
     </StudioButton>
