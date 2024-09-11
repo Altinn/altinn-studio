@@ -355,14 +355,17 @@ img {
 }
 
 .a-jumbotron-header {
-    padding-top: 130px;
-    margin-top: -144px;
     background-position: right 120px;
     background-size: 945px;
 }
 
 .a-jumbotron-header.a-jumbotron-header--left {
     background-position: left 120px;
+}
+
+.jumbotron.a-jumbotron-header {
+    padding-top: 130px;
+    margin-top: -144px;
 }
 
 .a-jumbotron .a-jumbotron-ingress,
@@ -662,7 +665,7 @@ a.collapsed .a-dropdownCircleArrow {
         min-height: 650px;
     }
 
-    .a-jumbotron-header {
+    .jumbotron.a-jumbotron-header {
         padding-top: 150px;
     }
 
@@ -739,7 +742,7 @@ a.collapsed .a-dropdownCircleArrow {
         margin-bottom: 0;
     }
 
-    .a-jumbotron-header {
+    .jumbotron.a-jumbotron-header {
         padding-top: 130px;
     }
 
@@ -806,7 +809,7 @@ a.collapsed .a-dropdownCircleArrow {
         min-height: calc(100vh - 200px);
     }
 
-    .a-jumbotron-header {
+    .jumbotron.a-jumbotron-header {
         padding-top: 9%;
     }
 }

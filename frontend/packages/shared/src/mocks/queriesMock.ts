@@ -103,6 +103,7 @@ export const queriesMock: ServicesContextProps = {
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets)),
   getNewsList: jest.fn().mockImplementation(() => Promise.resolve<NewsList>(newsList)),
   getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
+  getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgList>(orgList)),
   getOrganizations: jest.fn().mockImplementation(() => Promise.resolve<Organization[]>([])),
   getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),

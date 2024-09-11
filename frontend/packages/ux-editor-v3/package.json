@@ -4,7 +4,7 @@
   "version": "1.0.1",
   "author": "Altinn",
   "dependencies": {
-    "@mui/material": "5.16.7",
+    "@mui/material": "6.0.2",
     "@reduxjs/toolkit": "1.9.7",
     "@studio/icons": "workspace:^",
     "classnames": "2.5.1",
@@ -25,7 +25,7 @@
   "license": "3-Clause BSD",
   "main": "index.js",
   "peerDependencies": {
-    "webpack": "5.93.0"
+    "webpack": "5.94.0"
   },
   "scripts": {
     "test": "jest --maxWorkers=50%"

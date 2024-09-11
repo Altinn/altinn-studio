@@ -105,6 +105,41 @@ describe('CreateCustomReceiptForm', () => {
     expect(mockOnCloseForm).toHaveBeenCalledTimes(0);
   });
 
+  it('Displays error when there is just one character present for layouSetId', async () => {
+    const user = userEvent.setup();
+    renderCreateCustomReceiptForm();
+
+    const layoutSetInput = screen.getByLabelText(
+      textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
+    );
+    await user.type(layoutSetInput, 'a');
+
+    const combobox = screen.getByRole('combobox', {
+      name: textMock('process_editor.configuration_panel_custom_receipt_select_data_model_label'),
+    });
+    await user.click(combobox);
+
+    const optionElement = screen.getByRole('option', { name: mockAllDataModelIds[0] });
+    await user.click(optionElement);
+    await user.keyboard('{Escape}');
+
+    const createButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_custom_receipt_create_button'),
+    });
+    await user.click(createButton);
+
+    const layoutIdError = screen.getByText(
+      textMock('process_editor.configuration_panel_custom_receipt_layout_set_name_validation'),
+    );
+    expect(layoutIdError).toBeInTheDocument();
+
+    const dataModelIdError = screen.queryByText(
+      textMock('process_editor.configuration_panel_custom_receipt_create_data_model_error'),
+    );
+    expect(dataModelIdError).not.toBeInTheDocument();
+    expect(mockOnCloseForm).toHaveBeenCalledTimes(0);
+  });
+
   it('shows correct errormessage when layoutSetId is empty when typing in the textbox', async () => {
     const user = userEvent.setup();
     renderCreateCustomReceiptForm({

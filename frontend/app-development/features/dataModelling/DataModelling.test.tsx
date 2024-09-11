@@ -12,7 +12,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { app, org } from '@studio/testing/testids';
-
+import { user as userMock } from 'app-shared/mocks/mocks';
 // workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -99,7 +99,9 @@ describe('DataModelling', () => {
       );
     queryClient.setQueryData([QueryKey.DataModelsJson, org, app], [jsonMetadata1Mock]);
     queryClient.setQueryData([QueryKey.DataModelsXsd, org, app], []);
+    queryClient.setQueryData([QueryKey.CurrentUser], userMock);
     render({ generateModels }, queryClient);
+
     const errorsPanel = screen.queryByText(textMock('api_errors.DM_01'));
     expect(errorsPanel).not.toBeInTheDocument();
 
@@ -125,6 +127,7 @@ describe('DataModelling', () => {
       );
     queryClient.setQueryData([QueryKey.DataModelsJson, org, app], [jsonMetadata1Mock]);
     queryClient.setQueryData([QueryKey.DataModelsXsd, org, app], []);
+    queryClient.setQueryData([QueryKey.CurrentUser], userMock);
     render({ generateModels }, queryClient);
 
     const generateModelButton = screen.getByRole('button', {
