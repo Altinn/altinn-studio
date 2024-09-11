@@ -129,10 +129,6 @@ export class ProcessEditorPage extends BasePage {
     await expect(button).toBeVisible();
   }
 
-  public async pressEscapeOnKeyboard(): Promise<void> {
-    await this.page.keyboard.press('Escape');
-  }
-
   public async clickOnConnectionArrow(): Promise<void> {
     await this.page.getByTitle(connectionArrowText).click();
   }

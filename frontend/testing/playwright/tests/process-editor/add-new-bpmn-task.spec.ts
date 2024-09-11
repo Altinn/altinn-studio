@@ -64,7 +64,6 @@ test('that the user can drag a new task in to the data model, and assign a data 
   await processEditorPage.dataModelConfig.waitForComboboxToBeVisible();
   await processEditorPage.dataModelConfig.clickOnCombobox();
   await processEditorPage.dataModelConfig.verifyThatThereAreNoDataModelsAvailable();
-  await processEditorPage.pressEscapeOnKeyboard();
 
   await navigateToDataModelAndCreateNewDataModel(
     dataModelPage,

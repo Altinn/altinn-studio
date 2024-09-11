@@ -108,7 +108,6 @@ test('that the user can edit the id of a task and add data-types to sign', async
   const dataTypeToSign: string = 'ref-data-as-pdf';
   await processEditorPage.signingTaskConfig.clickOnDataTypesToSignOption(dataTypeToSign);
   await processEditorPage.signingTaskConfig.waitForDataTypeToSignButtonToBeVisible(dataTypeToSign);
-  await processEditorPage.pressEscapeOnKeyboard();
 
   await commitAndPushToGitea(header);
   await goToGiteaAndNavigateToProcessBpmnFile(header, giteaPage);
@@ -147,7 +146,6 @@ test('That it is possible to create a custom receipt', async ({ page, testAppNam
   await processEditorPage.customReceiptConfig.writeLayoutSetId(newLayoutSetId);
   await processEditorPage.dataModelConfig.clickOnAddDataModelCombobox();
   await processEditorPage.dataModelConfig.chooseOption(newDataModel);
-  await processEditorPage.pressEscapeOnKeyboard();
 
   await processEditorPage.customReceiptConfig.waitForSaveNewCustomReceiptButtonToBeVisible();
   await processEditorPage.customReceiptConfig.clickOnSaveNewCustomReceiptButton();
