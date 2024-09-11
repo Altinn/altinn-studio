@@ -144,7 +144,7 @@
   "resourceadm.migration_disable_service_body": "Before delegations are moved, the option to delegate must be disabled in Altinn 2.",
   "resourceadm.migration_disable_service_button": "Turn off delegation option in {{env}}",
   "resourceadm.migration_disable_service_error": "Could not turn off delegations in Altinn 2",
-  "resourceadm.migration_disable_service_success": "Delegations disabled in {{envName}}",
+  "resourceadm.migration_disable_service_success": "Delegations disabled in {{env}}",
   "resourceadm.migration_select_migration_time_header": "Choose a time to move delegations and complete the migration",
   "resourceadm.migration_step_about_resource_errors": "There are {{validationErrors}} errors on the page \"About the resource\" which must be fixed before migration can be completed.",
   "resourceadm.migration_step_about_resource_header": "Step 1 - About the resource",

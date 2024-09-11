@@ -253,7 +253,7 @@
   "resourceadm.migration_disable_service_body": "Før delegeringene kan flyttes, må muligheten for å endre delegeringer for denne lenketjenesten i Altinn 2 skrus av.",
   "resourceadm.migration_disable_service_button": "Skru av delegeringsmulighet i {{env}}",
   "resourceadm.migration_disable_service_error": "Kunne ikke skru av delegeringsmulighet i Altinn 2",
-  "resourceadm.migration_disable_service_success": "Delegeringsmulighet skrudd av i {{envName}}",
+  "resourceadm.migration_disable_service_success": "Delegeringsmulighet skrudd av i {{env}}",
   "resourceadm.migration_select_migration_time_header": "Velg tidspunkt for å flytte delegeringer og fullføre migreringen",
   "resourceadm.migration_step_about_resource_errors": "Det er {{validationErrors}} mangler på siden <0>\"Om Ressursen\"</0> som må fikses før du kan fullføre migrering.",
   "resourceadm.migration_step_about_resource_header": "Steg 1 - Om Ressursen",

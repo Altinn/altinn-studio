@@ -182,6 +182,46 @@ describe('MigrationPanel', () => {
       ),
     );
   });
+
+  it('should show error when disable delegations in Altinn 2 fails', async () => {
+    const user = userEvent.setup();
+    renderMigrationPanel(
+      {},
+      {
+        disableAltinn2Service: jest.fn().mockImplementation(() => {
+          return Promise.reject({});
+        }),
+      },
+    );
+    const disableDelegationsButton = screen.getByRole('button', {
+      name: textMock('resourceadm.migration_disable_service_button', {
+        env: textMock(defaultProps.env.label),
+      }),
+    });
+    await user.click(disableDelegationsButton);
+
+    expect(screen.getByText(textMock('resourceadm.migration_disable_service_error')));
+  });
+
+  it('Should show toast when delegations have been disabled in Altinn 2', async () => {
+    const user = userEvent.setup();
+    renderMigrationPanel();
+
+    const disableDelegationsButton = screen.getByRole('button', {
+      name: textMock('resourceadm.migration_disable_service_button', {
+        env: textMock(defaultProps.env.label),
+      }),
+    });
+    await user.click(disableDelegationsButton);
+
+    expect(
+      screen.getByText(
+        textMock('resourceadm.migration_disable_service_success', {
+          env: textMock(defaultProps.env.label),
+        }),
+      ),
+    );
+  });
 });
 
 const renderMigrationPanel = (
