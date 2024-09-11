@@ -10,6 +10,7 @@ import { useMigrateDelegationsMutation } from '../../hooks/mutations/useMigrateD
 import { useUrlParams } from '../../hooks/useUrlParams';
 import type { ResourceError } from 'app-shared/types/ResourceAdm';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { useDisableAltinn2ServiceMutation } from 'resourceadm/hooks/mutations';
 
 export interface MigrationPanelProps {
   serviceCode: string;
@@ -34,9 +35,14 @@ export const MigrationPanel = ({
   const [migrationDate, setMigrationDate] = useState(initialDate);
   const [migrationTime, setMigrationTime] = useState('00:00');
   const [migrateDelegationsError, setMigrateDelegationsError] = useState<Error | null>(null);
+  const [disableMigrationsError, setDisableMigrationsError] = useState<Error | null>(null);
   const [isDelegationCountEnabled, setIsDelegationCountEnabled] = useState<boolean>(false);
 
-  const { mutate: migrateDelegations } = useMigrateDelegationsMutation(org, env.id);
+  const { mutate: migrateDelegations, isPending: isSettingMigrateDelegations } =
+    useMigrateDelegationsMutation(org, env.id);
+
+  const { mutate: disableAltinn2Service, isPending: isDisablingDelegations } =
+    useDisableAltinn2ServiceMutation(org, serviceCode, serviceEdition, env.id);
 
   const {
     data: numberOfA2Delegations,
@@ -52,6 +58,17 @@ export const MigrationPanel = ({
 
   const isErrorForbidden = (error: Error) => {
     return (error as ResourceError)?.response?.status === ServerCodes.Forbidden;
+  };
+
+  const disableDelegations = () => {
+    disableAltinn2Service(undefined, {
+      onSuccess: () => {
+        toast.success(t('resourceadm.migration_disable_service_success', { env: t(env.label) }));
+      },
+      onError: (error: Error) => {
+        setDisableMigrationsError(error);
+      },
+    });
   };
 
   const postMigrateDelegations = (): void => {
@@ -80,10 +97,11 @@ export const MigrationPanel = ({
 
   return (
     <div className={classes.migrationPanel}>
-      <div className={classes.numDelegations}>
+      <div>
         <StudioLabelAsParagraph size='medium' spacing>
           {t('resourceadm.migration_number_of_delegations')}
         </StudioLabelAsParagraph>
+        <Paragraph size='small'>{t('resourceadm.migration_number_of_delegations_body')}</Paragraph>
         <div>
           {isDelegationCountEnabled && numberOfA2Delegations && (
             <div className={classes.delegations}>
@@ -118,49 +136,73 @@ export const MigrationPanel = ({
             : t('resourceadm.migration_get_number_of_delegations_failed')}
         </Alert>
       )}
-      <StudioLabelAsParagraph size='medium' spacing>
-        {t('resourceadm.migration_select_migration_time_header')}
-      </StudioLabelAsParagraph>
-      <Paragraph size='small'>{t('resourceadm.migration_select_migration_time_body')}</Paragraph>
-      <div className={classes.datePickers}>
-        <Textfield
-          type='date'
-          value={migrationDate}
-          onChange={(e) => setMigrationDate(e.target.value)}
-          label={t('resourceadm.migration_migration_date')}
+      <div>
+        <StudioLabelAsParagraph size='medium'>
+          {t('resourceadm.migration_disable_service_header')}
+        </StudioLabelAsParagraph>
+        <Paragraph size='small'>{t('resourceadm.migration_disable_service_body')}</Paragraph>
+        <StudioButton
+          aria-disabled={isDisablingDelegations}
+          onClick={() => {
+            if (!isDisablingDelegations) {
+              disableDelegations();
+            }
+          }}
           size='small'
-        />
-        <Textfield
-          type='time'
-          value={migrationTime}
-          onChange={(e) => setMigrationTime(e.target.value)}
-          label={t('resourceadm.migration_migration_time')}
-          size='small'
-        />
+        >
+          {t('resourceadm.migration_disable_service_button', { env: t(env.label) })}
+        </StudioButton>
+        {disableMigrationsError && (
+          <Alert severity='danger' size='small'>
+            {t('resourceadm.migration_disable_service_error')}
+          </Alert>
+        )}
       </div>
-      {migrateDelegationsError && (
-        <Alert severity='danger' size='small'>
-          {isErrorForbidden(migrateDelegationsError)
-            ? t('resourceadm.migration_no_migration_access')
-            : t('resourceadm.migration_post_migration_failed')}
-        </Alert>
-      )}
-      {!isPublishedInEnv && (
-        <Alert severity='warning' size='small'>
-          {t('resourceadm.migration_not_published_warning')}
-        </Alert>
-      )}
-      <StudioButton
-        aria-disabled={!isMigrationReady || !isPublishedInEnv}
-        onClick={() => {
-          if (isMigrationReady && isPublishedInEnv) {
-            postMigrateDelegations();
-          }
-        }}
-        size='small'
-      >
-        {t('resourceadm.migration_migrate_delegations', { env: t(env.label) })}
-      </StudioButton>
+      <div>
+        <StudioLabelAsParagraph size='medium'>
+          {t('resourceadm.migration_select_migration_time_header')}
+        </StudioLabelAsParagraph>
+        <Paragraph size='small'>{t('resourceadm.migration_select_migration_time_body')}</Paragraph>
+        <div className={classes.datePickers}>
+          <Textfield
+            type='date'
+            value={migrationDate}
+            onChange={(e) => setMigrationDate(e.target.value)}
+            label={t('resourceadm.migration_migration_date')}
+            size='small'
+          />
+          <Textfield
+            type='time'
+            value={migrationTime}
+            onChange={(e) => setMigrationTime(e.target.value)}
+            label={t('resourceadm.migration_migration_time')}
+            size='small'
+          />
+        </div>
+        {!isPublishedInEnv && (
+          <Alert severity='warning' size='small'>
+            {t('resourceadm.migration_not_published_warning')}
+          </Alert>
+        )}
+        <StudioButton
+          aria-disabled={!isMigrationReady || !isPublishedInEnv || isSettingMigrateDelegations}
+          onClick={() => {
+            if (isMigrationReady && isPublishedInEnv && !isSettingMigrateDelegations) {
+              postMigrateDelegations();
+            }
+          }}
+          size='small'
+        >
+          {t('resourceadm.migration_migrate_delegations', { env: t(env.label) })}
+        </StudioButton>
+        {migrateDelegationsError && (
+          <Alert severity='danger' size='small'>
+            {isErrorForbidden(migrateDelegationsError)
+              ? t('resourceadm.migration_no_migration_access')
+              : t('resourceadm.migration_post_migration_failed')}
+          </Alert>
+        )}
+      </div>
     </div>
   );
 };
