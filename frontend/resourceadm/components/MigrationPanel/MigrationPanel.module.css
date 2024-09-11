@@ -5,6 +5,13 @@
   gap: var(--fds-spacing-7);
 }
 
+.delegations {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--fds-spacing-4);
+}
+
 .datePickers {
   display: flex;
   gap: var(--fds-spacing-4);

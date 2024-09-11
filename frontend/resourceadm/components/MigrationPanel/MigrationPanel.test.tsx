@@ -51,9 +51,7 @@ describe('MigrationPanel', () => {
     );
 
     const getNumberOfDelegationsButton = screen.getByRole('button', {
-      name: textMock('resourceadm.migration_get_number_of_delegations', {
-        env: textMock(defaultProps.env.label),
-      }),
+      name: textMock('resourceadm.migration_get_number_of_delegations'),
     });
     await user.click(getNumberOfDelegationsButton);
 
@@ -72,9 +70,7 @@ describe('MigrationPanel', () => {
     );
 
     const getNumberOfDelegationsButton = screen.getByRole('button', {
-      name: textMock('resourceadm.migration_get_number_of_delegations', {
-        env: textMock(defaultProps.env.label),
-      }),
+      name: textMock('resourceadm.migration_get_number_of_delegations'),
     });
     await user.click(getNumberOfDelegationsButton);
 
@@ -106,9 +102,7 @@ describe('MigrationPanel', () => {
     );
 
     const getDelegationsButton = screen.getByRole('button', {
-      name: textMock('resourceadm.migration_get_number_of_delegations', {
-        env: textMock(defaultProps.env.label),
-      }),
+      name: textMock('resourceadm.migration_get_number_of_delegations'),
     });
     await user.click(getDelegationsButton);
     expect(screen.getByText(numberOfDelegationsFirstFetch)).toBeInTheDocument();

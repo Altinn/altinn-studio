@@ -10,7 +10,7 @@ import { useMigrateDelegationsMutation } from '../../hooks/mutations/useMigrateD
 import { useUrlParams } from '../../hooks/useUrlParams';
 import type { ResourceError } from 'app-shared/types/ResourceAdm';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { useDisableAltinn2ServiceMutation } from 'resourceadm/hooks/mutations';
+import { useDisableAltinn2ServiceMutation } from '../../hooks/mutations';
 
 export interface MigrationPanelProps {
   serviceCode: string;
@@ -102,20 +102,18 @@ export const MigrationPanel = ({
           {t('resourceadm.migration_number_of_delegations')}
         </StudioLabelAsParagraph>
         <Paragraph size='small'>{t('resourceadm.migration_number_of_delegations_body')}</Paragraph>
-        <div>
-          {isDelegationCountEnabled && numberOfA2Delegations && (
-            <div className={classes.delegations}>
-              <Paragraph size='small'>
-                {t('resourceadm.migration_altinn_2')}:{' '}
-                <strong>{numberOfA2Delegations.numberOfDelegations}</strong>{' '}
-                {t('resourceadm.migration_delegations')}
-              </Paragraph>
-              <Paragraph size='small'>
-                {t('resourceadm.migration_altinn_3')}: <strong>{0}</strong>{' '}
-                {t('resourceadm.migration_delegations')}
-              </Paragraph>
-            </div>
-          )}
+        <div className={classes.delegations}>
+          <div>
+            <Paragraph size='small'>
+              {t('resourceadm.migration_altinn_2')}:{' '}
+              <strong>{numberOfA2Delegations?.numberOfDelegations ?? 'N/A'}</strong>{' '}
+              {t('resourceadm.migration_delegations')}
+            </Paragraph>
+            <Paragraph size='small'>
+              {t('resourceadm.migration_altinn_3')}: <strong>N/A</strong>{' '}
+              {t('resourceadm.migration_delegations')}
+            </Paragraph>
+          </div>
           <StudioButton
             onClick={() =>
               isDelegationCountEnabled
@@ -125,7 +123,7 @@ export const MigrationPanel = ({
             variant='secondary'
             size='small'
           >
-            {t('resourceadm.migration_get_number_of_delegations', { env: t(env.label) })}
+            {t('resourceadm.migration_get_number_of_delegations')}
           </StudioButton>
         </div>
       </div>
