@@ -108,6 +108,7 @@ test('that the user can edit the id of a task and add data-types to sign', async
   const dataTypeToSign: string = 'ref-data-as-pdf';
   await processEditorPage.signingTaskConfig.clickOnDataTypesToSignOption(dataTypeToSign);
   await processEditorPage.signingTaskConfig.waitForDataTypeToSignButtonToBeVisible(dataTypeToSign);
+  await processEditorPage.pressEscapeOnKeyboard();
 
   await commitAndPushToGitea(header);
   await goToGiteaAndNavigateToProcessBpmnFile(header, giteaPage);
