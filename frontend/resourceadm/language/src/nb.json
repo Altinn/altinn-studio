@@ -232,7 +232,7 @@
   "resourceadm.migration_get_number_of_delegations_failed": "Kunne ikke hente antall delegeringer",
   "resourceadm.migration_header": "Migrering av Altinn 2 tjeneste",
   "resourceadm.migration_help_link": "Les mer i vår dokumentasjon om ressursregisteret og migrering av ressurser.",
-  "resourceadm.migration_ingress": "Denne ressursen er basert på en Altinn 2 lenketjeneste. For at brukere med eksisterende tilgang til lenketjenesten i Altinn 2 skal få videreført sine tilganger i Altinn 3, må delegeringene migreres fra Altinn 2 til Altinn 3. På denne siden får du oversikt over status på migrering av denne lenketjenesten fra Altinn 2++",
+  "resourceadm.migration_ingress": "Denne ressursen er basert på en Altinn 2 lenketjeneste. For at brukere med eksisterende tilgang til lenketjenesten i Altinn 2 skal få videreført sine tilganger i Altinn 3, må delegeringene migreres fra Altinn 2 til Altinn 3. På denne siden får du oversikt over status på migrering av denne lenketjenesten fra Altinn 2.",
   "resourceadm.migration_migrate_delegations": "Sett migreringstidspunkt for {{env}}",
   "resourceadm.migration_migration_date": "Migreringsdato",
   "resourceadm.migration_migration_success": "Tidspunkt for migrering satt i {{env}}",

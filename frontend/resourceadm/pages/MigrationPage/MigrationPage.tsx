@@ -81,7 +81,7 @@ export const MigrationPage = ({
             {t('resourceadm.migration_ingress')}{' '}
             <Link
               className={classes.migrationLink}
-              href='https://docs.altinn.studio/authorization/modules/resourceregistry/'
+              href='https://docs.altinn.studio/nb/authorization/what-do-you-get/resourceregistry/migration/#migrering-av-rettigheter'
               rel='noopener noreferrer'
               target='_blank'
             >
