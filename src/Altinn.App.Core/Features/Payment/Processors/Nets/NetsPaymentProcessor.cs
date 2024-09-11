@@ -82,6 +82,13 @@ internal class NetsPaymentProcessor : IPaymentProcessor
                     .ToList(),
             },
             MyReference = instance.Id.Split('/')[1],
+            PaymentMethodsConfiguration = _settings
+                .PaymentMethodsConfiguration?.Select(x => new NetsPaymentMethodConfiguration
+                {
+                    Name = x.Name,
+                    Enabled = x.Enabled
+                })
+                .ToList(),
             Checkout = new NetsCheckout
             {
                 IntegrationType = "HostedPaymentPage",
