@@ -336,6 +336,27 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return new StatusCodeResult(201);
         }
 
+        public async Task<ActionResult> DisableDelegations(string serviceCode, int serviceEditionCode, string environment)
+        {
+            _maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(environment);
+            TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
+
+            string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
+            string url = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/setserviceeditionexpired/?externalServiceCode={serviceCode}&externalServiceEditionCode={serviceEditionCode}";
+
+            using HttpRequestMessage request = new HttpRequestMessage()
+            {
+                RequestUri = new Uri(url),
+                Method = HttpMethod.Post,
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
+
+            using HttpResponseMessage response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+
+            return new StatusCodeResult(200);
+        }
+
         // RRR
         public async Task<AccessList> GetAccessList(
             string org,

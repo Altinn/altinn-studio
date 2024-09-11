@@ -357,6 +357,15 @@ namespace Altinn.Studio.Designer.Controllers
             return await _resourceRegistry.StartMigrateDelegations(delegationRequest, env);
         }
 
+
+        [HttpPost]
+        [Authorize(Policy = AltinnPolicy.MustHaveGiteaPublishResourcePermission)]
+        [Route("designer/api/{org}/resources/altinn2/disabledelegations/{serviceCode}/{serviceEdition}/{env}")]
+        public async Task<ActionResult> DisableDelegations(string serviceCode, int serviceEdition, string env)
+        {
+            return await _resourceRegistry.DisableDelegations(serviceCode, serviceEdition, env);
+        }
+
         [HttpGet]
         [Route("designer/api/{org}/resources/sectors")]
         public async Task<ActionResult<List<DataTheme>>> GetSectors(CancellationToken cancellationToken)

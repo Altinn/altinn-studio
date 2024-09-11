@@ -54,6 +54,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<ActionResult> StartMigrateDelegations(ExportDelegationsRequestBE delegationRequest, string environment);
 
         /// <summary>
+        /// Disable delegations of Altinn 2 service
+        /// </summary>
+        Task<ActionResult> DisableDelegations(string serviceCode, int serviceEditionCode, string environment);
+
+        /// <summary>
         /// Get Policy from Altinn 2 Service
         /// </summary>
         Task<XacmlPolicy> GetXacmlPolicy(string serviceCode, int serviceEditionCode, string identifier, string environment);
