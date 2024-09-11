@@ -27,3 +27,7 @@
 .accordionHeaderRow {
   display: flex;
 }
+
+.pdfIcon {
+  font-size: var(--fds-sizing-6);
+}

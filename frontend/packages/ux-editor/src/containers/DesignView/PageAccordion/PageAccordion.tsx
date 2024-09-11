@@ -18,7 +18,6 @@ export type PageAccordionProps = {
   onClick: () => void;
   isInvalid?: boolean;
   hasDuplicatedIds?: boolean;
-  pageIsReceipt?: boolean;
   pageIsPdf?: boolean;
   showNavigationMenu?: boolean;
 };
@@ -79,7 +78,7 @@ export const PageAccordion = ({
           {pageName}
         </Accordion.Header>
         <div className={classes.navigationMenu}>
-          {pageIsPdf && <FilePdfIcon fontSize='1.5rem' />}
+          {pageIsPdf && <FilePdfIcon className={classes.pdfIcon} />}
           {showNavigationMenu && <NavigationMenu pageName={pageName} />}
           <StudioButton
             color='danger'

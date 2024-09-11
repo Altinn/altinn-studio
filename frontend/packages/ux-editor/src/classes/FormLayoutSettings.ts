@@ -7,6 +7,10 @@ export class FormLayoutSettings {
     this.layoutSettings = layoutSettings;
   }
 
+  public getFormLayoutSettings(): FormLayoutSettings {
+    return this;
+  }
+
   public getLayoutSettings(): ILayoutSettings {
     return this.layoutSettings;
   }
@@ -16,7 +20,21 @@ export class FormLayoutSettings {
     return this;
   }
 
-  public getPdfLayoutName(): string {
+  public deletePdfLayoutName(): FormLayoutSettings {
+    delete this.layoutSettings.pages.pdfLayoutName;
+    return this;
+  }
+
+  public getPdfLayoutName(): string | undefined {
     return this.layoutSettings.pages.pdfLayoutName;
+  }
+
+  public addPageToOrder(layoutName: string): void {
+    this.layoutSettings.pages.order.push(layoutName);
+  }
+
+  public deletePageFromOrder(layoutName: string): void {
+    const indexOfPage = this.layoutSettings.pages.order.indexOf(layoutName);
+    this.layoutSettings.pages.order.splice(indexOfPage, 1);
   }
 }

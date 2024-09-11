@@ -38,7 +38,7 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
       await deleteFormLayout(org, app, layoutName, layoutSetName);
       return { layoutName, layouts };
     },
-    onSuccess: async ({ layoutName, layouts }) => {
+    onSuccess: ({ layoutName, layouts }) => {
       const layoutSettings: ILayoutSettings = ObjectUtils.deepCopy(formLayoutSettings);
       const { order } = layoutSettings?.pages;
 
@@ -50,23 +50,13 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
       if (layoutSettings.pages.pdfLayoutName === layoutName) {
         delete layoutSettings.pages.pdfLayoutName;
       }
-      if (layoutSettings.pages.excludeFromPdf?.includes(layoutName)) {
-        layoutSettings.pages.excludeFromPdf.splice(
-          layoutSettings.pages.excludeFromPdf.indexOf(layoutName),
-        );
-      }
+
       formLayoutSettingsMutation.mutate(layoutSettings);
 
-      //const layoutPagesOrder = formLayoutSettings?.pages.order;
-
-      // OBS: Might need som adapting here since Side1 can be pdf in layouts folder and not be present in order!!
-      // Make sure to create a new page when the last one is deleted!
-      //if (!selectedFormLayoutName && layoutPagesOrder.length === 0) {
-      //  const layoutName = t('general.page') + (layoutPagesOrder.length + 1);
-      //  addLayoutMutation.mutate({ layoutName, isReceiptPage: false });
-      //}
-
       queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], () => layouts);
+      queryClient.invalidateQueries({
+        queryKey: [QueryKey.FormLayoutSettings, org, app, layoutSetName],
+      });
 
       if (selectedFormLayoutName === layoutName) {
         const layoutToSelect = firstAvailableLayout(layoutName, layoutOrder);

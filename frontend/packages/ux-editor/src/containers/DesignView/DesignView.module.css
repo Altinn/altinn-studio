@@ -38,8 +38,3 @@
 .accordionWrapper {
   flex: 1;
 }
-
-.pdfAccordionWrapper {
-  height: 100%;
-  --background-color: var(--fds-semantic-surface-neutral-subtle);
-}

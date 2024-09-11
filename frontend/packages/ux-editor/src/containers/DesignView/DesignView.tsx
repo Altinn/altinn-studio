@@ -14,11 +14,10 @@ import {
   duplicatedIdsExistsInLayout,
   findLayoutsContainingDuplicateComponents,
 } from '../../utils/formLayoutUtils';
-import { usePdfLayoutName } from 'app-shared/hooks/usePdfLayoutName';
 import { PdfLayoutAccordion } from '@altinn/ux-editor/containers/DesignView/PdfLayout/PdfLayoutAccordion';
 import { mapFormLayoutsToFormLayoutPages } from '@altinn/ux-editor/utils/formLayoutsUtils';
-import { pdfLayoutNameFromSettingsHasConnectedLayout } from '@altinn/ux-editor/utils/designViewUtils/designViewUtils';
 import { PlusIcon } from '@studio/icons';
+import { usePdf } from '../../hooks/usePdf/usePdf';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
@@ -37,7 +36,7 @@ export const DesignView = (): ReactNode => {
     selectedFormLayoutName,
     setSelectedFormLayoutName,
     refetchLayouts,
-  } = useAppContext(); // Add pdfInformation here? Or whole formLayoutData?
+  } = useAppContext();
   const { mutate: addLayoutMutation, isPending: isAddLayoutMutationPending } = useAddLayoutMutation(
     org,
     app,
@@ -49,7 +48,7 @@ export const DesignView = (): ReactNode => {
     selectedFormLayoutSetName,
   );
   const layouts = useFormLayouts();
-  const pdfLayoutName = usePdfLayoutName(org, app, selectedFormLayoutSetName);
+  const { getPdfLayoutName } = usePdf();
   const layoutOrder = formLayoutSettings?.pages?.order;
 
   const { t } = useTranslation();
@@ -71,11 +70,10 @@ export const DesignView = (): ReactNode => {
   };
 
   const handleAddPage = () => {
-    //let newNum = pdfLayoutName.includes(t('ux_editor.page')) ? 2 : 1;
     let newNum = 1;
     let newLayoutName = `${t('ux_editor.page')}${layoutOrder.length + newNum}`;
 
-    while (layoutOrder.indexOf(newLayoutName) > -1) {
+    while (layoutOrder.includes(newLayoutName) || getPdfLayoutName() === newLayoutName) {
       newNum += 1;
       newLayoutName = `${t('ux_editor.page')}${newNum}`;
     }
@@ -143,15 +141,15 @@ export const DesignView = (): ReactNode => {
           {t('ux_editor.pages_add')}
         </StudioButton>
       </div>
-      {pdfLayoutNameFromSettingsHasConnectedLayout(pdfLayoutName, layouts) && (
+      {getPdfLayoutName() && (
         <div className={classes.wrapper}>
           <div className={classes.accordionWrapper}>
             <PdfLayoutAccordion
-              pdfLayoutName={pdfLayoutName}
+              pdfLayoutName={getPdfLayoutName()}
               selectedFormLayoutName={selectedFormLayoutName}
-              onAccordionClick={() => handleClickAccordion(pdfLayoutName)}
+              onAccordionClick={() => handleClickAccordion(getPdfLayoutName())}
               hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(
-                pdfLayoutName,
+                getPdfLayoutName(),
               )}
             />
           </div>
