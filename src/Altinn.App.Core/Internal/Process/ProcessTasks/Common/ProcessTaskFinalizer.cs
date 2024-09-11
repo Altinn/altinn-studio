@@ -173,7 +173,7 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
                 Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
                 string app = instance.AppId.Split("/")[1];
                 int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
-                await _dataClient.InsertFormData(
+                var newDataElement = await _dataClient.InsertFormData(
                     updatedData,
                     instanceGuid,
                     saveToModelType,
@@ -182,6 +182,7 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
                     instanceOwnerPartyId,
                     saveToDataType.Id
                 );
+                instance.Data.Add(newDataElement);
             }
             else
             {

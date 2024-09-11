@@ -103,10 +103,4 @@
     <Folder Include="LayoutExpressions\CommonTests\exclusive-tests\functions\" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="Features\Validators\ValidationServiceTestsNew.ValidateIncrementalFormData*.verified.txt">
-      <DependentUpon>ValidationServiceTests.cs</DependentUpon>
-    </None>
-  </ItemGroup>
-
 </Project>
