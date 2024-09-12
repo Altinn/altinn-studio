@@ -13,11 +13,11 @@ import {
 describe('RedirectToCreatePageButton', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('Checks that the button to go to "Lage" page has the correct href', () => {
+  it('Checks that the button to go to "Utforming" page has the correct href', () => {
     renderRedirectToCreatePageButton();
 
     const navigationButton = screen.getByRole('link', {
-      name: textMock('process_editor.configuration_panel_custom_receipt_navigate_to_lage_button'),
+      name: textMock('process_editor.configuration_panel_custom_receipt_navigate_to_design_button'),
     });
     expect(navigationButton).toHaveAttribute('href', '/editor/testOrg/testApp/ui-editor');
   });
