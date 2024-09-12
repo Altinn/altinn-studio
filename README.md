@@ -152,7 +152,7 @@ Some [integration tests][17] for studio have been created with Cypress. More abo
 
 ## Playwright tests
 
-We are currently in the process of replaceing Cypress with Playwright.
+We are currently in the process of replacing Cypress with Playwright.
 Playwright is used in some [integration tests][18] for studio. More about these tests can be found [here](frontend/testing/playwright/README.md).
 
 ## Deployment
