@@ -5,7 +5,7 @@ import { useAppContext } from '@altinn/ux-editor/hooks/useAppContext';
 import { useFormLayoutSettingsMutation } from './mutations/useFormLayoutSettingsMutation';
 import { FormLayoutSettings } from '@altinn/ux-editor/classes/FormLayoutSettings';
 
-export const useSavableSchemaModel = () => {
+export const useSavableFormLayoutSettings = () => {
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
   const { data: layoutSettings } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
