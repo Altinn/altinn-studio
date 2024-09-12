@@ -1,6 +1,6 @@
 import type { MutableRefObject } from 'react';
 import React, { useMemo, useRef, createContext, useCallback } from 'react';
-import type { QueryClient, QueryKey as TenStackQueryKey } from '@tanstack/react-query';
+import type { QueryClient, QueryKey as TanStackQueryKey } from '@tanstack/react-query';
 import { useSelectedFormLayoutName, useSelectedFormLayoutSetName } from './hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -46,7 +46,7 @@ export const AppContextProvider = ({
     useSelectedFormLayoutName(selectedFormLayoutSetName);
 
   const refetch = useCallback(
-    async (queryKey: TenStackQueryKey, resetQueries: boolean = false): Promise<void> => {
+    async (queryKey: TanStackQueryKey, resetQueries: boolean = false): Promise<void> => {
       const contentWindow: WindowWithQueryClient = previewIframeRef?.current?.contentWindow;
 
       resetQueries
