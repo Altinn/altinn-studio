@@ -47,6 +47,10 @@
         },
         "dataModelBindings": {
           "simpleBinding": "repeatingGroup.name"
+        },
+        "grid": {
+          "xs": 12,
+          "sm": 6
         }
       },
       {
@@ -57,6 +61,10 @@
         },
         "dataModelBindings": {
           "simpleBinding": "repeatingGroup.points"
+        },
+        "grid": {
+          "xs": 12,
+          "sm": 6
         }
       },
       {
