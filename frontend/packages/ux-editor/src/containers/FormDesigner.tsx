@@ -163,28 +163,28 @@ export const FormDesigner = (): JSX.Element => {
             >
               <StudioResizableLayout.Element
                 collapsed={elementsCollapsed}
-                collapsedSize={3.125}
-                minimumSize={18.75}
-                maximumSize={18.75}
+                collapsedSize={50}
+                minimumSize={300}
+                maximumSize={300}
               >
                 <Elements
                   collapsed={elementsCollapsed}
                   onCollapseToggle={() => setElementsCollapsed(!elementsCollapsed)}
                 />
               </StudioResizableLayout.Element>
-              <StudioResizableLayout.Element minimumSize={15.625}>
+              <StudioResizableLayout.Element minimumSize={250}>
                 <DesignView />
               </StudioResizableLayout.Element>
               <StudioResizableLayout.Element
-                minimumSize={15.625}
+                minimumSize={250}
                 onResizing={(resizing) => setHidePreview(resizing)}
               >
                 <Properties />
               </StudioResizableLayout.Element>
               <StudioResizableLayout.Element
                 collapsed={previewCollapsed}
-                collapsedSize={3.125}
-                minimumSize={25}
+                collapsedSize={50}
+                minimumSize={400}
               >
                 <Preview
                   collapsed={previewCollapsed}
