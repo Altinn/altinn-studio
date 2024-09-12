@@ -30,11 +30,11 @@ export const DragAndDropTreeItem = ({
   title,
 }: DragAndDropTreeItemProps) => {
   const { hoveredNodeParent, setHoveredNodeParent } = useContext(DragAndDropTreeRootContext);
-  const { nodeId: uniqueParentId } = useContext(DragAndDropTreeItemContext);
+  const { nodeId: parentId } = useContext(DragAndDropTreeItemContext);
 
   const isExpandable = expandable || Boolean(children);
   const renderLabel = labelWrapper ?? ((node) => node);
-  const handleDragOver = () => setHoveredNodeParent(uniqueParentId);
+  const handleDragOver = () => setHoveredNodeParent(parentId);
   const hasHoveredItemClass = hoveredNodeParent === nodeId ? classes.hasHoveredItem : null;
   const labelButtonWrapperClass = cn(classes.labelButtonWrapper, hasHoveredItemClass);
 

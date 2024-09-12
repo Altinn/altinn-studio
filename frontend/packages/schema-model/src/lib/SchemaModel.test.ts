@@ -97,7 +97,7 @@ describe('SchemaModel', () => {
     });
   });
 
-  describe('getNode', () => {
+  describe('getNodeBySchemaPointer', () => {
     it('Returns the node with the given pointer', () => {
       expect(schemaModel.getNodeBySchemaPointer(parentNodeMock.schemaPointer)).toEqual(
         parentNodeMock,
