@@ -42,7 +42,7 @@ export const FileSelector = ({
     event?.preventDefault();
     const file = fileInput?.current?.files?.item(0);
     if (!file.name.match(/^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/)) {
-      toast.error(t('schema_editor.invalid_datamodel_name'));
+      toast.error(t('schema_editor.invalid_datamodel_upload_filename'));
       fileInput.current.value = '';
       return;
     }

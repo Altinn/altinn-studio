@@ -90,6 +90,8 @@ describe('FileSelector', () => {
     renderFileSelector();
     const fileInput = screen.getByTestId(fileSelectorInputId);
     await user.upload(fileInput, file);
-    expect(toast.error).toHaveBeenCalledWith(textMock('schema_editor.invalid_datamodel_name'));
+    expect(toast.error).toHaveBeenCalledWith(
+      textMock('schema_editor.invalid_datamodel_upload_filename'),
+    );
   });
 });
