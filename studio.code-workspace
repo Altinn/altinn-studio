@@ -12,7 +12,6 @@
       "javascriptreact",
       "typescript",
       "typescriptreact"
-    ],
-    "dotnet.defaultSolution": "disable"
+    ]
   }
 }
