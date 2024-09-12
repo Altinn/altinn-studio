@@ -105,7 +105,8 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
           if (newPointer && pointerIsDefinition(newPointer)) {
             setSelectedTypePointer(newPointer);
           }
-          setSelectedUniquePointer(changeNameInPointer(selectedUniquePointer, newNodeName));
+          const newUniquePointer = changeNameInPointer(selectedUniquePointer, newNodeName);
+          setSelectedUniquePointer(newUniquePointer);
         },
       }),
     );
