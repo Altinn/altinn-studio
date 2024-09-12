@@ -49,18 +49,13 @@ const StudioResizableLayoutContainer = ({
     });
   };
 
+  const flexDirectionClass = orientation === 'horizontal' ? classes.horizontal : classes.vertical;
+
   return (
     <StudioResizableLayoutContext.Provider
       value={{ resizeDelta, resizeTo, orientation, containerSizes }}
     >
-      <div
-        className={classes.root}
-        style={{
-          ...style,
-          flexDirection: orientation === 'horizontal' ? 'row' : 'column',
-          maxWidth: '100VW',
-        }}
-      >
+      <div className={`${classes.root} ${flexDirectionClass}`} style={{...style}}>
         {renderChildren()}
       </div>
     </StudioResizableLayoutContext.Provider>
