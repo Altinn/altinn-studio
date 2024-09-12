@@ -49,6 +49,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<DelegationCountOverview> GetDelegationCount(string serviceCode, int serviceEditionCode, string environment);
 
         /// <summary>
+        /// Sets a Altinn 2 service as expired
+        /// </summary>
+        Task SetServiceEditionExpired(string serviceCode, int serviceEditionCode, string environment);
+
+        /// <summary>
         /// Start migration batch of Altinn 2 delegations to Altinn 3
         /// </summary>
         Task<ActionResult> StartMigrateDelegations(ExportDelegationsRequestBE delegationRequest, string environment);

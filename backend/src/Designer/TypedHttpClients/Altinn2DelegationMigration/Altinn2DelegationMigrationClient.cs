@@ -36,6 +36,20 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2DelegationMigration
             return await response.Content.ReadAsAsync<DelegationCountOverview>();
         }
 
+        public async Task SetServiceEditionExpired(string serviceCode, int serviceEditionCode, string environment)
+        {
+            string baseUrl = !environment.ToLower().Equals("dev")
+                ? $"{GetResourceRegistryBaseUrl(environment)}"
+                : $"{_platformSettings.ResourceRegistryDefaultBaseUrl}";
+
+            string relativeUrl = $"/resourceregistry/api/v1/altinn2export/setserviceeditionexpired/?externalServiceCode={serviceCode}&externalServiceEditionCode={serviceEditionCode}";
+            Uri uri = new($"{baseUrl}{relativeUrl}");
+            HttpClientHelper.AddSubscriptionKeys(_httpClient, uri, _platformSettings);
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, uri);
+            using HttpResponseMessage response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+        }
+
         private string GetResourceRegistryBaseUrl(string env)
         {
             if (!_resourceRegistrySettings.TryGetValue(env, out ResourceRegistryEnvironmentSettings envSettings))

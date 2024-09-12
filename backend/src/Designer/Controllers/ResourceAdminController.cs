@@ -349,6 +349,22 @@ namespace Altinn.Studio.Designer.Controllers
             return await _resourceRegistry.GetDelegationCount(serviceCode, serviceEdition, env);
         }
 
+
+        [HttpGet]
+        [Authorize(Policy = AltinnPolicy.MustHaveGiteaPublishResourcePermission)]
+        [Route("designer/api/{org}/resources/altinn2/setserviceeditionexpired/{serviceCode}/{serviceEdition}/{env}")]
+        public async Task<ActionResult> SetServiceEditionExpired(string org, string serviceCode, int serviceEdition, string env)
+        {
+            ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(serviceCode, serviceEdition, env.ToLower());
+            if(resource?.HasCompetentAuthority == null || !resource.HasCompetentAuthority.Orgcode.Equals(org, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return new UnauthorizedResult();
+            }
+
+            await _resourceRegistry.SetServiceEditionExpired(serviceCode, serviceEdition, env);
+            return Ok();
+        }
+
         [HttpPost]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaPublishResourcePermission)]
         [Route("designer/api/{org}/resources/altinn2/exportdelegations/{env}")]

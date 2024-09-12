@@ -6,5 +6,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2DelegationMigration
     public interface IAltinn2DelegationMigrationClient
     {
         Task<DelegationCountOverview> GetNumberOfDelegations(string serviceCode, int serviceEditionCode, string environment);
+
+        Task SetServiceEditionExpired(string serviceCode, int serviceEditionCode, string environment);
     }
 }

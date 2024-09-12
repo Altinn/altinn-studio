@@ -720,5 +720,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             return maskinportenClientSettings;
         }
+
+        public async Task SetServiceEditionExpired(string serviceCode, int serviceEditionCode, string environment)
+        {
+            await _altinn2DelegationMigrationClient.SetServiceEditionExpired(serviceCode, serviceEditionCode, environment);
+        }
     }
 }
