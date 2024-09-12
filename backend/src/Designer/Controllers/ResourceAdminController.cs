@@ -344,26 +344,45 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaPublishResourcePermission)]
         [Route("designer/api/{org}/resources/altinn2/delegationcount/{serviceCode}/{serviceEdition}/{env}")]
-        public async Task<DelegationCountOverview> GetDelegationCount(string serviceCode, int serviceEdition, string env)
+        public async Task<ActionResult> GetDelegationCount(string org, string serviceCode, int serviceEdition, string env)
         {
-            return await _resourceRegistry.GetDelegationCount(serviceCode, serviceEdition, env);
+            ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(serviceCode, serviceEdition, env.ToLower());
+            if(resource?.HasCompetentAuthority == null || !resource.HasCompetentAuthority.Orgcode.Equals(org, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return new UnauthorizedResult();
+            }
+            
+            DelegationCountOverview overview = await _resourceRegistry.GetDelegationCount(serviceCode, serviceEdition, env);
+            return Ok(overview);
         }
 
         [HttpPost]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaPublishResourcePermission)]
         [Route("designer/api/{org}/resources/altinn2/delegationmigration/{env}")]
-        public async Task<ActionResult> MigrateDelegations([FromBody] ExportDelegationsRequestBE delegationRequest, string env)
+        public async Task<ActionResult> MigrateDelegations([FromBody] ExportDelegationsRequestBE delegationRequest, string org, string env)
         {
+            ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(delegationRequest.ServiceCode, delegationRequest.ServiceEditionCode, env.ToLower());
+            if(resource?.HasCompetentAuthority == null || !resource.HasCompetentAuthority.Orgcode.Equals(org, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return new UnauthorizedResult();
+            }
+
             return await _resourceRegistry.StartMigrateDelegations(delegationRequest, env);
         }
 
 
         [HttpPost]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaPublishResourcePermission)]
-        [Route("designer/api/{org}/resources/altinn2/disabledelegations/{serviceCode}/{serviceEdition}/{env}")]
-        public async Task<ActionResult> DisableDelegations(string serviceCode, int serviceEdition, string env)
+        [Route("designer/api/{org}/resources/altinn2/setserviceeditionexpired/{serviceCode}/{serviceEdition}/{env}")]
+        public async Task<ActionResult> SetServiceEditionExpired(string org, string serviceCode, int serviceEdition, string env)
         {
-            return await _resourceRegistry.DisableDelegations(serviceCode, serviceEdition, env);
+            ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(serviceCode, serviceEdition, env.ToLower());
+            if(resource?.HasCompetentAuthority == null || !resource.HasCompetentAuthority.Orgcode.Equals(org, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return new UnauthorizedResult();
+            }
+
+            return await _resourceRegistry.SetServiceEditionExpired(serviceCode, serviceEdition, env);
         }
 
         [HttpGet]

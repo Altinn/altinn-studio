@@ -10,7 +10,7 @@ import { useMigrateDelegationsMutation } from '../../hooks/mutations/useMigrateD
 import { useUrlParams } from '../../hooks/useUrlParams';
 import type { ResourceError } from 'app-shared/types/ResourceAdm';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { useDisableAltinn2ServiceMutation } from '../../hooks/mutations';
+import { useSetServiceEditionExpiredMutation } from '../../hooks/mutations';
 
 export interface MigrationPanelProps {
   serviceCode: string;
@@ -41,13 +41,14 @@ export const MigrationPanel = ({
   const { mutate: migrateDelegations, isPending: isSettingMigrateDelegations } =
     useMigrateDelegationsMutation(org, env.id);
 
-  const { mutate: disableAltinn2Service, isPending: isDisablingDelegations } =
-    useDisableAltinn2ServiceMutation(org, serviceCode, serviceEdition, env.id);
+  const { mutate: setServiceEditionExpired, isPending: isSettingServiceExpired } =
+    useSetServiceEditionExpiredMutation(org, serviceCode, serviceEdition, env.id);
 
   const {
     data: numberOfA2Delegations,
     refetch: refetchNumberOfA2Delegations,
     error: getNumberOfDelegationsError,
+    isFetching: isLoadingDelegationCount,
   } = useGetAltinn2DelegationsCount(
     org,
     serviceCode,
@@ -60,8 +61,8 @@ export const MigrationPanel = ({
     return (error as ResourceError)?.response?.status === ServerCodes.Forbidden;
   };
 
-  const disableDelegations = () => {
-    disableAltinn2Service(undefined, {
+  const setServiceExpired = () => {
+    setServiceEditionExpired(undefined, {
       onSuccess: () => {
         toast.success(t('resourceadm.migration_disable_service_success', { env: t(env.label) }));
       },
@@ -115,6 +116,7 @@ export const MigrationPanel = ({
             </Paragraph>
           </div>
           <StudioButton
+            disabled={isLoadingDelegationCount}
             onClick={() =>
               isDelegationCountEnabled
                 ? refetchNumberOfA2Delegations()
@@ -126,24 +128,25 @@ export const MigrationPanel = ({
             {t('resourceadm.migration_get_number_of_delegations')}
           </StudioButton>
         </div>
+        {getNumberOfDelegationsError && (
+          <Alert severity='danger' size='small'>
+            {isErrorForbidden(getNumberOfDelegationsError)
+              ? t('resourceadm.migration_no_migration_access')
+              : t('resourceadm.migration_get_number_of_delegations_failed')}
+          </Alert>
+        )}
       </div>
-      {getNumberOfDelegationsError && (
-        <Alert severity='danger' size='small'>
-          {isErrorForbidden(getNumberOfDelegationsError)
-            ? t('resourceadm.migration_no_migration_access')
-            : t('resourceadm.migration_get_number_of_delegations_failed')}
-        </Alert>
-      )}
+
       <div>
         <StudioLabelAsParagraph size='medium'>
           {t('resourceadm.migration_disable_service_header')}
         </StudioLabelAsParagraph>
         <Paragraph size='small'>{t('resourceadm.migration_disable_service_body')}</Paragraph>
         <StudioButton
-          aria-disabled={isDisablingDelegations}
+          aria-disabled={isSettingServiceExpired}
           onClick={() => {
-            if (!isDisablingDelegations) {
-              disableDelegations();
+            if (!isSettingServiceExpired) {
+              setServiceExpired();
             }
           }}
           size='small'

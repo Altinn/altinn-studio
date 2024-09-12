@@ -39,7 +39,7 @@ import {
   processEditorDataTypesChangePath,
   dataModelsUploadPath,
   altinn2DelegationsMigrationPath,
-  altinn2DisableDelegationsPath,
+  setServiceEditionExpiredPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -126,7 +126,7 @@ export const publishResource = (org: string, repo: string, id: string, env: stri
 export const updatePolicy = (org: string, repo: string, id: string, payload: Policy) => put(resourcePolicyPath(org, repo, id), payload);
 export const updateResource = (org: string, repo: string, payload: Resource) => put(resourceEditPath(org, repo), payload);
 export const migrateDelegations = (org: string, env: string, payload: MigrateDelegationsRequest) => post(altinn2DelegationsMigrationPath(org, env), payload);
-export const disableAltinn2Service = (org: string, serviceCode: string, serviceEditionCode: string, env: string) => post(altinn2DisableDelegationsPath(org, serviceCode, serviceEditionCode, env));
+export const setServiceEditionExpired = (org: string, serviceCode: string, serviceEditionCode: string, env: string) => post(setServiceEditionExpiredPath(org, serviceCode, serviceEditionCode, env));
 
 // ProcessEditor
 

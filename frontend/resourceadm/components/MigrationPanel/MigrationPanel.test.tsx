@@ -177,36 +177,36 @@ describe('MigrationPanel', () => {
     );
   });
 
-  it('should show error when disable delegations in Altinn 2 fails', async () => {
+  it('should show error when setting Altinn 2 service to expired fails', async () => {
     const user = userEvent.setup();
     renderMigrationPanel(
       {},
       {
-        disableAltinn2Service: jest.fn().mockImplementation(() => {
+        setServiceEditionExpired: jest.fn().mockImplementation(() => {
           return Promise.reject({});
         }),
       },
     );
-    const disableDelegationsButton = screen.getByRole('button', {
+    const setServiceExpiredButton = screen.getByRole('button', {
       name: textMock('resourceadm.migration_disable_service_button', {
         env: textMock(defaultProps.env.label),
       }),
     });
-    await user.click(disableDelegationsButton);
+    await user.click(setServiceExpiredButton);
 
     expect(screen.getByText(textMock('resourceadm.migration_disable_service_error')));
   });
 
-  it('Should show toast when delegations have been disabled in Altinn 2', async () => {
+  it('Should show toast when setting Altinn 2 service to expired return success', async () => {
     const user = userEvent.setup();
     renderMigrationPanel();
 
-    const disableDelegationsButton = screen.getByRole('button', {
+    const setServiceExpiredButton = screen.getByRole('button', {
       name: textMock('resourceadm.migration_disable_service_button', {
         env: textMock(defaultProps.env.label),
       }),
     });
-    await user.click(disableDelegationsButton);
+    await user.click(setServiceExpiredButton);
 
     expect(
       screen.getByText(
