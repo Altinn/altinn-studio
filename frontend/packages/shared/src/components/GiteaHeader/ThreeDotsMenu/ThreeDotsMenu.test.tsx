@@ -19,7 +19,7 @@ describe('ThreeDotsMenu', () => {
 
   it('should show the menu items when open', async () => {
     const user = userEvent.setup();
-    await renderThreeDotsMenu({ isClonePossible: true });
+    renderThreeDotsMenu({ isClonePossible: true });
     await user.click(getGiteaMenuButton());
     expect(getCloneButton()).toBeInTheDocument();
     expect(getRepositoryLink()).toBeInTheDocument();
@@ -28,15 +28,27 @@ describe('ThreeDotsMenu', () => {
 
   it('should not show the clone option when onlyShowRepository is true', async () => {
     const user = userEvent.setup();
-    await renderThreeDotsMenu();
+    renderThreeDotsMenu();
     await user.click(getGiteaMenuButton());
     expect(queryCloneButton()).not.toBeInTheDocument();
   });
 
   it('should render local changes modal', async () => {
     const user = userEvent.setup();
-    await renderThreeDotsMenu();
+    renderThreeDotsMenu();
     await user.click(getGiteaMenuButton());
+    await user.click(getLocalChangesButton());
+    expect(getLocalChangesHeading()).toBeInTheDocument();
+  });
+
+  it('Reopens the local changes modal when the user clicks the button after having closed it', async () => {
+    const user = userEvent.setup();
+    renderThreeDotsMenu();
+    await user.click(getGiteaMenuButton());
+    await user.click(getLocalChangesButton());
+    expect(getLocalChangesHeading()).toBeInTheDocument();
+    await user.click(getCloseLocalChangesButton());
+    expect(queryLocalChangesHeading()).not.toBeInTheDocument();
     await user.click(getLocalChangesButton());
     expect(getLocalChangesHeading()).toBeInTheDocument();
   });
@@ -56,6 +68,7 @@ const renderThreeDotsMenu = (
 const getCloneButton = () => getButton(cloneButtonName);
 const getLocalChangesButton = () => getButton(localChangesButtonName);
 const getGiteaMenuButton = () => getButton(giteaMenuButtonName);
+const getCloseLocalChangesButton = () => getButton(closeLocalChangesButtonName);
 const getButton = (name: string) => screen.getByRole('button', { name });
 
 const queryCloneButton = () => queryButton(cloneButtonName);
@@ -67,8 +80,12 @@ const getLink = (name: string) => screen.getByRole('link', { name });
 const getLocalChangesHeading = () => getHeading(localChangesHeading);
 const getHeading = (name: string) => screen.getByRole('heading', { name });
 
+const queryLocalChangesHeading = () => queryHeading(localChangesHeading);
+const queryHeading = (name: string) => screen.queryByRole('heading', { name });
+
 const giteaMenuButtonName = textMock('sync_header.gitea_menu');
 const cloneButtonName = textMock('sync_header.clone');
 const localChangesButtonName = textMock('sync_header.local_changes');
 const repositoryLinkName = textMock('sync_header.repository');
 const localChangesHeading = textMock('sync_header.local_changes');
+const closeLocalChangesButtonName = 'close modal'; // Todo: Replace with textMock('sync_header.close_local_changes_button') when https://github.com/digdir/designsystemet/issues/2195 is fixed

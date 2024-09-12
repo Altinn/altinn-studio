@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import React, { useRef } from 'react';
-import { StudioModal } from '@studio/components';
+import { StudioButton, StudioModal } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { LocalChanges } from './LocalChanges/LocalChanges';
 import { MonitorIcon } from '@studio/icons';
@@ -13,12 +13,18 @@ export const LocalChangesModal = ({ triggerClassName }: LocalChangesModalProps):
   const { t } = useTranslation();
   const dialogRef = useRef<HTMLDialogElement>();
   const closeDialog = () => dialogRef.current?.close();
+  const openDialog = () => dialogRef.current?.showModal();
 
   return (
-    <StudioModal.Root>
-      <StudioModal.Trigger className={triggerClassName} icon={<MonitorIcon />} variant='tertiary'>
+    <>
+      <StudioButton
+        className={triggerClassName}
+        icon={<MonitorIcon />}
+        onClick={openDialog}
+        variant='tertiary'
+      >
         {t('sync_header.local_changes')}
-      </StudioModal.Trigger>
+      </StudioButton>
       <StudioModal.Dialog
         closeButtonTitle={t('sync_header.close_local_changes_button')}
         heading={t('sync_header.local_changes')}
@@ -26,6 +32,6 @@ export const LocalChangesModal = ({ triggerClassName }: LocalChangesModalProps):
       >
         <LocalChanges onDelete={closeDialog} />
       </StudioModal.Dialog>
-    </StudioModal.Root>
+    </>
   );
 };
