@@ -10,6 +10,7 @@ const options = {
   invalid: 'Kinkliane Koff',
 };
 const noResults = 'No results';
+const dsUnselectAllText = 'Fjern alt';
 
 type VerifyOnValueChangeProps = {
   onValueChange: jest.Mock;
@@ -109,7 +110,7 @@ describe('StudioCombobox', () => {
       value: [options.ole, options.dole, options.doffen],
     });
 
-    const clearButton = screen.getByRole('button', { name: 'Fjern alt' });
+    const clearButton = screen.getByRole('button', { name: dsUnselectAllText });
     await user.click(clearButton);
     await verifyOnValueChange({ onValueChange, expectedNumberOfCalls: 1, expectedValue: [] });
   });
