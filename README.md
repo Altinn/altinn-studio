@@ -152,8 +152,8 @@ Some [integration tests][17] for studio have been created with Cypress. More abo
 
 ## Playwright tests
 
-We're in the process of replaceing the Cypress framework with Playwright.
-More about these tests can be found [here](frontend/testing/playwright/README.md).
+We are currently in the process of replaceing Cypress with Playwright.
+Playwright is used in some [integration tests][18] for studio. More about these tests can be found [here](frontend/testing/playwright/README.md).
 
 ## Deployment
 
@@ -161,11 +161,11 @@ The current build is deployed in Kubernetes on Azure. Automated CI/CD using Azur
 
 ## Built With
 
-- [React][18] - The front-end framework
-- [.NET Core][19]/[C#][20] - The back-end framework
-- [yarn][21] - Package management
-- [Docker][22] - Container platform
-- [Kubernetes][23] - Container orchestration
+- [React][19] - The front-end framework
+- [.NET Core][20]/[C#][21] - The back-end framework
+- [yarn][22] - Package management
+- [Docker][23] - Container platform
+- [Kubernetes][24] - Container orchestration
 
 ## Status for container scans
 
@@ -178,9 +178,9 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduc
 
 ## Authors
 
-- **Altinn Studio development team** - If you want to get in touch, just [create a new issue][24].
+- **Altinn Studio development team** - If you want to get in touch, just [create a new issue][25].
 
-See also the [list of contributors][25] who participated in this project.
+See also the [list of contributors][26] who participated in this project.
 
 ## License
 
@@ -203,11 +203,12 @@ This project is licensed under the 3-Clause BSD License - see the [LICENSE.md](L
 [15]: http://studio.localhost
 [16]: https://github.com/Altinn/app-template-dotnet
 [17]: https://github.com/Altinn/altinn-studio/tree/main/frontend/testing/cypress
-[18]: https://reactjs.org/
-[19]: https://docs.microsoft.com/en-us/dotnet/core/
-[20]: https://docs.microsoft.com/en-us/dotnet/csharp/
-[21]: https://yarnpkg.com/
-[22]: https://www.docker.com/
-[23]: https://kubernetes.io/
-[24]: https://github.com/Altinn/altinn-studio/issues/new/choose
-[25]: https://github.com/Altinn/altinn-studio/graphs/contributors
+[18]: https://github.com/Altinn/altinn-studio/tree/main/frontend/testing/playwright
+[19]: https://reactjs.org/
+[20]: https://docs.microsoft.com/en-us/dotnet/core/
+[21]: https://docs.microsoft.com/en-us/dotnet/csharp/
+[22]: https://yarnpkg.com/
+[23]: https://www.docker.com/
+[24]: https://kubernetes.io/
+[25]: https://github.com/Altinn/altinn-studio/issues/new/choose
+[26]: https://github.com/Altinn/altinn-studio/graphs/contributors
