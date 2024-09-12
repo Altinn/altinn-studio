@@ -35,7 +35,7 @@
     "@babel/runtime": "^7.21.0",
     "@babel/runtime-corejs3": "^7.21.0",
     "@eslint/compat": "^1.1.1",
-    "@faker-js/faker": "^8.4.1",
+    "@faker-js/faker": "^9.0.0",
     "@percy/cli": "^1.26.0",
     "@percy/cypress": "^3.1.2",
     "@pmmmwh/react-refresh-webpack-plugin": "0.5.15",
