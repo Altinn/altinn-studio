@@ -1,5 +1,6 @@
 import type { TranslationKey } from 'language/type';
 import { validateLayoutNameAndLayoutSetName } from 'app-shared/utils/LayoutAndLayoutSetNameValidationUtils/validateLayoutNameAndLayoutSetName';
+import type { IFormLayouts } from '@altinn/ux-editor/types/global';
 
 /**
  * Checks if the new written page name already exists
@@ -34,4 +35,11 @@ export const getPageNameErrorKey = (
   } else {
     return null;
   }
+};
+
+export const pdfLayoutNameFromSettingsHasConnectedLayout = (
+  pdfLayoutName: string,
+  layouts: IFormLayouts,
+) => {
+  return !!pdfLayoutName && Object.keys(layouts).includes(pdfLayoutName);
 };

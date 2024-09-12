@@ -12,6 +12,7 @@ import { ObjectUtils, ArrayUtils } from '@studio/pure-functions';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
 import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 import { externalLayoutToInternal } from '../converters/formLayoutConverters';
+import type { FormLayoutPage } from '@altinn/ux-editor/types/FormLayoutPage';
 
 /**
  * Update layouts to have navigation buttons if there are multiple layouts, or remove them if this is the only one.
@@ -103,3 +104,17 @@ export const firstAvailableLayout = (deletedLayoutName: string, layoutPagesOrder
 export function idExists(id: string, formLayouts: IFormLayouts): boolean {
   return Object.values(formLayouts).some((layout) => idExistsInLayout(id, layout));
 }
+
+/**
+ * Maps the content of all layouts in a layout set to an array of objects with layout name and all components on layout
+ *
+ * @param formLayouts all layouts as key value pairs where the key is the layout name
+ *
+ * @returns an array of objects with layout name and components
+ */
+export const mapFormLayoutsToFormLayoutPages = (formLayouts: IFormLayouts): FormLayoutPage[] => {
+  return Object.entries(formLayouts).map(([key, value]) => ({
+    page: key,
+    data: value,
+  }));
+};

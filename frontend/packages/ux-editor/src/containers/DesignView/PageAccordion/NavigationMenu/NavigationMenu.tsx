@@ -66,24 +66,22 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
         </DropdownMenu.Trigger>
         <DropdownMenu.Content>
           <DropdownMenu.Group>
-            <>
-              <DropdownMenu.Item
-                onClick={() => !disableUp && moveLayout('up')}
-                disabled={disableUp}
-                id='move-page-up-button'
-              >
-                <ArrowUpIcon />
-                {t('ux_editor.page_menu_up')}
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                onClick={() => !disableDown && moveLayout('down')}
-                disabled={disableDown}
-                id='move-page-down-button'
-              >
-                <ArrowDownIcon />
-                {t('ux_editor.page_menu_down')}
-              </DropdownMenu.Item>
-            </>
+            <DropdownMenu.Item
+              onClick={() => !disableUp && moveLayout('up')}
+              disabled={disableUp}
+              id='move-page-up-button'
+            >
+              <ArrowUpIcon />
+              {t('ux_editor.page_menu_up')}
+            </DropdownMenu.Item>
+            <DropdownMenu.Item
+              onClick={() => !disableDown && moveLayout('down')}
+              disabled={disableDown}
+              id='move-page-down-button'
+            >
+              <ArrowDownIcon />
+              {t('ux_editor.page_menu_down')}
+            </DropdownMenu.Item>
           </DropdownMenu.Group>
         </DropdownMenu.Content>
       </DropdownMenu>

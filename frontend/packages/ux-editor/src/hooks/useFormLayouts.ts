@@ -6,7 +6,6 @@ import { useAppContext } from './';
 export const useFormLayouts = (): IFormLayouts => {
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
-  const formLayoutsQuery = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
-  const { data } = formLayoutsQuery;
-  return data;
+  const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
+  return formLayouts;
 };

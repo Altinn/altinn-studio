@@ -12,7 +12,7 @@ import { internalLayoutWithMultiPageGroup } from '../../testing/layoutWithMultiP
 
 const defaultProps: FormLayoutProps = {
   layout: layoutMock,
-  isValid: true,
+  isInvalid: false,
 };
 
 describe('FormLayout', () => {
@@ -40,7 +40,7 @@ describe('FormLayout', () => {
       },
     };
 
-    render({ layout: layoutWithDuplicatedIds, isValid: false });
+    render({ layout: layoutWithDuplicatedIds, isInvalid: true });
 
     expect(
       screen.getByText(textMock('ux_editor.formLayout.warning_duplicates')),
