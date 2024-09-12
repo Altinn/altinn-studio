@@ -2,13 +2,10 @@ import { SavableFormLayoutSettings } from '@altinn/ux-editor/classes/SavableForm
 import { formLayoutSettingsMock } from '../testing/mocks';
 import { FormLayoutSettings } from '@altinn/ux-editor/classes/FormLayoutSettings';
 
-describe('SavableFormLayoutSettings', () => {
-  const saveFormLayoutSettings = jest.fn();
-  const layoutSettings = new FormLayoutSettings(formLayoutSettingsMock);
-  const setupLayoutSettings = (): SavableFormLayoutSettings => {
-    return new SavableFormLayoutSettings(layoutSettings, saveFormLayoutSettings);
-  };
+const saveFormLayoutSettings = jest.fn();
 
+describe('SavableFormLayoutSettings', () => {
+  afterEach(() => jest.clearAllMocks());
   it('saves layoutSettings when pdfLayoutName is updated', () => {
     const savableLayoutSettings = setupLayoutSettings();
     const newPdfLayoutName = 'newPdfLayoutName';
@@ -19,3 +16,8 @@ describe('SavableFormLayoutSettings', () => {
     expect(actualNewPdfLayoutSetName).toBe(newPdfLayoutName);
   });
 });
+
+const setupLayoutSettings = (): SavableFormLayoutSettings => {
+  const layoutSettings = new FormLayoutSettings(formLayoutSettingsMock);
+  return new SavableFormLayoutSettings(layoutSettings, saveFormLayoutSettings);
+};
