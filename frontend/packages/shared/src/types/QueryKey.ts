@@ -14,6 +14,7 @@ export enum QueryKey {
   DeployPermissions = 'DeployPermissions',
   Environments = 'Environments',
   FetchBpmn = 'FetchBpmn',
+  FetchTextResources = 'FetchTextResources',
   FormComponent = 'FormComponent',
   FormLayoutSettings = 'FormLayoutSettings',
   FormLayouts = 'FormLayouts',
