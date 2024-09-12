@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
 import { Tabs as DesignsystemetTabs } from '@digdir/designsystemet-react';
+import { Grid } from '@material-ui/core';
 
 import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
 import { Lang } from 'src/features/language/Lang';
@@ -58,14 +59,19 @@ export const Tabs = ({ node }: PropsFromGenericComponent<'Tabs'>) => {
             key={tab.id}
             value={tab.id}
             role='tabpanel'
-            className={classes.tabContent}
           >
-            {tab.children.filter(typedBoolean).map((node) => (
-              <GenericComponent
-                key={node.id}
-                node={node}
-              />
-            ))}
+            <Grid
+              container={true}
+              spacing={6}
+              alignItems='flex-start'
+            >
+              {tab.children.filter(typedBoolean).map((node) => (
+                <GenericComponent
+                  key={node.id}
+                  node={node}
+                />
+              ))}
+            </Grid>
           </DesignsystemetTabs.Content>
         ))}
       </DesignsystemetTabs>

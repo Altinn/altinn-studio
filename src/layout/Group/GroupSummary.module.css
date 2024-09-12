@@ -1,20 +1,14 @@
-.groupContainer.nested {
-  padding: var(--fds-spacing-6) var(--fds-spacing-4) var(--fds-spacing-6) var(--fds-spacing-4);
+.groupContainer {
+  color: var(--semantic-text-neutral-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-6);
+}
+
+.nested {
   border-width: var(--fds-border_width-default);
   border-radius: var(--fds-border_radius-medium);
   border-color: var(--fds-semantic-border-neutral-default);
   border-style: dashed;
-  margin-top: var(--fds-spacing-6);
-}
-
-.groupContainer .groupHeading {
-  margin-bottom: var(--fds-spacing-6);
-}
-
-.groupContainer .description {
-  color: var(--semantic-text-neutral-subtle);
-}
-
-.groupContainer .childItem:not(:last-of-type) {
-  margin-bottom: var(--fds-spacing-8);
+  padding: var(--fds-spacing-6) var(--fds-spacing-4);
 }
