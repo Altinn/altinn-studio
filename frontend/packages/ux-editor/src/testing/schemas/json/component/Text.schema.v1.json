@@ -1,0 +1,6 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/Text.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {},
+  "title": "Text component schema"
+}
