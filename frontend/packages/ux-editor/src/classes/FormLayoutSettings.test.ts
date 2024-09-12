@@ -30,7 +30,7 @@ describe('FormLayoutSettings', () => {
   });
 });
 
-const setUpFormLayoutSettings = ({
+const setupFormLayoutSettings = ({
   ...props
 }: ILayoutSettings = formLayoutSettingsMock): FormLayoutSettings => {
   return new FormLayoutSettings({ ...props });
