@@ -1,0 +1,29 @@
+.summaryItem {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.summaryItemWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-2);
+}
+
+.summaryValue {
+  width: -moz-fit-content;
+  width: fit-content;
+}
+
+.error {
+  border-bottom: var(--fds-semantic-border-danger-default) solid 2px;
+}
+
+.editButton {
+  margin-left: auto;
+  min-width: unset;
+}
+
+.footer {
+  padding-top: 12px;
+}

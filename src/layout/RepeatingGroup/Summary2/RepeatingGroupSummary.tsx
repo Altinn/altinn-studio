@@ -24,10 +24,10 @@ export const RepeatingGroupSummary = ({
   isCompact?: boolean;
   emptyFieldText?: string;
 }) => {
-  const validations = useUnifiedValidationsForNode(componentNode);
   const { visibleRows } = useRepeatingGroupRowState();
   const rowsToDisplaySet = new Set(visibleRows.map((row) => row.uuid));
   const rows = useNodeItem(componentNode, (i) => i.rows).filter((row) => row && rowsToDisplaySet.has(row.uuid));
+  const validations = useUnifiedValidationsForNode(componentNode);
   const errors = validationsOfSeverity(validations, 'error');
   const title = useNodeItem(componentNode, (i) => i.textResourceBindings?.title);
   const isNested = componentNode.parent instanceof BaseLayoutNode;
@@ -37,6 +37,8 @@ export const RepeatingGroupSummary = ({
       <SingleValueSummary
         title={title}
         componentNode={componentNode}
+        errors={errors}
+        isCompact={isCompact}
         emptyFieldText={emptyFieldText}
       />
     );

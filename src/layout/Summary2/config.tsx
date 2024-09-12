@@ -6,6 +6,7 @@ import { DROPDOWN_SUMMARY_OVERRIDE_PROPS } from 'src/layout/Dropdown/config';
 import { GROUP_SUMMARY_PROPS } from 'src/layout/Group/config';
 import { INPUT_SUMMARY_OVERRIDE_PROPS } from 'src/layout/Input/config';
 import { LIST_SUMMARY_OVERRIDE_PROPS } from 'src/layout/List/config';
+import { MAP_SUMMARY_OVERRIDE_PROPS } from 'src/layout/Map/config';
 import { MULTIPLE_SELECT_SUMMARY_OVERRIDE_PROPS } from 'src/layout/MultipleSelect/config';
 import { RADIO_SUMMARY_OVERRIDE_PROPS } from 'src/layout/RadioButtons/config';
 import { REPEATING_GROUP_SUMMARY_OVERRIDE_PROPS } from 'src/layout/RepeatingGroup/config';
@@ -72,6 +73,7 @@ export const Config = new CG.component({
           REPEATING_GROUP_SUMMARY_OVERRIDE_PROPS,
           DATEPICKER_SUMMARY_OVERRIDE_PROPS,
           LIST_SUMMARY_OVERRIDE_PROPS,
+          MAP_SUMMARY_OVERRIDE_PROPS,
         ).exportAs('AnySummaryOverrideProps'),
       ).optional(),
     ),
