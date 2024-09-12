@@ -1,0 +1,18 @@
+.summaryContent {
+  display: flex;
+  gap: var(--fds-spacing-6);
+  flex-direction: column;
+}
+
+.tabDivider {
+  height: var(--fds-border_width-active);
+  border: none;
+  background-color: var(--fds-semantic-border-neutral-default);
+  margin: 0;
+}
+
+.tabWrapper {
+  display: flex;
+  gap: var(--fds-spacing-8);
+  flex-direction: column;
+}

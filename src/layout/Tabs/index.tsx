@@ -5,7 +5,9 @@ import type { PropsFromGenericComponent } from '..';
 import { TabsDef } from 'src/layout/Tabs/config.def.generated';
 import { Tabs as TabsComponent } from 'src/layout/Tabs/Tabs';
 import { TabsSummary } from 'src/layout/Tabs/TabsSummary';
+import { TabsSummaryComponent } from 'src/layout/Tabs/TabsSummaryComponent';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class Tabs extends TabsDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Tabs'>>(
@@ -16,12 +18,16 @@ export class Tabs extends TabsDef {
 
   renderSummary({ summaryNode, targetNode, overrides }: SummaryRendererProps<'Tabs'>): JSX.Element | null {
     return (
-      <TabsSummary
+      <TabsSummaryComponent
         targetNode={targetNode}
         summaryNode={summaryNode}
         overrides={overrides}
       />
     );
+  }
+
+  renderSummary2(props: Summary2Props<'Tabs'>): JSX.Element | null {
+    return <TabsSummary componentNode={props.target} />;
   }
 
   renderSummaryBoilerplate(): boolean {

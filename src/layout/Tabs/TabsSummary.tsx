@@ -1,36 +1,59 @@
 import React from 'react';
-import type { JSX } from 'react';
 
-import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
+import { Heading } from '@digdir/designsystemet-react';
+import { Grid } from '@material-ui/core';
+
+import { Lang } from 'src/features/language/Lang';
+import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
+import classes from 'src/layout/Tabs/TabsSummary.module.css';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import { typedBoolean } from 'src/utils/typing';
+import type { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 
-type Props = Pick<SummaryRendererProps<'Tabs'>, 'targetNode' | 'summaryNode' | 'overrides'>;
+type TabsSummaryProps = {
+  componentNode: BaseLayoutNode<'Tabs'>;
+};
 
-export function TabsSummary({ targetNode, summaryNode, overrides }: Props): JSX.Element | null {
-  const tabsInternal = useNodeItem(targetNode, (i) => i.tabsInternal);
-  const children = tabsInternal.map((card) => card.children).flat();
+export const TabsSummary = ({ componentNode }: TabsSummaryProps) => {
+  const tabs = useNodeItem(componentNode, (i) => i.tabsInternal);
+
+  if (!tabs || tabs.length === 0) {
+    return null;
+  }
 
   return (
-    <>
-      {children.map((child) => {
-        if (!child) {
-          return null;
-        }
-
-        return (
-          <SummaryComponent
-            key={child.id}
-            summaryNode={summaryNode}
-            overrides={{
-              ...overrides,
-              targetNode: child,
-              grid: {},
-              largeGroup: true,
-            }}
-          />
-        );
-      })}
-    </>
+    <div
+      className={classes.summaryContent}
+      data-testid={'summary-tabs-component'}
+    >
+      {tabs.map((tab, index) => (
+        <>
+          {index != 0 && <hr className={classes.tabDivider} />}
+          <div
+            key={tab.id}
+            className={classes.tabWrapper}
+          >
+            <Heading
+              size='sm'
+              level={4}
+            >
+              {<Lang id={tab.title} />}
+            </Heading>
+            <Grid
+              container={true}
+              spacing={6}
+              alignItems='flex-start'
+            >
+              {tab.children.filter(typedBoolean).map((node) => (
+                <ComponentSummary
+                  key={node.id}
+                  componentNode={node}
+                />
+              ))}
+            </Grid>
+          </div>
+        </>
+      ))}
+    </div>
   );
-}
+};

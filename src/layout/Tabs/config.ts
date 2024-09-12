@@ -2,6 +2,13 @@ import { CG } from 'src/codegen/CG';
 import { CompCategory } from 'src/layout/common';
 import { TabsPlugin } from 'src/layout/Tabs/TabsPlugin';
 
+export const TABS_SUMMARY_PROPS = new CG.obj()
+  .extends(CG.common('ISummaryOverridesCommon'))
+  .optional()
+  .setTitle('Summary properties')
+  .setDescription('Properties for how to display the summary of the component')
+  .exportAs('TabsSummaryOverrideProps');
+
 export const Config = new CG.component({
   category: CompCategory.Container,
   capabilities: {
