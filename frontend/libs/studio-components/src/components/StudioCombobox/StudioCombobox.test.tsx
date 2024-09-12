@@ -11,16 +11,22 @@ const options = {
 };
 const noResults = 'No results';
 
-describe('StudioCombobox', () => {
-  const verifyOnValueChange = async (
-    onValueChange: jest.Mock,
-    expectedCalls: number,
-    expectedValue: string[],
-  ) => {
-    await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(expectedCalls));
-    expect(onValueChange).toHaveBeenCalledWith(expectedValue);
-  };
+type VerifyOnValueChangeProps = {
+  onValueChange: jest.Mock;
+  expectedNumberOfCalls: number;
+  expectedValue: string[];
+};
 
+const verifyOnValueChange = async ({
+  onValueChange,
+  expectedNumberOfCalls,
+  expectedValue,
+}: VerifyOnValueChangeProps) => {
+  await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(expectedNumberOfCalls));
+  expect(onValueChange).toHaveBeenCalledWith(expectedValue);
+};
+
+describe('StudioCombobox', () => {
   it('should render the component', () => {
     renderTestCombobox();
     const studioCombobox = screen.getByRole('combobox');
@@ -45,7 +51,11 @@ describe('StudioCombobox', () => {
 
     await user.click(studioCombobox);
     await user.click(screen.getByRole('option', { name: options.ole }));
-    await verifyOnValueChange(onValueChange, 1, [options.ole]);
+    await verifyOnValueChange({
+      onValueChange,
+      expectedNumberOfCalls: 1,
+      expectedValue: [options.ole],
+    });
     expect(studioCombobox).toHaveValue(options.ole);
 
     const comboboxIsClosed = screen.queryByRole('option', { name: options.ole });
@@ -53,7 +63,11 @@ describe('StudioCombobox', () => {
 
     await user.click(studioCombobox);
     await user.click(screen.getByRole('option', { name: options.dole }));
-    await verifyOnValueChange(onValueChange, 2, [options.dole]);
+    await verifyOnValueChange({
+      onValueChange,
+      expectedNumberOfCalls: 2,
+      expectedValue: [options.dole],
+    });
     expect(studioCombobox).toHaveValue(options.dole);
   });
 
@@ -65,13 +79,25 @@ describe('StudioCombobox', () => {
     await user.click(studioCombobox);
 
     await user.click(screen.getByRole('option', { name: options.ole }));
-    await verifyOnValueChange(onValueChange, 1, [options.ole]);
+    await verifyOnValueChange({
+      onValueChange,
+      expectedNumberOfCalls: 1,
+      expectedValue: [options.ole],
+    });
 
     await user.click(screen.getByRole('option', { name: options.dole }));
-    await verifyOnValueChange(onValueChange, 2, [options.ole, options.dole]);
+    await verifyOnValueChange({
+      onValueChange,
+      expectedNumberOfCalls: 2,
+      expectedValue: [options.ole, options.dole],
+    });
 
     await user.click(screen.getByRole('option', { name: options.doffen }));
-    await verifyOnValueChange(onValueChange, 3, [options.ole, options.dole, options.doffen]);
+    await verifyOnValueChange({
+      onValueChange,
+      expectedNumberOfCalls: 3,
+      expectedValue: [options.ole, options.dole, options.doffen],
+    });
   });
 
   it('should be possible to clear the selected options', async () => {
@@ -85,7 +111,7 @@ describe('StudioCombobox', () => {
 
     const clearButton = screen.getByRole('button', { name: 'Fjern alt' });
     await user.click(clearButton);
-    await verifyOnValueChange(onValueChange, 1, []);
+    await verifyOnValueChange({ onValueChange, expectedNumberOfCalls: 1, expectedValue: [] });
   });
 });
 
