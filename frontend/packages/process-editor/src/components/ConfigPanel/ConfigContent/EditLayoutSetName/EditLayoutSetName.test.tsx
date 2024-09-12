@@ -2,11 +2,7 @@ import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { EditLayoutSetName } from './EditLayoutSetName';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { BpmnContext } from '../../../../contexts/BpmnContext';
-import {
-  mockBpmnApiContextValue,
-  mockBpmnContextValue,
-} from '../../../../../test/mocks/bpmnContextMock';
+import { mockBpmnApiContextValue } from '../../../../../test/mocks/bpmnContextMock';
 import { BpmnApiContext, type BpmnApiContextProps } from '../../../../contexts/BpmnApiContext';
 import userEvent from '@testing-library/user-event';
 
@@ -27,9 +23,7 @@ describe('EditLayoutSetName', () => {
       textMock('process_editor.configuration_panel_layout_set_name_label'),
     );
     expect(layoutSetNameViewMode).toHaveTextContent(
-      textMock('process_editor.configuration_panel_layout_set_name', {
-        taskId: mockBpmnContextValue.bpmnDetails.id,
-      }) + existingLayoutSetNameMock,
+      textMock('process_editor.configuration_panel_layout_set_name') + existingLayoutSetNameMock,
     );
   });
 
@@ -79,9 +73,7 @@ const renderEditLayoutSetName = (
 ) => {
   render(
     <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextValue }}>
-      <BpmnContext.Provider value={{ ...mockBpmnContextValue }}>
-        <EditLayoutSetName existingLayoutSetName={existingLayoutSetName} />
-      </BpmnContext.Provider>
+      <EditLayoutSetName existingLayoutSetName={existingLayoutSetName} />
     </BpmnApiContext.Provider>,
   );
 };
