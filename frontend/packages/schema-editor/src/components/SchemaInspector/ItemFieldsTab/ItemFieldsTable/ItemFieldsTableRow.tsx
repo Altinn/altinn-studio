@@ -8,7 +8,6 @@ import {
   setRequired,
   setPropertyName,
   type UiSchemaNode,
-  isReference,
   ObjectKind,
 } from '@altinn/schema-model';
 import { NameField } from '../../NameField';
@@ -21,8 +20,8 @@ import { TrashIcon } from '@studio/icons';
 import { StudioButton, StudioCenter } from '@studio/components';
 import { useTypeOptions } from '@altinn/schema-editor/components/SchemaInspector/hooks/useTypeOptions';
 import { nameFieldClass } from '@altinn/schema-editor/components/SchemaInspector/ItemFieldsTab/domUtils';
-import { useKindOptions } from '../../hooks/useKindOption';
-import { ReferenceButton } from '@altinn/schema-editor/components/SchemaTree/SchemaNode/ReferenceButton';
+import { useKindOptions } from '../../hooks/useKindOptions';
+import { ItemFieldsTypes } from './ItemFieldsTypes';
 
 export type ItemFieldsTableRowProps = {
   fieldNode: UiSchemaNode;
@@ -46,7 +45,6 @@ export const ItemFieldsTableRow = ({
   const typeOptions = useTypeOptions();
   const fullPath = fieldNode.pointer;
   const kindOptions = useKindOptions();
-  const node = schemaModel.getNode(fullPath);
 
   const handleChangeNodeName = (newNodeName: string) => {
     save(
@@ -96,7 +94,7 @@ export const ItemFieldsTableRow = ({
         />
       </td>
       <td className={cn(classes.tableColumnType, classes.tableCell)}>
-        {typeLabel || kindLabel || (isReference(node) && <ReferenceButton node={node} />) || ''}
+        <ItemFieldsTypes fieldNode={fieldNode} typeLabel={typeLabel} kindLabel={kindLabel} />
       </td>
       <td className={cn(classes.tableColumnRequired, classes.tableCell)}>
         <StudioCenter>
