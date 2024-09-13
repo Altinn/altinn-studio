@@ -2,16 +2,19 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { type BpmnApiContextProps, BpmnApiContext } from '../../../contexts/BpmnApiContext';
-import type { BpmnContextProps } from '../../../contexts/BpmnContext';
-import { BpmnContext } from '../../../contexts/BpmnContext';
+import { type BpmnApiContextProps, BpmnApiContext } from '../../../../contexts/BpmnApiContext';
+import type { BpmnContextProps } from '../../../../contexts/BpmnContext';
+import { BpmnContext } from '../../../../contexts/BpmnContext';
 import { EditDataTypesToSign } from './EditDataTypesToSign';
-import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
+import { BpmnConfigPanelFormContextProvider } from '../../../../contexts/BpmnConfigPanelContext';
 import {
   mockBpmnApiContextValue,
   mockBpmnContextValue,
-} from '../../../../test/mocks/bpmnContextMock';
-import { getMockBpmnElementForTask, mockBpmnDetails } from '../../../../test/mocks/bpmnDetailsMock';
+} from '../../../../../test/mocks/bpmnContextMock';
+import {
+  getMockBpmnElementForTask,
+  mockBpmnDetails,
+} from '../../../../../test/mocks/bpmnDetailsMock';
 
 const availableDataTypeIds = ['dataType1', 'dataType2', 'dataType3'];
 const existingDataTypeIds = ['dataType1', 'dataType2'];

@@ -4,10 +4,10 @@ import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
 import classes from './SelectDataTypesToSign.module.css';
-import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
-import { StudioModeler } from '../../../../utils/bpmnModeler/StudioModeler';
-import { useGetDataTypesToSign } from '../../../../hooks/dataTypesToSign/useGetDataTypesToSign';
-import { useUpdateDataTypesToSign } from '../../../../hooks/dataTypesToSign/useUpdateDataTypesToSign';
+import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
+import { StudioModeler } from '../../../../../utils/bpmnModeler/StudioModeler';
+import { useGetDataTypesToSign } from '../../../../../hooks/dataTypesToSign/useGetDataTypesToSign';
+import { useUpdateDataTypesToSign } from '../../../../../hooks/dataTypesToSign/useUpdateDataTypesToSign';
 
 export interface SelectDataTypesToSignProps {
   onClose: () => void;

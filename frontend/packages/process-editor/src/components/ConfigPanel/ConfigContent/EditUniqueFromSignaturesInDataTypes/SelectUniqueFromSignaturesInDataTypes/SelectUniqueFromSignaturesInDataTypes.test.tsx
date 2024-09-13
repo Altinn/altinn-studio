@@ -1,24 +1,27 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import type { BpmnApiContextProps } from '../../../../contexts/BpmnApiContext';
-import { BpmnApiContext } from '../../../../contexts/BpmnApiContext';
-import type { BpmnContextProps } from '../../../../contexts/BpmnContext';
-import { BpmnContext } from '../../../../contexts/BpmnContext';
+import type { BpmnApiContextProps } from '../../../../../contexts/BpmnApiContext';
+import { BpmnApiContext } from '../../../../../contexts/BpmnApiContext';
+import type { BpmnContextProps } from '../../../../../contexts/BpmnContext';
+import { BpmnContext } from '../../../../../contexts/BpmnContext';
 import type { SelectUniqueFromSignaturesInDataTypesProps } from './SelectUniqueFromSignaturesInDataTypes';
 import { SelectUniqueFromSignaturesInDataTypes } from './SelectUniqueFromSignaturesInDataTypes';
-import { BpmnConfigPanelFormContextProvider } from '../../../../contexts/BpmnConfigPanelContext';
+import { BpmnConfigPanelFormContextProvider } from '../../../../../contexts/BpmnConfigPanelContext';
 import {
   mockBpmnApiContextValue,
   mockBpmnContextValue,
-} from '../../../../../test/mocks/bpmnContextMock';
-import { createMock, updateModdlePropertiesMock } from '../../../../../test/mocks/bpmnModelerMock';
+} from '../../../../../../test/mocks/bpmnContextMock';
+import {
+  createMock,
+  updateModdlePropertiesMock,
+} from '../../../../../../test/mocks/bpmnModelerMock';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import {
   getMockBpmnElementForTask,
   mockBpmnDetails,
-} from '../../../../../test/mocks/bpmnDetailsMock';
+} from '../../../../../../test/mocks/bpmnDetailsMock';
 
 jest.useFakeTimers({ advanceTimers: true });
 createMock.mockImplementation(() => []);
@@ -62,7 +65,7 @@ const signingTasks = [
   },
 ];
 
-jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
+jest.mock('../../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
     StudioModeler: jest.fn().mockImplementation(() => {
       return {

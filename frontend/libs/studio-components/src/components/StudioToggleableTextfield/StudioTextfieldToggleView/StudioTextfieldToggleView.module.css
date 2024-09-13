@@ -3,6 +3,7 @@
   justify-content: flex-start;
   align-items: center;
   border-radius: 0;
+  width: 100%;
 }
 
 .viewModeIconsContainer {
