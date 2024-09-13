@@ -31,7 +31,7 @@ const addProperties = (propertyKeys: string[]) => {
   allPropertyKeys.push(...propertyKeys);
 };
 
-const generateComponentSchema = (name: string, layoutSchema: any) => {
+const generateComponentSchema = (name: string, layoutSchema: any, version: string) => {
   const definitionName = `Comp${name}`;
   console.log('definitionName: ', definitionName);
   const componentSchema = layoutSchema.definitions[definitionName];
@@ -42,7 +42,7 @@ const generateComponentSchema = (name: string, layoutSchema: any) => {
 
   // The v4 schema has external definitions. This code block is needed to fetch v4 properties correctly.
   const externalDefinitionName = definitionName + 'External';
-  if (layoutSchema.definitions[externalDefinitionName]?.allOf) {
+  if (version == "v4" && layoutSchema.definitions[externalDefinitionName]?.allOf) {
     componentSchema.allOf = layoutSchema.definitions[externalDefinitionName].allOf;
   }
 
@@ -108,7 +108,7 @@ const run = async () => {
   allComponents.forEach((componentName: string) => {
     componentName = componentName === 'AddressComponent' ? 'Address' : componentName;
 
-    const schema = generateComponentSchema(componentName, layoutSchema);
+    const schema = generateComponentSchema(componentName, layoutSchema, version);
     addTextResourceBindingKeys(schema);
     writeToFile(componentName, schema, version as AppFrontendVersion);
   });
