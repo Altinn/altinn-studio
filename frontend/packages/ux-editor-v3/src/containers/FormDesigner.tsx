@@ -49,6 +49,9 @@ export const FormDesigner = ({
     org,
     app,
     selectedLayoutSet,
+    {
+      hideDefaultError: true,
+    },
   );
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const { data: ruleModel } = useRuleModelQuery(org, app, selectedLayoutSet);

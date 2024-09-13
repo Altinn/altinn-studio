@@ -42,6 +42,9 @@ export const FormDesigner = (): JSX.Element => {
     org,
     app,
     selectedFormLayoutSetName,
+    {
+      hideDefaultError: true,
+    },
   );
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
     org,

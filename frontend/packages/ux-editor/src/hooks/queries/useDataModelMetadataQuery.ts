@@ -39,5 +39,6 @@ export const useDataModelMetadataQuery = (
     meta: {
       hideDefaultError: hideDefault,
     },
+    throwOnError: true,
   });
 };

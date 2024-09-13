@@ -43,7 +43,9 @@ export const ResourcesRepoList = ({
     data: resourceListData,
     isLoading: isLoadingResourceList,
     isError: isResourceListError,
-  } = useGetResourceListQuery(selectedContext, !resourcesRepos?.data.length);
+  } = useGetResourceListQuery(selectedContext, !resourcesRepos?.data.length, {
+    hideDefaultError: true,
+  });
 
   if (!resourcesRepos?.data.length) {
     return null;

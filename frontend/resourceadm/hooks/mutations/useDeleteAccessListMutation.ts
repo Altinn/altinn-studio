@@ -1,3 +1,4 @@
+import type { MutationMeta } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -9,7 +10,12 @@ import { QueryKey } from 'app-shared/types/QueryKey';
  * @param listIdentifier the identifier of access list to delete
  * @param env the list environment
  */
-export const useDeleteAccessListMutation = (org: string, listIdentifier: string, env: string) => {
+export const useDeleteAccessListMutation = (
+  org: string,
+  listIdentifier: string,
+  env: string,
+  meta?: MutationMeta,
+) => {
   const queryClient = useQueryClient();
   const { deleteAccessList } = useServicesContext();
 
@@ -19,5 +25,6 @@ export const useDeleteAccessListMutation = (org: string, listIdentifier: string,
       queryClient.invalidateQueries({ queryKey: [QueryKey.AccessLists, env] });
       queryClient.invalidateQueries({ queryKey: [QueryKey.ResourceAccessLists, env] });
     },
+    meta,
   });
 };

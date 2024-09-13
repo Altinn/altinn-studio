@@ -28,7 +28,9 @@ export const PageLayout = (): React.ReactNode => {
     data: repoStatus,
     isPending: isRepoStatusPending,
     error: repoStatusError,
-  } = useRepoStatusQuery(org, app);
+  } = useRepoStatusQuery(org, app, {
+    hideDefaultError: (error) => error.response?.status === ServerCodes.NotFound,
+  });
 
   const { data: user, isPending: isUserPending } = useUserQuery();
 

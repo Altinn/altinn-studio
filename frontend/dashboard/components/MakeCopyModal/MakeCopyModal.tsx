@@ -4,7 +4,6 @@ import { Heading } from '@digdir/designsystemet-react';
 import classes from './MakeCopyModal.module.css';
 import { useTranslation } from 'react-i18next';
 import { useCopyAppMutation } from 'dashboard/hooks/mutations/useCopyAppMutation';
-import type { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useOrganizationsQuery } from '../../hooks/queries';
@@ -28,7 +27,7 @@ export const MakeCopyModal = forwardRef<HTMLDialogElement, MakeCopyModalProps>(
       isPending: isCopyAppPending,
       isSuccess: isCopyAppSuccess,
     } = useCopyAppMutation({
-      hideDefaultError: (error: AxiosError) => error?.response?.status === ServerCodes.Conflict,
+      hideDefaultError: (error) => error?.response?.status === ServerCodes.Conflict,
     });
 
     const [formError, setFormError] = useState<NewAppForm>({ org: '', repoName: '' });
@@ -53,7 +52,7 @@ export const MakeCopyModal = forwardRef<HTMLDialogElement, MakeCopyModalProps>(
           onSuccess: () => {
             navigateToEditorOverview(newOrg, newRepoName);
           },
-          onError: (error: AxiosError): void => {
+          onError: (error): void => {
             const appNameAlreadyExists = error.response.status === ServerCodes.Conflict;
             if (appNameAlreadyExists) {
               setFormError(

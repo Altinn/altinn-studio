@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { AxiosError } from 'axios';
 
 export const useRepoCommitAndPushMutation = (owner: string, app: string) => {
   const q = useQueryClient();
@@ -23,13 +22,13 @@ export const useRepoCommitAndPushMutation = (owner: string, app: string) => {
         repository: app,
       }),
     onSuccess: () => invalidateQueries(),
-    onError: (error: AxiosError) => {
+    onError: (error) => {
       if (hasMergeConflict(error?.response?.status)) {
         invalidateQueries();
       }
     },
     meta: {
-      hideDefaultError: (error: AxiosError) => hasMergeConflict(error?.response?.status),
+      hideDefaultError: (error) => hasMergeConflict(error?.response?.status),
     },
   });
 };

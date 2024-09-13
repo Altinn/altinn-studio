@@ -27,7 +27,9 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
     data: processTaskType,
     isPending: isFetchingProcessTaskType,
     isError: hasProcessTaskTypeError,
-  } = useProcessTaskTypeQuery(org, app, selectedFormLayoutSetName);
+  } = useProcessTaskTypeQuery(org, app, selectedFormLayoutSetName, {
+    hideDefaultError: true,
+  });
 
   const existingCustomReceiptName: string | undefined = useCustomReceiptLayoutSetName(org, app);
   const hideComponents =

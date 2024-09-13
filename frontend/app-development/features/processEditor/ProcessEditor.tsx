@@ -32,7 +32,9 @@ export const ProcessEditor = (): React.ReactElement => {
   const { setSettingsModalOpen, setSettingsModalSelectedTab } = useSettingsModalContext();
   const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
   const { data: appLibData, isLoading: appLibDataLoading } = useAppVersionQuery(org, app);
-  const { mutate: mutateBpmn, isPending: mutateBpmnPending } = useBpmnMutation(org, app);
+  const { mutate: mutateBpmn, isPending: mutateBpmnPending } = useBpmnMutation(org, app, {
+    hideDefaultError: true,
+  });
   const { mutate: mutateLayoutSetId, isPending: mutateLayoutSetIdPending } =
     useUpdateLayoutSetIdMutation(org, app);
   const { mutate: addLayoutSet, isPending: addLayoutSetPending } = useAddLayoutSetMutation(

@@ -16,8 +16,12 @@ import { Link } from '@digdir/designsystemet-react';
 export const App = (): JSX.Element => {
   const { t } = useTranslation();
 
-  const { data: user, isError: isUserError } = useUserQuery();
-  const { data: organizations, isError: isOrganizationsError } = useOrganizationsQuery();
+  const { data: user, isError: isUserError } = useUserQuery({
+    hideDefaultError: true,
+  });
+  const { data: organizations, isError: isOrganizationsError } = useOrganizationsQuery({
+    hideDefaultError: true,
+  });
 
   const componentIsReady = user && organizations;
   const componentHasError = isUserError || isOrganizationsError;

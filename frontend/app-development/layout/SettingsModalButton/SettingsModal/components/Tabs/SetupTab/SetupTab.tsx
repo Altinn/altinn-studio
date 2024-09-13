@@ -18,7 +18,9 @@ export const SetupTab = (): ReactNode => {
     status: appMetadataStatus,
     data: appMetadata,
     error: appMetadataError,
-  } = useAppMetadataQuery(org, app);
+  } = useAppMetadataQuery(org, app, {
+    hideDefaultError: true,
+  });
 
   const displayContent = () => {
     switch (appMetadataStatus) {

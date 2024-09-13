@@ -7,7 +7,7 @@ import type * as mutations from '../api/mutations';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import type { ToastOptions } from 'react-toastify';
 import { ToastContainer, Slide, toast } from 'react-toastify';
-import type { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
 import type { i18n } from 'i18next';
 import { Trans, useTranslation } from 'react-i18next';
 import type { ApiError } from 'app-shared/types/api/ApiError';
@@ -29,6 +29,23 @@ const LOG_OUT_TIMER_MS = 5000;
 
 const ServicesContext = createContext<ServicesContextProps>(undefined);
 
+interface Meta extends Record<string, unknown> {
+  hideDefaultError?: ((error: AxiosError<ApiError>) => void) | boolean;
+}
+
+declare module '@tanstack/react-query' {
+  interface Register {
+    queryMeta: Meta;
+    mutationMeta: Meta;
+  }
+}
+
+declare module '@tanstack/react-query' {
+  interface Register {
+    defaultError: AxiosError<ApiError>;
+  }
+}
+
 const handleError = (
   error: AxiosError<ApiError>,
   t: (key: string) => string,
@@ -36,6 +53,9 @@ const handleError = (
   meta: QueryMeta | MutationMeta,
   logout: () => Promise<void>,
 ): void => {
+  if (error instanceof AxiosError) {
+  }
+
   const renderToast = (key: string, options: ToastOptions = {}) => {
     const errorMessageKey = `api_errors.${key}`;
     if (i18n.exists(errorMessageKey)) {

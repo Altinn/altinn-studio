@@ -18,7 +18,7 @@ export const GenerateModelsButton = ({
 }: GenerateModelsButtonProps) => {
   const { data } = useSchemaQuery(modelPath);
   const { mutate, isPending } = useGenerateModelsMutation(modelPath, {
-    hideDefaultError: (error) => error?.response?.data?.customErrorMessages ?? false,
+    hideDefaultError: (error) => !!error?.response?.data?.customErrorMessages,
   });
   const { t } = useTranslation();
 

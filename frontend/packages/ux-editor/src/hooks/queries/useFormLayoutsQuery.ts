@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import type { UseQueryResult } from '@tanstack/react-query';
+import type { QueryMeta, UseQueryResult } from '@tanstack/react-query';
 import type { IFormLayouts } from '../../types/global';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -9,6 +9,7 @@ export const useFormLayoutsQuery = (
   org: string,
   app: string,
   layoutSetName: string,
+  meta?: QueryMeta,
 ): UseQueryResult<IFormLayouts> => {
   const { getFormLayouts } = useServicesContext();
   return useQuery({
@@ -18,5 +19,6 @@ export const useFormLayoutsQuery = (
         return convertExternalLayoutsToInternalFormat(formLayouts);
       }),
     staleTime: Infinity,
+    meta,
   });
 };

@@ -1,9 +1,8 @@
-import type { UseQueryResult } from '@tanstack/react-query';
+import type { QueryMeta } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { PolicySubject } from '@altinn/policy-editor';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { AxiosError } from 'axios';
 
 const policySubjectOrg: PolicySubject = {
   subjectDescription: '[org]',
@@ -25,10 +24,11 @@ export const useResourcePolicySubjectsQuery = (
   org: string,
   repo: string,
   addOrgToList?: boolean,
-): UseQueryResult<PolicySubject[], AxiosError> => {
+  meta?: QueryMeta,
+) => {
   const { getPolicySubjects } = useServicesContext();
 
-  return useQuery<PolicySubject[], AxiosError>({
+  return useQuery<PolicySubject[]>({
     queryKey: [QueryKey.ResourcePolicySubjects, org, repo],
     queryFn: () => getPolicySubjects(org, repo),
     select: (policySubjects) => {
@@ -39,5 +39,6 @@ export const useResourcePolicySubjectsQuery = (
         policySubjects.push(policySubjectOrg);
       return policySubjects;
     },
+    meta,
   });
 };
