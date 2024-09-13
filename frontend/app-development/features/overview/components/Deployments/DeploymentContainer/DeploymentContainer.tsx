@@ -6,11 +6,10 @@ import {
   useOrgListQuery,
 } from 'app-development/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { Alert } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { DeploymentStatusList } from './DeploymentStatusList';
 import { DeploymentLogList } from './DeploymentLogList';
-import { StudioSpinner } from '@studio/components';
+import { StudioError, StudioSpinner } from '@studio/components';
 import type { Environment } from 'app-shared/types/Environment';
 
 type DeploymentContainerProps = Pick<HTMLAttributes<HTMLDivElement>, 'className'>;
@@ -41,7 +40,7 @@ export const DeploymentContainer = ({ className }: DeploymentContainerProps) => 
     );
 
   if (environmentListIsError || orgsIsError || appDeploymentIsError)
-    return <Alert severity='danger'>{t('overview.deployments_error')}</Alert>;
+    return <StudioError>{t('overview.deployments_error')}</StudioError>;
 
   const selectedOrg = orgs?.[org];
   const orgEnvironmentList: Environment[] = environmentList.filter((env: Environment) =>

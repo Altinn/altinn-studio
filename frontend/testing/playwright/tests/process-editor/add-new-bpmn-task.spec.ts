@@ -59,6 +59,7 @@ test('that the user can drag a new task in to the data model, and assign a data 
   await processEditorPage.waitForTaskToBeVisibleInConfigPanel(dataTask);
   randomGeneratedId = await processEditorPage.getTaskIdFromOpenNewlyAddedTask();
 
+  await processEditorPage.dataModelConfig.clickOnDesignAccordion();
   await processEditorPage.dataModelConfig.waitForAddDataModelButtonWithoutValueToBeVisible();
   await processEditorPage.dataModelConfig.clickOnAddButton();
   await processEditorPage.dataModelConfig.waitForComboboxToBeVisible();
@@ -75,6 +76,7 @@ test('that the user can drag a new task in to the data model, and assign a data 
   const newTaskSelector: string = await bpmnJSQuery.getTaskByIdAndType(randomGeneratedId, 'g');
   await processEditorPage.clickOnTaskInBpmnEditor(newTaskSelector);
 
+  await processEditorPage.dataModelConfig.clickOnDesignAccordion();
   await processEditorPage.dataModelConfig.waitForAddDataModelButtonWithoutValueToBeVisible();
   await processEditorPage.dataModelConfig.clickOnAddButton();
   await processEditorPage.dataModelConfig.waitForComboboxToBeVisible();
@@ -99,6 +101,7 @@ test('that the user can add a sequence arrow between two tasks', async ({ page, 
 
   const initialTaskSelector: string = await bpmnJSQuery.getTaskByIdAndType(initialId, 'g');
   await processEditorPage.clickOnTaskInBpmnEditor(initialTaskSelector);
+  await page.waitForTimeout(500); // avoid double click, causing name editor to open
   await processEditorPage.clickOnTaskInBpmnEditor(initialTaskSelector);
   await processEditorPage.waitForInitialTaskHeaderToBeVisible();
 

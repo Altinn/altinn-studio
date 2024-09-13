@@ -36,8 +36,6 @@ const handleError = (
   meta: QueryMeta | MutationMeta,
   logout: () => Promise<void>,
 ): void => {
-  // TODO : log axios errors
-
   const renderToast = (key: string, options: ToastOptions = {}) => {
     const errorMessageKey = `api_errors.${key}`;
     if (i18n.exists(errorMessageKey)) {
@@ -53,17 +51,11 @@ const handleError = (
   const errorCode = error?.response?.data?.errorCode;
   const unAuthorizedErrorCode = error?.response?.status === ServerCodes.Unauthorized;
 
-  const LogOutUser = () => logout().then(() => window.location.assign(userLogoutAfterPath()));
-
   if (unAuthorizedErrorCode) {
-    renderToast(errorCode || 'Unauthorized', {
-      onClose: LogOutUser,
+    return renderToast(errorCode || 'Unauthorized', {
+      onClose: () => logout().then(() => window.location.assign(userLogoutAfterPath())),
       autoClose: LOG_OUT_TIMER_MS,
     });
-    setTimeout(() => {
-      LogOutUser();
-    }, LOG_OUT_TIMER_MS);
-    return;
   }
 
   if (errorCode) {
