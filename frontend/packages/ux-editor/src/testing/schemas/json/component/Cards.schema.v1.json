@@ -16,27 +16,13 @@
     },
     "grid": {
       "properties": {
-        "xs": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "sm": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "md": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "lg": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "xl": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "labelGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        },
-        "innerGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        }
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
     },
     "pageBreak": {
@@ -73,9 +59,7 @@
       "default": false,
       "$ref": "expression.schema.v1.json#/definitions/boolean"
     },
-    "type": {
-      "const": "Cards"
-    },
+    "type": { "const": "Cards" },
     "textResourceBindings": {
       "title": "TRBSummarizable",
       "type": "object",
@@ -131,11 +115,7 @@
             "description": "Media to display on the top/bottom of the card (must reference an Image, Audio or Video component",
             "type": "string"
           },
-          "title": {
-            "title": "Title",
-            "description": "Title of the card",
-            "type": "string"
-          },
+          "title": { "title": "Title", "description": "Title of the card", "type": "string" },
           "description": {
             "title": "Description/body text",
             "description": "Full text displayed underneath the title, above any component children",
@@ -150,9 +130,7 @@
             "title": "Children",
             "description": "Child component IDs to show inside the card",
             "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "items": { "type": "string" }
           }
         },
         "additionalProperties": false

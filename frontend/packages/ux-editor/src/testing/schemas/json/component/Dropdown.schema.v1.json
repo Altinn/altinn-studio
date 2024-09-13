@@ -16,27 +16,13 @@
     },
     "grid": {
       "properties": {
-        "xs": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "sm": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "md": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "lg": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "xl": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "labelGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        },
-        "innerGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        }
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
     },
     "pageBreak": {
@@ -112,18 +98,14 @@
       "description": "A mapping of key-value pairs (usually used for mapping a path in the data model to a query string parameter).",
       "type": "object",
       "properties": {},
-      "additionalProperties": {
-        "type": "string"
-      }
+      "additionalProperties": { "type": "string" }
     },
     "queryParameters": {
       "title": "Query parameters",
       "description": "A mapping of query string parameters to values. Will be appended to the URL when fetching options.",
       "type": "object",
       "properties": {},
-      "additionalProperties": {
-        "type": "string"
-      }
+      "additionalProperties": { "type": "string" }
     },
     "options": {
       "title": "Static options",
@@ -131,39 +113,20 @@
       "type": "array",
       "items": {
         "title": "IRawOption",
-        "examples": [
-          {
-            "label": "",
-            "value": ""
-          }
-        ],
+        "examples": [{ "label": "", "value": "" }],
         "type": "object",
         "properties": {
-          "label": {
-            "type": "string"
-          },
+          "label": { "type": "string" },
           "value": {
             "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "number"
-              },
-              {
-                "type": "boolean"
-              },
-              {
-                "const": null
-              }
+              { "type": "string" },
+              { "type": "number" },
+              { "type": "boolean" },
+              { "const": null }
             ]
           },
-          "description": {
-            "type": "string"
-          },
-          "helpText": {
-            "type": "string"
-          }
+          "description": { "type": "string" },
+          "helpText": { "type": "string" }
         },
         "required": ["label", "value"],
         "additionalProperties": false
@@ -236,9 +199,7 @@
       },
       "additionalProperties": false
     },
-    "type": {
-      "const": "Dropdown"
-    },
+    "type": { "const": "Dropdown" },
     "textResourceBindings": {
       "properties": {
         "title": {
@@ -294,12 +255,8 @@
       "description": "Describes the location in the data model where the component should store its value(s). A simple binding is used for components that only store a single value, usually a string.",
       "type": "object",
       "properties": {
-        "simpleBinding": {
-          "type": "string"
-        },
-        "label": {
-          "type": "string"
-        },
+        "simpleBinding": { "type": "string" },
+        "label": { "type": "string" },
         "metadata": {
           "description": "Describes the location where metadata for the option based component should be stored in the datamodel.",
           "type": "string"

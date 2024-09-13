@@ -16,27 +16,13 @@
     },
     "grid": {
       "properties": {
-        "xs": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "sm": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "md": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "lg": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "xl": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "labelGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        },
-        "innerGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        }
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
     },
     "pageBreak": {
@@ -73,26 +59,16 @@
       },
       "additionalProperties": false
     },
-    "type": {
-      "const": "InstanceInformation"
-    },
+    "type": { "const": "InstanceInformation" },
     "elements": {
       "title": "Elements",
       "description": "Which elements to show in the instance information",
       "type": "object",
       "properties": {
-        "dateSent": {
-          "type": "boolean"
-        },
-        "sender": {
-          "type": "boolean"
-        },
-        "receiver": {
-          "type": "boolean"
-        },
-        "referenceNumber": {
-          "type": "boolean"
-        }
+        "dateSent": { "type": "boolean" },
+        "sender": { "type": "boolean" },
+        "receiver": { "type": "boolean" },
+        "referenceNumber": { "type": "boolean" }
       },
       "additionalProperties": false
     },

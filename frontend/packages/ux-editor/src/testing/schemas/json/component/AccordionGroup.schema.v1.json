@@ -16,27 +16,13 @@
     },
     "grid": {
       "properties": {
-        "xs": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "sm": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "md": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "lg": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "xl": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "labelGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        },
-        "innerGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        }
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
     },
     "pageBreak": {
@@ -73,9 +59,7 @@
       "default": false,
       "$ref": "expression.schema.v1.json#/definitions/boolean"
     },
-    "type": {
-      "const": "AccordionGroup"
-    },
+    "type": { "const": "AccordionGroup" },
     "textResourceBindings": {
       "properties": {
         "title": {
@@ -99,9 +83,7 @@
       "title": "Children",
       "description": "List of child component IDs to show inside the Accordion (limited to a few component types)",
       "type": "array",
-      "items": {
-        "type": "string"
-      }
+      "items": { "type": "string" }
     }
   },
   "required": ["id", "type", "children"],

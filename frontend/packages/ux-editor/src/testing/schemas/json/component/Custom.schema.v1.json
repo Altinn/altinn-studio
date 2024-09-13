@@ -16,27 +16,13 @@
     },
     "grid": {
       "properties": {
-        "xs": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "sm": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "md": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "lg": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "xl": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "labelGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        },
-        "innerGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        }
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
     },
     "pageBreak": {
@@ -102,9 +88,7 @@
       "default": false,
       "$ref": "expression.schema.v1.json#/definitions/boolean"
     },
-    "type": {
-      "const": "Custom"
-    },
+    "type": { "const": "Custom" },
     "textResourceBindings": {
       "properties": {
         "title": {
@@ -143,9 +127,7 @@
       "title": "IDataModelBindingsForCustom",
       "type": "object",
       "properties": {},
-      "additionalProperties": {
-        "type": "string"
-      }
+      "additionalProperties": { "type": "string" }
     },
     "tagName": {
       "title": "Tag name",

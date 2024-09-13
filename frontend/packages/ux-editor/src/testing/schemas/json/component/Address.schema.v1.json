@@ -16,27 +16,13 @@
     },
     "grid": {
       "properties": {
-        "xs": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "sm": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "md": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "lg": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "xl": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "labelGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        },
-        "innerGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        }
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
     },
     "pageBreak": {
@@ -114,9 +100,7 @@
       },
       "additionalProperties": false
     },
-    "type": {
-      "const": "Address"
-    },
+    "type": { "const": "Address" },
     "textResourceBindings": {
       "properties": {
         "title": {
@@ -175,21 +159,11 @@
       "title": "IDataModelBindingsForAddress",
       "type": "object",
       "properties": {
-        "address": {
-          "type": "string"
-        },
-        "zipCode": {
-          "type": "string"
-        },
-        "postPlace": {
-          "type": "string"
-        },
-        "careOf": {
-          "type": "string"
-        },
-        "houseNumber": {
-          "type": "string"
-        }
+        "address": { "type": "string" },
+        "zipCode": { "type": "string" },
+        "postPlace": { "type": "string" },
+        "careOf": { "type": "string" },
+        "houseNumber": { "type": "string" }
       },
       "required": ["address", "zipCode", "postPlace"],
       "additionalProperties": false

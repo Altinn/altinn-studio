@@ -16,27 +16,13 @@
     },
     "grid": {
       "properties": {
-        "xs": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "sm": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "md": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "lg": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "xl": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "labelGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        },
-        "innerGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        }
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
     },
     "pageBreak": {
@@ -114,9 +100,7 @@
       },
       "additionalProperties": false
     },
-    "type": {
-      "const": "Input"
-    },
+    "type": { "const": "Input" },
     "textResourceBindings": {
       "properties": {
         "title": {
@@ -175,11 +159,7 @@
       "title": "Data model binding",
       "description": "Describes the location in the data model where the component should store its value(s). A simple binding is used for components that only store a single value, usually a string.",
       "type": "object",
-      "properties": {
-        "simpleBinding": {
-          "type": "string"
-        }
-      },
+      "properties": { "simpleBinding": { "type": "string" } },
       "required": ["simpleBinding"],
       "additionalProperties": false
     },
@@ -192,9 +172,7 @@
     "formatting": {
       "title": "IFormatting",
       "examples": [
-        {
-          "currency": "NOK"
-        },
+        { "currency": "NOK" },
         {
           "number": {
             "thousandSeparator": " ",
@@ -417,18 +395,11 @@
         },
         "number": {
           "anyOf": [
-            {
-              "$ref": "#/definitions/PatternFormatProps"
-            },
-            {
-              "$ref": "#/definitions/NumberFormatProps"
-            }
+            { "$ref": "#/definitions/PatternFormatProps" },
+            { "$ref": "#/definitions/NumberFormatProps" }
           ]
         },
-        "align": {
-          "default": "left",
-          "enum": ["right", "center", "left"]
-        }
+        "align": { "default": "left", "enum": ["right", "center", "left"] }
       },
       "additionalProperties": false
     },

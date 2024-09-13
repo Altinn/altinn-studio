@@ -16,27 +16,13 @@
     },
     "grid": {
       "properties": {
-        "xs": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "sm": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "md": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "lg": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "xl": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "labelGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        },
-        "innerGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        }
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
     },
     "pageBreak": {
@@ -114,9 +100,7 @@
       },
       "additionalProperties": false
     },
-    "type": {
-      "const": "Map"
-    },
+    "type": { "const": "Map" },
     "textResourceBindings": {
       "properties": {
         "title": {
@@ -165,9 +149,7 @@
       "title": "IDataModelBindingsForMap",
       "type": "object",
       "properties": {
-        "simpleBinding": {
-          "type": "string"
-        },
+        "simpleBinding": { "type": "string" },
         "geometries": {
           "description": "Should point to an array of objects like {data: string, label: string}",
           "type": "string"
@@ -195,9 +177,7 @@
             "title": "Subdomains",
             "description": "List of subdomains. Used for balancing the load on different map tiling servers. A random one will replace {s} in the defined url.",
             "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "items": { "type": "string" }
           }
         },
         "required": ["url"],
@@ -208,20 +188,11 @@
       "title": "Center location",
       "description": "Center location of the map",
       "type": "object",
-      "properties": {
-        "latitude": {
-          "type": "number"
-        },
-        "longitude": {
-          "type": "number"
-        }
-      },
+      "properties": { "latitude": { "type": "number" }, "longitude": { "type": "number" } },
       "required": ["latitude", "longitude"],
       "additionalProperties": false
     },
-    "zoom": {
-      "type": "number"
-    },
+    "zoom": { "type": "number" },
     "geometryType": {
       "title": "IGeometryType",
       "default": "GeoJSON",

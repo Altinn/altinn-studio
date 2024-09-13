@@ -16,27 +16,13 @@
     },
     "grid": {
       "properties": {
-        "xs": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "sm": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "md": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "lg": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "xl": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "labelGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        },
-        "innerGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        }
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
     },
     "pageBreak": {
@@ -61,9 +47,7 @@
       },
       "additionalProperties": false
     },
-    "type": {
-      "const": "NavigationButtons"
-    },
+    "type": { "const": "NavigationButtons" },
     "textResourceBindings": {
       "type": "object",
       "properties": {
@@ -95,9 +79,7 @@
           "description": "Which pages should be validated when the next button is clicked.",
           "enum": ["current", "currentAndPrevious", "all"]
         },
-        "show": {
-          "$ref": "#/definitions/AllowedValidationMasks"
-        }
+        "show": { "$ref": "#/definitions/AllowedValidationMasks" }
       },
       "required": ["page", "show"],
       "additionalProperties": false
@@ -111,9 +93,7 @@
           "description": "Which pages should be validated when the next button is clicked.",
           "enum": ["current", "currentAndPrevious", "all"]
         },
-        "show": {
-          "$ref": "#/definitions/AllowedValidationMasks"
-        }
+        "show": { "$ref": "#/definitions/AllowedValidationMasks" }
       },
       "required": ["page", "show"],
       "additionalProperties": false

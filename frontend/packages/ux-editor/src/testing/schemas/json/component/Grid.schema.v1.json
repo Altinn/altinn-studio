@@ -16,27 +16,13 @@
     },
     "grid": {
       "properties": {
-        "xs": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "sm": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "md": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "lg": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "xl": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "labelGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        },
-        "innerGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        }
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
     },
     "pageBreak": {
@@ -85,9 +71,7 @@
       },
       "additionalProperties": false
     },
-    "type": {
-      "const": "Grid"
-    },
+    "type": { "const": "Grid" },
     "textResourceBindings": {
       "properties": {
         "title": {
@@ -125,14 +109,7 @@
           {
             "header": false,
             "readOnly": false,
-            "cells": [
-              {
-                "text": "hello.world"
-              },
-              {
-                "component": "myOtherComponent"
-              }
-            ]
+            "cells": [{ "text": "hello.world" }, { "component": "myOtherComponent" }]
           }
         ]
       ],
@@ -141,26 +118,14 @@
         "title": "GridRow",
         "type": "object",
         "properties": {
-          "header": {
-            "title": "Is header row?",
-            "default": false,
-            "type": "boolean"
-          },
-          "readOnly": {
-            "title": "Is row read-only?",
-            "default": false,
-            "type": "boolean"
-          },
-          "columnOptions": {
-            "$ref": "#/definitions/ITableColumnProperties"
-          },
+          "header": { "title": "Is header row?", "default": false, "type": "boolean" },
+          "readOnly": { "title": "Is row read-only?", "default": false, "type": "boolean" },
+          "columnOptions": { "$ref": "#/definitions/ITableColumnProperties" },
           "cells": {
             "title": "Cells in table row",
             "description": "The list of cells in this row",
             "type": "array",
-            "items": {
-              "$ref": "#/definitions/GridCell"
-            }
+            "items": { "$ref": "#/definitions/GridCell" }
           }
         },
         "required": ["cells"],

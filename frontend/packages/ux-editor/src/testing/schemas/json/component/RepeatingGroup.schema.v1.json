@@ -16,27 +16,13 @@
     },
     "grid": {
       "properties": {
-        "xs": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "sm": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "md": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "lg": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "xl": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "labelGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        },
-        "innerGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        }
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
     },
     "pageBreak": {
@@ -73,9 +59,7 @@
       "default": false,
       "$ref": "expression.schema.v1.json#/definitions/boolean"
     },
-    "type": {
-      "const": "RepeatingGroup"
-    },
+    "type": { "const": "RepeatingGroup" },
     "textResourceBindings": {
       "properties": {
         "title": {
@@ -144,9 +128,7 @@
       "title": "Children",
       "description": "List of child component IDs to show inside (will be repeated according to the number of rows in the data model binding)",
       "type": "array",
-      "items": {
-        "type": "string"
-      }
+      "items": { "type": "string" }
     },
     "rowsBefore": {
       "title": "Rows in Grid or Grid-like component",
@@ -156,14 +138,7 @@
           {
             "header": false,
             "readOnly": false,
-            "cells": [
-              {
-                "text": "hello.world"
-              },
-              {
-                "component": "myOtherComponent"
-              }
-            ]
+            "cells": [{ "text": "hello.world" }, { "component": "myOtherComponent" }]
           }
         ]
       ],
@@ -172,26 +147,14 @@
         "title": "GridRow",
         "type": "object",
         "properties": {
-          "header": {
-            "title": "Is header row?",
-            "default": false,
-            "type": "boolean"
-          },
-          "readOnly": {
-            "title": "Is row read-only?",
-            "default": false,
-            "type": "boolean"
-          },
-          "columnOptions": {
-            "$ref": "#/definitions/ITableColumnProperties"
-          },
+          "header": { "title": "Is header row?", "default": false, "type": "boolean" },
+          "readOnly": { "title": "Is row read-only?", "default": false, "type": "boolean" },
+          "columnOptions": { "$ref": "#/definitions/ITableColumnProperties" },
           "cells": {
             "title": "Cells in table row",
             "description": "The list of cells in this row",
             "type": "array",
-            "items": {
-              "$ref": "#/definitions/GridCell"
-            }
+            "items": { "$ref": "#/definitions/GridCell" }
           }
         },
         "required": ["cells"],
@@ -206,14 +169,7 @@
           {
             "header": false,
             "readOnly": false,
-            "cells": [
-              {
-                "text": "hello.world"
-              },
-              {
-                "component": "myOtherComponent"
-              }
-            ]
+            "cells": [{ "text": "hello.world" }, { "component": "myOtherComponent" }]
           }
         ]
       ],
@@ -222,26 +178,14 @@
         "title": "GridRow",
         "type": "object",
         "properties": {
-          "header": {
-            "title": "Is header row?",
-            "default": false,
-            "type": "boolean"
-          },
-          "readOnly": {
-            "title": "Is row read-only?",
-            "default": false,
-            "type": "boolean"
-          },
-          "columnOptions": {
-            "$ref": "#/definitions/ITableColumnProperties"
-          },
+          "header": { "title": "Is header row?", "default": false, "type": "boolean" },
+          "readOnly": { "title": "Is row read-only?", "default": false, "type": "boolean" },
+          "columnOptions": { "$ref": "#/definitions/ITableColumnProperties" },
           "cells": {
             "title": "Cells in table row",
             "description": "The list of cells in this row",
             "type": "array",
-            "items": {
-              "$ref": "#/definitions/GridCell"
-            }
+            "items": { "$ref": "#/definitions/GridCell" }
           }
         },
         "required": ["cells"],
@@ -339,17 +283,7 @@
           "title": "Open by default",
           "description": "If set to true, a row of the repeating group will be opened by default, if the group has no rows already. If set to \"first\" or \"last\", the first or last row will be opened by default",
           "default": false,
-          "anyOf": [
-            {
-              "type": "boolean"
-            },
-            {
-              "const": "first"
-            },
-            {
-              "const": "last"
-            }
-          ]
+          "anyOf": [{ "type": "boolean" }, { "const": "first" }, { "const": "last" }]
         },
         "alertOnDelete": {
           "title": "Alert on delete",
@@ -376,12 +310,7 @@
       "title": "Pagination options",
       "description": "Pagination options for the repeating group rows.",
       "type": "object",
-      "properties": {
-        "rowsPerPage": {
-          "type": "integer",
-          "minimum": 1
-        }
-      },
+      "properties": { "rowsPerPage": { "type": "integer", "minimum": 1 } },
       "required": ["rowsPerPage"],
       "additionalProperties": false
     },
@@ -400,23 +329,13 @@
       "title": "Table headers",
       "description": "Array of component IDs that should be displayed as table headers. If not defined, all components referenced in the \"children\" property will be displayed as table headers",
       "type": "array",
-      "items": {
-        "type": "string"
-      }
+      "items": { "type": "string" }
     },
     "tableColumns": {
-      "examples": [
-        {
-          "childComponent1": {
-            "width": "auto"
-          }
-        }
-      ],
+      "examples": [{ "childComponent1": { "width": "auto" } }],
       "type": "object",
       "properties": {},
-      "additionalProperties": {
-        "$ref": "#/definitions/IGroupColumnFormatting"
-      }
+      "additionalProperties": { "$ref": "#/definitions/IGroupColumnFormatting" }
     },
     "hiddenRow": {
       "title": "Hidden row?",

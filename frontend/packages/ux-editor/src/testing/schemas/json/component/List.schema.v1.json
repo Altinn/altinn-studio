@@ -16,27 +16,13 @@
     },
     "grid": {
       "properties": {
-        "xs": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "sm": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "md": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "lg": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "xl": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "labelGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        },
-        "innerGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        }
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
     },
     "pageBreak": {
@@ -114,9 +100,7 @@
       },
       "additionalProperties": false
     },
-    "type": {
-      "const": "List"
-    },
+    "type": { "const": "List" },
     "textResourceBindings": {
       "properties": {
         "title": {
@@ -165,32 +149,21 @@
       "title": "IDataModelBindingsForList",
       "type": "object",
       "properties": {},
-      "additionalProperties": {
-        "type": "string"
-      }
+      "additionalProperties": { "type": "string" }
     },
     "tableHeaders": {
       "title": "Table Headers",
       "description": "An object where the fields in the datalist is mapped to headers. Must correspond to datalist representing a row. Can be added to the resource files to change between languages.",
-      "examples": [
-        {
-          "productId": "product.id",
-          "description": "Beskrivelse av produkt"
-        }
-      ],
+      "examples": [{ "productId": "product.id", "description": "Beskrivelse av produkt" }],
       "type": "object",
       "properties": {},
-      "additionalProperties": {
-        "type": "string"
-      }
+      "additionalProperties": { "type": "string" }
     },
     "sortableColumns": {
       "title": "Sortable columns",
       "description": "An array of column keys that can be sorted (note that your API backend needs to support this as well). The column has to be represented by the the header name that is written in tableHeaders.",
       "type": "array",
-      "items": {
-        "type": "string"
-      }
+      "items": { "type": "string" }
     },
     "pagination": {
       "title": "Pagination",
@@ -201,9 +174,7 @@
           "title": "Alternatives",
           "description": "List of page sizes the user can choose from. Make sure to test the performance of the largest number of items per page you are allowing.",
           "type": "array",
-          "items": {
-            "type": "number"
-          }
+          "items": { "type": "number" }
         },
         "default": {
           "title": "Default",
@@ -230,9 +201,7 @@
       "description": "A mapping of key-value pairs (usually used for mapping a path in the data model to a query string parameter).",
       "type": "object",
       "properties": {},
-      "additionalProperties": {
-        "type": "string"
-      }
+      "additionalProperties": { "type": "string" }
     },
     "bindingToShowInSummary": {
       "title": "Binding to show in summary",
@@ -243,9 +212,7 @@
       "title": "Table Headers Mobile",
       "description": "An array of strings representing the columns that is chosen to be shown in the mobile view.",
       "type": "array",
-      "items": {
-        "type": "string"
-      }
+      "items": { "type": "string" }
     }
   },
   "required": ["id", "type", "tableHeaders", "dataListId"],

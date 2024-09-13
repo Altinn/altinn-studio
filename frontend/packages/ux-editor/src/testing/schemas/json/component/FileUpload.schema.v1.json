@@ -16,27 +16,13 @@
     },
     "grid": {
       "properties": {
-        "xs": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "sm": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "md": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "lg": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "xl": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "labelGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        },
-        "innerGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        }
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
     },
     "pageBreak": {
@@ -114,9 +100,7 @@
       },
       "additionalProperties": false
     },
-    "type": {
-      "const": "FileUpload"
-    },
+    "type": { "const": "FileUpload" },
     "textResourceBindings": {
       "properties": {
         "title": {
@@ -167,11 +151,7 @@
           "title": "Data model binding",
           "description": "Describes the location in the data model where the component should store its value(s). A simple binding is used for components that only store a single value, usually a string.",
           "type": "object",
-          "properties": {
-            "simpleBinding": {
-              "type": "string"
-            }
-          },
+          "properties": { "simpleBinding": { "type": "string" } },
           "required": ["simpleBinding"],
           "additionalProperties": false
         },
@@ -179,11 +159,7 @@
           "title": "Data model binding",
           "description": "Describes the location in the data model where the component should store its value(s). A list binding should be pointed to an array structure in the data model, and is used for components that store multiple simple values (e.g. a list of strings).",
           "type": "object",
-          "properties": {
-            "list": {
-              "type": "string"
-            }
-          },
+          "properties": { "list": { "type": "string" } },
           "required": ["list"],
           "additionalProperties": false
         }
@@ -204,10 +180,7 @@
       "description": "Sets the minimum number of attachments required to upload",
       "type": "integer"
     },
-    "displayMode": {
-      "enum": ["simple", "list"],
-      "type": "string"
-    },
+    "displayMode": { "enum": ["simple", "list"], "type": "string" },
     "hasCustomFileEndings": {
       "title": "Has custom file endings",
       "description": "Boolean value indicating if the component has valid file endings",
@@ -218,17 +191,7 @@
       "title": "Valid file endings",
       "description": "A separated string of valid file endings to upload. If not set all endings are accepted.",
       "examples": [".csv", ".doc", ".docx", ".gif", ".jpeg", ".pdf", ".txt"],
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      ]
+      "anyOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
     },
     "alertOnDelete": {
       "title": "Alert on delete",

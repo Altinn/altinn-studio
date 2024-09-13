@@ -16,27 +16,13 @@
     },
     "grid": {
       "properties": {
-        "xs": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "sm": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "md": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "lg": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "xl": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "labelGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        },
-        "innerGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        }
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
     },
     "pageBreak": {
@@ -61,9 +47,7 @@
       },
       "additionalProperties": false
     },
-    "type": {
-      "const": "Image"
-    },
+    "type": { "const": "Image" },
     "textResourceBindings": {
       "type": "object",
       "properties": {
@@ -84,17 +68,9 @@
       "title": "IImage",
       "type": "object",
       "properties": {
-        "src": {
-          "$ref": "#/definitions/IImageSrc"
-        },
-        "width": {
-          "title": "Image width",
-          "examples": ["100%"],
-          "type": "string"
-        },
-        "align": {
-          "$ref": "#/definitions/GridJustification"
-        }
+        "src": { "$ref": "#/definitions/IImageSrc" },
+        "width": { "title": "Image width", "examples": ["100%"], "type": "string" },
+        "align": { "$ref": "#/definitions/GridJustification" }
       },
       "required": ["src", "width", "align"],
       "additionalProperties": false

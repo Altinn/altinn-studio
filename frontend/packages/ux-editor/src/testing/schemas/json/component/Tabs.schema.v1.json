@@ -16,27 +16,13 @@
     },
     "grid": {
       "properties": {
-        "xs": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "sm": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "md": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "lg": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "xl": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "labelGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        },
-        "innerGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        }
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
     },
     "pageBreak": {
@@ -73,9 +59,7 @@
       "default": false,
       "$ref": "expression.schema.v1.json#/definitions/boolean"
     },
-    "type": {
-      "const": "Tabs"
-    },
+    "type": { "const": "Tabs" },
     "textResourceBindings": {
       "title": "TRBSummarizable",
       "type": "object",
@@ -92,39 +76,22 @@
         }
       }
     },
-    "size": {
-      "default": "medium",
-      "enum": ["small", "medium", "large"],
-      "type": "string"
-    },
-    "defaultTab": {
-      "type": "string"
-    },
+    "size": { "default": "medium", "enum": ["small", "medium", "large"], "type": "string" },
+    "defaultTab": { "type": "string" },
     "tabs": {
       "type": "array",
       "items": {
         "title": "TabConfig",
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string"
-          },
-          "title": {
-            "title": "Title",
-            "description": "Title of the tab",
-            "type": "string"
-          },
-          "icon": {
-            "examples": ["https://example.com/icon.svg"],
-            "type": "string"
-          },
+          "id": { "type": "string" },
+          "title": { "title": "Title", "description": "Title of the tab", "type": "string" },
+          "icon": { "examples": ["https://example.com/icon.svg"], "type": "string" },
           "children": {
             "title": "Children",
             "description": "List of component IDs that should be displayed in the Tab",
             "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "items": { "type": "string" }
           }
         },
         "required": ["id", "title", "children"],

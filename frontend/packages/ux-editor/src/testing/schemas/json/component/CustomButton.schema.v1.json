@@ -16,27 +16,13 @@
     },
     "grid": {
       "properties": {
-        "xs": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "sm": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "md": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "lg": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "xl": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "labelGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        },
-        "innerGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        }
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
     },
     "pageBreak": {
@@ -61,20 +47,14 @@
       },
       "additionalProperties": false
     },
-    "type": {
-      "const": "CustomButton"
-    },
+    "type": { "const": "CustomButton" },
     "actions": {
       "type": "array",
       "items": {
         "title": "CustomAction",
         "anyOf": [
-          {
-            "$ref": "#/definitions/ClientAction"
-          },
-          {
-            "$ref": "#/definitions/ServerAction"
-          }
+          { "$ref": "#/definitions/ClientAction" },
+          { "$ref": "#/definitions/ServerAction" }
         ]
       }
     },

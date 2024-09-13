@@ -16,27 +16,13 @@
     },
     "grid": {
       "properties": {
-        "xs": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "sm": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "md": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "lg": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "xl": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "labelGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        },
-        "innerGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        }
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
     },
     "pageBreak": {
@@ -61,9 +47,7 @@
       },
       "additionalProperties": false
     },
-    "type": {
-      "const": "Number"
-    },
+    "type": { "const": "Number" },
     "textResourceBindings": {
       "title": "TRBLabel",
       "type": "object",
@@ -88,9 +72,7 @@
     "formatting": {
       "title": "IFormatting",
       "examples": [
-        {
-          "currency": "NOK"
-        },
+        { "currency": "NOK" },
         {
           "number": {
             "thousandSeparator": " ",
@@ -313,33 +295,17 @@
         },
         "number": {
           "anyOf": [
-            {
-              "$ref": "#/definitions/PatternFormatProps"
-            },
-            {
-              "$ref": "#/definitions/NumberFormatProps"
-            }
+            { "$ref": "#/definitions/PatternFormatProps" },
+            { "$ref": "#/definitions/NumberFormatProps" }
           ]
         },
-        "align": {
-          "default": "left",
-          "enum": ["right", "center", "left"]
-        }
+        "align": { "default": "left", "enum": ["right", "center", "left"] }
       },
       "additionalProperties": false
     },
-    "value": {
-      "$ref": "expression.schema.v1.json#/definitions/number"
-    },
-    "direction": {
-      "default": "horizontal",
-      "enum": ["horizontal", "vertical"],
-      "type": "string"
-    },
-    "icon": {
-      "examples": ["https://example.com/icon.svg"],
-      "type": "string"
-    }
+    "value": { "$ref": "expression.schema.v1.json#/definitions/number" },
+    "direction": { "default": "horizontal", "enum": ["horizontal", "vertical"], "type": "string" },
+    "icon": { "examples": ["https://example.com/icon.svg"], "type": "string" }
   },
   "required": ["id", "type", "value"],
   "title": "Number component schema"

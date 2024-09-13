@@ -16,27 +16,13 @@
     },
     "grid": {
       "properties": {
-        "xs": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "sm": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "md": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "lg": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "xl": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "labelGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        },
-        "innerGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        }
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
     },
     "pageBreak": {
@@ -61,9 +47,7 @@
       },
       "additionalProperties": false
     },
-    "type": {
-      "const": "Text"
-    },
+    "type": { "const": "Text" },
     "textResourceBindings": {
       "title": "TRBLabel",
       "type": "object",
@@ -85,18 +69,9 @@
         }
       }
     },
-    "value": {
-      "$ref": "expression.schema.v1.json#/definitions/string"
-    },
-    "direction": {
-      "default": "horizontal",
-      "enum": ["horizontal", "vertical"],
-      "type": "string"
-    },
-    "icon": {
-      "examples": ["https://example.com/icon.svg"],
-      "type": "string"
-    }
+    "value": { "$ref": "expression.schema.v1.json#/definitions/string" },
+    "direction": { "default": "horizontal", "enum": ["horizontal", "vertical"], "type": "string" },
+    "icon": { "examples": ["https://example.com/icon.svg"], "type": "string" }
   },
   "required": ["id", "type", "value"],
   "title": "Text component schema"
