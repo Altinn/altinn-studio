@@ -333,7 +333,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             using HttpResponseMessage response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
 
-            return new StatusCodeResult(201);
+            return new StatusCodeResult(202);
         }
 
         public async Task<ActionResult> SetServiceEditionExpired(string serviceCode, int serviceEditionCode, string environment)
@@ -350,7 +350,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             using HttpResponseMessage response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
 
-            return new StatusCodeResult(200);
+            return new StatusCodeResult(204);
         }
 
         // RRR
