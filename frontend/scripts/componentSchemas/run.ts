@@ -42,7 +42,7 @@ const generateComponentSchema = (name: string, layoutSchema: any, version: strin
 
   // The v4 schema has external definitions. This code block is needed to fetch v4 properties correctly.
   const externalDefinitionName = definitionName + 'External';
-  if (version == "v4" && layoutSchema.definitions[externalDefinitionName]?.allOf) {
+  if (version == 'v4' && layoutSchema.definitions[externalDefinitionName]?.allOf) {
     componentSchema.allOf = layoutSchema.definitions[externalDefinitionName].allOf;
   }
 
