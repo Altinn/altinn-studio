@@ -4,6 +4,7 @@ using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Altinn.App.Actions;
 using Altinn.App.Core.Internal.Registers;
 
 namespace Altinn.App.logic.DataProcessing
@@ -40,6 +41,8 @@ namespace Altinn.App.logic.DataProcessing
 
                 var selectedGeometries = "1,2,3,4,5";
                 model.MapData = new() { Location = "", Geometries = GeometryData.GetGeometryData(selectedGeometries), Selected = selectedGeometries };
+
+                ConflictingOptionsReset.SetDefaultData(model);
             }
 
             if (data.GetType() == typeof(NestedGroup))

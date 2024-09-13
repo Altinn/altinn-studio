@@ -795,6 +795,10 @@
           {
             "label": "Kart",
             "value": "map"
+          },
+          {
+            "label": "Conflicting options",
+            "value": "conflicting-options"
           }
         ]
       },

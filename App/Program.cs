@@ -21,6 +21,7 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
 {
     // Register your apps custom service implementations here.
     services.AddTransient<IAppOptionsProvider, ReferenceOptions>();
+    services.AddTransient<IAppOptionsProvider, AnimalColorsOptions>();
     services.AddTransient<IInstanceAppOptionsProvider, TestOptionsProvider>();
     services.AddTransient<IDataProcessor, DataProcessor>();
     services.AddTransient<IInstantiationProcessor, InstantiationProcessor>();
@@ -30,6 +31,7 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
     services.AddTransient<IDataListProvider, ListCases>();
     services.AddTransient<IAppMetadata, CustomMetaData>();
     services.AddTransient<IUserAction, FillAction>();
+    services.AddTransient<IUserAction, ConflictingOptionsReset>();
     services.AddTransient<IUserAction, SortPetsAction>();
     services.AddTransient<IUserAction, GeneratePetsAction>();
     services.AddMimeTypeValidation();

@@ -1,0 +1,254 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": [
+      "not",
+      ["commaContains", ["dataModel", "ChooseExtraPages"], "conflicting-options"]
+    ],
+    "layout": [
+      {
+        "id": "conflictingOptionsNavBar",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "isForeign",
+        "type": "RadioButtons",
+        "dataModelBindings": {
+          "simpleBinding": "ConflictingOptions.IsForeign"
+        },
+        "textResourceBindings": {
+          "title": "Er dyrene utenlandske?"
+        },
+        "options": [
+          {
+            "value": true,
+            "label": "Ja"
+          },
+          {
+            "value": false,
+            "label": "Nei"
+          }
+        ]
+      },
+      {
+        "id": "animals",
+        "type": "RepeatingGroup",
+        "textResourceBindings": {
+          "title": "Dyr",
+          "description": "I listen under burde jo egentlig antall bein bare være en kolonne, og man burde ikke vise en option-verdi når verdien i datamodellen ikke er gyldig. Det mest alvorlige problemet er at verdier forsvinner om du bytter frem og tilbake i radioknappen over."
+        },
+        "dataModelBindings": {
+          "group": "ConflictingOptions.Animals"
+        },
+        "children": [
+          "animalName",
+          "animalNumLegs",
+          "animalNumLegsForeign",
+          "animalColor",
+          "animalComments",
+          "animalCommentLabels"
+        ],
+        "edit": {
+          "addButton": false,
+          "deleteButton": false
+        },
+        "maxCount": 99999
+      },
+      {
+        "id": "animalName",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Type"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "ConflictingOptions.Animals.Name"
+        }
+      },
+      {
+        "id": "animalNumLegs",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Antall bein",
+          "description": "Norske dyr har alltid et partall antall bein, det vet jo alle."
+        },
+        "dataModelBindings": {
+          "simpleBinding": "ConflictingOptions.Animals.NumLegs"
+        },
+        "options": [
+          {
+            "value": 2,
+            "label": "to"
+          },
+          {
+            "value": 4,
+            "label": "fire"
+          },
+          {
+            "value": 6,
+            "label": "seks"
+          },
+          {
+            "value": 8,
+            "label": "åtte"
+          }
+        ],
+        "hidden": ["equals", ["dataModel", "ConflictingOptions.IsForeign"], true]
+      },
+      {
+        "id": "animalNumLegsForeign",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Antall bein (utland)",
+          "description": "Utenlandske dyr har alltid et oddetall antall bein, det vet jo alle."
+        },
+        "dataModelBindings": {
+          "simpleBinding": "ConflictingOptions.Animals.NumLegs"
+        },
+        "options": [
+          {
+            "value": 3,
+            "label": "tre"
+          },
+          {
+            "value": 5,
+            "label": "fem"
+          },
+          {
+              "value": 7,
+              "label": "syv"
+          },
+          {
+              "value": 9,
+              "label": "ni"
+          }
+        ],
+        "hidden": ["equals", ["dataModel", "ConflictingOptions.IsForeign"], false]
+      },
+      {
+        "id": "animalColor",
+        "type": "MultipleSelect",
+        "textResourceBindings": {
+          "title": "Farger",
+          "description": "Norske dyr kan være lilla og rosa, mens utenlandske dyr kan være brune og oransje. Alle de andre fargene er felles."
+        },
+        "dataModelBindings": {
+          "simpleBinding": "ConflictingOptions.Animals.Color"
+        },
+        "optionsId": "animalColors",
+        "mapping": {
+          "ConflictingOptions.IsForeign": "foreign"
+        }
+      },
+      {
+        "id": "animalComments",
+        "type": "RepeatingGroup",
+        "textResourceBindings": {
+          "title": "Kommentarer"
+        },
+        "dataModelBindings": {
+          "group": "ConflictingOptions.Animals.Comments"
+        },
+        "children": ["animalCommentType", "animalCommentTypeForeign", "animalCommentText"],
+        "tableHeaders": ["animalCommentType", "animalCommentTypeForeign"]
+      },
+      {
+        "id": "animalCommentType",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Type"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "ConflictingOptions.Animals.Comments.Type",
+          "label": "ConflictingOptions.Animals.Comments.TypeLabel"
+        },
+        "options": [
+          {
+            "value": "CRITICISM",
+            "label": "Kritikk"
+          },
+          {
+            "value": "SPAM",
+            "label": "Søppel"
+          }
+        ],
+        "hidden": ["equals", ["component", "isForeign"], true]
+      },
+      {
+        "id": "animalCommentTypeForeign",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Type (utland)"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "ConflictingOptions.Animals.Comments.Type",
+          "label": "ConflictingOptions.Animals.Comments.TypeLabel"
+        },
+        "options": [
+          {
+            "value": "PRAISE",
+            "label": "Skryt"
+          },
+          {
+            "value": "SUGGESTION",
+            "label": "Forslag"
+          }
+        ],
+        "hidden": ["equals", ["component", "isForeign"], false]
+      },
+      {
+        "id": "animalCommentText",
+        "type": "TextArea",
+        "textResourceBindings": {
+          "title": "Kommentar"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "ConflictingOptions.Animals.Comments.Text"
+        }
+      },
+      {
+        "id": "animalCommentLabels",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Kommentartyper"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "ConflictingOptions.Animals.CommentLabels"
+        },
+        "hidden": true,
+        "readOnly": true
+      },
+      {
+        "id": "button-group-conflicting-options",
+        "type": "ButtonGroup",
+        "children": [
+          "conflictingOptionsReset",
+          "conflictingOptionsNavigate"
+        ]
+      },
+      {
+        "id": "conflictingOptionsReset",
+        "type": "CustomButton",
+        "textResourceBindings": {
+          "title": "Tilbakestill"
+        },
+        "actions": [
+          {
+            "id": "conflictingOptionsReset",
+            "type": "ServerAction"
+          }
+        ],
+        "buttonStyle": "secondary"
+      },
+      {
+        "id": "conflictingOptionsNavigate",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "back": "Tilbake",
+          "next": "Neste"
+        },
+        "showBackButton": true
+      }
+    ]
+  }
+}
+

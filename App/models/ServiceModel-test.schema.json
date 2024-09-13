@@ -539,7 +539,8 @@
             },
             "Selected": { "type": "string" }
           }
-        }
+        },
+        "ConflictingOptions": { "$ref": "#/definitions/ConflictingOptions" }
       },
       "required": ["skjemanummer", "spesifikasjonsnummer"],
       "@xsdAnyAttribute": true
@@ -2695,6 +2696,55 @@
         }
       },
       "required": ["orid", "value"]
+    },
+    "ConflictingOptions": {
+      "type": "object",
+      "required": [
+        "IsForeign"
+      ],
+      "properties": {
+        "IsForeign": {
+          "type": "boolean"
+        },
+        "Animals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "Name": {
+                "type": "string"
+              },
+              "NumLegs": {
+                "type": "integer"
+              },
+              "Color": {
+                "type": "string"
+              },
+              "Comments": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "Type": {
+                      "type": "string"
+                    },
+                    "TypeLabel": {
+                      "type": "string"
+                    },
+                    "Text": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "CommentLabels": {
+                "type": "string"
+              }
+            },
+            "required": ["Name"]
+          }
+        }
+      }
     }
   }
 }

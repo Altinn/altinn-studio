@@ -131,6 +131,11 @@ namespace Altinn.App.Models
         [JsonProperty("MapData")]
         [JsonPropertyName("MapData")]
         public MapData? MapData { get; set; }
+
+        [XmlElement("ConflictingOptions")]
+        [JsonProperty("ConflictingOptions")]
+        [JsonPropertyName("ConflictingOptions")]
+        public ConflictingOptions? ConflictingOptions { get; set; }
     }
 
     public class Numeric
@@ -2307,4 +2312,82 @@ namespace Altinn.App.Models
         public string? IBruk { get; set; }
     }
 
+    public class ConflictingOptions
+    {
+        [XmlElement("IsForeign", Order = 1)]
+        [JsonProperty("IsForeign")]
+        [JsonPropertyName("IsForeign")]
+        [Required]
+        public bool? IsForeign { get; set; }
+
+        [XmlElement("Animals", Order = 2)]
+        [JsonProperty("Animals")]
+        [JsonPropertyName("Animals")]
+        public List<Animal>? Animals { get; set; }
+    }
+
+    public class Animal
+    {
+        [XmlAttribute("altinnRowId")]
+        [JsonPropertyName("altinnRowId")]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        [Newtonsoft.Json.JsonIgnore]
+        public Guid AltinnRowId { get; set; }
+
+        public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
+        [XmlElement("Name", Order = 1)]
+        [JsonProperty("Name")]
+        [JsonPropertyName("Name")]
+        public string? Name { get; set; }
+
+        [Range(Double.MinValue,Double.MaxValue)]
+        [XmlElement("NumLegs", Order = 2)]
+        [JsonProperty("NumLegs")]
+        [JsonPropertyName("NumLegs")]
+        public decimal? NumLegs { get; set; }
+
+        public bool ShouldSerializeNumLegs() => NumLegs.HasValue;
+
+        [XmlElement("Color", Order = 3)]
+        [JsonProperty("Color")]
+        [JsonPropertyName("Color")]
+        public string? Color { get; set; }
+
+        [XmlElement("Comments", Order = 4)]
+        [JsonProperty("Comments")]
+        [JsonPropertyName("Comments")]
+        public List<AnimalComment>? Comments { get; set; }
+
+        [XmlElement("CommentLabels", Order = 5)]
+        [JsonProperty("CommentLabels")]
+        [JsonPropertyName("CommentLabels")]
+        public string? CommentLabels { get; set; }
+    }
+
+    public class AnimalComment
+    {
+        [XmlAttribute("altinnRowId")]
+        [JsonPropertyName("altinnRowId")]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        [Newtonsoft.Json.JsonIgnore]
+        public Guid AltinnRowId { get; set; }
+
+        public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
+        [XmlElement("Type", Order = 1)]
+        [JsonProperty("Type")]
+        [JsonPropertyName("Type")]
+        public string? Type { get; set; }
+
+        [XmlElement("TypeLabel", Order = 2)]
+        [JsonProperty("TypeLabel")]
+        [JsonPropertyName("TypeLabel")]
+        public string? TypeLabel { get; set; }
+
+        [XmlElement("Text", Order = 3)]
+        [JsonProperty("Text")]
+        [JsonPropertyName("Text")]
+        public string? Text { get; set; }
+    }
 }

@@ -212,6 +212,16 @@ namespace Altinn.App.logic.DataProcessing
                 if (model?.MapData != null) {
                   model.MapData.Geometries = GeometryData.GetGeometryData(model.MapData.Selected);
                 }
+
+                // Concatenating nested group comment labels into a single string
+                if (model?.ConflictingOptions?.Animals != null)
+                {
+                    foreach (var animal in model.ConflictingOptions.Animals)
+                    {
+                        animal.CommentLabels = string.Join(", ",
+                            animal.Comments.Select(c => c.TypeLabel).Distinct().Where(l => !string.IsNullOrEmpty(l)));
+                    }
+                }
             }
 
             return Task.CompletedTask;
