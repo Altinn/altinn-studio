@@ -59,9 +59,6 @@ describe('StudioCombobox', () => {
     });
     expect(studioCombobox).toHaveValue(options.ole);
 
-    const comboboxIsClosed = screen.queryByRole('option', { name: options.ole });
-    expect(comboboxIsClosed).toBeNull();
-
     await user.click(studioCombobox);
     await user.click(screen.getByRole('option', { name: options.dole }));
     await verifyOnValueChange({
@@ -99,6 +96,30 @@ describe('StudioCombobox', () => {
       expectedNumberOfCalls: 3,
       expectedValue: [options.ole, options.dole, options.doffen],
     });
+  });
+
+  it('should close the combobox when an option is selected', async () => {
+    const user = userEvent.setup();
+    renderTestCombobox();
+    const studioCombobox = screen.getByRole('combobox');
+    await user.click(studioCombobox);
+    await user.click(screen.getByRole('option', { name: options.ole }));
+
+    await waitFor(() => {
+      const comboboxOption = screen.queryByRole('option', { name: options.ole });
+      expect(comboboxOption).toBeNull();
+    });
+  });
+
+  it('should keep open when an option is selected and the combobox is set to multiple', async () => {
+    const user = userEvent.setup();
+    renderTestCombobox({ multiple: true });
+    const studioCombobox = screen.getByRole('combobox');
+    await user.click(studioCombobox);
+    await user.click(screen.getByRole('option', { name: options.ole }));
+
+    const comboboxOption = screen.getByRole('option', { name: options.ole });
+    expect(comboboxOption).toBeInTheDocument();
   });
 
   it('should be possible to clear the selected options', async () => {
