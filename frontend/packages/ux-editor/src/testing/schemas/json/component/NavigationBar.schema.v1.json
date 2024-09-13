@@ -47,22 +47,14 @@
         "breakBefore": {
           "title": "Page break before",
           "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "breakAfter": {
           "title": "Page break after",
           "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
@@ -84,20 +76,13 @@
         "page": {
           "title": "Page",
           "description": "Which pages should be validated when the next button is clicked.",
-          "enum": [
-            "current",
-            "currentAndPrevious",
-            "all"
-          ]
+          "enum": ["current", "currentAndPrevious", "all"]
         },
         "show": {
           "$ref": "#/definitions/AllowedValidationMasks"
         }
       },
-      "required": [
-        "page",
-        "show"
-      ],
+      "required": ["page", "show"],
       "additionalProperties": false
     },
     "validateOnBackward": {
@@ -107,26 +92,16 @@
         "page": {
           "title": "Page",
           "description": "Which pages should be validated when the next button is clicked.",
-          "enum": [
-            "current",
-            "currentAndPrevious",
-            "all"
-          ]
+          "enum": ["current", "currentAndPrevious", "all"]
         },
         "show": {
           "$ref": "#/definitions/AllowedValidationMasks"
         }
       },
-      "required": [
-        "page",
-        "show"
-      ],
+      "required": ["page", "show"],
       "additionalProperties": false
     }
   },
-  "required": [
-    "id",
-    "type"
-  ],
+  "required": ["id", "type"],
   "title": "NavigationBar component schema"
 }

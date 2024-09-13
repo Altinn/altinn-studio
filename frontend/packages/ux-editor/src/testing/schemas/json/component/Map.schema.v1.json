@@ -47,22 +47,14 @@
         "breakBefore": {
           "title": "Page break before",
           "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "breakAfter": {
           "title": "Page break after",
           "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
@@ -208,9 +200,7 @@
             }
           }
         },
-        "required": [
-          "url"
-        ],
+        "required": ["url"],
         "additionalProperties": false
       }
     },
@@ -226,10 +216,7 @@
           "type": "number"
         }
       },
-      "required": [
-        "latitude",
-        "longitude"
-      ],
+      "required": ["latitude", "longitude"],
       "additionalProperties": false
     },
     "zoom": {
@@ -238,17 +225,10 @@
     "geometryType": {
       "title": "IGeometryType",
       "default": "GeoJSON",
-      "enum": [
-        "GeoJSON",
-        "WKT"
-      ],
+      "enum": ["GeoJSON", "WKT"],
       "type": "string"
     }
   },
-  "required": [
-    "id",
-    "type",
-    "dataModelBindings"
-  ],
+  "required": ["id", "type", "dataModelBindings"],
   "title": "Map component schema"
 }

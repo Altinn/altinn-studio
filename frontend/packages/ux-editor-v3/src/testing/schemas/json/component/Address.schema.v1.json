@@ -1,5 +1,5 @@
 {
-  "$id": "https://altinncdn.no/schemas/json/component/FileUploadWithTag.schema.v1.json",
+  "$id": "https://altinncdn.no/schemas/json/component/Address.schema.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "id": {
@@ -94,24 +94,9 @@
       },
       "additionalProperties": false
     },
-    "type": { "const": "FileUploadWithTag" },
+    "type": { "const": "AddressComponent" },
     "textResourceBindings": {
       "properties": {
-        "title": {
-          "title": "Title",
-          "description": "Label text/title shown above the component",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "description": {
-          "title": "Description",
-          "description": "Label description shown above the component, below the title",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "help": {
-          "title": "Help text",
-          "description": "Help text shown in a tooltip when clicking the help button",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
         "tableTitle": {
           "title": "Table title",
           "description": "Title used in the table view (overrides the default title)",
@@ -136,89 +121,35 @@
           "title": "Accessible summary title",
           "description": "Title used for aria-label on the edit button in the summary view (overrides the default and summary title)",
           "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "tagTitle": {
-          "title": "Tag title",
-          "description": "The title to show when selecting a tag for each uploaded file",
-          "$ref": "expression.schema.v1.json#/definitions/string"
         }
       }
     },
     "dataModelBindings": {
-      "anyOf": [
-        {
-          "title": "Data model binding",
-          "description": "Describes the location in the data model where the component should store its value(s). A simple binding is used for components that only store a single value, usually a string.",
-          "type": "object",
-          "properties": { "simpleBinding": { "type": "string" } },
-          "required": ["simpleBinding"],
-          "additionalProperties": false
-        },
-        {
-          "title": "Data model binding",
-          "description": "Describes the location in the data model where the component should store its value(s). A list binding should be pointed to an array structure in the data model, and is used for components that store multiple simple values (e.g. a list of strings).",
-          "type": "object",
-          "properties": { "list": { "type": "string" } },
-          "required": ["list"],
-          "additionalProperties": false
-        }
-      ]
-    },
-    "maxFileSizeInMB": {
-      "title": "Max file size (MB)",
-      "description": "Sets the maximum file size allowed in megabytes",
-      "type": "integer"
-    },
-    "maxNumberOfAttachments": {
-      "title": "Max number of attachments",
-      "description": "Sets the maximum number of attachments allowed to upload",
-      "type": "integer"
-    },
-    "minNumberOfAttachments": {
-      "title": "Min number of attachments",
-      "description": "Sets the minimum number of attachments required to upload",
-      "type": "integer"
-    },
-    "displayMode": { "enum": ["simple", "list"], "type": "string" },
-    "hasCustomFileEndings": {
-      "title": "Has custom file endings",
-      "description": "Boolean value indicating if the component has valid file endings",
-      "default": false,
-      "type": "boolean"
-    },
-    "validFileEndings": {
-      "title": "Valid file endings",
-      "description": "A separated string of valid file endings to upload. If not set all endings are accepted.",
-      "examples": [".csv", ".doc", ".docx", ".gif", ".jpeg", ".pdf", ".txt"],
-      "anyOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
-    },
-    "alertOnDelete": {
-      "title": "Alert on delete",
-      "description": "Boolean value indicating if warning popup should be displayed when attempting to delete an element",
-      "default": false,
-      "$ref": "expression.schema.v1.json#/definitions/boolean"
-    },
-    "optionsId": {
-      "title": "Dynamic options (fetched from server)",
-      "description": "ID of the option list to fetch from the server",
-      "type": "string"
-    },
-    "mapping": {
-      "title": "Mapping",
-      "description": "A mapping of key-value pairs (usually used for mapping a path in the data model to a query string parameter).",
+      "title": "IDataModelBindingsForAddress",
       "type": "object",
-      "properties": {},
-      "additionalProperties": { "type": "string" }
+      "properties": {
+        "address": { "type": "string" },
+        "zipCode": { "type": "string" },
+        "postPlace": { "type": "string" },
+        "careOf": { "type": "string" },
+        "houseNumber": { "type": "string" }
+      },
+      "required": ["address", "zipCode", "postPlace"],
+      "additionalProperties": false
+    },
+    "saveWhileTyping": {
+      "title": "Automatic saving while typing",
+      "description": "Boolean or number. True = feature on (default), false = feature off (saves on focus blur), number = timeout in milliseconds (400 by default)",
+      "default": true,
+      "anyOf": [{ "type": "boolean" }, { "type": "number" }]
+    },
+    "simplified": {
+      "title": "Simplified",
+      "description": "Whether to use the simplified address input or not",
+      "default": true,
+      "type": "boolean"
     }
   },
-  "required": [
-    "id",
-    "type",
-    "maxFileSizeInMB",
-    "maxNumberOfAttachments",
-    "minNumberOfAttachments",
-    "displayMode",
-    "optionsId"
-  ],
-  "title": "FileUploadWithTag component schema"
+  "required": ["id", "type", "dataModelBindings"],
+  "title": "Address component schema"
 }

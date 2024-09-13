@@ -47,22 +47,14 @@
         "breakBefore": {
           "title": "Page break before",
           "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "breakAfter": {
           "title": "Page break after",
           "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
@@ -317,10 +309,7 @@
         "position": {
           "title": "Position of the currency/unit symbol",
           "description": "Display the unit as prefix or suffix. Default is prefix. (Use only when using currency or unit options)",
-          "enum": [
-            "prefix",
-            "suffix"
-          ]
+          "enum": ["prefix", "suffix"]
         },
         "number": {
           "anyOf": [
@@ -334,11 +323,7 @@
         },
         "align": {
           "default": "left",
-          "enum": [
-            "right",
-            "center",
-            "left"
-          ]
+          "enum": ["right", "center", "left"]
         }
       },
       "additionalProperties": false
@@ -348,23 +333,14 @@
     },
     "direction": {
       "default": "horizontal",
-      "enum": [
-        "horizontal",
-        "vertical"
-      ],
+      "enum": ["horizontal", "vertical"],
       "type": "string"
     },
     "icon": {
-      "examples": [
-        "https://example.com/icon.svg"
-      ],
+      "examples": ["https://example.com/icon.svg"],
       "type": "string"
     }
   },
-  "required": [
-    "id",
-    "type",
-    "value"
-  ],
+  "required": ["id", "type", "value"],
   "title": "Number component schema"
 }

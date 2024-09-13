@@ -47,22 +47,14 @@
         "breakBefore": {
           "title": "Page break before",
           "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "breakAfter": {
           "title": "Page break after",
           "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
@@ -86,29 +78,16 @@
     "action": {
       "title": "Action",
       "description": "The action to perform when the button is clicked.",
-      "enum": [
-        "instantiate",
-        "confirm",
-        "sign",
-        "reject"
-      ],
+      "enum": ["instantiate", "confirm", "sign", "reject"],
       "type": "string"
     },
     "buttonStyle": {
       "title": "Button style",
       "description": "The style/color scheme of the button.",
-      "enum": [
-        "primary",
-        "secondary"
-      ],
+      "enum": ["primary", "secondary"],
       "type": "string"
     }
   },
-  "required": [
-    "id",
-    "type",
-    "action",
-    "buttonStyle"
-  ],
+  "required": ["id", "type", "action", "buttonStyle"],
   "title": "ActionButton component schema"
 }

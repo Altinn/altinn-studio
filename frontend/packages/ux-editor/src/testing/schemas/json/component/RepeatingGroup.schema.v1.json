@@ -47,22 +47,14 @@
         "breakBefore": {
           "title": "Page break before",
           "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "breakAfter": {
           "title": "Page break after",
           "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
@@ -202,9 +194,7 @@
             }
           }
         },
-        "required": [
-          "cells"
-        ],
+        "required": ["cells"],
         "additionalProperties": false
       }
     },
@@ -254,9 +244,7 @@
             }
           }
         },
-        "required": [
-          "cells"
-        ],
+        "required": ["cells"],
         "additionalProperties": false
       }
     },
@@ -270,9 +258,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "group"
-      ],
+      "required": ["group"],
       "additionalProperties": false
     },
     "showValidations": {
@@ -317,12 +303,7 @@
           "title": "Mode",
           "description": "The mode of the repeating group",
           "default": "showTable",
-          "enum": [
-            "hideTable",
-            "showTable",
-            "showAll",
-            "onlyTable"
-          ]
+          "enum": ["hideTable", "showTable", "showAll", "onlyTable"]
         },
         "addButton": {
           "title": "Add button",
@@ -401,9 +382,7 @@
           "minimum": 1
         }
       },
-      "required": [
-        "rowsPerPage"
-      ],
+      "required": ["rowsPerPage"],
       "additionalProperties": false
     },
     "maxCount": {
@@ -464,11 +443,6 @@
       "additionalProperties": false
     }
   },
-  "required": [
-    "id",
-    "type",
-    "children",
-    "dataModelBindings"
-  ],
+  "required": ["id", "type", "children", "dataModelBindings"],
   "title": "RepeatingGroup component schema"
 }

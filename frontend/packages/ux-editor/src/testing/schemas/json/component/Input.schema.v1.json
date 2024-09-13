@@ -47,22 +47,14 @@
         "breakBefore": {
           "title": "Page break before",
           "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "breakAfter": {
           "title": "Page break after",
           "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
@@ -188,9 +180,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "simpleBinding"
-      ],
+      "required": ["simpleBinding"],
       "additionalProperties": false
     },
     "saveWhileTyping": {
@@ -423,10 +413,7 @@
         "position": {
           "title": "Position of the currency/unit symbol",
           "description": "Display the unit as prefix or suffix. Default is prefix. (Use only when using currency or unit options)",
-          "enum": [
-            "prefix",
-            "suffix"
-          ]
+          "enum": ["prefix", "suffix"]
         },
         "number": {
           "anyOf": [
@@ -440,11 +427,7 @@
         },
         "align": {
           "default": "left",
-          "enum": [
-            "right",
-            "center",
-            "left"
-          ]
+          "enum": ["right", "center", "left"]
         }
       },
       "additionalProperties": false
@@ -453,10 +436,7 @@
       "title": "Input variant",
       "description": "The variant of the input field (text or search).",
       "default": "text",
-      "enum": [
-        "text",
-        "search"
-      ],
+      "enum": ["text", "search"],
       "type": "string"
     },
     "autocomplete": {
@@ -526,10 +506,6 @@
       "type": "integer"
     }
   },
-  "required": [
-    "id",
-    "type",
-    "dataModelBindings"
-  ],
+  "required": ["id", "type", "dataModelBindings"],
   "title": "Input component schema"
 }

@@ -1,5 +1,5 @@
 {
-  "$id": "https://altinncdn.no/schemas/json/component/ButtonGroup.schema.v1.json",
+  "$id": "https://altinncdn.no/schemas/json/component/AccordionGroup.schema.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "id": {
@@ -16,27 +16,13 @@
     },
     "grid": {
       "properties": {
-        "xs": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "sm": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "md": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "lg": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "xl": {
-          "$ref": "#/definitions/IGridSize"
-        },
-        "labelGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        },
-        "innerGrid": {
-          "$ref": "#/definitions/IGridStyling"
-        }
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
       }
     },
     "pageBreak": {
@@ -63,46 +49,16 @@
     },
     "renderAsSummary": {
       "title": "Render as summary",
-      "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
-      "default": false,
-      "type": "boolean"
-    },
-    "forceShowInSummary": {
-      "title": "Force show in summary",
-      "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+      "description": "Boolean value or expression indicating if the component should be rendered as a summary. Defaults to false.",
       "default": false,
       "$ref": "expression.schema.v1.json#/definitions/boolean"
     },
-    "labelSettings": {
-      "title": "ILabelSettings",
-      "type": "object",
-      "properties": {
-        "optionalIndicator": {
-          "title": "Optional indicator",
-          "description": "Show optional indicator on label",
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false
-    },
-    "type": {
-      "const": "ButtonGroup"
-    },
+    "type": { "const": "AccordionGroup" },
     "textResourceBindings": {
       "properties": {
         "title": {
           "title": "Title",
-          "description": "Label text/title shown above the component",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "description": {
-          "title": "Description",
-          "description": "Label description shown above the component, below the title",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "help": {
-          "title": "Help text",
-          "description": "Help text shown in a tooltip when clicking the help button",
+          "description": "The title of the accordion group",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "summaryTitle": {
@@ -119,13 +75,11 @@
     },
     "children": {
       "title": "Children",
-      "description": "Child component IDs of button-like components to be rendered in this group",
+      "description": "List of child component IDs to show inside the Accordion (limited to a few component types)",
       "type": "array",
-      "items": {
-        "type": "string"
-      }
+      "items": { "type": "string" }
     }
   },
   "required": ["id", "type", "children"],
-  "title": "ButtonGroup component schema"
+  "title": "AccordionGroup component schema"
 }

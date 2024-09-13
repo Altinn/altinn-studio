@@ -47,22 +47,14 @@
         "breakBefore": {
           "title": "Page break before",
           "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "breakAfter": {
           "title": "Page break after",
           "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
@@ -91,19 +83,10 @@
     "severity": {
       "title": "Alert severity",
       "description": "The severity of the alert",
-      "enum": [
-        "success",
-        "warning",
-        "danger",
-        "info"
-      ],
+      "enum": ["success", "warning", "danger", "info"],
       "type": "string"
     }
   },
-  "required": [
-    "id",
-    "type",
-    "severity"
-  ],
+  "required": ["id", "type", "severity"],
   "title": "Alert component schema"
 }

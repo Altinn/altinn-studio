@@ -47,22 +47,14 @@
         "breakBefore": {
           "title": "Page break before",
           "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "breakAfter": {
           "title": "Page break after",
           "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
@@ -91,11 +83,7 @@
     "style": {
       "title": "Style",
       "description": "The style of the link (a primary/secondary button, or an actual link)",
-      "enum": [
-        "primary",
-        "secondary",
-        "link"
-      ],
+      "enum": ["primary", "secondary", "link"],
       "type": "string"
     },
     "openInNewTab": {
@@ -104,10 +92,6 @@
       "type": "boolean"
     }
   },
-  "required": [
-    "id",
-    "type",
-    "style"
-  ],
+  "required": ["id", "type", "style"],
   "title": "Link component schema"
 }

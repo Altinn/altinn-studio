@@ -47,22 +47,14 @@
         "breakBefore": {
           "title": "Page break before",
           "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "breakAfter": {
           "title": "Page break after",
           "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
@@ -173,10 +165,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "label",
-          "value"
-        ],
+        "required": ["label", "value"],
         "additionalProperties": false
       }
     },
@@ -188,10 +177,7 @@
     },
     "sortOrder": {
       "description": "Sorts the code list in either ascending or descending order by label.",
-      "enum": [
-        "asc",
-        "desc"
-      ],
+      "enum": ["asc", "desc"],
       "type": "string"
     },
     "source": {
@@ -202,51 +188,35 @@
         "group": {
           "title": "Group",
           "description": "The repeating group to base options on.",
-          "examples": [
-            "model.some.group"
-          ],
+          "examples": ["model.some.group"],
           "type": "string"
         },
         "label": {
           "title": "Label",
           "description": "A label of the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.",
-          "examples": [
-            "some.text.key"
-          ],
+          "examples": ["some.text.key"],
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "value": {
           "title": "Value",
           "description": "Field in the group that should be used as value",
-          "examples": [
-            "model.some.group[{0}].someField"
-          ],
+          "examples": ["model.some.group[{0}].someField"],
           "type": "string"
         },
         "description": {
           "title": "Description",
           "description": "A description of the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.",
-          "examples": [
-            "some.text.key",
-            "My Description"
-          ],
+          "examples": ["some.text.key", "My Description"],
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "helpText": {
           "title": "Help Text",
           "description": "A help text for the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.",
-          "examples": [
-            "some.text.key",
-            "My Help Text"
-          ],
+          "examples": ["some.text.key", "My Help Text"],
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
       },
-      "required": [
-        "group",
-        "label",
-        "value"
-      ],
+      "required": ["group", "label", "value"],
       "additionalProperties": false
     },
     "preselectedOptionIndex": {
@@ -317,9 +287,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "simpleBinding"
-      ],
+      "required": ["simpleBinding"],
       "additionalProperties": false
     },
     "showLabelsInTable": {
@@ -331,18 +299,10 @@
     "layout": {
       "title": "Layout",
       "description": "Define the layout style for the options",
-      "enum": [
-        "column",
-        "row",
-        "table"
-      ],
+      "enum": ["column", "row", "table"],
       "type": "string"
     }
   },
-  "required": [
-    "id",
-    "type",
-    "dataModelBindings"
-  ],
+  "required": ["id", "type", "dataModelBindings"],
   "title": "LikertItem component schema"
 }

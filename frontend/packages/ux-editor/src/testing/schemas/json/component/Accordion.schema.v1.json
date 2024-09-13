@@ -47,22 +47,14 @@
         "breakBefore": {
           "title": "Page break before",
           "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "breakAfter": {
           "title": "Page break after",
           "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
@@ -119,20 +111,10 @@
     },
     "headingLevel": {
       "title": "HeadingLevel",
-      "enum": [
-        2,
-        3,
-        4,
-        5,
-        6
-      ],
+      "enum": [2, 3, 4, 5, 6],
       "type": "string"
     }
   },
-  "required": [
-    "id",
-    "type",
-    "children"
-  ],
+  "required": ["id", "type", "children"],
   "title": "Accordion component schema"
 }

@@ -47,22 +47,14 @@
         "breakBefore": {
           "title": "Page break before",
           "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "breakAfter": {
           "title": "Page break after",
           "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
@@ -102,11 +94,7 @@
     },
     "size": {
       "default": "medium",
-      "enum": [
-        "small",
-        "medium",
-        "large"
-      ],
+      "enum": ["small", "medium", "large"],
       "type": "string"
     },
     "defaultTab": {
@@ -127,9 +115,7 @@
             "type": "string"
           },
           "icon": {
-            "examples": [
-              "https://example.com/icon.svg"
-            ],
+            "examples": ["https://example.com/icon.svg"],
             "type": "string"
           },
           "children": {
@@ -141,19 +127,11 @@
             }
           }
         },
-        "required": [
-          "id",
-          "title",
-          "children"
-        ],
+        "required": ["id", "title", "children"],
         "additionalProperties": false
       }
     }
   },
-  "required": [
-    "id",
-    "type",
-    "tabs"
-  ],
+  "required": ["id", "type", "tabs"],
   "title": "Tabs component schema"
 }

@@ -47,22 +47,14 @@
         "breakBefore": {
           "title": "Page break before",
           "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "breakAfter": {
           "title": "Page break after",
           "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
@@ -178,9 +170,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "simpleBinding"
-      ],
+      "required": ["simpleBinding"],
       "additionalProperties": false
     },
     "saveWhileTyping": {
@@ -256,10 +246,6 @@
       "type": "integer"
     }
   },
-  "required": [
-    "id",
-    "type",
-    "dataModelBindings"
-  ],
+  "required": ["id", "type", "dataModelBindings"],
   "title": "TextArea component schema"
 }

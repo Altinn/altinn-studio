@@ -47,22 +47,14 @@
         "breakBefore": {
           "title": "Page break before",
           "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "breakAfter": {
           "title": "Page break after",
           "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
@@ -91,21 +83,10 @@
     "size": {
       "title": "Size",
       "description": "The size of the header",
-      "enum": [
-        "L",
-        "M",
-        "S",
-        "h2",
-        "h3",
-        "h4"
-      ],
+      "enum": ["L", "M", "S", "h2", "h3", "h4"],
       "type": "string"
     }
   },
-  "required": [
-    "id",
-    "type",
-    "size"
-  ],
+  "required": ["id", "type", "size"],
   "title": "Header component schema"
 }

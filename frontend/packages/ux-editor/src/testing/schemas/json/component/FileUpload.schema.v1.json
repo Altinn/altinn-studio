@@ -47,22 +47,14 @@
         "breakBefore": {
           "title": "Page break before",
           "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "breakAfter": {
           "title": "Page break after",
           "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
@@ -180,9 +172,7 @@
               "type": "string"
             }
           },
-          "required": [
-            "simpleBinding"
-          ],
+          "required": ["simpleBinding"],
           "additionalProperties": false
         },
         {
@@ -194,9 +184,7 @@
               "type": "string"
             }
           },
-          "required": [
-            "list"
-          ],
+          "required": ["list"],
           "additionalProperties": false
         }
       ]
@@ -217,10 +205,7 @@
       "type": "integer"
     },
     "displayMode": {
-      "enum": [
-        "simple",
-        "list"
-      ],
+      "enum": ["simple", "list"],
       "type": "string"
     },
     "hasCustomFileEndings": {
@@ -232,15 +217,7 @@
     "validFileEndings": {
       "title": "Valid file endings",
       "description": "A separated string of valid file endings to upload. If not set all endings are accepted.",
-      "examples": [
-        ".csv",
-        ".doc",
-        ".docx",
-        ".gif",
-        ".jpeg",
-        ".pdf",
-        ".txt"
-      ],
+      "examples": [".csv", ".doc", ".docx", ".gif", ".jpeg", ".pdf", ".txt"],
       "anyOf": [
         {
           "type": "string"

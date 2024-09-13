@@ -47,22 +47,14 @@
         "breakBefore": {
           "title": "Page break before",
           "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "breakAfter": {
           "title": "Page break after",
           "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
@@ -104,32 +96,20 @@
       "title": "ImagePosition",
       "description": "Position of the media (image/video/audio) in each card",
       "default": "top",
-      "enum": [
-        "top",
-        "bottom"
-      ],
+      "enum": ["top", "bottom"],
       "type": "string"
     },
     "minMediaHeight": {
       "title": "minMediaHeight",
       "description": "Fixed minimum height of media (if media is present)",
-      "examples": [
-        "100px",
-        "100%",
-        "100rem"
-      ],
+      "examples": ["100px", "100%", "100rem"],
       "default": "150px",
       "type": "string"
     },
     "minWidth": {
       "title": "minWidth",
       "description": "Fixed minimum width of the card",
-      "examples": [
-        "100",
-        "100px",
-        "100%",
-        "100rem"
-      ],
+      "examples": ["100", "100px", "100%", "100rem"],
       "default": "250px",
       "type": "string",
       "pattern": "^[0-9]+(px|rem|%)?$"
@@ -137,10 +117,7 @@
     "color": {
       "title": "Card color",
       "description": "The color style for these cards",
-      "enum": [
-        "neutral",
-        "subtle"
-      ],
+      "enum": ["neutral", "subtle"],
       "type": "string"
     },
     "cards": {
@@ -182,11 +159,6 @@
       }
     }
   },
-  "required": [
-    "id",
-    "type",
-    "color",
-    "cards"
-  ],
+  "required": ["id", "type", "color", "cards"],
   "title": "Cards component schema"
 }

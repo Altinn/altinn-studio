@@ -14,7 +14,7 @@ const writeToFile = (name: string, data: any, version: AppFrontendVersion) => {
   const dirPath = path.resolve(__dirname, versionSettings[version].componentSchemaPath);
   const fileName = `${dirPath}/${name}.schema.v1.json`;
 
-  fs.writeFile(fileName, JSON.stringify(data, null, 2), function (err: any) {
+  fs.writeFile(fileName, JSON.stringify(data), function (err: any) {
     if (err) return console.log(err);
     console.log(`Wrote ${fileName}`);
   });
@@ -41,8 +41,8 @@ const generateComponentSchema = (name: string, layoutSchema: any) => {
   };
 
   // The v4 schema has external definitions. This code block is needed to fetch v4 properties correctly.
-  const externalDefinitionName = definitionName + "External";
-  if (layoutSchema.definitions[externalDefinitionName].allOf) {
+  const externalDefinitionName = definitionName + 'External';
+  if (layoutSchema.definitions[externalDefinitionName]?.allOf) {
     componentSchema.allOf = layoutSchema.definitions[externalDefinitionName].allOf;
   }
 
@@ -110,8 +110,7 @@ const run = async () => {
 
     const schema = generateComponentSchema(componentName, layoutSchema);
     addTextResourceBindingKeys(schema);
-    writeToFile(componentName, schema, version as AppFrontendVersion,
-    );
+    writeToFile(componentName, schema, version as AppFrontendVersion);
   });
 
   const uniqueTextResourceBindingKeys = [...new Set(allTextResourceBindingKeys)];

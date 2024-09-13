@@ -47,22 +47,14 @@
         "breakBefore": {
           "title": "Page break before",
           "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "breakAfter": {
           "title": "Page break after",
           "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
-          "examples": [
-            "auto",
-            "always",
-            "avoid"
-          ],
+          "examples": ["auto", "always", "avoid"],
           "default": "auto",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
@@ -111,10 +103,7 @@
     "groupingIndicator": {
       "title": "Set grouping indicator",
       "description": "Can visually group components together by indenting them or by putting them in a panel. ",
-      "enum": [
-        "indented",
-        "panel"
-      ],
+      "enum": ["indented", "panel"],
       "type": "string"
     },
     "children": {
@@ -128,20 +117,10 @@
     "headingLevel": {
       "title": "Heading level",
       "description": "The heading level of the group title.",
-      "enum": [
-        2,
-        3,
-        4,
-        5,
-        6
-      ],
+      "enum": [2, 3, 4, 5, 6],
       "type": "string"
     }
   },
-  "required": [
-    "id",
-    "type",
-    "children"
-  ],
+  "required": ["id", "type", "children"],
   "title": "Group component schema"
 }
