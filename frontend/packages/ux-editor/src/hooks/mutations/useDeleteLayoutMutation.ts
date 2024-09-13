@@ -45,7 +45,6 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
       if (order.includes(layoutName)) {
         order.splice(order.indexOf(layoutName), 1);
       }
-      formLayoutSettingsMutation.mutate(layoutSettings);
 
       if (layoutSettings.pages.pdfLayoutName === layoutName) {
         delete layoutSettings.pages.pdfLayoutName;
@@ -54,9 +53,6 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
       formLayoutSettingsMutation.mutate(layoutSettings);
 
       queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], () => layouts);
-      queryClient.invalidateQueries({
-        queryKey: [QueryKey.FormLayoutSettings, org, app, layoutSetName],
-      });
 
       if (selectedFormLayoutName === layoutName) {
         const layoutToSelect = firstAvailableLayout(layoutName, layoutOrder);

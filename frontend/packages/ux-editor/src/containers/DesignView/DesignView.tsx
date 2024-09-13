@@ -70,8 +70,8 @@ export const DesignView = (): ReactNode => {
   };
 
   const handleAddPage = () => {
-    let newNum = 1;
-    let newLayoutName = `${t('ux_editor.page')}${layoutOrder.length + newNum}`;
+    let newNum = layoutOrder.length + 1;
+    let newLayoutName = `${t('ux_editor.page')}${newNum}`;
 
     while (layoutOrder.includes(newLayoutName) || getPdfLayoutName() === newLayoutName) {
       newNum += 1;
