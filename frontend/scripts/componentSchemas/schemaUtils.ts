@@ -11,6 +11,7 @@ import jsonpointer from 'jsonpointer';
  * @returns The expanded schema
  */
 export const expandAllOf = (schema: any, layoutSchema: any, componentNode: boolean = true) => {
+  console.log("Inside expandAllOf");
   const expandedSchema: any = {};
   const allOfList = componentNode ? schema.allOf?.slice(0, -1) : schema.allOf;
   allOfList.forEach((item: any) => {

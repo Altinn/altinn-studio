@@ -3,6 +3,7 @@ import type { AppFrontendVersion } from './version';
 import { isValidVersion, versionSettings } from './version';
 import { getLayoutSchema } from './api';
 import { generateComponentPropertyLabels, generateTextResourceLabels } from './languageUtils';
+import {Layout} from "../configurationStats/Layout";
 
 const allTextResourceBindingKeys = [];
 const allPropertyKeys = [];
@@ -36,10 +37,18 @@ const generateComponentSchema = (name: string, layoutSchema: any) => {
   console.log('definitionName: ', definitionName);
   const componentSchema = layoutSchema.definitions[definitionName];
   let schema: any = {
-    $id: `https://altinncdn.no/schemas/json/component/${name}.schema.v1.json`,
+    $id: `https://altinncdn.no/schemas/json/component/${name}.schema.v1.json`, // These links respond with 404?
     $schema: layoutSchema.$schema,
   };
 
+  // For v4 schemas
+  const externalDefinitionName = definitionName + "External";
+
+  if (layoutSchema.definitions[externalDefinitionName].allOf) {
+    componentSchema.allOf = layoutSchema.definitions[externalDefinitionName].allOf;
+  }
+
+  // For v3 schemas
   if (componentSchema.allOf) {
     schema = { ...schema, ...expandAllOf(componentSchema, layoutSchema) };
     const expectedProperties = Object.keys(
@@ -90,24 +99,21 @@ const sortTextResourceBindings = (textResourceBindings: any) => {
 const run = async () => {
   let version: string = process.argv.length > 2 ? process.argv[2] : '';
   if (!isValidVersion(version)) {
-    version = 'v4';
     console.warn(
       `Invalid version: ${version}. Please provide a valid version: v3 or v4. Defaulting to v4.`,
     );
+    version = 'v4';
   }
+
   const layoutSchema: any = await getLayoutSchema(version as AppFrontendVersion);
   const allComponents = layoutSchema.definitions.AnyComponent.properties.type.enum;
 
   allComponents.forEach((componentName: string) => {
-    const schema = generateComponentSchema(
-      componentName === 'AddressComponent' ? 'Address' : componentName,
-      layoutSchema,
-    );
+    componentName = componentName === 'AddressComponent' ? 'Address' : componentName;
+
+    const schema = generateComponentSchema(componentName, layoutSchema);
     addTextResourceBindingKeys(schema);
-    writeToFile(
-      componentName === 'AddressComponent' ? 'Address' : componentName,
-      schema,
-      version as AppFrontendVersion,
+    writeToFile(componentName, schema, version as AppFrontendVersion,
     );
   });
 
