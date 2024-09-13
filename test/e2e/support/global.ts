@@ -218,6 +218,11 @@ declare global {
       clearSelectionAndWait(viewport?: 'desktop' | 'tablet' | 'mobile'): Chainable<null>;
 
       getSummary(label: string): Chainable<Element>;
+      directSnapshot(
+        snapshotName: string,
+        options: { width: number; minHeight: number },
+        reset?: boolean,
+      ): Chainable<null>;
       testPdf(snapshotName: string | false, callback: () => void, returnToForm?: boolean): Chainable<null>;
       getCurrentPageId(): Chainable<string>;
 
