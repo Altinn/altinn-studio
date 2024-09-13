@@ -15,7 +15,7 @@ import { useNodeOptionsSelector } from 'src/features/options/useNodeOptions';
 import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
 import { useDataModelBindingTranspose } from 'src/utils/layout/useDataModelBindingTranspose';
 import { useNodeFormDataSelector } from 'src/utils/layout/useNodeItem';
-import { useNodeTraversalSelectorLax } from 'src/utils/layout/useNodeTraversal';
+import { useNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
 import type { AttachmentsSelector } from 'src/features/attachments/AttachmentsStorePlugin';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
@@ -27,7 +27,7 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodeDataSelector } from 'src/utils/layout/NodesContext';
 import type { DataModelTransposeSelector } from 'src/utils/layout/useDataModelBindingTranspose';
 import type { NodeFormDataSelector } from 'src/utils/layout/useNodeItem';
-import type { NodeTraversalSelectorLax } from 'src/utils/layout/useNodeTraversal';
+import type { NodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
 
 export interface ExpressionDataSources {
   process?: IProcess;
@@ -44,7 +44,7 @@ export interface ExpressionDataSources {
   isHiddenSelector: ReturnType<typeof Hidden.useIsHiddenSelector>;
   nodeFormDataSelector: NodeFormDataSelector;
   nodeDataSelector: NodeDataSelector;
-  nodeTraversal: NodeTraversalSelectorLax;
+  nodeTraversal: NodeTraversalSelector;
   transposeSelector: DataModelTransposeSelector;
   externalApis: ExternalApisResult;
 }
@@ -62,7 +62,7 @@ export function useExpressionDataSources(): ExpressionDataSources {
   const isHiddenSelector = Hidden.useIsHiddenSelector();
   const nodeFormDataSelector = useNodeFormDataSelector();
   const nodeDataSelector = NodesInternal.useNodeDataSelector();
-  const nodeTraversal = useNodeTraversalSelectorLax();
+  const nodeTraversal = useNodeTraversalSelector();
   const transposeSelector = useDataModelBindingTranspose();
   const currentLayoutSet = useCurrentLayoutSet() ?? null;
   const readableDataModels = DataModels.useReadableDataTypes();

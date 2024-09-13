@@ -85,32 +85,17 @@ export function LayoutSetGenerator() {
 }
 
 function SaveFinishedNodesToStore({ pages }: { pages: LayoutPages }) {
-  const layouts = useLayouts();
   const existingNodes = useNodesWhenNotReady();
   const setNodes = NodesInternal.useSetNodes();
-  const isFinished = GeneratorStages.useIsFinished();
-  const layoutKeys = useMemo(() => Object.keys(layouts), [layouts]);
+  const isFinishedAddingNodes = GeneratorStages.AddNodes.useIsDone();
+  const numPages = Object.keys(useLayouts()).length;
+  const shouldSet = existingNodes !== pages && pages && (isFinishedAddingNodes || numPages === 0);
 
   useEffect(() => {
-    if (existingNodes === pages) {
-      return;
-    }
-
-    // With this being a useEffect, it will always run after all the children here have rendered - unless, importantly,
-    // the children themselves rely on useEffect() to run in order to reach a stable state.
-    const numPages = layoutKeys.length;
-    if (!pages) {
-      return;
-    }
-    if (numPages === 0) {
-      setNodes(pages);
-      return;
-    }
-
-    if (isFinished) {
+    if (shouldSet) {
       setNodes(pages);
     }
-  }, [layoutKeys, pages, isFinished, setNodes, existingNodes]);
+  }, [pages, setNodes, shouldSet]);
 
   return null;
 }

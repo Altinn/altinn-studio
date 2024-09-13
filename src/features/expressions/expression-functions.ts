@@ -1,7 +1,6 @@
 import dot from 'dot-object';
 import type { Mutable } from 'utility-types';
 
-import { ContextNotProvided } from 'src/core/contexts/context';
 import { ExprRuntimeError, NodeNotFound, NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
 import { ExprVal } from 'src/features/expressions/types';
 import { addError } from 'src/features/expressions/validation';
@@ -233,17 +232,7 @@ export const ExprFunctions = {
       }
 
       const node = ensureNode(this.node);
-      const closest = this.dataSources.nodeTraversal(
-        (t) =>
-          t.with(node).closest((c) => c.type === 'node' && (c.layout.id === id || c.layout.baseComponentId === id)),
-        [node, id],
-      );
-
-      if (closest === ContextNotProvided) {
-        // Expressions will run before the layout is fully loaded, so we might not have all the components available
-        // yet. If that's the case, silently ignore this expression.
-        return null;
-      }
+      const closest = this.dataSources.nodeTraversal((t) => t.with(node).closestId(id), [node, id]);
 
       const dataModelBindings = closest
         ? this.dataSources.nodeDataSelector((picker) => picker(closest)?.layout.dataModelBindings, [closest])
@@ -335,16 +324,7 @@ export const ExprFunctions = {
       }
 
       const node = ensureNode(this.node);
-      const targetNode = this.dataSources.nodeTraversal(
-        (t) => t.with(node).closest((c) => c.type === 'node' && (c.item?.id === id || c.item?.baseComponentId === id)),
-        [node, id],
-      );
-
-      if (targetNode === ContextNotProvided) {
-        // Expressions will run before the layout is fully loaded, so we might not have all the components available
-        // yet. If that's the case, silently ignore this expression.
-        return null;
-      }
+      const targetNode = this.dataSources.nodeTraversal((t) => t.with(node).closestId(id), [node, id]);
 
       if (!targetNode) {
         throw new ExprRuntimeError(this.expr, this.path, `Unable to find component with identifier ${id}`);
@@ -423,17 +403,7 @@ export const ExprFunctions = {
       }
 
       const node = ensureNode(this.node);
-      const closest = this.dataSources.nodeTraversal(
-        (t) =>
-          t.with(node).closest((c) => c.type === 'node' && (c.layout.id === id || c.layout.baseComponentId === id)),
-        [node, id],
-      );
-
-      if (closest === ContextNotProvided) {
-        // Expressions will run before the layout is fully loaded, so we might not have all the components available
-        // yet. If that's the case, silently ignore this expression.
-        return null;
-      }
+      const closest = this.dataSources.nodeTraversal((t) => t.with(node).closestId(id), [node, id]);
 
       if (!closest) {
         throw new ExprRuntimeError(this.expr, this.path, `Unable to find component with identifier ${id}`);

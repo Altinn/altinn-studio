@@ -119,6 +119,20 @@ export class NodeTraversal<T extends Node = LayoutPages> {
   }
 
   /**
+   * Looks for a component with a specific ID upwards in the hierarchy, using the same rules as closest().
+   */
+  closestId(id: string): LayoutNode | undefined {
+    return this.target.closest(
+      new TraversalTask(
+        this.state,
+        this.rootNode,
+        (c) => c.type === 'node' && (c.layout.id === id || c.layout.baseComponentId === id),
+        undefined,
+      ),
+    );
+  }
+
+  /**
    * Like children(), but will only match upwards along the tree towards the top page (LayoutPage)
    */
   parents(matching?: TraversalMatcher): ParentsFrom<T> {
@@ -389,4 +403,4 @@ export function useNodeTraversalSelectorSilent() {
   return useNodeTraversalSelectorProto(Strictness.returnUndefined);
 }
 
-export type NodeTraversalSelectorLax = ReturnType<typeof useNodeTraversalSelectorLax>;
+export type NodeTraversalSelector = ReturnType<typeof useNodeTraversalSelector>;

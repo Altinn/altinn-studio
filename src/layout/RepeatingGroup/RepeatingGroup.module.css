@@ -227,7 +227,7 @@ table > tbody > tr.editingRow:hover {
   box-sizing: border-box;
 }
 
-.tableNotEmptyCaption {
+.fullWidthCaption {
   padding-left: var(--modal-padding-x);
   padding-right: var(--modal-padding-x);
 }
