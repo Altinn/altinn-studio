@@ -118,6 +118,17 @@
           "type": "integer"
         }
       }
+    },
+    "LikertQuestion": {
+      "type": "object",
+      "properties": {
+        "Id": {
+          "type": "string"
+        },
+        "Answer": {
+          "type": "string"
+        }
+      }
     }
   },
   "properties": {
@@ -185,6 +196,12 @@
     },
     "list": {
       "type": "string"
+    },
+    "LikertExample": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/LikertQuestion"
+      }
     },
     "mapComponent": {
       "type": "string"

@@ -108,7 +108,12 @@ namespace Altinn.App.Models.model
     [JsonPropertyName("list")]
     public string list { get; set; }
 
-    [XmlElement("mapComponent", Order = 20)]
+    [XmlElement("LikertExample", Order = 20)]
+    [JsonProperty("LikertExample")]
+    [JsonPropertyName("LikertExample")]
+    public List<LikertQuestion> LikertExample { get; set; }
+
+    [XmlElement("mapComponent", Order = 21)]
     [JsonProperty("mapComponent")]
     [JsonPropertyName("mapComponent")]
     public string mapComponent { get; set; }
@@ -279,6 +284,28 @@ namespace Altinn.App.Models.model
     public decimal? modelYear { get; set; }
 
     public bool ShouldSerializemodelYear() => modelYear.HasValue;
+
+  }
+
+  public class LikertQuestion
+  {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
+    [XmlElement("Id", Order = 1)]
+    [JsonProperty("Id")]
+    [JsonPropertyName("Id")]
+    public string Id { get; set; }
+
+    [XmlElement("Answer", Order = 2)]
+    [JsonProperty("Answer")]
+    [JsonPropertyName("Answer")]
+    public string Answer { get; set; }
 
   }
 }
