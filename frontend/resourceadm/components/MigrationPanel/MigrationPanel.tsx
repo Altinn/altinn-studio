@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { toast } from 'react-toastify';
-import { Textfield, Paragraph, Alert } from '@digdir/designsystemet-react';
+import { Textfield, Paragraph, Alert, Modal } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 import classes from './MigrationPanel.module.css';
@@ -31,6 +31,7 @@ export const MigrationPanel = ({
 
   const { org, resourceId } = useUrlParams();
 
+  const setServiceExpiredWarningModalRef = useRef<HTMLDialogElement>(null);
   const initialDate = new Date().toISOString().split('T')[0];
   const [migrationDate, setMigrationDate] = useState(initialDate);
   const [migrationTime, setMigrationTime] = useState('00:00');
@@ -62,6 +63,7 @@ export const MigrationPanel = ({
   };
 
   const setServiceExpired = () => {
+    closeSetServiceExpiredModal();
     setServiceEditionExpired(undefined, {
       onSuccess: () => {
         toast.success(t('resourceadm.migration_disable_service_success', { env: t(env.label) }));
@@ -96,8 +98,24 @@ export const MigrationPanel = ({
     );
   };
 
+  const closeSetServiceExpiredModal = (): void => {
+    setServiceExpiredWarningModalRef.current?.close();
+  };
+
   return (
     <div className={classes.migrationPanel}>
+      <Modal ref={setServiceExpiredWarningModalRef} onClose={closeSetServiceExpiredModal}>
+        <Modal.Header>{t('resourceadm.migration_disable_service_modal_header')}</Modal.Header>
+        <Modal.Content>{t('resourceadm.migration_disable_service_modal_body')}</Modal.Content>
+        <Modal.Footer>
+          <StudioButton color='danger' onClick={() => setServiceExpired()} size='medium'>
+            {t('resourceadm.migration_disable_service_confirm')}
+          </StudioButton>
+          <StudioButton variant='tertiary' onClick={closeSetServiceExpiredModal} size='medium'>
+            {t('general.cancel')}
+          </StudioButton>
+        </Modal.Footer>
+      </Modal>
       <div>
         <StudioLabelAsParagraph size='medium' spacing>
           {t('resourceadm.migration_number_of_delegations')}
@@ -136,7 +154,6 @@ export const MigrationPanel = ({
           </Alert>
         )}
       </div>
-
       <div>
         <StudioLabelAsParagraph size='medium'>
           {t('resourceadm.migration_disable_service_header')}
@@ -146,7 +163,7 @@ export const MigrationPanel = ({
           aria-disabled={isSettingServiceExpired}
           onClick={() => {
             if (!isSettingServiceExpired) {
-              setServiceExpired();
+              setServiceExpiredWarningModalRef.current.showModal();
             }
           }}
           size='small'

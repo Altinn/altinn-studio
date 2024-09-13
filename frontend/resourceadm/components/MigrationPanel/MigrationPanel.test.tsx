@@ -194,6 +194,11 @@ describe('MigrationPanel', () => {
     });
     await user.click(setServiceExpiredButton);
 
+    const confirmSetServiceExpiredButton = screen.getByRole('button', {
+      name: textMock('resourceadm.migration_disable_service_confirm'),
+    });
+    await user.click(confirmSetServiceExpiredButton);
+
     expect(screen.getByText(textMock('resourceadm.migration_disable_service_error')));
   });
 
@@ -207,6 +212,11 @@ describe('MigrationPanel', () => {
       }),
     });
     await user.click(setServiceExpiredButton);
+
+    const confirmSetServiceExpiredButton = screen.getByRole('button', {
+      name: textMock('resourceadm.migration_disable_service_confirm'),
+    });
+    await user.click(confirmSetServiceExpiredButton);
 
     expect(
       screen.getByText(
