@@ -3,11 +3,11 @@ import { StudioTextfield } from '../StudioTextfield';
 import { Paragraph } from '@digdir/designsystemet-react';
 import * as StudioIcons from '@studio/icons';
 
-import classes from './IconViewer.module.css';
+import classes from './StudioIconViewer.module.css';
 
 const icons = Object.keys(StudioIcons);
 
-export const IconViewer = (): React.ReactElement => {
+export const StudioIconViewer = (): React.ReactElement => {
   const [search, setSearch] = React.useState<string>('');
 
   const searchedIcons = icons.filter((iconName) =>

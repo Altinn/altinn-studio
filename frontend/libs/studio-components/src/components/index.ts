@@ -11,6 +11,7 @@ export * from './StudioDisplayTile';
 export * from './StudioDivider';
 export * from './StudioDropdownMenu';
 export * from './StudioExpression';
+export * from './StudioFileUploader';
 export * from './StudioGridSelector';
 export * from './StudioHeading';
 export * from './StudioIconTextfield';
