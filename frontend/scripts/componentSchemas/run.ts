@@ -41,14 +41,12 @@ const generateComponentSchema = (name: string, layoutSchema: any) => {
     $schema: layoutSchema.$schema,
   };
 
-  // For v4 schemas
+  // v4 schema has external definitions. Needed to fetch properties correctly.
   const externalDefinitionName = definitionName + "External";
-
   if (layoutSchema.definitions[externalDefinitionName].allOf) {
     componentSchema.allOf = layoutSchema.definitions[externalDefinitionName].allOf;
   }
 
-  // For v3 schemas
   if (componentSchema.allOf) {
     schema = { ...schema, ...expandAllOf(componentSchema, layoutSchema) };
     const expectedProperties = Object.keys(
