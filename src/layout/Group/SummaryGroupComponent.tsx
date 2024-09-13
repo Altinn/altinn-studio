@@ -59,6 +59,7 @@ export function SummaryGroupComponent({
             isSummary={true}
             renderLayoutNode={(node) => (
               <SummaryComponentFromNode
+                key={node.id}
                 targetNode={node}
                 summaryNode={summaryNode}
                 overrides={overrides}

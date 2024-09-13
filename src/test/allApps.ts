@@ -46,6 +46,14 @@ export class ExternalApp {
     }
   }
 
+  private fileSize(path: string) {
+    try {
+      return fs.statSync(this.rootDir + path).size;
+    } catch (_err) {
+      return 0;
+    }
+  }
+
   private dirExists(path: string) {
     try {
       return fs.statSync(this.rootDir + path).isDirectory();
@@ -158,7 +166,7 @@ export class ExternalApp {
 
   getRuleConfiguration(layoutSetId: string): { data: IFormDynamics } | null {
     const path = `/App/ui/${layoutSetId}/RuleConfiguration.json`;
-    if (!this.fileExists(path)) {
+    if (!this.fileExists(path) || this.fileSize(path) === 0) {
       return null;
     }
 
@@ -436,7 +444,7 @@ export function ensureAppsDirIsSet(runVoidTest = true) {
  */
 function parseJsonTolerantly<T = unknown>(content: string): T {
   // Remove multiline comments
-  content = content.replace(/\/\*([\s\S]*?)\*\//g, '$1');
+  content = content.replace(/\/\*([\s\S]*?)\*\//g, '');
 
   // Remove single-line comments, but not in strings
   content = content.replace(/^(.*?)\/\/(.*)$/gm, (_, m1, m2) => {

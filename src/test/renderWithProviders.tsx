@@ -11,6 +11,7 @@ import type { RenderOptions, waitForOptions } from '@testing-library/react';
 import type { AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 
+import { getDataListMock } from 'src/__mocks__/getDataListMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getLogoMock } from 'src/__mocks__/getLogoMock';
@@ -45,7 +46,6 @@ import { PageNavigationRouter } from 'src/test/routerUtils';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { useNodes } from 'src/utils/layout/NodesContext';
 import { useNodeTraversalSelectorSilent } from 'src/utils/layout/useNodeTraversal';
-import type { IDataList } from 'src/features/dataLists';
 import type { IFooterLayout } from 'src/features/footer/types';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { FormDataMethods } from 'src/features/formData/FormDataWriteStateMachine';
@@ -139,9 +139,8 @@ const defaultQueryMocks: AppQueries = {
   fetchRefreshJwtToken: async () => ({}),
   fetchCustomValidationConfig: async () => null,
   fetchFormData: async () => ({}),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  fetchOptions: async () => ({ data: [], headers: {} }) as unknown as AxiosResponse<IRawOption[], any>,
-  fetchDataList: async () => ({}) as unknown as IDataList,
+  fetchOptions: async () => ({ data: [], headers: {} }) as unknown as AxiosResponse<IRawOption[], unknown>,
+  fetchDataList: async () => getDataListMock(),
   fetchPdfFormat: async () => ({ excludedPages: [], excludedComponents: [] }),
   fetchDynamics: async () => null,
   fetchRuleHandler: async () => null,

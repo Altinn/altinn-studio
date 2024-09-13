@@ -51,7 +51,7 @@ export function getInstanceDataMock(mutate?: (data: IInstance) => void): IInstan
         lastChangedBy: '12345',
       },
     ],
-    id: '91cefc5e-c47b-40ff-a8a4-05971205f783',
+    id: '12345/91cefc5e-c47b-40ff-a8a4-05971205f783',
     instanceState: undefined,
     lastChanged: new Date('2020-01-01').toISOString(),
     org: 'mockOrg',
