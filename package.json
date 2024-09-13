@@ -72,7 +72,7 @@
     "@babel/traverse": "7.25.6"
   },
   "lint-staged": {
-    "*{js,jsx,tsx,ts,css,md,json}": "prettier -w",
+    "*{js,jsx,tsx,ts,css,md}": "prettier -w",
     "./frontend/language/src/*.json": "yarn run sort-texts"
   },
   "packageManager": "yarn@4.4.1",

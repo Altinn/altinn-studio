@@ -15,7 +15,7 @@ const writeToFile = (name: string, data: any, version: AppFrontendVersion) => {
   const dirPath = path.resolve(__dirname, versionSettings[version].componentSchemaPath);
   const fileName = `${dirPath}/${name}.schema.v1.json`;
 
-  fs.writeFile(fileName, JSON.stringify(data), function (err: any) {
+  fs.writeFile(fileName, JSON.stringify(data, null, 2), function (err: any) {
     if (err) return console.log(err);
     console.log(`Wrote ${fileName}`);
   });
@@ -41,7 +41,7 @@ const generateComponentSchema = (name: string, layoutSchema: any) => {
     $schema: layoutSchema.$schema,
   };
 
-  // v4 schema has external definitions. Needed to fetch properties correctly.
+  // v4 schema has external definitions. Code block needed to fetch v4 properties correctly.
   const externalDefinitionName = definitionName + "External";
   if (layoutSchema.definitions[externalDefinitionName].allOf) {
     componentSchema.allOf = layoutSchema.definitions[externalDefinitionName].allOf;
