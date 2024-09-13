@@ -2,8 +2,7 @@ import { expandAllOf, expandAnyOf, expandRefsInProperties, verifySchema } from '
 import type { AppFrontendVersion } from './version';
 import { isValidVersion, versionSettings } from './version';
 import { getLayoutSchema } from './api';
-import { generateComponentPropertyLabels, generateTextResourceLabels } from './languageUtils';
-import {Layout} from "../configurationStats/Layout";
+import { logComponentPropertyLabels, logTextResourceLabels } from './languageUtils';
 
 const allTextResourceBindingKeys = [];
 const allPropertyKeys = [];
@@ -41,7 +40,7 @@ const generateComponentSchema = (name: string, layoutSchema: any) => {
     $schema: layoutSchema.$schema,
   };
 
-  // v4 schema has external definitions. Code block needed to fetch v4 properties correctly.
+  // The v4 schema has external definitions. This code block is needed to fetch v4 properties correctly.
   const externalDefinitionName = definitionName + "External";
   if (layoutSchema.definitions[externalDefinitionName].allOf) {
     componentSchema.allOf = layoutSchema.definitions[externalDefinitionName].allOf;
@@ -116,9 +115,9 @@ const run = async () => {
   });
 
   const uniqueTextResourceBindingKeys = [...new Set(allTextResourceBindingKeys)];
-  generateTextResourceLabels(uniqueTextResourceBindingKeys);
+  logTextResourceLabels(uniqueTextResourceBindingKeys);
   console.log('--------------------------------------------------------');
-  generateComponentPropertyLabels([...new Set(allPropertyKeys)]);
+  logComponentPropertyLabels([...new Set(allPropertyKeys)]);
 };
 
 run();
