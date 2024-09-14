@@ -141,16 +141,20 @@ describe('ItemFieldsTab', () => {
 
   test('should save the model when user clicks the dropdown menu items', async () => {
     renderItemFieldsTab();
-    await user.click(screen.getByText(textAdd));
-    await user.click(screen.getByRole('menuitem', { name: textMock('schema_editor.number') }));
+    const selectMenuItem = async (item: string) => {
+      await user.click(screen.getByText(textAdd));
+      await user.click(screen.getByRole('menuitem', { name: item }));
+    };
+
+    await selectMenuItem(textMock('schema_editor.number'));
     expect(saveDataModel).toHaveBeenCalledTimes(1);
-    await user.click(screen.getByRole('menuitem', { name: textMock('schema_editor.string') }));
+    await selectMenuItem(textMock('schema_editor.string'));
     expect(saveDataModel).toHaveBeenCalledTimes(2);
-    await user.click(screen.getByRole('menuitem', { name: textMock('schema_editor.integer') }));
+    await selectMenuItem(textMock('schema_editor.integer'));
     expect(saveDataModel).toHaveBeenCalledTimes(3);
-    await user.click(screen.getByRole('menuitem', { name: textMock('schema_editor.boolean') }));
+    await selectMenuItem(textMock('schema_editor.boolean'));
     expect(saveDataModel).toHaveBeenCalledTimes(4);
-    await user.click(screen.getByRole('menuitem', { name: textMock('schema_editor.object') }));
+    await selectMenuItem(textMock('schema_editor.object'));
     expect(saveDataModel).toHaveBeenCalledTimes(5);
   });
 
