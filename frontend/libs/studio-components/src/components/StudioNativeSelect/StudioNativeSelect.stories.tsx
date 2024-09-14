@@ -5,7 +5,7 @@ import { StudioNativeSelect } from './StudioNativeSelect';
 type Story = StoryFn<typeof StudioNativeSelect>;
 
 const meta: Meta = {
-  title: 'Studio/StudioNativeSelect',
+  title: 'StudioNativeSelect',
   component: StudioNativeSelect,
   argTypes: {
     size: {

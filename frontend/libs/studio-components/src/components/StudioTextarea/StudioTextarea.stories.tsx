@@ -5,7 +5,7 @@ import { StudioTextarea } from './StudioTextarea';
 type Story = StoryFn<typeof StudioTextarea>;
 
 const meta: Meta = {
-  title: 'Forms/StudioTextarea',
+  title: 'StudioTextarea',
   component: StudioTextarea,
   argTypes: {
     size: {

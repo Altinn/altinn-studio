@@ -1,6 +1,5 @@
 import React from 'react';
 import Modal from 'react-modal';
-import { Typography } from '@mui/material';
 import { ConditionalRenderingComponent } from '../config/ConditionalRenderingComponent';
 import RuleButton from './RuleButton';
 import type { IRuleModelFieldElement } from '../../types/global';
@@ -21,6 +20,7 @@ import {
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { useAppContext } from '../../hooks/useAppContext';
+import { StudioParagraph } from '@studio/components';
 
 export interface IConditionalRenderingModalProps {
   modalOpen: boolean;
@@ -70,7 +70,7 @@ export function ConditionalRenderingModal(props: IConditionalRenderingModalProps
 
   function renderConditionRuleConnections(): JSX.Element {
     if (!conditionalRendering || Object.getOwnPropertyNames(conditionalRendering).length === 0) {
-      return <Typography variant='caption'>{t('right_menu.rules_empty')}</Typography>;
+      return <StudioParagraph size='sm'>{t('right_menu.rules_empty')}</StudioParagraph>;
     }
     return (
       <>

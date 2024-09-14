@@ -2,7 +2,7 @@ import { StudioButton } from '../StudioButton';
 import React, { useId } from 'react';
 import classes from './StudioRecommendedNextAction.module.css';
 import { StudioCard } from '../StudioCard';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph } from '../StudioParagraph';
 import { Heading } from '@digdir/designsystemet-react';
 
 export type StudioRecommendedNextActionProps = {

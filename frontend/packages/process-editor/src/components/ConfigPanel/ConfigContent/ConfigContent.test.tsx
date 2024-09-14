@@ -166,6 +166,14 @@ describe('ConfigContent', () => {
     expect(editPolicyButton).toBeInTheDocument();
   });
 
+  it('should render the Design accordion when a task has a connected layoutset', () => {
+    renderConfigContent();
+    const designAccordion = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_design_title'),
+    });
+    expect(designAccordion).toBeInTheDocument();
+  });
+
   describe('Unique signature', () => {
     const element = getMockBpmnElementForTask('signing');
     element.businessObject.extensionElements.values[0].signatureConfig.uniqueFromSignaturesInDataTypes =
@@ -215,26 +223,16 @@ describe('ConfigContent', () => {
       ).toBeInTheDocument();
     });
 
-    it('should show recommended action when selected task is in recommended action queue', async () => {
+    it('should show recommended action when task is data and is in recommended action queue', async () => {
       const shouldDisplayAction = jest.fn().mockReturnValue(true);
       (useStudioRecommendedNextActionContext as jest.Mock).mockReturnValue({
         removeAction: jest.fn(),
         addAction: jest.fn(),
         shouldDisplayAction,
       });
-      renderConfigContent(
-        {},
-        {
-          bpmnDetails: {
-            ...mockBpmnDetails,
-            id: 'task_2',
-            taskType: 'signing',
-            element,
-          },
-        },
-      );
+      renderConfigContent();
 
-      expect(shouldDisplayAction).toHaveBeenCalledWith('task_2');
+      expect(shouldDisplayAction).toHaveBeenCalledWith(mockBpmnDetails.id);
 
       expect(
         screen.getByRole('textbox', {

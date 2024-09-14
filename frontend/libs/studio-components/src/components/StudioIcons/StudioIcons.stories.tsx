@@ -1,14 +1,14 @@
 import React from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
-import { IconViewer } from './IconViewer';
+import { StudioIconViewer } from './StudioIconViewer';
 
 const meta: Meta = {
-  title: 'Studio/Icons',
-  component: IconViewer,
+  title: 'Icons/StudioIcons',
+  component: StudioIconViewer,
   parameters: {
     layout: 'fullscreen-centered',
   },
 };
 
-export const Preview: StoryFn = (): React.ReactElement => <IconViewer />;
+export const Preview: StoryFn = (): React.ReactElement => <StudioIconViewer />;
 export default meta;
