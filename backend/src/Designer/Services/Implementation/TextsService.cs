@@ -305,25 +305,27 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task UpdateRelatedFiles(string org, string app, string developer, List<TextIdMutation> keyMutations)
+        public async Task<List<string>> UpdateRelatedFiles(string org, string app, string developer, List<TextIdMutation> keyMutations)
         {
             // handle if no layout exists
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             string[] layoutSetNames = altinnAppGitRepository.GetLayoutSetNames();
+            List<string> updatedFiles = [];
 
             if (altinnAppGitRepository.AppUsesLayoutSets())
             {
                 foreach (string layoutSetName in layoutSetNames)
                 {
-                    await UpdateKeysInLayoutsInLayoutSet(org, app, developer, layoutSetName, keyMutations);
+                    updatedFiles.AddRange(await UpdateKeysInLayoutsInLayoutSet(org, app, developer, layoutSetName, keyMutations));
                 }
             }
             else
             {
-                await UpdateKeysInLayoutsInLayoutSet(org, app, developer, null, keyMutations);
+                updatedFiles.AddRange(await UpdateKeysInLayoutsInLayoutSet(org, app, developer, null, keyMutations));
             }
 
-            await UpdateKeysInOptionLists(org, app, developer, keyMutations);
+            updatedFiles.AddRange(await UpdateKeysInOptionLists(org, app, developer, keyMutations));
+            return updatedFiles;
         }
 
         /// <summary>
@@ -334,10 +336,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="developer">Username of developer</param>
         /// <param name="layoutSetName">Name of the layoutset</param>
         /// <param name="keyMutations">A list of the keys that are updated</param>
-        private async Task UpdateKeysInLayoutsInLayoutSet(string org, string app, string developer, string layoutSetName, List<TextIdMutation> keyMutations)
+        private async Task<List<string>> UpdateKeysInLayoutsInLayoutSet(string org, string app, string developer, string layoutSetName, List<TextIdMutation> keyMutations)
         {
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             string[] layoutNames = altinnAppGitRepository.GetLayoutNames(layoutSetName);
+            List<string> updatedFiles = [];
             foreach (string layoutName in layoutNames)
             {
                 JsonNode layout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
@@ -359,8 +362,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 if (hasMutated)
                 {
                     await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, layout);
+                    updatedFiles.Add($"App/ui/{layoutSetName}/{layoutName}");
                 }
             }
+            return updatedFiles;
         }
 
         private static bool UpdateKeyInLayoutObject(JsonNode layoutObject, TextIdMutation mutation)
@@ -401,9 +406,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return false;
         }
 
-        private async Task UpdateKeysInOptionLists(string org, string app, string developer, List<TextIdMutation> keyMutations)
+        private async Task<List<string>> UpdateKeysInOptionLists(string org, string app, string developer, List<TextIdMutation> keyMutations)
         {
             string[] optionListIds = _optionsService.GetOptionsListIds(org, app, developer);
+            List<string> updatedFiles = [];
             foreach (string optionListId in optionListIds)
             {
                 List<Option> options = await _optionsService.GetOptionsList(org, app, developer, optionListId);
@@ -416,8 +422,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 if (hasMutated)
                 {
                     await _optionsService.CreateOrOverwriteOptionsList(org, app, developer, optionListId, options);
+                    updatedFiles.Add($"App/options/{optionListId}.json");
                 }
             }
+            return updatedFiles;
         }
 
         private static bool UpdateOptionListKeys(List<Option> options, TextIdMutation keyMutation)
