@@ -2,6 +2,6 @@
   width: 100%;
   background-color: var(--fds-semantic-surface-neutral-default);
   border-left: 1px solid var(--fds-semantic-border-neutral-subtle);
-  overflow-y: scroll;
+  overflow-y: auto;
   min-width: 500px;
 }

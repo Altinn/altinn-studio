@@ -6,7 +6,7 @@ import { StudioButton } from '../StudioButton';
 type Story = StoryFn<typeof StudioModal>;
 
 const meta: Meta = {
-  title: 'Studio/StudioModal',
+  title: 'StudioModal',
   component: StudioModal,
 };
 export const Preview: Story = (args): React.ReactElement => (

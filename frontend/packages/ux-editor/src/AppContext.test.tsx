@@ -140,7 +140,7 @@ describe('AppContext', () => {
     await waitFor(async () => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
     await waitFor(async () =>
       expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
-        queryKey: ['formLayouts', mockSelectedFormLayoutSetName],
+        queryKey: ['FormLayouts', org, app, mockSelectedFormLayoutSetName],
       }),
     );
   });
@@ -157,7 +157,7 @@ describe('AppContext', () => {
     await waitFor(async () => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
     await waitFor(async () =>
       expect(queryClient.resetQueries).toHaveBeenCalledWith({
-        queryKey: ['formLayouts', mockSelectedFormLayoutSetName],
+        queryKey: ['FormLayouts', org, app, mockSelectedFormLayoutSetName],
       }),
     );
   });
@@ -174,7 +174,7 @@ describe('AppContext', () => {
     await waitFor(async () => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
     await waitFor(async () =>
       expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
-        queryKey: ['layoutSettings', mockSelectedFormLayoutSetName],
+        queryKey: ['FormLayoutSettings', org, app, mockSelectedFormLayoutSetName],
       }),
     );
   });
@@ -191,7 +191,7 @@ describe('AppContext', () => {
     await waitFor(async () => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
     await waitFor(async () =>
       expect(queryClient.resetQueries).toHaveBeenCalledWith({
-        queryKey: ['layoutSettings', mockSelectedFormLayoutSetName],
+        queryKey: ['FormLayoutSettings', org, app, mockSelectedFormLayoutSetName],
       }),
     );
   });
@@ -208,7 +208,7 @@ describe('AppContext', () => {
     await waitFor(async () => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
     await waitFor(async () =>
       expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
-        queryKey: ['fetchTextResources', mockLanguage],
+        queryKey: ['FetchTextResources', org, app, mockLanguage],
       }),
     );
   });
@@ -225,7 +225,7 @@ describe('AppContext', () => {
     await waitFor(async () => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
     await waitFor(async () =>
       expect(queryClient.resetQueries).toHaveBeenCalledWith({
-        queryKey: ['fetchTextResources', mockLanguage],
+        queryKey: ['FetchTextResources', org, app, mockLanguage],
       }),
     );
   });
