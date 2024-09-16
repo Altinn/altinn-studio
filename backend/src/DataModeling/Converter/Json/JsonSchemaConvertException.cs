@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.Serialization;
 
 namespace Altinn.Studio.DataModeling.Converter.Json
 {
@@ -27,13 +26,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json
         /// <inheritdoc/>
         /// </summary>
         public JsonSchemaConvertException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
-
-        /// <summary>
-        /// <inheritdoc/>
-        /// </summary>
-        protected JsonSchemaConvertException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
     }
