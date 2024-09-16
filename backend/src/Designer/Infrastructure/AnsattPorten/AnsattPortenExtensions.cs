@@ -50,7 +50,7 @@ public static class AnsattPortenExtensions
             .AddOpenIdConnect(AnsattPortenConstants.AnsattportenAuthenticationScheme,
                 options =>
                 {
-                    options.Authority = oidcSettings!.Authority;
+                    options.Authority = oidcSettings.Authority;
                     options.ClientId = oidcSettings.ClientId;
                     options.ClientSecret = oidcSettings.ClientSecret;
 
@@ -59,7 +59,7 @@ public static class AnsattPortenExtensions
                     options.AuthenticationMethod = OpenIdConnectRedirectBehavior.RedirectGet;
 
                     options.Scope.Clear();
-                    foreach (string scope in oidcSettings.Scopes!)
+                    foreach (string scope in oidcSettings.Scopes)
                     {
                         options.Scope.Add(scope);
                     }
