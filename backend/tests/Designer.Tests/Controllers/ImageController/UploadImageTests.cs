@@ -44,7 +44,7 @@ public class UploadImageTests : DesignerEndpointsTestsBase<UploadImageTests>, IC
         var content = new MultipartFormDataContent();
         var imageContent = new ByteArrayContent(imageBytes);
         imageContent.Headers.ContentType = new MediaTypeHeaderValue("image/png");
-        content.Add(imageContent, "image", ExistingRootImage);
+        content.Add(imageContent, "file", ExistingRootImage);
         using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, path)
         {
             Content = content
@@ -71,7 +71,7 @@ public class UploadImageTests : DesignerEndpointsTestsBase<UploadImageTests>, IC
         byte[] imageBytes = await File.ReadAllBytesAsync(expectedImageFilePath);
         string path = $"{VersionPrefix}/{Org}/{targetRepository}/images";
         var content = new MultipartFormDataContent();
-        content.Add(new ByteArrayContent(imageBytes), "image", ExistingRootImage);
+        content.Add(new ByteArrayContent(imageBytes), "file", ExistingRootImage);
         using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, path)
         {
             Content = content
@@ -101,7 +101,7 @@ public class UploadImageTests : DesignerEndpointsTestsBase<UploadImageTests>, IC
         var imageContent = new ByteArrayContent(imageBytes);
         imageContent.Headers.ContentType = new MediaTypeHeaderValue("image/svg+xml");
         // Uploading a different image using an existing file name
-        content.Add(imageContent, "image", ExistingRootImage);
+        content.Add(imageContent, "file", ExistingRootImage);
         content.Add(new StringContent("true"), "overrideExisting");
         using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, path)
         {
@@ -128,7 +128,7 @@ public class UploadImageTests : DesignerEndpointsTestsBase<UploadImageTests>, IC
         byte[] bytes = await File.ReadAllBytesAsync(filePathForUpload);
         string path = $"{VersionPrefix}/{Org}/{targetRepository}/images";
         var content = new MultipartFormDataContent();
-        content.Add(new ByteArrayContent(bytes), "image", NotAnImage);
+        content.Add(new ByteArrayContent(bytes), "file", NotAnImage);
         using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, path)
         {
             Content = content
