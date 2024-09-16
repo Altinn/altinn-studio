@@ -3,8 +3,6 @@ import type { StudioButtonProps } from '@studio/components';
 import { StudioFileUploader, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useUploadDataModelMutation } from '../../../../hooks/mutations/useUploadDataModelMutation';
-import type { AxiosError } from 'axios';
-import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
 import type { MetadataOption } from '../../../../types/MetadataOption';
 import { fileSelectorInputId } from '@studio/testing/testids';
@@ -24,7 +22,7 @@ export const XSDUpload = ({
   const { mutate: uploadDataModel, isPending: uploading } = useUploadDataModelMutation(
     selectedOption?.value?.repositoryRelativeUrl,
     {
-      hideDefaultError: true,
+      hideDefaultError: (error) => !error.response?.data?.errorCode,
     },
   );
 
@@ -33,7 +31,7 @@ export const XSDUpload = ({
 
   const handleUpload = (formData: FormData) => {
     uploadDataModel(formData, {
-      onError: (e: AxiosError<ApiError>) => {
+      onError: (e) => {
         if (!e.response?.data?.errorCode)
           toast.error(t('form_filler.file_uploader_validation_error_upload'));
       },

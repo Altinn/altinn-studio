@@ -16,8 +16,20 @@ interface DataModellingProps {
 export function DataModelling({ createPathOption = false }: DataModellingProps): ReactNode {
   const { t } = useTranslation();
   const { org, app } = useParams<{ org: string; app: string }>();
-  const { status: jsonStatus, error: jsonError, data: jsonData } = useDataModelsJsonQuery(org, app);
-  const { status: xsdStatus, error: xsdError, data: xsdData } = useDataModelsXsdQuery(org, app);
+  const {
+    status: jsonStatus,
+    error: jsonError,
+    data: jsonData,
+  } = useDataModelsJsonQuery(org, app, {
+    hideDefaultError: true,
+  });
+  const {
+    status: xsdStatus,
+    error: xsdError,
+    data: xsdData,
+  } = useDataModelsXsdQuery(org, app, {
+    hideDefaultError: true,
+  });
 
   switch (mergeQueryStatuses(jsonStatus, xsdStatus)) {
     case 'pending':
@@ -28,8 +40,8 @@ export function DataModelling({ createPathOption = false }: DataModellingProps):
           <StudioError>
             <Paragraph>{t('general.fetch_error_message')}</Paragraph>
             <Paragraph>{t('general.error_message_with_colon')}</Paragraph>
-            {jsonError && <ErrorMessage>{jsonError.message}</ErrorMessage>}
-            {xsdError && <ErrorMessage>{xsdError.message}</ErrorMessage>}
+            {jsonError && <ErrorMessage>111{jsonError.message}</ErrorMessage>}
+            {xsdError && <ErrorMessage>2222{xsdError.message}</ErrorMessage>}
           </StudioError>
         </StudioCenter>
       );

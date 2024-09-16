@@ -29,17 +29,23 @@ export const AboutTab = (): React.ReactElement => {
     status: appConfigStatus,
     data: appConfigData,
     error: appConfigError,
-  } = useAppConfigQuery(org, app);
+  } = useAppConfigQuery(org, app, {
+    hideDefaultError: true,
+  });
   const {
     status: repositoryStatus,
     data: repositoryData,
     error: repositoryError,
-  } = useRepoMetadataQuery(org, app);
+  } = useRepoMetadataQuery(org, app, {
+    hideDefaultError: true,
+  });
   const {
     status: applicationMetadataStatus,
     data: applicationMetadataData,
     error: applicationMetadataError,
-  } = useAppMetadataQuery(org, app);
+  } = useAppMetadataQuery(org, app, {
+    hideDefaultError: true,
+  });
 
   const { mutate: updateAppConfigMutation } = useAppConfigMutation(org, app);
 

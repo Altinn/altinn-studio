@@ -16,12 +16,20 @@ import { StudioError } from '@studio/components';
 export function DeployPage() {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
-  const { data: orgs, isPending: orgsIsPending, isError: orgsIsError } = useOrgListQuery();
+  const {
+    data: orgs,
+    isPending: orgsIsPending,
+    isError: orgsIsError,
+  } = useOrgListQuery({
+    hideDefaultError: true,
+  });
   const {
     data: permissions,
     isPending: permissionsIsPending,
     isError: permissionsIsError,
-  } = useDeployPermissionsQuery(org, app);
+  } = useDeployPermissionsQuery(org, app, {
+    hideDefaultError: true,
+  });
   useInvalidator();
 
   if (orgsIsPending || permissionsIsPending) {

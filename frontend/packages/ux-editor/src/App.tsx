@@ -47,10 +47,15 @@ export function App() {
   const t = useText();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
-  const { status: widgetsStatus, isError: widgetFetchedError } = useWidgetsQuery(org, app);
+  const { status: widgetsStatus, isError: widgetFetchedError } = useWidgetsQuery(org, app, {
+    hideDefaultError: true,
+  });
   const { status: layoutSetsStatus, isError: layoutSetsFetchedError } = useLayoutSetsQuery(
     org,
     app,
+    {
+      hideDefaultError: true,
+    },
   );
   const { status: dataModelStatus, isError: dataModelFetchedError } = useDataModelMetadataQuery({
     org,

@@ -25,9 +25,13 @@ export function App() {
   const selectedLayout = useSelector(selectedLayoutNameSelector);
   const { selectedLayoutSet, setSelectedLayoutSet, removeSelectedLayoutSet } = useAppContext();
   const { data: layoutSets, isSuccess: areLayoutSetsFetched } = useLayoutSetsQuery(org, app);
-  const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app);
+  const { isSuccess: areWidgetsFetched, isError: widgetFetchedError } = useWidgetsQuery(org, app, {
+    hideDefaultError: true,
+  });
   const { isSuccess: isDataModelFetched, isError: dataModelFetchedError } =
-    useDataModelMetadataQuery(org, app, selectedLayoutSet, undefined);
+    useDataModelMetadataQuery(org, app, selectedLayoutSet, undefined, {
+      hideDefaultError: true,
+    });
   const { isSuccess: areTextResourcesFetched } = useTextResourcesQuery(org, app);
 
   useEffect(() => {

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import type { UseQueryResult } from '@tanstack/react-query';
+import type { QueryMeta, UseQueryResult } from '@tanstack/react-query';
 import type { IFormLayouts } from '../../types/global';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
@@ -11,6 +11,7 @@ export const useFormLayoutsQuery = (
   org: string,
   app: string,
   layoutSetName: string,
+  meta?: QueryMeta,
 ): UseQueryResult<IFormLayouts> => {
   const { getFormLayoutsV3 } = useServicesContext();
   const dispatch = useDispatch();
@@ -24,5 +25,6 @@ export const useFormLayoutsQuery = (
         return convertedLayouts;
       }),
     staleTime: Infinity,
+    meta,
   });
 };

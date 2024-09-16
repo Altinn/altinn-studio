@@ -5,7 +5,6 @@ import type { Organization } from 'app-shared/types/Organization';
 import type { User } from 'app-shared/types/Repository';
 import { useAddRepoMutation } from '../../hooks/mutations/useAddRepoMutation';
 import { DataModelFormat } from 'app-shared/types/DataModelFormat';
-import type { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { NewApplicationForm } from '../../components/NewApplicationForm';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
@@ -33,7 +32,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
     isPending: isCreatingRepo,
     isSuccess: isCreatingRepoSuccess,
   } = useAddRepoMutation({
-    hideDefaultError: (error: AxiosError) => error?.response?.status === ServerCodes.Conflict,
+    hideDefaultError: (error) => error?.response?.status === ServerCodes.Conflict,
   });
 
   const [formError, setFormError] = useState<NewAppForm>(initialFormError);
@@ -59,7 +58,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
         onSuccess: (): void => {
           navigateToEditorOverview(org, repoName);
         },
-        onError: (error: AxiosError): void => {
+        onError: (error): void => {
           const appNameAlreadyExists = error.response.status === ServerCodes.Conflict;
           if (appNameAlreadyExists) {
             setFormError(

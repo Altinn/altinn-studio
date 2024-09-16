@@ -28,17 +28,23 @@ export const PolicyTab = (): ReactNode => {
     status: policyStatus,
     data: policyData,
     error: policyError,
-  } = useAppPolicyQuery(org, app);
+  } = useAppPolicyQuery(org, app, {
+    hideDefaultError: true,
+  });
   const {
     status: actionStatus,
     data: actionData,
     error: actionError,
-  } = useResourcePolicyActionsQuery(org, app);
+  } = useResourcePolicyActionsQuery(org, app, {
+    hideDefaultError: true,
+  });
   const {
     status: subjectStatus,
     data: subjectData,
     error: subjectError,
-  } = useResourcePolicySubjectsQuery(org, app, true);
+  } = useResourcePolicySubjectsQuery(org, app, true, {
+    hideDefaultError: true,
+  });
 
   const { mutate: updateAppPolicyMutation } = useAppPolicyMutation(org, app);
 

@@ -19,7 +19,9 @@ export const AccessControlTab = (): ReactNode => {
     data: appMetadata,
     status: appMetadataStatus,
     error: appMetadataError,
-  } = useAppMetadataQuery(org, app);
+  } = useAppMetadataQuery(org, app, {
+    hideDefaultError: true,
+  });
 
   const displayContent = () => {
     switch (appMetadataStatus) {

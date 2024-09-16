@@ -1,8 +1,7 @@
-import type { UseQueryResult } from '@tanstack/react-query';
+import type { QueryMeta } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { AxiosError } from 'axios';
 import type { Policy, RequiredAuthLevel } from 'app-shared/types/Policy';
 
 const DEFAULT_AUTH_LEVEL: RequiredAuthLevel = '3';
@@ -15,13 +14,14 @@ const DEFAULT_AUTH_LEVEL: RequiredAuthLevel = '3';
  *
  * @returns UseQueryResult with an object of Policy
  */
-export const useAppPolicyQuery = (org: string, app: string): UseQueryResult<Policy, AxiosError> => {
+export const useAppPolicyQuery = (org: string, app: string, meta?: QueryMeta) => {
   const { getAppPolicy } = useServicesContext();
 
-  return useQuery<Policy, AxiosError>({
+  return useQuery<Policy>({
     queryKey: [QueryKey.AppPolicy, org, app],
     queryFn: () => getAppPolicy(org, app),
     select: (response: Policy): Policy => mapAppPolicyResponse(response),
+    meta,
   });
 };
 const mapAppPolicyResponse = (appPolicy: Policy): Policy => {

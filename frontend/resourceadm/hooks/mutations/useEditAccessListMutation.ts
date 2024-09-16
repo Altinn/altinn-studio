@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { UseMutationResult } from '@tanstack/react-query';
+import type { MutationMeta, UseMutationResult } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { AccessList, ResourceError } from 'app-shared/types/ResourceAdm';
@@ -15,6 +15,7 @@ export const useEditAccessListMutation = (
   org: string,
   listIdentifier: string,
   env: string,
+  meta?: MutationMeta,
 ): UseMutationResult<AccessList, ResourceError> => {
   const queryClient = useQueryClient();
   const { updateAccessList } = useServicesContext();
@@ -26,5 +27,6 @@ export const useEditAccessListMutation = (
       queryClient.invalidateQueries({ queryKey: [QueryKey.AccessList, env, listIdentifier] });
       queryClient.invalidateQueries({ queryKey: [QueryKey.AccessLists, env] });
     },
+    meta,
   });
 };
