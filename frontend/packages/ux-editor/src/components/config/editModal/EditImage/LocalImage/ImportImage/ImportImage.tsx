@@ -1,23 +1,17 @@
-import type { FormEvent, MutableRefObject } from 'react';
 import React, { useRef, useState } from 'react';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioFileUploader } from '@studio/components';
 import classes from './ImportImage.module.css';
 import { useAddImageMutation } from 'app-shared/hooks/mutations/useAddImageMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { AddImageFromLibraryModal } from './AddImageFromLibrary/AddImageFromLibraryModal';
-import { UploadImage } from './UploadImage/UploadImage';
 import { useTranslation } from 'react-i18next';
-import type { AxiosError } from 'axios';
-import type { ApiError } from 'app-shared/types/api/ApiError';
 import { WWWROOT_FILE_PATH } from '../../constants';
-import type { UseMutateFunction } from '@tanstack/react-query';
-import type { TFunction } from 'i18next';
+import { fileSelectorInputId } from '@studio/testing/testids';
+import { useGetAllImageFileNamesQuery } from 'app-shared/hooks/queries/useGetAllImageFileNamesQuery';
 
 interface ImportImageProps {
   onImageChange: (imageSource: string) => void;
 }
-
-const CONFLICTING_IMAGE_FILE_NAME_API_ERROR_CODE = 'AD_04';
 
 export const ImportImage = ({ onImageChange }: ImportImageProps) => {
   const { t } = useTranslation();
@@ -26,16 +20,30 @@ export const ImportImage = ({ onImageChange }: ImportImageProps) => {
   const imageUploaderRef = useRef(null);
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: uploadImage } = useAddImageMutation(org, app, true);
+  const { data: imageFileNames } = useGetAllImageFileNamesQuery(org, app);
 
-  const handleSubmit = async (event?: FormEvent<HTMLFormElement>) => {
-    event?.preventDefault();
-    const imageFile = getImageFile(imageUploaderRef);
-    uploadImageWithDuplicateHandling(imageFile, uploadImage, onImageChange, t);
+  function handleSuccess(name: string): void {
+    const filePath = makeFilePath(name);
+    return onImageChange(filePath);
+  }
+
+  const handleUpload = async (formData: FormData, imageFileName: string) => {
+    uploadImage(formData, {
+      onSuccess: () => handleSuccess(imageFileName),
+    });
   };
 
-  const handleInputChange = async () => {
-    const file = getImageFile(imageUploaderRef);
-    if (file) await handleSubmit();
+  const handleOverrideExisingUploadedImage = (formData: FormData, imageFileName: string) => {
+    const userConfirmed = window.confirm(
+      t('ux_editor.properties_panel.images.override_existing_image_confirm_content'),
+    );
+
+    if (userConfirmed) {
+      formData.append('overrideExisting', 'true');
+      uploadImage(formData, {
+        onSuccess: () => handleSuccess(imageFileName),
+      });
+    }
   };
 
   return (
@@ -50,45 +58,24 @@ export const ImportImage = ({ onImageChange }: ImportImageProps) => {
           onAddImageReference={onImageChange}
         />
       )}
-      <UploadImage
-        onHandleSubmit={handleSubmit}
-        onHandleInputChange={handleInputChange}
-        imageRef={imageUploaderRef}
+      <StudioFileUploader
+        onUploadFile={handleUpload}
+        accept='image/*'
+        ref={imageUploaderRef}
+        uploaderButtonText={t('ux_editor.properties_panel.images.upload_image')}
+        customFileNameValidation={{
+          validateFileName: (fileName: string) => isFileNameUnique(fileName, imageFileNames),
+          onInvalidFileName: handleOverrideExisingUploadedImage,
+        }}
+        dataTestId={fileSelectorInputId}
       />
     </div>
   );
 };
 
-const getImageFile = (imageUploaderRef: MutableRefObject<HTMLInputElement>) =>
-  imageUploaderRef?.current?.files?.item(0);
+function makeFilePath(name: string): string {
+  return `${WWWROOT_FILE_PATH}${name}`;
+}
 
-const uploadImageWithDuplicateHandling = (
-  imageFile,
-  uploadImage: UseMutateFunction<FormData, Error, FormData, unknown>,
-  onImageChange: (imageSource: string) => void,
-  t: TFunction,
-) => {
-  if (imageFile) {
-    const formData = new FormData();
-    formData.append('image', imageFile);
-    uploadImage(formData, {
-      onError: (error: AxiosError<ApiError>) =>
-        error.response.data.errorCode === CONFLICTING_IMAGE_FILE_NAME_API_ERROR_CODE &&
-        handleOverrideExisingUploadedImage(formData, imageFile.name),
-      onSuccess: () => onImageChange(`${WWWROOT_FILE_PATH}${imageFile.name}`),
-    });
-  }
-
-  const handleOverrideExisingUploadedImage = (formData: FormData, imageFileName: string) => {
-    const userConfirmed = window.confirm(
-      t('ux_editor.properties_panel.images.override_existing_image_confirm_content'),
-    );
-
-    if (userConfirmed) {
-      formData.append('overrideExisting', 'true');
-      uploadImage(formData, {
-        onSuccess: () => onImageChange(`${WWWROOT_FILE_PATH}${imageFileName}`),
-      });
-    }
-  };
-};
+const isFileNameUnique = (fileName: string, invalidFileNames: string[]): boolean =>
+  invalidFileNames.includes(fileName);

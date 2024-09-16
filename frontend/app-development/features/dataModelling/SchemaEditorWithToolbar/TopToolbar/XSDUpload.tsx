@@ -87,3 +87,6 @@ export const XSDUpload = ({
     </span>
   );
 };
+
+const fileNameRegEx: RegExp = /^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/;
+const isFileNameMatchingRegEx = (fileName: string): boolean => !!fileName.match(fileNameRegEx);

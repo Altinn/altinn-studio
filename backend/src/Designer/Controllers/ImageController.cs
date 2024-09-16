@@ -98,7 +98,7 @@ public class ImageController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult> UploadImage(string org, string app, [FromForm(Name = "image")] IFormFile image, [FromForm(Name = "overrideExisting")] bool overrideExisting = false)
+    public async Task<ActionResult> UploadImage(string org, string app, [FromForm(Name = "file")] IFormFile image, [FromForm(Name = "overrideExisting")] bool overrideExisting = false)
     {
         if (image == null || image.Length == 0)
         {
