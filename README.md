@@ -146,14 +146,11 @@ which is located in the root folder of each react project, example `frontend/das
 
 More about developing frontend [can be found here](frontend/README.md).
 
-## Cypress tests
+## End-to-end tests
 
-Some [integration tests][17] for studio have been created with Cypress. More about these tests can be found [here](frontend/testing/cypress/README.md)
+Altinn Studio has two sets of automated end-to-end tests; regression tests and usecase tests. [The regression tests][17] are created with Playwright and run on every pull request. [The usecase tests][18] are created with Cypress and run periodically.
 
-## Playwright tests
-
-We are currently in the process of replacing Cypress with Playwright.
-Playwright is used in some [integration tests][18] for studio. More about these tests can be found [here](frontend/testing/playwright/README.md).
+For more information about testing, please refer to the following resources: [Playwright](frontend/testing/playwright/README.md) and [Cypress](frontend/testing/cypress/README.md).
 
 ## Deployment
 
@@ -202,8 +199,8 @@ This project is licensed under the 3-Clause BSD License - see the [LICENSE.md](L
 [14]: https://gitea.io/
 [15]: http://studio.localhost
 [16]: https://github.com/Altinn/app-template-dotnet
-[17]: https://github.com/Altinn/altinn-studio/tree/main/frontend/testing/cypress
-[18]: https://github.com/Altinn/altinn-studio/tree/main/frontend/testing/playwright
+[17]: https://github.com/Altinn/altinn-studio/tree/main/frontend/testing/playwright
+[18]: https://github.com/Altinn/altinn-studio/tree/main/frontend/testing/cypress
 [19]: https://reactjs.org/
 [20]: https://docs.microsoft.com/en-us/dotnet/core/
 [21]: https://docs.microsoft.com/en-us/dotnet/csharp/
