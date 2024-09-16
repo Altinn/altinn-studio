@@ -14,12 +14,12 @@
       {
         "id": "summary1",
         "type": "Summary",
-        "componentRef": "Input-JQDlSQ"
+        "componentRef": "Input-Name"
       },
       {
         "id": "summary2",
         "type": "Summary",
-        "componentRef": "Input-kcxhAS"
+        "componentRef": "Input-Age"
       },
       {
         "id": "summary3",
@@ -48,7 +48,7 @@
         "id": "summary1b",
         "type": "Summary2",
         "target": {
-          "id": "Input-JQDlSQ",
+          "id": "Input-Name",
           "type": "component"
         }
       },
@@ -56,7 +56,7 @@
         "id": "summary2b",
         "type": "Summary2",
         "target": {
-          "id": "Input-kcxhAS",
+          "id": "Input-Age",
           "type": "component"
         }
       },
