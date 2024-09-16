@@ -20,13 +20,13 @@ public record MaskinPortenScope
     public bool Active { get; set; }
 
     [JsonPropertyName("consumer_orgno")]
-    public string ConsumerOrgno { get; set; }
+    public string ConsumerOrgNo { get; set; }
 
     [JsonPropertyName("last_updated")]
     public string LastUpdated { get; set; }
 
     [JsonPropertyName("owner_orgno")]
-    public string OwnerOrgno { get; set; }
+    public string OwnerOrgNo { get; set; }
 
     [JsonPropertyName("allowed_integration_types")]
     public string[] AllowedIntegrationTypes { get; set; }

@@ -64,6 +64,8 @@ public static class AnsattPortenExtensions
                         options.Scope.Add(scope);
                     }
 
+                    options.CallbackPath = "/ansattporten-signin-oidc";
+
                     options.UsePkce = true;
                     options.GetClaimsFromUserInfoEndpoint = true;
                     options.SaveTokens = true;
@@ -72,11 +74,12 @@ public static class AnsattPortenExtensions
 
                     options.Events.OnRedirectToIdentityProvider = context =>
                     {
-                        /*if (!context.Request.Path.StartsWithSegments("/AnsattPortenLogin"))*/
-                        /*{*/
-                        /*    context.Response.StatusCode = StatusCodes.Status401Unauthorized;*/
-                        /*    context.HandleResponse();*/
-                        /*}*/
+
+                        if (!context.Request.Path.StartsWithSegments("/designer/api/maskinporten"))
+                        {
+                            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                            context.HandleResponse();
+                        }
 
                         if (oidcSettings.AuthorizationDetails is not null)
                         {

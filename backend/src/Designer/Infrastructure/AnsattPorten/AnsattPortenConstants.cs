@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Altinn.Studio.Designer;
+﻿namespace Altinn.Studio.Designer;
 
 public class AnsattPortenConstants
 {
