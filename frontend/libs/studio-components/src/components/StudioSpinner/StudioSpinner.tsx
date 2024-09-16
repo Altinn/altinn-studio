@@ -18,35 +18,6 @@ type SizeLimits = {
   lowerLimit: ParagraphSize;
 };
 
-function clampSizeWithinLimits(size: SpinnerProps['size'], limits: SizeLimits): ParagraphSize {
-  const sizes: SpinnerProps['size'][] = [
-    '2xs',
-    'xxsmall',
-    'xs',
-    'xsmall',
-    'sm',
-    'small',
-    'md',
-    'medium',
-    'lg',
-    'large',
-    'xl',
-    'xlarge',
-  ];
-
-  const sizeIndex = sizes.indexOf(size);
-  const lowerLimitIndex = sizes.indexOf(limits.upperLimit);
-  const upperLimitIndex = sizes.indexOf(limits.lowerLimit);
-
-  if (sizeIndex < lowerLimitIndex) {
-    return limits.lowerLimit;
-  } else if (sizeIndex > upperLimitIndex) {
-    return limits.upperLimit;
-  } else {
-    return size as ParagraphSize;
-  }
-}
-
 export const StudioSpinner = forwardRef<HTMLDivElement, StudioSpinnerProps>(
   (
     { spinnerTitle, showSpinnerTitle = false, size = 'medium', variant = 'interaction', ...rest },

@@ -59,7 +59,7 @@ export const ImportImage = ({ onImageChange }: ImportImageProps) => {
   );
 };
 
-const getImageFile = (imageUploaderRef: MutableRefObject<any>) =>
+const getImageFile = (imageUploaderRef: MutableRefObject<HTMLInputElement>) =>
   imageUploaderRef?.current?.files?.item(0);
 
 const uploadImageWithDuplicateHandling = (

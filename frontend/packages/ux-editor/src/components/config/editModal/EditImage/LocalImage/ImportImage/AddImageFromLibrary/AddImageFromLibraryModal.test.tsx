@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
-import { AddImageFromLibraryModal } from '@altinn/ux-editor/components/config/editModal/EditImage/LocalImage/ImportImage/AddImageFromLibrary/AddImageFromLibraryModal';
+import { AddImageFromLibraryModal } from './AddImageFromLibraryModal';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
