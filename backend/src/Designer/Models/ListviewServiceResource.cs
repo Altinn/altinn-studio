@@ -34,6 +34,6 @@ namespace Altinn.Studio.Designer.Models
         /// <summary>
         /// A list of environments the resource is deployed in
         /// </summary>
-        public IList<string> Environments { get; set; }
+        public IList<string>? Environments { get; set; }
     }
 }

@@ -57,7 +57,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
 
         public async Task<List<AvailableService>> AvailableServices(int languageId, string environment)
         {
-            List<AvailableService>? availableServices = null;
+            List<AvailableService> availableServices = null;
             string bridgeBaseUrl = GetSblBridgeUrl(environment);
             string availabbleServicePath = $"{bridgeBaseUrl}metadata/api/availableServices?languageID={languageId}&appTypesToInclude=0&includeExpired=false";
 
