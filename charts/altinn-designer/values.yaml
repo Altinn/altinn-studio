@@ -52,7 +52,7 @@ environmentVariables:
       value: "true"
     - name: OidcLoginSettings__CookieExpiryTimeInMinutes
       value: 59
-    - name: FeatureManagement__Ansattporten
+    - name: FeatureManagement__AnsattPorten
       value: false
 
   staging:
@@ -86,7 +86,7 @@ environmentVariables:
       value: "true"
     - name: OidcLoginSettings__CookieExpiryTimeInMinutes
       value: 59
-    - name: FeatureManagement__Ansattporten
+    - name: FeatureManagement__AnsattPorten
       value: false
 
   prod:
@@ -118,7 +118,7 @@ environmentVariables:
       value: "true"
     - name: OidcLoginSettings__CookieExpiryTimeInMinutes
       value: 59
-    - name: FeatureManagement__Ansattporten
+    - name: FeatureManagement__AnsattPorten
       value: false
 
 dbMigrationsEnvironmentVariablesSecretName: altinn-designer-db-migrations-secret
