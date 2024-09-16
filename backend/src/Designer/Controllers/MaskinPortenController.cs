@@ -1,7 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Constants;
-using Altinn.Studio.Designer.Infrastructure.AnsattPorten;
 using Altinn.Studio.Designer.TypedHttpClients.MaskinPorten;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
