@@ -63,8 +63,11 @@ export const EditComponentIdRow = ({
       return t('validation_errors.required');
     }
     if (value.toLowerCase() !== component.id.toLowerCase()) {
-      if (idExists(value, formLayouts) || dataTypeWithNameExists(value)) {
+      if (idExists(value, formLayouts)) {
         return t('ux_editor.modal_properties_component_id_not_unique_error');
+      }
+      if (dataTypeWithNameExists(value)) {
+        return t('ux_editor.error_component_id_exists_as_data_type');
       }
     }
     return '';

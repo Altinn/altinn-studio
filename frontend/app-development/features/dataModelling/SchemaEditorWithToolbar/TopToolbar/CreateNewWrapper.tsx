@@ -53,8 +53,12 @@ export function CreateNewWrapper({
       setNameError(t('schema_editor.invalid_datamodel_name'));
       return;
     }
-    if (modelNames.includes(name) || dataTypeWithNameExists(name)) {
+    if (modelNames.includes(name)) {
       setNameError(t('schema_editor.error_model_name_exists', { newModelName: name }));
+      return;
+    }
+    if (dataTypeWithNameExists(name)) {
+      setNameError(t('schema_editor.error_data_type_name_exists'));
       return;
     }
     setNameError('');
