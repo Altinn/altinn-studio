@@ -3,13 +3,6 @@
   "data": {
     "layout": [
       {
-        "dataModelBindings": {
-          "simpleBinding": ""
-        },
-        "id": "TextArea-A5mWo2",
-        "type": "TextArea"
-      },
-      {
         "id": "altinnLogo",
         "type": "Image",
         "textResourceBindings": {
