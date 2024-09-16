@@ -36,7 +36,7 @@ const generateComponentSchema = (name: string, layoutSchema: any, version: strin
   console.log('definitionName: ', definitionName);
   const componentSchema = layoutSchema.definitions[definitionName];
   let schema: any = {
-    $id: `https://altinncdn.no/schemas/json/component/${name}.schema.v1.json`, // These links respond with 404?
+    $id: `https://altinncdn.no/schemas/json/component/${name}.schema.v1.json`,
     $schema: layoutSchema.$schema,
   };
 
