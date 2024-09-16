@@ -1,4 +1,3 @@
-import type { BaseSyntheticEvent } from 'react';
 import React, { useEffect } from 'react';
 import type { FieldType, FieldNode, ObjectKind } from '@altinn/schema-model';
 import { isField, isReference } from '@altinn/schema-model';
@@ -9,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { ItemFieldsTable } from './ItemFieldsTable';
 import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
 import { getLastNameField } from '@altinn/schema-editor/components/SchemaInspector/ItemFieldsTab/domUtils';
-import { propertyItems } from '../../SchemaTree/SchemaNode/ActionButtons/AddPropertyMenu';
+import { AddPropertiesMenu } from '../../AddPropertiesMenu';
 
 export interface ItemFieldsTabProps {
   selectedItem: FieldNode;
@@ -32,11 +31,7 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
 
   const { t } = useTranslation();
 
-  const onAddPropertyClicked = (
-    event: BaseSyntheticEvent,
-    kind: ObjectKind,
-    fieldType?: FieldType,
-  ) => {
+  const onAddPropertyClicked = (kind: ObjectKind, fieldType?: FieldType) => {
     event.preventDefault();
     addProperty(kind, fieldType, selectedItem.pointer);
   };
@@ -57,16 +52,7 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
         size='small'
         placement='bottom-start'
       >
-        {propertyItems.map(({ kind, fieldType, icon: Icon }) => (
-          <StudioDropdownMenu.Item
-            key={`${kind}-${fieldType}`}
-            value={fieldType}
-            onClick={(e) => onAddPropertyClicked(e, kind, fieldType)}
-            icon={<Icon />}
-          >
-            {t(`schema_editor.${fieldType || kind}`)}
-          </StudioDropdownMenu.Item>
-        ))}
+        <AddPropertiesMenu onItemClick={onAddPropertyClicked} />
       </StudioDropdownMenu>
     </div>
   );

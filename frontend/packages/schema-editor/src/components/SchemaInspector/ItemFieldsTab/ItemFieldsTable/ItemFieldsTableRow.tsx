@@ -44,7 +44,6 @@ export const ItemFieldsTableRow = ({
 
   const typeOptions = useTypeOptions();
   const fullPath = fieldNode.pointer;
-  const kindOptions = useKindOptions();
 
   const handleChangeNodeName = (newNodeName: string) => {
     save(
@@ -58,9 +57,9 @@ export const ItemFieldsTableRow = ({
   const typeLabel =
     isField(fieldNode) && typeOptions.find(({ value }) => value === fieldNode.fieldType)?.label;
 
-  const kindLabel = kindOptions.find(
-    ({ kind }) => kind !== ObjectKind.Reference && kind === fieldNode.objectKind,
-  )?.label;
+  const kindNames = useKindOptions();
+  const notReferenceKind = fieldNode.objectKind !== ObjectKind.Reference;
+  const kindLabel = notReferenceKind && kindNames[fieldNode.objectKind];
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
     e?.key === 'Enter' && onEnterKeyPress && onEnterKeyPress();
