@@ -88,7 +88,7 @@ describe('EditTaskId', () => {
     await user.tab();
 
     expect(metadataFormRefMock.current).toEqual(
-      expect.objectContaining({ taskIdChange: { newId: newId, oldId: 'testId' } }),
+      expect.objectContaining({ taskIdChange: { newId: newId, oldId: mockBpmnDetails.id } }),
     );
     expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1);
   });
@@ -177,7 +177,7 @@ describe('EditTaskId', () => {
     );
 
     await user.clear(input);
-    await user.type(input, 'testId');
+    await user.type(input, mockBpmnDetails.id);
     await user.tab();
 
     expect(metadataFormRefMock.current).toBeUndefined();
