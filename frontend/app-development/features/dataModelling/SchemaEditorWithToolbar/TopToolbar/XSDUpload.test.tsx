@@ -22,18 +22,20 @@ const useUploadDataModelMutationSpy = jest.spyOn(
   'useUploadDataModelMutation',
 );
 
+const uploadButtonTextMock = 'Upload XSD';
 const clickUploadButton = async () => {
-  const btn = screen.getByText(textMock('app_data_modelling.upload_xsd'));
+  const btn = screen.getByRole('button', { name: uploadButtonTextMock });
   await user.click(btn);
 };
 
-const render = ({
+const renderXsdUpload = ({
   queries = {},
   queryClient = createQueryClientMock(),
 }: {
   queryClient?: QueryClient;
   queries?: Partial<ServicesContextProps>;
-} = {}) => renderWithProviders(queries, queryClient)(<XSDUpload />);
+} = {}) =>
+  renderWithProviders(queries, queryClient)(<XSDUpload uploadButtonText={uploadButtonTextMock} />);
 
 describe('XSDUpload', () => {
   afterEach(jest.restoreAllMocks);
@@ -41,15 +43,15 @@ describe('XSDUpload', () => {
   it('shows a spinner when uploading', async () => {
     useUploadDataModelMutationSpy.mockReturnValue({ isPending: true });
 
-    render();
+    renderXsdUpload();
 
     expect(screen.getByText(textMock('app_data_modelling.uploading_xsd'))).toBeInTheDocument();
   });
 
   it('shows file picker button', () => {
-    render();
+    renderXsdUpload();
 
-    const button = screen.getByRole('button', { name: textMock('app_data_modelling.upload_xsd') });
+    const button = screen.getByRole('button', { name: uploadButtonTextMock });
     expect(button).toBeInTheDocument();
 
     const fileInput = screen.getByTestId(fileSelectorInputId);
@@ -59,7 +61,7 @@ describe('XSDUpload', () => {
   it('uploads a file', async () => {
     const errorCode = 'ModelWithTheSameTypeNameExists';
     const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
-    render({
+    renderXsdUpload({
       queries: {
         uploadDataModel: jest
           .fn()
@@ -80,7 +82,7 @@ describe('XSDUpload', () => {
   it('shows a specific error message when api returns an errorCode', async () => {
     const errorCode = 'ModelWithTheSameTypeNameExists';
     const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
-    render({
+    renderXsdUpload({
       queries: {
         uploadDataModel: jest
           .fn()
@@ -100,7 +102,7 @@ describe('XSDUpload', () => {
 
   it('shows a custom generic error message', async () => {
     const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
-    render({
+    renderXsdUpload({
       queries: {
         uploadDataModel: jest
           .fn()

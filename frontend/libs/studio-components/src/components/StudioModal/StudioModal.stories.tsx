@@ -27,7 +27,7 @@ const render = ({ icon, children, ...rest }: PreviewArgs) => (
 );
 
 const meta: Meta<PreviewArgs> = {
-  title: 'Studio/StudioModal',
+  title: 'StudioModal',
   component: StudioModalRoot,
   subcomponents: { StudioModalTrigger, StudioModalDialog },
   render,

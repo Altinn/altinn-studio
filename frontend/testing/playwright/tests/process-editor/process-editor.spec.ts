@@ -49,6 +49,7 @@ test('that the user is able to add and delete data model', async ({ page, testAp
   await processEditorPage.clickOnTaskInBpmnEditor(initialTaskDataElementIdSelector);
   await processEditorPage.waitForInitialTaskHeaderToBeVisible();
 
+  await processEditorPage.dataModelConfig.clickOnDesignAccordion();
   await processEditorPage.dataModelConfig.waitForDataModelButtonToBeVisibleWithValue('model');
   await processEditorPage.dataModelConfig.clickOnDataModelButton('model');
   await processEditorPage.dataModelConfig.waitForComboboxToBeVisible();
@@ -215,7 +216,6 @@ const addNewSigningTaskToProcessEditor = async (page: Page): Promise<string> => 
     extraMovingDistanceX,
     extraMovingDistanceY,
   );
-  await processEditorPage.skipRecommendedTask();
   await processEditorPage.waitForTaskToBeVisibleInConfigPanel(signingTask);
 
   return signingTask;

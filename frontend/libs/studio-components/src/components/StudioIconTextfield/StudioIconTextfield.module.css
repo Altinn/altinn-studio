@@ -1,6 +1,8 @@
 .container {
   display: flex;
   gap: var(--fds-spacing-2);
+  padding: var(--fds-spacing-3);
+  box-sizing: border-box;
 }
 
 .prefixIcon {

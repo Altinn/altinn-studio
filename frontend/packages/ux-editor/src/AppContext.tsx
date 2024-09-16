@@ -1,7 +1,9 @@
 import type { MutableRefObject } from 'react';
 import React, { useMemo, useRef, createContext, useCallback } from 'react';
-import type { QueryClient, QueryKey } from '@tanstack/react-query';
+import type { QueryClient, QueryKey as TanStackQueryKey } from '@tanstack/react-query';
 import { useSelectedFormLayoutName, useSelectedFormLayoutSetName } from './hooks';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 export interface WindowWithQueryClient extends Window {
   queryClient?: QueryClient;
@@ -36,6 +38,7 @@ export const AppContextProvider = ({
   previewHasLoaded,
   onLayoutSetNameChange,
 }: AppContextProviderProps): React.JSX.Element => {
+  const { org, app } = useStudioEnvironmentParams();
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
   const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } =
     useSelectedFormLayoutSetName();
@@ -43,7 +46,7 @@ export const AppContextProvider = ({
     useSelectedFormLayoutName(selectedFormLayoutSetName);
 
   const refetch = useCallback(
-    async (queryKey: QueryKey, resetQueries: boolean = false): Promise<void> => {
+    async (queryKey: TanStackQueryKey, resetQueries: boolean = false): Promise<void> => {
       const contentWindow: WindowWithQueryClient = previewIframeRef?.current?.contentWindow;
 
       resetQueries
@@ -59,23 +62,23 @@ export const AppContextProvider = ({
 
   const refetchLayouts = useCallback(
     async (layoutSetName: string, resetQueries: boolean = false): Promise<void> => {
-      return await refetch(['formLayouts', layoutSetName], resetQueries);
+      return await refetch([QueryKey.FormLayouts, org, app, layoutSetName], resetQueries);
     },
-    [refetch],
+    [refetch, org, app],
   );
 
   const refetchLayoutSettings = useCallback(
     async (layoutSetName: string, resetQueries: boolean = false): Promise<void> => {
-      return await refetch(['layoutSettings', layoutSetName], resetQueries);
+      return await refetch([QueryKey.FormLayoutSettings, org, app, layoutSetName], resetQueries);
     },
-    [refetch],
+    [refetch, org, app],
   );
 
   const refetchTexts = useCallback(
     async (language: string, resetQueries: boolean = false): Promise<void> => {
-      return await refetch(['fetchTextResources', language], resetQueries);
+      return await refetch([QueryKey.FetchTextResources, org, app, language], resetQueries);
     },
-    [refetch],
+    [refetch, org, app],
   );
 
   const value = useMemo(
