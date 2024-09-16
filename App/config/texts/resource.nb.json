@@ -224,6 +224,28 @@
     {
       "id": "appLogo.url",
       "value": "/ttd/component-library/altinn-logo.svg"
+    },
+    { "id": "question-1", "value": "Gjør du leksene dine?" },
+    { "id": "question-2", "value": "Fungerer kalkulatoren din?" },
+    { "id": "question-3", "value": "Er pulten din ryddig?" },
+    { "id": "question-4", "value": "Hører skolen på elevenes forslag?" },
+    {
+      "id": "question-5",
+      "value": "Er dere elever med på å lage regler for hvordan dere skal ha det i klassen/gruppa?"
+    },
+    {
+      "id": "question-6",
+      "value": "De voksne på skolen synes det er viktig at vi elever er greie med hverandre."
+    },
+    {
+      "id": "likert-row-title",
+      "value": "{0}",
+      "variables": [
+        {
+          "key": "LikertExample[{0}].Id",
+          "dataSource": "dataModel.default"
+        }
+      ]
     }
   ]
 }

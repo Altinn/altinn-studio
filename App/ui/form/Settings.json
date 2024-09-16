@@ -8,6 +8,7 @@
       "CheckboxesPage",
       "DropdownPage",
       "MultipleSelectPage",
+      "LikertPage",
       "GroupPage",
       "AddressPage",
       "FileUploadPage",

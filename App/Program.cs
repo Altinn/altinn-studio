@@ -1,6 +1,7 @@
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Core.Features;
+using Altinn.App.logic.DataProcessing;
 using Altinn.App.Options;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -13,6 +14,7 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
 {
     // Register your apps custom service implementations here.
     services.AddTransient<IDataListProvider, ListCases>();
+    services.AddTransient<IInstantiationProcessor, InstantiationProcessor>();
 }
 
 // ###########################################################################
