@@ -5,7 +5,7 @@ import { StudioLabelAsParagraph } from './StudioLabelAsParagraph';
 type Story = StoryFn<typeof StudioLabelAsParagraph>;
 
 const meta: Meta = {
-  title: 'Studio/StudioLabelAsParagraph',
+  title: 'StudioLabelAsParagraph',
   component: StudioLabelAsParagraph,
   argTypes: {
     spacing: {
