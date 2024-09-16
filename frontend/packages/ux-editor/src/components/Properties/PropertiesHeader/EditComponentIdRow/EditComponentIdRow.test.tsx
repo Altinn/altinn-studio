@@ -135,7 +135,7 @@ describe('EditComponentIdRow', () => {
     await user.type(textField, 'newTestId');
     await user.click(document.body);
     expect(
-      screen.getByText(textMock('ux_editor.modal_properties_component_id_not_unique_error')),
+      screen.getByText(textMock('ux_editor.error_component_id_exists_as_data_type')),
     ).toBeInTheDocument();
   });
 });

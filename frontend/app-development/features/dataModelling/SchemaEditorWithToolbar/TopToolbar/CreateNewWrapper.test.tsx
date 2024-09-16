@@ -143,9 +143,7 @@ describe('CreateNewWrapper', () => {
 
       await user.type(screen.getByRole('textbox'), dataTypeName);
       expect(
-        screen.getByText(
-          textMock('schema_editor.error_model_name_exists', { newModelName: dataTypeName }),
-        ),
+        screen.getByText(textMock('schema_editor.error_data_type_name_exists')),
       ).toBeInTheDocument();
 
       expect(okButton()).toBeDisabled();
