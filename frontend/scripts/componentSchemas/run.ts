@@ -2,7 +2,7 @@ import { expandAllOf, expandAnyOf, expandRefsInProperties, verifySchema } from '
 import type { AppFrontendVersion } from './version';
 import { isValidVersion, versionSettings } from './version';
 import { getLayoutSchema } from './api';
-import { generateComponentPropertyLabels, generateTextResourceLabels } from './languageUtils';
+import { logComponentPropertyLabels, logTextResourceLabels } from './languageUtils';
 
 const allTextResourceBindingKeys = [];
 const allPropertyKeys = [];
@@ -31,7 +31,7 @@ const addProperties = (propertyKeys: string[]) => {
   allPropertyKeys.push(...propertyKeys);
 };
 
-const generateComponentSchema = (name: string, layoutSchema: any) => {
+const generateComponentSchema = (name: string, layoutSchema: any, version: string) => {
   const definitionName = `Comp${name}`;
   console.log('definitionName: ', definitionName);
   const componentSchema = layoutSchema.definitions[definitionName];
@@ -39,6 +39,12 @@ const generateComponentSchema = (name: string, layoutSchema: any) => {
     $id: `https://altinncdn.no/schemas/json/component/${name}.schema.v1.json`,
     $schema: layoutSchema.$schema,
   };
+
+  // The v4 schema has external definitions. This code block is needed to fetch v4 properties correctly.
+  const externalDefinitionName = definitionName + 'External';
+  if (version == 'v4' && layoutSchema.definitions[externalDefinitionName]?.allOf) {
+    componentSchema.allOf = layoutSchema.definitions[externalDefinitionName].allOf;
+  }
 
   if (componentSchema.allOf) {
     schema = { ...schema, ...expandAllOf(componentSchema, layoutSchema) };
@@ -90,31 +96,27 @@ const sortTextResourceBindings = (textResourceBindings: any) => {
 const run = async () => {
   let version: string = process.argv.length > 2 ? process.argv[2] : '';
   if (!isValidVersion(version)) {
-    version = 'v4';
     console.warn(
       `Invalid version: ${version}. Please provide a valid version: v3 or v4. Defaulting to v4.`,
     );
+    version = 'v4';
   }
+
   const layoutSchema: any = await getLayoutSchema(version as AppFrontendVersion);
   const allComponents = layoutSchema.definitions.AnyComponent.properties.type.enum;
 
   allComponents.forEach((componentName: string) => {
-    const schema = generateComponentSchema(
-      componentName === 'AddressComponent' ? 'Address' : componentName,
-      layoutSchema,
-    );
+    componentName = componentName === 'AddressComponent' ? 'Address' : componentName;
+
+    const schema = generateComponentSchema(componentName, layoutSchema, version);
     addTextResourceBindingKeys(schema);
-    writeToFile(
-      componentName === 'AddressComponent' ? 'Address' : componentName,
-      schema,
-      version as AppFrontendVersion,
-    );
+    writeToFile(componentName, schema, version as AppFrontendVersion);
   });
 
   const uniqueTextResourceBindingKeys = [...new Set(allTextResourceBindingKeys)];
-  generateTextResourceLabels(uniqueTextResourceBindingKeys);
+  logTextResourceLabels(uniqueTextResourceBindingKeys);
   console.log('--------------------------------------------------------');
-  generateComponentPropertyLabels([...new Set(allPropertyKeys)]);
+  logComponentPropertyLabels([...new Set(allPropertyKeys)]);
 };
 
 run();

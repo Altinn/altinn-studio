@@ -1,7 +1,6 @@
-import type { ReactNode } from 'react';
-import React, { useState } from 'react';
+import type { ReactElement } from 'react';
+import React, { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
 import classes from './SettingsModal.module.css';
-import { Heading } from '@digdir/designsystemet-react';
 import {
   CogIcon,
   InformationSquareIcon,
@@ -19,17 +18,25 @@ import { PolicyTab } from './components/Tabs/PolicyTab';
 import { AboutTab } from './components/Tabs/AboutTab';
 import { AccessControlTab } from './components/Tabs/AccessControlTab';
 import { SetupTab } from './components/Tabs/SetupTab';
+import type { SettingsModalHandle } from '../../../types/SettingsModalHandle';
 
-export type SettingsModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
-  defaultTab?: SettingsModalTab;
-};
-
-export const SettingsModal = ({ isOpen, onClose, defaultTab }: SettingsModalProps): ReactNode => {
+export const SettingsModal = forwardRef<SettingsModalHandle, {}>(({}, ref): ReactElement => {
   const { t } = useTranslation();
 
-  const [currentTab, setCurrentTab] = useState<SettingsModalTab>(defaultTab || 'about');
+  const [currentTab, setCurrentTab] = useState<SettingsModalTab>('about');
+  const dialogRef = useRef<HTMLDialogElement>();
+
+  const openSettings = useCallback(
+    (tab: SettingsModalTab = currentTab) => {
+      setCurrentTab(tab);
+      dialogRef.current?.showModal();
+    },
+    [currentTab],
+  );
+
+  useImperativeHandle<SettingsModalHandle, SettingsModalHandle>(ref, () => ({ openSettings }), [
+    openSettings,
+  ]);
 
   const aboutTabId: SettingsModalTab = 'about';
   const setupTabId: SettingsModalTab = 'setup';
@@ -40,32 +47,28 @@ export const SettingsModal = ({ isOpen, onClose, defaultTab }: SettingsModalProp
     createNavigationTab(
       <InformationSquareIcon className={classes.icon} />,
       aboutTabId,
-      () => changeTabTo(aboutTabId),
+      () => setCurrentTab(aboutTabId),
       currentTab,
     ),
     createNavigationTab(
       <SidebarBothIcon className={classes.icon} />,
       setupTabId,
-      () => changeTabTo(setupTabId),
+      () => setCurrentTab(setupTabId),
       currentTab,
     ),
     createNavigationTab(
       <ShieldLockIcon className={classes.icon} />,
       policyTabId,
-      () => changeTabTo(policyTabId),
+      () => setCurrentTab(policyTabId),
       currentTab,
     ),
     createNavigationTab(
       <TimerStartIcon className={classes.icon} />,
       accessControlTabId,
-      () => changeTabTo(accessControlTabId),
+      () => setCurrentTab(accessControlTabId),
       currentTab,
     ),
   ];
-
-  const changeTabTo = (tabId: SettingsModalTab) => {
-    setCurrentTab(tabId);
-  };
 
   const displayTabs = () => {
     switch (currentTab) {
@@ -85,25 +88,21 @@ export const SettingsModal = ({ isOpen, onClose, defaultTab }: SettingsModalProp
   };
 
   return (
-    <StudioModal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={
-        <div className={classes.headingWrapper}>
-          <CogIcon className={classes.icon} />
-          <Heading level={1} size='small'>
-            {t('settings_modal.heading')}
-          </Heading>
-        </div>
-      }
-      closeButtonLabel={t('settings_modal.close_button_label')}
+    <StudioModal.Dialog
+      className={classes.settingsModal}
+      closeButtonTitle={t('settings_modal.close_button_label')}
+      contentPadding={false}
+      heading={t('settings_modal.heading')}
+      icon={<CogIcon />}
+      ref={dialogRef}
+      contentClassName={classes.modalContent}
     >
-      <div className={classes.modalContent}>
-        <div className={classes.leftNavWrapper}>
-          <LeftNavigationBar tabs={leftNavigationTabs} selectedTab={currentTab} />
-        </div>
-        <div className={classes.contentWrapper}>{displayTabs()}</div>
+      <div className={classes.leftNavWrapper}>
+        <LeftNavigationBar tabs={leftNavigationTabs} selectedTab={currentTab} />
       </div>
-    </StudioModal>
+      <div className={classes.contentWrapper}>{displayTabs()}</div>
+    </StudioModal.Dialog>
   );
-};
+});
+
+SettingsModal.displayName = 'SettingsModal';

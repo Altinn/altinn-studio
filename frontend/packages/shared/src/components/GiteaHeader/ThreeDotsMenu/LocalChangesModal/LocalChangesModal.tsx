@@ -1,35 +1,37 @@
 import type { ReactNode } from 'react';
-import React from 'react';
-import classes from './LocalChangesModal.module.css';
-import { Heading } from '@digdir/designsystemet-react';
-import { MonitorIcon } from '@studio/icons';
-import { StudioModal } from '@studio/components';
+import React, { useRef } from 'react';
+import { StudioButton, StudioModal } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { LocalChanges } from './LocalChanges/LocalChanges';
+import { MonitorIcon } from '@studio/icons';
 
 export type LocalChangesModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
+  triggerClassName?: string;
 };
 
-export const LocalChangesModal = ({ isOpen, onClose }: LocalChangesModalProps): ReactNode => {
+export const LocalChangesModal = ({ triggerClassName }: LocalChangesModalProps): ReactNode => {
   const { t } = useTranslation();
+  const dialogRef = useRef<HTMLDialogElement>();
+  const closeDialog = () => dialogRef.current?.close();
+  const openDialog = () => dialogRef.current?.showModal();
 
   return (
-    <StudioModal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={
-        <div className={classes.headingWrapper}>
-          <MonitorIcon className={classes.icon} />
-          <Heading level={1} size='small'>
-            {t('sync_header.local_changes')}
-          </Heading>
-        </div>
-      }
-      closeButtonLabel={t('sync_header.close_local_changes_button')}
-    >
-      <LocalChanges />
-    </StudioModal>
+    <>
+      <StudioButton
+        className={triggerClassName}
+        icon={<MonitorIcon />}
+        onClick={openDialog}
+        variant='tertiary'
+      >
+        {t('sync_header.local_changes')}
+      </StudioButton>
+      <StudioModal.Dialog
+        closeButtonTitle={t('sync_header.close_local_changes_button')}
+        heading={t('sync_header.local_changes')}
+        ref={dialogRef}
+      >
+        <LocalChanges onDelete={closeDialog} />
+      </StudioModal.Dialog>
+    </>
   );
 };

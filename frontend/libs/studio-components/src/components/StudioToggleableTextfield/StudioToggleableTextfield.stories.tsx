@@ -15,9 +15,11 @@ export const Preview: Story = (args) => (
 );
 
 Preview.args = {
+  onIsViewMode: () => {},
   viewProps: {
     variant: 'tertiary',
     size: 'small',
+    label: 'My awesome label',
     children: 'My awesome value',
   },
   inputProps: {
