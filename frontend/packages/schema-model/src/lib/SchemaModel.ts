@@ -85,13 +85,14 @@ export class SchemaModel {
   }
 
   public getSchemaPointerByUniquePointer(uniquePointer: string): string {
-    if (this.hasNode(uniquePointer)) return uniquePointer;
+    const pointer = uniquePointer.replace('uniquePointer-', '');
+    if (this.hasNode(pointer)) return pointer;
 
-    const parentNodePointer = this.getParentSchemaPointerByUniquePointer(uniquePointer);
+    const parentNodePointer = this.getParentSchemaPointerByUniquePointer(pointer);
     return makePointerFromArray([
       parentNodePointer,
       Keyword.Properties,
-      extractNameFromPointer(uniquePointer),
+      extractNameFromPointer(pointer),
     ]);
   }
 
@@ -103,14 +104,15 @@ export class SchemaModel {
   }
 
   private getParentPropertyNodeByUniquePointer(uniquePointer: string): UiSchemaNode {
-    const parentUniquePointer = uniquePointer.split('/').slice(0, -2).join('/');
+    const parentUniquePointer = uniquePointer.split('/').slice(1, -3).join('/');
     return this.getNodeByUniquePointer(parentUniquePointer);
   }
 
   public getUniquePointer(schemaPointer: string, uniqueParentPointer?: string): string {
-    if (!uniqueParentPointer || !isDefinitionPointer(schemaPointer)) return schemaPointer;
+    if (!uniqueParentPointer || !isDefinitionPointer(schemaPointer))
+      return `uniquePointer-${schemaPointer}`;
 
-    return `${uniqueParentPointer}/properties/${extractNameFromPointer(schemaPointer)}`;
+    return `uniquePointer-${uniqueParentPointer}/properties/${extractNameFromPointer(schemaPointer)}`;
   }
 
   public hasNode(schemaPointer: string): boolean {
