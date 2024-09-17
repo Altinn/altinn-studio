@@ -1,10 +1,10 @@
 const fs = require('fs');
 const ini = require('ini');
 
-const [, , customFile, baseFile, mergedFile] = process.argv;
+const [, , baseFile, customFile, mergedFile] = process.argv;
 
-if (!customFile || !baseFile || !mergedFile) {
-  console.error('Usage: node merge.js <custom-values.ini> <base-values.ini> <merged-values.ini>');
+if (!baseFile || !customFile || !mergedFile) {
+  console.error('Usage: node merge.js <base-values.ini> <custom-values.ini> <merged-values.ini>');
   process.exit(1);
 }
 

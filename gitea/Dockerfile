@@ -3,8 +3,8 @@ COPY ./locale /build
 WORKDIR /build
 RUN npm install
 RUN mkdir -p ./locale
-RUN node ./merge.js ./custom/locale_en-US.ini ./base/locale_en-US.ini ./locale/locale_en-US.ini
-RUN node ./merge.js ./custom/locale_nb-NO.ini ./base/locale_nb-NO.ini ./locale/locale_nb-NO.ini
+RUN node ./merge.js ./base/locale_en-US.ini ./custom/locale_en-US.ini ./locale/locale_en-US.ini
+RUN node ./merge.js ./base/locale_nb-NO.ini ./custom/locale_nb-NO.ini ./locale/locale_nb-NO.ini
 
 FROM gitea/gitea:1.22.2-rootless
 USER 0:0
