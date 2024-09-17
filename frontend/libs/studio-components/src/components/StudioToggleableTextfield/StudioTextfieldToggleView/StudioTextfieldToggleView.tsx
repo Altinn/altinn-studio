@@ -23,10 +23,10 @@ export const StudioTextfieldToggleView = ({
     <StudioButton className={className} onClick={onClick} {...rest}>
       <span className={classes.viewModeIconsContainer} title={title}>
         {icon}
-        <div className={classes.ellipsis}>
-          {label && <div className={classes.label}>{label}</div>}
-          <div className={classes.ellipsis}>{children}</div>
-        </div>
+        <span className={classes.textContainer}>
+          {label && <span className={classes.label}>{label}</span>}
+          <span className={classes.ellipsis}>{children}</span>
+        </span>
       </span>
       <span className={classes.editIconWrapper}>
         <PencilIcon className={classes.editIcon} data-testid='editIcon' aria-hidden />

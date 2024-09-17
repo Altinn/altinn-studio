@@ -28,14 +28,14 @@ export const LocalChanges = ({ onDelete }: LocalChangesProps): ReactNode => {
       <LocalChangesActionButton
         label={t('local_changes.modal_download_your_files_label')}
         description={t('local_changes.modal_download_your_files_description')}
-        icon={<DownloadIcon className={classes.downloadIcon} />}
+        icon={<DownloadIcon />}
         text={t('local_changes.modal_download_only_changed_button')}
         action={{ type: 'link', href: repoDownloadPath(org, app) }}
       />
       <LocalChangesActionButton
         label={t('local_changes.modal_download_all_files_label')}
         description={t('local_changes_modal.download_all_files_description')}
-        icon={<DownloadIcon className={classes.downloadIcon} />}
+        icon={<DownloadIcon />}
         text={t('local_changes_modal.download_all_button')}
         action={{ type: 'link', href: repoDownloadPath(org, app, true) }}
       />
