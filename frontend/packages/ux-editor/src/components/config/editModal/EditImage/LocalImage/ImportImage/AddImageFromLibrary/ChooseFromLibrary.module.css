@@ -22,7 +22,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: calc((50vw / 3) - 3 * var(--gap-cards) - 4 * var(--padding-cards));
+  max-width: calc(
+    (var(--studio-file-changes-modal-width) / 3) - 3 * var(--gap-cards) - 4 * var(--padding-cards)
+  );
 }
 
 .missingFileDescription {

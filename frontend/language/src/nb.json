@@ -1607,7 +1607,6 @@
   "ux_editor.properties_panel.images.delete_image_options_modal_content_ref_and_from_library": "Sletter du bildet vil både bildereferanse og bildet i biblioteket slettes.",
   "ux_editor.properties_panel.images.delete_image_options_modal_title": "Slett bilde og/eller bildereferansen",
   "ux_editor.properties_panel.images.delete_image_reference_title": "Slett bildereferansen fra bildekomponenten",
-  "ux_editor.properties_panel.images.description_missing": "Beskrivelse mangler",
   "ux_editor.properties_panel.images.enter_external_url": "Lim inn bildeadressen (URL)",
   "ux_editor.properties_panel.images.enter_external_url_tab_title": "Lim inn en URL",
   "ux_editor.properties_panel.images.external_url_not_added": "Ingen URL lagret",

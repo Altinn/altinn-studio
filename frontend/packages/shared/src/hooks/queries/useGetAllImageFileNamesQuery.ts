@@ -8,6 +8,8 @@ export const useGetAllImageFileNamesQuery = (
   app: string,
 ): UseQueryResult<string[]> => {
   const { getImageFileNames } = useServicesContext();
+  console.log('org: ', org);
+  console.log('app: ', app);
   return useQuery<string[]>({
     queryKey: [QueryKey.ImageFileNames, org, app],
     queryFn: () => getImageFileNames(org, app),

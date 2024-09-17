@@ -8,14 +8,12 @@ import { PreviewFileInfo } from '@altinn/ux-editor/components/config/editModal/E
 
 export interface PreviewImageSummaryProps {
   existingImageUrl: string;
-  existingImageDescription: string;
   onDeleteImage: (fileName: string) => void;
   onDeleteImageReferenceOnly: () => void;
 }
 
 export const PreviewImageSummary = ({
   existingImageUrl,
-  existingImageDescription,
   onDeleteImage,
   onDeleteImageReferenceOnly,
 }: PreviewImageSummaryProps) => {
@@ -29,10 +27,7 @@ export const PreviewImageSummary = ({
   return (
     <div className={classes.previewContainer}>
       <ImageIcon className={classes.fileIcon} />
-      <PreviewFileInfo
-        existingImageUrl={existingImageUrl}
-        existingImageDescription={existingImageDescription}
-      />
+      <PreviewFileInfo existingImageUrl={existingImageUrl} />
       <StudioDeleteButton
         title={t('ux_editor.properties_panel.images.delete_image_reference_title')}
         variant='tertiary'

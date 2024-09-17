@@ -21,7 +21,6 @@ export const LocalImage = ({
   return !!fileName ? (
     <PreviewImageSummary
       existingImageUrl={fileName}
-      existingImageDescription={null} // Null until we have a place to store descriptions
       onDeleteImage={onDeleteImage}
       onDeleteImageReferenceOnly={onDeleteImageReferenceOnly}
     />

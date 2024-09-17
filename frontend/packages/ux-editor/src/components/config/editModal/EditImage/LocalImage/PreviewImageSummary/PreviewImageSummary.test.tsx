@@ -7,34 +7,20 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 const existingImageUrl = 'existingImageUrl';
-const existingImageDescription = 'existingImageDescription';
 const onDeleteImageMock = jest.fn();
 const onDeleteImageReferenceOnlyMock = jest.fn();
 
 const defaultProps: PreviewImageSummaryProps = {
   existingImageUrl,
-  existingImageDescription,
   onDeleteImage: onDeleteImageMock,
   onDeleteImageReferenceOnly: onDeleteImageReferenceOnlyMock,
 };
 
 describe('PreviewImageSummary', () => {
-  it('previews the fileName and fileDescription if available', () => {
+  it('previews the fileName', () => {
     renderPreviewImageSummary();
     const fileName = screen.getByRole('paragraph', { name: existingImageUrl });
-    const fileDescription = screen.getByRole('paragraph', { name: existingImageDescription });
     expect(fileName).toBeInTheDocument();
-    expect(fileDescription).toBeInTheDocument();
-  });
-
-  it('previews the fileName and description placeholder if missing description', () => {
-    renderPreviewImageSummary({ existingImageDescription: undefined });
-    const fileName = screen.getByRole('paragraph', { name: existingImageUrl });
-    const missingFileDescription = screen.getByRole('paragraph', {
-      name: textMock('ux_editor.properties_panel.images.description_missing'),
-    });
-    expect(fileName).toBeInTheDocument();
-    expect(missingFileDescription).toBeInTheDocument();
   });
 
   it('opens delete options modal with correct texts when clicking delete button', async () => {
