@@ -4,6 +4,7 @@ import { useAddProperty } from '../../../../hooks/useAddProperty';
 import { FieldType, ObjectKind } from '@altinn/schema-model';
 import { ActionButton } from './ActionButton';
 import { DropdownMenu } from '@digdir/designsystemet-react';
+import { useSavableSchemaModel } from '../../../../hooks/useSavableSchemaModel';
 import {
   CombinationIcon,
   ReferenceIcon,
@@ -17,18 +18,20 @@ import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchema
 import type { IconProps } from '@studio/icons';
 
 interface AddPropertyMenuProps {
-  pointer: string;
+  schemaPointer: string;
+  uniquePointer: string;
 }
 
-export const AddPropertyMenu = ({ pointer }: AddPropertyMenuProps) => {
-  const { setSelectedNodePointer } = useSchemaEditorAppContext();
+export const AddPropertyMenu = ({ schemaPointer, uniquePointer }: AddPropertyMenuProps) => {
+  const { setSelectedUniquePointer } = useSchemaEditorAppContext();
+  const savableModel = useSavableSchemaModel();
   const { t } = useTranslation();
   const [isAddDropdownOpen, setIsAddDropdownOpen] = useState(false);
   const addProperty = useAddProperty();
 
   const addPropertyAndClose = (kind: ObjectKind, fieldType?: FieldType) => {
-    const childPointer = addProperty(kind, fieldType, pointer);
-    setSelectedNodePointer(childPointer);
+    const childPointer = addProperty(kind, fieldType, schemaPointer);
+    setSelectedUniquePointer(savableModel.getUniquePointer(childPointer, uniquePointer));
     closeDropdown();
   };
 

@@ -10,7 +10,7 @@ export const createDefinitionPointer = (name: string): string =>
 
 export const createPropertyPointer = (parentNode: UiSchemaNode, name: string): string => {
   if (!isNodeValidParent(parentNode)) {
-    throw new Error(`The node ${parentNode.pointer} is not a valid parent node.`);
+    throw new Error(`The node ${parentNode.schemaPointer} is not a valid parent node.`);
   }
   const pointerBase = createPointerBase(parentNode as FieldNode | CombinationNode);
   return makePointerFromArray([pointerBase, name]);
@@ -20,12 +20,16 @@ const createPointerBase = (parentNode: FieldNode | CombinationNode): string => {
   switch (parentNode.objectKind) {
     case ObjectKind.Field:
       return parentNode.isArray
-        ? makePointerFromArray([parentNode.pointer, Keyword.Items, Keyword.Properties])
-        : makePointerFromArray([parentNode.pointer, Keyword.Properties]);
+        ? makePointerFromArray([parentNode.schemaPointer, Keyword.Items, Keyword.Properties])
+        : makePointerFromArray([parentNode.schemaPointer, Keyword.Properties]);
     case ObjectKind.Combination:
       return parentNode.isArray
-        ? makePointerFromArray([parentNode.pointer, Keyword.Items, parentNode.combinationType])
-        : makePointerFromArray([parentNode.pointer, parentNode.combinationType]);
+        ? makePointerFromArray([
+            parentNode.schemaPointer,
+            Keyword.Items,
+            parentNode.combinationType,
+          ])
+        : makePointerFromArray([parentNode.schemaPointer, parentNode.combinationType]);
   }
 };
 

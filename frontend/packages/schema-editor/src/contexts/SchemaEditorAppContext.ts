@@ -6,8 +6,8 @@ export interface SchemaEditorAppContextProps {
   save: (dataModel: SchemaModel, saveAfterMs?: number) => void;
   selectedTypePointer?: string;
   setSelectedTypePointer: (pointer: string) => void;
-  selectedNodePointer?: string;
-  setSelectedNodePointer: (pointer?: string) => void;
+  selectedUniquePointer?: string;
+  setSelectedUniquePointer: (pointer?: string) => void;
   name: string;
 }
 

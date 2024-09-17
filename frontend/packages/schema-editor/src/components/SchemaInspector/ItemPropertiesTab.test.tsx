@@ -26,17 +26,17 @@ describe('ItemPropertiesTab', () => {
       ...nodeMockBase,
       objectKind: ObjectKind.Combination,
       combinationType,
-      pointer: selectedNodePointer,
+      schemaPointer: selectedNodePointer,
       children: [],
     };
     const uiSchemaNodes: UiSchemaNodes = [rootNode, selectedNode];
     ['0', '1'].forEach((childNodeName) => {
-      const pointer = `${selectedNodePointer}/${combinationType}/${childNodeName}`;
+      const schemaPointer = `${selectedNodePointer}/${combinationType}/${childNodeName}`;
       const node: FieldNode = {
         ...nodeMockBase,
-        pointer,
+        schemaPointer,
       };
-      selectedNode.children.push(node.pointer); // eslint-disable-line testing-library/no-node-access
+      selectedNode.children.push(node.schemaPointer); // eslint-disable-line testing-library/no-node-access
       uiSchemaNodes.push(node);
     });
     validateTestUiSchema(uiSchemaNodes);
@@ -49,16 +49,16 @@ describe('ItemPropertiesTab', () => {
   });
 
   it('Renders a name field when a field node is selected', async () => {
-    const selectedNodePointer = '#/properties/test';
+    const selectedUniquePointer = '#/properties/test';
     const rootNode: FieldNode = {
       ...rootNodeMock,
-      children: [selectedNodePointer],
+      children: [selectedUniquePointer],
     };
     const selectedNode: FieldNode = {
       ...nodeMockBase,
       objectKind: ObjectKind.Field,
       fieldType: FieldType.String,
-      pointer: selectedNodePointer,
+      schemaPointer: selectedUniquePointer,
     };
     const nodes = [rootNode, selectedNode];
     validateTestUiSchema(nodes);
@@ -66,7 +66,7 @@ describe('ItemPropertiesTab', () => {
     const schemaModel = SchemaModel.fromArray(nodes);
     const appContextProps: Partial<SchemaEditorAppContextProps> = {
       schemaModel,
-      selectedNodePointer,
+      selectedUniquePointer,
     };
     renderWithProviders({ appContextProps })(<ItemPropertiesTab selectedItem={selectedNode} />);
 
@@ -86,7 +86,7 @@ describe('ItemPropertiesTab', () => {
     const schemaModel = SchemaModel.fromArray(nodes);
     const appContextProps: Partial<SchemaEditorAppContextProps> = {
       schemaModel,
-      selectedNodePointer: null,
+      selectedUniquePointer: null,
     };
     renderWithProviders({ appContextProps })(<ItemPropertiesTab selectedItem={rootNodeMock} />);
 

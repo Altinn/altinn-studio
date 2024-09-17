@@ -12,7 +12,7 @@ export const defaultCombinationNode: CombinationNode = {
   isNillable: false,
   isRequired: false,
   objectKind: ObjectKind.Combination,
-  pointer: '',
+  schemaPointer: '',
   restrictions: {},
 };
 
@@ -23,7 +23,7 @@ export const defaultReferenceNode: ReferenceNode = {
   isNillable: false,
   isRequired: false,
   objectKind: ObjectKind.Reference,
-  pointer: '',
+  schemaPointer: '',
   reference: '',
   restrictions: {},
 };
@@ -37,6 +37,6 @@ export const defaultFieldNode: FieldNode = {
   isNillable: false,
   isRequired: false,
   objectKind: ObjectKind.Field,
-  pointer: '',
+  schemaPointer: '',
   restrictions: {},
 };
