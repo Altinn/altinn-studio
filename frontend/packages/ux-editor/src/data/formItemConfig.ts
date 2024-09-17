@@ -36,6 +36,7 @@ import {
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import { LayoutItemType } from '../types/global';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 export type FormItemConfig<T extends ComponentType = ComponentType> = {
   name: T;
@@ -504,3 +505,67 @@ export const paymentLayoutComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Payment],
   ...confOnScreenComponents,
 ];
+
+export type ComponentCategory =
+  | 'form'
+  | 'select'
+  | 'button'
+  | 'text'
+  | 'info'
+  | 'container'
+  | 'attachment'
+  | 'advanced';
+
+export const allComponents: KeyValuePairs<FormItemConfigs[ComponentType][]> = {
+  form: [
+    formItemConfigs[ComponentType.Input],
+    formItemConfigs[ComponentType.TextArea],
+    formItemConfigs[ComponentType.Datepicker],
+  ],
+  select: [
+    formItemConfigs[ComponentType.Checkboxes],
+    formItemConfigs[ComponentType.RadioButtons],
+    formItemConfigs[ComponentType.Dropdown],
+    formItemConfigs[ComponentType.MultipleSelect],
+    formItemConfigs[ComponentType.Likert],
+  ],
+  button: [
+    formItemConfigs[ComponentType.Button],
+    formItemConfigs[ComponentType.CustomButton],
+    formItemConfigs[ComponentType.NavigationButtons],
+    formItemConfigs[ComponentType.PrintButton],
+    formItemConfigs[ComponentType.InstantiationButton],
+    formItemConfigs[ComponentType.ActionButton],
+  ],
+  text: [
+    formItemConfigs[ComponentType.Header],
+    formItemConfigs[ComponentType.Paragraph],
+    formItemConfigs[ComponentType.Panel],
+    formItemConfigs[ComponentType.Alert],
+  ],
+  info: [
+    formItemConfigs[ComponentType.InstanceInformation],
+    formItemConfigs[ComponentType.Image],
+    formItemConfigs[ComponentType.Link],
+    formItemConfigs[ComponentType.IFrame],
+    formItemConfigs[ComponentType.Summary],
+  ],
+  attachment: [
+    formItemConfigs[ComponentType.AttachmentList],
+    formItemConfigs[ComponentType.FileUpload],
+    formItemConfigs[ComponentType.FileUploadWithTag],
+  ],
+  container: [
+    formItemConfigs[ComponentType.Group],
+    formItemConfigs[ComponentType.Grid],
+    formItemConfigs[ComponentType.Accordion],
+    formItemConfigs[ComponentType.AccordionGroup],
+    formItemConfigs[ComponentType.List],
+    formItemConfigs[ComponentType.RepeatingGroup],
+  ],
+  advanced: [
+    formItemConfigs[ComponentType.Address],
+    formItemConfigs[ComponentType.Map],
+    formItemConfigs[ComponentType.Custom],
+  ],
+};

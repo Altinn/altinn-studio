@@ -5,6 +5,9 @@ import { hasMultiPageGroup } from '../../utils/formLayoutUtils';
 import { useTranslation } from 'react-i18next';
 import { Alert, Paragraph } from '@digdir/designsystemet-react';
 import { FormLayoutWarning } from './FormLayoutWarning';
+import { BASE_CONTAINER_ID } from 'app-shared/constants';
+import { AddItem } from './AddItem/AddItem';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export interface FormLayoutProps {
   layout: IInternalLayout;
@@ -20,6 +23,9 @@ export const FormLayout = ({ layout, isValid, duplicateComponents }: FormLayoutP
     <>
       {hasMultiPageGroup(layout) && <MultiPageWarning />}
       <FormTree duplicateComponents={duplicateComponents} layout={layout} />
+      {shouldDisplayFeature('addComponentModal') && (
+        <AddItem containerId={BASE_CONTAINER_ID} layout={layout} />
+      )}
     </>
   );
 };
