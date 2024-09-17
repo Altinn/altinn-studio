@@ -38,5 +38,6 @@ export enum ComponentType {
   RadioButtons = 'RadioButtons',
   RepeatingGroup = 'RepeatingGroup',
   Summary = 'Summary',
+  Summary2 = 'Summary2',
   TextArea = 'TextArea',
 }

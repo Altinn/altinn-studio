@@ -432,6 +432,15 @@ export const formItemConfigs: FormItemConfigs = {
     propertyPath: 'definitions/summaryComponent',
     icon: FileTextIcon,
   },
+  [ComponentType.Summary2]: {
+    name: ComponentType.Summary2,
+    itemType: LayoutItemType.Component,
+    defaultProperties: {
+      componentRef: '',
+    },
+    propertyPath: 'definitions/summary2Component',
+    icon: FileTextIcon,
+  },
   [ComponentType.TextArea]: {
     name: ComponentType.TextArea,
     itemType: LayoutItemType.Component,
@@ -484,6 +493,7 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.IFrame],
   formItemConfigs[ComponentType.InstanceInformation],
   formItemConfigs[ComponentType.Summary],
+  formItemConfigs[ComponentType.Summary2],
 ];
 
 export const textComponents: FormItemConfigs[ComponentType][] = [
