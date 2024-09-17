@@ -25,7 +25,7 @@
       },
       {
         "id": "InputPage-Input",
-        "required":false,
+        "required": false,
         "type": "Input",
         "textResourceBindings": {
           "title": "InputPage.Input.title"
@@ -149,6 +149,22 @@
         "target": {
           "type": "component",
           "id": "InputPage-Input-long"
+        }
+      },
+      {
+        "id": "Tekst-Fra-Eksternt-Api",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Eksternt api"
+        },
+        "value": [
+          "externalApi",
+          "testId",
+          "details[0].id"
+        ],
+        "direction": "vertical",
+        "grid": {
+          "xs": 6
         }
       },
       {
