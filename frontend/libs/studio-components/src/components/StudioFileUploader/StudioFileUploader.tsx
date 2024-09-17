@@ -5,15 +5,19 @@ import { UploadIcon } from '@studio/icons';
 import type { StudioButtonProps } from '../StudioButton';
 import { StudioButton } from '../StudioButton';
 
-type StudioFileUploaderProps = {
+export type FileNameValidation = {
+  validateFileName: (fileName: string) => boolean;
+  onInvalidFileName: (file?: FormData, fileName?: string) => void;
+};
+
+export type StudioFileUploaderProps = {
   onUploadFile: (file: FormData, fileName: string) => void;
   accept?: string;
   size?: StudioButtonProps['size'];
   variant?: StudioButtonProps['variant'];
   disabled?: boolean;
   uploaderButtonText?: string;
-  fileNameRegEx?: RegExp;
-  onInvalidFileName?: () => void;
+  customFileNameValidation?: FileNameValidation;
   dataTestId?: string;
 };
 
@@ -30,8 +34,7 @@ export const StudioFileUploader = forwardRef<HTMLElement, StudioFileUploaderProp
       variant = 'tertiary',
       disabled,
       uploaderButtonText,
-      fileNameRegEx,
-      onInvalidFileName,
+      customFileNameValidation,
       dataTestId,
     },
     ref: RefObject<HTMLInputElement>,
@@ -44,9 +47,9 @@ export const StudioFileUploader = forwardRef<HTMLElement, StudioFileUploaderProp
     const handleSubmit = (event?: React.FormEvent<HTMLFormElement>) => {
       event?.preventDefault();
       const file = getFile(ref);
-      if (isFileNameValid(file, fileNameRegEx, ref, onInvalidFileName)) {
+      if (isFileNameValid(file, ref, customFileNameValidation)) {
         const formData = new FormData();
-        formData.append('file', file); // Pass the fileName as a prop or at least use a global (studio-) constant if it exists?
+        formData.append('file', file);
         onUploadFile(formData, file.name);
       }
     };
@@ -82,15 +85,16 @@ const getFile = (fileRef: RefObject<HTMLInputElement>): File => fileRef?.current
 
 const isFileNameValid = (
   file: File,
-  fileNameRegEx: RegExp,
   fileRef: RefObject<HTMLInputElement>,
-  onInvalidFileName: () => void,
+  customFileNameValidation: FileNameValidation,
 ): boolean => {
+  debugger;
   if (!file) return false;
-  const enableFileNameErrorHandling = !!fileNameRegEx && !!onInvalidFileName;
-  if (!enableFileNameErrorHandling) return true;
-  if (!file.name.match(fileNameRegEx)) {
-    onInvalidFileName();
+  if (!customFileNameValidation) return true;
+  if (!customFileNameValidation.validateFileName(file.name)) {
+    const formData = new FormData();
+    formData.append('file', file);
+    customFileNameValidation.onInvalidFileName(formData, file.name);
     fileRef.current.value = '';
     return false;
   }

@@ -53,11 +53,16 @@ export const XSDUpload = ({
           variant={uploaderButtonVariant}
           ref={fileInputRef}
           uploaderButtonText={uploadButtonText}
-          fileNameRegEx={/^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/}
-          onInvalidFileName={handleInvalidFileName}
+          customFileNameValidation={{
+            validateFileName: isFileNameMatchingRegEx,
+            onInvalidFileName: handleInvalidFileName,
+          }}
           dataTestId={fileSelectorInputId}
         />
       )}
     </span>
   );
 };
+
+const fileNameRegEx: RegExp = /^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/;
+const isFileNameMatchingRegEx = (fileName: string): boolean => !!fileName.match(fileNameRegEx);
