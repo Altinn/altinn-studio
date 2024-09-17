@@ -4,7 +4,7 @@ import { StudioReferenceButton } from '@studio/components';
 import { useSavableSchemaModel } from '@altinn/schema-editor/hooks/useSavableSchemaModel';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
-type ItemFieldsTypesProps = {
+export type ItemFieldsTypesProps = {
   fieldNode: UiSchemaNode;
   typeLabel?: string;
   kindLabel?: string;
