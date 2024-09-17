@@ -6,7 +6,6 @@ using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpclients.DelegatingHandlers;
-using Altinn.Studio.Designer.TypedHttpClients.Altinn2DelegationMigration;
 using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
