@@ -10,7 +10,7 @@ describe('StudioPageHeader', () => {
     expect(screen.getByText(childText)).toBeInTheDocument();
   });
 
-  it('should apply the "banner" role to the div container', () => {
+  test('the root container should have role banner', () => {
     renderStudioPageHeader({ children: <div>Test Child</div> });
 
     const banner = screen.getByRole('banner');

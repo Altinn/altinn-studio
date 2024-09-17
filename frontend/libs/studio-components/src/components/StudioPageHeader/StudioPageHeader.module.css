@@ -1,4 +1,9 @@
 .studioPageHeader  {
+  /*
+      This component is not using the fds color tokens as we are
+      aiming to add our own color theme to the page header.
+      This was a descision made by the UX team.
+  */
   --studio-button-regular-dark: #393b51;
   --studio-button-regular-medium: #3e4f62;
   --studio-button-regular-light: #657281;
@@ -7,5 +12,10 @@
   --studio-button-preview-medium: #118849;
   --studio-button-preview-light: #67b38a;
 
+  /*
+      To avoid the header to go above the modal, and stay below
+      the comboboxes on "Designer" page, this is the z-index that
+      satisfies both.
+  */
   z-index: 2000;
 }
