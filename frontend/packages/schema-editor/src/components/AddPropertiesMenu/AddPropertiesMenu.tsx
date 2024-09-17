@@ -11,7 +11,7 @@ import {
 } from '@studio/icons';
 import { ObjectKind, FieldType } from '@altinn/schema-model';
 
-interface AddPropertiesMenuProps {
+export interface AddPropertiesMenuProps {
   onItemClick?: (kind: ObjectKind, fieldType?: FieldType) => void;
 }
 
