@@ -12,5 +12,6 @@
 }
 
 .dialog .table .fileStatusCell {
+  vertical-align: top;
   width: 1%;
 }
