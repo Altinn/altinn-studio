@@ -39,7 +39,6 @@ const ChildComponents = ({ componentNode, hierarchyLevel, summaryOverride }: Gro
       return (
         <Grid
           item
-          spacing={6}
           key={child?.id}
         >
           <GroupSummary

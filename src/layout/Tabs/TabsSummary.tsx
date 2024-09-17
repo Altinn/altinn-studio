@@ -28,9 +28,14 @@ export const TabsSummary = ({ componentNode }: TabsSummaryProps) => {
     >
       {tabs.map((tab, index) => (
         <>
-          {index != 0 && <hr className={classes.tabDivider} />}
+          {index != 0 && (
+            <hr
+              key={`${tab.title}-${index}-divider`}
+              className={classes.tabDivider}
+            />
+          )}
           <div
-            key={tab.id}
+            key={`${tab.title}-${index}`}
             className={classes.tabWrapper}
           >
             <Heading
