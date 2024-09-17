@@ -70,21 +70,21 @@ export class LikertRowsPlugin extends NodeDefPlugin<Config> implements NodeDefCh
     state: DefPluginState<Config>,
     childNode: LayoutNode,
     _metadata: undefined,
-    row: BaseRow | undefined,
+    index: number | undefined,
   ): Partial<DefPluginState<Config>> {
     if (!childNode.isType('LikertItem')) {
       throw new Error(`Child node of Likert component must be of type 'LikertItem'`);
     }
 
     const rowIndex = childNode.rowIndex;
-    if (rowIndex === undefined || rowIndex !== row?.index) {
+    if (rowIndex === undefined || rowIndex !== index) {
       throw new Error(`Child node of Likert component missing 'row' property`);
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const i = state.item as any;
     const rows = (i && 'rows' in i ? [...i.rows] : []) as LikertRow[];
 
-    rows[rowIndex] = { ...(rows[rowIndex] || {}), ...row, itemNode: childNode };
+    rows[rowIndex] = { ...(rows[rowIndex] || {}), index, itemNode: childNode };
 
     return {
       item: {
@@ -98,17 +98,17 @@ export class LikertRowsPlugin extends NodeDefPlugin<Config> implements NodeDefCh
     state: DefPluginState<Config>,
     childNode: LayoutNode,
     _metadata: undefined,
-    row: BaseRow | undefined,
+    index: number | undefined,
   ): Partial<DefPluginState<Config>> {
     const rowIndex = childNode.rowIndex;
-    if (rowIndex === undefined || rowIndex !== row?.index) {
+    if (rowIndex === undefined || rowIndex !== index) {
       throw new Error(`Child node of Likert component missing 'row' property`);
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const i = state.item as any;
     const rows = (i && 'rows' in i ? [...i.rows] : []) as LikertRow[];
 
-    rows[rowIndex] = { ...(rows[rowIndex] || {}), ...row, itemNode: undefined };
+    rows[rowIndex] = { ...(rows[rowIndex] || {}), index, itemNode: undefined };
 
     return {
       item: {

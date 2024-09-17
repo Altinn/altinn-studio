@@ -32,6 +32,13 @@ declare global {
       goto(target: FrontendTestTask): Chainable<Element>;
 
       /**
+       * In 'ttd/frontend-test' we're using a pattern of initially hidden pages to expand with new test cases.
+       * This shortcut function will load the 'changename' task, make sure there are no validation errors, and then
+       * enable and navigate to the hidden page specified by the target string.
+       */
+      gotoHiddenPage(target: string): Chainable<Element>;
+
+      /**
        * Go to a certain task and fill out the data in it. This will skip ahead quickly to the correct task, and
        * then fill out the data in it. It will not move to the next task after it has filled out the data.
        */

@@ -43,19 +43,17 @@ export function createPatch({ prev, next, current }: Props<object>): JsonPatch {
   return patch;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function isObject(value: any): value is object {
+function isObject(value: unknown): value is object {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function compareAny(props: CompareProps<any>) {
+function compareAny(props: CompareProps<unknown>) {
   const { prev, next } = props;
   if (isObject(prev) && isObject(next)) {
-    return compareObjects(props);
+    return compareObjects(props as CompareProps<object>);
   }
   if (Array.isArray(prev) && Array.isArray(next)) {
-    return compareArrays(props);
+    return compareArrays(props as CompareProps<unknown[]>);
   }
   compareValues(props);
 }
@@ -74,8 +72,7 @@ function compareObjects({ prev, next, current, path, ...rest }: CompareProps<obj
  * This comparison function is used to determine if two values in an array can be considered the same. This is used to
  * determine if an item (i.e. a row in a repeating group) has been removed or added.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function isSameRow(left: any, right: any): boolean {
+function isSameRow(left: unknown, right: unknown): boolean {
   if (isObject(left) && isObject(right)) {
     if (!(ALTINN_ROW_ID in left && ALTINN_ROW_ID in right)) {
       window.logWarn(
@@ -102,20 +99,20 @@ function isSameRow(left: any, right: any): boolean {
  * produce the JsonPatch to create. Do not be fooled by the format returned from getPatch, it is not a JsonPatch
  * even if it looks like it at a glance.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function compareArrays({ prev, next, current, hasCurrent, patch, path }: CompareProps<any[]>) {
+function compareArrays({ prev, next, current, hasCurrent, patch, path }: CompareProps<unknown[]>) {
   const diff = getPatch(prev, next, isSameRow);
-  const allNextValuesIsString = next.length > 0 && next.every((item) => typeof item === 'string');
-  if (allNextValuesIsString) {
+  const allValues = [...next, ...prev, ...(current || [])];
+  const allValuesAreStrings = allValues.length > 0 && allValues.every((item) => typeof item === 'string');
+  if (allValuesAreStrings) {
     if (next.length > 0) {
-      if (current) {
+      if (current && !deepEqual(current, prev)) {
         // Special case. If we have a current model, and that model is an array of strings that is different from
         // next, we'll keep the current value. This can happen if you for example have a file uploader that saves
         // IDs to a list in the data model. When one attachment got uploaded, and got saved to the backend, we started
         // uploading a new attachment (which got added to the current model), but before the previous save response
         // came back from the backend.
         return;
-      } else {
+      } else if (!current) {
         patch.push({
           op: 'test',
           path: pointer(path),
@@ -128,10 +125,17 @@ function compareArrays({ prev, next, current, hasCurrent, patch, path }: Compare
         value: next,
       });
     } else {
-      patch.push({
-        op: 'remove',
-        path: pointer(path),
-      });
+      if (current && !deepEqual(current, prev)) {
+        // Same special case as above, but for when the next array is empty (i.e. the backend hasn't seen any values in
+        // this array yet, but while saving the user has added some values to the current model, for example by
+        // uploading an attachment which adds a UUID reference).
+        return;
+      } else {
+        patch.push({
+          op: 'remove',
+          path: pointer(path),
+        });
+      }
     }
     return;
   }
@@ -196,8 +200,7 @@ function compareArrays({ prev, next, current, hasCurrent, patch, path }: Compare
   patch.push(...childPatches);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function compareValues({ prev, next, hasCurrent, current, patch, path }: CompareProps<any>) {
+function compareValues({ prev, next, hasCurrent, current, patch, path }: CompareProps<unknown>) {
   if (prev === next) {
     return;
   }

@@ -31,10 +31,7 @@ describe('Dynamics', () => {
   });
 
   it('Should save the labels of multiple chosen options', () => {
-    cy.goto('changename');
-    cy.get(appFrontend.changeOfName.newFirstName).type('123');
-    cy.get('#choose-extra').findByText('Label Databindings').click();
-    cy.gotoNavPage('label-data-bindings');
+    cy.gotoHiddenPage('label-data-bindings');
 
     cy.findByRole('checkbox', { name: 'Blå' }).click();
     cy.findByRole('checkbox', { name: 'Grønn' }).click();
@@ -44,10 +41,7 @@ describe('Dynamics', () => {
   });
 
   it('Should save the label of a chosen option', () => {
-    cy.goto('changename');
-    cy.get(appFrontend.changeOfName.newFirstName).type('123');
-    cy.get('#choose-extra').findByText('Label Databindings').click();
-    cy.gotoNavPage('label-data-bindings');
+    cy.gotoHiddenPage('label-data-bindings');
 
     cy.findByRole('radio', { name: 'Gulrot' }).click();
     cy.get('#colorLabel').should('have.value', 'Gulrot');

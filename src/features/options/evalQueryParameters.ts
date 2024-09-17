@@ -23,7 +23,7 @@ export function resolveQueryParameters(
   queryParameters: IQueryParameters | undefined,
   node: LayoutNode<CompWithBehavior<'canHaveOptions'>>,
   dataSources: ExpressionDataSources,
-) {
+): Record<string, string> | undefined {
   return queryParameters
     ? Object.entries(queryParameters).reduce((obj, [key, expr]) => {
         obj[key] = evalExpr(expr, node, dataSources, {

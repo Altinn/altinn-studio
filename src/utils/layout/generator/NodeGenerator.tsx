@@ -39,7 +39,7 @@ import type { BasicNodeGeneratorProps, ExprResolver } from 'src/layout/LayoutCom
 import type { ChildClaim } from 'src/utils/layout/generator/GeneratorContext';
 import type { LayoutNode, LayoutNodeProps } from 'src/utils/layout/LayoutNode';
 import type { HiddenState } from 'src/utils/layout/NodesContext';
-import type { BaseRow, StateFactoryProps } from 'src/utils/layout/types';
+import type { StateFactoryProps } from 'src/utils/layout/types';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 /**
@@ -132,13 +132,12 @@ interface AddNodeProps<T extends CompTypes> extends CommonProps<T> {
 
 function AddRemoveNode<T extends CompTypes>({ node, intermediateItem, claim }: AddNodeProps<T>) {
   const parent = GeneratorInternal.useParent();
-  const row = GeneratorInternal.useRow();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const stateFactoryPropsRef = useAsRef<StateFactoryProps<any>>({ item: intermediateItem, parent, row });
+  const rowIndex = GeneratorInternal.useRowIndex();
+  const stateFactoryPropsRef = useAsRef<StateFactoryProps<T>>({ item: intermediateItem, parent, rowIndex });
   const addNode = NodesStateQueue.useAddNode();
   const removeNode = NodesInternal.useRemoveNode();
   const nodeRef = useAsRef(node);
-  const rowRef = useAsRef(row);
+  const rowIndexRef = useAsRef(rowIndex);
 
   GeneratorStages.AddNodes.useEffect(() => {
     addNode({
@@ -146,15 +145,15 @@ function AddRemoveNode<T extends CompTypes>({ node, intermediateItem, claim }: A
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       targetState: nodeRef.current.def.stateFactory(stateFactoryPropsRef.current as any),
       claim,
-      row: rowRef.current,
+      rowIndex: rowIndexRef.current,
     });
-  }, [addNode, nodeRef, stateFactoryPropsRef, claim, rowRef]);
+  }, [addNode, nodeRef, stateFactoryPropsRef, claim, rowIndexRef]);
 
   GeneratorStages.AddNodes.useEffect(
     () => () => {
-      removeNode(nodeRef.current, claim, rowRef.current);
+      removeNode(nodeRef.current, claim, rowIndexRef.current);
     },
-    [removeNode, nodeRef, claim, rowRef],
+    [removeNode, nodeRef, claim, rowIndexRef],
   );
 
   return null;
@@ -187,7 +186,7 @@ function ResolveExpressions<T extends CompTypes>({ node, intermediateItem }: Com
 export function useExpressionResolverProps<T extends CompTypes>(
   node: LayoutNode<T> | undefined,
   _item: CompIntermediateExact<T>,
-  row?: BaseRow,
+  rowIndex?: number,
 ): ExprResolver<T> {
   const allDataSources = useExpressionDataSources();
   const allDataSourcesAsRef = useAsRef(allDataSources);
@@ -302,7 +301,7 @@ export function useExpressionResolverProps<T extends CompTypes>(
 
   return {
     item,
-    row,
+    rowIndex,
     evalBool,
     evalNum,
     evalStr,
@@ -338,8 +337,7 @@ function useIntermediateItem<T extends CompTypes = CompTypes>(item: CompExternal
  */
 function useNewNode<T extends CompTypes>(item: CompIntermediate<T>): LayoutNode<T> {
   const parent = GeneratorInternal.useParent();
-  const row = GeneratorInternal.useRow();
-  const rowIndex = row?.index;
+  const rowIndex = GeneratorInternal.useRowIndex();
   const LNode = useNodeConstructor(item.type);
 
   return useMemo(() => {

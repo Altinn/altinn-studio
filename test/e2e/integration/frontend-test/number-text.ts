@@ -1,9 +1,6 @@
 describe('Number and Text components', () => {
   it('should render correctly', () => {
-    cy.goto('changename');
-
-    cy.findByRole('checkbox', { name: /cards/i }).check();
-    cy.gotoNavPage('cards');
+    cy.gotoHiddenPage('cards');
     const numberCard = '[data-componentid="number-Card"]';
 
     cy.get(numberCard)

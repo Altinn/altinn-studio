@@ -1,7 +1,7 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
+import { typedBoolean } from 'src/utils/typing';
 import type { IRawOption } from 'src/layout/common.generated';
-import type { CompExternal } from 'src/layout/layout';
 
 const appFrontend = new AppFrontend();
 
@@ -194,79 +194,119 @@ describe('Options', () => {
   });
 
   it('should not clear stale values when the component is hidden', () => {
-    interceptAndChangeOptions(
-      (url) => url.includes('firstName='),
-      (options) => {
-        options.length = 0;
-        options.push({ value: 'alt', label: 'This is the only option' });
-      },
-    );
-    cy.interceptLayout('changename', undefined, (set) => {
-      const layout = set['form'].data.layout;
+    cy.gotoHiddenPage('conflicting-options');
+    const headerRow = '#group-animals-table-header tr';
+    cy.get(headerRow).find('th').eq(0).should('have.text', 'Type');
+    cy.get(headerRow).find('th').eq(1).should('have.text', 'Antall bein');
+    cy.get(headerRow).find('th').eq(2).should('have.text', 'Antall bein (utland)');
+    cy.get(headerRow).find('th').eq(3).should('have.text', 'Farger');
+    cy.get(headerRow).find('th').eq(4).should('have.text', 'Kommentartyper');
 
-      // Find 'reference-group' and duplicate it (and its children) to create a variant that includes extra options
-      const group = structuredClone(layout.find((comp) => comp.id === 'reference-group')) as CompExternal<'Group'>;
-      const idx = layout.indexOf(group);
-      const children = structuredClone(
-        layout.filter((comp) => group.children.includes(comp.id)),
-      ) as CompExternal<'Dropdown'>[];
+    const mainTableRow = '#group-animals-table-body tr';
+    const nestedTableRow = '[id^="group-animalComments-"][id$="-table-body"] tr';
+    cy.get(mainTableRow).should('have.length', 2);
 
-      children.forEach((child) => {
-        child.id += '-alt';
-        child.mapping = {
-          ...child.mapping,
-          'NyttNavn-grp-9313.NyttNavn-grp-9314.PersonFornavnNytt-datadef-34758.value': 'firstName',
-        };
-      });
+    const CommentTypes = {
+      '': { label: '', value: '' }, // Represents a missing value
 
-      group.id += '-other';
-      group.children = children.map((child) => child.id);
-      group.hidden = ['notEquals', ['component', 'newFirstName'], 'alt'];
-      layout.splice(idx, 0, group, ...children);
+      // Valid for domestic animals
+      Criticism: { label: 'Kritikk', value: 'CRITICISM' },
+      Spam: { label: 'Søppel', value: 'SPAM' },
 
-      // Also make the original group hidden
-      layout.find((comp) => comp.id === 'reference-group')!.hidden = ['equals', ['component', 'newFirstName'], 'alt'];
+      // Valid for foreign animals
+      Praise: { label: 'Skryt', value: 'PRAISE' },
+      Suggestions: { label: 'Forslag', value: 'SUGGESTIONS' },
+    };
 
-      // Hide everything else (making it easier to see the effect of the hidden components)
-      const doNotHide = [
-        'reference-group',
-        'newFirstName',
-        'sources',
-        'reference',
-        'reference2',
-        group.id,
-        ...children.map((child) => child.id),
-      ];
-      layout.forEach((comp) => {
-        if (!doNotHide.includes(comp.id)) {
-          comp.hidden = true;
-        }
-      });
-    });
-    cy.goto('changename');
+    function assertRow(
+      row: number,
+      type: string,
+      numLegs: string,
+      numLegsForeign: string,
+      colors: string,
+      commentTypes: [keyof typeof CommentTypes, keyof typeof CommentTypes],
+    ) {
+      cy.get(mainTableRow).eq(row).find('td').eq(0).should('have.text', type); // Type
+      cy.get(mainTableRow).eq(row).find('td').eq(1).should('have.text', numLegs); // Antall bein
+      cy.get(mainTableRow).eq(row).find('td').eq(2).should('have.text', numLegsForeign); // Antall bein (utland)
+      cy.get(mainTableRow).eq(row).find('td').eq(3).should('have.text', colors); // Farger
 
-    // Even though two different dropdowns bind to the same path in the data model, these should not
-    // interfere with each other when only one is visible at a time.
-    cy.get(appFrontend.changeOfName.sources).should('have.value', 'Altinn');
-    cy.dsSelect(appFrontend.changeOfName.reference, 'Ola Nordmann');
-    cy.dsSelect(appFrontend.changeOfName.reference2, 'Ole');
+      // This compound column shows the labels of the selected comment types (but filters out the empty string)
+      const commentTypeLabels = commentTypes
+        .filter(typedBoolean)
+        .map((t) => CommentTypes[t].label)
+        .join(', ');
 
-    cy.waitUntilSaved();
-    cy.waitUntilNodesReady();
+      cy.get(mainTableRow).eq(row).find('td').eq(4).should('have.text', commentTypeLabels);
 
-    cy.get(appFrontend.changeOfName.reference2).should('have.value', 'Ole');
-    cy.get(appFrontend.changeOfName.newFirstName).type('alt');
+      cy.get(mainTableRow).eq(row).find('button').click();
+      cy.get(nestedTableRow).should('have.length', 2);
+      cy.get(nestedTableRow).eq(0).find('td').eq(0).should('have.text', CommentTypes[commentTypes[0]].label);
+      cy.get(nestedTableRow).eq(1).find('td').eq(0).should('have.text', CommentTypes[commentTypes[1]].label);
 
-    cy.get(`${appFrontend.changeOfName.sources}-alt`).should('have.value', 'This is the only option');
-    cy.get(`${appFrontend.changeOfName.reference}-alt`).should('have.value', '');
-    cy.get(`${appFrontend.changeOfName.reference2}-alt`).should('have.value', '');
+      // Foreign components are hidden, so they will show the value (if they were visible, they would clear the value
+      // as it's not valid for these components)
+      cy.get(nestedTableRow).eq(0).find('td').eq(1).should('have.text', CommentTypes[commentTypes[0]].value);
+      cy.get(nestedTableRow).eq(1).find('td').eq(1).should('have.text', CommentTypes[commentTypes[1]].value);
 
-    cy.dsSelect(`${appFrontend.changeOfName.reference}-alt`, 'This is the only option');
-    cy.dsSelect(`${appFrontend.changeOfName.reference2}-alt`, 'This is the only option');
+      cy.get(mainTableRow).eq(row).find('button').click();
+      cy.get(nestedTableRow).should('not.exist');
+    }
 
-    cy.waitUntilSaved();
-    cy.waitUntilNodesReady();
+    // The table here is full of mistakes and bugs, caused by our deletion of stale values. We should fix the root
+    // causes of these issues and possibly introduce validation for the values that are not in an option list
+    // instead of just removing them. On the other hand, garbage collection in the data model might want to hold
+    // on to these removed values in case they are valid again later. This test then serves as a reminder of the
+    // issues that need to be fixed, and it is expected to fail at some point in the future when the issues are fixed.
+    // Remember to update the test at that point.
 
-    cy.get(`${appFrontend.changeOfName.reference2}-alt`).should('have.value', 'This is the only option');
+    // Cell 3: This shows the _value_ from option list, not the label. That should not show up there, but we can't
+    // change it while staying backwards compatible
+    // Cell 4: The cat is also brown, but brown is only valid when isForeign is set to 'true' (it defaults to 'false').
+    // The brown value is thus removed on load, but in the future we should keep it and show it if the isForeign
+    // radio button is set to 'true'.
+    assertRow(0, 'Katt', 'fire', '4', 'Svart', ['Criticism', '']);
+
+    // Cell 2: Tigers have 5 legs when loading, but that's not valid unless we set isForeign to 'true'.
+    // Cell 3: Since the data is deleted because it's not valid in the previous row, this will be empty. It would
+    // be more logical if this showed '5', but that's not the case. The best would be if this column didn't show
+    // up at all, as the component it refers to is hidden until we toggle the isForeign radio button to 'true'.
+    // Cell 4: Tigers are red and pink. The pink color disappears if we toggle isForeign to 'true', as that's not
+    // a valid color for foreign animals.
+    assertRow(1, 'Tiger', '', '', 'Rød, Rosa', ['', 'Spam']);
+
+    cy.get('#isForeign').findByRole('radio', { name: 'Ja' }).click();
+
+    // Now the first row gets cleared (and brown still doesn't show up in the color column)
+    assertRow(0, 'Katt', '', '', 'Svart', ['', '']);
+
+    // The second row is still there, and still doesn't have legs, but the pink color is gone
+    assertRow(1, 'Tiger', '', '', 'Rød', ['', '']);
+
+    // Now we toggle back to 'false' and probably expect the first row to be back
+    cy.get('#isForeign').findByRole('radio', { name: 'Nei' }).click();
+
+    // The first row legs are still missing
+    assertRow(0, 'Katt', '', '', 'Svart', ['', '']);
+
+    // The second row is still there, and still doesn't have legs (pink is still gone)
+    assertRow(1, 'Tiger', '', '', 'Rød', ['', '']);
+
+    // Now we toggle back to 'true' and click the reset button
+    cy.get('#isForeign').findByRole('radio', { name: 'Ja' }).click();
+    cy.findByRole('button', { name: 'Tilbakestill' }).click();
+
+    // If you set the isForeign radio button to 'true' and then clicked the reset button, we used to get into
+    // a situation where (for a short while) the foreign option components were still visible, so they would
+    // remove 'stale' values from the incoming data before the 'isForeign' radio button was set to 'false' again by
+    // that same incoming data. This has been fixed, so now we expect the first row to have been reset back to its
+    // original state.
+
+    assertRow(0, 'Katt', 'fire', '4', 'Svart', ['Criticism', '']);
+    assertRow(1, 'Tiger', '', '', 'Rød, Rosa', ['', 'Spam']);
+
+    // A continuation of this test could add a choice for the user to prevent the CustomButton from resetting
+    // isForeign back to 'false' when the reset button is clicked. This would allow us to test the case where
+    // the foreign option components are still visible when the reset button is clicked.
   });
 });

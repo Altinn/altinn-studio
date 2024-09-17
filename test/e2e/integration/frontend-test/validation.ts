@@ -857,10 +857,7 @@ describe('Validation', () => {
         });
       });
 
-      cy.goto('changename');
-
-      cy.findByRole('checkbox', { name: /tall-input/i }).check();
-      cy.gotoNavPage('numeric-fields');
+      cy.gotoHiddenPage('numeric-fields');
 
       cy.get(appFrontend.fieldValidation('int32AsNumber')).should('contain.text', 'Du må fylle ut int32');
 

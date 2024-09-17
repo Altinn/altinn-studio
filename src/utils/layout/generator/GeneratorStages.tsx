@@ -9,7 +9,7 @@ import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { NodesInternal, NodesReadiness } from 'src/utils/layout/NodesContext';
 import type { AddNodeRequest, SetNodePropRequest, SetPagePropRequest } from 'src/utils/layout/NodesContext';
-import type { SetRowExtrasRequest } from 'src/utils/layout/plugins/RepeatingChildrenStorePlugin';
+import type { SetRowExtrasRequest, SetRowUuidRequest } from 'src/utils/layout/plugins/RepeatingChildrenStorePlugin';
 
 export const StageAddNodes = Symbol('AddNodes');
 export const StageMarkHidden = Symbol('MarkHidden');
@@ -47,6 +47,7 @@ interface Context {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setNodeProps: SetNodePropRequest<any, any>[];
     setRowExtras: SetRowExtrasRequest[];
+    setRowUuid: SetRowUuidRequest[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setPageProps: SetPagePropRequest<any>[];
   };
@@ -194,6 +195,7 @@ const { Provider, useSelector, useSelectorAsRef, useMemoSelector, useHasProvider
         addNodes: [],
         setNodeProps: [],
         setRowExtras: [],
+        setRowUuid: [],
         setPageProps: [],
       },
     }));
@@ -228,6 +230,7 @@ export function useGetAwaitingCommits() {
       toCommit.addNodes.length +
       toCommit.setNodeProps.length +
       toCommit.setRowExtras.length +
+      toCommit.setRowUuid.length +
       toCommit.setPageProps.length,
     [toCommit],
   );
@@ -290,6 +293,7 @@ function useCommit() {
   const setNodeProps = NodesInternal.useSetNodeProps();
   const setPageProps = NodesInternal.useSetPageProps();
   const setRowExtras = NodesInternal.useSetRowExtras();
+  const setRowUuids = NodesInternal.useSetRowUuids();
   const toCommit = useSelector((state) => state.toCommit);
 
   return useCallback(() => {
@@ -324,6 +328,13 @@ function useCommit() {
       changes = true;
     }
 
+    if (toCommit.setRowUuid.length) {
+      generatorLog('logCommits', 'Committing', toCommit.setRowUuid.length, 'setRowUuid requests');
+      setRowUuids(toCommit.setRowUuid);
+      toCommit.setRowUuid.length = 0;
+      changes = true;
+    }
+
     if (toCommit.setPageProps.length) {
       generatorLog('logCommits', 'Committing', toCommit.setPageProps.length, 'setPageProps requests');
       setPageProps(toCommit.setPageProps);
@@ -333,7 +344,7 @@ function useCommit() {
 
     updateCommitsPendingInBody(toCommit);
     return changes;
-  }, [addNodes, setNodeProps, setRowExtras, toCommit, setPageProps]);
+  }, [addNodes, setNodeProps, setRowExtras, setRowUuids, toCommit, setPageProps]);
 }
 
 function SetWaitForCommits() {
@@ -400,6 +411,19 @@ export const NodesStateQueue = {
     return useCallback(
       (request: SetRowExtrasRequest) => {
         toCommit.setRowExtras.push(request);
+        updateCommitsPendingInBody(toCommit);
+        maybeCommit();
+      },
+      [maybeCommit, toCommit],
+    );
+  },
+  useSetRowUuid() {
+    const toCommit = useSelector((state) => state.toCommit);
+    const maybeCommit = useCommitWhenFinished();
+
+    return useCallback(
+      (request: SetRowUuidRequest) => {
+        toCommit.setRowUuid.push(request);
         updateCommitsPendingInBody(toCommit);
         maybeCommit();
       },

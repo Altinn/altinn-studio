@@ -48,7 +48,7 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 import type { NodeDataPlugin } from 'src/utils/layout/plugins/NodeDataPlugin';
 import type { RepeatingChildrenStorePluginConfig } from 'src/utils/layout/plugins/RepeatingChildrenStorePlugin';
-import type { BaseRow, GeneratorErrors, NodeData, NodeDataFromNode } from 'src/utils/layout/types';
+import type { GeneratorErrors, NodeData, NodeDataFromNode } from 'src/utils/layout/types';
 
 export interface PagesData {
   type: 'pages';
@@ -96,7 +96,7 @@ export interface AddNodeRequest<T extends CompTypes = CompTypes> {
   node: LayoutNode<T>;
   targetState: NodeData<T>;
   claim: ChildClaim;
-  row: BaseRow | undefined;
+  rowIndex: number | undefined;
 }
 
 export interface SetNodePropRequest<T extends CompTypes, K extends keyof NodeData<T>> {
@@ -133,7 +133,7 @@ export type NodesContext = {
 
   setNodes: (nodes: LayoutPages) => void;
   addNodes: (requests: AddNodeRequest[]) => void;
-  removeNode: (node: LayoutNode, claim: ChildClaim, row: BaseRow | undefined) => void;
+  removeNode: (node: LayoutNode, claim: ChildClaim, rowIndex: number | undefined) => void;
   setNodeProps: (requests: SetNodePropRequest<CompTypes, keyof NodeData>[]) => void;
   addError: (error: string, node: LayoutPage | LayoutNode) => void;
   markHiddenViaRule: (hiddenFields: { [nodeId: string]: true }) => void;
@@ -188,7 +188,7 @@ export function createNodesDataStore() {
     addNodes: (requests) =>
       set((state) => {
         const nodeData = { ...state.nodeData };
-        for (const { node, targetState, claim, row } of requests) {
+        for (const { node, targetState, claim, rowIndex } of requests) {
           if (nodeData[node.id]) {
             const errorMsg =
               `Cannot add node '${node.id}', it already exists. ` +
@@ -200,8 +200,13 @@ export function createNodesDataStore() {
           nodeData[node.id] = targetState;
 
           if (node.parent instanceof BaseLayoutNode) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const additionalParentState = node.parent.def.addChild(nodeData[node.parent.id] as any, node, claim, row);
+            const additionalParentState = node.parent.def.addChild(
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              nodeData[node.parent.id] as any,
+              node,
+              claim,
+              rowIndex,
+            );
             nodeData[node.parent.id] = {
               ...nodeData[node.parent.id],
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -213,7 +218,7 @@ export function createNodesDataStore() {
         }
         return { nodeData, readiness: NodesReadiness.NotReady, addRemoveCounter: state.addRemoveCounter + 1 };
       }),
-    removeNode: (node, claim, row) =>
+    removeNode: (node, claim, rowIndex) =>
       set((state) => {
         const nodeData = { ...state.nodeData };
         if (!nodeData[node.id]) {
@@ -221,8 +226,13 @@ export function createNodesDataStore() {
         }
 
         if (node.parent instanceof BaseLayoutNode && nodeData[node.parent.id]) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const additionalParentState = node.parent.def.removeChild(nodeData[node.parent.id] as any, node, claim, row);
+          const additionalParentState = node.parent.def.removeChild(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            nodeData[node.parent.id] as any,
+            node,
+            claim,
+            rowIndex,
+          );
           nodeData[node.parent.id] = {
             ...nodeData[node.parent.id],
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -246,6 +256,7 @@ export function createNodesDataStore() {
           const thisNode = { ...nodeData[node.id] };
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const prev = thisNode[prop as any];
+
           if (partial && value && prev && typeof prev === 'object' && typeof value === 'object') {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             thisNode[prop as any] = { ...thisNode[prop as any], ...value };
@@ -253,6 +264,7 @@ export function createNodesDataStore() {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             thisNode[prop as any] = value;
           }
+
           if (!deepEqual(nodeData[node.id][prop], thisNode[prop])) {
             changes = true;
             nodeData[node.id] = thisNode;
@@ -701,16 +713,20 @@ function isHiddenPage(state: NodesContext, page: LayoutPage | string | undefined
   return isHiddenHere(hiddenState, options);
 }
 
-function isHidden(state: NodesContext, node: LayoutNode | LayoutPage | undefined, options?: IsHiddenOptions) {
+function isHidden(
+  state: NodesContext,
+  node: LayoutNode | LayoutPage | undefined,
+  options?: IsHiddenOptions,
+): boolean | undefined {
   if (!node) {
-    return true;
+    return undefined;
   }
 
   const hiddenState =
     node instanceof LayoutPage ? state.pagesData.pages[node.pageKey]?.hidden : state.nodeData[node.id]?.hidden;
 
   if (!hiddenState) {
-    return true;
+    return undefined;
   }
 
   const hiddenHere = isHiddenHere(hiddenState, options);

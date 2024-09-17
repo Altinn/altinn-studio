@@ -206,10 +206,10 @@ export class RepeatingChildrenPlugin<E extends ExternalConfig>
     state: DefPluginState<ToInternal<E>>,
     childNode: LayoutNode,
     _metadata: undefined,
-    row: BaseRow | undefined,
+    index: number | undefined,
   ): Partial<DefPluginState<ToInternal<E>>> {
     const rowIndex = childNode.rowIndex;
-    if (rowIndex === undefined || rowIndex !== row?.index) {
+    if (rowIndex === undefined || rowIndex !== index) {
       throw new Error(`Child node of repeating component missing 'rowIndex' property`);
     }
     const item = state.item;
@@ -217,7 +217,8 @@ export class RepeatingChildrenPlugin<E extends ExternalConfig>
     const items = [...(rows[rowIndex]?.items || [])];
     items.push(childNode);
 
-    rows[rowIndex] = { ...(rows[rowIndex] || {}), ...row, items };
+    // The uuid is set separately, in the MaintainRowUuid component
+    rows[rowIndex] = { uuid: '', ...(rows[rowIndex] || {}), index, items };
 
     return {
       item: {
@@ -232,10 +233,10 @@ export class RepeatingChildrenPlugin<E extends ExternalConfig>
     state: DefPluginState<ToInternal<E>>,
     childNode: LayoutNode,
     _metadata: undefined,
-    row: BaseRow | undefined,
+    index: number | undefined,
   ): Partial<DefPluginState<ToInternal<E>>> {
     const rowIndex = childNode.rowIndex;
-    if (rowIndex === undefined || rowIndex !== row?.index) {
+    if (rowIndex === undefined || rowIndex !== index) {
       throw new Error(`Child node of repeating component missing 'rowIndex' property`);
     }
     const item = state.item;
@@ -247,7 +248,8 @@ export class RepeatingChildrenPlugin<E extends ExternalConfig>
     }
     items.splice(idx, 1);
 
-    rows[rowIndex] = { ...(rows[rowIndex] || {}), ...row, items };
+    // The uuid is set separately, in the MaintainRowUuid component
+    rows[rowIndex] = { uuid: '', ...(rows[rowIndex] || {}), index, items };
 
     return {
       item: {

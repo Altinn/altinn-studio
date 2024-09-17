@@ -295,11 +295,6 @@ export class ComponentConfig {
       from: 'src/layout/layout',
     });
 
-    const BaseRow = new CG.import({
-      import: 'BaseRow',
-      from: 'src/utils/layout/types',
-    });
-
     const isFormComponent = this.config.category === CompCategory.Form;
     const isSummarizable = this.behaviors.isSummarizable;
 
@@ -418,11 +413,11 @@ export class ComponentConfig {
         `pickDirectChildren(state: ${NodeData}<'${this.type}'>, restriction?: ${TraversalRestriction}) {
           return [${pickDirectChildrenBody.join(', ')}];
         }`,
-        `addChild(state: ${NodeData}<'${this.type}'>, childNode: ${LayoutNode}, { pluginKey, metadata }: ${ChildClaim}, row: ${BaseRow} | undefined) {
-          return this.plugins[pluginKey!].addChild(state as any, childNode, metadata, row) as Partial<${NodeData}<'${this.type}'>>;
+        `addChild(state: ${NodeData}<'${this.type}'>, childNode: ${LayoutNode}, { pluginKey, metadata }: ${ChildClaim}, rowIndex: number | undefined) {
+          return this.plugins[pluginKey!].addChild(state as any, childNode, metadata, rowIndex) as Partial<${NodeData}<'${this.type}'>>;
         }`,
-        `removeChild(state: ${NodeData}<'${this.type}'>, childNode: ${LayoutNode}, { pluginKey, metadata }: ${ChildClaim}, row: ${BaseRow} | undefined) {
-          return this.plugins[pluginKey!].removeChild(state as any, childNode, metadata, row) as Partial<${NodeData}<'${this.type}'>>;
+        `removeChild(state: ${NodeData}<'${this.type}'>, childNode: ${LayoutNode}, { pluginKey, metadata }: ${ChildClaim}, rowIndex: number | undefined) {
+          return this.plugins[pluginKey!].removeChild(state as any, childNode, metadata, rowIndex) as Partial<${NodeData}<'${this.type}'>>;
         }`,
         `isChildHidden(state: ${NodeData}<'${this.type}'>, childNode: ${LayoutNode}) {
           return [${isChildHiddenBody.join(', ')}].some((h) => h);
@@ -450,7 +445,7 @@ export class ComponentConfig {
           item: undefined,
           layout: props.item,
           hidden: undefined,
-          row: props.row,
+          rowIndex: props.rowIndex,
           errors: undefined,
         };
         ${itemDef}

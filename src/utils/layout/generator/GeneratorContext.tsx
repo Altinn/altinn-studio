@@ -11,7 +11,6 @@ import type {
 } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
-import type { BaseRow } from 'src/utils/layout/types';
 
 export type ChildMutator<T extends CompTypes = CompTypes> = (item: CompIntermediate<T>) => void;
 
@@ -39,7 +38,7 @@ type NodeGeneratorProps = Pick<GeneratorContext, 'directMutators' | 'recursiveMu
 };
 
 type RowGeneratorProps = Pick<GeneratorContext, 'directMutators' | 'recursiveMutators'> & {
-  row: BaseRow;
+  rowIndex: number;
 };
 
 interface GeneratorContext {
@@ -50,7 +49,7 @@ interface GeneratorContext {
   parent: LayoutNode | LayoutPage;
   externalItem: CompExternalExact<CompTypes> | undefined;
   intermediateItem: CompIntermediateExact<CompTypes> | undefined;
-  row: BaseRow | undefined;
+  rowIndex: number | undefined;
   page: LayoutPage;
   depth: number; // Depth is 1 for top level nodes, 2 for children of top level nodes, etc.
 }
@@ -77,7 +76,7 @@ export function GeneratorProvider({ children, ...rest }: PropsWithChildren<NodeG
 
       // Direct mutators and rows are not meant to be inherited, if none are passed to us directly we'll reset
       directMutators: rest.directMutators ?? emptyArray,
-      row: parent.row ?? undefined,
+      rowIndex: parent.rowIndex ?? undefined,
 
       recursiveMutators: parent.recursiveMutators
         ? [...parent.recursiveMutators, ...(rest.recursiveMutators ?? [])]
@@ -97,7 +96,7 @@ export function GeneratorPageProvider({ children, ...rest }: PropsWithChildren<P
       page: rest.parent,
       externalItem: undefined,
       intermediateItem: undefined,
-      row: undefined,
+      rowIndex: undefined,
 
       // For a page, the depth starts at 1 because in principle the page is the top level node, at depth 0, so
       // when a page provides a depth indicator to its children (the top level components on that page), it should be 1.
@@ -113,7 +112,7 @@ export function GeneratorPageProvider({ children, ...rest }: PropsWithChildren<P
 
 export function GeneratorRowProvider({
   children,
-  row,
+  rowIndex,
   directMutators,
   recursiveMutators,
 }: PropsWithChildren<RowGeneratorProps>) {
@@ -122,7 +121,7 @@ export function GeneratorRowProvider({
     () => ({
       // Inherit all values from the parent, overwrite with our own if they are passed
       ...parent,
-      row,
+      rowIndex,
 
       // Direct mutators and rows are not meant to be inherited, if none are passed to us directly we'll reset
       directMutators: directMutators ?? emptyArray,
@@ -130,7 +129,7 @@ export function GeneratorRowProvider({
         ? [...parent.recursiveMutators, ...(recursiveMutators ?? [])]
         : recursiveMutators,
     }),
-    [parent, directMutators, recursiveMutators, row],
+    [parent, directMutators, recursiveMutators, rowIndex],
   );
   return <Provider value={value}>{children}</Provider>;
 }
@@ -143,7 +142,7 @@ export const GeneratorInternal = {
   useChildrenMap: () => useCtx().childrenMap,
   useParent: () => useCtx().parent,
   usePage: () => useCtx().page,
-  useRow: () => useCtx().row,
+  useRowIndex: () => useCtx().rowIndex,
 
   useExternalItem: () => useCtx().externalItem,
   useIntermediateItem: () => useCtx().intermediateItem,

@@ -302,12 +302,22 @@ describe('createPatch', () => {
     });
   });
 
-  describe('should avoid overwriting differing simple arrays in current', () => {
+  describe('should overwrite simple arrays in current if the next value is new', () => {
     testPatch({
       prev: { a: ['foo', 'bar', 'baz', 'qux'] },
       next: { a: ['foo', 'bar2', 'baz', 'qux'] },
       current: { a: ['foo', 'bar', 'baz', 'qux'] },
-      final: { a: ['foo', 'bar', 'baz', 'qux'] },
+      final: { a: ['foo', 'bar2', 'baz', 'qux'] },
+      expectedPatch: [{ op: 'replace', path: '/a', value: ['foo', 'bar2', 'baz', 'qux'] }],
+    });
+  });
+
+  describe('should avoid overwriting simple arrays in current if the current value is newer', () => {
+    testPatch({
+      prev: { a: ['foo', 'bar', 'baz', 'qux'] },
+      next: { a: ['foo', 'bar2', 'baz', 'qux'] },
+      current: { a: ['foo', 'bar', 'baz', 'qux2'] },
+      final: { a: ['foo', 'bar', 'baz', 'qux2'] },
       expectedPatch: [],
     });
   });

@@ -5,7 +5,7 @@ import type { SerializableSetting } from 'src/codegen/SerializableSetting';
 import type { CompInternal, CompTypes } from 'src/layout/layout';
 import type { ChildClaimerProps, ExprResolver } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { BaseNodeData, BaseRow, StateFactoryProps } from 'src/utils/layout/types';
+import type { BaseNodeData, StateFactoryProps } from 'src/utils/layout/types';
 import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
 export interface DefPluginConfig {
@@ -262,13 +262,13 @@ export interface NodeDefChildrenPlugin<Config extends DefPluginConfig> {
     state: DefPluginState<Config>,
     childNode: LayoutNode,
     metadata: DefPluginClaimMetadata<Config>,
-    row: BaseRow | undefined,
+    rowIndex: number | undefined,
   ): Partial<DefPluginState<Config>>;
   removeChild(
     state: DefPluginState<Config>,
     childNode: LayoutNode,
     metadata: DefPluginClaimMetadata<Config>,
-    row: BaseRow | undefined,
+    rowIndex: number | undefined,
   ): Partial<DefPluginState<Config>>;
   isChildHidden(state: DefPluginState<Config>, childNode: LayoutNode): boolean;
 }

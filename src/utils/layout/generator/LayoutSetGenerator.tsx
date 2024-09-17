@@ -15,6 +15,7 @@ import {
   GeneratorStages,
   NodesStateQueue,
   StageAddNodes,
+  StageMarkHidden,
 } from 'src/utils/layout/generator/GeneratorStages';
 import { useEvalExpressionInGenerator } from 'src/utils/layout/generator/useEvalExpression';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
@@ -234,10 +235,12 @@ function PageGenerator({ layout, name, layoutSet }: PageProps) {
         page={page}
         name={name}
       />
-      <MarkPageHidden
-        page={page}
-        name={name}
-      />
+      <GeneratorCondition stage={StageMarkHidden}>
+        <MarkPageHidden
+          page={page}
+          name={name}
+        />
+      </GeneratorCondition>
       {map === undefined &&
         layout.map((component) => (
           <ComponentClaimChildren

@@ -42,7 +42,7 @@ import type { ChildClaim, ChildClaims } from 'src/utils/layout/generator/Generat
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodeDataSelector } from 'src/utils/layout/NodesContext';
 import type { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
-import type { BaseRow, NodeData, StateFactoryProps } from 'src/utils/layout/types';
+import type { NodeData, StateFactoryProps } from 'src/utils/layout/types';
 import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
 export interface BasicNodeGeneratorProps {
@@ -59,7 +59,7 @@ export type NodeGeneratorProps<Type extends CompTypes> =
 
 export interface ExprResolver<Type extends CompTypes> {
   item: CompIntermediateExact<Type>;
-  row?: BaseRow;
+  rowIndex?: number;
   formDataSelector: FormDataSelector;
   evalBase: () => ExprResolved<Omit<ComponentBase, 'hidden'>>;
   evalFormProps: () => ExprResolved<FormComponentProps>;
@@ -133,7 +133,7 @@ export abstract class AnyComponent<Type extends CompTypes> {
     _state: NodeData<Type>,
     _childNode: LayoutNode,
     _claim: ChildClaim,
-    _row: BaseRow | undefined,
+    _rowIndex: number | undefined,
   ): Partial<NodeData<Type>> {
     throw new Error(
       `addChild() is not implemented yet for '${this.type}'. ` +
@@ -149,7 +149,7 @@ export abstract class AnyComponent<Type extends CompTypes> {
     _state: NodeData<Type>,
     _childNode: LayoutNode,
     _claim: ChildClaim,
-    _row: BaseRow | undefined,
+    _rowIndex: number | undefined,
   ): Partial<NodeData<Type>> {
     throw new Error(
       `removeChild() is not implemented yet for '${this.type}'. ` +
@@ -472,14 +472,14 @@ export abstract class ContainerComponent<Type extends CompTypes> extends _FormCo
     state: NodeData<Type>,
     childNode: LayoutNode,
     claim: ChildClaim,
-    row: BaseRow | undefined,
+    rowIndex: number | undefined,
   ): Partial<NodeData<Type>>;
 
   abstract removeChild(
     state: NodeData<Type>,
     childNode: LayoutNode,
     claim: ChildClaim,
-    row: BaseRow | undefined,
+    rowIndex: number | undefined,
   ): Partial<NodeData<Type>>;
 }
 

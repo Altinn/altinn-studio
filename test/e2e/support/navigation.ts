@@ -14,6 +14,17 @@ const taskMapping: { [key in FrontendTestTask]: string | undefined } = {
   confirm: undefined,
 };
 
+interface Context {
+  baseUrl: string;
+}
+
+interface ExtraOutput {
+  code: string;
+  urlSuffix?: string;
+}
+
+type Extras = (context: Context) => ExtraOutput;
+
 /**
  * This function generates javascript code to move through the instance to the desired task as quickly as possible,
  * using the gateway that lets you skip directly to a task.
@@ -21,7 +32,7 @@ const taskMapping: { [key in FrontendTestTask]: string | undefined } = {
  * When using the goto() function, this code is injected into the app before the app itself runs, and creates
  * the instance and skips to the correct task before loading app-frontend-react.
  */
-function generateEvalString(target: FrontendTestTask, extraNext: boolean) {
+function generateEvalString(target: FrontendTestTask, extra?: Extras): string {
   const baseUrl = getTargetUrl(appFrontend.apps.frontendTest);
   const fullPartyId = getLocalPartyId('default');
 
@@ -53,15 +64,12 @@ function generateEvalString(target: FrontendTestTask, extraNext: boolean) {
     await fetch('${baseUrl}/instances/' + instanceId + '/process/next', { method: 'PUT', headers });
   `;
 
-  const extraNextCode = extraNext
-    ? `await fetch('${baseUrl}/instances/' + instanceId + '/process/next', { method: 'PUT', headers });`
-    : '';
-
+  const extras = extra ? extra({ baseUrl }) : { code: '' };
   const returnInstanceUrl = `
-    return '${baseUrl}/#/instance/' + instanceId;
+    return '${baseUrl}/#/instance/' + instanceId + '${extras.urlSuffix || ''}';
   `;
 
-  return createInstance + skipToTask + extraNextCode + returnInstanceUrl;
+  return createInstance + skipToTask + extras.code + returnInstanceUrl;
 }
 
 /**
@@ -69,37 +77,61 @@ function generateEvalString(target: FrontendTestTask, extraNext: boolean) {
  * These should always complete the task fully, i.e. end the task and move to the next one after it.
  * It never generates a PDF for the previous tasks.
  */
-const gotoFunctions: { [key in FrontendTestTask]: () => void } = {
+const gotoFunctions: { [key in FrontendTestTask]: (extra?: Extras) => void } = {
   message: () => {
     cy.intercept('**/active', []).as('noActiveInstances');
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.closeButton).should('be.visible');
   },
-  changename: () => {
-    cy.startAppInstance(appFrontend.apps.frontendTest, { evaluateBefore: generateEvalString('changename', false) });
+  changename: (extra?: Extras) => {
+    cy.startAppInstance(appFrontend.apps.frontendTest, {
+      evaluateBefore: generateEvalString('changename', extra),
+    });
   },
   group: () => {
     cy.startAppInstance(appFrontend.apps.frontendTest, {
-      evaluateBefore: generateEvalString('group', false),
+      evaluateBefore: generateEvalString('group'),
     });
   },
   likert: () => {
     cy.startAppInstance(appFrontend.apps.frontendTest, {
-      evaluateBefore: generateEvalString('likert', false),
+      evaluateBefore: generateEvalString('likert'),
     });
   },
   datalist: () => {
     cy.startAppInstance(appFrontend.apps.frontendTest, {
-      evaluateBefore: generateEvalString('datalist', false),
+      evaluateBefore: generateEvalString('datalist'),
     });
   },
   confirm: () => {
     cy.startAppInstance(appFrontend.apps.frontendTest, {
-      evaluateBefore: generateEvalString('datalist', true),
+      evaluateBefore: generateEvalString('datalist', ({ baseUrl }) => ({
+        code: `await fetch('${baseUrl}/instances/' + instanceId + '/process/next', { method: 'PUT', headers });`,
+      })),
     });
   },
 };
 
 Cypress.Commands.add('goto', (task) => {
   gotoFunctions[task]();
+});
+
+Cypress.Commands.add('gotoHiddenPage', (target) => {
+  gotoFunctions.changename(({ baseUrl }) => ({
+    urlSuffix: `/Task_2/${target}`,
+    code: [
+      `var instanceDataNew = await fetch('${baseUrl}/instances/' + instanceId, { headers }).then((res) => res.json());`,
+      `var changeNameModel = instanceDataNew.data.find((data) => data.dataType === 'ServiceModel-test');`,
+      `var dataModel = await fetch('${baseUrl}/instances/' + instanceId + '/data/' + changeNameModel.id, { headers }).then((res) => res.json());`,
+      `dataModel['NyttNavn-grp-9313'] = {
+        'NyttNavn-grp-9314': {
+          'PersonFornavnNytt-datadef-34758': { value: 'a' },
+          'PersonBekrefterNyttNavn': { value: 'Ja' },
+        }
+      }`,
+      `dataModel.ChooseExtraPages = "${target}";`,
+      `await fetch('${baseUrl}/instances/' + instanceId + '/data/' + changeNameModel.id,
+        { method: 'PUT', headers, body: JSON.stringify(dataModel) });`,
+    ].join('\n'),
+  }));
 });

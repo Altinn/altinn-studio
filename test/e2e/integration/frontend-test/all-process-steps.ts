@@ -363,6 +363,49 @@ const knownDataModels: { [key: string]: unknown } = {
     TestCustomButtonInput: null,
     TestCustomButtonReadOnlyInput: null,
     neverValidatedInput: null,
+    ConflictingOptions: {
+      IsForeign: false,
+      Animals: [
+        {
+          Name: 'Katt',
+          NumLegs: 4,
+          Color: 'BLACK,BROWN',
+          Colors: [],
+          Comments: [
+            {
+              Type: 'CRITICISM',
+              TypeLabel: null,
+              Text: 'Her er en kritisk kommentar, for denne katten lukter vondt',
+            },
+            {
+              Type: 'PRAISE',
+              TypeLabel: null,
+              Text: 'Her er en skrytende kommentar, for denne katten er så søt',
+            },
+          ],
+          CommentLabels: null,
+        },
+        {
+          Name: 'Tiger',
+          NumLegs: 5,
+          Color: 'RED,PINK',
+          Colors: [],
+          Comments: [
+            {
+              Type: 'SUGGESTION',
+              TypeLabel: null,
+              Text: 'Her er et forslag til forbedring av denne tigeren',
+            },
+            {
+              Type: 'SPAM',
+              TypeLabel: null,
+              Text: 'Her er en kommentar som er søppel, for KOM OG KJØP BILLIGE KLOMPELØVER',
+            },
+          ],
+          CommentLabels: null,
+        },
+      ],
+    },
   },
   'nested-group': {
     skjemanummer: 1603,

@@ -442,10 +442,7 @@ describe('UI Components', () => {
       }
     });
 
-    cy.goto('changename');
-    cy.waitForLoad();
-    cy.findByRole('checkbox', { name: /label databindings/i }).dsCheck();
-    cy.gotoNavPage('label-data-bindings');
+    cy.gotoHiddenPage('label-data-bindings');
 
     cy.findByRole('combobox', { name: /velg noen farger/i }).click();
     cy.findByRole('option', { name: /blå/i }).click();
@@ -649,10 +646,7 @@ describe('UI Components', () => {
   }
 
   it('number conversion in regular form fields and number-formatted fields', () => {
-    cy.goto('changename');
-    cy.get(appFrontend.changeOfName.newFirstName).type('123');
-    cy.get('#choose-extra').findByText('Tall-input').click();
-    cy.gotoNavPage('numeric-fields');
+    cy.gotoHiddenPage('numeric-fields');
     cy.get(appFrontend.errorReport).should('not.exist');
 
     const fields: { [key: string]: Field } = {
@@ -753,10 +747,7 @@ describe('UI Components', () => {
       }
     });
 
-    cy.goto('changename');
-    cy.get(appFrontend.changeOfName.newFirstName).type('123');
-    cy.get('#choose-extra').findByText('Kart').click();
-    cy.gotoNavPage('map');
+    cy.gotoHiddenPage('map');
 
     cy.get(component('map')).should('contain.text', 'Ingen lokasjon valgt');
     cy.get(component('mapSummary')).should('contain.text', 'Du har ikke lagt inn informasjon her');
@@ -793,10 +784,7 @@ describe('UI Components', () => {
       }
     });
 
-    cy.goto('changename');
-    cy.get(appFrontend.changeOfName.newFirstName).type('123');
-    cy.get('#choose-extra').findByText('Kart').click();
-    cy.gotoNavPage('map');
+    cy.gotoHiddenPage('map');
 
     // prettier-ignore
     {
@@ -845,10 +833,7 @@ describe('UI Components', () => {
   });
 
   it('number formatting should never update/change the form data', () => {
-    cy.goto('changename');
-    cy.get(appFrontend.changeOfName.newFirstName).type('123');
-    cy.get('#choose-extra').findByText('Tall-input').click();
-    cy.gotoNavPage('numeric-fields');
+    cy.gotoHiddenPage('numeric-fields');
     cy.get(appFrontend.errorReport).should('not.exist');
 
     // Fill out a specific number in the field that we'll round later when setting up decimalScale
