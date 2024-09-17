@@ -1,6 +1,5 @@
 .container {
   display: flex;
-  padding: 0 var(--fds-spacing-3);
   gap: var(--fds-spacing-2);
   padding: var(--fds-spacing-3);
   box-sizing: border-box;
