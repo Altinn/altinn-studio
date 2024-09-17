@@ -24,18 +24,18 @@ const rootItem = {
 };
 const selectedItem: FieldNode = {
   ...nodeMockBase,
-  pointer: selectedItemPointer,
+  schemaPointer: selectedItemPointer,
   objectKind: ObjectKind.Field,
   fieldType: FieldType.Object,
   children: [childNode1Pointer, childNode2Pointer],
 };
 const childNode1: FieldNode = {
   ...nodeMockBase,
-  pointer: childNode1Pointer,
+  schemaPointer: childNode1Pointer,
 };
 const childNode2: FieldNode = {
   ...nodeMockBase,
-  pointer: childNode2Pointer,
+  schemaPointer: childNode2Pointer,
 };
 const childNodes = [childNode1, childNode2];
 const numberOfFields = selectedItem.children.length; // eslint-disable-line testing-library/no-node-access
@@ -146,7 +146,9 @@ describe('ItemFieldsTab', () => {
     await user.keyboard('{Enter}');
     expect(saveDataModel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDataModel);
-    const updatedNode = updatedModel.getNode(selectedItem.pointer) as FieldNode;
+    const updatedNode = updatedModel.getNodeBySchemaPointer(
+      selectedItem.schemaPointer,
+    ) as FieldNode;
     expect(updatedNode.children).toHaveLength(numberOfFields + 1); // eslint-disable-line testing-library/no-node-access
   });
 
@@ -166,7 +168,9 @@ describe('ItemFieldsTab', () => {
 
     expect(saveDataModel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDataModel);
-    const updatedNode = updatedModel.getNode(selectedItem.pointer) as FieldNode;
+    const updatedNode = updatedModel.getNodeBySchemaPointer(
+      selectedItem.schemaPointer,
+    ) as FieldNode;
     expect(updatedNode.children).toHaveLength(numberOfFields - 1); // eslint-disable-line testing-library/no-node-access
   });
 
@@ -176,7 +180,7 @@ describe('ItemFieldsTab', () => {
     const newChildNodePointer = `${selectedItemPointer}/properties/${newChildNodeName}`;
     const newChildNode: FieldNode = {
       ...nodeMockBase,
-      pointer: newChildNodePointer,
+      schemaPointer: newChildNodePointer,
     };
     const newSelectedItem = {
       ...selectedItem,

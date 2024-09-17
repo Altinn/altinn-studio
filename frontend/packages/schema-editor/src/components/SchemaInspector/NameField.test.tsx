@@ -14,7 +14,7 @@ const user = userEvent.setup();
 const defaultProps: NameFieldProps = {
   id: 'test-id',
   label: 'test-label',
-  pointer: combinationNodeMock.pointer,
+  schemaPointer: combinationNodeMock.schemaPointer,
   onKeyDown: jest.fn(),
   disabled: false,
   handleSave: jest.fn(),
