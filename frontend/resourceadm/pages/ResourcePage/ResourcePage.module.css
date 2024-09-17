@@ -3,7 +3,7 @@
 }
 
 .resourcePageWrapper {
-  max-width: 50rem;
+  flex-grow: 1;
 }
 
 .leftNavWrapper {
