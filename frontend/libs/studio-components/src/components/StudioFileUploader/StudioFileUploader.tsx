@@ -88,7 +88,6 @@ const isFileNameValid = (
   fileRef: RefObject<HTMLInputElement>,
   customFileNameValidation: FileNameValidation,
 ): boolean => {
-  debugger;
   if (!file) return false;
   if (!customFileNameValidation) return true;
   if (!customFileNameValidation.validateFileName(file.name)) {
