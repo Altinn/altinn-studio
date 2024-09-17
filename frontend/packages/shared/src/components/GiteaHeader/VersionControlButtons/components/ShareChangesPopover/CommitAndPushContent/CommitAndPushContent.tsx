@@ -5,17 +5,14 @@ import { useVersionControlButtonsContext } from '../../../context';
 import { Heading, Paragraph } from '@digdir/designsystemet-react';
 import { StudioButton, StudioTextarea } from '@studio/components';
 import type { RepoContentStatus } from 'app-shared/types/RepoStatus';
-import { ClockDashedIcon } from '@studio/icons';
 import { FileChangesInfoModal } from './FileChangesInfoModal/FileChangesInfoModal';
 
 export type CommitAndPushContentProps = {
-  onHidePopover: (hide: boolean) => void;
   onClosePopover: () => void;
   fileChanges: RepoContentStatus[];
 };
 
 export const CommitAndPushContent = ({
-  onHidePopover,
   onClosePopover,
   fileChanges,
 }: CommitAndPushContentProps) => {
@@ -23,7 +20,6 @@ export const CommitAndPushContent = ({
   const { commitAndPushChanges } = useVersionControlButtonsContext();
 
   const [commitMessage, setCommitMessage] = useState('');
-  const [showFileChangesIsOpen, setShowFileChangesIsOpen] = useState(false);
 
   const handleClickCommitAndPush = async () => {
     await commitAndPushChanges(commitMessage);
@@ -34,11 +30,6 @@ export const CommitAndPushContent = ({
     setCommitMessage(event.target.value);
   };
 
-  const handleModalToggle = (isOpen: boolean) => {
-    setShowFileChangesIsOpen(isOpen);
-    onHidePopover(isOpen);
-  };
-
   return (
     <>
       <Heading size='xxsmall' className={classes.heading} level={3}>
@@ -47,20 +38,7 @@ export const CommitAndPushContent = ({
       <Paragraph size='small' spacing>
         {t('sync_header.describe_and_validate_sub_message')}
       </Paragraph>
-      <StudioButton
-        variant='tertiary'
-        onClick={() => handleModalToggle(true)}
-        icon={<ClockDashedIcon />}
-      >
-        {t('sync_header.review_file_changes')}
-      </StudioButton>
-      {showFileChangesIsOpen && (
-        <FileChangesInfoModal
-          isOpen={showFileChangesIsOpen}
-          onClose={() => handleModalToggle(false)}
-          fileChanges={fileChanges}
-        />
-      )}
+      <FileChangesInfoModal fileChanges={fileChanges} />
       <StudioTextarea
         label={t('sync_header.describe_changes_made')}
         value={commitMessage}

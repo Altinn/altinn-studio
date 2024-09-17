@@ -36,7 +36,7 @@ export class PolicyConfig extends BasePage {
   public async verifyThatPolicyEditorIsOpen(): Promise<void> {
     const heading = this.page.getByRole('heading', {
       name: this.textMock('policy_editor.rules'),
-      level: 2,
+      level: 4,
     });
     await expect(heading).toBeVisible();
   }
@@ -44,7 +44,7 @@ export class PolicyConfig extends BasePage {
   public async closePolicyEditor(): Promise<void> {
     await this.page
       .getByRole('button', {
-        name: this.textMock('settings_modal.close_button_label'),
+        name: 'close modal', // Todo: Replace 'close modal' with this.textMock('settings_modal.close_button_label') when https://github.com/digdir/designsystemet/issues/2195 is fixed
       })
       .click();
   }
@@ -52,7 +52,7 @@ export class PolicyConfig extends BasePage {
   public async verifyThatPolicyEditorIsClosed(): Promise<void> {
     const heading = this.page.getByRole('heading', {
       name: this.textMock('policy_editor.rules'),
-      level: 2,
+      level: 4,
     });
     await expect(heading).toBeHidden();
   }
