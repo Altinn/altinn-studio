@@ -95,6 +95,21 @@ describe('ItemFieldsTab', () => {
     expect(await screen.findByText(textAdd)).toBeDefined();
   });
 
+  test('should save the model when user clicks an option from dropdown', async () => {
+    renderItemFieldsTab();
+
+    await user.click(screen.getByText(textAdd));
+    const menuItem2 = screen.getByRole('menuitem', { name: textMock('schema_editor.add_string') });
+    await user.click(menuItem2);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
+  });
+
+  test('Should show dropdown when the "Add field" button is clicked', async () => {
+    renderItemFieldsTab();
+    await user.click(screen.getByText(textAdd));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
   test('Model is saved with correct payload when a name is changed', async () => {
     renderItemFieldsTab();
     const suffix = 'Duck';
