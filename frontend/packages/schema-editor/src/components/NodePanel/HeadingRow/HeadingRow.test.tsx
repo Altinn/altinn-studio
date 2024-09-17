@@ -27,20 +27,20 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 // Test data:
 const initialModel = SchemaModel.fromArray(schemaNodesMock);
 const createSchemaModel = () => initialModel.deepClone();
-const setSelectedNodePointer = jest.fn();
+const setSelectedUniquePointer = jest.fn();
 const setSelectedTypePointer = jest.fn();
 const save = jest.fn();
 const dataModelName = 'Test';
 
 const defaultProps: HeadingRowProps = {
-  pointer: undefined,
+  schemaPointer: undefined,
 };
 
 const defaultAppContextProps: SchemaEditorAppContextProps = {
   schemaModel: initialModel,
-  selectedNodePointer: null,
+  selectedUniquePointer: null,
   selectedTypePointer: null,
-  setSelectedNodePointer,
+  setSelectedUniquePointer,
   setSelectedTypePointer,
   save,
   name: dataModelName,
@@ -67,8 +67,8 @@ describe('HeadingRow', () => {
       const user = userEvent.setup();
       renderHeadingRow();
       await user.click(screen.getByRole('button', { name: dataModelName }));
-      expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
-      expect(setSelectedNodePointer).toHaveBeenCalledWith(ROOT_POINTER);
+      expect(setSelectedUniquePointer).toHaveBeenCalledTimes(1);
+      expect(setSelectedUniquePointer).toHaveBeenCalledWith(ROOT_POINTER);
     });
 
     it.each(['combination', 'object', 'string', 'integer', 'number', 'boolean'])(
@@ -85,7 +85,7 @@ describe('HeadingRow', () => {
         expect(savedModel.getNodeMap()).toBe(schemaModel.getNodeMap());
         const numberOfRootChildrenAfter = schemaModel.getRootChildren().length;
         expect(numberOfRootChildrenAfter).toBe(numberOfRootChildrenBefore + 1);
-        expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
+        expect(setSelectedUniquePointer).toHaveBeenCalledTimes(1);
       },
     );
 
@@ -96,8 +96,8 @@ describe('HeadingRow', () => {
     });
 
     it('Renders with the "selected" class name when the root node is selected', () => {
-      const selectedNodePointer = ROOT_POINTER;
-      const appContextProps: Partial<SchemaEditorAppContextProps> = { selectedNodePointer };
+      const selectedUniquePointer = ROOT_POINTER;
+      const appContextProps: Partial<SchemaEditorAppContextProps> = { selectedUniquePointer };
       const { container } = renderHeadingRow({ appContextProps });
       expect(container.firstChild).toHaveClass('selected'); // eslint-disable-line testing-library/no-node-access
     });
@@ -105,69 +105,69 @@ describe('HeadingRow', () => {
 
   describe('When a type is selected', () => {
     type TestCase = {
-      pointer: string;
+      schemaPointer: string;
       canHaveChildren: boolean;
       isInUse: boolean;
     };
 
     const testCases: KeyValuePairs<TestCase> = {
       'an object definition in use': {
-        pointer: objectDefinitionPointer,
+        schemaPointer: objectDefinitionPointer,
         canHaveChildren: true,
         isInUse: true,
       },
       'a string definition in use': {
-        pointer: stringDefinitionPointer,
+        schemaPointer: stringDefinitionPointer,
         canHaveChildren: false,
         isInUse: true,
       },
       'an integer definition in use': {
-        pointer: integerDefinitionPointer,
+        schemaPointer: integerDefinitionPointer,
         canHaveChildren: false,
         isInUse: true,
       },
       'a number definition in use': {
-        pointer: numberDefinitionPointer,
+        schemaPointer: numberDefinitionPointer,
         canHaveChildren: false,
         isInUse: true,
       },
       'a boolean definition in use': {
-        pointer: booleanDefinitionPointer,
+        schemaPointer: booleanDefinitionPointer,
         canHaveChildren: false,
         isInUse: true,
       },
       'a combination definition in use': {
-        pointer: combinationDefinitionPointer,
+        schemaPointer: combinationDefinitionPointer,
         canHaveChildren: true,
         isInUse: true,
       },
       'an unused object definition': {
-        pointer: unusedObjectDefinitionPointer,
+        schemaPointer: unusedObjectDefinitionPointer,
         canHaveChildren: true,
         isInUse: false,
       },
       'an unused string definition': {
-        pointer: unusedStringDefinitionPointer,
+        schemaPointer: unusedStringDefinitionPointer,
         canHaveChildren: false,
         isInUse: false,
       },
       'an unused integer definition': {
-        pointer: unusedIntegerDefinitionPointer,
+        schemaPointer: unusedIntegerDefinitionPointer,
         canHaveChildren: false,
         isInUse: false,
       },
       'an unused number definition': {
-        pointer: unusedNumberDefinitionPointer,
+        schemaPointer: unusedNumberDefinitionPointer,
         canHaveChildren: false,
         isInUse: false,
       },
       'an unused boolean definition': {
-        pointer: unusedBooleanDefinitionPointer,
+        schemaPointer: unusedBooleanDefinitionPointer,
         canHaveChildren: false,
         isInUse: false,
       },
       'an unused combination definition': {
-        pointer: unusedCombinationDefinitionPointer,
+        schemaPointer: unusedCombinationDefinitionPointer,
         canHaveChildren: true,
         isInUse: false,
       },
@@ -176,20 +176,20 @@ describe('HeadingRow', () => {
     const testCaseNames: (keyof typeof testCases)[] = Object.keys(testCases);
 
     describe.each(testCaseNames)('When the type is %s', (testCaseName) => {
-      const { pointer, canHaveChildren, isInUse } = testCases[testCaseName];
-      const name = extractNameFromPointer(pointer);
+      const { schemaPointer, canHaveChildren, isInUse } = testCases[testCaseName];
+      const name = extractNameFromPointer(schemaPointer);
 
       it('Renders a level one heading with the name of the type', () => {
-        renderHeadingRowForType(pointer);
+        renderHeadingRowForType(schemaPointer);
         expect(screen.getByRole('heading', { level: 1, name })).toBeInTheDocument();
       });
 
       it('Selects the type when clicking the name', async () => {
         const user = userEvent.setup();
-        renderHeadingRowForType(pointer);
+        renderHeadingRowForType(schemaPointer);
         await user.click(screen.getByRole('button', { name }));
-        expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
-        expect(setSelectedNodePointer).toHaveBeenCalledWith(pointer);
+        expect(setSelectedUniquePointer).toHaveBeenCalledTimes(1);
+        expect(setSelectedUniquePointer).toHaveBeenCalledWith(schemaPointer);
       });
 
       if (canHaveChildren) {
@@ -198,21 +198,21 @@ describe('HeadingRow', () => {
           async (type: string) => {
             const user = userEvent.setup();
             const schemaModel = createSchemaModel();
-            const numberOfChildrenBefore = schemaModel.getChildNodes(pointer).length;
-            renderHeadingRowForType(pointer, { schemaModel });
+            const numberOfChildrenBefore = schemaModel.getChildNodes(schemaPointer).length;
+            renderHeadingRowForType(schemaPointer, { schemaModel });
             await user.click(getAddButton());
             await user.click(getAddMenuitem(type));
             expect(save).toHaveBeenCalledTimes(1);
             const savedModel = save.mock.calls[0][0];
             expect(savedModel.getNodeMap()).toBe(schemaModel.getNodeMap());
-            const numberOfChildrenAfter = schemaModel.getChildNodes(pointer).length;
+            const numberOfChildrenAfter = schemaModel.getChildNodes(schemaPointer).length;
             expect(numberOfChildrenAfter).toBe(numberOfChildrenBefore + 1);
-            expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
+            expect(setSelectedUniquePointer).toHaveBeenCalledTimes(1);
           },
         );
       } else {
         it('Does not display an add button', () => {
-          renderHeadingRowForType(pointer);
+          renderHeadingRowForType(schemaPointer);
           const addButton = screen.queryByRole('button', { name: addButtonTitle });
           expect(addButton).not.toBeInTheDocument();
         });
@@ -220,7 +220,7 @@ describe('HeadingRow', () => {
 
       if (isInUse) {
         it('Renders the delete button as disabled', () => {
-          renderHeadingRowForType(pointer);
+          renderHeadingRowForType(schemaPointer);
           expect(getDeleteButton()).toBeDisabled();
         });
       } else {
@@ -228,34 +228,34 @@ describe('HeadingRow', () => {
           const user = userEvent.setup();
           const schemaModel = createSchemaModel();
           jest.spyOn(window, 'confirm').mockImplementation(() => true);
-          renderHeadingRowForType(pointer, { schemaModel });
+          renderHeadingRowForType(schemaPointer, { schemaModel });
           await user.click(getDeleteButton());
           expect(save).toHaveBeenCalledTimes(1);
           const savedModel = save.mock.calls[0][0];
           expect(savedModel.getNodeMap()).toBe(schemaModel.getNodeMap());
-          expect(schemaModel.hasNode(pointer)).toBe(false);
+          expect(schemaModel.hasNode(schemaPointer)).toBe(false);
           expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
           expect(setSelectedTypePointer).toHaveBeenCalledWith(null);
-          expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
-          expect(setSelectedNodePointer).toHaveBeenCalledWith(null);
+          expect(setSelectedUniquePointer).toHaveBeenCalledTimes(1);
+          expect(setSelectedUniquePointer).toHaveBeenCalledWith(null);
         });
       }
 
       it('Renders with the "selected" class name when the root node is selected', () => {
-        const selectedNodePointer = pointer;
-        const appContextProps: Partial<SchemaEditorAppContextProps> = { selectedNodePointer };
-        const { container } = renderHeadingRowForType(pointer, appContextProps);
+        const selectedUniquePointer = schemaPointer;
+        const appContextProps: Partial<SchemaEditorAppContextProps> = { selectedUniquePointer };
+        const { container } = renderHeadingRowForType(schemaPointer, appContextProps);
         expect(container.firstChild).toHaveClass('selected'); // eslint-disable-line testing-library/no-node-access
       });
     });
 
     const renderHeadingRowForType = (
-      pointer: string,
+      schemaPointer: string,
       additionalContextProps: Partial<SchemaEditorAppContextProps> = {},
     ) => {
-      const props: Partial<HeadingRowProps> = { pointer };
+      const props: Partial<HeadingRowProps> = { schemaPointer };
       const appContextProps: Partial<SchemaEditorAppContextProps> = {
-        selectedTypePointer: pointer,
+        selectedTypePointer: schemaPointer,
         ...additionalContextProps,
       };
       return renderHeadingRow({ props, appContextProps });

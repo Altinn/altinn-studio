@@ -27,7 +27,7 @@ const renderItemDataComponent = (schemaNode: UiSchemaNode = defaultNode) => {
     appContextProps: {
       schemaModel,
       save: saveDataModel,
-      selectedNodePointer: schemaNode.pointer,
+      selectedUniquePointer: schemaNode.schemaPointer,
     },
   })(<ItemDataComponent schemaNode={schemaNode} />);
 };
@@ -86,7 +86,7 @@ describe('ItemDataComponent', () => {
     await user.tab();
     expect(saveDataModel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDataModel);
-    const updatedNode = updatedModel.getNode(combinationNodeMock.pointer);
+    const updatedNode = updatedModel.getNodeBySchemaPointer(combinationNodeMock.schemaPointer);
     expect(updatedNode.title).toEqual(title);
   });
 
@@ -103,7 +103,7 @@ describe('ItemDataComponent', () => {
     await user.tab();
     expect(saveDataModel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDataModel);
-    const updatedNode = updatedModel.getNode(combinationNodeMock.pointer);
+    const updatedNode = updatedModel.getNodeBySchemaPointer(combinationNodeMock.schemaPointer);
     expect(updatedNode.description).toEqual(description);
   });
 
