@@ -18,7 +18,7 @@ export const ItemFieldsTypes = ({ fieldNode, typeLabel, kindLabel }: ItemFieldsT
   if (kindLabel) return <>{kindLabel}</>;
   if (isReference(fieldNode)) {
     const referredNode = savableModel.getReferredNode(fieldNode);
-    const name = extractNameFromPointer(referredNode.pointer);
+    const name = extractNameFromPointer(referredNode.schemaPointer);
     const handleClick = () => setSelectedTypePointer(fieldNode.reference);
     return <StudioReferenceButton name={name} onClick={handleClick} node={fieldNode} />;
   }
