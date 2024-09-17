@@ -7,6 +7,7 @@ import {
   CalendarIcon,
   CheckboxIcon,
   ChevronDownDoubleIcon,
+  ClipboardIcon,
   ElementIcon,
   ExclamationmarkTriangleIcon,
   FileTextIcon,
@@ -423,6 +424,13 @@ export const formItemConfigs: FormItemConfigs = {
     icon: RepeatingGroupIcon,
     validChildTypes: Object.values(ComponentType),
   },
+  [ComponentType.SubForm]: {
+    name: ComponentType.SubForm,
+    itemType: LayoutItemType.Component,
+    defaultProperties: {},
+    propertyPath: 'definitions/subForm',
+    icon: ClipboardIcon,
+  },
   [ComponentType.Summary]: {
     name: ComponentType.Summary,
     itemType: LayoutItemType.Component,
@@ -459,6 +467,7 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Custom],
   formItemConfigs[ComponentType.RepeatingGroup],
   formItemConfigs[ComponentType.PaymentDetails],
+  formItemConfigs[ComponentType.SubForm],
 ];
 
 export const schemaComponents: FormItemConfigs[ComponentType][] = [
