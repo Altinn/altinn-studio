@@ -8,29 +8,19 @@ import { useSettingsModalContext } from '../../contexts/SettingsModalContext';
 
 export const SettingsModalButton = (): ReactNode => {
   const { t } = useTranslation();
-  const { settingsModalOpen, setSettingsModalOpen, settingsModalSelectedTab } =
-    useSettingsModalContext();
+  const { settingsRef } = useSettingsModalContext();
 
   return (
     <>
       <StudioButton
-        onClick={() => setSettingsModalOpen(true)}
-        variant='tertiary'
         color='inverted'
         icon={<CogIcon />}
+        onClick={() => settingsRef.current.openSettings()}
+        variant='tertiary'
       >
         {t('sync_header.settings')}
       </StudioButton>
-      {
-        // Done to prevent API calls to be executed before the modal is open
-        settingsModalOpen && (
-          <SettingsModal
-            isOpen={settingsModalOpen}
-            onClose={() => setSettingsModalOpen(false)}
-            defaultTab={settingsModalSelectedTab}
-          />
-        )
-      }
+      <SettingsModal ref={settingsRef} />
     </>
   );
 };
