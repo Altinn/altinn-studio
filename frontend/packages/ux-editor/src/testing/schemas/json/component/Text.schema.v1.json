@@ -1,5 +1,5 @@
 {
-  "$id": "https://altinncdn.no/schemas/json/component/CustomButton.schema.v1.json",
+  "$id": "https://altinncdn.no/schemas/json/component/Text.schema.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "id": {
@@ -47,35 +47,32 @@
       },
       "additionalProperties": false
     },
-    "type": { "const": "CustomButton" },
-    "actions": {
-      "type": "array",
-      "items": {
-        "title": "CustomAction",
-        "anyOf": [
-          { "$ref": "#/definitions/ClientAction" },
-          { "$ref": "#/definitions/ServerAction" }
-        ]
-      }
-    },
-    "buttonStyle": {
-      "title": "Button style",
-      "description": "The style/color scheme of the button.",
-      "enum": ["primary", "secondary"],
-      "type": "string"
-    },
+    "type": { "const": "Text" },
     "textResourceBindings": {
+      "title": "TRBLabel",
       "type": "object",
       "properties": {
         "title": {
           "title": "Title",
-          "description": "The title/text on the button",
+          "description": "Label text/title shown above the component",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "description": {
+          "title": "Description",
+          "description": "Label description shown above the component, below the title",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "help": {
+          "title": "Help text",
+          "description": "Help text shown in a tooltip when clicking the help button",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
-      },
-      "additionalProperties": false
-    }
+      }
+    },
+    "value": { "$ref": "expression.schema.v1.json#/definitions/string" },
+    "direction": { "default": "horizontal", "enum": ["horizontal", "vertical"], "type": "string" },
+    "icon": { "examples": ["https://example.com/icon.svg"], "type": "string" }
   },
-  "required": ["id", "type", "actions", "buttonStyle"],
-  "title": "CustomButton component schema"
+  "required": ["id", "type", "value"],
+  "title": "Text component schema"
 }

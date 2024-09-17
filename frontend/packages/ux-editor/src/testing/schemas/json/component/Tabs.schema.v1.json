@@ -1,5 +1,5 @@
 {
-  "$id": "https://altinncdn.no/schemas/json/component/CustomButton.schema.v1.json",
+  "$id": "https://altinncdn.no/schemas/json/component/Tabs.schema.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "id": {
@@ -47,35 +47,58 @@
       },
       "additionalProperties": false
     },
-    "type": { "const": "CustomButton" },
-    "actions": {
-      "type": "array",
-      "items": {
-        "title": "CustomAction",
-        "anyOf": [
-          { "$ref": "#/definitions/ClientAction" },
-          { "$ref": "#/definitions/ServerAction" }
-        ]
-      }
+    "renderAsSummary": {
+      "title": "Render as summary",
+      "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+      "default": false,
+      "type": "boolean"
     },
-    "buttonStyle": {
-      "title": "Button style",
-      "description": "The style/color scheme of the button.",
-      "enum": ["primary", "secondary"],
-      "type": "string"
+    "forceShowInSummary": {
+      "title": "Force show in summary",
+      "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+      "default": false,
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
     },
+    "type": { "const": "Tabs" },
     "textResourceBindings": {
+      "title": "TRBSummarizable",
       "type": "object",
       "properties": {
-        "title": {
-          "title": "Title",
-          "description": "The title/text on the button",
+        "summaryTitle": {
+          "title": "Summary title",
+          "description": "Title used in the summary view (overrides the default title)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "summaryAccessibleTitle": {
+          "title": "Accessible summary title",
+          "description": "Title used for aria-label on the edit button in the summary view (overrides the default and summary title)",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
-      },
-      "additionalProperties": false
+      }
+    },
+    "size": { "default": "medium", "enum": ["small", "medium", "large"], "type": "string" },
+    "defaultTab": { "type": "string" },
+    "tabs": {
+      "type": "array",
+      "items": {
+        "title": "TabConfig",
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "title": "Title", "description": "Title of the tab", "type": "string" },
+          "icon": { "examples": ["https://example.com/icon.svg"], "type": "string" },
+          "children": {
+            "title": "Children",
+            "description": "List of component IDs that should be displayed in the Tab",
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "required": ["id", "title", "children"],
+        "additionalProperties": false
+      }
     }
   },
-  "required": ["id", "type", "actions", "buttonStyle"],
-  "title": "CustomButton component schema"
+  "required": ["id", "type", "tabs"],
+  "title": "Tabs component schema"
 }

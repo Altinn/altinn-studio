@@ -1,5 +1,5 @@
 {
-  "$id": "https://altinncdn.no/schemas/json/component/CustomButton.schema.v1.json",
+  "$id": "https://altinncdn.no/schemas/json/component/Summary2.schema.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "id": {
@@ -47,35 +47,49 @@
       },
       "additionalProperties": false
     },
-    "type": { "const": "CustomButton" },
-    "actions": {
-      "type": "array",
-      "items": {
-        "title": "CustomAction",
-        "anyOf": [
-          { "$ref": "#/definitions/ClientAction" },
-          { "$ref": "#/definitions/ServerAction" }
-        ]
-      }
-    },
-    "buttonStyle": {
-      "title": "Button style",
-      "description": "The style/color scheme of the button.",
-      "enum": ["primary", "secondary"],
-      "type": "string"
-    },
-    "textResourceBindings": {
+    "type": { "const": "Summary2" },
+    "target": {
+      "description": "Config for what should be rendered. If you set taskId, this property is optional.",
       "type": "object",
       "properties": {
-        "title": {
-          "title": "Title",
-          "description": "The title/text on the button",
-          "$ref": "expression.schema.v1.json#/definitions/string"
+        "type": {
+          "title": "Mode",
+          "default": "component",
+          "enum": ["page", "layoutSet", "component"]
+        },
+        "id": { "type": "string" },
+        "taskId": {
+          "title": "Task ID",
+          "description": "Use this if you want to render something from another task.",
+          "type": "string"
         }
       },
       "additionalProperties": false
+    },
+    "showPageInAccordion": { "type": "boolean" },
+    "hideEmptyFields": {
+      "description": "Set this to true if you don't want to show fields that have not been filled out.",
+      "type": "boolean"
+    },
+    "overrides": {
+      "type": "array",
+      "items": {
+        "title": "AnySummaryOverrideProps",
+        "anyOf": [
+          { "$ref": "#/definitions/InputSummaryOverrideProps" },
+          { "$ref": "#/definitions/CheckboxSummaryOverrideProps" },
+          { "$ref": "#/definitions/RadioSummaryOverrideProps" },
+          { "$ref": "#/definitions/DropdownSummaryOverrideProps" },
+          { "$ref": "#/definitions/MultipleSelectSummaryOverrideProps" },
+          { "$ref": "#/definitions/GroupSummaryOverrideProps" },
+          { "$ref": "#/definitions/TextAreaSummaryOverrideProps" },
+          { "$ref": "#/definitions/RepeatingGroupSummaryOverrideProps" },
+          { "$ref": "#/definitions/DatepickerSummaryOverrideProps" },
+          { "$ref": "#/definitions/ListSummaryOverrideProps" }
+        ]
+      }
     }
   },
-  "required": ["id", "type", "actions", "buttonStyle"],
-  "title": "CustomButton component schema"
+  "required": ["id", "type"],
+  "title": "Summary2 component schema"
 }

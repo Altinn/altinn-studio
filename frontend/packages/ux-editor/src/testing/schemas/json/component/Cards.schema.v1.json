@@ -1,5 +1,5 @@
 {
-  "$id": "https://altinncdn.no/schemas/json/component/Group.schema.v1.json",
+  "$id": "https://altinncdn.no/schemas/json/component/Cards.schema.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "id": {
@@ -59,19 +59,11 @@
       "default": false,
       "$ref": "expression.schema.v1.json#/definitions/boolean"
     },
-    "type": { "const": "Group" },
+    "type": { "const": "Cards" },
     "textResourceBindings": {
+      "title": "TRBSummarizable",
+      "type": "object",
       "properties": {
-        "title": {
-          "title": "Title",
-          "description": "The title of the group (shown above the group)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "description": {
-          "title": "Description",
-          "description": "The description text shown underneath the title",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
         "summaryTitle": {
           "title": "Summary title",
           "description": "Title used in the summary view (overrides the default title)",
@@ -84,25 +76,67 @@
         }
       }
     },
-    "groupingIndicator": {
-      "title": "Set grouping indicator",
-      "description": "Can visually group components together by indenting them or by putting them in a panel. ",
-      "enum": ["indented", "panel"],
+    "mediaPosition": {
+      "title": "ImagePosition",
+      "description": "Position of the media (image/video/audio) in each card",
+      "default": "top",
+      "enum": ["top", "bottom"],
       "type": "string"
     },
-    "children": {
-      "title": "Children",
-      "description": "Array of component IDs that should be displayed in the group",
+    "minMediaHeight": {
+      "title": "minMediaHeight",
+      "description": "Fixed minimum height of media (if media is present)",
+      "examples": ["100px", "100%", "100rem"],
+      "default": "150px",
+      "type": "string"
+    },
+    "minWidth": {
+      "title": "minWidth",
+      "description": "Fixed minimum width of the card",
+      "examples": ["100", "100px", "100%", "100rem"],
+      "default": "250px",
+      "type": "string",
+      "pattern": "^[0-9]+(px|rem|%)?$"
+    },
+    "color": {
+      "title": "Card color",
+      "description": "The color style for these cards",
+      "enum": ["neutral", "subtle"],
+      "type": "string"
+    },
+    "cards": {
       "type": "array",
-      "items": { "type": "string" }
-    },
-    "headingLevel": {
-      "title": "Heading level",
-      "description": "The heading level of the group title.",
-      "enum": [2, 3, 4, 5, 6],
-      "type": "string"
+      "items": {
+        "title": "CardConfigExternal",
+        "type": "object",
+        "properties": {
+          "media": {
+            "title": "Media",
+            "description": "Media to display on the top/bottom of the card (must reference an Image, Audio or Video component",
+            "type": "string"
+          },
+          "title": { "title": "Title", "description": "Title of the card", "type": "string" },
+          "description": {
+            "title": "Description/body text",
+            "description": "Full text displayed underneath the title, above any component children",
+            "type": "string"
+          },
+          "footer": {
+            "title": "Footer",
+            "description": "Footer text of the card",
+            "type": "string"
+          },
+          "children": {
+            "title": "Children",
+            "description": "Child component IDs to show inside the card",
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "additionalProperties": false
+      }
     }
   },
-  "required": ["id", "type", "children"],
-  "title": "Group component schema"
+  "required": ["id", "type", "color", "cards"],
+  "title": "Cards component schema"
 }

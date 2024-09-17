@@ -1,5 +1,5 @@
 {
-  "$id": "https://altinncdn.no/schemas/json/component/Input.schema.v1.json",
+  "$id": "https://altinncdn.no/schemas/json/component/Number.schema.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
     "id": {
@@ -47,61 +47,10 @@
       },
       "additionalProperties": false
     },
-    "readOnly": {
-      "title": "Read only/disabled?",
-      "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
-      "default": false,
-      "$ref": "expression.schema.v1.json#/definitions/boolean"
-    },
-    "required": {
-      "title": "Required?",
-      "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
-      "default": false,
-      "$ref": "expression.schema.v1.json#/definitions/boolean"
-    },
-    "showValidations": {
-      "title": "Validation types",
-      "description": "List of validation types to show",
-      "type": "array",
-      "items": {
-        "enum": [
-          "Schema",
-          "Component",
-          "Expression",
-          "CustomBackend",
-          "Required",
-          "AllExceptRequired",
-          "All"
-        ],
-        "type": "string"
-      }
-    },
-    "renderAsSummary": {
-      "title": "Render as summary",
-      "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
-      "default": false,
-      "type": "boolean"
-    },
-    "forceShowInSummary": {
-      "title": "Force show in summary",
-      "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
-      "default": false,
-      "$ref": "expression.schema.v1.json#/definitions/boolean"
-    },
-    "labelSettings": {
-      "title": "ILabelSettings",
-      "type": "object",
-      "properties": {
-        "optionalIndicator": {
-          "title": "Optional indicator",
-          "description": "Show optional indicator on label",
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false
-    },
-    "type": { "const": "Input" },
+    "type": { "const": "Number" },
     "textResourceBindings": {
+      "title": "TRBLabel",
+      "type": "object",
       "properties": {
         "title": {
           "title": "Title",
@@ -117,57 +66,8 @@
           "title": "Help text",
           "description": "Help text shown in a tooltip when clicking the help button",
           "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "tableTitle": {
-          "title": "Table title",
-          "description": "Title used in the table view (overrides the default title)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "shortName": {
-          "title": "Short name (for validation)",
-          "description": "Alternative name used for required validation messages (overrides the default title)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "requiredValidation": {
-          "title": "Required validation message",
-          "description": "Full validation message shown when the component is required and no value has been entered (overrides both the default and shortName)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "summaryTitle": {
-          "title": "Summary title",
-          "description": "Title used in the summary view (overrides the default title)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "summaryAccessibleTitle": {
-          "title": "Accessible summary title",
-          "description": "Title used for aria-label on the edit button in the summary view (overrides the default and summary title)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "prefix": {
-          "title": "Prefix",
-          "description": "Prefix shown before the input field",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "suffix": {
-          "title": "Suffix",
-          "description": "Suffix shown after the input field",
-          "$ref": "expression.schema.v1.json#/definitions/string"
         }
       }
-    },
-    "dataModelBindings": {
-      "title": "Data model binding",
-      "description": "Describes the location in the data model where the component should store its value(s). A simple binding is used for components that only store a single value, usually a string.",
-      "type": "object",
-      "properties": { "simpleBinding": { "type": "string" } },
-      "required": ["simpleBinding"],
-      "additionalProperties": false
-    },
-    "saveWhileTyping": {
-      "title": "Automatic saving while typing",
-      "description": "Lets you control how long we wait before saving the value locally while typing. This value is usually also used to determine how long we wait before saving the value to the server. The default value is 400 milliseconds.",
-      "default": 400,
-      "type": "number"
     },
     "formatting": {
       "title": "IFormatting",
@@ -403,80 +303,10 @@
       },
       "additionalProperties": false
     },
-    "variant": {
-      "title": "Input variant",
-      "description": "The variant of the input field (text or search).",
-      "default": "text",
-      "enum": ["text", "search"],
-      "type": "string"
-    },
-    "autocomplete": {
-      "title": "HTML autocomplete values",
-      "description": "Autocomplete hints to the browser. See https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/autocomplete",
-      "enum": [
-        "on",
-        "off",
-        "name",
-        "honorific-prefix",
-        "given-name",
-        "additional-name",
-        "family-name",
-        "honorific-suffix",
-        "nickname",
-        "email",
-        "username",
-        "new-password",
-        "current-password",
-        "one-time-code",
-        "organization-title",
-        "organization",
-        "street-address",
-        "address-line1",
-        "address-line2",
-        "address-line3",
-        "address-level4",
-        "address-level3",
-        "address-level2",
-        "address-level1",
-        "country",
-        "country-name",
-        "postal-code",
-        "cc-name",
-        "cc-given-name",
-        "cc-additional-name",
-        "cc-family-name",
-        "cc-number",
-        "cc-exp",
-        "cc-exp-month",
-        "cc-exp-year",
-        "cc-csc",
-        "cc-type",
-        "transaction-currency",
-        "transaction-amount",
-        "language",
-        "bday",
-        "bday-day",
-        "bday-month",
-        "bday-year",
-        "sex",
-        "tel",
-        "tel-country-code",
-        "tel-national",
-        "tel-area-code",
-        "tel-local",
-        "tel-extension",
-        "impp",
-        "url",
-        "photo"
-      ],
-      "type": "string"
-    },
-    "maxLength": {
-      "title": "Max length",
-      "description": "Max length of the input field. Will add a counter to let the user know how many characters are left.",
-      "type": "integer"
-    }
+    "value": { "$ref": "expression.schema.v1.json#/definitions/number" },
+    "direction": { "default": "horizontal", "enum": ["horizontal", "vertical"], "type": "string" },
+    "icon": { "examples": ["https://example.com/icon.svg"], "type": "string" }
   },
-  "required": ["id", "type", "dataModelBindings"],
-  "title": "Input component schema"
+  "required": ["id", "type", "value"],
+  "title": "Number component schema"
 }
