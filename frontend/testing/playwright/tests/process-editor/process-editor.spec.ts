@@ -148,7 +148,6 @@ test('That it is possible to create a custom receipt', async ({ page, testAppNam
   await processEditorPage.customReceiptConfig.writeLayoutSetId(newLayoutSetId);
   await processEditorPage.dataModelConfig.clickOnAddDataModelCombobox();
   await processEditorPage.dataModelConfig.chooseOption(newDataModel);
-  await processEditorPage.pressEscapeOnKeyboard();
 
   await processEditorPage.customReceiptConfig.waitForSaveNewCustomReceiptButtonToBeVisible();
   await processEditorPage.customReceiptConfig.clickOnSaveNewCustomReceiptButton();

@@ -39,11 +39,11 @@ export const ItemFieldsTableRow = ({
   onEnterKeyPress,
 }: ItemFieldsTableRowProps): ReactNode => {
   const { t } = useTranslation();
-  const { schemaModel, setSelectedNodePointer, save } = useSchemaEditorAppContext();
+  const { schemaModel, setSelectedUniquePointer, save } = useSchemaEditorAppContext();
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
   const typeOptions = useTypeOptions();
-  const fullPath = fieldNode.pointer;
+  const fullPath = fieldNode.schemaPointer;
 
   const handleChangeNodeName = (newNodeName: string) => {
     save(
@@ -75,7 +75,7 @@ export const ItemFieldsTableRow = ({
 
   const deleteHandler = () => {
     save(deleteNode(schemaModel, fullPath));
-    setSelectedNodePointer(null);
+    setSelectedUniquePointer(null);
   };
 
   return (
@@ -87,7 +87,7 @@ export const ItemFieldsTableRow = ({
           handleSave={handleChangeNodeName}
           hideLabel
           onKeyDown={onKeyDown}
-          pointer={fullPath}
+          schemaPointer={fullPath}
           size='small'
           aria-label={t('schema_editor.field_name')}
         />

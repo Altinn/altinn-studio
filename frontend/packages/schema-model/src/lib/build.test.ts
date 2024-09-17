@@ -26,8 +26,8 @@ describe('build', () => {
 
       uiSchemaNodes.forEach((node) => {
         expect(node.objectKind).toBeDefined();
-        expect(node.pointer).toBeDefined();
-        expect(node.pointer.startsWith(ROOT_POINTER)).toBeTruthy();
+        expect(node.schemaPointer).toBeDefined();
+        expect(node.schemaPointer.startsWith(ROOT_POINTER)).toBeTruthy();
         if (node.objectKind === ObjectKind.Field) {
           expect(node.fieldType).toBeDefined();
         }

@@ -15,9 +15,9 @@ export interface TypeItemProps {
 
 export const TypeItem = ({ uiSchemaNode, selected, setSelectedTypePointer }: TypeItemProps) => {
   const handleClick = () => {
-    setSelectedTypePointer(uiSchemaNode.pointer);
+    setSelectedTypePointer(uiSchemaNode.schemaPointer);
   };
-  const name = extractNameFromPointer(uiSchemaNode.pointer);
+  const name = extractNameFromPointer(uiSchemaNode.schemaPointer);
 
   return (
     <DragAndDropTree.NewItem payload={name}>
@@ -26,7 +26,7 @@ export const TypeItem = ({ uiSchemaNode, selected, setSelectedTypePointer }: Typ
           [classes.itemSelected]: selected,
         })}
         onClick={handleClick}
-        data-testid={typeItemId(uiSchemaNode.pointer)}
+        data-testid={typeItemId(uiSchemaNode.schemaPointer)}
       >
         <div>
           <FileJsonIcon className={classes.typeIcon} />
