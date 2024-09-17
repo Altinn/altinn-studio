@@ -4,77 +4,18 @@
     "hidden": false,
     "layout": [
       {
-        "id": "hovedskjema-detaljer",
-        "type": "Group",
-        "textResourceBindings": {
-          "title": "Hovedskjemadetaljer (Summary v1.0)"
-        },
-        "children": ["summary1", "summary2", "summary3", "summary4", "summary5"]
-      },
-      {
-        "id": "summary1",
-        "type": "Summary",
-        "componentRef": "Input-Name"
-      },
-      {
-        "id": "summary2",
-        "type": "Summary",
-        "componentRef": "Input-Age"
-      },
-      {
-        "id": "summary3",
-        "type": "Summary",
-        "componentRef": "attachments"
-      },
-      {
-        "id": "summary4",
-        "type": "Summary",
-        "componentRef": "subform-mopeder"
-      },
-      {
-        "id": "summary5",
-        "type": "Summary",
-        "componentRef": "subform-boker"
-      },
-      {
-        "id": "hovedskjema-detaljer2",
-        "type": "Group",
-        "textResourceBindings": {
-          "title": "Hovedskjemadetaljer (Summary v2.0)"
-        },
-        "children": ["summary1b", "summary2b", "summary3b", "summary4b", "summary5b"]
-      },
-      {
-        "id": "summary1b",
-        "type": "Summary2",
-        "target": {
-          "id": "Input-Name",
-          "type": "component"
-        }
-      },
-      {
-        "id": "summary2b",
-        "type": "Summary2",
-        "target": {
-          "id": "Input-Age",
-          "type": "component"
-        }
-      },
-      {
-        "id": "summary3b",
-        "type": "Summary2",
-        "target": {
-          "id": "attachments",
-          "type": "component"
-        }
-      },
-      {
         "id": "summary4b",
         "type": "Summary2",
         "target": {
           "id": "subform-mopeder",
           "type": "component"
-        }
+        },
+        "overrides": [
+          {
+            "componentId": "subform-mopeder",
+            "display": "table"
+          }
+        ]
       },
       {
         "id": "summary5b",
@@ -82,7 +23,13 @@
         "target": {
           "id": "subform-boker",
           "type": "component"
+        },
+        "overrides": [
+        {
+          "componentId": "subform-boker",
+          "display": "full"
         }
+      ]
       },
       {
         "id": "button-group1",
@@ -98,7 +45,7 @@
         "actions": [
           {
             "type": "ClientAction",
-            "id": "previousPage"
+            "id": "previousPage",
           }
         ],
         "buttonStyle": "secondary",

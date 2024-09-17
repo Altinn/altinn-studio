@@ -7,7 +7,7 @@
         "id": "moped-detaljer",
         "type": "Group",
         "textResourceBindings": {
-          "title": "Bokdetaljer"
+          "title": "Mopeddetaljer"
         },
         "children": [
           "summary-bok-a",
