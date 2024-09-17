@@ -85,12 +85,12 @@ export class SchemaModel {
   }
 
   public getSchemaPointerByUniquePointer(uniquePointer: string): string {
-    const pointer = uniquePointer.replace('uniquePointer-', '');
+    const pointer = this.removeUniquePointerPrefix(uniquePointer);
     if (this.hasNode(pointer)) return pointer;
 
-    const parentNodePointer = this.getParentSchemaPointerByUniquePointer(pointer);
+    const parentSchemaPointer = this.getParentSchemaPointerByUniquePointer(pointer);
     return makePointerFromArray([
-      parentNodePointer,
+      parentSchemaPointer,
       Keyword.Properties,
       extractNameFromPointer(pointer),
     ]);
@@ -104,15 +104,20 @@ export class SchemaModel {
   }
 
   private getParentPropertyNodeByUniquePointer(uniquePointer: string): UiSchemaNode {
-    const parentUniquePointer = uniquePointer.split('/').slice(1, -3).join('/');
+    const parentUniquePointer = uniquePointer.split('/').slice(0, -2).join('/');
     return this.getNodeByUniquePointer(parentUniquePointer);
+  }
+
+  private removeUniquePointerPrefix(uniquePointer: string): string {
+    return uniquePointer.replace('uniquePointer-', '');
   }
 
   public getUniquePointer(schemaPointer: string, uniqueParentPointer?: string): string {
     if (!uniqueParentPointer || !isDefinitionPointer(schemaPointer))
       return `uniquePointer-${schemaPointer}`;
 
-    return `uniquePointer-${uniqueParentPointer}/properties/${extractNameFromPointer(schemaPointer)}`;
+    const parentPointer = this.removeUniquePointerPrefix(uniqueParentPointer);
+    return `uniquePointer-${parentPointer}/properties/${extractNameFromPointer(schemaPointer)}`;
   }
 
   public hasNode(schemaPointer: string): boolean {
@@ -290,6 +295,7 @@ export class SchemaModel {
   public moveNode(schemaPointer: string, target: NodePosition): UiSchemaNode {
     const currentParentPointer = this.getParentNode(schemaPointer).schemaPointer;
     const finalParent = this.getFinalNode(target.parentPointer);
+    console.log('finalParent', finalParent);
     const movedNode = isCombination(finalParent)
       ? this.moveNodeToCombination(schemaPointer, finalParent, target.index)
       : this.moveNodeToObject(schemaPointer, finalParent, target.index);
