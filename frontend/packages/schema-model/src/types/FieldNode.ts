@@ -9,7 +9,7 @@ export interface FieldNode {
   implicitType: boolean;
   isNillable: boolean;
   isArray: boolean;
-  pointer: string;
+  schemaPointer: string;
   custom: KeyValuePairs;
   children: string[];
   definitions?: string[];

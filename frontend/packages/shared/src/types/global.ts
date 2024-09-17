@@ -14,6 +14,7 @@ export interface ILayoutSettings {
 export interface IPagesSettings {
   order?: string[];
   excludeFromPdf?: string[];
+  pdfLayoutName?: string;
 }
 
 export interface IComponentsSettings {

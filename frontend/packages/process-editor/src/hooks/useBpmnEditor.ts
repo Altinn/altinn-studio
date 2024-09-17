@@ -36,7 +36,8 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
       taskEvent,
       taskType: bpmnDetails.taskType,
     });
-    addAction(bpmnDetails.id);
+    if (bpmnDetails.taskType === 'data' || bpmnDetails.taskType === 'payment')
+      addAction(bpmnDetails.id);
   };
 
   const handleShapeRemove = (taskEvent: TaskEvent): void => {

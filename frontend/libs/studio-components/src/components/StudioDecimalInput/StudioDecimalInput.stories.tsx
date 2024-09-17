@@ -5,7 +5,7 @@ import { StudioDecimalInput } from './StudioDecimalInput';
 type Story = StoryFn<typeof StudioDecimalInput>;
 
 const meta: Meta = {
-  title: 'Forms/StudioDecimalInput',
+  title: 'StudioDecimalInput',
   component: StudioDecimalInput,
   argTypes: {
     value: {

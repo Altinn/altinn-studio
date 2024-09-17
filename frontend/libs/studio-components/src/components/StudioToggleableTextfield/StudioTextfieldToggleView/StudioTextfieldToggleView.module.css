@@ -3,6 +3,7 @@
   justify-content: flex-start;
   align-items: center;
   border-radius: 0;
+  width: 100%;
 }
 
 .viewModeIconsContainer {
@@ -12,6 +13,22 @@
   align-items: center;
   color: var(--fds-semantic-text-neutral-default);
   width: 100%;
+}
+
+.label,
+.ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.label {
+  font-weight: bold;
+}
+
+.textContainer {
+  display: flex;
+  flex-direction: column;
 }
 
 .editIconWrapper {

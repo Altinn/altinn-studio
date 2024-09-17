@@ -78,7 +78,13 @@
     },
     "renderAsSummary": {
       "title": "Render as summary",
-      "description": "Boolean value or expression indicating if the component should be rendered as a summary. Defaults to false.",
+      "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+      "default": false,
+      "type": "boolean"
+    },
+    "forceShowInSummary": {
+      "title": "Force show in summary",
+      "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
       "default": false,
       "$ref": "expression.schema.v1.json#/definitions/boolean"
     },
@@ -140,11 +146,15 @@
       }
     },
     "dataModelBindings": {
-      "title": "Data model binding",
-      "description": "Describes the location in the data model where the component should store its value(s). A simple binding is used for components that only store a single value, usually a string.",
+      "title": "IDataModelBindingsForMap",
       "type": "object",
-      "properties": { "simpleBinding": { "type": "string" } },
-      "required": ["simpleBinding"],
+      "properties": {
+        "simpleBinding": { "type": "string" },
+        "geometries": {
+          "description": "Should point to an array of objects like {data: string, label: string}",
+          "type": "string"
+        }
+      },
       "additionalProperties": false
     },
     "layers": {
@@ -182,8 +192,14 @@
       "required": ["latitude", "longitude"],
       "additionalProperties": false
     },
-    "zoom": { "type": "number" }
+    "zoom": { "type": "number" },
+    "geometryType": {
+      "title": "IGeometryType",
+      "default": "GeoJSON",
+      "enum": ["GeoJSON", "WKT"],
+      "type": "string"
+    }
   },
-  "required": ["id", "type"],
+  "required": ["id", "type", "dataModelBindings"],
   "title": "Map component schema"
 }

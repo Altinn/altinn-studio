@@ -6,7 +6,7 @@ import { PencilIcon } from '@studio/icons';
 type Story = StoryFn<typeof StudioButton>;
 
 const meta: Meta = {
-  title: 'Studio/StudioButton',
+  title: 'StudioButton',
   component: StudioButton,
   argTypes: {
     iconPlacement: {

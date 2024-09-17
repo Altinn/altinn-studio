@@ -38,7 +38,7 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
   const onAddPropertyClicked = (event: BaseSyntheticEvent, fieldType: FieldType) => {
     event.preventDefault();
 
-    addProperty(ObjectKind.Field, fieldType, selectedItem.pointer);
+    addProperty(ObjectKind.Field, fieldType, selectedItem.schemaPointer);
   };
   const readonly = isReference(selectedItem);
 

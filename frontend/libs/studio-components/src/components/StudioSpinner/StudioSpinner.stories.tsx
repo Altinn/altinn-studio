@@ -5,7 +5,7 @@ import { StudioSpinner } from './StudioSpinner';
 type Story = StoryFn<typeof StudioSpinner>;
 
 const meta: Meta = {
-  title: 'Studio/StudioSpinner',
+  title: 'StudioSpinner',
   component: StudioSpinner,
   argTypes: {
     size: {

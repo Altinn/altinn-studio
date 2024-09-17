@@ -5,7 +5,6 @@ import { KeyVerticalIcon } from '@studio/icons';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { useBpmnConfigPanelFormContext } from '../../../../contexts/BpmnConfigPanelContext';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
-import classes from './EditTaskId.module.css';
 import type { MetadataForm } from 'app-shared/types/BpmnMetadataForm';
 import { useValidateBpmnTaskId } from '../../../../hooks/useValidateBpmnId';
 
@@ -47,7 +46,6 @@ export const EditTaskId = (): React.ReactElement => {
     <StudioToggleableTextfield
       customValidation={validateBpmnTaskId}
       inputProps={{
-        className: classes.textfield,
         icon: <KeyVerticalIcon />,
         label: t('process_editor.configuration_panel_change_task_id'),
         value: bpmnDetails.id,

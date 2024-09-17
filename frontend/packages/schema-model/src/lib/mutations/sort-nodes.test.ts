@@ -7,10 +7,10 @@ test('sortNodesByChildren', () => {
   const rootNode = createNodeBase(ROOT_POINTER);
   const child1 = createNodeBase('someother path');
   const child3 = createNodeBase('somepath');
-  rootNode.children.push(child1.pointer);
-  rootNode.children.push(child3.pointer);
+  rootNode.children.push(child1.schemaPointer);
+  rootNode.children.push(child3.schemaPointer);
   const child2 = createNodeBase('someother path', 'another one here');
-  child1.children.push(child2.pointer);
+  child1.children.push(child2.schemaPointer);
   const testArray = [child1, child2, child3, rootNode];
   for (let i = 0; i < 5; i++) {
     testArray.sort(() => Math.random() - 0.5);
