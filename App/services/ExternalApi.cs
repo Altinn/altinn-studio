@@ -13,15 +13,6 @@ public class ExternalApi : IExternalApiClient
     public Task<object> GetExternalApiDataAsync(InstanceIdentifier instanceIdentifier, Dictionary<string, string> queryParams)
     {
         List<Detail> details = [new Detail { Id = "firstDetail", Info = "firstInfo" }, new Detail { Id = "secondDetail", Info = "secondInfo" }];
-        Console.WriteLine("-------------------------------------------------");
-        Console.WriteLine("-------------------------------------------------");
-        Console.WriteLine("-------------------------------------------------");
-        Console.WriteLine("-------------------------------------------------");
-        Console.WriteLine(details[0].Id);
-        Console.WriteLine("-------------------------------------------------");
-        Console.WriteLine("-------------------------------------------------");
-        Console.WriteLine("-------------------------------------------------");
-        Console.WriteLine("-------------------------------------------------");
         return Task.FromResult<object>(new ExternalApiModel { Id = "apiId", Details = details });
     }
 }
