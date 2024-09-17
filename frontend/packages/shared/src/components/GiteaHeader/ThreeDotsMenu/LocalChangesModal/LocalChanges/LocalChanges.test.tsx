@@ -1,15 +1,16 @@
 import React from 'react';
-import { render as rtlRender, screen } from '@testing-library/react';
+import type { ByRoleOptions } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { LocalChanges } from './LocalChanges';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import type { QueryClient, UseMutationResult } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
-import { useResetRepositoryMutation } from 'app-development/hooks/mutations/useResetRepositoryMutation';
 import { repoDownloadPath } from 'app-shared/api/paths';
 import { app, org } from '@studio/testing/testids';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -18,129 +19,105 @@ jest.mock('react-router-dom', () => ({
   },
 }));
 
-jest.mock('app-development/hooks/mutations/useResetRepositoryMutation');
-const deleteLocalChangesMutation = jest.fn();
-const mockDeleteLocalChangesyMutation = useResetRepositoryMutation as jest.MockedFunction<
-  typeof useResetRepositoryMutation
->;
-mockDeleteLocalChangesyMutation.mockReturnValue({
-  mutate: deleteLocalChangesMutation,
-} as unknown as UseMutationResult<any, Error, void, unknown>);
+const onDelete = jest.fn();
 
 describe('LocalChanges', () => {
   afterEach(jest.clearAllMocks);
 
-  it('renders the component with the href for downloading only files that you have changes', () => {
-    render({}, createQueryClientMock());
-
-    const hrefToOnlyFilesYouHaveChanged = repoDownloadPath(org, app);
-
-    const downloadOnlyChangedFilesLink = screen.getByRole('link', {
-      name: textMock('local_changes.modal_download_only_changed_button'),
-    });
-    expect(downloadOnlyChangedFilesLink).toHaveAttribute('href', hrefToOnlyFilesYouHaveChanged);
+  it('renders the component with the href for downloading only files that the user has changed', () => {
+    renderLocalChanges();
+    const hrefToOnlyChangedFiles = repoDownloadPath(org, app);
+    expect(getDownloadChangedOnlyLink()).toHaveAttribute('href', hrefToOnlyChangedFiles);
   });
 
   it('renders the component with the href for downloading all files in the repo', () => {
-    render({}, createQueryClientMock());
-
+    renderLocalChanges();
     const hrefToAllFilesInRepo = repoDownloadPath(org, app, true);
-
-    const downloadOnlyChangedFilesLink = screen.getByRole('link', {
-      name: textMock('local_changes_modal.download_all_button'),
-    });
-    expect(downloadOnlyChangedFilesLink).toHaveAttribute('href', hrefToAllFilesInRepo);
+    expect(getDownloadAllLink()).toHaveAttribute('href', hrefToAllFilesInRepo);
   });
 
   it('does not show the delete modal when initially rendering the component', () => {
-    render({}, createQueryClientMock());
-
-    const deleteModalHeading = screen.queryByRole('heading', {
-      name: textMock('local_changes.modal_delete_modal_title'),
-      level: 1,
-    });
-    expect(deleteModalHeading).not.toBeInTheDocument();
+    renderLocalChanges();
+    expect(queryDeleteModalHeading()).not.toBeInTheDocument();
   });
 
   it('opens the delete modal when delete button is clicked', async () => {
     const user = userEvent.setup();
-    render({}, createQueryClientMock());
-
-    const deleteButton = screen.getByRole('button', {
-      name: textMock('local_changes.modal_delete_button'),
-    });
-    await user.click(deleteButton);
-
-    const deleteModalHeading = screen.getByRole('heading', {
-      name: textMock('local_changes.modal_delete_modal_title'),
-      level: 1,
-    });
-    expect(deleteModalHeading).toBeInTheDocument();
+    renderLocalChanges();
+    await user.click(getDeleteButton());
+    expect(getDeleteModalHeading()).toBeInTheDocument();
   });
 
-  it('calls the handleDelete function, and closes the modal, when delete button is clicked in delete modal', async () => {
+  it('calls the delete mutation query when delete button is clicked in the delete modal', async () => {
     const user = userEvent.setup();
-    render({}, createQueryClientMock());
+    renderLocalChanges();
+    await user.click(getDeleteButton());
+    expect(getConfirmDeleteButton()).toBeDisabled();
+    await user.type(getDeleteTextfield(), app);
+    expect(getConfirmDeleteButton()).not.toBeDisabled();
+    await user.click(getConfirmDeleteButton());
+    expect(queriesMock.resetRepoChanges).toHaveBeenCalledTimes(1);
+  });
 
-    const deleteButton = screen.getByRole('button', {
-      name: textMock('local_changes.modal_delete_button'),
-    });
-    await user.click(deleteButton);
+  it('Closes the dialog when the deletion is done', async () => {
+    const user = userEvent.setup();
+    renderLocalChanges();
+    await user.click(getDeleteButton());
+    await user.type(getDeleteTextfield(), app);
+    await user.click(getConfirmDeleteButton());
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
 
-    const deleteModalDeleteButton = screen.getByRole('button', {
-      name: textMock('local_changes.modal_confirm_delete_button'),
-    });
-    expect(deleteModalDeleteButton).toBeDisabled();
-
-    const textfield = screen.getByLabelText(
-      textMock('local_changes.modal_delete_modal_textfield_label'),
-    );
-    await user.type(textfield, app);
-
-    const deleteModalDeleteButtonAfterTyping = screen.getByRole('button', {
-      name: textMock('local_changes.modal_confirm_delete_button'),
-    });
-    expect(deleteModalDeleteButton).not.toBeDisabled();
-    await user.click(deleteModalDeleteButtonAfterTyping);
-
-    expect(deleteLocalChangesMutation).toHaveBeenCalledTimes(1);
+  it('Calls the onDelete function when the deletion is done', async () => {
+    const user = userEvent.setup();
+    renderLocalChanges();
+    await user.click(getDeleteButton());
+    await user.type(getDeleteTextfield(), app);
+    await user.click(getConfirmDeleteButton());
+    expect(onDelete).toHaveBeenCalledTimes(1);
   });
 
   it('closes the delete modal when cancel button is clicked in delete modal', async () => {
     const user = userEvent.setup();
-    render({}, createQueryClientMock());
-
-    const deleteButton = screen.getByRole('button', {
-      name: textMock('local_changes.modal_delete_button'),
-    });
-    await user.click(deleteButton);
-
-    const deleteModalHeading = screen.getByRole('heading', {
-      name: textMock('local_changes.modal_delete_modal_title'),
-      level: 1,
-    });
-    expect(deleteModalHeading).toBeInTheDocument();
-
-    const deleteModalCancelButton = screen.getByRole('button', {
-      name: textMock('general.cancel'),
-    });
-    await user.click(deleteModalCancelButton);
-
-    const deleteModalHeadingAfterClose = screen.queryByRole('heading', {
-      name: textMock('local_changes.modal_delete_modal_title'),
-      level: 1,
-    });
-    expect(deleteModalHeadingAfterClose).not.toBeInTheDocument();
+    renderLocalChanges();
+    await user.click(getDeleteButton());
+    expect(getDeleteModalHeading()).toBeInTheDocument();
+    await user.click(getCancelButton());
+    expect(queryDeleteModalHeading()).not.toBeInTheDocument();
   });
 });
 
-const render = (
-  allQueries: Partial<ServicesContextProps> = {},
+const renderLocalChanges = (
+  allQueries: Partial<ServicesContextProps> = queriesMock,
   queryClient: QueryClient = createQueryClientMock(),
-) => {
-  return rtlRender(
+) =>
+  render(
     <ServicesContextProvider {...allQueries} client={queryClient}>
-      <LocalChanges />
+      <LocalChanges onDelete={onDelete} />
     </ServicesContextProvider>,
   );
-};
+
+const getDownloadChangedOnlyLink = () => getLink(downloadChangedOnlyLinkName);
+const getDownloadAllLink = () => getLink(downloadAllLinkName);
+const getLink = (name: string) => screen.getByRole('link', { name });
+
+const getDeleteButton = () => getButton(deleteButtonName);
+const getConfirmDeleteButton = () => getButton(confirmDeleteButtonName);
+const getCancelButton = () => getButton(cancelButtonName);
+const getButton = (name: string) => screen.getByRole('button', { name });
+
+const getDeleteTextfield = () => getTextfield(deleteTextfieldLabel);
+const getTextfield = (name: string) => screen.getByRole('textbox', { name });
+
+const getDeleteModalHeading = () => screen.getByRole('heading', deleteModalHeadingOptions);
+const queryDeleteModalHeading = () => screen.queryByRole('heading', deleteModalHeadingOptions);
+
+const downloadChangedOnlyLinkName = textMock('local_changes.modal_download_only_changed_button');
+const downloadAllLinkName = textMock('local_changes_modal.download_all_button');
+const deleteButtonName = textMock('local_changes.modal_delete_button');
+const confirmDeleteButtonName = textMock('local_changes.modal_confirm_delete_button');
+const cancelButtonName = textMock('general.cancel');
+const deleteModalHeading = textMock('local_changes.modal_delete_modal_title');
+const deleteTextfieldLabel = textMock('local_changes.modal_delete_modal_textfield_label');
+
+const deleteModalHeadingOptions: ByRoleOptions = { name: deleteModalHeading, level: 2 };

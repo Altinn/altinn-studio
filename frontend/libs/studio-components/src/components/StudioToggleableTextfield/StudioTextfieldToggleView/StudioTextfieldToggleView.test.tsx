@@ -38,6 +38,15 @@ describe('StudioTextfieldToggleView', () => {
     renderStudioTextfieldToggleView({ children: 'My awesome button text', disabled: true });
     expect(screen.getByRole('button', { name: 'My awesome button text' })).toBeDisabled();
   });
+
+  it('should show label if defined', () => {
+    const studioTextfieldToggleViewLabel = 'studioTextfieldToggleViewLabel';
+    renderStudioTextfieldToggleView({
+      children: 'My awesome button text',
+      label: studioTextfieldToggleViewLabel,
+    });
+    expect(screen.getByText(studioTextfieldToggleViewLabel)).toBeInTheDocument();
+  });
 });
 
 const renderStudioTextfieldToggleView = (props: Partial<StudioTextfieldToggleViewProps>) => {
