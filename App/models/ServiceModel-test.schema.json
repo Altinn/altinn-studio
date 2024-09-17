@@ -2720,6 +2720,12 @@
               "Color": {
                 "type": "string"
               },
+              "Colors": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
               "Comments": {
                 "type": "array",
                 "items": {

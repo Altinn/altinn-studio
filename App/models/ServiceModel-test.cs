@@ -2354,12 +2354,17 @@ namespace Altinn.App.Models
         [JsonPropertyName("Color")]
         public string? Color { get; set; }
 
-        [XmlElement("Comments", Order = 4)]
+        [XmlElement("Colors", Order = 4)]
+        [JsonProperty("Colors")]
+        [JsonPropertyName("Colors")]
+        public List<string>? Colors { get; set; }
+
+        [XmlElement("Comments", Order = 5)]
         [JsonProperty("Comments")]
         [JsonPropertyName("Comments")]
         public List<AnimalComment>? Comments { get; set; }
 
-        [XmlElement("CommentLabels", Order = 5)]
+        [XmlElement("CommentLabels", Order = 6)]
         [JsonProperty("CommentLabels")]
         [JsonPropertyName("CommentLabels")]
         public string? CommentLabels { get; set; }

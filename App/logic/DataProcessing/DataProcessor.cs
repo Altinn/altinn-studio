@@ -220,6 +220,20 @@ namespace Altinn.App.logic.DataProcessing
                     {
                         animal.CommentLabels = string.Join(", ",
                             animal.Comments.Select(c => c.TypeLabel).Distinct().Where(l => !string.IsNullOrEmpty(l)));
+
+                        // This just copies the colors into a list. The use-case for this is to test a bug that caused
+                        // a backend mutation like this to confuse the frontend and we'd end up with infinite repeating
+                        // PATCH requests.
+                        var sepColors = animal.Color.Split(',').Select(c => c.Trim())
+                            .Where(c => !string.IsNullOrEmpty(c)).ToList();
+
+                        // To protect frontend versions that don't have this fix yet, only
+                        // do it when GREEN has been selected
+                        if (sepColors.Contains("GREEN"))
+                        {
+                            animal.Colors = new List<string>();
+                            animal.Colors.AddRange(sepColors);
+                        }
                     }
                 }
             }
