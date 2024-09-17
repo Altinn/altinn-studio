@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { createRef } from 'react';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 import { AddImageFromLibraryModal } from './AddImageFromLibraryModal';
@@ -10,34 +10,34 @@ import { imagePath } from 'app-shared/api/paths';
 import userEvent from '@testing-library/user-event';
 import { WWWROOT_FILE_PATH } from '../../../constants';
 
-const onCloseMock = jest.fn();
 const onAddImageReferenceMock = jest.fn();
 
 jest.mock('app-shared/api/paths');
 
 describe('AddImageFromLibraryModal', () => {
-  it('renders modal', () => {
-    renderAddImageFromLibraryModal();
+  it('renders modal', async () => {
+    await renderAddImageFromLibraryModal();
     const modalHeading = screen.getByRole('heading', {
       name: textMock('ux_editor.properties_panel.images.choose_from_library_modal_title'),
+      level: 2,
     });
     expect(modalHeading).toBeInTheDocument();
   });
 
-  it('renders modal with "no images in library" message when library is empty', () => {
-    renderAddImageFromLibraryModal();
+  it('renders modal with "no images in library" message when library is empty', async () => {
+    await renderAddImageFromLibraryModal();
     const noImagesInLibraryMessage = screen.getByText(
       textMock('ux_editor.properties_panel.images.no_images_in_library'),
     );
     expect(noImagesInLibraryMessage).toBeInTheDocument();
   });
 
-  it('renders modal with image, fileName and missing description', () => {
+  it('renders modal with image, fileName and missing description', async () => {
     (imagePath as jest.Mock).mockImplementation(
       (mockOrg, mockApp, imageFileName) => `/images/${mockOrg}/${mockApp}/${imageFileName}`,
     );
     const existingImageFileName = 'image.png';
-    renderAddImageFromLibraryModal([existingImageFileName]);
+    await renderAddImageFromLibraryModal([existingImageFileName]);
     const image = screen.getByRole('img', { name: existingImageFileName });
     const imageAltText = screen.getByAltText(existingImageFileName); // TODO: Change this to description
     const fileName = screen.getByRole('heading', { name: existingImageFileName });
@@ -51,18 +51,10 @@ describe('AddImageFromLibraryModal', () => {
     expect(imagePath).toHaveBeenCalledWith(org, app, existingImageFileName);
   });
 
-  it('should call onClose when clicking on close modal button', async () => {
-    const user = userEvent.setup();
-    renderAddImageFromLibraryModal();
-    const closeModalButton = screen.getByRole('button', { name: textMock('general.close') });
-    await user.click(closeModalButton);
-    expect(onCloseMock).toHaveBeenCalled();
-  });
-
   it('should call onAddImageReference when clicking on an image', async () => {
     const user = userEvent.setup();
     const existingImageFileName = 'image.png';
-    renderAddImageFromLibraryModal([existingImageFileName]);
+    await renderAddImageFromLibraryModal([existingImageFileName]);
     const fileName = screen.getByRole('heading', { name: existingImageFileName });
     await user.click(fileName);
     expect(onAddImageReferenceMock).toHaveBeenCalledTimes(1);
@@ -70,15 +62,14 @@ describe('AddImageFromLibraryModal', () => {
   });
 });
 
-const renderAddImageFromLibraryModal = (imageFileNames: string[] = []) => {
+const renderAddImageFromLibraryModal = async (imageFileNames: string[] = []) => {
   const queryClient = createQueryClientMock();
+  const ref = createRef<HTMLDialogElement>();
   queryClient.setQueryData([QueryKey.ImageFileNames, org, app], imageFileNames);
   renderWithProviders(
-    <AddImageFromLibraryModal
-      isOpen={true}
-      onClose={onCloseMock}
-      onAddImageReference={onAddImageReferenceMock}
-    />,
+    <AddImageFromLibraryModal onAddImageReference={onAddImageReferenceMock} ref={ref} />,
     { queryClient },
   );
+  ref.current?.showModal();
+  await screen.findByRole('dialog');
 };

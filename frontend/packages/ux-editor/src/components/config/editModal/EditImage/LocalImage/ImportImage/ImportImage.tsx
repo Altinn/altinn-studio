@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { StudioButton, StudioFileUploader } from '@studio/components';
 import classes from './ImportImage.module.css';
 import { useAddImageMutation } from 'app-shared/hooks/mutations/useAddImageMutation';
@@ -15,12 +15,15 @@ interface ImportImageProps {
 
 export const ImportImage = ({ onImageChange }: ImportImageProps) => {
   const { t } = useTranslation();
-  const [showChooseFromLibraryModalOpen, setShowChooseFromLibraryModalOpen] =
-    useState<boolean>(false);
+  const libraryDialogRef = useRef<HTMLDialogElement>(null);
   const imageUploaderRef = useRef(null);
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: uploadImage } = useAddImageMutation(org, app, true);
   const { data: imageFileNames } = useGetAllImageFileNamesQuery(org, app);
+
+  const openLibraryDialog = () => {
+    libraryDialogRef.current?.showModal();
+  };
 
   function handleSuccess(name: string): void {
     const filePath = makeFilePath(name);
@@ -48,23 +51,17 @@ export const ImportImage = ({ onImageChange }: ImportImageProps) => {
 
   return (
     <div className={classes.importImage}>
-      <StudioButton size='small' onClick={() => setShowChooseFromLibraryModalOpen(true)}>
+      <StudioButton size='small' onClick={openLibraryDialog}>
         {t('ux_editor.properties_panel.images.choose_from_library')}
       </StudioButton>
-      {showChooseFromLibraryModalOpen && (
-        <AddImageFromLibraryModal
-          isOpen={showChooseFromLibraryModalOpen}
-          onClose={() => setShowChooseFromLibraryModalOpen(false)}
-          onAddImageReference={onImageChange}
-        />
-      )}
+      <AddImageFromLibraryModal onAddImageReference={onImageChange} ref={libraryDialogRef} />
       <StudioFileUploader
         onUploadFile={handleUpload}
         accept='image/*'
         ref={imageUploaderRef}
         uploaderButtonText={t('ux_editor.properties_panel.images.upload_image')}
         customFileNameValidation={{
-          validateFileName: (fileName: string) => isFileNameUnique(fileName, imageFileNames),
+          validateFileName: (fileName: string) => isFileNameInvalid(fileName, imageFileNames),
           onInvalidFileName: handleOverrideExisingUploadedImage,
         }}
         dataTestId={fileSelectorInputId}
@@ -77,5 +74,6 @@ function makeFilePath(name: string): string {
   return `${WWWROOT_FILE_PATH}${name}`;
 }
 
-const isFileNameUnique = (fileName: string, invalidFileNames: string[]): boolean =>
-  invalidFileNames.includes(fileName);
+const isFileNameInvalid = (fileName: string, invalidFileNames: string[]): boolean => {
+  return !invalidFileNames.includes(fileName);
+};

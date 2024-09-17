@@ -5,8 +5,6 @@
   gap: var(--gap-cards);
   --padding-cards: var(--fds-spacing-2);
   padding: var(--padding-cards);
-  width: 50vw;
-  height: 50vh;
 }
 
 .card {

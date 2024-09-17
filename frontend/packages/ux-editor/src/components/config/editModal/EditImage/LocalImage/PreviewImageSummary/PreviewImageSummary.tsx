@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ImageIcon } from '@studio/icons';
 import { StudioDeleteButton } from '@studio/components';
 import classes from './PreviewImageSummary.module.css';
@@ -20,7 +20,11 @@ export const PreviewImageSummary = ({
   onDeleteImageReferenceOnly,
 }: PreviewImageSummaryProps) => {
   const { t } = useTranslation();
-  const [deleteOptionsModalOpen, setDeleteOptionModalOpen] = useState<boolean>(false);
+  const deleteOptionsDialogRef = React.useRef<HTMLDialogElement>(null);
+
+  const openDeleteOptionsDialog = () => {
+    deleteOptionsDialogRef.current?.showModal();
+  };
 
   return (
     <div className={classes.previewContainer}>
@@ -33,16 +37,13 @@ export const PreviewImageSummary = ({
         title={t('ux_editor.properties_panel.images.delete_image_reference_title')}
         variant='tertiary'
         size='small'
-        onDelete={() => setDeleteOptionModalOpen(true)}
+        onDelete={openDeleteOptionsDialog}
       />
-      {deleteOptionsModalOpen && (
-        <DeleteOptionsModal
-          isOpen={deleteOptionsModalOpen}
-          onClose={() => setDeleteOptionModalOpen(false)}
-          onDeleteImage={() => onDeleteImage(existingImageUrl)}
-          onDeleteImageReferenceOnly={onDeleteImageReferenceOnly}
-        />
-      )}
+      <DeleteOptionsModal
+        onDeleteImage={() => onDeleteImage(existingImageUrl)}
+        onDeleteImageReferenceOnly={onDeleteImageReferenceOnly}
+        ref={deleteOptionsDialogRef}
+      />
     </div>
   );
 };

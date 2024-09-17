@@ -18,22 +18,18 @@ export const ChooseFromLibrary = ({ onAddImageReference }: ChooseFromLibraryProp
   const { org, app } = useStudioEnvironmentParams();
   const { data: imagesFileNames } = useGetAllImageFileNamesQuery(org, app);
 
-  return (
+  return imagesFileNames?.length === 0 ? (
+    <StudioParagraph>{t('ux_editor.properties_panel.images.no_images_in_library')}</StudioParagraph>
+  ) : (
     <div className={classes.cardsContainer}>
-      {imagesFileNames?.length === 0 ? (
-        <StudioParagraph>
-          {t('ux_editor.properties_panel.images.no_images_in_library')}
-        </StudioParagraph>
-      ) : (
-        imagesFileNames.map((imageFilePath) => (
-          <ImageFromLibrary
-            key={imageFilePath}
-            imageFilePath={imageFilePath}
-            onAddImageReference={onAddImageReference}
-            imageSource={imagePath(org, app, imageFilePath)}
-          />
-        ))
-      )}
+      {imagesFileNames.map((imageFilePath) => (
+        <ImageFromLibrary
+          key={imageFilePath}
+          imageFilePath={imageFilePath}
+          onAddImageReference={onAddImageReference}
+          imageSource={imagePath(org, app, imageFilePath)}
+        />
+      ))}
     </div>
   );
 };

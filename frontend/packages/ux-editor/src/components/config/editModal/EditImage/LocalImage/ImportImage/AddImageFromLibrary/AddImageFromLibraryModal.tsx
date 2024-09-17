@@ -1,33 +1,35 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { StudioModal } from '@studio/components';
-import { Heading } from '@digdir/designsystemet-react';
 import { ChooseFromLibrary } from './ChooseFromLibrary';
 import { useTranslation } from 'react-i18next';
+import { useForwardedRef } from '@studio/hooks';
+import classes from './AddImageFromLibraryModal.module.css';
+import { useGetAllImageFileNamesQuery } from 'app-shared/hooks/queries/useGetAllImageFileNamesQuery';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export interface AddImageFromLibraryModalProps {
-  isOpen: boolean;
-  onClose: () => void;
   onAddImageReference: (imageName: string) => void;
 }
 
-export const AddImageFromLibraryModal = ({
-  isOpen,
-  onClose,
-  onAddImageReference,
-}: AddImageFromLibraryModalProps) => {
+export const AddImageFromLibraryModal = forwardRef<
+  HTMLDialogElement,
+  AddImageFromLibraryModalProps
+>(({ onAddImageReference }, ref): JSX.Element => {
   const { t } = useTranslation();
+  const dialogRef = useForwardedRef<HTMLDialogElement>(ref);
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: imagesFileNames } = useGetAllImageFileNamesQuery(org, app);
+
   return (
-    <StudioModal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={
-        <Heading level={1} size='small'>
-          {t('ux_editor.properties_panel.images.choose_from_library_modal_title')}
-        </Heading>
-      }
-      closeButtonLabel={t('general.close')}
+    <StudioModal.Dialog
+      closeButtonTitle={t('general.close')}
+      heading={t('ux_editor.properties_panel.images.choose_from_library_modal_title')}
+      ref={dialogRef}
+      className={imagesFileNames?.length > 0 && classes.dialog}
     >
       <ChooseFromLibrary onAddImageReference={onAddImageReference} />
-    </StudioModal>
+    </StudioModal.Dialog>
   );
-};
+});
+
+AddImageFromLibraryModal.displayName = 'AddImageFromLibraryModal';
