@@ -36,8 +36,8 @@ export const useMoveProperty = (): HandleMove => {
         const parent = extractNameFromPointer(schemaParentPointer);
         alert(t('schema_editor.move_node_same_name_error', { name, parent }));
       } else {
+        const movedNode = savableModel.moveNode(schemaPointer, target);
         if (selectedUniquePointer === uniquePointer) {
-          const movedNode = savableModel.moveNode(schemaPointer, target);
           const movedUniquePointer = savableModel.getUniquePointer(movedNode.schemaPointer);
           setSelectedUniquePointer(movedUniquePointer);
         }
