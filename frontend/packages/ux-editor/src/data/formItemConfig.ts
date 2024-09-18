@@ -435,10 +435,7 @@ export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Summary2]: {
     name: ComponentType.Summary2,
     itemType: LayoutItemType.Component,
-    defaultProperties: {
-      componentRef: '',
-    },
-    propertyPath: 'definitions/summary2Component',
+    defaultProperties: {},
     icon: FileTextIcon,
   },
   [ComponentType.TextArea]: {
