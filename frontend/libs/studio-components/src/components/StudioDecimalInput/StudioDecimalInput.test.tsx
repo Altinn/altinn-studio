@@ -1,9 +1,10 @@
-import type { RefObject } from 'react';
+import type { ForwardedRef } from 'react';
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 import type { StudioDecimalInputProps } from './StudioDecimalInput';
 import { StudioDecimalInput } from './StudioDecimalInput';
 import userEvent from '@testing-library/user-event';
+import { testRefForwarding } from '../../test-utils/testRefForwarding';
 
 const description = 'description';
 const onChange = jest.fn();
@@ -166,15 +167,15 @@ describe('StudioDecimalInput', () => {
   });
 
   it('Accepts a ref prop', () => {
-    const ref = React.createRef<HTMLInputElement>();
-    render({}, ref);
-    expect(ref.current).toBe(screen.getByRole('textbox'));
+    const renderComponent = (ref: ForwardedRef<HTMLInputElement>) => render({}, ref);
+    const getTextbox = () => screen.getByRole('textbox');
+    testRefForwarding(renderComponent, getTextbox);
   });
 });
 
 const render = (
   props: Partial<StudioDecimalInputProps> = {},
-  ref?: RefObject<HTMLInputElement>,
+  ref?: ForwardedRef<HTMLInputElement>,
 ) => {
   const allProps: StudioDecimalInputProps = {
     ...defaultProps,
