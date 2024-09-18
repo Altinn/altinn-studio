@@ -11,9 +11,9 @@
 }
 
 .regular {
-  background-color: var(--studio-button-regular-dark);
+  background-color: #393b51;
 }
 
 .preview {
-  background-color: var(--studio-button-preview-medium);
+  background-color: #118849;
 }

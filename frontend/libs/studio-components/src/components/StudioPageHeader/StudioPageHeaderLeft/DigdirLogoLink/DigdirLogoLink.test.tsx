@@ -14,17 +14,16 @@ describe('DigdirLogoLink', () => {
     expect(logoLink).toHaveAttribute('href', '/');
   });
 
-  it('should render the title when provided', () => {
-    const title = 'Test Title';
-    renderDigdirLogoLink({ componentProps: { title } });
+  it('should render the title when showTitle is true', () => {
+    renderDigdirLogoLink({ componentProps: { showTitle: true } });
 
-    expect(screen.getByText(title)).toBeInTheDocument();
+    expect(screen.getByText(mockTitle)).toBeInTheDocument();
   });
 
-  it('should not render the title when not provided', () => {
-    renderDigdirLogoLink();
+  it('should not render the title when showTitle is false', () => {
+    renderDigdirLogoLink({ componentProps: { showTitle: false } });
 
-    expect(screen.queryByRole('heading')).not.toBeInTheDocument();
+    expect(screen.queryByText(mockTitle)).not.toBeInTheDocument();
   });
 
   it('should apply the correct color based on the variant from context', () => {
@@ -34,6 +33,13 @@ describe('DigdirLogoLink', () => {
     expect(link).toHaveClass('previewLight');
   });
 });
+
+const mockTitle: string = 'title';
+
+const defaultProps: DigdirLogoLinkProps = {
+  title: mockTitle,
+  showTitle: false,
+};
 
 type Props = {
   componentProps: Partial<DigdirLogoLinkProps>;
@@ -45,7 +51,7 @@ const renderDigdirLogoLink = (props: Partial<Props> = {}) => {
 
   return render(
     <StudioPageHeaderContext.Provider value={providerProps}>
-      <DigdirLogoLink {...componentProps} />
+      <DigdirLogoLink {...defaultProps} {...componentProps} />
     </StudioPageHeaderContext.Provider>,
   );
 };
