@@ -370,21 +370,6 @@ namespace Altinn.Studio.Designer.Controllers
             return await _resourceRegistry.StartMigrateDelegations(delegationRequest, env);
         }
 
-
-        [HttpPost]
-        [Authorize(Policy = AltinnPolicy.MustHaveGiteaPublishResourcePermission)]
-        [Route("designer/api/{org}/resources/altinn2/setserviceeditionexpired/{serviceCode}/{serviceEdition}/{env}")]
-        public async Task<ActionResult> SetServiceEditionExpired(string org, string serviceCode, int serviceEdition, string env)
-        {
-            ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(serviceCode, serviceEdition, env.ToLower());
-            if (resource?.HasCompetentAuthority == null || !resource.HasCompetentAuthority.Orgcode.Equals(org, StringComparison.InvariantCultureIgnoreCase))
-            {
-                return new UnauthorizedResult();
-            }
-
-            return await _resourceRegistry.SetServiceEditionExpired(serviceCode, serviceEdition, env);
-        }
-
         [HttpGet]
         [Route("designer/api/{org}/resources/sectors")]
         public async Task<ActionResult<List<DataTheme>>> GetSectors(CancellationToken cancellationToken)

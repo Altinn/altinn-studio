@@ -54,11 +54,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<ActionResult> StartMigrateDelegations(ExportDelegationsRequestBE delegationRequest, string environment);
 
         /// <summary>
-        /// Sets a Altinn 2 service as expired
-        /// </summary>
-        Task<ActionResult> SetServiceEditionExpired(string serviceCode, int serviceEditionCode, string environment);
-
-        /// <summary>
         /// Get Policy from Altinn 2 Service
         /// </summary>
         Task<XacmlPolicy> GetXacmlPolicy(string serviceCode, int serviceEditionCode, string identifier, string environment);

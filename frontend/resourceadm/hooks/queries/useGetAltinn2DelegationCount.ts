@@ -16,5 +16,8 @@ export const useGetAltinn2DelegationsCount = (
     queryKey: [QueryKey.Altinn2DelegationCount, org, serviceCode, serviceEdition, env],
     queryFn: () => getAltinn2DelegationsCount(org, serviceCode, serviceEdition, env),
     enabled: !isDisabled && !!org && !!serviceCode && !!serviceEdition && !!env,
+    meta: {
+      hideDefaultError: true,
+    },
   });
 };

@@ -176,56 +176,6 @@ describe('MigrationPanel', () => {
       ),
     );
   });
-
-  it('should show error when setting Altinn 2 service to expired fails', async () => {
-    const user = userEvent.setup();
-    renderMigrationPanel(
-      {},
-      {
-        setServiceEditionExpired: jest.fn().mockImplementation(() => {
-          return Promise.reject({});
-        }),
-      },
-    );
-    const setServiceExpiredButton = screen.getByRole('button', {
-      name: textMock('resourceadm.migration_disable_service_button', {
-        env: textMock(defaultProps.env.label),
-      }),
-    });
-    await user.click(setServiceExpiredButton);
-
-    const confirmSetServiceExpiredButton = screen.getByRole('button', {
-      name: textMock('resourceadm.migration_disable_service_confirm'),
-    });
-    await user.click(confirmSetServiceExpiredButton);
-
-    expect(screen.getByText(textMock('resourceadm.migration_disable_service_error')));
-  });
-
-  it('Should show toast when setting Altinn 2 service to expired return success', async () => {
-    const user = userEvent.setup();
-    renderMigrationPanel();
-
-    const setServiceExpiredButton = screen.getByRole('button', {
-      name: textMock('resourceadm.migration_disable_service_button', {
-        env: textMock(defaultProps.env.label),
-      }),
-    });
-    await user.click(setServiceExpiredButton);
-
-    const confirmSetServiceExpiredButton = screen.getByRole('button', {
-      name: textMock('resourceadm.migration_disable_service_confirm'),
-    });
-    await user.click(confirmSetServiceExpiredButton);
-
-    expect(
-      screen.getByText(
-        textMock('resourceadm.migration_disable_service_success', {
-          env: textMock(defaultProps.env.label),
-        }),
-      ),
-    );
-  });
 });
 
 const renderMigrationPanel = (

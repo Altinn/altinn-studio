@@ -227,7 +227,6 @@ export const queriesMock: ServicesContextProps = {
   addResourceAccessList: jest.fn().mockImplementation(() => Promise.resolve()),
   removeResourceAccessList: jest.fn().mockImplementation(() => Promise.resolve()),
   migrateDelegations: jest.fn().mockImplementation(() => Promise.resolve()),
-  setServiceEditionExpired: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - ProcessEditor
   updateBpmnXml: jest.fn().mockImplementation(() => Promise.resolve()),

@@ -319,38 +319,32 @@ namespace Altinn.Studio.Designer.Services.Implementation
             TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
 
             string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
-            string url = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/exportdelegations";
+            
+            // set service expired
+            string setServiceEditionExpiredUrl = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/setserviceeditionexpired?externalServiceCode={delegationRequest.ServiceCode}&externalServiceEditionCode={delegationRequest.ServiceEditionCode}";
 
+            using HttpRequestMessage setServiceEditionExpiredRequest = new HttpRequestMessage(HttpMethod.Get, setServiceEditionExpiredUrl);
+            setServiceEditionExpiredRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
+
+            using HttpResponseMessage setServiceEditionExpiredResponse = await _httpClient.SendAsync(setServiceEditionExpiredRequest);
+            setServiceEditionExpiredResponse.EnsureSuccessStatusCode();
+            
+            // set batch start time
+            string migrateDelegationsUrl = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/exportdelegations";
+            delegationRequest.DateTimeForExport = DateTimeOffset.UtcNow.AddMinutes(10); // set batch start time 10 minutes from now
             string serializedContent = JsonSerializer.Serialize(delegationRequest, _serializerOptions);
-            using HttpRequestMessage request = new HttpRequestMessage()
+            using HttpRequestMessage migrateDelegationsRequest = new HttpRequestMessage()
             {
-                RequestUri = new Uri(url),
+                RequestUri = new Uri(migrateDelegationsUrl),
                 Method = HttpMethod.Post,
                 Content = new StringContent(serializedContent, Encoding.UTF8, "application/json"),
             };
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
+            migrateDelegationsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
 
-            using HttpResponseMessage response = await _httpClient.SendAsync(request);
-            response.EnsureSuccessStatusCode();
+            using HttpResponseMessage migrateDelegationsResponse = await _httpClient.SendAsync(migrateDelegationsRequest);
+            migrateDelegationsResponse.EnsureSuccessStatusCode();
 
             return new StatusCodeResult(202);
-        }
-
-        public async Task<ActionResult> SetServiceEditionExpired(string serviceCode, int serviceEditionCode, string environment)
-        {
-            _maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(environment);
-            TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
-
-            string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
-            string uri = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/setserviceeditionexpired?externalServiceCode={serviceCode}&externalServiceEditionCode={serviceEditionCode}";
-
-            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, uri);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
-
-            using HttpResponseMessage response = await _httpClient.SendAsync(request);
-            response.EnsureSuccessStatusCode();
-
-            return new StatusCodeResult(204);
         }
 
         // RRR

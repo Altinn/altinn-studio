@@ -20,3 +20,9 @@
 .migrationLink {
   display: inline;
 }
+
+.environmentWrapper {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: var(--fds-spacing-5);
+}

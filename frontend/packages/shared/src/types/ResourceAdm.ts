@@ -195,5 +195,4 @@ export interface MigrateDelegationsRequest {
   serviceCode: string;
   serviceEditionCode: number;
   resourceId: string;
-  dateTimeForExport: Date;
 }

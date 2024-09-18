@@ -283,7 +283,6 @@ export const ResourcePage = (): React.JSX.Element => {
           )}
           {currentPage === migrationPageId && isMigrateEnabled() && (
             <MigrationPage
-              navigateToPageWithError={navigateToPageWithError}
               id='page-content-migration'
               serviceCode={altinn2References[0]}
               serviceEdition={altinn2References[1]}
