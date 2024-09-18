@@ -4,6 +4,7 @@ import { StudioIconTextfield } from './StudioIconTextfield';
 import type { StudioIconTextfieldProps } from './StudioIconTextfield';
 import { KeyVerticalIcon } from '@studio/icons';
 import userEvent from '@testing-library/user-event';
+import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 
 describe('StudioIconTextfield', () => {
   it('render the icon', async () => {
@@ -39,12 +40,8 @@ describe('StudioIconTextfield', () => {
   });
 
   it('should forward the rest of the props to the input', () => {
-    renderStudioIconTextfield({
-      icon: <div />,
-      label: 'Your ID',
-      disabled: true,
-    });
-    expect(screen.getByLabelText('Your ID')).toBeDisabled();
+    const getTextbox = (): HTMLInputElement => screen.getByRole('textbox') as HTMLInputElement;
+    testCustomAttributes<HTMLInputElement>(renderStudioIconTextfield, getTextbox);
   });
 });
 const renderStudioIconTextfield = (props: StudioIconTextfieldProps) => {
