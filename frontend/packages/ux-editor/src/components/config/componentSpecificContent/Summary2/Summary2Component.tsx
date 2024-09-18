@@ -11,7 +11,6 @@ import {
 import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../../hooks';
-import { getAllDescendants, getAllFormItemIds } from '../../../../utils/formLayoutUtils';
 import { useComponentTypeName } from '@altinn/ux-editor/hooks/useComponentTypeName';
 
 export function Summary2Component({
