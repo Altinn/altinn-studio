@@ -154,37 +154,41 @@ describe('useMoveProperty', () => {
     expect(save).toHaveBeenCalledTimes(0);
   });
 
-  it('Updates the selected node pointer if moving a node that is selected into an object', () => {
-    const setSelectedNodePointerMock = jest.fn();
+  it('Updates the selected unique node pointer if moving a node that is selected into an object', () => {
+    const setSelectedUniquePointerMock = jest.fn();
+    const uniquePointerPrefix = 'uniquePointer';
     const { move, save } = setup({
-      selectedUniquePointer: fieldNode1Mock.schemaPointer,
-      setSelectedUniquePointer: setSelectedNodePointerMock,
+      selectedUniquePointer: `${uniquePointerPrefix}-${fieldNode1Mock.schemaPointer}`,
+      setSelectedUniquePointer: setSelectedUniquePointerMock,
     });
-    const pointerOfNodeToMove = fieldNode1Mock.schemaPointer;
+    const pointerOfNodeToMove = `${uniquePointerPrefix}-${fieldNode1Mock.schemaPointer}`;
     const index = rootNodeMock.children.length;
     const target: ItemPosition = { parentId: ROOT_POINTER, index };
     move(pointerOfNodeToMove, target);
-    expect(setSelectedNodePointerMock).toHaveBeenCalledTimes(1);
+    expect(setSelectedUniquePointerMock).toHaveBeenCalledTimes(1);
     const savedModel: SavableSchemaModel = save.mock.lastCall[0];
     const rootChildren = savedModel.getRootChildren();
     const addedRootChild = rootChildren[index];
-    expect(setSelectedNodePointerMock).toHaveBeenCalledWith(addedRootChild.schemaPointer);
+    expect(setSelectedUniquePointerMock).toHaveBeenCalledWith(
+      `${uniquePointerPrefix}-${addedRootChild.schemaPointer}`,
+    );
   });
 
-  it('Updates the selected node pointer if moving a node that is selected into a combination node', () => {
-    const setSelectedNodePointerMock = jest.fn();
+  it('Updates the selected unique node pointer if moving a node that is selected into a combination node', () => {
+    const setSelectedUniquePointerMock = jest.fn();
+    const uniquePointerPrefix = 'uniquePointer';
     const { move } = setup({
       selectedUniquePointer: toggableNodeMock.schemaPointer,
-      setSelectedUniquePointer: setSelectedNodePointerMock,
+      setSelectedUniquePointer: setSelectedUniquePointerMock,
     });
     const pointerOfNodeToMove = toggableNodeMock.schemaPointer;
-    const pointerOfNewParent = combinationNodeMock.schemaPointer;
+    const pointerOfNewParent = `${uniquePointerPrefix}-${combinationNodeMock.schemaPointer}`;
     const indexInNewParent = 0;
     const target: ItemPosition = { parentId: pointerOfNewParent, index: indexInNewParent };
     move(pointerOfNodeToMove, target);
-    expect(setSelectedNodePointerMock).toHaveBeenCalledTimes(1);
-    expect(setSelectedNodePointerMock).toHaveBeenCalledWith(
-      `${combinationNodeMock.schemaPointer}/anyOf/${indexInNewParent}`,
+    expect(setSelectedUniquePointerMock).toHaveBeenCalledTimes(1);
+    expect(setSelectedUniquePointerMock).toHaveBeenCalledWith(
+      `${pointerOfNewParent}/anyOf/${indexInNewParent}`,
     );
   });
 });
