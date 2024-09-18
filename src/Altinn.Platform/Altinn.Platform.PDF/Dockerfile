@@ -13,4 +13,4 @@ COPY --from=build /build/target .
 RUN addgroup --gid 3000 dotnet && adduser --uid 1000 --ingroup dotnet --disabled-password --shell /bin/false dotnet
 # update permissions of files if neccessary before becoming dotnet user
 USER dotnet
-CMD ["java", "-jar", "./Altinn.Platform.PDF-1.0.jar"]
+CMD ["java", "-jar", "./Altinn.Platform.PDF-1.0.0.jar"]

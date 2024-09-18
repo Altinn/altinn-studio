@@ -7,21 +7,8 @@ export type TabHeaderProps = {
   text: string;
 };
 
-/**
- * @component
- *    Displays the Heading in a Tab in the Settings Modal
- *
- * @example
- *    <TabHeader text='Heaeding text' />
- *
- * @property {string}[text] - The text in the header
- *
- * @returns {ReactNode} - The rendered heading
- */
-export const TabHeader = ({ text }: TabHeaderProps): ReactNode => {
-  return (
-    <Heading level={2} spacing size='xsmall' className={classes.heading}>
-      {text}
-    </Heading>
-  );
-};
+export const TabHeader = ({ text }: TabHeaderProps): ReactNode => (
+  <Heading level={3} spacing size='xsmall' className={classes.heading}>
+    {text}
+  </Heading>
+);

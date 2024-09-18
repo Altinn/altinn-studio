@@ -11,6 +11,7 @@ import type { MetadataOption } from '../../../../types/MetadataOption';
 import { GenerateModelsButton } from './GenerateModelsButton';
 import { usePrevious } from '@studio/components';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
+import { useTranslation } from 'react-i18next';
 
 export interface TopToolbarProps {
   createNewOpen: boolean;
@@ -32,7 +33,7 @@ export function TopToolbar({
   onSetSchemaGenerationErrorMessages,
 }: TopToolbarProps) {
   const modelPath = selectedOption?.value.repositoryRelativeUrl;
-
+  const { t } = useTranslation();
   const { mutate: createDataModel } = useCreateDataModelMutation();
   const prevDataModels = usePrevious(dataModels);
 
@@ -55,7 +56,10 @@ export function TopToolbar({
         handleCreateSchema={handleCreateSchema}
         createPathOption={createPathOption}
       />
-      <XSDUpload disabled={false} />
+      <XSDUpload
+        selectedOption={selectedOption}
+        uploadButtonText={t('app_data_modelling.upload_xsd')}
+      />
       <SchemaSelect
         dataModels={dataModels}
         disabled={false}

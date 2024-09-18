@@ -79,7 +79,7 @@ export const ReceiptContent = ({
   }
   return (
     <div className={classes.button}>
-      <StudioButton variant='tertiary' onClick={onClickAddPage} size='small'>
+      <StudioButton variant='tertiary' onClick={onClickAddPage}>
         {t('receipt.create')}
       </StudioButton>
     </div>

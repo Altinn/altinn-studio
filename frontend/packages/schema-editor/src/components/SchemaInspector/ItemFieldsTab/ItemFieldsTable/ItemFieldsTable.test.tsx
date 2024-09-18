@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, within } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import type { ItemFieldsTableProps } from './ItemFieldsTable';
 import { ItemFieldsTable } from './ItemFieldsTable';
 import type { FieldNode, UiSchemaNodes } from '@altinn/schema-model';
@@ -25,13 +25,13 @@ const rootNode = {
 const selectedItem: FieldNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Field,
-  pointer: selectedItemPointer,
+  schemaPointer: selectedItemPointer,
   fieldType: FieldType.Object,
   children: [selectedItemChildPointer],
 };
 const selectedItemChild: FieldNode = {
   ...nodeMockBase,
-  pointer: selectedItemChildPointer,
+  schemaPointer: selectedItemChildPointer,
   objectKind: ObjectKind.Field,
   fieldType: FieldType.Object,
   children: [],
@@ -115,21 +115,6 @@ describe('ItemFieldsTable', () => {
     expect(saveDataModel).toHaveBeenCalledTimes(1);
   });
 
-  it('Updates the select correctly', async () => {
-    const user = userEvent.setup();
-    renderItemFieldsTab();
-
-    const [firstSelect] = screen.getAllByRole('combobox', { name: textMock('schema_editor.type') });
-    const objectOption = within(firstSelect).getByRole('option', {
-      name: textMock('schema_editor.object'),
-    }) as HTMLOptionElement;
-    expect(objectOption.selected).toBe(true);
-
-    await user.selectOptions(firstSelect, textMock('schema_editor.string'));
-
-    expect(saveDataModel).toHaveBeenCalledTimes(1);
-  });
-
   it('Updates the switch correctly', async () => {
     const user = userEvent.setup();
     renderItemFieldsTab();
@@ -165,6 +150,6 @@ describe('ItemFieldsTable', () => {
 });
 
 const expectedNameInTextField = (pos: number): string => {
-  const pointer = selectedItem.children[pos]; // eslint-disable-line testing-library/no-node-access
-  return extractNameFromPointer(pointer);
+  const schemaPointer = selectedItem.children[pos]; // eslint-disable-line testing-library/no-node-access
+  return extractNameFromPointer(schemaPointer);
 };

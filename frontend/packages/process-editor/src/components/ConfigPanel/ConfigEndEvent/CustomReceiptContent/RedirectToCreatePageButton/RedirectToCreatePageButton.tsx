@@ -25,15 +25,15 @@ export const RedirectToCreatePageButton = (): React.ReactElement => {
   return (
     <div className={classes.goToCreatePageWrapper}>
       <RedirectBox
-        title={t('process_editor.configuration_panel_custom_receipt_navigate_to_lage_title')}
+        title={t('process_editor.configuration_panel_custom_receipt_navigate_to_design_title')}
       >
-        <StudioButton asChild size='small' variant='primary' color='second' onClick={handleClick}>
+        <StudioButton asChild variant='primary' color='second' onClick={handleClick}>
           <Link
             href={packagesRouter.getPackageNavigationUrl('editorUiEditor')}
             className={classes.link}
           >
             <PencilWritingIcon />
-            {t('process_editor.configuration_panel_custom_receipt_navigate_to_lage_button')}
+            {t('process_editor.configuration_panel_custom_receipt_navigate_to_design_button')}
           </Link>
         </StudioButton>
       </RedirectBox>

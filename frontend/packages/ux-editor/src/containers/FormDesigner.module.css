@@ -16,7 +16,7 @@
   --preview-width-fraction: 3;
 
   flex-grow: 1;
-  height: calc(100vh - var(--header-height));
+  height: calc(100vh - var(--header-height) - var(--layout-sets-selector-height));
   overflow-y: hidden;
 }
 

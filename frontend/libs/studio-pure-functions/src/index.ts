@@ -1,4 +1,5 @@
 export * from './ArrayUtils';
+export * from './BlobDownloader';
 export * from './DateUtils';
 export * from './NumberUtils';
 export * from './ObjectUtils';

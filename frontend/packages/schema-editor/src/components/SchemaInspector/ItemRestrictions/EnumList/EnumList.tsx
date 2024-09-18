@@ -45,7 +45,7 @@ export const EnumList = ({ schemaNode }: EnumListProps): JSX.Element => {
 
     if (duplicates === null) {
       const newNode = { ...schemaNode, enum: removeEmptyStrings(newEnumList) };
-      save(schemaModel.updateNode(newNode.pointer, newNode));
+      save(schemaModel.updateNode(newNode.schemaPointer, newNode));
     }
 
     setEnumList(newEnumList);
@@ -79,7 +79,6 @@ export const EnumList = ({ schemaNode }: EnumListProps): JSX.Element => {
           icon={<PlusIcon />}
           id='add-enum-button'
           onClick={handleAddEnum}
-          size='small'
           variant='secondary'
         >
           {t('schema_editor.add_enum')}

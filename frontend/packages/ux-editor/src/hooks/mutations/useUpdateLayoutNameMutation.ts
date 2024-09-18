@@ -38,7 +38,6 @@ export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetN
       const layoutSettings: ILayoutSettings = ObjectUtils.deepCopy(formLayoutSettingsQuery.data);
       const { order } = layoutSettings?.pages;
       if (order.includes(oldName)) order[order.indexOf(oldName)] = newName;
-      if (layoutSettings.receiptLayoutName === oldName) layoutSettings.receiptLayoutName = newName;
       formLayoutSettingsMutation.mutate(layoutSettings);
 
       setSelectedFormLayoutName(newName);

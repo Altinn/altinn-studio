@@ -63,6 +63,7 @@ export const SelectDataFieldBinding = ({
         <StudioNativeSelect
           className={classes.selectedDatafieldBinding}
           {...fieldProps}
+          id={`selectDataModelField-${bindingKey}`}
           onChange={(e) => fieldProps.onChange(e.target.value)}
           error={isBindingError && t('ux_editor.modal_properties_data_model_field_update')}
           size='small'

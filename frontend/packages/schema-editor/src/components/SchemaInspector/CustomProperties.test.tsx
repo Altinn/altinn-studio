@@ -31,13 +31,13 @@ const customProperties: KeyValuePairs = {
 };
 const node: UiSchemaNode = {
   ...nodeMockBase,
-  pointer: defaultPath,
+  schemaPointer: defaultPath,
   custom: customProperties,
 };
 const rootNode: UiSchemaNode = {
   ...nodeMockBase,
   fieldType: FieldType.Object,
-  pointer: ROOT_POINTER,
+  schemaPointer: ROOT_POINTER,
   children: [defaultPath],
 };
 const uiSchema: UiSchemaNodes = [rootNode, node];
@@ -67,7 +67,7 @@ describe('CustomProperties', () => {
 
   it('Renders a number input with correct value for number properties', () => {
     render();
-    expect(screen.getByLabelText(numberPropKey)).toHaveValue(numberPropValue.toString());
+    expect(screen.getByLabelText(numberPropKey)).toHaveValue(numberPropValue);
   });
 
   it('Renders a checkbox with correct value for boolean properties', () => {
@@ -94,7 +94,7 @@ describe('CustomProperties', () => {
     await user.click(screen.getAllByRole('button', { name: textMock('general.delete') })[0]);
     expect(saveDataModel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDataModel);
-    const updatedNode = updatedModel.getNode(defaultPath);
+    const updatedNode = updatedModel.getNodeBySchemaPointer(defaultPath);
     const expectedProperties = { ...customProperties };
     delete expectedProperties[Object.keys(customProperties)[0]];
     expect(updatedNode.custom).toEqual(expectedProperties);
@@ -106,7 +106,7 @@ describe('CustomProperties', () => {
     await user.type(screen.getByLabelText(stringPropKey), newLetter);
     expect(saveDataModel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDataModel);
-    const updatedNode = updatedModel.getNode(defaultPath);
+    const updatedNode = updatedModel.getNodeBySchemaPointer(defaultPath);
     expect(updatedNode.custom[stringPropKey]).toEqual(stringPropValue + newLetter);
   });
 
@@ -116,7 +116,7 @@ describe('CustomProperties', () => {
     await user.type(screen.getByLabelText(numberPropKey), newDigit.toString());
     expect(saveDataModel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDataModel);
-    const updatedNode = updatedModel.getNode(defaultPath);
+    const updatedNode = updatedModel.getNodeBySchemaPointer(defaultPath);
     expect(updatedNode.custom[numberPropKey]).toEqual(numberPropValue * 10 + newDigit);
   });
 
@@ -125,7 +125,7 @@ describe('CustomProperties', () => {
     await user.click(screen.getByLabelText(initiallyFalseBoolPropKey));
     expect(saveDataModel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDataModel);
-    const updatedNode = updatedModel.getNode(defaultPath);
+    const updatedNode = updatedModel.getNodeBySchemaPointer(defaultPath);
     expect(updatedNode.custom[initiallyFalseBoolPropKey]).toBe(true);
   });
 
@@ -134,7 +134,7 @@ describe('CustomProperties', () => {
     await user.click(screen.getByLabelText(initiallyTrueBoolPropKey));
     expect(saveDataModel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDataModel);
-    const updatedNode = updatedModel.getNode(defaultPath);
+    const updatedNode = updatedModel.getNodeBySchemaPointer(defaultPath);
     expect(updatedNode.custom[initiallyTrueBoolPropKey]).toBe(false);
   });
 });
@@ -144,6 +144,6 @@ const render = (path: string = defaultPath) =>
     appContextProps: {
       schemaModel,
       save: saveDataModel,
-      selectedNodePointer: path,
+      selectedUniquePointer: path,
     },
   })(<CustomProperties path={path} />);

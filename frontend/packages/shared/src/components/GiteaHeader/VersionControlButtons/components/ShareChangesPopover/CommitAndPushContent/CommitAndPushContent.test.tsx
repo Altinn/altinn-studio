@@ -5,12 +5,13 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { VersionControlButtonsContext } from '../../../context';
 import { mockVersionControlButtonsContextValue } from '../../../test/mocks/versionControlContextMock';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
-const mockOnHidePopover = jest.fn();
 const mockOnClosePopover = jest.fn();
 
 const defaultProps: CommitAndPushContentProps = {
-  onHidePopover: mockOnHidePopover,
   onClosePopover: mockOnClosePopover,
   fileChanges: [],
 };
@@ -24,9 +25,6 @@ describe('CommitAndPushContent', () => {
     expect(screen.getByText(textMock('sync_header.describe_and_validate'))).toBeInTheDocument();
     expect(
       screen.getByText(textMock('sync_header.describe_and_validate_sub_message')),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(textMock('sync_header.describe_and_validate_sub_sub_message')),
     ).toBeInTheDocument();
     expect(
       screen.getByLabelText(textMock('sync_header.describe_changes_made')),
@@ -69,43 +67,37 @@ describe('CommitAndPushContent', () => {
   it('should open fileChangesInfoModal when clicking review changes button', async () => {
     const user = userEvent.setup();
     renderCommitAndPushContent();
-
-    const modalBeforeClick = screen.queryByRole('dialog');
-    expect(modalBeforeClick).not.toBeInTheDocument();
-
-    const reviewChangesButton = screen.getByRole('button', {
-      name: textMock('sync_header.review_file_changes'),
-    });
-    await user.click(reviewChangesButton);
-
-    const modalAfterClick = screen.getByRole('dialog');
-    expect(modalAfterClick).toBeInTheDocument();
-    expect(mockOnHidePopover).toHaveBeenCalledWith(true);
+    expect(queryDialog()).not.toBeInTheDocument();
+    await user.click(getReviewChangesButton());
+    expect(getDialog()).toBeInTheDocument();
   });
 
   it('should close fileChangesInfoModal when clicking close', async () => {
     const user = userEvent.setup();
     renderCommitAndPushContent();
-    const reviewChangesButton = screen.getByRole('button', {
-      name: textMock('sync_header.review_file_changes'),
-    });
-    await user.click(reviewChangesButton);
+    await user.click(getReviewChangesButton());
     const closeModalButton = screen.getByRole('button', {
-      name: textMock('sync_header.show_changes_modal.close_button'),
+      name: 'close modal', // Todo: Replace 'close modal' with textMock('sync_header.show_changes_modal.close_button') when https://github.com/digdir/designsystemet/issues/2195 is fixed
     });
     await user.click(closeModalButton);
-
-    const modalAfterClose = screen.queryByRole('dialog');
-    expect(modalAfterClose).not.toBeInTheDocument();
-
-    expect(mockOnHidePopover).toHaveBeenCalledWith(false);
+    expect(queryDialog()).not.toBeInTheDocument();
   });
+
+  const getDialog = () => screen.getByRole('dialog');
+  const queryDialog = () => screen.queryByRole('dialog');
+
+  const getReviewChangesButton = () =>
+    screen.getByRole('button', {
+      name: textMock('sync_header.review_file_changes'),
+    });
 });
 
 const renderCommitAndPushContent = () => {
   return render(
-    <VersionControlButtonsContext.Provider value={mockVersionControlButtonsContextValue}>
-      <CommitAndPushContent {...defaultProps} />
-    </VersionControlButtonsContext.Provider>,
+    <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
+      <VersionControlButtonsContext.Provider value={mockVersionControlButtonsContextValue}>
+        <CommitAndPushContent {...defaultProps} />
+      </VersionControlButtonsContext.Provider>
+    </ServicesContextProvider>,
   );
 };

@@ -1,5 +1,5 @@
 import React, { type ReactNode } from 'react';
-import { render, renderHook, screen, waitFor } from '@testing-library/react';
+import { fireEvent, renderHook, screen, waitFor } from '@testing-library/react';
 import type { ServicesContextProps } from './ServicesContext';
 import { ServicesContextProvider, useServicesContext } from './ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -54,13 +54,40 @@ describe('ServicesContext', () => {
         },
       },
     );
-    expect(await screen.findByText(textMock('api_errors.Unauthorized'))).toBeInTheDocument();
-    jest.runAllTimers();
+
+    const progressBar = await screen.findByRole('progressbar');
+    fireEvent.animationEnd(progressBar);
+
+    const container = await screen.findByText(textMock('api_errors.Unauthorized'));
+    expect(container).toBeInTheDocument();
+    fireEvent.animationEnd(container);
+
     await waitFor(() => {
       expect(queriesMock.logout).toHaveBeenCalled();
     });
 
     expect(mockConsoleError).toHaveBeenCalled();
+  });
+
+  it('displays the api error when the session is invalid or expired', async () => {
+    const logout = jest.fn().mockImplementation(() => Promise.resolve());
+
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(401, 'GT_03')),
+          retry: false,
+        }),
+      {
+        wrapper: ({ children }) => {
+          return wrapper({ children, queries: { logout } });
+        },
+      },
+    );
+
+    await waitFor(() => result.current.isError);
+    expect(await screen.findByText(textMock('api_errors.GT_03'))).toBeInTheDocument();
   });
 
   it('Displays a toast message for "GT_01" error code', async () => {
@@ -155,19 +182,6 @@ describe('ServicesContext', () => {
     await waitFor(() => result.current.isError);
 
     expect(await screen.findByText(textMock('general.error_message'))).toBeInTheDocument();
-  });
-
-  it('displays a default error message if a component throws an error while rendering', () => {
-    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
-
-    const ErrorComponent = () => {
-      throw new Error('Intentional render error');
-    };
-    render(<ErrorComponent />, { wrapper });
-
-    expect(screen.getByText(textMock('general.error_message'))).toBeInTheDocument();
-    expect(screen.getByText(textMock('general.try_again'))).toBeInTheDocument();
-    expect(mockConsoleError).toHaveBeenCalled();
   });
 
   it('Throws an error if used outside a ServiceContextProvider', () => {

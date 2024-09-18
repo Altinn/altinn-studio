@@ -1,11 +1,11 @@
 import React from 'react';
 import { Textfield, Fieldset } from '@digdir/designsystemet-react';
-import { LegacySelect } from '@digdir/design-system-react';
 import classes from './ImageComponent.module.css';
 import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
 import type { ComponentType } from 'app-shared/types/ComponentType';
+import { StudioNativeSelect } from '@studio/components';
 
 export const ImageComponent = ({
   component,
@@ -74,7 +74,19 @@ export const ImageComponent = ({
           value={selectedPlacement?.[0]?.value}
           propertyPath={`${component.propertyPath}/properties/image/properties/align`}
           renderField={({ fieldProps }) => (
-            <LegacySelect {...fieldProps} options={alignOptions} inputId={placementSelectId} />
+            <StudioNativeSelect
+              label={fieldProps.label}
+              onChange={(e) => fieldProps.onChange(e.target.value)}
+              value={fieldProps.value}
+              size='sm'
+              id={placementSelectId}
+            >
+              {alignOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </StudioNativeSelect>
           )}
         />
       </div>

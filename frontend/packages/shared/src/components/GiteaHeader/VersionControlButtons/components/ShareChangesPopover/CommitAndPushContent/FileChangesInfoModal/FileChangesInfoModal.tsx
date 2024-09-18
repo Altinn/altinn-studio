@@ -1,14 +1,17 @@
+import type { ReactNode } from 'react';
 import React from 'react';
 import type { FileStatus, RepoContentStatus } from 'app-shared/types/RepoStatus';
-import { StudioModal } from '@studio/components';
-import { Heading, Table, Tag } from '@digdir/designsystemet-react';
+import { StudioError, StudioModal, StudioSpinner } from '@studio/components';
+import { Table, Tag } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './FileChangesInfoModal.module.css';
 import { ClockDashedIcon } from '@studio/icons';
+import { FilePath } from './FilePath/FilePath';
+import { useRepoDiffQuery } from 'app-shared/hooks/queries/useRepoDiffQuery';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import type { QueryStatus } from '@tanstack/react-query';
 
 export interface FileChangesInfoModalProps {
-  isOpen: boolean;
-  onClose: () => void;
   fileChanges: RepoContentStatus[];
 }
 
@@ -20,78 +23,106 @@ const fileStatusToTagColorMapping: { [key in FileStatus]: string } = {
 };
 
 export const FileChangesInfoModal = ({
-  isOpen,
-  onClose,
   fileChanges,
 }: FileChangesInfoModalProps): React.ReactElement => {
   const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: repoDiff, status: repoDiffStatus } = useRepoDiffQuery(org, app);
 
-  const renderModalHeading = (): React.ReactElement => {
-    return (
-      <div className={classes.headingWrapper}>
-        <ClockDashedIcon className={classes.icon} />
-        <Heading level={1} size='small'>
-          {t('sync_header.show_changes_modal.title')}
-        </Heading>
-      </div>
-    );
-  };
-
-  const renderFilePath = (filePath: string): React.ReactElement => {
-    const fileName = filePath.split('/').pop() || '';
-    const filePathWithoutName = filePath.slice(0, filePath.lastIndexOf('/' + fileName));
-    return (
-      <div className={classes.filePathContainer} title={filePath}>
-        <div className={classes.filePath}>{filePathWithoutName}</div>
-        {'/'}
-        <strong>{fileName}</strong>
-      </div>
-    );
-  };
-
-  const renderFileStatusTag = (fileStatus: string): React.ReactElement => {
-    return (
-      <Tag size='small' color={fileStatusToTagColorMapping[fileStatus]}>
-        {t(`sync_header.show_changes_modal.file_status_${fileStatus}`)}
-      </Tag>
-    );
-  };
+  const gitDiffIncludesFile = (filePath: string): boolean =>
+    repoDiffStatus === 'success' && Object.keys(repoDiff).includes(filePath);
 
   return (
-    <StudioModal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={renderModalHeading()}
-      closeButtonLabel={t('sync_header.show_changes_modal.close_button')}
-    >
-      <div className={classes.fileChangesContainer}>
-        <Table stickyHeader zebra>
-          <Table.Head>
-            <Table.Row>
-              <Table.HeaderCell>
-                <Heading size='xxsmall'>
+    <StudioModal.Root>
+      <StudioModal.Trigger icon={<ClockDashedIcon />} variant='tertiary'>
+        {t('sync_header.review_file_changes')}
+      </StudioModal.Trigger>
+      <StudioModal.Dialog
+        className={classes.dialog}
+        closeButtonTitle={t('sync_header.show_changes_modal.close_button')}
+        footer={renderDiffStatus(repoDiffStatus)}
+        heading={t('sync_header.show_changes_modal.title')}
+        icon={<ClockDashedIcon />}
+      >
+        <div>
+          <Table zebra className={classes.table}>
+            <Table.Head>
+              <Table.Row>
+                <Table.HeaderCell>
                   {t('sync_header.show_changes_modal.column_header_file_name')}
-                </Heading>
-              </Table.HeaderCell>
-              <Table.HeaderCell>
-                <Heading size='xxsmall'>
+                </Table.HeaderCell>
+                <Table.HeaderCell className={classes.fileStatusCell}>
                   {t('sync_header.show_changes_modal.column_header_file_status')}
-                </Heading>
-              </Table.HeaderCell>
-            </Table.Row>
-          </Table.Head>
-          <Table.Body>
-            {fileChanges.map((fileChange) => {
-              return (
-                <Table.Row key={fileChange.filePath}>
-                  <Table.Cell>{renderFilePath(fileChange.filePath)}</Table.Cell>
-                  <Table.Cell>{renderFileStatusTag(fileChange.fileStatus)}</Table.Cell>
-                </Table.Row>
-              );
-            })}
-          </Table.Body>
-        </Table>
-      </div>
-    </StudioModal>
+                </Table.HeaderCell>
+              </Table.Row>
+            </Table.Head>
+            <Table.Body>
+              {fileChanges.map((fileChange) => (
+                <FileChangeTableRow
+                  key={fileChange.filePath}
+                  fileChange={fileChange}
+                  diff={gitDiffIncludesFile(fileChange.filePath) && repoDiff[fileChange.filePath]}
+                  repoDiffStatus={repoDiffStatus}
+                />
+              ))}
+            </Table.Body>
+          </Table>
+        </div>
+      </StudioModal.Dialog>
+    </StudioModal.Root>
+  );
+};
+
+const renderDiffStatus = (status: QueryStatus): ReactNode | undefined =>
+  status === 'success' ? undefined : <DiffStatus status={status} />;
+
+type DiffStatusProps = {
+  status: QueryStatus;
+};
+
+const DiffStatus = ({ status }: DiffStatusProps) => {
+  const { t } = useTranslation();
+  switch (status) {
+    case 'pending':
+      return (
+        <StudioSpinner
+          spinnerTitle={t('sync_header.show_changes_modal.repo_diff_pending_title')}
+          showSpinnerTitle
+        />
+      );
+    case 'error':
+      return (
+        <StudioError size='small'>
+          {t('sync_header.show_changes_modal.repo_diff_error_title')}
+        </StudioError>
+      );
+    default:
+      return null;
+  }
+};
+
+interface FileChangeTableRowProps {
+  fileChange: RepoContentStatus;
+  diff?: string; // Null if diff not fetched successfully
+  repoDiffStatus: 'success' | 'error' | 'pending';
+}
+
+const FileChangeTableRow = ({ fileChange, diff, repoDiffStatus }: FileChangeTableRowProps) => {
+  const { filePath, fileStatus } = fileChange;
+  const { t } = useTranslation();
+
+  const fileStatusTag: React.ReactElement = (
+    <Tag size='small' color={fileStatusToTagColorMapping[fileStatus]}>
+      {t(`sync_header.show_changes_modal.file_status_${fileStatus}`)}
+    </Tag>
+  );
+
+  return (
+    <Table.Row key={filePath}>
+      <Table.Cell>
+        <FilePath filePath={filePath} diff={diff} repoDiffStatus={repoDiffStatus} />
+      </Table.Cell>
+      <Table.Cell className={classes.fileStatusCell}>{fileStatusTag}</Table.Cell>
+    </Table.Row>
   );
 };

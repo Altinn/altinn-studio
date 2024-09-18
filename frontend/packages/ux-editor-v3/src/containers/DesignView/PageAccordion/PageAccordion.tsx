@@ -81,7 +81,6 @@ export const PageAccordion = ({
             onClick={handleConfirmDelete}
             title={t('general.delete_item', { item: pageName })}
             variant='tertiary'
-            size='small'
             disabled={isPending}
           />
         </div>

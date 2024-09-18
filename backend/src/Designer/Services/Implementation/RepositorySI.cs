@@ -133,26 +133,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
         }
 
-        /// <inheritdoc/>
-        public Dictionary<string, Dictionary<string, TextResourceElement>> GetServiceTexts(AltinnRepoEditingContext altinnRepoEditingContext)
-        {
-            Dictionary<string, Dictionary<string, TextResourceElement>> appTextsAllLanguages = new();
-
-            // Get app level text resources
-            string resourcePath = _settings.GetLanguageResourcePath(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-            appTextsAllLanguages = MergeResourceTexts(resourcePath, appTextsAllLanguages);
-
-            // Get Org level text resources
-            string orgResourcePath = _settings.GetOrgTextResourcePath(altinnRepoEditingContext.Org, altinnRepoEditingContext.Developer);
-            appTextsAllLanguages = MergeResourceTexts(orgResourcePath, appTextsAllLanguages);
-
-            // Get Altinn common level text resources
-            string commonResourcePath = _settings.GetCommonTextResourcePath(altinnRepoEditingContext.Developer);
-            appTextsAllLanguages = MergeResourceTexts(commonResourcePath, appTextsAllLanguages);
-
-            return appTextsAllLanguages;
-        }
-
         /// <summary>
         /// Merges the provided resource texts with the resource text in the the given path
         /// </summary>
@@ -252,7 +232,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     FireDeletionOfLocalRepo(org, serviceConfig.RepositoryName, developer);
                 }
 
-                _sourceControl.CloneRemoteRepository(org, serviceConfig.RepositoryName);
+                await _sourceControl.CloneRemoteRepository(org, serviceConfig.RepositoryName);
 
                 ModelMetadata metadata = new()
                 {
@@ -269,7 +249,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 CommitInfo commitInfo = new() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
 
-                _sourceControl.PushChangesForRepository(commitInfo);
+                await _sourceControl.PushChangesForRepository(commitInfo);
             }
 
             return repository;
@@ -302,7 +282,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 FireDeletionOfLocalRepo(targetOrg, targetRepository, developer);
             }
 
-            _sourceControl.CloneRemoteRepository(org, sourceRepository, targetRepositoryPath);
+            await _sourceControl.CloneRemoteRepository(org, sourceRepository, targetRepositoryPath);
             var targetAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(targetOrg, targetRepository, developer);
 
             await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{org}/{targetRepository}.git");
@@ -316,20 +296,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await targetAppRepository.SaveApplicationMetadata(appMetadata);
 
             CommitInfo commitInfo = new() { Org = targetOrg, Repository = targetRepository, Message = $"App cloned from {sourceRepository} {DateTime.Now.Date.ToShortDateString()}" };
-            _sourceControl.PushChangesForRepository(commitInfo);
+            await _sourceControl.PushChangesForRepository(commitInfo);
 
             // Final changes are made in a seperate branch to be reviewed by developer
             string branchName = "complete_copy_of_app";
             string branchCloneName = $"{targetRepository}_{branchName}_{Guid.NewGuid()}";
 
             await _sourceControl.CreateBranch(targetOrg, targetRepository, branchName);
-            _sourceControl.CloneRemoteRepository(targetOrg, targetRepository, _settings.GetServicePath(targetOrg, branchCloneName, developer), branchName);
+            await _sourceControl.CloneRemoteRepository(targetOrg, targetRepository, _settings.GetServicePath(targetOrg, branchCloneName, developer), branchName);
 
             var branchAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(targetOrg, branchCloneName, developer);
 
             await branchAppRepository.SearchAndReplaceInFile("App/config/authorization/policy.xml", $"{sourceRepository}", $"{targetRepository}");
 
-            _sourceControl.CommitAndPushChanges(targetOrg, targetRepository, branchName, branchAppRepository.RepositoryDirectory, "Updated policy.xml");
+            await _sourceControl.CommitAndPushChanges(targetOrg, targetRepository, branchName, branchAppRepository.RepositoryDirectory, "Updated policy.xml");
             await _sourceControl.CreatePullRequest(targetOrg, targetRepository, "master", branchName, "Auto-generated: Final changes for cloning app.");
 
             DirectoryHelper.DeleteFilesAndDirectory(branchAppRepository.RepositoryDirectory);
@@ -338,14 +318,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public bool ResetLocalRepository(AltinnRepoEditingContext altinnRepoEditingContext)
+        public async Task<bool> ResetLocalRepository(AltinnRepoEditingContext altinnRepoEditingContext)
         {
             string repoPath = _settings.GetServicePath(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
 
             if (Directory.Exists(repoPath))
             {
                 FireDeletionOfLocalRepo(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-                _sourceControl.CloneRemoteRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo);
+                await _sourceControl.CloneRemoteRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo);
                 return true;
             }
 
@@ -380,8 +360,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             // Create the app deployment folder
             Directory.CreateDirectory(targetPath);
-
-            var files = Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories);
 
             // Create all of the directories
             foreach (string dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))

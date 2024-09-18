@@ -86,7 +86,7 @@ export const PolicyEditor = ({
           requiredAuthenticationLevelEndUser={policy.requiredAuthenticationLevelEndUser}
           onSave={handleSavePolicyAuthLevel}
         />
-        <Heading level={2} size='xxsmall' className={classes.heading}>
+        <Heading level={4} size='xxsmall' className={classes.heading}>
           {t('policy_editor.rules')}
         </Heading>
         <div className={classes.alertWrapper}>

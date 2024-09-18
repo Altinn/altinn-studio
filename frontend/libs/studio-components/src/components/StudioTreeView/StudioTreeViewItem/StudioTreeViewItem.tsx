@@ -45,7 +45,6 @@ export const StudioTreeViewItem = ({
     useTreeViewRootContext();
   const { level } = useTreeViewItemContext();
   const treeItemRef = useRef<HTMLDivElement>(null);
-
   useTreeViewItemOpenOnHierarchySelect(rootId, nodeId, selectedId, setOpen);
 
   useEffect(() => {
@@ -113,7 +112,6 @@ export const StudioTreeViewItem = ({
       onKeyDown={handleKeyDown}
       ref={treeItemRef}
       role='treeitem'
-      size='small'
       tabIndex={focusable ? 0 : -1}
       type='button'
       variant='tertiary'

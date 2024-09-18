@@ -206,15 +206,39 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The repository status</returns>
         [HttpGet]
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/status")]
-        public RepoStatus RepoStatus(string org, string repository)
+        public async Task<RepoStatus> RepoStatus(string org, string repository)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
-            semaphore.Wait();
+            await semaphore.WaitAsync();
             try
             {
-                _sourceControl.FetchRemoteChanges(org, repository);
+                await _sourceControl.FetchRemoteChanges(org, repository);
                 return _sourceControl.RepositoryStatus(org, repository);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
+
+        /// <summary>
+        /// This method returns the git diff between the local WIP commit and the latest remote commit on main for a given repository
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The repository</param>
+        /// <returns>A dictionary of modified or new files and the git diff</returns>
+        [HttpGet]
+        [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/diff")]
+        public async Task<Dictionary<string, string>> RepoDiff(string org, string repository)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
+            await semaphore.WaitAsync();
+            try
+            {
+                await _sourceControl.FetchRemoteChanges(org, repository);
+                return await _sourceControl.GetChangedContent(org, repository);
             }
             finally
             {
@@ -230,15 +254,15 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>Repo status</returns>
         [HttpGet]
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/pull")]
-        public RepoStatus Pull(string org, string repository)
+        public async Task<RepoStatus> Pull(string org, string repository)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
-            semaphore.Wait();
+            await semaphore.WaitAsync();
 
             try
             {
-                RepoStatus pullStatus = _sourceControl.PullRemoteChanges(org, repository);
+                RepoStatus pullStatus = await _sourceControl.PullRemoteChanges(org, repository);
 
                 RepoStatus status = _sourceControl.RepositoryStatus(org, repository);
 
@@ -290,14 +314,14 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="commitInfo">Info about the commit</param>
         [HttpPost]
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/commit-and-push")]
-        public void CommitAndPushRepo([FromBody] CommitInfo commitInfo)
+        public async Task CommitAndPushRepo([FromBody] CommitInfo commitInfo)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(commitInfo.Org, commitInfo.Repository, developer);
-            semaphore.Wait();
+            await semaphore.WaitAsync();
             try
             {
-                _sourceControl.PushChangesForRepository(commitInfo);
+                await _sourceControl.PushChangesForRepository(commitInfo);
             }
             finally
             {
@@ -506,7 +530,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The result of the cloning</returns>
         [HttpGet]
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/clone")]
-        public string CloneRemoteRepository(string org, string repository)
+        public Task<string> CloneRemoteRepository(string org, string repository)
         {
             return _sourceControl.CloneRemoteRepository(org, repository);
         }

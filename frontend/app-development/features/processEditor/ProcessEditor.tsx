@@ -1,7 +1,8 @@
 import React from 'react';
 import { ProcessEditor as ProcessEditorImpl } from '@altinn/process-editor';
-import { useAppPolicyMutation, useBpmnMutation } from '../../hooks/mutations';
-import { useBpmnQuery } from '../../hooks/queries/useBpmnQuery';
+import { useAppPolicyMutation } from '../../hooks/mutations';
+import { useBpmnMutation } from 'app-shared/hooks/mutations/useBpmnMutation';
+import { useBpmnQuery } from 'app-shared/hooks/queries/useBpmnQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { toast } from 'react-toastify';
 import { StudioPageSpinner } from '@studio/components';
@@ -28,7 +29,7 @@ export const ProcessEditor = (): React.ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: currentPolicy, isPending: isPendingCurrentPolicy } = useAppPolicyQuery(org, app);
   const { mutate: mutateApplicationPolicy } = useAppPolicyMutation(org, app);
-  const { setSettingsModalOpen, setSettingsModalSelectedTab } = useSettingsModalContext();
+  const { settingsRef } = useSettingsModalContext();
   const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
   const { data: appLibData, isLoading: appLibDataLoading } = useAppVersionQuery(org, app);
   const { mutate: mutateBpmn, isPending: mutateBpmnPending } = useBpmnMutation(org, app);
@@ -73,7 +74,7 @@ export const ProcessEditor = (): React.ReactElement => {
 
   const saveBpmnXml = async (xml: string, metadata?: MetadataForm): Promise<void> => {
     const formData = new FormData();
-    formData.append('content', new Blob([xml]), 'process.bpmn');
+    formData.append('content', new Blob([xml]));
     formData.append('metadata', JSON.stringify(metadata));
 
     mutateBpmn(
@@ -111,8 +112,8 @@ export const ProcessEditor = (): React.ReactElement => {
     onProcessTaskRemoveHandler.handleOnProcessTaskRemove(taskMetadata);
   };
 
-  if (appLibDataLoading) {
-    return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} showSpinnerTitle />;
+  if (appLibDataLoading || appMetadataPending) {
+    return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} />;
   }
 
   // TODO: Handle error will be handled better after issue #10735 is resolved
@@ -132,8 +133,7 @@ export const ProcessEditor = (): React.ReactElement => {
       mutateDataTypes={mutateDataTypes}
       saveBpmn={saveBpmnXml}
       openPolicyEditor={() => {
-        setSettingsModalSelectedTab('policy');
-        setSettingsModalOpen(true);
+        settingsRef.current?.openSettings('policy');
       }}
       onProcessTaskAdd={onProcessTaskAdd}
       onProcessTaskRemove={onProcessTaskRemove}

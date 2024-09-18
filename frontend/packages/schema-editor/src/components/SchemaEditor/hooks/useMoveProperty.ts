@@ -9,38 +9,42 @@ import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchema
 
 export const useMoveProperty = (): HandleMove => {
   const savableModel = useSavableSchemaModel();
-  const { selectedNodePointer, setSelectedNodePointer } = useSchemaEditorAppContext();
+  const { selectedUniquePointer, setSelectedUniquePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
-
+  const selectedSchemaPointer = selectedUniquePointer
+    ? savableModel.getSchemaPointerByUniquePointer(selectedUniquePointer)
+    : null;
   const areThereCollidingNames = useCallback(
-    (pointer: string, position: ItemPosition): boolean => {
-      const currentParent = savableModel.getParentNode(pointer);
-      const isMovingWithinSameParent = position.parentId === currentParent.pointer;
+    (schemaPointer: string, schemaParentPointer: string): boolean => {
+      const currentParent = savableModel.getParentNode(schemaPointer);
+      const isMovingWithinSameParent = schemaParentPointer === currentParent.schemaPointer;
       if (isMovingWithinSameParent) return false;
-      const targetParent = savableModel.getNode(position.parentId);
+      const targetParent = savableModel.getNodeBySchemaPointer(schemaParentPointer);
       const isTargetParentACombination = isCombination(targetParent);
       if (isTargetParentACombination) return false;
-      const name = extractNameFromPointer(pointer);
-      return savableModel.doesNodeHaveChildWithName(position.parentId, name);
+      const name = extractNameFromPointer(schemaPointer);
+      return savableModel.doesNodeHaveChildWithName(schemaParentPointer, name);
     },
     [savableModel],
   );
 
   return useCallback(
-    (pointer: string, position: ItemPosition) => {
+    (uniquePointer: string, position: ItemPosition) => {
+      const schemaPointer = savableModel.getSchemaPointerByUniquePointer(uniquePointer);
+      const schemaParentPointer = savableModel.getSchemaPointerByUniquePointer(position.parentId);
       const index = calculatePositionInFullList(savableModel, position);
-      const target: NodePosition = { parentPointer: position.parentId, index };
-      const name = extractNameFromPointer(pointer);
-      if (areThereCollidingNames(pointer, position)) {
-        const parent = extractNameFromPointer(position.parentId);
+      const target: NodePosition = { parentPointer: schemaParentPointer, index };
+      const name = extractNameFromPointer(schemaPointer);
+      if (areThereCollidingNames(schemaPointer, schemaParentPointer)) {
+        const parent = extractNameFromPointer(schemaParentPointer);
         alert(t('schema_editor.move_node_same_name_error', { name, parent }));
       } else {
-        const movedNode = savableModel.moveNode(pointer, target);
-        if (selectedNodePointer === pointer) {
-          setSelectedNodePointer(movedNode.pointer);
+        const movedNode = savableModel.moveNode(schemaPointer, target);
+        if (selectedSchemaPointer === schemaPointer) {
+          setSelectedUniquePointer(movedNode.schemaPointer);
         }
       }
     },
-    [savableModel, t, areThereCollidingNames, selectedNodePointer, setSelectedNodePointer],
+    [savableModel, t, areThereCollidingNames, selectedSchemaPointer, setSelectedUniquePointer],
   );
 };

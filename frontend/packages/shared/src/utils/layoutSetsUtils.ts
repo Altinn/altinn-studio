@@ -8,13 +8,15 @@ export const getLayoutSetNameForCustomReceipt = (layoutSets: LayoutSets): string
 };
 
 export const getLayoutSetIdValidationErrorKey = (
-  layoutSets: LayoutSets,
-  oldLayoutSetId: string,
   newLayoutSetId: string,
+  layoutSets: LayoutSets,
+  oldLayoutSetId?: string,
 ): string => {
   if (oldLayoutSetId === newLayoutSetId) return null;
+  if (!newLayoutSetId || newLayoutSetId.trim() === '') return 'validation_errors.required';
   if (!validateLayoutNameAndLayoutSetName(newLayoutSetId)) return 'ux_editor.pages_error_format';
-  if (!newLayoutSetId) return 'validation_errors.required';
+  if (newLayoutSetId.length === 1)
+    return 'process_editor.configuration_panel_custom_receipt_layout_set_name_validation';
   if (layoutSets.sets.some((set) => set.id === newLayoutSetId))
     return 'process_editor.configuration_panel_layout_set_id_not_unique';
   return null;

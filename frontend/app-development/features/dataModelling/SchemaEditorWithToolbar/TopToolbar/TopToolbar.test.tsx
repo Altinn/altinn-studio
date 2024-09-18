@@ -10,7 +10,7 @@ import { uiSchemaNodesMock } from '../../../../../packages/schema-editor/test/mo
 import type { MetadataOption } from '../../../../types/MetadataOption';
 import { convertMetadataToOption } from '../../../../utils/metadataUtils';
 import { buildJsonSchema } from '@altinn/schema-model';
-import { renderWithMockStore } from '../../../../test/mocks';
+import { renderWithProviders } from '../../../../test/mocks';
 import { useQueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
@@ -53,7 +53,7 @@ const renderToolbar = (
     return <TopToolbar {...defaultProps} {...props} />;
   };
 
-  return renderWithMockStore({}, { ...servicesContextProps })(<TopToolbarWithInitData />);
+  return renderWithProviders({ ...servicesContextProps })(<TopToolbarWithInitData />);
 };
 
 describe('TopToolbar', () => {
@@ -63,6 +63,14 @@ describe('TopToolbar', () => {
     renderToolbar();
     const topToolbar = screen.getByRole('toolbar');
     expect(topToolbar).toBeDefined();
+  });
+
+  it('renders upload xsd button with correct text', () => {
+    renderToolbar();
+    const uploadButton = screen.getByRole('button', {
+      name: textMock('app_data_modelling.upload_xsd'),
+    });
+    expect(uploadButton).toBeInTheDocument();
   });
 
   it('handles a click on the generate button', async () => {

@@ -35,26 +35,15 @@ export const DeploymentEnvironmentLogList = ({
     : `${t('general.test_environment_alt').toLowerCase()} ${envName?.toUpperCase()}`;
 
   const getIcon = (buildResult: BuildResult) => {
+    const classnames = classNames(classes.icon, classes[`${buildResult}Icon`]);
     switch (buildResult) {
       case BuildResult.failed:
-        return (
-          <XMarkOctagonFillIcon
-            className={classNames(classes.icon, classes[`icon-${buildResult}`])}
-          />
-        );
+        return <XMarkOctagonFillIcon className={classnames} />;
       case BuildResult.canceled:
       case BuildResult.partiallySucceeded:
-        return (
-          <ExclamationmarkTriangleFillIcon
-            className={classNames(classes.icon, classes[`icon-${buildResult}`])}
-          />
-        );
+        return <ExclamationmarkTriangleFillIcon className={classnames} />;
       case BuildResult.succeeded:
-        return (
-          <CheckmarkCircleFillIcon
-            className={classNames(classes.icon, classes.icon, classes[`icon-${buildResult}`])}
-          />
-        );
+        return <CheckmarkCircleFillIcon className={classnames} />;
       case BuildResult.none:
       default:
         return (
@@ -65,22 +54,6 @@ export const DeploymentEnvironmentLogList = ({
             className={classes.loadingSpinner}
           />
         );
-    }
-  };
-
-  const getClassName = (buildResult: BuildResult) => {
-    switch (buildResult) {
-      case BuildResult.canceled:
-        return classes.canceled;
-      case BuildResult.failed:
-        return classes.failed;
-      case BuildResult.partiallySucceeded:
-        return classes.partiallySucceeded;
-      case BuildResult.succeeded:
-        return classes.succeeded;
-      case BuildResult.none:
-      default:
-        return classes.none;
     }
   };
 
@@ -121,7 +94,7 @@ export const DeploymentEnvironmentLogList = ({
               </Table.Head>
               <Table.Body>
                 {pipelineDeploymentList.map((deploy: PipelineDeployment) => {
-                  const tableCellStatusClassName = getClassName(deploy.build.result);
+                  const tableCellStatusClassName = classes[deploy.build.result];
                   return (
                     <Table.Row key={deploy.build.id} className={tableCellStatusClassName}>
                       <Table.Cell

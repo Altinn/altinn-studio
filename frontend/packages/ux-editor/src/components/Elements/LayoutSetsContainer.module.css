@@ -1,3 +1,8 @@
 .layoutSetsDropDown {
-  min-width: 400px;
+  min-width: 20vw;
+}
+
+.root {
+  display: flex;
+  flex-direction: row;
 }

@@ -77,6 +77,7 @@ const render = async ({
   renderWithProviders(
     <SelectDataFieldComponent
       label={textMock(`ux_editor.component_title.${componentType}`)}
+      inputId='inputId'
       onDataModelChange={handleComponentChange}
       dataModelFieldsFilter={getDataModelFieldsFilter(componentType, label)}
       selectedElement={undefined}

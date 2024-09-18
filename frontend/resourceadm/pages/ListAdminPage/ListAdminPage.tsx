@@ -95,7 +95,6 @@ export const ListAdminPage = (): React.JSX.Element => {
                     <div key={list.identifier} className={classes.tableRowContent}>
                       <div>{list.name}</div>
                       <StudioButton
-                        size='small'
                         variant='tertiary'
                         aria-label={`${t('resourceadm.listadmin_edit_list')} ${list.name}`}
                         asChild
@@ -111,7 +110,6 @@ export const ListAdminPage = (): React.JSX.Element => {
                 {hasNextPage && (
                   <StudioButton
                     disabled={isFetchingNextPage}
-                    size='small'
                     variant='tertiary'
                     onClick={() => fetchNextPage()}
                   >
@@ -125,7 +123,6 @@ export const ListAdminPage = (): React.JSX.Element => {
             <div>
               <StudioButton
                 variant='secondary'
-                size='small'
                 icon={<PlusIcon />}
                 iconPlacement='left'
                 onClick={() => createAccessListModalRef.current?.showModal()}

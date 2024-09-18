@@ -9,6 +9,7 @@ type UseDataModelMetadataQuery = {
   app: string;
   layoutSetName: string;
   dataModelName?: string;
+  hideDefault?: boolean;
 };
 
 type QueryOptions = {
@@ -16,7 +17,7 @@ type QueryOptions = {
 };
 
 export const useDataModelMetadataQuery = (
-  { org, app, layoutSetName, dataModelName }: UseDataModelMetadataQuery,
+  { org, app, layoutSetName, dataModelName, hideDefault }: UseDataModelMetadataQuery,
   options: QueryOptions = {},
 ): UseQueryResult<DataModelFieldElement[]> => {
   const { getDataModelMetadata } = useServicesContext();
@@ -35,5 +36,8 @@ export const useDataModelMetadataQuery = (
         return dataModelFields;
       }),
     ...options,
+    meta: {
+      hideDefaultError: hideDefault,
+    },
   });
 };

@@ -23,22 +23,11 @@ export const SubexpressionToolbar = ({
   return (
     <div className={classes.subexpressionToolbar} role='toolbar'>
       {isInEditMode ? (
-        <StudioButton
-          color='success'
-          icon={<FloppydiskIcon />}
-          onClick={onSave}
-          size='small'
-          variant='primary'
-        >
+        <StudioButton color='success' icon={<FloppydiskIcon />} onClick={onSave} variant='primary'>
           {texts.saveAndClose}
         </StudioButton>
       ) : (
-        <StudioButton
-          icon={<PencilIcon />}
-          onClick={onEnableEditMode}
-          size='small'
-          variant='secondary'
-        >
+        <StudioButton icon={<PencilIcon />} onClick={onEnableEditMode} variant='secondary'>
           {texts.edit}
         </StudioButton>
       )}

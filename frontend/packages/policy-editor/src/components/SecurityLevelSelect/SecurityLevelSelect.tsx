@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
-import React, { useMemo } from 'react';
+import React from 'react';
 import classes from './SecurityLevelSelect.module.css';
 import { Heading, Label, Paragraph, HelpText, Link } from '@digdir/designsystemet-react';
-import { LegacySelect } from '@digdir/design-system-react';
+import { StudioNativeSelect } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { RequiredAuthLevel } from '../../types';
 
@@ -29,16 +29,9 @@ export const SecurityLevelSelect = ({
 }: SecurityLevelSelectProps): ReactNode => {
   const { t } = useTranslation();
 
-  const authLevelOptionKeysAsDisplayStrings = useMemo(() => {
-    return authlevelOptions.map((option) => ({
-      ...option,
-      label: t(option.label),
-    }));
-  }, [t]);
-
   return (
     <div>
-      <Heading level={2} size='xxsmall' spacing>
+      <Heading level={4} size='xxsmall' spacing>
         {t('policy_editor.security_level_label')}
       </Heading>
       <Paragraph className={classes.paragraph} size='small'>
@@ -61,12 +54,19 @@ export const SecurityLevelSelect = ({
             </Link>
           </HelpText>
         </div>
-        <LegacySelect
-          options={authLevelOptionKeysAsDisplayStrings}
-          onChange={(authLevel: RequiredAuthLevel) => onSave(authLevel)}
+        <StudioNativeSelect
+          onChange={(event) => {
+            onSave(event.target.value as RequiredAuthLevel);
+          }}
           value={requiredAuthenticationLevelEndUser}
-          inputId={SELECT_AUTH_LEVEL_ID}
-        />
+          id={SELECT_AUTH_LEVEL_ID}
+        >
+          {authlevelOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {t(option.label)}
+            </option>
+          ))}
+        </StudioNativeSelect>
       </div>
     </div>
   );

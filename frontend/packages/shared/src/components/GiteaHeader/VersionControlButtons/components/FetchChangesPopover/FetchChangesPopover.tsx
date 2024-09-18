@@ -58,7 +58,6 @@ export const FetchChangesPopover = (): React.ReactElement => {
       <StudioPopover.Trigger asChild>
         <StudioButton
           color='inverted'
-          size='small'
           variant='tertiary'
           onClick={handleOpenPopover}
           disabled={hasMergeConflict}

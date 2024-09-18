@@ -8,8 +8,12 @@ import { useAppContext, useText } from '../hooks';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
 import { useRuleModelQuery } from '../hooks/queries/useRuleModelQuery';
-import { ErrorPage } from '../components/ErrorPage';
-import { StudioPageSpinner, StudioResizableLayout, useLocalStorage } from '@studio/components';
+import {
+  StudioPageError,
+  StudioPageSpinner,
+  StudioResizableLayout,
+  useLocalStorage,
+} from '@studio/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery, useUserQuery } from 'app-shared/hooks/queries';
@@ -28,7 +32,6 @@ import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayou
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
 import { Preview } from '../components/Preview';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
-import { FormDesignerToolbar } from './FormDesignerToolbar';
 
 export const FormDesigner = (): JSX.Element => {
   const { org, app } = useStudioEnvironmentParams();
@@ -99,7 +102,7 @@ export const FormDesigner = (): JSX.Element => {
 
   if (layoutFetchedError) {
     const mappedError = mapErrorToDisplayError();
-    return <ErrorPage title={mappedError.title} message={mappedError.message} />;
+    return <StudioPageError title={mappedError.title} message={mappedError.message} />;
   }
 
   if (formLayoutIsReady) {
@@ -153,7 +156,6 @@ export const FormDesigner = (): JSX.Element => {
     return (
       <DragAndDropTree.Provider rootId={BASE_CONTAINER_ID} onMove={moveItem} onAdd={addItem}>
         <div className={classes.root}>
-          <FormDesignerToolbar></FormDesignerToolbar>
           <div className={classes.container}>
             <StudioResizableLayout.Container
               orientation='horizontal'
@@ -161,8 +163,8 @@ export const FormDesigner = (): JSX.Element => {
             >
               <StudioResizableLayout.Element
                 collapsed={elementsCollapsed}
-                collapsedSize={49}
-                minimumSize={262}
+                collapsedSize={50}
+                minimumSize={300}
                 maximumSize={300}
               >
                 <Elements
@@ -181,7 +183,7 @@ export const FormDesigner = (): JSX.Element => {
               </StudioResizableLayout.Element>
               <StudioResizableLayout.Element
                 collapsed={previewCollapsed}
-                collapsedSize={49}
+                collapsedSize={50}
                 minimumSize={400}
               >
                 <Preview
@@ -196,7 +198,5 @@ export const FormDesigner = (): JSX.Element => {
       </DragAndDropTree.Provider>
     );
   }
-  return (
-    <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('ux_editor.loading_form_layout')} />
-  );
+  return <StudioPageSpinner spinnerTitle={t('ux_editor.loading_form_layout')} />;
 };

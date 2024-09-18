@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -14,7 +11,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-using Newtonsoft.Json;
 using IRepository = Altinn.Studio.Designer.Services.Interfaces.IRepository;
 
 namespace Altinn.Studio.Designer.Controllers
@@ -30,7 +26,6 @@ namespace Altinn.Studio.Designer.Controllers
     {
         private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly IRepository _repository;
-        private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger _logger;
         private readonly ITextsService _textsService;
@@ -40,40 +35,16 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="hostingEnvironment">The hosting environment service.</param>
         /// <param name="repositoryService">The app repository service.</param>
-        /// <param name="repositorySettings">The repository settings.</param>
         /// <param name="httpContextAccessor">The http context accessor.</param>
         /// <param name="logger">the log handler.</param>
         /// <param name="textsService">The texts service</param>
-        public TextController(IWebHostEnvironment hostingEnvironment, IRepository repositoryService, ServiceRepositorySettings repositorySettings, IHttpContextAccessor httpContextAccessor, ILogger<TextController> logger, ITextsService textsService)
+        public TextController(IWebHostEnvironment hostingEnvironment, IRepository repositoryService, IHttpContextAccessor httpContextAccessor, ILogger<TextController> logger, ITextsService textsService)
         {
             _hostingEnvironment = hostingEnvironment;
             _repository = repositoryService;
-            _settings = repositorySettings;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
             _textsService = textsService;
-        }
-
-        /// <summary>
-        /// The View for text resources
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The view with JSON editor</returns>
-        [HttpGet]
-        [Route("/designer/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/Text")]
-        public IActionResult Index(string org, string app)
-        {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            IList<string> languages = _textsService.GetLanguages(org, app, developer);
-
-            if (Request.Headers["accept"] == "application/json")
-            {
-                Dictionary<string, Dictionary<string, TextResourceElement>> resources = _repository.GetServiceTexts(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer));
-                return Json(resources);
-            }
-
-            return View(languages);
         }
 
         /// <summary>
@@ -258,49 +229,6 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             return BadRequest($"Resource.{languageCode}.json could not be deleted.");
-        }
-
-        /// <summary>
-        /// Get the JSON schema for resource files
-        /// </summary>
-        /// <returns>JSON content</returns>
-        [HttpGet]
-        [Route("json-schema")]
-        public IActionResult GetResourceSchema()
-        {
-            string schema = System.IO.File.ReadAllText(_hostingEnvironment.WebRootPath + "/designer/json/schema/resource-schema.json");
-            return Content(schema, "application/json", Encoding.UTF8);
-        }
-
-        /// <summary>
-        /// Method to retrieve service name from textresources file
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The service name of the service</returns>
-        [HttpGet]
-        [Route("service-name")]
-        public IActionResult GetServiceName(string org, string app)
-        {
-            string defaultLang = "nb";
-            string filename = $"resource.{defaultLang}.json";
-            string serviceResourceDirectoryPath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
-
-            try
-            {
-                if (System.IO.File.Exists(serviceResourceDirectoryPath))
-                {
-                    string textResource = System.IO.File.ReadAllText(serviceResourceDirectoryPath, Encoding.UTF8);
-                    ResourceCollection textResourceObject = JsonConvert.DeserializeObject<ResourceCollection>(textResource);
-                    return Content(textResourceObject?.Resources?.FirstOrDefault(r => r.Id == "appName" || r.Id == "ServiceName")?.Value ?? string.Empty);
-                }
-
-                return Problem($"Working directory does not exist for {org}/{app}");
-            }
-            catch (JsonException ex)
-            {
-                return Problem(title: $"Failed to parse App/config/texts/{filename} as JSON", instance: $"App/config/texts/{filename}", detail: $"Failed to parse App/config/texts/{filename} as JSON\n" + ex.Message);
-            }
         }
     }
 }

@@ -1,27 +1,17 @@
-.headingWrapper {
-  display: flex;
-  align-items: center;
+.dialog[open] {
+  --studio-file-changes-modal-height: 75vh;
+  --studio-file-changes-modal-width: 75vw;
+
+  height: var(--studio-file-changes-modal-height);
+  max-width: unset;
+  width: var(--studio-file-changes-modal-width);
 }
 
-.icon {
-  font-size: 2rem;
-  margin-right: var(--fds-spacing-2);
+.dialog .table {
+  width: 100%;
 }
 
-.fileChangesContainer {
-  display: flex;
-  flex-direction: column;
-  padding: var(--fds-spacing-4) var(--fds-spacing-10) var(--fds-spacing-10) var(--fds-spacing-10);
-  width: 50vw;
-}
-
-.filePathContainer {
-  display: grid;
-  grid-template-columns: auto auto 1fr;
-}
-
-.filePath {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.dialog .table .fileStatusCell {
+  vertical-align: top;
+  width: 1%;
 }

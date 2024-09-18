@@ -12,6 +12,7 @@ using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Hubs;
 using Altinn.Studio.Designer.Hubs.SyncHub;
 using Altinn.Studio.Designer.Infrastructure;
+using Altinn.Studio.Designer.Infrastructure.AnsattPorten;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -23,6 +24,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Headers;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
@@ -211,6 +213,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.RegisterTypedHttpClients(configuration);
     services.ConfigureAuthentication(configuration, env);
+    services.AddAnsattPortenAuthenticationAndAuthorization(configuration);
 
     services.Configure<CacheSettings>(configuration.GetSection("CacheSettings"));
 
@@ -259,6 +262,19 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddTransient<IFileSyncHandlerExecutor, FileSyncHandlerExecutor>();
     services.AddFeatureManagement();
 
+
+    if (!env.IsDevelopment())
+    {
+        // https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/proxy-load-balancer?view=aspnetcore-8.0
+        builder.Services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders =
+                ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            options.KnownNetworks.Clear();
+            options.KnownProxies.Clear();
+        });
+    }
+
     logger.LogInformation("// Program.cs // ConfigureServices // Configuration complete");
 }
 
@@ -275,7 +291,6 @@ void Configure(IConfiguration configuration)
     }
 
     app.UseDefaultFiles();
-    app.UseStaticFiles();
     app.UseStaticFiles(new StaticFileOptions
     {
         OnPrepareResponse = context =>
@@ -286,7 +301,7 @@ void Configure(IConfiguration configuration)
                 Public = true,
                 MaxAge = TimeSpan.FromMinutes(60),
             };
-        },
+        }
     });
 
     const string swaggerRoutePrefix = "designer/swagger";
@@ -302,6 +317,7 @@ void Configure(IConfiguration configuration)
 
     if (!app.Environment.IsDevelopment())
     {
+        app.UseForwardedHeaders();
         app.UseHsts();
         app.UseHttpsRedirection();
     }

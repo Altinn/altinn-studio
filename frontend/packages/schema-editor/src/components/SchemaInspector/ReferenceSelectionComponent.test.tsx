@@ -27,11 +27,11 @@ const type2 = createNodeBase(Keyword.Definitions, type2Name);
 const selectedNode: UiSchemaNode = {
   ...createNodeBase(Keyword.Reference, 'test'),
   objectKind: ObjectKind.Reference,
-  reference: type1.pointer,
+  reference: type1.schemaPointer,
 };
 const rootNode = {
   ...createNodeBase('#'),
-  children: [selectedNode, type1, type2].map((node) => node.pointer),
+  children: [selectedNode, type1, type2].map((node) => node.schemaPointer),
 };
 const uiSchema: UiSchemaNodes = [rootNode, selectedNode, type1, type2];
 const schemaModel = SchemaModel.fromArray(uiSchema);
@@ -76,23 +76,28 @@ describe('ReferenceSelectionComponent', () => {
   test('Type options should have correct values and labels', async () => {
     renderReferenceSelectionComponent();
     await user.click(screen.getByRole('combobox'));
-    expect(screen.getByRole('option', { name: type1Name })).toHaveAttribute('value', type1.pointer);
-    expect(screen.getByRole('option', { name: type2Name })).toHaveAttribute('value', type2.pointer);
+    expect(screen.getByRole('option', { name: type1Name })).toHaveAttribute(
+      'value',
+      type1.schemaPointer,
+    );
+    expect(screen.getByRole('option', { name: type2Name })).toHaveAttribute(
+      'value',
+      type2.schemaPointer,
+    );
   });
 
   test('Referenced type is selected', async () => {
     renderReferenceSelectionComponent({
-      selectedNode: { ...selectedNode, reference: type1.pointer },
+      selectedNode: { ...selectedNode, reference: type1.schemaPointer },
     });
-    expect(await screen.findByRole('combobox')).toHaveValue(type1Name);
+    expect(await screen.findByRole('combobox')).toHaveValue(type1.schemaPointer);
   });
 
   test('onChange handler is called with correct parameters when value changes', async () => {
     renderReferenceSelectionComponent();
-    await user.click(screen.getByRole('combobox'));
-    await user.click(screen.getByRole('option', { name: type1Name }));
+    await user.selectOptions(screen.getByRole('combobox'), type1.schemaPointer);
     expect(onChangeRef).toHaveBeenCalledTimes(1);
-    expect(onChangeRef).toHaveBeenCalledWith(selectedNode.pointer, type1.pointer);
+    expect(onChangeRef).toHaveBeenCalledWith(selectedNode.schemaPointer, type1.schemaPointer);
   });
 
   test('onGoToDefButtonClick handler is called when "go to type" button is clicked', async () => {
