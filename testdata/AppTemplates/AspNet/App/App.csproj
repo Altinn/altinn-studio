@@ -5,7 +5,7 @@
     <RootNamespace>Altinn.App</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Api" Version="8.3.4">
+    <PackageReference Include="Altinn.App.Api" Version="8.0.0">
       <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
     </PackageReference>
     <PackageReference Include="Altinn.App.Core" Version="8.0.0" />

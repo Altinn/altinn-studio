@@ -2,9 +2,9 @@
 
   <ItemGroup Label="Altinn specific packages">
     <PackageReference Update="Altinn.App.Core" Version="8.0.0-rc1" />
-    <PackageReference Update="Altinn.Common.AccessToken" Version="4.5.1" />
-    <PackageReference Update="Altinn.Common.AccessTokenClient" Version="3.0.7" />
-    <PackageReference Update="Altinn.Platform.Storage.Interface" Version="3.34.0" />
+    <PackageReference Update="Altinn.Common.AccessToken" Version="4.5.0" />
+    <PackageReference Update="Altinn.Common.AccessTokenClient" Version="3.0.6" />
+    <PackageReference Update="Altinn.Platform.Storage.Interface" Version="3.30.0" />
   </ItemGroup>
 
   <ItemGroup Label="Shared nuget packages">
@@ -35,7 +35,7 @@
     <PackageReference Update="Swashbuckle.AspNetCore" Version="6.7.3" />
     <PackageReference Update="Polly" Version="8.4.1" />
     <PackageReference Update="Altinn.Authorization.ABAC" Version="0.0.8" />
-    <PackageReference Update="Altinn.ApiClients.Maskinporten" Version="9.2.0" />
+    <PackageReference Update="Altinn.ApiClients.Maskinporten" Version="9.1.0" />
     <PackageReference Update="MediatR" Version="12.4.1" />
     <PackageReference Update="DotNetEnv" Version="3.1.1" />
     <PackageReference Update="NuGet.Versioning" Version="6.11.0" />
