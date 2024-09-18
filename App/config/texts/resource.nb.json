@@ -226,6 +226,10 @@
       "value": "/ttd/component-library/altinn-logo.svg"
     },
     {
+      "id": "MultipleSelectPage",
+      "value": "Flervalg"
+    },
+    {
       "id": "DropdownPage",
       "value": "Dropdown"
     },
