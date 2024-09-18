@@ -104,6 +104,8 @@ type SummarizableComponentProps = {
   renderAsSummary?: BooleanExpression;
 };
 
+type SummaryTargetType = 'page' | 'layoutSet' | 'component';
+
 type LabeledComponentProps = {
   labelSettings?: LabelSettings;
 };
@@ -367,7 +369,16 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
       hideBottomBorder?: boolean;
     };
   };
-  [ComponentType.Summary2]: {};
+  [ComponentType.Summary2]: {
+    target: {
+      type?: SummaryTargetType;
+      id?: string;
+      taskId?: string;
+    };
+    showPageInAccordion?: boolean;
+    hideEmptyFields?: boolean;
+    // overrides: SummaryOverride[];
+  };
   [ComponentType.TextArea]: FormComponentProps &
     SummarizableComponentProps &
     LabeledComponentProps & {
