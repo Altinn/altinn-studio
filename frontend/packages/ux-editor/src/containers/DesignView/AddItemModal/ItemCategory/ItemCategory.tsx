@@ -2,10 +2,10 @@ import React from 'react';
 import { StudioButton, StudioHeading } from '@studio/components';
 import classes from './ItemCategory.module.css';
 import { useTranslation } from 'react-i18next';
-import type { IToolbarElement } from '../../../types/global';
-import type { AddedItemProps } from '../ComponentModal/ComponentModal';
+import type { IToolbarElement } from '../../../../types/global';
+import type { AddedItemProps } from '../../ComponentModal/ComponentModal';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { getComponentTitleByComponentType } from '../../../utils/language';
+import { getComponentTitleByComponentType } from '../../../../utils/language';
 
 export type ItemCategoryProps = {
   items: IToolbarElement[];

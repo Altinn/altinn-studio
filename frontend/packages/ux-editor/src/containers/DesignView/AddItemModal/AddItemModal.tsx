@@ -1,44 +1,34 @@
 import React from 'react';
 import {
   addItemOfType,
+  getAvailableChildComponentsForContainer,
   getItem,
-  mapComponentToToolbarElement,
 } from '../../../utils/formLayoutUtils';
 import { useAddItemToLayoutMutation } from '../../../hooks/mutations/useAddItemToLayoutMutation';
-import { generateComponentId } from '../../../utils/generateId';
 import { useFormItemContext } from '../../FormItemContext';
-import { useAppContext, useFormLayouts } from '../../../hooks';
+import { useAppContext } from '../../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { type IInternalLayout, type IToolbarElement } from '../../../types/global';
+import type { IInternalLayout } from '../../../types/global';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioHeading, StudioModal } from '@studio/components';
 import type { AddedItemProps } from '../ComponentModal/ComponentModal';
-import { ComponentModal } from '../ComponentModal/ComponentModal';
-import { allComponents } from '../../../data/formItemConfig';
-import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
+import { AddItemContent } from './AddItemContent';
 
 export type AddItemProps = {
   containerId: string;
   layout: IInternalLayout;
 };
 
-const getAvailableChildComponentsForContainer = (
-  layout: IInternalLayout,
-  containerId: string,
-): KeyValuePairs<IToolbarElement[]> => {
-  if (containerId !== BASE_CONTAINER_ID) return {};
-  const allComponentLists: KeyValuePairs<IToolbarElement[]> = {};
-  Object.keys(allComponents).forEach((key) => {
-    allComponentLists[key] = allComponents[key].map(mapComponentToToolbarElement);
-  });
-  return allComponentLists;
-};
-
-export const AddItem = ({ containerId, layout }: AddItemProps) => {
+export const AddItemModal = ({ containerId, layout }: AddItemProps) => {
   const [isComponentModalOpen, setIsComponentModalOpen] = React.useState(false);
+  const [selectedItem, setSelectedItem] = React.useState<AddedItemProps | null>(null);
+
+  const handleCloseModal = () => {
+    setSelectedItem(null);
+    setIsComponentModalOpen(false);
+  };
   const { handleEdit } = useFormItemContext();
-  const layouts = useFormLayouts();
 
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
@@ -78,13 +68,19 @@ export const AddItem = ({ containerId, layout }: AddItemProps) => {
       <StudioButton variant='secondary' fullWidth onClick={() => setIsComponentModalOpen(true)}>
         Add component!
       </StudioButton>
-      <ComponentModal
+      <StudioModal
         isOpen={isComponentModalOpen}
-        onClose={() => setIsComponentModalOpen(false)}
-        onAddComponent={onAddComponent}
-        availableComponents={getAvailableChildComponentsForContainer(layout, containerId)}
-        generateComponentId={(type: ComponentType) => generateComponentId(type, layouts)}
-      />
+        onClose={handleCloseModal}
+        title={<StudioHeading level={1}>Velg komponent</StudioHeading>}
+        closeButtonLabel='Lukk'
+      >
+        <AddItemContent
+          item={selectedItem}
+          setItem={setSelectedItem}
+          onAddItem={onAddComponent}
+          availableComponents={getAvailableChildComponentsForContainer(layout, BASE_CONTAINER_ID)}
+        />
+      </StudioModal>
     </>
   );
 };
