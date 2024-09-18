@@ -4,12 +4,12 @@ import classes from './AccessControlTab.module.css';
 import { Trans, useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
 import { ErrorMessage, HelpText, Link, Paragraph } from '@digdir/designsystemet-react';
-import { useAppMetadataQuery } from 'app-development/hooks/queries';
 import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';
 import { TabContent } from '../../TabContent';
 import { SelectAllowedPartyTypes } from './SelectAllowedPartyTypes';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 
 export const AccessControlTab = (): ReactNode => {
   const { t } = useTranslation();
