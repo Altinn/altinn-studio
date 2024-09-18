@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { createRef } from 'react';
 import { formLayoutSettingsMock, renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 import { ConvertChoicesModal } from '@altinn/ux-editor/components/Properties/PageConfigPanel/PdfConfig/ConvertPageToPdfWhenExistingModal/ConvertChoicesModal';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -13,7 +13,6 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
-const onCloseMock = jest.fn();
 const selectedLayoutSet = layoutSet1NameMock;
 
 describe('ConvertChoicesModal', () => {
@@ -22,7 +21,7 @@ describe('ConvertChoicesModal', () => {
     const user = userEvent.setup();
     const pdfLayoutNameMock = 'pdfLayoutNameMock';
     const mutateLayoutSettingsMock = jest.fn();
-    renderConvertChoicesModal(
+    await renderConvertChoicesModal(
       { pages: { order: [layout1NameMock], pdfLayoutName: pdfLayoutNameMock } },
       {},
       { saveFormLayoutSettings: mutateLayoutSettingsMock },
@@ -42,7 +41,7 @@ describe('ConvertChoicesModal', () => {
     const pdfLayoutNameMock = 'pdfLayoutNameMock';
     const mutateLayoutSettingsMock = jest.fn();
     const deleteLayoutMock = jest.fn();
-    renderConvertChoicesModal(
+    await renderConvertChoicesModal(
       { pages: { order: [layout1NameMock], pdfLayoutName: pdfLayoutNameMock } },
       {},
       { saveFormLayoutSettings: mutateLayoutSettingsMock, deleteFormLayout: deleteLayoutMock },
@@ -60,19 +59,22 @@ describe('ConvertChoicesModal', () => {
   });
 });
 
-const renderConvertChoicesModal = (
+const renderConvertChoicesModal = async (
   layoutSettings: Partial<ILayoutSettings> = {},
   appContextProps: Partial<AppContextProps> = {},
   queries: Partial<ServicesContextProps> = {},
 ) => {
+  const ref = createRef<HTMLDialogElement>();
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayoutSettings, org, app, selectedLayoutSet], {
     ...formLayoutSettingsMock,
     ...layoutSettings,
   });
-  renderWithProviders(<ConvertChoicesModal showConvertChoices={true} onClose={onCloseMock} />, {
+  renderWithProviders(<ConvertChoicesModal ref={ref} />, {
     queries,
     queryClient,
     appContextProps,
   });
+  ref.current?.showModal();
+  await screen.findByRole('dialog');
 };

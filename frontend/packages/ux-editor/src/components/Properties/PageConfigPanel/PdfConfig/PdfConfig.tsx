@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
 import { StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { FileIcon } from '@studio/icons';
@@ -8,14 +8,14 @@ import { useSavableFormLayoutSettings } from '@altinn/ux-editor/hooks/useSavable
 
 export const PdfConfig = () => {
   const { t } = useTranslation();
-  const [showConvertChoices, setShowConvertChoices] = useState<boolean>(false);
   const { isCurrentPagePdf, getPdfLayoutName, convertCurrentPageToPdf, convertExistingPdfToPage } =
     usePdf();
   const savableLayoutSettings = useSavableFormLayoutSettings();
+  const convertChoicesDialogRef = useRef<HTMLDialogElement>(null);
 
   const handleClickConvertButton = () => {
     if (!!getPdfLayoutName()) {
-      setShowConvertChoices(true);
+      convertChoicesDialogRef.current?.showModal();
     } else {
       convertCurrentPageToPdf();
       savableLayoutSettings.save();
@@ -29,12 +29,7 @@ export const PdfConfig = () => {
 
   return (
     <>
-      {showConvertChoices && (
-        <ConvertChoicesModal
-          showConvertChoices={showConvertChoices}
-          onClose={() => setShowConvertChoices(false)}
-        />
-      )}
+      <ConvertChoicesModal ref={convertChoicesDialogRef} />
       {isCurrentPagePdf() ? (
         <StudioProperty.Button
           onClick={handleConvertExistingPdfToFormLayout}
