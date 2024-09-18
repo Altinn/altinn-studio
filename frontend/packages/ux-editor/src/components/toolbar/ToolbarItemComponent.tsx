@@ -4,6 +4,7 @@ import { getComponentTitleByComponentType } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { InformationPanelComponent } from './InformationPanelComponent';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export type ToolbarItemProvidedProps = {
   componentType: ComponentType;
@@ -23,6 +24,10 @@ export const ToolbarItemComponent = ({
   const handleComponentInformationToggle = () => {
     setCompInfoPanelOpen((prevState) => !prevState);
   };
+
+  if (componentType == 'Summary2' && shouldDisplayFeature('summary2') === false) {
+    return null;
+  }
 
   return (
     <div className={classes.toolbarItem}>
