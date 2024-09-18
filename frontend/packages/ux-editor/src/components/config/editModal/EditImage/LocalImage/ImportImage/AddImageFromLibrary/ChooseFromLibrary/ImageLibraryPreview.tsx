@@ -1,26 +1,23 @@
 import React from 'react';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { Card, Heading } from '@digdir/designsystemet-react';
-import { StudioParagraph } from '@studio/components';
-import { useGetAllImageFileNamesQuery } from 'app-shared/hooks/queries/useGetAllImageFileNamesQuery';
-import { imagePath } from 'app-shared/api/paths';
-import { useTranslation } from 'react-i18next';
 import classes from './ChooseFromLibrary.module.css';
+import { imagePath } from 'app-shared/api/paths';
 import { extractFilename } from 'app-shared/utils/filenameUtils';
-import { WWWROOT_FILE_PATH } from '../../../constants';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { WWWROOT_FILE_PATH } from '../../../../../EditImage/constants';
+import { StudioCard, StudioHeading } from '@studio/components';
 
-interface ChooseFromLibraryProps {
+type ImageLibraryPreviewProps = {
+  imagesFileNames: string[];
   onAddImageReference: (imageFilePath: string) => void;
-}
+};
 
-export const ChooseFromLibrary = ({ onAddImageReference }: ChooseFromLibraryProps) => {
-  const { t } = useTranslation();
+export const ImageLibraryPreview = ({
+  imagesFileNames,
+  onAddImageReference,
+}: ImageLibraryPreviewProps) => {
   const { org, app } = useStudioEnvironmentParams();
-  const { data: imagesFileNames } = useGetAllImageFileNamesQuery(org, app);
 
-  return imagesFileNames?.length === 0 ? (
-    <StudioParagraph>{t('ux_editor.properties_panel.images.no_images_in_library')}</StudioParagraph>
-  ) : (
+  return (
     <div className={classes.cardsContainer}>
       {imagesFileNames.map((imageFilePath) => (
         <ImageFromLibrary
@@ -49,16 +46,20 @@ const ImageFromLibrary = ({
   // TODO: Add description when we know how to store them. See analysis issue: https://github.com/Altinn/altinn-studio/issues/13346
   return (
     <div className={classes.card}>
-      <Card onClick={() => onAddImageReference(`${WWWROOT_FILE_PATH}${imageFilePath}`)}>
-        <Card.Media>
+      <StudioCard onClick={() => onAddImageReference(`${WWWROOT_FILE_PATH}${imageFilePath}`)}>
+        <StudioCard.Media>
           <img src={imageSource} alt={imageFilePath} />
-        </Card.Media>
-        <Card.Header>
-          <Heading size='xs' className={classes.fileName} title={extractFilename(imageFilePath)}>
+        </StudioCard.Media>
+        <StudioCard.Header>
+          <StudioHeading
+            size='xs'
+            className={classes.fileName}
+            title={extractFilename(imageFilePath)}
+          >
             {extractFilename(imageFilePath)}
-          </Heading>
-        </Card.Header>
-      </Card>
+          </StudioHeading>
+        </StudioCard.Header>
+      </StudioCard>
     </div>
   );
 };

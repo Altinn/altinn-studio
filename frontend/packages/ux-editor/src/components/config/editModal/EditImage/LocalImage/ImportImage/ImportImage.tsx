@@ -21,8 +21,6 @@ export const ImportImage = ({ onImageChange }: ImportImageProps) => {
   const { mutate: uploadImage } = useAddImageMutation(org, app, true);
   const { data: imageFileNames } = useGetAllImageFileNamesQuery(org, app);
 
-  console.log('imageFileNames: ', imageFileNames);
-
   const openLibraryDialog = () => {
     libraryDialogRef.current?.showModal();
   };

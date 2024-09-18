@@ -32,22 +32,18 @@ describe('AddImageFromLibraryModal', () => {
     expect(noImagesInLibraryMessage).toBeInTheDocument();
   });
 
-  it('renders modal with image, fileName and missing description', async () => {
+  it('renders modal with image and fileName', async () => {
     (imagePath as jest.Mock).mockImplementation(
       (mockOrg, mockApp, imageFileName) => `/images/${mockOrg}/${mockApp}/${imageFileName}`,
     );
     const existingImageFileName = 'image.png';
     await renderAddImageFromLibraryModal([existingImageFileName]);
     const image = screen.getByRole('img', { name: existingImageFileName });
-    const imageAltText = screen.getByAltText(existingImageFileName); // TODO: Change this to description
+    const imageAltText = screen.getByAltText(existingImageFileName);
     const fileName = screen.getByRole('heading', { name: existingImageFileName });
-    const missingFileDescription = screen.getByText(
-      textMock('ux_editor.properties_panel.images.description_missing'),
-    );
     expect(image).toBeInTheDocument();
     expect(imageAltText).toBeInTheDocument();
     expect(fileName).toBeInTheDocument();
-    expect(missingFileDescription).toBeInTheDocument();
     expect(imagePath).toHaveBeenCalledWith(org, app, existingImageFileName);
   });
 

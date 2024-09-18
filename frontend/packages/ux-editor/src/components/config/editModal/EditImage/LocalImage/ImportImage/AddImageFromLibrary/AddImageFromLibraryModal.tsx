@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 import { StudioModal } from '@studio/components';
-import { ChooseFromLibrary } from './ChooseFromLibrary';
+import { ChooseFromLibrary } from './ChooseFromLibrary/ChooseFromLibrary';
 import { useTranslation } from 'react-i18next';
 import { useForwardedRef } from '@studio/hooks';
 import classes from './AddImageFromLibraryModal.module.css';
