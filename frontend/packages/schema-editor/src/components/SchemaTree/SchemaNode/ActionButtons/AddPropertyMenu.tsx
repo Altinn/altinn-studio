@@ -32,7 +32,8 @@ export const AddPropertyMenu = ({ schemaPointer, uniquePointer }: AddPropertyMen
   const addPropertyAndClose = (kind: ObjectKind, fieldType?: FieldType) => {
     const childPointer = addProperty(kind, fieldType, schemaPointer);
     if (childPointer) {
-      setSelectedUniquePointer(savableModel.getUniquePointer(childPointer, uniquePointer));
+      const uniqueChildPointer = savableModel.getUniquePointer(childPointer, uniquePointer);
+      setSelectedUniquePointer(uniqueChildPointer);
       closeDropdown();
     }
   };

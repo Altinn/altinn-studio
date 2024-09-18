@@ -25,7 +25,8 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
 
   const setSelectedType = (schemaPointer: string) => {
     setSelectedTypePointer(schemaPointer);
-    setSelectedUniquePointer(schemaPointer);
+    const uniquePointer = schemaModel.getUniquePointer(schemaPointer);
+    setSelectedUniquePointer(uniquePointer);
   };
 
   const handleAddDefinition = (e: MouseEvent) => {

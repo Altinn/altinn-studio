@@ -6,7 +6,7 @@ import { useSavableSchemaModel } from '../../../hooks/useSavableSchemaModel';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
 export const useAddReference = (): HandleAdd<string> => {
-  const { setSelectedUniquePointer } = useSchemaEditorAppContext();
+  const { setSelectedUniquePointer, schemaModel } = useSchemaEditorAppContext();
   const savableModel = useSavableSchemaModel();
   return useCallback(
     (reference: string, position: ItemPosition) => {
@@ -15,8 +15,9 @@ export const useAddReference = (): HandleAdd<string> => {
       const schemaPointer = savableModel.getFinalNode(target.parentPointer).schemaPointer;
       const refName = savableModel.generateUniqueChildName(schemaPointer, 'ref');
       const ref = savableModel.addReference(refName, reference, target);
-      setSelectedUniquePointer(ref.schemaPointer);
+      const uniquePointer = schemaModel.getUniquePointer(ref.schemaPointer);
+      setSelectedUniquePointer(uniquePointer);
     },
-    [savableModel, setSelectedUniquePointer],
+    [savableModel, setSelectedUniquePointer, schemaModel],
   );
 };

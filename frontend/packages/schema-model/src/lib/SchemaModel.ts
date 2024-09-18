@@ -295,7 +295,6 @@ export class SchemaModel {
   public moveNode(schemaPointer: string, target: NodePosition): UiSchemaNode {
     const currentParentPointer = this.getParentNode(schemaPointer).schemaPointer;
     const finalParent = this.getFinalNode(target.parentPointer);
-    console.log('finalParent', finalParent);
     const movedNode = isCombination(finalParent)
       ? this.moveNodeToCombination(schemaPointer, finalParent, target.index)
       : this.moveNodeToObject(schemaPointer, finalParent, target.index);
