@@ -11,7 +11,7 @@
         "id": "TabsHeader",
         "type": "Header",
         "textResourceBindings": {
-          "title": "Tabs"
+          "title": "TabsPage"
         }
       },
       {

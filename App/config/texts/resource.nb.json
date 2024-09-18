@@ -225,6 +225,22 @@
       "id": "appLogo.url",
       "value": "/ttd/component-library/altinn-logo.svg"
     },
+    {
+      "id": "DropdownPage",
+      "value": "Dropdown"
+    },
+    {
+      "id": "FileUploadPage",
+      "value": "Filopplasting"
+    },
+    {
+      "id": "TabsPage",
+      "value": "Tabs"
+    },
+    {
+      "id": "LikertPage",
+      "value": "Likert"
+    },
     { "id": "question-1", "value": "Gjør du leksene dine?" },
     { "id": "question-2", "value": "Fungerer kalkulatoren din?" },
     { "id": "question-3", "value": "Er pulten din ryddig?" },

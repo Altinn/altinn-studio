@@ -12,7 +12,7 @@
         "type": "Header",
         "size": "h2",
         "textResourceBindings": {
-            "title": "RadioButtonsPage"
+            "title": "LikertPage"
         }
       },
       {
@@ -27,7 +27,7 @@
         "id": "LikertPage-Likert",
         "type": "Likert",
         "textResourceBindings": {
-          "title": "Skolearbeid (Frivillig)",
+          "title": "Skolearbeid",
           "description": "På de neste spørsmålene skal du svare i kontekst av klasserommet.",
           "leftColumnHeader": "Spørsmål",
           "questions": "likert-row-title"
