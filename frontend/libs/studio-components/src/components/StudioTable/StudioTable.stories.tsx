@@ -1,12 +1,10 @@
 import type { ReactElement } from 'react';
 import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react';
-import type { StudioTableProps } from './index';
-import { StudioTable } from './index';
+import type { Meta, StoryObj } from '@storybook/react';
+import type { StudioTableProps } from './';
+import { StudioTable } from './';
 
-type Story = StoryFn<typeof StudioTable>;
-
-export function render(props: StudioTableProps): ReactElement {
+function TablePreview(props: StudioTableProps): ReactElement {
   return (
     <StudioTable {...props}>
       <StudioTable.Head>
@@ -37,9 +35,34 @@ export function render(props: StudioTableProps): ReactElement {
   );
 }
 
-const meta: Meta<Story> = {
-  title: 'Studio/StudioTable',
-  component: StudioTable,
-  render,
+type Story = StoryObj<typeof TablePreview>;
+
+const meta: Meta<typeof TablePreview> = {
+  title: 'StudioTable',
+  component: TablePreview,
+  argTypes: {
+    size: {
+      control: 'select',
+      options: ['sm', 'md', 'lg'],
+    },
+    zebra: {
+      control: 'boolean',
+    },
+    stickyHeader: {
+      control: 'boolean',
+    },
+    border: {
+      control: 'boolean',
+    },
+  },
 };
 export default meta;
+
+export const Preview: Story = {
+  args: {
+    size: 'sm',
+    zebra: false,
+    stickyHeader: false,
+    border: false,
+  },
+};
