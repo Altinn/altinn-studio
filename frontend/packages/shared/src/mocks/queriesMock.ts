@@ -34,7 +34,6 @@ import type {
   SearchRepositoryResponse,
 } from 'app-shared/types/api';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import type { NewsList } from 'app-shared/types/api/NewsList';
 import type {
   IFrontEndSettings,
   ILayoutSettings,
@@ -53,7 +52,6 @@ import {
   createRepoCommitPayload,
   dataModelMetadataResponse,
   layoutSets,
-  newsList,
   orgList,
   policy,
   repoStatus,
@@ -101,7 +99,6 @@ export const queriesMock: ServicesContextProps = {
   getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
   getLayoutNames: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets)),
-  getNewsList: jest.fn().mockImplementation(() => Promise.resolve<NewsList>(newsList)),
   getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgList>(orgList)),
