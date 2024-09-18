@@ -1,0 +1,112 @@
+import React from 'react';
+import type { IGenericEditComponent } from '../../componentConfig';
+import type { ComponentType } from 'app-shared/types/ComponentType';
+import {
+  StudioCard,
+  StudioCombobox,
+  StudioNativeSelect,
+  StudioParagraph,
+  StudioTextfield,
+} from '@studio/components';
+import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useAppContext } from '../../../../hooks';
+import { getAllDescendants, getAllFormItemIds } from '../../../../utils/formLayoutUtils';
+import { useComponentTypeName } from '@altinn/ux-editor/hooks/useComponentTypeName';
+
+export function Summary2Component({
+  schema,
+  component,
+  handleComponentChange,
+}: IGenericEditComponent<ComponentType.Summary2>) {
+  const { org, app } = useStudioEnvironmentParams();
+  const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
+  const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
+  const componentTypeName = useComponentTypeName();
+
+  const components = formLayoutsData[selectedFormLayoutName].components;
+  const filtered = Object.entries(components).filter(([key, value]) => {
+    return value.type !== 'Summary2';
+  });
+
+  const pages = Object.entries(formLayoutsData);
+
+  const handleTypeChange = (e: any) => {
+    handleComponentChange({
+      ...component,
+      target: {
+        type: e.target.value,
+      },
+    });
+  };
+
+  const handleTargetIdChange = (value: string[]) => {
+    const updatedComponent = { ...component };
+    updatedComponent.target.id = value[0];
+    handleComponentChange(updatedComponent);
+  };
+
+  if (!schema?.properties) return null;
+  const targetSchema = schema.properties.target.properties;
+  const targetProperties = component.target;
+  return (
+    <StudioCard>
+      {/** TODO: Add translation **/}
+      <StudioCard.Header>Target</StudioCard.Header>
+      {/** TODO: Add translation **/}
+      <StudioParagraph>Target of the summary component</StudioParagraph>
+      <StudioCard.Content>
+        <StudioNativeSelect
+          label='Type' // TODO: Add translation
+          value={targetProperties.type}
+          onChange={handleTypeChange}
+        >
+          {targetSchema.type.enum.map((typeString: string) => (
+            <option key={typeString} value={typeString}>
+              {typeString}
+            </option>
+          ))}
+        </StudioNativeSelect>
+        {targetProperties.type === 'page' && (
+          <StudioCombobox
+            label='page' // TODO: Add translation
+            value={targetProperties.id ? [targetProperties.id] : []}
+            onValueChange={handleTargetIdChange}
+            multiple={false}
+          >
+            {pages.map(([pageId, pageDetails]) => (
+              <StudioCombobox.Option value={pageId} key={pageId}>
+                {pageId}
+              </StudioCombobox.Option>
+            ))}
+          </StudioCombobox>
+        )}
+        {targetProperties.type === 'component' && (
+          <StudioCombobox
+            label='component' // TODO: Add translation
+            value={targetProperties.id ? [targetProperties.id] : []}
+            onValueChange={handleTargetIdChange}
+            multiple={false}
+          >
+            {filtered.map(([componentId, componentDetails]) => (
+              <StudioCombobox.Option
+                value={componentId}
+                key={componentId}
+                description={componentTypeName(componentDetails.type)}
+              >
+                {componentId}
+              </StudioCombobox.Option>
+            ))}
+          </StudioCombobox>
+        )}
+        {targetProperties.type === 'layoutSet' && (
+          <StudioTextfield
+            label='layoutSet' // TODO: Add translation
+            value={selectedFormLayoutSetName}
+            disabled={true}
+          />
+        )}
+      </StudioCard.Content>
+    </StudioCard>
+  );
+}
