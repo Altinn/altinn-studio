@@ -27,7 +27,7 @@ export const ShareChangesPopover = () => {
 
   const fetchCompleted: boolean = !isLoading && !hasChangesToPush;
   const displayNotification: boolean =
-    (repoStatus?.contentStatus?.length > 0 ?? false) && !hasMergeConflict;
+    repoStatus?.contentStatus && repoStatus?.contentStatus?.length > 0 && !hasMergeConflict;
 
   const fileChanges: RepoContentStatus[] = repoStatus?.contentStatus;
 

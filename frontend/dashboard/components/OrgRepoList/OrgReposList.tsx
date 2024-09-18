@@ -36,7 +36,7 @@ export const OrgReposList = ({ user, organizations }: OrgReposListProps) => {
     uid: uid as number,
     keyword: DATA_MODEL_REPO_IDENTIFIER,
   });
-  const totalRows = repoResults?.totalCount - dataModelsResults?.totalCount ?? 0;
+  const totalRows = (repoResults?.totalCount || 0) - (dataModelsResults?.totalCount || 0);
 
   const { data: starredRepos = [], isPending: hasPendingStarredRepos } = useStarredReposQuery();
   const reposIncludingStarredData = useAugmentReposWithStarred({
