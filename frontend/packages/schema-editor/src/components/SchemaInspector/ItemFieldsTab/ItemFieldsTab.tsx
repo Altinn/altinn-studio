@@ -2,9 +2,7 @@ import React, { useEffect } from 'react';
 import type { FieldType, FieldNode, ObjectKind } from '@altinn/schema-model';
 import { isField, isReference } from '@altinn/schema-model';
 import classes from './ItemFieldsTab.module.css';
-import { StudioDropdownMenu, usePrevious } from '@studio/components';
-import { PlusIcon } from '@studio/icons';
-import { useTranslation } from 'react-i18next';
+import { usePrevious } from '@studio/components';
 import { ItemFieldsTable } from './ItemFieldsTable';
 import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
 import { getLastNameField } from '@altinn/schema-editor/components/SchemaInspector/ItemFieldsTab/domUtils';
@@ -29,8 +27,6 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
     }
   }, [numberOfChildNodes, prevNumberOfChildNodes]);
 
-  const { t } = useTranslation();
-
   const onAddPropertyClicked = (kind: ObjectKind, fieldType?: FieldType) => {
     event.preventDefault();
     addProperty(kind, fieldType, selectedItem.schemaPointer);
@@ -42,18 +38,7 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
       {isField(selectedItem) && numberOfChildNodes > 0 && (
         <ItemFieldsTable readonly={readonly} selectedItem={selectedItem} />
       )}
-      <StudioDropdownMenu
-        anchorButtonProps={{
-          children: t('schema_editor.add_property'),
-          color: 'second',
-          icon: <PlusIcon />,
-          variant: 'secondary',
-        }}
-        size='small'
-        placement='bottom-start'
-      >
-        <AddPropertiesMenu onItemClick={onAddPropertyClicked} />
-      </StudioDropdownMenu>
+      <AddPropertiesMenu onItemClick={onAddPropertyClicked} />
     </div>
   );
 };

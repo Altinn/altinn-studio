@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-import { ItemFieldsTypes } from './ItemFieldsTypes';
-import type { ItemFieldsTypesProps } from './ItemFieldsTypes';
+import { ItemFieldType } from './ItemFieldType ';
+import type { ItemFieldTypeProps } from './ItemFieldType ';
 import { type UiSchemaNode } from '@altinn/schema-model';
 import {
   combinationNodeMock,
@@ -20,7 +20,7 @@ const typeLabel = 'Type Label';
 const kindLabel = 'Kind Label';
 const referenceNode = referenceNodeMock;
 
-describe('ItemFieldsTypes', () => {
+describe('ItemFieldType', () => {
   afterEach(jest.clearAllMocks);
   beforeEach(() => {
     (useSchemaEditorAppContext as jest.Mock).mockReturnValue({
@@ -29,12 +29,12 @@ describe('ItemFieldsTypes', () => {
   });
 
   test('should render typeLabel when typeLabel is provided', async () => {
-    renderItemFieldsTypes({ fieldNode: defaultNode, typeLabel: typeLabel });
+    renderItemFieldType({ fieldNode: defaultNode, typeLabel: typeLabel });
     expect(screen.getByText(typeLabel)).toBeInTheDocument();
   });
 
   test('should render kindLabel when kindLabel is provided', () => {
-    renderItemFieldsTypes({ fieldNode: defaultNode, kindLabel: kindLabel });
+    renderItemFieldType({ fieldNode: defaultNode, kindLabel: kindLabel });
     expect(screen.getByText(kindLabel)).toBeInTheDocument();
   });
 
@@ -48,7 +48,7 @@ describe('ItemFieldsTypes', () => {
       setSelectedTypePointer,
     });
 
-    renderItemFieldsTypes({ fieldNode: referenceNode });
+    renderItemFieldType({ fieldNode: referenceNode });
     const button = screen.getByRole('button', { name: /referredNode/i });
     expect(button).toBeInTheDocument();
 
@@ -56,9 +56,9 @@ describe('ItemFieldsTypes', () => {
     expect(setSelectedTypePointer).toHaveBeenCalledWith(referenceNode.reference);
   });
 
-  const renderItemFieldsTypes = (
-    props: ItemFieldsTypesProps = { fieldNode: defaultNode, kindLabel, typeLabel },
+  const renderItemFieldType = (
+    props: ItemFieldTypeProps = { fieldNode: defaultNode, kindLabel, typeLabel },
   ) => {
-    renderWithProviders({})(<ItemFieldsTypes {...props} />);
+    renderWithProviders({})(<ItemFieldType {...props} />);
   };
 });

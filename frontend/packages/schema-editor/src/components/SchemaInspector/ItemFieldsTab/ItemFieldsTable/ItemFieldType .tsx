@@ -4,13 +4,13 @@ import { StudioReferenceButton } from '@studio/components';
 import { useSavableSchemaModel } from '@altinn/schema-editor/hooks/useSavableSchemaModel';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 
-export type ItemFieldsTypesProps = {
+export type ItemFieldTypeProps = {
   fieldNode: UiSchemaNode;
   typeLabel?: string;
   kindLabel?: string;
 };
 
-export const ItemFieldsTypes = ({ fieldNode, typeLabel, kindLabel }: ItemFieldsTypesProps) => {
+export const ItemFieldType = ({ fieldNode, typeLabel, kindLabel }: ItemFieldTypeProps) => {
   const savableModel = useSavableSchemaModel();
   const { setSelectedTypePointer } = useSchemaEditorAppContext();
 

@@ -1,6 +1,5 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { DropdownMenu } from '@digdir/designsystemet-react';
 import {
   CombinationIcon,
   ReferenceIcon,
@@ -8,11 +7,14 @@ import {
   StringIcon,
   BooleanIcon,
   NumberIcon,
+  PlusIcon,
 } from '@studio/icons';
 import { ObjectKind, FieldType } from '@altinn/schema-model';
+import { type StudioButtonProps, StudioDropdownMenu } from '@studio/components';
 
 export interface AddPropertiesMenuProps {
   onItemClick?: (kind: ObjectKind, fieldType?: FieldType) => void;
+  ancherButtonProps?: StudioButtonProps;
 }
 
 const propertyItems = [
@@ -25,20 +27,30 @@ const propertyItems = [
   { kind: ObjectKind.Reference, icon: ReferenceIcon },
 ];
 
-export const AddPropertiesMenu = ({ onItemClick }: AddPropertiesMenuProps) => {
+export const AddPropertiesMenu = ({ onItemClick, ancherButtonProps }: AddPropertiesMenuProps) => {
   const { t } = useTranslation();
 
   return (
-    <DropdownMenu>
+    <StudioDropdownMenu
+      anchorButtonProps={{
+        children: t('schema_editor.add_property'),
+        color: 'second',
+        icon: <PlusIcon />,
+        variant: 'secondary',
+        ...ancherButtonProps,
+      }}
+      size='small'
+      placement='bottom-start'
+    >
       {propertyItems.map(({ kind, fieldType, icon: Icon }) => (
-        <DropdownMenu.Item
+        <StudioDropdownMenu.Item
           key={`${kind}-${fieldType}`}
           onClick={() => onItemClick(kind, fieldType)}
+          icon={<Icon />}
         >
-          <Icon />
           {t(`schema_editor.add_${fieldType || kind}`)}
-        </DropdownMenu.Item>
+        </StudioDropdownMenu.Item>
       ))}
-    </DropdownMenu>
+    </StudioDropdownMenu>
   );
 };

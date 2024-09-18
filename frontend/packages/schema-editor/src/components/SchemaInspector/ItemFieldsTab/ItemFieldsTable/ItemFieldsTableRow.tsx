@@ -20,8 +20,8 @@ import { TrashIcon } from '@studio/icons';
 import { StudioButton, StudioCenter } from '@studio/components';
 import { useTypeOptions } from '@altinn/schema-editor/components/SchemaInspector/hooks/useTypeOptions';
 import { nameFieldClass } from '@altinn/schema-editor/components/SchemaInspector/ItemFieldsTab/domUtils';
-import { useKindOptions } from '../../hooks/useKindOptions';
-import { ItemFieldsTypes } from './ItemFieldsTypes';
+import { useKindNames } from '../../hooks/useKindNames';
+import { ItemFieldType } from './ItemFieldType ';
 
 export type ItemFieldsTableRowProps = {
   fieldNode: UiSchemaNode;
@@ -57,7 +57,7 @@ export const ItemFieldsTableRow = ({
   const typeLabel =
     isField(fieldNode) && typeOptions.find(({ value }) => value === fieldNode.fieldType)?.label;
 
-  const kindNames = useKindOptions();
+  const kindNames = useKindNames();
   const notReferenceKind = fieldNode.objectKind !== ObjectKind.Reference;
   const kindLabel = notReferenceKind && kindNames[fieldNode.objectKind];
 
@@ -93,7 +93,7 @@ export const ItemFieldsTableRow = ({
         />
       </td>
       <td className={cn(classes.tableColumnType, classes.tableCell)}>
-        <ItemFieldsTypes fieldNode={fieldNode} typeLabel={typeLabel} kindLabel={kindLabel} />
+        <ItemFieldType fieldNode={fieldNode} typeLabel={typeLabel} kindLabel={kindLabel} />
       </td>
       <td className={cn(classes.tableColumnRequired, classes.tableCell)}>
         <StudioCenter>

@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAddProperty } from '../../../../hooks/useAddProperty';
 import type { FieldType, ObjectKind } from '@altinn/schema-model';
-import { ActionButton } from './ActionButton';
-import { DropdownMenu } from '@digdir/designsystemet-react';
 import { useSavableSchemaModel } from '../../../../hooks/useSavableSchemaModel';
-import { PlusIcon } from '@studio/icons';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 import { AddPropertiesMenu } from '@altinn/schema-editor/components/AddPropertiesMenu';
+import { useTranslation } from 'react-i18next';
 
 interface AddPropertyMenuProps {
   schemaPointer: string;
@@ -16,32 +14,23 @@ interface AddPropertyMenuProps {
 export const AddPropertyMenu = ({ schemaPointer, uniquePointer }: AddPropertyMenuProps) => {
   const { setSelectedUniquePointer } = useSchemaEditorAppContext();
   const savableModel = useSavableSchemaModel();
+  const { t } = useTranslation();
 
-  const [isAddDropdownOpen, setIsAddDropdownOpen] = useState(false);
   const addProperty = useAddProperty();
 
   const addPropertyAndClose = (kind: ObjectKind, fieldType?: FieldType) => {
     const childPointer = addProperty(kind, fieldType, schemaPointer);
     setSelectedUniquePointer(savableModel.getUniquePointer(childPointer, uniquePointer));
-    closeDropdown();
   };
 
-  const closeDropdown = () => setIsAddDropdownOpen(false);
-
   return (
-    <DropdownMenu open={isAddDropdownOpen} onClose={closeDropdown} size='small' portal>
-      <DropdownMenu.Trigger asChild>
-        <ActionButton
-          aria-expanded={isAddDropdownOpen}
-          aria-haspopup='menu'
-          icon={<PlusIcon />}
-          onClick={() => setIsAddDropdownOpen(true)}
-          titleKey='schema_editor.add_node_of_type'
-        />
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Content>
-        <AddPropertiesMenu onItemClick={addPropertyAndClose} />
-      </DropdownMenu.Content>
-    </DropdownMenu>
+    <AddPropertiesMenu
+      onItemClick={addPropertyAndClose}
+      ancherButtonProps={{
+        children: '',
+        title: t('schema_editor.add_node_of_type'),
+        variant: 'tertiary',
+      }}
+    />
   );
 };
