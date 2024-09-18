@@ -28,7 +28,7 @@ export const XSDUpload = ({
   const { mutate: uploadDataModel, isPending: uploading } = useUploadDataModelMutation(
     selectedOption?.value?.repositoryRelativeUrl,
     {
-      hideDefaultError: true,
+      hideDefaultError: (error: AxiosError<ApiError>) => !error.response?.data?.errorCode,
     },
   );
 
@@ -37,8 +37,8 @@ export const XSDUpload = ({
 
   const handleUpload = (formData: FormData) => {
     uploadDataModel(formData, {
-      onError: (e: AxiosError<ApiError>) => {
-        if (!e.response?.data?.errorCode)
+      onError: (error: AxiosError<ApiError>) => {
+        if (!error.response?.data?.errorCode)
           toast.error(t('form_filler.file_uploader_validation_error_upload'));
       },
     });

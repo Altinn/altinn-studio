@@ -58,15 +58,15 @@ const handleError = (
     });
   }
 
-  if (errorCode) {
-    return renderToast(errorCode);
-  }
-
   if (
     meta?.hideDefaultError === true ||
     (meta?.hideDefaultError instanceof Function && meta?.hideDefaultError?.(error))
   )
     return;
+
+  if (errorCode) {
+    return renderToast(errorCode);
+  }
 
   renderDefaultToast();
 };
