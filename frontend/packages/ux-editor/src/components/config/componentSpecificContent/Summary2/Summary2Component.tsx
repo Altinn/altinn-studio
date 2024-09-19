@@ -28,7 +28,7 @@ export function Summary2Component({
   const components = formLayoutsData[selectedFormLayoutName].components;
   const excludedComponents = [ComponentType.Summary2]; // TODO: Add components that should be excluded
   const filtered = Object.entries(components).filter(([key, value]) => {
-    return excludedComponents.includes(value.type);
+    return !excludedComponents.includes(value.type);
   });
 
   const pages = Object.entries(formLayoutsData);
