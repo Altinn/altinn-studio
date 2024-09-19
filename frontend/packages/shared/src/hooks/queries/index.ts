@@ -1,3 +1,4 @@
+export { useAppMetadataQuery } from './useAppMetadataQuery';
 export { useAppVersionQuery } from './useAppVersionQuery';
 export { useDataModelsJsonQuery } from './useDataModelsJsonQuery';
 export { useDataModelsXsdQuery } from './useDataModelsXsdQuery';

@@ -13,7 +13,7 @@ ENV OidcLoginSettings__ClientSecret=dummyRequired
 
 RUN dotnet ef migrations script --project src/Designer/Designer.csproj -o /app/migrations.sql
 
-FROM alpine:3.20.2 AS final
+FROM alpine:3.20.3 AS final
 COPY --from=build /app/migrations.sql migrations.sql
 RUN apk --no-cache add postgresql-client
 
