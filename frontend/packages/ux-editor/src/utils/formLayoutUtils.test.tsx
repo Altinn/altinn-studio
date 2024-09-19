@@ -689,5 +689,10 @@ describe('formLayoutUtils', () => {
         mockInternal.components[headerId],
       ]);
     });
+
+    it('Returns all components in the given layout', () => {
+      const layout = { ...mockInternal };
+      expect(getAllLayoutComponents(layout)).toEqual(Object.values(mockInternal.components));
+    });
   });
 });
