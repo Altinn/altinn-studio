@@ -8,9 +8,6 @@ import {
   referenceNodeMock,
   stringDefinitionNodeMock,
   objectNodeMock,
-  booleanDefinitionNodeMock,
-  integerDefinitionNodeMock,
-  numberDefinitionNodeMock,
 } from '../../../../../../test/mocks/uiSchemaMock';
 import { renderWithProviders } from '../../../../../../test/renderWithProviders';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -20,9 +17,6 @@ const defaultNode: UiSchemaNode = combinationNodeMock;
 
 const stringTypeLabel = textMock('schema_editor.string');
 const objectTypeLabel = textMock('schema_editor.object');
-const numberTypeLabel = textMock('schema_editor.number');
-const booleanTypeLabel = textMock('schema_editor.boolean');
-const integerTypeLabel = textMock('schema_editor.integer');
 
 const combinationKindLabel = textMock('schema_editor.combination');
 
@@ -39,22 +33,7 @@ describe('ItemFieldType', () => {
     expect(screen.getByText(objectTypeLabel)).toBeInTheDocument();
   });
 
-  it('should render boolean type label', () => {
-    renderItemFieldType({ fieldNode: booleanDefinitionNodeMock });
-    expect(screen.getByText(booleanTypeLabel)).toBeInTheDocument();
-  });
-
-  it('should render integer type label', () => {
-    renderItemFieldType({ fieldNode: integerDefinitionNodeMock });
-    expect(screen.getByText(integerTypeLabel)).toBeInTheDocument();
-  });
-
-  it('should render number type label', () => {
-    renderItemFieldType({ fieldNode: numberDefinitionNodeMock });
-    expect(screen.getByText(numberTypeLabel)).toBeInTheDocument();
-  });
-
-  it('should render kind label', () => {
+  it('should render combination kind label', () => {
     renderItemFieldType({ fieldNode: defaultNode });
     expect(screen.getByText(combinationKindLabel)).toBeInTheDocument();
   });
