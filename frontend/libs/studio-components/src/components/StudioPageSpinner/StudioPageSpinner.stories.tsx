@@ -5,7 +5,7 @@ import { StudioPageSpinner } from './StudioPageSpinner';
 type Story = StoryFn<typeof StudioPageSpinner>;
 
 const meta: Meta = {
-  title: 'StudioPageSpinner',
+  title: 'Components/StudioPageSpinner',
   component: StudioPageSpinner,
 };
 export const Preview: Story = (args): React.ReactElement => <StudioPageSpinner {...args} />;
