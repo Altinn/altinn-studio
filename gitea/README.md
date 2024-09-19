@@ -27,7 +27,7 @@ The files located in [./files/locale/base](./files/locale/base) are the original
 - [Norwegian locale](./files/locale/base/locale_nb-NO.ini) : Update it using https://crowdin.com/project/gitea/no. Crowdin only contains the latest version, so you must ensure that the keys match the version your are upgrading to.
 
 > :warning:
-> DO NOT make custom changes to these files, as they will be overwritten during future upgrades. If you need to make changes, you can either :
+> Do not make custom changes to these files, as they will be overwritten during future upgrades. If you need to make changes, you can either :
 >
 > - Submit your changes via [Crowdin](https://crowdin.com/project/gitea) for the Norwegian version, and download the updated file that includes your changes
 > - Add custom translations to our custom locale files (see below)
