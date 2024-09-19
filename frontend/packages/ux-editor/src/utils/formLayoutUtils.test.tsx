@@ -24,6 +24,7 @@ import {
   findLayoutsContainingDuplicateComponents,
   getAllDescendants,
   getAllFormItemIds,
+  getAllLayoutComponents,
 } from './formLayoutUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { IInternalLayout } from '../types/global';
@@ -679,5 +680,14 @@ describe('formLayoutUtils', () => {
       groupInGroupId,
       paragraphInGroupInGroupId,
     ]);
+  });
+
+  describe('getAllLayoutComponents', () => {
+    it('Returns all components in the given layout, excluding types in the exclude list', () => {
+      const layout = { ...mockInternal };
+      expect(getAllLayoutComponents(layout, [ComponentType.Paragraph])).toEqual([
+        mockInternal.components[headerId],
+      ]);
+    });
   });
 });
