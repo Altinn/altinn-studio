@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { StudioAvatar, type StudioAvatarProps } from './StudioAvatar';
+import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 
 describe('StudioAvatar', () => {
   it('should render the default PersonCircleIcon when imageDetails is not provided', () => {
@@ -23,6 +24,12 @@ describe('StudioAvatar', () => {
     expect(imgElement).toHaveAttribute('src', avatarElement.src);
     expect(imgElement).toHaveAttribute('alt', avatarElement.alt);
     expect(imgElement).toHaveAttribute('title', avatarElement.title);
+  });
+
+  it('Appends given classname to internal classname', () => {
+    testRootClassNameAppending((className) =>
+      renderStudioAvatar({ componentProps: { avatarElement: { className } } }),
+    );
   });
 });
 

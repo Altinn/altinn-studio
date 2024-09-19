@@ -3,5 +3,5 @@
 
   width: var(--avatar-size);
   height: var(--avatar-size);
-  border-radius: 100%;
+  border-radius: 50%;
 }
