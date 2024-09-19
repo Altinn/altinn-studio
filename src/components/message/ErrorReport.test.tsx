@@ -90,17 +90,29 @@ describe('ErrorReport', () => {
   });
 
   it('should list unbound mapped error as unclickable', async () => {
-    await render([
-      {
-        customTextKey: 'some unbound mapped error',
-        field: 'unboundField',
-        dataElementId: defaultMockDataElementId,
-        severity: BackendValidationSeverity.Error,
-        source: 'custom',
-      } as BackendValidationIssue,
-    ]);
+    const { mutations } = await render();
 
     await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
+
+    mutations.doProcessNext.reject({
+      name: 'AxiosError',
+      message: 'Request failed with status code 409',
+      response: {
+        status: 409,
+        data: {
+          validationIssues: [
+            {
+              customTextKey: 'some unbound mapped error',
+              field: 'unboundField',
+              dataElementId: defaultMockDataElementId,
+              severity: BackendValidationSeverity.Error,
+              source: 'custom',
+            } as BackendValidationIssue,
+          ],
+        },
+      },
+    } as AxiosError);
+
     await screen.findByTestId('ErrorReport');
 
     // mapped errors not bound to any component should not be clickable

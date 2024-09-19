@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useEffect } from 'react';
+import React, { Fragment, useCallback, useEffect, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { createStore } from 'zustand';
@@ -9,7 +9,13 @@ import { Loader } from 'src/core/loading/Loader';
 import { useHasPendingAttachments } from 'src/features/attachments/hooks';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
+import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { BackendValidation } from 'src/features/validation/backendValidation/BackendValidation';
+import {
+  useGetCachedInitialValidations,
+  useInvalidateInitialValidations,
+} from 'src/features/validation/backendValidation/backendValidationQuery';
+import { useShouldValidateInitial } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { InvalidDataValidation } from 'src/features/validation/invalidDataValidation/InvalidDataValidation';
 import { SchemaValidation } from 'src/features/validation/schemaValidation/SchemaValidation';
 import {
@@ -19,11 +25,10 @@ import {
   selectValidations,
 } from 'src/features/validation/utils';
 import { useAsRef } from 'src/hooks/useAsRef';
-import { useIsPdf } from 'src/hooks/useIsPdf';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type {
-  BackendFieldValidatorGroups,
+  BackendValidationIssue,
   BackendValidationIssueGroups,
   BaseValidation,
   DataModelValidations,
@@ -39,8 +44,8 @@ interface Internals {
     schema: DataModelValidations;
     invalidData: DataModelValidations;
   };
-  issueGroupsProcessedLast: BackendValidationIssueGroups | BackendFieldValidatorGroups | undefined; // This should only be used to check if we have finished processing the last validations from backend so that we know if the validation state is up to date
-  updateTaskValidations: (validations: BaseValidation[]) => void;
+  incrementalProcessedLast: BackendValidationIssueGroups | undefined; // This should only be used to check if we have finished processing the last validations from backend so that we know if the validation state is up to date
+  initialProcessedLast: BackendValidationIssue[] | undefined; // This should only be used to check if we have finished processing the last validations from backend so that we know if the validation state is up to date
   /**
    * updateDataModelValidations
    * if validations is undefined, nothing will be changed
@@ -52,7 +57,8 @@ interface Internals {
   ) => void;
   updateBackendValidations: (
     backendValidations: { [dataType: string]: FieldValidations } | undefined,
-    processedLast?: BackendValidationIssueGroups | BackendFieldValidatorGroups,
+    processedLast?: { incremental?: BackendValidationIssueGroups; initial?: BackendValidationIssue[] },
+    taskValdiations?: BaseValidation[],
   ) => void;
   updateValidating: (validating: WaitForValidation) => void;
 }
@@ -81,11 +87,8 @@ function initialCreateStore() {
         schema: {},
         invalidData: {},
       },
-      issueGroupsProcessedLast: {},
-      updateTaskValidations: (validations) =>
-        set((state) => {
-          state.state.task = validations;
-        }),
+      incrementalProcessedLast: undefined,
+      initialProcessedLast: undefined,
       updateDataModelValidations: (key, dataType, validations) =>
         set((state) => {
           if (validations) {
@@ -98,10 +101,16 @@ function initialCreateStore() {
             );
           }
         }),
-      updateBackendValidations: (backendValidations, processedLast) =>
+      updateBackendValidations: (backendValidations, processedLast, taskValdiations) =>
         set((state) => {
-          if (processedLast) {
-            state.issueGroupsProcessedLast = processedLast;
+          if (processedLast?.incremental) {
+            state.incrementalProcessedLast = processedLast.incremental;
+          }
+          if (processedLast?.initial) {
+            state.initialProcessedLast = processedLast.initial;
+          }
+          if (taskValdiations) {
+            state.state.task = taskValdiations;
           }
           if (backendValidations) {
             state.individualValidations.backend = backendValidations;
@@ -158,11 +167,12 @@ function useWaitForValidation(): WaitForValidation {
   const waitForAttachments = useWaitForState(pendingAttachmentsRef);
 
   const hasWritableDataTypes = !!DataModels.useWritableDataTypes()?.length;
-  const isPDF = useIsPdf();
+  const enabled = useShouldValidateInitial();
+  const getCachedInitialValidations = useGetCachedInitialValidations();
 
   return useCallback(
     async (forceSave = true) => {
-      if (isPDF || !hasWritableDataTypes) {
+      if (!enabled || !hasWritableDataTypes) {
         return;
       }
 
@@ -173,13 +183,25 @@ function useWaitForValidation(): WaitForValidation {
       const validationsFromSave = await waitForSave(forceSave);
       await waitForNodesReady();
       // If validationsFromSave is not defined, we check if initial validations are done processing
-      await waitForState(
-        (state) =>
-          (!!validationsFromSave && state.issueGroupsProcessedLast === validationsFromSave) ||
-          !!state.issueGroupsProcessedLast,
-      );
+      await waitForState((state) => {
+        const { isFetching, cachedInitialValidations } = getCachedInitialValidations();
+
+        return (
+          state.incrementalProcessedLast === validationsFromSave &&
+          state.initialProcessedLast === cachedInitialValidations &&
+          !isFetching
+        );
+      });
     },
-    [isPDF, hasWritableDataTypes, waitForAttachments, waitForNodesReady, waitForSave, waitForState],
+    [
+      enabled,
+      getCachedInitialValidations,
+      hasWritableDataTypes,
+      waitForAttachments,
+      waitForNodesReady,
+      waitForSave,
+      waitForState,
+    ],
   );
 }
 
@@ -212,6 +234,19 @@ function UpdateShowAllErrors() {
   const taskValidations = useSelector((state) => state.state.task);
   const dataModelValidations = useSelector((state) => state.state.dataModels);
   const setShowAllErrors = useSelector((state) => state.setShowAllErrors);
+
+  const isFirstRender = useRef(true);
+  const lastSaved = FD.useLastSaveValidationIssues();
+  const instanceData = useLaxInstanceData();
+  const invalidateInitialValidations = useInvalidateInitialValidations();
+  useEffect(() => {
+    // No need to invalidate initial validations right away
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    invalidateInitialValidations();
+  }, [invalidateInitialValidations, instanceData, lastSaved]);
 
   /**
    * Hide unbound errors as soon as possible.
@@ -252,9 +287,15 @@ export const Validation = {
   useSelector: () => useDS((state) => state),
   useDataModelSelector: () => useDS((state) => state.state.dataModels),
 
-  useSetShowAllErrors: () => useSelector((state) => state.setShowAllErrors),
+  useSetShowAllErrors: () =>
+    useLaxSelector((state) => async () => {
+      // Make sure we have finished processing validations before setting showAllErrors.
+      // This is because we automatically turn off this state as soon as possible.
+      // If the validations to show have not finished processing, this could get turned off before they ever became visible.
+      state.validating && (await state.validating());
+      state.setShowAllErrors(true);
+    }),
   useValidating: () => useSelector((state) => state.validating!),
-  useUpdateTaskValidations: () => useLaxSelector((state) => state.updateTaskValidations),
   useUpdateDataModelValidations: () => useSelector((state) => state.updateDataModelValidations),
   useUpdateBackendValidations: () => useSelector((state) => state.updateBackendValidations),
 

@@ -17,14 +17,17 @@ export type ValidationSeverity = 'error' | 'warning' | 'info' | 'success';
 
 export enum BuiltInValidationIssueSources {
   File = 'File',
-  ModelState = 'DataAnnotations',
+  DataAnnotations = 'DataAnnotations',
   Required = 'Required',
   Expression = 'Expression',
+  DefaultTaskValidator = 'Altinn.App.Core.Features.Validation.Default.DefaultTaskValidator-*',
 }
 
-// TODO(Datamodels): Ignore unecessary validations
-// This requires some changes to how we check validations before submit, and how we show validations after submit if it fails with validation messages
-export const IgnoredValidators: BuiltInValidationIssueSources[] = []; // [BuiltInValidationIssueSources.Required, BuiltInValidationIssueSources.Expression];
+export const IgnoredValidators: BuiltInValidationIssueSources[] = [
+  BuiltInValidationIssueSources.DataAnnotations,
+  BuiltInValidationIssueSources.Required,
+  BuiltInValidationIssueSources.Expression,
+];
 
 export enum BackendValidationSeverity {
   Error = 1,
@@ -65,8 +68,8 @@ export type ValidationContext = {
   validating: WaitForValidation | undefined;
 
   /**
-   * This is a last resort to show all errors, to prevent unknown error
-   * if this is ever visible, there is probably something wrong in the app.
+   * If there are no frontend errors, but process next still returns validation errors,
+   * this will show all backend errors.
    */
   setShowAllErrors: (showAllErrors: boolean) => void;
   showAllErrors: boolean;

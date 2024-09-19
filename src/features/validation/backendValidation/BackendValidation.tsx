@@ -4,38 +4,37 @@ import deepEqual from 'fast-deep-equal';
 
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
-import {
-  type BackendFieldValidatorGroups,
-  type BuiltInValidationIssueSources,
-  IgnoredValidators,
-} from 'src/features/validation';
+import { type BackendFieldValidatorGroups } from 'src/features/validation';
+import { useBackendValidationQuery } from 'src/features/validation/backendValidation/backendValidationQuery';
 import {
   mapBackendIssuesToFieldValdiations,
+  mapBackendIssuesToTaskValidations,
   mapValidatorGroupsToDataModelValidations,
+  useShouldValidateInitial,
 } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { Validation } from 'src/features/validation/validationContext';
+
+const emptyObject = {};
+const emptyArray = [];
 
 export function BackendValidation({ dataTypes }: { dataTypes: string[] }) {
   const updateBackendValidations = Validation.useUpdateBackendValidations();
   const getDataTypeForElementId = DataModels.useGetDataTypeForDataElementId();
   const lastSaveValidations = FD.useLastSaveValidationIssues();
+  const validatorGroups = useRef<BackendFieldValidatorGroups>({});
 
   // Map initial validations
-  const initialValidations = DataModels.useInitialValidations();
+  const enabled = useShouldValidateInitial();
+  const { data: initialValidations, isFetching } = useBackendValidationQuery(enabled);
   const initialValidatorGroups: BackendFieldValidatorGroups = useMemo(() => {
     if (!initialValidations) {
-      return {};
+      return emptyObject;
     }
     // Note that we completely ignore task validations (validations not related to form data) on initial validations,
     // this is because validations like minimum number of attachments in application metadata is not really useful to show initially
     const fieldValidations = mapBackendIssuesToFieldValdiations(initialValidations, getDataTypeForElementId);
     const validatorGroups: BackendFieldValidatorGroups = {};
     for (const validation of fieldValidations) {
-      // Do not include ignored ignored validators in initial validations
-      if (IgnoredValidators.includes(validation.source as BuiltInValidationIssueSources)) {
-        continue;
-      }
-
       if (!validatorGroups[validation.source]) {
         validatorGroups[validation.source] = [];
       }
@@ -44,13 +43,29 @@ export function BackendValidation({ dataTypes }: { dataTypes: string[] }) {
     return validatorGroups;
   }, [getDataTypeForElementId, initialValidations]);
 
+  // Map task validations
+  const initialTaskValidations = useMemo(() => {
+    if (!initialValidations) {
+      return emptyArray;
+    }
+    return mapBackendIssuesToTaskValidations(initialValidations);
+  }, [initialValidations]);
+
   // Initial validation
   useEffect(() => {
-    const backendValidations = mapValidatorGroupsToDataModelValidations(initialValidatorGroups, dataTypes);
-    updateBackendValidations(backendValidations, initialValidatorGroups);
-  }, [dataTypes, initialValidatorGroups, updateBackendValidations]);
-
-  const validatorGroups = useRef<BackendFieldValidatorGroups>(initialValidatorGroups);
+    if (!isFetching) {
+      validatorGroups.current = initialValidatorGroups;
+      const backendValidations = mapValidatorGroupsToDataModelValidations(initialValidatorGroups, dataTypes);
+      updateBackendValidations(backendValidations, { initial: initialValidations }, initialTaskValidations);
+    }
+  }, [
+    dataTypes,
+    initialTaskValidations,
+    initialValidations,
+    initialValidatorGroups,
+    isFetching,
+    updateBackendValidations,
+  ]);
 
   // Incremental validation: Update validators and propagate changes to validationcontext
   useEffect(() => {
@@ -63,13 +78,13 @@ export function BackendValidation({ dataTypes }: { dataTypes: string[] }) {
 
       if (deepEqual(validatorGroups.current, newValidatorGroups)) {
         // Dont update any validations, only set last saved validations
-        updateBackendValidations(undefined, lastSaveValidations);
+        updateBackendValidations(undefined, { incremental: lastSaveValidations });
         return;
       }
 
       validatorGroups.current = newValidatorGroups;
       const backendValidations = mapValidatorGroupsToDataModelValidations(validatorGroups.current, dataTypes);
-      updateBackendValidations(backendValidations, lastSaveValidations);
+      updateBackendValidations(backendValidations, { incremental: lastSaveValidations });
     }
   }, [dataTypes, getDataTypeForElementId, lastSaveValidations, updateBackendValidations]);
 

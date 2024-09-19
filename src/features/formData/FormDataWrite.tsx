@@ -20,6 +20,7 @@ import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { getFormDataQueryKey } from 'src/features/formData/useFormDataQuery';
 import { useLaxInstance } from 'src/features/instance/InstanceContext';
 import { type BackendValidationIssueGroups, IgnoredValidators } from 'src/features/validation';
+import { useIsUpdatingInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import { doPatchMultipleFormData } from 'src/queries/queries';
@@ -312,6 +313,7 @@ function FormDataEffects() {
 
   const { mutate: performSave, error } = useFormDataSaveMutation();
   const isSaving = useIsSaving();
+  const isUpdatingInitialValidaitons = useIsUpdatingInitialValidations();
   const debounce = useDebounceImmediately();
   const hasUnsavedChangesNow = useHasUnsavedChangesNow();
 
@@ -356,7 +358,7 @@ function FormDataEffects() {
 
   // Save the data model when the data has been frozen/debounced, and we're ready
   const needsToSave = useSelector(hasDebouncedUnsavedChanges);
-  const canSaveNow = !isSaving && !lockedBy;
+  const canSaveNow = !isSaving && !lockedBy && !isUpdatingInitialValidaitons;
   const shouldSave = (needsToSave && canSaveNow && autoSaving) || manualSaveRequested;
 
   useEffect(() => {

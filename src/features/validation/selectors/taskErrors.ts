@@ -37,27 +37,30 @@ export function useTaskErrors(): {
   }, [nodeValidationsSelector, traversalSelector]);
 
   const taskErrors = useMemo(() => {
-    const taskErrors: BaseValidation<'error'>[] = [];
+    if (!selector((state) => state.showAllErrors, [])) {
+      return emptyArray;
+    }
 
-    const taskValidations = selector((state) => state.state.task, []);
-    const allShown = selector(
-      (state) => (state.showAllErrors ? { dataModels: state.state.dataModels } : undefined),
-      [],
-    );
-    if (allShown) {
-      const backendMask = getVisibilityMask(['Backend', 'CustomBackend']);
-      for (const fields of Object.values(allShown.dataModels)) {
-        for (const field of Object.values(fields)) {
-          taskErrors.push(...(selectValidations(field, backendMask, 'error') as BaseValidation<'error'>[]));
-        }
+    const allBackendErrors: BaseValidation<'error'>[] = [];
+
+    // Show all backend errors
+    const mask = getVisibilityMask(['Backend', 'CustomBackend']);
+    const dataModels = selector((state) => state.state.dataModels, []);
+    for (const fields of Object.values(dataModels)) {
+      for (const field of Object.values(fields)) {
+        allBackendErrors.push(...(selectValidations(field, mask, 'error') as BaseValidation<'error'>[]));
       }
     }
 
-    for (const validation of validationsOfSeverity(taskValidations, 'error')) {
-      taskErrors.push(validation);
-    }
+    // Task errors
+    allBackendErrors.push(
+      ...validationsOfSeverity(
+        selector((state) => state.state.task, []),
+        'error',
+      ),
+    );
 
-    return taskErrors;
+    return allBackendErrors;
   }, [selector]);
 
   return useMemo(() => ({ formErrors, taskErrors }), [formErrors, taskErrors]);

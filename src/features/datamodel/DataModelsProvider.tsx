@@ -24,13 +24,11 @@ import { useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
-import { useBackendValidationQuery } from 'src/features/validation/backendValidation/backendValidationQuery';
-import { useShouldValidateInitial } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { useIsPdf } from 'src/hooks/useIsPdf';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import type { SchemaLookupTool } from 'src/features/datamodel/useDataModelSchemaQuery';
-import type { BackendValidationIssue, IExpressionValidations } from 'src/features/validation';
+import type { IExpressionValidations } from 'src/features/validation';
 import type { IDataModelReference } from 'src/layout/common.generated';
 
 interface DataModelsState {
@@ -39,7 +37,6 @@ interface DataModelsState {
   writableDataTypes: string[] | null;
   initialData: { [dataType: string]: object };
   dataElementIds: { [dataType: string]: string | null };
-  initialValidations: BackendValidationIssue[] | null;
   schemas: { [dataType: string]: JSONSchema7 };
   schemaLookup: { [dataType: string]: SchemaLookupTool };
   expressionValidationConfigs: { [dataType: string]: IExpressionValidations | null };
@@ -49,7 +46,6 @@ interface DataModelsState {
 interface DataModelsMethods {
   setDataTypes: (allDataTypes: string[], writableDataTypes: string[], defaultDataType: string | undefined) => void;
   setInitialData: (dataType: string, initialData: object, dataElementId: string | null) => void;
-  setInitialValidations: (initialValidations: BackendValidationIssue[]) => void;
   setDataModelSchema: (dataType: string, schema: JSONSchema7, lookupTool: SchemaLookupTool) => void;
   setExpressionValidationConfig: (dataType: string, config: IExpressionValidations | null) => void;
   setError: (error: Error) => void;
@@ -83,7 +79,6 @@ function initialCreateStore() {
         },
       }));
     },
-    setInitialValidations: (initialValidations) => set({ initialValidations }),
     setDataModelSchema: (dataType, schema, lookupTool) => {
       set((state) => ({
         schemas: {
@@ -187,7 +182,6 @@ function DataModelsLoader() {
           <LoadSchema dataType={dataType} />
         </React.Fragment>
       ))}
-      <LoadInitialValidations />
       {writableDataTypes?.map((dataType) => (
         <React.Fragment key={dataType}>
           <LoadExpressionValidationConfig dataType={dataType} />
@@ -198,17 +192,10 @@ function DataModelsLoader() {
 }
 
 function BlockUntilLoaded({ children }: PropsWithChildren) {
-  const {
-    allDataTypes,
-    writableDataTypes,
-    initialData,
-    initialValidations,
-    schemas,
-    expressionValidationConfigs,
-    error,
-  } = useSelector((state) => state);
+  const { allDataTypes, writableDataTypes, initialData, schemas, expressionValidationConfigs, error } = useSelector(
+    (state) => state,
+  );
   const isPDF = useIsPdf();
-  const shouldValidateInitial = useShouldValidateInitial();
   const isLoadingFormData = useIsLoadingFormData();
 
   if (error) {
@@ -239,10 +226,6 @@ function BlockUntilLoaded({ children }: PropsWithChildren) {
     if (!Object.keys(schemas).includes(dataType)) {
       return <Loader reason='data-model-schema' />;
     }
-  }
-
-  if (shouldValidateInitial && !initialValidations) {
-    return <Loader reason='initial-validations' />;
   }
 
   for (const dataType of writableDataTypes) {
@@ -283,29 +266,6 @@ function LoadInitialData({ dataType }: LoaderProps) {
       hasBeenSet.current = true;
     }
   }, [data, dataElementId, dataType, setInitialData, url]);
-
-  useEffect(() => {
-    error && setError(error);
-  }, [error, setError]);
-
-  return null;
-}
-
-function LoadInitialValidations() {
-  const setInitialValidations = useSelector((state) => state.setInitialValidations);
-  const setError = useSelector((state) => state.setError);
-  // No need to load validations in PDF or stateless apps
-  const isStateless = useApplicationMetadata().isStatelessApp;
-  const enabled = useShouldValidateInitial();
-  const { data, error } = useBackendValidationQuery(enabled);
-
-  useEffect(() => {
-    if (isStateless) {
-      setInitialValidations([]);
-    } else if (data) {
-      setInitialValidations(data);
-    }
-  }, [data, isStateless, setInitialValidations]);
 
   useEffect(() => {
     error && setError(error);
@@ -364,8 +324,6 @@ export const DataModels = {
   useLaxReadableDataTypes: () => useLaxMemoSelector((state) => state.allDataTypes!),
 
   useWritableDataTypes: () => useMemoSelector((state) => state.writableDataTypes!),
-
-  useInitialValidations: () => useMemoSelector((state) => state.initialValidations),
 
   useDataModelSchema: (dataType: string) => useSelector((state) => state.schemas[dataType]),
 

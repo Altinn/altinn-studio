@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
+import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type { BackendValidationIssue } from '..';
 
@@ -24,6 +24,51 @@ export function useBackendValidationQueryDef(
     enabled,
     gcTime: 0,
   };
+}
+
+export function useGetCachedInitialValidations() {
+  const instance = useLaxInstance();
+  const instanceId = instance?.instanceId;
+  const currentProcessTaskId = useLaxProcessData()?.currentTask?.elementId;
+  const client = useQueryClient();
+
+  return useCallback(() => {
+    const queryKey = ['validation', instanceId, currentProcessTaskId, true];
+    return {
+      isFetching: client.isFetching({ queryKey }),
+      cachedInitialValidations: client.getQueryData(queryKey),
+    };
+  }, [client, currentProcessTaskId, instanceId]);
+}
+
+export function useUpdateInitialValidations() {
+  const instance = useLaxInstance();
+  const instanceId = instance?.instanceId;
+  const currentProcessTaskId = useLaxProcessData()?.currentTask?.elementId;
+  const client = useQueryClient();
+
+  return useCallback(
+    (validations: BackendValidationIssue[]) => {
+      client.setQueryData(['validation', instanceId, currentProcessTaskId, true], validations);
+    },
+    [client, currentProcessTaskId, instanceId],
+  );
+}
+
+export function useIsUpdatingInitialValidations() {
+  return useIsFetching({ queryKey: ['validation'] }) > 0;
+}
+
+export function useInvalidateInitialValidations() {
+  const instance = useLaxInstance();
+  const instanceId = instance?.instanceId;
+  const currentProcessTaskId = useLaxProcessData()?.currentTask?.elementId;
+  const client = useQueryClient();
+
+  return useCallback(
+    () => client.invalidateQueries({ queryKey: ['validation', instanceId, currentProcessTaskId, true] }),
+    [client, currentProcessTaskId, instanceId],
+  );
 }
 
 export function useBackendValidationQuery(enabled: boolean) {

@@ -94,7 +94,7 @@ const errorTypes: { [type in string]: { textKey: string; paramKey: string } | un
   },
   const: {
     textKey: 'enum',
-    paramKey: 'allowedValues',
+    paramKey: 'allowedValue',
   },
   multipleOf: {
     textKey: 'multipleOf',

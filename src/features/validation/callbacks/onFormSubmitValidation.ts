@@ -3,7 +3,6 @@ import { useCallback } from 'react';
 import { ValidationMask } from '..';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { getVisibilityMask, selectValidations } from 'src/features/validation/utils';
 import { Validation } from 'src/features/validation/validationContext';
 import { useEffectEvent } from 'src/hooks/useEffectEvent';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
@@ -33,11 +32,8 @@ export function useOnFormSubmitValidation() {
       return false;
     }
 
-    const state = validation.current.state;
-    const setShowAllErrors = validation.current.setShowAllErrors;
-
     /*
-     * First: check and show any frontend errors
+     * Check if there are any frontend validation errors, and if so, show them now and block submit
      */
     const nodesWithFrontendErrors = traversalSelector(
       (t) => t.allNodes().filter((n) => nodeValidationsSelector(n, ValidationMask.All, 'error').length > 0),
@@ -51,36 +47,6 @@ export function useOnFormSubmitValidation() {
 
     if (nodesWithFrontendErrors.length > 0) {
       setNodeVisibility(nodesWithFrontendErrors, ValidationMask.All);
-      return true;
-    }
-
-    /*
-     * Normally, backend errors should be in sync with frontend errors.
-     * But if not, show them now.
-     */
-    const nodesWithAnyError = traversalSelector(
-      (t) =>
-        t.allNodes().filter((n) => nodeValidationsSelector(n, ValidationMask.AllIncludingBackend, 'error').length > 0),
-      [nodeValidationsSelector],
-    );
-
-    if (nodesWithAnyError !== ContextNotProvided && nodesWithAnyError.length > 0) {
-      setNodeVisibility(nodesWithAnyError, ValidationMask.AllIncludingBackend);
-      return true;
-    }
-
-    /**
-     * As a last resort, to prevent unknown error, show any backend errors
-     * that cannot be mapped to any visible node.
-     */
-    const backendMask = getVisibilityMask(['Backend', 'CustomBackend']);
-    const hasFieldErrors =
-      Object.values(state.dataModels)
-        .flatMap((fields) => Object.values(fields))
-        .flatMap((field) => selectValidations(field, backendMask, 'error')).length > 0;
-
-    if (hasFieldErrors) {
-      setShowAllErrors(true);
       return true;
     }
 
