@@ -2,7 +2,6 @@ import React from 'react';
 import type { IToolbarElement } from '../../types/global';
 import { CollapsableMenus } from '../../types/global';
 import { mapComponentToToolbarElement } from '../../utils/formLayoutUtils';
-import './DefaultToolbar.css';
 import classes from './DefaultToolbar.module.css';
 import { useTranslation } from 'react-i18next';
 import { schemaComponents, textComponents, advancedItems } from '../../data/formItemConfig';
