@@ -2,8 +2,11 @@
 
 The routine for upgrading Gitea can be found [here](https://github.com/Altinn/altinnpedia/blob/main/content/altinn-3/ops/patching/containers/_index.md#gitea) in Norwegian, but in short :
 
-- /!\ Do not upgrade to the first patch version `x.x.0`, wait until the major version is stable
-- /!\ Ensure all custom files (configuration, templates, and locales) are up to date, as they may change between releases
+> **Warning**
+> Do not upgrade to the first patch version `x.x.0`, wait until the major version is stable
+
+> **Warning**
+> Ensure all custom files (configuration, templates, and locales) are up to date, as they may change between releases
 
 ## Updating configuration
 
@@ -21,16 +24,17 @@ The files located in [./files/locale/base](./files/locale/base) are the original
 
 - [English locale](./files/locale/base/locale_en-US.ini) : Update it using https://github.com/go-gitea/gitea/tree/release/v{VERSION}/options/locale/locale_en-US.ini.
 
-- [Norwegian locale](./files/locale/base/locale_nb-NO.ini) : Update it using https://crowdin.com/project/gitea/no. Crowdin only contain the latest version so you must ensure that the keys match the version your are upgrading to.
+- [Norwegian locale](./files/locale/base/locale_nb-NO.ini) : Update it using https://crowdin.com/project/gitea/no. Crowdin only contains the latest version, so you must ensure that the keys match the version your are upgrading to.
 
-/!\ DO NOT make custom changes to these files, as they will be overwritten during future upgrades. If you need to make changes, you can either :
-
-- Submit your changes via [Crowdin](https://crowdin.com/project/gitea) for the Norwegian version, and download the updated file that includes your changes
-- Add custom translations to our custom locale files (see below)
+> **Warning**
+> DO NOT make custom changes to these files, as they will be overwritten during future upgrades. If you need to make changes, you can either :
+>
+> - Submit your changes via [Crowdin](https://crowdin.com/project/gitea) for the Norwegian version, and download the updated file that includes your changes
+> - Add custom translations to our custom locale files (see below)
 
 ### Updating custom locales
 
-The files located in [./files/locale/custom](./files/locale/custom) are our custom translations for Studio. Ensure that all keys in these files are still in use when upgrading Gitea to a newer version.
+The files located in [./files/locale/custom](./files/locale/custom) are our custom locales for Studio. Ensure that all keys in these files are still in use when upgrading Gitea to a newer version.
 
 ## Useful commands
 
