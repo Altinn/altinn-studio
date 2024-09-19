@@ -2,10 +2,10 @@
 
 The routine for upgrading Gitea can be found [here](https://github.com/Altinn/altinnpedia/blob/main/content/altinn-3/ops/patching/containers/_index.md#gitea) in Norwegian, but in short :
 
-> **Warning**
+> :warning:
 > Do not upgrade to the first patch version `x.x.0`, wait until the major version is stable
 
-> **Warning**
+> :warning:
 > Ensure all custom files (configuration, templates, and locales) are up to date, as they may change between releases
 
 ## Updating configuration
@@ -26,7 +26,7 @@ The files located in [./files/locale/base](./files/locale/base) are the original
 
 - [Norwegian locale](./files/locale/base/locale_nb-NO.ini) : Update it using https://crowdin.com/project/gitea/no. Crowdin only contains the latest version, so you must ensure that the keys match the version your are upgrading to.
 
-> **Warning**
+> :warning:
 > DO NOT make custom changes to these files, as they will be overwritten during future upgrades. If you need to make changes, you can either :
 >
 > - Submit your changes via [Crowdin](https://crowdin.com/project/gitea) for the Norwegian version, and download the updated file that includes your changes
