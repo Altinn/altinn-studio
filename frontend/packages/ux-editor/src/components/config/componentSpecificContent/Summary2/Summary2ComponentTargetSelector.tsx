@@ -1,5 +1,6 @@
 import React from 'react';
 import { StudioCombobox } from '@studio/components';
+import { useTranslation } from 'react-i18next';
 
 type Summary2ComponentTargetIdProps = {
   label: string;
@@ -15,13 +16,14 @@ export const Summmary2ComponentTargetSelector = ({
   onValueChange,
 }: Summary2ComponentTargetIdProps) => {
   const invalidOption = Boolean(value) && !options.some((option) => option.id === value);
+  const { t } = useTranslation();
   return (
     <StudioCombobox
       size='small'
       label={label}
       value={value ? [value] : []}
       onValueChange={(v) => onValueChange(v[0])}
-      error={invalidOption} // TODO: Add error message
+      error={invalidOption ? t('ux_editor.component_properties.target_invalid') : false}
       multiple={false}
     >
       {options.map((option) => (

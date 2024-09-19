@@ -53,7 +53,7 @@ export const Summary2Component = ({
   const targetTypes = [
     { value: 'page', label: t('general.page') },
     { value: 'component', label: t('general.component') },
-    { value: 'layoutSet', label: t('general.layout_sets') },
+    { value: 'layoutSet', label: t('general.layout_set') },
   ];
 
   return (
@@ -94,7 +94,7 @@ export const Summary2Component = ({
         {target.type === 'layoutSet' && (
           <StudioTextfield
             size='small'
-            label={t('general.layout_sets')}
+            label={t('general.layout_set')}
             value={selectedFormLayoutSetName}
             disabled={true}
           />
@@ -108,4 +108,5 @@ export const Summary2Component = ({
  * Added translation keys
  * ux_editor.component_properties.target_description
  * ux_editor.component_properties.target_type
+ * ux_editor.component_properties.target_invalid
  */
