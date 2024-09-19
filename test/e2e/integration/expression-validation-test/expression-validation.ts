@@ -14,19 +14,19 @@ describe('Expression validation', () => {
     cy.findByRole('textbox', { name: /etternavn/i }).type('Hansen');
 
     cy.findByRole('textbox', { name: /alder/i }).type('17');
-    cy.findByRole('alert', { name: /skriftlige samtykke/i }).should('be.visible');
+    cy.findByText(/skriftlige samtykke/i).should('be.visible');
     cy.get(appFrontend.errorReport).should('not.exist');
     cy.findByRole('textbox', { name: /alder/i }).clear();
     cy.findByRole('textbox', { name: /alder/i }).type('14');
-    cy.findByRole('alert', { name: /skriftlige samtykke/i }).should('not.exist');
+    cy.findByText(/skriftlige samtykke/i).should('not.exist');
     cy.get(appFrontend.errorReport).should('contain.text', 'Minste gyldig tall er 15');
     cy.findByRole('textbox', { name: /alder/i }).clear();
     cy.findByRole('textbox', { name: /alder/i }).type('15');
-    cy.findByRole('alert', { name: /skriftlige samtykke/i }).should('be.visible');
+    cy.findByText(/skriftlige samtykke/i).should('be.visible');
     cy.get(appFrontend.errorReport).should('not.exist');
     cy.findByRole('textbox', { name: /alder/i }).clear();
     cy.findByRole('textbox', { name: /alder/i }).type('18');
-    cy.findByRole('alert', { name: /skriftlige samtykke/i }).should('not.exist');
+    cy.findByText(/skriftlige samtykke/i).should('not.exist');
     cy.get(appFrontend.errorReport).should('not.exist');
 
     cy.dsSelect(appFrontend.expressionValidationTest.kjønn, 'Mann');
@@ -64,7 +64,7 @@ describe('Expression validation', () => {
 
     cy.findByRole('button', { name: /send inn/i }).click();
     cy.get(appFrontend.errorReport).should('be.visible');
-    cy.findByRole('alert', { name: /skriftlige samtykke/i }).should('be.visible');
+    cy.findByText(/skriftlige samtykke/i).should('be.visible');
     cy.gotoNavPage('Skjul felter');
 
     cy.get(appFrontend.errorReport).should('contain.text', 'Du må fylle ut fornavn');

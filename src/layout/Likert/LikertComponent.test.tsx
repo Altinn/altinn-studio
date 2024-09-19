@@ -226,7 +226,7 @@ describe('RepeatingGroupsLikertContainer', () => {
       await waitFor(() => {
         expect(screen.getByRole('table')).toBeInTheDocument();
       });
-      expect(screen.getByRole('alert')).toHaveTextContent('Feltet er påkrevd');
+      expect(screen.getByText(/feltet er påkrevd/i)).toBeInTheDocument();
     });
 
     it('should render 2 validations', async () => {
@@ -239,7 +239,7 @@ describe('RepeatingGroupsLikertContainer', () => {
       await waitFor(() => {
         expect(screen.getByRole('table')).toBeInTheDocument();
       });
-      expect(screen.getAllByRole('alert')).toHaveLength(2);
+      expect(screen.getAllByText(/feltet er påkrevd/i)).toHaveLength(2);
     });
 
     it('should display title and description', async () => {
@@ -354,7 +354,7 @@ describe('RepeatingGroupsLikertContainer', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByRole('alert')).toHaveTextContent('Feltet er påkrevd');
+        expect(screen.getByText(/feltet er påkrevd/i)).toBeInTheDocument();
       });
     });
 

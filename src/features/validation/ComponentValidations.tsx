@@ -1,12 +1,10 @@
 import React from 'react';
 
-import { ErrorMessage } from '@digdir/designsystemet-react';
+import { Alert as AlertDesignSystem, ErrorMessage } from '@digdir/designsystemet-react';
 
 import { Lang } from 'src/features/language/Lang';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
-import { AlertBaseComponent } from 'src/layout/Alert/AlertBaseComponent';
 import { useCurrentNode } from 'src/layout/FormComponentContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
@@ -32,16 +30,13 @@ export function ComponentValidations({ validations, node: _node }: Props) {
   const inputMaxLength = useNodeItem(node, (i) =>
     i.type === 'Input' || i.type === 'TextArea' ? i.maxLength : undefined,
   );
-  if (!validations || validations.length === 0 || !node) {
-    return null;
-  }
 
   // If maxLength is set in both schema and component, don't display the schema error message here.
   // TODO: This should preferably be implemented in the Input component, via ValidationFilter, but that causes
   // cypress tests in `components.ts` to fail.
   // @see https://github.com/Altinn/app-frontend-react/issues/1263
   const filteredValidations = inputMaxLength
-    ? validations.filter(
+    ? validations?.filter(
         (validation) =>
           !(
             validation.message.key === 'validation_errors.maxLength' &&
@@ -56,34 +51,41 @@ export function ComponentValidations({ validations, node: _node }: Props) {
   const success = validationsOfSeverity(filteredValidations, 'success');
 
   return (
-    <div data-validation={node.id}>
-      {errors.length > 0 && (
-        <ErrorValidations
-          validations={errors}
-          node={node}
-        />
-      )}
-      {warnings.length > 0 && (
-        <SoftValidations
-          validations={warnings}
-          variant='warning'
-          node={node}
-        />
-      )}
-      {info.length > 0 && (
-        <SoftValidations
-          validations={info}
-          variant='info'
-          node={node}
-        />
-      )}
-      {success.length > 0 && (
-        <SoftValidations
-          validations={success}
-          variant='success'
-          node={node}
-        />
-      )}
+    <div
+      aria-live='assertive'
+      style={{ display: 'contents' }}
+    >
+      {node && validations?.length ? (
+        <div data-validation={node.id}>
+          {errors.length > 0 && (
+            <ErrorValidations
+              validations={errors}
+              node={node}
+            />
+          )}
+          {warnings.length > 0 && (
+            <SoftValidations
+              validations={warnings}
+              severity='warning'
+              node={node}
+            />
+          )}
+          {info.length > 0 && (
+            <SoftValidations
+              validations={info}
+              severity='info'
+              node={node}
+            />
+          )}
+          {success.length > 0 && (
+            <SoftValidations
+              validations={success}
+              severity='success'
+              node={node}
+            />
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -92,13 +94,10 @@ function ErrorValidations({ validations, node }: { validations: BaseValidation<'
   const getUniqueKeyFromObject = useGetUniqueKeyFromObject();
 
   return (
-    <ol style={{ padding: 0, margin: 0, listStyleType: 'none' }}>
+    <ul style={{ padding: 0, margin: 0, listStyleType: 'none' }}>
       {validations.map((validation) => (
         <li key={getUniqueKeyFromObject(validation)}>
-          <ErrorMessage
-            role='alert'
-            size='small'
-          >
+          <ErrorMessage size='small'>
             <Lang
               id={validation.message.key}
               params={validation.message.params}
@@ -107,41 +106,30 @@ function ErrorValidations({ validations, node }: { validations: BaseValidation<'
           </ErrorMessage>
         </li>
       ))}
-    </ol>
+    </ul>
   );
 }
 
 function SoftValidations({
   validations,
-  variant,
+  severity,
   node,
 }: {
   validations: BaseValidation<'warning' | 'info' | 'success'>[];
-  variant: AlertSeverity;
+  severity: AlertSeverity;
   node: LayoutNode;
 }) {
   const getUniqueKeyFromObject = useGetUniqueKeyFromObject();
-  const { langAsString } = useLanguage();
-
-  /**
-   * Rendering the error messages as an ordered
-   * list with each error message as a list item.
-   */
-  const ariaLabel = validations.map((v) => langAsString(v.message.key, v.message.params)).join();
 
   return (
     <div style={{ paddingTop: 'var(--fds-spacing-2)' }}>
-      <AlertBaseComponent
-        severity={variant}
-        useAsAlert={true}
-        ariaLabel={ariaLabel}
+      <AlertDesignSystem
+        style={{ breakInside: 'avoid' }}
+        severity={severity}
       >
-        <ol style={{ paddingLeft: 0, listStyleType: 'none' }}>
+        <ul style={{ paddingLeft: 0, listStyleType: 'none' }}>
           {validations.map((validation) => (
-            <li
-              role='alert'
-              key={getUniqueKeyFromObject(validation)}
-            >
+            <li key={getUniqueKeyFromObject(validation)}>
               <Lang
                 id={validation.message.key}
                 params={validation.message.params}
@@ -149,8 +137,8 @@ function SoftValidations({
               />
             </li>
           ))}
-        </ol>
-      </AlertBaseComponent>
+        </ul>
+      </AlertDesignSystem>
     </div>
   );
 }

@@ -120,12 +120,12 @@ describe('AddressComponent', () => {
       },
     });
 
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.queryByText(/postnummer er ugyldig/i)).not.toBeInTheDocument();
 
     await userEvent.type(screen.getByRole('textbox', { name: 'Postnr *' }), '1');
     await userEvent.tab();
 
-    expect(screen.getByRole('alert')).toHaveTextContent('Postnummer er ugyldig. Et postnummer består kun av 4 siffer.');
+    expect(screen.getByText(/postnummer er ugyldig/i)).toBeInTheDocument();
   });
 
   it('should update postplace on mount', async () => {

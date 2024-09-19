@@ -4,20 +4,36 @@ import { Likert } from 'test/e2e/pageobjects/likert';
 const appFrontend = new AppFrontend();
 const likertPage = new Likert();
 
+function containTextCaseInsensitive(text: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (el: any) => expect(el.text().toLowerCase()).to.include(text.toLowerCase());
+}
+
+function notContainTextCaseInsensitive(text: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (el: any) => expect(el.text().toLowerCase()).not.to.include(text.toLowerCase());
+}
+
 describe('Likert', () => {
   it('Should show validation message for required likert', () => {
     cy.goto('likert');
     cy.get(appFrontend.sendinButton).click();
-    cy.findAllByRole('alert').should(($alerts) => {
-      expect($alerts).to.have.length(3);
-      expect($alerts.eq(0).text()).to.match(new RegExp(`du må fylle ut ${likertPage.requiredQuestions[0]}`, 'i'));
-      expect($alerts.eq(1).text()).to.match(new RegExp(`du må fylle ut ${likertPage.requiredQuestions[1]}`, 'i'));
-      expect($alerts.eq(2).text()).to.match(new RegExp(`du må fylle ut ${likertPage.requiredQuestions[2]}`, 'i'));
-    });
+
+    cy.get(appFrontend.fieldValidation('likert-group-required-item-3')).should(
+      containTextCaseInsensitive(`Du må fylle ut ${likertPage.requiredQuestions[0]}`),
+    );
+    cy.get(appFrontend.fieldValidation('likert-group-required-item-4')).should(
+      containTextCaseInsensitive(`Du må fylle ut ${likertPage.requiredQuestions[1]}`),
+    );
+    cy.get(appFrontend.fieldValidation('likert-group-required-item-5')).should(
+      containTextCaseInsensitive(`Du må fylle ut ${likertPage.requiredQuestions[2]}`),
+    );
 
     // Check the second required question and take a snapshot
     likertPage.selectRadio(likertPage.requiredQuestions[1], likertPage.options[1]);
-    cy.findAllByRole('alert').should('have.length', 2);
+    cy.get(appFrontend.fieldValidation('likert-group-required-item-4')).should(
+      notContainTextCaseInsensitive(`Du må fylle ut ${likertPage.requiredQuestions[1]}`),
+    );
     cy.snapshot('likert');
   });
   it('Should fill out optional likert and see results in summary component', () => {
