@@ -19,6 +19,7 @@ public class DesignerdbContext : DbContext
         modelBuilder.UseSerialColumns();
         modelBuilder.ApplyConfiguration(new DeploymentConfiguration());
         modelBuilder.ApplyConfiguration(new ReleaseConfiguration());
+        modelBuilder.ApplyConfiguration(new AppScopesConfiguration());
         base.OnModelCreating(modelBuilder);
     }
 
