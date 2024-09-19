@@ -55,9 +55,10 @@ export function Summary2Component({
       {/** TODO: Add translation **/}
       <StudioCard.Header>{t('ux_editor.component_properties.target')}</StudioCard.Header>
       {/** TODO: Add translation **/}
-      <StudioParagraph>Target of the summary component</StudioParagraph>
+      <StudioParagraph size='small'>Target of the summary component</StudioParagraph>
       <StudioCard.Content>
         <StudioNativeSelect
+          size='small'
           label='Type' // TODO: Add translation
           value={targetProperties.type}
           onChange={handleTypeChange}
@@ -70,12 +71,13 @@ export function Summary2Component({
         </StudioNativeSelect>
         {targetProperties.type === 'page' && (
           <StudioCombobox
+            size='small'
             label='page' // TODO: Add translation
             value={targetProperties.id ? [targetProperties.id] : []}
             onValueChange={handleTargetIdChange}
             multiple={false}
           >
-            {pages.map(([pageId, pageDetails]) => (
+            {pages.map(([pageId, _pageDetails]) => (
               <StudioCombobox.Option value={pageId} key={pageId}>
                 {pageId}
               </StudioCombobox.Option>
@@ -84,6 +86,7 @@ export function Summary2Component({
         )}
         {targetProperties.type === 'component' && (
           <StudioCombobox
+            size='small'
             label='component' // TODO: Add translation
             value={targetProperties.id ? [targetProperties.id] : []}
             onValueChange={handleTargetIdChange}
@@ -102,6 +105,7 @@ export function Summary2Component({
         )}
         {targetProperties.type === 'layoutSet' && (
           <StudioTextfield
+            size='small'
             label='layoutSet' // TODO: Add translation
             value={selectedFormLayoutSetName}
             disabled={true}
