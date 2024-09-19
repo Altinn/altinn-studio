@@ -1,6 +1,6 @@
 import React from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import {
   StudioCard,
   StudioCombobox,
@@ -26,19 +26,17 @@ export function Summary2Component({
   const componentTypeName = useComponentTypeName();
 
   const components = formLayoutsData[selectedFormLayoutName].components;
+  const excludedComponents = [ComponentType.Summary2]; // TODO: Add components that should be excluded
   const filtered = Object.entries(components).filter(([key, value]) => {
-    return value.type !== 'Summary2';
+    return excludedComponents.includes(value.type);
   });
 
   const pages = Object.entries(formLayoutsData);
 
   const handleTypeChange = (e: any) => {
-    handleComponentChange({
-      ...component,
-      target: {
-        type: e.target.value,
-      },
-    });
+    const updatedComponent = { ...component };
+    updatedComponent.target = { type: e.target.value };
+    handleComponentChange(updatedComponent);
   };
 
   const handleTargetIdChange = (value: string[]) => {
